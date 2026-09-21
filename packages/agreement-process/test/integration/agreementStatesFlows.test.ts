@@ -1,4 +1,5 @@
 /* eslint-disable functional/immutable-data */
+import { addDays, subDays } from "date-fns";
 import {
   getMockCertifiedTenantAttribute,
   getMockContext,
@@ -25,7 +26,7 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { addDays, subDays } from "date-fns";
+
 import {
   writeOnlyOneAgreement,
   updateAgreementInReadModel,

@@ -1,17 +1,18 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockedApiPartialProducerKeychain,
   getMockedApiFullProducerKeychain,
   getMockDPoPProof,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
 import { generateId } from "pagopa-interop-models";
-import { api, mockProducerKeychainService } from "../../vitest.api.setup.js";
-import { appBasePath } from "../../../src/config/appBasePath.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { toM2MGatewayApiProducerKeychain } from "../../../src/api/producerKeychainApiConverter.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
+import { api, mockProducerKeychainService } from "../../vitest.api.setup.js";
 
 describe("GET /producerKeychains/:keychainId route test", () => {
   const mockM2MFullProducerKeychainResponse = toM2MGatewayApiProducerKeychain(

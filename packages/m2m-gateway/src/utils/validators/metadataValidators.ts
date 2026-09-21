@@ -1,5 +1,6 @@
 import { WithMaybeMetadata } from "pagopa-interop-api-clients";
 import { WithMetadata } from "pagopa-interop-models";
+
 import { missingMetadata } from "../../model/errors.js";
 
 export function assertMetadataExists<T>(

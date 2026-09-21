@@ -1,5 +1,6 @@
-import { Request, Response, NextFunction } from "express";
 import { KMSClient } from "@aws-sdk/client-kms";
+import { Request, Response, NextFunction } from "express";
+
 import { IntegrityRest02SignatureConfig } from "../config/index.js";
 import { InteropTokenGenerator } from "../interop-token/interopTokenService.js";
 import {

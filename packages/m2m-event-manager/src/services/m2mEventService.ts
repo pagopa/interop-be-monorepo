@@ -31,6 +31,7 @@ import {
   PurposeTemplateM2MEventId,
   PurposeTemplateM2MEvent,
 } from "pagopa-interop-models";
+
 import { DelegationIdParam } from "../model/types.js";
 import { M2MEventReaderServiceSQL } from "./m2mEventReaderServiceSQL.js";
 

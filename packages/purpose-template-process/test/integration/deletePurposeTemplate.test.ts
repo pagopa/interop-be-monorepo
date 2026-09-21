@@ -20,18 +20,19 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { expect, describe, it, vi } from "vitest";
+
 import { config } from "../../src/config/config.js";
+import {
+  purposeTemplateNotFound,
+  purposeTemplateNotInExpectedStates,
+  purposeTemplateRiskAnalysisFormNotFound,
+} from "../../src/model/domain/errors.js";
 import {
   addOnePurposeTemplate,
   fileManager,
   purposeTemplateService,
   readLastPurposeTemplateEvent,
 } from "../integrationUtils.js";
-import {
-  purposeTemplateNotFound,
-  purposeTemplateNotInExpectedStates,
-  purposeTemplateRiskAnalysisFormNotFound,
-} from "../../src/model/domain/errors.js";
 
 describe("deletePurposeTemplate", () => {
   const mockDocument1 = getMockRiskAnalysisTemplateAnswerAnnotationDocument();

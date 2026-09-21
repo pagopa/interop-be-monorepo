@@ -1,3 +1,5 @@
+import { and, eq, inArray } from "drizzle-orm";
+import { delegationApi } from "pagopa-interop-api-clients";
 import {
   createListResult,
   escapeSqlLike,
@@ -21,8 +23,14 @@ import {
   TenantId,
   WithMetadata,
 } from "pagopa-interop-models";
-import { z } from "zod";
-import { delegationApi } from "pagopa-interop-api-clients";
+import {
+  aggregateDelegationArray,
+  AgreementReadModelService,
+  CatalogReadModelService,
+  DelegationReadModelService,
+  TenantReadModelService,
+  toDelegationAggregatorArray,
+} from "pagopa-interop-readmodel";
 import {
   agreementInReadmodelAgreement,
   delegationContractDocumentInReadmodelDelegation,
@@ -33,15 +41,7 @@ import {
   eserviceInReadmodelCatalog,
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
-import {
-  aggregateDelegationArray,
-  AgreementReadModelService,
-  CatalogReadModelService,
-  DelegationReadModelService,
-  TenantReadModelService,
-  toDelegationAggregatorArray,
-} from "pagopa-interop-readmodel";
-import { and, eq, inArray } from "drizzle-orm";
+import { z } from "zod";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({

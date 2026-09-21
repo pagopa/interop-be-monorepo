@@ -1,5 +1,11 @@
 import { randomUUID } from "crypto";
-import { describe, expect, it, vi } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
+import {
+  getMockAgreement,
+  getMockClient,
+  getMockKey,
+  getMockPurpose,
+} from "pagopa-interop-commons-test";
 import {
   Agreement,
   AgreementAddedV2,
@@ -23,21 +29,16 @@ import {
   toPurposeV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
-import {
-  getMockAgreement,
-  getMockClient,
-  getMockKey,
-  getMockPurpose,
-} from "pagopa-interop-commons-test";
-import { toCatalogItemEventNotification } from "../src/models/catalog/catalogItemEventNotificationConverter.js";
-import { buildAgreementMessage } from "../src/models/agreement/agreementEventNotificationMessage.js";
-import { buildCatalogMessage } from "../src/models/catalog/catalogItemEventNotificationMessage.js";
-import { buildPurposeMessage } from "../src/models/purpose/purposeEventNotificationMessage.js";
-import { buildAuthorizationMessage } from "../src/models/authorization/authorizationEventNotificationMessage.js";
-import { toPurposeEventNotification } from "../src/models/purpose/purposeEventNotificationConverter.js";
+import { describe, expect, it, vi } from "vitest";
+
 import { toAgreementEventNotification } from "../src/models/agreement/agreementEventNotificationConverter.js";
+import { buildAgreementMessage } from "../src/models/agreement/agreementEventNotificationMessage.js";
 import { toAuthorizationEventNotification } from "../src/models/authorization/authorizationEventNotificationConverter.js";
+import { buildAuthorizationMessage } from "../src/models/authorization/authorizationEventNotificationMessage.js";
+import { toCatalogItemEventNotification } from "../src/models/catalog/catalogItemEventNotificationConverter.js";
+import { buildCatalogMessage } from "../src/models/catalog/catalogItemEventNotificationMessage.js";
+import { toPurposeEventNotification } from "../src/models/purpose/purposeEventNotificationConverter.js";
+import { buildPurposeMessage } from "../src/models/purpose/purposeEventNotificationMessage.js";
 import { catalogItemDescriptorUpdatedNotification } from "./resources/catalogItemDescriptorUpdate.js";
 import { queueWriter } from "./utils.js";
 

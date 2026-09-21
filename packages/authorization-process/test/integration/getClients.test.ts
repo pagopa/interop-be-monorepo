@@ -1,3 +1,10 @@
+import { userRole } from "pagopa-interop-commons";
+import {
+  getMockClient,
+  getMockAuthData,
+  getMockContext,
+  sortClient,
+} from "pagopa-interop-commons-test";
 import {
   Client,
   PurposeId,
@@ -6,19 +13,13 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  getMockClient,
-  getMockAuthData,
-  getMockContext,
-  sortClient,
-} from "pagopa-interop-commons-test";
-import { userRole } from "pagopa-interop-commons";
+
+import { GetClientsFilters } from "../../src/services/readModelServiceSQL.js";
 import {
   addOneClient,
   authorizationService,
   readModelService,
 } from "../integrationUtils.js";
-import { GetClientsFilters } from "../../src/services/readModelServiceSQL.js";
 
 describe("getClients", async () => {
   const consumerId: TenantId = generateId();

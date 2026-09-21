@@ -1,16 +1,17 @@
+import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import { logger, decodeKafkaMessage } from "pagopa-interop-commons";
-import { runConsumer } from "kafka-iam-auth";
 import {
   CorrelationId,
   DelegationEvent,
   generateId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 import { makeDrizzleConnection } from "pagopa-interop-readmodel";
-import { handleMessageV2 } from "./delegationConsumerServiceV2.js";
+import { match } from "ts-pattern";
+
 import { config } from "./config/config.js";
+import { handleMessageV2 } from "./delegationConsumerServiceV2.js";
 import { delegationWriterServiceBuilder } from "./delegationWriterService.js";
 
 const db = makeDrizzleConnection(config);

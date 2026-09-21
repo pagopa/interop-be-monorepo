@@ -1,18 +1,19 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { generateId } from "pagopa-interop-models";
-import request from "supertest";
+import { bffApi } from "pagopa-interop-api-clients";
+import { authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   mockTokenOrganizationId,
   mockTokenUserId,
   getMockNotificationConfig,
 } from "pagopa-interop-commons-test";
-import { bffApi } from "pagopa-interop-api-clients";
-import { authRole } from "pagopa-interop-commons";
-import { api, clients, services } from "../../vitest.api.setup.js";
+import { generateId } from "pagopa-interop-models";
+import request from "supertest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { expectedUserIdAndOrganizationId } from "../../utils.js";
+import { api, clients, services } from "../../vitest.api.setup.js";
 
 describe("API POST /userNotificationConfigs", () => {
   const userId = mockTokenUserId;

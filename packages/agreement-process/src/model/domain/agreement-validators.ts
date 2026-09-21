@@ -1,4 +1,19 @@
 import {
+  certifiedAttributesSatisfied,
+  filterCertifiedAttributes,
+  filterDeclaredAttributes,
+  filterVerifiedAttributes,
+  matchesCertifiedDiscreteAttribute,
+} from "pagopa-interop-agreement-lifecycle";
+import {
+  isFeatureFlagEnabled,
+  M2MAdminAuthData,
+  M2MAuthData,
+  ownership,
+  Ownership,
+  UIAuthData,
+} from "pagopa-interop-commons";
+import {
   Agreement,
   AgreementState,
   AttributeId,
@@ -19,21 +34,7 @@ import {
   delegationState,
   DelegationId,
 } from "pagopa-interop-models";
-import {
-  isFeatureFlagEnabled,
-  M2MAdminAuthData,
-  M2MAuthData,
-  ownership,
-  Ownership,
-  UIAuthData,
-} from "pagopa-interop-commons";
-import {
-  certifiedAttributesSatisfied,
-  filterCertifiedAttributes,
-  filterDeclaredAttributes,
-  filterVerifiedAttributes,
-  matchesCertifiedDiscreteAttribute,
-} from "pagopa-interop-agreement-lifecycle";
+
 import { config } from "../../config/config.js";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import {

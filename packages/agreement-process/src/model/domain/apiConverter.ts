@@ -1,3 +1,4 @@
+import { agreementApi } from "pagopa-interop-api-clients";
 import {
   Agreement,
   AgreementState,
@@ -16,7 +17,6 @@ import {
   AgreementStamps,
   AgreementSignedContract,
 } from "pagopa-interop-models";
-import { agreementApi } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
 
 function agreementStateToApiAgreementState(

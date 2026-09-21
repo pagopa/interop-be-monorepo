@@ -15,6 +15,7 @@ import {
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { describe, expect, it, vi } from "vitest";
+
 import { handleEServiceTemplateEvent } from "../src/handlers/handleEServiceTemplateEvent.js";
 import {
   getMockEventEnvelopeCommons,
@@ -77,9 +78,7 @@ describe("handleEServiceTemplateEvent test", async () => {
               "EServiceTemplateDraftVersionDeleted",
               "EServiceTemplateVersionInterfaceAdded",
               "EServiceTemplateVersionInterfaceDeleted",
-              "EServiceTemplateVersionInterfaceUpdated",
               "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded",
-              "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated",
               "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted"
             ),
             async () => [

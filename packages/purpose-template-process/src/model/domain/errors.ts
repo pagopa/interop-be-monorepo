@@ -12,6 +12,7 @@ import {
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   TargetTenantKind,
 } from "pagopa-interop-models";
+
 import { PurposeTemplateValidationIssue } from "../../errors/purposeTemplateValidationErrors.js";
 
 const errorCodes = {

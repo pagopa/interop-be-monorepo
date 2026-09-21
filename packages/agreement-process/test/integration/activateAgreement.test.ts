@@ -2,6 +2,7 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { addDays } from "date-fns";
 import {
   addSomeRandomDelegations,
   decodeProtobufPayload,
@@ -56,9 +57,10 @@ import {
   fromAgreementV2,
   generateId,
 } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it } from "vitest";
-import { addDays } from "date-fns";
 import { match } from "ts-pattern";
+import { beforeEach, describe, expect, it } from "vitest";
+
+import { config } from "../../src/config/config.js";
 import {
   agreementActivableStates,
   agreementActivationAllowedDescriptorStates,
@@ -93,7 +95,6 @@ import {
   authDataAndDelegationsFromRequesterIs,
   requesterIs,
 } from "../mockUtils.js";
-import { config } from "../../src/config/config.js";
 
 const unsuspensionEventInfoFromRequesterIs = (requesterIs: RequesterIs) =>
   match(requesterIs)

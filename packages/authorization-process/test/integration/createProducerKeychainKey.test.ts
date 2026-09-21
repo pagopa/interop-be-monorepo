@@ -1,7 +1,20 @@
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import crypto from "crypto";
-import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
+import {
+  authorizationApi,
+  selfcareV2ClientApi,
+} from "pagopa-interop-api-clients";
+import { AuthData, calculateKid, createJWK } from "pagopa-interop-commons";
+import {
+  decodeProtobufPayload,
+  getMockAuthData,
+  getMockClient,
+  getMockContext,
+  getMockKey,
+  readLastEventByStreamId,
+} from "pagopa-interop-commons-test";
+import { getMockProducerKeychain } from "pagopa-interop-commons-test";
 import {
   TenantId,
   UserId,
@@ -16,20 +29,8 @@ import {
   notAnRSAKey,
   invalidPublicKey,
 } from "pagopa-interop-models";
-import { AuthData, calculateKid, createJWK } from "pagopa-interop-commons";
-import {
-  decodeProtobufPayload,
-  getMockAuthData,
-  getMockClient,
-  getMockContext,
-  getMockKey,
-  readLastEventByStreamId,
-} from "pagopa-interop-commons-test";
-import { getMockProducerKeychain } from "pagopa-interop-commons-test";
-import {
-  authorizationApi,
-  selfcareV2ClientApi,
-} from "pagopa-interop-api-clients";
+import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
+
 import {
   producerKeychainNotFound,
   keyAlreadyExists,

@@ -2,7 +2,10 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { fail } from "assert";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  purposeIdNotProvided,
+  urlCallbackNotProvided,
+} from "pagopa-interop-client-assertion-validation";
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
@@ -29,11 +32,9 @@ import {
   purposeVersionState,
   TokenGenerationStatesConsumerClient,
 } from "pagopa-interop-models";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { config } from "../../src/config/config.js";
-import {
-  purposeIdNotProvided,
-  urlCallbackNotProvided,
-} from "pagopa-interop-client-assertion-validation";
 import { catalogEntryNotFound } from "../../src/model/domain/errors.js";
 import { readInteraction } from "../../src/utilities/interactionsUtils.js";
 import { deconstructGSIPK_eserviceId_descriptorId } from "../../src/utilities/tokenServiceHelpers.js";
@@ -172,7 +173,7 @@ describe("async token service - start_interaction", () => {
 
   it("should generate token for start_interaction scope", async () => {
     mockProducer.send.mockImplementationOnce(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { jws, clientId } = await setupConsumerClient();
@@ -198,7 +199,7 @@ describe("async token service - start_interaction", () => {
 
   it("should create an interaction record in DynamoDB", async () => {
     mockProducer.send.mockImplementationOnce(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { jws, clientId, purpose, tokenClientPurposeEntry } =
@@ -247,7 +248,7 @@ describe("async token service - start_interaction", () => {
 
   it("should include digest in token when client assertion has digest", async () => {
     mockProducer.send.mockImplementationOnce(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const digest = { alg: "SHA256", value: "a".repeat(64) };
@@ -370,7 +371,7 @@ describe("async token service - start_interaction", () => {
 
   it("should generate DPoP token when DPoP proof is provided", async () => {
     mockProducer.send.mockImplementationOnce(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { jws, clientId } = await setupConsumerClient();

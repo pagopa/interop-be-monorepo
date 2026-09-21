@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { and, eq, inArray, isNull, or } from "drizzle-orm";
+import { ascLower } from "pagopa-interop-commons";
 import {
   AttributeId,
   EService,
@@ -6,7 +8,13 @@ import {
   Attribute,
   descriptorState,
 } from "pagopa-interop-models";
-import { and, eq, inArray } from "drizzle-orm";
+import {
+  aggregateEserviceArray,
+  TenantReadModelService,
+  toEServiceAggregatorArray,
+  aggregateTenantArray,
+  AttributeReadModelService,
+} from "pagopa-interop-readmodel";
 import {
   attributeInReadmodelAttribute,
   DrizzleTransactionType,
@@ -42,15 +50,8 @@ import {
   TenantVerifiedAttributeSQL,
   TenantVerifiedAttributeVerifierSQL,
   eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+  eserviceDescriptorArchivingRequestInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
-import {
-  aggregateEserviceArray,
-  TenantReadModelService,
-  toEServiceAggregatorArray,
-  aggregateTenantArray,
-  AttributeReadModelService,
-} from "pagopa-interop-readmodel";
-import { ascLower } from "pagopa-interop-commons";
 
 export function readModelServiceBuilderSQL(
   readModelDB: DrizzleReturnType,
@@ -79,6 +80,8 @@ export function readModelServiceBuilderSQL(
             eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
           archivingSchedule:
             eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+          archivingRequests:
+            eserviceDescriptorArchivingRequestInReadmodelCatalog,
           asyncExchangeProperties:
             eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
         })
@@ -163,6 +166,24 @@ export function readModelServiceBuilderSQL(
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
             eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          eserviceDescriptorArchivingRequestInReadmodelCatalog,
+          or(
+            eq(
+              eserviceDescriptorInReadmodelCatalog.id,
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.descriptorId
+            ),
+            and(
+              eq(
+                eserviceInReadmodelCatalog.id,
+                eserviceDescriptorArchivingRequestInReadmodelCatalog.eserviceId
+              ),
+              isNull(
+                eserviceDescriptorArchivingRequestInReadmodelCatalog.descriptorId
+              )
+            )
           )
         );
 

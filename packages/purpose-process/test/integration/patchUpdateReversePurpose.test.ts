@@ -1,6 +1,7 @@
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { purposeApi } from "pagopa-interop-api-clients";
 import {
   getMockTenant,
   getMockPurpose,
@@ -31,17 +32,8 @@ import {
   EServiceId,
   PurposeTemplateId,
 } from "pagopa-interop-models";
-import { purposeApi } from "pagopa-interop-api-clients";
 import { describe, it, expect, beforeAll, vi, afterAll } from "vitest";
-import {
-  addOnePurpose,
-  readLastPurposeEvent,
-  purposeService,
-  addOneTenant,
-  addOneEService,
-  addOneDelegation,
-  sortUpdatePurposeReturn,
-} from "../integrationUtils.js";
+
 import {
   duplicatedPurposeTitle,
   eServiceModeNotAllowed,
@@ -58,6 +50,15 @@ import {
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
 import { UpdatePurposeReturn } from "../../src/services/purposeService.js";
+import {
+  addOnePurpose,
+  readLastPurposeEvent,
+  purposeService,
+  addOneTenant,
+  addOneEService,
+  addOneDelegation,
+  sortUpdatePurposeReturn,
+} from "../integrationUtils.js";
 
 describe("patchUpdateReversePurpose", () => {
   let draftPurpose: Purpose;

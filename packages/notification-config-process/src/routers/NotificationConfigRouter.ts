@@ -1,5 +1,6 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { notificationConfigApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
   ZodiosContext,
@@ -8,15 +9,15 @@ import {
   authRole,
   validateAuthorization,
 } from "pagopa-interop-commons";
-import { notificationConfigApi } from "pagopa-interop-api-clients";
 import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
-import { NotificationConfigService } from "../services/notificationConfigService.js";
-import { makeApiProblem } from "../model/domain/errors.js";
+
 import {
   apiUserRoleToUserRole,
   tenantNotificationConfigToApiTenantNotificationConfig,
   userNotificationConfigToApiUserNotificationConfig,
 } from "../model/domain/apiConverter.js";
+import { makeApiProblem } from "../model/domain/errors.js";
+import { NotificationConfigService } from "../services/notificationConfigService.js";
 import {
   createTenantDefaultNotificationConfigErrorMapper,
   deleteTenantNotificationConfigErrorMapper,
@@ -31,7 +32,8 @@ const notificationConfigRouter = (
   ctx: ZodiosContext,
   notificationConfigService: NotificationConfigService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const { ADMIN_ROLE, API_ROLE, INTERNAL_ROLE, SECURITY_ROLE } = authRole;
+  const { ADMIN_ROLE, API_ROLE, INTERNAL_ROLE, REVIEWER_ROLE, SECURITY_ROLE } =
+    authRole;
 
   return ctx
     .router(notificationConfigApi.processApi.api, {
@@ -66,7 +68,12 @@ const notificationConfigRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, SECURITY_ROLE]);
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          REVIEWER_ROLE,
+          SECURITY_ROLE,
+        ]);
         const userNotificationConfig =
           await notificationConfigService.getUserNotificationConfig(ctx);
         return res
@@ -119,7 +126,12 @@ const notificationConfigRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, SECURITY_ROLE]);
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          REVIEWER_ROLE,
+          SECURITY_ROLE,
+        ]);
         const userNotificationConfig =
           await notificationConfigService.updateUserNotificationConfig(
             req.body,

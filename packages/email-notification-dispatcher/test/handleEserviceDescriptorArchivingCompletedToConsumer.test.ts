@@ -1,4 +1,5 @@
 /* eslint-disable functional/immutable-data */
+import { authRole } from "pagopa-interop-commons";
 import {
   getMockAgreement,
   getMockContext,
@@ -6,7 +7,6 @@ import {
   getMockEService,
   getMockTenant,
 } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
 import {
   Agreement,
   agreementState,
@@ -18,11 +18,14 @@ import {
   EService,
   EServiceId,
   generateId,
+  GracePeriodDays,
+  gracePeriodDays,
   missingKafkaMessageDataError,
   TenantId,
   toEServiceV2,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { handleEserviceDescriptorArchivingCompletedToConsumer } from "../src/handlers/eservices/handleEserviceDescriptorArchivingCompletedToConsumer.js";
 import {
   addOneAgreement,
@@ -39,20 +42,19 @@ describe("handleEserviceDescriptorArchivingCompletedToConsumer", () => {
   const producerTenant = { ...getMockTenant(producerId), name: "Producer T" };
   const consumerTenant = { ...getMockTenant(consumerId), name: "Consumer T" };
 
-  const archivingDescriptor: Descriptor = {
+  const archivingDescriptorId = generateId<DescriptorId>();
+  const getArchivingDescriptor = (
+    gracePeriodDaysValue: GracePeriodDays
+  ): Descriptor => ({
     ...getMockDescriptor(descriptorState.archiving),
+    id: archivingDescriptorId,
     archivingSchedule: {
       archivableOn: new Date("2026-12-31T00:00:00.000Z"),
       startedAt: new Date("2026-05-14T00:00:00.000Z"),
       scope: archivingScope.descriptor,
+      gracePeriodDays: gracePeriodDaysValue,
     },
-  };
-  const eservice: EService = {
-    ...getMockEService(),
-    name: "Test E-service",
-    producerId,
-    descriptors: [archivingDescriptor],
-  };
+  });
   const users = [
     getMockUser(consumerTenant.id),
     getMockUser(consumerTenant.id),
@@ -61,7 +63,6 @@ describe("handleEserviceDescriptorArchivingCompletedToConsumer", () => {
   const { logger } = getMockContext({});
 
   beforeEach(async () => {
-    await addOneEService(eservice);
     await addOneTenant(producerTenant);
     await addOneTenant(consumerTenant);
     readModelService.getTenantUsersWithNotificationEnabled = vi
@@ -81,7 +82,7 @@ describe("handleEserviceDescriptorArchivingCompletedToConsumer", () => {
     await expect(() =>
       handleEserviceDescriptorArchivingCompletedToConsumer({
         eserviceV2Msg: undefined,
-        descriptorId: archivingDescriptor.id,
+        descriptorId: archivingDescriptorId,
         logger,
         templateService,
         readModelService,
@@ -95,37 +96,48 @@ describe("handleEserviceDescriptorArchivingCompletedToConsumer", () => {
     );
   });
 
-  it("emits one email per consumer user", async () => {
-    const agreement: Agreement = {
-      ...getMockAgreement(),
-      stamps: {},
-      eserviceId: eservice.id,
-      producerId,
-      descriptorId: archivingDescriptor.id,
-      consumerId: consumerTenant.id,
-      state: agreementState.active,
-    };
-    await addOneAgreement(agreement);
+  it.each([...gracePeriodDays])(
+    "emits one email per consumer user (gracePeriodDays: %d)",
+    async (gracePeriodDaysValue: GracePeriodDays) => {
+      const archivingDescriptor = getArchivingDescriptor(gracePeriodDaysValue);
+      const eservice: EService = {
+        ...getMockEService(),
+        name: "Test E-service",
+        producerId,
+        descriptors: [archivingDescriptor],
+      };
+      await addOneEService(eservice);
 
-    const messages = await handleEserviceDescriptorArchivingCompletedToConsumer(
-      {
-        eserviceV2Msg: toEServiceV2(eservice),
+      const agreement: Agreement = {
+        ...getMockAgreement(),
+        stamps: {},
+        eserviceId: eservice.id,
+        producerId,
         descriptorId: archivingDescriptor.id,
-        logger,
-        templateService,
-        readModelService,
-        correlationId: generateId<CorrelationId>(),
-      }
-    );
-    expect(messages.length).toBeGreaterThanOrEqual(1);
-    expect(messages[0].email.subject).toContain(
-      "La versione di un e-service con cui stai scambiando dati è stata archiviata"
-    );
-  });
+        consumerId: consumerTenant.id,
+        state: agreementState.active,
+      };
+      await addOneAgreement(agreement);
+
+      const messages =
+        await handleEserviceDescriptorArchivingCompletedToConsumer({
+          eserviceV2Msg: toEServiceV2(eservice),
+          descriptorId: archivingDescriptor.id,
+          logger,
+          templateService,
+          readModelService,
+          correlationId: generateId<CorrelationId>(),
+        });
+      expect(messages.length).toBeGreaterThanOrEqual(1);
+      expect(messages[0].email.subject).toContain(
+        "La versione di un e-service con cui stai scambiando dati è stata archiviata"
+      );
+    }
+  );
 
   it("returns empty array when there are no agreements", async () => {
     const otherDescriptor: Descriptor = {
-      ...archivingDescriptor,
+      ...getArchivingDescriptor(30),
       id: generateId<DescriptorId>(),
     };
     const otherEservice: EService = {

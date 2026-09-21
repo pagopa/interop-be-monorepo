@@ -20,10 +20,11 @@ import {
   UserId,
   unsafeBrandId,
 } from "pagopa-interop-models";
+
 import {
   apiPurposeSignedRiskAnalisysToPurposeSignedRiskAnalisys,
   apiPurposeVersionStateToPurposeVersionState,
-  apiReviewModeToReviewMode,
+  apiRiskAnalysisReviewModeToRiskAnalysisReviewMode,
   purposeToApiPurpose,
   purposeVersionDocumentToApiPurposeVersionDocument,
   purposeVersionSignedDocumentToApiPurposeVersionSignedDocument,
@@ -244,7 +245,7 @@ const purposeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE, REVIEWER_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
         const result = await purposeService.getRemainingDailyCalls({
           purposeId: unsafeBrandId(req.params.purposeId),
@@ -531,8 +532,10 @@ const purposeRouter = (
           await purposeService.assignRiskAnalysisReviewer(
             unsafeBrandId(req.params.purposeId),
             {
-              reviewMode: apiReviewModeToReviewMode(req.body.reviewMode),
-              reviewerIds: req.body.reviewerIds,
+              reviewMode: apiRiskAnalysisReviewModeToRiskAnalysisReviewMode(
+                req.body.reviewMode
+              ),
+              reviewerIds: req.body.reviewerIds ?? [],
             },
             ctx
           );
@@ -589,6 +592,7 @@ const purposeRouter = (
         const { data: purpose, metadata } =
           await purposeService.signRiskAnalysis(
             unsafeBrandId(req.params.purposeId),
+            req.body,
             ctx
           );
 

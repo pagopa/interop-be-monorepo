@@ -1,5 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockDocument,
+  getMockEServiceTemplate,
+  getMockEServiceTemplateVersion,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   EServiceTemplate,
   EServiceTemplateId,
@@ -8,17 +16,10 @@ import {
   generateId,
   operationForbidden,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockDocument,
-  getMockEServiceTemplate,
-  getMockEServiceTemplateVersion,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { eserviceTemplateApi } from "pagopa-interop-api-clients";
-import { api, eserviceTemplateService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { documentToApiDocument } from "../../src/model/domain/apiConverter.js";
 import {
   checksumDuplicate,
   documentPrettyNameDuplicate,
@@ -29,7 +30,7 @@ import {
   asyncExchangeBulkNotAllowedForSoap,
 } from "../../src/model/domain/errors.js";
 import { buildDocumentSeed } from "../mockUtils.js";
-import { documentToApiDocument } from "../../src/model/domain/apiConverter.js";
+import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 
 describe("API POST /templates/:templateId/versions/:templateVersionId/documents", () => {
   const document = getMockDocument();

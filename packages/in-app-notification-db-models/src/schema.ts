@@ -1,5 +1,6 @@
-import { timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { InferSelectModel } from "drizzle-orm";
+import { timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+
 import { notificationSchema } from "./pgSchema.js";
 
 export const notification = notificationSchema.table("notification", {

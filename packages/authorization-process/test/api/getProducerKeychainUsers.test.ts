@@ -1,23 +1,24 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
-import request from "supertest";
+import { authorizationApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockProducerKeychain,
+} from "pagopa-interop-commons-test";
 import {
   generateId,
   ProducerKeychain,
   ProducerKeychainId,
   UserId,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockProducerKeychain,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import { authorizationApi } from "pagopa-interop-api-clients";
-import { api, authorizationService } from "../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import {
   tenantNotAllowedOnProducerKeychain,
   producerKeychainNotFound,
 } from "../../src/model/domain/errors.js";
+import { api, authorizationService } from "../vitest.api.setup.js";
 
 describe("API /producerKeychains/{producerKeychainId}/users authorization test", () => {
   const userId1: UserId = generateId();

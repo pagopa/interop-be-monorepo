@@ -1,4 +1,5 @@
 /* eslint-disable max-params */
+import { agreementApi } from "pagopa-interop-api-clients";
 import { UIAuthData, M2MAdminAuthData } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -12,8 +13,8 @@ import {
   agreementState,
   tenantMailKind,
 } from "pagopa-interop-models";
-import { agreementApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
+
 import {
   matchingCertifiedAttributes,
   matchingCertifiedDiscreteAttributes,

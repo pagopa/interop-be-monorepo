@@ -1,9 +1,10 @@
 /* eslint-disable max-params */
-import { Readable } from "stream";
 import {
   invalidDocumentDetected,
   invalidPdfSignatureError,
 } from "pagopa-interop-models";
+import { Readable } from "stream";
+
 import { FileManager } from "../file-manager/fileManager.js";
 import { Logger } from "../logging/index.js";
 import { calculateChecksum, isPdf } from "../utils/fileUtils.js";

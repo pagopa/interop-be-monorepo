@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { purposeApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test";
 import {
   PurposeId,
   PurposeVersionDocumentId,
@@ -7,11 +9,9 @@ import {
   PurposeVersionSignedDocument,
   generateId,
 } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { purposeApi } from "pagopa-interop-api-clients";
-import { api, purposeService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { purposeVersionSignedDocumentToApiPurposeVersionSignedDocument } from "../../src/model/domain/apiConverter.js";
 import {
   tenantNotAllowed,
@@ -19,6 +19,7 @@ import {
   purposeVersionDocumentNotFound,
   purposeVersionNotFound,
 } from "../../src/model/domain/errors.js";
+import { api, purposeService } from "../vitest.api.setup.js";
 
 describe("API GET /purposes/{purposeId}/versions/{versionId}/signedDocuments/{documentId} test", () => {
   const mockDocument: PurposeVersionSignedDocument = {

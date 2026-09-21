@@ -1,26 +1,27 @@
-import { describe, it, expect, vi } from "vitest";
+import { generateMock } from "@anatine/zod-mock";
+import {
+  attributeRegistryApi,
+  m2mGatewayApiV3,
+} from "pagopa-interop-api-clients";
+import { AuthRole, authRole, genericLogger } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockedApiAttribute,
   getMockDPoPProof,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole, genericLogger } from "pagopa-interop-commons";
-import request from "supertest";
-import {
-  attributeRegistryApi,
-  m2mGatewayApiV3,
-} from "pagopa-interop-api-clients";
-import { generateMock } from "@anatine/zod-mock";
 import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
-import { api, mockAttributeService } from "../../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
+import { toM2MGatewayApiCertifiedAttribute } from "../../../src/api/attributeApiConverter.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { config } from "../../../src/config/config.js";
 import {
   missingMetadata,
   unexpectedAttributeKind,
   unexpectedUndefinedAttributeOriginOrCode,
 } from "../../../src/model/errors.js";
-import { toM2MGatewayApiCertifiedAttribute } from "../../../src/api/attributeApiConverter.js";
-import { config } from "../../../src/config/config.js";
+import { api, mockAttributeService } from "../../vitest.api.setup.js";
 
 describe("POST /certifiedAttributes router test", () => {
   const mockCertifiedAttributeSeed: m2mGatewayApiV3.CertifiedAttributeSeed =

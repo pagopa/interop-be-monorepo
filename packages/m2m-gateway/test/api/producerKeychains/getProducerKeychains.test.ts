@@ -1,18 +1,19 @@
-import { describe, it, expect, vi } from "vitest";
+import { generateMock } from "@anatine/zod-mock";
+import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockedApiPartialProducerKeychain,
   getMockedApiFullProducerKeychain,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { generateId } from "pagopa-interop-models";
-import { generateMock } from "@anatine/zod-mock";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
 import { z } from "zod";
-import { api, mockProducerKeychainService } from "../../vitest.api.setup.js";
-import { appBasePath } from "../../../src/config/appBasePath.js";
+
 import { toM2MGatewayApiProducerKeychain } from "../../../src/api/producerKeychainApiConverter.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
+import { api, mockProducerKeychainService } from "../../vitest.api.setup.js";
 
 describe("GET /producerKeychains router test", () => {
   const m2mPartialProducerKeychainsResponse: m2mGatewayApi.ProducerKeychains = {

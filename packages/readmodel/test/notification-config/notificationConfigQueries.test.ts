@@ -1,18 +1,19 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { describe, expect, it } from "vitest";
 import { generateMock } from "@anatine/zod-mock";
-import { match } from "ts-pattern";
+import {
+  getMockTenantNotificationConfig,
+  getMockUserNotificationConfig,
+} from "pagopa-interop-commons-test";
 import {
   NotificationType,
   TenantId,
   UserNotificationConfig,
   generateId,
 } from "pagopa-interop-models";
-import {
-  getMockTenantNotificationConfig,
-  getMockUserNotificationConfig,
-} from "pagopa-interop-commons-test";
+import { match } from "ts-pattern";
+import { describe, expect, it } from "vitest";
+
 import {
   insertTenantNotificationConfig,
   insertUserNotificationConfig,
@@ -98,6 +99,8 @@ describe("Notification config queries", () => {
           producerKeychainKeyAddedDeletedToClientUsers: false,
           purposeQuotaAdjustmentRequestToProducer: false,
           purposeOverQuotaStateToConsumer: false,
+          eserviceArchivingRequestedToDelegator: false,
+          eserviceArchivingApprovedRejectedToDelegate: false,
         },
         emailConfig: {
           agreementSuspendedUnsuspendedToProducer: false,
@@ -124,6 +127,8 @@ describe("Notification config queries", () => {
           producerKeychainKeyAddedDeletedToClientUsers: false,
           purposeQuotaAdjustmentRequestToProducer: false,
           purposeOverQuotaStateToConsumer: false,
+          eserviceArchivingRequestedToDelegator: false,
+          eserviceArchivingApprovedRejectedToDelegate: false,
         },
       };
       await insertUserNotificationConfig(

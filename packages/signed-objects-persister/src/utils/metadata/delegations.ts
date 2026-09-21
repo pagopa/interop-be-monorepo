@@ -10,6 +10,7 @@ import {
   DelegationContractDocument,
   generateId,
 } from "pagopa-interop-models";
+
 import { getInteropBeClients } from "../../clients/clientProvider.js";
 
 export const addDelegationSignedContract = async (

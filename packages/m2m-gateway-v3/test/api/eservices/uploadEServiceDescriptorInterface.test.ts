@@ -1,22 +1,23 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
 import {
   ApiError,
   generateId,
   pollingMaxRetriesExceeded,
 } from "pagopa-interop-models";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
-import { api, mockEserviceService } from "../../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { config } from "../../../src/config/config.js";
 import { missingMetadata } from "../../../src/model/errors.js";
 import {
   TestMultipartFileUpload,
   addMultipartFileToSupertestRequest,
 } from "../../multipartTestUtils.js";
-import { config } from "../../../src/config/config.js";
+import { api, mockEserviceService } from "../../vitest.api.setup.js";
 
 describe("POST /eservices/:eserviceId/descriptors/:descriptorId/interface router test", () => {
   const mockDate = new Date();
@@ -154,6 +155,24 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/interface router
       expect(res.status).toBe(400);
     }
   );
+
+  it("Should return 400 when the multipart Content-Type has no boundary", async () => {
+    // Reproduces PIN-10459: a client sending "Content-Type: multipart/form-data"
+    // without the boundary parameter makes busboy throw
+    // "Multipart: Boundary not found". This must be reported as a client error
+    // (400) instead of an unexpected server error (500).
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await request(api)
+      .post(
+        `${appBasePath}/eservices/${generateId()}/descriptors/${generateId()}/interface`
+      )
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
+      .set("Content-Type", "multipart/form-data")
+      .send("file content without a multipart boundary");
+
+    expect(res.status).toBe(400);
+  });
 
   it.each([
     {

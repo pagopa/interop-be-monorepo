@@ -3,6 +3,7 @@ import {
   makeProducerKeychainPlatformStatesPK,
   ProducerKeychainPlatformStateEntry,
 } from "pagopa-interop-models";
+
 import { ProducerKeychainReadModelEntry } from "../services/readModelServiceSQL.js";
 import { logDifference } from "./common.js";
 

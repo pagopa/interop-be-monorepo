@@ -1,6 +1,7 @@
-import YAML from "yaml";
 import { match } from "ts-pattern";
+import YAML from "yaml";
 import { z } from "zod";
+
 import {
   eserviceInterfaceAllowedFileType,
   EserviceRestInterfaceType,
@@ -37,6 +38,7 @@ export const retriesceServerUrlsOpenApiV3 = (
 ): string[] => {
   const { data: servers, error } = z
     .array(z.object({ url: z.string() }))
+    .nonempty()
     .safeParse(openApi.servers);
   if (error) {
     throw error;

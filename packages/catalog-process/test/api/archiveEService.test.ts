@@ -1,19 +1,20 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
-import request from "supertest";
+import { authRole } from "pagopa-interop-commons";
+import { generateToken, getMockEService } from "pagopa-interop-commons-test";
 import {
   EService,
   EServiceId,
   generateId,
   operationForbidden,
 } from "pagopa-interop-models";
-import { authRole } from "pagopa-interop-commons";
-import { generateToken, getMockEService } from "pagopa-interop-commons-test";
-import { api, catalogService } from "../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import {
   eServiceNotFound,
   eServiceAlreadyArchived,
 } from "../../src/model/domain/errors.js";
+import { api, catalogService } from "../vitest.api.setup.js";
 
 describe("API /internal/eservices/{eServiceId}/archive authorization test", () => {
   const mockEService: EService = {

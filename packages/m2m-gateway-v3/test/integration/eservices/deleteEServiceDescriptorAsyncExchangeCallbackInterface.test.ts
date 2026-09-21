@@ -1,21 +1,22 @@
-import { describe, it, vi, beforeEach, expect } from "vitest";
-import { unsafeBrandId } from "pagopa-interop-models";
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   getMockWithMetadata,
   getMockedApiEservice,
   getMockedApiEserviceDescriptor,
   getMockedApiEserviceDoc,
 } from "pagopa-interop-commons-test";
-import { catalogApi } from "pagopa-interop-api-clients";
+import { unsafeBrandId } from "pagopa-interop-models";
+import { describe, it, vi, beforeEach, expect } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound } from "../../../src/model/errors.js";
 import {
   eserviceService,
   expectApiClientPostToHaveBeenCalledWith,
   mockInteropBeClients,
   mockPollingResponse,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound } from "../../../src/model/errors.js";
 
 describe("deleteEServiceDescriptorAsyncExchangeCallbackInterface", () => {
   const mockDocument = getMockedApiEserviceDoc();

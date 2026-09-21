@@ -1,3 +1,5 @@
+import { and, asc, eq, or } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/node-postgres";
 import {
   agreementInM2MEvent,
   attributeInM2MEvent,
@@ -13,7 +15,6 @@ import {
   eserviceTemplateInM2MEvent,
   purposeTemplateInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
-import { drizzle } from "drizzle-orm/node-postgres";
 import {
   AgreementM2MEvent,
   AgreementM2MEventId,
@@ -43,30 +44,30 @@ import {
   PurposeTemplateM2MEventId,
   PurposeTemplateM2MEvent,
 } from "pagopa-interop-models";
-import { and, asc, eq, or } from "drizzle-orm";
-import {
-  afterEventIdFilter,
-  delegationIdFilter,
-  visibilityFilter,
-} from "../utilities/m2mEventSQLUtils.js";
-import { fromAttributeM2MEventSQL } from "../model/attributeM2MEventAdapterSQL.js";
-import { fromEServiceM2MEventSQL } from "../model/eserviceM2MEventAdapterSQL.js";
+
 import { fromAgreementM2MEventSQL } from "../model/agreementM2MEventAdapterSQL.js";
-import { DelegationIdParam } from "../model/types.js";
-import { fromPurposeM2MEventSQL } from "../model/purposeM2MEventAdapterSQL.js";
-import {
-  fromConsumerDelegationM2MEventSQL,
-  fromProducerDelegationM2MEventSQL,
-} from "../model/delegationM2MEventAdapterSQL.js";
+import { fromAttributeM2MEventSQL } from "../model/attributeM2MEventAdapterSQL.js";
 import {
   fromClientM2MEventSQL,
   fromKeyM2MEventSQL,
   fromProducerKeychainM2MEventSQL,
   fromProducerKeyM2MEventSQL,
 } from "../model/authorizationM2MEventAdapterSQL.js";
-import { fromTenantM2MEventSQL } from "../model/tenantM2MEventAdapterSQL.js";
+import {
+  fromConsumerDelegationM2MEventSQL,
+  fromProducerDelegationM2MEventSQL,
+} from "../model/delegationM2MEventAdapterSQL.js";
+import { fromEServiceM2MEventSQL } from "../model/eserviceM2MEventAdapterSQL.js";
 import { fromEServiceTemplateM2MEventSQL } from "../model/eserviceTemplateM2MEventAdapterSQL.js";
+import { fromPurposeM2MEventSQL } from "../model/purposeM2MEventAdapterSQL.js";
 import { fromPurposeTemplateM2MEventSQL } from "../model/purposeTemplateM2MEventAdapterSQL.js";
+import { fromTenantM2MEventSQL } from "../model/tenantM2MEventAdapterSQL.js";
+import { DelegationIdParam } from "../model/types.js";
+import {
+  afterEventIdFilter,
+  delegationIdFilter,
+  visibilityFilter,
+} from "../utilities/m2mEventSQLUtils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function m2mEventReaderServiceSQLBuilder(

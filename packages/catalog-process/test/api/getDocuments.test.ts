@@ -1,4 +1,5 @@
 import { catalogApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockDescriptor,
@@ -14,13 +15,13 @@ import {
 } from "pagopa-interop-models";
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AuthRole, authRole } from "pagopa-interop-commons";
+
 import { documentToApiDocument } from "../../src/model/domain/apiConverter.js";
-import { api, catalogService } from "../vitest.api.setup.js";
 import {
   eServiceDescriptorNotFound,
   eServiceNotFound,
 } from "../../src/model/domain/errors.js";
+import { api, catalogService } from "../vitest.api.setup.js";
 
 describe("API GET /eservices/{eserviceId}/descriptors/{descriptorId}/documents test", () => {
   const mockDocument1 = getMockDocument();

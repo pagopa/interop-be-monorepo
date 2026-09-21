@@ -1,17 +1,18 @@
-import request from "supertest";
 import { eserviceTemplateApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import { authRole, AuthRole } from "pagopa-interop-commons";
 import {
   getMockedApiEServiceTemplate,
   generateToken,
 } from "pagopa-interop-commons-test";
 import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
+import request from "supertest";
 import { describe, it, vi, expect } from "vitest";
-import { authRole, AuthRole } from "pagopa-interop-commons";
+
 import { toM2MGatewayEServiceTemplateVersion } from "../../../src/api/eserviceTemplateApiConverter.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { config } from "../../../src/config/config.js";
 import { missingMetadata } from "../../../src/model/errors.js";
 import { api, mockEServiceTemplateService } from "../../vitest.api.setup.js";
-import { config } from "../../../src/config/config.js";
 
 describe("PATCH /eserviceTemplates/:templateId/versions/:versionId/quotas router test", () => {
   const mockVersion: eserviceTemplateApi.EServiceTemplateVersion = {
