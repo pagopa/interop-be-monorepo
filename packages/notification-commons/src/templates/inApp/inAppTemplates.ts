@@ -401,6 +401,11 @@ export const inAppTemplates = {
     eserviceName: string
   ): string =>
     `L'ente ${producerName} ti ha assegnato un'analisi del rischio da approvare per la finalità ${purposeName} associata all'e-service ${eserviceName}.`,
+  purposePublishedWithRiskAnalysisToReviewer: (
+    purposeName: string,
+    eserviceName: string
+  ): string =>
+    `L'amministratore ha pubblicato la finalità ${purposeName} associata all'e-service ${eserviceName} con analisi del rischio che ti era stata assegnata.`,
   purposeQuotaAdjustmentNewVersionToProducer: (
     consumerName: string,
     purposeName: string,
