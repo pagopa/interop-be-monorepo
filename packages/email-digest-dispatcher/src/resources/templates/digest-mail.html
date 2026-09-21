@@ -206,6 +206,10 @@
       .list-item-secondary {
         color: #17324d;
       }
+      .section-cell {
+        padding: 12px 16px;
+        background-color: #ffffff;
+      }
       .alert-success {
         border-left: 4px solid #00c853;
         background-color: #ffffff;
@@ -335,7 +339,7 @@
       }
 
       /* Dark Mode */
-      @media (prefers-color-scheme: dark) {
+      @media (prefers-color-scheme: light) {
         body,
         .mail-body {
           background-color: #323232;
@@ -592,16 +596,17 @@
                                         {{#if newEservicesSingular}}
                                         È stato pubblicato
                                         <strong
-                                          >1 nuovo
-                                          e-service:</strong
-                                        >
+                                          >un nuovo
+                                          e-service</strong
+                                        >,
                                         {{else}}
                                         Sono stati pubblicati
                                         <strong
                                           >{{ newEservices.totalCount }} nuovi
-                                          e-service.</strong
-                                        > Ecco i più recenti:
+                                          e-service</strong
+                                        >,
                                         {{/if}}
+                                        tra cui:
                                       </p>
 
                                       <!-- Grid Wrapper -->
@@ -632,7 +637,8 @@
                                                     class="link-primary" style="color: #0073e6;"
                                                     aria-label="Visualizza dettaglio di {{name}}"
                                                   >
-                                                    Visualizza                                                  </a>
+                                                    Vai all'e-service
+                                                  </a>
                                                 </td>
                                               </tr>
                                             </table>
@@ -678,18 +684,19 @@
                                         {{#if updatedEservicesSingular}}
                                         È stato aggiornato
                                         <strong
-                                          >1
+                                          >un
                                           e-service</strong
                                         >
-                                        a cui sei iscritto:
+                                        di cui sei fruitore,
                                         {{else}}
                                         Sono stati aggiornati
                                         <strong
                                           >{{ updatedEservices.totalCount }}
                                           e-service</strong
                                         >
-                                        a cui sei iscritto. Ecco i più recenti:
+                                        di cui sei fruitore,
                                         {{/if}}
+                                        tra cui:
                                       </p>
 
                                       <!-- Grid Wrapper -->
@@ -713,7 +720,7 @@
                                                     class="link-primary" style="color: #0073e6;"
                                                     aria-label="Visualizza dettaglio di {{name}}"
                                                   >
-                                                    Visualizza                                                  </a>
+                                                    Vai all'e-service                                                  </a>
                                                 </td>
                                               </tr>
                                             </table>
@@ -759,17 +766,15 @@
                                         {{#if updatedEserviceTemplatesSingular}}
                                         È stato aggiornato
                                         <strong
-                                          >1
-                                          template e-service da cui hai generato
-                                          una istanza</strong
+                                          >un
+                                          template e-service che hai usato per creare una istanza</strong
                                         >:
                                         {{else}}
                                         Sono stati aggiornati
                                         <strong
                                           >{{ updatedEserviceTemplates.totalCount }}
-                                          template e-service da cui hai generato
-                                          una istanza</strong
-                                        >, tra cui:
+                                          template e-service che hai usato per creare una istanza</strong
+                                        >:
                                         {{/if}}
                                       </p>
 
@@ -784,84 +789,6 @@
                                                   <p class="card-producer">
                                                     {{ producerName }}
                                                   </p>
-                                                  <p class="card-title">{{ name }}</p>
-                                                </td>
-                                              </tr>
-                                              <tr>
-                                                <td style="padding: 0 16px 16px 16px; vertical-align: bottom;">
-                                                  <a
-                                                    href="{{ link }}"
-                                                    class="link-primary" style="color: #0073e6;"
-                                                    aria-label="Visualizza dettaglio di {{name}}"
-                                                  >
-                                                    Visualizza                                                  </a>
-                                                </td>
-                                              </tr>
-                                            </table>
-                                          </div>
-                                        </div>
-                                        {{/each}}
-                                      </div>
-                                    </div>
-                                    {{/if}}
-                                    {{/if}}
-
-                                    <!-- I tuoi template più utilizzati -->
-                                    {{#if showPopularEserviceTemplates}}
-                                    {{#if popularEserviceTemplates.totalCount}}
-                                    <div class="section-divider">
-                                      <table
-                                        class="section-header-table" role="presentation"
-                                        width="100%"
-                                        cellpadding="0"
-                                        cellspacing="0"
-                                        border="0"
-                                      >
-                                        <tr>
-                                          <td valign="middle">
-                                            <h2 class="h2-title">
-                                              I tuoi template
-                                              più utilizzati
-                                            </h2>
-                                          </td>
-                                          {{#if viewAllPopularEserviceTemplatesLink}}
-                                          <td valign="middle" align="right" style="white-space: nowrap;">
-                                            <a
-                                              href="{{viewAllPopularEserviceTemplatesLink}}"
-                                              class="link-primary" style="color: #0073e6;"
-                                              aria-label="Visualizza tutti i template più utilizzati"
-                                              >Visualizza tutti</a
-                                            >
-                                          </td>
-                                          {{/if}}
-                                        </tr>
-                                      </table>
-                                      <p class="body-text">
-                                        {{#if popularEserviceTemplatesSingular}}
-                                        <strong
-                                          >1
-                                          dei tuoi template</strong
-                                        >
-                                        è stato utilizzato per creare nuovi
-                                        e-service:
-                                        {{else}}
-                                        <strong
-                                          >{{ popularEserviceTemplates.totalCount }}
-                                          dei tuoi template</strong
-                                        >
-                                        sono stati utilizzati per creare nuovi
-                                        e-service, tra cui:
-                                        {{/if}}
-                                      </p>
-
-                                      <!-- Grid Wrapper -->
-                                      <div class="card-grid-wrapper" style="font-size: 0; text-align: left; margin: 0 -8px;">
-                                        {{#each popularEserviceTemplates.items}}
-                                        <div class="card-grid-item" style="display: inline-block; width: 100%; max-width: 288px; vertical-align: top; padding: 0 8px; margin-bottom: 16px; box-sizing: border-box;">
-                                          <div class="card" style="border: 1px solid #e3e7eb; border-radius: 8px; padding: 0; height: 140px; box-sizing: border-box; background-color: #ffffff;">
-                                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="height: 100%;">
-                                              <tr>
-                                                <td style="padding: 16px 16px 0 16px; vertical-align: top;">
                                                   <p class="card-title">{{ name }}</p>
                                                 </td>
                                               </tr>
@@ -925,20 +852,20 @@
 
                                       <p class="body-text-no-margin">
                                         {{#if acceptedSentAgreementsSingular}}
-                                        È stata accettata
-                                        <strong>1 richiesta</strong>
+                                        <strong>
+                                          È stata approvata una richiesta di fruizione per:
+                                        </strong>
                                         {{else}}
-                                        Sono state accettate
-                                        <strong
-                                          >{{ acceptedSentAgreements.totalCount
-                                          }} richieste</strong
-                                        >
+                                        <strong>
+                                          Sono state approvate {{ 
+                                            acceptedSentAgreements.totalCount
+                                          }} richieste di fruizione per:
+                                        </strong>
                                         {{/if}}
-                                        per:
                                       </p>
                                       <ul class="list-items">
                                         {{#each acceptedSentAgreements.items}}
-                                        <li class="list-item">
+                                        <ul class="list-item">
                                           <a
                                             href="{{ link }}"
                                             class="link-primary" style="color: #0073e6;"
@@ -947,80 +874,83 @@
                                           <span class="list-item-secondary"
                                             >da {{ producerName }}</span
                                           >
-                                        </li>
+                                        </ul>
                                         {{/each}}
+                                        {{#if acceptedSentAgreements.remainingCount}}
+                                        <ul class="list-item">
+                                          E altre {{ acceptedSentAgreements.remainingCount }}.
+                                        </ul>
+                                        {{/if}}
                                       </ul>
 
-                                      <!-- Green Alert -->
-                                      <div class="alert-success" role="note">
+                                      <!-- Warning Alert -->
+                                      <div class="alert-warning" role="note">
                                         <p class="alert-text">
-                                          Puoi proseguire
-                                          formulando almeno una finalità per
-                                          ciascuna richiesta accettata.
+                                          Ora puoi creare almeno
+                                          una finalità per ogni richiesta approvata.
                                         </p>
                                       </div>
                                     </div>
                                     {{/if}} {{#if
                                     rejectedSentAgreements.totalCount}}
-                                    <div class="section-divider">
-                                      <p class="body-text-no-margin">
-                                        {{#if rejectedSentAgreementsSingular}}
-                                        È stata rifiutata
-                                        <strong>1 richiesta</strong>
-                                        {{else}}
-                                        Sono state rifiutate
-                                        <strong
-                                          >{{ rejectedSentAgreements.totalCount
-                                          }} richieste</strong
+                                    <p class="body-text-no-margin">
+                                      {{#if rejectedSentAgreementsSingular}}
+                                      <strong>
+                                        È stata rifiutata una
+                                        richiesta di fruizione per:
+                                      </strong>
+                                      {{else}}
+                                      <strong>
+                                        Sono state rifiutate {{ 
+                                        rejectedSentAgreements.totalCount}} richieste
+                                        di fruizione per:
+                                      </strong>
+                                      {{/if}}
+                                    </p>
+                                    <ul class="list-items">
+                                      {{#each rejectedSentAgreements.items}}
+                                      <ul class="list-item">
+                                        <a
+                                          href="{{ link }}"
+                                          class="link-primary" style="color: #0073e6;"
+                                          >{{ name }}</a
                                         >
-                                        {{/if}}
-                                        per:
-                                      </p>
-                                      <ul class="list-items">
-                                        {{#each rejectedSentAgreements.items}}
-                                        <li class="list-item">
-                                          <a
-                                            href="{{ link }}"
-                                            class="link-primary" style="color: #0073e6;"
-                                            >{{ name }}</a
-                                          >
-                                          <span class="list-item-secondary"
-                                            >da {{ producerName }}</span
-                                          >
-                                        </li>
-                                        {{/each}}
+                                        <span class="list-item-secondary"
+                                          >da {{ producerName }}</span
+                                        >
                                       </ul>
-                                    </div>
+                                      {{/each}}
+                                    </ul>
                                     {{/if}} {{#if
                                     suspendedSentAgreements.totalCount}}
                                     <div class="section-divider">
-                                      <p class="body-text-no-margin">
-                                        {{#if suspendedSentAgreementsSingular}}
-                                        È stata sospesa
-                                        <strong>1 richiesta</strong>
-                                        {{else}}
-                                        Sono state sospese
-                                        <strong
-                                          >{{ suspendedSentAgreements.totalCount
-                                          }} richieste</strong
+                                    <p class="body-text-no-margin">
+                                      {{#if suspendedSentAgreementsSingular}}
+                                      <strong>
+                                        È stata sospesa una richiesta di fruizione per:
+                                      </strong>
+                                      {{else}}
+                                      
+                                      <strong>
+                                        Sono state sospese {{ 
+                                        suspendedSentAgreements.totalCount }} di fruizione per:
+                                      </strong>
+                                      {{/if}}
+                                    </p>
+                                    <ul class="list-items">
+                                      {{#each suspendedSentAgreements.items}}
+                                      <ul class="list-item">
+                                        <a
+                                          href="{{ link }}"
+                                          class="link-primary" style="color: #0073e6;"
+                                          >{{ name }}</a
                                         >
-                                        {{/if}}
-                                        per:
-                                      </p>
-                                      <ul class="list-items">
-                                        {{#each suspendedSentAgreements.items}}
-                                        <li class="list-item">
-                                          <a
-                                            href="{{ link }}"
-                                            class="link-primary" style="color: #0073e6;"
-                                            >{{ name }}</a
-                                          >
-                                          <span class="list-item-secondary"
-                                            >da {{ producerName }}</span
-                                          >
-                                        </li>
-                                        {{/each}}
-                                      </ul>
+                                        <span class="list-item-secondary"
+                                          >da {{ producerName }}</span
+                                        >
+                                      </li>
+                                      {{/each}}
+                                    </ul>
                                     </div>
                                     {{/if}}
                                     {{/if}}
@@ -1058,84 +988,85 @@
 
                                       <p class="body-text-no-margin">
                                         {{#if publishedSentPurposesSingular}}
-                                        È stata pubblicata
-                                        <strong>1 finalità</strong>:
+                                        <strong>
+                                          È stata pubblicata una finalità:
+                                        </strong>
                                         {{else}}
-                                        Sono state pubblicate
-                                        <strong
-                                          >{{ publishedSentPurposes.totalCount
-                                          }} finalità</strong
-                                        >:
+                                        <strong>
+                                          Sono state pubblicate {{ 
+                                          publishedSentPurposes.totalCount }} finalità:
+                                        </strong>
                                         {{/if}}
                                       </p>
                                       <ul class="list-items">
                                         {{#each publishedSentPurposes.items}}
-                                        <li class="list-item">
+                                        <ul class="list-item">
                                           <a
                                             href="{{ link }}"
                                             class="link-primary" style="color: #0073e6;"
                                             >{{ name }}</a
                                           >
-                                        </li>
+                                        </ul>
                                         {{/each}}
                                       </ul>
 
                                       <!-- Green Alert -->
-                                      <div class="alert-success" role="note">
+                                      <div class="alert-warning" role="note">
                                         <p class="alert-text">
-                                          Puoi proseguire
-                                          associando almeno un client per
-                                          ciascuna finalità.
+                                          Ora puoi associare almeno un client
+                                          per ogni finalità.
                                         </p>
                                       </div>
                                     </div>
                                     {{/if}} {{#if
                                     rejectedSentPurposes.totalCount}}
-                                    <div class="section-divider">
-                                      <p class="body-text-no-margin">
-                                        {{#if rejectedSentPurposesSingular}}
-                                        È stata rifiutata
-                                        <strong>1 finalità</strong>:
-                                        {{else}}
-                                        Sono state rifiutate
-                                        <strong
-                                          >{{ rejectedSentPurposes.totalCount }}
-                                          finalità</strong
-                                        >:
-                                        {{/if}}
-                                      </p>
-                                      <ul class="list-items">
-                                        {{#each rejectedSentPurposes.items}}
-                                        <li class="list-item">
-                                          <a
-                                            href="{{ link }}"
-                                            class="link-primary" style="color: #0073e6;"
-                                            >{{ name }}</a
-                                          >
+                                    <p class="body-text-no-margin">
+                                      {{#if rejectedSentPurposesSingular}}
+                                      <strong>
+                                        È stata rifiutata una finalità:
+                                      </strong>
+                                      {{else}}
+                                      <strong>
+                                        Sono state rifiutate {{ 
+                                        rejectedSentPurposes.totalCount }} finalità:
+                                      </strong>
+                                      {{/if}}
+                                    </p>
+                                    <ul class="list-items">
+                                      {{#each rejectedSentPurposes.items}}
+                                      <ul class="list-item">
+                                        <a
+                                          href="{{ link }}"
+                                          class="link-primary" style="color: #0073e6;"
+                                          >{{ name }}</a
+                                        >
 
-                                        </li>
-                                        {{/each}}
                                       </ul>
-                                    </div>
+                                      {{/each}}
+                                    </ul>
                                     {{/if}} {{#if
                                     waitingForApprovalSentPurposes.totalCount}}
                                     <div class="section-divider">
                                       <p class="body-text-no-margin">
-                                        A causa del superamento della soglia imposta dall'erogatore,
-                                        <strong
-                                          >{{ waitingForApprovalSentPurposes.totalCount
-                                          }} finalità in attesa di approvazione</strong
-                                        >:
+                                        <strong>
+                                          A causa del superamento delle soglie definite dall'erogatore,
+                                          {{#if waitingForApprovalSentPurposesSingular}}
+                                          una finalità è in attesa di approvazione:
+                                          {{else}}
+                                          {{ waitingForApprovalSentPurposes.totalCount
+                                          }} finalità sono in attesa di approvazione:
+                                          {{/if}}
+                                        </strong>
                                       </p>
                                       <ul class="list-items">
                                         {{#each waitingForApprovalSentPurposes.items}}
-                                        <li class="list-item">
+                                        <ul class="list-item">
                                           <a
                                             href="{{ link }}"
                                             class="link-primary" style="color: #0073e6;"
                                             >{{ name }}</a
                                           >
-                                        </li>
+                                        </ul>
                                         {{/each}}
                                       </ul>
                                     </div>
@@ -1166,7 +1097,7 @@
                                           <td valign="middle">
                                             <h2 class="h2-title">
                                               Richieste di
-                                              fruizione che hai ricevuto
+                                              fruizione ricevute
                                             </h2>
                                           </td>
                                           {{#if viewAllReceivedAgreementsLink}}
@@ -1183,26 +1114,20 @@
                                       </table>
 
                                       <p class="body-text-no-margin">
-                                        {{#if waitingForApprovalReceivedAgreementsSingular}}
-                                        Hai ricevuto
-                                        <strong>1 richiesta di fruizione</strong>
-                                        di un tuo servizio che richiede la tua
-                                        approvazione:
-                                        {{else}}
-                                        Hai ricevuto
-                                        <strong
-                                          >{{
-                                          waitingForApprovalReceivedAgreements.totalCount
-                                          }} richieste di fruizione</strong
-                                        >
-                                        di tuoi servizi che richiedono la tua
-                                        approvazione:
-                                        {{/if}}
+                                        <strong>
+                                          {{#if waitingForApprovalReceivedAgreementsSingular}}
+                                          C'è una richiesta
+                                          {{else}}
+                                          Ci sono {{ waitingForApprovalReceivedAgreements.totalCount
+                                          }} richieste
+                                          {{/if}}
+                                          di fruizione in attesa di approvazione:
+                                        </strong>
                                       </p>
                                       <ul class="list-items">
                                         {{#each
                                         waitingForApprovalReceivedAgreements.items}}
-                                        <li class="list-item">
+                                        <ul class="list-item">
                                           <a
                                             href="{{ link }}"
                                             class="link-primary" style="color: #0073e6;"
@@ -1212,17 +1137,15 @@
                                             >richiesta da {{ producerName
                                             }}</span
                                           >
-                                        </li>
+                                          </ul>
                                         {{/each}}
                                       </ul>
 
                                       <!-- Yellow Alert -->
                                       <div class="alert-warning" role="note">
                                         <p class="alert-text">
-                                          Verifica le
-                                          richieste per permettere agli enti
-                                          Fruitori di completare
-                                          l'implementazione.
+                                          Approva le richieste di fruizione e permetti
+                                          agli enti di avere accesso all'e-service.
                                         </p>
                                       </div>
                                     </div>
@@ -1261,17 +1184,20 @@
                                       </table>
 
                                       <p class="body-text-no-margin">
-                                        Hai ricevuto
-                                        <strong
-                                          >{{
-                                          publishedReceivedPurposes.totalCount
-                                          }} Finalità</strong
-                                        >:
+                                        <strong>
+                                          {{#if publishedReceivedPurposesSingular }}
+                                          È stata pubblicata una
+                                          {{else}}
+                                          Sono state pubblicate {{
+                                          publishedReceivedPurposes.totalCount }} 
+                                          {{/if}}
+                                          finalità inoltrate al tuo ente:
+                                        </strong>
                                       </p>
                                       <ul class="list-items">
                                         {{#each
                                         publishedReceivedPurposes.items}}
-                                        <li class="list-item">
+                                        <ul class="list-item">
                                           <a
                                             href="{{ link }}"
                                             class="link-primary" style="color: #0073e6;"
@@ -1281,48 +1207,46 @@
                                             >richiesta da {{ producerName
                                             }}</span
                                           >
-                                        </li>
+                                        </ul>
                                         {{/each}}
                                       </ul>
                                     </div>
                                     {{/if}} {{#if
                                     waitingForApprovalReceivedPurposes.totalCount}}
-                                    <div class="section-divider">
-                                      <p class="body-text-no-margin">
-                                        Hai
-                                        <strong
-                                          >{{
-                                          waitingForApprovalReceivedPurposes.totalCount
-                                          }} Finalità</strong
+                                    <p class="body-text-no-margin">
+                                      <strong>
+                                        {{#if waitingForApprovalReceivedPurposesSingular}}
+                                        C'è una finalità
+                                        {{else}}
+                                        Ci sono {{ waitingForApprovalReceivedPurposes.totalCount
+                                        }} finalità
+                                        {{/if}}
+                                        in attesa di approvazione:
+                                      </strong>
+                                    </p>
+                                    <ul class="list-items">
+                                      {{#each
+                                      waitingForApprovalReceivedPurposes.items}}
+                                      <ul class="list-item">
+                                        <a
+                                          href="{{ link }}"
+                                          class="link-primary" style="color: #0073e6;"
+                                          >{{ name }}</a
                                         >
-                                        in attesa di approvazione da parte tua:
-                                      </p>
-                                      <ul class="list-items">
-                                        {{#each
-                                        waitingForApprovalReceivedPurposes.items}}
-                                        <li class="list-item">
-                                          <a
-                                            href="{{ link }}"
-                                            class="link-primary" style="color: #0073e6;"
-                                            >{{ name }}</a
-                                          >
-                                          <span class="list-item-secondary"
-                                            >richiesta da {{ producerName
-                                            }}</span
-                                          >
-                                        </li>
-                                        {{/each}}
-                                      </ul>
+                                        <span class="list-item-secondary"
+                                          >richiesta da {{ producerName
+                                          }}</span
+                                        >
+                                        </ul>
+                                      {{/each}}
+                                    </ul>
 
-                                      <!-- Yellow Alert -->
-                                      <div class="alert-warning" role="note">
-                                        <p class="alert-text">
-                                          Verifica le
-                                          finalità per permettere agli enti
-                                          Fruitori di completare
-                                          l'implementazione.
-                                        </p>
-                                      </div>
+                                    <!-- Yellow Alert -->
+                                    <div class="alert-warning" role="note">
+                                      <p class="alert-text">
+                                        Approva le finalità e permetti agli enti
+                                        di attivare la richiesta di fruizione.
+                                      </p>
                                     </div>
                                     {{/if}}
                                     {{/if}}
@@ -1335,10 +1259,10 @@
                                     align="left"
                                     class="mobile-padding content-wrapper"
                                   >
-                                    <!-- Richieste di delega ricevute come delegato -->
+                                    <!-- Deleghe -->
                                     {{#if showDelegations}}
                                     {{#if waitingForApprovalReceivedDelegations.totalCount}}
-                                    <div class="section-divider">
+                                    <div>
                                       <table
                                         class="section-header-table" role="presentation"
                                         width="100%"
@@ -1349,8 +1273,7 @@
                                         <tr>
                                           <td valign="middle">
                                             <h2 class="h2-title">
-                                              Richieste di
-                                              delega ricevute come delegato
+                                              Deleghe
                                             </h2>
                                           </td>
                                           {{#if viewAllReceivedDelegationsLink}}
@@ -1367,236 +1290,77 @@
                                       </table>
 
                                       <p class="body-text-no-margin">
-                                        {{#if waitingForApprovalReceivedDelegationsSingular}}
-                                        Hai
-                                        <strong>1
-                                          richiesta di delega</strong>
-                                        in attesa di approvazione da parte tua:
-                                        {{else}}
-                                        Hai
-                                        <strong>{{
-                                          waitingForApprovalReceivedDelegations.totalCount
-                                        }}
-                                          richieste di delega</strong
-                                        >
-                                        in attesa di approvazione da parte tua:
-                                        {{/if}}
+                                        <strong>
+                                          {{#if waitingForApprovalReceivedDelegationsSingular}}
+                                          Hai ricevuto una richiesta
+                                          {{else}}
+                                          Hai ricevuto {{ waitingForApprovalReceivedDelegations.totalCount
+                                          }} richieste
+                                          {{/if}}
+                                          per pubblicare un e-service o una nuova versione:
+                                        </strong>
                                       </p>
                                       <ul class="list-items">
                                         {{#each
                                         waitingForApprovalReceivedDelegations.items}}
-                                        <li class="list-item">
-                                          Richiesta di delega in
-                                          {{ delegationKind }} dell'e-service
+                                        <ul class="list-item">
                                           <a
                                             href="{{ link }}"
                                             class="link-primary" style="color: #0073e6;"
                                             >{{ name }}</a
                                           >
                                           <span class="list-item-secondary"
-                                            >da parte di {{ producerName }}</span
+                                            >delegato a {{ producerName }}</span
                                           >
-                                        </li>
+                                        </ul>
                                         {{/each}}
                                       </ul>
+                                      <!-- Yellow Alert -->
+                                      <div class="alert-warning" role="note">
+                                        <p class="alert-text">
+                                          Approva le richieste e permetti
+                                          agli utenti di continuare a scambiare dati.
+                                        </p>
+                                      </div>
                                     </div>
-                                    {{/if}} {{#if
+                                    {{/if}} 
+                                    {{#if
                                     revokedReceivedDelegations.totalCount}}
                                     <div class="section-divider">
-                                      {{#unless
-                                      waitingForApprovalReceivedDelegations.totalCount}}
-                                      <table
-                                        class="section-header-table" role="presentation"
-                                        width="100%"
-                                        cellpadding="0"
-                                        cellspacing="0"
-                                        border="0"
-                                      >
-                                        <tr>
-                                          <td valign="middle">
-                                            <h2 class="h2-title">
-                                              Richieste di
-                                              delega ricevute come delegato
-                                            </h2>
-                                          </td>
-                                          {{#if viewAllReceivedDelegationsLink}}
-                                          <td valign="middle" align="right" style="white-space: nowrap;">
-                                            <a
-                                              href="{{viewAllReceivedDelegationsLink}}"
-                                              class="link-primary" style="color: #0073e6;"
-                                              aria-label="Visualizza tutte le deleghe ricevute"
-                                              >Visualizza tutte</a
-                                            >
-                                          </td>
-                                          {{/if}}
-                                        </tr>
-                                      </table>
-                                      {{/unless}}
-
                                       <p class="body-text-no-margin">
-                                        {{#if revokedReceivedDelegationsSingular}}
-                                        È stata revocata
-                                        <strong>1
-                                          richiesta di delega</strong>:
-                                        {{else}}
-                                        Sono state revocate
-                                        <strong>{{
-                                          revokedReceivedDelegations.totalCount
-                                        }}
-                                          richieste di delega</strong
-                                        >:
-                                        {{/if}}
+                                        <strong>
+                                          {{#if revokedReceivedDelegationsSingular}}
+                                          Hai ricevuto una richiesta
+                                          {{else}}
+                                          Hai ricevuto {{ revokedReceivedDelegations.totalCount
+                                          }} richieste richieste
+                                          {{/if}}
+                                          di delega:
+                                        </strong>
                                       </p>
                                       <ul class="list-items">
                                         {{#each
                                         revokedReceivedDelegations.items}}
-                                        <li class="list-item">
-                                          Richiesta di delega in
-                                          {{ delegationKind }} dell'e-service
+                                        <ul class="list-item">
                                           <a
                                             href="{{ link }}"
                                             class="link-primary" style="color: #0073e6;"
                                             >{{ name }}</a
                                           >
                                           <span class="list-item-secondary"
-                                            >da parte di {{ producerName }}</span
+                                            >delegato all'erogazione da {{ producerName }}</span
                                           >
-                                        </li>
+                                        </ul>
                                         {{/each}}
                                       </ul>
+                                      <!-- Yellow Alert -->
+                                      <div class="alert-warning" role="note">
+                                        <p class="alert-text">
+                                          Approva le richieste e inizia a gestire
+                                          gli e-service ricevuti in delega.
+                                        </p>
+                                      </div>
                                     </div>
-                                    {{/if}}
-
-                                    <!-- Richieste di delega inoltrate come delegante -->
-                                    {{#if activeSentDelegations.totalCount}}
-                                    <div class="section-divider">
-                                      <table
-                                        class="section-header-table" role="presentation"
-                                        width="100%"
-                                        cellpadding="0"
-                                        cellspacing="0"
-                                        border="0"
-                                      >
-                                        <tr>
-                                          <td valign="middle">
-                                            <h2 class="h2-title">
-                                              Richieste di
-                                              delega inoltrate come delegante
-                                            </h2>
-                                          </td>
-                                          {{#if viewAllSentDelegationsLink}}
-                                          <td valign="middle" align="right" style="white-space: nowrap;">
-                                            <a
-                                              href="{{viewAllSentDelegationsLink}}"
-                                              class="link-primary" style="color: #0073e6;"
-                                              aria-label="Visualizza tutte le deleghe inoltrate"
-                                              >Visualizza tutte</a
-                                            >
-                                          </td>
-                                          {{/if}}
-                                        </tr>
-                                      </table>
-
-                                      <p class="body-text-no-margin">
-                                        {{#if activeSentDelegationsSingular}}
-                                        È stata approvata
-                                        <strong>1
-                                          richiesta di delega</strong>
-                                        da te inoltrata:
-                                        {{else}}
-                                        Sono state approvate
-                                        <strong>{{
-                                          activeSentDelegations.totalCount
-                                        }}
-                                          richieste di delega</strong
-                                        >
-                                        da te inoltrate:
-                                        {{/if}}
-                                      </p>
-                                      <ul class="list-items">
-                                        {{#each activeSentDelegations.items}}
-                                        <li class="list-item">
-                                          Richiesta di delega in
-                                          {{ delegationKind }} dell'e-service
-                                          <a
-                                            href="{{ link }}"
-                                            class="link-primary" style="color: #0073e6;"
-                                            >{{ name }}</a
-                                          >
-                                          <span class="list-item-secondary"
-                                            >verso {{ producerName }}</span
-                                          >
-                                        </li>
-                                        {{/each}}
-                                      </ul>
-                                    </div>
-                                    {{/if}} {{#if
-                                    rejectedSentDelegations.totalCount}}
-                                    <div class="section-divider">
-                                      {{#unless
-                                      activeSentDelegations.totalCount}}
-                                      <table
-                                        class="section-header-table" role="presentation"
-                                        width="100%"
-                                        cellpadding="0"
-                                        cellspacing="0"
-                                        border="0"
-                                      >
-                                        <tr>
-                                          <td valign="middle">
-                                            <h2 class="h2-title">
-                                              Richieste di
-                                              delega inoltrate come delegante
-                                            </h2>
-                                          </td>
-                                          {{#if viewAllSentDelegationsLink}}
-                                          <td valign="middle" align="right" style="white-space: nowrap;">
-                                            <a
-                                              href="{{viewAllSentDelegationsLink}}"
-                                              class="link-primary" style="color: #0073e6;"
-                                              aria-label="Visualizza tutte le deleghe inoltrate"
-                                              >Visualizza tutte</a
-                                            >
-                                          </td>
-                                          {{/if}}
-                                        </tr>
-                                      </table>
-                                      {{/unless}}
-
-                                      <p class="body-text-no-margin">
-                                        {{#if rejectedSentDelegationsSingular}}
-                                        È stata rifiutata
-                                        <strong>1
-                                          richiesta di delega</strong>
-                                        da te inoltrata:
-                                        {{else}}
-                                        Sono state rifiutate
-                                        <strong>{{
-                                          rejectedSentDelegations.totalCount
-                                        }}
-                                          richieste di delega</strong
-                                        >
-                                        da te inoltrate:
-                                        {{/if}}
-                                      </p>
-                                      <ul class="list-items">
-                                        {{#each rejectedSentDelegations.items}}
-                                        <li class="list-item">
-                                          Richiesta di delega in
-                                          {{ delegationKind }} dell'e-service
-                                          <a
-                                            href="{{ link }}"
-                                            class="link-primary" style="color: #0073e6;"
-                                            >{{ name }}</a
-                                          >
-                                          <span class="list-item-secondary"
-                                            >verso {{ producerName }}</span
-                                          >
-                                        </li>
-                                        {{/each}}
-                                      </ul>
-                                    </div>
-                                    {{/if}}
                                     {{/if}}
                                   </td>
                                 </tr>
@@ -1630,7 +1394,7 @@
                                               href="{{viewAllAttributesLink}}"
                                               class="link-primary" style="color: #0073e6;"
                                               aria-label="Visualizza tutti gli attributi"
-                                              >Visualizza tutti</a
+                                              >Visualizza tutte</a
                                             >
                                           </td>
                                           {{/if}}
@@ -1638,103 +1402,67 @@
                                       </table>
 
                                       <p class="body-text-no-margin">
-                                        {{#if receivedAttributesSingular}}
-                                        Ti è stato assegnato
-                                        <strong>1 nuovo attributo</strong>:
-                                        {{else}}
-                                        Ti sono stati assegnati
-                                        <strong
-                                          >{{ receivedAttributes.totalCount }}
-                                          nuovi attributi</strong
-                                        >:
-                                        {{/if}}
+                                        <strong>
+                                          {{#if receivedAttributesSingular}}
+                                          Ti è stato assegnato un nuovo attributo:
+                                          {{else}}
+                                          Ti sono stati assegnati {{ 
+                                          receivedAttributes.totalCount }} nuovi
+                                          attributi:
+                                          {{/if}}
+                                          </strong>
                                       </p>
                                       <ul class="list-items">
                                         {{#each receivedAttributes.items}}
-                                        <li class="list-item">
+                                        <ul class="list-item">
                                           <a
                                             href="{{ link }}"
                                             class="link-primary" style="color: #0073e6;"
                                             >{{ name }}</a
                                           >
                                           <span class="list-item-secondary">
-                                            - {{ attributeKindLabel }}{{#if producerName}} conferito da {{
-                                            producerName }}{{/if}}</span
+                                            (Certificato) assegnato da {{
+                                            producerName }}</span
                                           >
-                                        </li>
+                                        </ul>
                                         {{/each}}
                                       </ul>
                                     </div>
                                     {{/if}}
-
                                     <!-- Revoked Attributes -->
                                     {{#if revokedAttributes.totalCount}}
-                                    <div class="section-divider">
-                                      {{#unless receivedAttributes.totalCount}}
-                                      <table
-                                        class="section-header-table" role="presentation"
-                                        width="100%"
-                                        cellpadding="0"
-                                        cellspacing="0"
-                                        border="0"
-                                      >
-                                        <tr>
-                                          <td valign="middle">
-                                            <h2 class="h2-title">
-                                              Attributi
-                                            </h2>
-                                          </td>
-                                          {{#if viewAllAttributesLink}}
-                                          <td valign="middle" align="right" style="white-space: nowrap;">
-                                            <a
-                                              href="{{viewAllAttributesLink}}"
-                                              class="link-primary" style="color: #0073e6;"
-                                              aria-label="Visualizza tutti gli attributi"
-                                              >Visualizza tutti</a
-                                            >
-                                          </td>
-                                          {{/if}}
-                                        </tr>
-                                      </table>
-                                      {{/unless}}
-
-                                      <p class="body-text-no-margin">
+                                    <p class="body-text-no-margin">
+                                      <strong>
                                         {{#if revokedAttributesSingular}}
-                                        Ti è stato revocato
-                                        <strong>1 attributo</strong>:
+                                        Ti è stato revocato un attributo:
                                         {{else}}
-                                        Ti sono stati revocati
-                                        <strong
-                                          >{{ revokedAttributes.totalCount }}
-                                          attributi</strong
-                                        >:
-                                        {{/if}}
-                                      </p>
-                                      <ul class="list-items">
-                                        {{#each revokedAttributes.items}}
-                                        <li class="list-item">
-                                          <a
-                                            href="{{ link }}"
-                                            class="link-primary" style="color: #0073e6;"
-                                            >{{ name }}</a
-                                          >
-                                          <span class="list-item-secondary">
-                                            - {{ attributeKindLabel }}{{#if producerName}} revocato da {{
-                                            producerName }}{{/if}}</span
-                                          >
-                                        </li>
-                                        {{/each}}
+                                        Ti sono stati revocati {{ 
+                                        revokedAttributes.totalCount }} attributi:
+                                      </strong>
+                                      {{/if}}
+                                    </p>
+                                    <ul class="list-items">
+                                      {{#each revokedAttributes.items}}
+                                      <ul class="list-item">
+                                        <a
+                                          href="{{ link }}"
+                                          class="link-primary" style="color: #0073e6;"
+                                          >{{ name }}</a
+                                        >
+                                        <span class="list-item-secondary">
+                                          revocati da {{
+                                          producerName }}</span
+                                        >
                                       </ul>
-
-                                      <!-- Red Alert -->
-                                      <div class="alert-error" role="note">
-                                        <p class="alert-text">
-                                          Ricorda che la
-                                          rimozione di un attributo interrompe
-                                          la generazione dei voucher e l'accesso
-                                          ai dati per gli e-service collegati.
-                                        </p>
-                                      </div>
+                                      {{/each}}
+                                    </ul>
+                                    <!-- Red Alert -->
+                                    <div class="alert-error" role="note">
+                                      <p class="alert-text">
+                                        La revoca di un attributo interrompe l'accesso
+                                        agli e-service con cui stai scambiando dati e che
+                                        hanno quell'attributo come requisito di accesso.
+                                      </p>
                                     </div>
                                     {{/if}}
                                     {{/if}}
@@ -1763,7 +1491,7 @@
                                       "
                                     >
                                       <p style="margin-top: 0px">
-                                        Questa comunicazione è relativa all'ente {{tenantName}}. La visualizzazione dei dettagli è disponibile previa autenticazione al portale.<br />Il
+                                        Questa comunicazione riguarda l'ente {{tenantName}}. Per visualizzare i dettagli accedi al portale con le tue credenziali.<br />Il
                                         team di PDND Interoperabilità
                                       </p>
                                     </div>
