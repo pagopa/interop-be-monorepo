@@ -17,10 +17,14 @@ import {
 } from "pagopa-interop-models";
 import { aggregateEservice } from "pagopa-interop-readmodel";
 import { describe, expect, it } from "vitest";
+
 import {
   catalogWriterService,
   checkCompleteEService,
   readModelDB,
+  retrieveEServiceArchivingSchedulesSQLById,
+  retrieveEServiceArchivingRequestsSQLById,
+  retrieveEserviceAsyncExchangePropertiesSQLById,
   retrieveEserviceDescriptorAttributesSQLById,
   retrieveEserviceDescriptorsSQLById,
   retrieveEserviceDocumentsSQLById,
@@ -91,6 +95,9 @@ describe("E-service queries", () => {
         riskAnalysesSQL,
         riskAnalysisAnswersSQL,
         templateVersionRefsSQL,
+        archivingSchedulesSQL,
+        archivingRequestsSQL,
+        asyncExchangePropertiesSQL,
       } = await checkCompleteEService(eservice);
 
       const retrievedEService = aggregateEservice({
@@ -103,6 +110,9 @@ describe("E-service queries", () => {
         riskAnalysesSQL,
         riskAnalysisAnswersSQL,
         templateVersionRefsSQL,
+        archivingSchedulesSQL,
+        archivingRequestsSQL,
+        asyncExchangePropertiesSQL,
       });
 
       expect(retrievedEService).toStrictEqual({
@@ -156,6 +166,21 @@ describe("E-service queries", () => {
           eservice.id,
           readModelDB
         );
+      const archivingSchedulesSQL =
+        await retrieveEServiceArchivingSchedulesSQLById(
+          eservice.id,
+          readModelDB
+        );
+      const archivingRequestsSQL =
+        await retrieveEServiceArchivingRequestsSQLById(
+          eservice.id,
+          readModelDB
+        );
+      const asyncExchangePropertiesSQL =
+        await retrieveEserviceAsyncExchangePropertiesSQLById(
+          eservice.id,
+          readModelDB
+        );
 
       expect(eserviceSQL).toBeDefined();
       expect(descriptorsSQL).toHaveLength(0);
@@ -165,6 +190,7 @@ describe("E-service queries", () => {
       expect(rejectionReasonsSQL).toHaveLength(0);
       expect(riskAnalysesSQL).toHaveLength(0);
       expect(riskAnalysisAnswersSQL).toHaveLength(0);
+      expect(archivingSchedulesSQL).toHaveLength(0);
 
       const retrievedEService = aggregateEservice({
         eserviceSQL: eserviceSQL!,
@@ -176,6 +202,9 @@ describe("E-service queries", () => {
         riskAnalysesSQL,
         riskAnalysisAnswersSQL,
         templateVersionRefsSQL,
+        archivingSchedulesSQL,
+        archivingRequestsSQL,
+        asyncExchangePropertiesSQL,
       });
 
       expect(retrievedEService).toStrictEqual({
@@ -244,6 +273,9 @@ describe("E-service queries", () => {
         riskAnalysesSQL,
         riskAnalysisAnswersSQL,
         templateVersionRefsSQL,
+        archivingSchedulesSQL,
+        archivingRequestsSQL,
+        asyncExchangePropertiesSQL,
       } = await checkCompleteEService(eservice);
 
       const retrievedEService = aggregateEservice({
@@ -256,6 +288,9 @@ describe("E-service queries", () => {
         riskAnalysesSQL,
         riskAnalysisAnswersSQL,
         templateVersionRefsSQL,
+        archivingSchedulesSQL,
+        archivingRequestsSQL,
+        asyncExchangePropertiesSQL,
       });
 
       expect(retrievedEService).toStrictEqual({

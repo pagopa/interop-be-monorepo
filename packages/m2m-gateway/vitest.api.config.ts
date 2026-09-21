@@ -2,6 +2,7 @@ import { defineConfig } from "vitest/config";
 import "dotenv-flow/config";
 export default defineConfig({
   test: {
+    name: "api",
     setupFiles: "./test/vitest.api.setup.ts",
     include: ["./test/api/**/*.test.ts"],
     testTimeout: 60000,

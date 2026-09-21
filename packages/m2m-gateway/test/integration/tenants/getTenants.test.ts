@@ -1,16 +1,20 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
-import { PUBLIC_ADMINISTRATIONS_IDENTIFIER } from "pagopa-interop-models";
+import {
+  m2mGatewayApi,
+  tenantApi,
+  WithMaybeMetadata,
+} from "pagopa-interop-api-clients";
 import { getMockedApiTenant } from "pagopa-interop-commons-test";
+import { PUBLIC_ADMINISTRATIONS_IDENTIFIER } from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { taxCodeAndIPACodeConflict } from "../../../src/model/errors.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
   tenantService,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
-import { taxCodeAndIPACodeConflict } from "../../../src/model/errors.js";
 
 describe("getTenants", () => {
   const mockParams: m2mGatewayApi.GetTenantsQueryParams = {

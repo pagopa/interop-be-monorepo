@@ -1,14 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import camelcaseKeys from "camelcase-keys";
+import crypto from "crypto";
 import { genericLogger } from "pagopa-interop-commons";
+import {
+  getMockKey,
+  setupTestContainersVitest,
+} from "pagopa-interop-commons-test";
+import { Key, UserId } from "pagopa-interop-models";
 import { inject } from "vitest";
-import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { z } from "zod";
-import { DBContext, DBConnection } from "../src/db/db.js";
+
 import { config } from "../src/config/config.js";
 import { retryConnection } from "../src/db/buildColumnSet.js";
-import { setupDbServiceBuilder } from "../src/service/setupDbService.js";
+import { DBContext, DBConnection } from "../src/db/db.js";
 import {
   AgreementDbTable,
   AttributeDbTable,
@@ -28,6 +33,7 @@ import {
   PurposeTemplateDbTable,
   ClientDbTablePartialTable,
 } from "../src/model/db/index.js";
+import { setupDbServiceBuilder } from "../src/service/setupDbService.js";
 import { getColumnNameMapper } from "../src/utils/sqlQueryHelper.js";
 
 const { analyticsPostgresDB } = await setupTestContainersVitest(
@@ -46,6 +52,11 @@ export const dbContext: DBContext = {
   pgp: analyticsPostgresDB.$config.pgp,
 };
 
+await dbContext.conn.none(`
+  ALTER TABLE domains.eservice_descriptor_archiving_schedule
+  ADD COLUMN IF NOT EXISTS grace_period_days INTEGER;
+`);
+
 export const attributeTables: AttributeDbTable[] = [AttributeDbTable.attribute];
 
 export const catalogTables: CatalogDbTable[] = [
@@ -58,6 +69,8 @@ export const catalogTables: CatalogDbTable[] = [
   CatalogDbTable.eservice_descriptor_attribute,
   CatalogDbTable.eservice_risk_analysis,
   CatalogDbTable.eservice_risk_analysis_answer,
+  CatalogDbTable.eservice_descriptor_archiving_schedule,
+  CatalogDbTable.eservice_descriptor_async_exchange_properties,
 ];
 
 export const agreementTables: AgreementDbTable[] = [
@@ -77,6 +90,7 @@ export const purposeTables: PurposeDbTable[] = [
   PurposeDbTable.purpose_risk_analysis_form,
   PurposeDbTable.purpose_risk_analysis_answer,
   PurposeDbTable.purpose_version_signed_document,
+  PurposeDbTable.purpose_risk_analysis_reviewer,
 ];
 
 export const delegationTables: DelegationDbTable[] = [
@@ -95,6 +109,8 @@ export const tenantTables: TenantDbTable[] = [
   TenantDbTable.tenant_verified_attribute,
   TenantDbTable.tenant_verified_attribute_revoker,
   TenantDbTable.tenant_verified_attribute_verifier,
+  TenantDbTable.tenant_remote_id,
+  TenantDbTable.tenant_certified_discrete_attribute,
 ];
 
 export const eserviceTemplateTables: EserviceTemplateDbTable[] = [
@@ -105,6 +121,7 @@ export const eserviceTemplateTables: EserviceTemplateDbTable[] = [
   EserviceTemplateDbTable.eservice_template_version_interface,
   EserviceTemplateDbTable.eservice_template_risk_analysis,
   EserviceTemplateDbTable.eservice_template_risk_analysis_answer,
+  EserviceTemplateDbTable.eservice_template_version_async_exchange_properties,
 ];
 
 export const clientTables: ClientDbTable[] = [
@@ -288,3 +305,25 @@ export async function getManyFromDb<T extends DomainDbTable>(
 
   return rows.map((row) => camelcaseKeys(row));
 }
+
+export const getMockRsaKey = (userId: UserId): Key => {
+  const publicKey = crypto.generateKeyPairSync("rsa", {
+    modulusLength: 2048,
+  }).publicKey;
+  const encodedPem = Buffer.from(
+    publicKey.export({ type: "pkcs1", format: "pem" })
+  ).toString("base64url");
+
+  return { ...getMockKey(), encodedPem, userId };
+};
+
+export const getMockEcKey = (userId: UserId): Key => {
+  const publicKey = crypto.generateKeyPairSync("ec", {
+    namedCurve: "P-256",
+  }).publicKey;
+  const encodedPem = Buffer.from(
+    publicKey.export({ type: "spki", format: "pem" })
+  ).toString("base64url");
+
+  return { ...getMockKey(), encodedPem, userId };
+};

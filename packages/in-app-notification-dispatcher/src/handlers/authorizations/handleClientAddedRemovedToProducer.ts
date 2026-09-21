@@ -1,14 +1,15 @@
 import { Logger } from "pagopa-interop-commons";
 import { NewNotification, unsafeBrandId } from "pagopa-interop-models";
-import { match } from "ts-pattern";
-import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import {
   getNotificationRecipients,
   retrieveEservice,
   retrievePurpose,
   retrieveTenant,
-} from "../handlerCommons.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
+  inAppTemplates,
+} from "pagopa-interop-notification-commons";
+import { match } from "ts-pattern";
+
+import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 export async function handleClientAddedRemovedToProducer(
   purposeId: string,

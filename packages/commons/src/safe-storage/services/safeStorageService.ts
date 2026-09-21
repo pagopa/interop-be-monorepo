@@ -1,13 +1,13 @@
 import axios, { AxiosInstance } from "axios";
-
 import { genericInternalError } from "pagopa-interop-models";
+
+import { Logger } from "../../logging/index.js";
+import { SafeStorageApiConfig } from "../config/config.js";
 import {
   FileCreationRequest,
   FileCreationResponse,
   FileDownloadResponse,
 } from "../models/safeStorageServiceSchema.js";
-import { SafeStorageApiConfig } from "../config/config.js";
-import { Logger } from "../../logging/index.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function createSafeStorageApiClient(config: SafeStorageApiConfig) {
@@ -55,7 +55,9 @@ export function createSafeStorageApiClient(config: SafeStorageApiConfig) {
       checksumValue: string,
       logger: Logger
     ): Promise<void> {
-      logger.info(`Uploading file content on safe storage`);
+      logger.info(
+        `Uploading file content on safe storage with checksum: ${checksumValue} having length: ${fileContent.length} bytes`
+      );
       try {
         await axios.put(uploadUrl, fileContent, {
           headers: {

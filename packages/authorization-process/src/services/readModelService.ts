@@ -20,3 +20,8 @@ export type GetProducerKeychainsFilters = {
   producerId: TenantId | undefined;
   eserviceId: EServiceId | undefined;
 };
+
+export type ProducerKeychainEServiceFlags = {
+  hasProducerKeychain: boolean;
+  hasProducerKeychainKeys: boolean;
+};

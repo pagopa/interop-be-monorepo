@@ -1,21 +1,23 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
+import { authorizationApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockProducerKeychain,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   generateId,
   ProducerKeychain,
   TenantId,
   WithMetadata,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockProducerKeychain,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { authorizationApi } from "pagopa-interop-api-clients";
-import { api, authorizationService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi } from "vitest";
+
+import { duplicatedMembersInSeed } from "../../src/model/domain/errors.js";
 import { testToFullProducerKeychain } from "../apiUtils.js";
+import { api, authorizationService } from "../vitest.api.setup.js";
 
 describe("API /producerKeychains authorization test", () => {
   const organizationId: TenantId = generateId();
@@ -80,6 +82,22 @@ describe("API /producerKeychains authorization test", () => {
       token,
       body as authorizationApi.ProducerKeychainSeed
     );
+
+    expect(res.status).toBe(400);
+  });
+
+  it("Should return 400 if passed duplicated users in body", async () => {
+    const userId = generateId();
+    const seed = {
+      ...producerKeychainSeed,
+      members: [userId, userId, generateId()],
+    };
+    authorizationService.createProducerKeychain = vi
+      .fn()
+      .mockImplementation(() => Promise.reject(duplicatedMembersInSeed()));
+
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, seed);
 
     expect(res.status).toBe(400);
   });

@@ -1,4 +1,10 @@
-import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
+import { authorizationApi } from "pagopa-interop-api-clients";
+import {
+  decodeProtobufPayload,
+  getMockAuthData,
+  getMockContext,
+  readLastEventByStreamId,
+} from "pagopa-interop-commons-test";
 import {
   ProducerKeychain,
   ProducerKeychainAddedV2,
@@ -8,13 +14,9 @@ import {
   toProducerKeychainV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  decodeProtobufPayload,
-  getMockAuthData,
-  getMockContext,
-  readLastEventByStreamId,
-} from "pagopa-interop-commons-test";
-import { authorizationApi } from "pagopa-interop-api-clients";
+import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
+
+import { duplicatedMembersInSeed } from "../../src/model/domain/errors.js";
 import { authorizationService, postgresDB } from "../integrationUtils.js";
 
 describe("createProducerKeychain", () => {
@@ -71,8 +73,24 @@ describe("createProducerKeychain", () => {
       description: producerKeychain.data.description,
     };
 
-    expect(writtenPayload.producerKeychain).toEqual(
-      toProducerKeychainV2(expectedProducerKeychain)
-    );
+    expect(writtenPayload).toEqual({
+      producerKeychain: toProducerKeychainV2(expectedProducerKeychain),
+    });
+  });
+
+  it("Should fail if duplicate users are passed in the seed", async () => {
+    const userId = generateId();
+    const seed = {
+      ...producerKeychainSeed,
+      members: [userId, userId, generateId()],
+    };
+
+    const error = duplicatedMembersInSeed();
+    await expect(
+      authorizationService.createProducerKeychain(
+        { producerKeychainSeed: seed },
+        getMockContext({ authData: getMockAuthData(organizationId) })
+      )
+    ).rejects.toThrowError(error);
   });
 });

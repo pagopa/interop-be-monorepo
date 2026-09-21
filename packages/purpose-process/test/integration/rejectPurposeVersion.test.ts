@@ -20,8 +20,10 @@ import {
   delegationState,
   delegationKind,
   DelegationId,
+  hyperlinkDetectionError,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
+
 import {
   purposeNotFound,
   eserviceNotFound,
@@ -92,7 +94,10 @@ describe("rejectPurposeVersion", () => {
       updatedAt: new Date(),
     };
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: mockPurposeVersion.id,
+    });
 
     vi.useRealTimers();
   });
@@ -160,7 +165,10 @@ describe("rejectPurposeVersion", () => {
       updatedAt: new Date(),
     };
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: mockPurposeVersion.id,
+    });
 
     vi.useRealTimers();
   });
@@ -227,7 +235,10 @@ describe("rejectPurposeVersion", () => {
       updatedAt: new Date(),
     };
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: mockPurposeVersion.id,
+    });
 
     vi.useRealTimers();
   });
@@ -308,7 +319,10 @@ describe("rejectPurposeVersion", () => {
       delegationId: mockPurpose.delegationId,
     };
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: mockPurposeVersion.id,
+    });
 
     vi.useRealTimers();
   });
@@ -559,4 +573,33 @@ describe("rejectPurposeVersion", () => {
       );
     }
   );
+
+  it("should throw hyperlinkDetectionError when the rejectionReason contains a hyperlink", async () => {
+    const mockEService = getMockEService();
+    const mockPurposeVersion = {
+      ...getMockPurposeVersion(),
+      state: purposeVersionState.waitingForApproval,
+    };
+    const mockPurpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: mockEService.id,
+      versions: [mockPurposeVersion],
+    };
+
+    await addOnePurpose(mockPurpose);
+    await addOneEService(mockEService);
+
+    const rejectionReason = "see https://evil.example.com";
+
+    await expect(
+      purposeService.rejectPurposeVersion(
+        {
+          purposeId: mockPurpose.id,
+          versionId: mockPurposeVersion.id,
+          rejectionReason,
+        },
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      )
+    ).rejects.toThrowError(hyperlinkDetectionError(rejectionReason));
+  });
 });

@@ -14,13 +14,18 @@ import {
   DelegationId,
   tenantKind,
   PurposeTemplateId,
+  UserId,
+  riskAnalysisReviewMode,
+  riskAnalysisSigningState,
 } from "pagopa-interop-models";
 import { aggregatePurpose } from "pagopa-interop-readmodel";
 import { describe, it, expect } from "vitest";
+
 import {
   checkCompletePurpose,
   purposeWriterService,
   readModelDB,
+  retrieveRiskAnalysisReviewersSQLById,
   retrievePurposeRiskAnalysisAnswersSQLById,
   retrievePurposeRiskAnalysisFormSQLById,
   retrievePurposeSQLById,
@@ -71,10 +76,19 @@ describe("Purpose queries", () => {
         updatedAt: new Date(),
         freeOfChargeReason: "Test free of charge reason",
         purposeTemplateId: generateId<PurposeTemplateId>(),
+        riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+        reviewerWorkflow: {
+          reviewers: [
+            { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+            { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+          ],
+          signingState: riskAnalysisSigningState.submitted,
+          signedBy: generateId<UserId>(),
+          rejectionReason: "Test rejection reason",
+        },
       };
 
       await purposeWriterService.upsertPurpose(purpose, 1);
-
       const {
         purposeSQL,
         riskAnalysisFormSQL,
@@ -83,6 +97,7 @@ describe("Purpose queries", () => {
         versionDocumentsSQL,
         versionStampsSQL,
         versionSignedDocumentsSQL,
+        reviewersSQL,
       } = await checkCompletePurpose(purpose);
 
       const retrievedPurpose = aggregatePurpose({
@@ -93,6 +108,7 @@ describe("Purpose queries", () => {
         versionDocumentsSQL,
         versionStampsSQL,
         versionSignedDocumentsSQL,
+        reviewersSQL,
       });
 
       expect(retrievedPurpose).toStrictEqual({
@@ -133,6 +149,9 @@ describe("Purpose queries", () => {
           readModelDB
         );
 
+      const retrievedPurposeRiskAnalysisReviewersSQL =
+        await retrieveRiskAnalysisReviewersSQLById(purpose.id, readModelDB);
+
       expect(retrievedPurposeSQL).toBeDefined();
       expect(retrievedRiskAnalysisFormSQL).toBeUndefined();
       expect(retrievedRiskAnalysisAnswersSQL).toHaveLength(0);
@@ -148,6 +167,7 @@ describe("Purpose queries", () => {
         versionDocumentsSQL: retrievedPurposeVersionDocumentSQL,
         versionStampsSQL: retrievedPurposeVersionStampSQL,
         versionSignedDocumentsSQL: retrievedPurposeVersionSignedDocumentSQL,
+        reviewersSQL: retrievedPurposeRiskAnalysisReviewersSQL,
       });
 
       expect(retrievedPurpose).toStrictEqual({
@@ -195,6 +215,16 @@ describe("Purpose queries", () => {
         updatedAt: new Date(),
         freeOfChargeReason: "Test free of charge reason",
         purposeTemplateId: generateId<PurposeTemplateId>(),
+        riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+        reviewerWorkflow: {
+          reviewers: [
+            { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+            { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+          ],
+          signingState: riskAnalysisSigningState.submitted,
+          signedBy: generateId<UserId>(),
+          rejectionReason: "Test rejection reason",
+        },
       };
 
       await purposeWriterService.upsertPurpose(purpose, 1);
@@ -208,6 +238,7 @@ describe("Purpose queries", () => {
         versionDocumentsSQL,
         versionStampsSQL,
         versionSignedDocumentsSQL,
+        reviewersSQL,
       } = await checkCompletePurpose(purpose);
 
       const retrievedPurpose = aggregatePurpose({
@@ -218,6 +249,7 @@ describe("Purpose queries", () => {
         versionDocumentsSQL,
         versionStampsSQL,
         versionSignedDocumentsSQL,
+        reviewersSQL,
       });
 
       expect(retrievedPurpose).toStrictEqual({

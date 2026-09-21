@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { vi } from "vitest";
 import { Request, Response, NextFunction } from "express";
+import { vi } from "vitest";
 
 vi.mock("pagopa-interop-application-audit", async () => ({
   applicationAuditBeginMiddleware: vi.fn(
@@ -53,9 +53,12 @@ import {
   decodeJwtToken,
   AppContext,
 } from "pagopa-interop-commons";
+
 import { createApp } from "../src/app.js";
+import { AsyncTokenService } from "../src/services/asyncTokenService.js";
 import { TokenService } from "../src/services/tokenService.js";
 
 export const tokenService = {} as TokenService;
+export const asyncTokenService = {} as AsyncTokenService;
 
-export const api = await createApp(tokenService);
+export const api = await createApp(tokenService, asyncTokenService);

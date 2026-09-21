@@ -17,12 +17,24 @@ import {
   stringToDate,
   EServiceTemplateVersionRef,
   AttributeKind,
+  AttributeId,
   RiskAnalysisAnswerKind,
   EServiceId,
   EServiceTemplateId,
   RiskAnalysisForm,
+  AttributeCertifiedDiscreteComparator,
+  EServiceAttributeCertified,
+  EServiceAttributeCertifiedDiscrete,
+  ArchivingScope,
+  TenantKind,
+  DelegatedDescriptorArchivingRequest,
+  DelegatedEServiceArchivingRequest,
+  GracePeriodDays,
 } from "pagopa-interop-models";
 import {
+  EServiceDescriptorArchivingRequestSQL,
+  EServiceDescriptorArchivingScheduleSQL,
+  EServiceDescriptorAsyncExchangePropertiesSQL,
   EServiceDescriptorAttributeSQL,
   EServiceDescriptorDocumentSQL,
   EServiceDescriptorInterfaceSQL,
@@ -38,6 +50,7 @@ import {
   EServiceTemplateVersionDocumentSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
+
 import { makeUniqueKey, throwIfMultiple } from "../utils.js";
 
 export const documentSQLtoDocument = (
@@ -57,22 +70,37 @@ export const documentSQLtoDocument = (
 // eslint-disable-next-line complexity
 export const aggregateDescriptor = ({
   descriptorSQL,
-  interfaceSQL,
+  interfacesSQL,
   documentsSQL,
   attributesSQL,
   rejectionReasonsSQL,
   templateVersionRefSQL,
+  archivingScheduleSQL,
+  asyncExchangePropertiesSQL,
+  descriptorArchivingRequestsSQL,
 }: {
   descriptorSQL: EServiceDescriptorSQL;
-  interfaceSQL: EServiceDescriptorInterfaceSQL | undefined;
+  interfacesSQL: EServiceDescriptorInterfaceSQL[];
   documentsSQL: EServiceDescriptorDocumentSQL[];
   attributesSQL: EServiceDescriptorAttributeSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
   templateVersionRefSQL: EServiceDescriptorTemplateVersionRefSQL | undefined;
+  archivingScheduleSQL: EServiceDescriptorArchivingScheduleSQL | undefined;
+  asyncExchangePropertiesSQL:
+    | EServiceDescriptorAsyncExchangePropertiesSQL
+    | undefined;
+  descriptorArchivingRequestsSQL: EServiceDescriptorArchivingRequestSQL[];
   // eslint-disable-next-line sonarjs/cognitive-complexity
 }): Descriptor => {
-  const interfaceDoc = interfaceSQL
-    ? documentSQLtoDocument(interfaceSQL)
+  const mainInterfaceSQL = interfacesSQL.find((i) => i.kind === "INTERFACE");
+  const callbackInterfaceSQL = interfacesSQL.find(
+    (i) => i.kind === "ASYNC_EXCHANGE_CALLBACK_INTERFACE"
+  );
+  const interfaceDoc = mainInterfaceSQL
+    ? documentSQLtoDocument(mainInterfaceSQL)
+    : undefined;
+  const asyncExchangeCallbackInterfaceDoc = callbackInterfaceSQL
+    ? documentSQLtoDocument(callbackInterfaceSQL)
     : undefined;
 
   const {
@@ -84,10 +112,14 @@ export const aggregateDescriptor = ({
     .reduce(
       (acc, attributeSQL) =>
         match(AttributeKind.parse(attributeSQL.kind))
-          .with(attributeKind.certified, () => ({
-            ...acc,
-            certified: [...acc.certified, attributeSQL],
-          }))
+          .with(
+            attributeKind.certified,
+            attributeKind.certifiedDiscrete,
+            () => ({
+              ...acc,
+              certified: [...acc.certified, attributeSQL],
+            })
+          )
           .with(attributeKind.declared, () => ({
             ...acc,
             declared: [...acc.declared, attributeSQL],
@@ -145,6 +177,24 @@ export const aggregateDescriptor = ({
         }
       : undefined;
 
+  const archivingRequests: DelegatedDescriptorArchivingRequest[] =
+    descriptorArchivingRequestsSQL
+      .filter((archivingRequest) => archivingRequest.descriptorId !== null)
+      .map<DelegatedDescriptorArchivingRequest>((archivingRequest) => ({
+        gracePeriodDays: GracePeriodDays.parse(
+          archivingRequest.gracePeriodDays
+        ),
+        requestedAt: stringToDate(archivingRequest.requestedAt),
+        requesterId: unsafeBrandId(archivingRequest.requesterId),
+        rejectedAt: archivingRequest.rejectedAt
+          ? stringToDate(archivingRequest.rejectedAt)
+          : undefined,
+        acceptedAt: archivingRequest.acceptedAt
+          ? stringToDate(archivingRequest.acceptedAt)
+          : undefined,
+        rejectionReason: archivingRequest.rejectionReason ?? undefined,
+      }));
+
   return {
     id: unsafeBrandId(descriptorSQL.id),
     version: descriptorSQL.version,
@@ -158,12 +208,28 @@ export const aggregateDescriptor = ({
     dailyCallsTotal: descriptorSQL.dailyCallsTotal,
     createdAt: stringToDate(descriptorSQL.createdAt),
     serverUrls: descriptorSQL.serverUrls,
+    serverUrlsDescriptions: descriptorSQL.serverUrlsDescriptions ?? undefined,
     attributes: {
       certified: certifiedAttributes,
       declared: declaredAttributes,
       verified: verifiedAttributes,
     },
     ...(interfaceDoc ? { interface: interfaceDoc } : {}),
+    ...(asyncExchangeCallbackInterfaceDoc
+      ? { asyncExchangeCallbackInterface: asyncExchangeCallbackInterfaceDoc }
+      : {}),
+    ...(asyncExchangePropertiesSQL
+      ? {
+          asyncExchangeProperties: {
+            responseTime: asyncExchangePropertiesSQL.responseTime,
+            resourceAvailableTime:
+              asyncExchangePropertiesSQL.resourceAvailableTime,
+            confirmation: asyncExchangePropertiesSQL.confirmation,
+            bulk: asyncExchangePropertiesSQL.bulk,
+            maxResultSet: asyncExchangePropertiesSQL.maxResultSet,
+          },
+        }
+      : {}),
     ...(descriptorSQL.description
       ? { description: descriptorSQL.description }
       : {}),
@@ -188,6 +254,21 @@ export const aggregateDescriptor = ({
       : {}),
     ...(rejectionReasons ? { rejectionReasons } : {}),
     ...(templateVersionRef ? { templateVersionRef } : {}),
+    ...(archivingScheduleSQL
+      ? {
+          archivingSchedule: {
+            scope: ArchivingScope.parse(archivingScheduleSQL.scope),
+            archivableOn: stringToDate(archivingScheduleSQL.archivableOn),
+            startedAt: stringToDate(archivingScheduleSQL.startedAt),
+            gracePeriodDays: GracePeriodDays.parse(
+              archivingScheduleSQL.gracePeriodDays
+            ),
+          },
+        }
+      : {}),
+    ...(archivingRequests.length > 0
+      ? { delegatedArchivingRequest: archivingRequests }
+      : {}),
   };
 };
 
@@ -201,11 +282,14 @@ export const aggregateEservice = ({
   documentsSQL,
   rejectionReasonsSQL,
   templateVersionRefsSQL,
+  archivingSchedulesSQL,
+  asyncExchangePropertiesSQL,
+  archivingRequestsSQL,
 }: EServiceItemsSQL): WithMetadata<EService> => {
   const interfacesSQLByDescriptorId = interfacesSQL.reduce((acc, i) => {
-    acc.set(i.descriptorId, i);
+    acc.set(i.descriptorId, [...(acc.get(i.descriptorId) || []), i]);
     return acc;
-  }, new Map<string, EServiceDescriptorInterfaceSQL>());
+  }, new Map<string, EServiceDescriptorInterfaceSQL[]>());
   const documentsSQLByDescriptorId = documentsSQL.reduce((acc, d) => {
     acc.set(d.descriptorId, [...(acc.get(d.descriptorId) || []), d]);
     return acc;
@@ -228,12 +312,36 @@ export const aggregateEservice = ({
     },
     new Map<string, EServiceDescriptorTemplateVersionRefSQL>()
   );
+  const archivingSchedulesSQLByDescriptorId = archivingSchedulesSQL.reduce(
+    (acc, a) => {
+      acc.set(a.descriptorId, a);
+      return acc;
+    },
+    new Map<string, EServiceDescriptorArchivingScheduleSQL>()
+  );
+  const asyncExchangePropertiesSQLByDescriptorId =
+    asyncExchangePropertiesSQL.reduce((acc, a) => {
+      acc.set(a.descriptorId, a);
+      return acc;
+    }, new Map<string, EServiceDescriptorAsyncExchangePropertiesSQL>());
+  const archivingRequestsSQLByDescriptorId = archivingRequestsSQL
+    .filter((a) => a.descriptorId !== null)
+    .reduce((acc, a) => {
+      acc.set(a.descriptorId ?? "", [
+        ...(acc.get(a.descriptorId ?? "") || []),
+        a,
+      ]);
+      return acc;
+    }, new Map<string, EServiceDescriptorArchivingRequestSQL[]>());
+  const archivingRequestsSQLWithNullDescriptorId = archivingRequestsSQL.filter(
+    (a) => a.descriptorId === null
+  );
   const descriptors = [...descriptorsSQL]
     .sort((d1, d2) => Number(d1.version) - Number(d2.version))
     .map((descriptorSQL) =>
       aggregateDescriptor({
         descriptorSQL,
-        interfaceSQL: interfacesSQLByDescriptorId.get(descriptorSQL.id),
+        interfacesSQL: interfacesSQLByDescriptorId.get(descriptorSQL.id) || [],
         documentsSQL: documentsSQLByDescriptorId.get(descriptorSQL.id) || [],
         attributesSQL: attributesSQLByDescriptorId.get(descriptorSQL.id) || [],
         rejectionReasonsSQL:
@@ -241,6 +349,13 @@ export const aggregateEservice = ({
         templateVersionRefSQL: templateVersionRefsSQLByDescriptorId.get(
           descriptorSQL.id
         ),
+        archivingScheduleSQL: archivingSchedulesSQLByDescriptorId.get(
+          descriptorSQL.id
+        ),
+        asyncExchangePropertiesSQL:
+          asyncExchangePropertiesSQLByDescriptorId.get(descriptorSQL.id),
+        descriptorArchivingRequestsSQL:
+          archivingRequestsSQLByDescriptorId.get(descriptorSQL.id) || [],
       })
     );
 
@@ -291,6 +406,34 @@ export const aggregateEservice = ({
     ...(eserviceSQL.instanceLabel !== null
       ? { instanceLabel: eserviceSQL.instanceLabel }
       : {}),
+    ...(eserviceSQL.archivingReason !== null
+      ? { archivingReason: eserviceSQL.archivingReason }
+      : {}),
+    ...(eserviceSQL.asyncExchange !== null
+      ? { asyncExchange: eserviceSQL.asyncExchange }
+      : {}),
+    ...(archivingRequestsSQLWithNullDescriptorId.length > 0
+      ? {
+          delegatedArchivingRequest:
+            archivingRequestsSQLWithNullDescriptorId.map<DelegatedEServiceArchivingRequest>(
+              (archivingRequest) => ({
+                gracePeriodDays: GracePeriodDays.parse(
+                  archivingRequest.gracePeriodDays
+                ),
+                archivingReason: archivingRequest.archivingReason ?? "",
+                requestedAt: stringToDate(archivingRequest.requestedAt),
+                requesterId: unsafeBrandId(archivingRequest.requesterId),
+                rejectedAt: archivingRequest.rejectedAt
+                  ? stringToDate(archivingRequest.rejectedAt)
+                  : undefined,
+                acceptedAt: archivingRequest.acceptedAt
+                  ? stringToDate(archivingRequest.acceptedAt)
+                  : undefined,
+                rejectionReason: archivingRequest.rejectionReason ?? undefined,
+              })
+            ),
+        }
+      : {}),
   };
   return {
     data: eservice,
@@ -308,6 +451,9 @@ export const aggregateEserviceArray = ({
   documentsSQL,
   rejectionReasonsSQL,
   templateVersionRefsSQL,
+  archivingSchedulesSQL,
+  asyncExchangePropertiesSQL,
+  archivingRequestsSQL,
 }: {
   eservicesSQL: EServiceSQL[];
   riskAnalysesSQL: EServiceRiskAnalysisSQL[];
@@ -318,6 +464,9 @@ export const aggregateEserviceArray = ({
   documentsSQL: EServiceDescriptorDocumentSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
   templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[];
+  archivingSchedulesSQL: EServiceDescriptorArchivingScheduleSQL[];
+  asyncExchangePropertiesSQL: EServiceDescriptorAsyncExchangePropertiesSQL[];
+  archivingRequestsSQL: EServiceDescriptorArchivingRequestSQL[];
 }): Array<WithMetadata<EService>> => {
   const riskAnalysesSQLByEServiceId =
     createEServiceSQLPropertyMap(riskAnalysesSQL);
@@ -334,6 +483,14 @@ export const aggregateEserviceArray = ({
   const templateVersionRefsSQLByEServiceId = createEServiceSQLPropertyMap(
     templateVersionRefsSQL
   );
+  const archivingSchedulesSQLByEServiceId = createEServiceSQLPropertyMap(
+    archivingSchedulesSQL
+  );
+  const asyncExchangePropertiesSQLByEServiceId = createEServiceSQLPropertyMap(
+    asyncExchangePropertiesSQL
+  );
+  const archivingRequestsSQLByEServiceId =
+    createEServiceSQLPropertyMap(archivingRequestsSQL);
 
   return eservicesSQL.map((eserviceSQL) => {
     const eserviceId = unsafeBrandId<EServiceId>(eserviceSQL.id);
@@ -350,6 +507,12 @@ export const aggregateEserviceArray = ({
         rejectionReasonsSQLByEServiceId.get(eserviceId) || [],
       templateVersionRefsSQL:
         templateVersionRefsSQLByEServiceId.get(eserviceId) || [],
+      archivingSchedulesSQL:
+        archivingSchedulesSQLByEServiceId.get(eserviceId) || [],
+      asyncExchangePropertiesSQL:
+        asyncExchangePropertiesSQLByEServiceId.get(eserviceId) || [],
+      archivingRequestsSQL:
+        archivingRequestsSQLByEServiceId.get(eserviceId) || [],
     });
   });
 };
@@ -363,7 +526,10 @@ const createEServiceSQLPropertyMap = <
     | EServiceDescriptorDocumentSQL
     | EServiceDescriptorAttributeSQL
     | EServiceDescriptorRejectionReasonSQL
-    | EServiceDescriptorTemplateVersionRefSQL,
+    | EServiceDescriptorTemplateVersionRefSQL
+    | EServiceDescriptorArchivingScheduleSQL
+    | EServiceDescriptorAsyncExchangePropertiesSQL
+    | EServiceDescriptorArchivingRequestSQL,
 >(
   items: T[]
 ): Map<EServiceId, T[]> =>
@@ -418,6 +584,9 @@ export const aggregateRiskAnalysisForm = (
   return {
     version: riskAnalysisSQL.riskAnalysisFormVersion,
     id: unsafeBrandId(riskAnalysisSQL.riskAnalysisFormId),
+    tenantKind: riskAnalysisSQL.tenantKind
+      ? TenantKind.parse(riskAnalysisSQL.tenantKind)
+      : undefined,
     singleAnswers,
     multiAnswers,
   };
@@ -437,13 +606,38 @@ export const aggregateRiskAnalysis = (
 
 export const attributesSQLtoAttributes = (
   attributesSQL: EServiceDescriptorAttributeSQL[]
-): EServiceAttribute[][] => {
-  const attributesMap = new Map<number, EServiceAttribute[]>();
+): Array<
+  Array<
+    | EServiceAttribute
+    | EServiceAttributeCertified
+    | EServiceAttributeCertifiedDiscrete
+  >
+> => {
+  const attributesMap = new Map<
+    number,
+    Array<
+      | EServiceAttribute
+      | EServiceAttributeCertified
+      | EServiceAttributeCertifiedDiscrete
+    >
+  >();
   attributesSQL.forEach((current) => {
-    const currentAttribute: EServiceAttribute = {
-      id: unsafeBrandId(current.attributeId),
+    const currentAttribute = {
+      id: unsafeBrandId<AttributeId>(current.attributeId),
       explicitAttributeVerification: current.explicitAttributeVerification,
-      dailyCallsPerConsumer: current.dailyCallsPerConsumer ?? undefined,
+      ...(current.dailyCallsPerConsumer != null
+        ? { dailyCallsPerConsumer: current.dailyCallsPerConsumer }
+        : undefined),
+      ...(current.threshold != null && current.comparator != null
+        ? {
+            discreteConfig: {
+              threshold: current.threshold,
+              comparator: AttributeCertifiedDiscreteComparator.parse(
+                current.comparator
+              ),
+            },
+          }
+        : undefined),
     };
     const group = attributesMap.get(current.groupId);
     if (group) {
@@ -467,6 +661,9 @@ export const toEServiceAggregator = (
     riskAnalysis: EServiceRiskAnalysisSQL | null;
     riskAnalysisAnswer: EServiceRiskAnalysisAnswerSQL | null;
     templateVersionRef: EServiceDescriptorTemplateVersionRefSQL | null;
+    archivingSchedule: EServiceDescriptorArchivingScheduleSQL | null;
+    asyncExchangeProperties: EServiceDescriptorAsyncExchangePropertiesSQL | null;
+    archivingRequests: EServiceDescriptorArchivingRequestSQL | null;
   }>
 ): EServiceItemsSQL => {
   const {
@@ -479,6 +676,9 @@ export const toEServiceAggregator = (
     attributesSQL,
     rejectionReasonsSQL,
     templateVersionRefsSQL,
+    archivingSchedulesSQL,
+    asyncExchangePropertiesSQL,
+    archivingRequestsSQL,
   } = toEServiceAggregatorArray(queryRes);
 
   throwIfMultiple(eservicesSQL, "e-service");
@@ -493,6 +693,9 @@ export const toEServiceAggregator = (
     riskAnalysisAnswersSQL,
     rejectionReasonsSQL,
     templateVersionRefsSQL,
+    archivingSchedulesSQL,
+    asyncExchangePropertiesSQL,
+    archivingRequestsSQL,
   };
 };
 
@@ -507,6 +710,9 @@ export const toEServiceAggregatorArray = (
     riskAnalysis: EServiceRiskAnalysisSQL | null;
     riskAnalysisAnswer: EServiceRiskAnalysisAnswerSQL | null;
     templateVersionRef: EServiceDescriptorTemplateVersionRefSQL | null;
+    archivingSchedule: EServiceDescriptorArchivingScheduleSQL | null;
+    asyncExchangeProperties: EServiceDescriptorAsyncExchangePropertiesSQL | null;
+    archivingRequests: EServiceDescriptorArchivingRequestSQL | null;
   }>
 ): {
   eservicesSQL: EServiceSQL[];
@@ -518,6 +724,9 @@ export const toEServiceAggregatorArray = (
   documentsSQL: EServiceDescriptorDocumentSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
   templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[];
+  archivingSchedulesSQL: EServiceDescriptorArchivingScheduleSQL[];
+  asyncExchangePropertiesSQL: EServiceDescriptorAsyncExchangePropertiesSQL[];
+  archivingRequestsSQL: EServiceDescriptorArchivingRequestSQL[];
 } => {
   const eserviceIdSet = new Set<string>();
   const eservicesSQL: EServiceSQL[] = [];
@@ -545,6 +754,15 @@ export const toEServiceAggregatorArray = (
 
   const templateVersionRefIdSet = new Set<string>();
   const templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[] = [];
+
+  const archivingScheduleIdSet = new Set<string>();
+  const archivingSchedulesSQL: EServiceDescriptorArchivingScheduleSQL[] = [];
+  const asyncExchangeIdSet = new Set<string>();
+  const asyncExchangePropertiesSQL: EServiceDescriptorAsyncExchangePropertiesSQL[] =
+    [];
+  const archivingRequestsSQL: EServiceDescriptorArchivingRequestSQL[] = [];
+  const descriptorArchivingRequestIdSet = new Set<string>();
+  const eserviceArchivingRequestIdSet = new Set<string>();
 
   // eslint-disable-next-line sonarjs/cognitive-complexity, complexity
   queryRes.forEach((row) => {
@@ -628,6 +846,41 @@ export const toEServiceAggregatorArray = (
         // eslint-disable-next-line functional/immutable-data
         templateVersionRefsSQL.push(templateVersionRefSQL);
       }
+
+      const archivingScheduleSQL = row.archivingSchedule;
+      const archivingSchedulePK = archivingScheduleSQL
+        ? makeUniqueKey([
+            archivingScheduleSQL.eserviceId,
+            archivingScheduleSQL.descriptorId,
+          ])
+        : undefined;
+      if (
+        archivingScheduleSQL &&
+        archivingSchedulePK &&
+        !archivingScheduleIdSet.has(archivingSchedulePK)
+      ) {
+        archivingScheduleIdSet.add(archivingSchedulePK);
+        // eslint-disable-next-line functional/immutable-data
+        archivingSchedulesSQL.push(archivingScheduleSQL);
+      }
+      const asyncExchangeRowSQL = row.asyncExchangeProperties;
+      if (
+        asyncExchangeRowSQL &&
+        !asyncExchangeIdSet.has(asyncExchangeRowSQL.descriptorId)
+      ) {
+        asyncExchangeIdSet.add(asyncExchangeRowSQL.descriptorId);
+        // eslint-disable-next-line functional/immutable-data
+        asyncExchangePropertiesSQL.push(asyncExchangeRowSQL);
+      }
+
+      const archivingRequestSQL = row.archivingRequests;
+      if (archivingRequestSQL?.descriptorId) {
+        if (!descriptorArchivingRequestIdSet.has(archivingRequestSQL.id)) {
+          descriptorArchivingRequestIdSet.add(archivingRequestSQL.id);
+          // eslint-disable-next-line functional/immutable-data
+          archivingRequestsSQL.push(archivingRequestSQL);
+        }
+      }
     }
 
     const riskAnalysisSQL = row.riskAnalysis;
@@ -658,6 +911,15 @@ export const toEServiceAggregatorArray = (
         riskAnalysisAnswersSQL.push(riskAnalysisAnswerSQL);
       }
     }
+
+    const archivingRequestEService = row.archivingRequests;
+    if (archivingRequestEService?.descriptorId === null) {
+      if (!eserviceArchivingRequestIdSet.has(archivingRequestEService.id)) {
+        eserviceArchivingRequestIdSet.add(archivingRequestEService.id);
+        // eslint-disable-next-line functional/immutable-data
+        archivingRequestsSQL.push(archivingRequestEService);
+      }
+    }
   });
 
   return {
@@ -670,5 +932,8 @@ export const toEServiceAggregatorArray = (
     riskAnalysisAnswersSQL,
     rejectionReasonsSQL,
     templateVersionRefsSQL,
+    archivingSchedulesSQL,
+    asyncExchangePropertiesSQL,
+    archivingRequestsSQL,
   };
 };

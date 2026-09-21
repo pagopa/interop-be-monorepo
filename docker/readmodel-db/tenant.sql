@@ -17,6 +17,16 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant (
   CONSTRAINT tenant_id_metadata_version_unique UNIQUE (id, metadata_version)
 );
 
+CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_remote_id (
+  tenant_id UUID NOT NULL REFERENCES readmodel_tenant.tenant (id) ON DELETE CASCADE,
+  metadata_version INTEGER NOT NULL,
+  origin VARCHAR NOT NULL,
+  value VARCHAR NOT NULL,
+  assignment_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+  PRIMARY KEY (tenant_id, origin),
+  FOREIGN KEY (tenant_id, metadata_version) REFERENCES readmodel_tenant.tenant (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
+);
+
 CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_mail (
   id VARCHAR,
   tenant_id UUID NOT NULL REFERENCES readmodel_tenant.tenant (id) ON DELETE CASCADE,
@@ -55,6 +65,17 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_verified_attribute (
   tenant_id UUID NOT NULL REFERENCES readmodel_tenant.tenant (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   assignment_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+  PRIMARY KEY (attribute_id, tenant_id),
+  FOREIGN KEY (tenant_id, metadata_version) REFERENCES readmodel_tenant.tenant (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
+);
+
+CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_certified_discrete_attribute (
+  attribute_id UUID NOT NULL,
+  tenant_id UUID NOT NULL REFERENCES readmodel_tenant.tenant (id) ON DELETE CASCADE,
+  metadata_version INTEGER NOT NULL,
+  assignment_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+  revocation_timestamp TIMESTAMP WITH TIME ZONE,
+  certified_discrete_value INTEGER NOT NULL,
   PRIMARY KEY (attribute_id, tenant_id),
   FOREIGN KEY (tenant_id, metadata_version) REFERENCES readmodel_tenant.tenant (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );

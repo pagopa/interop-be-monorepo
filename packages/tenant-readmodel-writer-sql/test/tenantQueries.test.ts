@@ -1,6 +1,7 @@
 import { sortTenant } from "pagopa-interop-commons-test";
 import { WithMetadata, Tenant } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
+
 import {
   initMockTenant,
   retrieveTenantSQLObjects,

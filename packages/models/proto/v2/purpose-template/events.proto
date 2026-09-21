@@ -4,6 +4,7 @@ package purpose.template.v2;
 
 import "v2/purpose-template/purpose-template.proto";
 import "v2/eservice/eservice.proto";
+import "v2/eservice-template/eservice-template.proto";
 
 message PurposeTemplateAddedV2 {
   PurposeTemplateV2 purposeTemplate = 1;
@@ -68,4 +69,17 @@ message RiskAnalysisTemplateDocumentGeneratedV2 {
 
 message RiskAnalysisTemplateSignedDocumentGeneratedV2 {
   PurposeTemplateV2 purposeTemplate = 1;
+}
+
+message PurposeTemplateEServiceTemplateLinkedV2 {
+  PurposeTemplateV2 purposeTemplate = 1;
+  eservice.template.v2.EServiceTemplateV2 eserviceTemplate = 2;
+  string eserviceTemplateVersionId = 3;
+  int64 createdAt = 4;
+}
+
+message PurposeTemplateEServiceTemplateUnlinkedV2 {
+  PurposeTemplateV2 purposeTemplate = 1;
+  eservice.template.v2.EServiceTemplateV2 eserviceTemplate = 2;
+  string eserviceTemplateVersionId = 3;
 }

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockDescriptor,
   getMockDocument,
@@ -9,7 +9,8 @@ import {
   EServiceId,
   generateId,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
+import { describe, expect, it } from "vitest";
+
 import { config } from "../src/config/config.js";
 import { exportInterface } from "../src/interfaceExporter.js";
 import { fileManager } from "./utils.js";

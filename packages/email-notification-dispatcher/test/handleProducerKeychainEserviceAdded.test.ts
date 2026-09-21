@@ -1,5 +1,6 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/no-identical-functions */
+import { authRole } from "pagopa-interop-commons";
 import {
   getMockAgreement,
   getMockContext,
@@ -7,7 +8,6 @@ import {
   getMockEService,
   getMockTenant,
 } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
 import {
   Agreement,
   agreementState,
@@ -17,12 +17,13 @@ import {
   generateId,
   TenantId,
 } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   eserviceWithoutDescriptors,
-  eServiceNotFound,
+  eserviceNotFound,
   tenantNotFound,
-} from "../src/models/errors.js";
+} from "pagopa-interop-notification-commons";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { handleProducerKeychainEserviceAdded } from "../src/handlers/authorization/handleProducerKeychainEserviceAdded.js";
 import {
   addOneAgreement,
@@ -75,7 +76,7 @@ describe("handleProducerKeychainEserviceAdded", async () => {
       );
   });
 
-  it("should throw eServiceNotFound when eservice is not found", async () => {
+  it("should throw eserviceNotFound when eservice is not found", async () => {
     const eserviceId = generateId<EServiceId>();
     await expect(() =>
       handleProducerKeychainEserviceAdded({
@@ -85,7 +86,7 @@ describe("handleProducerKeychainEserviceAdded", async () => {
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
-    ).rejects.toThrow(eServiceNotFound(eserviceId));
+    ).rejects.toThrow(eserviceNotFound(eserviceId));
   });
 
   it("should throw tenantNotFound when producer is not found", async () => {

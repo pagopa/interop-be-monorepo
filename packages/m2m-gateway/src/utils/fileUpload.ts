@@ -3,6 +3,7 @@ import {
   catalogApi,
   eserviceTemplateApi,
   m2mGatewayApi,
+  WithMaybeMetadata,
 } from "pagopa-interop-api-clients";
 import {
   FileManager,
@@ -11,11 +12,11 @@ import {
 } from "pagopa-interop-commons";
 import { generateId, technology } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import {
   CatalogProcessClientWithMetadata,
   EServiceTemplateProcessClientWithMetadata,
 } from "../clients/clientsProvider.js";
-import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { config } from "../config/config.js";
 import { Headers } from "./context.js";
 
@@ -81,6 +82,10 @@ export async function uploadEServiceDocument({
           },
         }
       ),
+    {
+      maxFileSizeBytes: config.maxFileSizeBytes,
+      maxInterfaceFileSizeBytes: config.maxInterfaceFileSizeBytes,
+    },
     logger
   );
 }
@@ -147,6 +152,10 @@ export async function uploadEServiceTemplateDocument({
           },
         }
       ),
+    {
+      maxFileSizeBytes: config.maxFileSizeBytes,
+      maxInterfaceFileSizeBytes: config.maxInterfaceFileSizeBytes,
+    },
     logger
   );
 }

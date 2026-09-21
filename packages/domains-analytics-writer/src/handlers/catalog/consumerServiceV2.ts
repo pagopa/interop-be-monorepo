@@ -1,19 +1,18 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
+import { EserviceItemsSchema } from "pagopa-interop-kpi-models";
 import {
   EServiceEventEnvelopeV2,
   fromEServiceV2,
   genericInternalError,
 } from "pagopa-interop-models";
-import { match, P } from "ts-pattern";
 import { splitEserviceIntoObjectsSQL } from "pagopa-interop-readmodel";
+import { match, P } from "ts-pattern";
 import { z } from "zod";
-import { catalogServiceBuilder } from "../../service/catalogService.js";
+
 import { DBContext } from "../../db/db.js";
-import {
-  EserviceItemsSchema,
-  EserviceDeletingSchema,
-} from "../../model/catalog/eservice.js";
+import { EserviceDeletingSchema } from "../../model/catalog/eservice.js";
+import { catalogServiceBuilder } from "../../service/catalogService.js";
 import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
 export async function handleCatalogMessageV2(
@@ -51,15 +50,16 @@ export async function handleCatalogMessageV2(
             "EServiceDescriptorSuspended",
             "EServiceDescriptorInterfaceAdded",
             "EServiceDescriptorDocumentAdded",
-            "EServiceDescriptorInterfaceUpdated",
             "EServiceDescriptorDocumentUpdated",
             "EServiceRiskAnalysisAdded",
             "EServiceRiskAnalysisUpdated",
+            "MaintenanceEServiceRiskAnalysisSetTenantKind",
             "EServiceDescriptionUpdated",
             "EServiceDescriptorSubmittedByDelegate",
             "EServiceDescriptorApprovedByDelegator",
             "EServiceDescriptorRejectedByDelegator",
             "EServiceDescriptorAttributesUpdated",
+            "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
             "EServiceNameUpdated",
             "EServiceIsConsumerDelegableEnabled",
             "EServiceIsConsumerDelegableDisabled",
@@ -73,6 +73,8 @@ export async function handleCatalogMessageV2(
             "EServiceDescriptorDocumentAddedByTemplateUpdate",
             "EServiceRiskAnalysisDeleted",
             "EServiceDescriptorInterfaceDeleted",
+            "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+            "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
             "EServiceDescriptorDocumentDeletedByTemplateUpdate",
             "EServiceDescriptorDocumentDeleted",
             "EServiceDraftDescriptorDeleted",
@@ -80,7 +82,25 @@ export async function handleCatalogMessageV2(
             "EServiceSignalHubDisabled",
             "EServicePersonalDataFlagUpdatedAfterPublication",
             "EServicePersonalDataFlagUpdatedByTemplateUpdate",
-            "EServiceInstanceLabelUpdated"
+            "EServiceInstanceLabelUpdated",
+            "EServiceDescriptorArchivingScheduled",
+            "EServiceDescriptorArchivingCanceled",
+            "EServiceDescriptorArchivingCompleted",
+            "EServiceDescriptorArchivingRequestedByDelegate",
+            "EServiceDescriptorArchivingRequestRejectedByDelegator",
+            "EServiceDescriptorArchivingRequestApprovedByDelegator",
+            "EServiceDescriptorArchivingRequestCanceledByDelegate",
+            "EServiceArchivingScheduled",
+            "EServiceArchivingCanceled",
+            "EServiceArchivingCompleted",
+            "EServiceArchivingRequestedByDelegate",
+            "EServiceArchivingRequestRejectedByDelegator",
+            "EServiceArchivingRequestApprovedByDelegator",
+            "EServiceArchivingRequestCanceledByDelegate",
+            "EServiceArchivingRequestCanceledByRevokedDelegation",
+            "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation",
+            "MaintenanceEServicePersonalDataFlagReset",
+            "MaintenanceEServiceDescriptorUnarchived"
           ),
         },
         (msg) => {
@@ -105,6 +125,9 @@ export async function handleCatalogMessageV2(
               documentsSQL: splitResult.documentsSQL,
               rejectionReasonsSQL: splitResult.rejectionReasonsSQL,
               templateVersionRefsSQL: splitResult.templateVersionRefsSQL,
+              archivingSchedulesSQL: splitResult.archivingSchedulesSQL,
+              asyncExchangePropertiesSQL:
+                splitResult.asyncExchangePropertiesSQL,
             } satisfies z.input<typeof EserviceItemsSchema>)
           );
         }

@@ -9,13 +9,14 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { EServiceTemplateV2 } from "pagopa-interop-models";
-import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
+  inAppTemplates,
   retrieveLatestDescriptor,
   getNotificationRecipients,
   retrieveTenant,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
+
+import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 export async function handleNewEserviceTemplateVersionToInstantiator(
   eserviceTemplateV2Msg: EServiceTemplateV2 | undefined,

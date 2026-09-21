@@ -16,16 +16,17 @@ import {
   EServiceTemplateVersion,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
-import {
-  addOneEServiceTemplate,
-  eserviceTemplateService,
-  readLastEserviceTemplateEvent,
-} from "../integrationUtils.js";
+
 import {
   eserviceTemplateNotFound,
   eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce,
   eserviceTemplateWithoutPublishedVersion,
 } from "../../src/model/domain/errors.js";
+import {
+  addOneEServiceTemplate,
+  eserviceTemplateService,
+  readLastEserviceTemplateEvent,
+} from "../integrationUtils.js";
 
 describe("update EService Template personalData flag for an already created EService Template", async () => {
   it("should write on event-store for the update of the EService Template personalData flag (undefined -> true)", async () => {
@@ -72,12 +73,12 @@ describe("update EService Template personalData flag for an already created ESer
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eserviceTemplate).toEqual(
-      toEServiceTemplateV2(updatedEServiceTemplate)
-    );
-    expect(writtenPayload.eserviceTemplate).toEqual(
-      toEServiceTemplateV2(returnedEServiceTemplate)
-    );
+    expect(writtenPayload).toEqual({
+      eserviceTemplate: toEServiceTemplateV2(updatedEServiceTemplate),
+    });
+    expect(writtenPayload).toEqual({
+      eserviceTemplate: toEServiceTemplateV2(returnedEServiceTemplate),
+    });
   });
 
   it.each([

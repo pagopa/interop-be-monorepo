@@ -1,19 +1,20 @@
-import { describe, it, expect, vi } from "vitest";
+import { catalogApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockedApiEservice,
   getMockedApiEserviceDescriptor,
   getMockDPoPProof,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
 import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
-import { catalogApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
-import { api, mockEserviceService } from "../../vitest.api.setup.js";
-import { appBasePath } from "../../../src/config/appBasePath.js";
-import { missingMetadata } from "../../../src/model/errors.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { toM2MGatewayApiEServiceDescriptor } from "../../../src/api/eserviceApiConverter.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
 import { config } from "../../../src/config/config.js";
+import { missingMetadata } from "../../../src/model/errors.js";
+import { api, mockEserviceService } from "../../vitest.api.setup.js";
 
 describe("POST /eservices/:eserviceId/descriptors/:descriptorId/approve router test", () => {
   const mockApiDescriptor: catalogApi.EServiceDescriptor = {

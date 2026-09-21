@@ -5,10 +5,11 @@ import {
 } from "pagopa-interop-commons";
 import { CorrelationId, generateId } from "pagopa-interop-models";
 import { makeDrizzleConnectionWithCleanup } from "pagopa-interop-readmodel";
+
 import { config } from "./configs/config.js";
-import { toCSV, toCsvDataRow } from "./utils/helpersUtils.js";
 import { CSV_FILENAME, MAIL_BODY, MAIL_SUBJECT } from "./configs/constants.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
+import { toCSV, toCsvDataRow } from "./utils/helpersUtils.js";
 
 const loggerInstance = logger({
   serviceName: "pn-consumers",

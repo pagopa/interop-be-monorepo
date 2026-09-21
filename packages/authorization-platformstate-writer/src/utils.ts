@@ -13,6 +13,7 @@ import {
   UpdateItemInput,
 } from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
+import { Logger } from "pagopa-interop-commons";
 import {
   ClientId,
   clientKind,
@@ -51,8 +52,8 @@ import {
   makePlatformStatesAgreementPK,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import { Logger } from "pagopa-interop-commons";
 import { z } from "zod";
+
 import { config } from "./config/config.js";
 
 const runPaginatedQueryDeleteClientEntryFromTokenGenStatesByPrefixV1 = async (
@@ -622,6 +623,13 @@ export const upsertTokenGenStatesConsumerClient = async (
             },
           }
         : {}),
+      ...(tokenGenStatesConsumerClient.asyncExchange !== undefined
+        ? {
+            asyncExchange: {
+              BOOL: tokenGenStatesConsumerClient.asyncExchange,
+            },
+          }
+        : {}),
       updatedAt: {
         S: tokenGenStatesConsumerClient.updatedAt,
       },
@@ -1186,6 +1194,9 @@ export const updateTokenGenStatesDataForSecondRetrieval = async ({
             catalogEntry.descriptorVoucherLifespan
           ),
           ...setIfChanged("descriptorState", catalogEntry.state),
+          ...(catalogEntry.asyncExchange !== undefined
+            ? setIfChanged("asyncExchange", catalogEntry.asyncExchange)
+            : {}),
         }
       : {}),
   };
@@ -1336,6 +1347,7 @@ export const createTokenGenStatesConsumerClient = ({
       descriptorState: catalogEntry.state,
       descriptorAudience: catalogEntry.descriptorAudience,
       descriptorVoucherLifespan: catalogEntry.descriptorVoucherLifespan,
+      asyncExchange: catalogEntry.asyncExchange,
     }),
   };
 };

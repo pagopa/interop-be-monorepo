@@ -1,3 +1,4 @@
+import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
   applicationAuditBeginMiddleware,
   applicationAuditEndMiddleware,
@@ -11,11 +12,10 @@ import {
   zodiosCtx,
 } from "pagopa-interop-commons";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
-import { purposeTemplateApi } from "pagopa-interop-api-clients";
-import { PurposeTemplateService } from "./services/purposeTemplateService.js";
-import purposeTemplateRouter from "./routers/PurposeTemplateRouter.js";
+
 import { config } from "./config/config.js";
-import { purposeTemplateFeatureFlagMiddleware } from "./utilities/middleware.js";
+import purposeTemplateRouter from "./routers/PurposeTemplateRouter.js";
+import { PurposeTemplateService } from "./services/purposeTemplateService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function createApp(service: PurposeTemplateService) {
@@ -28,7 +28,6 @@ export async function createApp(service: PurposeTemplateService) {
   // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
   app.disable("x-powered-by");
   app.use(healthRouter(purposeTemplateApi.healthApi.api));
-  app.use(purposeTemplateFeatureFlagMiddleware());
   app.use(contextMiddleware(serviceName));
   app.use(await applicationAuditBeginMiddleware(serviceName, config));
   app.use(await applicationAuditEndMiddleware(serviceName, config));

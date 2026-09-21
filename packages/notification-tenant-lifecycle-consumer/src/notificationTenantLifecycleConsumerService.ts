@@ -16,6 +16,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
+
 import { PagoPAInteropBeClients } from "./clients/clientsProvider.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -142,24 +143,29 @@ export function notificationTenantLifecycleConsumerServiceBuilder(
         .with(
           {
             type: P.union(
-              "TenantOnboardDetailsUpdated",
-              "TenantCertifiedAttributeAssigned",
-              "TenantCertifiedAttributeRevoked",
-              "TenantDeclaredAttributeAssigned",
-              "TenantDeclaredAttributeRevoked",
-              "TenantVerifiedAttributeAssigned",
-              "TenantVerifiedAttributeRevoked",
-              "TenantVerifiedAttributeExpirationUpdated",
-              "TenantVerifiedAttributeExtensionUpdated",
-              "TenantMailAdded",
               "MaintenanceTenantPromotedToCertifier",
               "MaintenanceTenantUpdated",
-              "TenantMailDeleted",
-              "TenantKindUpdated",
+              "TenantCertifiedAttributeAssigned",
+              "TenantCertifiedAttributeRevoked",
+              "TenantCertifiedDiscreteAttributeAssigned",
+              "TenantCertifiedDiscreteAttributeRevoked",
+              "TenantCertifiedDiscreteAttributeUpdated",
+              "TenantDeclaredAttributeAssigned",
+              "TenantDeclaredAttributeRevoked",
+              "TenantDelegatedConsumerFeatureAdded",
+              "TenantDelegatedConsumerFeatureRemoved",
               "TenantDelegatedProducerFeatureAdded",
               "TenantDelegatedProducerFeatureRemoved",
-              "TenantDelegatedConsumerFeatureAdded",
-              "TenantDelegatedConsumerFeatureRemoved"
+              "TenantKindUpdated",
+              "TenantMailAdded",
+              "TenantMailDeleted",
+              "TenantOnboardDetailsUpdated",
+              "TenantRemoteIdAssigned",
+              "MaintenanceTenantRemoteIdDeleted",
+              "TenantVerifiedAttributeAssigned",
+              "TenantVerifiedAttributeExpirationUpdated",
+              "TenantVerifiedAttributeExtensionUpdated",
+              "TenantVerifiedAttributeRevoked"
             ),
           },
           async (message) => {

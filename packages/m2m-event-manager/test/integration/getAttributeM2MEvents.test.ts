@@ -1,11 +1,12 @@
-import { beforeEach, describe, expect, it } from "vitest";
 import { getMockContextM2M } from "pagopa-interop-commons-test";
 import { AttributeM2MEventType } from "pagopa-interop-models";
-import { getMockedAttributeM2MEvent } from "../mockUtils.js";
+import { beforeEach, describe, expect, it } from "vitest";
+
 import {
   m2mEventService,
   writeAttributeM2MEvent,
 } from "../integrationUtils.js";
+import { getMockedAttributeM2MEvent } from "../mockUtils.js";
 
 describe("getAttributeM2MEvents", () => {
   const mockAttributeM2MEvents = AttributeM2MEventType.options
@@ -15,10 +16,13 @@ describe("getAttributeM2MEvents", () => {
       getMockedAttributeM2MEvent(type),
       getMockedAttributeM2MEvent(type),
     ])
-    .flat();
+    .flat()
+    .sort((a, b) => a.id.localeCompare(b.id));
 
   beforeEach(async () => {
-    await Promise.all(mockAttributeM2MEvents.map(writeAttributeM2MEvent));
+    for (const event of mockAttributeM2MEvents) {
+      await writeAttributeM2MEvent(event);
+    }
   });
 
   it("should list all attribute M2M events", async () => {

@@ -1,19 +1,23 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { m2mGatewayApi, purposeTemplateApi } from "pagopa-interop-api-clients";
+import {
+  m2mGatewayApi,
+  purposeTemplateApi,
+  WithMaybeMetadata,
+} from "pagopa-interop-api-clients";
 import {
   getMockedApiEservice,
   getMockedApiEServiceDescriptorPurposeTemplate,
 } from "pagopa-interop-commons-test";
 import { generateId, PurposeTemplateId } from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { toM2MGatewayApiEService } from "../../../src/api/eserviceApiConverter.js";
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
   purposeTemplateService,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
-import { toM2MGatewayApiEService } from "../../../src/api/eserviceApiConverter.js";
 
 describe("getPurposeTemplateEServiceDescriptors", () => {
   const mockParams: m2mGatewayApi.GetPurposeTemplateEServicesQueryParams = {
@@ -71,6 +75,7 @@ describe("getPurposeTemplateEServiceDescriptors", () => {
 
   beforeEach(() => {
     mockGetPurposeTemplateEServices.mockClear();
+    mockGetEServices.mockClear();
   });
 
   it("Should succeed and perform API clients calls", async () => {
@@ -106,5 +111,29 @@ describe("getPurposeTemplateEServiceDescriptors", () => {
         producerIds: [],
       } satisfies m2mGatewayApi.GetPurposeTemplateEServicesQueryParams,
     });
+  });
+
+  it("Should short-circuit and not invoke the enrichment client when there are no links", async () => {
+    const purposeTemplateId = generateId<PurposeTemplateId>();
+    mockGetPurposeTemplateEServices.mockResolvedValueOnce({
+      data: { results: [], totalCount: 0 },
+      metadata: undefined,
+    });
+
+    const result = await purposeTemplateService.getPurposeTemplateEServices(
+      purposeTemplateId,
+      mockParams,
+      getMockM2MAdminAppContext()
+    );
+
+    expect(result).toStrictEqual({
+      pagination: {
+        offset: mockParams.offset,
+        limit: mockParams.limit,
+        totalCount: 0,
+      },
+      results: [],
+    });
+    expect(mockGetEServices).toHaveBeenCalledTimes(0);
   });
 });

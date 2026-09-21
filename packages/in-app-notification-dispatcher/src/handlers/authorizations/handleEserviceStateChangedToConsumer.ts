@@ -5,14 +5,15 @@ import {
   NewNotification,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import {
   getNotificationRecipients,
   retrieveEservice,
   retrieveLatestDescriptor,
   retrieveTenant,
-} from "../handlerCommons.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
+  inAppTemplates,
+} from "pagopa-interop-notification-commons";
+
+import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 export async function handleEserviceStateChangedToConsumer(
   eserviceId: string,

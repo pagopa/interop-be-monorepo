@@ -9,9 +9,10 @@ import {
   authRole,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
+
 import { makeApiProblem } from "../model/errors.js";
-import { fromM2MGatewayAppContext } from "../utils/context.js";
 import { EventService } from "../services/eventService.js";
+import { fromM2MGatewayAppContext } from "../utils/context.js";
 
 const { M2M_ROLE, M2M_ADMIN_ROLE } = authRole;
 
@@ -91,6 +92,32 @@ const eventRouter = (
       );
 
       return res.status(200).send(m2mGatewayApiV3.PurposeEvents.parse(events));
+    } catch (error) {
+      const errorRes = makeApiProblem(
+        error,
+        emptyErrorMapper,
+        ctx,
+        "Error retrieving purpose events"
+      );
+      return res.status(errorRes.status).send();
+    }
+  });
+  eventRouter.get("/purposeTemplateEvents", async (req, res) => {
+    const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+    try {
+      validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+      const events = await eventService.getPurposeTemplateEvents(
+        {
+          lastEventId: req.query.lastEventId,
+          limit: req.query.limit,
+        },
+        ctx
+      );
+
+      return res
+        .status(200)
+        .send(m2mGatewayApiV3.PurposeTemplateEvents.parse(events));
     } catch (error) {
       const errorRes = makeApiProblem(
         error,

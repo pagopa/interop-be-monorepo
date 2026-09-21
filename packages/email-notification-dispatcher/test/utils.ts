@@ -1,6 +1,3 @@
-import { fileURLToPath } from "url";
-import fs from "fs";
-import path from "path";
 import { buildHTMLTemplateService } from "pagopa-interop-commons";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import {
@@ -15,13 +12,14 @@ import {
   TenantId,
   UserId,
 } from "pagopa-interop-models";
-import { afterEach, inject } from "vitest";
+import { registerEmailTemplatePartials } from "pagopa-interop-notification-commons";
 import {
   agreementReadModelServiceBuilder,
   attributeReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
   notificationConfigReadModelServiceBuilder,
+  producerKeychainReadModelServiceBuilder,
   purposeReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
@@ -34,6 +32,8 @@ import {
   upsertPurpose,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
+import { afterEach, inject } from "vitest";
+
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(
@@ -59,6 +59,8 @@ const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const notificationConfigReadModelServiceSQL =
   notificationConfigReadModelServiceBuilder(readModelDB);
 const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
+const producerKeychainReadModelServiceSQL =
+  producerKeychainReadModelServiceBuilder(readModelDB);
 
 export const readModelService = readModelServiceBuilderSQL({
   readModelDB,
@@ -69,24 +71,11 @@ export const readModelService = readModelServiceBuilderSQL({
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
   purposeReadModelServiceSQL,
+  producerKeychainReadModelServiceSQL,
 });
 
 export const templateService = buildHTMLTemplateService();
-const filename = fileURLToPath(import.meta.url);
-const dirname = path.dirname(filename);
-function registerPartial(name: string, path: string): void {
-  const buffer = fs.readFileSync(`${dirname}/../src${path}`);
-  templateService.registerPartial(name, buffer.toString());
-}
-
-registerPartial(
-  "common-header",
-  "/resources/templates/headers/common-header.hbs"
-);
-registerPartial(
-  "common-footer",
-  "/resources/templates/footers/common-footer.hbs"
-);
+registerEmailTemplatePartials(templateService);
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await upsertTenant(readModelDB, tenant, 0);

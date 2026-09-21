@@ -1,4 +1,4 @@
-import { and, eq, SQL } from "drizzle-orm";
+import { and, eq, or, isNull, SQL } from "drizzle-orm";
 import {
   EService,
   EServiceId,
@@ -7,16 +7,20 @@ import {
 } from "pagopa-interop-models";
 import {
   DrizzleReturnType,
+  eserviceDescriptorArchivingScheduleInReadmodelCatalog,
   eserviceDescriptorAttributeInReadmodelCatalog,
   eserviceDescriptorDocumentInReadmodelCatalog,
   eserviceDescriptorInReadmodelCatalog,
   eserviceDescriptorInterfaceInReadmodelCatalog,
   eserviceDescriptorRejectionReasonInReadmodelCatalog,
   eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+  eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
+  eserviceDescriptorArchivingRequestInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
+
 import {
   aggregateEservice,
   aggregateEserviceArray,
@@ -32,7 +36,11 @@ function getEServicesQueryResult(db: DrizzleReturnType, filter: SQL) {
                       descriptor ->4 attribute
                       descriptor ->5 rejection reason
                       descriptor ->6 template version ref
-                  ->7 risk analysis ->8 answers
+                      descriptor ->7 async exchange
+                      descriptor ->8 risk analysis 
+                      descriptor ->9 answers 
+                      descriptor ->10 archiving schedule
+                      descriptor ->11 delegated archiving request
   */
   return db
     .select({
@@ -46,6 +54,10 @@ function getEServicesQueryResult(db: DrizzleReturnType, filter: SQL) {
       riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
       templateVersionRef:
         eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+      archivingSchedule: eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+      asyncExchangeProperties:
+        eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
+      archivingRequests: eserviceDescriptorArchivingRequestInReadmodelCatalog,
     })
     .from(eserviceInReadmodelCatalog)
     .where(filter)
@@ -99,6 +111,14 @@ function getEServicesQueryResult(db: DrizzleReturnType, filter: SQL) {
     )
     .leftJoin(
       // 7
+      eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
+      eq(
+        eserviceDescriptorInReadmodelCatalog.id,
+        eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog.descriptorId
+      )
+    )
+    .leftJoin(
+      // 8
       eserviceRiskAnalysisInReadmodelCatalog,
       eq(
         eserviceInReadmodelCatalog.id,
@@ -106,7 +126,7 @@ function getEServicesQueryResult(db: DrizzleReturnType, filter: SQL) {
       )
     )
     .leftJoin(
-      // 8
+      // 9
       eserviceRiskAnalysisAnswerInReadmodelCatalog,
       and(
         eq(
@@ -116,6 +136,33 @@ function getEServicesQueryResult(db: DrizzleReturnType, filter: SQL) {
         eq(
           eserviceRiskAnalysisInReadmodelCatalog.eserviceId,
           eserviceRiskAnalysisAnswerInReadmodelCatalog.eserviceId
+        )
+      )
+    )
+    .leftJoin(
+      // 10
+      eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+      eq(
+        eserviceDescriptorInReadmodelCatalog.id,
+        eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+      )
+    )
+    .leftJoin(
+      // 11
+      eserviceDescriptorArchivingRequestInReadmodelCatalog,
+      or(
+        eq(
+          eserviceDescriptorInReadmodelCatalog.id,
+          eserviceDescriptorArchivingRequestInReadmodelCatalog.descriptorId
+        ),
+        and(
+          eq(
+            eserviceInReadmodelCatalog.id,
+            eserviceDescriptorArchivingRequestInReadmodelCatalog.eserviceId
+          ),
+          isNull(
+            eserviceDescriptorArchivingRequestInReadmodelCatalog.descriptorId
+          )
         )
       )
     );

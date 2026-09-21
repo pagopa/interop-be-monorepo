@@ -1,11 +1,8 @@
-import { fileURLToPath } from "url";
-import path from "path";
 import {
   dateAtRomeZone,
   FileManager,
   formatDateyyyyMMddHHmmss,
   Logger,
-  PDFGenerator,
   timeAtRomeZone,
 } from "pagopa-interop-commons";
 import {
@@ -19,13 +16,17 @@ import {
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   Tenant,
 } from "pagopa-interop-models";
+import path from "path";
 import { match } from "ts-pattern";
+import { fileURLToPath } from "url";
+
 import { DocumentsGeneratorConfig } from "../../config/config.js";
 import {
   DelegationActivationPDFPayload,
   DelegationRevocationPDFPayload,
 } from "../../model/delegationModels.js";
 import { delegationStampNotFound } from "../../model/errors.js";
+import { PDFGenerator } from "../../pdf-generator/pdfGenerator.js";
 
 const CONTENT_TYPE_PDF = "application/pdf";
 

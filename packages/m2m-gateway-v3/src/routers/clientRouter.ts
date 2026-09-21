@@ -9,9 +9,11 @@ import {
   authRole,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
+
 import { makeApiProblem } from "../model/errors.js";
 import { ClientService } from "../services/clientService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
+import { getClientErrorMapper } from "../utils/errorMappers.js";
 
 const { M2M_ROLE, M2M_ADMIN_ROLE } = authRole;
 
@@ -72,7 +74,7 @@ const clientRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          getClientErrorMapper,
           ctx,
           `Error retrieving client with id ${req.params.clientId}`
         );

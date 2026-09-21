@@ -1,4 +1,5 @@
-import { match } from "ts-pattern";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { Logger } from "pagopa-interop-commons";
 import {
   Descriptor,
   descriptorState,
@@ -12,8 +13,8 @@ import {
   PlatformStatesCatalogEntry,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { Logger } from "pagopa-interop-commons";
+import { match } from "ts-pattern";
+
 import {
   deleteCatalogEntry,
   descriptorStateToItemState,
@@ -160,13 +161,19 @@ export async function handleMessageV1(
             logger
           );
         })
-        .with(descriptorState.draft, descriptorState.waitingForApproval, () => {
-          logger.info(
-            `Skipping processing of entry ${eserviceDescriptorPK}. Reason: state ${descriptor.state}`
-          );
+        .with(
+          descriptorState.draft,
+          descriptorState.waitingForApproval,
+          descriptorState.archiving,
+          descriptorState.archivingSuspended,
+          () => {
+            logger.info(
+              `Skipping processing of entry ${eserviceDescriptorPK}. Reason: state ${descriptor.state}`
+            );
 
-          return Promise.resolve();
-        })
+            return Promise.resolve();
+          }
+        )
         .exhaustive();
     })
     .with(

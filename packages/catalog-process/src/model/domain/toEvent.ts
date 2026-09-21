@@ -136,34 +136,6 @@ export const toCreateEventEServiceUpdated = (
   correlationId,
 });
 
-export const toCreateEventEServiceInterfaceUpdated = (
-  streamId: string,
-  version: number,
-  {
-    descriptorId,
-    documentId,
-    eservice,
-  }: {
-    descriptorId: DescriptorId;
-    documentId: EServiceDocumentId;
-    eservice: EService;
-  },
-  correlationId: CorrelationId
-): CreateEvent<EServiceEvent> => ({
-  streamId,
-  version,
-  event: {
-    type: "EServiceDescriptorInterfaceUpdated",
-    event_version: 2,
-    data: {
-      descriptorId,
-      documentId,
-      eservice: toEServiceV2(eservice),
-    },
-  },
-  correlationId,
-});
-
 export const toCreateEventEServiceDocumentUpdated = (
   streamId: string,
   version: number,
@@ -455,6 +427,26 @@ export const toCreateEventEServiceRiskAnalysisUpdated = (
   version,
   event: {
     type: "EServiceRiskAnalysisUpdated",
+    event_version: 2,
+    data: {
+      riskAnalysisId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventMaintenanceEServiceRiskAnalysisSetTenantKind = (
+  streamId: string,
+  version: number,
+  riskAnalysisId: RiskAnalysisId,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "MaintenanceEServiceRiskAnalysisSetTenantKind",
     event_version: 2,
     data: {
       riskAnalysisId,
@@ -895,6 +887,62 @@ export const toCreateEventEServicePersonalDataFlagUpdatedAfterPublication = (
   correlationId,
 });
 
+export const toCreateEventEServiceAsyncExchangeCallbackInterfaceAdded = (
+  streamId: string,
+  version: number,
+  {
+    descriptorId,
+    documentId,
+    eservice,
+  }: {
+    descriptorId: DescriptorId;
+    documentId: EServiceDocumentId;
+    eservice: EService;
+  },
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+    event_version: 2,
+    data: {
+      descriptorId,
+      documentId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceAsyncExchangeCallbackInterfaceDeleted = (
+  streamId: string,
+  version: number,
+  {
+    descriptorId,
+    documentId,
+    eservice,
+  }: {
+    descriptorId: DescriptorId;
+    documentId: EServiceDocumentId;
+    eservice: EService;
+  },
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
+    event_version: 2,
+    data: {
+      descriptorId,
+      documentId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
 export const toCreateEventEServiceInstanceLabelUpdated = (
   version: number,
   eservice: EService,
@@ -911,3 +959,357 @@ export const toCreateEventEServiceInstanceLabelUpdated = (
   },
   correlationId,
 });
+
+export const toCreateEventEServiceDescriptorArchivingScheduled = (
+  version: number,
+  eservice: EService,
+  descriptorId: DescriptorId,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceDescriptorArchivingScheduled",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+      descriptorId,
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceDescriptorArchivingCanceled = (
+  version: number,
+  eservice: EService,
+  descriptorId: DescriptorId,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceDescriptorArchivingCanceled",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+      descriptorId,
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventMaintenanceEServicePersonalDataFlagReset = (
+  version: number,
+  eservice: EService,
+  reason: string,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "MaintenanceEServicePersonalDataFlagReset",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+      reason,
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceDescriptorArchivingCompleted = (
+  streamId: string,
+  version: number,
+  descriptorId: DescriptorId,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDescriptorArchivingCompleted",
+    event_version: 2,
+    data: {
+      descriptorId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceArchivingScheduled = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceArchivingScheduled",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceArchivingCanceled = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceArchivingCanceled",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceArchivingCompleted = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceArchivingCompleted",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+export const toCreateEventMaintenanceEServiceDescriptorUnarchived = (
+  streamId: string,
+  version: number,
+  descriptorId: DescriptorId,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "MaintenanceEServiceDescriptorUnarchived",
+    event_version: 2,
+    data: {
+      descriptorId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+export const toCreateEventEServiceDescriptorAttributeDailyCallsPerConsumerUpdated =
+  (
+    version: number,
+    descriptorId: DescriptorId,
+    attributeId: AttributeId,
+    dailyCallsPerConsumer: number,
+    eservice: EService,
+    correlationId: CorrelationId
+  ): CreateEvent<EServiceEvent> => ({
+    streamId: eservice.id,
+    version,
+    event: {
+      type: "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
+      event_version: 2,
+      data: {
+        descriptorId,
+        attributeId,
+        dailyCallsPerConsumer,
+        eservice: toEServiceV2(eservice),
+      },
+    },
+    correlationId,
+  });
+
+export const toCreateEventEServiceArchivingRequestedByDelegate = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceArchivingRequestedByDelegate",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+export const toCreateEventEServiceArchivingRequestApprovedByDelegator = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceArchivingRequestApprovedByDelegator",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceDescriptorArchivingRequestedByDelegate = (
+  version: number,
+  descriptorId: DescriptorId,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceDescriptorArchivingRequestedByDelegate",
+    event_version: 2,
+    data: {
+      descriptorId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceArchivingRequestRejectedByDelegator = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceArchivingRequestRejectedByDelegator",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceArchivingRequestCanceledByRevokedDelegation =
+  (
+    version: number,
+    eservice: EService,
+    correlationId: CorrelationId
+  ): CreateEvent<EServiceEvent> => ({
+    streamId: eservice.id,
+    version,
+    event: {
+      type: "EServiceArchivingRequestCanceledByRevokedDelegation",
+      event_version: 2,
+      data: {
+        eservice: toEServiceV2(eservice),
+      },
+    },
+    correlationId,
+  });
+
+export const toCreateEventEServiceDescriptorArchivingRequestRejectedByDelegator =
+  (
+    version: number,
+    descriptorId: DescriptorId,
+    eservice: EService,
+    correlationId: CorrelationId
+  ): CreateEvent<EServiceEvent> => ({
+    streamId: eservice.id,
+    version,
+    event: {
+      type: "EServiceDescriptorArchivingRequestRejectedByDelegator",
+      event_version: 2,
+      data: {
+        descriptorId,
+        eservice: toEServiceV2(eservice),
+      },
+    },
+    correlationId,
+  });
+
+export const toCreateEventEServiceDescriptorArchivingRequestCanceledByRevokedDelegation =
+  (
+    version: number,
+    descriptorId: DescriptorId,
+    eservice: EService,
+    correlationId: CorrelationId
+  ): CreateEvent<EServiceEvent> => ({
+    streamId: eservice.id,
+    version,
+    event: {
+      type: "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation",
+      event_version: 2,
+      data: {
+        descriptorId,
+        eservice: toEServiceV2(eservice),
+      },
+    },
+    correlationId,
+  });
+
+export const toCreateEventEServiceDescriptorArchivingRequestApprovedByDelegator =
+  (
+    version: number,
+    descriptorId: DescriptorId,
+    eservice: EService,
+    correlationId: CorrelationId
+  ): CreateEvent<EServiceEvent> => ({
+    streamId: eservice.id,
+    version,
+    event: {
+      type: "EServiceDescriptorArchivingRequestApprovedByDelegator",
+      event_version: 2,
+      data: {
+        descriptorId,
+        eservice: toEServiceV2(eservice),
+      },
+    },
+    correlationId,
+  });
+
+export const toCreateEventEServiceArchivingRequestCanceledByDelegate = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceArchivingRequestCanceledByDelegate",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceDescriptorArchivingRequestCanceledByDelegate =
+  (
+    version: number,
+    descriptorId: DescriptorId,
+    eservice: EService,
+    correlationId: CorrelationId
+  ): CreateEvent<EServiceEvent> => ({
+    streamId: eservice.id,
+    version,
+    event: {
+      type: "EServiceDescriptorArchivingRequestCanceledByDelegate",
+      event_version: 2,
+      data: {
+        descriptorId,
+        eservice: toEServiceV2(eservice),
+      },
+    },
+    correlationId,
+  });

@@ -1,4 +1,3 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
   getMockWithMetadata,
@@ -7,13 +6,15 @@ import {
   getMockedApiPurposeVersion,
 } from "pagopa-interop-commons-test";
 import { unsafeBrandId } from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
   clientService,
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientGetToHaveBeenNthCalledWith,
   mockInteropBeClients,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
   getMockM2MAdminAppContext,
   testToM2mGatewayApiPurposeVersion,
@@ -83,7 +84,7 @@ describe("getClientPurposes", () => {
     eserviceId: mockApiPurpose1.eserviceId,
     id: mockApiPurpose1.id,
     isFreeOfCharge: mockApiPurpose1.isFreeOfCharge,
-    isRiskAnalysisValid: mockApiPurpose1.isRiskAnalysisValid,
+    isRiskAnalysisValid: false,
     title: mockApiPurpose1.title,
     currentVersion: purposeVersion1
       ? testToM2mGatewayApiPurposeVersion(purposeVersion1)
@@ -106,7 +107,7 @@ describe("getClientPurposes", () => {
     eserviceId: mockApiPurpose2.eserviceId,
     id: mockApiPurpose2.id,
     isFreeOfCharge: mockApiPurpose2.isFreeOfCharge,
-    isRiskAnalysisValid: mockApiPurpose2.isRiskAnalysisValid,
+    isRiskAnalysisValid: false,
     title: mockApiPurpose2.title,
     currentVersion: purposeVersion2
       ? testToM2mGatewayApiPurposeVersion(purposeVersion2)
@@ -129,7 +130,7 @@ describe("getClientPurposes", () => {
     eserviceId: mockApiPurpose3.eserviceId,
     id: mockApiPurpose3.id,
     isFreeOfCharge: mockApiPurpose3.isFreeOfCharge,
-    isRiskAnalysisValid: mockApiPurpose3.isRiskAnalysisValid,
+    isRiskAnalysisValid: true,
     title: mockApiPurpose3.title,
     currentVersion: purposeVersion3
       ? testToM2mGatewayApiPurposeVersion(purposeVersion3)
@@ -186,6 +187,7 @@ describe("getClientPurposes", () => {
         producersIds: [],
         clientId: mockApiConsumerClient.id,
         states: [],
+        signingStates: [],
         excludeDraft: false,
         name: "",
       },

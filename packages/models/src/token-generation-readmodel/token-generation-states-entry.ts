@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import {
   AgreementId,
   ClientId,
@@ -13,8 +14,8 @@ import {
   TokenGenerationStatesClientKidPurposePK,
   UserId,
 } from "../brandedIds.js";
-import { ItemState } from "./platform-states-entry.js";
 import { clientKindTokenGenStates } from "./commons.js";
+import { ItemState } from "./platform-states-entry.js";
 
 const TokenGenerationStatesBaseEntry = z.object({
   publicKey: z.string(),
@@ -41,6 +42,7 @@ export const TokenGenerationStatesConsumerClient =
     descriptorState: ItemState.optional(),
     descriptorAudience: z.array(z.string()).optional(),
     descriptorVoucherLifespan: z.number().optional(),
+    asyncExchange: z.boolean().optional(),
     GSIPK_purposeId: PurposeId.optional(),
     purposeState: ItemState.optional(),
     purposeVersionId: PurposeVersionId.optional(),
@@ -51,8 +53,23 @@ export type TokenGenerationStatesConsumerClient = z.infer<
 >;
 
 export const FullTokenGenerationStatesConsumerClient =
-  TokenGenerationStatesConsumerClient.required().extend({
+  TokenGenerationStatesBaseEntry.extend({
     PK: TokenGenerationStatesClientKidPurposePK,
+    clientKind: z.literal(clientKindTokenGenStates.consumer),
+    producerId: TenantId,
+    consumerId: TenantId,
+    GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId,
+    agreementId: AgreementId,
+    agreementState: ItemState,
+    GSIPK_eserviceId_descriptorId: GSIPKEServiceIdDescriptorId,
+    descriptorState: ItemState,
+    descriptorAudience: z.array(z.string()),
+    descriptorVoucherLifespan: z.number(),
+    asyncExchange: z.boolean().optional(),
+    GSIPK_purposeId: PurposeId,
+    purposeState: ItemState,
+    purposeVersionId: PurposeVersionId,
+    GSIPK_clientId_purposeId: GSIPKClientIdPurposeId,
   });
 export type FullTokenGenerationStatesConsumerClient = z.infer<
   typeof FullTokenGenerationStatesConsumerClient

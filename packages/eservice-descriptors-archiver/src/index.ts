@@ -15,15 +15,16 @@ import {
   missingKafkaMessageDataError,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
   makeDrizzleConnection,
 } from "pagopa-interop-readmodel";
-import { catalogProcessClientBuilder } from "./services/catalogProcessClient.js";
+import { match } from "ts-pattern";
+
 import { config } from "./config/config.js";
 import { archiveDescriptorForArchivedAgreement } from "./services/archiveDescriptorProcessor.js";
+import { catalogProcessClientBuilder } from "./services/catalogProcessClient.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 
 const readModelDB = makeDrizzleConnection(config);

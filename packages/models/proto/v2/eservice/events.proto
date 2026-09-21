@@ -23,6 +23,18 @@ message EServiceClonedV2 {
   EServiceV2 eservice = 3;
 }
 
+message EServiceArchivingScheduledV2 {
+  EServiceV2 eservice = 1;
+}
+
+message EServiceArchivingCanceledV2 {
+  EServiceV2 eservice = 1;
+}
+
+message EServiceArchivingCompletedV2 {
+  EServiceV2 eservice = 1;
+}
+
 message EServiceDescriptorAddedV2 {
   string descriptorId = 1;
   EServiceV2 eservice = 2;
@@ -80,12 +92,6 @@ message EServiceDescriptorDocumentAddedV2 {
   EServiceV2 eservice = 3;
 }
 
-message EServiceDescriptorInterfaceUpdatedV2 {
-  string descriptorId = 1;
-  string documentId = 2;
-  EServiceV2 eservice = 3;
-}
-
 message EServiceDescriptorDocumentUpdatedV2 {
   string descriptorId = 1;
   string documentId = 2;
@@ -104,12 +110,32 @@ message EServiceDescriptorDocumentDeletedV2 {
   EServiceV2 eservice = 3;
 }
 
+message EServiceDescriptorArchivingScheduledV2 {
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
+}
+
+message EServiceDescriptorArchivingCanceledV2 {
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
+}
+
+message EServiceDescriptorArchivingCompletedV2 {
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
+}
+
 message EServiceRiskAnalysisAddedV2 {
   string riskAnalysisId = 1;
   EServiceV2 eservice = 2;
 }
 
 message EServiceRiskAnalysisUpdatedV2 {
+  string riskAnalysisId = 1;
+  EServiceV2 eservice = 2;
+}
+
+message MaintenanceEServiceRiskAnalysisSetTenantKindV2 {
   string riskAnalysisId = 1;
   EServiceV2 eservice = 2;
 }
@@ -219,6 +245,80 @@ message EServicePersonalDataFlagUpdatedByTemplateUpdateV2 {
   EServiceV2 eservice = 1;
 }
 
+message EServiceDescriptorAsyncExchangeCallbackInterfaceAddedV2 {
+  string descriptorId = 1;
+  string documentId = 2;
+  EServiceV2 eservice = 3;
+}
+
+message EServiceDescriptorAsyncExchangeCallbackInterfaceDeletedV2 {
+  string descriptorId = 1;
+  string documentId = 2;
+  EServiceV2 eservice = 3;
+}
+
 message EServiceInstanceLabelUpdatedV2 {
   EServiceV2 eservice = 1;
+}
+
+message MaintenanceEServicePersonalDataFlagResetV2 {
+  EServiceV2 eservice = 1;
+  string reason = 2;
+}
+
+message MaintenanceEServiceDescriptorUnarchivedV2 {
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
+}
+
+message EServiceDescriptorAttributeDailyCallsPerConsumerUpdatedV2 {
+  EServiceV2 eservice = 1;
+  string descriptorId = 2;
+  string attributeId = 3;
+  int32 dailyCallsPerConsumer = 4;
+}
+
+message EServiceDescriptorArchivingRequestedByDelegateV2 {
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
+}
+
+message EServiceDescriptorArchivingRequestRejectedByDelegatorV2 {
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
+}
+
+message EServiceDescriptorArchivingRequestApprovedByDelegatorV2 {
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
+}
+
+message EServiceArchivingRequestedByDelegateV2 {
+  EServiceV2 eservice = 1;
+}
+
+message EServiceArchivingRequestRejectedByDelegatorV2 {
+  EServiceV2 eservice = 1;
+}
+
+message EServiceArchivingRequestApprovedByDelegatorV2 {
+  EServiceV2 eservice = 1;
+}
+
+message EServiceArchivingRequestCanceledByDelegateV2 {
+  EServiceV2 eservice = 1;
+}
+
+message EServiceDescriptorArchivingRequestCanceledByDelegateV2 {
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
+}
+
+message EServiceArchivingRequestCanceledByRevokedDelegationV2 {
+  EServiceV2 eservice = 1;
+}
+
+message EServiceDescriptorArchivingRequestCanceledByRevokedDelegationV2 {
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
 }

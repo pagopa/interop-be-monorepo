@@ -13,12 +13,17 @@ import {
   toEServiceTemplateV2,
   EServiceTemplateAddedV2,
   generateId,
+  hyperlinkDetectionError,
+  eserviceMode,
 } from "pagopa-interop-models";
 import { expect, describe, it, beforeAll, vi, afterAll } from "vitest";
+
+import { config } from "../../src/config/config.js";
 import {
   eserviceTemplateDuplicate,
   inconsistentDailyCalls,
   originNotCompliant,
+  asyncExchangeReceiveTemplateNotAllowed,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEServiceTemplate,
@@ -39,11 +44,14 @@ describe("create eservice template", () => {
   });
   it("should write on event-store for the creation of an eservice template", async () => {
     const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
+    const asyncExchange = randomArrayItem([false, true, undefined]);
     const eserviceTemplate =
       await eserviceTemplateService.createEServiceTemplate(
         eserviceTemplateToApiEServiceTemplateSeed({
           ...mockEServiceTemplate,
           isSignalHubEnabled,
+          asyncExchange,
+          mode: eserviceMode.deliver,
         }),
         getMockContext({
           authData: getMockAuthData(mockEServiceTemplate.creatorId),
@@ -85,11 +93,13 @@ describe("create eservice template", () => {
         },
       ],
       isSignalHubEnabled,
+      asyncExchange,
+      mode: eserviceMode.deliver,
     };
 
-    expect(eserviceCreationPayload.eserviceTemplate).toEqual(
-      toEServiceTemplateV2(expectedEserviceTemplate)
-    );
+    expect(eserviceCreationPayload).toEqual({
+      eserviceTemplate: toEServiceTemplateV2(expectedEserviceTemplate),
+    });
 
     expect(eserviceTemplate).toEqual({
       data: expectedEserviceTemplate,
@@ -109,6 +119,21 @@ describe("create eservice template", () => {
         })
       )
     ).rejects.toThrowError(originNotCompliant("not-allowed-origin"));
+  });
+
+  it("should throw asyncExchangeReceiveTemplateNotAllowed when creating a receive template with asyncExchange enabled", async () => {
+    await expect(
+      eserviceTemplateService.createEServiceTemplate(
+        eserviceTemplateToApiEServiceTemplateSeed({
+          ...mockEServiceTemplate,
+          mode: eserviceMode.receive,
+          asyncExchange: true,
+        }),
+        getMockContext({
+          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(asyncExchangeReceiveTemplateNotAllowed());
   });
 
   it("should throw eserviceTemplateDuplicate if an eservice template with the same name already exists, case insensitive", async () => {
@@ -142,6 +167,39 @@ describe("create eservice template", () => {
     );
   });
 
+  it("should ignore asyncExchange from seed and leave it undefined when featureFlagAsyncExchange is disabled", async () => {
+    config.featureFlagAsyncExchange = false;
+
+    const eserviceTemplate =
+      await eserviceTemplateService.createEServiceTemplate(
+        eserviceTemplateToApiEServiceTemplateSeed({
+          ...mockEServiceTemplate,
+          asyncExchange: true,
+        }),
+        getMockContext({
+          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+        })
+      );
+
+    const eserviceTemplateCreationEvent = await readEventByStreamIdAndVersion(
+      eserviceTemplate.data.id,
+      0,
+      "eservice_template",
+      postgresDB
+    );
+    const eserviceCreationPayload = decodeProtobufPayload({
+      messageType: EServiceTemplateAddedV2,
+      payload: eserviceTemplateCreationEvent.data,
+    });
+
+    expect(eserviceTemplate.data.asyncExchange).toBeUndefined();
+    expect(
+      eserviceCreationPayload.eserviceTemplate?.asyncExchange
+    ).toBeUndefined();
+
+    config.featureFlagAsyncExchange = true;
+  });
+
   it("should throw inconsistentDailyCalls if the version seed has dailyCallsPerConsumer > dailyCallsTotal", async () => {
     await expect(
       eserviceTemplateService.createEServiceTemplate(
@@ -157,4 +215,36 @@ describe("create eservice template", () => {
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
   });
+  it.each([
+    {
+      label: "name",
+      override: { name: "Template https://evil.example.com" },
+      text: "Template https://evil.example.com",
+    },
+    {
+      label: "description",
+      override: { description: "details at www.evil.example.com" },
+      text: "details at www.evil.example.com",
+    },
+    {
+      label: "intendedTarget",
+      override: { intendedTarget: "target: http://evil.example.com" },
+      text: "target: http://evil.example.com",
+    },
+  ])(
+    "should throw hyperlinkDetectionError when template $label contains a hyperlink",
+    async ({ override, text }) => {
+      await expect(
+        eserviceTemplateService.createEServiceTemplate(
+          eserviceTemplateToApiEServiceTemplateSeed({
+            ...mockEServiceTemplate,
+            ...override,
+          }),
+          getMockContext({
+            authData: getMockAuthData(mockEServiceTemplate.creatorId),
+          })
+        )
+      ).rejects.toThrowError(hyperlinkDetectionError(text));
+    }
+  );
 });

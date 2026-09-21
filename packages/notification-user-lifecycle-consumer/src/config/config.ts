@@ -1,4 +1,3 @@
-import { z } from "zod";
 import {
   APIEndpoint,
   KafkaConsumerConfig,
@@ -6,6 +5,7 @@ import {
   SelfcareConsumerConfig,
   TokenGenerationConfig,
 } from "pagopa-interop-commons";
+import { z } from "zod";
 
 const NotificationUserLifecycleConsumerConfig = KafkaConsumerConfig.and(
   TokenGenerationConfig

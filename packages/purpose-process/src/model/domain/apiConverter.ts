@@ -1,16 +1,4 @@
-import { match } from "ts-pattern";
-import {
-  Purpose,
-  PurposeRiskAnalysisForm,
-  PurposeVersion,
-  PurposeVersionDocument,
-  PurposeVersionSignedDocument,
-  PurposeVersionState,
-  RiskAnalysisMultiAnswer,
-  RiskAnalysisSingleAnswer,
-  purposeVersionState,
-  unsafeBrandId,
-} from "pagopa-interop-models";
+import { purposeApi } from "pagopa-interop-api-clients";
 import {
   LocalizedText,
   DataType,
@@ -22,7 +10,25 @@ import {
   RiskAnalysisFormRules,
   ValidationOption,
 } from "pagopa-interop-commons";
-import { purposeApi } from "pagopa-interop-api-clients";
+import {
+  Purpose,
+  PurposeRiskAnalysisForm,
+  PurposeVersion,
+  PurposeVersionDocument,
+  PurposeVersionSignedDocument,
+  PurposeVersionState,
+  ReviewerWorkflow,
+  RiskAnalysisMultiAnswer,
+  RiskAnalysisReviewMode,
+  RiskAnalysisSigningState,
+  RiskAnalysisSingleAnswer,
+  purposeVersionState,
+  riskAnalysisReviewMode,
+  riskAnalysisSigningState,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import { match } from "ts-pattern";
+
 import { RemainingDailyCalls } from "./models.js";
 
 const singleAnswersToApiSingleAnswers = (
@@ -62,6 +68,7 @@ const riskAnalysisFormToApiRiskAnalysisForm = (
     version: riskAnalysisForm.version,
     answers: { ...apiSingleAnswersMap, ...apiMultiAnswersMap },
     riskAnalysisId: riskAnalysisForm.riskAnalysisId,
+    tenantKind: riskAnalysisForm.tenantKind,
   };
 };
 
@@ -129,10 +136,7 @@ export const purposeVersionToApiPurposeVersion = (
     : undefined,
 });
 
-export const purposeToApiPurpose = (
-  purpose: Purpose,
-  isRiskAnalysisValid: boolean
-): purposeApi.Purpose => ({
+export const purposeToApiPurpose = (purpose: Purpose): purposeApi.Purpose => ({
   id: purpose.id,
   eserviceId: purpose.eserviceId,
   consumerId: purpose.consumerId,
@@ -147,10 +151,17 @@ export const purposeToApiPurpose = (
     : undefined,
   createdAt: purpose.createdAt?.toJSON(),
   updatedAt: purpose.updatedAt?.toJSON(),
-  isRiskAnalysisValid,
   isFreeOfCharge: purpose.isFreeOfCharge,
   freeOfChargeReason: purpose.freeOfChargeReason,
   purposeTemplateId: purpose.purposeTemplateId,
+  riskAnalysisReviewMode: purpose.riskAnalysisReviewMode
+    ? riskAnalysisReviewModeToApiRiskAnalysisReviewMode(
+        purpose.riskAnalysisReviewMode
+      )
+    : undefined,
+  reviewerWorkflow: purpose.reviewerWorkflow
+    ? reviewerWorkflowToApiReviewerWorkflow(purpose.reviewerWorkflow)
+    : undefined,
 });
 
 const localizedTextToApiLocalizedText = (
@@ -261,4 +272,78 @@ export const remainingDailyCallsToApiRemainingDailyCalls = (
   remainingDailyCallsPerConsumer:
     remainingDailyCalls.remainingDailyCallsPerConsumer,
   remainingDailyCallsTotal: remainingDailyCalls.remainingDailyCallsTotal,
+});
+
+export const apiRiskAnalysisReviewModeToRiskAnalysisReviewMode = (
+  apiReviewMode: purposeApi.RiskAnalysisReviewMode
+): RiskAnalysisReviewMode =>
+  match<purposeApi.RiskAnalysisReviewMode, RiskAnalysisReviewMode>(
+    apiReviewMode
+  )
+    .with(
+      "ADMIN_WRITES_ADMIN_SIGNS",
+      () => riskAnalysisReviewMode.adminWritesAdminSigns
+    )
+    .with(
+      "REVIEWER_WRITES_REVIEWER_SIGNS",
+      () => riskAnalysisReviewMode.reviewerWritesReviewerSigns
+    )
+    .with(
+      "ADMIN_WRITES_REVIEWER_SIGNS",
+      () => riskAnalysisReviewMode.adminWritesReviewerSigns
+    )
+    .exhaustive();
+
+const riskAnalysisReviewModeToApiRiskAnalysisReviewMode = (
+  mode: RiskAnalysisReviewMode
+): purposeApi.RiskAnalysisReviewMode =>
+  match<RiskAnalysisReviewMode, purposeApi.RiskAnalysisReviewMode>(mode)
+    .with(
+      riskAnalysisReviewMode.adminWritesAdminSigns,
+      () => "ADMIN_WRITES_ADMIN_SIGNS"
+    )
+    .with(
+      riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      () => "REVIEWER_WRITES_REVIEWER_SIGNS"
+    )
+    .with(
+      riskAnalysisReviewMode.adminWritesReviewerSigns,
+      () => "ADMIN_WRITES_REVIEWER_SIGNS"
+    )
+    .exhaustive();
+
+const signingStateToApiSigningState = (
+  state: RiskAnalysisSigningState
+): purposeApi.RiskAnalysisSigningState =>
+  match<RiskAnalysisSigningState, purposeApi.RiskAnalysisSigningState>(state)
+    .with(riskAnalysisSigningState.draft, () => "DRAFT")
+    .with(riskAnalysisSigningState.assigned, () => "ASSIGNED")
+    .with(riskAnalysisSigningState.submitted, () => "SUBMITTED")
+    .with(riskAnalysisSigningState.signed, () => "SIGNED")
+    .with(riskAnalysisSigningState.rejected, () => "REJECTED")
+    .exhaustive();
+
+export const apiSigningStateToSigningState = (
+  state: purposeApi.RiskAnalysisSigningState
+): RiskAnalysisSigningState =>
+  match<purposeApi.RiskAnalysisSigningState, RiskAnalysisSigningState>(state)
+    .with("DRAFT", () => riskAnalysisSigningState.draft)
+    .with("ASSIGNED", () => riskAnalysisSigningState.assigned)
+    .with("SUBMITTED", () => riskAnalysisSigningState.submitted)
+    .with("SIGNED", () => riskAnalysisSigningState.signed)
+    .with("REJECTED", () => riskAnalysisSigningState.rejected)
+    .exhaustive();
+
+const reviewerWorkflowToApiReviewerWorkflow = (
+  workflow: ReviewerWorkflow
+): purposeApi.ReviewerWorkflow => ({
+  reviewers: workflow.reviewers.map((reviewer) => ({
+    id: reviewer.id,
+    sentToReviewerAt: reviewer.sentToReviewerAt?.toJSON(),
+  })),
+  signingState: signingStateToApiSigningState(workflow.signingState),
+  signedBy: workflow.signedBy,
+  signedAt: workflow.signedAt?.toJSON(),
+  rejectedBy: workflow.rejectedBy,
+  rejectionReason: workflow.rejectionReason,
 });

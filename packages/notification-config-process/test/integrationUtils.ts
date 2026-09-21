@@ -24,6 +24,7 @@ import {
   insertUserNotificationConfig,
 } from "pagopa-interop-readmodel/testUtils";
 import { inject, afterEach } from "vitest";
+
 import { notificationConfigServiceBuilder } from "../src/services/notificationConfigService.js";
 
 export const { cleanup, postgresDB, readModelDB } =

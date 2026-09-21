@@ -1,20 +1,21 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   eserviceTemplateApi,
   m2mGatewayApiV3,
 } from "pagopa-interop-api-clients";
-import { unsafeBrandId } from "pagopa-interop-models";
 import {
   getMockedApiEServiceTemplate,
   getMockedApiEserviceTemplateVersion,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
+import { unsafeBrandId } from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
   eserviceTemplateService,
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getEServiceTemplateVersions", () => {
@@ -76,6 +77,7 @@ describe("getEServiceTemplateVersions", () => {
     description: template.description,
     publishedAt: template.publishedAt,
     suspendedAt: template.suspendedAt,
+    asyncExchangeProperties: template.asyncExchangeProperties,
   });
 
   const expectedM2MTemplateVersion1 =
@@ -137,6 +139,8 @@ describe("getEServiceTemplateVersions", () => {
         description: mockApiTemplateVersion2.description,
         publishedAt: mockApiTemplateVersion2.publishedAt,
         suspendedAt: mockApiTemplateVersion2.suspendedAt,
+        asyncExchangeProperties:
+          mockApiTemplateVersion2.asyncExchangeProperties,
       };
     const m2mTemplateResponse: m2mGatewayApiV3.EServiceTemplateVersions = {
       pagination: {

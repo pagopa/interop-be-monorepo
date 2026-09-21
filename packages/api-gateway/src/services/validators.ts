@@ -9,6 +9,7 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { operationForbidden, TenantId } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import { ValidCatalogApiDescriptor } from "../api/catalogApiConverter.js";
 import {
   activeAgreementByEserviceAndConsumerNotFound,
@@ -95,6 +96,8 @@ export function assertIsValidDescriptor(
       catalogApi.EServiceDescriptorState.Values.DEPRECATED,
       catalogApi.EServiceDescriptorState.Values.SUSPENDED,
       catalogApi.EServiceDescriptorState.Values.ARCHIVED,
+      catalogApi.EServiceDescriptorState.Values.ARCHIVING,
+      catalogApi.EServiceDescriptorState.Values.ARCHIVING_SUSPENDED,
       () => descriptor
     )
     .exhaustive();

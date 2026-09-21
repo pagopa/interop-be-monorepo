@@ -1,5 +1,4 @@
 /* eslint-disable functional/no-let */
-import { describe, it, expect } from "vitest";
 import { getMockDelegation, getMockTenant } from "pagopa-interop-commons-test";
 import {
   Delegation,
@@ -14,6 +13,8 @@ import {
   UserId,
 } from "pagopa-interop-models";
 import { upsertDelegation } from "pagopa-interop-readmodel/testUtils";
+import { describe, it, expect } from "vitest";
+
 import {
   addOneEService,
   addOneTenant,

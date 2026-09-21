@@ -1,13 +1,22 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { agreementApi } from "pagopa-interop-api-clients";
+import {
+  getMockAgreement,
+  getMockAgreementAttribute,
+} from "pagopa-interop-commons-test";
 import {
   generateId,
   unsafeBrandId,
   badRequestError,
   CompactTenant,
+  tenantAttributeType,
 } from "pagopa-interop-models";
-import { agreementApi } from "pagopa-interop-api-clients";
 import { describe, it, expect } from "vitest";
-import { fromApiCompactTenant } from "../../src/model/domain/apiConverter.js";
+
+import {
+  agreementToApiAgreement,
+  fromApiCompactTenant,
+} from "../../src/model/domain/apiConverter.js";
 import {
   getMockApiTenantCertifiedAttribute,
   getMockApiTenantDeclaredAttribute,
@@ -22,6 +31,14 @@ describe("fromApiCompactTenant API converter", () => {
         getMockApiTenantCertifiedAttribute(),
         getMockApiTenantDeclaredAttribute(),
         getMockApiTenantVerifiedAttribute(),
+        {
+          certifiedDiscrete: {
+            id: generateId(),
+            assignmentTimestamp: new Date().toISOString(),
+            revocationTimestamp: new Date().toISOString(),
+            discreteValue: 42,
+          },
+        },
       ],
     };
 
@@ -115,6 +132,25 @@ describe("fromApiCompactTenant API converter", () => {
             },
           ],
         },
+        {
+          type: tenantAttributeType.CERTIFIED_DISCRETE,
+          id: unsafeBrandId(
+            apiCompactTenant.attributes[3].certifiedDiscrete!.id
+          ),
+          assignmentTimestamp: new Date(
+            apiCompactTenant.attributes[3].certifiedDiscrete!
+              .assignmentTimestamp
+          ),
+          revocationTimestamp: apiCompactTenant.attributes[3].certifiedDiscrete!
+            .revocationTimestamp
+            ? new Date(
+                apiCompactTenant.attributes[3].certifiedDiscrete!
+                  .revocationTimestamp
+              )
+            : undefined,
+          discreteValue:
+            apiCompactTenant.attributes[3].certifiedDiscrete!.discreteValue,
+        },
       ],
     };
 
@@ -143,5 +179,21 @@ describe("fromApiCompactTenant API converter", () => {
         )}`
       )
     );
+  });
+});
+
+describe("agreementToApiAgreement API converter", () => {
+  it("converts certified discrete agreement attributes", () => {
+    const certifiedDiscreteAttribute = getMockAgreementAttribute();
+    const agreement = {
+      ...getMockAgreement(),
+      certifiedDiscreteAttributes: [certifiedDiscreteAttribute],
+    };
+
+    const actualAgreement = agreementToApiAgreement(agreement);
+
+    expect(actualAgreement.certifiedDiscreteAttributes).toStrictEqual([
+      certifiedDiscreteAttribute,
+    ]);
   });
 });

@@ -10,6 +10,7 @@ import {
   SignatureReference,
 } from "pagopa-interop-commons";
 import { genericInternalError } from "pagopa-interop-models";
+
 import { calculateSha256Base64 } from "../utils/checksum.js";
 
 export const archiveFileToSafeStorage = async (
@@ -25,6 +26,7 @@ export const archiveFileToSafeStorage = async (
   correlationId: string
 ): Promise<void> => {
   const { fileContentBuffer, fileName } = storedFile;
+  const s3FullPath = `${storedFile.path}/${fileName}`;
 
   const checksum = await calculateSha256Base64(fileContentBuffer);
 
@@ -43,6 +45,10 @@ export const archiveFileToSafeStorage = async (
       logger
     );
 
+    logger.info(
+      `Created file ${s3FullPath} on safe storage with key: ${key} and checksum: ${checksum} having length: ${fileContentBuffer.length} bytes`
+    );
+
     await safeStorage.uploadFileContent(
       uploadUrl,
       fileContentBuffer,
@@ -52,7 +58,9 @@ export const archiveFileToSafeStorage = async (
       logger
     );
 
-    logger.info(`File ${fileName} uploaded to Safe Storage successfully.`);
+    logger.info(
+      `Uploaded file ${s3FullPath} on safe storage with key: ${key} and checksum: ${checksum} having length: ${fileContentBuffer.length} bytes`
+    );
 
     const signatureReference = {
       safeStorageId: key,
@@ -64,6 +72,9 @@ export const archiveFileToSafeStorage = async (
 
     await signatureService.saveSignatureReference(signatureReference, logger);
     logger.info(`Safe Storage reference for ${fileName} saved in DynamoDB.`);
+    logger.info(
+      `Processed event journal with key: ${key} and file: ${s3FullPath}`
+    );
   } catch (error) {
     throw genericInternalError(
       `Failed to process Safe Storage/DynamoDB for file ${fileName}: ${error}`

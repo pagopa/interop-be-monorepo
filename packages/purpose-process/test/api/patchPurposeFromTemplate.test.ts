@@ -11,6 +11,7 @@ import {
 import { Purpose, PurposeTemplateId, generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { purposeToApiPurpose } from "../../src/model/domain/apiConverter.js";
 import {
   duplicatedPurposeTitle,
@@ -47,7 +48,7 @@ describe("API PATCH /templates/{purposeTemplateId}/purposes/{purposeId} test", (
   const serviceResponse = getMockWithMetadata(mockPurpose, 2);
 
   const apiResponse = purposeApi.Purpose.parse(
-    purposeToApiPurpose(mockPurpose, true)
+    purposeToApiPurpose(mockPurpose)
   );
 
   beforeEach(() => {

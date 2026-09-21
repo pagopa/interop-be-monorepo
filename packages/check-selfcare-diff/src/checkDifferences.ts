@@ -11,6 +11,7 @@ import {
   tenantNotificationConfigInReadmodelNotificationConfig,
   userNotificationConfigInReadmodelNotificationConfig,
 } from "pagopa-interop-readmodel-models";
+
 import { CheckDiffConfig } from "./config/config.js";
 
 type UserWithRoles = { id: string; roles: string[] };

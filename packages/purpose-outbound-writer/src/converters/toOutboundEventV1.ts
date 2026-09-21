@@ -1,15 +1,15 @@
 import {
-  PurposeEventEnvelopeV1,
-  PurposeVersionV1,
-  PurposeV1,
-} from "pagopa-interop-models";
-import {
   PurposeEvent as OutboundPurposeEvent,
   PurposeVersionV1 as OutboundPurposeVersionV1,
   PurposeV1 as OutboundPurposeV1,
 } from "@pagopa/interop-outbound-models";
-import { match } from "ts-pattern";
 import { Exact } from "pagopa-interop-commons";
+import {
+  PurposeEventEnvelopeV1,
+  PurposeVersionV1,
+  PurposeV1,
+} from "pagopa-interop-models";
+import { match } from "ts-pattern";
 
 function toOutboundPurposeVersionV1(
   purposeVersion: PurposeVersionV1

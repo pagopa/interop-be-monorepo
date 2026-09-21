@@ -1,0 +1,20 @@
+meta {
+  name: Archive EService
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{host-catalog}}/internal/eservices/:eserviceId/archive
+  body: none
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

@@ -1,0 +1,27 @@
+meta {
+  name: Assign Risk Analysis Reviewer
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{host-purpose}}/purposes/:purposeId/riskAnalysis/assign
+  body: json
+  auth: none
+}
+
+params:path {
+  purposeId: {{purposeId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "reviewMode": "REVIEWER_WRITES_REVIEWER_SIGNS",
+    "reviewerIds": ["{{reviewerId}}"]
+  }
+}

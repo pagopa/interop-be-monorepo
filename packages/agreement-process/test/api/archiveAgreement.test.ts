@@ -1,16 +1,17 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { agreementApi } from "pagopa-interop-api-clients";
+import { authRole } from "pagopa-interop-commons";
+import { generateToken, getMockAgreement } from "pagopa-interop-commons-test";
 import {
   AgreementId,
   DelegationId,
+  WithMetadata,
   agreementState,
   generateId,
 } from "pagopa-interop-models";
-import { generateToken, getMockAgreement } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { agreementApi } from "pagopa-interop-api-clients";
-import { api, agreementService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { agreementToApiAgreement } from "../../src/model/domain/apiConverter.js";
 import {
   agreementNotFound,
@@ -18,6 +19,7 @@ import {
   tenantIsNotTheConsumer,
   tenantIsNotTheDelegateConsumer,
 } from "../../src/model/domain/errors.js";
+import { api, agreementService } from "../vitest.api.setup.js";
 
 describe("API POST /agreements/{agreementId}/archive test", () => {
   const mockAgreement = getMockAgreement();
@@ -25,11 +27,15 @@ describe("API POST /agreements/{agreementId}/archive test", () => {
   const apiResponse = agreementApi.Agreement.parse(
     agreementToApiAgreement(mockAgreement)
   );
+  const serviceResponse: WithMetadata<typeof mockAgreement> = {
+    data: mockAgreement,
+    metadata: { version: 1 },
+  };
 
   beforeEach(() => {
     agreementService.archiveAgreement = vi
       .fn()
-      .mockResolvedValue(mockAgreement);
+      .mockResolvedValue(serviceResponse);
   });
 
   const makeRequest = async (
@@ -46,6 +52,7 @@ describe("API POST /agreements/{agreementId}/archive test", () => {
     const res = await makeRequest(token);
     expect(res.status).toBe(200);
     expect(res.body).toEqual(apiResponse);
+    expect(res.headers["x-metadata-version"]).toBe("1");
   });
 
   it.each(

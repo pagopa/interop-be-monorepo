@@ -1,21 +1,21 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  DelegationId,
-  Purpose,
-  eserviceMode,
-  generateId,
-} from "pagopa-interop-models";
+import { purposeApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockEService,
   getMockPurpose,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  DelegationId,
+  Purpose,
+  eserviceMode,
+  generateId,
+} from "pagopa-interop-models";
 import request from "supertest";
-import { purposeApi } from "pagopa-interop-api-clients";
-import { api, purposeService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { purposeToApiPurpose } from "../../src/model/domain/apiConverter.js";
 import {
   agreementNotFound,
@@ -27,8 +27,10 @@ import {
   tenantIsNotTheConsumer,
   tenantIsNotTheDelegatedConsumer,
   riskAnalysisValidationFailed,
+  invalidFreeOfChargeReason,
 } from "../../src/model/domain/errors.js";
 import { getMockReversePurposeSeed } from "../mockUtils.js";
+import { api, purposeService } from "../vitest.api.setup.js";
 
 describe("API POST /reverse/purposes test", () => {
   const mockEService = getMockEService();
@@ -38,13 +40,9 @@ describe("API POST /reverse/purposes test", () => {
     generateId()
   );
   const mockPurpose: Purpose = getMockPurpose();
-  const isRiskAnalysisValid = true;
-  const serviceResponse = getMockWithMetadata({
-    purpose: mockPurpose,
-    isRiskAnalysisValid,
-  });
+  const serviceResponse = getMockWithMetadata(mockPurpose);
 
-  const apiResponse = purposeToApiPurpose(mockPurpose, isRiskAnalysisValid);
+  const apiResponse = purposeToApiPurpose(mockPurpose);
 
   beforeEach(() => {
     purposeService.createReversePurpose = vi
@@ -115,6 +113,10 @@ describe("API POST /reverse/purposes test", () => {
     {
       error: duplicatedPurposeTitle(mockReversePurposeSeed.title),
       expectedStatus: 409,
+    },
+    {
+      error: invalidFreeOfChargeReason(false, "Some reason"),
+      expectedStatus: 400,
     },
   ])(
     "Should return $expectedStatus for $error.code",

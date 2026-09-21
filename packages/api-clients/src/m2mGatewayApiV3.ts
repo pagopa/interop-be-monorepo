@@ -32,6 +32,10 @@ export type GetCertifiedAttributesQueryParams = QueryParametersByAlias<
   AttributeApi,
   "getCertifiedAttributes"
 >;
+export type GetCertifiedDiscreteAttributesQueryParams = QueryParametersByAlias<
+  AttributeApi,
+  "getCertifiedDiscreteAttributes"
+>;
 export type GetDeclaredAttributesQueryParams = QueryParametersByAlias<
   AttributeApi,
   "getDeclaredAttributes"
@@ -80,11 +84,12 @@ export type GetTenantCertifiedAttributesQueryParams = QueryParametersByAlias<
   TenantApi,
   "getTenantCertifiedAttributes"
 >;
-
 export type GetTenantVerifiedAttributesQueryParams = QueryParametersByAlias<
   TenantApi,
   "getTenantVerifiedAttributes"
 >;
+export type GetTenantCertifiedDiscreteAttributesQueryParams =
+  QueryParametersByAlias<TenantApi, "getTenantCertifiedDiscreteAttributes">;
 export type GetTenantVerifiedAttributeVerifiersQueryParams =
   QueryParametersByAlias<TenantApi, "getTenantVerifiedAttributeVerifiers">;
 export type GetTenantVerifiedAttributeRevokersQueryParams =
@@ -167,6 +172,12 @@ export type GetEServiceTemplateVersionCertifiedAttributesQueryParams =
     "getEServiceTemplateVersionCertifiedAttributes"
   >;
 
+export type GetEServiceTemplateVersionCertifiedDiscreteAttributesQueryParams =
+  QueryParametersByAlias<
+    EServiceTemplateApi,
+    "getEServiceTemplateVersionCertifiedDiscreteAttributes"
+  >;
+
 export type GetEServiceTemplateVersionDeclaredAttributesQueryParams =
   QueryParametersByAlias<
     EServiceTemplateApi,
@@ -202,6 +213,12 @@ export type GetPurposeTemplateEServicesQueryParams = QueryParametersByAlias<
   "getPurposeTemplateEServices"
 >;
 
+export type GetPurposeTemplateEServiceTemplatesQueryParams =
+  QueryParametersByAlias<
+    PurposeTemplateApi,
+    "getPurposeTemplateEServiceTemplates"
+  >;
+
 export type GetRiskAnalysisTemplateAnnotationDocumentsQueryParams =
   QueryParametersByAlias<
     PurposeTemplateApi,
@@ -211,6 +228,11 @@ export type GetRiskAnalysisTemplateAnnotationDocumentsQueryParams =
 export type GetEventManagerPurposesQueryParams = QueryParametersByAlias<
   EventManagerApi,
   "getPurposeEvents"
+>;
+
+export type GetEventManagerPurposeTemplatesQueryParams = QueryParametersByAlias<
+  EventManagerApi,
+  "getPurposeTemplateEvents"
 >;
 
 export type GetEventManagerTenantEventsQueryParams = QueryParametersByAlias<

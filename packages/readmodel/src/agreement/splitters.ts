@@ -28,6 +28,7 @@ export const splitAgreementIntoObjectsSQL = (
     state,
     verifiedAttributes,
     certifiedAttributes,
+    certifiedDiscreteAttributes,
     declaredAttributes,
     suspendedByConsumer,
     suspendedByProducer,
@@ -110,6 +111,12 @@ export const splitAgreementIntoObjectsSQL = (
       metadataVersion,
       attributeId: attr.id,
       kind: attributeKind.certified,
+    })),
+    ...certifiedDiscreteAttributes.map((attr) => ({
+      agreementId: id,
+      metadataVersion,
+      attributeId: attr.id,
+      kind: attributeKind.certifiedDiscrete,
     })),
     ...declaredAttributes.map((attr) => ({
       agreementId: id,

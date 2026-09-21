@@ -1,9 +1,3 @@
-import path from "path";
-import {
-  genericInternalError,
-  missingKafkaMessageDataError,
-  PurposeTemplateEventEnvelopeV2,
-} from "pagopa-interop-models";
 import {
   FileManager,
   Logger,
@@ -11,9 +5,16 @@ import {
   SafeStorageService,
   FileCreationRequest,
 } from "pagopa-interop-commons";
+import {
+  genericInternalError,
+  missingKafkaMessageDataError,
+  PurposeTemplateEventEnvelopeV2,
+} from "pagopa-interop-models";
+import path from "path";
 import { match, P } from "ts-pattern";
-import { calculateSha256Base64 } from "../utils/checksum.js";
+
 import { config } from "../config/config.js";
+import { calculateSha256Base64 } from "../utils/checksum.js";
 
 export async function handlePurposeTemplateDocument(
   decodedMessage: PurposeTemplateEventEnvelopeV2,
@@ -52,8 +53,9 @@ export async function handlePurposeTemplateDocument(
         logger
       );
 
+      const fileBuffer = Buffer.from(file);
       const fileName = path.basename(s3Key);
-      const checksum = await calculateSha256Base64(Buffer.from(file));
+      const checksum = await calculateSha256Base64(fileBuffer);
       const contentType = "application/pdf";
 
       const safeStorageRequest: FileCreationRequest = {
@@ -68,15 +70,21 @@ export async function handlePurposeTemplateDocument(
         logger
       );
 
-      logger.info(`Created file on safe storage with key: ${key}`);
+      logger.info(
+        `Created file ${s3Key} on safe storage with key: ${key} and checksum: ${checksum} having length: ${fileBuffer.length} bytes`
+      );
 
       await safeStorageService.uploadFileContent(
         uploadUrl,
-        Buffer.from(file),
+        fileBuffer,
         contentType,
         secret,
         checksum,
         logger
+      );
+
+      logger.info(
+        `Uploaded file ${s3Key} on safe storage with key: ${key} and checksum: ${checksum} having length: ${fileBuffer.length} bytes`
       );
 
       await signatureService.saveDocumentSignatureReference(
@@ -96,6 +104,10 @@ export async function handlePurposeTemplateDocument(
         },
         logger
       );
+
+      logger.info(
+        `Processed purpose template document with key: ${key} and file: ${s3Key}`
+      );
     })
     .with(
       {
@@ -109,6 +121,8 @@ export async function handlePurposeTemplateDocument(
           "PurposeTemplateDraftDeleted",
           "PurposeTemplateDraftUpdated",
           "PurposeTemplateEServiceLinked",
+          "PurposeTemplateEServiceTemplateLinked",
+          "PurposeTemplateEServiceTemplateUnlinked",
           "PurposeTemplateEServiceUnlinked",
           "PurposeTemplateSuspended",
           "PurposeTemplateUnsuspended",

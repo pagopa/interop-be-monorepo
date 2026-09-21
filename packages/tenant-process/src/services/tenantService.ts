@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { bffApi, tenantApi } from "pagopa-interop-api-clients";
 import {
   DB,
   eventRepository,
@@ -13,6 +14,7 @@ import {
   M2MAuthData,
   isUiAuthData,
   M2MAdminAuthData,
+  validateNoHyperlinksSafe,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -45,8 +47,36 @@ import {
   TenantRevoker,
 } from "pagopa-interop-models";
 import { ExternalId } from "pagopa-interop-models";
-import { bffApi, tenantApi } from "pagopa-interop-api-clients";
 import { match, P } from "ts-pattern";
+
+import { fromApiTenantFeature } from "../model/domain/apiConverter.js";
+import {
+  attributeAlreadyRevoked,
+  attributeDoesNotBelongToCertifier,
+  attributeNotFound,
+  attributeNotFoundInTenant,
+  attributeRevocationNotAllowed,
+  attributeVerificationNotAllowed,
+  certifiedAttributeAlreadyAssigned,
+  certifiedDiscreteAttributeRevoked,
+  certifierWithExistingAttributes,
+  mailAlreadyExists,
+  mailNotFound,
+  tenantIsNotACertifier,
+  tenantNotFoundByExternalId,
+  tenantNotFoundBySelfcareId,
+  tenantNotFound,
+  tenantIsAlreadyACertifier,
+  verifiedAttributeSelfRevocationNotAllowed,
+  agreementNotFound,
+  notValidMailAddress,
+  delegationNotFound,
+  operationRestrictedToDelegate,
+  verifiedAttributeSelfVerificationNotAllowed,
+  certifiedDiscreteAttributeAlreadyAssigned,
+  tenantNotFoundByRemoteId,
+} from "../model/domain/errors.js";
+import { ApiGetTenantsFilters } from "../model/domain/models.js";
 import {
   toCreateEventTenantVerifiedAttributeExpirationUpdated,
   toCreateEventTenantVerifiedAttributeExtensionUpdated,
@@ -68,31 +98,13 @@ import {
   toCreateEventTenantDelegatedProducerFeatureRemoved,
   toCreateEventTenantDelegatedConsumerFeatureRemoved,
   toCreateEventTenantDelegatedConsumerFeatureAdded,
+  toCreateEventTenantCertifiedDiscreteAttributeRevoked,
+  toCreateEventTenantCertifiedDiscreteAttributeUpdated,
+  toCreateEventTenantRemoteIdAssigned,
+  toCreateEventMaintenanceTenantRemoteIdDeleted,
+  toCreateEventTenantCertifiedDiscreteAttributeAssigned,
 } from "../model/domain/toEvent.js";
-import {
-  attributeAlreadyRevoked,
-  attributeDoesNotBelongToCertifier,
-  attributeNotFound,
-  attributeNotFoundInTenant,
-  attributeRevocationNotAllowed,
-  attributeVerificationNotAllowed,
-  certifiedAttributeAlreadyAssigned,
-  certifierWithExistingAttributes,
-  mailAlreadyExists,
-  mailNotFound,
-  tenantIsNotACertifier,
-  tenantNotFoundByExternalId,
-  tenantNotFoundBySelfcareId,
-  tenantNotFound,
-  tenantIsAlreadyACertifier,
-  verifiedAttributeSelfRevocationNotAllowed,
-  agreementNotFound,
-  notValidMailAddress,
-  delegationNotFound,
-  operationRestrictedToDelegate,
-  verifiedAttributeSelfVerificationNotAllowed,
-} from "../model/domain/errors.js";
-import { ApiGetTenantsFilters } from "../model/domain/models.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
   assertValidExpirationDate,
@@ -104,11 +116,10 @@ import {
   assertRequesterAllowed,
   assertVerifiedAttributeOperationAllowed,
   retrieveCertifierId,
-  assertRequesterDelegationsAllowedOrigin,
+  assertTenantAllowedForDelegation,
   getTenantKind,
   isFeatureAssigned,
 } from "./validators.js";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 const retrieveTenant = async (
   tenantId: TenantId,
@@ -136,6 +147,25 @@ const retrieveTenantByExternalId = async ({
   });
   if (!tenant) {
     throw tenantNotFoundByExternalId(tenantOrigin, tenantExternalId);
+  }
+  return tenant;
+};
+
+const retrieveTenantByRemoteId = async ({
+  tenantOrigin,
+  tenantRemoteId,
+  readModelService,
+}: {
+  tenantOrigin: string;
+  tenantRemoteId: string;
+  readModelService: ReadModelServiceSQL;
+}): Promise<WithMetadata<Tenant>> => {
+  const tenant = await readModelService.getTenantByRemoteId({
+    origin: tenantOrigin,
+    value: tenantRemoteId,
+  });
+  if (!tenant) {
+    throw tenantNotFoundByRemoteId(tenantOrigin, tenantRemoteId);
   }
   return tenant;
 };
@@ -199,6 +229,31 @@ async function retrieveAgreement(
     throw agreementNotFound(agreementId);
   }
   return agreement;
+}
+
+type CertifiedDiscreteTenantAttribute = Extract<
+  TenantAttribute,
+  { type: typeof tenantAttributeType.CERTIFIED_DISCRETE }
+>;
+
+function isCertifiedDiscreteTenantAttribute(
+  attr: TenantAttribute,
+  attributeId: AttributeId
+): attr is CertifiedDiscreteTenantAttribute {
+  return (
+    attr.type === tenantAttributeType.CERTIFIED_DISCRETE &&
+    attr.id === attributeId
+  );
+}
+
+function isActiveCertifiedDiscreteTenantAttribute(
+  attr: TenantAttribute,
+  attributeId: AttributeId
+): attr is CertifiedDiscreteTenantAttribute {
+  return (
+    isCertifiedDiscreteTenantAttribute(attr, attributeId) &&
+    !attr.revocationTimestamp
+  );
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -594,6 +649,150 @@ export function tenantServiceBuilder(
       };
     },
 
+    async addCertifiedDiscreteAttribute(
+      {
+        tenantId,
+        tenantAttributeSeed,
+      }: {
+        tenantId: TenantId;
+        tenantAttributeSeed: tenantApi.CertifiedDiscreteTenantAttributeSeed;
+      },
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Tenant>> {
+      logger.info(
+        `Add certified discrete attribute ${tenantAttributeSeed.id} to tenant ${tenantId}`
+      );
+
+      const requesterTenant = await retrieveTenant(
+        authData.organizationId,
+        readModelService
+      );
+
+      const certifierId = retrieveCertifierId(requesterTenant.data);
+
+      const attribute = await retrieveAttribute(
+        unsafeBrandId(tenantAttributeSeed.id),
+        readModelService
+      );
+
+      if (attribute.kind !== attributeKind.certifiedDiscrete) {
+        throw attributeNotFound(attribute.id);
+      }
+
+      if (!attribute.origin || attribute.origin !== certifierId) {
+        throw attributeDoesNotBelongToCertifier(
+          attribute.id,
+          authData.organizationId,
+          tenantId
+        );
+      }
+
+      const targetTenant = await retrieveTenant(tenantId, readModelService);
+
+      const existingCertifiedDiscrete = targetTenant.data.attributes.find(
+        (attr): attr is CertifiedDiscreteTenantAttribute =>
+          isCertifiedDiscreteTenantAttribute(attr, attribute.id)
+      );
+
+      const now = new Date();
+
+      const buildTenantWithNewAttribute = (): Tenant => {
+        if (!existingCertifiedDiscrete) {
+          return {
+            ...targetTenant.data,
+            attributes: [
+              ...targetTenant.data.attributes,
+              {
+                id: attribute.id,
+                type: tenantAttributeType.CERTIFIED_DISCRETE,
+                assignmentTimestamp: now,
+                revocationTimestamp: undefined,
+                discreteValue: tenantAttributeSeed.certifiedDiscreteValue,
+              },
+            ],
+            updatedAt: now,
+          };
+        }
+
+        if (existingCertifiedDiscrete.revocationTimestamp) {
+          return {
+            ...targetTenant.data,
+            attributes: targetTenant.data.attributes.map((a) =>
+              a.id === attribute.id
+                ? {
+                    ...a,
+                    assignmentTimestamp: now,
+                    revocationTimestamp: undefined,
+                    discreteValue: tenantAttributeSeed.certifiedDiscreteValue,
+                  }
+                : a
+            ),
+            updatedAt: now,
+          };
+        }
+
+        throw certifiedDiscreteAttributeAlreadyAssigned(
+          attribute.id,
+          targetTenant.data.id
+        );
+      };
+
+      const tenantWithNewAttribute = buildTenantWithNewAttribute();
+
+      const tenantCertifiedDiscreteAttributeAssignedEvent =
+        toCreateEventTenantCertifiedDiscreteAttributeAssigned(
+          targetTenant.metadata.version,
+          tenantWithNewAttribute,
+          attribute.id,
+          correlationId
+        );
+
+      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        tenantWithNewAttribute.attributes,
+        tenantWithNewAttribute.externalId,
+        tenantWithNewAttribute.selfcareInstitutionType
+      );
+
+      const updatedTenant = {
+        ...tenantWithNewAttribute,
+        kind: tenantKind,
+      };
+
+      if (tenantWithNewAttribute.kind !== tenantKind) {
+        const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
+          targetTenant.metadata.version + 1,
+          targetTenant.data.kind,
+          updatedTenant,
+          correlationId
+        );
+
+        const createdEvents = await repository.createEvents([
+          tenantCertifiedDiscreteAttributeAssignedEvent,
+          tenantKindUpdatedEvent,
+        ]);
+
+        return {
+          data: updatedTenant,
+          metadata: {
+            version: createdEvents.latestNewVersions.get(updatedTenant.id) ?? 0,
+          },
+        };
+      }
+
+      const { newVersion } = await repository.createEvent(
+        tenantCertifiedDiscreteAttributeAssignedEvent
+      );
+      return {
+        data: updatedTenant,
+        metadata: { version: newVersion },
+      };
+    },
+
     async addDeclaredAttribute(
       {
         tenantAttributeSeed,
@@ -795,6 +994,251 @@ export function tenantServiceBuilder(
       );
       return {
         data: tenantWithRevokedAttribute,
+        metadata: { version: newVersion },
+      };
+    },
+
+    async revokeCertifiedDiscreteAttributeById(
+      {
+        tenantId,
+        attributeId,
+      }: {
+        tenantId: TenantId;
+        attributeId: AttributeId;
+      },
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Tenant>> {
+      logger.info(
+        `Revoke certified discrete attribute ${attributeId} from tenant ${tenantId}`
+      );
+      const requesterTenant = await retrieveTenant(
+        authData.organizationId,
+        readModelService
+      );
+
+      const certifierId = retrieveCertifierId(requesterTenant.data);
+
+      const attribute = await retrieveAttribute(attributeId, readModelService);
+
+      if (attribute.kind !== attributeKind.certifiedDiscrete) {
+        throw attributeNotFound(attribute.id);
+      }
+
+      if (!attribute.origin || attribute.origin !== certifierId) {
+        throw attributeDoesNotBelongToCertifier(
+          attribute.id,
+          authData.organizationId,
+          tenantId
+        );
+      }
+
+      const targetTenant = await retrieveTenant(tenantId, readModelService);
+
+      const certifiedTenantAttribute = targetTenant.data.attributes.find(
+        (attr): attr is CertifiedDiscreteTenantAttribute =>
+          isCertifiedDiscreteTenantAttribute(attr, attributeId)
+      );
+
+      if (!certifiedTenantAttribute) {
+        throw attributeNotFound(attributeId);
+      }
+
+      if (certifiedTenantAttribute.revocationTimestamp) {
+        throw attributeAlreadyRevoked(
+          tenantId,
+          authData.organizationId,
+          attributeId
+        );
+      }
+
+      const tenantWithRevokedAttribute: Tenant = await revokeCertifiedAttribute(
+        targetTenant.data,
+        attributeId
+      );
+
+      const tenantCertifiedAttributeRevokedEvent =
+        toCreateEventTenantCertifiedDiscreteAttributeRevoked(
+          targetTenant.metadata.version,
+          tenantWithRevokedAttribute,
+          attributeId,
+          correlationId
+        );
+
+      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        tenantWithRevokedAttribute.attributes,
+        tenantWithRevokedAttribute.externalId,
+        tenantWithRevokedAttribute.selfcareInstitutionType
+      );
+
+      if (tenantWithRevokedAttribute.kind !== tenantKind) {
+        const updatedTenant = {
+          ...tenantWithRevokedAttribute,
+          kind: tenantKind,
+        };
+
+        const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
+          targetTenant.metadata.version + 1,
+          targetTenant.data.kind,
+          updatedTenant,
+          correlationId
+        );
+
+        const createdEvents = await repository.createEvents([
+          tenantCertifiedAttributeRevokedEvent,
+          tenantKindUpdatedEvent,
+        ]);
+
+        return {
+          data: updatedTenant,
+          metadata: {
+            version: createdEvents.latestNewVersions.get(updatedTenant.id) ?? 0,
+          },
+        };
+      }
+
+      const { newVersion } = await repository.createEvent(
+        tenantCertifiedAttributeRevokedEvent
+      );
+
+      return {
+        data: tenantWithRevokedAttribute,
+        metadata: { version: newVersion },
+      };
+    },
+
+    async updateCertifiedDiscreteAttributeById(
+      {
+        tenantId,
+        attributeId,
+        tenantAttributeSeed,
+      }: {
+        tenantId: TenantId;
+        attributeId: AttributeId;
+        tenantAttributeSeed: tenantApi.UpdateCertifiedDiscreteTenantAttributeSeed;
+      },
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Tenant>> {
+      const newValue = tenantAttributeSeed.certifiedDiscreteValue;
+
+      logger.info(
+        `Update certified discrete attribute ${attributeId} to value ${newValue} for tenant ${tenantId}`
+      );
+
+      const requesterTenant = await retrieveTenant(
+        authData.organizationId,
+        readModelService
+      );
+
+      const certifierId = retrieveCertifierId(requesterTenant.data);
+
+      const attribute = await retrieveAttribute(attributeId, readModelService);
+
+      if (attribute.kind !== attributeKind.certifiedDiscrete) {
+        throw attributeNotFound(attribute.id);
+      }
+
+      if (!attribute.origin || attribute.origin !== certifierId) {
+        throw attributeDoesNotBelongToCertifier(
+          attribute.id,
+          authData.organizationId,
+          tenantId
+        );
+      }
+
+      const targetTenant = await retrieveTenant(tenantId, readModelService);
+
+      const certifiedTenantAttribute = targetTenant.data.attributes.find(
+        (attr): attr is CertifiedDiscreteTenantAttribute =>
+          isCertifiedDiscreteTenantAttribute(attr, attributeId)
+      );
+
+      if (!certifiedTenantAttribute) {
+        throw attributeNotFound(attributeId);
+      }
+
+      if (certifiedTenantAttribute.revocationTimestamp) {
+        throw certifiedDiscreteAttributeRevoked(tenantId, attributeId);
+      }
+
+      const previousValue = certifiedTenantAttribute.discreteValue;
+
+      if (previousValue === newValue) {
+        return {
+          data: targetTenant.data,
+          metadata: { version: targetTenant.metadata.version },
+        };
+      }
+
+      const updatedAttributes = targetTenant.data.attributes.map((a) =>
+        isCertifiedDiscreteTenantAttribute(a, attributeId)
+          ? { ...a, discreteValue: newValue }
+          : a
+      );
+
+      const tenantWithUpdatedAttribute: Tenant = {
+        ...targetTenant.data,
+        attributes: updatedAttributes,
+        updatedAt: new Date(),
+      };
+
+      const tenantCertifiedDiscreteAttributeUpdatedEvent =
+        toCreateEventTenantCertifiedDiscreteAttributeUpdated(
+          targetTenant.metadata.version,
+          tenantWithUpdatedAttribute,
+          attributeId,
+          previousValue,
+          newValue,
+          correlationId
+        );
+
+      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        tenantWithUpdatedAttribute.attributes,
+        tenantWithUpdatedAttribute.externalId,
+        tenantWithUpdatedAttribute.selfcareInstitutionType
+      );
+
+      if (tenantWithUpdatedAttribute.kind !== tenantKind) {
+        const updatedTenant = {
+          ...tenantWithUpdatedAttribute,
+          kind: tenantKind,
+        };
+
+        const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
+          targetTenant.metadata.version + 1,
+          targetTenant.data.kind,
+          updatedTenant,
+          correlationId
+        );
+
+        const createdEvents = await repository.createEvents([
+          tenantCertifiedDiscreteAttributeUpdatedEvent,
+          tenantKindUpdatedEvent,
+        ]);
+
+        return {
+          data: updatedTenant,
+          metadata: {
+            version: createdEvents.latestNewVersions.get(updatedTenant.id) ?? 0,
+          },
+        };
+      }
+
+      const { newVersion } = await repository.createEvent(
+        tenantCertifiedDiscreteAttributeUpdatedEvent
+      );
+
+      return {
+        data: tenantWithUpdatedAttribute,
         metadata: { version: newVersion },
       };
     },
@@ -1189,8 +1633,316 @@ export function tenantServiceBuilder(
         return { version: event.newVersion };
       }
     },
+    async internalAssignCertifiedDiscreteAttribute(
+      {
+        tenantOrigin,
+        tenantRemoteId,
+        attributeOrigin,
+        attributeExternalId,
+        value,
+      }: {
+        tenantOrigin: string;
+        tenantRemoteId: string;
+        attributeOrigin: string;
+        attributeExternalId: string;
+        value: number;
+      },
+      { logger, correlationId }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<{ version: number }> {
+      logger.info(
+        `Assigning certified discrete attribute (${attributeOrigin}/${attributeExternalId}) with value ${value} to tenant (${tenantOrigin}/${tenantRemoteId})`
+      );
 
-    async getCertifiedAttributes(
+      const tenantToModify = await retrieveTenantByRemoteId({
+        tenantOrigin,
+        tenantRemoteId,
+        readModelService,
+      });
+
+      const attributeToAssign = await retrieveCertifiedAttribute({
+        attributeOrigin,
+        attributeExternalId,
+        readModelService,
+      });
+
+      const isAlreadyAssigned = tenantToModify.data.attributes.some(
+        (a) =>
+          a.id === attributeToAssign.id &&
+          (!("revocationTimestamp" in a) || !a.revocationTimestamp)
+      );
+
+      if (isAlreadyAssigned) {
+        throw certifiedDiscreteAttributeAlreadyAssigned(
+          attributeToAssign.id,
+          tenantToModify.data.id
+        );
+      }
+
+      const newAttributes = [
+        ...tenantToModify.data.attributes,
+        {
+          id: attributeToAssign.id,
+          type: tenantAttributeType.CERTIFIED_DISCRETE,
+          assignmentTimestamp: new Date(),
+          revocationTimestamp: undefined,
+          discreteValue: value,
+        },
+      ];
+
+      const tenantWithNewAttribute: Tenant = {
+        ...tenantToModify.data,
+        attributes: newAttributes,
+        updatedAt: new Date(),
+      };
+
+      const primaryEvent =
+        toCreateEventTenantCertifiedDiscreteAttributeAssigned(
+          tenantToModify.metadata.version,
+          tenantWithNewAttribute,
+          attributeToAssign.id,
+          correlationId
+        );
+
+      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        tenantWithNewAttribute.attributes,
+        tenantWithNewAttribute.externalId,
+        tenantWithNewAttribute.selfcareInstitutionType
+      );
+
+      if (tenantWithNewAttribute.kind !== tenantKind) {
+        const updatedTenant: Tenant = {
+          ...tenantWithNewAttribute,
+          kind: tenantKind,
+        };
+
+        const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
+          tenantToModify.metadata.version + 1,
+          tenantToModify.data.kind,
+          updatedTenant,
+          correlationId
+        );
+
+        const createdEvents = await repository.createEvents([
+          primaryEvent,
+          tenantKindUpdatedEvent,
+        ]);
+        return {
+          version: createdEvents.latestNewVersions.get(updatedTenant.id) ?? 0,
+        };
+      } else {
+        const event = await repository.createEvent(primaryEvent);
+        return { version: event.newVersion };
+      }
+    },
+
+    async internalUpdateCertifiedDiscreteAttribute(
+      {
+        tenantOrigin,
+        tenantRemoteId,
+        attributeOrigin,
+        attributeExternalId,
+        value,
+      }: {
+        tenantOrigin: string;
+        tenantRemoteId: string;
+        attributeOrigin: string;
+        attributeExternalId: string;
+        value: number;
+      },
+      { logger, correlationId }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<{ version: number }> {
+      logger.info(
+        `Updating certified discrete attribute (${attributeOrigin}/${attributeExternalId}) to value ${value} for tenant (${tenantOrigin}/${tenantRemoteId})`
+      );
+
+      const tenantToModify = await retrieveTenantByRemoteId({
+        tenantOrigin,
+        tenantRemoteId,
+        readModelService,
+      });
+
+      const attributeToUpdate = await retrieveCertifiedAttribute({
+        attributeOrigin,
+        attributeExternalId,
+        readModelService,
+      });
+
+      const existingAttribute = tenantToModify.data.attributes.find(
+        (a) =>
+          a.id === attributeToUpdate.id &&
+          (!("revocationTimestamp" in a) || !a.revocationTimestamp)
+      );
+
+      if (
+        !existingAttribute ||
+        existingAttribute.type !== tenantAttributeType.CERTIFIED_DISCRETE
+      ) {
+        throw attributeNotFoundInTenant(
+          attributeToUpdate.id,
+          tenantToModify.data.id
+        );
+      }
+
+      const previousValue = existingAttribute.discreteValue ?? 0;
+
+      if (!existingAttribute) {
+        throw attributeNotFoundInTenant(
+          attributeToUpdate.id,
+          tenantToModify.data.id
+        );
+      }
+
+      if (previousValue === value) {
+        logger.info(
+          `Attribute ${attributeToUpdate.id} already assigned to tenant ${tenantToModify.data.id} with the same value (${value}). Skipping update.`
+        );
+        return { version: tenantToModify.metadata.version };
+      }
+
+      const newAttributes = tenantToModify.data.attributes.map((a) =>
+        a.id === attributeToUpdate.id &&
+        (!("revocationTimestamp" in a) || !a.revocationTimestamp)
+          ? { ...a, discreteValue: value }
+          : a
+      );
+
+      const tenantWithUpdatedAttribute: Tenant = {
+        ...tenantToModify.data,
+        attributes: newAttributes,
+        updatedAt: new Date(),
+      };
+
+      const updateEvent = toCreateEventTenantCertifiedDiscreteAttributeUpdated(
+        tenantToModify.metadata.version,
+        tenantWithUpdatedAttribute,
+        attributeToUpdate.id,
+        previousValue,
+        value,
+        correlationId
+      );
+
+      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        tenantWithUpdatedAttribute.attributes,
+        tenantWithUpdatedAttribute.externalId,
+        tenantWithUpdatedAttribute.selfcareInstitutionType
+      );
+
+      if (tenantWithUpdatedAttribute.kind !== tenantKind) {
+        const updatedTenant: Tenant = {
+          ...tenantWithUpdatedAttribute,
+          kind: tenantKind,
+        };
+
+        const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
+          tenantToModify.metadata.version + 1,
+          tenantToModify.data.kind,
+          updatedTenant,
+          correlationId
+        );
+
+        const createdEvents = await repository.createEvents([
+          updateEvent,
+          tenantKindUpdatedEvent,
+        ]);
+        return {
+          version: createdEvents.latestNewVersions.get(updatedTenant.id) ?? 0,
+        };
+      } else {
+        const event = await repository.createEvent(updateEvent);
+        return { version: event.newVersion };
+      }
+    },
+
+    async internalRevokeCertifiedDiscreteAttribute(
+      {
+        tenantOrigin,
+        tenantRemoteId,
+        attributeOrigin,
+        attributeExternalId,
+      }: {
+        tenantOrigin: string;
+        tenantRemoteId: string;
+        attributeOrigin: string;
+        attributeExternalId: string;
+      },
+      { logger, correlationId }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<{ version: number }> {
+      logger.info(
+        `Revoking certified discrete attribute (${attributeOrigin}/${attributeExternalId}) from tenant (${tenantOrigin}/${tenantRemoteId})`
+      );
+
+      const tenantToModify = await retrieveTenantByRemoteId({
+        tenantOrigin,
+        tenantRemoteId,
+        readModelService,
+      });
+
+      const attributeToRevoke = await retrieveCertifiedAttribute({
+        attributeOrigin,
+        attributeExternalId,
+        readModelService,
+      });
+
+      const certifiedAttribute = tenantToModify.data.attributes.find((attr) =>
+        isActiveCertifiedDiscreteTenantAttribute(attr, attributeToRevoke.id)
+      );
+
+      if (!certifiedAttribute) {
+        throw attributeNotFoundInTenant(
+          attributeToRevoke.id,
+          tenantToModify.data.id
+        );
+      }
+
+      const tenantWithRevokedAttribute = await revokeCertifiedAttribute(
+        tenantToModify.data,
+        attributeToRevoke.id
+      );
+
+      const tenantCertifiedAttributeRevokedEvent =
+        toCreateEventTenantCertifiedDiscreteAttributeRevoked(
+          tenantToModify.metadata.version,
+          tenantWithRevokedAttribute,
+          attributeToRevoke.id,
+          correlationId
+        );
+
+      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        tenantWithRevokedAttribute.attributes,
+        tenantWithRevokedAttribute.externalId,
+        tenantWithRevokedAttribute.selfcareInstitutionType
+      );
+
+      if (tenantWithRevokedAttribute.kind !== tenantKind) {
+        const updatedTenant: Tenant = {
+          ...tenantWithRevokedAttribute,
+          kind: tenantKind,
+        };
+        const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
+          tenantToModify.metadata.version + 1,
+          tenantToModify.data.kind,
+          updatedTenant,
+          correlationId
+        );
+
+        const createdEvents = await repository.createEvents([
+          tenantCertifiedAttributeRevokedEvent,
+          tenantKindUpdatedEvent,
+        ]);
+        return {
+          version: createdEvents.latestNewVersions.get(updatedTenant.id) ?? 0,
+        };
+      } else {
+        const event = await repository.createEvent(
+          tenantCertifiedAttributeRevokedEvent
+        );
+        return { version: event.newVersion };
+      }
+    },
+    async getCertifiedAttributesByCertifier(
       {
         offset,
         limit,
@@ -1210,7 +1962,7 @@ export function tenantServiceBuilder(
 
       const certifierId = retrieveCertifierId(tenant.data);
 
-      return await readModelService.getCertifiedAttributes({
+      return await readModelService.getCertifiedAttributesByCertifier({
         certifierId,
         offset,
         limit,
@@ -1240,6 +1992,43 @@ export function tenantServiceBuilder(
       );
     },
 
+    async maintenanceTenantDeleteRemoteId(
+      {
+        tenantId,
+        origin,
+      }: {
+        tenantId: TenantId;
+        origin: string;
+      },
+      { logger, correlationId }: WithLogger<AppContext<MaintenanceAuthData>>
+    ): Promise<void> {
+      logger.info(
+        `Deleting remote id with origin ${origin} from Tenant ${tenantId}`
+      );
+
+      const tenant = await retrieveTenant(tenantId, readModelService);
+
+      if (!tenant.data.remoteIds?.some((r) => r.origin === origin)) {
+        return;
+      }
+
+      const updatedTenant: Tenant = {
+        ...tenant.data,
+        remoteIds: (tenant.data.remoteIds ?? []).filter(
+          (r) => r.origin !== origin
+        ),
+        updatedAt: new Date(),
+      };
+
+      await repository.createEvent(
+        toCreateEventMaintenanceTenantRemoteIdDeleted(
+          tenant.metadata.version,
+          updatedTenant,
+          correlationId
+        )
+      );
+    },
+
     async maintenanceTenantUpdate(
       {
         tenantId,
@@ -1256,13 +2045,15 @@ export function tenantServiceBuilder(
 
       const tenant = await retrieveTenant(tenantId, readModelService);
 
+      const { features: apiFeatures, ...restTenantUpdate } = tenantUpdate;
+
       const convertedTenantUpdate = {
-        ...tenantUpdate,
-        mails: tenantUpdate.mails.map((mail) => ({
+        ...restTenantUpdate,
+        mails: restTenantUpdate.mails.map((mail) => ({
           ...mail,
           createdAt: new Date(mail.createdAt),
         })),
-        onboardedAt: new Date(tenantUpdate.onboardedAt),
+        onboardedAt: new Date(restTenantUpdate.onboardedAt),
       };
 
       const updatedTenant: Tenant = {
@@ -1270,6 +2061,9 @@ export function tenantServiceBuilder(
         ...convertedTenantUpdate,
         subUnitType: convertedTenantUpdate.subUnitType,
         selfcareInstitutionType: convertedTenantUpdate.selfcareInstitutionType,
+        ...(apiFeatures !== undefined && {
+          features: apiFeatures.map(fromApiTenantFeature),
+        }),
         updatedAt: new Date(),
       };
 
@@ -1329,6 +2123,8 @@ export function tenantServiceBuilder(
       { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(`Adding mail of kind ${mailSeed.kind} to Tenant ${tenantId}`);
+
+      validateNoHyperlinksSafe(mailSeed.description);
 
       await assertRequesterAllowed(tenantId, authData);
 
@@ -1476,7 +2272,6 @@ export function tenantServiceBuilder(
       const existingTenant = await retrieveTenantByExternalId({
         tenantOrigin: internalTenantSeed.externalId.origin,
         tenantExternalId: internalTenantSeed.externalId.value,
-
         readModelService,
       });
 
@@ -1489,9 +2284,11 @@ export function tenantServiceBuilder(
       );
 
       const existingAttributes =
-        await readModelService.getAttributesByExternalIds(
-          attributesExternalIds
-        );
+        attributesExternalIds.length > 0
+          ? await readModelService.getAttributesByExternalIds(
+              attributesExternalIds
+            )
+          : [];
 
       attributesExternalIds.forEach((attributeToAssign) => {
         if (
@@ -1507,66 +2304,117 @@ export function tenantServiceBuilder(
         }
       });
 
-      const { events, tenantWithNewAttributes } = existingAttributes.reduce(
-        (
-          acc: {
-            events: Array<CreateEvent<TenantEvent>>;
-            tenantWithNewAttributes: Tenant;
-          },
-          attribute: Attribute,
-          index
-        ) => {
-          const tenantWithNewAttribute = assignCertifiedAttribute({
-            targetTenant: acc.tenantWithNewAttributes,
-            attribute,
-          });
+      const { events: attributeEvents, tenantWithNewAttributes } =
+        existingAttributes.reduce(
+          (
+            acc: {
+              events: Array<CreateEvent<TenantEvent>>;
+              tenantWithNewAttributes: Tenant;
+            },
+            attribute: Attribute,
+            index
+          ) => {
+            const tenantWithNewAttribute = assignCertifiedAttribute({
+              targetTenant: acc.tenantWithNewAttributes,
+              attribute,
+            });
 
-          const version = existingTenant.metadata.version + index;
-          const attributeAssignmentEvent =
-            toCreateEventTenantCertifiedAttributeAssigned(
+            const version = existingTenant.metadata.version + index;
+            const attributeAssignmentEvent =
+              toCreateEventTenantCertifiedAttributeAssigned(
+                version,
+                tenantWithNewAttribute,
+                attribute.id,
+                correlationId
+              );
+            return {
+              events: [...acc.events, attributeAssignmentEvent],
+              tenantWithNewAttributes: tenantWithNewAttribute,
+            };
+          },
+          {
+            events: [],
+            tenantWithNewAttributes: existingTenant.data,
+          }
+        );
+
+      const newRemoteIds = (internalTenantSeed.remoteIds ?? []).filter(
+        (seedRemoteId) =>
+          !(tenantWithNewAttributes.remoteIds ?? []).some(
+            (existing) =>
+              existing.origin === seedRemoteId.origin &&
+              existing.value === seedRemoteId.value
+          )
+      );
+
+      const { events: remoteIdEvents, tenantWithRemoteIds } =
+        newRemoteIds.reduce(
+          (acc, remoteId, index) => {
+            const domainRemoteId = {
+              ...remoteId,
+              assignmentTimestamp: new Date(remoteId.assignmentTimestamp),
+            };
+
+            const updatedTenant: Tenant = {
+              ...acc.tenantWithRemoteIds,
+              remoteIds: [
+                ...(acc.tenantWithRemoteIds.remoteIds ?? []).filter(
+                  (existing) => existing.origin !== domainRemoteId.origin
+                ),
+                domainRemoteId,
+              ],
+            };
+
+            const version =
+              existingTenant.metadata.version + attributeEvents.length + index;
+            const remoteIdAssignedEvent = toCreateEventTenantRemoteIdAssigned(
               version,
-              tenantWithNewAttribute,
-              attribute.id,
+              updatedTenant,
               correlationId
             );
-          return {
-            events: [...acc.events, attributeAssignmentEvent],
-            tenantWithNewAttributes: tenantWithNewAttribute,
-          };
-        },
-        {
-          events: [],
-          tenantWithNewAttributes: existingTenant.data,
-        }
-      );
+
+            return {
+              events: [...acc.events, remoteIdAssignedEvent],
+              tenantWithRemoteIds: updatedTenant,
+            };
+          },
+          {
+            events: [] as Array<CreateEvent<TenantEvent>>,
+            tenantWithRemoteIds: tenantWithNewAttributes,
+          }
+        );
+
+      const allEvents = [...attributeEvents, ...remoteIdEvents];
 
       const tenantKind = await getTenantKindLoadingCertifiedAttributes(
         readModelService,
-        tenantWithNewAttributes.attributes,
+        tenantWithRemoteIds.attributes,
         internalTenantSeed.externalId,
-        tenantWithNewAttributes.selfcareInstitutionType
+        tenantWithRemoteIds.selfcareInstitutionType
       );
 
       const tenantWithUpdatedKind: Tenant = {
-        ...tenantWithNewAttributes,
+        ...tenantWithRemoteIds,
         kind: tenantKind,
       };
 
       if (existingTenant.data.kind !== tenantKind) {
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
-          existingTenant.metadata.version + events.length,
+          existingTenant.metadata.version + allEvents.length,
           existingTenant.data.kind,
           tenantWithUpdatedKind,
           correlationId
         );
-        // eslint-disable-next-line functional/immutable-data
-        events.push(tenantKindUpdatedEvent);
+        allEvents.push(tenantKindUpdatedEvent);
       }
-      await repository.createEvents(events);
+
+      await repository.createEvents(allEvents);
 
       return {
         data: tenantWithUpdatedKind,
-        metadata: { version: existingTenant.metadata.version + events.length },
+        metadata: {
+          version: existingTenant.metadata.version + allEvents.length,
+        },
       };
     },
     async m2mUpsertTenant(
@@ -1838,12 +2686,12 @@ export function tenantServiceBuilder(
         `Updating tenant delegated features for tenant ${authData.organizationId}`
       );
 
-      assertRequesterDelegationsAllowedOrigin(authData);
-
       const requesterTenant = await retrieveTenant(
         authData.organizationId,
         readModelService
       );
+
+      assertTenantAllowedForDelegation(requesterTenant.data);
 
       const delegatedConsumerEvent = match(
         tenantFeatures.isDelegatedConsumerFeatureEnabled

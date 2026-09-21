@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
-import request from "supertest";
+import { catalogApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockEServiceTemplate,
+  getMockEServiceTemplateVersion,
+  getMockEService,
+} from "pagopa-interop-commons-test";
 import {
   descriptorState,
   EService,
@@ -11,16 +17,9 @@ import {
   generateId,
   tenantKind,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockEServiceTemplate,
-  getMockEServiceTemplateVersion,
-  getMockEService,
-} from "pagopa-interop-commons-test";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
 
-import { catalogApi } from "pagopa-interop-api-clients";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import { api, catalogService } from "../vitest.api.setup.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   documentPrettyNameDuplicate,
@@ -34,9 +33,11 @@ import {
   notValidDescriptorState,
   originNotCompliant,
   templateMissingRequiredRiskAnalysis,
+  templateVersionMissingAsyncExchangeProperties,
   tenantKindNotFound,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
+import { api, catalogService } from "../vitest.api.setup.js";
 
 describe("API /templates/{templateId}/eservices authorization test", () => {
   const publishedVersion: EServiceTemplateVersion = {
@@ -148,6 +149,13 @@ describe("API /templates/{templateId}/eservices authorization test", () => {
     },
     {
       error: eServiceTemplateWithoutPersonalDataFlag(
+        eServiceTemplate.id,
+        publishedVersion.id
+      ),
+      expectedStatus: 400,
+    },
+    {
+      error: templateVersionMissingAsyncExchangeProperties(
         eServiceTemplate.id,
         publishedVersion.id
       ),

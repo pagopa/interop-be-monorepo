@@ -16,6 +16,7 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
+
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
@@ -77,11 +78,15 @@ describe("updateTemplateInstanceDescriptorDocument", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-    expect(writtenPayload.documentId).toEqual(mockDocument.id);
-    expect(writtenPayload.eservice).toEqual(expectedEservice);
-    expect(writtenPayload.eservice).toEqual(
-      toEServiceV2({
+    expect(writtenPayload).toEqual({
+      descriptorId: descriptor.id,
+      documentId: mockDocument.id,
+      eservice: expectedEservice,
+    });
+    expect(writtenPayload).toEqual({
+      descriptorId: descriptor.id,
+      documentId: mockDocument.id,
+      eservice: toEServiceV2({
         ...eservice,
         descriptors: [
           {
@@ -94,8 +99,8 @@ describe("updateTemplateInstanceDescriptorDocument", () => {
             ],
           },
         ],
-      })
-    );
+      }),
+    });
   });
 
   it("should not write on event-store if the descriptor document already has the same prettyName", async () => {

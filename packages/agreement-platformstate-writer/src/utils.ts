@@ -1,4 +1,20 @@
 import {
+  AttributeValue,
+  DynamoDBClient,
+  GetItemCommand,
+  GetItemInput,
+  PutItemCommand,
+  PutItemInput,
+  QueryCommand,
+  QueryInput,
+  ScanCommand,
+  ScanInput,
+  UpdateItemCommand,
+  UpdateItemInput,
+} from "@aws-sdk/client-dynamodb";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
+import { Logger } from "pagopa-interop-commons";
+import {
   AgreementId,
   agreementState,
   AgreementState,
@@ -20,23 +36,8 @@ import {
   TenantId,
   TokenGenerationStatesConsumerClient,
 } from "pagopa-interop-models";
-import {
-  AttributeValue,
-  DynamoDBClient,
-  GetItemCommand,
-  GetItemInput,
-  PutItemCommand,
-  PutItemInput,
-  QueryCommand,
-  QueryInput,
-  ScanCommand,
-  ScanInput,
-  UpdateItemCommand,
-  UpdateItemInput,
-} from "@aws-sdk/client-dynamodb";
-import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { z } from "zod";
-import { Logger } from "pagopa-interop-commons";
+
 import { config } from "./config/config.js";
 
 export const upsertPlatformStatesAgreementEntry = async (
@@ -495,12 +496,12 @@ export const updateLatestAgreementOnTokenGenStates = async (
     });
   };
 
-  const platformsStatesCatalogEntryPK = makePlatformStatesEServiceDescriptorPK({
+  const platformStatesCatalogEntryPK = makePlatformStatesEServiceDescriptorPK({
     eserviceId: agreement.eserviceId,
     descriptorId: agreement.descriptorId,
   });
   const platformStatesCatalogEntry = await readCatalogEntry(
-    platformsStatesCatalogEntryPK,
+    platformStatesCatalogEntryPK,
     dynamoDBClient
   );
 
@@ -512,7 +513,7 @@ export const updateLatestAgreementOnTokenGenStates = async (
 
   // Second check
   const updatedPlatformStatesCatalogEntry = await readCatalogEntry(
-    platformsStatesCatalogEntryPK,
+    platformStatesCatalogEntryPK,
     dynamoDBClient
   );
 
@@ -529,7 +530,7 @@ export const updateLatestAgreementOnTokenGenStates = async (
     );
   } else {
     logger.info(
-      `Token-generation-states. Second retrieval of catalog entry ${platformsStatesCatalogEntryPK} didn't bring any updates to agreement with GSIPK_consumerId_eserviceId ${makeGSIPKConsumerIdEServiceId(
+      `Token-generation-states. Second retrieval of catalog entry ${platformStatesCatalogEntryPK} didn't bring any updates to agreement with GSIPK_consumerId_eserviceId ${makeGSIPKConsumerIdEServiceId(
         { consumerId: agreement.consumerId, eserviceId: agreement.eserviceId }
       )}`
     );

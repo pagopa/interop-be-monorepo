@@ -1,9 +1,3 @@
-import path from "path";
-import {
-  genericInternalError,
-  missingKafkaMessageDataError,
-  PurposeEventEnvelopeV2,
-} from "pagopa-interop-models";
 import {
   FileManager,
   Logger,
@@ -11,9 +5,16 @@ import {
   SafeStorageService,
   FileCreationRequest,
 } from "pagopa-interop-commons";
+import {
+  genericInternalError,
+  missingKafkaMessageDataError,
+  PurposeEventEnvelopeV2,
+} from "pagopa-interop-models";
+import path from "path";
 import { match, P } from "ts-pattern";
-import { calculateSha256Base64 } from "../utils/checksum.js";
+
 import { config } from "../config/config.js";
+import { calculateSha256Base64 } from "../utils/checksum.js";
 
 export async function handlePurposeDocument(
   decodedMessage: PurposeEventEnvelopeV2,
@@ -56,8 +57,9 @@ export async function handlePurposeDocument(
           logger
         );
 
+        const fileBuffer = Buffer.from(file);
         const fileName = path.basename(s3Key);
-        const checksum = await calculateSha256Base64(Buffer.from(file));
+        const checksum = await calculateSha256Base64(fileBuffer);
         const contentType = "application/pdf";
 
         const safeStorageRequest: FileCreationRequest = {
@@ -72,15 +74,21 @@ export async function handlePurposeDocument(
           logger
         );
 
-        logger.info(`Created file on safe storage with key: ${key}`);
+        logger.info(
+          `Created file ${s3Key} on safe storage with key: ${key} and checksum: ${checksum} having length: ${fileBuffer.length} bytes`
+        );
 
         await safeStorageService.uploadFileContent(
           uploadUrl,
-          Buffer.from(file),
+          fileBuffer,
           contentType,
           secret,
           checksum,
           logger
+        );
+
+        logger.info(
+          `Uploaded file ${s3Key} on safe storage with key: ${key} and checksum: ${checksum} having length: ${fileBuffer.length} bytes`
         );
 
         await signatureService.saveDocumentSignatureReference(
@@ -98,6 +106,10 @@ export async function handlePurposeDocument(
             correlationId: msg.correlation_id ?? "",
           },
           logger
+        );
+
+        logger.info(
+          `Processed purpose document with key: ${key} and file: ${s3Key}`
         );
       }
     })
@@ -124,7 +136,15 @@ export async function handlePurposeDocument(
           "PurposeVersionUnsuspendedByConsumer",
           "PurposeVersionRejected",
           "PurposeVersionArchivedByRevokedDelegation",
-          "RiskAnalysisSignedDocumentGenerated"
+          "RiskAnalysisSignedDocumentGenerated",
+          "MaintenancePurposeRiskAnalysisSetTenantKind",
+          "PurposeRiskAnalysisWorkflowCreated",
+          "PurposeRiskAnalysisAssigned",
+          "PurposeRiskAnalysisSelfAssigned",
+          "PurposeRiskAnalysisSubmitted",
+          "PurposeRiskAnalysisSigned",
+          "PurposeRiskAnalysisRejected",
+          "PurposeRiskAnalysisFormEdited"
         ),
       },
       () => Promise.resolve()

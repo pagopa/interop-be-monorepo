@@ -1,12 +1,4 @@
 import {
-  EServiceEventEnvelopeV2,
-  EServiceV2,
-  EServiceDescriptorV2,
-  EServiceDocumentV2,
-  EServiceTemplateVersionRefV2,
-  TemplateInstanceInterfaceMetadataV2,
-} from "pagopa-interop-models";
-import {
   EServiceEvent as OutboundEServiceEvent,
   EServiceV2 as OutboundEServiceV2,
   EServiceDescriptorV2 as OutboundEServiceDescriptorV2,
@@ -14,8 +6,16 @@ import {
   EServiceTemplateVersionRefV2 as OutboundEServiceTemplateVersionRefV2,
   TemplateInstanceInterfaceMetadataV2 as OutboundTemplateInstanceInterfaceMetadataV2,
 } from "@pagopa/interop-outbound-models";
-import { match } from "ts-pattern";
 import { Exact } from "pagopa-interop-commons";
+import {
+  EServiceEventEnvelopeV2,
+  EServiceV2,
+  EServiceDescriptorV2,
+  EServiceDocumentV2,
+  EServiceTemplateVersionRefV2,
+  TemplateInstanceInterfaceMetadataV2,
+} from "pagopa-interop-models";
+import { match } from "ts-pattern";
 
 function toOutboundEServiceDocumentV2(
   document: EServiceDocumentV2
@@ -65,6 +65,9 @@ function toOutboundDescriptorV2(
     templateVersionRef:
       descriptor.templateVersionRef &&
       toOutboundEServiceTemplateVersionRefV2(descriptor.templateVersionRef),
+    asyncExchangeCallbackInterface: undefined,
+    asyncExchangeProperties: undefined,
+    serverUrlsDescriptions: undefined,
   };
 }
 
@@ -74,6 +77,8 @@ function toOutboundEServiceV2(
   return {
     ...eservice,
     riskAnalysis: undefined,
+    asyncExchange: undefined,
+    instanceLabel: undefined,
     descriptors: eservice.descriptors.map(toOutboundDescriptorV2),
     templateId: eservice.templateId,
   };
@@ -100,7 +105,14 @@ export function toOutboundEventV2(
       { type: "EServicePersonalDataFlagUpdatedAfterPublication" },
       { type: "EServicePersonalDataFlagUpdatedByTemplateUpdate" },
       { type: "EServiceInstanceLabelUpdated" },
-
+      { type: "EServiceArchivingScheduled" },
+      { type: "EServiceArchivingCanceled" },
+      { type: "EServiceArchivingCompleted" },
+      { type: "MaintenanceEServicePersonalDataFlagReset" },
+      { type: "EServiceArchivingRequestedByDelegate" },
+      { type: "EServiceArchivingRequestApprovedByDelegator" },
+      { type: "EServiceArchivingRequestRejectedByDelegator" },
+      { type: "EServiceArchivingRequestCanceledByDelegate" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
@@ -155,6 +167,15 @@ export function toOutboundEventV2(
       { type: "EServiceDescriptorApprovedByDelegator" },
       { type: "EServiceDescriptorRejectedByDelegator" },
       { type: "EServiceDescriptorQuotasUpdatedByTemplateUpdate" },
+      { type: "EServiceDescriptorArchivingScheduled" },
+      { type: "EServiceDescriptorArchivingCanceled" },
+      { type: "EServiceDescriptorArchivingCompleted" },
+      { type: "MaintenanceEServiceDescriptorUnarchived" },
+      { type: "EServiceDescriptorArchivingRequestedByDelegate" },
+      { type: "EServiceDescriptorArchivingRequestApprovedByDelegator" },
+      { type: "EServiceDescriptorArchivingRequestRejectedByDelegator" },
+      { type: "EServiceDescriptorArchivingRequestCanceledByDelegate" },
+
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
@@ -172,7 +193,6 @@ export function toOutboundEventV2(
     .with(
       { type: "EServiceDescriptorInterfaceAdded" },
       { type: "EServiceDescriptorDocumentAdded" },
-      { type: "EServiceDescriptorInterfaceUpdated" },
       { type: "EServiceDescriptorDocumentUpdated" },
       { type: "EServiceDescriptorInterfaceDeleted" },
       { type: "EServiceDescriptorDocumentDeleted" },
@@ -216,7 +236,32 @@ export function toOutboundEventV2(
       { type: "EServiceRiskAnalysisAdded" },
       { type: "EServiceRiskAnalysisDeleted" },
       { type: "EServiceRiskAnalysisUpdated" },
+      // TODO: Propagate async exchange callback interface events when @pagopa/interop-outbound-models is updated
+      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded" },
+      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted" },
+      { type: "MaintenanceEServiceRiskAnalysisSetTenantKind" },
+      // TODO: Propagate this event when @pagopa/interop-outbound-models is updated
+      { type: "EServiceArchivingRequestCanceledByRevokedDelegation" },
+      { type: "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation" },
       () => undefined
+    )
+    .with(
+      { type: "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated" },
+      (msg) => ({
+        event_version: msg.event_version,
+        type: msg.type,
+        version: msg.version,
+        data: {
+          descriptorId: msg.data.descriptorId,
+          attributeId: msg.data.attributeId,
+          dailyCallsPerConsumer: msg.data.dailyCallsPerConsumer,
+          eservice:
+            msg.data.eservice && toOutboundEServiceV2(msg.data.eservice),
+        },
+        stream_id: msg.stream_id,
+        streamVersion: msg.version,
+        timestamp: new Date(),
+      })
     )
     .exhaustive();
 }

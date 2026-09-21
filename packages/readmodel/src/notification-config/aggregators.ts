@@ -14,6 +14,7 @@ import {
   UserNotificationConfigItemsSQL,
   UserNotificationConfigSQL,
 } from "pagopa-interop-readmodel-models";
+
 import { makeUniqueKey, throwIfMultiple } from "../utils.js";
 
 export const aggregateTenantNotificationConfig = (
@@ -86,6 +87,9 @@ export const aggregateUserNotificationConfig = ({
     templateStatusChangedToProducer: enabledInAppNotifications.includes(
       "templateStatusChangedToProducer"
     ),
+    eserviceStateChangedToProducer: enabledInAppNotifications.includes(
+      "eserviceStateChangedToProducer"
+    ),
     agreementSuspendedUnsuspendedToConsumer: enabledInAppNotifications.includes(
       "agreementSuspendedUnsuspendedToConsumer"
     ),
@@ -147,6 +151,13 @@ export const aggregateUserNotificationConfig = ({
     purposeOverQuotaStateToConsumer: enabledInAppNotifications.includes(
       "purposeOverQuotaStateToConsumer"
     ),
+    eserviceArchivingRequestedToDelegator: enabledInAppNotifications.includes(
+      "eserviceArchivingRequestedToDelegator"
+    ),
+    eserviceArchivingApprovedRejectedToDelegate:
+      enabledInAppNotifications.includes(
+        "eserviceArchivingApprovedRejectedToDelegate"
+      ),
   };
   const emailConfig: NotificationConfig = {
     agreementSuspendedUnsuspendedToProducer: enabledEmailNotifications.includes(
@@ -163,6 +174,9 @@ export const aggregateUserNotificationConfig = ({
     ),
     templateStatusChangedToProducer: enabledEmailNotifications.includes(
       "templateStatusChangedToProducer"
+    ),
+    eserviceStateChangedToProducer: enabledEmailNotifications.includes(
+      "eserviceStateChangedToProducer"
     ),
     agreementSuspendedUnsuspendedToConsumer: enabledEmailNotifications.includes(
       "agreementSuspendedUnsuspendedToConsumer"
@@ -225,6 +239,13 @@ export const aggregateUserNotificationConfig = ({
     purposeOverQuotaStateToConsumer: enabledEmailNotifications.includes(
       "purposeOverQuotaStateToConsumer"
     ),
+    eserviceArchivingRequestedToDelegator: enabledEmailNotifications.includes(
+      "eserviceArchivingRequestedToDelegator"
+    ),
+    eserviceArchivingApprovedRejectedToDelegate:
+      enabledEmailNotifications.includes(
+        "eserviceArchivingApprovedRejectedToDelegate"
+      ),
   };
 
   return {

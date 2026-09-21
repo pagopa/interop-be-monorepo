@@ -371,3 +371,100 @@ export const toCreateEventTenantDelegatedConsumerFeatureRemoved = (
   },
   correlationId,
 });
+
+export const toCreateEventTenantRemoteIdAssigned = (
+  version: number,
+  updatedTenant: Tenant,
+  correlationId: CorrelationId
+): CreateEvent<TenantEvent> => ({
+  streamId: updatedTenant.id,
+  version,
+  event: {
+    type: "TenantRemoteIdAssigned",
+    event_version: 2,
+    data: {
+      tenant: toTenantV2(updatedTenant),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventTenantCertifiedDiscreteAttributeAssigned = (
+  version: number,
+  updatedTenant: Tenant,
+  attributeId: AttributeId,
+  correlationId: CorrelationId
+): CreateEvent<TenantEvent> => ({
+  streamId: updatedTenant.id,
+  version,
+  event: {
+    type: "TenantCertifiedDiscreteAttributeAssigned",
+    event_version: 2,
+    data: {
+      attributeId,
+      tenant: toTenantV2(updatedTenant),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventTenantCertifiedDiscreteAttributeRevoked = (
+  version: number,
+  updatedTenant: Tenant,
+  attributeId: AttributeId,
+  correlationId: CorrelationId
+): CreateEvent<TenantEvent> => ({
+  streamId: updatedTenant.id,
+  version,
+  event: {
+    type: "TenantCertifiedDiscreteAttributeRevoked",
+    event_version: 2,
+    data: {
+      attributeId,
+      tenant: toTenantV2(updatedTenant),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventTenantCertifiedDiscreteAttributeUpdated = (
+  version: number,
+  updatedTenant: Tenant,
+  attributeId: AttributeId,
+  previousValue: number,
+  newValue: number,
+  correlationId: CorrelationId
+): CreateEvent<TenantEvent> => ({
+  streamId: updatedTenant.id,
+  version,
+  event: {
+    type: "TenantCertifiedDiscreteAttributeUpdated",
+    event_version: 2,
+    data: {
+      attributeId,
+      tenant: toTenantV2(updatedTenant),
+      previousValue,
+      newValue,
+    },
+  },
+  correlationId,
+});
+
+export function toCreateEventMaintenanceTenantRemoteIdDeleted(
+  version: number,
+  tenant: Tenant,
+  correlationId: CorrelationId
+): CreateEvent<TenantEvent> {
+  return {
+    streamId: tenant.id,
+    version,
+    event: {
+      type: "MaintenanceTenantRemoteIdDeleted",
+      event_version: 2,
+      data: {
+        tenant: toTenantV2(tenant),
+      },
+    },
+    correlationId,
+  };
+}

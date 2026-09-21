@@ -73,6 +73,10 @@ function toApiEServiceM2MEventType(
       () => "ESERVICE_DESCRIPTOR_ATTRIBUTES_UPDATED"
     )
     .with(
+      "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
+      () => "ESERVICE_DESCRIPTOR_ATTRIBUTE_DAILY_CALLS_PER_CONSUMER_UPDATED"
+    )
+    .with(
       "EServiceDescriptorSubmittedByDelegate",
       () => "ESERVICE_DESCRIPTOR_SUBMITTED_BY_DELEGATE"
     )
@@ -117,12 +121,16 @@ function toApiEServiceM2MEventType(
       () => "ESERVICE_DESCRIPTOR_INTERFACE_ADDED"
     )
     .with(
-      "EServiceDescriptorInterfaceUpdated",
-      () => "ESERVICE_DESCRIPTOR_INTERFACE_UPDATED"
-    )
-    .with(
       "EServiceDescriptorInterfaceDeleted",
       () => "ESERVICE_DESCRIPTOR_INTERFACE_DELETED"
+    )
+    .with(
+      "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+      () => "ESERVICE_DESCRIPTOR_ASYNC_EXCHANGE_CALLBACK_INTERFACE_ADDED"
+    )
+    .with(
+      "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
+      () => "ESERVICE_DESCRIPTOR_ASYNC_EXCHANGE_CALLBACK_INTERFACE_DELETED"
     )
     .with(
       "EServicePersonalDataFlagUpdatedAfterPublication",
@@ -135,6 +143,70 @@ function toApiEServiceM2MEventType(
     .with(
       "EServiceInstanceLabelUpdated",
       () => "ESERVICE_INSTANCE_LABEL_UPDATED"
+    )
+    .with(
+      "EServiceDescriptorArchivingScheduled",
+      () => "ESERVICE_DESCRIPTOR_ARCHIVING_SCHEDULED"
+    )
+    .with(
+      "EServiceDescriptorArchivingCanceled",
+      () => "ESERVICE_DESCRIPTOR_ARCHIVING_CANCELED"
+    )
+    .with(
+      "EServiceDescriptorArchivingCompleted",
+      () => "ESERVICE_DESCRIPTOR_ARCHIVING_COMPLETED"
+    )
+    .with(
+      "EServiceDescriptorArchivingRequestedByDelegate",
+      () => "ESERVICE_DESCRIPTOR_ARCHIVING_REQUESTED_BY_DELEGATE"
+    )
+    .with(
+      "EServiceDescriptorArchivingRequestRejectedByDelegator",
+      () => "ESERVICE_DESCRIPTOR_ARCHIVING_REQUEST_REJECTED_BY_DELEGATOR"
+    )
+    .with(
+      "EServiceDescriptorArchivingRequestApprovedByDelegator",
+      () => "ESERVICE_DESCRIPTOR_ARCHIVING_REQUEST_APPROVED_BY_DELEGATOR"
+    )
+    .with(
+      "EServiceDescriptorArchivingRequestCanceledByDelegate",
+      () => "ESERVICE_DESCRIPTOR_ARCHIVING_REQUEST_CANCELED_BY_DELEGATE"
+    )
+    .with("EServiceArchivingScheduled", () => "ESERVICE_ARCHIVING_SCHEDULED")
+    .with("EServiceArchivingCanceled", () => "ESERVICE_ARCHIVING_CANCELED")
+    .with("EServiceArchivingCompleted", () => "ESERVICE_ARCHIVING_COMPLETED")
+    .with(
+      "EServiceArchivingRequestedByDelegate",
+      () => "ESERVICE_ARCHIVING_REQUESTED_BY_DELEGATE"
+    )
+    .with(
+      "EServiceArchivingRequestRejectedByDelegator",
+      () => "ESERVICE_ARCHIVING_REQUEST_REJECTED_BY_DELEGATOR"
+    )
+    .with(
+      "EServiceArchivingRequestApprovedByDelegator",
+      () => "ESERVICE_ARCHIVING_REQUEST_APPROVED_BY_DELEGATOR"
+    )
+    .with(
+      "EServiceArchivingRequestCanceledByDelegate",
+      () => "ESERVICE_ARCHIVING_REQUEST_CANCELED_BY_DELEGATE"
+    )
+    .with(
+      "EServiceArchivingRequestCanceledByRevokedDelegation",
+      () => "ESERVICE_ARCHIVING_REQUEST_CANCELED_BY_REVOKED_DELEGATION"
+    )
+    .with(
+      "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation",
+      () =>
+        "ESERVICE_DESCRIPTOR_ARCHIVING_REQUEST_CANCELED_BY_REVOKED_DELEGATION"
+    )
+    .with(
+      "MaintenanceEServicePersonalDataFlagReset",
+      () => "MAINTENANCE_ESERVICE_PERSONAL_DATA_FLAG_RESET"
+    )
+    .with(
+      "MaintenanceEServiceDescriptorUnarchived",
+      () => "MAINTENANCE_ESERVICE_DESCRIPTOR_UNARCHIVED"
     )
     .exhaustive();
 }

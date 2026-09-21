@@ -18,6 +18,7 @@ import {
   eserviceTemplateVersionState,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
+
 import {
   eserviceTemplateNotFound,
   eserviceTemplateVersionNotFound,
@@ -78,10 +79,10 @@ describe("suspendEServiceTemplateVersion", () => {
       ],
     });
 
-    expect(writtenPayload.eserviceTemplateVersionId).toEqual(
-      eserviceTemplateVersion.id
-    );
-    expect(writtenPayload.eserviceTemplate).toEqual(expectedEServiceTemplate);
+    expect(writtenPayload).toEqual({
+      eserviceTemplateVersionId: eserviceTemplateVersion.id,
+      eserviceTemplate: expectedEServiceTemplate,
+    });
   });
 
   it("should throw eserviceTemplateNotFound if the eservice template doesn't exist", () => {

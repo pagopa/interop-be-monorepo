@@ -1,12 +1,13 @@
-import request from "supertest";
-import { describe, it, expect, beforeEach, vi } from "vitest";
 import { bffApi } from "pagopa-interop-api-clients";
-import { generateId, TenantId } from "pagopa-interop-models";
 import { authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
-import { api, services } from "../../vitest.api.setup.js";
+import { generateId, TenantId } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { selfcareEntityNotFilled } from "../../../src/model/errors.js";
+import { api, services } from "../../vitest.api.setup.js";
 
 describe("GET /tenants/:tenantId/users", () => {
   const validTenantId: TenantId = generateId();
@@ -75,4 +76,13 @@ describe("GET /tenants/:tenantId/users", () => {
     const res = await makeRequest(token, validTenantId);
     expect(res.status).toBe(500);
   });
+
+  it.each([authRole.API_ROLE, authRole.SECURITY_ROLE, authRole.SUPPORT_ROLE])(
+    "should return 403 for non-admin role %s",
+    async (role) => {
+      const token = generateToken(role);
+      const res = await makeRequest(token, validTenantId);
+      expect(res.status).toBe(403);
+    }
+  );
 });

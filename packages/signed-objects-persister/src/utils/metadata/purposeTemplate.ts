@@ -11,6 +11,7 @@ import {
   RiskAnalysisTemplateDocument,
   generateId,
 } from "pagopa-interop-models";
+
 import { getInteropBeClients } from "../../clients/clientProvider.js";
 
 export const addPurposeTemplateSignedDocument = async (

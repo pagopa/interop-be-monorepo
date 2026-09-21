@@ -1,9 +1,10 @@
-import { describe, expect, it } from "vitest";
-import { Agreement, WithMetadata } from "pagopa-interop-models";
 import {
   getMockAgreementDocument,
   getMockAgreementStamp,
 } from "pagopa-interop-commons-test";
+import { Agreement, WithMetadata } from "pagopa-interop-models";
+import { describe, expect, it } from "vitest";
+
 import {
   agreementReadModelService,
   agreementWriterService,
@@ -63,6 +64,7 @@ describe("Agreement queries", () => {
       expect(retrievedStamps).toHaveLength(7);
       expect(retrievedAttributes).toHaveLength(
         agreement.data.certifiedAttributes.length +
+          agreement.data.certifiedDiscreteAttributes.length +
           agreement.data.declaredAttributes.length +
           agreement.data.verifiedAttributes.length
       );
@@ -100,6 +102,7 @@ describe("Agreement queries", () => {
       expect(retrievedStamps).toHaveLength(7);
       expect(retrievedAttributes).toHaveLength(
         agreement.data.certifiedAttributes.length +
+          agreement.data.certifiedDiscreteAttributes.length +
           agreement.data.declaredAttributes.length +
           agreement.data.verifiedAttributes.length
       );
@@ -173,6 +176,7 @@ describe("Agreement queries", () => {
       expect(retrievedStamps).toHaveLength(7);
       expect(retrievedAttributes).toHaveLength(
         updatedAgreement.data.certifiedAttributes.length +
+          updatedAgreement.data.certifiedDiscreteAttributes.length +
           updatedAgreement.data.declaredAttributes.length +
           updatedAgreement.data.verifiedAttributes.length
       );

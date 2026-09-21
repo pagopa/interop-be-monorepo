@@ -77,6 +77,12 @@ export type SelfcareId = z.infer<typeof SelfcareId>;
 export const ProducerKeychainId = z.string().uuid().brand("ProducerKeychainId");
 export type ProducerKeychainId = z.infer<typeof ProducerKeychainId>;
 
+export const InteractionId = z.string().uuid().brand("InteractionId");
+export type InteractionId = z.infer<typeof InteractionId>;
+
+export const GSIPKInteractionId = z.string().brand("interactionId");
+export type GSIPKInteractionId = z.infer<typeof GSIPKInteractionId>;
+
 export const DelegationId = z.string().uuid().brand("DelegationId");
 export type DelegationId = z.infer<typeof DelegationId>;
 
@@ -118,6 +124,17 @@ export const PlatformStatesClientPK = z
   .brand(`${clientPrefix}clientId`);
 export type PlatformStatesClientPK = z.infer<typeof PlatformStatesClientPK>;
 
+export const producerKeychainKidEServicePrefix = "PRODUCERKEYCHAINKIDESERVICE#";
+export const ProducerKeychainPlatformStatesPK = z
+  .string()
+  .refine((pk) => pk.startsWith(producerKeychainKidEServicePrefix))
+  .brand(
+    `${producerKeychainKidEServicePrefix}producerKeychainId#kid#eServiceId`
+  );
+export type ProducerKeychainPlatformStatesPK = z.infer<
+  typeof ProducerKeychainPlatformStatesPK
+>;
+
 export const GSIPKConsumerIdEServiceId = z
   .string()
   .brand(`tenantId#eserviceId`);
@@ -142,6 +159,13 @@ export const TokenGenerationStatesClientKidPK = z
 export type TokenGenerationStatesClientKidPK = z.infer<
   typeof TokenGenerationStatesClientKidPK
 >;
+
+const interactionPrefix = "INTERACTION#";
+export const InteractionsPK = z
+  .string()
+  .refine((pk) => pk.startsWith(interactionPrefix))
+  .brand(`${interactionPrefix}interactionId`);
+export type InteractionsPK = z.infer<typeof InteractionsPK>;
 
 export const GSIPKEServiceIdDescriptorId = z
   .string()
@@ -273,6 +297,14 @@ export type AgreementM2MEventId = z.infer<typeof AgreementM2MEventId>;
 export const PurposeM2MEventId = z.string().uuid().brand("PurposeM2MEventId");
 export type PurposeM2MEventId = z.infer<typeof PurposeM2MEventId>;
 
+export const PurposeTemplateM2MEventId = z
+  .string()
+  .uuid()
+  .brand("PurposeTemplateM2MEventId");
+export type PurposeTemplateM2MEventId = z.infer<
+  typeof PurposeTemplateM2MEventId
+>;
+
 export const DelegationM2MEventId = z
   .string()
   .uuid()
@@ -331,6 +363,9 @@ export const IDS = z.union([
   UserId,
   SelfcareId,
   ProducerKeychainId,
+  ProducerKeychainPlatformStatesPK,
+  InteractionId,
+  GSIPKInteractionId,
   DelegationId,
   DelegationContractId,
   PlatformStatesEServiceDescriptorPK,
@@ -340,6 +375,7 @@ export const IDS = z.union([
   GSIPKConsumerIdEServiceId,
   TokenGenerationStatesClientKidPurposePK,
   TokenGenerationStatesClientKidPK,
+  InteractionsPK,
   GSIPKEServiceIdDescriptorId,
   GSIPKClientIdPurposeId,
   GSIPKClientIdKid,
@@ -364,6 +400,7 @@ export const IDS = z.union([
   ProducerKeyM2MEventId,
   TenantM2MEventId,
   RiskAnalysisTemplateDocumentId,
+  PurposeTemplateM2MEventId,
 ]);
 export type IDS = z.infer<typeof IDS>;
 

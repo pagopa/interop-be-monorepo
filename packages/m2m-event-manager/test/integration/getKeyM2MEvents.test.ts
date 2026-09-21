@@ -1,8 +1,9 @@
-import { beforeEach, describe, expect, it } from "vitest";
 import { getMockContextM2M } from "pagopa-interop-commons-test";
 import { KeyM2MEventType } from "pagopa-interop-models";
-import { getMockedKeyM2MEvent } from "../mockUtils.js";
+import { beforeEach, describe, expect, it } from "vitest";
+
 import { m2mEventService, writeKeyM2MEvent } from "../integrationUtils.js";
+import { getMockedKeyM2MEvent } from "../mockUtils.js";
 
 describe("getKeyM2MEvents", () => {
   const mockKeyM2MEvents = KeyM2MEventType.options
@@ -12,10 +13,13 @@ describe("getKeyM2MEvents", () => {
       getMockedKeyM2MEvent(type),
       getMockedKeyM2MEvent(type),
     ])
-    .flat();
+    .flat()
+    .sort((a, b) => a.id.localeCompare(b.id));
 
   beforeEach(async () => {
-    await Promise.all(mockKeyM2MEvents.map(writeKeyM2MEvent));
+    for (const event of mockKeyM2MEvents) {
+      await writeKeyM2MEvent(event);
+    }
   });
 
   it("should list all key M2M events", async () => {

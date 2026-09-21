@@ -1,4 +1,5 @@
-import { UserRole, userRole } from "pagopa-interop-models";
+import { UserRole, userRole } from "pagopa-interop-commons";
+
 import { BaseDigest, TenantDigestData } from "../services/digestDataService.js";
 
 /**
@@ -13,7 +14,14 @@ type DigestDataField = {
     : never;
 }[keyof TenantDigestData];
 
-const { ADMIN_ROLE, API_ROLE, SECURITY_ROLE, SUPPORT_ROLE } = userRole;
+const {
+  ADMIN_ROLE,
+  API_ROLE,
+  SECURITY_ROLE,
+  SUPPORT_ROLE,
+  REVIEWER_ROLE,
+  VIEWER_ROLE,
+} = userRole;
 
 export type DigestSection =
   | "newEservices"
@@ -36,60 +44,80 @@ export const digestAdmittedRoles = {
     [API_ROLE]: true,
     [SECURITY_ROLE]: true,
     [SUPPORT_ROLE]: false,
+    [REVIEWER_ROLE]: false,
+    [VIEWER_ROLE]: false,
   },
   updatedEservices: {
     [ADMIN_ROLE]: true,
     [API_ROLE]: true,
     [SECURITY_ROLE]: true,
     [SUPPORT_ROLE]: false,
+    [REVIEWER_ROLE]: false,
+    [VIEWER_ROLE]: false,
   },
   updatedEserviceTemplates: {
     [ADMIN_ROLE]: true,
     [API_ROLE]: true,
     [SECURITY_ROLE]: false,
     [SUPPORT_ROLE]: false,
+    [REVIEWER_ROLE]: false,
+    [VIEWER_ROLE]: false,
   },
   popularEserviceTemplates: {
     [ADMIN_ROLE]: true,
     [API_ROLE]: true,
     [SECURITY_ROLE]: false,
     [SUPPORT_ROLE]: false,
+    [REVIEWER_ROLE]: false,
+    [VIEWER_ROLE]: false,
   },
   sentAgreements: {
     [ADMIN_ROLE]: true,
     [API_ROLE]: false,
     [SECURITY_ROLE]: true,
     [SUPPORT_ROLE]: false,
+    [REVIEWER_ROLE]: false,
+    [VIEWER_ROLE]: false,
   },
   receivedAgreements: {
     [ADMIN_ROLE]: true,
     [API_ROLE]: false,
     [SECURITY_ROLE]: false,
     [SUPPORT_ROLE]: false,
+    [REVIEWER_ROLE]: false,
+    [VIEWER_ROLE]: false,
   },
   sentPurposes: {
     [ADMIN_ROLE]: true,
     [API_ROLE]: false,
     [SECURITY_ROLE]: true,
     [SUPPORT_ROLE]: false,
+    [REVIEWER_ROLE]: false,
+    [VIEWER_ROLE]: false,
   },
   receivedPurposes: {
     [ADMIN_ROLE]: true,
     [API_ROLE]: true,
     [SECURITY_ROLE]: false,
     [SUPPORT_ROLE]: false,
+    [REVIEWER_ROLE]: false,
+    [VIEWER_ROLE]: false,
   },
   delegations: {
     [ADMIN_ROLE]: true,
     [API_ROLE]: false,
     [SECURITY_ROLE]: false,
     [SUPPORT_ROLE]: false,
+    [REVIEWER_ROLE]: false,
+    [VIEWER_ROLE]: false,
   },
   attributes: {
     [ADMIN_ROLE]: true,
     [API_ROLE]: false,
     [SECURITY_ROLE]: false,
     [SUPPORT_ROLE]: false,
+    [REVIEWER_ROLE]: false,
+    [VIEWER_ROLE]: false,
   },
 } as const satisfies Record<DigestSection, Record<UserRole, boolean>> &
   Record<DigestSection, Record<typeof SUPPORT_ROLE, false>>;

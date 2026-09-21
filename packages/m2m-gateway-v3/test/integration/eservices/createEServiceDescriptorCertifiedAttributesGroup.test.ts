@@ -1,22 +1,28 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   attributeRegistryApi,
   catalogApi,
   m2mGatewayApiV3,
 } from "pagopa-interop-api-clients";
-import {
-  generateId,
-  pollingMaxRetriesExceeded,
-  unsafeBrandId,
-} from "pagopa-interop-models";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockedApiEservice,
   getMockedApiEserviceDescriptor,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
+import {
+  generateId,
+  pollingMaxRetriesExceeded,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { genericLogger } from "pagopa-interop-commons";
 import { toM2MGatewayApiCertifiedAttribute } from "../../../src/api/attributeApiConverter.js";
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { config } from "../../../src/config/config.js";
+import {
+  eserviceDescriptorAttributeNotFound,
+  missingMetadata,
+} from "../../../src/model/errors.js";
 import {
   eserviceService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -25,12 +31,6 @@ import {
   mockPollingResponse,
 } from "../../integrationUtils.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import {
-  eserviceDescriptorAttributeNotFound,
-  missingMetadata,
-} from "../../../src/model/errors.js";
-import { config } from "../../../src/config/config.js";
 
 describe("createEServiceDescriptorCertifiedAttributesGroup", () => {
   const attribute1: catalogApi.Attribute = {

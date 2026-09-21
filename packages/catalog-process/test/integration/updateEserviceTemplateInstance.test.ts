@@ -21,8 +21,9 @@ import {
   delegationKind,
   EServiceTemplate,
 } from "pagopa-interop-models";
-import { expect, describe, it } from "vitest";
 import { match } from "ts-pattern";
+import { expect, describe, it } from "vitest";
+
 import {
   eServiceNotFound,
   eserviceNotInDraftState,
@@ -99,8 +100,12 @@ describe("update eService Instance", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(updatedEService),
+    });
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(returnedEService),
+    });
   });
 
   it("should update an eservice correctly handling isClientAccessDelegable when isConsumerDelegable is not true", async () => {
@@ -163,8 +168,12 @@ describe("update eService Instance", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(updatedEService),
+    });
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(returnedEService),
+    });
   });
 
   it("should throw invalidDelegationFlags when isConsumerDelegable is false and isClientAccessDelegable is true", async () => {
@@ -247,8 +256,12 @@ describe("update eService Instance", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(updatedEService),
+    });
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(returnedEService),
+    });
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {

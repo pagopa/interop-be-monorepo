@@ -1,11 +1,12 @@
-import { beforeEach, describe, expect, it } from "vitest";
 import { getMockContextM2M } from "pagopa-interop-commons-test";
 import { ConsumerDelegationM2MEventType } from "pagopa-interop-models";
-import { getMockedConsumerDelegationM2MEvent } from "../mockUtils.js";
+import { beforeEach, describe, expect, it } from "vitest";
+
 import {
   m2mEventService,
   writeConsumerDelegationM2MEvent,
 } from "../integrationUtils.js";
+import { getMockedConsumerDelegationM2MEvent } from "../mockUtils.js";
 
 describe("getConsumerDelegationM2MEvents", () => {
   const mockConsumerDelegationM2MEvents = ConsumerDelegationM2MEventType.options
@@ -15,12 +16,13 @@ describe("getConsumerDelegationM2MEvents", () => {
       getMockedConsumerDelegationM2MEvent(type),
       getMockedConsumerDelegationM2MEvent(type),
     ])
-    .flat();
+    .flat()
+    .sort((a, b) => a.id.localeCompare(b.id));
 
   beforeEach(async () => {
-    await Promise.all(
-      mockConsumerDelegationM2MEvents.map(writeConsumerDelegationM2MEvent)
-    );
+    for (const event of mockConsumerDelegationM2MEvents) {
+      await writeConsumerDelegationM2MEvent(event);
+    }
   });
 
   it("should list all consumerDelegation M2M events", async () => {

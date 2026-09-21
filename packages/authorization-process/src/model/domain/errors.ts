@@ -51,6 +51,7 @@ const errorCodes = {
   producerJwkNotFound: "0036",
   tenantNotFound: "0037",
   missingSelfcareId: "0038",
+  duplicatedMembersInSeed: "0039",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -445,5 +446,13 @@ export function missingSelfcareId(tenantId: string): ApiError<ErrorCodes> {
     detail: `SelfcareId in Tenant ${tenantId} not found`,
     code: "missingSelfcareId",
     title: "SelfcareId not found",
+  });
+}
+
+export function duplicatedMembersInSeed(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The provided members list contains duplicate users`,
+    code: "duplicatedMembersInSeed",
+    title: "Duplicated members in seed",
   });
 }

@@ -9,12 +9,14 @@ import {
   authRole,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
+
 import { makeApiProblem } from "../model/errors.js";
 import { EserviceService } from "../services/eserviceService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
 import {
   getEserviceDescriptorErrorMapper,
   downloadEServiceDescriptorInterfaceErrorMapper,
+  downloadEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper,
   uploadEServiceDescriptorInterfaceErrorMapper,
   deleteEServiceDescriptorInterfaceErrorMapper,
   deleteDraftEServiceDescriptorErrorMapper,
@@ -547,6 +549,31 @@ const eserviceRouter = (
             downloadEServiceDescriptorInterfaceErrorMapper,
             ctx,
             `Error retrieving interface for eservice ${req.params.eserviceId} descriptor with id ${req.params.descriptorId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/eservices/:eserviceId/descriptors/:descriptorId/asyncExchangeCallbackInterface",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+          const file =
+            await eserviceService.downloadEServiceDescriptorAsyncExchangeCallbackInterface(
+              unsafeBrandId(req.params.eserviceId),
+              unsafeBrandId(req.params.descriptorId),
+              ctx
+            );
+
+          return sendDownloadedDocumentAsFormData(file, res);
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            downloadEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper,
+            ctx,
+            `Error retrieving async exchange callback interface for eservice ${req.params.eserviceId} descriptor with id ${req.params.descriptorId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }

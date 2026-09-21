@@ -1,0 +1,27 @@
+meta {
+  name: List Purpose Template EService Templates
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{host-m2m-gw-v3}}/purposeTemplates/:purposeTemplateId/eserviceTemplates
+  body: none
+  auth: none
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+}
+
+params:query {
+  offset: 0
+  limit: 10
+  ~eserviceTemplateName: test
+  ~creatorIds: ["{{tenantId}}"]
+}
+
+headers {
+  Authorization: {{DPOP-JWT-M2M}}
+  DPoP: {{DPOP-PROOF}}
+}

@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import {
   DelegationId,
   EServiceId,
@@ -24,6 +25,30 @@ export const PurposeVersionState = z.enum([
   ...Object.values(purposeVersionState).slice(1),
 ]);
 export type PurposeVersionState = z.infer<typeof PurposeVersionState>;
+
+export const riskAnalysisReviewMode = {
+  adminWritesAdminSigns: "AdminWritesAdminSigns",
+  reviewerWritesReviewerSigns: "ReviewerWritesReviewerSigns",
+  adminWritesReviewerSigns: "AdminWritesReviewerSigns",
+} as const;
+export const RiskAnalysisReviewMode = z.enum([
+  Object.values(riskAnalysisReviewMode)[0],
+  ...Object.values(riskAnalysisReviewMode).slice(1),
+]);
+export type RiskAnalysisReviewMode = z.infer<typeof RiskAnalysisReviewMode>;
+
+export const riskAnalysisSigningState = {
+  draft: "Draft",
+  assigned: "Assigned",
+  submitted: "Submitted",
+  signed: "Signed",
+  rejected: "Rejected",
+} as const;
+export const RiskAnalysisSigningState = z.enum([
+  Object.values(riskAnalysisSigningState)[0],
+  ...Object.values(riskAnalysisSigningState).slice(1),
+]);
+export type RiskAnalysisSigningState = z.infer<typeof RiskAnalysisSigningState>;
 
 export const PurposeVersionDocument = z.object({
   id: PurposeVersionDocumentId,
@@ -73,6 +98,23 @@ export const PurposeVersion = z.object({
 });
 export type PurposeVersion = z.infer<typeof PurposeVersion>;
 
+export const RiskAnalysisReviewer = z.object({
+  id: UserId,
+  sentToReviewerAt: z.coerce.date().optional(),
+});
+export type RiskAnalysisReviewer = z.infer<typeof RiskAnalysisReviewer>;
+
+export const ReviewerWorkflow = z.object({
+  reviewers: z.array(RiskAnalysisReviewer),
+  signingState: RiskAnalysisSigningState,
+  signedBy: UserId.optional(),
+  signedAt: z.coerce.date().optional(),
+  rejectedBy: UserId.optional(),
+  rejectionReason: z.string().optional(),
+  sentToReviewerAt: z.coerce.date().optional(),
+});
+export type ReviewerWorkflow = z.infer<typeof ReviewerWorkflow>;
+
 export const Purpose = z.object({
   id: PurposeId,
   eserviceId: EServiceId,
@@ -89,5 +131,7 @@ export const Purpose = z.object({
   isFreeOfCharge: z.boolean(),
   freeOfChargeReason: z.string().optional(),
   purposeTemplateId: PurposeTemplateId.optional(),
+  riskAnalysisReviewMode: RiskAnalysisReviewMode.optional(),
+  reviewerWorkflow: ReviewerWorkflow.optional(),
 });
 export type Purpose = z.infer<typeof Purpose>;

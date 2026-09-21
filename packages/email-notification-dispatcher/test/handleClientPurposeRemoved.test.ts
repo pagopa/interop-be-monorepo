@@ -1,5 +1,6 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/no-identical-functions */
+import { authRole } from "pagopa-interop-commons";
 import {
   getMockContext,
   getMockDescriptorPublished,
@@ -8,7 +9,6 @@ import {
   getMockTenant,
   getMockTenantMail,
 } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
 import {
   CorrelationId,
   EService,
@@ -22,13 +22,14 @@ import {
   TenantNotificationConfigId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { match } from "ts-pattern";
 import {
-  eServiceNotFound,
+  eserviceNotFound,
   purposeNotFound,
   tenantNotFound,
-} from "../src/models/errors.js";
+} from "pagopa-interop-notification-commons";
+import { match } from "ts-pattern";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { handleClientPurposeRemoved } from "../src/handlers/authorization/handleClientPurposeRemovedEvent.js";
 import {
   addOneEService,
@@ -167,7 +168,7 @@ describe("handleClientPurposeRemoved", async () => {
     ).rejects.toThrow(tenantNotFound(unknownConsumerId));
   });
 
-  it("should throw eServiceNotFound when eservice is not found", async () => {
+  it("should throw eserviceNotFound when eservice is not found", async () => {
     const unknownEServiceId = generateId<EServiceId>();
     const purposeWithUnknownEservice: Purpose = {
       ...getMockPurpose(),
@@ -184,7 +185,7 @@ describe("handleClientPurposeRemoved", async () => {
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
-    ).rejects.toThrow(eServiceNotFound(unknownEServiceId));
+    ).rejects.toThrow(eserviceNotFound(unknownEServiceId));
   });
 
   it("should generate one message per user of the tenant", async () => {

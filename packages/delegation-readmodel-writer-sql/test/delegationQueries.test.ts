@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { describe, expect, it } from "vitest";
 import { Delegation, WithMetadata } from "pagopa-interop-models";
+import { describe, expect, it } from "vitest";
+
 import {
   getCustomMockDelegation,
   delegationReadModelService,

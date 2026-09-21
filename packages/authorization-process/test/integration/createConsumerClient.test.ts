@@ -1,4 +1,10 @@
-import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
+import { authorizationApi } from "pagopa-interop-api-clients";
+import {
+  decodeProtobufPayload,
+  getMockAuthData,
+  getMockContext,
+  readLastEventByStreamId,
+} from "pagopa-interop-commons-test";
 import {
   Client,
   ClientAddedV2,
@@ -6,16 +12,13 @@ import {
   UserId,
   clientKind,
   generateId,
+  hyperlinkDetectionError,
   toClientV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  decodeProtobufPayload,
-  getMockAuthData,
-  getMockContext,
-  readLastEventByStreamId,
-} from "pagopa-interop-commons-test";
-import { authorizationApi } from "pagopa-interop-api-clients";
+import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
+
+import { duplicatedMembersInSeed } from "../../src/model/domain/errors.js";
 import { authorizationService, postgresDB } from "../integrationUtils.js";
 
 describe("createConsumerClient", () => {
@@ -73,7 +76,54 @@ describe("createConsumerClient", () => {
       description: clientSeed.description,
     };
 
-    expect(writtenPayload.client).toEqual(toClientV2(expectedClient));
+    expect(writtenPayload).toEqual({
+      client: toClientV2(expectedClient),
+    });
     expect(client.data).toEqual(expectedClient);
   });
+
+  it("Should fail if duplicate users are passed in the seed", async () => {
+    const userId = generateId();
+    const seed = {
+      ...clientSeed,
+      members: [userId, userId, generateId()],
+    };
+
+    const error = duplicatedMembersInSeed();
+    await expect(
+      authorizationService.createConsumerClient(
+        { clientSeed: seed },
+        getMockContext({ authData: getMockAuthData(organizationId) })
+      )
+    ).rejects.toThrowError(error);
+  });
+
+  it.each([
+    {
+      label: "name",
+      seed: () => ({
+        ...clientSeed,
+        name: "Foo http://evil.example.com",
+      }),
+      text: "Foo http://evil.example.com",
+    },
+    {
+      label: "description",
+      seed: () => ({
+        ...clientSeed,
+        description: "Notes: www.evil.example.com",
+      }),
+      text: "Notes: www.evil.example.com",
+    },
+  ])(
+    "should throw hyperlinkDetectionError when client $label contains a hyperlink",
+    async ({ seed, text }) => {
+      await expect(
+        authorizationService.createConsumerClient(
+          { clientSeed: seed() },
+          getMockContext({ authData: getMockAuthData(organizationId) })
+        )
+      ).rejects.toThrowError(hyperlinkDetectionError(text));
+    }
+  );
 });

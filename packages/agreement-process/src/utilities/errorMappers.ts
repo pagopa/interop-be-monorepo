@@ -2,6 +2,7 @@
 import { constants } from "http2";
 import { ApiError, CommonErrorCodes } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import { ErrorCodes as LocalErrorCodes } from "../model/domain/errors.js";
 type ErrorCodes = LocalErrorCodes | CommonErrorCodes;
 
@@ -182,7 +183,30 @@ export const rejectAgreementErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const activateAgreementErrorMapper = (
+export const approveAgreementErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "notLatestEServiceDescriptor",
+      "agreementNotInExpectedState",
+      "agreementActivationFailed",
+      "descriptorNotInExpectedState",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "tenantIsNotTheDelegateProducer",
+      "tenantIsNotTheProducer",
+      "tenantNotAllowed",
+      "tenantIsNotTheDelegate",
+
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with("agreementAlreadyExists", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const unsuspendAgreementErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)

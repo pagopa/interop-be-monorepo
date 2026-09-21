@@ -1,5 +1,6 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/no-identical-functions */
+import { authRole } from "pagopa-interop-commons";
 import {
   getMockContext,
   getMockDelegation,
@@ -8,7 +9,6 @@ import {
   getMockTenant,
   getMockTenantMail,
 } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
 import {
   CorrelationId,
   EService,
@@ -22,9 +22,13 @@ import {
   toDelegationV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  eserviceNotFound,
+  tenantNotFound,
+} from "pagopa-interop-notification-commons";
 import { match } from "ts-pattern";
-import { eServiceNotFound, tenantNotFound } from "../src/models/errors.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { handleConsumerDelegationSubmitted } from "../src/handlers/delegations/handleConsumerDelegationSubmitted.js";
 import {
   addOneDelegation,
@@ -152,7 +156,7 @@ describe("handleConsumerDelegationSubmitted", async () => {
     ).rejects.toThrow(tenantNotFound(unknownDelegatorId));
   });
 
-  it("should throw eServiceNotFound when eservice is not found", async () => {
+  it("should throw eserviceNotFound when eservice is not found", async () => {
     const unknownEServiceId = generateId<EServiceId>();
     const delegation = getMockDelegation({
       kind: "DelegatedConsumer",
@@ -170,7 +174,7 @@ describe("handleConsumerDelegationSubmitted", async () => {
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
-    ).rejects.toThrow(eServiceNotFound(unknownEServiceId));
+    ).rejects.toThrow(eserviceNotFound(unknownEServiceId));
   });
 
   it("should generate one message per user of the delegate", async () => {

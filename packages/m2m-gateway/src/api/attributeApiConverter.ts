@@ -2,14 +2,26 @@ import {
   attributeRegistryApi,
   m2mGatewayApi,
 } from "pagopa-interop-api-clients";
-import { ApiError } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
+import { ApiError } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
+import { attributeNotFound } from "../model/errors.js";
 import {
   assertAttributeKindIs,
   assertAttributeOriginAndCodeAreDefined,
 } from "../utils/validators/attributeValidators.js";
-import { attributeNotFound } from "../model/errors.js";
+
+/**
+ * The m2m-gateway (v1) contract is frozen and intentionally does not expose
+ * CERTIFIED_DISCRETE attributes; that kind is part of the newer m2m-gateway-v3
+ * contract. Excluding it at the type level keeps the legacy converter free of
+ * a runtime branch for a case the public overloads cannot produce.
+ */
+type LegacySupportedAttributeKind = Exclude<
+  attributeRegistryApi.AttributeKind,
+  "CERTIFIED_DISCRETE"
+>;
 
 function convertAttribute(
   attribute: attributeRegistryApi.Attribute,
@@ -34,7 +46,7 @@ function convertAttribute(
 
 function convertAttribute(
   attribute: attributeRegistryApi.Attribute,
-  attributeKind: attributeRegistryApi.AttributeKind,
+  attributeKind: LegacySupportedAttributeKind,
   logger: Logger,
   mapThrownErrorsToNotFound = false
 ):

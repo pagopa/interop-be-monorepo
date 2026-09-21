@@ -1,20 +1,21 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   DelegationEventEnvelopeV2,
   delegationKind,
   fromDelegationV2,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
-import { M2MEventWriterServiceSQL } from "../services/m2mEventWriterServiceSQL.js";
-import { assertDelegationExistsInEvent } from "../services/validators.js";
-import {
-  createConsumerDelegationM2MEvent,
-  createProducerDelegationM2MEvent,
-} from "../services/event-builders/delegationM2MEventBuilder.js";
+
 import {
   toConsumerDelegationM2MEventSQL,
   toProducerDelegationM2MEventSQL,
 } from "../models/delegationM2MEventAdapterSQL.js";
+import {
+  createConsumerDelegationM2MEvent,
+  createProducerDelegationM2MEvent,
+} from "../services/event-builders/delegationM2MEventBuilder.js";
+import { M2MEventWriterServiceSQL } from "../services/m2mEventWriterServiceSQL.js";
+import { assertDelegationExistsInEvent } from "../services/validators.js";
 
 export async function handleDelegationEvent(
   decodedMessage: DelegationEventEnvelopeV2,

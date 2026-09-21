@@ -1,6 +1,5 @@
 import {
   ApiError,
-  Delegation,
   EServiceId,
   makeApiProblemBuilder,
   TenantId,
@@ -19,7 +18,7 @@ const errorCodes = {
   delegationAlreadyExists: "0003",
   tenantNotFound: "0004",
   invalidDelegatorAndDelegateIds: "0005",
-  originNotCompliant: "0006",
+  delegationNotAllowedForTenant: "0006",
   tenantNotAllowedToDelegation: "0007",
   stampNotFound: "0008",
   operationRestrictedToDelegator: "0009",
@@ -29,6 +28,7 @@ const errorCodes = {
   delegationContractNotFound: "0013",
   eserviceNotConsumerDelegable: "0014",
   delegationRelatedAgreementExists: "0015",
+  eserviceAlreadyArchived: "0016",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -84,7 +84,7 @@ export function delegatorAndDelegateSameIdError(): ApiError<ErrorCodes> {
   });
 }
 
-export function originNotCompliant(
+export function delegationNotAllowedForTenant(
   tenant: Tenant,
   delegatorOrDelegate: "Delegator" | "Delegate"
 ): ApiError<ErrorCodes> {
@@ -93,9 +93,9 @@ export function originNotCompliant(
     .with("Delegate", () => "Delegate")
     .exhaustive();
   return new ApiError({
-    detail: `${delegatorOrDelegateString} ${tenant.id} with external origin ${tenant.externalId?.origin} is not allowed`,
-    code: "originNotCompliant",
-    title: "Origin is not compliant",
+    detail: `Delegation not allowed for tenant ${delegatorOrDelegateString} ${tenant.id}`,
+    code: "delegationNotAllowedForTenant",
+    title: "Tenant not allowed for delegation",
   });
 }
 
@@ -167,16 +167,6 @@ export function delegationContractNotFound(
   });
 }
 
-export function delegationStampNotFound(
-  stamp: keyof Delegation["stamps"]
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Delegation ${stamp} stamp not found`,
-    code: "stampNotFound",
-    title: "Stamp not found",
-  });
-}
-
 export function eserviceNotConsumerDelegable(
   eserviceId: EServiceId
 ): ApiError<ErrorCodes> {
@@ -196,5 +186,15 @@ export function delegationRelatedAgreementExists(
     detail: `Active agreement ${agreementId} for eservice ${eserviceId} and consumer ${consumerId} exists`,
     code: "delegationRelatedAgreementExists",
     title: "Active agreement for this eservice and consumer exists",
+  });
+}
+
+export function eserviceAlreadyArchived(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Eservice ${eserviceId} is already archived`,
+    code: "eserviceAlreadyArchived",
+    title: "Eservice is already archived",
   });
 }

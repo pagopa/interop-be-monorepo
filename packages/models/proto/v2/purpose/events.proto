@@ -108,3 +108,43 @@ message RiskAnalysisSignedDocumentGeneratedV2 {
   string versionId = 1;
   PurposeV2 purpose = 2;
 }
+
+message MaintenancePurposeRiskAnalysisSetTenantKindV2 {
+  PurposeV2 purpose = 1;
+}
+
+message PurposeRiskAnalysisWorkflowCreatedV2 {
+  PurposeV2 purpose = 1;
+  repeated string addedReviewers = 2;
+  repeated RiskAnalysisReviewerV2 removedReviewers = 3;
+  optional RiskAnalysisReviewModeV2 previousRiskAnalysisReviewMode = 4;
+}
+
+message PurposeRiskAnalysisAssignedV2 {
+  PurposeV2 purpose = 1;
+  repeated string addedReviewers = 2;
+  repeated RiskAnalysisReviewerV2 removedReviewers = 3;
+  optional RiskAnalysisReviewModeV2 previousRiskAnalysisReviewMode = 4;
+}
+
+message PurposeRiskAnalysisSubmittedV2 {
+  PurposeV2 purpose = 1;
+}
+
+message PurposeRiskAnalysisSignedV2 {
+  PurposeV2 purpose = 1;
+}
+
+message PurposeRiskAnalysisRejectedV2 {
+  PurposeV2 purpose = 1;
+}
+
+message PurposeRiskAnalysisFormEditedV2 {
+  PurposeV2 purpose = 1;
+}
+
+message PurposeRiskAnalysisSelfAssignedV2 {
+  PurposeV2 purpose = 1;
+  repeated RiskAnalysisReviewerV2 removedReviewers = 2;
+  optional RiskAnalysisReviewModeV2 previousRiskAnalysisReviewMode = 3;
+}

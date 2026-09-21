@@ -1,10 +1,17 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { tenantApi } from "pagopa-interop-api-clients";
 import {
   getMockAuthData,
   getMockContext,
   getMockTenant,
   getTenantOneCertifierFeature,
+} from "pagopa-interop-commons-test";
+import {
+  getMockAttribute,
+  readLastEventByStreamId,
+  getMockCertifiedTenantAttribute,
+  readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test";
 import {
   Tenant,
@@ -20,13 +27,7 @@ import {
   tenantKind,
 } from "pagopa-interop-models";
 import { describe, beforeAll, vi, afterAll, it, expect } from "vitest";
-import {
-  getMockAttribute,
-  readLastEventByStreamId,
-  getMockCertifiedTenantAttribute,
-  readEventByStreamIdAndVersion,
-} from "pagopa-interop-commons-test";
-import { tenantApi } from "pagopa-interop-api-clients";
+
 import {
   certifiedAttributeAlreadyAssigned,
   tenantNotFound,
@@ -115,7 +116,10 @@ describe("addCertifiedAttribute", async () => {
       kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
       updatedAt: new Date(),
     };
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    expect(writtenPayload).toEqual({
+      attributeId: tenantAttributeSeed.id,
+      tenant: toTenantV2(updatedTenant),
+    });
     expect(addCertifiedAttributeReponse).toEqual({
       data: updatedTenant,
       metadata: { version: 1 },
@@ -241,7 +245,10 @@ describe("addCertifiedAttribute", async () => {
       kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
       updatedAt: new Date(),
     };
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    expect(writtenPayload).toEqual({
+      attributeId: tenantAttributeSeed.id,
+      tenant: toTenantV2(updatedTenant),
+    });
     expect(addCertifiedAttributeReponse).toEqual({
       data: updatedTenant,
       metadata: { version: 1 },

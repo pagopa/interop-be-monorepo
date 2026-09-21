@@ -1,16 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable functional/immutable-data */
-import { fileURLToPath } from "url";
-import path from "path";
 import { fail } from "assert";
-import {
-  dateAtRomeZone,
-  formatDateyyyyMMddHHmmss,
-  genericLogger,
-  timeAtRomeZone,
-} from "pagopa-interop-commons";
 import { addDays, subDays } from "date-fns";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   addSomeRandomDelegations,
   decodeProtobufPayload,
@@ -40,8 +33,6 @@ import {
   DescriptorId,
   DescriptorState,
   EServiceId,
-  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
-  Tenant,
   TenantAttribute,
   TenantId,
   UserId,
@@ -53,10 +44,13 @@ import {
   descriptorState,
   fromAgreementV2,
   generateId,
+  hyperlinkDetectionError,
   tenantMailKind,
   toAgreementStateV2,
 } from "pagopa-interop-models";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
+
+import { config } from "../../src/config/config.js";
 import { agreementSubmissionConflictingStates } from "../../src/model/domain/agreement-validators.js";
 import {
   agreementAlreadyExists,
@@ -70,8 +64,6 @@ import {
   tenantIsNotTheDelegateConsumer,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
-import { AgreementContractPDFPayload } from "../../src/model/domain/models.js";
 import {
   addDelegationsAndDelegates,
   addOneAgreement,
@@ -81,7 +73,6 @@ import {
   addOneTenant,
   agreementService,
   fileManager,
-  pdfGenerator,
   readLastAgreementEvent,
 } from "../integrationUtils.js";
 import {
@@ -711,49 +702,6 @@ describe("submit agreement", () => {
     );
   });
 
-  it("should throw a tenantNotFound error when producer does not exist in tenant collection", async () => {
-    const producer = getMockTenant();
-    const consumer = {
-      ...getMockTenant(),
-      mails: [
-        {
-          id: generateId(),
-          kind: tenantMailKind.ContactEmail,
-          address: "test@test.com",
-          createdAt: new Date(),
-        },
-      ],
-    };
-
-    const descriptor = {
-      ...getMockDescriptor(),
-      state: descriptorState.published,
-    };
-    const eservice = getMockEService(generateId<EServiceId>(), producer.id, [
-      descriptor,
-    ]);
-
-    const agreement = {
-      ...getMockAgreement(eservice.id, consumer.id),
-      producerId: producer.id,
-      descriptorId: eservice.descriptors[0].id,
-    };
-
-    await addOneEService(eservice);
-    await addOneTenant(consumer);
-    await addOneAgreement(agreement);
-
-    const authData = getMockAuthData(consumer.id);
-
-    await expect(
-      agreementService.submitAgreement(
-        agreement.id,
-        { consumerNotes: "This is a test" },
-        getMockContext({ authData })
-      )
-    ).rejects.toThrowError(tenantNotFound(agreement.producerId));
-  });
-
   it("should throw a tenantNotFound error when consumer does not exist in tenant collection", async () => {
     const producer = getMockTenant();
     const consumer = {
@@ -1128,7 +1076,6 @@ describe("submit agreement", () => {
       it.each([true, false])(
         "With producer delegation: %s",
         async (withProducerDelegation) => {
-          vi.spyOn(pdfGenerator, "generate");
           const producerAndConsumerId = generateId<TenantId>();
           const consumerNotesText = "This is a test";
 
@@ -1239,15 +1186,6 @@ describe("submit agreement", () => {
               getMockContext({ authData })
             );
 
-          const uploadedFiles = await fileManager.listFiles(
-            config.s3Bucket,
-            genericLogger
-          );
-
-          expect(uploadedFiles[0]).toEqual(
-            submitAgreementResponse.data.contract?.path
-          );
-
           const actualAgreementData = await readLastAgreementEvent(
             agreement.id
           );
@@ -1265,29 +1203,11 @@ describe("submit agreement", () => {
               payload: actualAgreementData.data,
             }).agreement!;
 
-          const contractDocumentId = submitAgreementResponse.data.contract!.id;
-          const contractCreatedAt =
-            submitAgreementResponse.data.contract!.createdAt;
-          const contractDocumentName = `${producerAndConsumer.id}_${
-            producerAndConsumer.id
-          }_${formatDateyyyyMMddHHmmss(
-            contractCreatedAt
-          )}_agreement_contract.pdf`;
-
-          const expectedContract = {
-            id: contractDocumentId,
-            contentType: "application/pdf",
-            createdAt: contractCreatedAt,
-            path: `${config.agreementContractsPath}/${agreement.id}/${contractDocumentId}/${contractDocumentName}`,
-            prettyName: "Richiesta di fruizione",
-            name: contractDocumentName,
-          };
-
           const expectedAgreement = {
             ...agreement,
             state: agreementState.active,
             consumerNotes: consumerNotesText,
-            contract: expectedContract,
+            contract: undefined,
             suspendedByConsumer: undefined,
             suspendedByProducer: undefined,
             suspendedAt: undefined,
@@ -1321,95 +1241,6 @@ describe("submit agreement", () => {
               },
             },
           };
-
-          const expectedAgreementPDFPayload: AgreementContractPDFPayload = {
-            todayDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
-            todayTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
-            agreementId: expectedAgreement.id,
-            submitterId: expectedAgreement.stamps.submission.who,
-            submissionDate: dateAtRomeZone(
-              expectedAgreement.stamps.submission.when!
-            ),
-            submissionTime: timeAtRomeZone(
-              expectedAgreement.stamps.submission.when!
-            ),
-            activatorId: expectedAgreement.stamps.activation.who,
-            activationDate: dateAtRomeZone(
-              expectedAgreement.stamps.activation.when!
-            ),
-            activationTime: timeAtRomeZone(
-              expectedAgreement.stamps.activation.when!
-            ),
-            eserviceId: eservice.id,
-            eserviceName: eservice.name,
-            descriptorId: eservice.descriptors[0].id,
-            descriptorVersion: eservice.descriptors[0].version,
-            producerName: producerAndConsumer.name,
-            producerIpaCode: producerAndConsumer.externalId.value,
-            consumerName: producerAndConsumer.name,
-            consumerIpaCode: producerAndConsumer.externalId.value,
-            consumerDelegateName: delegateConsumer?.name,
-            consumerDelegateIpaCode: delegateConsumer?.externalId.value,
-            consumerDelegationId: consumerDelegation?.id,
-            producerDelegateName: delegateProducer?.name,
-            producerDelegateIpaCode: delegateProducer?.externalId.value,
-            producerDelegationId: producerDelegation?.id,
-            certifiedAttributes: [
-              {
-                assignmentDate: dateAtRomeZone(
-                  validCertifiedTenantAttribute.assignmentTimestamp
-                ),
-                assignmentTime: timeAtRomeZone(
-                  validCertifiedTenantAttribute.assignmentTimestamp
-                ),
-                attributeName: certifiedAttribute.name,
-                attributeId: validCertifiedTenantAttribute.id,
-              },
-            ],
-            declaredAttributes: [
-              {
-                assignmentDate: dateAtRomeZone(
-                  validDeclaredTenantAttribute.assignmentTimestamp
-                ),
-                assignmentTime: timeAtRomeZone(
-                  validDeclaredTenantAttribute.assignmentTimestamp
-                ),
-                attributeName: declaredAttribute.name,
-                attributeId: validDeclaredTenantAttribute.id,
-                delegationId: consumerDelegation?.id,
-              },
-            ],
-            verifiedAttributes: [
-              {
-                assignmentDate: dateAtRomeZone(
-                  validVerifiedTenantAttribute.assignmentTimestamp
-                ),
-                assignmentTime: timeAtRomeZone(
-                  validVerifiedTenantAttribute.assignmentTimestamp
-                ),
-                attributeName: verifiedAttribute.name,
-                attributeId: validVerifiedTenantAttribute.id,
-                expirationDate: dateAtRomeZone(
-                  validVerifiedTenantAttribute.verifiedBy[0].expirationDate!
-                ),
-                delegationId: producerDelegation?.id,
-              },
-            ],
-          };
-
-          expect(pdfGenerator.generate).toHaveBeenCalledWith(
-            path.resolve(
-              path.dirname(fileURLToPath(import.meta.url)),
-              "../../src",
-              "resources/templates/documents/",
-              "agreementContractTemplate.html"
-            ),
-            expectedAgreementPDFPayload
-          );
-
-          expect(
-            await fileManager.listFiles(config.s3Bucket, genericLogger)
-          ).toContain(expectedContract.path);
 
           expect(fromAgreementV2(actualAgreement)).toEqual(expectedAgreement);
           expect(submitAgreementResponse).toEqual({
@@ -1575,7 +1406,6 @@ describe("submit agreement", () => {
       it.each([true, false])(
         "With producer delegation: %s",
         async (withProducerDelegation) => {
-          vi.spyOn(pdfGenerator, "generate");
           const consumerId = generateId<TenantId>();
           const producer = getMockTenant();
           const consumerNotesText = "This is a test";
@@ -1688,15 +1518,6 @@ describe("submit agreement", () => {
               getMockContext({ authData })
             );
 
-          const uploadedFiles = await fileManager.listFiles(
-            config.s3Bucket,
-            genericLogger
-          );
-
-          expect(uploadedFiles[0]).toEqual(
-            submitAgreementResponse.data.contract?.path
-          );
-
           const actualAgreementData = await readLastAgreementEvent(
             agreement.id
           );
@@ -1714,29 +1535,11 @@ describe("submit agreement", () => {
               payload: actualAgreementData.data,
             }).agreement!;
 
-          const contractDocumentId = submitAgreementResponse.data.contract!.id;
-          const contractCreatedAt =
-            submitAgreementResponse.data.contract!.createdAt;
-          const contractDocumentName = `${consumer.id}_${
-            producer.id
-          }_${formatDateyyyyMMddHHmmss(
-            contractCreatedAt
-          )}_agreement_contract.pdf`;
-
-          const expectedContract = {
-            id: contractDocumentId,
-            contentType: "application/pdf",
-            createdAt: contractCreatedAt,
-            path: `${config.agreementContractsPath}/${agreement.id}/${contractDocumentId}/${contractDocumentName}`,
-            prettyName: "Richiesta di fruizione",
-            name: contractDocumentName,
-          };
-
           const expectedAgreement = {
             ...agreement,
             state: agreementState.active,
             consumerNotes: consumerNotesText,
-            contract: expectedContract,
+            contract: undefined,
             suspendedByConsumer: undefined,
             suspendedByProducer: undefined,
             suspendedAt: undefined,
@@ -1771,95 +1574,11 @@ describe("submit agreement", () => {
             },
           };
 
-          expect(
-            await fileManager.listFiles(config.s3Bucket, genericLogger)
-          ).toContain(expectedContract.path);
-
           expect(fromAgreementV2(actualAgreement)).toEqual(expectedAgreement);
           expect(submitAgreementResponse).toEqual({
             data: expectedAgreement,
             metadata: { version: 1 },
           });
-
-          const getIpaCode = (tenant: Tenant): string | undefined =>
-            tenant.externalId.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER
-              ? tenant.externalId.value
-              : undefined;
-
-          const expectedAgreementPDFPayload: AgreementContractPDFPayload = {
-            todayDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
-            todayTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
-            agreementId: agreement.id,
-            submitterId: authData.userId,
-            submissionDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
-            submissionTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
-            activatorId: authData.userId,
-            activationDate: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
-            activationTime: expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
-            eserviceName: eservice.name,
-            eserviceId: eservice.id,
-            descriptorId: eservice.descriptors[0].id,
-            descriptorVersion: eservice.descriptors[0].version,
-            producerName: producer.name,
-            producerIpaCode: getIpaCode(producer),
-            consumerName: consumer.name,
-            consumerIpaCode: getIpaCode(consumer),
-            certifiedAttributes: [
-              {
-                assignmentDate: dateAtRomeZone(
-                  validCertifiedTenantAttribute.assignmentTimestamp
-                ),
-                assignmentTime: timeAtRomeZone(
-                  validCertifiedTenantAttribute.assignmentTimestamp
-                ),
-                attributeName: certifiedAttribute.name,
-                attributeId: validCertifiedTenantAttribute.id,
-              },
-            ],
-            declaredAttributes: [
-              {
-                assignmentDate: dateAtRomeZone(
-                  validDeclaredTenantAttribute.assignmentTimestamp
-                ),
-                assignmentTime: timeAtRomeZone(
-                  validDeclaredTenantAttribute.assignmentTimestamp
-                ),
-                attributeName: declaredAttribute.name,
-                attributeId: validDeclaredTenantAttribute.id,
-                delegationId: consumerDelegation?.id,
-              },
-            ],
-            verifiedAttributes: [
-              {
-                assignmentDate: dateAtRomeZone(
-                  validVerifiedTenantAttribute.assignmentTimestamp
-                ),
-                assignmentTime: timeAtRomeZone(
-                  validVerifiedTenantAttribute.assignmentTimestamp
-                ),
-                attributeName: verifiedAttribute.name,
-                attributeId: validVerifiedTenantAttribute.id,
-                expirationDate: undefined,
-                delegationId: producerDelegation?.id,
-              },
-            ],
-            producerDelegationId: producerDelegation?.id,
-            producerDelegateName: delegateProducer?.name,
-            producerDelegateIpaCode: delegateProducer?.externalId.value,
-            consumerDelegationId: consumerDelegation?.id,
-            consumerDelegateName: delegateConsumer?.name,
-            consumerDelegateIpaCode: delegateConsumer?.externalId.value,
-          };
-
-          expect(pdfGenerator.generate).toHaveBeenCalledWith(
-            path.resolve(
-              path.dirname(fileURLToPath(import.meta.url)),
-              "../../src",
-              "resources/templates/documents/",
-              "agreementContractTemplate.html"
-            ),
-            expectedAgreementPDFPayload
-          );
         }
       );
     }
@@ -2290,7 +2009,7 @@ describe("submit agreement", () => {
             expect(submitAgreementResponse.data.suspendedByProducer).toBe(
               expectedSuspendedByProducer
             );
-            expect(submitAgreementResponse.data.contract).toBeDefined();
+            expect(submitAgreementResponse.data.contract).toBeUndefined();
 
             const actualAgreementData = await readLastAgreementEvent(
               agreement.id
@@ -2784,5 +2503,16 @@ describe("submit agreement", () => {
         );
       }
     );
+  });
+
+  it("should throw hyperlinkDetectionError when consumerNotes contains a hyperlink", async () => {
+    const consumerNotes = "see https://evil.example.com";
+    await expect(
+      agreementService.submitAgreement(
+        generateId<AgreementId>(),
+        { consumerNotes },
+        getMockContext({ authData: getMockAuthData() })
+      )
+    ).rejects.toThrowError(hyperlinkDetectionError(consumerNotes));
   });
 });

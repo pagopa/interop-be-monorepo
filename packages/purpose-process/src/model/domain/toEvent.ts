@@ -6,7 +6,12 @@ import {
   PurposeEventV2,
   PurposeId,
   PurposeVersionId,
+  RiskAnalysisReviewer,
+  RiskAnalysisReviewMode,
+  toRiskAnalysisReviewModeV2,
+  toRiskAnalysisReviewerV2,
   toPurposeV2,
+  UserId,
 } from "pagopa-interop-models";
 
 export const toCreateEventWaitingForApprovalPurposeVersionDeleted = ({
@@ -68,6 +73,25 @@ export const toCreateEventDraftPurposeUpdated = ({
     data: {
       purpose: toPurposeV2(purpose),
     },
+  },
+  correlationId,
+});
+
+export const toCreateEventMaintenancePurposeRiskAnalysisSetTenantKind = ({
+  purpose,
+  version,
+  correlationId,
+}: {
+  purpose: Purpose;
+  version: number;
+  correlationId: CorrelationId;
+}): CreateEvent<PurposeEventV2> => ({
+  streamId: purpose.id,
+  version,
+  event: {
+    type: "MaintenancePurposeRiskAnalysisSetTenantKind",
+    event_version: 2,
+    data: { purpose: toPurposeV2(purpose) },
   },
   correlationId,
 });
@@ -471,6 +495,178 @@ export const toCreateEventRiskAnalysisSignedDocumentGenerated = ({
     type: "RiskAnalysisSignedDocumentGenerated",
     event_version: 2,
     data: { purpose: toPurposeV2(purpose), versionId },
+  },
+  correlationId,
+});
+
+export const toCreateEventPurposeRiskAnalysisWorkflowCreated = ({
+  purpose,
+  addedReviewers,
+  removedReviewers,
+  previousRiskAnalysisReviewMode,
+  version,
+  correlationId,
+}: {
+  purpose: Purpose;
+  addedReviewers: UserId[];
+  removedReviewers: RiskAnalysisReviewer[];
+  previousRiskAnalysisReviewMode?: RiskAnalysisReviewMode;
+  version: number;
+  correlationId: CorrelationId;
+}): CreateEvent<PurposeEventV2> => ({
+  streamId: purpose.id,
+  version,
+  event: {
+    type: "PurposeRiskAnalysisWorkflowCreated",
+    event_version: 2,
+    data: {
+      purpose: toPurposeV2(purpose),
+      addedReviewers,
+      removedReviewers: removedReviewers.map(toRiskAnalysisReviewerV2),
+      previousRiskAnalysisReviewMode:
+        previousRiskAnalysisReviewMode === undefined
+          ? undefined
+          : toRiskAnalysisReviewModeV2(previousRiskAnalysisReviewMode),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventPurposeRiskAnalysisAssigned = ({
+  purpose,
+  addedReviewers,
+  removedReviewers,
+  previousRiskAnalysisReviewMode,
+  version,
+  correlationId,
+}: {
+  purpose: Purpose;
+  addedReviewers: UserId[];
+  removedReviewers: RiskAnalysisReviewer[];
+  previousRiskAnalysisReviewMode?: RiskAnalysisReviewMode;
+  version: number;
+  correlationId: CorrelationId;
+}): CreateEvent<PurposeEventV2> => ({
+  streamId: purpose.id,
+  version,
+  event: {
+    type: "PurposeRiskAnalysisAssigned",
+    event_version: 2,
+    data: {
+      purpose: toPurposeV2(purpose),
+      addedReviewers,
+      removedReviewers: removedReviewers.map(toRiskAnalysisReviewerV2),
+      previousRiskAnalysisReviewMode:
+        previousRiskAnalysisReviewMode === undefined
+          ? undefined
+          : toRiskAnalysisReviewModeV2(previousRiskAnalysisReviewMode),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventPurposeRiskAnalysisSelfAssigned = ({
+  purpose,
+  removedReviewers,
+  previousRiskAnalysisReviewMode,
+  version,
+  correlationId,
+}: {
+  purpose: Purpose;
+  removedReviewers: RiskAnalysisReviewer[];
+  previousRiskAnalysisReviewMode?: RiskAnalysisReviewMode;
+  version: number;
+  correlationId: CorrelationId;
+}): CreateEvent<PurposeEventV2> => ({
+  streamId: purpose.id,
+  version,
+  event: {
+    type: "PurposeRiskAnalysisSelfAssigned",
+    event_version: 2,
+    data: {
+      purpose: toPurposeV2(purpose),
+      removedReviewers: removedReviewers.map(toRiskAnalysisReviewerV2),
+      previousRiskAnalysisReviewMode:
+        previousRiskAnalysisReviewMode === undefined
+          ? undefined
+          : toRiskAnalysisReviewModeV2(previousRiskAnalysisReviewMode),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventPurposeRiskAnalysisSubmitted = ({
+  purpose,
+  version,
+  correlationId,
+}: {
+  purpose: Purpose;
+  version: number;
+  correlationId: CorrelationId;
+}): CreateEvent<PurposeEventV2> => ({
+  streamId: purpose.id,
+  version,
+  event: {
+    type: "PurposeRiskAnalysisSubmitted",
+    event_version: 2,
+    data: { purpose: toPurposeV2(purpose) },
+  },
+  correlationId,
+});
+
+export const toCreateEventPurposeRiskAnalysisSigned = ({
+  purpose,
+  version,
+  correlationId,
+}: {
+  purpose: Purpose;
+  version: number;
+  correlationId: CorrelationId;
+}): CreateEvent<PurposeEventV2> => ({
+  streamId: purpose.id,
+  version,
+  event: {
+    type: "PurposeRiskAnalysisSigned",
+    event_version: 2,
+    data: { purpose: toPurposeV2(purpose) },
+  },
+  correlationId,
+});
+
+export const toCreateEventPurposeRiskAnalysisRejected = ({
+  purpose,
+  version,
+  correlationId,
+}: {
+  purpose: Purpose;
+  version: number;
+  correlationId: CorrelationId;
+}): CreateEvent<PurposeEventV2> => ({
+  streamId: purpose.id,
+  version,
+  event: {
+    type: "PurposeRiskAnalysisRejected",
+    event_version: 2,
+    data: { purpose: toPurposeV2(purpose) },
+  },
+  correlationId,
+});
+
+export const toCreateEventPurposeRiskAnalysisFormEdited = ({
+  purpose,
+  version,
+  correlationId,
+}: {
+  purpose: Purpose;
+  version: number;
+  correlationId: CorrelationId;
+}): CreateEvent<PurposeEventV2> => ({
+  streamId: purpose.id,
+  version,
+  event: {
+    type: "PurposeRiskAnalysisFormEdited",
+    event_version: 2,
+    data: { purpose: toPurposeV2(purpose) },
   },
   correlationId,
 });

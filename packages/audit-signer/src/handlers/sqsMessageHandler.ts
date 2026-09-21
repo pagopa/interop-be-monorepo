@@ -1,4 +1,4 @@
-import path from "path";
+import { Message } from "@aws-sdk/client-sqs";
 import {
   FileManager,
   logger,
@@ -8,16 +8,17 @@ import {
   SignatureServiceBuilder,
   formatError,
 } from "pagopa-interop-commons";
-import { Message } from "@aws-sdk/client-sqs";
 import {
   CorrelationId,
   generateId,
   genericInternalError,
 } from "pagopa-interop-models";
+import path from "path";
+
 import { config } from "../config/config.js";
-import { decodeSQSEventMessage } from "../utils/decodeSQSEventMessage.js";
 import { calculateSha256Base64 } from "../utils/checksum.js";
 import { zipBuffer } from "../utils/compression.js";
+import { decodeSQSEventMessage } from "../utils/decodeSQSEventMessage.js";
 
 // eslint-disable-next-line max-params
 async function processMessage(
@@ -51,7 +52,10 @@ async function processMessage(
       safeStorageRequest,
       logger
     );
-    logger.info(`Created file on safe storage with key: ${key}`);
+
+    logger.info(
+      `Created file on safe storage with key: ${key} and checksum: ${checksum} having length: ${zipped.length} bytes`
+    );
 
     await safeStorageService.uploadFileContent(
       uploadUrl,
@@ -62,19 +66,21 @@ async function processMessage(
       logger
     );
 
+    logger.info(
+      `Uploaded file on safe storage with key: ${key} and checksum: ${checksum} having length: ${zipped.length} bytes`
+    );
+
     await signatureService.saveSignatureReference(
       {
         safeStorageId: key,
-        fileKind: "VOUCHER_AUDIT",
+        fileKind: config.fileKind,
         fileName,
         correlationId,
         path: path.dirname(s3Key),
       },
       logger
     );
-    logger.info(
-      `Processed voucher audit with key: ${key} and file: ${fileName}`
-    );
+    logger.info(`Processed voucher audit with key: ${key} and file: ${s3Key}`);
   } catch (error) {
     logger.error(`Error processing message: ${String(error)}`);
     throw error;

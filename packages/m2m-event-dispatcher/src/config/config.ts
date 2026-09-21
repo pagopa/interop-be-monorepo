@@ -10,6 +10,7 @@ import {
   M2MEventSQLDbConfig,
   AttributeTopicConfig,
   AuthorizationTopicConfig,
+  PurposeTemplateTopicConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -20,6 +21,7 @@ const M2MEventsDispatcherConfig = KafkaConsumerConfig.and(AgreementTopicConfig)
   .and(AttributeTopicConfig)
   .and(AuthorizationTopicConfig)
   .and(EServiceTemplateTopicConfig)
+  .and(PurposeTemplateTopicConfig)
   .and(TenantTopicConfig)
   .and(M2MEventSQLDbConfig)
   .and(ReadModelSQLDbConfig);

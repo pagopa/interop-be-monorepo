@@ -1,13 +1,15 @@
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { initProducer } from "kafka-iam-auth";
 import {
   initFileManager,
   initRedisRateLimiter,
   InteropTokenGenerator,
   startServer,
 } from "pagopa-interop-commons";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { initProducer } from "kafka-iam-auth";
-import { config } from "./config/config.js";
+
 import { createApp } from "./app.js";
+import { config } from "./config/config.js";
+import { asyncTokenServiceBuilder } from "./services/asyncTokenService.js";
 import { tokenServiceBuilder } from "./services/tokenService.js";
 
 const dynamoDBClient = new DynamoDBClient();
@@ -20,7 +22,14 @@ const redisRateLimiter = await initRedisRateLimiter({
   redisPort: config.rateLimiterRedisPort,
   timeout: config.rateLimiterTimeout,
 });
-const producer = await initProducer(config, config.tokenAuditingTopic);
+const consumerTokenAuditProducer = await initProducer(
+  config,
+  config.consumerTokenAuditingTopic
+);
+const apiTokenAuditProducer = await initProducer(
+  config,
+  config.apiTokenAuditingTopic
+);
 const fileManager = initFileManager(config);
 
 const tokenGenerator = new InteropTokenGenerator({
@@ -35,8 +44,17 @@ const tokenService = tokenServiceBuilder({
   tokenGenerator,
   dynamoDBClient,
   redisRateLimiter,
-  producer,
+  consumerTokenAuditProducer,
+  apiTokenAuditProducer,
   fileManager,
 });
 
-startServer(await createApp(tokenService), config);
+const asyncTokenService = asyncTokenServiceBuilder({
+  tokenGenerator,
+  dynamoDBClient,
+  redisRateLimiter,
+  consumerTokenAuditProducer,
+  fileManager,
+});
+
+startServer(await createApp(tokenService, asyncTokenService), config);

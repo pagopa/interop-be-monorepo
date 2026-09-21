@@ -1,4 +1,3 @@
-import { z } from "zod";
 import {
   FileManagerConfig,
   CommonHTTPServiceConfig,
@@ -7,15 +6,16 @@ import {
   SelfCareClientConfig,
   ReadModelSQLDbConfig,
   ApplicationAuditProducerConfig,
-  FeatureFlagAgreementsProcessContractBuilderConfig,
+  FeatureFlagAttributeCertifiedDiscreteConfig,
 } from "pagopa-interop-commons";
+import { z } from "zod";
 
 const AgreementProcessConfig = CommonHTTPServiceConfig.and(EventStoreConfig)
   .and(ReadModelSQLDbConfig)
   .and(FileManagerConfig)
   .and(S3Config)
   .and(SelfCareClientConfig)
-  .and(FeatureFlagAgreementsProcessContractBuilderConfig)
+  .and(FeatureFlagAttributeCertifiedDiscreteConfig)
   .and(
     z
       .object({
@@ -31,7 +31,7 @@ const AgreementProcessConfig = CommonHTTPServiceConfig.and(EventStoreConfig)
   )
   .and(ApplicationAuditProducerConfig);
 
-export type AgreementProcessConfig = z.infer<typeof AgreementProcessConfig>;
+type AgreementProcessConfig = z.infer<typeof AgreementProcessConfig>;
 export const config: AgreementProcessConfig = AgreementProcessConfig.parse(
   process.env
 );

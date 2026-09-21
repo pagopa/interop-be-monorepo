@@ -127,6 +127,17 @@ export function toM2MGatewayApiTenantEvent(
   };
 }
 
+export function toM2MGatewayApiPurposeTemplateEvent(
+  purposeTemplateEvent: m2mEventApi.PurposeTemplateM2MEvent
+): m2mGatewayApiV3.PurposeTemplateEvent {
+  return {
+    id: purposeTemplateEvent.id,
+    purposeTemplateId: purposeTemplateEvent.purposeTemplateId,
+    eventType: purposeTemplateEvent.eventType,
+    eventTimestamp: purposeTemplateEvent.eventTimestamp,
+  };
+}
+
 export function toM2MGatewayApiPurposeEvent(
   purposeEvent: m2mEventApi.PurposeM2MEvent
 ): m2mGatewayApiV3.PurposeEvent {

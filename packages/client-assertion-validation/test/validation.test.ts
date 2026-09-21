@@ -1,6 +1,13 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { fail } from "assert";
-import { describe, expect, it } from "vitest";
+import * as jsonwebtoken from "jsonwebtoken";
+import { dateToSeconds, genericLogger } from "pagopa-interop-commons";
+import {
+  generateKeySet,
+  getMockClientAssertion,
+  getMockTokenGenStatesApiClient,
+  getMockTokenGenStatesConsumerClient,
+} from "pagopa-interop-commons-test";
 import {
   algorithm,
   ClientId,
@@ -10,25 +17,15 @@ import {
   PurposeId,
   TokenGenerationStatesApiClient,
   TokenGenerationStatesConsumerClient,
+  interactionState,
+  InteractionId,
 } from "pagopa-interop-models";
-import * as jsonwebtoken from "jsonwebtoken";
-import {
-  generateKeySet,
-  getMockClientAssertion,
-  getMockTokenGenStatesApiClient,
-  getMockTokenGenStatesConsumerClient,
-} from "pagopa-interop-commons-test";
-import { dateToSeconds, genericLogger } from "pagopa-interop-commons";
-import {
-  validateClientKindAndPlatformState,
-  validateRequestParameters,
-  verifyClientAssertion,
-  verifyClientAssertionSignature,
-} from "../src/validation.js";
-import { validateAudience, validatePlatformState } from "../src/utils.js";
+import { describe, expect, it } from "vitest";
+
 import {
   algorithmNotAllowed,
   algorithmNotFound,
+  asyncExchangeNotAllowed,
   invalidDigestClaim,
   expNotFound,
   invalidEServiceState,
@@ -57,8 +54,21 @@ import {
   clientAssertionInvalidClaims,
   unexpectedClientAssertionSignatureVerificationError,
   audienceNotFound,
+  scopeNotProvided,
+  invalidScopeClaimFormat,
+  invalidInteractionIdClaimFormat,
+  invalidUrlCallbackClaimFormat,
+  invalidEntityNumberClaimFormat,
 } from "../src/errors.js";
 import { ClientAssertionValidationRequest } from "../src/types.js";
+import { validateAudience, validatePlatformState } from "../src/utils.js";
+import {
+  validateClientKindAndPlatformState,
+  validateRequestParameters,
+  verifyAsyncClientAssertion,
+  verifyClientAssertion,
+  verifyClientAssertionSignature,
+} from "../src/validation.js";
 import {
   expectedAudiences,
   getMockAccessTokenRequest,
@@ -324,7 +334,7 @@ describe("validation test", async () => {
       expect(errors![0]).toEqual(invalidAudience(aud));
     });
 
-    it("unexpectedClientAssertionPayload", async () => {
+    it("unexpectedClientAssertion", async () => {
       const { keySet } = generateKeySet();
       const options: jsonwebtoken.SignOptions = {
         header: {
@@ -651,6 +661,21 @@ describe("validation test", async () => {
     it("InvalidKidFormat", async () => {
       const { jws } = await getMockClientAssertion({
         customHeader: { kid: "not a valid kid" },
+      });
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidKidFormat());
+    });
+
+    it("InvalidKidFormat when kid is not a JWK thumbprint", async () => {
+      const { jws } = await getMockClientAssertion({
+        customHeader: { kid: "not-a-valid-kid-format" },
       });
       const { errors } = verifyClientAssertion(
         jws,
@@ -1110,6 +1135,306 @@ describe("validation test", async () => {
         invalidAgreementState(agreementState),
         purposeIdNotProvided(),
       ]);
+    });
+
+    it("asyncExchangeNotAllowed for consumer client", async () => {
+      const mockConsumerKey: TokenGenerationStatesConsumerClient = {
+        ...getMockTokenGenStatesConsumerClient(),
+        asyncExchange: true,
+      };
+      const { data: mockClientAssertion } = verifyClientAssertion(
+        (
+          await getMockClientAssertion({
+            customClaims: { purposeId: mockConsumerKey.GSIPK_purposeId },
+          })
+        ).jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      if (!mockClientAssertion) {
+        fail();
+      }
+      const { errors } = validateClientKindAndPlatformState(
+        mockConsumerKey,
+        mockClientAssertion
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors).toEqual([asyncExchangeNotAllowed()]);
+    });
+  });
+
+  describe("verifyAsyncClientAssertion", async () => {
+    it("should succeed with valid scope", async () => {
+      const { jws } = await getMockClientAssertion({
+        customClaims: {
+          scope: interactionState.startInteraction,
+        },
+      });
+      const { data, errors } = verifyAsyncClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeUndefined();
+      expect(data).toBeDefined();
+      expect(data!.payload.scope).toBe(interactionState.startInteraction);
+    });
+
+    it("should succeed with scope and interactionId", async () => {
+      const interactionId = generateId<InteractionId>();
+      const { jws } = await getMockClientAssertion({
+        customClaims: {
+          scope: interactionState.callbackInvocation,
+          interactionId,
+        },
+      });
+      const { data, errors } = verifyAsyncClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeUndefined();
+      expect(data).toBeDefined();
+      expect(data!.payload.scope).toBe(interactionState.callbackInvocation);
+      expect(data!.payload.interactionId).toBe(interactionId);
+    });
+
+    it("should succeed with all async claims", async () => {
+      const interactionId = generateId<InteractionId>();
+      const { jws } = await getMockClientAssertion({
+        customClaims: {
+          scope: interactionState.callbackInvocation,
+          interactionId,
+          urlCallback: "https://example.com/callback",
+          entityNumber: 5,
+        },
+      });
+      const { data, errors } = verifyAsyncClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeUndefined();
+      expect(data).toBeDefined();
+      expect(data!.payload.scope).toBe(interactionState.callbackInvocation);
+      expect(data!.payload.interactionId).toBe(interactionId);
+      expect(data!.payload.urlCallback).toBe("https://example.com/callback");
+      expect(data!.payload.entityNumber).toBe(5);
+    });
+
+    it("scopeNotProvided when scope is missing", async () => {
+      const { jws } = await getMockClientAssertion();
+      const { errors } = verifyAsyncClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(scopeNotProvided());
+    });
+
+    it("invalidScopeClaimFormat", async () => {
+      const invalidScope = "not_a_valid_scope";
+      const { jws } = await getMockClientAssertion({
+        customClaims: {
+          scope: invalidScope,
+        },
+      });
+      const { errors } = verifyAsyncClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(
+        invalidScopeClaimFormat(JSON.stringify(invalidScope))
+      );
+    });
+
+    it("invalidInteractionIdClaimFormat", async () => {
+      const invalidId = "not-a-uuid";
+      const { jws } = await getMockClientAssertion({
+        customClaims: {
+          scope: interactionState.getResource,
+          interactionId: invalidId,
+        },
+      });
+      const { errors } = verifyAsyncClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(
+        invalidInteractionIdClaimFormat(JSON.stringify(invalidId))
+      );
+    });
+
+    it("invalidUrlCallbackClaimFormat", async () => {
+      const { jws } = await getMockClientAssertion({
+        customClaims: {
+          scope: interactionState.startInteraction,
+          urlCallback: 12345,
+        },
+      });
+      const { errors } = verifyAsyncClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidUrlCallbackClaimFormat("12345"));
+    });
+
+    it("invalidUrlCallbackClaimFormat - invalid URL format", async () => {
+      const { jws } = await getMockClientAssertion({
+        customClaims: {
+          scope: interactionState.startInteraction,
+          urlCallback: "not-a-url",
+        },
+      });
+      const { errors } = verifyAsyncClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidUrlCallbackClaimFormat("not-a-url"));
+    });
+
+    it("invalidEntityNumberClaimFormat - not a number", async () => {
+      const { jws } = await getMockClientAssertion({
+        customClaims: {
+          scope: interactionState.callbackInvocation,
+          entityNumber: "not-a-number",
+        },
+      });
+      const { errors } = verifyAsyncClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(
+        invalidEntityNumberClaimFormat("not-a-number")
+      );
+    });
+
+    it("should succeed with entityNumber zero", async () => {
+      const { jws } = await getMockClientAssertion({
+        customClaims: {
+          scope: interactionState.callbackInvocation,
+          entityNumber: 0,
+        },
+      });
+      const { data, errors } = verifyAsyncClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeUndefined();
+      expect(data).toBeDefined();
+      expect(data!.payload.entityNumber).toBe(0);
+    });
+
+    it("invalidEntityNumberClaimFormat - non-integer", async () => {
+      const { jws } = await getMockClientAssertion({
+        customClaims: {
+          scope: interactionState.callbackInvocation,
+          entityNumber: 1.5,
+        },
+      });
+      const { errors } = verifyAsyncClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidEntityNumberClaimFormat("1.5"));
+    });
+
+    it("invalidClientAssertionFormat - does not throw on random/malformed input", async () => {
+      // Regression (PIN-10163): random letters typed in the async token
+      // debugger used to make jose.decodeJwt throw, bubbling up as an
+      // unexpected 500. It must now be surfaced as a format validation error.
+      const malformed = "random-letters-not-a-jwt";
+      expect(() =>
+        verifyAsyncClientAssertion(
+          malformed,
+          undefined,
+          expectedAudiences,
+          genericLogger
+        )
+      ).not.toThrow();
+
+      const { data, errors } = verifyAsyncClientAssertion(
+        malformed,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(data).toBeUndefined();
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidClientAssertionFormat("Invalid JWT"));
+    });
+
+    it("invalidEntityNumberClaimFormat - negative", async () => {
+      const { jws } = await getMockClientAssertion({
+        customClaims: {
+          scope: interactionState.callbackInvocation,
+          entityNumber: -1,
+        },
+      });
+      const { errors } = verifyAsyncClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidEntityNumberClaimFormat("-1"));
+    });
+
+    it("should not affect base verifyClientAssertion", async () => {
+      const { jws } = await getMockClientAssertion({
+        customClaims: {
+          scope: interactionState.startInteraction,
+          interactionId: generateId<InteractionId>(),
+        },
+      });
+      // Base verifyClientAssertion should still work (ignores async claims)
+      const { data, errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeUndefined();
+      expect(data).toBeDefined();
+      // scope and interactionId are NOT in the base result
+      expect((data!.payload as Record<string, unknown>).scope).toBeUndefined();
     });
   });
 

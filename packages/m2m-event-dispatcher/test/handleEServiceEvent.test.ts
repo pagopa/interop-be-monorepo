@@ -1,9 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockDelegation,
   getMockDescriptor,
   getMockEService,
-  randomArrayItem,
   toEServiceV1,
 } from "pagopa-interop-commons-test";
 import {
@@ -21,8 +20,9 @@ import {
   EServiceEventEnvelopeV1,
   EServiceEventV1,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { handleEServiceEvent } from "../src/handlers/handleEServiceEvent.js";
 import {
   addOneDelegationToReadModel,
@@ -75,6 +75,16 @@ describe("handleEServiceEvent test", async () => {
 
             const testCasesData = await match(eventType)
               .with(
+                "MaintenanceEServiceRiskAnalysisSetTenantKind",
+                async () => [
+                  {
+                    descriptors: [getMockDescriptor(descriptorState.draft)],
+                    affectedDescriptor: undefined,
+                    expectedVisibility: undefined,
+                  },
+                ]
+              )
+              .with(
                 P.union(
                   // Draft E-Service events, owner visibility
                   "EServiceAdded",
@@ -83,17 +93,18 @@ describe("handleEServiceEvent test", async () => {
                   "EServiceDeleted",
                   "EServiceRiskAnalysisAdded",
                   "EServiceRiskAnalysisUpdated",
-                  "EServiceRiskAnalysisDeleted"
+                  "EServiceRiskAnalysisDeleted",
+                  "EServiceArchivingRequestedByDelegate",
+                  "EServiceArchivingRequestRejectedByDelegator",
+                  "EServiceArchivingRequestApprovedByDelegator",
+                  "EServiceArchivingRequestCanceledByDelegate",
+                  "EServiceArchivingRequestCanceledByRevokedDelegation"
                 ),
                 async () => [
                   {
                     descriptors: [
-                      getMockDescriptor(
-                        randomArrayItem(Object.values(descriptorState))
-                      ),
-                      getMockDescriptor(
-                        randomArrayItem(Object.values(descriptorState))
-                      ),
+                      getMockDescriptor(descriptorState.draft),
+                      getMockDescriptor(descriptorState.draft),
                       // Visibility based only on event, descriptors state doesn't matter
                     ],
                     affectedDescriptor: undefined,
@@ -110,18 +121,20 @@ describe("handleEServiceEvent test", async () => {
                   "EServiceDescriptorSubmittedByDelegate",
                   "EServiceDescriptorRejectedByDelegator",
                   "EServiceDescriptorInterfaceAdded",
-                  "EServiceDescriptorInterfaceUpdated",
-                  "EServiceDescriptorInterfaceDeleted"
+                  "EServiceDescriptorInterfaceDeleted",
+                  "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+                  "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
+                  "EServiceDescriptorArchivingRequestedByDelegate",
+                  "EServiceDescriptorArchivingRequestRejectedByDelegator",
+                  "EServiceDescriptorArchivingRequestApprovedByDelegator",
+                  "EServiceDescriptorArchivingRequestCanceledByDelegate",
+                  "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation"
                 ),
                 async () => [
                   {
                     descriptors: [
-                      getMockDescriptor(
-                        randomArrayItem(Object.values(descriptorState))
-                      ),
-                      getMockDescriptor(
-                        randomArrayItem(Object.values(descriptorState))
-                      ),
+                      getMockDescriptor(descriptorState.draft),
+                      getMockDescriptor(descriptorState.draft),
                       // Visibility based only on event, descriptors state doesn't matter
                     ],
                     affectedDescriptor: 1,
@@ -142,17 +155,17 @@ describe("handleEServiceEvent test", async () => {
                   "EServiceSignalHubDisabled",
                   "EServicePersonalDataFlagUpdatedAfterPublication",
                   "EServicePersonalDataFlagUpdatedByTemplateUpdate",
-                  "EServiceInstanceLabelUpdated"
+                  "EServiceInstanceLabelUpdated",
+                  "MaintenanceEServicePersonalDataFlagReset",
+                  "EServiceArchivingScheduled",
+                  "EServiceArchivingCompleted",
+                  "EServiceArchivingCanceled"
                 ),
                 async () => [
                   {
                     descriptors: [
-                      getMockDescriptor(
-                        randomArrayItem(Object.values(descriptorState))
-                      ),
-                      getMockDescriptor(
-                        randomArrayItem(Object.values(descriptorState))
-                      ),
+                      getMockDescriptor(descriptorState.draft),
+                      getMockDescriptor(descriptorState.draft),
                       // Visibility based only on event, descriptors state doesn't matter
                     ],
                     affectedDescriptor: undefined,
@@ -170,17 +183,18 @@ describe("handleEServiceEvent test", async () => {
                   "EServiceDescriptorArchived",
                   "EServiceDescriptorQuotasUpdated",
                   "EServiceDescriptorAgreementApprovalPolicyUpdated",
-                  "EServiceDescriptorAttributesUpdated"
+                  "EServiceDescriptorAttributesUpdated",
+                  "EServiceDescriptorArchivingScheduled",
+                  "EServiceDescriptorArchivingCompleted",
+                  "EServiceDescriptorArchivingCanceled",
+                  "MaintenanceEServiceDescriptorUnarchived",
+                  "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated"
                 ),
                 async () => [
                   {
                     descriptors: [
-                      getMockDescriptor(
-                        randomArrayItem(Object.values(descriptorState))
-                      ),
-                      getMockDescriptor(
-                        randomArrayItem(Object.values(descriptorState))
-                      ),
+                      getMockDescriptor(descriptorState.draft),
+                      getMockDescriptor(descriptorState.draft),
                       // Visibility based only on event, descriptors state doesn't matter
                     ],
                     affectedDescriptor: 1,
@@ -277,9 +291,10 @@ describe("handleEServiceEvent test", async () => {
                 descriptors
               );
 
-              const descriptorId = affectedDescriptor
-                ? eservice.descriptors.at(affectedDescriptor)!.id
-                : undefined;
+              const descriptorId =
+                affectedDescriptor !== undefined
+                  ? eservice.descriptors.at(affectedDescriptor)!.id
+                  : undefined;
 
               const message = {
                 ...getMockEventEnvelopeCommons(),
@@ -298,6 +313,15 @@ describe("handleEServiceEvent test", async () => {
                 testM2mEventWriterService,
                 testReadModelService
               );
+              if (
+                eventType === "MaintenanceEServiceRiskAnalysisSetTenantKind"
+              ) {
+                expect(
+                  testM2mEventWriterService.insertEServiceM2MEvent
+                ).not.toHaveBeenCalled();
+                continue;
+              }
+
               expect(
                 testM2mEventWriterService.insertEServiceM2MEvent
               ).toHaveBeenCalledTimes(1);

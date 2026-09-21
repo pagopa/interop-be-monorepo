@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { describe, expect, it, vi } from "vitest";
 import {
   getMockPurposeVersion,
   getMockPurpose,
@@ -30,6 +29,8 @@ import {
   PurposeVersion,
   DelegationId,
 } from "pagopa-interop-models";
+import { describe, expect, it, vi } from "vitest";
+
 import {
   purposeNotFound,
   purposeVersionNotFound,
@@ -102,7 +103,10 @@ describe("deletePurposeVersion", () => {
       data: expectedPurpose,
       metadata: { version: parseInt(writtenEvent.version, 10) },
     });
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: mockPurposeVersion1.id,
+    });
 
     vi.useRealTimers();
   });
@@ -173,7 +177,10 @@ describe("deletePurposeVersion", () => {
       data: expectedPurpose,
       metadata: { version: parseInt(writtenEvent.version, 10) },
     });
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: mockPurposeVersion1.id,
+    });
 
     vi.useRealTimers();
   });
@@ -291,7 +298,10 @@ describe("deletePurposeVersion", () => {
       data: expectedPurpose,
       metadata: { version: parseInt(writtenEvent.version, 10) },
     });
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: mockPurposeVersion1.id,
+    });
 
     vi.useRealTimers();
   });

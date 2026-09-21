@@ -148,11 +148,17 @@ const M2MGatewayConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
     z
       .object({
         M2M_GATEWAY_INTERFACE_VERSION: z.string(),
+        MAX_FILE_SIZE_BYTES: z.coerce.number().default(10 * 1024 * 1024),
+        MAX_INTERFACE_FILE_SIZE_BYTES: z.coerce
+          .number()
+          .default(3 * 1024 * 1024),
         DEFAULT_POLLING_RETRY_DELAY: z.coerce.number().default(1000),
         DEFAULT_POLLING_MAX_RETRIES: z.coerce.number().default(5),
       })
       .transform((c) => ({
         m2mGatewayInterfaceVersion: c.M2M_GATEWAY_INTERFACE_VERSION,
+        maxFileSizeBytes: c.MAX_FILE_SIZE_BYTES,
+        maxInterfaceFileSizeBytes: c.MAX_INTERFACE_FILE_SIZE_BYTES,
         defaultPollingRetryDelay: c.DEFAULT_POLLING_RETRY_DELAY,
         defaultPollingMaxRetries: c.DEFAULT_POLLING_MAX_RETRIES,
       }))

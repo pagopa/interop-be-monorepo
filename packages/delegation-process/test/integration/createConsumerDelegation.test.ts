@@ -12,11 +12,11 @@ import {
   agreementState,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
+
 import {
   delegationRelatedAgreementExists,
   eserviceNotConsumerDelegable,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
 import {
   addOneAgreement,
   addOneEservice,
@@ -25,8 +25,6 @@ import {
 } from "../integrationUtils.js";
 
 describe("create consumer delegation", () => {
-  config.delegationsAllowedOrigins = ["IPA", "TEST"];
-
   it("should throw an eserviceNotConsumerDelegable error if Eservice is not consumer delegable", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getMockAuthData(delegatorId);

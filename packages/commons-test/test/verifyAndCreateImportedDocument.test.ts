@@ -1,10 +1,17 @@
-import { describe, it, expect, vi } from "vitest";
+import AdmZip from "adm-zip";
 import {
   genericLogger,
   verifyAndCreateImportedDocument,
 } from "pagopa-interop-commons";
-import { generateId, genericError, Technology } from "pagopa-interop-models";
-import AdmZip from "adm-zip";
+import {
+  contentTooLargeError,
+  generateId,
+  genericError,
+  invalidInterfaceFileDetected,
+  Technology,
+} from "pagopa-interop-models";
+import { describe, it, expect, vi } from "vitest";
+
 import { getMockEService } from "../src/index.js";
 import { fileManager, s3Bucket } from "./utils.js";
 
@@ -13,6 +20,9 @@ describe("verifyAndCreateImportedDocument", () => {
   const technology = Technology.Enum.Rest;
   const kind = "INTERFACE";
   const documentId = generateId();
+  const noLimitFileSizePolicy = {
+    maxFileSizeBytes: Number.MAX_SAFE_INTEGER,
+  };
 
   const createMockZipEntry = (
     content: string,
@@ -28,7 +38,7 @@ describe("verifyAndCreateImportedDocument", () => {
   it("should successfully create a document from a zip entry", async () => {
     const fileContent = JSON.stringify({
       openapi: "3.0.2",
-      servers: [],
+      servers: [{ url: "https://example.com" }],
       info: { title: "Test API" },
     });
     const filePath = "test.openapi.3.0.2.json";
@@ -56,6 +66,7 @@ describe("verifyAndCreateImportedDocument", () => {
       mockCreateDocumentHandler,
       s3Bucket.toString(),
       "document-path",
+      noLimitFileSizePolicy,
       genericLogger
     );
 
@@ -79,8 +90,99 @@ describe("verifyAndCreateImportedDocument", () => {
         () => Promise.resolve(),
         s3Bucket.toString(),
         "document-path",
+        noLimitFileSizePolicy,
         genericLogger
       )
     ).rejects.toThrow(genericError("Invalid file"));
   });
+
+  it("should throw contentTooLargeError when imported file size exceeds limit", async () => {
+    const fileContent = JSON.stringify({
+      openapi: "3.0.2",
+      servers: [{ url: "https://example.com" }],
+      info: { title: "Test API" },
+    });
+    const filePath = "test.openapi.3.0.2.json";
+
+    const zipEntry = createMockZipEntry(fileContent, filePath);
+    const entriesMap = new Map<string, AdmZip.IZipEntry>([
+      [filePath, zipEntry],
+    ]);
+
+    const maxFileSizeBytes = zipEntry.getData().byteLength - 1;
+
+    await expect(
+      verifyAndCreateImportedDocument(
+        fileManager,
+        eservice.id,
+        technology,
+        entriesMap,
+        {
+          prettyName: "Test Document",
+          path: filePath,
+        },
+        kind,
+        () => Promise.resolve(),
+        s3Bucket.toString(),
+        "document-path",
+        { maxFileSizeBytes },
+        genericLogger
+      )
+    ).rejects.toThrow(
+      contentTooLargeError(
+        `File size ${zipEntry.getData().byteLength} bytes exceeds maximum allowed size of ${maxFileSizeBytes} bytes`
+      )
+    );
+  });
+
+  it.each([
+    {
+      description: "empty servers array",
+      fileContent: JSON.stringify({
+        openapi: "3.0.2",
+        servers: [],
+        info: { title: "Test API" },
+      }),
+    },
+    {
+      description: "missing servers field",
+      fileContent: JSON.stringify({
+        openapi: "3.0.2",
+        info: { title: "Test API" },
+      }),
+    },
+  ])(
+    "should throw invalidInterfaceFileDetected for an imported REST interface with $description",
+    async ({ fileContent }) => {
+      const filePath = "test.openapi.3.0.2.json";
+      const zipEntry = createMockZipEntry(fileContent, filePath);
+      const entriesMap = new Map<string, AdmZip.IZipEntry>([
+        [filePath, zipEntry],
+      ]);
+
+      await expect(
+        verifyAndCreateImportedDocument(
+          fileManager,
+          eservice.id,
+          technology,
+          entriesMap,
+          {
+            prettyName: "Test Document",
+            path: filePath,
+          },
+          kind,
+          () => Promise.resolve(),
+          s3Bucket.toString(),
+          "document-path",
+          noLimitFileSizePolicy,
+          genericLogger
+        )
+      ).rejects.toThrow(
+        invalidInterfaceFileDetected({
+          id: eservice.id,
+          isEserviceTemplate: false,
+        })
+      );
+    }
+  );
 });

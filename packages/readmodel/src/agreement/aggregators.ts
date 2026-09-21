@@ -1,13 +1,4 @@
 import {
-  AgreementSQL,
-  AgreementStampSQL,
-  AgreementAttributeSQL,
-  AgreementConsumerDocumentSQL,
-  AgreementContractSQL,
-  AgreementItemsSQL,
-  AgreementSignedContractSQL,
-} from "pagopa-interop-readmodel-models";
-import {
   Agreement,
   unsafeBrandId,
   WithMetadata,
@@ -24,7 +15,17 @@ import {
   AgreementId,
   AgreementSignedContract,
 } from "pagopa-interop-models";
+import {
+  AgreementSQL,
+  AgreementStampSQL,
+  AgreementAttributeSQL,
+  AgreementConsumerDocumentSQL,
+  AgreementContractSQL,
+  AgreementItemsSQL,
+  AgreementSignedContractSQL,
+} from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
+
 import { makeUniqueKey, throwIfMultiple } from "../utils.js";
 
 export const aggregateAgreementArray = ({
@@ -93,45 +94,58 @@ export const aggregateAgreement = ({
   attributesSQL,
   signedContractSQL,
 }: AgreementItemsSQL): WithMetadata<Agreement> => {
-  const { verifiedAttributes, certifiedAttributes, declaredAttributes } =
-    attributesSQL.reduce(
-      (
-        acc: {
-          verifiedAttributes: AgreementAttribute[];
-          certifiedAttributes: AgreementAttribute[];
-          declaredAttributes: AgreementAttribute[];
-        },
-        a
-      ) =>
-        match(AttributeKind.parse(a.kind))
-          .with(attributeKind.verified, () => ({
-            ...acc,
-            verifiedAttributes: [
-              ...acc.verifiedAttributes,
-              { id: unsafeBrandId<AttributeId>(a.attributeId) },
-            ],
-          }))
-          .with(attributeKind.certified, () => ({
-            ...acc,
-            certifiedAttributes: [
-              ...acc.certifiedAttributes,
-              { id: unsafeBrandId<AttributeId>(a.attributeId) },
-            ],
-          }))
-          .with(attributeKind.declared, () => ({
-            ...acc,
-            declaredAttributes: [
-              ...acc.declaredAttributes,
-              { id: unsafeBrandId<AttributeId>(a.attributeId) },
-            ],
-          }))
-          .exhaustive(),
-      {
-        verifiedAttributes: [],
-        certifiedAttributes: [],
-        declaredAttributes: [],
-      }
-    );
+  const {
+    verifiedAttributes,
+    certifiedAttributes,
+    certifiedDiscreteAttributes,
+    declaredAttributes,
+  } = attributesSQL.reduce(
+    (
+      acc: {
+        verifiedAttributes: AgreementAttribute[];
+        certifiedAttributes: AgreementAttribute[];
+        certifiedDiscreteAttributes: AgreementAttribute[];
+        declaredAttributes: AgreementAttribute[];
+      },
+      a
+    ) =>
+      match(AttributeKind.parse(a.kind))
+        .with(attributeKind.verified, () => ({
+          ...acc,
+          verifiedAttributes: [
+            ...acc.verifiedAttributes,
+            { id: unsafeBrandId<AttributeId>(a.attributeId) },
+          ],
+        }))
+        .with(attributeKind.certified, () => ({
+          ...acc,
+          certifiedAttributes: [
+            ...acc.certifiedAttributes,
+            { id: unsafeBrandId<AttributeId>(a.attributeId) },
+          ],
+        }))
+        .with(attributeKind.certifiedDiscrete, () => ({
+          ...acc,
+          certifiedDiscreteAttributes: [
+            ...acc.certifiedDiscreteAttributes,
+            { id: unsafeBrandId<AttributeId>(a.attributeId) },
+          ],
+        }))
+        .with(attributeKind.declared, () => ({
+          ...acc,
+          declaredAttributes: [
+            ...acc.declaredAttributes,
+            { id: unsafeBrandId<AttributeId>(a.attributeId) },
+          ],
+        }))
+        .exhaustive(),
+    {
+      verifiedAttributes: [],
+      certifiedAttributes: [],
+      certifiedDiscreteAttributes: [],
+      declaredAttributes: [],
+    }
+  );
 
   const consumerDocuments: AgreementDocument[] = consumerDocumentsSQL.map(
     documentSQLtoDocument
@@ -189,6 +203,7 @@ export const aggregateAgreement = ({
     state: AgreementState.parse(agreementSQL.state),
     verifiedAttributes,
     certifiedAttributes,
+    certifiedDiscreteAttributes,
     declaredAttributes,
     ...(agreementSQL.suspendedByConsumer !== null
       ? {

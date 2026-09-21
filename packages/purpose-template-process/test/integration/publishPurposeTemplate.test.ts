@@ -27,6 +27,7 @@ import {
   toPurposeTemplateV2,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+
 import { invalidDescriptorStateForPublicationError } from "../../src/errors/purposeTemplateValidationErrors.js";
 import {
   invalidAssociatedEServiceForPublication,
@@ -98,9 +99,14 @@ describe("publishPurposeTemplate", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurposeTemplate(writtenPayload.purposeTemplate)).toEqual(
-      sortPurposeTemplate(toPurposeTemplateV2(expectedPurposeTemplate))
-    );
+    expect({
+      ...writtenPayload,
+      purposeTemplate: sortPurposeTemplate(writtenPayload.purposeTemplate),
+    }).toEqual({
+      purposeTemplate: sortPurposeTemplate(
+        toPurposeTemplateV2(expectedPurposeTemplate)
+      ),
+    });
     expect(publishResponse).toMatchObject({
       data: updatedPurposeTemplate,
       metadata: { version: 1 },

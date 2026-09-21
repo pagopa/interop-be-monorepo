@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeEach, Mock } from "vitest";
 import {
   getMockContext,
   getMockEService,
@@ -18,10 +17,14 @@ import {
   purposeVersionState,
   descriptorState,
 } from "pagopa-interop-models";
-import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
+import {
+  getNotificationRecipients,
+  eserviceNotFound,
+  inAppTemplates,
+} from "pagopa-interop-notification-commons";
+import { describe, it, expect, beforeEach, Mock } from "vitest";
+
 import { handlePurposeOverQuotaToConsumer } from "../src/handlers/purposes/handlePurposeOverQuotaToConsumer.js";
-import { eserviceNotFound } from "../src/models/errors.js";
-import { inAppTemplates } from "../src/templates/inAppTemplates.js";
 import {
   addOneEService,
   addOnePurpose,

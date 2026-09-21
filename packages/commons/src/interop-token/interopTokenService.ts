@@ -5,6 +5,8 @@ import {
   DescriptorId,
   EServiceId,
   generateId,
+  InteractionId,
+  InteractionState,
   JWKKeyRS256,
   JWKKeyES256,
   PurposeId,
@@ -12,19 +14,28 @@ import {
   UserId,
   algorithm,
 } from "pagopa-interop-models";
+
+import { calculateDPoPThumbprint } from "../auth/jwk.js";
 import { systemRole } from "../auth/roles.js";
 import { AuthorizationServerTokenGenerationConfig } from "../config/authorizationServerTokenGenerationConfig.js";
+import { IntegrityRest02SignatureConfig } from "../config/integrityRest02Config.js";
 import { SessionTokenGenerationConfig } from "../config/sessionTokenGenerationConfig.js";
 import { TokenGenerationConfig } from "../config/tokenGenerationConfig.js";
-import { IntegrityRest02SignatureConfig } from "../config/integrityRest02Config.js";
+import { genericLogger } from "../logging/index.js";
 import { dateToSeconds } from "../utils/date.js";
-import { calculateDPoPThumbprint } from "../auth/jwk.js";
+import {
+  SerializedAuthTokenPayload,
+  toSerializedInteropJwtPayload,
+  toSerializedJwtUIPayload,
+} from "./jwtEncoder.js";
 import {
   InteropApiToken,
+  InteropAsyncConsumerToken,
   InteropConsumerToken,
   InteropInternalToken,
   InteropJwtApiCommonPayload,
   InteropJwtApiPayload,
+  InteropJwtAsyncConsumerPayload,
   InteropJwtConsumerPayload,
   InteropJwtHeader,
   InteropJwtUIPayload,
@@ -36,11 +47,6 @@ import {
   IntegrityRest02SignedHeaders,
 } from "./models.js";
 import { b64ByteUrlEncode, b64UrlEncode } from "./utils.js";
-import {
-  SerializedAuthTokenPayload,
-  toSerializedInteropJwtPayload,
-  toSerializedJwtUIPayload,
-} from "./jwtEncoder.js";
 
 const JWT_HEADER_ALG = algorithm.RS256;
 const JWT_HEADER_USE = "sig";
@@ -58,6 +64,31 @@ export class InteropTokenGenerator {
     kmsClient?: KMSClient
   ) {
     this.kmsClient = kmsClient || new KMSClient();
+    this.logConfiguredKids();
+  }
+
+  /*
+    Logs the signing kids this generator was configured with, so that we can
+    verify a pod received the expected KMS key configuration before it signs
+    anything. Only the kids present in the given config are logged, since each
+    service configures just the token kinds it produces.
+  */
+  private logConfiguredKids(): void {
+    const configuredKids = {
+      internalTokenKid: this.config.kid,
+      sessionTokenKid: this.config.generatedKid,
+      interopTokenKid: this.config.generatedInteropTokenKid,
+      integrityRest02TokenKid: this.config.integrityRestSignatureKid,
+    };
+
+    const kids = Object.entries(configuredKids)
+      .filter(([, kid]) => kid !== undefined)
+      .map(([name, kid]) => `${name}: ${kid}`)
+      .join(", ");
+
+    genericLogger.info(
+      `InteropTokenGenerator initialized - configured kids: ${kids || "none"}`
+    );
   }
 
   public async generateInternalToken(): Promise<InteropInternalToken> {
@@ -320,6 +351,99 @@ export class InteropTokenGenerator {
     };
   }
 
+  public async generateInteropAsyncConsumerToken({
+    sub,
+    audience,
+    purposeId,
+    tokenDurationInSeconds,
+    digest,
+    producerId,
+    consumerId,
+    eserviceId,
+    descriptorId,
+    interactionId,
+    urlCallback,
+    scope,
+    dpopJWK,
+    now,
+  }: {
+    sub: ClientId;
+    audience: string[];
+    purposeId: PurposeId;
+    tokenDurationInSeconds: number;
+    digest: ClientAssertionDigest | undefined;
+    producerId: TenantId;
+    consumerId: TenantId;
+    eserviceId: EServiceId;
+    descriptorId: DescriptorId;
+    interactionId: InteractionId;
+    urlCallback?: string;
+    scope: InteractionState;
+    dpopJWK?: JWKKeyRS256 | JWKKeyES256;
+    // Optional reference instant for iat/nbf/exp. When the caller has already
+    // captured `now` (e.g. to validate a time window that must match the
+    // token's iat), it can pass it here to avoid the sub-second drift that
+    // would otherwise occur by calling `new Date()` again inside this method.
+    now?: Date;
+  }): Promise<InteropAsyncConsumerToken> {
+    if (
+      !this.config.generatedInteropTokenKid ||
+      !this.config.generatedInteropTokenIssuer
+    ) {
+      throw Error(
+        "AuthorizationServerTokenGenerationConfig not provided or incomplete"
+      );
+    }
+
+    const currentTimestamp = dateToSeconds(now ?? new Date());
+
+    const header: InteropJwtHeader = {
+      alg: JWT_HEADER_ALG,
+      use: JWT_HEADER_USE,
+      typ: JWT_HEADER_TYP,
+      kid: this.config.generatedInteropTokenKid,
+    };
+
+    const payload: InteropJwtAsyncConsumerPayload = {
+      jti: generateId(),
+      iss: this.config.generatedInteropTokenIssuer,
+      aud: audience,
+      client_id: sub,
+      sub,
+      iat: currentTimestamp,
+      nbf: currentTimestamp,
+      exp: currentTimestamp + tokenDurationInSeconds,
+      purposeId,
+      ...(digest ? { digest } : {}),
+      producerId,
+      consumerId,
+      eserviceId,
+      descriptorId,
+      interactionId,
+      ...(urlCallback ? { urlCallback } : {}),
+      scope,
+      ...(dpopJWK
+        ? {
+            cnf: {
+              jkt: calculateDPoPThumbprint(dpopJWK),
+            },
+          }
+        : {}),
+    };
+
+    const serializedToken = await this.createAndSignToken({
+      header,
+      payload: toSerializedInteropJwtPayload(payload),
+      keyId: this.config.generatedInteropTokenKid,
+    });
+
+    return {
+      header,
+      payload,
+      serialized: serializedToken,
+    };
+  }
+
   /**
    * Generates an Agid-JWT-Signature for Integrity REST 02 responses.
    *
@@ -388,6 +512,19 @@ export class InteropTokenGenerator {
     };
 
     const command = new SignCommand(commandParams);
+    /*
+      Logged per signature so that a given token can be traced back, via its
+      jti, to the KMS key that signed it and to the role it was issued for.
+      Integrity REST 02 tokens carry no role, UI tokens carry "user-roles".
+    */
+    const role = "role" in payload ? payload.role : undefined;
+    const userRoles =
+      "user-roles" in payload ? payload["user-roles"] : undefined;
+    genericLogger.info(
+      `Signing token with KMS kid ${keyId} - jti: ${payload.jti}${
+        role ? `, role: ${role}` : ""
+      }${userRoles ? `, user-roles: ${userRoles}` : ""}`
+    );
     const response = await this.kmsClient.send(command);
 
     if (!response.Signature) {

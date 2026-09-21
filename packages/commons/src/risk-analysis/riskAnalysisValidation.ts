@@ -1,5 +1,7 @@
 import { tenantKind, TenantKind } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+
+import { containsHyperlink } from "../utils/regexpUtils.js";
 import {
   RiskAnalysisFormToValidate,
   RiskAnalysisValidatedForm,
@@ -15,13 +17,14 @@ import {
   expiredRulesVersionError,
   incompatiblePersonalDataError,
   missingExpectedFieldError,
+  missingTenantKindError,
   rulesVersionNotFoundError,
   unexpectedDependencyValueError,
   unexpectedFieldError,
   unexpectedFieldFormatError,
+  unexpectedFieldHyperlinkError,
   unexpectedFieldValueError,
 } from "./riskAnalysisValidationErrors.js";
-
 import {
   FormQuestionRules,
   RiskAnalysisFormRules,
@@ -36,10 +39,15 @@ import {
 export function validateRiskAnalysis(
   riskAnalysisForm: RiskAnalysisFormToValidate,
   schemaOnlyValidation: boolean,
-  tenantKind: TenantKind,
+  fallbackTenantKind: TenantKind | undefined,
   dateForExpirationValidation: Date,
   personalDataInEService: boolean | undefined
 ): RiskAnalysisValidationResult<RiskAnalysisValidatedForm> {
+  const tenantKind = riskAnalysisForm.tenantKind ?? fallbackTenantKind;
+
+  if (tenantKind === undefined) {
+    throw missingTenantKindError();
+  }
   const formRulesForValidation = getFormRulesByVersion(
     tenantKind,
     riskAnalysisForm.version
@@ -80,18 +88,18 @@ export function validateRiskAnalysis(
     );
 
     const { singleAnswers, multiAnswers } = validatedAnswers.reduce<
-      Omit<RiskAnalysisValidatedForm, "version">
+      Omit<RiskAnalysisValidatedForm, "version" | "tenantKind">
     >(
       (validatedForm, answer) =>
         match(answer)
-          .with({ type: "single" }, (a) => ({
-            ...validatedForm,
-            singleAnswers: [...validatedForm.singleAnswers, a.answer],
-          }))
-          .with({ type: "multi" }, (a) => ({
-            ...validatedForm,
-            multiAnswers: [...validatedForm.multiAnswers, a.answer],
-          }))
+          .with({ type: "single" }, (a) => {
+            validatedForm.singleAnswers.push(a.answer);
+            return validatedForm;
+          })
+          .with({ type: "multi" }, (a) => {
+            validatedForm.multiAnswers.push(a.answer);
+            return validatedForm;
+          })
           .exhaustive(),
       {
         singleAnswers: [],
@@ -119,6 +127,7 @@ export function validateRiskAnalysis(
       version: formRulesForValidation.version,
       singleAnswers,
       multiAnswers,
+      tenantKind,
     });
   }
 }
@@ -290,6 +299,13 @@ function validateFieldValue(
   fieldValue: string[],
   rule: ValidationRule
 ): RiskAnalysisValidationIssue[] {
+  if (rule.dataType === dataType.freeText) {
+    return fieldValue.flatMap((v) =>
+      containsHyperlink(v)
+        ? [unexpectedFieldHyperlinkError(rule.fieldName)]
+        : []
+    );
+  }
   return match(rule.allowedValues)
     .with(P.not(P.nullish), (allowedValues) =>
       fieldValue.flatMap((v) =>
@@ -423,16 +439,21 @@ const validatePersonalDataFlag = ({
       formRules.PRIVATE_1_0,
       () => []
     )
-    .with(formRules.PA_3_1, formRules.PRIVATE_2_0, () =>
-      match(personalDataInEService)
-        .with(P.boolean, () => {
-          if (personalDataInEService !== personalDataInRiskAnalysis) {
-            return [incompatiblePersonalDataError()];
-          }
-          return [];
-        })
-        .with(undefined, () => [])
-        .exhaustive()
+    .with(
+      formRules.PA_3_1,
+      formRules.PA_3_2,
+      formRules.PRIVATE_2_0,
+      formRules.PRIVATE_2_1,
+      () =>
+        match(personalDataInEService)
+          .with(P.boolean, () => {
+            if (personalDataInEService !== personalDataInRiskAnalysis) {
+              return [incompatiblePersonalDataError()];
+            }
+            return [];
+          })
+          .with(undefined, () => [])
+          .exhaustive()
     )
     .exhaustive();
 };

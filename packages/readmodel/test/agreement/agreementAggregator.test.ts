@@ -1,4 +1,10 @@
 import {
+  getMockAgreement,
+  getMockAgreementAttribute,
+  getMockAgreementDocument,
+  getMockAgreementStamps,
+} from "pagopa-interop-commons-test";
+import {
   Agreement,
   AgreementId,
   AgreementStamps,
@@ -10,15 +16,10 @@ import {
   TenantId,
   WithMetadata,
 } from "pagopa-interop-models";
-import {
-  getMockAgreement,
-  getMockAgreementAttribute,
-  getMockAgreementDocument,
-  getMockAgreementStamps,
-} from "pagopa-interop-commons-test";
 import { describe, it, expect } from "vitest";
-import { splitAgreementIntoObjectsSQL } from "../../src/agreement/splitters.js";
+
 import { aggregateAgreement } from "../../src/agreement/aggregators.js";
+import { splitAgreementIntoObjectsSQL } from "../../src/agreement/splitters.js";
 
 describe("Agreement Aggregator", () => {
   it("should convert an Agreement object as data model into an Agreement object as business model", () => {
@@ -48,6 +49,7 @@ describe("Agreement Aggregator", () => {
         eserviceId,
         verifiedAttributes: [getMockAgreementAttribute()],
         certifiedAttributes: [getMockAgreementAttribute()],
+        certifiedDiscreteAttributes: [getMockAgreementAttribute()],
         declaredAttributes: [getMockAgreementAttribute()],
         suspendedByConsumer: true,
         suspendedByProducer: false,
@@ -120,6 +122,7 @@ describe("Agreement Aggregator", () => {
         createdAt: new Date(),
         verifiedAttributes: [getMockAgreementAttribute()],
         certifiedAttributes: [getMockAgreementAttribute()],
+        certifiedDiscreteAttributes: [getMockAgreementAttribute()],
         declaredAttributes: [getMockAgreementAttribute()],
         consumerDocuments: [getMockAgreementDocument()],
         stamps: agreementStamps,

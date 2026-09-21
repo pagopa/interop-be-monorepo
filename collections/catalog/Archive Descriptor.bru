@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: {{host-catalog}}/eservices/:eserviceId/descriptors/:descriptorId/archive
+  url: {{host-catalog}}/internal/eservices/:eserviceId/descriptors/:descriptorId/archive
   body: json
   auth: none
 }
@@ -18,4 +18,10 @@ params:path {
 headers {
   Authorization: {{JWT}}
   X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "kind": "AUTOMATIC"
+  }
 }

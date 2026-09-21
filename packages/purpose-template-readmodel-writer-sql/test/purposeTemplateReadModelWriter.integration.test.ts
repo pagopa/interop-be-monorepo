@@ -2,16 +2,17 @@
 import {
   getMockDescriptor,
   getMockEService,
+  getMockEServiceTemplate,
   getMockPurposeTemplate,
   getMockRiskAnalysisTemplateAnswerAnnotation,
   getMockRiskAnalysisTemplateAnswerAnnotationDocument,
   getMockValidRiskAnalysisFormTemplate,
 } from "pagopa-interop-commons-test";
-import { describe, expect, it } from "vitest";
 import {
   dateToBigInt,
   EService,
   EServiceDescriptorPurposeTemplate,
+  EServiceTemplateVersionPurposeTemplate,
   generateId,
   PurposeTemplate,
   PurposeTemplateAddedV2,
@@ -21,6 +22,8 @@ import {
   PurposeTemplateDraftDeletedV2,
   PurposeTemplateDraftUpdatedV2,
   PurposeTemplateEServiceLinkedV2,
+  PurposeTemplateEServiceTemplateLinkedV2,
+  PurposeTemplateEServiceTemplateUnlinkedV2,
   PurposeTemplateEServiceUnlinkedV2,
   PurposeTemplateEventEnvelope,
   PurposeTemplatePublishedV2,
@@ -31,9 +34,12 @@ import {
   RiskAnalysisTemplateAnswerAnnotationId,
   tenantKind,
   toEServiceV2,
+  toEServiceTemplateV2,
   toPurposeTemplateV2,
   WithMetadata,
 } from "pagopa-interop-models";
+import { describe, expect, it } from "vitest";
+
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import {
   purposeTemplateReadModelService,
@@ -639,6 +645,307 @@ describe("Integration tests", async () => {
         data: updatedPurposeTemplate,
         metadata: { version: metadataVersion },
       });
+    });
+
+    it("PurposeTemplateEServiceTemplateLinked", async () => {
+      const metadataVersion = 2;
+      const eserviceTemplate1 = getMockEServiceTemplate();
+      const eserviceTemplate2 = getMockEServiceTemplate();
+      const createdAt1 = new Date();
+      const createdAt2 = new Date();
+
+      await purposeTemplateWriterService.upsertPurposeTemplate(
+        purposeTemplate,
+        0
+      );
+      await purposeTemplateWriterService.upsertPurposeTemplateEServiceTemplateVersion(
+        {
+          purposeTemplateId: purposeTemplate.id,
+          eserviceTemplateId: eserviceTemplate1.id,
+          eserviceTemplateVersionId: eserviceTemplate1.versions[0].id,
+          createdAt: createdAt1,
+        },
+        1
+      );
+
+      const payload: PurposeTemplateEServiceTemplateLinkedV2 = {
+        purposeTemplate: toPurposeTemplateV2(purposeTemplate),
+        eserviceTemplate: toEServiceTemplateV2(eserviceTemplate2),
+        eserviceTemplateVersionId: eserviceTemplate2.versions[0].id,
+        createdAt: dateToBigInt(createdAt2),
+      };
+      const message: PurposeTemplateEventEnvelope = {
+        sequence_num: 1,
+        stream_id: purposeTemplate.id,
+        version: metadataVersion,
+        type: "PurposeTemplateEServiceTemplateLinked",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+      await handleMessageV2(message, purposeTemplateWriterService);
+
+      const retrieved =
+        await purposeTemplateReadModelService.getEServiceTemplateVersionPurposeTemplatesByPurposeTemplateId(
+          purposeTemplate.id
+        );
+
+      expect(retrieved).toEqual(
+        expect.arrayContaining([
+          {
+            data: {
+              purposeTemplateId: purposeTemplate.id,
+              eserviceTemplateId: eserviceTemplate1.id,
+              eserviceTemplateVersionId: eserviceTemplate1.versions[0].id,
+              createdAt: createdAt1,
+            },
+            metadata: { version: metadataVersion },
+          },
+          {
+            data: {
+              purposeTemplateId: purposeTemplate.id,
+              eserviceTemplateId: eserviceTemplate2.id,
+              eserviceTemplateVersionId: eserviceTemplate2.versions[0].id,
+              createdAt: createdAt2,
+            },
+            metadata: { version: metadataVersion },
+          },
+        ] satisfies Array<WithMetadata<EServiceTemplateVersionPurposeTemplate>>)
+      );
+      expect(retrieved).toHaveLength(2);
+    });
+
+    it("PurposeTemplateEServiceTemplateUnlinked", async () => {
+      const metadataVersion = 3;
+      const eserviceTemplate1 = getMockEServiceTemplate();
+      const eserviceTemplate2 = getMockEServiceTemplate();
+      const createdAt = new Date();
+
+      await purposeTemplateWriterService.upsertPurposeTemplate(
+        purposeTemplate,
+        0
+      );
+      await purposeTemplateWriterService.upsertPurposeTemplateEServiceTemplateVersion(
+        {
+          purposeTemplateId: purposeTemplate.id,
+          eserviceTemplateId: eserviceTemplate1.id,
+          eserviceTemplateVersionId: eserviceTemplate1.versions[0].id,
+          createdAt: new Date(),
+        },
+        1
+      );
+      await purposeTemplateWriterService.upsertPurposeTemplateEServiceTemplateVersion(
+        {
+          purposeTemplateId: purposeTemplate.id,
+          eserviceTemplateId: eserviceTemplate2.id,
+          eserviceTemplateVersionId: eserviceTemplate2.versions[0].id,
+          createdAt,
+        },
+        2
+      );
+
+      const payload: PurposeTemplateEServiceTemplateUnlinkedV2 = {
+        purposeTemplate: toPurposeTemplateV2(purposeTemplate),
+        eserviceTemplate: toEServiceTemplateV2(eserviceTemplate1),
+        eserviceTemplateVersionId: eserviceTemplate1.versions[0].id,
+      };
+      const message: PurposeTemplateEventEnvelope = {
+        sequence_num: 1,
+        stream_id: purposeTemplate.id,
+        version: metadataVersion,
+        type: "PurposeTemplateEServiceTemplateUnlinked",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+      await handleMessageV2(message, purposeTemplateWriterService);
+
+      const retrieved =
+        await purposeTemplateReadModelService.getEServiceTemplateVersionPurposeTemplatesByPurposeTemplateId(
+          purposeTemplate.id
+        );
+
+      expect(retrieved).toStrictEqual([
+        {
+          data: {
+            purposeTemplateId: purposeTemplate.id,
+            eserviceTemplateId: eserviceTemplate2.id,
+            eserviceTemplateVersionId: eserviceTemplate2.versions[0].id,
+            createdAt,
+          },
+          metadata: { version: metadataVersion },
+        } satisfies WithMetadata<EServiceTemplateVersionPurposeTemplate>,
+      ]);
+    });
+
+    it("upsertPurposeTemplate does NOT cascade-delete template links (regression)", async () => {
+      const eserviceTemplate = getMockEServiceTemplate();
+      const createdAt = new Date();
+
+      await purposeTemplateWriterService.upsertPurposeTemplate(
+        purposeTemplate,
+        0
+      );
+      await purposeTemplateWriterService.upsertPurposeTemplateEServiceTemplateVersion(
+        {
+          purposeTemplateId: purposeTemplate.id,
+          eserviceTemplateId: eserviceTemplate.id,
+          eserviceTemplateVersionId: eserviceTemplate.versions[0].id,
+          createdAt,
+        },
+        1
+      );
+
+      const updatedPurposeTemplate: PurposeTemplate = {
+        ...purposeTemplate,
+        purposeTitle: "updated title",
+      };
+      const payload: PurposeTemplateDraftUpdatedV2 = {
+        purposeTemplate: toPurposeTemplateV2(updatedPurposeTemplate),
+      };
+      const message: PurposeTemplateEventEnvelope = {
+        sequence_num: 1,
+        stream_id: purposeTemplate.id,
+        version: 2,
+        type: "PurposeTemplateDraftUpdated",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+      await handleMessageV2(message, purposeTemplateWriterService);
+
+      const retrieved =
+        await purposeTemplateReadModelService.getEServiceTemplateVersionPurposeTemplatesByPurposeTemplateId(
+          purposeTemplate.id
+        );
+
+      expect(retrieved).toStrictEqual([
+        {
+          data: {
+            purposeTemplateId: purposeTemplate.id,
+            eserviceTemplateId: eserviceTemplate.id,
+            eserviceTemplateVersionId: eserviceTemplate.versions[0].id,
+            createdAt,
+          },
+          metadata: { version: 2 },
+        } satisfies WithMetadata<EServiceTemplateVersionPurposeTemplate>,
+      ]);
+    });
+
+    it("PurposeTemplateEServiceTemplateLinked is idempotent on retry", async () => {
+      const eserviceTemplate = getMockEServiceTemplate();
+      const createdAt = new Date();
+
+      await purposeTemplateWriterService.upsertPurposeTemplate(
+        purposeTemplate,
+        0
+      );
+
+      const payload: PurposeTemplateEServiceTemplateLinkedV2 = {
+        purposeTemplate: toPurposeTemplateV2(purposeTemplate),
+        eserviceTemplate: toEServiceTemplateV2(eserviceTemplate),
+        eserviceTemplateVersionId: eserviceTemplate.versions[0].id,
+        createdAt: dateToBigInt(createdAt),
+      };
+      const message: PurposeTemplateEventEnvelope = {
+        sequence_num: 1,
+        stream_id: purposeTemplate.id,
+        version: 1,
+        type: "PurposeTemplateEServiceTemplateLinked",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+
+      await handleMessageV2(message, purposeTemplateWriterService);
+      await handleMessageV2(message, purposeTemplateWriterService);
+
+      const retrieved =
+        await purposeTemplateReadModelService.getEServiceTemplateVersionPurposeTemplatesByPurposeTemplateId(
+          purposeTemplate.id
+        );
+
+      expect(retrieved).toHaveLength(1);
+      expect(retrieved[0].data.eserviceTemplateId).toBe(eserviceTemplate.id);
+    });
+
+    it("PurposeTemplateEServiceTemplateUnlinked of a non-existing link is a safe no-op", async () => {
+      const eserviceTemplate = getMockEServiceTemplate();
+
+      await purposeTemplateWriterService.upsertPurposeTemplate(
+        purposeTemplate,
+        0
+      );
+
+      const payload: PurposeTemplateEServiceTemplateUnlinkedV2 = {
+        purposeTemplate: toPurposeTemplateV2(purposeTemplate),
+        eserviceTemplate: toEServiceTemplateV2(eserviceTemplate),
+        eserviceTemplateVersionId: eserviceTemplate.versions[0].id,
+      };
+      const message: PurposeTemplateEventEnvelope = {
+        sequence_num: 1,
+        stream_id: purposeTemplate.id,
+        version: 1,
+        type: "PurposeTemplateEServiceTemplateUnlinked",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+
+      await expect(
+        handleMessageV2(message, purposeTemplateWriterService)
+      ).resolves.not.toThrow();
+
+      const retrieved =
+        await purposeTemplateReadModelService.getEServiceTemplateVersionPurposeTemplatesByPurposeTemplateId(
+          purposeTemplate.id
+        );
+      expect(retrieved).toHaveLength(0);
+    });
+
+    it("PurposeTemplateEServiceTemplateLinked with lower metadataVersion is skipped", async () => {
+      const eserviceTemplate = getMockEServiceTemplate();
+      const createdAtFirst = new Date();
+
+      await purposeTemplateWriterService.upsertPurposeTemplate(
+        purposeTemplate,
+        5
+      );
+      await purposeTemplateWriterService.upsertPurposeTemplateEServiceTemplateVersion(
+        {
+          purposeTemplateId: purposeTemplate.id,
+          eserviceTemplateId: eserviceTemplate.id,
+          eserviceTemplateVersionId: eserviceTemplate.versions[0].id,
+          createdAt: createdAtFirst,
+        },
+        5
+      );
+
+      const stalePayload: PurposeTemplateEServiceTemplateLinkedV2 = {
+        purposeTemplate: toPurposeTemplateV2(purposeTemplate),
+        eserviceTemplate: toEServiceTemplateV2(eserviceTemplate),
+        eserviceTemplateVersionId: eserviceTemplate.versions[0].id,
+        createdAt: dateToBigInt(new Date(createdAtFirst.getTime() + 1000)),
+      };
+      const staleMessage: PurposeTemplateEventEnvelope = {
+        sequence_num: 1,
+        stream_id: purposeTemplate.id,
+        version: 3,
+        type: "PurposeTemplateEServiceTemplateLinked",
+        event_version: 2,
+        data: stalePayload,
+        log_date: new Date(),
+      };
+
+      await handleMessageV2(staleMessage, purposeTemplateWriterService);
+
+      const retrieved =
+        await purposeTemplateReadModelService.getEServiceTemplateVersionPurposeTemplatesByPurposeTemplateId(
+          purposeTemplate.id
+        );
+      expect(retrieved).toHaveLength(1);
+      expect(retrieved[0].data.createdAt).toEqual(createdAtFirst);
+      expect(retrieved[0].metadata.version).toBe(5);
     });
   });
 });

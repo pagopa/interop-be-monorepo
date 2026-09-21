@@ -1,5 +1,6 @@
 import {
   APIEndpoint,
+  FeatureFlagAttributeCertifiedDiscreteConfig,
   LoggerConfig,
   ReadModelSQLDbConfig,
   TokenGenerationConfig,
@@ -32,6 +33,7 @@ export const IPACertifiedAttributesImporterConfig = LoggerConfig.and(
   .and(TokenGenerationConfig)
   .and(AttributeRegistryProcessServerConfig)
   .and(TenantProcessServerConfig)
+  .and(FeatureFlagAttributeCertifiedDiscreteConfig)
   .and(
     z
       .object({

@@ -9,14 +9,13 @@ import {
   retrieveHTMLTemplate,
   retrieveLatestDescriptor,
   retrieveTenant,
-} from "../../services/utils.js";
-import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-  ProducerKeychainEServiceHandlerParams,
-} from "../handlerCommons.js";
-import { eServiceNotFound } from "../../models/errors.js";
+  eserviceNotFound,
+} from "pagopa-interop-notification-commons";
+
 import { config } from "../../config/config.js";
+import { ProducerKeychainEServiceHandlerParams } from "../../models/handlerParams.js";
 
 const notificationType: NotificationType = "eserviceStateChangedToConsumer";
 
@@ -34,7 +33,7 @@ export async function handleProducerKeychainEserviceAdded(
   const eservice = await readModelService.getEServiceById(eserviceId);
 
   if (eservice === undefined) {
-    throw eServiceNotFound(eserviceId);
+    throw eserviceNotFound(eserviceId);
   }
 
   const [htmlTemplate, agreements, descriptor, producer] = await Promise.all([

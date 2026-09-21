@@ -1,11 +1,18 @@
 import {
+  bffApi,
+  catalogApi,
+  purposeApi,
+  purposeTemplateApi,
+  tenantApi,
+} from "pagopa-interop-api-clients";
+import { SelfcareV2UsersClient } from "pagopa-interop-api-clients";
+import {
   WithLogger,
   FileManager,
   removeDuplicates,
   UIAuthData,
-  assertFeatureFlagEnabled,
-  isFeatureFlagEnabled,
   getRulesetExpiration,
+  authRole,
 } from "pagopa-interop-commons";
 import {
   CorrelationId,
@@ -16,20 +23,23 @@ import {
   PurposeVersionDocumentId,
   PurposeVersionId,
   RiskAnalysisId,
+  WithMetadata,
+  genericError,
   unsafeBrandId,
 } from "pagopa-interop-models";
+
+import { toBffApiCompactClient } from "../api/authorizationApiConverter.js";
 import {
-  bffApi,
-  catalogApi,
-  purposeApi,
-  purposeTemplateApi,
-  tenantApi,
-} from "pagopa-interop-api-clients";
+  toBffApiPurposeVersion,
+  toBffApiRiskAnalysisForm,
+} from "../api/purposeApiConverter.js";
+import { toCompactPurposeTemplate } from "../api/purposeTemplateApiConverter.js";
 import {
   DelegationProcessClient,
   PagoPAInteropBeClients,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
+import { config } from "../config/config.js";
 import {
   agreementNotFound,
   eserviceDescriptorNotFound,
@@ -37,15 +47,12 @@ import {
   purposeNotFound,
   tenantNotFound,
 } from "../model/errors.js";
-import { BffAppContext, Headers } from "../utilities/context.js";
-import { config } from "../config/config.js";
-import { toBffApiCompactClient } from "../api/authorizationApiConverter.js";
-import { toBffApiPurposeVersion } from "../api/purposeApiConverter.js";
 import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
+import { BffAppContext, Headers } from "../utilities/context.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
-import { toCompactPurposeTemplate } from "../api/purposeTemplateApiConverter.js";
 import { getLatestAgreement } from "./agreementService.js";
 import { getAllClients } from "./clientService.js";
+import { getSelfcareCompactUserById } from "./selfcareService.js";
 import { isAgreementUpgradable } from "./validators.js";
 
 const enrichPurposeDelegation = async (
@@ -94,6 +101,47 @@ const enrichPurposeDelegation = async (
   };
 };
 
+const enrichPurposeReviewerWorkflow = async (
+  reviewerWorkflow: purposeApi.ReviewerWorkflow | undefined,
+  authData: UIAuthData,
+  consumerId: string,
+  userRoles: string[],
+  selfcareV2UserClient: SelfcareV2UsersClient,
+  selfcareId: string,
+  correlationId: CorrelationId
+): Promise<bffApi.ReviewerWorkflow | undefined> => {
+  if (reviewerWorkflow === undefined) {
+    return undefined;
+  }
+  const isConsumer = authData.organizationId === consumerId;
+  const hasAdminOrReviewerOrViewerRole =
+    userRoles.includes(authRole.ADMIN_ROLE) ||
+    userRoles.includes(authRole.VIEWER_ROLE) ||
+    userRoles.includes(authRole.REVIEWER_ROLE);
+
+  if (isConsumer && hasAdminOrReviewerOrViewerRole) {
+    const reviewers = await Promise.all(
+      reviewerWorkflow.reviewers.map(async (reviewer) => ({
+        ...(await getSelfcareCompactUserById(
+          selfcareV2UserClient,
+          reviewer.id,
+          selfcareId,
+          correlationId
+        )),
+        sentToReviewerAt: reviewer.sentToReviewerAt,
+      }))
+    );
+    return { ...reviewerWorkflow, reviewers };
+  }
+
+  // Reviewer details are disclosed only to the consumer, so the raw reviewers
+  // array is dropped for everyone else.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { reviewers: _reviewers, ...workflowWithoutReviewers } =
+    reviewerWorkflow;
+  return workflowWithoutReviewers;
+};
+
 const getCurrentVersion = (
   purposeVersions: purposeApi.PurposeVersion[]
 ): purposeApi.PurposeVersion | undefined => {
@@ -114,6 +162,7 @@ const getCurrentVersion = (
 export function purposeServiceBuilder(
   {
     purposeProcessClient,
+    purposeProcessClientWithMetadata,
     purposeTemplateProcessClient,
     catalogProcessClient,
     tenantProcessClient,
@@ -201,21 +250,20 @@ export function purposeServiceBuilder(
         )
       : undefined;
 
-    const clients = await getAllClients(
-      authorizationClient,
-      authData.organizationId,
-      purpose.id,
-      headers
-    );
+    const clients =
+      authData.userRoles.includes(authRole.VIEWER_ROLE) ||
+      authData.userRoles.includes(authRole.REVIEWER_ROLE)
+        ? []
+        : await getAllClients(
+            authorizationClient,
+            authData.organizationId,
+            purpose.id,
+            headers
+          );
 
     const hasNotifications = notifications.includes(purpose.id);
 
-    const isDocumentReady = isFeatureFlagEnabled(
-      config,
-      "featureFlagUseSignedDocument"
-    )
-      ? currentVersion?.signedContract !== undefined
-      : currentVersion?.riskAnalysis !== undefined;
+    const isDocumentReady = currentVersion?.signedContract !== undefined;
 
     // retrieve risk analysis ruleset only if the requester is:
     // - the consumer (no delegation): in this case the tenant kind is the consumer's kind
@@ -224,26 +272,17 @@ export function purposeServiceBuilder(
     // eslint-disable-next-line functional/no-let
     let rulesetExpiration: Date | undefined;
 
-    // for purpose towards eservice in RECEIVE mode, the ruleset is based on the producer kind
-    const isReversePurpose =
-      eservice.mode === catalogApi.EServiceMode.Values.RECEIVE;
     if (!skipRulesetRetrieval && purpose.riskAnalysisForm?.version) {
       if (
         // no delegation, requester is the consumer
-        delegation === undefined &&
-        authData.organizationId === purpose.consumerId
-      ) {
-        rulesetExpiration = getRulesetExpiration(
-          isReversePurpose ? producer.kind : consumer.kind,
-          purpose.riskAnalysisForm.version
-        );
-      } else if (
+        (delegation === undefined &&
+          authData.organizationId === purpose.consumerId) ||
         // delegated consumer
-        delegation !== undefined &&
-        authData.organizationId === delegation?.delegate.id
+        (delegation !== undefined &&
+          authData.organizationId === delegation?.delegate.id)
       ) {
         rulesetExpiration = getRulesetExpiration(
-          isReversePurpose ? producer.kind : delegation.delegator.kind,
+          purpose.riskAnalysisForm.tenantKind,
           purpose.riskAnalysisForm.version
         );
       } else {
@@ -262,7 +301,9 @@ export function purposeServiceBuilder(
         kind: consumer.kind,
         contactMail: getLatestTenantContactEmail(consumer),
       },
-      riskAnalysisForm: purpose.riskAnalysisForm,
+      riskAnalysisForm:
+        purpose.riskAnalysisForm &&
+        toBffApiRiskAnalysisForm(purpose.riskAnalysisForm),
       eservice: {
         id: eservice.id,
         name: eservice.name,
@@ -272,6 +313,7 @@ export function purposeServiceBuilder(
           state: currentDescriptor.state,
           version: currentDescriptor.version,
           audience: currentDescriptor.audience,
+          archivableOn: currentDescriptor.archivingSchedule?.archivableOn,
         },
         mode: eservice.mode,
         personalData: eservice.personalData,
@@ -311,6 +353,16 @@ export function purposeServiceBuilder(
         : undefined,
       isDocumentReady,
       rulesetExpiration: rulesetExpiration?.toJSON(),
+      riskAnalysisReviewMode: purpose.riskAnalysisReviewMode,
+      reviewerWorkflow: await enrichPurposeReviewerWorkflow(
+        purpose.reviewerWorkflow,
+        authData,
+        purpose.consumerId,
+        authData.userRoles,
+        selfcareV2UserClient,
+        authData.selfcareId,
+        correlationId
+      ),
     };
   };
 
@@ -323,6 +375,8 @@ export function purposeServiceBuilder(
       producersIds?: string[];
       states?: purposeApi.PurposeVersionState[];
       excludeDraft?: boolean | undefined;
+      reviewerId?: string | undefined;
+      signingStates?: purposeApi.RiskAnalysisSigningState[] | undefined;
       offset: number;
       limit: number;
     },
@@ -437,6 +491,63 @@ export function purposeServiceBuilder(
       });
       return { id: result.id };
     },
+    async assignRiskAnalysisReviewer(
+      purposeId: PurposeId,
+      seed: bffApi.RiskAnalysisAssignmentSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(`Assigning risk analysis reviewer to purpose ${purposeId}`);
+      await purposeProcessClient.assignRiskAnalysisReviewer(seed, {
+        params: { purposeId },
+        headers,
+      });
+    },
+    async submitRiskAnalysis(
+      purposeId: PurposeId,
+      seed: bffApi.RiskAnalysisSubmissionSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(`Submitting risk analysis for purpose ${purposeId}`);
+      await purposeProcessClient.submitRiskAnalysis(seed, {
+        params: { purposeId },
+        headers,
+      });
+    },
+    async signRiskAnalysis(
+      purposeId: PurposeId,
+      seed: bffApi.RiskAnalysisSignSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(`Signing risk analysis for purpose ${purposeId}`);
+      await purposeProcessClient.signRiskAnalysis(seed, {
+        params: { purposeId },
+        headers,
+      });
+    },
+    async rejectRiskAnalysis(
+      purposeId: PurposeId,
+      seed: bffApi.RiskAnalysisRejectionSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(`Rejecting risk analysis for purpose ${purposeId}`);
+      await purposeProcessClient.rejectRiskAnalysis(seed, {
+        params: { purposeId },
+        headers,
+      });
+    },
+    async editRiskAnalysisForm(
+      purposeId: PurposeId,
+      seed: bffApi.RiskAnalysisFormSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Editing risk analysis form for purpose ${purposeId} by reviewer`
+      );
+      await purposeProcessClient.editRiskAnalysisForm(seed, {
+        params: { purposeId },
+        headers,
+      });
+    },
     async createPurposeForReceiveEservice(
       createSeed: bffApi.PurposeEServiceSeed,
       { logger, headers }: WithLogger<BffAppContext>
@@ -468,7 +579,6 @@ export function purposeServiceBuilder(
       seed: bffApi.PurposeFromTemplateSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CreatedResource> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
       logger.info(
         `Creating purpose from template ${templateId} and consumer ${seed.consumerId}`
       );
@@ -554,6 +664,40 @@ export function purposeServiceBuilder(
           ...filters,
           excludeDraft: false,
           consumersIds: [authData.organizationId],
+          offset,
+          limit,
+        },
+        ctx
+      );
+    },
+    async getRiskAnalysisAssignments(
+      filters: {
+        eservicesIds?: string[] | undefined;
+        signingStates?: bffApi.RiskAnalysisSigningState[] | undefined;
+      },
+      offset: number,
+      limit: number,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.Purposes> {
+      const { authData, logger } = ctx;
+      const signingStates =
+        filters.signingStates && filters.signingStates.length > 0
+          ? filters.signingStates
+          : [
+              bffApi.RiskAnalysisSigningState.Values.ASSIGNED,
+              bffApi.RiskAnalysisSigningState.Values.SUBMITTED,
+            ];
+      logger.info(
+        `Retrieving risk analysis assignments for reviewerId ${authData.userId}, signingState ${signingStates.join(",")}, EServices ${filters.eservicesIds}, offset ${offset}, limit ${limit}`
+      );
+      return await getPurposes(
+        authData,
+        {
+          reviewerId: authData.userId,
+          consumersIds: [authData.organizationId],
+          eservicesIds: filters.eservicesIds,
+          signingStates,
+          excludeDraft: false,
           offset,
           limit,
         },
@@ -776,7 +920,6 @@ export function purposeServiceBuilder(
       body: bffApi.PatchPurposeUpdateFromTemplateContent,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.PurposeVersionResource> {
-      assertFeatureFlagEnabled(config, "featureFlagPurposeTemplate");
       logger.info(
         `Partially update a Purpose ${purposeId} created by Purpose Template ${purposeTemplateId}`
       );
@@ -801,7 +944,7 @@ export function purposeServiceBuilder(
     async getPurpose(
       id: PurposeId,
       ctx: WithLogger<BffAppContext>
-    ): Promise<bffApi.Purpose> {
+    ): Promise<WithMetadata<bffApi.Purpose>> {
       const { headers, authData, logger, correlationId } = ctx;
       logger.info(`Retrieving Purpose ${id}`);
       const notificationsPromise = filterUnreadNotifications(
@@ -809,12 +952,19 @@ export function purposeServiceBuilder(
         [id],
         ctx
       );
-      const purpose = await purposeProcessClient.getPurpose({
-        params: {
-          id,
-        },
-        headers,
-      });
+      const purposeWithMetadata =
+        await purposeProcessClientWithMetadata.getPurpose({
+          params: {
+            id,
+          },
+          headers,
+        });
+
+      if (purposeWithMetadata.metadata === undefined) {
+        throw genericError(`Missing metadata for purpose ${id}`);
+      }
+
+      const purpose = purposeWithMetadata.data;
 
       const eservice = await catalogProcessClient.getEServiceById({
         params: {
@@ -849,18 +999,21 @@ export function purposeServiceBuilder(
           })
         : undefined;
 
-      return await enhancePurpose(
-        authData,
-        purpose,
-        [eservice],
-        [producer],
-        [consumer],
-        purposeTemplate,
-        false,
-        headers,
-        correlationId,
-        notification
-      );
+      return {
+        data: await enhancePurpose(
+          authData,
+          purpose,
+          [eservice],
+          [producer],
+          [consumer],
+          purposeTemplate,
+          false,
+          headers,
+          correlationId,
+          notification
+        ),
+        metadata: purposeWithMetadata.metadata,
+      };
     },
     async retrieveLatestRiskAnalysisConfiguration(
       tenantKind: bffApi.TenantKind | undefined,

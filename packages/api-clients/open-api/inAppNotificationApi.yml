@@ -497,6 +497,7 @@ components:
         - clientAddedRemovedToProducer
         - purposeStatusChangedToProducer
         - templateStatusChangedToProducer
+        - eserviceStateChangedToProducer
         - agreementSuspendedUnsuspendedToConsumer
         - eserviceStateChangedToConsumer
         - agreementActivatedRejectedToConsumer
@@ -515,6 +516,8 @@ components:
         - producerKeychainKeyAddedDeletedToClientUsers
         - purposeQuotaAdjustmentRequestToProducer
         - purposeOverQuotaStateToConsumer
+        - eserviceArchivingRequestedToDelegator
+        - eserviceArchivingApprovedRejectedToDelegate
     NotificationsByType:
       type: object
       additionalProperties: false
@@ -535,6 +538,9 @@ components:
               type: integer
               format: int32
             templateStatusChangedToProducer:
+              type: integer
+              format: int32
+            eserviceStateChangedToProducer:
               type: integer
               format: int32
             agreementSuspendedUnsuspendedToConsumer:
@@ -589,6 +595,12 @@ components:
               type: integer
               format: int32
             purposeOverQuotaStateToConsumer:
+              type: integer
+              format: int32
+            eserviceArchivingRequestedToDelegator:
+              type: integer
+              format: int32
+            eserviceArchivingApprovedRejectedToDelegate:
               type: integer
               format: int32
         totalCount:

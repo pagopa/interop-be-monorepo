@@ -66,6 +66,10 @@ const errorCodes = {
   dpopProofJtiAlreadyUsed: "0044",
   dpopTokenBindingFailed: "0045",
   purposeVersionDocumentNotReady: "0046",
+  eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound: "0047",
+  clientNotFound: "0048",
+  missingDiscreteConfig: "0049",
+  tenantCertifiedDiscreteAttributeNotFound: "0050",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -226,6 +230,17 @@ export function tenantCertifiedAttributeNotFound(
   });
 }
 
+export function tenantCertifiedDiscreteAttributeNotFound(
+  tenant: tenantApi.Tenant,
+  attributeId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Certified discrete attribute ${attributeId} not found for tenant ${tenant.id}`,
+    code: "tenantCertifiedDiscreteAttributeNotFound",
+    title: "Tenant certified discrete attribute not found",
+  });
+}
+
 export function eserviceDescriptorInterfaceNotFound(
   eserviceId: string,
   descriptorId: string
@@ -236,6 +251,18 @@ export function eserviceDescriptorInterfaceNotFound(
     title: "Eservice descriptor interface not found",
   });
 }
+
+export function eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound(
+  eserviceId: string,
+  descriptorId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Async exchange callback interface for descriptor ${descriptorId} not found for eservice ${eserviceId}`,
+    code: "eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound",
+    title: "Eservice descriptor async exchange callback interface not found",
+  });
+}
+
 export function purposeVersionDocumentNotFound(
   purposeId: PurposeId,
   versionId: PurposeVersionId
@@ -265,6 +292,16 @@ export function unexpectedClientKind(
     detail: `Unexpected client kind "${client.kind}" for client ${client.id}`,
     code: "unexpectedClientKind",
     title: "Unexpected client kind",
+  });
+}
+
+export function clientNotFound(
+  client: authorizationApi.Client
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Client ${client.id} not found`,
+    code: "clientNotFound",
+    title: "Client not found",
   });
 }
 
@@ -408,6 +445,16 @@ export function eserviceDescriptorAttributeNotFound(
   });
 }
 
+export function missingDiscreteConfig(
+  attributeId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Discrete configuration not found for attribute ${attributeId}`,
+    code: "missingDiscreteConfig",
+    title: "Missing discrete configuration",
+  });
+}
+
 export function eserviceTemplateVersionAttributeNotFound(
   versionId: string
 ): ApiError<ErrorCodes> {
@@ -512,8 +559,8 @@ export function dpopProofSignatureValidationFailed(
 
 export function dpopProofJtiAlreadyUsed(jti: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `DPoP proof JTI ${jti} already in cache`,
+    detail: `DPoP proof JTI ${jti} already used`,
     code: "dpopProofJtiAlreadyUsed",
-    title: "DPoP proof JTI already in cache",
+    title: "DPoP proof JTI already used",
   });
 }

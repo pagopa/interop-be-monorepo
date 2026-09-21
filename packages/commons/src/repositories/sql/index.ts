@@ -1,6 +1,7 @@
 import path from "path";
-import { fileURLToPath } from "url";
 import pgPromise from "pg-promise";
+import { fileURLToPath } from "url";
+
 import { genericLogger } from "../../logging/index.js";
 
 const filename = fileURLToPath(import.meta.url);

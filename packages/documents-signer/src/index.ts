@@ -1,16 +1,6 @@
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
-import { match } from "ts-pattern";
-import {
-  AgreementEvent,
-  CorrelationId,
-  DelegationEvent,
-  generateId,
-  genericInternalError,
-  PurposeEvent,
-  PurposeTemplateEvent,
-  unsafeBrandId,
-} from "pagopa-interop-models";
 import {
   AgreementTopicConfig,
   decodeKafkaMessage,
@@ -22,7 +12,18 @@ import {
   signatureServiceBuilder,
   PurposeTemplateTopicConfig,
 } from "pagopa-interop-commons";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import {
+  AgreementEvent,
+  CorrelationId,
+  DelegationEvent,
+  generateId,
+  genericInternalError,
+  PurposeEvent,
+  PurposeTemplateEvent,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import { match } from "ts-pattern";
+
 import { config } from "./config/config.js";
 import { handleAgreementDocument } from "./handlers/handleAgreementDocument.js";
 import { handleDelegationDocument } from "./handlers/handleDelegationDocument.js";

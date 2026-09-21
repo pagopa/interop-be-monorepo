@@ -3,12 +3,15 @@ import {
   ClientId,
   DescriptorId,
   EServiceId,
+  InteractionId,
+  InteractionState,
   PurposeId,
   SelfcareId,
   TenantId,
   UserId,
 } from "pagopa-interop-models";
 import { z } from "zod";
+
 import { systemRole, UserRole } from "../auth/roles.js";
 
 // Zod utility to parse a non-empty comma-separated string and transform it
@@ -77,6 +80,35 @@ export type InteropJwtConsumerPayload = z.infer<
 export type InteropConsumerToken = {
   header: InteropJwtHeader;
   payload: InteropJwtConsumerPayload;
+  serialized: string;
+};
+
+/* ==========================================
+    Interop ASYNC CONSUMER Token
+  ========================================== */
+export const InteropJwtAsyncConsumerPayload = InteropJwtCommonPayload.merge(
+  z.object({
+    client_id: ClientId,
+    sub: ClientId,
+    purposeId: PurposeId,
+    digest: ClientAssertionDigest.optional(),
+    producerId: TenantId,
+    consumerId: TenantId,
+    eserviceId: EServiceId,
+    descriptorId: DescriptorId,
+    interactionId: InteractionId,
+    urlCallback: z.string().optional(),
+    scope: InteractionState,
+    cnf: CNF.optional(),
+  })
+);
+export type InteropJwtAsyncConsumerPayload = z.infer<
+  typeof InteropJwtAsyncConsumerPayload
+>;
+
+export type InteropAsyncConsumerToken = {
+  header: InteropJwtHeader;
+  payload: InteropJwtAsyncConsumerPayload;
   serialized: string;
 };
 

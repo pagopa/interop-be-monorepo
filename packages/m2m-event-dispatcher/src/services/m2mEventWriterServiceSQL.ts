@@ -1,3 +1,5 @@
+import { SQL, eq, and } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/node-postgres";
 import {
   eserviceInM2MEvent,
   agreementInM2MEvent,
@@ -23,9 +25,10 @@ import {
   ProducerKeyM2MEventSQL,
   KeyM2MEventSQL,
   TenantM2MEventSQL,
+  PurposeTemplateM2MEventSQL,
+  purposeTemplateInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
-import { drizzle } from "drizzle-orm/node-postgres";
-import { SQL, eq, and } from "drizzle-orm";
+
 import { isResourceVersionPresent } from "../utils/m2mEventSQLUtils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -45,7 +48,8 @@ export function m2mEventWriterServiceSQLBuilder(
       | ProducerKeychainM2MEventSQL
       | ProducerKeyM2MEventSQL
       | KeyM2MEventSQL
-      | TenantM2MEventSQL,
+      | TenantM2MEventSQL
+      | PurposeTemplateM2MEventSQL,
     table:
       | typeof eserviceInM2MEvent
       | typeof agreementInM2MEvent
@@ -58,7 +62,8 @@ export function m2mEventWriterServiceSQLBuilder(
       | typeof producerKeychainInM2MEvent
       | typeof producerKeyInM2MEvent
       | typeof keyInM2MEvent
-      | typeof tenantInM2MEvent,
+      | typeof tenantInM2MEvent
+      | typeof purposeTemplateInM2MEvent,
     resourceIdFilter: SQL | undefined
   ): Promise<void> {
     return m2mEventDB.transaction(async (tx) => {
@@ -217,6 +222,17 @@ export function m2mEventWriterServiceSQLBuilder(
         eq(attributeInM2MEvent.attributeId, event.attributeId)
       );
     },
+
+    async insertPurposeTemplateM2MEvent(
+      event: PurposeTemplateM2MEventSQL
+    ): Promise<void> {
+      await insertIfResourceVersionNotPresent(
+        event,
+        purposeTemplateInM2MEvent,
+        eq(purposeTemplateInM2MEvent.purposeTemplateId, event.purposeTemplateId)
+      );
+    },
+
     async removeConsumerDelegationVisibility(
       delegationId: string
     ): Promise<void> {

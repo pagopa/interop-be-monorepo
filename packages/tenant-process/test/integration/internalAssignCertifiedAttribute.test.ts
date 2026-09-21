@@ -17,6 +17,7 @@ import {
   toTenantV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
+
 import {
   attributeNotFound,
   certifiedAttributeAlreadyAssigned,
@@ -88,7 +89,10 @@ describe("internalAssignCertifiedAttributes", async () => {
       kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
       updatedAt: new Date(),
     };
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    expect(writtenPayload).toEqual({
+      attributeId: certifiedAttribute.id,
+      tenant: toTenantV2(updatedTenant),
+    });
   });
   it("Should re-assign the attribute if it was revoked", async () => {
     const tenantWithCertifiedAttribute: Tenant = {
@@ -144,7 +148,10 @@ describe("internalAssignCertifiedAttributes", async () => {
       kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
       updatedAt: new Date(),
     };
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    expect(writtenPayload).toEqual({
+      attributeId: certifiedAttribute.id,
+      tenant: toTenantV2(updatedTenant),
+    });
   });
   it("Should throw certifiedAttributeAlreadyAssigned if the attribute was already assigned", async () => {
     const tenantAlreadyAssigned: Tenant = {

@@ -5,6 +5,7 @@ import {
   catalogApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
+import { isFeatureFlagEnabled } from "pagopa-interop-commons";
 import {
   delegationKind,
   delegationState,
@@ -14,13 +15,15 @@ import {
   unauthorizedError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { DelegationProcessClient } from "../clients/clientsProvider.js";
+
 import { descriptorAttributesFromApi } from "../api/catalogApiConverter.js";
 import {
   toDelegationKind,
   toDelegationState,
 } from "../api/delegationApiConverter.js";
 import { tenantAttributesFromApi } from "../api/tenantApiConverter.js";
+import { DelegationProcessClient } from "../clients/clientsProvider.js";
+import { config } from "../config/config.js";
 import {
   delegatedEserviceNotExportable,
   invalidEServiceRequester,
@@ -43,6 +46,8 @@ export function isValidDescriptor(
       catalogApi.EServiceDescriptorState.Values.DEPRECATED,
       catalogApi.EServiceDescriptorState.Values.PUBLISHED,
       catalogApi.EServiceDescriptorState.Values.SUSPENDED,
+      catalogApi.EServiceDescriptorState.Values.ARCHIVING,
+      catalogApi.EServiceDescriptorState.Values.ARCHIVING_SUSPENDED,
       () => true
     )
     .with(
@@ -67,6 +72,8 @@ export function isInvalidDescriptor(
       catalogApi.EServiceDescriptorState.Values.DEPRECATED,
       catalogApi.EServiceDescriptorState.Values.PUBLISHED,
       catalogApi.EServiceDescriptorState.Values.SUSPENDED,
+      catalogApi.EServiceDescriptorState.Values.ARCHIVING,
+      catalogApi.EServiceDescriptorState.Values.ARCHIVING_SUSPENDED,
       () => false
     )
     .exhaustive();
@@ -189,7 +196,13 @@ export function hasCertifiedAttributes(
     descriptor !== undefined &&
     certifiedAttributesSatisfied(
       descriptorAttributesFromApi(descriptor.attributes),
-      tenantAttributesFromApi(requesterTenant.attributes)
+      tenantAttributesFromApi(requesterTenant.attributes),
+      {
+        certifiedDiscreteEnabled: isFeatureFlagEnabled(
+          config,
+          "featureFlagAttributeCertifiedDiscrete"
+        ),
+      }
     )
   );
 }

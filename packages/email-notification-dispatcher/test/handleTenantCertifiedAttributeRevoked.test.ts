@@ -1,12 +1,12 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/no-identical-functions */
+import { authRole } from "pagopa-interop-commons";
 import {
   getMockAttribute,
   getMockContext,
   getMockTenant,
   getMockTenantMail,
 } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
 import {
   Attribute,
   AttributeId,
@@ -20,10 +20,11 @@ import {
   toTenantV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { attributeNotFound } from "pagopa-interop-notification-commons";
 import { match } from "ts-pattern";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { handleTenantCertifiedAttributeRevoked } from "../src/handlers/tenants/handleTenantCertifiedAttributeRevoked.js";
-import { attributeNotFound } from "../src/models/errors.js";
 import {
   addOneAttribute,
   addOneTenant,
@@ -41,6 +42,27 @@ describe("handleTenantCertifiedAttributeRevoked", async () => {
   const attribute: Attribute = {
     ...getMockAttribute("Certified", attributeId),
     origin: certifierId,
+  };
+
+  const certifiedAttributeANAC: Attribute = {
+    ...getMockAttribute("Certified"),
+    name: "Certified ANAC Attribute",
+    origin: "ANAC",
+  };
+  const certifiedAttributeIPA: Attribute = {
+    ...getMockAttribute("Certified"),
+    name: "Certified IPA Attribute",
+    origin: "IPA",
+  };
+  const certifiedAttributeIVASS: Attribute = {
+    ...getMockAttribute("Certified"),
+    name: "Certified IVASS Attribute",
+    origin: "IVASS",
+  };
+  const certifiedAttributeISTAT: Attribute = {
+    ...getMockAttribute("Certified"),
+    name: "Certified ISTAT Attribute",
+    origin: "ISTAT",
   };
 
   const targetTenant: Tenant = {
@@ -66,6 +88,10 @@ describe("handleTenantCertifiedAttributeRevoked", async () => {
     await addOneTenant(targetTenant);
     await addOneTenant(certifierTenant);
     await addOneAttribute(attribute);
+    await addOneAttribute(certifiedAttributeANAC);
+    await addOneAttribute(certifiedAttributeIPA);
+    await addOneAttribute(certifiedAttributeIVASS);
+    await addOneAttribute(certifiedAttributeISTAT);
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
       .mockResolvedValue({
@@ -223,7 +249,53 @@ describe("handleTenantCertifiedAttributeRevoked", async () => {
         })
         .exhaustive();
       expect(message.email.body).toContain(attribute.name);
-      expect(message.email.body).toContain(attribute.name);
     });
   });
+
+  it.each<{
+    certifiedAttribute: Attribute;
+  }>([
+    {
+      certifiedAttribute: certifiedAttributeANAC,
+    },
+    {
+      certifiedAttribute: certifiedAttributeIVASS,
+    },
+    {
+      certifiedAttribute: certifiedAttributeIPA,
+    },
+    {
+      certifiedAttribute: certifiedAttributeISTAT,
+    },
+  ])(
+    "should generate a complete and correct message for certified origin $certifiedAttribute.origin",
+    async ({ certifiedAttribute }) => {
+      const messages = await handleTenantCertifiedAttributeRevoked({
+        tenantV2Msg: toTenantV2(targetTenant),
+        attributeId: certifiedAttribute.id,
+        logger,
+        templateService,
+        readModelService,
+        correlationId: generateId<CorrelationId>(),
+      });
+
+      expect(messages.length).toBe(2);
+      messages.forEach((message) => {
+        expect(message.email.body).toContain("<!-- Footer -->");
+        expect(message.email.body).toContain("<!-- Title & Main Message -->");
+        expect(message.email.body).toContain(
+          `Un tuo attributo certificato è stato revocato`
+        );
+        match(message.type)
+          .with("User", () => {
+            expect(message.email.body).toContain("{{ recipientName }}");
+          })
+          .with("Tenant", () => {
+            expect(message.email.body).toContain(targetTenant.name);
+          })
+          .exhaustive();
+        expect(message.email.body).toContain(certifiedAttribute.name);
+      });
+    }
+  );
 });

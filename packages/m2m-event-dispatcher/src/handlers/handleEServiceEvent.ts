@@ -1,18 +1,19 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   EServiceEventEnvelope,
   EServiceEventEnvelopeV2,
   fromEServiceV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
-import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
-import { M2MEventWriterServiceSQL } from "../services/m2mEventWriterServiceSQL.js";
+
+import { toEServiceM2MEventSQL } from "../models/eserviceM2MEventAdapterSQL.js";
 import {
   createEServiceDescriptorM2MEvent,
   createEServiceM2MEvent,
 } from "../services/event-builders/eserviceM2MEventBuilder.js";
-import { toEServiceM2MEventSQL } from "../models/eserviceM2MEventAdapterSQL.js";
+import { M2MEventWriterServiceSQL } from "../services/m2mEventWriterServiceSQL.js";
+import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import { assertEServiceExistsInEvent } from "../services/validators.js";
 
 export async function handleEServiceEvent(
@@ -73,7 +74,16 @@ async function handleEServiceEventV2(
             "EServiceRiskAnalysisDeleted",
             "EServicePersonalDataFlagUpdatedAfterPublication",
             "EServicePersonalDataFlagUpdatedByTemplateUpdate",
-            "EServiceInstanceLabelUpdated"
+            "EServiceInstanceLabelUpdated",
+            "EServiceArchivingScheduled",
+            "EServiceArchivingCanceled",
+            "EServiceArchivingCompleted",
+            "EServiceArchivingRequestedByDelegate",
+            "EServiceArchivingRequestRejectedByDelegator",
+            "EServiceArchivingRequestApprovedByDelegator",
+            "EServiceArchivingRequestCanceledByDelegate",
+            "EServiceArchivingRequestCanceledByRevokedDelegation",
+            "MaintenanceEServicePersonalDataFlagReset"
           ),
         },
         async (event) => {
@@ -112,6 +122,7 @@ async function handleEServiceEventV2(
             "EServiceDraftDescriptorDeleted",
             "EServiceDraftDescriptorUpdated",
             "EServiceDescriptorAttributesUpdated",
+            "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
             "EServiceDescriptorSubmittedByDelegate",
             "EServiceDescriptorRejectedByDelegator",
             "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
@@ -123,8 +134,18 @@ async function handleEServiceEventV2(
             "EServiceDescriptorDocumentDeletedByTemplateUpdate",
             "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
             "EServiceDescriptorInterfaceAdded",
-            "EServiceDescriptorInterfaceUpdated",
-            "EServiceDescriptorInterfaceDeleted"
+            "EServiceDescriptorInterfaceDeleted",
+            "EServiceDescriptorArchivingScheduled",
+            "EServiceDescriptorArchivingCanceled",
+            "EServiceDescriptorArchivingCompleted",
+            "EServiceDescriptorArchivingRequestedByDelegate",
+            "EServiceDescriptorArchivingRequestRejectedByDelegator",
+            "EServiceDescriptorArchivingRequestApprovedByDelegator",
+            "EServiceDescriptorArchivingRequestCanceledByDelegate",
+            "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation",
+            "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+            "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
+            "MaintenanceEServiceDescriptorUnarchived"
           ),
         },
         async (event) => {
@@ -147,6 +168,11 @@ async function handleEServiceEventV2(
           );
         }
       )
+      .with({ type: "MaintenanceEServiceRiskAnalysisSetTenantKind" }, () => {
+        logger.info(
+          `Skipping M2M event creation for ${decodedMessage.type} message`
+        );
+      })
       .exhaustive()
   );
 }

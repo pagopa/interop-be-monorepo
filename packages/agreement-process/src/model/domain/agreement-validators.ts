@@ -1,4 +1,19 @@
 import {
+  certifiedAttributesSatisfied,
+  filterCertifiedAttributes,
+  filterDeclaredAttributes,
+  filterVerifiedAttributes,
+  matchesCertifiedDiscreteAttribute,
+} from "pagopa-interop-agreement-lifecycle";
+import {
+  isFeatureFlagEnabled,
+  M2MAdminAuthData,
+  M2MAuthData,
+  ownership,
+  Ownership,
+  UIAuthData,
+} from "pagopa-interop-commons";
+import {
   Agreement,
   AgreementState,
   AttributeId,
@@ -14,32 +29,18 @@ import {
   EServiceId,
   unsafeBrandId,
   TenantId,
-  AgreementStamp,
-  AgreementStamps,
   delegationKind,
   Delegation,
   delegationState,
   DelegationId,
 } from "pagopa-interop-models";
-import {
-  M2MAdminAuthData,
-  M2MAuthData,
-  ownership,
-  Ownership,
-  UIAuthData,
-} from "pagopa-interop-commons";
-import {
-  certifiedAttributesSatisfied,
-  filterCertifiedAttributes,
-  filterDeclaredAttributes,
-  filterVerifiedAttributes,
-} from "pagopa-interop-agreement-lifecycle";
+
+import { config } from "../../config/config.js";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import {
   agreementActivationFailed,
   agreementAlreadyExists,
   agreementNotInExpectedState,
-  agreementStampNotFound,
   agreementSubmissionFailed,
   descriptorNotFound,
   descriptorNotInExpectedState,
@@ -56,6 +57,7 @@ import {
 import {
   ActiveDelegations,
   CertifiedAgreementAttribute,
+  CertifiedDiscreteAgreementAttribute,
   DeclaredAgreementAttribute,
   VerifiedAgreementAttribute,
 } from "./models.js";
@@ -357,6 +359,22 @@ export const assertRequesterCanActAsConsumer = (
   }
 };
 
+export function assertAgreementIsPending(
+  agreement: Pick<Agreement, "state" | "id">
+): void {
+  if (agreement.state !== agreementState.pending) {
+    throw agreementNotInExpectedState(agreement.id, agreement.state);
+  }
+}
+
+export function assertAgreementIsSuspended(
+  agreement: Pick<Agreement, "state" | "id">
+): void {
+  if (agreement.state !== agreementState.suspended) {
+    throw agreementNotInExpectedState(agreement.id, agreement.state);
+  }
+}
+
 /* =========  VALIDATIONS ========= */
 
 const validateDescriptorState = (
@@ -380,6 +398,8 @@ const validateLatestDescriptor = (
     descriptorState.deprecated,
     descriptorState.published,
     descriptorState.suspended,
+    descriptorState.archiving,
+    descriptorState.archivingSuspended,
   ];
 
   const recentActiveDescriptors = eservice.descriptors
@@ -445,7 +465,12 @@ export const validateCertifiedAttributes = ({
   consumer: Tenant;
 }): void => {
   if (
-    !certifiedAttributesSatisfied(descriptor.attributes, consumer.attributes)
+    !certifiedAttributesSatisfied(descriptor.attributes, consumer.attributes, {
+      certifiedDiscreteEnabled: isFeatureFlagEnabled(
+        config,
+        "featureFlagAttributeCertifiedDiscrete"
+      ),
+    })
   ) {
     throw missingCertifiedAttributesError(descriptor.id, consumer.id);
   }
@@ -541,6 +566,33 @@ export const matchingCertifiedAttributes = (
   ).map((id) => ({ id }) as CertifiedAgreementAttribute);
 };
 
+export const matchingCertifiedDiscreteAttributes = (
+  descriptor: Descriptor,
+  consumer: Tenant
+): CertifiedDiscreteAgreementAttribute[] => {
+  if (!isFeatureFlagEnabled(config, "featureFlagAttributeCertifiedDiscrete")) {
+    return [];
+  }
+
+  const matchedIds = descriptor.attributes.certified
+    .flat()
+    .filter(
+      (descriptorAttribute) =>
+        "discreteConfig" in descriptorAttribute &&
+        consumer.attributes.some((tenantAttribute) =>
+          matchesCertifiedDiscreteAttribute(
+            descriptorAttribute,
+            tenantAttribute
+          )
+        )
+    )
+    .map((descriptorAttribute) => descriptorAttribute.id);
+
+  return [...new Set(matchedIds)].map(
+    (id) => ({ id }) as CertifiedDiscreteAgreementAttribute
+  );
+};
+
 export const matchingDeclaredAttributes = (
   descriptor: Descriptor,
   consumer: Tenant
@@ -570,12 +622,3 @@ export const matchingVerifiedAttributes = (
     verifiedAttributes
   ).map((id) => ({ id }) as VerifiedAgreementAttribute);
 };
-
-export function assertStampExists<S extends keyof AgreementStamps>(
-  stamps: AgreementStamps,
-  stamp: S
-): asserts stamps is AgreementStamps & Record<S, AgreementStamp> {
-  if (!stamps[stamp]) {
-    throw agreementStampNotFound(stamp);
-  }
-}
