@@ -7,6 +7,7 @@ import {
   desc,
   eq,
   exists,
+  gt,
   inArray,
   isNotNull,
   isNull,
@@ -16,7 +17,7 @@ import {
   SQL,
   sql,
 } from "drizzle-orm";
-import { PgSelect } from "drizzle-orm/pg-core";
+import { alias, PgSelect } from "drizzle-orm/pg-core";
 import {
   ascLower,
   createListResult,
@@ -106,6 +107,7 @@ import {
   Consumer,
   EServicesQueryFilters,
   EServiceSortBy,
+  RequesterDelegationRole,
 } from "../model/domain/models.js";
 import { activeDescriptorStates } from "./descriptorStates.js";
 import { hasRoleToAccessInactiveDescriptors } from "./validators.js";
@@ -209,6 +211,161 @@ const keywordRelevance = (keyword: string): SQL => {
     similarity(${eserviceDescription}, ${normalizedKeyword}),
     similarity(${producerName}, ${normalizedKeyword}))`;
   return sql`(${fullTextRank} + 0.5 * ${fuzzySimilarity})`;
+};
+
+const producersFilter = (
+  tx: DrizzleTransactionType,
+  producersIds: TenantId[]
+): SQL | undefined =>
+  producersIds.length > 0
+    ? or(
+        inArray(eserviceInReadmodelCatalog.producerId, producersIds),
+        exists(
+          tx
+            .select()
+            .from(delegationInReadmodelDelegation)
+            .where(
+              and(
+                eq(
+                  delegationInReadmodelDelegation.eserviceId,
+                  eserviceInReadmodelCatalog.id
+                ),
+                inArray(
+                  delegationInReadmodelDelegation.delegateId,
+                  producersIds
+                ),
+                eq(
+                  delegationInReadmodelDelegation.state,
+                  delegationState.active
+                ),
+                eq(
+                  delegationInReadmodelDelegation.kind,
+                  delegationKind.delegatedProducer
+                )
+              )
+            )
+        )
+      )
+    : undefined;
+
+const newerActiveDescriptor = alias(
+  eserviceDescriptorInReadmodelCatalog,
+  "newerActiveDescriptor"
+);
+
+const onlyActiveEservicesFilter = (
+  tx: DrizzleTransactionType,
+  onlyActiveEservices: boolean | undefined
+): SQL | undefined =>
+  onlyActiveEservices
+    ? notExists(
+        tx
+          .select()
+          .from(eserviceDescriptorInReadmodelCatalog)
+          .where(
+            and(
+              eq(
+                eserviceDescriptorInReadmodelCatalog.eserviceId,
+                eserviceInReadmodelCatalog.id
+              ),
+              eq(
+                eserviceDescriptorInReadmodelCatalog.state,
+                descriptorState.suspended
+              ),
+              notExists(
+                tx
+                  .select()
+                  .from(newerActiveDescriptor)
+                  .where(
+                    and(
+                      eq(
+                        newerActiveDescriptor.eserviceId,
+                        eserviceInReadmodelCatalog.id
+                      ),
+                      inArray(
+                        newerActiveDescriptor.state,
+                        activeDescriptorStates
+                      ),
+                      gt(
+                        sql`CAST(${newerActiveDescriptor.version} AS INTEGER)`,
+                        sql`CAST(${eserviceDescriptorInReadmodelCatalog.version} AS INTEGER)`
+                      )
+                    )
+                  )
+              )
+            )
+          )
+      )
+    : undefined;
+
+const subscribedByRequesterFilter = (
+  tx: DrizzleTransactionType,
+  requesterId: TenantId,
+  subscribedByRequester: boolean | undefined
+): SQL | undefined => {
+  if (subscribedByRequester === undefined) {
+    return undefined;
+  }
+  const subscriptionQuery = tx
+    .select()
+    .from(agreementInReadmodelAgreement)
+    .where(
+      and(
+        eq(
+          agreementInReadmodelAgreement.eserviceId,
+          eserviceInReadmodelCatalog.id
+        ),
+        eq(agreementInReadmodelAgreement.consumerId, requesterId),
+        inArray(agreementInReadmodelAgreement.state, [
+          agreementState.active,
+          agreementState.suspended,
+        ])
+      )
+    );
+  return subscribedByRequester
+    ? exists(subscriptionQuery)
+    : notExists(subscriptionQuery);
+};
+
+const requesterDelegationRolesFilter = (
+  tx: DrizzleTransactionType,
+  requesterId: TenantId,
+  requesterDelegationRoles: RequesterDelegationRole[]
+): SQL | undefined => {
+  if (requesterDelegationRoles.length === 0) {
+    return undefined;
+  }
+  const roleFilter = or(
+    ...requesterDelegationRoles.map((role) =>
+      match(role)
+        .with("DELEGATE", () =>
+          eq(delegationInReadmodelDelegation.delegateId, requesterId)
+        )
+        .with("DELEGATOR", () =>
+          eq(delegationInReadmodelDelegation.delegatorId, requesterId)
+        )
+        .exhaustive()
+    )
+  );
+  return exists(
+    tx
+      .select()
+      .from(delegationInReadmodelDelegation)
+      .where(
+        and(
+          eq(
+            delegationInReadmodelDelegation.eserviceId,
+            eserviceInReadmodelCatalog.id
+          ),
+          eq(
+            delegationInReadmodelDelegation.kind,
+            delegationKind.delegatedProducer
+          ),
+          eq(delegationInReadmodelDelegation.state, delegationState.active),
+          roleFilter
+        )
+      )
+  );
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -669,7 +826,16 @@ export function readModelServiceBuilderSQL(
     },
     async queryEServices(
       authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
-      { offset, limit, sortBy, keyword }: EServicesQueryFilters
+      {
+        offset,
+        limit,
+        sortBy,
+        keyword,
+        producersIds,
+        onlyActiveEservices,
+        subscribedByRequester,
+        requesterDelegationRoles,
+      }: EServicesQueryFilters
     ): Promise<ListResult<EService>> {
       // The page, the count and the fallback decision are separate statements:
       // one snapshot keeps them consistent with each other.
@@ -710,6 +876,21 @@ export function readModelServiceBuilderSQL(
               )
             : existsValidDescriptor(tx);
 
+          const filtersCondition = and(
+            producersFilter(tx, producersIds),
+            onlyActiveEservicesFilter(tx, onlyActiveEservices),
+            subscribedByRequesterFilter(
+              tx,
+              authData.organizationId,
+              subscribedByRequester
+            ),
+            requesterDelegationRolesFilter(
+              tx,
+              authData.organizationId,
+              requesterDelegationRoles
+            )
+          );
+
           const getPage = async (
             keywordFilter: SQL | undefined,
             relevance: SQL | undefined
@@ -723,7 +904,7 @@ export function readModelServiceBuilderSQL(
                 .select({ id: eserviceInReadmodelCatalog.id })
                 .from(eserviceInReadmodelCatalog)
                 .leftJoin(tenantInReadmodelTenant, eserviceProducerJoin)
-                .where(and(visibilityFilter, keywordFilter))
+                .where(and(visibilityFilter, filtersCondition, keywordFilter))
                 .orderBy(...orderBy)
                 .limit(limit)
                 .offset(offset),
@@ -731,7 +912,7 @@ export function readModelServiceBuilderSQL(
                 .select({ count: countDistinct(eserviceInReadmodelCatalog.id) })
                 .from(eserviceInReadmodelCatalog)
                 .leftJoin(tenantInReadmodelTenant, eserviceProducerJoin)
-                .where(and(visibilityFilter, keywordFilter)),
+                .where(and(visibilityFilter, filtersCondition, keywordFilter)),
             ]);
 
             return {

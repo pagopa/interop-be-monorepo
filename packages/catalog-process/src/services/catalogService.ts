@@ -1056,14 +1056,22 @@ export function catalogServiceBuilder(
       const sortBy = filters.sortBy ?? defaultEServiceSortBy;
       const trimmedKeyword = filters.keyword?.trim();
       const keyword = trimmedKeyword === "" ? undefined : trimmedKeyword;
+      const producersIds = (filters.producersIds ?? []).map<TenantId>(
+        unsafeBrandId
+      );
+      const requesterDelegationRoles = filters.requesterDelegationRoles ?? [];
       logger.info(
-        `Querying EServices, limit = ${filters.limit}, offset = ${filters.offset}, sortBy = ${sortBy}, keyword = ${keyword}`
+        `Querying EServices, limit = ${filters.limit}, offset = ${filters.offset}, sortBy = ${sortBy}, keyword = ${keyword}, producersIds = ${producersIds}, onlyActiveEservices = ${filters.onlyActiveEservices}, subscribedByRequester = ${filters.subscribedByRequester}, requesterDelegationRoles = ${requesterDelegationRoles}`
       );
       const eservicesList = await readModelService.queryEServices(authData, {
         offset: filters.offset,
         limit: filters.limit,
         sortBy,
         keyword,
+        producersIds,
+        onlyActiveEservices: filters.onlyActiveEservices,
+        subscribedByRequester: filters.subscribedByRequester,
+        requesterDelegationRoles,
       });
 
       const eservicesToReturn = await Promise.all(
