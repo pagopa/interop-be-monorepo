@@ -99,7 +99,7 @@ export function eserviceTemplateServiceBuilder(
   function getIndexedKindAttributeGroups(
     version: eserviceTemplateApi.EServiceTemplateVersion,
     attributeKind: AttributeKind
-  ): Array<{ group: eserviceTemplateApi.Attribute[]; index: number }> {
+  ): { group: eserviceTemplateApi.Attribute[]; index: number }[] {
     const templateAttributeKind =
       mapAttributeKindToEServiceTemplateKind(attributeKind);
 

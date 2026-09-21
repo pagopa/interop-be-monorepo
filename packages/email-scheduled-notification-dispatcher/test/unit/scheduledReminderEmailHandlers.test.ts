@@ -100,11 +100,11 @@ function buildReadModelService({
         notificationType: NotificationType,
         _channel: "inApp" | "email"
       ): Promise<
-        Array<{
+        {
           userId: UserId;
           tenantId: TenantId;
           userRoles: UserRole[];
-        }>
+        }[]
       > =>
         notificationType === "eserviceStateChangedToProducer"
           ? [

@@ -97,7 +97,7 @@ export function eserviceServiceBuilder(
   function getIndexedKindAttributeGroups(
     descriptor: catalogApi.EServiceDescriptor,
     attributeKind: AttributeKind
-  ): Array<{ group: catalogApi.Attribute[]; index: number }> {
+  ): { group: catalogApi.Attribute[]; index: number }[] {
     const catalogAttributeKind = mapAttributeKindToCatalogKind(attributeKind);
 
     return descriptor.attributes[catalogAttributeKind]
