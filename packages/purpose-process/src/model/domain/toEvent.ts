@@ -503,14 +503,14 @@ export const toCreateEventPurposeRiskAnalysisWorkflowCreated = ({
   purpose,
   addedReviewers,
   removedReviewers,
-  previousReviewMode,
+  previousRiskAnalysisReviewMode,
   version,
   correlationId,
 }: {
   purpose: Purpose;
   addedReviewers: UserId[];
   removedReviewers: RiskAnalysisReviewer[];
-  previousReviewMode?: RiskAnalysisReviewMode;
+  previousRiskAnalysisReviewMode?: RiskAnalysisReviewMode;
   version: number;
   correlationId: CorrelationId;
 }): CreateEvent<PurposeEventV2> => ({
@@ -523,10 +523,10 @@ export const toCreateEventPurposeRiskAnalysisWorkflowCreated = ({
       purpose: toPurposeV2(purpose),
       addedReviewers,
       removedReviewers: removedReviewers.map(toRiskAnalysisReviewerV2),
-      previousReviewMode:
-        previousReviewMode === undefined
+      previousRiskAnalysisReviewMode:
+        previousRiskAnalysisReviewMode === undefined
           ? undefined
-          : toRiskAnalysisReviewModeV2(previousReviewMode),
+          : toRiskAnalysisReviewModeV2(previousRiskAnalysisReviewMode),
     },
   },
   correlationId,
@@ -536,14 +536,14 @@ export const toCreateEventPurposeRiskAnalysisAssigned = ({
   purpose,
   addedReviewers,
   removedReviewers,
-  previousReviewMode,
+  previousRiskAnalysisReviewMode,
   version,
   correlationId,
 }: {
   purpose: Purpose;
   addedReviewers: UserId[];
   removedReviewers: RiskAnalysisReviewer[];
-  previousReviewMode?: RiskAnalysisReviewMode;
+  previousRiskAnalysisReviewMode?: RiskAnalysisReviewMode;
   version: number;
   correlationId: CorrelationId;
 }): CreateEvent<PurposeEventV2> => ({
@@ -556,10 +556,10 @@ export const toCreateEventPurposeRiskAnalysisAssigned = ({
       purpose: toPurposeV2(purpose),
       addedReviewers,
       removedReviewers: removedReviewers.map(toRiskAnalysisReviewerV2),
-      previousReviewMode:
-        previousReviewMode === undefined
+      previousRiskAnalysisReviewMode:
+        previousRiskAnalysisReviewMode === undefined
           ? undefined
-          : toRiskAnalysisReviewModeV2(previousReviewMode),
+          : toRiskAnalysisReviewModeV2(previousRiskAnalysisReviewMode),
     },
   },
   correlationId,
@@ -568,13 +568,13 @@ export const toCreateEventPurposeRiskAnalysisAssigned = ({
 export const toCreateEventPurposeRiskAnalysisSelfAssigned = ({
   purpose,
   removedReviewers,
-  previousReviewMode,
+  previousRiskAnalysisReviewMode,
   version,
   correlationId,
 }: {
   purpose: Purpose;
   removedReviewers: RiskAnalysisReviewer[];
-  previousReviewMode?: RiskAnalysisReviewMode;
+  previousRiskAnalysisReviewMode?: RiskAnalysisReviewMode;
   version: number;
   correlationId: CorrelationId;
 }): CreateEvent<PurposeEventV2> => ({
@@ -586,10 +586,10 @@ export const toCreateEventPurposeRiskAnalysisSelfAssigned = ({
     data: {
       purpose: toPurposeV2(purpose),
       removedReviewers: removedReviewers.map(toRiskAnalysisReviewerV2),
-      previousReviewMode:
-        previousReviewMode === undefined
+      previousRiskAnalysisReviewMode:
+        previousRiskAnalysisReviewMode === undefined
           ? undefined
-          : toRiskAnalysisReviewModeV2(previousReviewMode),
+          : toRiskAnalysisReviewModeV2(previousRiskAnalysisReviewMode),
     },
   },
   correlationId,

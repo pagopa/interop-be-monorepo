@@ -206,9 +206,9 @@ export const fromPurposeV2 = (input: PurposeV2): Purpose => ({
   purposeTemplateId: input.purposeTemplateId
     ? unsafeBrandId<PurposeTemplateId>(input.purposeTemplateId)
     : undefined,
-  reviewMode:
-    input.reviewMode !== undefined
-      ? fromRiskAnalysisReviewModeV2(input.reviewMode)
+  riskAnalysisReviewMode:
+    input.riskAnalysisReviewMode !== undefined
+      ? fromRiskAnalysisReviewModeV2(input.riskAnalysisReviewMode)
       : undefined,
   reviewerWorkflow: input.reviewerWorkflow
     ? fromReviewerWorkflowV2(input.reviewerWorkflow)

@@ -2000,7 +2000,8 @@ describe("activatePurposeVersion", () => {
     async (signingState) => {
       const purpose: Purpose = {
         ...mockPurpose,
-        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+        riskAnalysisReviewMode:
+          riskAnalysisReviewMode.reviewerWritesReviewerSigns,
         reviewerWorkflow: {
           reviewers: [{ id: generateId(), sentToReviewerAt: new Date() }],
           signingState,
@@ -2036,7 +2037,8 @@ describe("activatePurposeVersion", () => {
     const purpose: Purpose = {
       ...mockPurpose,
       versions: [purposeVersion],
-      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      riskAnalysisReviewMode:
+        riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
         reviewers: [{ id: generateId(), sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.signed,

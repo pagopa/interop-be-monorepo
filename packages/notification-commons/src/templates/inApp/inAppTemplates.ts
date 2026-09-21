@@ -13,6 +13,32 @@ export type EserviceNewVersionApprovedRejectedToDelegateEventType =
   | "EServiceDescriptorRejectedByDelegator";
 
 export const inAppTemplates = {
+  purposeRiskAnalysisSignedToAdmin: (
+    purposeTitle: string,
+    eserviceName: string
+  ): string =>
+    `L'analisi del rischio per la finalità ${purposeTitle} associata all'e-service ${eserviceName} è stata approvata.`,
+  purposeRiskAnalysisSignedToReviewer: (
+    purposeName: string,
+    eserviceName: string
+  ): string =>
+    `L'analisi del rischio per la finalità ${purposeName} associata all'e-service ${eserviceName} è già stata approvata.`,
+  purposeRiskAnalysisAssignmentRemovedToReviewer: (
+    purposeName: string,
+    eserviceName: string
+  ): string =>
+    `L'amministratore ha rimosso l'assegnazione dell'analisi del rischio per la finalità ${purposeName} associata all'e-service ${eserviceName}.`,
+  purposeRiskAnalysisAssignedForWritingAndSigningToReviewer: (
+    producerName: string,
+    purposeName: string,
+    eserviceName: string
+  ): string =>
+    `L'ente ${producerName} ti ha assegnato un'analisi del rischio da compilare e approvare per la finalità ${purposeName} associata all'e-service ${eserviceName}.`,
+  purposeRiskAnalysisRejectedToAdmin: (
+    purposeTitle: string,
+    eserviceName: string
+  ): string =>
+    `L'analisi del rischio per la finalità ${purposeTitle} associata all'e-service ${eserviceName} è stata rifiutata.`,
   // agreements - erogazione
   agreementSubmittedToProducer: (
     consumerName: string,
@@ -374,6 +400,22 @@ export const inAppTemplates = {
     eserviceName: string
   ): string =>
     `L'ente erogatore ${producerName} ha rifiutato la finalità ${purposeName} che il tuo ente ha inoltrato per l'e-service ${eserviceName}.`,
+  purposeRiskAnalysisAssignedForSigningToReviewer: (
+    producerName: string,
+    purposeName: string,
+    eserviceName: string
+  ): string =>
+    `L'ente ${producerName} ti ha assegnato un'analisi del rischio da approvare per la finalità ${purposeName} associata all'e-service ${eserviceName}.`,
+  purposePublishedWithRiskAnalysisToReviewer: (
+    purposeName: string,
+    eserviceName: string
+  ): string =>
+    `L'amministratore ha pubblicato la finalità ${purposeName} associata all'e-service ${eserviceName} con analisi del rischio che ti era stata assegnata.`,
+  draftPurposeDeletedWithRiskAnalysisToReviewer: (
+    purposeName: string,
+    eserviceName: string
+  ): string =>
+    `L'amministratore ha eliminato la finalità ${purposeName} associata all'e-service ${eserviceName} con analisi del rischio che ti era stata assegnata.`,
   purposeQuotaAdjustmentNewVersionToProducer: (
     consumerName: string,
     purposeName: string,
