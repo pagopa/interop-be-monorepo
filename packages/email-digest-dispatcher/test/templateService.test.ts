@@ -41,6 +41,14 @@ describe("Template Service", () => {
     expect(compiledHtml).toContain("inoltrate come delegante");
     expect(compiledHtml).toContain("ricevute come delegato");
     expect(compiledHtml).toContain("Attributi");
+    expect(compiledHtml).toContain("In fase di archiviazione - erogazione");
+
+    // Assert - Verify producer archiving content
+    expect(compiledHtml).toContain("archiviazioni previste a breve");
+    expect(compiledHtml).toContain("Servizio Anagrafica Nazionale");
+    expect(compiledHtml).toContain("in fase di archiviazione");
+    expect(compiledHtml).toContain("Servizio Catasto");
+    expect(compiledHtml).toContain("05/10/2026");
 
     // Assert - Verify new e-services content
     expect(compiledHtml).toContain("Servizio Anagrafica Nazionale");

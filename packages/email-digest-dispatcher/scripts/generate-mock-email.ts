@@ -3,10 +3,13 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { buildHTMLTemplateService } from "pagopa-interop-commons";
 import { digestTemplateServiceBuilder } from "../src/services/templateService.js";
+import { getVisibleSections } from "../src/utils/digestAdmittedRoles.js";
 import {
   getMockTenantDigestData,
   getMockPartialDigestData,
 } from "../test/mockUtils.js";
+
+const adminVisibility = getVisibleSections(["admin"]);
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -21,13 +24,19 @@ const digestTemplateService = digestTemplateServiceBuilder(htmlTemplateService);
 
 // Generate full data email
 const fullData = getMockTenantDigestData();
-const fullHtml = digestTemplateService.compileDigestEmail(fullData);
+const fullHtml = digestTemplateService.compileDigestEmail(
+  fullData,
+  adminVisibility
+);
 const fullOutputPath = path.join(outputDir, "mock-digest-email.html");
 fs.writeFileSync(fullOutputPath, fullHtml);
 
 // Generate partial data email (only E-services and Attributes)
 const partialData = getMockPartialDigestData();
-const partialHtml = digestTemplateService.compileDigestEmail(partialData);
+const partialHtml = digestTemplateService.compileDigestEmail(
+  partialData,
+  adminVisibility
+);
 const partialOutputPath = path.join(
   outputDir,
   "mock-digest-email-partial.html"
