@@ -19039,11 +19039,6 @@ components:
         sentToReviewerAt:
           type: string
           format: date-time
-        rejectedBy:
-          type: string
-          format: uuid
-        rejectionReason:
-          type: string
       required:
         - userId
         - name
