@@ -1053,7 +1053,6 @@ export function catalogServiceBuilder(
         `Querying EServices, limit = ${filters.limit}, offset = ${filters.offset}`
       );
       const eservicesList = await readModelService.queryEServices(
-        authData,
         filters.offset,
         filters.limit
       );
