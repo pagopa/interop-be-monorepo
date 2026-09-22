@@ -3,6 +3,12 @@ import * as fs from "fs";
 import { spawnSync } from "node:child_process";
 import * as path from "path";
 
+import {
+  buildResumeState,
+  loadResumeState,
+  saveResumeState,
+  deleteResumeState,
+} from "./resume-state.js";
 import { getPackageFolder } from "./utils/index.js";
 
 const __dirname = getPackageFolder();
@@ -22,7 +28,8 @@ export function executeCommand(command: string): string {
 
 // 1. Configurazione Parametri
 const PROCESS_NAME = process.argv[2];
-const BATCH_SIZE = 3; // Lotti da 3 endpoint per garantire la massima accuratezza (precisione File 2)
+const RESET_RESUME = process.argv.includes("--reset");
+const BATCH_SIZE = 3; // Lotti da 3 endpoint per garantire la massima accuratezza
 
 if (!PROCESS_NAME) {
   console.error(
@@ -36,9 +43,38 @@ const OUTPUT_FILE = path.join(
   `../packages/${PROCESS_NAME}-process/ENDPOINT-ERRORS.md`
 );
 const TMP_JSON_PATH = path.join(__dirname, "../tmp/endpoint-map.json");
+const CHECKPOINT_PATH = path.join(
+  __dirname,
+  `../tmp/${PROCESS_NAME}-resume-state.json`
+);
 
 async function runAutomation() {
   console.log(`🚀 Avvio automazione completa per: ${PROCESS_NAME}`);
+
+  if (RESET_RESUME) {
+    deleteResumeState(CHECKPOINT_PATH);
+    if (fs.existsSync(OUTPUT_FILE)) {
+      fs.unlinkSync(OUTPUT_FILE);
+    }
+    console.log(
+      `🧹 Reset richiesto: checkpoint e file finale rimossi per ${PROCESS_NAME}.`
+    );
+  }
+
+  const currentCheckpoint = loadResumeState(CHECKPOINT_PATH, PROCESS_NAME);
+  const initialOffset = currentCheckpoint?.offset ?? 0;
+  let finalMarkdown =
+    currentCheckpoint?.finalMarkdown ?? `# ${PROCESS_NAME}: error map\n\n`;
+
+  if (fs.existsSync(OUTPUT_FILE) && !currentCheckpoint) {
+    finalMarkdown = fs.readFileSync(OUTPUT_FILE, "utf-8");
+  }
+
+  if (currentCheckpoint) {
+    console.log(
+      `↩️ Riprendo il lavoro da offset ${initialOffset} per ${PROCESS_NAME}.`
+    );
+  }
 
   // 2. Scansione preliminare del process tramite il tool del monorepo
   console.log("📦 Estraggo la lista degli endpoint dal backend...");
@@ -76,38 +112,55 @@ async function runAutomation() {
 
   if (totalEndpoints === 0) {
     console.log("⚠️ Nessun endpoint trovato per questo process.");
+    deleteResumeState(CHECKPOINT_PATH);
     process.exit(0);
   }
 
+  const safeInitialOffset = Math.min(initialOffset, totalEndpoints);
+  let offset = safeInitialOffset;
+  let batchNumber = Math.floor(safeInitialOffset / BATCH_SIZE) + 1;
+  const totalBatches = Math.ceil(totalEndpoints / BATCH_SIZE);
+
   console.log(`📊 Trovati ${totalEndpoints} endpoint totali.`);
 
-  let finalMarkdown = `# ${PROCESS_NAME}: error map\n\n`;
-  let offset = 0;
-  let batchNumber = 1;
-  const totalBatches = Math.ceil(totalEndpoints / BATCH_SIZE);
+  if (offset >= totalEndpoints) {
+    console.log(
+      "✅ Tutti gli endpoint sono già stati elaborati. Niente da fare."
+    );
+    deleteResumeState(CHECKPOINT_PATH);
+    return;
+  }
 
   // 4. Ciclo di invocazione isolata batch per batch
   while (offset < totalEndpoints) {
-    const currentLimit = BATCH_SIZE;
+    const currentLimit = Math.min(BATCH_SIZE, totalEndpoints - offset);
     console.log(
-      `\n🤖 [Batch ${batchNumber}/${totalBatches}] Invocazione Copilot CLI per endpoint ${offset + 1} -> ${Math.min(offset + BATCH_SIZE, totalEndpoints)}...`
+      `\n🤖 [Batch ${batchNumber}/${totalBatches}] Invocazione Copilot CLI per endpoint ${offset + 1} -> ${Math.min(offset + currentLimit, totalEndpoints)}...`
     );
 
-    // Prompt inviato alla CLI di Copilot
     const promptText = `Usa la skill situata in ./.agents/skills/error-mapping-skill/SKILL.md per analizzare il process "${PROCESS_NAME}" con limit ${currentLimit} e offset ${offset}.`;
 
-    // Comando per Copilot CLI 1.0.15 (Sfrutta 'copilot -p' oppure 'gh copilot exec' a seconda dell'installazione)
-    // Se la tua CLI risponde direttamente al comando 'copilot', sostituisci 'gh copilot exec' con 'copilot -p'
     const frontendFolder = path.resolve(
       path.join(__dirname, "..", "..", "pdnd-interop-frontend")
     );
     const backendFolder = path.resolve(path.join(__dirname, ".."));
 
-    const copilotCmd = `gh copilot --add-dir "${backendFolder}" --add-dir "${frontendFolder}" -i "${promptText.replace(/"/g, '\\"')}"`;
+    const copilotCmd = `copilot --model mai-code-1.1-flash --add-dir "${backendFolder}" --add-dir "${frontendFolder}" -i "${promptText.replace(/"/g, '\\"')}"`;
 
     try {
       const commandOutput = executeCommand(copilotCmd);
-      finalMarkdown += commandOutput.trim() + "\n\n---\n\n";
+      const batchMarkdown = commandOutput.trim() + "\n\n---\n\n";
+      finalMarkdown += batchMarkdown;
+
+      saveResumeState(
+        CHECKPOINT_PATH,
+        buildResumeState({
+          processName: PROCESS_NAME,
+          finalMarkdown,
+          offset: offset + currentLimit,
+          totalEndpoints,
+        })
+      );
       console.log(
         `✅ [Batch ${batchNumber}/${totalBatches}] Completato con successo!`
       );
@@ -120,15 +173,20 @@ async function runAutomation() {
       break;
     }
 
-    offset += BATCH_SIZE;
+    offset += currentLimit;
     batchNumber++;
   }
 
-  // 5. Scrittura del file markdown finale nel percorso corretto
-  fs.mkdirSync(path.dirname(OUTPUT_FILE), { recursive: true });
-  fs.writeFileSync(OUTPUT_FILE, finalMarkdown, "utf-8");
+  if (offset >= totalEndpoints) {
+    deleteResumeState(CHECKPOINT_PATH);
+    console.log(
+      `\n🎉 Processo completato! Il file è stato creato in:\n👉 ${OUTPUT_FILE}`
+    );
+    return;
+  }
+
   console.log(
-    `\n🎉 Processo completato! Il file è stato creato in:\n👉 ${OUTPUT_FILE}`
+    `⏸️ Lavoro interrotto: il prossimo rilancio riprenderà da offset ${offset}.`
   );
 }
 
