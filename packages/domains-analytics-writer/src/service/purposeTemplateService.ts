@@ -2,18 +2,16 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/cognitive-complexity */
 import { genericLogger } from "pagopa-interop-commons";
+import {
+  PurposeTemplateItemsSchema,
+  PurposeTemplateEServiceDescriptorSchema,
+} from "pagopa-interop-kpi-models";
 
 import { config } from "../config/config.js";
 import { DBContext } from "../db/db.js";
 import { DeletingDbTable, PurposeTemplateDbTable } from "../model/db/index.js";
-import {
-  PurposeTemplateDeletingSchema,
-  PurposeTemplateItemsSchema,
-} from "../model/purposeTemplate/purposeTemplate.js";
-import {
-  PurposeTemplateEServiceDescriptorDeletingSchema,
-  PurposeTemplateEServiceDescriptorSchema,
-} from "../model/purposeTemplate/purposeTemplateEserviceDescriptor.js";
+import { PurposeTemplateDeletingSchema } from "../model/purposeTemplate/purposeTemplate.js";
+import { PurposeTemplateEServiceDescriptorDeletingSchema } from "../model/purposeTemplate/purposeTemplateEserviceDescriptor.js";
 import { purposeTemplateRepository } from "../repository/purposeTemplate/purposeTemplate.repository.js";
 import { purposeTemplateEServiceDescriptorRepository } from "../repository/purposeTemplate/purposeTemplateEServiceDescriptor.repository.js";
 import { purposeTemplateRiskAnalysisAnswerRepository } from "../repository/purposeTemplate/purposeTemplateRiskAnalysisAnswer.repository.js";

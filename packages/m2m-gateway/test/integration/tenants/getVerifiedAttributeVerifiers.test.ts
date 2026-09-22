@@ -1,5 +1,5 @@
 import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
-import { getMockedApiVerifiedTenantAttributeVerifier } from "pagopa-interop-commons-test/index.js";
+import { getMockedApiVerifiedTenantAttributeVerifier } from "pagopa-interop-commons-test";
 import { generateId, unsafeBrandId } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 

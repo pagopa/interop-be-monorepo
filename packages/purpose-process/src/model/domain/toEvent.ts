@@ -6,6 +6,10 @@ import {
   PurposeEventV2,
   PurposeId,
   PurposeVersionId,
+  RiskAnalysisReviewer,
+  RiskAnalysisReviewMode,
+  toRiskAnalysisReviewModeV2,
+  toRiskAnalysisReviewerV2,
   toPurposeV2,
   UserId,
 } from "pagopa-interop-models";
@@ -516,14 +520,16 @@ export const toCreateEventRiskAnalysisSignedDocumentGenerated = ({
 
 export const toCreateEventPurposeRiskAnalysisWorkflowCreated = ({
   purpose,
-  newReviewersToNotify,
-  oldReviewersToNotify,
+  addedReviewers,
+  removedReviewers,
+  previousRiskAnalysisReviewMode,
   version,
   correlationId,
 }: {
   purpose: Purpose;
-  newReviewersToNotify: UserId[];
-  oldReviewersToNotify: UserId[];
+  addedReviewers: UserId[];
+  removedReviewers: RiskAnalysisReviewer[];
+  previousRiskAnalysisReviewMode?: RiskAnalysisReviewMode;
   version: number;
   correlationId: CorrelationId;
 }): CreateEvent<PurposeEventV2> => ({
@@ -534,8 +540,12 @@ export const toCreateEventPurposeRiskAnalysisWorkflowCreated = ({
     event_version: 2,
     data: {
       purpose: toPurposeV2(purpose),
-      newReviewersToNotify,
-      oldReviewersToNotify,
+      addedReviewers,
+      removedReviewers: removedReviewers.map(toRiskAnalysisReviewerV2),
+      previousRiskAnalysisReviewMode:
+        previousRiskAnalysisReviewMode === undefined
+          ? undefined
+          : toRiskAnalysisReviewModeV2(previousRiskAnalysisReviewMode),
     },
   },
   correlationId,
@@ -543,14 +553,16 @@ export const toCreateEventPurposeRiskAnalysisWorkflowCreated = ({
 
 export const toCreateEventPurposeRiskAnalysisAssigned = ({
   purpose,
-  newReviewersToNotify,
-  oldReviewersToNotify,
+  addedReviewers,
+  removedReviewers,
+  previousRiskAnalysisReviewMode,
   version,
   correlationId,
 }: {
   purpose: Purpose;
-  newReviewersToNotify: UserId[];
-  oldReviewersToNotify: UserId[];
+  addedReviewers: UserId[];
+  removedReviewers: RiskAnalysisReviewer[];
+  previousRiskAnalysisReviewMode?: RiskAnalysisReviewMode;
   version: number;
   correlationId: CorrelationId;
 }): CreateEvent<PurposeEventV2> => ({
@@ -561,8 +573,12 @@ export const toCreateEventPurposeRiskAnalysisAssigned = ({
     event_version: 2,
     data: {
       purpose: toPurposeV2(purpose),
-      newReviewersToNotify,
-      oldReviewersToNotify,
+      addedReviewers,
+      removedReviewers: removedReviewers.map(toRiskAnalysisReviewerV2),
+      previousRiskAnalysisReviewMode:
+        previousRiskAnalysisReviewMode === undefined
+          ? undefined
+          : toRiskAnalysisReviewModeV2(previousRiskAnalysisReviewMode),
     },
   },
   correlationId,
@@ -570,12 +586,14 @@ export const toCreateEventPurposeRiskAnalysisAssigned = ({
 
 export const toCreateEventPurposeRiskAnalysisSelfAssigned = ({
   purpose,
-  oldReviewersToNotify,
+  removedReviewers,
+  previousRiskAnalysisReviewMode,
   version,
   correlationId,
 }: {
   purpose: Purpose;
-  oldReviewersToNotify: UserId[];
+  removedReviewers: RiskAnalysisReviewer[];
+  previousRiskAnalysisReviewMode?: RiskAnalysisReviewMode;
   version: number;
   correlationId: CorrelationId;
 }): CreateEvent<PurposeEventV2> => ({
@@ -584,7 +602,14 @@ export const toCreateEventPurposeRiskAnalysisSelfAssigned = ({
   event: {
     type: "PurposeRiskAnalysisSelfAssigned",
     event_version: 2,
-    data: { purpose: toPurposeV2(purpose), oldReviewersToNotify },
+    data: {
+      purpose: toPurposeV2(purpose),
+      removedReviewers: removedReviewers.map(toRiskAnalysisReviewerV2),
+      previousRiskAnalysisReviewMode:
+        previousRiskAnalysisReviewMode === undefined
+          ? undefined
+          : toRiskAnalysisReviewModeV2(previousRiskAnalysisReviewMode),
+    },
   },
   correlationId,
 });

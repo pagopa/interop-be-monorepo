@@ -174,8 +174,8 @@ export const toPurposeV2 = (input: Purpose): PurposeV2 => ({
   riskAnalysisForm: input.riskAnalysisForm
     ? toPurposeRiskAnalysisFormV2(input.riskAnalysisForm)
     : undefined,
-  reviewMode: input.reviewMode
-    ? toRiskAnalysisReviewModeV2(input.reviewMode)
+  riskAnalysisReviewMode: input.riskAnalysisReviewMode
+    ? toRiskAnalysisReviewModeV2(input.riskAnalysisReviewMode)
     : undefined,
   reviewerWorkflow: input.reviewerWorkflow
     ? toReviewerWorkflowV2(input.reviewerWorkflow)

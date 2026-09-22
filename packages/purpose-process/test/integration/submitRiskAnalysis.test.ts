@@ -75,7 +75,7 @@ describe("submitRiskAnalysis", () => {
       ...getMockPurpose([getMockPurposeVersion()]),
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: workflow,
     };
 
@@ -126,11 +126,11 @@ describe("submitRiskAnalysis", () => {
       reviewers: [
         {
           id: unsafeBrandId(generateId()),
-          sentToReviewerAt: new Date("2020-01-01T00:00:00.000Z"),
+          sentToReviewerAt: new Date("2026-09-01T00:00:00.000Z"),
         },
         {
           id: unsafeBrandId(generateId()),
-          sentToReviewerAt: new Date("2021-01-01T00:00:00.000Z"),
+          sentToReviewerAt: new Date("2026-09-02T00:00:00.000Z"),
         },
       ],
       signingState: riskAnalysisSigningState.rejected,
@@ -142,7 +142,7 @@ describe("submitRiskAnalysis", () => {
       ...getMockPurpose([getMockPurposeVersion()]),
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: workflow,
     };
 
@@ -219,7 +219,8 @@ describe("submitRiskAnalysis", () => {
   it("should throw submitNotAllowedForReviewMode if review mode is ReviewerWritesReviewerSigns", async () => {
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
-      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      riskAnalysisReviewMode:
+        riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
         reviewers: [
           { id: unsafeBrandId(generateId()), sentToReviewerAt: undefined },
@@ -248,7 +249,7 @@ describe("submitRiskAnalysis", () => {
     async ({ signingState }) => {
       const mockPurpose: Purpose = {
         ...getMockPurpose([getMockPurposeVersion()]),
-        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+        riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
         reviewerWorkflow: {
           reviewers: [
             { id: unsafeBrandId(generateId()), sentToReviewerAt: new Date() },
@@ -279,7 +280,7 @@ describe("submitRiskAnalysis", () => {
 
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: workflow,
     };
 

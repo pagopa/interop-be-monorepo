@@ -62,7 +62,8 @@ describe("signRiskAnalysis", () => {
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
       riskAnalysisForm: getMockValidRiskAnalysisForm(tenantKind.PA),
-      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      riskAnalysisReviewMode:
+        riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
         reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.assigned,
@@ -109,7 +110,7 @@ describe("signRiskAnalysis", () => {
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: {
         reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.submitted,
@@ -183,7 +184,7 @@ describe("signRiskAnalysis", () => {
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: {
         reviewers: [{ id: reviewerId, sentToReviewerAt: undefined }],
         signingState: riskAnalysisSigningState.draft,
@@ -206,7 +207,7 @@ describe("signRiskAnalysis", () => {
   it("should throw requesterIsNotDesignatedReviewer if the requester is not in reviewerIds", async () => {
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: {
         reviewers: [{ id: generateId<UserId>(), sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.submitted,
@@ -233,7 +234,8 @@ describe("signRiskAnalysis", () => {
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
-      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      riskAnalysisReviewMode:
+        riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
         reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.assigned,
@@ -261,7 +263,8 @@ describe("signRiskAnalysis", () => {
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
       riskAnalysisForm: getMockExpiredRiskAnalysisForm(tenantKind.PA),
-      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      riskAnalysisReviewMode:
+        riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
         reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.assigned,
@@ -287,7 +290,7 @@ describe("signRiskAnalysis", () => {
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: {
         reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.submitted,

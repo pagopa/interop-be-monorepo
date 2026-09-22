@@ -25,6 +25,7 @@ import {
   purposeNotInDraftState,
   reviewerWorkflowNotAllowedForDelegatedPurpose,
   reviewerWorkflowNotAllowedForReceiveMode,
+  duplicatedReviewersInSeed,
   missingReviewers,
   reviewersNotAllowedForReviewMode,
 } from "../../src/model/domain/errors.js";
@@ -62,11 +63,23 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/assign test", () => {
 
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
 
-  it.each(authorizedRoles)(
-    "Should return 200 for user with role %s",
-    async (role) => {
+  it.each([
+    {
+      description: "with reviewers",
+      body: defaultBody,
+    },
+    {
+      description: "without reviewers for AdminWritesAdminSigns",
+      body: {
+        reviewMode: "ADMIN_WRITES_ADMIN_SIGNS" as const,
+      },
+    },
+  ])(
+    "Should return 200 for an authorized user $description",
+    async ({ body }) => {
+      const role = authRole.ADMIN_ROLE;
       const token = generateToken(role);
-      const res = await makeRequest(token);
+      const res = await makeRequest(token, mockPurpose.id, body);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiResponse);
       expect(res.headers["x-metadata-version"]).toBe(
@@ -87,6 +100,7 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/assign test", () => {
     { error: purposeNotFound(mockPurpose.id), expectedStatus: 404 },
     { error: tenantIsNotTheConsumer(generateId()), expectedStatus: 403 },
     { error: reviewerWorkflowConflict(mockPurpose.id), expectedStatus: 409 },
+    { error: duplicatedReviewersInSeed(), expectedStatus: 400 },
     {
       error: userWithoutReviewerPrivileges(generateId(), generateId()),
       expectedStatus: 400,

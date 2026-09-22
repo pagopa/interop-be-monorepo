@@ -1,0 +1,27 @@
+meta {
+  name: Replace tenant certified discrete attribute
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{host-m2m-gw-v3}}/tenants/:tenantId/certifiedDiscreteAttributes/:attributeId
+  body: json
+  auth: none
+}
+
+params:path {
+  tenantId: {{tenantId}}
+  attributeId: {{attributeId}}
+}
+
+headers {
+  Authorization: {{DPOP-JWT-M2M-ADMIN}}
+  DPoP: {{DPOP-PROOF}}
+}
+
+body:json {
+  {
+    "certifiedDiscreteValue" : {{discreteValue}}
+  }
+}

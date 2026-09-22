@@ -1365,7 +1365,8 @@ describe("updatePurpose and updateReversePurpose", () => {
           ...getMockValidRiskAnalysisForm(tenantType),
           id: generateId(),
         },
-        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+        riskAnalysisReviewMode:
+          riskAnalysisReviewMode.reviewerWritesReviewerSigns,
         reviewerWorkflow,
       };
 
@@ -1417,7 +1418,8 @@ describe("updatePurpose and updateReversePurpose", () => {
           ...getMockValidRiskAnalysisForm(tenantType),
           id: generateId(),
         },
-        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+        riskAnalysisReviewMode:
+          riskAnalysisReviewMode.reviewerWritesReviewerSigns,
         reviewerWorkflow,
       };
 
@@ -1456,7 +1458,8 @@ describe("updatePurpose and updateReversePurpose", () => {
     const purposeWithWorkflow: Purpose = {
       ...purposeForDeliver,
       riskAnalysisForm: { ...existingForm, id: generateId() },
-      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      riskAnalysisReviewMode:
+        riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow,
     };
 
@@ -1494,7 +1497,8 @@ describe("updatePurpose and updateReversePurpose", () => {
       const purposeWithWorkflowNoForm: Purpose = {
         ...purposeForDeliver,
         riskAnalysisForm: undefined,
-        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+        riskAnalysisReviewMode:
+          riskAnalysisReviewMode.reviewerWritesReviewerSigns,
         reviewerWorkflow,
       };
 
@@ -1542,7 +1546,8 @@ describe("updatePurpose and updateReversePurpose", () => {
       const purposeWithFormAndWorkflow: Purpose = {
         ...purposeForDeliver,
         riskAnalysisForm: { ...existingForm, id: generateId() },
-        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+        riskAnalysisReviewMode:
+          riskAnalysisReviewMode.reviewerWritesReviewerSigns,
         reviewerWorkflow,
       };
 
@@ -1587,7 +1592,8 @@ describe("updatePurpose and updateReversePurpose", () => {
       const purposeWithFormAndWorkflow: Purpose = {
         ...purposeForDeliver,
         riskAnalysisForm: { ...existingForm, id: generateId() },
-        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+        riskAnalysisReviewMode:
+          riskAnalysisReviewMode.reviewerWritesReviewerSigns,
         reviewerWorkflow,
       };
 

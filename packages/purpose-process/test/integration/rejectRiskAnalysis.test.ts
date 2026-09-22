@@ -15,6 +15,7 @@ import {
   UserId,
   fromPurposeV2,
   generateId,
+  hyperlinkDetectionError,
   riskAnalysisReviewMode,
   riskAnalysisSigningState,
 } from "pagopa-interop-models";
@@ -42,7 +43,7 @@ describe("rejectRiskAnalysis", () => {
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: {
         reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.submitted,
@@ -123,7 +124,7 @@ describe("rejectRiskAnalysis", () => {
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: {
         reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.submitted,
@@ -152,7 +153,7 @@ describe("rejectRiskAnalysis", () => {
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: {
         reviewers: [{ id: reviewerId }],
         signingState: riskAnalysisSigningState.draft,
@@ -179,7 +180,8 @@ describe("rejectRiskAnalysis", () => {
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
-      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      riskAnalysisReviewMode:
+        riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
         reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.submitted,
@@ -205,7 +207,7 @@ describe("rejectRiskAnalysis", () => {
   it("should throw requesterIsNotDesignatedReviewer if the requester is not in reviewerIds", async () => {
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: {
         reviewers: [{ id: generateId<UserId>(), sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.submitted,
@@ -229,5 +231,31 @@ describe("rejectRiskAnalysis", () => {
         })
       )
     ).rejects.toThrowError(requesterIsNotDesignatedReviewer(mockPurpose.id));
+  });
+
+  it("should throw hyperlinkDetectionError when the rejectionReason contains a hyperlink", async () => {
+    const reviewerId: UserId = generateId();
+    const mockPurpose: Purpose = {
+      ...getMockPurpose([getMockPurposeVersion()]),
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      reviewerWorkflow: {
+        reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
+        signingState: riskAnalysisSigningState.submitted,
+      },
+    };
+
+    await addOnePurpose(mockPurpose);
+
+    const rejectionReason = "see https://evil.example.com";
+
+    await expect(
+      purposeService.rejectRiskAnalysis(
+        mockPurpose.id,
+        { rejectionReason },
+        getMockContext({
+          authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
+        })
+      )
+    ).rejects.toThrowError(hyperlinkDetectionError(rejectionReason));
   });
 });

@@ -131,7 +131,7 @@ export const Purpose = z.object({
   isFreeOfCharge: z.boolean(),
   freeOfChargeReason: z.string().optional(),
   purposeTemplateId: PurposeTemplateId.optional(),
-  reviewMode: RiskAnalysisReviewMode.optional(),
+  riskAnalysisReviewMode: RiskAnalysisReviewMode.optional(),
   reviewerWorkflow: ReviewerWorkflow.optional(),
 });
 export type Purpose = z.infer<typeof Purpose>;

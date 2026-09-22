@@ -17,7 +17,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         .where(
           and(
             isNotNull(purposeInReadmodelPurpose.reviewerWorkflowReviewMode),
-            isNull(purposeInReadmodelPurpose.reviewMode)
+            isNull(purposeInReadmodelPurpose.riskAnalysisReviewMode)
           )
         );
 

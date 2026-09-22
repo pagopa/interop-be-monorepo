@@ -114,11 +114,12 @@ const enrichPurposeReviewerWorkflow = async (
     return undefined;
   }
   const isConsumer = authData.organizationId === consumerId;
-  const hasAdminOrViewerRole =
+  const hasAdminOrReviewerOrViewerRole =
     userRoles.includes(authRole.ADMIN_ROLE) ||
-    userRoles.includes(authRole.VIEWER_ROLE);
+    userRoles.includes(authRole.VIEWER_ROLE) ||
+    userRoles.includes(authRole.REVIEWER_ROLE);
 
-  if (isConsumer && hasAdminOrViewerRole) {
+  if (isConsumer && hasAdminOrReviewerOrViewerRole) {
     const reviewers = await Promise.all(
       reviewerWorkflow.reviewers.map(async (reviewer) => ({
         ...(await getSelfcareCompactUserById(
@@ -352,7 +353,7 @@ export function purposeServiceBuilder(
         : undefined,
       isDocumentReady,
       rulesetExpiration: rulesetExpiration?.toJSON(),
-      reviewMode: purpose.reviewMode,
+      riskAnalysisReviewMode: purpose.riskAnalysisReviewMode,
       reviewerWorkflow: await enrichPurposeReviewerWorkflow(
         purpose.reviewerWorkflow,
         authData,

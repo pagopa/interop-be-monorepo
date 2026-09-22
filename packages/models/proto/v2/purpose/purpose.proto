@@ -22,7 +22,7 @@ message PurposeV2 {
   optional string delegationId = 15;
   optional string purposeTemplateId = 16;
   optional ReviewerWorkflowV2 reviewerWorkflow = 17;
-  optional RiskAnalysisReviewModeV2 reviewMode = 18;
+  optional RiskAnalysisReviewModeV2 riskAnalysisReviewMode = 18;
 }
 
 message PurposeVersionV2 {

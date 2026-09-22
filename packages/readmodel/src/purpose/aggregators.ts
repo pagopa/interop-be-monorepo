@@ -237,8 +237,8 @@ PurposeItemsSQL): WithMetadata<Purpose> => {
 
   // purposes projected before the review mode moved onto the purpose still
   // carry it in the reviewer workflow column
-  const reviewMode =
-    purposeSQL.reviewMode ?? purposeSQL.reviewerWorkflowReviewMode;
+  const riskAnalysisReviewMode =
+    purposeSQL.riskAnalysisReviewMode ?? purposeSQL.reviewerWorkflowReviewMode;
 
   const reviewers: RiskAnalysisReviewer[] = reviewersSQL.map((reviewerSQL) => {
     const sentToReviewerAt =
@@ -293,8 +293,12 @@ PurposeItemsSQL): WithMetadata<Purpose> => {
           ),
         }
       : {}),
-    ...(reviewMode
-      ? { reviewMode: RiskAnalysisReviewMode.parse(reviewMode) }
+    ...(riskAnalysisReviewMode
+      ? {
+          riskAnalysisReviewMode: RiskAnalysisReviewMode.parse(
+            riskAnalysisReviewMode
+          ),
+        }
       : {}),
     ...(purposeSQL.reviewerWorkflowSigningState
       ? {
