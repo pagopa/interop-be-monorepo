@@ -123,6 +123,27 @@ const existsValidDescriptor = (
       )
   );
 
+const existsActiveDescriptor = (
+  readmodelDB: DrizzleTransactionType
+): SQL<unknown> | undefined =>
+  exists(
+    readmodelDB
+      .select()
+      .from(eserviceDescriptorInReadmodelCatalog)
+      .where(
+        and(
+          eq(
+            eserviceDescriptorInReadmodelCatalog.eserviceId,
+            eserviceInReadmodelCatalog.id
+          ),
+          inArray(eserviceDescriptorInReadmodelCatalog.state, [
+            descriptorState.published,
+            descriptorState.suspended,
+          ])
+        )
+      )
+  );
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL(
   readmodelDB: DrizzleReturnType,
@@ -580,58 +601,27 @@ export function readModelServiceBuilderSQL(
       });
     },
     async queryEServices(
-      authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
       offset: number,
       limit: number
     ): Promise<ListResult<EService>> {
       return await readmodelDB.transaction(async (tx) => {
-        const visibilityFilter = hasRoleToAccessInactiveDescriptors(authData)
-          ? or(
-              existsValidDescriptor(tx),
-              eq(
-                eserviceInReadmodelCatalog.producerId,
-                authData.organizationId
-              ),
-              exists(
-                tx
-                  .select()
-                  .from(delegationInReadmodelDelegation)
-                  .where(
-                    and(
-                      eq(
-                        delegationInReadmodelDelegation.eserviceId,
-                        eserviceInReadmodelCatalog.id
-                      ),
-                      eq(
-                        delegationInReadmodelDelegation.delegateId,
-                        authData.organizationId
-                      ),
-                      inArray(delegationInReadmodelDelegation.state, [
-                        delegationState.active,
-                        delegationState.waitingForApproval,
-                      ]),
-                      eq(
-                        delegationInReadmodelDelegation.kind,
-                        delegationKind.delegatedProducer
-                      )
-                    )
-                  )
-              )
-            )
-          : existsValidDescriptor(tx);
+        const activeEservicesFilter = existsActiveDescriptor(tx);
 
         const [pageIds, totalCount] = await Promise.all([
           tx
             .select({ id: eserviceInReadmodelCatalog.id })
             .from(eserviceInReadmodelCatalog)
-            .where(visibilityFilter)
-            .orderBy(ascLower(eserviceInReadmodelCatalog.name))
+            .where(activeEservicesFilter)
+            .orderBy(
+              ascLower(eserviceInReadmodelCatalog.name),
+              asc(eserviceInReadmodelCatalog.id)
+            )
             .limit(limit)
             .offset(offset),
           tx
             .select({ count: countDistinct(eserviceInReadmodelCatalog.id) })
             .from(eserviceInReadmodelCatalog)
-            .where(visibilityFilter),
+            .where(activeEservicesFilter),
         ]);
 
         const ids = pageIds.map((e) => e.id);
