@@ -109,6 +109,10 @@ export function toOutboundEventV2(
       { type: "EServiceArchivingCanceled" },
       { type: "EServiceArchivingCompleted" },
       { type: "MaintenanceEServicePersonalDataFlagReset" },
+      { type: "EServiceArchivingRequestedByDelegate" },
+      { type: "EServiceArchivingRequestApprovedByDelegator" },
+      { type: "EServiceArchivingRequestRejectedByDelegator" },
+      { type: "EServiceArchivingRequestCanceledByDelegate" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
@@ -167,6 +171,11 @@ export function toOutboundEventV2(
       { type: "EServiceDescriptorArchivingCanceled" },
       { type: "EServiceDescriptorArchivingCompleted" },
       { type: "MaintenanceEServiceDescriptorUnarchived" },
+      { type: "EServiceDescriptorArchivingRequestedByDelegate" },
+      { type: "EServiceDescriptorArchivingRequestApprovedByDelegator" },
+      { type: "EServiceDescriptorArchivingRequestRejectedByDelegator" },
+      { type: "EServiceDescriptorArchivingRequestCanceledByDelegate" },
+
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
@@ -231,6 +240,9 @@ export function toOutboundEventV2(
       { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded" },
       { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted" },
       { type: "MaintenanceEServiceRiskAnalysisSetTenantKind" },
+      // TODO: Propagate this event when @pagopa/interop-outbound-models is updated
+      { type: "EServiceArchivingRequestCanceledByRevokedDelegation" },
+      { type: "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation" },
       () => undefined
     )
     .with(

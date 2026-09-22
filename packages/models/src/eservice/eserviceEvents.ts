@@ -74,6 +74,16 @@ import {
   EServiceDescriptorArchivingCompletedV2,
   MaintenanceEServicePersonalDataFlagResetV2,
   MaintenanceEServiceDescriptorUnarchivedV2,
+  EServiceArchivingRequestApprovedByDelegatorV2,
+  EServiceArchivingRequestCanceledByDelegateV2,
+  EServiceArchivingRequestCanceledByRevokedDelegationV2,
+  EServiceDescriptorArchivingRequestCanceledByRevokedDelegationV2,
+  EServiceArchivingRequestedByDelegateV2,
+  EServiceArchivingRequestRejectedByDelegatorV2,
+  EServiceDescriptorArchivingRequestApprovedByDelegatorV2,
+  EServiceDescriptorArchivingRequestCanceledByDelegateV2,
+  EServiceDescriptorArchivingRequestedByDelegateV2,
+  EServiceDescriptorArchivingRequestRejectedByDelegatorV2,
 } from "../gen/v2/eservice/events.js";
 import { protobufDecoder } from "../protobuf/protobuf.js";
 
@@ -321,6 +331,50 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
       { type: "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated" },
       ({ data }) =>
         EServiceDescriptorAttributeDailyCallsPerConsumerUpdatedV2.toBinary(data)
+    )
+    .with({ type: "EServiceArchivingRequestApprovedByDelegator" }, ({ data }) =>
+      EServiceArchivingRequestApprovedByDelegatorV2.toBinary(data)
+    )
+    .with({ type: "EServiceArchivingRequestCanceledByDelegate" }, ({ data }) =>
+      EServiceArchivingRequestCanceledByDelegateV2.toBinary(data)
+    )
+    .with(
+      { type: "EServiceArchivingRequestCanceledByRevokedDelegation" },
+      ({ data }) =>
+        EServiceArchivingRequestCanceledByRevokedDelegationV2.toBinary(data)
+    )
+    .with(
+      { type: "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation" },
+      ({ data }) =>
+        EServiceDescriptorArchivingRequestCanceledByRevokedDelegationV2.toBinary(
+          data
+        )
+    )
+    .with({ type: "EServiceArchivingRequestedByDelegate" }, ({ data }) =>
+      EServiceArchivingRequestedByDelegateV2.toBinary(data)
+    )
+    .with({ type: "EServiceArchivingRequestRejectedByDelegator" }, ({ data }) =>
+      EServiceArchivingRequestRejectedByDelegatorV2.toBinary(data)
+    )
+    .with(
+      { type: "EServiceDescriptorArchivingRequestApprovedByDelegator" },
+      ({ data }) =>
+        EServiceDescriptorArchivingRequestApprovedByDelegatorV2.toBinary(data)
+    )
+    .with(
+      { type: "EServiceDescriptorArchivingRequestCanceledByDelegate" },
+      ({ data }) =>
+        EServiceDescriptorArchivingRequestCanceledByDelegateV2.toBinary(data)
+    )
+    .with(
+      { type: "EServiceDescriptorArchivingRequestedByDelegate" },
+      ({ data }) =>
+        EServiceDescriptorArchivingRequestedByDelegateV2.toBinary(data)
+    )
+    .with(
+      { type: "EServiceDescriptorArchivingRequestRejectedByDelegator" },
+      ({ data }) =>
+        EServiceDescriptorArchivingRequestRejectedByDelegatorV2.toBinary(data)
     )
     .exhaustive();
 }
@@ -681,6 +735,68 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
     type: z.literal("EServiceDescriptorAttributeDailyCallsPerConsumerUpdated"),
     data: protobufDecoder(
       EServiceDescriptorAttributeDailyCallsPerConsumerUpdatedV2
+    ),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceArchivingRequestedByDelegate"),
+    data: protobufDecoder(EServiceArchivingRequestedByDelegateV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceArchivingRequestRejectedByDelegator"),
+    data: protobufDecoder(EServiceArchivingRequestRejectedByDelegatorV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceArchivingRequestApprovedByDelegator"),
+    data: protobufDecoder(EServiceArchivingRequestApprovedByDelegatorV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceArchivingRequestCanceledByDelegate"),
+    data: protobufDecoder(EServiceArchivingRequestCanceledByDelegateV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceArchivingRequestCanceledByRevokedDelegation"),
+    data: protobufDecoder(
+      EServiceArchivingRequestCanceledByRevokedDelegationV2
+    ),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal(
+      "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation"
+    ),
+    data: protobufDecoder(
+      EServiceDescriptorArchivingRequestCanceledByRevokedDelegationV2
+    ),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorArchivingRequestedByDelegate"),
+    data: protobufDecoder(EServiceDescriptorArchivingRequestedByDelegateV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorArchivingRequestRejectedByDelegator"),
+    data: protobufDecoder(
+      EServiceDescriptorArchivingRequestRejectedByDelegatorV2
+    ),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorArchivingRequestApprovedByDelegator"),
+    data: protobufDecoder(
+      EServiceDescriptorArchivingRequestApprovedByDelegatorV2
+    ),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorArchivingRequestCanceledByDelegate"),
+    data: protobufDecoder(
+      EServiceDescriptorArchivingRequestCanceledByDelegateV2
     ),
   }),
 ]);

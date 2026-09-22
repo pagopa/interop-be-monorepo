@@ -73,7 +73,12 @@ export const notificationRouter = (
     .get("/notifications", async function (req, res) {
       const ctx = fromAppContext(req.ctx);
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, SECURITY_ROLE]);
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          REVIEWER_ROLE,
+          SECURITY_ROLE,
+        ]);
 
         const { limit, offset, q, unread, notificationTypes } = req.query;
         const { results, totalCount } = await service.getNotifications(
@@ -103,7 +108,12 @@ export const notificationRouter = (
     .post("/notifications/bulk/markAsRead", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, SECURITY_ROLE]);
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          SECURITY_ROLE,
+          REVIEWER_ROLE,
+        ]);
 
         const { ids } = req.body;
         await service.markNotificationsAsRead(
@@ -126,7 +136,12 @@ export const notificationRouter = (
       async function (req, res) {
         const ctx = fromAppContext(req.ctx);
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, SECURITY_ROLE]);
+          validateAuthorization(ctx, [
+            ADMIN_ROLE,
+            API_ROLE,
+            SECURITY_ROLE,
+            REVIEWER_ROLE,
+          ]);
 
           const { notificationId } = req.params;
           await service.markNotificationAsRead(
@@ -148,7 +163,12 @@ export const notificationRouter = (
     .post("/notifications/bulk/markAsUnread", async function (req, res) {
       const ctx = fromAppContext(req.ctx);
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, SECURITY_ROLE]);
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          SECURITY_ROLE,
+          REVIEWER_ROLE,
+        ]);
 
         const { ids } = req.body;
         await service.markNotificationsAsUnread(
@@ -171,7 +191,12 @@ export const notificationRouter = (
       async function (req, res) {
         const ctx = fromAppContext(req.ctx);
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, SECURITY_ROLE]);
+          validateAuthorization(ctx, [
+            ADMIN_ROLE,
+            API_ROLE,
+            SECURITY_ROLE,
+            REVIEWER_ROLE,
+          ]);
 
           const { notificationId } = req.params;
           await service.markNotificationAsUnread(
@@ -220,7 +245,12 @@ export const notificationRouter = (
     .delete("/notifications", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, SECURITY_ROLE]);
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          SECURITY_ROLE,
+          REVIEWER_ROLE,
+        ]);
 
         const { ids } = req.body;
         await service.deleteNotifications(
@@ -241,7 +271,12 @@ export const notificationRouter = (
     .delete("/notifications/:notificationId", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, SECURITY_ROLE]);
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          SECURITY_ROLE,
+          REVIEWER_ROLE,
+        ]);
 
         const { notificationId } = req.params;
         await service.deleteNotification(unsafeBrandId(notificationId), ctx);

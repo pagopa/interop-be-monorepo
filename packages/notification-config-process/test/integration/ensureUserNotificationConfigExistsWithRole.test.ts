@@ -53,6 +53,16 @@ describe("createUserNotificationConfig", () => {
     producerKeychainKeyAddedDeletedToClientUsers: false,
     purposeQuotaAdjustmentRequestToProducer: false,
     purposeOverQuotaStateToConsumer: false,
+    purposeRiskAnalysisAssignedForSigningToReviewer: false,
+    purposeRiskAnalysisAssignedForWritingAndSigningToReviewer: false,
+    purposePublishedWithRiskAnalysisToReviewer: false,
+    draftPurposeDeletedWithRiskAnalysisToReviewer: false,
+    purposeRiskAnalysisAssignmentRemovedToReviewer: false,
+    purposeRiskAnalysisSignedToReviewer: false,
+    purposeRiskAnalysisSignedToAdmin: false,
+    purposeRiskAnalysisRejectedToAdmin: false,
+    eserviceArchivingRequestedToDelegator: false,
+    eserviceArchivingApprovedRejectedToDelegate: false,
   };
   const defaultEmailConfig: NotificationConfig = {
     agreementSuspendedUnsuspendedToProducer: false,
@@ -79,6 +89,16 @@ describe("createUserNotificationConfig", () => {
     producerKeychainKeyAddedDeletedToClientUsers: false,
     purposeQuotaAdjustmentRequestToProducer: false,
     purposeOverQuotaStateToConsumer: false,
+    purposeRiskAnalysisAssignedForSigningToReviewer: false,
+    purposeRiskAnalysisAssignedForWritingAndSigningToReviewer: false,
+    purposePublishedWithRiskAnalysisToReviewer: false,
+    draftPurposeDeletedWithRiskAnalysisToReviewer: false,
+    purposeRiskAnalysisAssignmentRemovedToReviewer: false,
+    purposeRiskAnalysisSignedToReviewer: false,
+    purposeRiskAnalysisSignedToAdmin: false,
+    purposeRiskAnalysisRejectedToAdmin: false,
+    eserviceArchivingRequestedToDelegator: false,
+    eserviceArchivingApprovedRejectedToDelegate: false,
   };
   beforeAll(async () => {
     vi.useFakeTimers();

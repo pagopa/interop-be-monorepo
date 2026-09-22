@@ -16,7 +16,6 @@ import {
 } from "../../model/db/index.js";
 import {
   buildColumnSet,
-  generateMergeQuery,
   generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { createRepository } from "../createRepository.js";
@@ -39,7 +38,7 @@ export function clientKeyRepository(conn: DBConnection) {
   const tableName = ClientDbTable.client_key;
   const keyRelationshipTableName =
     ClientDbTablePartialTable.key_relationship_migrated;
-  const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
+  const stagingTableName = `${keyRelationshipTableName}_${config.mergeTableSuffix}`;
 
   return {
     ...base,
@@ -59,7 +58,7 @@ export function clientKeyRepository(conn: DBConnection) {
         await t.none(
           generateStagingDeleteQuery(
             tableName,
-            ["clientId", "kid", "userId"],
+            ["clientId", "kid"],
             keyRelationshipTableName
           )
         );
@@ -72,16 +71,27 @@ export function clientKeyRepository(conn: DBConnection) {
 
     async mergeKeyUserMigration(t: ITask<unknown>): Promise<void> {
       try {
-        const mergeQuery = generateMergeQuery(
-          ClientKeyUserMigrationSchema,
-          schemaName,
-          tableName,
-          ["clientId", "kid", "userId"]
-        );
-        await t.none(mergeQuery);
+        await t.none(`
+          UPDATE ${schemaName}.${tableName} AS target
+          SET user_id = source.user_id,
+              metadata_version = source.metadata_version
+          FROM ${stagingTableName} AS source
+          WHERE target.client_id = source.client_id
+            AND target.kid = source.kid;
+        `);
       } catch (error: unknown) {
         throw genericInternalError(
           `Error merging staging table ${stagingTableName} into ${schemaName}.${tableName}: ${error}`
+        );
+      }
+    },
+
+    async cleanKeyUserMigration(): Promise<void> {
+      try {
+        await conn.none(`TRUNCATE TABLE ${stagingTableName};`);
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error cleaning staging table ${stagingTableName}: ${error}`
         );
       }
     },

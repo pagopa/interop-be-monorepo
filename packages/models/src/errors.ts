@@ -419,10 +419,11 @@ export function tokenGenerationError(
 
 export function hyperlinkDetectionError(
   text: string
-): InternalError<CommonErrorCodes> {
-  return new InternalError({
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
     code: "hyperlinkDetectionError",
-    detail: `Hyperlink detection error for text ${text}`,
+    title: "Hyperlink not allowed",
+    detail: `Hyperlink detected in text ${text}`,
   });
 }
 
@@ -519,6 +520,7 @@ const defaultCommonErrorMapper = (code: CommonErrorCodes): number =>
   match(code)
     .with(
       "badRequestError",
+      "hyperlinkDetectionError",
       "invalidPdfSignatureError",
       "invalidFileUploadError",
       "invalidContentTypeDetected",

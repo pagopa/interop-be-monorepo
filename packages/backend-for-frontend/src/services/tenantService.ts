@@ -444,6 +444,23 @@ export function tenantServiceBuilder(
         }
       );
     },
+    async updateCertifiedDiscreteAttribute(
+      tenantId: TenantId,
+      attributeId: AttributeId,
+      seed: bffApi.UpdateCertifiedDiscreteTenantAttributeSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Updating certified discrete attribute ${attributeId} for tenant ${tenantId}`
+      );
+      await tenantProcessClient.tenantAttribute.updateCertifiedDiscreteAttributeById(
+        seed,
+        {
+          params: { tenantId, attributeId },
+          headers,
+        }
+      );
+    },
     async revokeVerifiedAttribute(
       tenantId: TenantId,
       attributeId: AttributeId,

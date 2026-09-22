@@ -12,6 +12,7 @@ import {
   UserId,
   clientKind,
   generateId,
+  hyperlinkDetectionError,
   toClientV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -96,4 +97,33 @@ describe("createConsumerClient", () => {
       )
     ).rejects.toThrowError(error);
   });
+
+  it.each([
+    {
+      label: "name",
+      seed: () => ({
+        ...clientSeed,
+        name: "Foo http://evil.example.com",
+      }),
+      text: "Foo http://evil.example.com",
+    },
+    {
+      label: "description",
+      seed: () => ({
+        ...clientSeed,
+        description: "Notes: www.evil.example.com",
+      }),
+      text: "Notes: www.evil.example.com",
+    },
+  ])(
+    "should throw hyperlinkDetectionError when client $label contains a hyperlink",
+    async ({ seed, text }) => {
+      await expect(
+        authorizationService.createConsumerClient(
+          { clientSeed: seed() },
+          getMockContext({ authData: getMockAuthData(organizationId) })
+        )
+      ).rejects.toThrowError(hyperlinkDetectionError(text));
+    }
+  );
 });
