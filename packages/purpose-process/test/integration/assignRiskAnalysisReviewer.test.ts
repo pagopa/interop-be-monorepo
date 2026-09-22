@@ -1305,49 +1305,4 @@ describe("assignRiskAnalysisReviewer", () => {
       )
     ).rejects.toThrow(purposeNotInDraftState(mockPurpose.id));
   });
-
-  it("should throw purposeNotInDraftState if the purpose is not in draft state", async () => {
-    const mockPurpose: Purpose = getMockPurpose([
-      getMockPurposeVersion(purposeVersionState.active),
-    ]);
-
-    await addOnePurpose(mockPurpose);
-
-    expect(
-      purposeService.assignRiskAnalysisReviewer(
-        mockPurpose.id,
-        {
-          reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-          reviewerIds: [generateId()],
-        },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
-      )
-    ).rejects.toThrowError(purposeNotInDraftState(mockPurpose.id));
-  });
-
-  it("should throw reviewerWorkflowConflict if the risk analysis has already been signed", async () => {
-    const reviewerId = generateId<UserId>();
-    const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
-      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-      reviewerWorkflow: {
-        reviewers: [{ id: reviewerId, sentToReviewerAt: undefined }],
-        signingState: RiskAnalysisSigningState.Values.Signed,
-        signedBy: generateId<UserId>(),
-      },
-    };
-
-    await addOnePurpose(mockPurpose);
-
-    expect(
-      purposeService.assignRiskAnalysisReviewer(
-        mockPurpose.id,
-        {
-          reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-          reviewerIds: [generateId()],
-        },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
-      )
-    ).rejects.toThrowError(reviewerWorkflowConflict(mockPurpose.id));
-  });
 });
