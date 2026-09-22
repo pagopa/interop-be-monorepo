@@ -215,18 +215,21 @@
         background-color: #ffffff;
         padding: 12px 16px;
         border-radius: 4px;
+        box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
       }
       .alert-warning {
         border-left: 4px solid #ffab00;
         background-color: #ffffff;
         padding: 12px 16px;
         border-radius: 4px;
+        box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
       }
       .alert-error {
         border-left: 4px solid #d50000;
         background-color: #ffffff;
         padding: 12px 16px;
         border-radius: 4px;
+        box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
       }
       .alert-text {
         font-size: 14px;
@@ -240,6 +243,8 @@
         vertical-align: top;
         padding: 0 8px;
         margin-bottom: 16px;
+        box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
+        border-radius: 7px;
       }
       .card-grid-wrapper {
         font-size: 0;
@@ -339,7 +344,7 @@
       }
 
       /* Dark Mode */
-      @media (prefers-color-scheme: light) {
+      @media (prefers-color-scheme: dark) {
         body,
         .mail-body {
           background-color: #323232;
@@ -863,32 +868,35 @@
                                         </strong>
                                         {{/if}}
                                       </p>
-                                      <ul class="list-items">
-                                        {{#each acceptedSentAgreements.items}}
-                                        <ul class="list-item">
-                                          <a
-                                            href="{{ link }}"
-                                            class="link-primary" style="color: #0073e6;"
-                                            >{{ name }}</a
-                                          >
-                                          <span class="list-item-secondary"
-                                            >da {{ producerName }}</span
-                                          >
+                                      <div class="section-cell">
+                                        <ul class="list-items">
+                                          {{#each acceptedSentAgreements.items}}
+                                          <ul class="list-item">
+                                            <a
+                                              href="{{ link }}"
+                                              class="link-primary" style="color: #0073e6;"
+                                              >{{ name }}</a
+                                            >
+                                            <span class="list-item-secondary"
+                                              >da {{ producerName }}</span
+                                            >
+                                          </ul>
+                                          {{/each}}
+                                          {{#if acceptedSentAgreements.remainingCount}}
+                                          <ul class="list-item">
+                                            E altre
+                                            <strong>{{ acceptedSentAgreements.remainingCount }}</strong>.
+                                          </ul>
+                                          {{/if}}
                                         </ul>
-                                        {{/each}}
-                                        {{#if acceptedSentAgreements.remainingCount}}
-                                        <ul class="list-item">
-                                          E altre {{ acceptedSentAgreements.remainingCount }}.
-                                        </ul>
-                                        {{/if}}
-                                      </ul>
 
-                                      <!-- Warning Alert -->
-                                      <div class="alert-warning" role="note">
-                                        <p class="alert-text">
-                                          Ora puoi creare almeno
-                                          una finalità per ogni richiesta approvata.
-                                        </p>
+                                        <!-- Warning Alert -->
+                                        <div class="alert-warning" role="note">
+                                          <p class="alert-text">
+                                            Ora puoi creare almeno
+                                            una finalità per ogni richiesta approvata.
+                                          </p>
+                                        </div>
                                       </div>
                                     </div>
                                     {{/if}} {{#if
@@ -907,20 +915,26 @@
                                       </strong>
                                       {{/if}}
                                     </p>
-                                    <ul class="list-items">
-                                      {{#each rejectedSentAgreements.items}}
-                                      <ul class="list-item">
-                                        <a
-                                          href="{{ link }}"
-                                          class="link-primary" style="color: #0073e6;"
-                                          >{{ name }}</a
-                                        >
-                                        <span class="list-item-secondary"
-                                          >da {{ producerName }}</span
-                                        >
+                                      <ul class="list-items section-cell">
+                                        {{#each rejectedSentAgreements.items}}
+                                        <ul class="list-item">
+                                          <a
+                                            href="{{ link }}"
+                                            class="link-primary" style="color: #0073e6;"
+                                            >{{ name }}</a
+                                          >
+                                          <span class="list-item-secondary"
+                                            >da {{ producerName }}</span
+                                          >
+                                        </ul>
+                                        {{/each}}
+                                        {{#if rejectedSentAgreements.remainingCount}}
+                                        <ul class="list-item">
+                                          E altre
+                                          <strong>{{ rejectedSentAgreements.remainingCount }}</strong>.
+                                        </ul>
+                                        {{/if}}
                                       </ul>
-                                      {{/each}}
-                                    </ul>
                                     {{/if}} {{#if
                                     suspendedSentAgreements.totalCount}}
                                     <div class="section-divider">
@@ -937,7 +951,7 @@
                                       </strong>
                                       {{/if}}
                                     </p>
-                                    <ul class="list-items">
+                                    <ul class="list-items section-cell">
                                       {{#each suspendedSentAgreements.items}}
                                       <ul class="list-item">
                                         <a
@@ -948,8 +962,14 @@
                                         <span class="list-item-secondary"
                                           >da {{ producerName }}</span
                                         >
-                                      </li>
+                                      </ul>
                                       {{/each}}
+                                      {{#if suspendedSentAgreements.remainingCount}}
+                                      <ul class="list-item">
+                                        E altre
+                                        <strong>{{ suspendedSentAgreements.remainingCount }}</strong>.
+                                      </ul>
+                                      {{/if}}
                                     </ul>
                                     </div>
                                     {{/if}}
@@ -998,24 +1018,32 @@
                                         </strong>
                                         {{/if}}
                                       </p>
-                                      <ul class="list-items">
-                                        {{#each publishedSentPurposes.items}}
-                                        <ul class="list-item">
-                                          <a
-                                            href="{{ link }}"
-                                            class="link-primary" style="color: #0073e6;"
-                                            >{{ name }}</a
-                                          >
+                                      <div class="section-cell">
+                                        <ul class="list-items">
+                                          {{#each publishedSentPurposes.items}}
+                                          <ul class="list-item">
+                                            <a
+                                              href="{{ link }}"
+                                              class="link-primary" style="color: #0073e6;"
+                                              >{{ name }}</a
+                                            >
+                                          </ul>
+                                          {{/each}}
                                         </ul>
-                                        {{/each}}
-                                      </ul>
+                                        {{#if publishedSentPurposes.remainingCount}}
+                                        <ul class="list-item">
+                                          E altre
+                                          <strong>{{ publishedSentPurposes.remainingCount }}</strong>.
+                                        </ul>
+                                        {{/if}}
 
-                                      <!-- Green Alert -->
-                                      <div class="alert-warning" role="note">
-                                        <p class="alert-text">
-                                          Ora puoi associare almeno un client
-                                          per ogni finalità.
-                                        </p>
+                                        <!-- Green Alert -->
+                                        <div class="alert-warning" role="note">
+                                          <p class="alert-text">
+                                            Ora puoi associare almeno un client
+                                            per ogni finalità.
+                                          </p>
+                                        </div>
                                       </div>
                                     </div>
                                     {{/if}} {{#if
@@ -1032,7 +1060,7 @@
                                       </strong>
                                       {{/if}}
                                     </p>
-                                    <ul class="list-items">
+                                    <ul class="list-items section-cell">
                                       {{#each rejectedSentPurposes.items}}
                                       <ul class="list-item">
                                         <a
@@ -1040,9 +1068,14 @@
                                           class="link-primary" style="color: #0073e6;"
                                           >{{ name }}</a
                                         >
-
                                       </ul>
                                       {{/each}}
+                                      {{#if rejectedSentPurposes.remainingCount}}
+                                      <ul class="list-item">
+                                        E altre
+                                        <strong>{{ rejectedSentPurposes.remainingCount }}</strong>.
+                                      </ul>
+                                      {{/if}}
                                     </ul>
                                     {{/if}} {{#if
                                     waitingForApprovalSentPurposes.totalCount}}
@@ -1058,7 +1091,7 @@
                                           {{/if}}
                                         </strong>
                                       </p>
-                                      <ul class="list-items">
+                                      <ul class="list-items section-cell">
                                         {{#each waitingForApprovalSentPurposes.items}}
                                         <ul class="list-item">
                                           <a
@@ -1068,6 +1101,12 @@
                                           >
                                         </ul>
                                         {{/each}}
+                                        {{#if waitingForApprovalSentPurposes.remainingCount}}
+                                        <ul class="list-item">
+                                          E altre
+                                          <strong>{{ waitingForApprovalSentPurposes.remainingCount }}</strong>.
+                                        </ul>
+                                        {{/if}}
                                       </ul>
                                     </div>
                                     {{/if}}
@@ -1124,29 +1163,37 @@
                                           di fruizione in attesa di approvazione:
                                         </strong>
                                       </p>
-                                      <ul class="list-items">
-                                        {{#each
-                                        waitingForApprovalReceivedAgreements.items}}
+                                      <div class="section-cell">
+                                        <ul class="list-items">
+                                          {{#each
+                                          waitingForApprovalReceivedAgreements.items}}
+                                          <ul class="list-item">
+                                            <a
+                                              href="{{ link }}"
+                                              class="link-primary" style="color: #0073e6;"
+                                              >{{ name }}</a
+                                            >
+                                            <span class="list-item-secondary"
+                                              >richiesta da {{ producerName
+                                              }}</span
+                                            >
+                                            </ul>
+                                          {{/each}}
+                                        </ul>
+                                        {{#if waitingForApprovalReceivedAgreements.remainingCount}}
                                         <ul class="list-item">
-                                          <a
-                                            href="{{ link }}"
-                                            class="link-primary" style="color: #0073e6;"
-                                            >{{ name }}</a
-                                          >
-                                          <span class="list-item-secondary"
-                                            >richiesta da {{ producerName
-                                            }}</span
-                                          >
-                                          </ul>
-                                        {{/each}}
-                                      </ul>
+                                          E altre
+                                          <strong>{{ waitingForApprovalReceivedAgreements.remainingCount }}</strong>.
+                                        </ul>
+                                        {{/if}}
 
-                                      <!-- Yellow Alert -->
-                                      <div class="alert-warning" role="note">
-                                        <p class="alert-text">
-                                          Approva le richieste di fruizione e permetti
-                                          agli enti di avere accesso all'e-service.
-                                        </p>
+                                        <!-- Yellow Alert -->
+                                        <div class="alert-warning" role="note">
+                                          <p class="alert-text">
+                                            Approva le richieste di fruizione e permetti
+                                            agli enti di avere accesso all'e-service.
+                                          </p>
+                                        </div>
                                       </div>
                                     </div>
                                     {{/if}}
@@ -1166,8 +1213,7 @@
                                         <tr>
                                           <td valign="middle">
                                             <h2 class="h2-title">
-                                              Finalità
-                                              ricevute
+                                              Finalità ricevute
                                             </h2>
                                           </td>
                                           {{#if viewAllReceivedPurposesLink}}
@@ -1194,7 +1240,7 @@
                                           finalità inoltrate al tuo ente:
                                         </strong>
                                       </p>
-                                      <ul class="list-items">
+                                      <ul class="list-items section-cell">
                                         {{#each
                                         publishedReceivedPurposes.items}}
                                         <ul class="list-item">
@@ -1209,6 +1255,12 @@
                                           >
                                         </ul>
                                         {{/each}}
+                                        {{#if publishedReceivedPurposes.remainingCount}}
+                                        <ul class="list-item">
+                                          E altre
+                                          <strong>{{ publishedReceivedPurposes.remainingCount }}</strong>.
+                                        </ul>
+                                        {{/if}}
                                       </ul>
                                     </div>
                                     {{/if}} {{#if
@@ -1224,29 +1276,37 @@
                                         in attesa di approvazione:
                                       </strong>
                                     </p>
-                                    <ul class="list-items">
-                                      {{#each
-                                      waitingForApprovalReceivedPurposes.items}}
-                                      <ul class="list-item">
-                                        <a
-                                          href="{{ link }}"
-                                          class="link-primary" style="color: #0073e6;"
-                                          >{{ name }}</a
-                                        >
-                                        <span class="list-item-secondary"
-                                          >richiesta da {{ producerName
-                                          }}</span
-                                        >
+                                    <div class="section-cell">
+                                      <ul class="list-items">
+                                        {{#each
+                                        waitingForApprovalReceivedPurposes.items}}
+                                        <ul class="list-item">
+                                          <a
+                                            href="{{ link }}"
+                                            class="link-primary" style="color: #0073e6;"
+                                            >{{ name }}</a
+                                          >
+                                          <span class="list-item-secondary"
+                                            >richiesta da {{ producerName
+                                            }}</span
+                                          >
+                                          </ul>
+                                        {{/each}}
+                                        {{#if waitingForApprovalReceivedPurposes.remainingCount}}
+                                        <ul class="list-item">
+                                          E altre
+                                          <strong>{{ waitingForApprovalReceivedPurposes.remainingCount }}</strong>.
                                         </ul>
-                                      {{/each}}
-                                    </ul>
+                                        {{/if}}
+                                      </ul>
 
-                                    <!-- Yellow Alert -->
-                                    <div class="alert-warning" role="note">
-                                      <p class="alert-text">
-                                        Approva le finalità e permetti agli enti
-                                        di attivare la richiesta di fruizione.
-                                      </p>
+                                      <!-- Yellow Alert -->
+                                      <div class="alert-warning" role="note">
+                                        <p class="alert-text">
+                                          Approva le finalità e permetti agli enti
+                                          di attivare la richiesta di fruizione.
+                                        </p>
+                                      </div>
                                     </div>
                                     {{/if}}
                                     {{/if}}
@@ -1300,27 +1360,35 @@
                                           per pubblicare un e-service o una nuova versione:
                                         </strong>
                                       </p>
-                                      <ul class="list-items">
-                                        {{#each
-                                        waitingForApprovalReceivedDelegations.items}}
-                                        <ul class="list-item">
-                                          <a
-                                            href="{{ link }}"
-                                            class="link-primary" style="color: #0073e6;"
-                                            >{{ name }}</a
-                                          >
-                                          <span class="list-item-secondary"
-                                            >delegato a {{ producerName }}</span
-                                          >
+                                      <div class="section-cell">
+                                        <ul class="list-items">
+                                          {{#each
+                                          waitingForApprovalReceivedDelegations.items}}
+                                          <ul class="list-item">
+                                            <a
+                                              href="{{ link }}"
+                                              class="link-primary" style="color: #0073e6;"
+                                              >{{ name }}</a
+                                            >
+                                            <span class="list-item-secondary"
+                                              >delegato a {{ producerName }}</span
+                                            >
+                                          </ul>
+                                          {{/each}}
+                                          {{#if waitingForApprovalReceivedDelegations.remainingCount}}
+                                          <ul class="list-item">
+                                            E altre
+                                            <strong>{{ waitingForApprovalReceivedDelegations.remainingCount }}</strong>.
+                                          </ul>
+                                          {{/if}}
                                         </ul>
-                                        {{/each}}
-                                      </ul>
-                                      <!-- Yellow Alert -->
-                                      <div class="alert-warning" role="note">
-                                        <p class="alert-text">
-                                          Approva le richieste e permetti
-                                          agli utenti di continuare a scambiare dati.
-                                        </p>
+                                        <!-- Yellow Alert -->
+                                        <div class="alert-warning" role="note">
+                                          <p class="alert-text">
+                                            Approva le richieste e permetti
+                                            agli utenti di continuare a scambiare dati.
+                                          </p>
+                                        </div>
                                       </div>
                                     </div>
                                     {{/if}} 
@@ -1333,32 +1401,40 @@
                                           Hai ricevuto una richiesta
                                           {{else}}
                                           Hai ricevuto {{ revokedReceivedDelegations.totalCount
-                                          }} richieste richieste
+                                          }} richieste
                                           {{/if}}
                                           di delega:
                                         </strong>
                                       </p>
-                                      <ul class="list-items">
-                                        {{#each
-                                        revokedReceivedDelegations.items}}
-                                        <ul class="list-item">
-                                          <a
-                                            href="{{ link }}"
-                                            class="link-primary" style="color: #0073e6;"
-                                            >{{ name }}</a
-                                          >
-                                          <span class="list-item-secondary"
-                                            >delegato all'erogazione da {{ producerName }}</span
-                                          >
+                                      <div class="section-cell">
+                                        <ul class="list-items">
+                                          {{#each
+                                          revokedReceivedDelegations.items}}
+                                          <ul class="list-item">
+                                            <a
+                                              href="{{ link }}"
+                                              class="link-primary" style="color: #0073e6;"
+                                              >{{ name }}</a
+                                            >
+                                            <span class="list-item-secondary"
+                                              >delegato all'erogazione da {{ producerName }}</span
+                                            >
+                                          </ul>
+                                          {{/each}}
+                                          {{#if revokedReceivedDelegations.remainingCount}}
+                                          <ul class="list-item">
+                                            E altre
+                                            <strong>{{ revokedReceivedDelegations.remainingCount }}</strong>.
+                                          </ul>
+                                          {{/if}}
                                         </ul>
-                                        {{/each}}
-                                      </ul>
-                                      <!-- Yellow Alert -->
-                                      <div class="alert-warning" role="note">
-                                        <p class="alert-text">
-                                          Approva le richieste e inizia a gestire
-                                          gli e-service ricevuti in delega.
-                                        </p>
+                                        <!-- Yellow Alert -->
+                                        <div class="alert-warning" role="note">
+                                          <p class="alert-text">
+                                            Approva le richieste e inizia a gestire
+                                            gli e-service ricevuti in delega.
+                                          </p>
+                                        </div>
                                       </div>
                                     </div>
                                     {{/if}}
@@ -1412,7 +1488,7 @@
                                           {{/if}}
                                           </strong>
                                       </p>
-                                      <ul class="list-items">
+                                      <ul class="list-items section-cell">
                                         {{#each receivedAttributes.items}}
                                         <ul class="list-item">
                                           <a
@@ -1426,6 +1502,12 @@
                                           >
                                         </ul>
                                         {{/each}}
+                                        {{#if receivedAttributes.remainingCount}}
+                                        <ul class="list-item">
+                                          E altre
+                                          <strong>{{ receivedAttributes.remainingCount }}</strong>.
+                                        </ul>
+                                        {{/if}}
                                       </ul>
                                     </div>
                                     {{/if}}
@@ -1441,30 +1523,37 @@
                                       </strong>
                                       {{/if}}
                                     </p>
-                                    <ul class="list-items">
-                                      {{#each revokedAttributes.items}}
-                                      <ul class="list-item">
-                                        <a
-                                          href="{{ link }}"
-                                          class="link-primary" style="color: #0073e6;"
-                                          >{{ name }}</a
-                                        >
-                                        <span class="list-item-secondary">
-                                          revocati da {{
-                                          producerName }}</span
-                                        >
+                                    <div class="section-cell">
+                                      <ul class="list-items">
+                                        {{#each revokedAttributes.items}}
+                                        <ul class="list-item">
+                                          <a
+                                            href="{{ link }}"
+                                            class="link-primary" style="color: #0073e6;"
+                                            >{{ name }}</a
+                                          >
+                                          <span class="list-item-secondary">
+                                            revocati da {{
+                                            producerName }}</span
+                                          >
+                                        </ul>
+                                        {{/each}}
+                                        {{#if revokedAttributes.remainingCount}}
+                                        <ul class="list-item">
+                                          E altre
+                                          <strong>{{ revokedAttributes.remainingCount }}</strong>.
+                                        </ul>
+                                        {{/if}}
                                       </ul>
-                                      {{/each}}
-                                    </ul>
-                                    <!-- Red Alert -->
-                                    <div class="alert-error" role="note">
-                                      <p class="alert-text">
-                                        La revoca di un attributo interrompe l'accesso
-                                        agli e-service con cui stai scambiando dati e che
-                                        hanno quell'attributo come requisito di accesso.
-                                      </p>
+                                      <!-- Red Alert -->
+                                      <div class="alert-error" role="note">
+                                        <p class="alert-text">
+                                          La revoca di un attributo interrompe l'accesso
+                                          agli e-service con cui stai scambiando dati e che
+                                          hanno quell'attributo come requisito di accesso.
+                                        </p>
+                                      </div>
                                     </div>
-                                    {{/if}}
                                     {{/if}}
                                   </td>
                                 </tr>
