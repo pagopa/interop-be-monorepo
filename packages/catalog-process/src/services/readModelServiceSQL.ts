@@ -1001,7 +1001,7 @@ export function readModelServiceBuilderSQL(
           ),
           onlyTemplateInstancesFilter(onlyTemplateInstances),
           hasLinkedPurposeTemplatesFilter(tx, hasLinkedPurposeTemplates),
-          producerCategoriesFilter(tx, producerCategories)
+          producerCategoriesFilter(tx, producerCategories),
           availableForRequesterFilter(
             tx,
             authData.organizationId,
