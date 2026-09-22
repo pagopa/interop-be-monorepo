@@ -43,6 +43,6 @@ describe("fixReviewerWorkflow", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.purpose?.reviewMode).toBe(1);
+    expect(writtenPayload.purpose?.riskAnalysisReviewMode).toBe(1);
   });
 });
