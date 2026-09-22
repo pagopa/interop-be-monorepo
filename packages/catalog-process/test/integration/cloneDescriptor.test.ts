@@ -632,10 +632,7 @@ describe("clone descriptor", () => {
           })
         )
       ).rejects.toThrowError(
-        eserviceCloningWithActiveOrPendingDelegation(
-          eservice.id,
-          delegation.id
-        )
+        eserviceCloningWithActiveOrPendingDelegation(eservice.id, delegation.id)
       );
     }
   );
