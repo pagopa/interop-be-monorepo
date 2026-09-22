@@ -112,6 +112,7 @@ import {
   missingReviewers,
   reviewersNotAllowedForReviewMode,
   purposeMetadataVersionMismatch,
+  riskAnalysisReviewModeNotFound,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -471,7 +472,7 @@ export function purposeServiceBuilder(
 
       const purpose = await retrievePurpose(purposeId, readModelService);
       if (!purpose.data.riskAnalysisReviewMode) {
-        throw reviewModeNotFound(purposeId);
+        throw riskAnalysisReviewModeNotFound(purposeId);
       }
 
       const event =
