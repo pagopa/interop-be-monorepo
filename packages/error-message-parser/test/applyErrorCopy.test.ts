@@ -16,6 +16,7 @@ describe("applyErrorCopy", () => {
       },
     },
   };
+
   it("should correctly apply error copy to a problem object", () => {
     const problem: Problem = {
       type: "about:blank",
@@ -43,5 +44,49 @@ describe("applyErrorCopy", () => {
       ...problem,
       detail: undefined,
     });
+  });
+
+  it("should correctly leave unaltered when no matching error copy is found", () => {
+    const problem: Problem = {
+      type: "about:blank",
+      status: 400,
+      title: "expirationDateCannotBeInThePast",
+      correlationId: "correlationId",
+      detail: "Detail message",
+      errors: [
+        {
+          code: "005-0015",
+          detail: "Detail message",
+        },
+      ],
+    };
+    const result = applyErrorCopy(
+      problem,
+      "GET /tenant/:tenantId",
+      commonErrorCopy
+    );
+    expect(result).toEqual(problem);
+  });
+
+  it("should correctly leave unaltered if there is no matching endpoint", () => {
+    const problem: Problem = {
+      type: "about:blank",
+      status: 400,
+      title: "expirationDateCannotBeInThePast",
+      correlationId: "correlationId",
+      detail: "Detail message",
+      errors: [
+        {
+          code: "005-0014",
+          detail: "Detail message",
+        },
+      ],
+    };
+    const result = applyErrorCopy(
+      problem,
+      "GET /non-existent-endpoint",
+      commonErrorCopy
+    );
+    expect(result).toEqual(problem);
   });
 });

@@ -20,17 +20,14 @@
   "keywords": [],
   "devDependencies": {
     "@types/node": "catalog:",
-    "csv": "catalog:",
+    "csv-stringify": "catalog:",
     "eslint": "catalog:",
-    "pagopa-interop-commons-test": "workspace:*",
     "pagopa-interop-eslint-config": "workspace:*",
-    "tsx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   },
   "dependencies": {
     "csv-parse": "catalog:",
-    "csv-stringify": "catalog:",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "ts-pattern": "catalog:",

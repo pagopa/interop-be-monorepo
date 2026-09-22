@@ -3043,9 +3043,6 @@ importers:
       csv-parse:
         specifier: 'catalog:'
         version: 7.0.2
-      csv-stringify:
-        specifier: 'catalog:'
-        version: 6.5.2
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -3062,21 +3059,15 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      csv:
+      csv-stringify:
         specifier: 'catalog:'
-        version: 6.3.11
+        version: 6.5.2
       eslint:
         specifier: 'catalog:'
         version: 9.39.2(jiti@2.6.1)
-      pagopa-interop-commons-test:
-        specifier: workspace:*
-        version: link:../commons-test
       pagopa-interop-eslint-config:
         specifier: workspace:*
         version: link:../eslint-config
-      tsx:
-        specifier: 'catalog:'
-        version: 4.19.1
       typescript:
         specifier: 'catalog:'
         version: 5.4.5

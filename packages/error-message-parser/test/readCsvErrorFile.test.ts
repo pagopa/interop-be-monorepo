@@ -207,6 +207,110 @@ describe("readCsvErrorFile", () => {
         },
       });
     });
+
+    it.each([
+      {
+        process: "tenantProcess",
+        errorCode: "attributeNotFound",
+        expected: "005-0001",
+      },
+      {
+        process: "Tenant Process",
+        errorCode: "attributeNotFound",
+        expected: "005-0001",
+      },
+      {
+        process: "Purpose-template Process",
+        errorCode: "missingFreeOfChargeReason",
+        expected: "015-0001",
+      },
+      {
+        process: "Purpose Template Process",
+        errorCode: "missingFreeOfChargeReason",
+        expected: "015-0001",
+      },
+      {
+        process: "PurposeTemplate Process",
+        errorCode: "missingFreeOfChargeReason",
+        expected: "015-0001",
+      },
+      {
+        process: "Purpose TemplateProcess",
+        errorCode: "missingFreeOfChargeReason",
+        expected: "015-0001",
+      },
+      {
+        process: "Purpose Process",
+        errorCode: "purposeNotFound",
+        expected: "004-0001",
+      },
+      {
+        process: "notification-config process",
+        errorCode: "tenantNotificationConfigNotFound",
+        expected: "014-0001",
+      },
+      {
+        process: "e-service template process",
+        errorCode: "eserviceTemplateNotFound",
+        expected: "011-0001",
+      },
+      {
+        process: "EService Template Process",
+        errorCode: "eserviceTemplateNotFound",
+        expected: "011-0001",
+      },
+      {
+        process: "DELEGATION PROCESS",
+        errorCode: "delegationNotFound",
+        expected: "010-0001",
+      },
+      {
+        process: "Catalog Process",
+        errorCode: "eServiceDescriptorNotFound",
+        expected: "001-0001",
+      },
+      {
+        process: "Authorization Process",
+        errorCode: "clientNotFound",
+        expected: "006-0001",
+      },
+      {
+        process: "Attribute Registry Process",
+        errorCode: "attributeNotFound",
+        expected: "003-0001",
+      },
+      {
+        process: "Agreement Process",
+        errorCode: "missingCertifiedAttributesError",
+        expected: "002-0001",
+      },
+    ])(
+      "and correctly map error codes for process $process",
+      ({ process, errorCode, expected }) => {
+        const csvPath = createTestCsvFile([
+          {
+            process,
+            errorCode,
+            methodUrl: "GET /tenant/:tenantId",
+            en: "Some error message",
+            it: "Un messaggio di errore",
+          },
+        ]);
+        const parsedErrors = readCsvErrorFile(csvPath, ["it", "en"]);
+        const expectedErrors = {
+          "GET /tenant/:tenantId": {
+            [expected]: {
+              key: expected,
+              messages: {
+                it: "Un messaggio di errore",
+                en: "Some error message",
+              },
+            },
+          },
+        };
+        expect(parsedErrors).toEqual(expectedErrors);
+      }
+    );
   });
 
   it("should throw an error if the file is missing", () => {
