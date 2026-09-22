@@ -470,7 +470,7 @@ export function purposeServiceBuilder(
       logger.info(`Fixing review mode for Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
-      if (!purpose.data.reviewMode) {
+      if (!purpose.data.riskAnalysisReviewMode) {
         throw reviewModeNotFound(purposeId);
       }
 
