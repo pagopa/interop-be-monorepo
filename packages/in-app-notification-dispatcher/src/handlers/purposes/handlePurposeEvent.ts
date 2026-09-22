@@ -160,7 +160,8 @@ export async function handlePurposeEvent(
           "RiskAnalysisDocumentGenerated",
           "RiskAnalysisSignedDocumentGenerated",
           "MaintenancePurposeRiskAnalysisSetTenantKind",
-          "PurposeRiskAnalysisFormEdited"
+          "PurposeRiskAnalysisFormEdited",
+          "MaintenancePurposeRiskAnalysisFixReviewerWorkflow"
         ),
       },
       () => {

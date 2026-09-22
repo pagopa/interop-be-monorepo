@@ -20,7 +20,7 @@ describe("fixReviewerWorkflow", () => {
   it("emits a maintenance event with the normalized review mode", async () => {
     const purpose: Purpose = {
       ...getMockPurpose(),
-      reviewMode: "AdminWritesReviewerSigns",
+      riskAnalysisReviewMode: "AdminWritesReviewerSigns",
     };
 
     await addOnePurpose(purpose);

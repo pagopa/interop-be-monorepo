@@ -489,7 +489,7 @@ const purposeRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-              maintenanceFixRiskAnalysisErrorMapper,
+            maintenanceFixRiskAnalysisErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);
@@ -504,11 +504,10 @@ const purposeRouter = (
         try {
           validateAuthorization(ctx, [INTERNAL_ROLE]);
 
-          const { data, metadata } =
-            await purposeService.fixReviewerWorkflow(
-              unsafeBrandId(req.params.purposeId),
-              ctx
-            );
+          const { data, metadata } = await purposeService.fixReviewerWorkflow(
+            unsafeBrandId(req.params.purposeId),
+            ctx
+          );
 
           setMetadataVersionHeader(res, metadata);
           return res
