@@ -3040,12 +3040,12 @@ importers:
 
   packages/error-message-parser:
     dependencies:
-      axios:
-        specifier: 'catalog:'
-        version: 1.18.0
       csv-parse:
         specifier: 'catalog:'
         version: 7.0.2
+      csv-stringify:
+        specifier: 'catalog:'
+        version: 6.5.2
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -3062,12 +3062,9 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      adm-zip:
+      csv:
         specifier: 'catalog:'
-        version: 0.6.0
-      date-fns:
-        specifier: 'catalog:'
-        version: 4.1.0
+        version: 6.3.11
       eslint:
         specifier: 'catalog:'
         version: 9.39.2(jiti@2.6.1)

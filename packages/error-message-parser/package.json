@@ -12,7 +12,6 @@
   "scripts": {
     "lint": "eslint .",
     "lint:autofix": "eslint . --fix",
-    "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
     "build": "tsc",
     "check": "tsc --project tsconfig.check.json",
     "test": "vitest",
@@ -21,8 +20,7 @@
   "keywords": [],
   "devDependencies": {
     "@types/node": "catalog:",
-    "adm-zip": "catalog:",
-    "date-fns": "catalog:",
+    "csv": "catalog:",
     "eslint": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
     "pagopa-interop-eslint-config": "workspace:*",
@@ -31,8 +29,8 @@
     "vitest": "catalog:"
   },
   "dependencies": {
-    "axios": "catalog:",
     "csv-parse": "catalog:",
+    "csv-stringify": "catalog:",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "ts-pattern": "catalog:",
