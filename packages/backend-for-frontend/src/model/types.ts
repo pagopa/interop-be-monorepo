@@ -220,5 +220,7 @@ export type MakeUserFacingApiProblemFn<T extends string> = (
     endpoint?: string;
   },
   operationalLogMessage?: Parameters<MakeApiProblemFn<T>>[3],
-  placeholderMapper?: (problem: UserFacingProblem) => UserFacingProblem
+  placeholderMapper?: (
+    problem: UserFacingProblem & { userMessages: ErrorMessage }
+  ) => UserFacingProblem
 ) => UserFacingProblem;

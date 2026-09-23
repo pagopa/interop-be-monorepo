@@ -1,4 +1,4 @@
-import { ErrorCopy } from "pagopa-interop-error-message-parser";
+import { ErrorCopy, ErrorMessage } from "pagopa-interop-error-message-parser";
 import {
   Problem,
   makeApiProblemBuilder,
@@ -36,10 +36,16 @@ export function applyErrorCopy(
 export async function placeholderMapperGenerator<T>(
   callback: () => Promise<T>,
   replace: (value: T, problem: UserFacingProblem) => UserFacingProblem
-): Promise<((prob: UserFacingProblem) => UserFacingProblem) | undefined> {
+): Promise<
+  | ((
+      prob: UserFacingProblem & { userMessages: ErrorMessage }
+    ) => UserFacingProblem)
+  | undefined
+> {
   try {
     const value = await callback();
-    return (problem: UserFacingProblem) => replace(value, problem);
+    return (problem: UserFacingProblem & { userMessages: ErrorMessage }) =>
+      replace(value, problem);
   } catch {
     return undefined;
   }
@@ -72,11 +78,18 @@ export function makeUserFacingApiProblemBuilder<T extends string>(
       errorCopy
     );
 
-    if (!placeholderMapper) {
-      return userFacingProblem;
+    if (placeholderMapper) {
+      const { userMessages } = userFacingProblem;
+
+      if (userMessages) {
+        return placeholderMapper({
+          ...userFacingProblem,
+          userMessages,
+        });
+      }
     }
 
-    return placeholderMapper(userFacingProblem);
+    return userFacingProblem;
   };
   return userFacingApiProblem;
 }
