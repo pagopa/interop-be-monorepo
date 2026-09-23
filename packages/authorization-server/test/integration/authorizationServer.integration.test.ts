@@ -16,9 +16,9 @@ import {
   dateToSeconds,
   formatDateyyyyMMdd,
   genericLogger,
-  secondsToMilliseconds,
   sortJWK,
   systemRole,
+  timestampToMilliseconds,
 } from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
@@ -993,7 +993,7 @@ describe("authorization server tests", () => {
     const expectedMessageBody: GeneratedConsumerTokenAuditDetails = {
       jwtId: generateId(),
       correlationId,
-      issuedAt: secondsToMilliseconds(parsedDecodedFileContent.issuedAt),
+      issuedAt: timestampToMilliseconds(parsedDecodedFileContent.issuedAt),
       clientId,
       organizationId: tokenClientKidPurposeEntry.consumerId!,
       agreementId: unsafeBrandId<AgreementId>(
@@ -1012,16 +1012,16 @@ describe("authorization server tests", () => {
       typ: "at+jwt",
       audience: tokenClientKidPurposeEntry.descriptorAudience!.join(","),
       subject: clientId,
-      notBefore: secondsToMilliseconds(parsedDecodedFileContent.notBefore),
-      expirationTime: secondsToMilliseconds(
+      notBefore: timestampToMilliseconds(parsedDecodedFileContent.notBefore),
+      expirationTime: timestampToMilliseconds(
         parsedDecodedFileContent.expirationTime
       ),
       issuer: config.generatedInteropTokenIssuer,
       clientAssertion: {
         algorithm: clientAssertion.header.alg,
         audience: [clientAssertion.payload.aud].flat().join(","),
-        expirationTime: secondsToMilliseconds(clientAssertion.payload.exp!),
-        issuedAt: secondsToMilliseconds(clientAssertion.payload.iat!),
+        expirationTime: timestampToMilliseconds(clientAssertion.payload.exp!),
+        issuedAt: timestampToMilliseconds(clientAssertion.payload.iat!),
         issuer: clientAssertion.payload.iss!,
         jwtId: clientAssertion.payload.jti!,
         keyId: clientAssertion.header.kid!,
@@ -1138,7 +1138,7 @@ describe("authorization server tests", () => {
     const expectedMessageBody: GeneratedConsumerTokenAuditDetails = {
       jwtId: generateId(),
       correlationId,
-      issuedAt: secondsToMilliseconds(parsedAuditSent.issuedAt),
+      issuedAt: timestampToMilliseconds(parsedAuditSent.issuedAt),
       clientId,
       organizationId: tokenClientPurposeEntry.consumerId!,
       agreementId: unsafeBrandId<AgreementId>(
@@ -1157,14 +1157,14 @@ describe("authorization server tests", () => {
       typ: "at+jwt",
       audience: tokenClientPurposeEntry.descriptorAudience!.join(","),
       subject: clientId,
-      notBefore: secondsToMilliseconds(parsedAuditSent.notBefore),
-      expirationTime: secondsToMilliseconds(parsedAuditSent.expirationTime),
+      notBefore: timestampToMilliseconds(parsedAuditSent.notBefore),
+      expirationTime: timestampToMilliseconds(parsedAuditSent.expirationTime),
       issuer: config.generatedInteropTokenIssuer,
       clientAssertion: {
         algorithm: clientAssertion.header.alg,
         audience: [clientAssertion.payload.aud].flat().join(","),
-        expirationTime: secondsToMilliseconds(clientAssertion.payload.exp!),
-        issuedAt: secondsToMilliseconds(clientAssertion.payload.iat!),
+        expirationTime: timestampToMilliseconds(clientAssertion.payload.exp!),
+        issuedAt: timestampToMilliseconds(clientAssertion.payload.iat!),
         issuer: clientAssertion.payload.iss!,
         jwtId: clientAssertion.payload.jti!,
         keyId: clientAssertion.header.kid!,
@@ -1173,6 +1173,140 @@ describe("authorization server tests", () => {
     };
 
     expect(parsedAuditSent).toEqual(expectedMessageBody);
+  });
+
+  it("should succeed - consumer key - kafka audit with client assertion timestamps not expressed in seconds", async () => {
+    mockProducer.send.mockImplementationOnce(async () => [
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
+    ]);
+    mockKMSClient.send.mockImplementationOnce(async () => ({
+      Signature: "mock signature",
+    }));
+
+    vi.spyOn(mockProducer, "send");
+
+    const purpose: Purpose = {
+      ...getMockPurpose(),
+      versions: [getMockPurposeVersion(purposeVersionState.active)],
+    };
+    const clientId = generateId<ClientId>();
+
+    const oneHourLater = new Date();
+    oneHourLater.setHours(oneHourLater.getHours() + 1);
+    const expInSeconds = dateToSeconds(oneHourLater);
+    const iatInSeconds = 1754400000.5;
+
+    const { jws, clientAssertion, publicKeyEncodedPem } =
+      await getMockClientAssertion({
+        standardClaimsOverride: {
+          sub: clientId,
+          iat: iatInSeconds,
+          exp: expInSeconds * 1e6,
+        },
+        customClaims: { purposeId: purpose.id },
+      });
+
+    const tokenClientKidPurposePK = makeTokenGenerationStatesClientKidPurposePK(
+      {
+        clientId,
+        kid: clientAssertion.header.kid!,
+        purposeId: purpose.id,
+      }
+    );
+    const tokenClientPurposeEntry: TokenGenerationStatesConsumerClient = {
+      ...getMockTokenGenStatesConsumerClient(tokenClientKidPurposePK),
+      consumerId: purpose.consumerId,
+      GSIPK_purposeId: purpose.id,
+      purposeState: itemState.active,
+      purposeVersionId: purpose.versions[0].id,
+      agreementState: itemState.active,
+      descriptorState: itemState.active,
+      GSIPK_clientId: clientId,
+      GSIPK_clientId_kid: makeGSIPKClientIdKid({
+        clientId,
+        kid: clientAssertion.header.kid!,
+      }),
+      publicKey: publicKeyEncodedPem,
+    };
+
+    await writeTokenGenStatesConsumerClient(
+      tokenClientPurposeEntry,
+      dynamoDBClient
+    );
+
+    const mockRequest = await getMockTokenRequest();
+    const request: typeof mockRequest = {
+      headers: mockRequest.headers,
+      body: {
+        ...mockRequest.body,
+        client_assertion: jws,
+        client_id: clientId,
+      },
+    };
+
+    const uuid = crypto.randomUUID();
+    const uuidSpy = vi.spyOn(crypto, "randomUUID");
+    uuidSpy.mockReturnValue(uuid);
+
+    const correlationId = generateId<CorrelationId>();
+    const result = await tokenService.generateToken(
+      request.headers,
+      request.body,
+      () => getMockContext({ correlationId }),
+      () => {},
+      () => {},
+      () => {}
+    );
+
+    expect(result.limitReached).toBe(false);
+    expect(result.token).toBeDefined();
+
+    const actualMessageSent = mockProducer.send.mock.calls[0][0]
+      .messages[0] as { key: string; value: string };
+
+    const parsedAuditSent = JSON.parse(actualMessageSent.value);
+
+    const expectedMessageBody: GeneratedConsumerTokenAuditDetails = {
+      jwtId: generateId(),
+      correlationId,
+      issuedAt: timestampToMilliseconds(parsedAuditSent.issuedAt),
+      clientId,
+      organizationId: tokenClientPurposeEntry.consumerId!,
+      agreementId: unsafeBrandId<AgreementId>(
+        tokenClientPurposeEntry.agreementId!
+      ),
+      eserviceId: unsafeBrandId<EServiceId>(
+        tokenClientPurposeEntry.GSIPK_eserviceId_descriptorId!.split("#")[0]
+      ),
+      descriptorId: unsafeBrandId(
+        tokenClientPurposeEntry.GSIPK_eserviceId_descriptorId!.split("#")[1]
+      ),
+      purposeId: tokenClientPurposeEntry.GSIPK_purposeId!,
+      purposeVersionId: tokenClientPurposeEntry.purposeVersionId!,
+      algorithm: algorithm.RS256,
+      keyId: config.generatedInteropTokenKid,
+      typ: "at+jwt",
+      audience: tokenClientPurposeEntry.descriptorAudience!.join(","),
+      subject: clientId,
+      notBefore: timestampToMilliseconds(parsedAuditSent.notBefore),
+      expirationTime: timestampToMilliseconds(parsedAuditSent.expirationTime),
+      issuer: config.generatedInteropTokenIssuer,
+      clientAssertion: {
+        algorithm: clientAssertion.header.alg,
+        audience: [clientAssertion.payload.aud].flat().join(","),
+        expirationTime: expInSeconds * 1000,
+        issuedAt: 1754400000500,
+        issuer: clientAssertion.payload.iss!,
+        jwtId: clientAssertion.payload.jti!,
+        keyId: clientAssertion.header.kid!,
+        subject: unsafeBrandId(clientAssertion.payload.sub!),
+      },
+    };
+
+    expect(parsedAuditSent).toEqual(expectedMessageBody);
+    expect(() =>
+      GeneratedConsumerTokenAuditDetails.parse(parsedAuditSent)
+    ).not.toThrow();
   });
 
   it("should succeed - consumer key with DPoP - kafka audit failed and fallback audit succeeded", async () => {
@@ -1264,7 +1398,7 @@ describe("authorization server tests", () => {
     const expectedMessageBody: GeneratedConsumerTokenAuditDetails = {
       jwtId: generateId(),
       correlationId,
-      issuedAt: secondsToMilliseconds(parsedDecodedFileContent.issuedAt),
+      issuedAt: timestampToMilliseconds(parsedDecodedFileContent.issuedAt),
       clientId,
       organizationId: tokenClientKidPurposeEntry.consumerId!,
       agreementId: unsafeBrandId<AgreementId>(
@@ -1283,8 +1417,8 @@ describe("authorization server tests", () => {
       typ: "at+jwt",
       audience: tokenClientKidPurposeEntry.descriptorAudience!.join(","),
       subject: clientId,
-      notBefore: secondsToMilliseconds(parsedDecodedFileContent.notBefore),
-      expirationTime: secondsToMilliseconds(
+      notBefore: timestampToMilliseconds(parsedDecodedFileContent.notBefore),
+      expirationTime: timestampToMilliseconds(
         parsedDecodedFileContent.expirationTime
       ),
       issuer: config.generatedInteropTokenIssuer,
@@ -1294,8 +1428,8 @@ describe("authorization server tests", () => {
       clientAssertion: {
         algorithm: clientAssertion.header.alg,
         audience: [clientAssertion.payload.aud].flat().join(","),
-        expirationTime: secondsToMilliseconds(clientAssertion.payload.exp!),
-        issuedAt: secondsToMilliseconds(clientAssertion.payload.iat!),
+        expirationTime: timestampToMilliseconds(clientAssertion.payload.exp!),
+        issuedAt: timestampToMilliseconds(clientAssertion.payload.iat!),
         issuer: clientAssertion.payload.iss!,
         jwtId: clientAssertion.payload.jti!,
         keyId: clientAssertion.header.kid!,
@@ -1307,7 +1441,7 @@ describe("authorization server tests", () => {
         jwk: dpopProofJWT.header.jwk,
         htm: dpopProofJWT.payload.htm,
         htu: dpopProofJWT.payload.htu,
-        iat: secondsToMilliseconds(dpopProofJWT.payload.iat),
+        iat: timestampToMilliseconds(dpopProofJWT.payload.iat),
         jti: dpopProofJWT.payload.jti,
       },
     };
@@ -1429,7 +1563,7 @@ describe("authorization server tests", () => {
     const expectedMessageBody: GeneratedConsumerTokenAuditDetails = {
       jwtId: generateId(),
       correlationId,
-      issuedAt: secondsToMilliseconds(parsedAuditSent.issuedAt),
+      issuedAt: timestampToMilliseconds(parsedAuditSent.issuedAt),
       clientId,
       organizationId: tokenClientPurposeEntry.consumerId!,
       agreementId: unsafeBrandId<AgreementId>(
@@ -1448,8 +1582,8 @@ describe("authorization server tests", () => {
       typ: "at+jwt",
       audience: tokenClientPurposeEntry.descriptorAudience!.join(","),
       subject: clientId,
-      notBefore: secondsToMilliseconds(parsedAuditSent.notBefore),
-      expirationTime: secondsToMilliseconds(parsedAuditSent.expirationTime),
+      notBefore: timestampToMilliseconds(parsedAuditSent.notBefore),
+      expirationTime: timestampToMilliseconds(parsedAuditSent.expirationTime),
       issuer: config.generatedInteropTokenIssuer,
       cnf: {
         jkt: calculateDPoPThumbprint(dpopProofJWT.header.jwk),
@@ -1457,8 +1591,8 @@ describe("authorization server tests", () => {
       clientAssertion: {
         algorithm: clientAssertion.header.alg,
         audience: [clientAssertion.payload.aud].flat().join(","),
-        expirationTime: secondsToMilliseconds(clientAssertion.payload.exp!),
-        issuedAt: secondsToMilliseconds(clientAssertion.payload.iat!),
+        expirationTime: timestampToMilliseconds(clientAssertion.payload.exp!),
+        issuedAt: timestampToMilliseconds(clientAssertion.payload.iat!),
         issuer: clientAssertion.payload.iss!,
         jwtId: clientAssertion.payload.jti!,
         keyId: clientAssertion.header.kid!,
@@ -1470,7 +1604,7 @@ describe("authorization server tests", () => {
         jwk: dpopProofJWT.header.jwk,
         htm: dpopProofJWT.payload.htm,
         htu: dpopProofJWT.payload.htu,
-        iat: secondsToMilliseconds(dpopProofJWT.payload.iat),
+        iat: timestampToMilliseconds(dpopProofJWT.payload.iat),
         jti: dpopProofJWT.payload.jti,
       },
     };
@@ -1558,7 +1692,7 @@ describe("authorization server tests", () => {
     const expectedMessageBody: GeneratedApiTokenAuditDetails = {
       jwtId: response.token!.payload.jti,
       correlationId,
-      issuedAt: secondsToMilliseconds(parsedAuditSent.issuedAt),
+      issuedAt: timestampToMilliseconds(parsedAuditSent.issuedAt),
       clientId,
       organizationId: tokenClientKidEntry.consumerId!,
       algorithm: algorithm.RS256,
@@ -1566,14 +1700,14 @@ describe("authorization server tests", () => {
       typ: "at+jwt",
       audience: [response.token!.payload.aud].flat().join(","),
       subject: clientId,
-      notBefore: secondsToMilliseconds(parsedAuditSent.notBefore),
-      expirationTime: secondsToMilliseconds(parsedAuditSent.expirationTime),
+      notBefore: timestampToMilliseconds(parsedAuditSent.notBefore),
+      expirationTime: timestampToMilliseconds(parsedAuditSent.expirationTime),
       issuer: config.generatedInteropTokenIssuer,
       clientAssertion: {
         algorithm: clientAssertion.header.alg,
         audience: [clientAssertion.payload.aud].flat().join(","),
-        expirationTime: secondsToMilliseconds(clientAssertion.payload.exp!),
-        issuedAt: secondsToMilliseconds(clientAssertion.payload.iat!),
+        expirationTime: timestampToMilliseconds(clientAssertion.payload.exp!),
+        issuedAt: timestampToMilliseconds(clientAssertion.payload.iat!),
         issuer: clientAssertion.payload.iss!,
         jwtId: clientAssertion.payload.jti!,
         keyId: clientAssertion.header.kid!,
@@ -1844,7 +1978,7 @@ describe("authorization server tests", () => {
     const expectedMessageBody: GeneratedApiTokenAuditDetails = {
       jwtId: response.token!.payload.jti,
       correlationId,
-      issuedAt: secondsToMilliseconds(parsedAuditSent.issuedAt),
+      issuedAt: timestampToMilliseconds(parsedAuditSent.issuedAt),
       clientId,
       organizationId: tokenClientKidEntry.consumerId!,
       adminId: clientAdminId,
@@ -1853,8 +1987,8 @@ describe("authorization server tests", () => {
       typ: "at+jwt",
       audience: [response.token!.payload.aud].flat().join(","),
       subject: clientId,
-      notBefore: secondsToMilliseconds(parsedAuditSent.notBefore),
-      expirationTime: secondsToMilliseconds(parsedAuditSent.expirationTime),
+      notBefore: timestampToMilliseconds(parsedAuditSent.notBefore),
+      expirationTime: timestampToMilliseconds(parsedAuditSent.expirationTime),
       issuer: config.generatedInteropTokenIssuer,
       cnf: {
         jkt: calculateDPoPThumbprint(dpopProofJWT.header.jwk),
@@ -1862,8 +1996,8 @@ describe("authorization server tests", () => {
       clientAssertion: {
         algorithm: clientAssertion.header.alg,
         audience: [clientAssertion.payload.aud].flat().join(","),
-        expirationTime: secondsToMilliseconds(clientAssertion.payload.exp!),
-        issuedAt: secondsToMilliseconds(clientAssertion.payload.iat!),
+        expirationTime: timestampToMilliseconds(clientAssertion.payload.exp!),
+        issuedAt: timestampToMilliseconds(clientAssertion.payload.iat!),
         issuer: clientAssertion.payload.iss!,
         jwtId: clientAssertion.payload.jti!,
         keyId: clientAssertion.header.kid!,
@@ -1875,7 +2009,7 @@ describe("authorization server tests", () => {
         jwk: dpopProofJWT.header.jwk,
         htm: dpopProofJWT.payload.htm,
         htu: dpopProofJWT.payload.htu,
-        iat: secondsToMilliseconds(dpopProofJWT.payload.iat),
+        iat: timestampToMilliseconds(dpopProofJWT.payload.iat),
         jti: dpopProofJWT.payload.jti,
       },
     };
@@ -1960,7 +2094,7 @@ describe("authorization server tests", () => {
     const expectedMessageBody: GeneratedApiTokenAuditDetails = {
       jwtId: generateId(),
       correlationId,
-      issuedAt: secondsToMilliseconds(parsedDecodedFileContent.issuedAt),
+      issuedAt: timestampToMilliseconds(parsedDecodedFileContent.issuedAt),
       clientId,
       organizationId: tokenClientKidEntry.consumerId!,
       algorithm: algorithm.RS256,
@@ -1968,16 +2102,16 @@ describe("authorization server tests", () => {
       typ: "at+jwt",
       audience: [response.token!.payload.aud].flat().join(","),
       subject: clientId,
-      notBefore: secondsToMilliseconds(parsedDecodedFileContent.notBefore),
-      expirationTime: secondsToMilliseconds(
+      notBefore: timestampToMilliseconds(parsedDecodedFileContent.notBefore),
+      expirationTime: timestampToMilliseconds(
         parsedDecodedFileContent.expirationTime
       ),
       issuer: config.generatedInteropTokenIssuer,
       clientAssertion: {
         algorithm: clientAssertion.header.alg,
         audience: [clientAssertion.payload.aud].flat().join(","),
-        expirationTime: secondsToMilliseconds(clientAssertion.payload.exp!),
-        issuedAt: secondsToMilliseconds(clientAssertion.payload.iat!),
+        expirationTime: timestampToMilliseconds(clientAssertion.payload.exp!),
+        issuedAt: timestampToMilliseconds(clientAssertion.payload.iat!),
         issuer: clientAssertion.payload.iss!,
         jwtId: clientAssertion.payload.jti!,
         keyId: clientAssertion.header.kid!,
