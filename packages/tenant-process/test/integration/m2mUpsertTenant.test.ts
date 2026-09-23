@@ -40,7 +40,6 @@ describe("m2mUpsertTenant", async () => {
       origin: "IPA",
       value: "123456",
     },
-    name: "A tenant",
     certifiedAttributes: [{ code: "CODE" }],
   };
 
@@ -368,7 +367,6 @@ describe("m2mUpsertTenant", async () => {
         origin: "NOT ORIGIN",
         value: "NOT CODE",
       },
-      name: "A tenant",
       certifiedAttributes: [{ code: "NOT CODE" }],
     };
 
