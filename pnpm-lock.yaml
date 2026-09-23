@@ -1982,6 +1982,9 @@ importers:
       istextorbinary:
         specifier: 'catalog:'
         version: 9.5.0
+      jose:
+        specifier: 'catalog:'
+        version: 5.9.4
       jsonwebtoken:
         specifier: 'catalog:'
         version: 9.0.2

@@ -37,6 +37,7 @@
     "fast-xml-parser": "catalog:",
     "handlebars": "catalog:",
     "istextorbinary": "catalog:",
+    "jose": "catalog:",
     "jsonwebtoken": "catalog:",
     "jwks-rsa": "catalog:",
     "kafkajs": "catalog:",
