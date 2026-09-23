@@ -86,6 +86,7 @@ describe("tenantServiceBuilder.getTenant", () => {
     const service = tenantServiceBuilder(
       tenantProcessClient as never,
       attributeProcessClient as never,
+      {} as never,
       {} as never
     );
 
@@ -173,6 +174,7 @@ describe("tenantServiceBuilder.getTenant", () => {
     const service = tenantServiceBuilder(
       tenantProcessClient as never,
       attributeProcessClient as never,
+      {} as never,
       {} as never
     );
 
@@ -253,6 +255,7 @@ describe("tenantServiceBuilder.getTenant", () => {
     const service = tenantServiceBuilder(
       tenantProcessClient as never,
       attributeProcessClient as never,
+      {} as never,
       {} as never
     );
 
@@ -340,6 +343,7 @@ describe("tenantServiceBuilder.getCertifiedAttributes", () => {
           totalCount: 2,
         }),
       } as never,
+      {} as never,
       {} as never
     );
 
