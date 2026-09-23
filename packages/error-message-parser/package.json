@@ -20,10 +20,8 @@
   "keywords": [],
   "devDependencies": {
     "@types/node": "catalog:",
-    "axios": "catalog:",
     "csv-stringify": "catalog:",
     "eslint": "catalog:",
-    "pagopa-interop-commons-test": "workspace:*",
     "pagopa-interop-eslint-config": "workspace:*",
     "typescript": "catalog:",
     "vitest": "catalog:"
@@ -31,7 +29,6 @@
   "dependencies": {
     "csv-parse": "catalog:",
     "pagopa-interop-commons": "workspace:*",
-    "pagopa-interop-models": "workspace:*",
     "ts-pattern": "catalog:",
     "zod": "catalog:"
   }
