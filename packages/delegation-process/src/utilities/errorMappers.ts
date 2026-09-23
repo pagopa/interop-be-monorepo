@@ -15,21 +15,6 @@ const {
   HTTP_STATUS_CONFLICT,
 } = constants;
 
-export const getDelegationsErrorMapper = (
-  error: ApiError<ErrorCodes>
-): number =>
-  match(error.code).otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
-/** @alias */
-export const getConsumerDelegatorsErrorMapper = getDelegationsErrorMapper;
-/** @alias */
-export const getConsumerDelegatorsWithAgreementsErrorMapper =
-  getConsumerDelegatorsErrorMapper;
-export const getConsumerEservicesErrorMapper = (
-  error: ApiError<ErrorCodes>
-): number =>
-  match(error.code).otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
 export const getDelegationByIdErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
