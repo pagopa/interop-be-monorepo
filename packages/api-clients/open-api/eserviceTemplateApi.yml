@@ -286,6 +286,43 @@ paths:
           $ref: "#/components/responses/NotFound"
         "403":
           $ref: "#/components/responses/Forbidden"
+  /templates/{templateId}/versions/fromLatest:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Adds a version cloning the latest one of the specified e-service template
+      operationId: createEServiceTemplateVersionFromLatest
+      description: Adds a new version to the specified E-Service template, deriving its content and documents from the latest existing version
+      parameters:
+        - name: templateId
+          in: path
+          description: The E-Service template id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: EService template version created.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatedEServiceTemplateVersion"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /templates/{templateId}/versions/{templateVersionId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1372,7 +1409,6 @@ components:
       required:
         - voucherLifespan
         - attributes
-        - docs
       type: object
       additionalProperties: false
       properties:
@@ -1402,6 +1438,10 @@ components:
         attributes:
           $ref: "#/components/schemas/AttributesSeed"
         docs:
+          # Deprecated: kept only so a not-yet-updated BFF can still create a
+          # version with pre-cloned documents during the rolling deploy.
+          # Remove once no caller sends it: cloning now lives in createEServiceTemplateVersionFromLatest.
+          deprecated: true
           type: array
           items:
             $ref: "#/components/schemas/CreateEServiceTemplateVersionDocumentSeed"
