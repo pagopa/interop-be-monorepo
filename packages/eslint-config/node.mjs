@@ -1,4 +1,5 @@
 import pagopa from "@pagopa/eslint-config";
+import sonarjs from "eslint-plugin-sonarjs";
 
 const commonRestrictedImports = ["**/dist/**"];
 
@@ -13,12 +14,7 @@ const legacyPlugins = {
     },
   },
   sonarjs: {
-    rules: {
-      "cognitive-complexity": noopRule,
-      "no-duplicated-branches": noopRule,
-      "no-identical-functions": noopRule,
-      "no-nested-template-literals": noopRule,
-    },
+    rules: { ...sonarjs.rules },
   },
   fp: {
     rules: {
@@ -57,6 +53,7 @@ export default [
       ],
       "complexity": "off",
       "max-lines-per-function": "off",
+      "sonarjs/no-duplicate-string": "warn",
       "perfectionist/sort-array-includes": "off",
       "perfectionist/sort-classes": "off",
       "perfectionist/sort-decorators": "off",
