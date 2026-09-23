@@ -5,6 +5,7 @@ import {
   parseErrorMessage,
 } from "pagopa-interop-models";
 
+import { config } from "../config/config.js";
 import { makeUserFacingApiProblemBuilder } from "./applyError.js";
 
 const errorCodes = {
@@ -69,7 +70,7 @@ export const makeApiProblem = makeUserFacingApiProblemBuilder(
     problemErrorsPassthrough: true,
     forceGenericProblemOn500: true,
   },
-  readCsvErrorFile("", [])
+  readCsvErrorFile(config.errorCopyPath, config.errorMappingLanguages)
 );
 
 export function selfcareEntityNotFilled(
