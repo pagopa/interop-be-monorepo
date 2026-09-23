@@ -7,6 +7,7 @@ import {
   authRole,
   ExpressContext,
   validateAuthorization,
+  WithLogger,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
@@ -22,9 +23,10 @@ import {
   toBffCatalogApiDescriptorDoc,
   toEserviceCatalogProcessQueryParams,
 } from "../api/catalogApiConverter.js";
+import { placeholderMapperGenerator } from "../model/applyError.js";
 import { makeApiProblem } from "../model/errors.js";
 import { CatalogService } from "../services/catalogService.js";
-import { fromBffAppContext } from "../utilities/context.js";
+import { BffAppContext, fromBffAppContext } from "../utilities/context.js";
 import {
   addEServiceInterfaceByTemplateErrorMapper,
   bffGetCatalogErrorMapper,
@@ -41,6 +43,19 @@ const catalogRouter = (
   const catalogRouter = ctx.router(bffApi.eservicesApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
+
+  const commonCatalogProducerPlaceholderMapper = (
+    eserviceId: string,
+    ctx: WithLogger<BffAppContext>
+  ) =>
+    placeholderMapperGenerator(
+      async () =>
+        catalogService.getProducerEServiceDetails(
+          unsafeBrandId(eserviceId),
+          ctx
+        ),
+      (value, message) => message.replace("{eserviceName}", value.name)
+    );
 
   catalogRouter
     .get("/catalog", async (req, res) => {
@@ -405,11 +420,16 @@ const catalogRouter = (
         );
         return res.status(204).send();
       } catch (error) {
+        const placeholderMapper = await commonCatalogProducerPlaceholderMapper(
+          req.params.eServiceId,
+          ctx
+        );
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
           ctx,
-          `Error canceling archiving for eservice ${req.params.eServiceId}`
+          `Error canceling archiving for eservice ${req.params.eServiceId}`,
+          placeholderMapper
         );
         return res.status(errorRes.status).send(errorRes);
       }

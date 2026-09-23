@@ -35,10 +35,7 @@ export function applyErrorCopy(
 
 export async function placeholderMapperGenerator<T>(
   callback: () => Promise<T>,
-  replace: (
-    value: T,
-    problem: UserFacingProblem & { userMessages: ErrorMessage }
-  ) => UserFacingProblem
+  replace: (value: T, message: string) => string
 ): Promise<
   | ((
       prob: UserFacingProblem & { userMessages: ErrorMessage }
@@ -47,8 +44,16 @@ export async function placeholderMapperGenerator<T>(
 > {
   try {
     const value = await callback();
-    return (problem: UserFacingProblem & { userMessages: ErrorMessage }) =>
-      replace(value, problem);
+    return (problem: UserFacingProblem & { userMessages: ErrorMessage }) => ({
+      ...problem,
+      detail: problem.detail ? replace(value, problem.detail) : undefined,
+      userMessages: {
+        it: replace(value, problem.userMessages.it),
+        en: problem.userMessages.en
+          ? replace(value, problem.userMessages.en)
+          : undefined,
+      },
+    });
   } catch {
     return undefined;
   }
