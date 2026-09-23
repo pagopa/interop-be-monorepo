@@ -34,6 +34,19 @@ export async function handleCatalogMessageV2(
           } satisfies z.input<typeof EserviceDeletingSchema>)
         );
       })
+      .with({ type: "EServiceDeletedByRevokedDelegation" }, (msg) => {
+        if (!msg.data.eservice) {
+          throw genericInternalError(
+            `EService can't be missing in the event message`
+          );
+        }
+        deleteEServiceBatch.push(
+          EserviceDeletingSchema.parse({
+            id: msg.data.eservice.id,
+            deleted: true,
+          } satisfies z.input<typeof EserviceDeletingSchema>)
+        );
+      })
       .with(
         {
           type: P.union(
@@ -100,7 +113,8 @@ export async function handleCatalogMessageV2(
             "EServiceArchivingRequestCanceledByRevokedDelegation",
             "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation",
             "MaintenanceEServicePersonalDataFlagReset",
-            "MaintenanceEServiceDescriptorUnarchived"
+            "MaintenanceEServiceDescriptorUnarchived",
+            "EServicePendingDescriptorDeletedByRevokedDelegation"
           ),
         },
         (msg) => {

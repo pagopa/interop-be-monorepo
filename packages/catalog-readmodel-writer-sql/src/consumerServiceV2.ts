@@ -13,12 +13,16 @@ export async function handleMessageV2(
   catalogWriterService: CatalogWriterService
 ): Promise<void> {
   await match(message)
-    .with({ type: "EServiceDeleted" }, async (message) => {
-      await catalogWriterService.deleteEServiceById(
-        unsafeBrandId(message.stream_id),
-        message.version
-      );
-    })
+    .with(
+      { type: "EServiceDeleted" },
+      { type: "EServiceDeletedByRevokedDelegation" },
+      async (message) => {
+        await catalogWriterService.deleteEServiceById(
+          unsafeBrandId(message.stream_id),
+          message.version
+        );
+      }
+    )
     .with(
       {
         type: P.union(
@@ -85,7 +89,8 @@ export async function handleMessageV2(
           "MaintenanceEServicePersonalDataFlagReset",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
-          "MaintenanceEServiceDescriptorUnarchived"
+          "MaintenanceEServiceDescriptorUnarchived",
+          "EServicePendingDescriptorDeletedByRevokedDelegation"
         ),
       },
       async (message) => {
