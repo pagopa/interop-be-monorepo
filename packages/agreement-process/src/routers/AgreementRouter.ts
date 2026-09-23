@@ -398,7 +398,7 @@ const agreementRouter = (
         setMetadataVersionHeader(res, metadata);
 
         return res
-          .status(200)
+          .status(201)
           .send(
             agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
           );
