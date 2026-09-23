@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: {{host-bff}}/producers/eservices?q=<string>&consumersIds=&offset=<integer>&limit=<integer>
+  url: {{host-bff}}/producers/eservices?q=<string>&consumersIds=&offset=<integer>&limit=<integer>&states=<string>
   body: none
   auth: none
 }
@@ -15,6 +15,7 @@ params:query {
   consumersIds: 
   offset: <integer>
   limit: <integer>
+  states: <string>
 }
 
 headers {

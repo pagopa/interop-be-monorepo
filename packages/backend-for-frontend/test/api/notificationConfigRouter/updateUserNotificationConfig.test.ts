@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { generateMock } from "@anatine/zod-mock";
 import { bffApi } from "pagopa-interop-api-clients";
 import { authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   mockTokenOrganizationId,
   mockTokenUserId,
-  getMockNotificationConfig,
 } from "pagopa-interop-commons-test";
 import { generateId } from "pagopa-interop-models";
 import request from "supertest";
@@ -20,13 +20,12 @@ describe("API POST /userNotificationConfigs", () => {
   const tenantId = mockTokenOrganizationId;
 
   const {
-    clientKeyAddedDeletedToClientUsers: mockClientKeyAddedDeletedToClientUsers,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    clientKeyConsumerAddedDeletedToClientUsers: _c,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    producerKeychainKeyAddedDeletedToClientUsers: _,
+    clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:
+      mockClientKeyAddedDeletedToClientUsers,
+    purposeRiskAnalysisAssignmentStatusToAdmin,
+    purposeRiskAnalysisAssignmentStatusToReviewer,
     ...restConfigMock
-  } = getMockNotificationConfig();
+  } = generateMock(bffApi.NotificationConfig);
 
   const notificationConfigSeed: bffApi.UserNotificationConfigUpdateSeed = {
     inAppNotificationPreference: true,
@@ -34,11 +33,15 @@ describe("API POST /userNotificationConfigs", () => {
     emailDigestPreference: false,
     inAppConfig: {
       ...restConfigMock,
+      purposeRiskAnalysisAssignmentStatusToAdmin,
+      purposeRiskAnalysisAssignmentStatusToReviewer,
       clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:
         mockClientKeyAddedDeletedToClientUsers,
     },
     emailConfig: {
       ...restConfigMock,
+      purposeRiskAnalysisAssignmentStatusToAdmin,
+      purposeRiskAnalysisAssignmentStatusToReviewer,
       clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:
         mockClientKeyAddedDeletedToClientUsers,
     },
@@ -84,6 +87,20 @@ describe("API POST /userNotificationConfigs", () => {
         emailDigestPreference: notificationConfigSeed.emailDigestPreference,
         inAppConfig: {
           ...restConfigMock,
+          purposeRiskAnalysisSignedToAdmin:
+            purposeRiskAnalysisAssignmentStatusToAdmin,
+          purposeRiskAnalysisRejectedToAdmin:
+            purposeRiskAnalysisAssignmentStatusToAdmin,
+          purposeRiskAnalysisAssignedForSigningToReviewer:
+            purposeRiskAnalysisAssignmentStatusToReviewer,
+          purposeRiskAnalysisAssignedForWritingAndSigningToReviewer:
+            purposeRiskAnalysisAssignmentStatusToReviewer,
+          purposeRiskAnalysisAssignmentRemovedToReviewer:
+            purposeRiskAnalysisAssignmentStatusToReviewer,
+          draftPurposeDeletedWithRiskAnalysisToReviewer:
+            purposeRiskAnalysisAssignmentStatusToReviewer,
+          purposeRiskAnalysisSignedToReviewer:
+            purposeRiskAnalysisAssignmentStatusToReviewer,
           clientKeyAddedDeletedToClientUsers:
             mockClientKeyAddedDeletedToClientUsers,
           clientKeyConsumerAddedDeletedToClientUsers:
@@ -93,6 +110,20 @@ describe("API POST /userNotificationConfigs", () => {
         },
         emailConfig: {
           ...restConfigMock,
+          purposeRiskAnalysisSignedToAdmin:
+            purposeRiskAnalysisAssignmentStatusToAdmin,
+          purposeRiskAnalysisRejectedToAdmin:
+            purposeRiskAnalysisAssignmentStatusToAdmin,
+          purposeRiskAnalysisAssignedForSigningToReviewer:
+            purposeRiskAnalysisAssignmentStatusToReviewer,
+          purposeRiskAnalysisAssignedForWritingAndSigningToReviewer:
+            purposeRiskAnalysisAssignmentStatusToReviewer,
+          purposeRiskAnalysisAssignmentRemovedToReviewer:
+            purposeRiskAnalysisAssignmentStatusToReviewer,
+          draftPurposeDeletedWithRiskAnalysisToReviewer:
+            purposeRiskAnalysisAssignmentStatusToReviewer,
+          purposeRiskAnalysisSignedToReviewer:
+            purposeRiskAnalysisAssignmentStatusToReviewer,
           clientKeyAddedDeletedToClientUsers:
             mockClientKeyAddedDeletedToClientUsers,
           clientKeyConsumerAddedDeletedToClientUsers:

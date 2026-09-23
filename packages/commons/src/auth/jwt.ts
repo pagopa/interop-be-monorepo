@@ -94,6 +94,10 @@ export const verifyJwtToken = async (
      * This function is a callback used by the `jwt.verify` function to retrieve the public key
      * associated with a given JWT token.
      */
+    // Kid of the key that actually matched the token header, kept to log it
+    // once the verification outcome is known.
+    let verificationKid: string | undefined;
+
     const getSecret: GetPublicKeyOrSecret = (header, callback) => {
       if (!header.kid) {
         return callback(invalidClaim("kid"));
@@ -106,10 +110,19 @@ export const verifyJwtToken = async (
       // expects a synchronous callback. The IIFE is needed to handle the case where the `getSigningKey`
       // function of the jwksClient returns a promise.
       (async (): Promise<void> => {
-        for (const client of jwksClients) {
+        for (const [index, client] of jwksClients.entries()) {
           try {
-            const signingKey = await client.getSigningKey(header.kid);
-            return callback(null, signingKey.getPublicKey());
+            const signingKeys = await client.getSigningKeys();
+            logger.info(
+              `JWKS read from ${
+                config.wellKnownUrls[index]
+              } - kids: [${signingKeys.map((k) => k.kid).join(", ")}]`
+            );
+            const signingKey = signingKeys.find((k) => k.kid === header.kid);
+            if (signingKey) {
+              verificationKid = signingKey.kid;
+              return callback(null, signingKey.getPublicKey());
+            }
           } catch (error) {
             logger.debug(`Skip Jwks client: ${error}`);
           }
@@ -130,6 +143,7 @@ export const verifyJwtToken = async (
             const { userId, selfcareId } = extractUserInfoForFailedToken();
             return reject(tokenVerificationFailed(userId, selfcareId));
           }
+          logger.info(`Request authenticated with kid ${verificationKid}`);
           return resolve({ decoded });
         }
       );

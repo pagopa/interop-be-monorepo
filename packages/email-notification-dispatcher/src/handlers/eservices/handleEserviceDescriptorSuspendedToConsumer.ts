@@ -115,7 +115,7 @@ export async function handleEserviceDescriptorSuspendedToConsumer(
             eserviceName: eservice.name,
             producerName: producer.name,
             eserviceVersion: descriptor.version,
-            ctaLabel: `Visualizza e-service`,
+            ctaLabel: `Accedi a PDND`,
             selfcareId: t.selfcareId,
             bffUrl: config.bffUrl,
           }),

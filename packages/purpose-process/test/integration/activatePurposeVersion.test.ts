@@ -2000,11 +2000,11 @@ describe("activatePurposeVersion", () => {
     async (signingState) => {
       const purpose: Purpose = {
         ...mockPurpose,
+        riskAnalysisReviewMode:
+          riskAnalysisReviewMode.reviewerWritesReviewerSigns,
         reviewerWorkflow: {
-          reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-          reviewerIds: [generateId()],
+          reviewers: [{ id: generateId(), sentToReviewerAt: new Date() }],
           signingState,
-          sentToReviewerAt: new Date(),
         },
       };
 
@@ -2021,7 +2021,9 @@ describe("activatePurposeVersion", () => {
             versionId: mockPurposeVersion.id,
             delegationId: undefined,
           },
-          getMockContext({ authData: getMockAuthData(mockProducer.id, userId) })
+          getMockContext({
+            authData: getMockAuthData(mockProducer.id, userId),
+          })
         )
       ).rejects.toThrowError(reviewerWorkflowNotInSignedState(purpose.id));
     }
@@ -2035,11 +2037,11 @@ describe("activatePurposeVersion", () => {
     const purpose: Purpose = {
       ...mockPurpose,
       versions: [purposeVersion],
+      riskAnalysisReviewMode:
+        riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-        reviewerIds: [generateId()],
+        reviewers: [{ id: generateId(), sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.signed,
-        sentToReviewerAt: new Date(),
       },
     };
 

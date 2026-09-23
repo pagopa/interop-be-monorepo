@@ -16,8 +16,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   getMockValidRiskAnalysisFormTemplate,
-  validatedRiskAnalysisTemplate2_0_Private,
-  validatedRiskAnalysisTemplate3_1_Pa,
+  validatedRiskAnalysisTemplate2_1_Private,
+  validatedRiskAnalysisTemplate3_2_Pa,
 } from "../src/riskAnalysisTemplateTestUtils.js";
 
 describe("Risk Analysis Template Validation", () => {
@@ -110,7 +110,7 @@ describe("Risk Analysis Template Validation", () => {
     };
   }
 
-  it("should succeed on correct form 3.1 on tenant kind PA", () => {
+  it("should succeed on correct form 3.2 on tenant kind PA", () => {
     const template = createValidTemplate(tenantKind.PA);
     const result = validatePurposeTemplateRiskAnalysis(
       template,
@@ -120,11 +120,11 @@ describe("Risk Analysis Template Validation", () => {
 
     expect(result).toEqual({
       type: "valid",
-      value: validatedRiskAnalysisTemplate3_1_Pa,
+      value: validatedRiskAnalysisTemplate3_2_Pa,
     });
   });
 
-  it("should succeed on correct form 2.0 on tenant kind PRIVATE", () => {
+  it("should succeed on correct form 2.1 on tenant kind PRIVATE", () => {
     const template = createValidTemplate(tenantKind.PRIVATE);
     const result = validatePurposeTemplateRiskAnalysis(
       template,
@@ -134,7 +134,7 @@ describe("Risk Analysis Template Validation", () => {
 
     expect(result).toEqual({
       type: "valid",
-      value: validatedRiskAnalysisTemplate2_0_Private,
+      value: validatedRiskAnalysisTemplate2_1_Private,
     });
   });
 

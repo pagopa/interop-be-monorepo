@@ -96,7 +96,7 @@ export async function handleEserviceDescriptorArchivingCompletedToConsumer(
             eserviceName: eservice.name,
             eserviceVersion: descriptor.version,
             producerName: producer.name,
-            ctaLabel: `Visualizza e-service`,
+            ctaLabel: `Accedi a PDND`,
             selfcareId: t.selfcareId,
             bffUrl: config.bffUrl,
           }),

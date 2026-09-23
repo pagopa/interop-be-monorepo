@@ -24,7 +24,7 @@ import {
 import {
   apiPurposeSignedRiskAnalisysToPurposeSignedRiskAnalisys,
   apiPurposeVersionStateToPurposeVersionState,
-  apiReviewModeToReviewMode,
+  apiRiskAnalysisReviewModeToRiskAnalysisReviewMode,
   purposeToApiPurpose,
   purposeVersionDocumentToApiPurposeVersionDocument,
   purposeVersionSignedDocumentToApiPurposeVersionSignedDocument,
@@ -532,8 +532,10 @@ const purposeRouter = (
           await purposeService.assignRiskAnalysisReviewer(
             unsafeBrandId(req.params.purposeId),
             {
-              reviewMode: apiReviewModeToReviewMode(req.body.reviewMode),
-              reviewerIds: req.body.reviewerIds,
+              reviewMode: apiRiskAnalysisReviewModeToRiskAnalysisReviewMode(
+                req.body.reviewMode
+              ),
+              reviewerIds: req.body.reviewerIds ?? [],
             },
             ctx
           );
@@ -590,6 +592,7 @@ const purposeRouter = (
         const { data: purpose, metadata } =
           await purposeService.signRiskAnalysis(
             unsafeBrandId(req.params.purposeId),
+            req.body,
             ctx
           );
 

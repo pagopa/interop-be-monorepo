@@ -1,5 +1,5 @@
 import { catalogApi } from "pagopa-interop-api-clients";
-import { getMockAttribute } from "pagopa-interop-commons-test/index.js";
+import { getMockAttribute } from "pagopa-interop-commons-test";
 import {
   AttributeId,
   attributeCertifiedDiscreteComparator,

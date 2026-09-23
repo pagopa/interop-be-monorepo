@@ -63,7 +63,6 @@ const errorCodes = {
   riskAnalysisTenantKindMismatch: "0042",
   unableToDetermineTenantKind: "0043",
   reviewerWorkflowConflict: "0044",
-  multipleReviewersNotAllowed: "0045",
   reviewerWorkflowNotFound: "0046",
   reviewerWorkflowNotSubmittable: "0047",
   submitNotAllowedForReviewMode: "0048",
@@ -79,11 +78,23 @@ const errorCodes = {
   missingSelfcareId: "0058",
   reviewerWorkflowNotAllowedForDelegatedPurpose: "0059",
   reviewerWorkflowNotAllowedForReceiveMode: "0060",
+  duplicatedReviewersInSeed: "0061",
+  missingReviewers: "0062",
+  reviewersNotAllowedForReviewMode: "0063",
+  purposeMetadataVersionMismatch: "0064",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
 
 export const makeApiProblem = makeApiProblemBuilder(errorCodes);
+
+export function duplicatedReviewersInSeed(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: "The reviewer IDs must be unique",
+    code: "duplicatedReviewersInSeed",
+    title: "Duplicated reviewers in seed",
+  });
+}
 
 export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
   return new ApiError({
@@ -552,16 +563,6 @@ export function reviewerWorkflowConflict(
   });
 }
 
-export function multipleReviewersNotAllowed(
-  purposeId: PurposeId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Purpose ${purposeId} can't be assigned to multiple reviewers`,
-    code: "multipleReviewersNotAllowed",
-    title: "Multiple reviewers not allowed",
-  });
-}
-
 export function reviewerWorkflowNotFound(
   purposeId: PurposeId
 ): ApiError<ErrorCodes> {
@@ -708,5 +709,35 @@ export function reviewerWorkflowNotAllowedForReceiveMode(
     detail: `Reviewer workflow is not allowed for purpose ${purposeId} because the eservice is in receive mode`,
     code: "reviewerWorkflowNotAllowedForReceiveMode",
     title: "Reviewer workflow not allowed for receive mode",
+  });
+}
+
+export function missingReviewers(purposeId: PurposeId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `At least one reviewer must be provided for purpose ${purposeId} when the review mode is not AdminWritesAdminSigns`,
+    code: "missingReviewers",
+    title: "Missing reviewers",
+  });
+}
+
+export function reviewersNotAllowedForReviewMode(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No reviewer can be provided for purpose ${purposeId} when the review mode is AdminWritesAdminSigns`,
+    code: "reviewersNotAllowedForReviewMode",
+    title: "Reviewers not allowed for review mode",
+  });
+}
+
+export function purposeMetadataVersionMismatch(
+  purposeId: PurposeId,
+  metadataVersionToSign: number,
+  currentMetadataVersion: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Cannot sign risk analysis for purpose ${purposeId}: requested metadata version ${metadataVersionToSign} does not match current metadata version ${currentMetadataVersion}`,
+    code: "purposeMetadataVersionMismatch",
+    title: "Purpose metadata version mismatch",
   });
 }
