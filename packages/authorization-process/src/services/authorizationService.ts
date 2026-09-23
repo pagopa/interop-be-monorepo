@@ -122,6 +122,7 @@ import {
   assertAdminInClient,
   assertTenantHasSelfcareId,
   assertMembersAreUnique,
+  assertEServiceIsNotArchived,
 } from "./validators.js";
 
 const retrieveClient = async (
@@ -1595,6 +1596,7 @@ export function authorizationServiceBuilder(
       );
       const eservice = await retrieveEService(eserviceId, readModelService);
       assertOrganizationIsEServiceProducer(authData, eservice);
+      assertEServiceIsNotArchived(eservice);
       if (producerKeychain.data.eservices.includes(eserviceId)) {
         throw eserviceAlreadyLinkedToProducerKeychain(
           eserviceId,
