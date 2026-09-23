@@ -59,6 +59,7 @@ import {
   eserviceWithActiveOrPendingDelegation,
   eserviceDescriptorWithActiveOrPendingDelegation,
   eserviceArchivingWithActiveOrPendingDelegation,
+  eserviceCloningWithActiveOrPendingDelegation,
   notValidDescriptorState,
   riskAnalysisNotValid,
   riskAnalysisValidationFailed,
@@ -298,6 +299,23 @@ export async function assertNoExistingProducerDelegationForEServiceArchiving(
 
   if (producerDelegation) {
     throw eserviceArchivingWithActiveOrPendingDelegation(
+      eserviceId,
+      producerDelegation.id
+    );
+  }
+}
+
+export async function assertNoExistingProducerDelegationForEServiceCloning(
+  eserviceId: EServiceId,
+  readModelService: ReadModelServiceSQL
+): Promise<void> {
+  const producerDelegation = await getActiveOrPendingProducerDelegation(
+    eserviceId,
+    readModelService
+  );
+
+  if (producerDelegation) {
+    throw eserviceCloningWithActiveOrPendingDelegation(
       eserviceId,
       producerDelegation.id
     );
