@@ -968,7 +968,8 @@ export function assertEServiceGracePeriodIsNotLowerThanDescriptors(
   for (const descriptor of eservice.descriptors) {
     if (
       descriptor.archivingSchedule &&
-      requestedArchivableOn < descriptor.archivingSchedule.archivableOn
+      requestedArchivableOn < descriptor.archivingSchedule.archivableOn &&
+      descriptor.state !== descriptorState.archived
     ) {
       throw gracePeriodDaysLowerThanDescriptor(
         eservice.id,
