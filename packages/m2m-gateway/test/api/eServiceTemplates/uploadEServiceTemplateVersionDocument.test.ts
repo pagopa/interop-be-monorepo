@@ -11,6 +11,7 @@ import { missingMetadata } from "../../../src/model/errors.js";
 import {
   TestMultipartFileUpload,
   addMultipartFileToSupertestRequest,
+  fileFromTestMultipartFileUpload,
 } from "../../multipartTestUtils.js";
 import { api, mockEServiceTemplateService } from "../../vitest.api.setup.js";
 
@@ -80,7 +81,7 @@ describe("POST /eserviceTemplates/:templateId/versions/:versionId/documents rout
         templateId,
         versionId,
         expect.objectContaining({
-          file: expect.any(File),
+          file: fileFromTestMultipartFileUpload(mockFileUpload),
           prettyName: mockFileUpload.prettyName,
         }),
         expect.any(Object) // Context object
