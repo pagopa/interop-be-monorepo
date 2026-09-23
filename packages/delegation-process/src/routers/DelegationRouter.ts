@@ -57,7 +57,7 @@ const {
 const delegationRouter = (
   ctx: ZodiosContext,
   delegationService: DelegationService
-): Array<ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>> => {
+): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>[] => {
   const delegationRouter = ctx.router(delegationApi.delegationApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });

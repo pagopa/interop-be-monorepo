@@ -206,7 +206,7 @@ export function readModelServiceBuilderSQL({
     },
     async getClientsRelatedToPurpose(
       purposeId: PurposeId
-    ): Promise<Array<WithMetadata<Client>>> {
+    ): Promise<WithMetadata<Client>[]> {
       const subquery = readModelDB
         .select({
           clientId: clientInReadmodelClient.id,

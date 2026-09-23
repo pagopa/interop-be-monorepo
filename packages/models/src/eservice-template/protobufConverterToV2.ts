@@ -45,9 +45,10 @@ const toEServiceTemplateAttributeValueV2 = (
 });
 
 const toEServiceTemplateAttributeGroupV2 = (
-  attributes: Array<
-    EServiceTemplateAttribute | EServiceTemplateAttributeCertifiedDiscrete
-  >
+  attributes: (
+    | EServiceTemplateAttribute
+    | EServiceTemplateAttributeCertifiedDiscrete
+  )[]
 ) => ({ values: attributes.map(toEServiceTemplateAttributeValueV2) });
 
 const toAgreementApprovalPolicyV2 = (

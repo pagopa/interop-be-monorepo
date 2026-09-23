@@ -121,10 +121,10 @@ export function eserviceTemplateServiceBuilder(
       versionId
     );
     const kindAttributeGroups = version.attributes[attributeKind];
-    const allFlatKindAttributes: Array<{
+    const allFlatKindAttributes: {
       attributeId: string;
       groupIndex: number;
-    }> = kindAttributeGroups.flatMap((group, groupIndex) =>
+    }[] = kindAttributeGroups.flatMap((group, groupIndex) =>
       group.map((attribute) => ({
         attributeId: attribute.id,
         groupIndex,
@@ -136,7 +136,7 @@ export function eserviceTemplateServiceBuilder(
       offset + limit
     );
 
-    const attributeIdsToResolve: Array<attributeRegistryApi.Attribute["id"]> =
+    const attributeIdsToResolve: attributeRegistryApi.Attribute["id"][] =
       paginatedFlatKindAttributes.map((item) => item.attributeId);
 
     const attributeMap = await getResolvedAttributesMap(

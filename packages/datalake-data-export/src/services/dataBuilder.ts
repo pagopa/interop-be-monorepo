@@ -16,14 +16,14 @@ type ExportedData = [
 ];
 
 const generateNdjsonFiles = (
-  data: Array<
+  data: (
     | ExportedAgreement
     | ExportedEService
     | ExportedPurpose
     | ExportedTenant
     | ExportedDelegation
     | ExportedEServiceTemplate
-  >,
+  )[],
   exportTimestamp: Date
 ): string[] => {
   const dataWithTimestamp = data.map((item) => ({ ...item, exportTimestamp }));

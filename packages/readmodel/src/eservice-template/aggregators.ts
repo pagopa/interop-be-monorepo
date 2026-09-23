@@ -265,7 +265,7 @@ export const aggregateEServiceTemplateArray = ({
   interfacesSQL: EServiceTemplateVersionInterfaceSQL[];
   documentsSQL: EServiceTemplateVersionDocumentSQL[];
   asyncExchangePropertiesSQL: EServiceTemplateVersionAsyncExchangePropertiesSQL[];
-}): Array<WithMetadata<EServiceTemplate>> => {
+}): WithMetadata<EServiceTemplate>[] => {
   const riskAnalysesSQLByEServiceTemplateId =
     createEServiceTemplateSQLPropertyMap(riskAnalysesSQL);
   const riskAnalysisAnswersSQLByEServiceTemplateId =
@@ -333,7 +333,7 @@ const createEServiceTemplateSQLPropertyMap = <
   }, new Map<EServiceTemplateId, T[]>());
 
 export const toEServiceTemplateAggregator = (
-  queryRes: Array<{
+  queryRes: {
     eserviceTemplate: EServiceTemplateSQL;
     version: EServiceTemplateVersionSQL | null;
     interface: EServiceTemplateVersionInterfaceSQL | null;
@@ -342,7 +342,7 @@ export const toEServiceTemplateAggregator = (
     riskAnalysis: EServiceTemplateRiskAnalysisSQL | null;
     riskAnalysisAnswer: EServiceTemplateRiskAnalysisAnswerSQL | null;
     asyncExchangeProperties: EServiceTemplateVersionAsyncExchangePropertiesSQL | null;
-  }>
+  }[]
 ): EServiceTemplateItemsSQL => {
   const {
     eserviceTemplatesSQL,
@@ -370,7 +370,7 @@ export const toEServiceTemplateAggregator = (
 };
 
 export const toEServiceTemplateAggregatorArray = (
-  queryRes: Array<{
+  queryRes: {
     eserviceTemplate: EServiceTemplateSQL;
     version: EServiceTemplateVersionSQL | null;
     interface: EServiceTemplateVersionInterfaceSQL | null;
@@ -379,7 +379,7 @@ export const toEServiceTemplateAggregatorArray = (
     riskAnalysis: EServiceTemplateRiskAnalysisSQL | null;
     riskAnalysisAnswer: EServiceTemplateRiskAnalysisAnswerSQL | null;
     asyncExchangeProperties: EServiceTemplateVersionAsyncExchangePropertiesSQL | null;
-  }>
+  }[]
 ): {
   eserviceTemplatesSQL: EServiceTemplateSQL[];
   riskAnalysesSQL: EServiceTemplateRiskAnalysisSQL[];
@@ -506,14 +506,13 @@ export const toEServiceTemplateAggregatorArray = (
 
 export const templateAttributesSQLtoTemplateAttributes = (
   attributesSQL: EServiceTemplateVersionAttributeSQL[]
-): Array<
-  Array<EServiceTemplateAttribute | EServiceTemplateAttributeCertifiedDiscrete>
-> => {
+): (
+  | EServiceTemplateAttribute
+  | EServiceTemplateAttributeCertifiedDiscrete
+)[][] => {
   const attributesMap = new Map<
     number,
-    Array<
-      EServiceTemplateAttribute | EServiceTemplateAttributeCertifiedDiscrete
-    >
+    (EServiceTemplateAttribute | EServiceTemplateAttributeCertifiedDiscrete)[]
   >();
   attributesSQL.forEach((current) => {
     const currentAttribute = {

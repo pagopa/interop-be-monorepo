@@ -84,6 +84,6 @@ export const DeletingDbTable = Object.fromEntries(
 export type DeletingDbTableConfigMap = {
   [K in keyof DeletingDbTableConfig]: {
     name: K;
-    columns: ReadonlyArray<keyof z.infer<DeletingDbTableConfig[K]>>;
+    columns: readonly (keyof z.infer<DeletingDbTableConfig[K]>)[];
   };
 }[keyof DeletingDbTableConfig];

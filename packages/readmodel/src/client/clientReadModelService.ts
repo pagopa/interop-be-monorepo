@@ -65,9 +65,7 @@ export function clientReadModelServiceBuilder(db: DrizzleReturnType) {
 
       return aggregateClient(toClientAggregator(queryResult));
     },
-    async getClients(
-      filter: SQL | undefined
-    ): Promise<Array<WithMetadata<Client>>> {
+    async getClients(filter: SQL | undefined): Promise<WithMetadata<Client>[]> {
       if (filter === undefined) {
         throw genericInternalError("Filter cannot be undefined");
       }

@@ -34,7 +34,7 @@ export const aggregateDelegationArray = ({
   stampsSQL: DelegationStampSQL[];
   contractDocumentsSQL: DelegationContractDocumentSQL[];
   contractSignedDocumentsSQL: DelegationSignedContractDocumentSQL[];
-}): Array<WithMetadata<Delegation>> => {
+}): WithMetadata<Delegation>[] => {
   const stampsSQLByDelegationId = createDelegationSQLPropertyMap(stampsSQL);
   const contractDocumentsByDelegationId =
     createDelegationSQLPropertyMap(contractDocumentsSQL);
@@ -201,7 +201,7 @@ export const aggregateDelegationsArray = ({
   stampsSQL: DelegationStampSQL[];
   contractDocumentsSQL: DelegationContractDocumentSQL[];
   contractSignedDocumentsSQL: DelegationSignedContractDocumentSQL[];
-}): Array<WithMetadata<Delegation>> => {
+}): WithMetadata<Delegation>[] => {
   const stampsSQLByDelegationId = createDelegationSQLPropertyMap(stampsSQL);
   const contractDocumentsByDelegationId =
     createDelegationSQLPropertyMap(contractDocumentsSQL);
@@ -256,12 +256,12 @@ const stampSQLToStamp = (stampSQL: DelegationStampSQL): DelegationStamp => ({
 });
 
 export const toDelegationAggregator = (
-  queryRes: Array<{
+  queryRes: {
     delegation: DelegationSQL;
     delegationStamp: DelegationStampSQL | null;
     delegationContractDocument: DelegationContractDocumentSQL | null;
     delegationSignedContractDocument: DelegationSignedContractDocumentSQL | null;
-  }>
+  }[]
 ): DelegationItemsSQL => {
   const {
     delegationsSQL,
@@ -281,12 +281,12 @@ export const toDelegationAggregator = (
 };
 
 export const toDelegationAggregatorArray = (
-  queryRes: Array<{
+  queryRes: {
     delegation: DelegationSQL;
     delegationStamp: DelegationStampSQL | null;
     delegationContractDocument: DelegationContractDocumentSQL | null;
     delegationSignedContractDocument: DelegationSignedContractDocumentSQL | null;
-  }>
+  }[]
 ): {
   delegationsSQL: DelegationSQL[];
   stampsSQL: DelegationStampSQL[];
