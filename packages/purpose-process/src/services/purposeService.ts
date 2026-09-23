@@ -866,16 +866,17 @@ export function purposeServiceBuilder(
         throw requesterIsNotDesignatedReviewer(purposeId);
       }
 
+      const currentDate = new Date();
       const updatedPurpose: Purpose = {
         ...purpose.data,
         reviewerWorkflow: {
           ...workflow,
           signingState: riskAnalysisSigningState.rejected,
           rejectedBy: authData.userId,
-          rejectedAt: new Date(),
+          rejectedAt: currentDate,
           rejectionReason,
         },
-        updatedAt: new Date(),
+        updatedAt: currentDate,
       };
 
       const event = await repository.createEvent(
