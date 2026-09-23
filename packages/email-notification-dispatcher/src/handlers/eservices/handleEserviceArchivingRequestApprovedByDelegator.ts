@@ -87,6 +87,7 @@ export async function handleEserviceArchivingRequestApprovedByDelegator(
         delegatorName: delegator.name,
         eserviceName: eservice.name,
         archivableOn,
+        ctaLabel: `Visualizza e-service`,
         selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),
