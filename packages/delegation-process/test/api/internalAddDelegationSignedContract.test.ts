@@ -13,6 +13,7 @@ import {
   DelegationContractDocument,
   DelegationContractId,
   DelegationSignedContractDocument,
+  delegationState,
 } from "pagopa-interop-models";
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -91,11 +92,9 @@ describe("API POST /internal/delegations/:delegationId/signedContract test", () 
       description: "delegationNotFound",
     },
     {
-      error: incorrectState(
-        mockDelegation.id,
-        "Rejected",
-        "WaitingForApproval"
-      ),
+      error: incorrectState(mockDelegation.id, "Rejected", [
+        delegationState.waitingForApproval,
+      ]),
       expectedStatus: 409,
     },
   ])(
