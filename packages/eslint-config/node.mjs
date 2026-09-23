@@ -1,4 +1,5 @@
 import pagopa from "@pagopa/eslint-config";
+import requireTypeForObjectSpread from "./require-type-for-object.mjs";
 
 const commonRestrictedImports = ["**/dist/**"];
 
@@ -27,10 +28,14 @@ const legacyPlugins = {
   },
 };
 
+const customRules = {
+  "require-type-for-object": requireTypeForObjectSpread,
+};
+
 export default [
   ...pagopa,
   {
-    plugins: legacyPlugins,
+    plugins: { ...legacyPlugins, interop: { rules: customRules } },
     linterOptions: {
       reportUnusedDisableDirectives: "off",
     },
@@ -43,6 +48,7 @@ export default [
   {
     rules: {
       "@typescript-eslint/switch-exhaustiveness-check": "error",
+      "interop/require-type-for-object": "error",
       "@typescript-eslint/consistent-type-definitions": "off",
       "@typescript-eslint/array-type": "off",
       "@typescript-eslint/consistent-generic-constructors": "off",

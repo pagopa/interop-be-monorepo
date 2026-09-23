@@ -8,6 +8,7 @@ import {
   AuthorizationEventEnvelopeV2,
   EServiceId,
   generateId,
+  Key,
   makeProducerKeychainPlatformStatesPK,
   ProducerKeychain,
   ProducerKeychainDeletedV2,
@@ -30,6 +31,7 @@ import {
   vi,
 } from "vitest";
 
+import { ProducerJWK } from "../../api-clients/dist/authorizationApi.js";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import {
   buildProducerKeychainPlatformStatesTable,
@@ -71,9 +73,9 @@ describe("producer-keychain-platformstate-writer integration V2", () => {
   it("ProducerKeychainKeyAdded should upsert keys x eservices", async () => {
     const producerKeychainId: ProducerKeychainId = generateId();
     const eServiceId: EServiceId = generateId();
-    const mockKey = {
+    const mockKey: Key = {
+      // TODO REVIEW THIS CHANGE
       ...getMockKey(),
-      producerKeychainId,
       encodedPem: base64Key,
     };
 
@@ -120,9 +122,9 @@ describe("producer-keychain-platformstate-writer integration V2", () => {
     const producerKeychainId: ProducerKeychainId = generateId();
     const existingEServiceId: EServiceId = generateId();
     const addedEServiceId: EServiceId = generateId();
-    const mockKey = {
+    const mockKey: Key = {
+      // TODO REVIEW THIS CHANGE
       ...getMockKey(),
-      producerKeychainId,
       encodedPem: base64Key,
     };
 
@@ -172,9 +174,9 @@ describe("producer-keychain-platformstate-writer integration V2", () => {
     const producerKeychainId: ProducerKeychainId = generateId();
     const eServiceId: EServiceId = generateId();
     const removedKid = "removed-kid";
-    const retainedKey = {
+    const retainedKey: Key = {
+      // TODO REVIEW THIS CHANGE
       ...getMockKey(),
-      producerKeychainId,
       encodedPem: base64Key,
     };
 
@@ -226,9 +228,9 @@ describe("producer-keychain-platformstate-writer integration V2", () => {
     const producerKeychainId: ProducerKeychainId = generateId();
     const removedEServiceId: EServiceId = generateId();
     const retainedEServiceId: EServiceId = generateId();
-    const keyEntry = {
+    const keyEntry: Key = {
       ...getMockKey(),
-      producerKeychainId,
+      // TODO REVIEW THIS CHANGE
       encodedPem: base64Key,
     };
 
@@ -279,9 +281,9 @@ describe("producer-keychain-platformstate-writer integration V2", () => {
   it("ProducerKeychainDeleted should delete all keychain entries", async () => {
     const producerKeychainId: ProducerKeychainId = generateId();
     const eServiceId: EServiceId = generateId();
-    const keyEntry = {
+    const keyEntry: Key = {
       ...getMockKey(),
-      producerKeychainId,
+      // TODO REVIEW THIS CHANGE
       encodedPem: base64Key,
     };
 

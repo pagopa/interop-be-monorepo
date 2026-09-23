@@ -29,6 +29,7 @@ import {
   TenantId,
   EService,
   Agreement,
+  Tenant,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
@@ -59,7 +60,7 @@ describe("clonePurpose", async () => {
     vi.useRealTimers();
   });
   it("should write on event-store for the cloning of a purpose", async () => {
-    const mockTenant = {
+    const mockTenant: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
@@ -201,12 +202,12 @@ describe("clonePurpose", async () => {
     expect(expectedPurpose.title.length).toBe(60);
   });
   it("should succeed when requester is Consumer Delegate and the Purpose is in a clonable state", async () => {
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
 
-    const consumerDelegate = {
+    const consumerDelegate: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
@@ -293,22 +294,22 @@ describe("clonePurpose", async () => {
     });
   });
   it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the Purpose is in a clonable state", async () => {
-    const producer = {
+    const producer: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
     };
-    const producerDelegate = {
+    const producerDelegate: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
     };
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
     };
-    const consumerDelegate = {
+    const consumerDelegate: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
@@ -414,7 +415,7 @@ describe("clonePurpose", async () => {
     });
   });
   it("should throw purposeNotFound if the purpose to clone doesn't exist", async () => {
-    const mockTenant = {
+    const mockTenant: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
@@ -447,7 +448,7 @@ describe("clonePurpose", async () => {
     ).rejects.toThrowError(purposeNotFound(mockPurpose.id));
   });
   it("should preserve the tenantKind in the risk analysis form when cloning a purpose", async () => {
-    const mockTenant = {
+    const mockTenant: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
@@ -531,7 +532,7 @@ describe("clonePurpose", async () => {
     );
   });
   it("should throw purposeCannotBeCloned if the purpose is in draft (no versions)", async () => {
-    const mockTenant = {
+    const mockTenant: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
@@ -565,7 +566,7 @@ describe("clonePurpose", async () => {
     ).rejects.toThrowError(purposeCannotBeCloned(mockPurpose.id));
   });
   it("should throw purposeCannotBeCloned if the purpose is in draft (draft version)", async () => {
-    const mockTenant = {
+    const mockTenant: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
@@ -599,7 +600,7 @@ describe("clonePurpose", async () => {
     ).rejects.toThrowError(purposeCannotBeCloned(mockPurpose.id));
   });
   it("should throw purposeCannotBeCloned if the purpose is in archived (archived version)", async () => {
-    const mockTenant = {
+    const mockTenant: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
@@ -633,7 +634,7 @@ describe("clonePurpose", async () => {
     ).rejects.toThrowError(purposeCannotBeCloned(mockPurpose.id));
   });
   it("should throw duplicatedPurposeTitle if a purpose with the same name already exists", async () => {
-    const mockTenant = {
+    const mockTenant: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
@@ -679,12 +680,12 @@ describe("clonePurpose", async () => {
     );
   });
   it("should throw tenantIsNotTheDelegatedConsumer when the requester is the Consumer and is cloning a purpose created by the delegate in clonePurpose", async () => {
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
 
-    const consumerDelegate = {
+    const consumerDelegate: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
@@ -733,12 +734,12 @@ describe("clonePurpose", async () => {
     );
   });
   it("should throw purposeDelegationNotFound when the requester is the Consumer, is cloning a purpose created by a delegate in clonePurpose, but the delegation cannot be found", async () => {
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
 
-    const consumerDelegate = {
+    const consumerDelegate: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
@@ -778,12 +779,12 @@ describe("clonePurpose", async () => {
     );
   });
   it("should throw tenantIsNotTheConsumer if the requester is a delegate for the eservice and there is no delegationId in the purpose", async () => {
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
 
-    const consumerDelegate = {
+    const consumerDelegate: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
@@ -831,12 +832,12 @@ describe("clonePurpose", async () => {
     ).rejects.toThrowError(tenantIsNotTheConsumer(delegation.delegateId));
   });
   it("should throw tenantIsNotTheDelegatedConsumer when the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate)", async () => {
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
 
-    const consumerDelegate = {
+    const consumerDelegate: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };

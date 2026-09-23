@@ -12,6 +12,7 @@ import {
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
+// eslint-disable-next-line interop/require-type-for-object
 const errorCodes = {
   clientNotFound: "0001",
   tenantNotAllowedOnClient: "0002",

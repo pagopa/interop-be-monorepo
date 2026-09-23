@@ -1,5 +1,6 @@
 import { ApiError, ItemState } from "pagopa-interop-models";
 
+// eslint-disable-next-line interop/require-type-for-object
 export const errorCodes = {
   unexpectedClientAssertionSignatureVerificationError: "0001",
   invalidAssertionType: "0002",

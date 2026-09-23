@@ -145,7 +145,7 @@ describe("Integration tests", async () => {
     });
 
     it("PurposeVersionActivated", async () => {
-      const purpose = {
+      const purpose: Purpose  = {
         ...mockPurpose,
         versions: [mockPurposeVersion],
       };
@@ -184,7 +184,7 @@ describe("Integration tests", async () => {
     });
 
     it("PurposeVersionSuspended", async () => {
-      const purpose = {
+      const purpose: Purpose  = {
         ...mockPurpose,
         versions: [mockPurposeVersion],
       };
@@ -223,7 +223,7 @@ describe("Integration tests", async () => {
     });
 
     it("PurposeVersionArchived", async () => {
-      const purpose = {
+      const purpose: Purpose  = {
         ...mockPurpose,
         versions: [mockPurposeVersion],
       };
@@ -262,7 +262,7 @@ describe("Integration tests", async () => {
     });
 
     it("PurposeVersionWaitedForApproval", async () => {
-      const purpose = {
+      const purpose: Purpose  = {
         ...mockPurpose,
         versions: [mockPurposeVersion],
       };
@@ -304,7 +304,7 @@ describe("Integration tests", async () => {
     });
 
     it("PurposeVersionRejected", async () => {
-      const purpose = {
+      const purpose: Purpose  = {
         ...mockPurpose,
         versions: [mockPurposeVersion],
       };
@@ -347,7 +347,7 @@ describe("Integration tests", async () => {
     });
 
     it("PurposeVersionUpdated", async () => {
-      const purpose = {
+      const purpose: Purpose  = {
         ...mockPurpose,
         versions: [mockPurposeVersion],
       };
@@ -431,7 +431,7 @@ describe("Integration tests", async () => {
     it("PurposeVersionDeleted", async () => {
       const mockPurposeVersion2 = getMockPurposeVersion();
 
-      const purpose = {
+      const purpose: Purpose  = {
         ...mockPurpose,
         versions: [mockPurposeVersion, mockPurposeVersion2],
       };
