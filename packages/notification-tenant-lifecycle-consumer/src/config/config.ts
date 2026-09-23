@@ -1,5 +1,6 @@
 import {
   KafkaConsumerConfig,
+  NotificationConfigProcessServerConfig,
   TenantTopicConfig,
   TokenGenerationConfig,
 } from "pagopa-interop-commons";
@@ -9,15 +10,7 @@ const NotificationTenantLifecycleConsumerConfig = KafkaConsumerConfig.and(
   TenantTopicConfig
 )
   .and(TokenGenerationConfig)
-  .and(
-    z
-      .object({
-        NOTIFICATION_CONFIG_PROCESS_URL: z.string(),
-      })
-      .transform((c) => ({
-        notificationConfigProcessUrl: c.NOTIFICATION_CONFIG_PROCESS_URL,
-      }))
-  );
+  .and(NotificationConfigProcessServerConfig);
 
 type NotificationTenantLifecycleConsumerConfig = z.infer<
   typeof NotificationTenantLifecycleConsumerConfig

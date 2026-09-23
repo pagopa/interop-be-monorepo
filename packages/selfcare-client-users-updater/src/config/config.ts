@@ -1,4 +1,5 @@
 import {
+  AuthorizationProcessServerConfig,
   KafkaConsumerConfig,
   ReadModelSQLDbConfig,
   SelfcareConsumerConfig,
@@ -11,15 +12,7 @@ const SelfcareClientUsersUpdaterConsumerConfig = KafkaConsumerConfig.and(
 )
   .and(ReadModelSQLDbConfig)
   .and(SelfcareConsumerConfig)
-  .and(
-    z
-      .object({
-        AUTHORIZATION_PROCESS_URL: z.string(),
-      })
-      .transform((c) => ({
-        authorizationProcessUrl: c.AUTHORIZATION_PROCESS_URL,
-      }))
-  );
+  .and(AuthorizationProcessServerConfig);
 
 type SelfcareClientUsersUpdaterConsumerConfig = z.infer<
   typeof SelfcareClientUsersUpdaterConsumerConfig
