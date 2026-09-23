@@ -92,6 +92,7 @@ export async function handleEserviceDescriptorArchivingRequestApprovedByDelegato
         eserviceName: eservice.name,
         eserviceVersion: descriptor.version,
         archivableOn,
+        ctaLabel: `Visualizza e-service`,
         selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),
