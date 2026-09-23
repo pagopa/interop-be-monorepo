@@ -1,5 +1,3 @@
-import type { Problem, MakeApiProblemFn } from "pagopa-interop-models";
-
 import { match } from "ts-pattern";
 import { z } from "zod";
 
@@ -64,17 +62,3 @@ export type MessageObject = z.infer<typeof MessageObject>;
 export type EndpointErrorCopy = Record<string, MessageObject>;
 
 export type ErrorCopy = Record<MethodUrl, EndpointErrorCopy>;
-
-export type UserFacingProblem = Problem & {
-  userMessages?: ErrorMessage;
-};
-
-export type MakeUserFacingApiProblemFn<T extends string> = (
-  error: Parameters<MakeApiProblemFn<T>>[0],
-  httpMapper: Parameters<MakeApiProblemFn<T>>[1],
-  context: Parameters<MakeApiProblemFn<T>>[2] & {
-    endpoint?: string;
-  },
-  operationalLogMessage?: Parameters<MakeApiProblemFn<T>>[3],
-  placeholderMapper?: (problem: UserFacingProblem) => UserFacingProblem
-) => UserFacingProblem;
