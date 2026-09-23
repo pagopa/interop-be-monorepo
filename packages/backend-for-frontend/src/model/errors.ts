@@ -1,9 +1,11 @@
+import { readCsvErrorFile } from "pagopa-interop-error-message-parser";
 import {
   ApiError,
   AttributeId,
-  makeApiProblemBuilder,
   parseErrorMessage,
 } from "pagopa-interop-models";
+
+import { makeUserFacingApiProblemBuilder } from "./applyError.js";
 
 const errorCodes = {
   purposeNotFound: "0001",
@@ -61,10 +63,14 @@ const errorCodes = {
 
 export type ErrorCodes = keyof typeof errorCodes;
 
-export const makeApiProblem = makeApiProblemBuilder(errorCodes, {
-  problemErrorsPassthrough: true,
-  forceGenericProblemOn500: true,
-});
+export const makeApiProblem = makeUserFacingApiProblemBuilder(
+  errorCodes,
+  {
+    problemErrorsPassthrough: true,
+    forceGenericProblemOn500: true,
+  },
+  readCsvErrorFile("", [])
+);
 
 export function selfcareEntityNotFilled(
   className: string,
