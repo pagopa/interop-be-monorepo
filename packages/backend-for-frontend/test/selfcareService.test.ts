@@ -1,13 +1,15 @@
-import { describe, expect, it, vi } from "vitest";
-import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   bffApi,
   selfcareV2ClientApi,
   SelfcareV2InstitutionClient,
   SelfcareV2UsersClient,
 } from "pagopa-interop-api-clients";
+import { genericLogger } from "pagopa-interop-commons";
+import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
+import { describe, expect, it, vi } from "vitest";
+
 import type { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
+
 import { config } from "../src/config/config.js";
 import { selfcareServiceBuilder } from "../src/services/selfcareService.js";
 import { getBffMockContext } from "./utils.js";

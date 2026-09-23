@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
 import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
 import { generateId } from "pagopa-interop-models";
+import { describe, expect, it } from "vitest";
+
 import {
   toApiSelfcareInstitution,
   toApiSelfcareUser,
