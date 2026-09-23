@@ -113,3 +113,10 @@ catalog:
   zod-validation-error: 3.3.0
 
 catalogMode: strict
+
+overrides:
+  # commons-test uses the catalog YAML version. A different YAML peer version
+  # for Vite creates a separate Vitest instance, so consumers cannot see the
+  # shared ProvidedContext augmentation and inject() keys are typed as never.
+  # Keep Vite on the same catalog version when pnpm resolves dependencies.
+  vite>yaml: 'catalog:'
