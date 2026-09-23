@@ -82,6 +82,7 @@ const errorCodes = {
   missingReviewers: "0062",
   reviewersNotAllowedForReviewMode: "0063",
   purposeMetadataVersionMismatch: "0064",
+  riskAnalysisReviewModeNotFound: "0065",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -739,5 +740,15 @@ export function purposeMetadataVersionMismatch(
     detail: `Cannot sign risk analysis for purpose ${purposeId}: requested metadata version ${metadataVersionToSign} does not match current metadata version ${currentMetadataVersion}`,
     code: "purposeMetadataVersionMismatch",
     title: "Purpose metadata version mismatch",
+  });
+}
+
+export function riskAnalysisReviewModeNotFound(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} does not contain a risk analysis review mode`,
+    code: "riskAnalysisReviewModeNotFound",
+    title: "Risk analysis review mode not found",
   });
 }
