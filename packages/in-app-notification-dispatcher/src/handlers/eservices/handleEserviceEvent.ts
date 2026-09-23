@@ -11,6 +11,7 @@ import { handleEserviceArchivingRequestCanceledToProducer } from "./handleEservi
 import { handleEserviceArchivingRequestedToDelegator } from "./handleEserviceArchivingRequestedToDelegator.js";
 import { handleEserviceArchivingToConsumer } from "./handleEserviceArchivingToConsumer.js";
 import { handleEserviceArchivingToProducer } from "./handleEserviceArchivingToProducer.js";
+import { handleEserviceNameUpdatedByTemplateUpdateToInstantiator } from "./handleEserviceNameUpdatedByTemplateUpdateToInstantiator.js";
 import { handleEserviceNewVersionApprovedRejectedToDelegate } from "./handleEserviceNewVersionApprovedRejectedToDelegate.js";
 import { handleEserviceNewVersionSubmittedToDelegator } from "./handleEserviceNewVersionSubmittedToDelegator.js";
 import { handleEserviceStateChangedToConsumer } from "./handleEserviceStateChangedToConsumer.js";
@@ -52,7 +53,6 @@ export async function handleEServiceEvent(
           "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
           "EServiceDescriptorDocumentAdded",
           "EServiceDescriptorDocumentUpdated",
-          "EServiceNameUpdatedByTemplateUpdate",
           "EServiceDescriptionUpdatedByTemplateUpdate",
           "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
           "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
@@ -63,6 +63,17 @@ export async function handleEServiceEvent(
       (msg) =>
         handleEserviceStateChangedToConsumer(msg, logger, readModelService)
     )
+    .with({ type: "EServiceNameUpdatedByTemplateUpdate" }, async (msg) => {
+      const [instantiator, cons] = await Promise.all([
+        handleEserviceNameUpdatedByTemplateUpdateToInstantiator(
+          msg,
+          logger,
+          readModelService
+        ),
+        handleEserviceStateChangedToConsumer(msg, logger, readModelService),
+      ]);
+      return [...instantiator, ...cons];
+    })
     .with(
       { type: "EServiceDescriptorSubmittedByDelegate" },
       ({ data: { eservice } }) =>
