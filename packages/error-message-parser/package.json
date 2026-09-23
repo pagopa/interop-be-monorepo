@@ -1,0 +1,41 @@
+{
+  "name": "pagopa-interop-error-message-parser",
+  "private": true,
+  "version": "1.0.0",
+  "license": "MPL-2.0",
+  "description": "PagoPA Interoperability events signer",
+  "main": "dist",
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
+    "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json",
+    "test": "vitest",
+    "test:it": "vitest integration"
+  },
+  "keywords": [],
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "adm-zip": "catalog:",
+    "date-fns": "catalog:",
+    "eslint": "catalog:",
+    "pagopa-interop-commons-test": "workspace:*",
+    "pagopa-interop-eslint-config": "workspace:*",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "dependencies": {
+    "axios": "catalog:",
+    "csv-parse": "catalog:",
+    "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-models": "workspace:*",
+    "ts-pattern": "catalog:",
+    "zod": "catalog:"
+  }
+}
