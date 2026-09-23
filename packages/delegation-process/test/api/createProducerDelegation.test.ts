@@ -11,6 +11,7 @@ import {
 import {
   Delegation,
   EService,
+  EServiceId,
   TenantId,
   delegationKind,
   generateId,
@@ -27,6 +28,7 @@ import {
   delegationNotAllowedForTenant,
   tenantNotAllowedToDelegation,
   tenantNotFound,
+  eserviceAlreadyArchived,
 } from "../../src/model/domain/errors.js";
 import { api, delegationService } from "../vitest.api.setup.js";
 
@@ -119,6 +121,10 @@ describe("API POST /producer/delegations test", () => {
         "DelegatedProducer"
       ),
       expectedStatus: 409,
+    },
+    {
+      error: eserviceAlreadyArchived(generateId<EServiceId>()),
+      expectedStatus: 400,
     },
   ])(
     "Should return $expectedStatus for $error.code",
