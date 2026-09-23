@@ -19,7 +19,6 @@ import {
   downloadEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper,
   uploadEServiceDescriptorInterfaceErrorMapper,
   deleteEServiceDescriptorInterfaceErrorMapper,
-  deleteDraftEServiceDescriptorErrorMapper,
   getEServiceRiskAnalysisErrorMapper,
   getEServiceDescriptorAttributesErrorMapper,
   createEServiceDescriptorAttributeGroupsErrorMapper,
@@ -383,7 +382,7 @@ const eserviceRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            deleteDraftEServiceDescriptorErrorMapper,
+            emptyErrorMapper,
             ctx,
             `Error deleting descriptor with id ${req.params.descriptorId} for eservice ${req.params.eserviceId}`
           );

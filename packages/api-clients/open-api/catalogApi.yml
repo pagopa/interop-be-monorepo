@@ -320,8 +320,12 @@ paths:
           description: EService deleted
         "400":
           $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /eservices/{eServiceId}/scheduleArchive:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1044,7 +1048,9 @@ paths:
         - process
       summary: Deletes a draft descriptor
       operationId: deleteDraft
-      description: Deletes a draft descriptor for the specified E-Service
+      description: |
+        Deletes a draft descriptor for the specified E-Service.
+        It is not possible to delete the last remaining descriptor of an E-Service.
       parameters:
         - name: eServiceId
           in: path
@@ -1068,6 +1074,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
     put:
       security:
         - bearerAuth: []

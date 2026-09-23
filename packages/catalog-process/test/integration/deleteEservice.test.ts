@@ -27,7 +27,6 @@ import { config } from "../../src/config/config.js";
 import {
   eServiceNotFound,
   eserviceNotInDraftState,
-  eserviceWithActiveOrPendingDelegation,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -236,8 +235,54 @@ describe("delete eservice", () => {
     ).rejects.toThrowError(operationForbidden);
   });
 
-  it.each([delegationState.active, delegationState.waitingForApproval])(
-    "should throw eserviceWithActiveOrPendingDelegation if the eservice is associated with a delegation with state %s",
+  it("should throw operationForbidden if the eservice has an active producer delegation and the requester is the producer", async () => {
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: mockEService.id,
+      state: delegationState.active,
+    });
+
+    await addOneEService(mockEService);
+    await addOneDelegation(delegation);
+    await expect(
+      catalogService.deleteEService(
+        mockEService.id,
+        getMockContext({
+          authData: getMockAuthData(mockEService.producerId),
+        })
+      )
+    ).rejects.toThrowError(operationForbidden);
+  });
+
+  it("should write on event-store for the deletion of an eservice with an active producer delegation (delegate)", async () => {
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: mockEService.id,
+      state: delegationState.active,
+    });
+
+    await addOneEService(mockEService);
+    await addOneDelegation(delegation);
+    await catalogService.deleteEService(
+      mockEService.id,
+      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+    );
+
+    const writtenEvent = await readLastEserviceEvent(mockEService.id);
+    expect(writtenEvent).toMatchObject({
+      stream_id: mockEService.id,
+      version: "1",
+      type: "EServiceDeleted",
+      event_version: 2,
+    });
+  });
+
+  it.each([
+    delegationState.waitingForApproval,
+    delegationState.revoked,
+    delegationState.rejected,
+  ])(
+    "should succeed if the eservice is associated with a delegation with state %s and the requester is the producer",
     async (delegationState) => {
       const delegation = getMockDelegation({
         kind: delegationKind.delegatedProducer,
@@ -247,40 +292,14 @@ describe("delete eservice", () => {
 
       await addOneEService(mockEService);
       await addOneDelegation(delegation);
-      expect(
+      await expect(
         catalogService.deleteEService(
           mockEService.id,
           getMockContext({
             authData: getMockAuthData(mockEService.producerId),
           })
         )
-      ).rejects.toThrowError(
-        eserviceWithActiveOrPendingDelegation(mockEService.id, delegation.id)
-      );
-    }
-  );
-
-  it.each([delegationState.revoked, delegationState.rejected])(
-    "should not throw eserviceWithActiveOrPendingDelegation if the eservice is associated with a delegation with state %s",
-    async (delegationState) => {
-      const delegation = getMockDelegation({
-        kind: delegationKind.delegatedProducer,
-        eserviceId: mockEService.id,
-        state: delegationState,
-      });
-
-      await addOneEService(mockEService);
-      await addOneDelegation(delegation);
-      expect(
-        catalogService.deleteEService(
-          mockEService.id,
-          getMockContext({
-            authData: getMockAuthData(mockEService.producerId),
-          })
-        )
-      ).resolves.not.toThrowError(
-        eserviceWithActiveOrPendingDelegation(mockEService.id, delegation.id)
-      );
+      ).resolves.not.toThrowError();
     }
   );
 
