@@ -3059,12 +3059,18 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      axios:
+        specifier: 'catalog:'
+        version: 1.18.0
       csv-stringify:
         specifier: 'catalog:'
         version: 6.5.2
       eslint:
         specifier: 'catalog:'
         version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
       pagopa-interop-eslint-config:
         specifier: workspace:*
         version: link:../eslint-config

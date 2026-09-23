@@ -44,6 +44,12 @@ describe("applyErrorCopy", () => {
       ...problem,
       detail: undefined,
     });
+
+    expect(result.userMessages).toEqual({
+      it: "Un messaggio di errore",
+      en: "Some error message",
+    });
+    expect(result.detail).toBe("Un messaggio di errore");
   });
 
   it("should correctly leave unaltered when no matching error copy is found", () => {

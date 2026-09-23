@@ -20,8 +20,10 @@
   "keywords": [],
   "devDependencies": {
     "@types/node": "catalog:",
+    "axios": "catalog:",
     "csv-stringify": "catalog:",
     "eslint": "catalog:",
+    "pagopa-interop-commons-test": "workspace:*",
     "pagopa-interop-eslint-config": "workspace:*",
     "typescript": "catalog:",
     "vitest": "catalog:"
