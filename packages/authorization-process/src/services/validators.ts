@@ -8,6 +8,7 @@ import {
   isUiAuthData,
   userRole,
   UserRole,
+  CORRELATION_ID_HEADER,
 } from "pagopa-interop-commons";
 import {
   Client,
@@ -70,7 +71,7 @@ export const assertUserSelfcareSecurityPrivileges = async ({
         productRoles: userRolesToCheck.join(","),
       },
       headers: {
-        "X-Correlation-Id": correlationId,
+        [CORRELATION_ID_HEADER]: correlationId,
       },
     });
   if (users.length === 0) {
