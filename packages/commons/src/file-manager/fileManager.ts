@@ -121,6 +121,27 @@ export function initFileManager(
     }
   };
 
+  const fileExists = async (
+    bucket: string,
+    key: string,
+    logger: Logger
+  ): Promise<boolean> => {
+    try {
+      await client.send(new HeadObjectCommand({ Bucket: bucket, Key: key }));
+      return true;
+    } catch (error) {
+      if (error instanceof S3ServiceException && error.name === "NotFound") {
+        return false;
+      }
+      // The caller is already handling a store failure, so this check must not
+      // replace it with a less accurate error.
+      logger.warn(
+        `Error checking file s3://${bucket}/${key} after a store failure: ${error}`
+      );
+      return false;
+    }
+  };
+
   const storeBytesFn = async (
     s3File: {
       bucket: string;
@@ -260,7 +281,22 @@ export function initFileManager(
           throw fileManagerResumeFileError(key, s3File.bucket, error);
         }
       }
-      return storeBytesFn(s3File, logger);
+
+      try {
+        return await storeBytesFn(s3File, logger);
+      } catch (storeError) {
+        // The head check above can miss a file that a concurrent writer stores
+        // immediately after, and an immutable bucket rejects the overwrite. An
+        // existing key is the result this function asks for, so it is a
+        // success, as in the head check above.
+        if (await fileExists(s3File.bucket, key, logger)) {
+          logger.warn(
+            `File exists after a failed store, resuming s3://${s3File.bucket}/${key}. Store error: ${storeError}`
+          );
+          return key;
+        }
+        throw storeError;
+      }
     },
     generateGetPresignedUrl: async (
       bucketName: string,
