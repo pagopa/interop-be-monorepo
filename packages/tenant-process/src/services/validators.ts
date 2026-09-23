@@ -25,6 +25,7 @@ import {
   TenantFeature,
   Agreement,
   Delegation,
+  DelegationId,
   SCP,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -56,6 +57,7 @@ export function assertVerifiedAttributeExistsInTenant(
 export async function assertVerifiedAttributeOperationAllowed({
   requesterId,
   producerDelegation,
+  delegationId,
   attributeId,
   agreement,
   readModelService,
@@ -63,16 +65,24 @@ export async function assertVerifiedAttributeOperationAllowed({
 }: {
   requesterId: TenantId;
   producerDelegation: Delegation | undefined;
+  delegationId: DelegationId | undefined;
   attributeId: AttributeId;
   agreement: Agreement;
   readModelService: ReadModelServiceSQL;
   error: Error;
 }): Promise<void> {
-  if (producerDelegation && producerDelegation.delegateId !== requesterId) {
+  if (
+    producerDelegation &&
+    (producerDelegation.delegateId !== requesterId ||
+      producerDelegation.id !== delegationId)
+  ) {
     throw error;
   }
 
-  if (!producerDelegation && requesterId !== agreement.producerId) {
+  if (
+    !producerDelegation &&
+    (requesterId !== agreement.producerId || delegationId !== undefined)
+  ) {
     throw error;
   }
 

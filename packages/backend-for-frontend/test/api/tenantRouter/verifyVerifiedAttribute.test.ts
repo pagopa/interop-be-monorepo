@@ -34,6 +34,9 @@ describe("API POST /tenants/{tenantId}/attributes/verified test", () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(204);
+    expect(
+      clients.tenantProcessClient.tenantAttribute.verifyVerifiedAttribute
+    ).toHaveBeenCalledWith(attributeSeed, expect.anything());
   });
 
   it.each([
@@ -43,6 +46,7 @@ describe("API POST /tenants/{tenantId}/attributes/verified test", () => {
     { body: { ...attributeSeed, id: "invalid" } },
     { body: { ...attributeSeed, agreementId: undefined } },
     { body: { ...attributeSeed, agreementId: "invalid" } },
+    { body: { ...attributeSeed, delegationId: "invalid" } },
     { body: { ...attributeSeed, expirationDate: "invalid" } },
     { body: { ...attributeSeed, extraField: true } },
   ])(
