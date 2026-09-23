@@ -21,6 +21,7 @@
     "@protobuf-ts/protoc": "catalog:",
     "@protobuf-ts/runtime": "catalog:",
     "axios": "catalog:",
+    "drizzle-orm": "catalog:",
     "ts-pattern": "catalog:",
     "zod": "catalog:",
     "zod-validation-error": "catalog:"

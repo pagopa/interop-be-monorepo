@@ -1,5 +1,6 @@
 /* eslint-disable max-classes-per-file */
 import { AxiosError, isAxiosError } from "axios";
+import { DrizzleQueryError } from "drizzle-orm";
 import { constants } from "http2";
 import { P, match } from "ts-pattern";
 import { z, ZodError } from "zod";
@@ -257,6 +258,10 @@ export function makeApiProblemBuilder<T extends string>(
         // return a generic problem
         const zodError = fromZodError(error);
         logger.error(makeProblemLogString(genericProblem, zodError));
+        return genericProblem;
+      })
+      .with(P.instanceOf(DrizzleQueryError), (error) => {
+        logger.error(makeProblemLogString(genericProblem, error.cause));
         return genericProblem;
       })
       .otherwise((error: unknown): Problem => {
