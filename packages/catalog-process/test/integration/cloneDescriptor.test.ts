@@ -37,6 +37,7 @@ import {
   eServiceDescriptorNotFound,
   templateInstanceNotAllowed,
   eserviceTemplateNameConflict,
+  eserviceCloningWithActiveOrPendingDelegation,
 } from "../../src/model/domain/errors.js";
 import {
   addOneDelegation,
@@ -602,6 +603,39 @@ describe("clone descriptor", () => {
       )
     ).rejects.toThrowError(operationForbidden);
   });
+  it.each([delegationState.active, delegationState.waitingForApproval])(
+    "should throw eserviceCloningWithActiveOrPendingDelegation if the eservice is associated with a delegation with state %s",
+    async (delegationState) => {
+      const descriptor: Descriptor = {
+        ...mockDescriptor,
+        state: descriptorState.draft,
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor],
+      };
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        eserviceId: eservice.id,
+        state: delegationState,
+      });
+
+      await addOneEService(eservice);
+      await addOneDelegation(delegation);
+
+      expect(
+        catalogService.cloneDescriptor(
+          eservice.id,
+          descriptor.id,
+          getMockContext({
+            authData: getMockAuthData(eservice.producerId),
+          })
+        )
+      ).rejects.toThrowError(
+        eserviceCloningWithActiveOrPendingDelegation(eservice.id, delegation.id)
+      );
+    }
+  );
   it("should throw eServiceDescriptorNotFound if the descriptor doesn't exist", async () => {
     const eservice: EService = {
       ...mockEService,
