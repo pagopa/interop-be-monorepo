@@ -162,6 +162,7 @@ export const toReviewerWorkflowV2 = (
   signedBy: input.signedBy,
   signedAt: dateToBigInt(input.signedAt),
   rejectedBy: input.rejectedBy,
+  rejectedAt: dateToBigInt(input.rejectedAt),
   rejectionReason: input.rejectionReason,
   sentToReviewerAt: dateToBigInt(input.sentToReviewerAt),
 });
