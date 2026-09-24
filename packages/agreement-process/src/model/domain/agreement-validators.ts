@@ -72,6 +72,8 @@ export const agreementActivationAllowedDescriptorStates: DescriptorState[] = [
   descriptorState.published,
   descriptorState.suspended,
   descriptorState.deprecated,
+  descriptorState.archiving,
+  descriptorState.archivingSuspended,
 ];
 
 export const agreementSuspendableStates: AgreementState[] = [
