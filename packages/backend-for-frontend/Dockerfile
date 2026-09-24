@@ -51,7 +51,8 @@ RUN NODE_OPTIONS="--max-old-space-size=${NODE_HEAP_SIZE}" pnpm build && \
   packages/dpop-validation \
   packages/application-audit \
   packages/kafka-iam-auth \
-  packages/backend-for-frontend/dist && \
+  packages/backend-for-frontend/dist \
+  packages/backend-for-frontend/error-mapping.csv && \
   find /out -exec touch -h --date=@0 {} \;
 
 FROM ${NODE_REGISTRY}/node:20.19.4-slim@sha256:6db5e436948af8f0244488a1f658c2c8e55a3ae51ca2e1686ed042be8f25f70a AS final
