@@ -1,0 +1,28 @@
+meta {
+  name: Query EServices catalog
+  type: http
+  seq: 52
+}
+
+post {
+  url: {{host-bff}}/catalog
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT}}
+}
+
+body:json {
+  {
+    "offset": 0,
+    "limit": 10
+  }
+}
+
+docs {
+  Retrieves the EServices catalog matching the given filters.
+  
+  Optional body properties: keyword, sortBy, onlyActiveEservices, availableForRequester, subscribedByRequester, onlyTemplateInstances, hasLinkedPurposeTemplates, producerCategories, asyncExchange, mode, onlySignalHubEnabled, requesterDelegationRoles, templateId, producersIds
+}
