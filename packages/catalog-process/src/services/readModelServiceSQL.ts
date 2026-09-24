@@ -133,6 +133,27 @@ const existsValidDescriptor = (
       )
   );
 
+const existsActiveDescriptor = (
+  readmodelDB: DrizzleTransactionType
+): SQL<unknown> | undefined =>
+  exists(
+    readmodelDB
+      .select()
+      .from(eserviceDescriptorInReadmodelCatalog)
+      .where(
+        and(
+          eq(
+            eserviceDescriptorInReadmodelCatalog.eserviceId,
+            eserviceInReadmodelCatalog.id
+          ),
+          inArray(eserviceDescriptorInReadmodelCatalog.state, [
+            descriptorState.published,
+            descriptorState.suspended,
+          ])
+        )
+      )
+  );
+
 // The id tie-break keeps pagination deterministic on equal names or dates.
 const getEServicesOrderBy = (sortBy: EServiceSortBy): SQL[] => [
   match(sortBy)
@@ -848,40 +869,7 @@ export function readModelServiceBuilderSQL(
       }: EServicesQueryFilters
     ): Promise<ListResult<EService>> {
       return await readmodelDB.transaction(async (tx) => {
-        const visibilityFilter = hasRoleToAccessInactiveDescriptors(authData)
-          ? or(
-              existsValidDescriptor(tx),
-              eq(
-                eserviceInReadmodelCatalog.producerId,
-                authData.organizationId
-              ),
-              exists(
-                tx
-                  .select()
-                  .from(delegationInReadmodelDelegation)
-                  .where(
-                    and(
-                      eq(
-                        delegationInReadmodelDelegation.eserviceId,
-                        eserviceInReadmodelCatalog.id
-                      ),
-                      eq(
-                        delegationInReadmodelDelegation.delegateId,
-                        authData.organizationId
-                      ),
-                      inArray(delegationInReadmodelDelegation.state, [
-                        delegationState.active,
-                        delegationState.waitingForApproval,
-                      ]),
-                      eq(
-                        delegationInReadmodelDelegation.kind,
-                        delegationKind.delegatedProducer
-                      )
-                    )
-                  )
-              )
-            )
-          : existsValidDescriptor(tx);
+        const activeEservicesFilter = existsActiveDescriptor(tx);
 
         const filtersCondition = and(
           producersFilter(tx, producersIds),
@@ -899,7 +887,7 @@ export function readModelServiceBuilderSQL(
         );
 
         const condition = and(
-          visibilityFilter,
+          activeEservicesFilter,
           filtersCondition,
           keywordFilter(keyword)
         );
