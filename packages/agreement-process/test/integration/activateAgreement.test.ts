@@ -63,8 +63,9 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { config } from "../../src/config/config.js";
 import {
   agreementActivableStates,
-  agreementActivationAllowedDescriptorStates,
   agreementArchivableStates,
+  agreementFirstActivationAllowedDescriptorStates,
+  agreementSuspendedActivationAllowedDescriptorStates,
 } from "../../src/model/domain/agreement-validators.js";
 import {
   agreementActivationFailed,
@@ -209,7 +210,9 @@ describe("activate agreement", () => {
 
         const descriptor: Descriptor = {
           ...getMockDescriptorPublished(),
-          state: randomArrayItem(agreementActivationAllowedDescriptorStates),
+          state: randomArrayItem(
+            agreementFirstActivationAllowedDescriptorStates
+          ),
           attributes: {
             certified: [[getMockEServiceAttribute(certifiedAttribute.id)]],
             declared: [[getMockEServiceAttribute(declaredAttribute.id)]],
@@ -382,7 +385,7 @@ describe("activate agreement", () => {
 
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
-        state: randomArrayItem(agreementActivationAllowedDescriptorStates),
+        state: randomArrayItem(agreementFirstActivationAllowedDescriptorStates),
         attributes: {
           certified: [
             [
@@ -485,7 +488,7 @@ describe("activate agreement", () => {
 
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
-        state: randomArrayItem(agreementActivationAllowedDescriptorStates),
+        state: randomArrayItem(agreementFirstActivationAllowedDescriptorStates),
         attributes: {
           certified: [
             [
@@ -605,7 +608,7 @@ describe("activate agreement", () => {
       const authData = getMockAuthData(producer.id);
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
-        state: randomArrayItem(agreementActivationAllowedDescriptorStates),
+        state: randomArrayItem(agreementFirstActivationAllowedDescriptorStates),
         attributes: {
           certified: [
             [getMockEServiceAttribute(revokedTenantCertifiedAttribute.id)],
@@ -731,7 +734,7 @@ describe("activate agreement", () => {
       const authData = getMockAuthData(producer.id);
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
-        state: randomArrayItem(agreementActivationAllowedDescriptorStates),
+        state: randomArrayItem(agreementFirstActivationAllowedDescriptorStates),
         attributes: {
           certified:
             consumerInvalidAttribute.type === "PersistentCertifiedAttribute"
@@ -930,7 +933,9 @@ describe("activate agreement", () => {
 
         const descriptor: Descriptor = {
           ...getMockDescriptorPublished(),
-          state: randomArrayItem(agreementActivationAllowedDescriptorStates),
+          state: randomArrayItem(
+            agreementSuspendedActivationAllowedDescriptorStates
+          ),
           attributes: {
             certified: [
               [getMockEServiceAttribute(validTenantCertifiedAttribute.id)],
@@ -1094,7 +1099,9 @@ describe("activate agreement", () => {
 
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
-        state: randomArrayItem(agreementActivationAllowedDescriptorStates),
+        state: randomArrayItem(
+          agreementSuspendedActivationAllowedDescriptorStates
+        ),
         attributes: {
           certified: [
             [getMockEServiceAttribute(consumerAndProducer.attributes[0].id)],
@@ -1217,7 +1224,9 @@ describe("activate agreement", () => {
 
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
-        state: randomArrayItem(agreementActivationAllowedDescriptorStates),
+        state: randomArrayItem(
+          agreementSuspendedActivationAllowedDescriptorStates
+        ),
       };
 
       const eservice: EService = {
@@ -1360,7 +1369,9 @@ describe("activate agreement", () => {
 
         const descriptor: Descriptor = {
           ...getMockDescriptorPublished(),
-          state: randomArrayItem(agreementActivationAllowedDescriptorStates),
+          state: randomArrayItem(
+            agreementSuspendedActivationAllowedDescriptorStates
+          ),
           attributes: {
             certified: [
               [getMockEServiceAttribute(validTenantCertifiedAttribute.id)],
@@ -1648,7 +1659,9 @@ describe("activate agreement", () => {
           };
           const discreteDescriptor: Descriptor = {
             ...getMockDescriptorPublished(),
-            state: randomArrayItem(agreementActivationAllowedDescriptorStates),
+            state: randomArrayItem(
+              agreementSuspendedActivationAllowedDescriptorStates
+            ),
             attributes: {
               certified: [[descriptorAttribute]],
               declared: [],
@@ -1959,7 +1972,9 @@ describe("activate agreement", () => {
 
         const descriptor: Descriptor = {
           ...getMockDescriptorPublished(),
-          state: randomArrayItem(agreementActivationAllowedDescriptorStates),
+          state: randomArrayItem(
+            agreementSuspendedActivationAllowedDescriptorStates
+          ),
           attributes: {
             certified:
               consumerInvalidAttribute.type === "PersistentCertifiedAttribute"
@@ -2291,174 +2306,135 @@ describe("activate agreement", () => {
       getMethod(service: typeof agreementService) {
         return service.approveAgreement;
       },
+      descriptorAllowedStates: agreementFirstActivationAllowedDescriptorStates,
     },
     {
       state: agreementState.suspended,
       getMethod(service: typeof agreementService) {
         return service.unsuspendAgreement;
       },
+      descriptorAllowedStates:
+        agreementSuspendedActivationAllowedDescriptorStates,
     },
-  ])("All other error cases", ({ state, getMethod }) => {
-    it("should throw an agreementNotFound error when the Agreement does not exist", async () => {
-      await addOneAgreement(getMockAgreement());
-      const authData = getMockAuthData();
-      const agreementId = generateId<AgreementId>();
-      await expect(
-        getMethod(agreementService)(
-          { agreementId, delegationId: undefined },
-          getMockContext({ authData })
-        )
-      ).rejects.toThrowError(agreementNotFound(agreementId));
-    });
-
-    it("should throw an tenantNotAllowed error when the requester is not the Consumer or Producer or Delegated Consumer or Delegate Producer or Delegate Consumer", async () => {
-      const authData = getMockAuthData();
-      const agreement: Agreement = getMockAgreement(
-        generateId<EServiceId>(),
-        generateId<TenantId>(),
-        agreementState.suspended
-      );
-
-      const producerDelegation = getMockDelegation({
-        kind: delegationKind.delegatedProducer,
-        delegatorId: agreement.producerId,
-        delegateId: generateId<TenantId>(),
-        state: delegationState.active,
-        eserviceId: agreement.eserviceId,
-      });
-      const consumerDelegation = getMockDelegation({
-        kind: delegationKind.delegatedConsumer,
-        delegatorId: agreement.consumerId,
-        delegateId: generateId<TenantId>(),
-        state: delegationState.active,
-        eserviceId: agreement.eserviceId,
-      });
-
-      await addOneAgreement(agreement);
-      await addOneDelegation(producerDelegation);
-      await addOneDelegation(consumerDelegation);
-      await addSomeRandomDelegations(agreement, addOneDelegation);
-
-      await expect(
-        agreementService.unsuspendAgreement(
-          { agreementId: agreement.id, delegationId: undefined },
-          getMockContext({ authData })
-        )
-      ).rejects.toThrowError(tenantNotAllowed(authData.organizationId));
-    });
-
-    it.each(
-      Object.values(agreementState).filter(
-        (state) => !agreementActivableStates.includes(state)
-      )
-    )(
-      "should throw an agreementNotInExpectedState error when the Agreement is not in an activable state - agreement state: %s",
-      async (agreementState) => {
-        const consumerId = generateId<TenantId>();
-        const authData = getMockAuthData(consumerId);
-
-        const agreement: Agreement = {
-          ...getMockAgreement(),
-          state: agreementState,
-          consumerId,
-        };
-        await addOneAgreement(agreement);
+  ])(
+    "All other error cases for $state agreement",
+    ({ state, getMethod, descriptorAllowedStates }) => {
+      it("should throw an agreementNotFound error when the Agreement does not exist", async () => {
+        await addOneAgreement(getMockAgreement());
+        const authData = getMockAuthData();
+        const agreementId = generateId<AgreementId>();
         await expect(
-          agreementService.approveAgreement(
-            { agreementId: agreement.id, delegationId: undefined },
+          getMethod(agreementService)(
+            { agreementId, delegationId: undefined },
             getMockContext({ authData })
           )
-        ).rejects.toThrowError(
-          agreementNotInExpectedState(agreement.id, agreement.state)
+        ).rejects.toThrowError(agreementNotFound(agreementId));
+      });
+
+      it("should throw an tenantNotAllowed error when the requester is not the Consumer or Producer or Delegated Consumer or Delegate Producer or Delegate Consumer", async () => {
+        const authData = getMockAuthData();
+        const agreement: Agreement = getMockAgreement(
+          generateId<EServiceId>(),
+          generateId<TenantId>(),
+          agreementState.suspended
         );
+
+        const producerDelegation = getMockDelegation({
+          kind: delegationKind.delegatedProducer,
+          delegatorId: agreement.producerId,
+          delegateId: generateId<TenantId>(),
+          state: delegationState.active,
+          eserviceId: agreement.eserviceId,
+        });
+        const consumerDelegation = getMockDelegation({
+          kind: delegationKind.delegatedConsumer,
+          delegatorId: agreement.consumerId,
+          delegateId: generateId<TenantId>(),
+          state: delegationState.active,
+          eserviceId: agreement.eserviceId,
+        });
+
+        await addOneAgreement(agreement);
+        await addOneDelegation(producerDelegation);
+        await addOneDelegation(consumerDelegation);
+        await addSomeRandomDelegations(agreement, addOneDelegation);
+
         await expect(
           agreementService.unsuspendAgreement(
             { agreementId: agreement.id, delegationId: undefined },
             getMockContext({ authData })
           )
-        ).rejects.toThrowError(
-          agreementNotInExpectedState(agreement.id, agreement.state)
-        );
-      }
-    );
+        ).rejects.toThrowError(tenantNotAllowed(authData.organizationId));
+      });
 
-    it("should throw an eServiceNotFound error when the EService does not exist", async () => {
-      const consumerId = generateId<TenantId>();
-      const authData = getMockAuthData(consumerId);
-
-      const agreement: Agreement = {
-        ...getMockAgreement(),
-        state: agreementState.suspended,
-        consumerId,
-      };
-      await addOneAgreement(agreement);
-      await expect(
-        agreementService.unsuspendAgreement(
-          { agreementId: agreement.id, delegationId: undefined },
-          getMockContext({ authData })
+      it.each(
+        Object.values(agreementState).filter(
+          (state) => !agreementActivableStates.includes(state)
         )
-      ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
-    });
+      )(
+        "should throw an agreementNotInExpectedState error when the Agreement is not in an activable state - agreement state: %s",
+        async (agreementState) => {
+          const consumerId = generateId<TenantId>();
+          const authData = getMockAuthData(consumerId);
 
-    it("should throw a descriptorNotFound error when the Descriptor does not exist", async () => {
-      const consumerId = generateId<TenantId>();
-      const producerId = generateId<TenantId>();
-      const authData = getMockAuthData(producerId);
-
-      const eservice: EService = {
-        ...getMockEService(),
-        producerId,
-      };
-      const agreement: Agreement = {
-        ...getMockAgreement(),
-        eserviceId: eservice.id,
-        consumerId,
-        state: state,
-        producerId,
-      };
-
-      await addOneEService(eservice);
-      await addOneAgreement(agreement);
-
-      await expect(
-        getMethod(agreementService)(
-          { agreementId: agreement.id, delegationId: undefined },
-          getMockContext({ authData })
-        )
-      ).rejects.toThrowError(
-        descriptorNotFound(agreement.eserviceId, agreement.descriptorId)
+          const agreement: Agreement = {
+            ...getMockAgreement(),
+            state: agreementState,
+            consumerId,
+          };
+          await addOneAgreement(agreement);
+          await expect(
+            agreementService.approveAgreement(
+              { agreementId: agreement.id, delegationId: undefined },
+              getMockContext({ authData })
+            )
+          ).rejects.toThrowError(
+            agreementNotInExpectedState(agreement.id, agreement.state)
+          );
+          await expect(
+            agreementService.unsuspendAgreement(
+              { agreementId: agreement.id, delegationId: undefined },
+              getMockContext({ authData })
+            )
+          ).rejects.toThrowError(
+            agreementNotInExpectedState(agreement.id, agreement.state)
+          );
+        }
       );
-    });
 
-    it.each(
-      Object.values(descriptorState).filter(
-        (state) => !agreementActivationAllowedDescriptorStates.includes(state)
-      )
-    )(
-      "should throw a descriptorNotInExpectedState error when the Descriptor is not in an expected state - descriptor state: %s",
-      async (descriptorState) => {
+      it("should throw an eServiceNotFound error when the EService does not exist", async () => {
+        const consumerId = generateId<TenantId>();
+        const authData = getMockAuthData(consumerId);
+
+        const agreement: Agreement = {
+          ...getMockAgreement(),
+          state: agreementState.suspended,
+          consumerId,
+        };
+        await addOneAgreement(agreement);
+        await expect(
+          agreementService.unsuspendAgreement(
+            { agreementId: agreement.id, delegationId: undefined },
+            getMockContext({ authData })
+          )
+        ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
+      });
+
+      it("should throw a descriptorNotFound error when the Descriptor does not exist", async () => {
         const consumerId = generateId<TenantId>();
         const producerId = generateId<TenantId>();
         const authData = getMockAuthData(producerId);
 
-        const descriptor: Descriptor = {
-          ...getMockDescriptorPublished(),
-          state: descriptorState,
-        };
-
         const eservice: EService = {
           ...getMockEService(),
           producerId,
-          descriptors: [descriptor],
         };
-
         const agreement: Agreement = {
           ...getMockAgreement(),
-          state: state,
           eserviceId: eservice.id,
-          descriptorId: descriptor.id,
-          producerId,
           consumerId,
+          state: state,
+          producerId,
         };
 
         await addOneEService(eservice);
@@ -2470,50 +2446,95 @@ describe("activate agreement", () => {
             getMockContext({ authData })
           )
         ).rejects.toThrowError(
-          descriptorNotInExpectedState(
-            eservice.id,
-            descriptor.id,
-            agreementActivationAllowedDescriptorStates
-          )
+          descriptorNotFound(agreement.eserviceId, agreement.descriptorId)
         );
-      }
-    );
+      });
 
-    it("should throw a tenantNotFound error when the Consumer does not exist", async () => {
-      const consumerId = generateId<TenantId>();
-      const producer = getMockTenant();
-      const authData = getMockAuthData(producer.id);
-
-      const descriptor: Descriptor = {
-        ...getMockDescriptorPublished(),
-        state: randomArrayItem(agreementActivationAllowedDescriptorStates),
-      };
-
-      const eservice: EService = {
-        ...getMockEService(),
-        producerId: producer.id,
-        descriptors: [descriptor],
-      };
-
-      const agreement: Agreement = {
-        ...getMockAgreement(),
-        state: state,
-        eserviceId: eservice.id,
-        descriptorId: descriptor.id,
-        producerId: producer.id,
-        consumerId,
-      };
-
-      await addOneEService(eservice);
-      await addOneAgreement(agreement);
-      await addOneTenant(producer);
-
-      await expect(
-        getMethod(agreementService)(
-          { agreementId: agreement.id, delegationId: undefined },
-          getMockContext({ authData })
+      it.each(
+        Object.values(descriptorState).filter(
+          (state) => !descriptorAllowedStates.includes(state)
         )
-      ).rejects.toThrowError(tenantNotFound(consumerId));
-    });
-  });
+      )(
+        "should throw a descriptorNotInExpectedState error when the Descriptor is not in an expected state - descriptor state: %s",
+        async (descriptorState) => {
+          const consumerId = generateId<TenantId>();
+          const producerId = generateId<TenantId>();
+          const authData = getMockAuthData(producerId);
+
+          const descriptor: Descriptor = {
+            ...getMockDescriptorPublished(),
+            state: descriptorState,
+          };
+
+          const eservice: EService = {
+            ...getMockEService(),
+            producerId,
+            descriptors: [descriptor],
+          };
+
+          const agreement: Agreement = {
+            ...getMockAgreement(),
+            state: state,
+            eserviceId: eservice.id,
+            descriptorId: descriptor.id,
+            producerId,
+            consumerId,
+          };
+
+          await addOneEService(eservice);
+          await addOneAgreement(agreement);
+
+          await expect(
+            getMethod(agreementService)(
+              { agreementId: agreement.id, delegationId: undefined },
+              getMockContext({ authData })
+            )
+          ).rejects.toThrowError(
+            descriptorNotInExpectedState(
+              eservice.id,
+              descriptor.id,
+              descriptorAllowedStates
+            )
+          );
+        }
+      );
+
+      it("should throw a tenantNotFound error when the Consumer does not exist", async () => {
+        const consumerId = generateId<TenantId>();
+        const producer = getMockTenant();
+        const authData = getMockAuthData(producer.id);
+
+        const descriptor: Descriptor = {
+          ...getMockDescriptorPublished(),
+          state: randomArrayItem(descriptorAllowedStates),
+        };
+
+        const eservice: EService = {
+          ...getMockEService(),
+          producerId: producer.id,
+          descriptors: [descriptor],
+        };
+
+        const agreement: Agreement = {
+          ...getMockAgreement(),
+          state: state,
+          eserviceId: eservice.id,
+          descriptorId: descriptor.id,
+          producerId: producer.id,
+          consumerId,
+        };
+
+        await addOneEService(eservice);
+        await addOneAgreement(agreement);
+        await addOneTenant(producer);
+
+        await expect(
+          getMethod(agreementService)(
+            { agreementId: agreement.id, delegationId: undefined },
+            getMockContext({ authData })
+          )
+        ).rejects.toThrowError(tenantNotFound(consumerId));
+      });
+    }
+  );
 });

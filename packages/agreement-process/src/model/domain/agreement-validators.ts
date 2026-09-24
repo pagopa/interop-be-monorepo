@@ -68,13 +68,21 @@ export const agreementActivableStates: AgreementState[] = [
   agreementState.suspended,
 ];
 
-export const agreementActivationAllowedDescriptorStates: DescriptorState[] = [
-  descriptorState.published,
-  descriptorState.suspended,
-  descriptorState.deprecated,
-  descriptorState.archiving,
-  descriptorState.archivingSuspended,
-];
+export const agreementFirstActivationAllowedDescriptorStates: DescriptorState[] =
+  [
+    descriptorState.published,
+    descriptorState.suspended,
+    descriptorState.deprecated,
+  ];
+
+export const agreementSuspendedActivationAllowedDescriptorStates: DescriptorState[] =
+  [
+    descriptorState.published,
+    descriptorState.suspended,
+    descriptorState.deprecated,
+    descriptorState.archiving,
+    descriptorState.archivingSuspended,
+  ];
 
 export const agreementSuspendableStates: AgreementState[] = [
   agreementState.active,
@@ -518,7 +526,8 @@ export const verifyConflictingAgreements = async (
 
 export const validateActivationOnDescriptor = (
   eservice: EService,
-  descriptorId: Descriptor["id"]
+  descriptorId: Descriptor["id"],
+  isFirstActivation: boolean
 ): Descriptor => {
   const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
   if (!descriptor) {
@@ -529,7 +538,9 @@ export const validateActivationOnDescriptor = (
     eservice.id,
     descriptor.id,
     descriptor.state,
-    agreementActivationAllowedDescriptorStates
+    isFirstActivation
+      ? agreementFirstActivationAllowedDescriptorStates
+      : agreementSuspendedActivationAllowedDescriptorStates
   );
 
   return descriptor;
