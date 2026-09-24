@@ -420,16 +420,11 @@ const catalogRouter = (
         );
         return res.status(204).send();
       } catch (error) {
-        const placeholderMapper = await commonCatalogProducerPlaceholderMapper(
-          req.params.eServiceId,
-          ctx
-        );
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
           ctx,
-          `Error canceling archiving for eservice ${req.params.eServiceId}`,
-          placeholderMapper
+          `Error canceling archiving for eservice ${req.params.eServiceId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -910,11 +905,16 @@ const catalogRouter = (
         );
         return res.status(204).send();
       } catch (error) {
+        const placeholderMapper = await commonCatalogProducerPlaceholderMapper(
+          req.params.eServiceId,
+          ctx
+        );
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
           ctx,
-          `Error scheduling archive for EService ${req.params.eServiceId}`
+          `Error scheduling archive for EService ${req.params.eServiceId}`,
+          placeholderMapper
         );
         return res.status(errorRes.status).send(errorRes);
       }

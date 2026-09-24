@@ -1,0 +1,2 @@
+Process,Error,BFF endpoint,Possible user action / Recovery,Additional FE data needed,UI component to be,Copy IT,Copy EN,Note
+Catalog Process,gracePeriodDaysLowerThanDescriptor,POST /eservices/:eServiceId/scheduleArchive,--,--,Snackbar,Non è stato possibile archiviare {eserviceName},{eserviceName} was not archived,--
