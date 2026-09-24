@@ -24,6 +24,7 @@ import {
   Client,
   ClientId,
   clientKind,
+  CorrelationId,
   Delegation,
   Descriptor,
   DescriptorId,
@@ -122,6 +123,7 @@ import {
   assertAdminInClient,
   assertTenantHasSelfcareId,
   assertMembersAreUnique,
+  assertUsersExistInSelfcare,
 } from "./validators.js";
 
 const retrieveClient = async (
@@ -238,6 +240,27 @@ export function authorizationServiceBuilder(
     authorizationEventToBinaryData
   );
 
+  const validateClientMembers = async (
+    members: string[],
+    authData: UIAuthData | M2MAdminAuthData,
+    correlationId: CorrelationId
+  ): Promise<void> => {
+    if (members.length === 0) {
+      return;
+    }
+
+    const selfcareId = isUiAuthData(authData)
+      ? authData.selfcareId
+      : await getSelfcareIdFromAuthData(authData, readModelService);
+
+    await assertUsersExistInSelfcare({
+      userIds: members,
+      selfcareId,
+      correlationId,
+      selfcareV2InstitutionClient,
+    });
+  };
+
   return {
     async getClientById(
       {
@@ -273,6 +296,7 @@ export function authorizationServiceBuilder(
       validateNoHyperlinksSafe(clientSeed.description);
 
       assertMembersAreUnique(clientSeed.members);
+      await validateClientMembers(clientSeed.members, authData, correlationId);
 
       const client: Client = {
         id: generateId(),
@@ -313,6 +337,7 @@ export function authorizationServiceBuilder(
       validateNoHyperlinksSafe(clientSeed.description);
 
       assertMembersAreUnique(clientSeed.members);
+      await validateClientMembers(clientSeed.members, authData, correlationId);
 
       const client: Client = {
         id: generateId(),
