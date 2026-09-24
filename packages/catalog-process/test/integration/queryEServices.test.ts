@@ -1,6 +1,9 @@
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
+  getMockAgreement,
+  getMockAuthData,
   getMockContext,
+  getMockDelegation,
   getMockDescriptor,
   getMockEService,
   getMockTenant,
@@ -12,6 +15,9 @@ import {
   ListResult,
   Tenant,
   TenantId,
+  agreementState,
+  delegationKind,
+  delegationState,
   descriptorState,
   generateId,
   unsafeBrandId,
@@ -19,6 +25,8 @@ import {
 import { beforeEach, describe, expect, it } from "vitest";
 
 import {
+  addOneAgreement,
+  addOneDelegation,
   addOneEService,
   addOneTenant,
   catalogService,
@@ -58,6 +66,17 @@ describe("query eservices", () => {
 
   const idsOf = (result: ListResult<EService>): EServiceId[] =>
     result.results.map((eservice) => eservice.id);
+
+  const filterEServices = (
+    filters: Omit<
+      Partial<catalogApi.EServicesFilterPayload>,
+      "offset" | "limit"
+    >,
+    context: ReturnType<typeof getMockContext> = getMockContext({}),
+    offset = 0,
+    limit = 50
+  ): Promise<ListResult<EService>> =>
+    catalogService.queryEServices({ offset, limit, ...filters }, context);
 
   describe("sortBy", () => {
     const eserviceApple = buildEService(
@@ -444,6 +463,381 @@ describe("query eservices", () => {
       expect(fullTextResult.results).toEqual([]);
       expect(fuzzyResult.totalCount).toBe(0);
       expect(fuzzyResult.results).toEqual([]);
+    });
+  });
+
+  describe("producersIds", () => {
+    const producerAlpha: TenantId = generateId();
+    const producerBeta: TenantId = generateId();
+    const producerGamma: TenantId = generateId();
+
+    const eserviceAlpha: EService = {
+      ...buildEService("Alpha", new Date("2024-01-01T00:00:00Z")),
+      producerId: producerAlpha,
+    };
+    const eserviceBeta: EService = {
+      ...buildEService("Beta", new Date("2024-02-01T00:00:00Z")),
+      producerId: producerBeta,
+    };
+    const eserviceGamma: EService = {
+      ...buildEService("Gamma", new Date("2024-03-01T00:00:00Z")),
+      producerId: producerGamma,
+    };
+
+    beforeEach(async () => {
+      await addOneEService(eserviceAlpha);
+      await addOneEService(eserviceBeta);
+      await addOneEService(eserviceGamma);
+    });
+
+    it("should not filter the e-services when producersIds is not set", async () => {
+      const result = await filterEServices({});
+
+      expect(result.totalCount).toBe(3);
+      expect(idsOf(result)).toEqual([
+        eserviceGamma.id,
+        eserviceBeta.id,
+        eserviceAlpha.id,
+      ]);
+    });
+
+    it("should not filter the e-services when producersIds is empty", async () => {
+      const result = await filterEServices({ producersIds: [] });
+
+      expect(result.totalCount).toBe(3);
+    });
+
+    it("should return only the e-services of the given producer", async () => {
+      const result = await filterEServices({ producersIds: [producerAlpha] });
+
+      expect(result.totalCount).toBe(1);
+      expect(idsOf(result)).toEqual([eserviceAlpha.id]);
+    });
+
+    it("should return the e-services of any of the given producers", async () => {
+      const result = await filterEServices({
+        producersIds: [producerAlpha, producerBeta],
+      });
+
+      expect(result.totalCount).toBe(2);
+      expect(idsOf(result)).toEqual([eserviceBeta.id, eserviceAlpha.id]);
+    });
+
+    it("should include an e-service whose active producer delegate is among the given producers", async () => {
+      const delegateId: TenantId = generateId();
+      await addOneDelegation(
+        getMockDelegation({
+          kind: delegationKind.delegatedProducer,
+          state: delegationState.active,
+          eserviceId: eserviceGamma.id,
+          delegateId,
+        })
+      );
+
+      const result = await filterEServices({ producersIds: [delegateId] });
+
+      expect(result.totalCount).toBe(1);
+      expect(idsOf(result)).toEqual([eserviceGamma.id]);
+    });
+
+    it("should ignore delegations that are not active producer delegations", async () => {
+      const pendingDelegateId: TenantId = generateId();
+      const consumerDelegateId: TenantId = generateId();
+      await addOneDelegation(
+        getMockDelegation({
+          kind: delegationKind.delegatedProducer,
+          state: delegationState.waitingForApproval,
+          eserviceId: eserviceAlpha.id,
+          delegateId: pendingDelegateId,
+        })
+      );
+      await addOneDelegation(
+        getMockDelegation({
+          kind: delegationKind.delegatedConsumer,
+          state: delegationState.active,
+          eserviceId: eserviceBeta.id,
+          delegateId: consumerDelegateId,
+        })
+      );
+
+      const result = await filterEServices({
+        producersIds: [pendingDelegateId, consumerDelegateId],
+      });
+
+      expect(result.totalCount).toBe(0);
+      expect(result.results).toEqual([]);
+    });
+  });
+
+  describe("onlyActiveEservices", () => {
+    const eserviceActive: EService = {
+      ...buildEService("Active", new Date("2024-01-01T00:00:00Z")),
+      descriptors: [
+        { ...getMockDescriptor(descriptorState.published), version: "1" },
+      ],
+    };
+    const eserviceSuspended: EService = {
+      ...buildEService("Suspended", new Date("2024-02-01T00:00:00Z")),
+      descriptors: [
+        { ...getMockDescriptor(descriptorState.suspended), version: "1" },
+      ],
+    };
+    // The relevant descriptor is the latest published one; an older, previously
+    // deprecated descriptor has been suspended.
+    const eserviceRepublished: EService = {
+      ...buildEService("Republished", new Date("2024-03-01T00:00:00Z")),
+      descriptors: [
+        { ...getMockDescriptor(descriptorState.suspended), version: "1" },
+        { ...getMockDescriptor(descriptorState.published), version: "2" },
+      ],
+    };
+
+    beforeEach(async () => {
+      await addOneEService(eserviceActive);
+      await addOneEService(eserviceSuspended);
+      await addOneEService(eserviceRepublished);
+    });
+
+    it("should not filter the e-services when onlyActiveEservices is not set", async () => {
+      const result = await filterEServices({});
+
+      expect(result.totalCount).toBe(3);
+    });
+
+    it("should exclude the e-services whose relevant descriptor is suspended (onlyActiveEservices: true)", async () => {
+      const result = await filterEServices({ onlyActiveEservices: true });
+
+      expect(result.totalCount).toBe(2);
+      expect(idsOf(result)).toEqual([
+        eserviceRepublished.id,
+        eserviceActive.id,
+      ]);
+    });
+
+    it("should keep an e-service whose suspended descriptor is not the relevant one (onlyActiveEservices: true)", async () => {
+      const result = await filterEServices({ onlyActiveEservices: true });
+
+      expect(idsOf(result)).toContain(eserviceRepublished.id);
+      expect(idsOf(result)).not.toContain(eserviceSuspended.id);
+    });
+  });
+
+  describe("subscribedByRequester", () => {
+    const requesterId: TenantId = generateId();
+    const requesterContext = getMockContext({
+      authData: getMockAuthData(requesterId),
+    });
+
+    const eserviceActiveAgreement = buildEService(
+      "ActiveAgreement",
+      new Date("2024-01-01T00:00:00Z")
+    );
+    const eserviceSuspendedAgreement = buildEService(
+      "SuspendedAgreement",
+      new Date("2024-02-01T00:00:00Z")
+    );
+    const eserviceDraftAgreement = buildEService(
+      "DraftAgreement",
+      new Date("2024-03-01T00:00:00Z")
+    );
+    const eserviceNoAgreement = buildEService(
+      "NoAgreement",
+      new Date("2024-04-01T00:00:00Z")
+    );
+
+    beforeEach(async () => {
+      await addOneEService(eserviceActiveAgreement);
+      await addOneEService(eserviceSuspendedAgreement);
+      await addOneEService(eserviceDraftAgreement);
+      await addOneEService(eserviceNoAgreement);
+      await addOneAgreement(
+        getMockAgreement(
+          eserviceActiveAgreement.id,
+          requesterId,
+          agreementState.active
+        )
+      );
+      await addOneAgreement(
+        getMockAgreement(
+          eserviceSuspendedAgreement.id,
+          requesterId,
+          agreementState.suspended
+        )
+      );
+      await addOneAgreement(
+        getMockAgreement(
+          eserviceDraftAgreement.id,
+          requesterId,
+          agreementState.draft
+        )
+      );
+      // An active agreement of another consumer must not count for the requester.
+      await addOneAgreement(
+        getMockAgreement(
+          eserviceNoAgreement.id,
+          generateId<TenantId>(),
+          agreementState.active
+        )
+      );
+    });
+
+    it("should not filter the e-services when subscribedByRequester is not set", async () => {
+      const result = await filterEServices({}, requesterContext);
+
+      expect(result.totalCount).toBe(4);
+    });
+
+    it("should return only the e-services with a valid agreement of the requester (subscribedByRequester: true)", async () => {
+      const result = await filterEServices(
+        { subscribedByRequester: true },
+        requesterContext
+      );
+
+      expect(result.totalCount).toBe(2);
+      expect(idsOf(result)).toEqual([
+        eserviceSuspendedAgreement.id,
+        eserviceActiveAgreement.id,
+      ]);
+    });
+
+    it("should return only the e-services without a valid agreement of the requester (subscribedByRequester: false)", async () => {
+      const result = await filterEServices(
+        { subscribedByRequester: false },
+        requesterContext
+      );
+
+      expect(result.totalCount).toBe(2);
+      expect(idsOf(result)).toEqual([
+        eserviceNoAgreement.id,
+        eserviceDraftAgreement.id,
+      ]);
+    });
+  });
+
+  describe("requesterDelegationRoles", () => {
+    const requesterId: TenantId = generateId();
+    const requesterContext = getMockContext({
+      authData: getMockAuthData(requesterId),
+    });
+
+    const eserviceReceived = buildEService(
+      "Received",
+      new Date("2024-01-01T00:00:00Z")
+    );
+    const eserviceEntrusted = buildEService(
+      "Entrusted",
+      new Date("2024-02-01T00:00:00Z")
+    );
+    const eserviceUnrelated = buildEService(
+      "Unrelated",
+      new Date("2024-03-01T00:00:00Z")
+    );
+
+    beforeEach(async () => {
+      await addOneEService(eserviceReceived);
+      await addOneEService(eserviceEntrusted);
+      await addOneEService(eserviceUnrelated);
+      await addOneDelegation(
+        getMockDelegation({
+          kind: delegationKind.delegatedProducer,
+          state: delegationState.active,
+          eserviceId: eserviceReceived.id,
+          delegateId: requesterId,
+        })
+      );
+      await addOneDelegation(
+        getMockDelegation({
+          kind: delegationKind.delegatedProducer,
+          state: delegationState.active,
+          eserviceId: eserviceEntrusted.id,
+          delegatorId: requesterId,
+        })
+      );
+    });
+
+    it("should not filter the e-services when requesterDelegationRoles is not set", async () => {
+      const result = await filterEServices({}, requesterContext);
+
+      expect(result.totalCount).toBe(3);
+    });
+
+    it("should not filter the e-services when requesterDelegationRoles is empty", async () => {
+      const result = await filterEServices(
+        { requesterDelegationRoles: [] },
+        requesterContext
+      );
+
+      expect(result.totalCount).toBe(3);
+    });
+
+    it("should return the e-services received in delegation (requesterDelegationRoles: DELEGATE)", async () => {
+      const result = await filterEServices(
+        { requesterDelegationRoles: ["DELEGATE"] },
+        requesterContext
+      );
+
+      expect(result.totalCount).toBe(1);
+      expect(idsOf(result)).toEqual([eserviceReceived.id]);
+    });
+
+    it("should return the e-services entrusted in delegation (requesterDelegationRoles: DELEGATOR)", async () => {
+      const result = await filterEServices(
+        { requesterDelegationRoles: ["DELEGATOR"] },
+        requesterContext
+      );
+
+      expect(result.totalCount).toBe(1);
+      expect(idsOf(result)).toEqual([eserviceEntrusted.id]);
+    });
+
+    it("should return the e-services where the requester is delegate or delegator (requesterDelegationRoles: DELEGATE and DELEGATOR)", async () => {
+      const result = await filterEServices(
+        { requesterDelegationRoles: ["DELEGATE", "DELEGATOR"] },
+        requesterContext
+      );
+
+      expect(result.totalCount).toBe(2);
+      expect(idsOf(result)).toEqual([
+        eserviceEntrusted.id,
+        eserviceReceived.id,
+      ]);
+    });
+
+    it("should ignore delegations that are not active producer delegations", async () => {
+      const eservicePendingDelegation = buildEService(
+        "PendingDelegation",
+        new Date("2024-04-01T00:00:00Z")
+      );
+      const eserviceConsumerDelegation = buildEService(
+        "ConsumerDelegation",
+        new Date("2024-05-01T00:00:00Z")
+      );
+      await addOneEService(eservicePendingDelegation);
+      await addOneEService(eserviceConsumerDelegation);
+      await addOneDelegation(
+        getMockDelegation({
+          kind: delegationKind.delegatedProducer,
+          state: delegationState.waitingForApproval,
+          eserviceId: eservicePendingDelegation.id,
+          delegateId: requesterId,
+        })
+      );
+      await addOneDelegation(
+        getMockDelegation({
+          kind: delegationKind.delegatedConsumer,
+          state: delegationState.active,
+          eserviceId: eserviceConsumerDelegation.id,
+          delegateId: requesterId,
+        })
+      );
+
+      const result = await filterEServices(
+        { requesterDelegationRoles: ["DELEGATE"] },
+        requesterContext
+      );
+
+      expect(result.totalCount).toBe(1);
+      expect(idsOf(result)).toEqual([eserviceReceived.id]);
     });
   });
 });
