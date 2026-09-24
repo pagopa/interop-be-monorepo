@@ -363,7 +363,64 @@ Service: `catalogService` → `deleteDocument`. Mapper: `documentDeleteErrorMapp
 | `templateInstanceNotAllowed` | 400 | The e-service is a template instance and document deletion is blocked (`assertEServiceNotTemplateInstance`). | Cannot happen — the UI never renders the delete action for template-instance services and no normal flow submits document deletion for them. | — | — |
 | `operationForbidden` | 403 | The requester is not the active producer or delegate for the e-service (`assertRequesterIsDelegateProducerOrProducer`). | Cannot happen — the action is only available to the current provider/delegate session and the auth guard blocks all other tenants before the request is sent. | — | — |
 
-## 21. `PUT /eservices/:eServiceId/descriptors/:descriptorId`
+
+## 21. `POST /eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId/update`
+
+Service: `catalogService` → `updateDocument`. Mapper: `documentUpdateErrorMapper`. Roles: `ADMIN_ROLE`, `API_ROLE`.
+
+### BFF endpoints
+
+- `POST /eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId/update`
+
+| Error | Status | When it happens | Reachable from the FE? | Steps to reproduce (UI) | Resolution steps |
+| --- | --- | --- | --- | --- | --- |
+| `eServiceNotFound` | 404 | The target EService no longer exists; `retrieveEService` throws before any document update logic runs. | Cannot happen — the user reaches this action from an already-loaded draft descriptor in the provider flow, and the UI never offers an invalid EService id from the page state. | — | — |
+| `eServiceDescriptorNotFound` | 404 | The descriptor id does not belong to the selected EService; `retrieveDescriptor` throws. | Cannot happen — the provider page loads the current descriptor from the route state and the UI only lets the user rename documents for that loaded descriptor. | — | — |
+| `eServiceDocumentNotFound` | 404 | The document id is missing from the selected descriptor; `retrieveDocument` throws. | Cannot happen — the user edits only the document instance currently rendered in the list, and the document is selected from the loaded descriptor rather than a stale id. | — | — |
+| `notValidDescriptor` | 400 | The descriptor is in an archived or waiting-for-approval state, and `descriptorStatesNotAllowingDocumentOperations` rejects the operation. | Cannot happen — the document rename action is only available while editing a draft descriptor, and the create/edit page redirects away from non-draft descriptors. | — | — |
+| `interfaceDocumentNotUpdatable` | 400 | The document being edited is the descriptor interface or the async-exchange callback interface; the backend rejects modifications for those special documents. | Cannot happen — the UI only exposes the rename action for regular documents in `UploadDocumentsSection`; interface docs are rendered without `onUpdateDescription` in `UploadInterfaceDoc` and `UploadCallbackInterfaceDoc`. | — | — |
+| `documentPrettyNameDuplicate` | 409 | Another document in the same descriptor already has the same lowercase pretty name; the duplicate check compares `d.prettyName.toLowerCase()` across docs. | **CAN HAPPEN** — the document name is editable from the UI and the form does not enforce uniqueness before the request. | **Data precondition:** you are `admin` of tenant A and you are editing a draft EService of A that already contains two documents, `Doc A` and `Doc B`.<br>1. Go to `/erogazione/e-service/:eserviceId/:descriptorId/modifica`.<br>2. In the list of documents, click the _Modifica nome del documento_ action for `Doc B`.<br>3. In the _Nome documento_ field, replace the value with `Doc A` and blur away from the field. | 🟢 Easy resolution <br />1. Change the document name to a unique value.<br>2. Save the change again. |
+| `templateInstanceNotAllowed` | 400 | The EService is an instance of a template; `assertEServiceNotTemplateInstance` rejects the operation. | Cannot happen — the provider flow does not expose document renames for template-instance EServices, and the backend is already blocked earlier by the template-instance guard. | — | — |
+| `operationForbidden` | 403 | The requester is not the producer or the active delegate producer for the EService; `assertRequesterIsDelegateProducerOrProducer` throws. | Cannot happen — the route is restricted to `admin` or `api` and the action is only visible for the producer tenant, while the backend also checks the active delegation before allowing the update. | — | — |
+
+## 22. `POST /eservices/:eServiceId/descriptors`
+
+Service: `catalogService` → `createDescriptor`. Mapper: `createDescriptorErrorMapper`. Roles: `ADMIN_ROLE`, `API_ROLE`, `M2M_ADMIN_ROLE`.
+
+### BFF endpoints
+
+- `POST /eservices/:eServiceId/descriptors`
+
+| Error | Status | When it happens | Reachable from the FE? | Steps to reproduce (UI) | Resolution steps |
+| --- | --- | --- | --- | --- | --- |
+| `eServiceNotFound` | 404 | The target EService id is not found; `retrieveEService` throws before descriptor creation. | Cannot happen — the create-draft action is launched only for an already loaded EService, and the route itself is only opened from a valid provider EService flow. | — | — |
+| `draftDescriptorAlreadyExists` | 400 | The EService already contains a draft or waiting-for-approval descriptor; `assertHasNoDraftOrWaitingForApprovalDescriptor` throws. | Cannot happen — the provider action that creates a new draft is hidden when a draft already exists, and the UI only exposes the action when there is no current draft version. | — | — |
+| `attributeNotFound` | 400 | One of the selected attribute ids is not present in the read model; `parseAndCheckAttributes` rejects it. | Cannot happen — the FE builds the payload from the attributes currently shown in the form, and the UI does not let the user submit arbitrary missing ids. | — | — |
+| `inconsistentDailyCalls` | 400 | `dailyCallsPerConsumer` is greater than `dailyCallsTotal`; `assertConsistentDailyCalls` throws. | Cannot happen — the thresholds form validates the relationship before the request is sent, so the UI blocks the invalid combination. | — | — |
+| `attributeDuplicatedInGroup` | 400 | The same attribute appears more than once in the same attribute group; the parser rejects the payload. | Cannot happen — the attribute picker and grouping controls in the UI prevent duplicate selection inside a single group. | — | — |
+| `attributeDailyCallsNotAllowed` | 400 | A certified attribute is submitted with a daily-calls threshold; `assertDailyCallsForCertifiedAttributesOnly` rejects it. | Cannot happen — the certified-attribute threshold form does not expose a daily-calls configuration for the attribute types that trigger this validation. | — | — |
+| `attributeDiscreteConfigNotAllowed` | 400 | A certified attribute is submitted with a discrete config; `assertDiscreteConfigForCertifiedAttributesOnly` rejects it. | Cannot happen — the UI does not allow configuring discrete thresholds for certified attributes in this flow. | — | — |
+| `templateInstanceNotAllowed` | 400 | The parent EService is a template instance; `assertEServiceNotTemplateInstance` rejects creating a descriptor. | Cannot happen — the create-version flow is not exposed for template instances, and template-instance EServices are blocked before descriptor creation. | — | — |
+| `asyncExchangeBulkNotAllowedForSoap` | 400 | Async exchange is enabled with `bulk = true` on a SOAP EService; `assertAsyncExchangeBulkAllowedForDescriptor` rejects it. | Cannot happen — the UI does not allow enabling bulk async exchange for SOAP technology on this form. | — | — |
+| `eserviceInArchivingOrArchivedState` | 400 | The EService is in archiving or archived state; `assertEserviceIsNotInArchivingOrArchivedState` throws. | Cannot happen — the provider UI blocks version creation when the EService is archived or being archived, and the action is not rendered in that state. | — | — |
+| `operationForbidden` | 403 | The requester is not allowed to create a descriptor for this EService; the authorization guard rejects it. | Cannot happen — the route is protected by `authLevels: ['admin', 'api']` and the backend also checks the producer/delegate relationship before creating the descriptor. | — | — |
+
+## 23. `DELETE /eservices/:eServiceId/descriptors/:descriptorId`
+
+Service: `catalogService` → `deleteDraftDescriptor`. Mapper: `deleteDraftDescriptorErrorMapper`. Roles: `ADMIN_ROLE`, `API_ROLE`, `M2M_ADMIN_ROLE`.
+
+### BFF endpoints
+
+- `DELETE /eservices/:eServiceId/descriptors/:descriptorId`
+
+| Error | Status | When it happens | Reachable from the FE? | Steps to reproduce (UI) | Resolution steps |
+| --- | --- | --- | --- | --- | --- |
+| `eServiceNotFound` | 404 | The target EService id no longer exists; `retrieveEService` throws. | Cannot happen — the delete action is launched only from an already loaded provider EService page, and the route is only reachable for a valid EService entry. | — | — |
+| `eServiceDescriptorNotFound` | 404 | The descriptor id is not present in the loaded EService; `retrieveDescriptor` throws. | Cannot happen — the UI only offers delete for the descriptor currently displayed in the draft list, so the selected descriptor id is always valid. | — | — |
+| `notValidDescriptor` | 400 | The descriptor is not in draft state; `if (descriptor.state !== descriptorState.draft)` rejects the operation. | Cannot happen — the delete-draft action is shown only when a draft descriptor exists and the page exposes the action only for the draft version. | — | — |
+| `operationForbidden` | 403 | The requester is not the producer or the active delegate producer; `assertRequesterIsDelegateProducerOrProducer` throws. | Cannot happen — the action is rendered only for the producer tenant and the route is restricted to `admin` / `api`, with the backend re-checking delegation ownership before deletion. | — | — |
+
+## 24. `PUT /eservices/:eServiceId/descriptors/:descriptorId`
 
 Service: `catalogService` → `updateDraftDescriptor`. Mapper: `updateDraftDescriptorErrorMapper`. Roles: `ADMIN_ROLE`, `API_ROLE`.
 
@@ -385,7 +442,7 @@ Service: `catalogService` → `updateDraftDescriptor`. Mapper: `updateDraftDescr
 | `asyncExchangeBulkNotAllowedForSoap` | 400 | The async-exchange `bulk` option is enabled for a SOAP e-service (`assertAsyncExchangeBulkAllowedForDescriptor`). | Cannot happen — the async-exchange section does not expose the invalid SOAP/bulk combination in the normal UI flow, and the form is validated before submit. | — | — |
 | `attributeDiscreteConfigNotAllowed` | 400 | A certified attribute has a discrete configuration object in the seed (`assertDiscreteConfigForCertifiedAttributesOnly`). | Cannot happen — the FE never exposes discrete configuration for certified attributes in this update-draft screen, so the invalid payload cannot be generated by a normal interaction. | — | — |
 
-## 22. `PATCH /eservices/:eServiceId/descriptors/:descriptorId`
+## 25. `PATCH /eservices/:eServiceId/descriptors/:descriptorId`
 
 Service: `catalogService` → `patchUpdateDraftDescriptor`. Mapper: `updateDraftDescriptorErrorMapper`. Roles: `M2M_ADMIN_ROLE`.
 
@@ -407,7 +464,7 @@ Service: `catalogService` → `patchUpdateDraftDescriptor`. Mapper: `updateDraft
 | `asyncExchangeBulkNotAllowedForSoap` | 400 | Async exchange `bulk` is enabled for a SOAP e-service (`assertAsyncExchangeBulkAllowedForDescriptor`). | Cannot happen — the PATCH route is not exposed through the FE and the UI never sends the unsupported SOAP/bulk combination via this call path. | — | — |
 | `attributeDiscreteConfigNotAllowed` | 400 | A certified attribute carries a discrete config in the patch payload (`assertDiscreteConfigForCertifiedAttributesOnly`). | Cannot happen — there is no BFF route and the browser UI does not provide a way to submit the invalid certified-attribute configuration through the normal user flow. | — | — |
 
-## 23. `POST /templates/eservices/:eServiceId/descriptors/:descriptorId`
+## 26. `POST /templates/eservices/:eServiceId/descriptors/:descriptorId`
 
 Service: `catalogService` → `updateDraftDescriptorTemplateInstance`. Mapper: `updateDraftDescriptorTemplateInstanceErrorMapper`. Roles: `ADMIN_ROLE`, `API_ROLE`.
 
@@ -427,7 +484,7 @@ Service: `catalogService` → `updateDraftDescriptorTemplateInstance`. Mapper: `
 | `attributeDiscreteConfigNotAllowed` | 400 | A certified attribute includes a discrete configuration object (`assertDiscreteConfigForCertifiedAttributesOnly`). | Cannot happen — the template-instance form never exposes discrete config for certified attributes and the UI never generates that invalid payload in the standard create path. | — | — |
 | `templateInstanceNotAllowed` | 400 | The update is attempted against a non-template instance or a template instance in an unsupported context (`assertEServiceIsTemplateInstance` / template-check logic). | Cannot happen — the route itself is the template-instance update path; the user can reach it only from the valid template-based draft flow and the UI does not permit the unsupported context. | — | — |
 
-## 24. `POST /eservices/:eServiceId/descriptors/:descriptorId/publish`
+## 27. `POST /eservices/:eServiceId/descriptors/:descriptorId/publish`
 
 Service: `catalogService` → `publishDescriptor`. Mapper: `publishDescriptorErrorMapper`. Roles: `ADMIN_ROLE`, `API_ROLE`, `M2M_ADMIN_ROLE`.
 
@@ -451,7 +508,7 @@ Service: `catalogService` → `publishDescriptor`. Mapper: `publishDescriptorErr
 | `asyncExchangeBulkNotAllowedForSoap` | 400 | Async exchange bulk is enabled for a SOAP descriptor (`assertAsyncExchangeReadyForPublication`). | Cannot happen — the form does not expose the unsupported SOAP/bulk combination and blocks the publish action before the request is sent. | — | — |
 | `operationForbidden` | 403 | The requester is not allowed to publish the descriptor (`assertRequesterCanPublish`). | Cannot happen — the provider route and tenant/delegation checks guard the action before the back-end call, and the normal UI never exposes the button to a non-authorized tenant. | — | — |
 
-## 25. `POST /eservices/:eServiceId/descriptors/:descriptorId/suspend`
+## 28. `POST /eservices/:eServiceId/descriptors/:descriptorId/suspend`
 
 Service: `catalogService` → `suspendDescriptor`. Mapper: `suspendDescriptorErrorMapper`. Roles: `ADMIN_ROLE`, `API_ROLE`, `M2M_ADMIN_ROLE`.
 
@@ -466,7 +523,7 @@ Service: `catalogService` → `suspendDescriptor`. Mapper: `suspendDescriptorErr
 | `notValidDescriptor` | 400 | The descriptor is not in a publishable suspendable state (`assertDescriptorInRequiredStates` for `DEPRECATED`, `PUBLISHED`, `ARCHIVING`). | Cannot happen — the UI only shows the suspend action for descriptors currently in allowed states, and the action is disabled or hidden when the state does not match. | — | — |
 | `operationForbidden` | 403 | The requester is not the producer or active delegate for the e-service (`assertRequesterIsDelegateProducerOrProducer`). | Cannot happen — the provider auth guard and delegation checks block the action before the backend call, and the normal UI does not render the suspend button to unauthorized tenants. | — | — |
 
-## 26. `POST /eservices/:eServiceId/descriptors/:descriptorId/activate`
+## 29. `POST /eservices/:eServiceId/descriptors/:descriptorId/activate`
 
 Service: `catalogService` → `activateDescriptor`. Mapper: `activateDescriptorErrorMapper`. Roles: `ADMIN_ROLE`, `API_ROLE`, `M2M_ADMIN_ROLE`.
 
@@ -481,7 +538,7 @@ Service: `catalogService` → `activateDescriptor`. Mapper: `activateDescriptorE
 | `notValidDescriptor` | 400 | The descriptor is not in an activatable state (`assertDescriptorInRequiredStates` for `SUSPENDED` or `ARCHIVING_SUSPENDED`). | Cannot happen — the provider action menu only exposes the reactivation control when the current state matches one of the allowed values, and the UI prevents the invalid transition. | — | — |
 | `operationForbidden` | 403 | The requester is not the producer or active delegate for the e-service (`assertRequesterIsDelegateProducerOrProducer`). | Cannot happen — the route is protected by provider auth and delegation rules, and the web client does not expose the reactivation action to unauthorized tenants. | — | — |
 
-## 27. `POST /eservices/:eServiceId/descriptors/:descriptorId/clone`
+## 30. `POST /eservices/:eServiceId/descriptors/:descriptorId/clone`
 
 Service: `catalogService` → `cloneDescriptor`. Mapper: `cloneEServiceByDescriptorErrorMapper`. Roles: `ADMIN_ROLE`, `API_ROLE`.
 
@@ -499,7 +556,7 @@ Service: `catalogService` → `cloneDescriptor`. Mapper: `cloneEServiceByDescrip
 | `operationForbidden` | 403 | The requester is not the producer of the source e-service (`assertRequesterIsProducer`). | Cannot happen — the provider route and auth guard restrict clone actions to the owning producer/admin API context, and the UI does not render the button to unauthorized tenants. | — | — |
 | `eserviceWithActiveOrPendingDelegation` | 403 | The source e-service still has an active or pending delegation (`assertNoExistingProducerDelegationInActiveOrPendingState`). | Cannot happen — the provider page hides the clone action when the e-service still has an active or pending delegation, and the normal UI does not allow the action to proceed in that state. | — | — |
 
-## 28. `POST /eservices/:eServiceId/descriptors/:descriptorId/update`
+## 31. `POST /eservices/:eServiceId/descriptors/:descriptorId/update`
 
 Service: `catalogService` → `updateDescriptor`. Mapper: `updateDescriptorErrorMapper`. Roles: `ADMIN_ROLE`, `API_ROLE`, `M2M_ADMIN_ROLE`.
 
@@ -519,7 +576,7 @@ Service: `catalogService` → `updateDescriptor`. Mapper: `updateDescriptorError
 | `attributeDiscreteConfigNotAllowed` | 400 | A certified attribute in the payload includes a discrete configuration (`assertDiscreteConfigForCertifiedAttributesOnly`). | Cannot happen — the FE never exposes a discrete-config editor on the descriptor update drawer, so the invalid payload cannot be produced by a normal interaction. | — | — |
 | `certifiedDiscreteAttributeConfigCannotBeChanged` | 400 | The descriptor already contains a certified attribute with a discrete config and the update payload tries to change it (`assertCertifiedDiscreteConfigUnchanged`). | Cannot happen — the UI does not allow editing certified discrete-config attributes from the descriptor quota update flow, so the invalid mutation is never generated by the normal UI. | — | — |
 
-## 29. `POST /eservices/:eServiceId/descriptors/:descriptorId/scheduleArchive`
+## 32. `POST /eservices/:eServiceId/descriptors/:descriptorId/scheduleArchive`
 
 Service: `catalogService` → `scheduleEServiceDescriptorArchiving`. Mapper: `updateEserviceDescriptorArchivingStatusErrorMapper`. Roles: `ADMIN_ROLE`, `API_ROLE`, `M2M_ADMIN_ROLE`.
 
@@ -537,7 +594,7 @@ Service: `catalogService` → `scheduleEServiceDescriptorArchiving`. Mapper: `up
 | `notValidDescriptor` | 400 | The descriptor is not in an archivable state for descriptor scheduling (`assertDescriptorArchivable`). | Cannot happen — the generator found no BFF route for this endpoint, so the browser cannot trigger the invalid state transition through a normal user interaction. | — | — |
 | `eserviceWithoutValidDescriptors` | 409 | The e-service does not have a valid descriptor set for archiving scheduling (`assertEserviceHasValidDescriptors`). | Cannot happen — no browser flow reaches this endpoint, and the FE does not offer a direct call path that could submit a service without valid descriptors. | — | — |
 
-## 30. `POST /eservices/:eServiceId/riskAnalysis`
+## 33. `POST /eservices/:eServiceId/riskAnalysis`
 
 Service: `catalogService` → `createRiskAnalysis`. Mapper: `createRiskAnalysisErrorMapper`. Roles: `ADMIN_ROLE`, `API_ROLE`, `M2M_ADMIN_ROLE`.
 
@@ -556,7 +613,7 @@ Service: `catalogService` → `createRiskAnalysis`. Mapper: `createRiskAnalysisE
 | `operationForbidden` | 403 | The requester is not the producer or active delegate for the e-service (`assertRequesterIsDelegateProducerOrProducer`). | Cannot happen — the route is behind provider auth and the UI only exposes the risk-analysis step to the current tenant’s authorized users. | — | — |
 | `riskAnalysisDuplicated` | 409 | The risk-analysis name already exists for the same e-service (`ra.name.toLowerCase() === ...`). | **CAN HAPPEN** — the form accepts a duplicate name and does not run a preflight duplicate check before sending the request. | **Data precondition:** tenant A is creating a draft receive e-service and already has a finality named `N` on the same e-service.<br>1. Go to `/erogazione/e-service/crea/` and continue to the risk-analysis step for a receive-mode e-service.<br>2. In _Nome della finalità_, type `N`.<br>3. Complete the questionnaire and click _Salva bozza e prosegui_. | 🟢 Easy resolution<br>1. Change the finality name to a unique value.<br>2. Save again.<br>3. Refresh the page if the previous attempt is stale and retry with the new name. |
 
-## 31. `POST /eservices/:eServiceId/descriptors/:descriptorId/agreementApprovalPolicy/update`
+## 34. `POST /eservices/:eServiceId/descriptors/:descriptorId/agreementApprovalPolicy/update`
 
 Service: `catalogService` → `updateAgreementApprovalPolicy`. Mapper: `updateAgreementApprovalPolicyErrorMapper`. Roles: `ADMIN_ROLE`, `API_ROLE`.
 
@@ -571,7 +628,7 @@ Service: `catalogService` → `updateAgreementApprovalPolicy`. Mapper: `updateAg
 | `operationForbidden` | 403 | The requester is not the producer or delegate allowed to edit the descriptor (`assertRequesterIsDelegateProducerOrProducer`). | Cannot happen — the route is protected by auth and delegation checks, and the UI does not render the drawer for unauthorized tenants. | — | — |
 | `notValidDescriptor` | 400 | The descriptor is not in an updatable state (`assertDescriptorUpdatableAfterPublish`). | Cannot happen — the drawer only opens for a valid mutable descriptor and the form validation rejects the same current value, so the backend never sees an invalid state from the normal FE flow. | — | — |
 
-## 32. `POST /eservices/:eServiceId/riskAnalysis/:riskAnalysisId`
+## 35. `POST /eservices/:eServiceId/riskAnalysis/:riskAnalysisId`
 
 Service: `catalogService` → `updateRiskAnalysis`. Mapper: `updateRiskAnalysisErrorMapper`. Roles: `ADMIN_ROLE`, `API_ROLE`.
 
@@ -590,7 +647,7 @@ Service: `catalogService` → `updateRiskAnalysis`. Mapper: `updateRiskAnalysisE
 | `operationForbidden` | 403 | The requester is not the producer or active delegate (`assertRequesterIsDelegateProducerOrProducer`). | Cannot happen — the route sits behind the provider auth guard and the UI only renders the edit action to authorized tenant members. | — | — |
 | `riskAnalysisDuplicated` | 409 | A different risk-analysis in the same e-service already uses the same name (`ra.id !== riskAnalysisId && ra.name.toLowerCase() === ...`). | **CAN HAPPEN** — the edit form allows renaming a finality to a value already used by a different finality on the same e-service, without a preflight duplicate check. | **Data precondition:** tenant A is editing a draft receive e-service whose risk-analysis list already contains a finality named `N`.<br>1. Go to `/erogazione/e-service/crea/` and open the risk-analysis step for the draft.<br>2. Edit the current finality and in _Nome della finalità_ type `N`.<br>3. Complete or keep the questionnaire and click _Salva bozza e prosegui_. | 🟢 Easy resolution<br>1. Change the finality name so it differs from every other risk-analysis name in the same e-service.<br>2. Save again.<br>3. Refresh the page if the list is stale and retry with the unique name. |
 
-## 33. `POST /eservices/:eServiceId/description/update`
+## 36. `POST /eservices/:eServiceId/description/update`
 
 Service: `catalogService` → `updateEServiceDescription`. Mapper: `updateEServiceDescriptionErrorMapper`. Roles: `ADMIN_ROLE`, `API_ROLE`, `M2M_ADMIN_ROLE`.
 
@@ -606,7 +663,7 @@ Service: `catalogService` → `updateEServiceDescription`. Mapper: `updateEServi
 | `eserviceWithoutValidDescriptors` | 409 | The e-service has no descriptor in an updatable state (`assertEServiceUpdatableAfterPublish`). | Cannot happen — the provider detail page is only opened for a valid existing descriptor, and the normal UI does not expose this mutation when the service has no editable descriptor. | — | — |
 | `eServiceUpdateSameDescriptionConflict` | 409 | The submitted description is identical to the current one (`assertUpdatedDescriptionDiffersFromCurrent`). | Cannot happen — `UpdateDescriptionDrawer` validates `value !== description` before submit, so the same-value mutation is blocked in the form itself. | — | — |
 
-## 34. `POST /eservices/:eServiceId/delegationFlags/update`
+## 37. `POST /eservices/:eServiceId/delegationFlags/update`
 
 Service: `catalogService` → `updateEServiceDelegationFlags`. Mapper: `updateEServiceFlagsErrorMapper`. Roles: `ADMIN_ROLE`, `API_ROLE`, `M2M_ADMIN_ROLE`.
 
@@ -621,7 +678,7 @@ Service: `catalogService` → `updateEServiceDelegationFlags`. Mapper: `updateES
 | `eserviceWithoutValidDescriptors` | 409 | The e-service has no descriptor in an updatable state (`assertEServiceUpdatableAfterPublish`). | Cannot happen — the provider details page only exposes the delegation-flags action when the e-service is in a valid editable state, so the normal UI never reaches the mutation for a non-updatable service. | — | — |
 | `invalidDelegationFlags` | 400 | The payload is inconsistent: `isConsumerDelegable === false` while `isClientAccessDelegable === true` (`assertValidDelegationFlags`). | Cannot happen — `ProviderEServiceUpdateDelegationFlagsDrawer` normalizes the payload before submit and forces `isClientAccessDelegable` to `false` whenever `isConsumerDelegable` is false; the checkbox is hidden unless consumer delegation is enabled. | — | — |
 
-## 35. `POST /eservices/:eServiceId/name/update`
+## 38. `POST /eservices/:eServiceId/name/update`
 
 Service: `catalogService` → `updateEServiceName`. Mapper: `updateEServiceNameErrorMapper`. Roles: `ADMIN_ROLE`, `API_ROLE`, `M2M_ADMIN_ROLE`.
 
@@ -639,7 +696,7 @@ Service: `catalogService` → `updateEServiceName`. Mapper: `updateEServiceNameE
 | `eserviceTemplateNameConflict` | 409 | The updated name conflicts with an existing e-service template name (`assertEServiceNameNotConflictingWithTemplate`). | **CAN HAPPEN** — the drawer does not perform a template-name pre-check before submit, so a producer can set a name already used by a template in the catalog. | **Data precondition:** tenant A has a template named `N` in the catalog and is editing one of its e-services.<br>1. Go to the provider e-service detail page for tenant A.<br>2. Click the edit action for the e-service name and type `N` in _Nome e-service_.<br>3. Click _Aggiorna_. | 🟢 Easy resolution<br>1. Change the name to a value that does not clash with any catalog template name.<br>2. Submit again.<br>3. Refresh the page if the template list is stale and retry with the new name. |
 | `eServiceUpdateSameNameConflict` | 409 | The submitted name is identical to the current one (`assertUpdatedNameDiffersFromCurrent`). | Cannot happen — `UpdateNameDrawer` validates `value !== name` before submit, so the same-value mutation is blocked in the form itself. | — | — |
 
-## 36. `POST /eservices/:eServiceId/signalhub/update`
+## 39. `POST /eservices/:eServiceId/signalhub/update`
 
 Service: `catalogService` → `updateEServiceSignalHubFlag`. Mapper: `updateEServiceSignalhubFlagErrorMapper`. Roles: `ADMIN_ROLE`, `API_ROLE`, `M2M_ADMIN_ROLE`.
 
@@ -653,7 +710,7 @@ Service: `catalogService` → `updateEServiceSignalHubFlag`. Mapper: `updateESer
 | `operationForbidden` | 403 | The requester is not the producer or active delegate allowed to change the Signal Hub flag (`assertRequesterIsDelegateProducerOrProducer`). | Cannot happen — the UI renders the Signal Hub editor only for authorized provider users, and the provider auth guard blocks unauthorized tenants before the request is sent. | — | — |
 | `eserviceWithoutValidDescriptors` | 409 | The e-service has no descriptor in an updatable state (`assertEServiceUpdatableAfterPublish`). | Cannot happen — the provider e-service detail page only exposes the Signal Hub toggle for a service with a valid editable descriptor, so the normal UI never reaches the mutation in a non-updatable state. | — | — |
 
-## 37. `DELETE /eservices/:eServiceId/riskAnalysis/:riskAnalysisId`
+## 40. `DELETE /eservices/:eServiceId/riskAnalysis/:riskAnalysisId`
 
 Service: `catalogService` → `deleteRiskAnalysis`. Mapper: `deleteRiskAnalysisErrorMapper`. Roles: `ADMIN_ROLE`, `API_ROLE`, `M2M_ADMIN_ROLE`.
 
@@ -670,7 +727,7 @@ Service: `catalogService` → `deleteRiskAnalysis`. Mapper: `deleteRiskAnalysisE
 | `templateInstanceNotAllowed` | 400 | The target e-service is a template instance (`assertEServiceNotTemplateInstance`). | Cannot happen — the standard risk-analysis delete action is not exposed for template instances, so the normal UI never reaches that mutation in that context. | — | — |
 | `operationForbidden` | 403 | The requester is not the producer or active delegate (`assertRequesterIsDelegateProducerOrProducer`). | Cannot happen — the route is protected by the provider auth guard and the UI only renders the delete action to authorized tenant members. | — | — |
 
-## 38. `POST /eservices/:eServiceId/descriptors/:descriptorId/approve`
+## 41. `POST /eservices/:eServiceId/descriptors/:descriptorId/approve`
 
 Service: `catalogService` → `approveDelegatedEServiceDescriptor`. Mapper: `approveDelegatedEServiceDescriptorErrorMapper`. Roles: `ADMIN_ROLE`, `M2M_ADMIN_ROLE`.
 
@@ -688,7 +745,7 @@ Service: `catalogService` → `approveDelegatedEServiceDescriptor`. Mapper: `app
 | `asyncExchangeBulkNotAllowedForSoap` | 400 | The e-service is SOAP while async exchange is enabled on a descriptor that is being approved (`assertAsyncExchangeReadyForPublication`). | Cannot happen — the delegated draft is validated before approval and the UI does not expose the action when the async-exchange/soap combination is invalid. | — | — |
 | `operationForbidden` | 403 | The requester is not the producer who owns the e-service (`assertRequesterIsProducer`). | Cannot happen — the action is only shown to the delegator on their own service, and the route is blocked by the provider auth guard for unauthorized tenants. | — | — |
 
-## 39. `POST /eservices/:eServiceId/descriptors/:descriptorId/reject`
+## 42. `POST /eservices/:eServiceId/descriptors/:descriptorId/reject`
 
 Service: `catalogService` → `rejectDelegatedEServiceDescriptor`. Mapper: `rejectDelegatedEServiceDescriptorErrorMapper`. Roles: `ADMIN_ROLE`, `API_ROLE`, `M2M_ADMIN_ROLE`.
 
@@ -704,7 +761,7 @@ Service: `catalogService` → `rejectDelegatedEServiceDescriptor`. Mapper: `reje
 
 > Note: `notValidDescriptorState` can be thrown in `rejectDelegatedEServiceDescriptor` when the descriptor is not in `WAITING_FOR_APPROVAL` (`if (descriptor.state !== descriptorState.waitingForApproval)`). It is absent from `rejectDelegatedEServiceDescriptorErrorMapper`; because this is a service-specific code, the fallback mapper resolves it to `500 Internal Server Error`.
 
-## 40. `POST /eservices/:eServiceId/descriptors/:descriptorId/attributes/update`
+## 43. `POST /eservices/:eServiceId/descriptors/:descriptorId/attributes/update`
 
 Service: `catalogService` → `updateDescriptorAttributes`. Mapper: `updateDescriptorAttributesErrorMapper`. Roles: `ADMIN_ROLE`, `API_ROLE`, `M2M_ADMIN_ROLE`.
 
@@ -729,7 +786,7 @@ Service: `catalogService` → `updateDescriptorAttributes`. Mapper: `updateDescr
 | `operationForbidden` | 403 | The requester is not the owning producer or authorized delegate (`assertRequesterIsDelegateProducerOrProducer`). | Cannot happen — the drawer is shown only to authorized producers/delegates and the route is blocked before the request is sent for other tenants. | — | — |
 | `unchangedAttributes` | 409 | The selected attribute set is identical to the current descriptor value (`if (newAttributes.length === 0 && !hasConfigurationChanged)`). | Cannot happen — the submit handler closes the drawer immediately when `selectedAttributes` is equal to the loaded form model (`isEqual(selectedAttributes, formModelAttributes)`), so the API is never called for an unchanged payload. | — | — |
 
-## 41. `PATCH /eservices/:eServiceId/descriptors/:descriptorId/certifiedAttributes/groups/:groupIndex/attributes/:attributeId`
+## 44. `PATCH /eservices/:eServiceId/descriptors/:descriptorId/certifiedAttributes/groups/:groupIndex/attributes/:attributeId`
 
 Service: `catalogService` → `updateDescriptorCertifiedAttribute`. Mapper: `updateDescriptorCertifiedAttributeErrorMapper`. Roles: `ADMIN_ROLE`, `API_ROLE`, `M2M_ADMIN_ROLE`.
 
@@ -749,7 +806,7 @@ Service: `catalogService` → `updateDescriptorCertifiedAttribute`. Mapper: `upd
 | `unchangedAttributes` | 409 | The submitted daily-call value is unchanged from the current certified-attribute value (`seed.dailyCallsPerConsumer === currentAttribute.dailyCallsPerConsumer`). | Cannot happen — the API is not reachable from the frontend and the route has no direct UI trigger, so the unchanged-value branch is never hit in real product usage. | — | — |
 | `operationForbidden` | 403 | The requester is not authorized to mutate the target e-service or descriptor (`assertRequesterIsDelegateProducerOrProducer`). | Cannot happen — no BFF endpoint or browser action calls this route, and the normal provider flow never reaches the patch without a valid tenant authorization check. | — | — |
 
-## 42. `POST /templates/eservices/:eServiceId/upgrade`
+## 45. `POST /templates/eservices/:eServiceId/upgrade`
 
 Service: `catalogService` → `upgradeEServiceInstance`. Mapper: `upgradeEServiceInstanceErrorMapper`. Roles: `ADMIN_ROLE`, `API_ROLE`.
 
@@ -766,7 +823,7 @@ Service: `catalogService` → `upgradeEServiceInstance`. Mapper: `upgradeEServic
 | `operationForbidden` | 403 | The requester is not the producer or active delegate for the target instance (`assertRequesterIsDelegateProducerOrProducer`). | Cannot happen — the provider route and action are gated by the tenant auth check and the page only renders the upgrade control for the active owner/delegate. | — | — |
 | `eServiceTemplateNotFound` | 500 | The template id attached to the instance no longer exists (`retrieveEServiceTemplate(templateId, readModelService)`). | Cannot happen — the frontend only upgrades a currently loaded instance whose template is already present in the catalog state, so the normal UI never posts an orphaned template id. | — | — |
 
-## 43. `POST /templates/eservices/:eServiceId/descriptors/:descriptorId/interface/soap`
+## 46. `POST /templates/eservices/:eServiceId/descriptors/:descriptorId/interface/soap`
 
 Service: `catalogService` → `addEServiceTemplateInstanceInterface`. Mapper: `addEServiceTemplateInstanceInterfaceErrorMapper`. Roles: `ADMIN_ROLE`, `API_ROLE`.
 
@@ -793,7 +850,7 @@ Service: `catalogService` → `addEServiceTemplateInstanceInterface`. Mapper: `a
 | `eServiceDescriptorNotFound` | 404 | Dead mapper entry: the service already resolves the descriptor from the current instance state and does not perform a stale-descendant lookup for a different descriptor id. | Cannot happen — the UI route includes the current descriptor id and the action is not rendered from a different or stale descriptor context. | — | — |
 | `eServiceTemplateNotFound` | 404 | The template referenced by the instance no longer exists (`retrieveEServiceTemplate`). | Cannot happen — the FE only opens the editor when the instance is bound to an existing template already selected in the provider UI. | — | — |
 
-## 44. `POST /templates/eservices/:eServiceId/descriptors/:descriptorId/interface/rest`
+## 47. `POST /templates/eservices/:eServiceId/descriptors/:descriptorId/interface/rest`
 
 Service: `catalogService` → `addEServiceTemplateInstanceInterface`. Mapper: `addEServiceTemplateInstanceInterfaceErrorMapper`. Roles: `ADMIN_ROLE`, `API_ROLE`.
 
@@ -820,7 +877,7 @@ Service: `catalogService` → `addEServiceTemplateInstanceInterface`. Mapper: `a
 | `eServiceDescriptorNotFound` | 404 | Dead mapper entry: no concrete descriptor lookup is performed for a stale id in this flow. | Cannot happen — the descriptor is selected from the current instance detail state and the UI does not let the user submit a different or missing descriptor id. | — | — |
 | `eServiceTemplateNotFound` | 404 | The template referenced by the instance no longer exists. | Cannot happen — the template instance editor is only opened for templates already present in the loaded catalog state, so the BFF never receives a missing template id in the normal flow. | — | — |
 
-## 45. `POST /templates/eservices/:eServiceId/descriptors`
+## 48. `POST /templates/eservices/:eServiceId/descriptors`
 
 Service: `catalogService` → `createTemplateInstanceDescriptor`. Mapper: `createTemplateInstanceDescriptorErrorMapper`. Roles: `ADMIN_ROLE`, `API_ROLE`.
 
@@ -836,7 +893,7 @@ Service: `catalogService` → `createTemplateInstanceDescriptor`. Mapper: `creat
 | `inconsistentDailyCalls` | 400 | `assertConsistentDailyCalls(eserviceInstanceDescriptorSeed)`: `dailyCallsPerConsumer > dailyCallsTotal`. | Cannot happen — this endpoint has no BFF route, and the quota form blocks inverted daily-call values before the request is submitted. | — | — |
 | `operationForbidden` | 403 | `assertRequesterIsDelegateProducerOrProducer`: the requester is neither the producer nor the active delegated producer. | Cannot happen — the action is only shown in the provider template-instance flow, and the auth guard blocks unauthorized tenants before the request leaves the browser. | — | — |
 
-## 46. `POST /templates/eservices/:eServiceId/descriptors/:descriptorId/update`
+## 49. `POST /templates/eservices/:eServiceId/descriptors/:descriptorId/update`
 
 Service: `catalogService` → `updateTemplateInstanceDescriptor`. Mapper: `updateTemplateInstanceDescriptorErrorMapper`. Roles: `ADMIN_ROLE`, `API_ROLE`.
 
@@ -856,7 +913,7 @@ Service: `catalogService` → `updateTemplateInstanceDescriptor`. Mapper: `updat
 | `attributeDiscreteConfigNotAllowed` | 400 | `assertDiscreteConfigForCertifiedAttributesOnly(parsedSeedAttributes)`: discrete configuration is present on a non-certified attribute. | Cannot happen — the UI hides or fixes discrete-configuration fields for unsupported attributes, so the request cannot carry that invalid payload in a normal browser flow. | — | — |
 | `templateInstanceNotAllowed` | 400 | Dead mapper entry: the service already guarantees the target is a template instance and does not call `templateInstanceNotAllowed` in this update flow. | Cannot happen — this route is only available for template-instance descriptors and never reaches the non-instance guard. | — | — |
 
-## 47. `POST /eservices/:eServiceId/personalDataFlag`
+## 50. `POST /eservices/:eServiceId/personalDataFlag`
 
 Service: `catalogService` → `updateEServicePersonalDataFlagAfterPublication`. Mapper: `updateEServicePersonalDataFlagErrorMapper`. Roles: `ADMIN_ROLE`, `API_ROLE`, `M2M_ADMIN_ROLE`.
 
@@ -872,7 +929,7 @@ Service: `catalogService` → `updateEServicePersonalDataFlagAfterPublication`. 
 | `eserviceWithoutValidDescriptors` | 409 | `assertEServiceUpdatableAfterPublish(eservice.data)`: the e-service has no descriptor in an editable post-publish state. | Cannot happen — the action is only enabled when the current e-service has a valid descriptor to update, and the UI hides or disables it in a non-updatable state. | — | — |
 | `eservicePersonalDataFlagCanOnlyBeSetOnce` | 409 | `if (eservice.data.personalData !== undefined)`: the flag has already been set once. | Cannot happen — the UI hides or disables the personal-data toggle after it has been set and the page refreshes after submission, so a normal user cannot issue the same mutation again without a stale page. | — | — |
 
-## 48. `POST /templates/eservices/:eServiceId/instanceLabel/update`
+## 51. `POST /templates/eservices/:eServiceId/instanceLabel/update`
 
 Service: `catalogService` → `updateEServiceInstanceLabelAfterPublication`. Mapper: `updateEServiceInstanceLabelErrorMapper`. Roles: `ADMIN_ROLE`, `API_ROLE`.
 
@@ -889,7 +946,7 @@ Service: `catalogService` → `updateEServiceInstanceLabelAfterPublication`. Map
 | `eserviceWithoutValidDescriptors` | 409 | The instance has no descriptor in an editable post-publication state (`assertEServiceUpdatableAfterPublish`). | Cannot happen — the action is only enabled for a template instance with a valid descriptor; the form is hidden or disabled when the instance cannot be updated. | — | — |
 | `eServiceNameDuplicateForProducer` | 409 | The final generated catalog name is already used by another e-service of the same producer (`assertEServiceNameAvailableForProducer`). | **CAN HAPPEN** — the drawer submits the raw instance label and only shows the duplicate-name validation after the backend rejects the final catalog name; the form does not preflight the producer duplicate in the client. | **Data precondition:** tenant A already owns an e-service whose final catalog name matches the one generated by template `T` plus label `N`; the user is on the provider template-instance details page.<br>1. Go to the provider template-instance details page for the e-service under tenant A.<br>2. Click the edit action for _Parola identificativa dell'e-service_.<br>3. In the field _Parola identificativa dell'e-service_, type `N` so that the final catalog name becomes the same as the existing one.<br>4. Click _Aggiorna_. | 🟢 Easy resolution<br>1. Change the instance label to a unique value.<br>2. Submit again.<br>3. Refresh the page if the list is stale and retry with the new label. |
 
-## 49. `DELETE /eservices/:eServiceId/descriptors/:descriptorId/scheduleArchive`
+## 52. `DELETE /eservices/:eServiceId/descriptors/:descriptorId/scheduleArchive`
 
 Service: `catalogService` → `cancelEServiceDescriptorArchiving`. Mapper: `updateEserviceDescriptorArchivingStatusErrorMapper`. Roles: `ADMIN_ROLE`, `API_ROLE`, `M2M_ADMIN_ROLE`.
 
@@ -907,7 +964,7 @@ Service: `catalogService` → `cancelEServiceDescriptorArchiving`. Mapper: `upda
 | `notValidDescriptor` | 400 | The target descriptor is not in an archivable archiving state or is the latest descriptor in an invalid state (`assertDescriptorCancelArchivable`). | Cannot happen — the cancel dialog is only shown for the current archiving descriptor and the UI suppresses the action when the descriptor has already returned to a non-archiving state. | — | — |
 | `eserviceWithoutValidDescriptors` | 409 | The e-service has no valid descriptor left to cancel the archiving from (`assertEServiceUpdatableAfterPublish` in the wider archiving flow). | Cannot happen — the FE does not expose the descriptor cancellation action when the e-service is outside a valid post-publication descriptor state, and the user cannot trigger this path in a normal browser flow. | — | — |
 
-## 50. `DELETE /eservices/:eServiceId/scheduleArchive`
+## 53. `DELETE /eservices/:eServiceId/scheduleArchive`
 
 Service: `catalogService` → `cancelEServiceArchiving`. Mapper: `cancelEServiceArchivingErrorMapper`. Roles: `ADMIN_ROLE`, `API_ROLE`, `M2M_ADMIN_ROLE`.
 
