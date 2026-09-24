@@ -62,6 +62,7 @@ import {
   TenantKind,
   attributeCertifiedDiscreteComparator,
   attributeKind,
+  EServiceMode,
 } from "pagopa-interop-models";
 import {
   aggregateAgreementArray,
@@ -479,24 +480,13 @@ export function readModelServiceBuilderSQL(
                   ? inArray(eserviceInReadmodelCatalog.id, eservicesIds)
                   : undefined,
                 // mode filter
-                mode ? eq(eserviceInReadmodelCatalog.mode, mode) : undefined,
+                eserviceModeFilter(mode),
                 // technology filter
                 technology
                   ? eq(eserviceInReadmodelCatalog.technology, technology)
                   : undefined,
                 // isSignalHubEnabled filter
-                match(isSignalHubEnabled)
-                  .with(true, () =>
-                    eq(eserviceInReadmodelCatalog.isSignalHubEnabled, true)
-                  )
-                  .with(false, () =>
-                    or(
-                      isNull(eserviceInReadmodelCatalog.isSignalHubEnabled),
-                      eq(eserviceInReadmodelCatalog.isSignalHubEnabled, false)
-                    )
-                  )
-                  .with(undefined, () => undefined)
-                  .exhaustive(),
+                eserviceSignalHubEnabledFilter(isSignalHubEnabled),
                 // isClientAccessDelegable filter
                 match(isClientAccessDelegable)
                   .with(true, () =>
@@ -874,6 +864,9 @@ export function readModelServiceBuilderSQL(
         subscribedByRequester,
         requesterDelegationRoles,
         availableForRequester,
+        mode,
+        onlySignalHubEnabled,
+        asyncExchange,
       }: EServicesQueryFilters
     ): Promise<ListResult<EService>> {
       return await readmodelDB.transaction(async (tx) => {
@@ -896,7 +889,10 @@ export function readModelServiceBuilderSQL(
             tx,
             authData.organizationId,
             availableForRequester
-          )
+          ),
+          eserviceModeFilter(mode),
+          eserviceSignalHubEnabledFilter(onlySignalHubEnabled),
+          eserviceAsyncExchangeFilter(asyncExchange)
         );
 
         const condition = and(
@@ -1291,6 +1287,41 @@ export function readModelServiceBuilderSQL(
       );
     },
   };
+}
+
+function eserviceModeFilter(mode: EServiceMode | undefined) {
+  if (mode === undefined) {
+    return undefined;
+  }
+  return eq(eserviceInReadmodelCatalog.mode, mode);
+}
+
+function eserviceSignalHubEnabledFilter(
+  isSignalHubEnabled: boolean | undefined
+) {
+  return match(isSignalHubEnabled)
+    .with(true, () => eq(eserviceInReadmodelCatalog.isSignalHubEnabled, true))
+    .with(false, () =>
+      or(
+        isNull(eserviceInReadmodelCatalog.isSignalHubEnabled),
+        eq(eserviceInReadmodelCatalog.isSignalHubEnabled, false)
+      )
+    )
+    .with(undefined, () => undefined)
+    .exhaustive();
+}
+
+function eserviceAsyncExchangeFilter(asyncExchange: boolean | undefined) {
+  return match(asyncExchange)
+    .with(true, () => eq(eserviceInReadmodelCatalog.asyncExchange, true))
+    .with(false, () =>
+      or(
+        isNull(eserviceInReadmodelCatalog.asyncExchange),
+        eq(eserviceInReadmodelCatalog.asyncExchange, false)
+      )
+    )
+    .with(undefined, () => undefined)
+    .exhaustive();
 }
 
 /*

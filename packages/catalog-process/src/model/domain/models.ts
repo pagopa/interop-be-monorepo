@@ -33,6 +33,9 @@ export type EServicesQueryFilters = {
   subscribedByRequester?: boolean;
   requesterDelegationRoles: RequesterDelegationRole[];
   availableForRequester?: boolean;
+  mode?: EServiceMode;
+  onlySignalHubEnabled?: boolean;
+  asyncExchange?: boolean;
 };
 
 export type ApiGetEServicesFilters = {
