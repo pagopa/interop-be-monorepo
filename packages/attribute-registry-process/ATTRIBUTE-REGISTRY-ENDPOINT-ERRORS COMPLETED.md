@@ -36,7 +36,7 @@ Service: `attributeRegistryService` → `getAttributeById`. Mapper: `getAttribut
 
 | Error | Status | When it happens | Reachable from the FE? | Steps to reproduce (UI) | Resolution steps |
 | ----- | ------ | --------------- | ---------------------- | ----------------------- | --------------- |
-| `attributeNotFound` | 404 | The read model lookup for the requested attribute ID returns `undefined` in `getAttributeById`. | **CAN HAPPEN** — the frontend opens an attribute details drawer using the attribute ID already rendered in the list; if the record is deleted or stale before the detail query resolves, the UI can surface the 404. | **Data precondition:** you are on the certifier tenant page and an attribute row is visible in the list; the same attribute is then deleted externally or becomes stale before the drawer opens.<br>1. Go to `/ente-certificatore` (or the tenant certifier section).<br>2. Hover on an attribute row and click the action menu for that row.<br>3. Click _Visualizza dettagli_ / the details action to open the drawer. | 🟢 Easy resolution <br />1. Refresh the tenant certifier page or re-open the attribute list.<br />2. If the record was deleted externally, select a valid attribute and retry.<br />3. Confirm the selected attribute still exists before opening the detail drawer. |
+| `attributeNotFound` | 404 | The read model lookup for the requested attribute ID returns `undefined` in `getAttributeById`. | cannot happen — the attribute cannot be deleted and the page is shown only from a list | — | — |
 
 ## 4. `POST /bulk/attributes`
 
