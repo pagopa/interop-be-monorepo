@@ -6,6 +6,9 @@
   "description": "common test utilities",
   "main": "dist",
   "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
   "scripts": {
     "test:unit": "vitest",
     "test:it": "vitest integration",
@@ -19,11 +22,11 @@
     "@anatine/zod-mock": "catalog:",
     "@aws-sdk/client-dynamodb": "catalog:",
     "@aws-sdk/client-kms": "catalog:",
+    "@aws-sdk/client-s3": "catalog:",
     "@aws-sdk/client-sesv2": "catalog:",
     "@aws-sdk/util-dynamodb": "catalog:",
     "@faker-js/faker": "catalog:",
     "@protobuf-ts/runtime": "catalog:",
-    "@types/adm-zip": "catalog:",
     "@types/jsonwebtoken": "catalog:",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",

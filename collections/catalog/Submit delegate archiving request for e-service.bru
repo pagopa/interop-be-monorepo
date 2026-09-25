@@ -1,0 +1,27 @@
+meta {
+  name: Submit delegate archiving request for an E-Service
+  type: http
+  seq: 41
+}
+
+post {
+  url: {{host-catalog}}/eservices/:eServiceId/submitDelegatedArchiving
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "gracePeriodDays": 60,
+    "archivingReason": "Please archive this e-service"
+  }
+}

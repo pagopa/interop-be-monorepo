@@ -61,6 +61,8 @@ describe("getEserviceDescriptor", () => {
       archivingSchedule: mockCatalogProcessResponseDescriptor.archivingSchedule,
       asyncExchangeProperties:
         mockCatalogProcessResponseDescriptor.asyncExchangeProperties,
+      delegatedArchivingRequest:
+        mockCatalogProcessResponseDescriptor.delegatedArchivingRequest,
     };
 
     const result = await eserviceService.getEServiceDescriptor(

@@ -90,7 +90,6 @@ export async function handleEServiceTemplateEvent(
           "EServiceTemplateVersionDocumentAdded",
           "EServiceTemplateVersionInterfaceDeleted",
           "EServiceTemplateVersionDocumentDeleted",
-          "EServiceTemplateVersionInterfaceUpdated",
           "EServiceTemplateVersionDocumentUpdated",
           "EServiceTemplateIntendedTargetUpdated",
           "EServiceTemplateDescriptionUpdated",
@@ -100,7 +99,6 @@ export async function handleEServiceTemplateEvent(
           "EServiceTemplateVersionActivated",
           "EServiceTemplatePersonalDataFlagUpdatedAfterPublication",
           "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded",
-          "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated",
           "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted"
         ),
       },

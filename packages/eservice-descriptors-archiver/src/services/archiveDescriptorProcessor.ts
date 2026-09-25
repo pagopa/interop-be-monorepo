@@ -1,3 +1,4 @@
+import { AxiosError } from "axios";
 import { Logger, RefreshableInteropToken } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -31,6 +32,9 @@ const isNewerActiveDescriptor = (
       () => false
     )
     .exhaustive();
+
+const isAlreadyArchivedErrorResponse = (error: unknown): error is AxiosError =>
+  error instanceof AxiosError && error.response?.status === 409;
 
 // eslint-disable-next-line max-params
 export async function archiveDescriptorForArchivedAgreement(
@@ -83,8 +87,8 @@ export async function archiveDescriptorForArchivedAgreement(
     Authorization: `Bearer ${token}`,
   });
 
-  return await match(descriptor.state)
-    .with(descriptorState.deprecated, async () => {
+  const archiveDescriptor = async (): Promise<void> => {
+    try {
       const token = (await refreshableToken.get()).serialized;
       const headers = getHeaders(correlationId, token);
       await catalogProcessClient.archiveDescriptor(
@@ -101,6 +105,21 @@ export async function archiveDescriptorForArchivedAgreement(
       logger.info(
         `Descriptor archived for archived Agreement ${archivedAgreement.id} - Descriptor ${archivedAgreement.descriptorId} - EService ${archivedAgreement.eserviceId}`
       );
+    } catch (error) {
+      if (isAlreadyArchivedErrorResponse(error)) {
+        logger.warn(
+          `Descriptor ${archivedAgreement.descriptorId} is already archived`
+        );
+        return;
+      }
+
+      throw error;
+    }
+  };
+
+  return await match(descriptor.state)
+    .with(descriptorState.deprecated, async () => {
+      await archiveDescriptor();
     })
     .with(
       descriptorState.suspended,
@@ -111,21 +130,7 @@ export async function archiveDescriptorForArchivedAgreement(
           isNewerActiveDescriptor(d, Number(descriptor.version))
         );
         if (newerDescriptorExists) {
-          const token = (await refreshableToken.get()).serialized;
-          const headers = getHeaders(correlationId, token);
-          await catalogProcessClient.archiveDescriptor(
-            { kind: "AUTOMATIC" },
-            {
-              params: {
-                eServiceId: archivedAgreement.eserviceId,
-                descriptorId: archivedAgreement.descriptorId,
-              },
-              headers,
-            }
-          );
-          logger.info(
-            `Descriptor archived for archived Agreement ${archivedAgreement.id} - Descriptor ${archivedAgreement.descriptorId} - EService ${archivedAgreement.eserviceId}`
-          );
+          await archiveDescriptor();
         } else {
           logger.info(
             `Skipping descriptor archiving for Descriptor ${archivedAgreement.descriptorId} of EService ${archivedAgreement.eserviceId} - Descriptor ${descriptor.state} but no newer Descriptor found`

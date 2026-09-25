@@ -14,7 +14,7 @@ import {
   getMockPurposeVersion,
   getMockTenant,
   getMockValidRiskAnalysisForm,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   CorrelationId,
   EServiceId,

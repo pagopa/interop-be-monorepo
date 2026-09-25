@@ -93,7 +93,12 @@ describe("handleEServiceEvent test", async () => {
                   "EServiceDeleted",
                   "EServiceRiskAnalysisAdded",
                   "EServiceRiskAnalysisUpdated",
-                  "EServiceRiskAnalysisDeleted"
+                  "EServiceRiskAnalysisDeleted",
+                  "EServiceArchivingRequestedByDelegate",
+                  "EServiceArchivingRequestRejectedByDelegator",
+                  "EServiceArchivingRequestApprovedByDelegator",
+                  "EServiceArchivingRequestCanceledByDelegate",
+                  "EServiceArchivingRequestCanceledByRevokedDelegation"
                 ),
                 async () => [
                   {
@@ -116,11 +121,14 @@ describe("handleEServiceEvent test", async () => {
                   "EServiceDescriptorSubmittedByDelegate",
                   "EServiceDescriptorRejectedByDelegator",
                   "EServiceDescriptorInterfaceAdded",
-                  "EServiceDescriptorInterfaceUpdated",
                   "EServiceDescriptorInterfaceDeleted",
                   "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
-                  "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
-                  "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted"
+                  "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
+                  "EServiceDescriptorArchivingRequestedByDelegate",
+                  "EServiceDescriptorArchivingRequestRejectedByDelegator",
+                  "EServiceDescriptorArchivingRequestApprovedByDelegator",
+                  "EServiceDescriptorArchivingRequestCanceledByDelegate",
+                  "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation"
                 ),
                 async () => [
                   {

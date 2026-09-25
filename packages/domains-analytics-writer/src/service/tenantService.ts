@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable sonarjs/cognitive-complexity */
 import { genericLogger } from "pagopa-interop-commons";
+import { TenantItemsSchema } from "pagopa-interop-kpi-models";
 
 import { config } from "../config/config.js";
 import { DBContext } from "../db/db.js";
 import { DeletingDbTable, TenantDbTable } from "../model/db/index.js";
 import {
-  TenantItemsSchema,
   TenantSelfcareIdSchema,
   TenantDeletingSchema,
 } from "../model/tenant/tenant.js";

@@ -41,6 +41,7 @@ import {
   DeclaredTenantAttribute,
   DelegationId,
   Descriptor,
+  DescriptorState,
   EService,
   EServiceAttributeCertifiedDiscrete,
   EServiceId,
@@ -63,8 +64,9 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { config } from "../../src/config/config.js";
 import {
   agreementActivableStates,
-  agreementActivationAllowedDescriptorStates,
   agreementArchivableStates,
+  allowedDescriptorStatesForAgreementFirstActivation,
+  allowedDescriptorStatesForAgreementUnsuspension,
 } from "../../src/model/domain/agreement-validators.js";
 import {
   agreementActivationFailed,
@@ -192,186 +194,192 @@ describe("activate agreement", () => {
   }
 
   describe("Agreement Pending", () => {
-    it.each([
-      { requesterIs: "Producer", withConsumerDelegation: false },
-      { requesterIs: "Producer", withConsumerDelegation: true },
-      { requesterIs: "DelegateProducer", withConsumerDelegation: false },
-      { requesterIs: "DelegateProducer", withConsumerDelegation: true },
-    ] as const)(
-      "Agreement Pending, Requester === $requesterIs, with consumer delegation: $withConsumerDelegation, valid attributes -- success case: Pending >> Activated",
-      async ({ requesterIs, withConsumerDelegation }) => {
-        const producer: Tenant = getMockTenant();
-        const consumerId: TenantId = generateId();
+    describe.each([
+      descriptorState.published,
+      descriptorState.suspended,
+      descriptorState.deprecated,
+    ])("%s Descriptor", (descriptorState) => {
+      it.each([
+        { requesterIs: "Producer", withConsumerDelegation: false },
+        { requesterIs: "Producer", withConsumerDelegation: true },
+        { requesterIs: "DelegateProducer", withConsumerDelegation: false },
+        { requesterIs: "DelegateProducer", withConsumerDelegation: true },
+      ] as const)(
+        "Agreement Pending, Requester === $requesterIs, with consumer delegation: $withConsumerDelegation, valid attributes -- success case: Pending >> Activated",
+        async ({ requesterIs, withConsumerDelegation }) => {
+          const producer: Tenant = getMockTenant();
+          const consumerId: TenantId = generateId();
 
-        const certifiedAttribute = getMockAttribute(attributeKind.certified);
-        const declaredAttribute = getMockAttribute(attributeKind.declared);
-        const verifiedAttribute = getMockAttribute(attributeKind.verified);
+          const certifiedAttribute = getMockAttribute(attributeKind.certified);
+          const declaredAttribute = getMockAttribute(attributeKind.declared);
+          const verifiedAttribute = getMockAttribute(attributeKind.verified);
 
-        const descriptor: Descriptor = {
-          ...getMockDescriptorPublished(),
-          state: randomArrayItem(agreementActivationAllowedDescriptorStates),
-          attributes: {
-            certified: [[getMockEServiceAttribute(certifiedAttribute.id)]],
-            declared: [[getMockEServiceAttribute(declaredAttribute.id)]],
-            verified: [[getMockEServiceAttribute(verifiedAttribute.id)]],
-          },
-        };
-
-        const eservice: EService = {
-          ...getMockEService(),
-          producerId: producer.id,
-          descriptors: [descriptor],
-        };
-
-        const agreement: Agreement = {
-          ...getMockAgreement(),
-          state: agreementState.pending,
-          eserviceId: eservice.id,
-          descriptorId: descriptor.id,
-          producerId: producer.id,
-          consumerId,
-          suspendedByConsumer: false, // Must be false, otherwise the agreement would be suspended
-          suspendedByProducer: randomBoolean(), // will be set to false by the activation
-          stamps: {
-            submission: {
-              who: generateId(),
-              when: new Date(),
+          const descriptor: Descriptor = {
+            ...getMockDescriptorPublished(),
+            state: descriptorState,
+            attributes: {
+              certified: [[getMockEServiceAttribute(certifiedAttribute.id)]],
+              declared: [[getMockEServiceAttribute(declaredAttribute.id)]],
+              verified: [[getMockEServiceAttribute(verifiedAttribute.id)]],
             },
-            activation: undefined,
-          },
+          };
 
-          // Adding some random attributes to check that they are overwritten by the activation
-          certifiedAttributes: [getMockAgreementAttribute()],
-          declaredAttributes: [getMockAgreementAttribute()],
-          verifiedAttributes: [getMockAgreementAttribute()],
-        };
+          const eservice: EService = {
+            ...getMockEService(),
+            producerId: producer.id,
+            descriptors: [descriptor],
+          };
 
-        const { authData, producerDelegation, delegateProducer } =
-          authDataAndDelegationsFromRequesterIs(requesterIs, agreement);
-
-        const delegateConsumer = withConsumerDelegation
-          ? getMockTenant()
-          : undefined;
-        const consumerDelegation = delegateConsumer
-          ? getMockDelegation({
-              kind: delegationKind.delegatedConsumer,
-              delegatorId: agreement.consumerId,
-              delegateId: delegateConsumer.id,
-              state: delegationState.active,
-              eserviceId: agreement.eserviceId,
-            })
-          : undefined;
-
-        const validTenantCertifiedAttribute: CertifiedTenantAttribute = {
-          ...getMockCertifiedTenantAttribute(certifiedAttribute.id),
-          revocationTimestamp: undefined,
-        };
-
-        const validTenantDeclaredAttribute: DeclaredTenantAttribute = {
-          ...getMockDeclaredTenantAttribute(declaredAttribute.id),
-          revocationTimestamp: undefined,
-          delegationId: consumerDelegation?.id,
-        };
-
-        const validTenantVerifiedAttribute: VerifiedTenantAttribute = {
-          ...getMockVerifiedTenantAttribute(verifiedAttribute.id),
-          verifiedBy: [
-            {
-              id: producer.id,
-              verificationDate: new Date(),
-              extensionDate: addDays(new Date(), 30),
-              delegationId: producerDelegation?.id,
+          const agreement: Agreement = {
+            ...getMockAgreement(),
+            state: agreementState.pending,
+            eserviceId: eservice.id,
+            descriptorId: descriptor.id,
+            producerId: producer.id,
+            consumerId,
+            suspendedByConsumer: false, // Must be false, otherwise the agreement would be suspended
+            suspendedByProducer: randomBoolean(), // will be set to false by the activation
+            stamps: {
+              submission: {
+                who: generateId(),
+                when: new Date(),
+              },
+              activation: undefined,
             },
-          ],
-          revokedBy: [],
-        };
 
-        const consumer: Tenant = {
-          ...getMockTenant(consumerId),
-          selfcareId: generateId(),
-          attributes: [
-            validTenantCertifiedAttribute,
-            validTenantDeclaredAttribute,
-            validTenantVerifiedAttribute,
-          ],
-        };
+            // Adding some random attributes to check that they are overwritten by the activation
+            certifiedAttributes: [getMockAgreementAttribute()],
+            declaredAttributes: [getMockAgreementAttribute()],
+            verifiedAttributes: [getMockAgreementAttribute()],
+          };
 
-        await addOneAgreement(agreement);
-        await addOneTenant(producer);
-        await addOneTenant(consumer);
-        await addOneEService(eservice);
-        await addOneAttribute(certifiedAttribute);
-        await addOneAttribute(declaredAttribute);
-        await addOneAttribute(verifiedAttribute);
-        const relatedAgreements = await addRelatedAgreements(agreement);
+          const { authData, producerDelegation, delegateProducer } =
+            authDataAndDelegationsFromRequesterIs(requesterIs, agreement);
 
-        await addSomeRandomDelegations(agreement, addOneDelegation);
-        await addDelegationsAndDelegates({
-          producerDelegation,
-          delegateProducer,
-          consumerDelegation,
-          delegateConsumer,
-        });
+          const delegateConsumer = withConsumerDelegation
+            ? getMockTenant()
+            : undefined;
+          const consumerDelegation = delegateConsumer
+            ? getMockDelegation({
+                kind: delegationKind.delegatedConsumer,
+                delegatorId: agreement.consumerId,
+                delegateId: delegateConsumer.id,
+                state: delegationState.active,
+                eserviceId: agreement.eserviceId,
+              })
+            : undefined;
 
-        const activateAgreementReturnValue =
-          await agreementService.approveAgreement(
-            {
-              agreementId: agreement.id,
-              delegationId:
-                requesterIs === "DelegateProducer"
-                  ? producerDelegation?.id
-                  : undefined,
-            },
-            getMockContext({ authData })
+          const validTenantCertifiedAttribute: CertifiedTenantAttribute = {
+            ...getMockCertifiedTenantAttribute(certifiedAttribute.id),
+            revocationTimestamp: undefined,
+          };
+
+          const validTenantDeclaredAttribute: DeclaredTenantAttribute = {
+            ...getMockDeclaredTenantAttribute(declaredAttribute.id),
+            revocationTimestamp: undefined,
+            delegationId: consumerDelegation?.id,
+          };
+
+          const validTenantVerifiedAttribute: VerifiedTenantAttribute = {
+            ...getMockVerifiedTenantAttribute(verifiedAttribute.id),
+            verifiedBy: [
+              {
+                id: producer.id,
+                verificationDate: new Date(),
+                extensionDate: addDays(new Date(), 30),
+                delegationId: producerDelegation?.id,
+              },
+            ],
+            revokedBy: [],
+          };
+
+          const consumer: Tenant = {
+            ...getMockTenant(consumerId),
+            selfcareId: generateId(),
+            attributes: [
+              validTenantCertifiedAttribute,
+              validTenantDeclaredAttribute,
+              validTenantVerifiedAttribute,
+            ],
+          };
+
+          await addOneAgreement(agreement);
+          await addOneTenant(producer);
+          await addOneTenant(consumer);
+          await addOneEService(eservice);
+          await addOneAttribute(certifiedAttribute);
+          await addOneAttribute(declaredAttribute);
+          await addOneAttribute(verifiedAttribute);
+          const relatedAgreements = await addRelatedAgreements(agreement);
+
+          await addSomeRandomDelegations(agreement, addOneDelegation);
+          await addDelegationsAndDelegates({
+            producerDelegation,
+            delegateProducer,
+            consumerDelegation,
+            delegateConsumer,
+          });
+
+          const activateAgreementReturnValue =
+            await agreementService.approveAgreement(
+              {
+                agreementId: agreement.id,
+                delegationId:
+                  requesterIs === "DelegateProducer"
+                    ? producerDelegation?.id
+                    : undefined,
+              },
+              getMockContext({ authData })
+            );
+
+          const agreementEvent = await readLastAgreementEvent(agreement.id);
+
+          expect(agreementEvent).toMatchObject({
+            type: "AgreementActivated",
+            event_version: 2,
+            version: "1",
+            stream_id: agreement.id,
+          });
+
+          const actualAgreementActivated = fromAgreementV2(
+            decodeProtobufPayload({
+              messageType: AgreementActivatedV2,
+              payload: agreementEvent.data,
+            }).agreement!
           );
 
-        const agreementEvent = await readLastAgreementEvent(agreement.id);
-
-        expect(agreementEvent).toMatchObject({
-          type: "AgreementActivated",
-          event_version: 2,
-          version: "1",
-          stream_id: agreement.id,
-        });
-
-        const actualAgreementActivated = fromAgreementV2(
-          decodeProtobufPayload({
-            messageType: AgreementActivatedV2,
-            payload: agreementEvent.data,
-          }).agreement!
-        );
-
-        const expectedActivatedAgreement: Agreement = {
-          ...agreement,
-          state: agreementState.active,
-          stamps: {
-            ...agreement.stamps,
-            activation: {
-              who: authData.userId,
-              when: actualAgreementActivated.stamps.activation!.when,
-              delegationId: producerDelegation?.id,
+          const expectedActivatedAgreement: Agreement = {
+            ...agreement,
+            state: agreementState.active,
+            stamps: {
+              ...agreement.stamps,
+              activation: {
+                who: authData.userId,
+                when: actualAgreementActivated.stamps.activation!.when,
+                delegationId: producerDelegation?.id,
+              },
             },
-          },
-          certifiedAttributes: [{ id: certifiedAttribute.id }],
-          declaredAttributes: [{ id: declaredAttribute.id }],
-          verifiedAttributes: [{ id: verifiedAttribute.id }],
-          suspendedByProducer: false,
-          suspendedByConsumer: false,
-          suspendedByPlatform: false, // when the agreement is Activated this is uptated to false
-          // The contract document is populated by a separate event, so we
-          // don't assert on its specific shape here
-          contract: actualAgreementActivated.contract,
-        };
+            certifiedAttributes: [{ id: certifiedAttribute.id }],
+            declaredAttributes: [{ id: declaredAttribute.id }],
+            verifiedAttributes: [{ id: verifiedAttribute.id }],
+            suspendedByProducer: false,
+            suspendedByConsumer: false,
+            suspendedByPlatform: false, // when the agreement is Activated this is uptated to false
+            // The contract document is populated by a separate event, so we
+            // don't assert on its specific shape here
+            contract: actualAgreementActivated.contract,
+          };
 
-        expect(actualAgreementActivated).toEqual(expectedActivatedAgreement);
+          expect(actualAgreementActivated).toEqual(expectedActivatedAgreement);
 
-        await testRelatedAgreementsArchiviation(relatedAgreements);
-        expect(activateAgreementReturnValue).toEqual({
-          data: expectedActivatedAgreement,
-          metadata: { version: 1 },
-        });
-      }
-    );
+          await testRelatedAgreementsArchiviation(relatedAgreements);
+          expect(activateAgreementReturnValue).toEqual({
+            data: expectedActivatedAgreement,
+            metadata: { version: 1 },
+          });
+        }
+      );
+    });
 
     it("Agreement Pending, valid certified discrete attribute -- success case: populates certifiedDiscreteAttributes on the activated agreement", async () => {
       config.featureFlagAttributeCertifiedDiscrete = true;
@@ -382,7 +390,9 @@ describe("activate agreement", () => {
 
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
-        state: randomArrayItem(agreementActivationAllowedDescriptorStates),
+        state: randomArrayItem(
+          allowedDescriptorStatesForAgreementFirstActivation
+        ),
         attributes: {
           certified: [
             [
@@ -485,7 +495,9 @@ describe("activate agreement", () => {
 
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
-        state: randomArrayItem(agreementActivationAllowedDescriptorStates),
+        state: randomArrayItem(
+          allowedDescriptorStatesForAgreementFirstActivation
+        ),
         attributes: {
           certified: [
             [
@@ -605,7 +617,9 @@ describe("activate agreement", () => {
       const authData = getMockAuthData(producer.id);
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
-        state: randomArrayItem(agreementActivationAllowedDescriptorStates),
+        state: randomArrayItem(
+          allowedDescriptorStatesForAgreementFirstActivation
+        ),
         attributes: {
           certified: [
             [getMockEServiceAttribute(revokedTenantCertifiedAttribute.id)],
@@ -731,7 +745,9 @@ describe("activate agreement", () => {
       const authData = getMockAuthData(producer.id);
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
-        state: randomArrayItem(agreementActivationAllowedDescriptorStates),
+        state: randomArrayItem(
+          allowedDescriptorStatesForAgreementFirstActivation
+        ),
         attributes: {
           certified:
             consumerInvalidAttribute.type === "PersistentCertifiedAttribute"
@@ -879,188 +895,198 @@ describe("activate agreement", () => {
   });
 
   describe("Agreement Suspended", () => {
-    it.each(Object.values(requesterIs))(
-      "Agreement Suspended, valid attributes, requester is: %s -- success case: Suspended >> Activated",
-      async (requesterIs) => {
-        const { suspendedByProducer, suspendedByConsumer } = match(requesterIs)
-          .with("Producer", "DelegateProducer", () => ({
-            // Only suspendedByProducer is true, so that the next state is active
-            suspendedByProducer: true,
-            suspendedByConsumer: false,
-          }))
-          .with("Consumer", "DelegateConsumer", () => ({
-            // Only suspendedByConsumer is true, so that the next state is active
-            suspendedByProducer: false,
-            suspendedByConsumer: true,
-          }))
-          .exhaustive();
+    describe.each([
+      descriptorState.published,
+      descriptorState.suspended,
+      descriptorState.deprecated,
+      descriptorState.archiving,
+      descriptorState.archivingSuspended,
+    ])("%s Descriptor", (descriptorState) => {
+      it.each(Object.values(requesterIs))(
+        "Agreement Suspended, valid attributes, requester is: %s -- success case: Suspended >> Activated",
+        async (requesterIs) => {
+          const { suspendedByProducer, suspendedByConsumer } = match(
+            requesterIs
+          )
+            .with("Producer", "DelegateProducer", () => ({
+              // Only suspendedByProducer is true, so that the next state is active
+              suspendedByProducer: true,
+              suspendedByConsumer: false,
+            }))
+            .with("Consumer", "DelegateConsumer", () => ({
+              // Only suspendedByConsumer is true, so that the next state is active
+              suspendedByProducer: false,
+              suspendedByConsumer: true,
+            }))
+            .exhaustive();
 
-        const producer: Tenant = getMockTenant();
+          const producer: Tenant = getMockTenant();
 
-        const validTenantCertifiedAttribute: CertifiedTenantAttribute = {
-          ...getMockCertifiedTenantAttribute(),
-          revocationTimestamp: undefined,
-        };
+          const validTenantCertifiedAttribute: CertifiedTenantAttribute = {
+            ...getMockCertifiedTenantAttribute(),
+            revocationTimestamp: undefined,
+          };
 
-        const validTenantDeclaredAttribute: DeclaredTenantAttribute = {
-          ...getMockDeclaredTenantAttribute(),
-          revocationTimestamp: undefined,
-        };
+          const validTenantDeclaredAttribute: DeclaredTenantAttribute = {
+            ...getMockDeclaredTenantAttribute(),
+            revocationTimestamp: undefined,
+          };
 
-        const validTenantVerifiedAttribute: VerifiedTenantAttribute = {
-          ...getMockVerifiedTenantAttribute(),
-          verifiedBy: [
-            {
-              id: producer.id,
-              verificationDate: new Date(),
-              extensionDate: addDays(new Date(), 30),
+          const validTenantVerifiedAttribute: VerifiedTenantAttribute = {
+            ...getMockVerifiedTenantAttribute(),
+            verifiedBy: [
+              {
+                id: producer.id,
+                verificationDate: new Date(),
+                extensionDate: addDays(new Date(), 30),
+              },
+            ],
+            revokedBy: [],
+          };
+
+          const consumer: Tenant = {
+            ...getMockTenant(),
+            attributes: [
+              validTenantCertifiedAttribute,
+              validTenantDeclaredAttribute,
+              validTenantVerifiedAttribute,
+            ],
+          };
+
+          const descriptor: Descriptor = {
+            ...getMockDescriptorPublished(),
+            state: descriptorState,
+            attributes: {
+              certified: [
+                [getMockEServiceAttribute(validTenantCertifiedAttribute.id)],
+              ],
+              declared: [
+                [getMockEServiceAttribute(validTenantDeclaredAttribute.id)],
+              ],
+              verified: [
+                [getMockEServiceAttribute(validTenantVerifiedAttribute.id)],
+              ],
             },
-          ],
-          revokedBy: [],
-        };
+          };
 
-        const consumer: Tenant = {
-          ...getMockTenant(),
-          attributes: [
-            validTenantCertifiedAttribute,
-            validTenantDeclaredAttribute,
-            validTenantVerifiedAttribute,
-          ],
-        };
+          const eservice: EService = {
+            ...getMockEService(),
+            producerId: producer.id,
+            descriptors: [descriptor],
+          };
 
-        const descriptor: Descriptor = {
-          ...getMockDescriptorPublished(),
-          state: randomArrayItem(agreementActivationAllowedDescriptorStates),
-          attributes: {
-            certified: [
-              [getMockEServiceAttribute(validTenantCertifiedAttribute.id)],
-            ],
-            declared: [
-              [getMockEServiceAttribute(validTenantDeclaredAttribute.id)],
-            ],
-            verified: [
-              [getMockEServiceAttribute(validTenantVerifiedAttribute.id)],
-            ],
-          },
-        };
+          const mockAgreement = getMockAgreement();
+          const agreement: Agreement = {
+            ...mockAgreement,
+            state: agreementState.suspended,
+            eserviceId: eservice.id,
+            descriptorId: descriptor.id,
+            producerId: producer.id,
+            consumerId: consumer.id,
+            suspendedByProducer,
+            suspendedByConsumer,
+            suspendedAt: new Date(),
+            stamps: {
+              ...mockAgreement.stamps,
+              suspensionByProducer: suspendedByProducer
+                ? {
+                    who: generateId(),
+                    when: new Date(),
+                  }
+                : undefined,
+              suspensionByConsumer: suspendedByConsumer
+                ? {
+                    who: generateId(),
+                    when: new Date(),
+                  }
+                : undefined,
+            },
 
-        const eservice: EService = {
-          ...getMockEService(),
-          producerId: producer.id,
-          descriptors: [descriptor],
-        };
+            // Adding some random attributes to check that they are not modified by the Unsuspension
+            certifiedAttributes: [getMockAgreementAttribute()],
+            declaredAttributes: [getMockAgreementAttribute()],
+            verifiedAttributes: [getMockAgreementAttribute()],
+          };
 
-        const mockAgreement = getMockAgreement();
-        const agreement: Agreement = {
-          ...mockAgreement,
-          state: agreementState.suspended,
-          eserviceId: eservice.id,
-          descriptorId: descriptor.id,
-          producerId: producer.id,
-          consumerId: consumer.id,
-          suspendedByProducer,
-          suspendedByConsumer,
-          suspendedAt: new Date(),
-          stamps: {
-            ...mockAgreement.stamps,
-            suspensionByProducer: suspendedByProducer
-              ? {
-                  who: generateId(),
-                  when: new Date(),
-                }
-              : undefined,
-            suspensionByConsumer: suspendedByConsumer
-              ? {
-                  who: generateId(),
-                  when: new Date(),
-                }
-              : undefined,
-          },
+          const {
+            authData,
+            producerDelegation,
+            consumerDelegation,
+            delegateProducer,
+            delegateConsumer,
+          } = authDataAndDelegationsFromRequesterIs(requesterIs, agreement);
 
-          // Adding some random attributes to check that they are not modified by the Unsuspension
-          certifiedAttributes: [getMockAgreementAttribute()],
-          declaredAttributes: [getMockAgreementAttribute()],
-          verifiedAttributes: [getMockAgreementAttribute()],
-        };
+          await addOneTenant(producer);
+          await addOneTenant(consumer);
+          await addOneEService(eservice);
+          await addOneAgreement(agreement);
+          const relatedAgreements = await addRelatedAgreements(agreement);
 
-        const {
-          authData,
-          producerDelegation,
-          consumerDelegation,
-          delegateProducer,
-          delegateConsumer,
-        } = authDataAndDelegationsFromRequesterIs(requesterIs, agreement);
+          await addSomeRandomDelegations(agreement, addOneDelegation);
+          await addDelegationsAndDelegates({
+            producerDelegation,
+            delegateProducer,
+            consumerDelegation,
+            delegateConsumer,
+          });
 
-        await addOneTenant(producer);
-        await addOneTenant(consumer);
-        await addOneEService(eservice);
-        await addOneAgreement(agreement);
-        const relatedAgreements = await addRelatedAgreements(agreement);
+          const delegationId = match(requesterIs)
+            .with("DelegateProducer", () => producerDelegation?.id)
+            .with("DelegateConsumer", () => consumerDelegation?.id)
+            .otherwise(() => undefined);
 
-        await addSomeRandomDelegations(agreement, addOneDelegation);
-        await addDelegationsAndDelegates({
-          producerDelegation,
-          delegateProducer,
-          consumerDelegation,
-          delegateConsumer,
-        });
+          const activateAgreementReturnValue =
+            await agreementService.unsuspendAgreement(
+              { agreementId: agreement.id, delegationId },
+              getMockContext({ authData })
+            );
 
-        const delegationId = match(requesterIs)
-          .with("DelegateProducer", () => producerDelegation?.id)
-          .with("DelegateConsumer", () => consumerDelegation?.id)
-          .otherwise(() => undefined);
+          const agreementEvent = await readLastAgreementEvent(agreement.id);
 
-        const activateAgreementReturnValue =
-          await agreementService.unsuspendAgreement(
-            { agreementId: agreement.id, delegationId },
-            getMockContext({ authData })
+          const { eventType, messageType } =
+            unsuspensionEventInfoFromRequesterIs(requesterIs);
+
+          expect(agreementEvent).toMatchObject({
+            type: eventType,
+            event_version: 2,
+            version: "1",
+            stream_id: agreement.id,
+          });
+
+          const actualAgreementActivated = fromAgreementV2(
+            decodeProtobufPayload({
+              messageType,
+              payload: agreementEvent.data,
+            }).agreement!
           );
 
-        const agreementEvent = await readLastAgreementEvent(agreement.id);
+          const expectedActivatedAgreement: Agreement = {
+            ...agreement,
+            state: agreementState.active,
+            suspendedAt: undefined,
+            stamps: {
+              ...agreement.stamps,
+              suspensionByProducer: undefined,
+              suspensionByConsumer: undefined,
+            },
+            suspendedByConsumer: false,
+            suspendedByProducer: false,
+            suspendedByPlatform: false, // when the agreement is Activated this is uptated to false
+          };
 
-        const { eventType, messageType } =
-          unsuspensionEventInfoFromRequesterIs(requesterIs);
+          expect(actualAgreementActivated).toMatchObject(
+            expectedActivatedAgreement
+          );
 
-        expect(agreementEvent).toMatchObject({
-          type: eventType,
-          event_version: 2,
-          version: "1",
-          stream_id: agreement.id,
-        });
+          expect(activateAgreementReturnValue).toMatchObject({
+            data: expectedActivatedAgreement,
+            metadata: { version: 1 },
+          });
 
-        const actualAgreementActivated = fromAgreementV2(
-          decodeProtobufPayload({
-            messageType,
-            payload: agreementEvent.data,
-          }).agreement!
-        );
-
-        const expectedActivatedAgreement: Agreement = {
-          ...agreement,
-          state: agreementState.active,
-          suspendedAt: undefined,
-          stamps: {
-            ...agreement.stamps,
-            suspensionByProducer: undefined,
-            suspensionByConsumer: undefined,
-          },
-          suspendedByConsumer: false,
-          suspendedByProducer: false,
-          suspendedByPlatform: false, // when the agreement is Activated this is uptated to false
-        };
-
-        expect(actualAgreementActivated).toMatchObject(
-          expectedActivatedAgreement
-        );
-
-        expect(activateAgreementReturnValue).toMatchObject({
-          data: expectedActivatedAgreement,
-          metadata: { version: 1 },
-        });
-
-        await testRelatedAgreementsArchiviation(relatedAgreements);
-      }
-    );
+          await testRelatedAgreementsArchiviation(relatedAgreements);
+        }
+      );
+    });
 
     it("Agreement Suspended, Requester === Consumer === Producer, no matter the attributes -- success case: Suspended >> Activated", async () => {
       const revokedTenantCertifiedAttribute: CertifiedTenantAttribute = {
@@ -1094,7 +1120,7 @@ describe("activate agreement", () => {
 
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
-        state: randomArrayItem(agreementActivationAllowedDescriptorStates),
+        state: randomArrayItem(allowedDescriptorStatesForAgreementUnsuspension),
         attributes: {
           certified: [
             [getMockEServiceAttribute(consumerAndProducer.attributes[0].id)],
@@ -1217,7 +1243,7 @@ describe("activate agreement", () => {
 
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
-        state: randomArrayItem(agreementActivationAllowedDescriptorStates),
+        state: randomArrayItem(allowedDescriptorStatesForAgreementUnsuspension),
       };
 
       const eservice: EService = {
@@ -1360,7 +1386,9 @@ describe("activate agreement", () => {
 
         const descriptor: Descriptor = {
           ...getMockDescriptorPublished(),
-          state: randomArrayItem(agreementActivationAllowedDescriptorStates),
+          state: randomArrayItem(
+            allowedDescriptorStatesForAgreementUnsuspension
+          ),
           attributes: {
             certified: [
               [getMockEServiceAttribute(validTenantCertifiedAttribute.id)],
@@ -1648,7 +1676,9 @@ describe("activate agreement", () => {
           };
           const discreteDescriptor: Descriptor = {
             ...getMockDescriptorPublished(),
-            state: randomArrayItem(agreementActivationAllowedDescriptorStates),
+            state: randomArrayItem(
+              allowedDescriptorStatesForAgreementUnsuspension
+            ),
             attributes: {
               certified: [[descriptorAttribute]],
               declared: [],
@@ -1959,7 +1989,9 @@ describe("activate agreement", () => {
 
         const descriptor: Descriptor = {
           ...getMockDescriptorPublished(),
-          state: randomArrayItem(agreementActivationAllowedDescriptorStates),
+          state: randomArrayItem(
+            allowedDescriptorStatesForAgreementUnsuspension
+          ),
           attributes: {
             certified:
               consumerInvalidAttribute.type === "PersistentCertifiedAttribute"
@@ -2291,174 +2323,144 @@ describe("activate agreement", () => {
       getMethod(service: typeof agreementService) {
         return service.approveAgreement;
       },
+      descriptorAllowedStates: [
+        descriptorState.published,
+        descriptorState.suspended,
+        descriptorState.deprecated,
+      ] as DescriptorState[],
     },
     {
       state: agreementState.suspended,
       getMethod(service: typeof agreementService) {
         return service.unsuspendAgreement;
       },
+      descriptorAllowedStates: [
+        descriptorState.published,
+        descriptorState.suspended,
+        descriptorState.deprecated,
+        descriptorState.archiving,
+        descriptorState.archivingSuspended,
+      ] as DescriptorState[],
     },
-  ])("All other error cases", ({ state, getMethod }) => {
-    it("should throw an agreementNotFound error when the Agreement does not exist", async () => {
-      await addOneAgreement(getMockAgreement());
-      const authData = getMockAuthData();
-      const agreementId = generateId<AgreementId>();
-      await expect(
-        getMethod(agreementService)(
-          { agreementId, delegationId: undefined },
-          getMockContext({ authData })
-        )
-      ).rejects.toThrowError(agreementNotFound(agreementId));
-    });
-
-    it("should throw an tenantNotAllowed error when the requester is not the Consumer or Producer or Delegated Consumer or Delegate Producer or Delegate Consumer", async () => {
-      const authData = getMockAuthData();
-      const agreement: Agreement = getMockAgreement(
-        generateId<EServiceId>(),
-        generateId<TenantId>(),
-        agreementState.suspended
-      );
-
-      const producerDelegation = getMockDelegation({
-        kind: delegationKind.delegatedProducer,
-        delegatorId: agreement.producerId,
-        delegateId: generateId<TenantId>(),
-        state: delegationState.active,
-        eserviceId: agreement.eserviceId,
-      });
-      const consumerDelegation = getMockDelegation({
-        kind: delegationKind.delegatedConsumer,
-        delegatorId: agreement.consumerId,
-        delegateId: generateId<TenantId>(),
-        state: delegationState.active,
-        eserviceId: agreement.eserviceId,
-      });
-
-      await addOneAgreement(agreement);
-      await addOneDelegation(producerDelegation);
-      await addOneDelegation(consumerDelegation);
-      await addSomeRandomDelegations(agreement, addOneDelegation);
-
-      await expect(
-        agreementService.unsuspendAgreement(
-          { agreementId: agreement.id, delegationId: undefined },
-          getMockContext({ authData })
-        )
-      ).rejects.toThrowError(tenantNotAllowed(authData.organizationId));
-    });
-
-    it.each(
-      Object.values(agreementState).filter(
-        (state) => !agreementActivableStates.includes(state)
-      )
-    )(
-      "should throw an agreementNotInExpectedState error when the Agreement is not in an activable state - agreement state: %s",
-      async (agreementState) => {
-        const consumerId = generateId<TenantId>();
-        const authData = getMockAuthData(consumerId);
-
-        const agreement: Agreement = {
-          ...getMockAgreement(),
-          state: agreementState,
-          consumerId,
-        };
-        await addOneAgreement(agreement);
+  ])(
+    "All other error cases for $state agreement",
+    ({ state, getMethod, descriptorAllowedStates }) => {
+      it("should throw an agreementNotFound error when the Agreement does not exist", async () => {
+        await addOneAgreement(getMockAgreement());
+        const authData = getMockAuthData();
+        const agreementId = generateId<AgreementId>();
         await expect(
-          agreementService.approveAgreement(
-            { agreementId: agreement.id, delegationId: undefined },
+          getMethod(agreementService)(
+            { agreementId, delegationId: undefined },
             getMockContext({ authData })
           )
-        ).rejects.toThrowError(
-          agreementNotInExpectedState(agreement.id, agreement.state)
+        ).rejects.toThrowError(agreementNotFound(agreementId));
+      });
+
+      it("should throw an tenantNotAllowed error when the requester is not the Consumer or Producer or Delegated Consumer or Delegate Producer or Delegate Consumer", async () => {
+        const authData = getMockAuthData();
+        const agreement: Agreement = getMockAgreement(
+          generateId<EServiceId>(),
+          generateId<TenantId>(),
+          agreementState.suspended
         );
+
+        const producerDelegation = getMockDelegation({
+          kind: delegationKind.delegatedProducer,
+          delegatorId: agreement.producerId,
+          delegateId: generateId<TenantId>(),
+          state: delegationState.active,
+          eserviceId: agreement.eserviceId,
+        });
+        const consumerDelegation = getMockDelegation({
+          kind: delegationKind.delegatedConsumer,
+          delegatorId: agreement.consumerId,
+          delegateId: generateId<TenantId>(),
+          state: delegationState.active,
+          eserviceId: agreement.eserviceId,
+        });
+
+        await addOneAgreement(agreement);
+        await addOneDelegation(producerDelegation);
+        await addOneDelegation(consumerDelegation);
+        await addSomeRandomDelegations(agreement, addOneDelegation);
+
         await expect(
           agreementService.unsuspendAgreement(
             { agreementId: agreement.id, delegationId: undefined },
             getMockContext({ authData })
           )
-        ).rejects.toThrowError(
-          agreementNotInExpectedState(agreement.id, agreement.state)
-        );
-      }
-    );
+        ).rejects.toThrowError(tenantNotAllowed(authData.organizationId));
+      });
 
-    it("should throw an eServiceNotFound error when the EService does not exist", async () => {
-      const consumerId = generateId<TenantId>();
-      const authData = getMockAuthData(consumerId);
-
-      const agreement: Agreement = {
-        ...getMockAgreement(),
-        state: agreementState.suspended,
-        consumerId,
-      };
-      await addOneAgreement(agreement);
-      await expect(
-        agreementService.unsuspendAgreement(
-          { agreementId: agreement.id, delegationId: undefined },
-          getMockContext({ authData })
+      it.each(
+        Object.values(agreementState).filter(
+          (state) => !agreementActivableStates.includes(state)
         )
-      ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
-    });
+      )(
+        "should throw an agreementNotInExpectedState error when the Agreement is not in an activable state - agreement state: %s",
+        async (agreementState) => {
+          const consumerId = generateId<TenantId>();
+          const authData = getMockAuthData(consumerId);
 
-    it("should throw a descriptorNotFound error when the Descriptor does not exist", async () => {
-      const consumerId = generateId<TenantId>();
-      const producerId = generateId<TenantId>();
-      const authData = getMockAuthData(producerId);
-
-      const eservice: EService = {
-        ...getMockEService(),
-        producerId,
-      };
-      const agreement: Agreement = {
-        ...getMockAgreement(),
-        eserviceId: eservice.id,
-        consumerId,
-        state: state,
-        producerId,
-      };
-
-      await addOneEService(eservice);
-      await addOneAgreement(agreement);
-
-      await expect(
-        getMethod(agreementService)(
-          { agreementId: agreement.id, delegationId: undefined },
-          getMockContext({ authData })
-        )
-      ).rejects.toThrowError(
-        descriptorNotFound(agreement.eserviceId, agreement.descriptorId)
+          const agreement: Agreement = {
+            ...getMockAgreement(),
+            state: agreementState,
+            consumerId,
+          };
+          await addOneAgreement(agreement);
+          await expect(
+            agreementService.approveAgreement(
+              { agreementId: agreement.id, delegationId: undefined },
+              getMockContext({ authData })
+            )
+          ).rejects.toThrowError(
+            agreementNotInExpectedState(agreement.id, agreement.state)
+          );
+          await expect(
+            agreementService.unsuspendAgreement(
+              { agreementId: agreement.id, delegationId: undefined },
+              getMockContext({ authData })
+            )
+          ).rejects.toThrowError(
+            agreementNotInExpectedState(agreement.id, agreement.state)
+          );
+        }
       );
-    });
 
-    it.each(
-      Object.values(descriptorState).filter(
-        (state) => !agreementActivationAllowedDescriptorStates.includes(state)
-      )
-    )(
-      "should throw a descriptorNotInExpectedState error when the Descriptor is not in an expected state - descriptor state: %s",
-      async (descriptorState) => {
+      it("should throw an eServiceNotFound error when the EService does not exist", async () => {
+        const consumerId = generateId<TenantId>();
+        const authData = getMockAuthData(consumerId);
+
+        const agreement: Agreement = {
+          ...getMockAgreement(),
+          state: agreementState.suspended,
+          consumerId,
+        };
+        await addOneAgreement(agreement);
+        await expect(
+          agreementService.unsuspendAgreement(
+            { agreementId: agreement.id, delegationId: undefined },
+            getMockContext({ authData })
+          )
+        ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
+      });
+
+      it("should throw a descriptorNotFound error when the Descriptor does not exist", async () => {
         const consumerId = generateId<TenantId>();
         const producerId = generateId<TenantId>();
         const authData = getMockAuthData(producerId);
 
-        const descriptor: Descriptor = {
-          ...getMockDescriptorPublished(),
-          state: descriptorState,
-        };
-
         const eservice: EService = {
           ...getMockEService(),
           producerId,
-          descriptors: [descriptor],
         };
-
         const agreement: Agreement = {
           ...getMockAgreement(),
-          state: state,
           eserviceId: eservice.id,
-          descriptorId: descriptor.id,
-          producerId,
           consumerId,
+          state: state,
+          producerId,
         };
 
         await addOneEService(eservice);
@@ -2470,50 +2472,95 @@ describe("activate agreement", () => {
             getMockContext({ authData })
           )
         ).rejects.toThrowError(
-          descriptorNotInExpectedState(
-            eservice.id,
-            descriptor.id,
-            agreementActivationAllowedDescriptorStates
-          )
+          descriptorNotFound(agreement.eserviceId, agreement.descriptorId)
         );
-      }
-    );
+      });
 
-    it("should throw a tenantNotFound error when the Consumer does not exist", async () => {
-      const consumerId = generateId<TenantId>();
-      const producer = getMockTenant();
-      const authData = getMockAuthData(producer.id);
-
-      const descriptor: Descriptor = {
-        ...getMockDescriptorPublished(),
-        state: randomArrayItem(agreementActivationAllowedDescriptorStates),
-      };
-
-      const eservice: EService = {
-        ...getMockEService(),
-        producerId: producer.id,
-        descriptors: [descriptor],
-      };
-
-      const agreement: Agreement = {
-        ...getMockAgreement(),
-        state: state,
-        eserviceId: eservice.id,
-        descriptorId: descriptor.id,
-        producerId: producer.id,
-        consumerId,
-      };
-
-      await addOneEService(eservice);
-      await addOneAgreement(agreement);
-      await addOneTenant(producer);
-
-      await expect(
-        getMethod(agreementService)(
-          { agreementId: agreement.id, delegationId: undefined },
-          getMockContext({ authData })
+      it.each(
+        Object.values(descriptorState).filter(
+          (state) => !descriptorAllowedStates.includes(state)
         )
-      ).rejects.toThrowError(tenantNotFound(consumerId));
-    });
-  });
+      )(
+        "should throw a descriptorNotInExpectedState error when the Descriptor is not in an expected state - descriptor state: %s",
+        async (descriptorState) => {
+          const consumerId = generateId<TenantId>();
+          const producerId = generateId<TenantId>();
+          const authData = getMockAuthData(producerId);
+
+          const descriptor: Descriptor = {
+            ...getMockDescriptorPublished(),
+            state: descriptorState,
+          };
+
+          const eservice: EService = {
+            ...getMockEService(),
+            producerId,
+            descriptors: [descriptor],
+          };
+
+          const agreement: Agreement = {
+            ...getMockAgreement(),
+            state: state,
+            eserviceId: eservice.id,
+            descriptorId: descriptor.id,
+            producerId,
+            consumerId,
+          };
+
+          await addOneEService(eservice);
+          await addOneAgreement(agreement);
+
+          await expect(
+            getMethod(agreementService)(
+              { agreementId: agreement.id, delegationId: undefined },
+              getMockContext({ authData })
+            )
+          ).rejects.toThrowError(
+            descriptorNotInExpectedState(
+              eservice.id,
+              descriptor.id,
+              descriptorAllowedStates
+            )
+          );
+        }
+      );
+
+      it("should throw a tenantNotFound error when the Consumer does not exist", async () => {
+        const consumerId = generateId<TenantId>();
+        const producer = getMockTenant();
+        const authData = getMockAuthData(producer.id);
+
+        const descriptor: Descriptor = {
+          ...getMockDescriptorPublished(),
+          state: randomArrayItem(descriptorAllowedStates),
+        };
+
+        const eservice: EService = {
+          ...getMockEService(),
+          producerId: producer.id,
+          descriptors: [descriptor],
+        };
+
+        const agreement: Agreement = {
+          ...getMockAgreement(),
+          state: state,
+          eserviceId: eservice.id,
+          descriptorId: descriptor.id,
+          producerId: producer.id,
+          consumerId,
+        };
+
+        await addOneEService(eservice);
+        await addOneAgreement(agreement);
+        await addOneTenant(producer);
+
+        await expect(
+          getMethod(agreementService)(
+            { agreementId: agreement.id, delegationId: undefined },
+            getMockContext({ authData })
+          )
+        ).rejects.toThrowError(tenantNotFound(consumerId));
+      });
+    }
+  );
 });
