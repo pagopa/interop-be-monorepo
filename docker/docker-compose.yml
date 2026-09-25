@@ -393,7 +393,7 @@ services:
         aws --endpoint-url http://rustfs:9000 s3 mb s3://interop-datalake-bucket || true;
         aws --endpoint-url http://rustfs:9000 s3 mb s3://interop-application-import-export-local || true;
         aws --endpoint-url http://rustfs:9000 s3 mb s3://interop-data-lake-interfaces-exports-local-es1 || true;
-        aws --endpoint-url http://rustfs:9000 s3api create-bucket --bucket interop-generated-jwt-audit --object-lock-enabled-for-bucket || aws --endpoint-url http://rustfs:9000 s3 mb s3://interop-generated-jwt-audit || true;
+        aws --endpoint-url http://rustfs:9000 s3api create-bucket --bucket interop-generated-jwt-audit --object-lock-enabled-for-bucket || true;
         aws --endpoint-url http://rustfs:9000 s3 cp --recursive /data/interop-local-bucket s3://interop-local-bucket;
       "
     volumes:
