@@ -345,5 +345,6 @@ const reviewerWorkflowToApiReviewerWorkflow = (
   signedBy: workflow.signedBy,
   signedAt: workflow.signedAt?.toJSON(),
   rejectedBy: workflow.rejectedBy,
+  rejectedAt: workflow.rejectedAt?.toJSON(),
   rejectionReason: workflow.rejectionReason,
 });

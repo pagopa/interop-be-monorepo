@@ -114,11 +114,12 @@ const enrichPurposeReviewerWorkflow = async (
     return undefined;
   }
   const isConsumer = authData.organizationId === consumerId;
-  const hasAdminOrViewerRole =
+  const hasAdminOrReviewerOrViewerRole =
     userRoles.includes(authRole.ADMIN_ROLE) ||
-    userRoles.includes(authRole.VIEWER_ROLE);
+    userRoles.includes(authRole.VIEWER_ROLE) ||
+    userRoles.includes(authRole.REVIEWER_ROLE);
 
-  if (isConsumer && hasAdminOrViewerRole) {
+  if (isConsumer && hasAdminOrReviewerOrViewerRole) {
     const reviewers = await Promise.all(
       reviewerWorkflow.reviewers.map(async (reviewer) => ({
         ...(await getSelfcareCompactUserById(
@@ -155,6 +156,52 @@ const getCurrentVersion = (
         new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
     )
     .at(-1);
+};
+
+export const sortRiskAnalysisAssignments = (
+  purposes: bffApi.Purpose[],
+  signingStates: bffApi.RiskAnalysisSigningState[],
+  reviewerId: string
+): bffApi.Purpose[] => {
+  const sortByReviewerAssignment = signingStates.every(
+    (state) =>
+      state === bffApi.RiskAnalysisSigningState.Values.ASSIGNED ||
+      state === bffApi.RiskAnalysisSigningState.Values.SUBMITTED
+  );
+  const sortBySignedOrRejected = signingStates.every(
+    (state) =>
+      state === bffApi.RiskAnalysisSigningState.Values.REJECTED ||
+      state === bffApi.RiskAnalysisSigningState.Values.SIGNED
+  );
+
+  if (!sortByReviewerAssignment && !sortBySignedOrRejected) {
+    return purposes;
+  }
+
+  const getSortDate = (purpose: bffApi.Purpose): number | undefined => {
+    const workflow = purpose.reviewerWorkflow;
+    const date = sortByReviewerAssignment
+      ? workflow?.reviewers?.find((reviewer) => reviewer.userId === reviewerId)
+          ?.sentToReviewerAt
+      : sortBySignedOrRejected
+        ? (workflow?.signedAt ?? workflow?.rejectedAt)
+        : undefined;
+
+    return date ? new Date(date).getTime() : undefined;
+  };
+
+  return [...purposes].sort((left, right) => {
+    const leftDate = getSortDate(left);
+    const rightDate = getSortDate(right);
+
+    if (leftDate === undefined) {
+      return rightDate === undefined ? 0 : 1;
+    }
+    if (rightDate === undefined) {
+      return -1;
+    }
+    return rightDate - leftDate;
+  });
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
@@ -689,7 +736,7 @@ export function purposeServiceBuilder(
       logger.info(
         `Retrieving risk analysis assignments for reviewerId ${authData.userId}, signingState ${signingStates.join(",")}, EServices ${filters.eservicesIds}, offset ${offset}, limit ${limit}`
       );
-      return await getPurposes(
+      const purposes = await getPurposes(
         authData,
         {
           reviewerId: authData.userId,
@@ -702,6 +749,15 @@ export function purposeServiceBuilder(
         },
         ctx
       );
+
+      return {
+        ...purposes,
+        results: sortRiskAnalysisAssignments(
+          purposes.results,
+          signingStates,
+          authData.userId
+        ),
+      };
     },
     async clonePurpose(
       purposeId: PurposeId,

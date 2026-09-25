@@ -161,32 +161,35 @@ describe("getPurpose — reviewer enrichment", () => {
     mockGetAgreements.mockResolvedValue({ results: [agreement] });
   });
 
-  it("should enrich reviewerWorkflow with reviewers when requester is the consumer", async () => {
-    const mockUserInfo = { id: reviewerId, name: "Name", surname: "Surname" };
-    mockGetUserInfoUsingGET.mockResolvedValue(mockUserInfo);
+  it.each([userRole.ADMIN_ROLE, userRole.VIEWER_ROLE, userRole.REVIEWER_ROLE])(
+    "should enrich reviewerWorkflow with reviewers for a consumer with role %s",
+    async (role) => {
+      const mockUserInfo = { id: reviewerId, name: "Name", surname: "Surname" };
+      mockGetUserInfoUsingGET.mockResolvedValue(mockUserInfo);
 
-    const authData: UIAuthData = {
-      ...getMockAuthData(),
-      organizationId: consumerId,
-    };
-    const ctx = getBffMockContext(getMockContext({ authData }));
+      const authData: UIAuthData = {
+        ...getMockAuthData(undefined, undefined, [role]),
+        organizationId: consumerId,
+      };
+      const ctx = getBffMockContext(getMockContext({ authData }));
 
-    const result = await purposeService.getPurpose(mockPurposeId, ctx);
+      const result = await purposeService.getPurpose(mockPurposeId, ctx);
 
-    expect(result.data.reviewerWorkflow?.reviewers).toEqual([
-      {
-        userId: reviewerId,
-        name: "Name",
-        familyName: "Surname",
-        sentToReviewerAt,
-      },
-    ]);
-    expect(result.metadata).toEqual(purposeMetadata);
-    expect(mockGetUserInfoUsingGET).toHaveBeenCalledOnce();
-    expect(mockGetUserInfoUsingGET).toHaveBeenCalledWith(
-      expect.objectContaining({ params: { id: reviewerId } })
-    );
-  });
+      expect(result.data.reviewerWorkflow?.reviewers).toEqual([
+        {
+          userId: reviewerId,
+          name: "Name",
+          familyName: "Surname",
+          sentToReviewerAt,
+        },
+      ]);
+      expect(result.metadata).toEqual(purposeMetadata);
+      expect(mockGetUserInfoUsingGET).toHaveBeenCalledOnce();
+      expect(mockGetUserInfoUsingGET).toHaveBeenCalledWith(
+        expect.objectContaining({ params: { id: reviewerId } })
+      );
+    }
+  );
 
   it.each([userRole.SECURITY_ROLE, userRole.ADMIN_ROLE, userRole.VIEWER_ROLE])(
     "should NOT include reviewers in reviewerWorkflow when requester is the producer (role: %s)",
@@ -206,7 +209,10 @@ describe("getPurpose — reviewer enrichment", () => {
 
   it.each(
     Object.values(userRole).filter(
-      (role) => role !== userRole.ADMIN_ROLE && role !== userRole.VIEWER_ROLE
+      (role) =>
+        role !== userRole.ADMIN_ROLE &&
+        role !== userRole.VIEWER_ROLE &&
+        role !== userRole.REVIEWER_ROLE
     )
   )(
     "should NOT include reviewers when requester is the consumer with role: %s",
