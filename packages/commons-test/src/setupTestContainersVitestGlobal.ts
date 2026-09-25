@@ -196,11 +196,13 @@ export function setupTestContainersVitestGlobal() {
 
       // RustFS does not create buckets from on-disk folders:
       // they must be created through the S3 API once the server is running.
-      await createS3Buckets(providedFileManagerConfig, [
-        s3Bucket,
-        "test-bucket-1",
-        "test-bucket-2",
-      ]);
+      if (providedFileManagerConfig.s3CustomServer) {
+        await createS3Buckets(providedFileManagerConfig, [
+          s3Bucket,
+          "test-bucket-1",
+          "test-bucket-2",
+        ]);
+      }
 
       provide("fileManagerConfig", providedFileManagerConfig);
     }
