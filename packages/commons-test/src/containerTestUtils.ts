@@ -25,7 +25,7 @@ export const TEST_DYNAMODB_PORT = 8000;
 export const TEST_DYNAMODB_IMAGE = "amazon/dynamodb-local:latest";
 
 export const TEST_RUSTFS_PORT = 9000;
-export const TEST_RUSTFS_IMAGE = "rustfs/rustfs:1.0.0-beta.12";
+export const TEST_RUSTFS_IMAGE = "rustfs/rustfs:1.0.0";
 
 const TEST_RUSTFS_ACCESS_KEY = "testawskey";
 const TEST_RUSTFS_SECRET_KEY = "testawssecret";
