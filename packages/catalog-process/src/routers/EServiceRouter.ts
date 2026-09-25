@@ -192,6 +192,34 @@ const eservicesRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post("/catalog", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          SUPPORT_ROLE,
+          SECURITY_ROLE,
+          M2M_ROLE,
+          M2M_ADMIN_ROLE,
+          REVIEWER_ROLE,
+          VIEWER_ROLE,
+        ]);
+
+        const catalogs = await catalogService.queryEServices(req.body, ctx);
+
+        return res.status(200).send(
+          catalogApi.EServices.parse({
+            results: catalogs.results.map(eServiceToApiEService),
+            totalCount: catalogs.totalCount,
+          })
+        );
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post("/eservices", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 

@@ -123,6 +123,27 @@ const existsValidDescriptor = (
       )
   );
 
+const existsActiveDescriptor = (
+  readmodelDB: DrizzleTransactionType
+): SQL<unknown> | undefined =>
+  exists(
+    readmodelDB
+      .select()
+      .from(eserviceDescriptorInReadmodelCatalog)
+      .where(
+        and(
+          eq(
+            eserviceDescriptorInReadmodelCatalog.eserviceId,
+            eserviceInReadmodelCatalog.id
+          ),
+          inArray(eserviceDescriptorInReadmodelCatalog.state, [
+            descriptorState.published,
+            descriptorState.suspended,
+          ])
+        )
+      )
+  );
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL(
   readmodelDB: DrizzleReturnType,
@@ -577,6 +598,46 @@ export function readModelServiceBuilderSQL(
           eservices.map((e) => e.data),
           totalCount[0]?.count
         );
+      });
+    },
+    async queryEServices(
+      offset: number,
+      limit: number
+    ): Promise<ListResult<EService>> {
+      return await readmodelDB.transaction(async (tx) => {
+        const activeEservicesFilter = existsActiveDescriptor(tx);
+
+        const [pageIds, totalCount] = await Promise.all([
+          tx
+            .select({ id: eserviceInReadmodelCatalog.id })
+            .from(eserviceInReadmodelCatalog)
+            .where(activeEservicesFilter)
+            .orderBy(
+              ascLower(eserviceInReadmodelCatalog.name),
+              asc(eserviceInReadmodelCatalog.id)
+            )
+            .limit(limit)
+            .offset(offset),
+          tx
+            .select({ count: countDistinct(eserviceInReadmodelCatalog.id) })
+            .from(eserviceInReadmodelCatalog)
+            .where(activeEservicesFilter),
+        ]);
+
+        const ids = pageIds.map((e) => e.id);
+        if (ids.length === 0) {
+          return createListResult([], totalCount[0]?.count);
+        }
+
+        const eservices = await catalogReadModelService.getEServicesByFilter(
+          inArray(eserviceInReadmodelCatalog.id, ids)
+        );
+
+        const orderedEservices = ids
+          .map((id) => eservices.find((e) => e.id === id))
+          .filter((e): e is EService => e !== undefined);
+
+        return createListResult(orderedEservices, totalCount[0]?.count);
       });
     },
     async isEServiceNameAvailableForProducer({
