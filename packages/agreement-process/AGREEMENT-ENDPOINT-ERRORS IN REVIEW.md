@@ -237,7 +237,56 @@ Service: `agreementService` → `cloneAgreement`. Mapper: `cloneAgreementErrorMa
 | `tenantIsNotTheConsumer` | 403 | `assertRequesterCanActAsConsumer` rejects the request when the authenticated tenant is not the consumer of the agreement. | Cannot happen — the clone action is only shown on the consumer-side agreement list/detail page and is never rendered for an unrelated tenant. | — | — |
 | `tenantIsNotTheDelegateConsumer` | 403 | `assertRequesterCanActAsConsumer` rejects the request when the caller is not the active consumer delegate for the agreement. | Cannot happen — the UI only exposes the action to the currently active delegated consumer for that agreement and does not render the action otherwise. | — | — |
 
-## 15. `GET /tenants/:tenantId/eservices/:eserviceId/descriptors/:descriptorId/certifiedAttributes/validate`
+## 15. `DELETE /agreements/:agreementId`
+
+Service: `agreementService` → `deleteAgreementById`. Mapper: `deleteAgreementErrorMapper`. Roles: `ADMIN_ROLE`, `M2M_ADMIN_ROLE`.
+
+### BFF endpoints
+
+- `DELETE /agreements/:agreementId`
+
+| Error | Status | When it happens | Reachable from the FE? | Steps to reproduce (UI) | Resolution steps |
+| --- | --- | --- | --- | --- | --- |
+| `agreementNotFound` | 404 | `retrieveAgreement(agreementId, readModelService)` fails because the agreement does not exist anymore for that id. | Cannot happen — the delete action is only available from a loaded consumer draft agreement in the agreement list/edit flow, and the FE never presents a delete action for a non-existent agreement id. | — | — |
+| `agreementNotInExpectedState` | 400 | `assertExpectedState(agreementId, agreement.data.state, agreementDeletableStates)` fails when the agreement is not in a deletable state. | Cannot happen — the delete action is rendered only for draft-state agreements in the consumer flow, and the edit/list screens do not expose deletion for non-draft states. | — | — |
+| `tenantIsNotTheConsumer` | 403 | `assertRequesterCanActAsConsumer(...)` fails because the authenticated organization is not the consumer and no active consumer delegation applies. | Cannot happen — the consumer-side delete action is only rendered for the consuming organization on its own draft agreement page; producer and unrelated roles do not get the delete control. | — | — |
+| `tenantIsNotTheDelegateConsumer` | 403 | `assertRequesterCanActAsConsumer(...)` fails because an active consumer delegation exists, but the authenticated organization is not the current delegate for that agreement. | Cannot happen — delegated consumer actions are only displayed when the active consumer delegation matches the current org; otherwise the action is hidden and the route is not navigable. | — | — |
+
+## 16. `POST /agreements/:agreementId/update`
+
+Service: `agreementService` → `updateAgreement`. Mapper: `updateAgreementErrorMapper`. Roles: `ADMIN_ROLE`.
+
+### BFF endpoints
+
+- `POST /agreements/:agreementId/update`
+
+| Error | Status | When it happens | Reachable from the FE? | Steps to reproduce (UI) | Resolution steps |
+| --- | --- | --- | --- | --- | --- |
+| `agreementNotFound` | 404 | `retrieveAgreement(agreementId, readModelService)` fails because the agreement id is not found. | Cannot happen — the update draft flow is entered from an existing agreement record; the edit page is not reachable with a stale or non-existent agreement id in normal UI navigation. | — | — |
+| `agreementNotInExpectedState` | 400 | `assertExpectedState(agreementId, agreementToBeUpdated.data.state, agreementUpdatableStates)` fails when the agreement is not in an updatable state. | Cannot happen — `SUBSCRIBE_AGREEMENT_EDIT` is only used for draft agreements, and the save button is only shown on that draft edit screen. | — | — |
+| `tenantIsNotTheConsumer` | 403 | `assertRequesterCanActAsConsumer(...)` fails because the authenticated organization is not the consumer and no active consumer delegation applies. | Cannot happen — the edit draft UI is restricted to the consumer organization and the save action is not rendered for producer or unrelated roles. | — | — |
+| `tenantIsNotTheDelegateConsumer` | 403 | `assertRequesterCanActAsConsumer(...)` fails because an active consumer delegation exists, but the authenticated organization is not the delegate for the agreement. | Cannot happen — delegated consumer updates are only possible for the matching active consumer delegate; the UI does not render the save action for a different org. | — | — |
+
+## 17. `POST /agreements/:agreementId/upgrade`
+
+Service: `agreementService` → `upgradeAgreement`. Mapper: `upgradeAgreementErrorMapper`. Roles: `ADMIN_ROLE`, `M2M_ADMIN_ROLE`.
+
+### BFF endpoints
+
+- `POST /agreements/:agreementId/upgrade`
+
+| Error | Status | When it happens | Reachable from the FE? | Steps to reproduce (UI) | Resolution steps |
+| --- | --- | --- | --- | --- | --- |
+| `agreementNotFound` | 404 | `retrieveAgreement(agreementId, readModelService)` fails because no agreement exists for the selected id. | Cannot happen — the upgrade action is launched from an agreement already loaded in the consumer agreement flow; the FE only lets the user trigger it for an existing agreement object. | — | — |
+| `missingCertifiedAttributesError` | 400 | `validateCertifiedAttributes({ descriptor: newDescriptor, consumer })` throws when the consumer lacks the certified attributes required by the newer published descriptor. | Cannot happen — the upgrade dialog is disabled when `!upgradeAgreement.hasAllCertifiedAttributes` in the consumer e-service actions, and the mutation is not invoked without those attributes. | — | — |
+| `agreementNotInExpectedState` | 400 | `assertExpectedState(agreementId, agreementToBeUpgraded.data.state, agreementUpgradableStates)` fails when the agreement state is not upgradeable. | Cannot happen — the upgrade action is only offered when the agreement state qualifies for upgrade in the consumer agreement data and the UI does not show it otherwise. | — | — |
+| `publishedDescriptorNotFound` | 400 | `newDescriptor === undefined` after checking the e-service descriptors, so no published descriptor is available for the upgrade. | Cannot happen — the upgrade action is only shown when a newer published descriptor is available; the FE does not present the upgrade action in the no-published-descriptor case. | — | — |
+| `noNewerDescriptor` | 400 | `latestDescriptorVersion.data <= currentVersion.data` and the newer published version is not actually newer than the current one. | Cannot happen — the FE checks version availability before exposing the upgrade action, so the mutation is not reachable when there is no newer descriptor. | — | — |
+| `tenantIsNotTheConsumer` | 403 | `assertRequesterCanActAsConsumer(...)` fails because the authenticated organization is not the consumer and there is no active consumer delegation. | Cannot happen — the upgrade action is a consumer-side action and is not rendered for unrelated tenants or provider roles. | — | — |
+| `tenantIsNotTheDelegateConsumer` | 403 | `assertRequesterCanActAsConsumer(...)` fails because the agreement has an active consumer delegation and the authenticated organization is not the delegate. | Cannot happen — delegated consumer upgrade actions are only shown when the active consumer delegation matches the current org, otherwise the action is hidden. | — | — |
+
+
+## 18. `GET /tenants/:tenantId/eservices/:eserviceId/descriptors/:descriptorId/certifiedAttributes/validate`
 
 Service: `agreementService` → `verifyTenantCertifiedAttributes`. Mapper: `verifyTenantCertifiedAttributesErrorMapper`. Roles: `ADMIN_ROLE`, `SUPPORT_ROLE`, `VIEWER_ROLE`.
 
