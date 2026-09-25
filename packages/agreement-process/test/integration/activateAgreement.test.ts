@@ -41,6 +41,7 @@ import {
   DeclaredTenantAttribute,
   DelegationId,
   Descriptor,
+  DescriptorState,
   EService,
   EServiceAttributeCertifiedDiscrete,
   EServiceId,
@@ -64,8 +65,8 @@ import { config } from "../../src/config/config.js";
 import {
   agreementActivableStates,
   agreementArchivableStates,
-  agreementFirstActivationAllowedDescriptorStates,
-  agreementSuspendedActivationAllowedDescriptorStates,
+  allowedDescriptorStatesForAgreementFirstActivation,
+  allowedDescriptorStatesForAgreementUnsuspension,
 } from "../../src/model/domain/agreement-validators.js";
 import {
   agreementActivationFailed,
@@ -193,6 +194,11 @@ describe("activate agreement", () => {
   }
 
   describe("Agreement Pending", () => {
+    describe.each([
+      descriptorState.published,
+      descriptorState.suspended,
+      descriptorState.deprecated,
+    ])("%s Descriptor", (descriptorState) => {
     it.each([
       { requesterIs: "Producer", withConsumerDelegation: false },
       { requesterIs: "Producer", withConsumerDelegation: true },
@@ -210,9 +216,7 @@ describe("activate agreement", () => {
 
         const descriptor: Descriptor = {
           ...getMockDescriptorPublished(),
-          state: randomArrayItem(
-            agreementFirstActivationAllowedDescriptorStates
-          ),
+          state: descriptorState,
           attributes: {
             certified: [[getMockEServiceAttribute(certifiedAttribute.id)]],
             declared: [[getMockEServiceAttribute(declaredAttribute.id)]],
@@ -375,6 +379,7 @@ describe("activate agreement", () => {
         });
       }
     );
+    });
 
     it("Agreement Pending, valid certified discrete attribute -- success case: populates certifiedDiscreteAttributes on the activated agreement", async () => {
       config.featureFlagAttributeCertifiedDiscrete = true;
@@ -385,7 +390,9 @@ describe("activate agreement", () => {
 
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
-        state: randomArrayItem(agreementFirstActivationAllowedDescriptorStates),
+        state: randomArrayItem(
+          allowedDescriptorStatesForAgreementFirstActivation
+        ),
         attributes: {
           certified: [
             [
@@ -488,7 +495,9 @@ describe("activate agreement", () => {
 
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
-        state: randomArrayItem(agreementFirstActivationAllowedDescriptorStates),
+        state: randomArrayItem(
+          allowedDescriptorStatesForAgreementFirstActivation
+        ),
         attributes: {
           certified: [
             [
@@ -608,7 +617,9 @@ describe("activate agreement", () => {
       const authData = getMockAuthData(producer.id);
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
-        state: randomArrayItem(agreementFirstActivationAllowedDescriptorStates),
+        state: randomArrayItem(
+          allowedDescriptorStatesForAgreementFirstActivation
+        ),
         attributes: {
           certified: [
             [getMockEServiceAttribute(revokedTenantCertifiedAttribute.id)],
@@ -734,7 +745,9 @@ describe("activate agreement", () => {
       const authData = getMockAuthData(producer.id);
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
-        state: randomArrayItem(agreementFirstActivationAllowedDescriptorStates),
+        state: randomArrayItem(
+          allowedDescriptorStatesForAgreementFirstActivation
+        ),
         attributes: {
           certified:
             consumerInvalidAttribute.type === "PersistentCertifiedAttribute"
@@ -882,10 +895,19 @@ describe("activate agreement", () => {
   });
 
   describe("Agreement Suspended", () => {
+    describe.each([
+      descriptorState.published,
+      descriptorState.suspended,
+      descriptorState.deprecated,
+      descriptorState.archiving,
+      descriptorState.archivingSuspended,
+    ])("%s Descriptor", (descriptorState) => {
     it.each(Object.values(requesterIs))(
       "Agreement Suspended, valid attributes, requester is: %s -- success case: Suspended >> Activated",
       async (requesterIs) => {
-        const { suspendedByProducer, suspendedByConsumer } = match(requesterIs)
+        const { suspendedByProducer, suspendedByConsumer } = match(
+          requesterIs
+        )
           .with("Producer", "DelegateProducer", () => ({
             // Only suspendedByProducer is true, so that the next state is active
             suspendedByProducer: true,
@@ -933,9 +955,7 @@ describe("activate agreement", () => {
 
         const descriptor: Descriptor = {
           ...getMockDescriptorPublished(),
-          state: randomArrayItem(
-            agreementSuspendedActivationAllowedDescriptorStates
-          ),
+          state: descriptorState,
           attributes: {
             certified: [
               [getMockEServiceAttribute(validTenantCertifiedAttribute.id)],
@@ -1066,6 +1086,7 @@ describe("activate agreement", () => {
         await testRelatedAgreementsArchiviation(relatedAgreements);
       }
     );
+    });
 
     it("Agreement Suspended, Requester === Consumer === Producer, no matter the attributes -- success case: Suspended >> Activated", async () => {
       const revokedTenantCertifiedAttribute: CertifiedTenantAttribute = {
@@ -1099,9 +1120,7 @@ describe("activate agreement", () => {
 
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
-        state: randomArrayItem(
-          agreementSuspendedActivationAllowedDescriptorStates
-        ),
+        state: randomArrayItem(allowedDescriptorStatesForAgreementUnsuspension),
         attributes: {
           certified: [
             [getMockEServiceAttribute(consumerAndProducer.attributes[0].id)],
@@ -1224,9 +1243,7 @@ describe("activate agreement", () => {
 
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
-        state: randomArrayItem(
-          agreementSuspendedActivationAllowedDescriptorStates
-        ),
+        state: randomArrayItem(allowedDescriptorStatesForAgreementUnsuspension),
       };
 
       const eservice: EService = {
@@ -1370,7 +1387,7 @@ describe("activate agreement", () => {
         const descriptor: Descriptor = {
           ...getMockDescriptorPublished(),
           state: randomArrayItem(
-            agreementSuspendedActivationAllowedDescriptorStates
+            allowedDescriptorStatesForAgreementUnsuspension
           ),
           attributes: {
             certified: [
@@ -1660,7 +1677,7 @@ describe("activate agreement", () => {
           const discreteDescriptor: Descriptor = {
             ...getMockDescriptorPublished(),
             state: randomArrayItem(
-              agreementSuspendedActivationAllowedDescriptorStates
+              allowedDescriptorStatesForAgreementUnsuspension
             ),
             attributes: {
               certified: [[descriptorAttribute]],
@@ -1973,7 +1990,7 @@ describe("activate agreement", () => {
         const descriptor: Descriptor = {
           ...getMockDescriptorPublished(),
           state: randomArrayItem(
-            agreementSuspendedActivationAllowedDescriptorStates
+            allowedDescriptorStatesForAgreementUnsuspension
           ),
           attributes: {
             certified:
@@ -2306,15 +2323,24 @@ describe("activate agreement", () => {
       getMethod(service: typeof agreementService) {
         return service.approveAgreement;
       },
-      descriptorAllowedStates: agreementFirstActivationAllowedDescriptorStates,
+      descriptorAllowedStates: [
+        descriptorState.published,
+        descriptorState.suspended,
+        descriptorState.deprecated,
+      ] as DescriptorState[],
     },
     {
       state: agreementState.suspended,
       getMethod(service: typeof agreementService) {
         return service.unsuspendAgreement;
       },
-      descriptorAllowedStates:
-        agreementSuspendedActivationAllowedDescriptorStates,
+      descriptorAllowedStates: [
+        descriptorState.published,
+        descriptorState.suspended,
+        descriptorState.deprecated,
+        descriptorState.archiving,
+        descriptorState.archivingSuspended,
+      ] as DescriptorState[],
     },
   ])(
     "All other error cases for $state agreement",

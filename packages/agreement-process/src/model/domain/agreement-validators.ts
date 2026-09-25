@@ -68,14 +68,14 @@ export const agreementActivableStates: AgreementState[] = [
   agreementState.suspended,
 ];
 
-export const agreementFirstActivationAllowedDescriptorStates: DescriptorState[] =
+export const allowedDescriptorStatesForAgreementFirstActivation: DescriptorState[] =
   [
     descriptorState.published,
     descriptorState.suspended,
     descriptorState.deprecated,
   ];
 
-export const agreementSuspendedActivationAllowedDescriptorStates: DescriptorState[] =
+export const allowedDescriptorStatesForAgreementUnsuspension: DescriptorState[] =
   [
     descriptorState.published,
     descriptorState.suspended,
@@ -539,8 +539,8 @@ export const validateActivationOnDescriptor = (
     descriptor.id,
     descriptor.state,
     isFirstActivation
-      ? agreementFirstActivationAllowedDescriptorStates
-      : agreementSuspendedActivationAllowedDescriptorStates
+      ? allowedDescriptorStatesForAgreementFirstActivation
+      : allowedDescriptorStatesForAgreementUnsuspension
   );
 
   return descriptor;
