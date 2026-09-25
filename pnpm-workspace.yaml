@@ -112,3 +112,8 @@ catalog:
   zod-validation-error: 3.3.0
 
 catalogMode: strict
+
+patchedDependencies:
+  "@zodios/core@10.9.6": patches/@zodios__core@10.9.6.patch
+  "@zodios/express@10.6.1": patches/@zodios__express@10.6.1.patch
+  "openapi-zod-client@1.18.3": patches/openapi-zod-client@1.18.3.patch

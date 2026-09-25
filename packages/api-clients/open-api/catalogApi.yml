@@ -208,7 +208,7 @@ paths:
   /catalog:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
-    post:
+    query:
       security:
         - bearerAuth: []
       tags:

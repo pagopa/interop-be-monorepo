@@ -16,3 +16,8 @@ overrides:
       - "packages/api-clients/open-api/authorizationApi.yml#/components/schemas/Visibility"
     rules:
       oas3-unused-component: off # Schema used in code but not referenced in OpenAPI spec
+  - files:
+      - "packages/api-clients/open-api/catalogApi.yml#/paths/~1catalog"
+      - "packages/api-clients/open-api/bffApi.yml#/paths/~1catalog"
+    rules:
+      oas3-schema: off # QUERY method is not part of OpenAPI 3.0, supported via patches on zodios and openapi-zod-client
