@@ -1,18 +1,25 @@
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
   getMockAgreement,
+  getMockAttribute,
   getMockAuthData,
+  getMockCertifiedTenantAttribute,
   getMockContext,
   getMockDelegation,
   getMockDescriptor,
   getMockEService,
+  getMockPurposeTemplate,
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
+  Attribute,
+  CertifiedTenantAttribute,
   Descriptor,
   EService,
   EServiceId,
+  EServiceTemplateId,
   ListResult,
+  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   Tenant,
   TenantId,
   agreementState,
@@ -26,8 +33,11 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import {
   addOneAgreement,
+  addOneAttribute,
   addOneDelegation,
   addOneEService,
+  addOnePurposeTemplate,
+  addOnePurposeTemplateEServiceDescriptor,
   addOneTenant,
   catalogService,
 } from "../integrationUtils.js";
@@ -878,6 +888,421 @@ describe("query eservices", () => {
 
       expect(result.totalCount).toBe(1);
       expect(idsOf(result)).toEqual([eserviceReceived.id]);
+    });
+  });
+
+  describe("onlyTemplateInstances", () => {
+    const eserviceInstanceA: EService = {
+      ...buildEService("InstanceA", new Date("2024-01-01T00:00:00Z")),
+      templateId: generateId<EServiceTemplateId>(),
+    };
+    const eserviceInstanceB: EService = {
+      ...buildEService("InstanceB", new Date("2024-02-01T00:00:00Z")),
+      templateId: generateId<EServiceTemplateId>(),
+    };
+    const eserviceNoTemplate = buildEService(
+      "NoTemplate",
+      new Date("2024-03-01T00:00:00Z")
+    );
+
+    beforeEach(async () => {
+      await addOneEService(eserviceInstanceA);
+      await addOneEService(eserviceInstanceB);
+      await addOneEService(eserviceNoTemplate);
+    });
+
+    it("should not filter the e-services when onlyTemplateInstances is not set", async () => {
+      const result = await filterEServices({});
+
+      expect(result.totalCount).toBe(3);
+    });
+
+    it("should not filter the e-services when onlyTemplateInstances is false", async () => {
+      const result = await filterEServices({ onlyTemplateInstances: false });
+
+      expect(result.totalCount).toBe(3);
+    });
+
+    it("should return only the e-services with a template (onlyTemplateInstances: true)", async () => {
+      const result = await filterEServices({ onlyTemplateInstances: true });
+
+      expect(result.totalCount).toBe(2);
+      expect(idsOf(result)).toEqual([
+        eserviceInstanceB.id,
+        eserviceInstanceA.id,
+      ]);
+    });
+  });
+
+  describe("hasLinkedPurposeTemplates", () => {
+    const purposeTemplateA = getMockPurposeTemplate();
+    const purposeTemplateB = getMockPurposeTemplate();
+
+    const eserviceLinked = buildEService(
+      "Linked",
+      new Date("2024-01-01T00:00:00Z")
+    );
+    const eserviceLinkedToOldDescriptor = buildEService(
+      "LinkedToOldDescriptor",
+      new Date("2024-02-01T00:00:00Z")
+    );
+    const eserviceLinkedTwice = buildEService(
+      "LinkedTwice",
+      new Date("2024-03-01T00:00:00Z")
+    );
+    const eserviceNotLinked = buildEService(
+      "NotLinked",
+      new Date("2024-04-01T00:00:00Z")
+    );
+
+    beforeEach(async () => {
+      await addOnePurposeTemplate(purposeTemplateA);
+      await addOnePurposeTemplate(purposeTemplateB);
+      await addOneEService(eserviceLinked);
+      await addOneEService(eserviceLinkedToOldDescriptor);
+      await addOneEService(eserviceLinkedTwice);
+      await addOneEService(eserviceNotLinked);
+      await addOnePurposeTemplateEServiceDescriptor({
+        purposeTemplateId: purposeTemplateA.id,
+        eserviceId: eserviceLinked.id,
+        descriptorId: eserviceLinked.descriptors[0].id,
+        createdAt: new Date(),
+      });
+      // The descriptor of this link no longer exists: the link still counts.
+      await addOnePurposeTemplateEServiceDescriptor({
+        purposeTemplateId: purposeTemplateA.id,
+        eserviceId: eserviceLinkedToOldDescriptor.id,
+        descriptorId: generateId(),
+        createdAt: new Date(),
+      });
+      await addOnePurposeTemplateEServiceDescriptor({
+        purposeTemplateId: purposeTemplateA.id,
+        eserviceId: eserviceLinkedTwice.id,
+        descriptorId: eserviceLinkedTwice.descriptors[0].id,
+        createdAt: new Date(),
+      });
+      await addOnePurposeTemplateEServiceDescriptor({
+        purposeTemplateId: purposeTemplateB.id,
+        eserviceId: eserviceLinkedTwice.id,
+        descriptorId: eserviceLinkedTwice.descriptors[0].id,
+        createdAt: new Date(),
+      });
+    });
+
+    it("should not filter the e-services when hasLinkedPurposeTemplates is not set", async () => {
+      const result = await filterEServices({});
+
+      expect(result.totalCount).toBe(4);
+    });
+
+    it("should not filter the e-services when hasLinkedPurposeTemplates is false", async () => {
+      const result = await filterEServices({
+        hasLinkedPurposeTemplates: false,
+      });
+
+      expect(result.totalCount).toBe(4);
+    });
+
+    it("should return only the e-services with at least one linked purpose template, once each (hasLinkedPurposeTemplates: true)", async () => {
+      const result = await filterEServices({ hasLinkedPurposeTemplates: true });
+
+      expect(result.totalCount).toBe(3);
+      expect(idsOf(result)).toEqual([
+        eserviceLinkedTwice.id,
+        eserviceLinkedToOldDescriptor.id,
+        eserviceLinked.id,
+      ]);
+    });
+  });
+
+  describe("producerCategories", () => {
+    const ipaAttribute = (code: string): Attribute => ({
+      ...getMockAttribute(),
+      code,
+      origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
+    });
+    const attributeComune = ipaAttribute("L6");
+    const attributeComunita = ipaAttribute("L18");
+    const attributeRegione = ipaAttribute("L4");
+    const attributePaCentrale = ipaAttribute("C1");
+    // Same code as attributeComune, created by a certifier: not an IPA category.
+    const attributeCertifierL6: Attribute = {
+      ...getMockAttribute(),
+      code: "L6",
+      origin: generateId(),
+    };
+
+    const certifiedAttribute = (
+      attribute: Attribute,
+      revocationTimestamp?: Date
+    ): CertifiedTenantAttribute => ({
+      ...getMockCertifiedTenantAttribute(attribute.id),
+      revocationTimestamp,
+    });
+
+    const comune: Tenant = {
+      ...getMockTenant(),
+      attributes: [certifiedAttribute(attributeComune)],
+    };
+    const regione: Tenant = {
+      ...getMockTenant(),
+      attributes: [certifiedAttribute(attributeRegione)],
+    };
+    const paCentrale: Tenant = {
+      ...getMockTenant(),
+      attributes: [certifiedAttribute(attributePaCentrale)],
+    };
+    const comuneTwoCodes: Tenant = {
+      ...getMockTenant(),
+      attributes: [
+        certifiedAttribute(attributeComune),
+        certifiedAttribute(attributeComunita),
+      ],
+    };
+    const exComuneNowPaCentrale: Tenant = {
+      ...getMockTenant(),
+      attributes: [
+        certifiedAttribute(attributeComune, new Date("2024-01-01T00:00:00Z")),
+        certifiedAttribute(attributePaCentrale),
+      ],
+    };
+    const certifiedByCertifier: Tenant = {
+      ...getMockTenant(),
+      attributes: [certifiedAttribute(attributeCertifierL6)],
+    };
+    const noCategory: Tenant = getMockTenant();
+
+    const eserviceComune: EService = {
+      ...buildEService("Comune", new Date("2024-01-01T00:00:00Z")),
+      producerId: comune.id,
+    };
+    const eserviceRegione: EService = {
+      ...buildEService("Regione", new Date("2024-02-01T00:00:00Z")),
+      producerId: regione.id,
+    };
+    const eservicePaCentrale: EService = {
+      ...buildEService("PaCentrale", new Date("2024-03-01T00:00:00Z")),
+      producerId: paCentrale.id,
+    };
+    const eserviceComuneTwoCodes: EService = {
+      ...buildEService("ComuneTwoCodes", new Date("2024-04-01T00:00:00Z")),
+      producerId: comuneTwoCodes.id,
+    };
+    const eserviceExComune: EService = {
+      ...buildEService("ExComune", new Date("2024-05-01T00:00:00Z")),
+      producerId: exComuneNowPaCentrale.id,
+    };
+    const eserviceCertifiedByCertifier: EService = {
+      ...buildEService(
+        "CertifiedByCertifier",
+        new Date("2024-06-01T00:00:00Z")
+      ),
+      producerId: certifiedByCertifier.id,
+    };
+    const eserviceNoCategory: EService = {
+      ...buildEService("NoCategory", new Date("2024-07-01T00:00:00Z")),
+      producerId: noCategory.id,
+    };
+
+    beforeEach(async () => {
+      await addOneAttribute(attributeComune);
+      await addOneAttribute(attributeComunita);
+      await addOneAttribute(attributeRegione);
+      await addOneAttribute(attributePaCentrale);
+      await addOneAttribute(attributeCertifierL6);
+      await addOneTenant(comune);
+      await addOneTenant(regione);
+      await addOneTenant(paCentrale);
+      await addOneTenant(comuneTwoCodes);
+      await addOneTenant(exComuneNowPaCentrale);
+      await addOneTenant(certifiedByCertifier);
+      await addOneTenant(noCategory);
+      await addOneEService(eserviceComune);
+      await addOneEService(eserviceRegione);
+      await addOneEService(eservicePaCentrale);
+      await addOneEService(eserviceComuneTwoCodes);
+      await addOneEService(eserviceExComune);
+      await addOneEService(eserviceCertifiedByCertifier);
+      await addOneEService(eserviceNoCategory);
+    });
+
+    it("should not filter the e-services when producerCategories is not set", async () => {
+      const result = await filterEServices({});
+
+      expect(result.totalCount).toBe(7);
+    });
+
+    it("should not filter the e-services when producerCategories is empty", async () => {
+      const result = await filterEServices({ producerCategories: [] });
+
+      expect(result.totalCount).toBe(7);
+    });
+
+    it("should return only the e-services of producers with an IPA certified attribute of the category (producerCategories: COMUNI)", async () => {
+      const result = await filterEServices({ producerCategories: ["COMUNI"] });
+
+      expect(result.totalCount).toBe(2);
+      expect(idsOf(result)).toEqual([
+        eserviceComuneTwoCodes.id,
+        eserviceComune.id,
+      ]);
+    });
+
+    it("should not match a certifier attribute that has the code of an IPA category", async () => {
+      const result = await filterEServices({ producerCategories: ["COMUNI"] });
+
+      expect(idsOf(result)).not.toContain(eserviceCertifiedByCertifier.id);
+    });
+
+    it("should ignore a revoked certified attribute and keep the valid ones of the same producer", async () => {
+      const comuni = await filterEServices({ producerCategories: ["COMUNI"] });
+      const paCentrali = await filterEServices({
+        producerCategories: ["PUBBLICHE_AMMINISTRAZIONI_CENTRALI"],
+      });
+
+      expect(idsOf(comuni)).not.toContain(eserviceExComune.id);
+      expect(idsOf(paCentrali)).toEqual([
+        eserviceExComune.id,
+        eservicePaCentrale.id,
+      ]);
+    });
+
+    it.each<catalogApi.EServiceProducerCategory>([
+      "REGIONI_PROVINCE_AUTONOME",
+      "CONSORZI_ASSOCIAZIONI_REGIONALI",
+    ])(
+      "should return the same producer for both categories that share the code L4 (producerCategories: %s)",
+      async (category) => {
+        const result = await filterEServices({
+          producerCategories: [category],
+        });
+
+        expect(result.totalCount).toBe(1);
+        expect(idsOf(result)).toEqual([eserviceRegione.id]);
+      }
+    );
+
+    it("should return the e-services of producers in at least one of the categories (producerCategories: COMUNI and PUBBLICHE_AMMINISTRAZIONI_CENTRALI)", async () => {
+      const result = await filterEServices({
+        producerCategories: ["COMUNI", "PUBBLICHE_AMMINISTRAZIONI_CENTRALI"],
+      });
+
+      expect(result.totalCount).toBe(4);
+      expect(idsOf(result)).toEqual([
+        eserviceExComune.id,
+        eserviceComuneTwoCodes.id,
+        eservicePaCentrale.id,
+        eserviceComune.id,
+      ]);
+    });
+
+    it("should keep the count consistent across pages (producerCategories: COMUNI)", async () => {
+      const pages = await Promise.all(
+        [0, 1].map((offset) =>
+          filterEServices(
+            { producerCategories: ["COMUNI"] },
+            getMockContext({}),
+            offset,
+            1
+          )
+        )
+      );
+
+      expect(pages.map((page) => page.totalCount)).toEqual([2, 2]);
+      expect(pages.flatMap(idsOf)).toEqual([
+        eserviceComuneTwoCodes.id,
+        eserviceComune.id,
+      ]);
+    });
+
+    it("should return no e-service when no producer belongs to the category (producerCategories: SCUOLE)", async () => {
+      const result = await filterEServices({ producerCategories: ["SCUOLE"] });
+
+      expect(result.totalCount).toBe(0);
+      expect(result.results).toEqual([]);
+    });
+  });
+
+  describe("combined filters", () => {
+    const attributeComune: Attribute = {
+      ...getMockAttribute(),
+      code: "L6",
+      origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
+    };
+    const comune: Tenant = {
+      ...getMockTenant(),
+      name: "Comune di Bologna",
+      attributes: [
+        {
+          ...getMockCertifiedTenantAttribute(attributeComune.id),
+          revocationTimestamp: undefined,
+        },
+      ],
+    };
+    const purposeTemplate = getMockPurposeTemplate();
+
+    const eserviceMatchingAll: EService = {
+      ...buildEService("Anagrafe", new Date("2024-01-01T00:00:00Z")),
+      producerId: comune.id,
+      templateId: generateId<EServiceTemplateId>(),
+    };
+    const eserviceWrongProducer: EService = {
+      ...buildEService("Anagrafe regionale", new Date("2024-02-01T00:00:00Z")),
+      templateId: generateId<EServiceTemplateId>(),
+    };
+    const eserviceNoTemplate: EService = {
+      ...buildEService("Anagrafe comunale", new Date("2024-03-01T00:00:00Z")),
+      producerId: comune.id,
+    };
+    const eserviceNoLink: EService = {
+      ...buildEService("Anagrafe storica", new Date("2024-04-01T00:00:00Z")),
+      producerId: comune.id,
+      templateId: generateId<EServiceTemplateId>(),
+    };
+    const eserviceWrongKeyword: EService = {
+      ...buildEService("Tributi", new Date("2024-05-01T00:00:00Z")),
+      producerId: comune.id,
+      templateId: generateId<EServiceTemplateId>(),
+    };
+
+    beforeEach(async () => {
+      await addOneAttribute(attributeComune);
+      await addOneTenant(comune);
+      await addOnePurposeTemplate(purposeTemplate);
+      for (const eservice of [
+        eserviceMatchingAll,
+        eserviceWrongProducer,
+        eserviceNoTemplate,
+        eserviceNoLink,
+        eserviceWrongKeyword,
+      ]) {
+        await addOneEService(eservice);
+      }
+      for (const eservice of [
+        eserviceMatchingAll,
+        eserviceWrongProducer,
+        eserviceNoTemplate,
+        eserviceWrongKeyword,
+      ]) {
+        await addOnePurposeTemplateEServiceDescriptor({
+          purposeTemplateId: purposeTemplate.id,
+          eserviceId: eservice.id,
+          descriptorId: eservice.descriptors[0].id,
+          createdAt: new Date(),
+        });
+      }
+    });
+
+    it("should apply all the filters and the keyword together", async () => {
+      const result = await filterEServices({
+        keyword: "anagrafe",
+        onlyTemplateInstances: true,
+        hasLinkedPurposeTemplates: true,
+        producerCategories: ["COMUNI"],
+      });
+
+      expect(result.totalCount).toBe(1);
+      expect(idsOf(result)).toEqual([eserviceMatchingAll.id]);
     });
   });
 });

@@ -1061,8 +1061,9 @@ export function catalogServiceBuilder(
         unsafeBrandId
       );
       const requesterDelegationRoles = filters.requesterDelegationRoles ?? [];
+      const producerCategories = filters.producerCategories ?? [];
       logger.info(
-        `Querying EServices, limit = ${filters.limit}, offset = ${filters.offset}, sortBy = ${sortBy}, keyword = ${keyword}, producersIds = ${producersIds}, onlyActiveEservices = ${filters.onlyActiveEservices}, subscribedByRequester = ${filters.subscribedByRequester}, requesterDelegationRoles = ${requesterDelegationRoles}`
+        `Querying EServices, limit = ${filters.limit}, offset = ${filters.offset}, sortBy = ${sortBy}, keyword = ${keyword}, producersIds = ${producersIds}, onlyActiveEservices = ${filters.onlyActiveEservices}, subscribedByRequester = ${filters.subscribedByRequester}, requesterDelegationRoles = ${requesterDelegationRoles}, onlyTemplateInstances = ${filters.onlyTemplateInstances}, hasLinkedPurposeTemplates = ${filters.hasLinkedPurposeTemplates}, producerCategories = ${producerCategories}`
       );
       const eservicesList = await readModelService.queryEServices(authData, {
         offset: filters.offset,
@@ -1073,6 +1074,9 @@ export function catalogServiceBuilder(
         onlyActiveEservices: filters.onlyActiveEservices,
         subscribedByRequester: filters.subscribedByRequester,
         requesterDelegationRoles,
+        onlyTemplateInstances: filters.onlyTemplateInstances,
+        hasLinkedPurposeTemplates: filters.hasLinkedPurposeTemplates,
+        producerCategories,
       });
 
       const eservicesToReturn = await Promise.all(
