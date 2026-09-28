@@ -124,7 +124,7 @@ export async function handlePurposeEvent(
     )
     .with(
       { type: "NewPurposeVersionWaitingForApproval" },
-      async ({ data: { purpose } }) => [
+      async ({ data: { purpose, waitingForApprovalReason } }) => [
         ...(await handleNewPurposeVersionWaitingForApprovalToProducer({
           purposeV2Msg: purpose,
           logger,
@@ -133,6 +133,7 @@ export async function handlePurposeEvent(
           correlationId,
         })),
         ...(await handleNewPurposeVersionWaitingForApprovalToConsumer({
+          waitingForApprovalReason,
           purposeV2Msg: purpose,
           logger,
           readModelService,
@@ -143,7 +144,7 @@ export async function handlePurposeEvent(
     )
     .with(
       { type: "PurposeWaitingForApproval" },
-      async ({ data: { purpose } }) => [
+      async ({ data: { purpose, waitingForApprovalReason } }) => [
         ...(await handlePurposeWaitingForApprovalToProducer({
           purposeV2Msg: purpose,
           logger,
@@ -152,6 +153,7 @@ export async function handlePurposeEvent(
           correlationId,
         })),
         ...(await handlePurposeWaitingForApprovalToConsumer({
+          waitingForApprovalReason,
           purposeV2Msg: purpose,
           logger,
           readModelService,
@@ -161,6 +163,19 @@ export async function handlePurposeEvent(
       ]
     )
     .with(
+      { type: "PurposeVersionOverQuotaUnsuspended" },
+      ({ data: { purpose, waitingForApprovalReason }, type }) =>
+        handleNewPurposeVersionWaitingForApprovalToConsumer({
+          purposeV2Msg: purpose,
+          waitingForApprovalReason,
+          eventType: type,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })
+    )
+    .with(
       {
         type: P.union(
           "DraftPurposeDeleted",
@@ -168,7 +183,6 @@ export async function handlePurposeEvent(
           "PurposeAdded",
           "DraftPurposeUpdated",
           "PurposeActivated",
-          "PurposeVersionOverQuotaUnsuspended",
           "WaitingForApprovalPurposeVersionDeleted",
           "NewPurposeVersionActivated",
           "PurposeCloned",

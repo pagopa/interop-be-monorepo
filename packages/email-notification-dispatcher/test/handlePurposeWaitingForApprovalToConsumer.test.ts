@@ -7,6 +7,7 @@ import {
   getMockEService,
   getMockPurpose,
   getMockTenant,
+  getMockTenantMail,
 } from "pagopa-interop-commons-test";
 import {
   CorrelationId,
@@ -16,6 +17,7 @@ import {
   missingKafkaMessageDataError,
   NotificationType,
   Purpose,
+  PurposeWaitingForApprovalReasonV2,
   Tenant,
   TenantId,
   TenantNotificationConfigId,
@@ -216,6 +218,40 @@ describe("handlePurposeWaitingForApprovalOverthreshold", async () => {
     ).toBe(true);
   });
 
+  it("should include the tenant contact email for the first approval request", async () => {
+    const mail = getMockTenantMail();
+    await addOneTenant({ ...consumerTenant, mails: [mail] });
+    const purpose = {
+      ...getMockPurpose(),
+      eserviceId: eservice.id,
+      consumerId,
+    };
+    const messages = await handlePurposeWaitingForApprovalToConsumer({
+      purposeV2Msg: toPurposeV2(purpose),
+      logger,
+      templateService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+      waitingForApprovalReason:
+        PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_PER_CONSUMER,
+    });
+    expect(messages).toHaveLength(3);
+    expect(messages).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: "Tenant", address: mail.address }),
+      ])
+    );
+    for (const message of messages) {
+      expect(message.email.subject).toBe(
+        "Hai superato la soglia di chiamate API per fruitore"
+      );
+      expect(message.email.body).toContain(
+        "con questa stima di chiamate API superi la soglia per fruitore"
+      );
+      expect(message.email.body).toContain("Visualizza finalità");
+    }
+  });
+
   it("should generate a complete and correct message", async () => {
     const purpose: Purpose = {
       ...getMockPurpose(),
@@ -236,7 +272,8 @@ describe("handlePurposeWaitingForApprovalOverthreshold", async () => {
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain(eservice.name);
-      expect(message.email.body).toContain(dailyCallsPerConsumer.toString());
+      expect(message.email.body).toContain(purpose.title);
+      expect(message.email.body).toContain("almeno una delle soglie");
       if (message.type === "User") {
         expect(message.email.body).toContain("{{ recipientName }}");
       }

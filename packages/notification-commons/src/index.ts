@@ -4,4 +4,5 @@ export * from "./retrievers.js";
 export * from "./scheduled/index.js";
 export * from "./templates/email/templates.js";
 export * from "./templates/inApp/inAppTemplates.js";
+export * from "./templates/purposeOverQuota.js";
 export * from "./types.js";

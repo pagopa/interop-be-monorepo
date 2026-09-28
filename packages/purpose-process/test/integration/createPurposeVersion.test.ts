@@ -32,6 +32,7 @@ import {
   eserviceMode,
   NewPurposeVersionActivatedV2,
   NewPurposeVersionWaitingForApprovalV2,
+  PurposeWaitingForApprovalReasonV2,
   delegationKind,
   delegationState,
   TenantId,
@@ -466,6 +467,8 @@ describe("createPurposeVersion", () => {
       ...writtenPayload,
       purpose: sortPurpose(writtenPayload.purpose),
     }).toEqual({
+      waitingForApprovalReason:
+        PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_PER_CONSUMER,
       purpose: toPurposeV2(expectedPurpose),
       versionId: createdPurposeVersion.id,
     });

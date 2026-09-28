@@ -3,12 +3,12 @@ import {
   fromPurposeV2,
   missingKafkaMessageDataError,
   PurposeV2,
+  PurposeWaitingForApprovalReasonV2,
   NewNotification,
 } from "pagopa-interop-models";
 import {
   getNotificationRecipients,
   retrieveEservice,
-  retrieveLatestDescriptor,
   inAppTemplates,
 } from "pagopa-interop-notification-commons";
 
@@ -16,13 +16,15 @@ import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 type PurposeOverQuotaToConsumerType =
   | "NewPurposeVersionWaitingForApproval"
-  | "PurposeWaitingForApproval";
+  | "PurposeWaitingForApproval"
+  | "PurposeVersionOverQuotaUnsuspended";
 
 export async function handlePurposeOverQuotaToConsumer(
   purposeV2Msg: PurposeV2 | undefined,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
-  type: PurposeOverQuotaToConsumerType
+  type: PurposeOverQuotaToConsumerType,
+  waitingForApprovalReason?: PurposeWaitingForApprovalReasonV2
 ): Promise<NewNotification[]> {
   if (!purposeV2Msg) {
     throw missingKafkaMessageDataError("purpose", type);
@@ -32,7 +34,6 @@ export async function handlePurposeOverQuotaToConsumer(
   );
   const purpose = fromPurposeV2(purposeV2Msg);
   const eservice = await retrieveEservice(purpose.eserviceId, readModelService);
-  const { dailyCallsPerConsumer } = retrieveLatestDescriptor(eservice);
 
   const usersWithNotifications = await getNotificationRecipients(
     [purpose.consumerId],
@@ -49,7 +50,8 @@ export async function handlePurposeOverQuotaToConsumer(
 
   const body = inAppTemplates.purposeOverQuotaToConsumer(
     eservice.name,
-    dailyCallsPerConsumer
+    purpose.title,
+    waitingForApprovalReason
   );
 
   return usersWithNotifications.map(({ userId, tenantId }) => ({

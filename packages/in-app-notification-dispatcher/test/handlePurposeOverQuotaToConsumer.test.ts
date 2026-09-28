@@ -5,7 +5,6 @@ import {
   getMockPurpose,
   getMockPurposeVersion,
   getMockTenant,
-  getMockDescriptor,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
@@ -15,7 +14,7 @@ import {
   PurposeId,
   toPurposeV2,
   purposeVersionState,
-  descriptorState,
+  PurposeWaitingForApprovalReasonV2,
 } from "pagopa-interop-models";
 import {
   getNotificationRecipients,
@@ -127,13 +126,17 @@ describe("handlePurposeOverQuotaToConsumer", () => {
   it.each<{
     eventType:
       | "NewPurposeVersionWaitingForApproval"
-      | "PurposeWaitingForApproval";
+      | "PurposeWaitingForApproval"
+      | "PurposeVersionOverQuotaUnsuspended";
   }>([
     {
       eventType: "NewPurposeVersionWaitingForApproval",
     },
     {
       eventType: "PurposeWaitingForApproval",
+    },
+    {
+      eventType: "PurposeVersionOverQuotaUnsuspended",
     },
   ])("should handle $eventType event correctly", async ({ eventType }) => {
     const consumerUsers = [
@@ -154,7 +157,7 @@ describe("handlePurposeOverQuotaToConsumer", () => {
 
     const expectedBody = inAppTemplates.purposeOverQuotaToConsumer(
       eservice.name,
-      dailyCallsPerConsumer
+      purpose.title
     );
 
     const expectedNotifications = consumerUsers.map((user) => ({
@@ -194,59 +197,41 @@ describe("handlePurposeOverQuotaToConsumer", () => {
     expect(userIds).toContain(users[2].userId);
   });
 
-  it("should use dailyCallsPerConsumer from the latest published descriptor", async () => {
-    const olderDescriptor = {
-      ...getMockDescriptor(descriptorState.deprecated),
-      dailyCallsPerConsumer: 500,
-      version: "1",
-      publishedAt: new Date("2023-01-01"),
-    };
-    const newerDescriptor = {
-      ...getMockDescriptorPublished(),
-      dailyCallsPerConsumer: 2000,
-      version: "2",
-      publishedAt: new Date("2024-01-01"),
-    };
+  it.each([
+    [
+      PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_PER_CONSUMER,
+      "con questa stima di chiamate API superi la soglia per fruitore",
+    ],
+    [
+      PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_TOTAL,
+      "sono già state superate le soglie totali",
+    ],
+    [
+      PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_BOTH,
+      "almeno una delle soglie",
+    ],
+    [undefined, "almeno una delle soglie"],
+  ] as const)(
+    "uses event reason %s without reading descriptor quotas",
+    async (reason, text) => {
+      await addOneEService({ ...eservice, descriptors: [] });
+      mockGetNotificationRecipients.mockResolvedValue([
+        { userId: generateId(), tenantId: consumerId },
+      ]);
 
-    const eserviceWithMultipleDescriptors = {
-      ...getMockEService(),
-      id: generateId<EServiceId>(),
-      producerId,
-      descriptors: [olderDescriptor, newerDescriptor],
-    };
+      const notifications = await handlePurposeOverQuotaToConsumer(
+        toPurposeV2(purpose),
+        logger,
+        readModelService,
+        "PurposeWaitingForApproval",
+        reason
+      );
 
-    await addOneEService(eserviceWithMultipleDescriptors);
-
-    const purposeForMultiDescriptor = {
-      ...getMockPurpose([
-        getMockPurposeVersion(purposeVersionState.waitingForApproval),
-      ]),
-      id: generateId<PurposeId>(),
-      eserviceId: eserviceWithMultipleDescriptors.id,
-      consumerId,
-    };
-    await addOnePurpose(purposeForMultiDescriptor);
-
-    const consumerUsers = [{ userId: generateId(), tenantId: consumerId }];
-    mockGetNotificationRecipients.mockResolvedValue(consumerUsers);
-
-    const notifications = await handlePurposeOverQuotaToConsumer(
-      toPurposeV2(purposeForMultiDescriptor),
-      logger,
-      readModelService,
-      "PurposeWaitingForApproval"
-    );
-
-    expect(notifications).toHaveLength(1);
-
-    // Should use the newer descriptor's dailyCallsPerConsumer value
-    const expectedBody = inAppTemplates.purposeOverQuotaToConsumer(
-      eserviceWithMultipleDescriptors.name,
-      2000
-    );
-
-    expect(notifications[0].body).toEqual(expectedBody);
-  });
+      expect(notifications).toHaveLength(1);
+      expect(notifications[0].body).toContain(text);
+      expect(notifications[0].body).toContain(purpose.title);
+    }
+  );
 
   it("should send notifications to consumer tenant users only", async () => {
     const consumerUsers = [

@@ -18,6 +18,7 @@ import {
   missingKafkaMessageDataError,
   NotificationType,
   Purpose,
+  PurposeWaitingForApprovalReasonV2,
   Tenant,
   TenantId,
   TenantNotificationConfigId,
@@ -257,6 +258,49 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
     expect(messages.length).toEqual(2);
   });
 
+  it.each([
+    [
+      PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_PER_CONSUMER,
+      "Hai superato la soglia di chiamate API per fruitore",
+      "con questa stima di chiamate API superi la soglia per fruitore",
+    ],
+    [
+      PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_TOTAL,
+      "Superamento soglie totali di chiamate API",
+      "sono già state superate le soglie totali",
+    ],
+    [
+      PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_BOTH,
+      "Superamento soglie per fruitore e soglie totali",
+      "almeno una delle soglie",
+    ],
+  ] as const)(
+    "renders reason %s",
+    async (waitingForApprovalReason, title, text) => {
+      const purpose = {
+        ...getMockPurpose(),
+        eserviceId: eservice.id,
+        consumerId,
+      };
+      const messages =
+        await handleNewPurposeVersionWaitingForApprovalToConsumer({
+          purposeV2Msg: toPurposeV2(purpose),
+          waitingForApprovalReason,
+          logger,
+          templateService,
+          readModelService,
+          correlationId: generateId<CorrelationId>(),
+        });
+      expect(messages).toHaveLength(2);
+      for (const message of messages) {
+        expect(message.email.subject).toBe(title);
+        expect(message.email.body).toContain(text);
+        expect(message.email.body).toContain(purpose.title);
+        expect(message.email.body).toContain("Visualizza finalità");
+      }
+    }
+  );
+
   it("should generate a complete and correct message", async () => {
     const purpose: Purpose = {
       ...getMockPurpose(),
@@ -277,14 +321,15 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain(eservice.name);
-      expect(message.email.body).toContain(dailyCallsPerConsumer.toString());
+      expect(message.email.body).toContain(purpose.title);
+      expect(message.email.body).toContain("almeno una delle soglie");
       if (message.type === "User") {
         expect(message.email.body).toContain("{{ recipientName }}");
       }
     });
   });
 
-  it("should use dailyCallsPerConsumer from the latest published descriptor", async () => {
+  it("should use the event reason rather than the latest descriptor quota", async () => {
     const olderDescriptor = {
       ...getMockDescriptor(descriptorState.deprecated),
       dailyCallsPerConsumer: 500,
@@ -324,7 +369,8 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
 
     expect(messages.length).toBe(2);
     messages.forEach((message) => {
-      expect(message.email.body).toContain("<strong>2000</strong>");
+      expect(message.email.body).toContain("almeno una delle soglie");
+      expect(message.email.body).not.toContain("<strong>2000</strong>");
       expect(message.email.body).not.toContain("<strong>500</strong>");
     });
   });

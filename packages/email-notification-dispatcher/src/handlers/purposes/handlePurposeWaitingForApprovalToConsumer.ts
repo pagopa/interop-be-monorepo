@@ -4,12 +4,13 @@ import {
   generateId,
   missingKafkaMessageDataError,
   NotificationType,
+  PurposeWaitingForApprovalReasonV2,
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
   retrieveEservice,
   retrieveHTMLTemplate,
-  retrieveLatestDescriptor,
+  purposeOverQuotaTemplate,
   retrieveTenant,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
@@ -21,7 +22,9 @@ import { PurposeHandlerParams } from "../../models/handlerParams.js";
 const notificationType: NotificationType = "purposeOverQuotaStateToConsumer";
 
 export async function handlePurposeWaitingForApprovalToConsumer(
-  data: PurposeHandlerParams
+  data: PurposeHandlerParams & {
+    waitingForApprovalReason?: PurposeWaitingForApprovalReasonV2;
+  }
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
     purposeV2Msg,
@@ -29,6 +32,7 @@ export async function handlePurposeWaitingForApprovalToConsumer(
     logger,
     templateService,
     correlationId,
+    waitingForApprovalReason,
   } = data;
 
   if (!purposeV2Msg) {
@@ -43,7 +47,11 @@ export async function handlePurposeWaitingForApprovalToConsumer(
     retrieveEservice(purpose.eserviceId, readModelService),
   ]);
 
-  const { dailyCallsPerConsumer } = retrieveLatestDescriptor(eservice);
+  const content = purposeOverQuotaTemplate(
+    purpose.title,
+    eservice.name,
+    waitingForApprovalReason
+  );
 
   const consumer = await retrieveTenant(purpose.consumerId, readModelService);
 
@@ -52,7 +60,7 @@ export async function handlePurposeWaitingForApprovalToConsumer(
     notificationType,
     readModelService,
     logger,
-    includeTenantContactEmails: false,
+    includeTenantContactEmails: true,
   });
 
   if (targets.length === 0) {
@@ -65,16 +73,14 @@ export async function handlePurposeWaitingForApprovalToConsumer(
   return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
-      subject: `Superamento soglia piano di carico per l'e-service "${eservice.name}"`,
+      subject: content.title,
       body: templateService.compileHtml(htmlTemplate, {
-        title: `Superamento soglia piano di carico per l'e-service "${eservice.name}"`,
+        title: content.title,
+        body: content.body,
         notificationType,
         entityId: purpose.id,
         ...(t.type === "Tenant" ? { recipientName: consumer.name } : {}),
-        eserviceName: eservice.name,
-        dailyCalls: dailyCallsPerConsumer,
-        isNewVersion: false,
-        ctaLabel: `Gestisci finalità`,
+        ctaLabel: "Visualizza finalità",
         selfcareId: consumer.selfcareId,
         bffUrl: config.bffUrl,
       }),

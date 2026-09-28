@@ -40,6 +40,7 @@ import {
   PurposeVersionUnsuspendedByProducerV2,
   PurposeVersionOverQuotaUnsuspendedV2,
   PurposeWaitingForApprovalV2,
+  PurposeWaitingForApprovalReasonV2,
   eserviceMode,
   PurposeVersionActivatedV2,
   delegationState,
@@ -111,6 +112,7 @@ describe("activatePurposeVersion", () => {
     mockEServiceDescriptor = {
       ...getMockDescriptorPublished(),
       dailyCallsPerConsumer: 20,
+      dailyCallsTotal: 50,
     };
 
     mockEService = {
@@ -507,6 +509,8 @@ describe("activatePurposeVersion", () => {
     }).toEqual({
       purpose: sortPurpose(toPurposeV2(expectedPurpose)),
       versionId: activateResponse.data.id,
+      waitingForApprovalReason:
+        PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_BOTH,
     });
 
     expect(activateResponse).toMatchObject({
@@ -655,6 +659,8 @@ describe("activatePurposeVersion", () => {
       ...writtenPayload,
       purpose: sortPurpose(writtenPayload.purpose),
     }).toEqual({
+      waitingForApprovalReason:
+        PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_BOTH,
       purpose: sortPurpose(toPurposeV2(expectedPurpose)),
     });
     expect(activateResponse).toMatchObject({

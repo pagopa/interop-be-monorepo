@@ -1,6 +1,7 @@
 import {
   EService,
   Purpose,
+  PurposeWaitingForApprovalReasonV2,
   Tenant,
   Agreement,
   tenantKind,
@@ -28,7 +29,7 @@ import {
 import { retrieveActiveAgreement } from "../../src/services/purposeService.js";
 import { ReadModelServiceSQL } from "../../src/services/readModelServiceSQL.js";
 import {
-  isOverQuota,
+  getWaitingForApprovalReason,
   getUpdatedQuotas,
 } from "../../src/services/validators.js";
 
@@ -43,7 +44,7 @@ const mockReadModelService = {
   getEServiceById: vi.fn(),
 } as unknown as ReadModelServiceSQL;
 
-describe("isOverQuota", () => {
+describe("getWaitingForApprovalReason", () => {
   const eserviceId = "eservice-id" as EServiceId;
   const consumerId = "consumer-id" as TenantId;
   const descriptorId = "descriptor-id" as DescriptorId;
@@ -150,53 +151,75 @@ describe("isOverQuota", () => {
     vi.resetAllMocks();
   });
 
-  it("should return false if the new daily calls do not exceed any quota", async () => {
-    (retrieveActiveAgreement as Mock).mockResolvedValue(agreement);
-    (
-      mockReadModelService.getActiveVersionsDailyCalls as Mock
-    ).mockResolvedValue({ consumerDailyCalls: 0, totalDailyCalls: 0 });
-    (mockReadModelService.getTenantById as Mock).mockResolvedValue(tenant);
+  it.each([
+    {
+      consumerDailyCalls: 0,
+      totalDailyCalls: 0,
+      dailyCalls: 10,
+      expected: undefined,
+    },
+    {
+      consumerDailyCalls: 90,
+      totalDailyCalls: 990,
+      dailyCalls: 10,
+      expected: undefined,
+    },
+    {
+      consumerDailyCalls: 90,
+      totalDailyCalls: 100,
+      dailyCalls: 20,
+      expected:
+        PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_PER_CONSUMER,
+    },
+    {
+      consumerDailyCalls: 0,
+      totalDailyCalls: 990,
+      dailyCalls: 20,
+      expected:
+        PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_TOTAL,
+    },
+    {
+      consumerDailyCalls: 90,
+      totalDailyCalls: 990,
+      dailyCalls: 20,
+      expected:
+        PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_BOTH,
+    },
+    {
+      consumerDailyCalls: 110,
+      totalDailyCalls: 1100,
+      dailyCalls: -20,
+      expected:
+        PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_TOTAL,
+    },
+    {
+      consumerDailyCalls: 110,
+      totalDailyCalls: 1100,
+      dailyCalls: -100,
+      expected: undefined,
+    },
+  ])(
+    "classifies quotas for $consumerDailyCalls/$totalDailyCalls calls and a delta of $dailyCalls",
+    async ({ consumerDailyCalls, totalDailyCalls, dailyCalls, expected }) => {
+      (retrieveActiveAgreement as Mock).mockResolvedValue(agreement);
+      (
+        mockReadModelService.getActiveVersionsDailyCalls as Mock
+      ).mockResolvedValue({ consumerDailyCalls, totalDailyCalls });
+      (mockReadModelService.getTenantById as Mock).mockResolvedValue(tenant);
 
-    const result = await isOverQuota(
-      eservice,
-      purpose,
-      10,
-      mockReadModelService
-    );
-    expect(result).toBe(false);
-  });
-
-  it("should return true if the new daily calls exceed the consumer quota", async () => {
-    (retrieveActiveAgreement as Mock).mockResolvedValue(agreement);
-    (
-      mockReadModelService.getActiveVersionsDailyCalls as Mock
-    ).mockResolvedValue({ consumerDailyCalls: 0, totalDailyCalls: 0 });
-    (mockReadModelService.getTenantById as Mock).mockResolvedValue(tenant);
-
-    const result = await isOverQuota(
-      eservice,
-      purpose,
-      200,
-      mockReadModelService
-    );
-    expect(result).toBe(true);
-  });
-
-  it("should return true if the new daily calls exceed the total quota", async () => {
-    (retrieveActiveAgreement as Mock).mockResolvedValue(agreement);
-    (
-      mockReadModelService.getActiveVersionsDailyCalls as Mock
-    ).mockResolvedValue({ consumerDailyCalls: 0, totalDailyCalls: 0 });
-    (mockReadModelService.getTenantById as Mock).mockResolvedValue(tenant);
-
-    const result = await isOverQuota(
-      eservice,
-      purpose,
-      2000,
-      mockReadModelService
-    );
-    expect(result).toBe(true);
-  });
+      expect(
+        await getWaitingForApprovalReason(
+          eservice,
+          purpose,
+          dailyCalls,
+          mockReadModelService
+        )
+      ).toBe(expected);
+      expect(
+        mockReadModelService.getActiveVersionsDailyCalls
+      ).toHaveBeenCalledTimes(1);
+    }
+  );
 
   it("should throw descriptorNotFound if the descriptor is not found", async () => {
     const agreementWithInvalidDescriptor: Agreement = {
@@ -212,7 +235,7 @@ describe("isOverQuota", () => {
     (mockReadModelService.getTenantById as Mock).mockResolvedValue(tenant);
 
     await expect(
-      isOverQuota(eservice, purpose, 10, mockReadModelService)
+      getWaitingForApprovalReason(eservice, purpose, 10, mockReadModelService)
     ).rejects.toThrow(
       descriptorNotFound(
         eservice.id,
@@ -229,7 +252,7 @@ describe("isOverQuota", () => {
     (mockReadModelService.getTenantById as Mock).mockResolvedValue(undefined);
 
     await expect(
-      isOverQuota(eservice, purpose, 10, mockReadModelService)
+      getWaitingForApprovalReason(eservice, purpose, 10, mockReadModelService)
     ).rejects.toThrow(tenantNotFound(consumerId));
   });
 
@@ -276,21 +299,23 @@ describe("isOverQuota", () => {
       tenantWithCertifiedAttributes
     );
 
-    const result = await isOverQuota(
+    const result = await getWaitingForApprovalReason(
       eserviceWithCertifiedAttributes,
       purpose,
       150,
       mockReadModelService
     );
-    expect(result).toBe(false);
+    expect(result).toBeUndefined();
 
-    const result2 = await isOverQuota(
+    const result2 = await getWaitingForApprovalReason(
       eserviceWithCertifiedAttributes,
       purpose,
       250,
       mockReadModelService
     );
-    expect(result2).toBe(true);
+    expect(result2).toBe(
+      PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_PER_CONSUMER
+    );
   });
 });
 
