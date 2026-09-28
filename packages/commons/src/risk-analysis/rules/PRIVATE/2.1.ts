@@ -890,8 +890,8 @@ export const private21: RiskAnalysisFormRules = {
         en: "Indicare se è stata fatta un’apposita Valutazione di Impatto (c.d. DPIA) relativamente alle attività di trattamento dei dati personali che saranno effettuate attraverso la fruizione del presente E-service",
       },
       infoLabel: {
-        it: "In caso di risposta negativa, si ricorda che la valutazione di impatto è obbligatoria qualora sussistano le condizioni di cui all’art. 35 del GDPR",
-        en: "In caso di risposta negativa, si ricorda che la valutazione di impatto è obbligatoria qualora sussistano le condizioni di cui all’art. 35 del GDPR",
+        it: "In caso di risposta negativa, si ricorda che la valutazione di impatto è obbligatoria ​​qualora sussistano le condizioni di cui all’art. 35 del GDPR",
+        en: "In caso di risposta negativa, si ricorda che la valutazione di impatto è obbligatoria ​​qualora sussistano le condizioni di cui all’art. 35 del GDPR",
       },
       options: [
         {
@@ -927,8 +927,8 @@ export const private21: RiskAnalysisFormRules = {
         en: "Indicare se si è proceduto alla consultazione preventiva al Garante per la protezione dei dati personali",
       },
       infoLabel: {
-        it: "In caso di risposta negativa, si ricorda che la consultazione preventiva è obbligatoria qualora sussistano le condizioni di cui all’art. 36 del GDPR",
-        en: "In caso di risposta negativa, si ricorda che la consultazione preventiva è obbligatoria qualora sussistano le condizioni di cui all’art. 36 del GDPR",
+        it: "In caso di risposta negativa, si ricorda che la consultazione preventiva è obbligatoria ​​qualora sussistano le condizioni di cui all’art. 36 del GDPR",
+        en: "In caso di risposta negativa, si ricorda che la consultazione preventiva è obbligatoria ​​qualora sussistano le condizioni di cui all’art. 36 del GDPR",
       },
       options: [
         {
@@ -1130,8 +1130,8 @@ export const private21: RiskAnalysisFormRules = {
       type: "switch",
       dataType: "single",
       label: {
-        it: "Dichiara di essere consapevole degli obblighi di cui al GDPR in tema di trattamento di dati personali e dichiara di essere in grado di comprovarne il rispetto (principio di responsabilizzazione di cui all’art. 5, paragrafo 2, del GDPR)",
-        en: "Dichiara di essere consapevole degli obblighi di cui al GDPR in tema di trattamento di dati personali e dichiara di essere in grado di comprovarne il rispetto (principio di responsabilizzazione di cui all’art. 5, paragrafo 2, del GDPR)",
+        it: "Dichiara di essere consapevole degli obblighi di cui al GDPR in tema di trattamento di dati personali e ​​dichiara di essere in grado di comprovarne il rispetto (principio di responsabilizzazione di cui all’art. 5, paragrafo 2, del GDPR)",
+        en: "Dichiara di essere consapevole degli obblighi di cui al GDPR in tema di trattamento di dati personali e ​​dichiara di essere in grado di comprovarne il rispetto (principio di responsabilizzazione di cui all’art. 5, paragrafo 2, del GDPR)",
       },
       options: [
         {
