@@ -36,6 +36,9 @@ import {
 import { NewEservice, ReadModelService } from "./readModelService.js";
 import { SimpleCache } from "./simpleCache.js";
 
+const CARD_ITEMS = 6;
+const LIST_ITEMS = 5;
+
 export type BaseDigest = {
   items: Array<{
     id?: string;
@@ -44,6 +47,7 @@ export type BaseDigest = {
     link: string;
   }>;
   totalCount: number;
+  remainingCount: number;
 };
 
 export type DelegationDigest = BaseDigest & {
@@ -119,14 +123,20 @@ export function digestDataServiceBuilder(
    */
   async function getNewEservicesDigest(
     priorityProducerIds: TenantId[],
-    selfcareId: string | null
+    selfcareId: string | null,
+    maxItems: number
   ): Promise<BaseDigest> {
     logger.info("Building new e-services digest");
 
     const cachedData = newEservicesCache.get();
     if (cachedData !== null) {
       logger.info("Cache hit - using cached new e-services data");
-      return eserviceToBaseDigest(cachedData, readModelService, selfcareId);
+      return eserviceToBaseDigest(
+        cachedData,
+        readModelService,
+        selfcareId,
+        maxItems
+      );
     }
 
     // Cache miss - fetch from database
@@ -136,7 +146,12 @@ export function digestDataServiceBuilder(
 
     // Store in cache
     newEservicesCache.set(fetchedData);
-    return eserviceToBaseDigest(fetchedData, readModelService, selfcareId);
+    return eserviceToBaseDigest(
+      fetchedData,
+      readModelService,
+      selfcareId,
+      maxItems
+    );
   }
 
   return {
@@ -185,7 +200,8 @@ export function digestDataServiceBuilder(
       // Fetch new e-services with selfcareId (needs to be after we have selfcareId)
       const newEservices = await getNewEservicesDigest(
         priorityProducerIds,
-        selfcareId
+        selfcareId,
+        CARD_ITEMS
       );
 
       return {
@@ -212,105 +228,123 @@ export function digestDataServiceBuilder(
         updatedEservices: await eserviceToBaseDigest(
           updatedEservices,
           readModelService,
-          selfcareId
+          selfcareId,
+          CARD_ITEMS
         ),
         updatedEserviceTemplates: await eserviceTemplateToBaseDigest(
           updatedEserviceTemplates,
           readModelService,
-          selfcareId
+          selfcareId,
+          CARD_ITEMS
         ),
         popularEserviceTemplates: await popularEserviceTemplateToBaseDigest(
           popularEserviceTemplates,
           readModelService,
-          selfcareId
+          selfcareId,
+          CARD_ITEMS
         ),
         acceptedSentAgreements: await sentAgreementsToBaseDigest(
           sentAgreements,
           agreementState.active,
           readModelService,
-          selfcareId
+          selfcareId,
+          LIST_ITEMS
         ),
         rejectedSentAgreements: await sentAgreementsToBaseDigest(
           sentAgreements,
           agreementState.rejected,
           readModelService,
-          selfcareId
+          selfcareId,
+          LIST_ITEMS
         ),
         suspendedSentAgreements: await sentAgreementsToBaseDigest(
           sentAgreements,
           agreementState.suspended,
           readModelService,
-          selfcareId
+          selfcareId,
+          LIST_ITEMS
         ),
         publishedSentPurposes: sentPurposesToBaseDigest(
           sentPurposes,
           purposeVersionState.active,
-          selfcareId
+          selfcareId,
+          LIST_ITEMS
         ),
         rejectedSentPurposes: sentPurposesToBaseDigest(
           sentPurposes,
           purposeVersionState.rejected,
-          selfcareId
+          selfcareId,
+          LIST_ITEMS
         ),
         waitingForApprovalSentPurposes: sentPurposesToBaseDigest(
           sentPurposes,
           purposeVersionState.waitingForApproval,
-          selfcareId
+          selfcareId,
+          LIST_ITEMS
         ),
         waitingForApprovalReceivedAgreements:
           await receivedAgreementsToBaseDigest(
             receivedAgreements,
             readModelService,
-            selfcareId
+            selfcareId,
+            LIST_ITEMS
           ),
         publishedReceivedPurposes: receivedPurposesToBaseDigest(
           receivedPurposes,
           purposeVersionState.active,
-          selfcareId
+          selfcareId,
+          LIST_ITEMS
         ),
         waitingForApprovalReceivedPurposes: receivedPurposesToBaseDigest(
           receivedPurposes,
           purposeVersionState.waitingForApproval,
-          selfcareId
+          selfcareId,
+          LIST_ITEMS
         ),
         activeSentDelegations: await sentDelegationsToDigest(
           sentDelegations,
           delegationState.active,
           readModelService,
-          selfcareId
+          selfcareId,
+          LIST_ITEMS
         ),
         rejectedSentDelegations: await sentDelegationsToDigest(
           sentDelegations,
           delegationState.rejected,
           readModelService,
-          selfcareId
+          selfcareId,
+          LIST_ITEMS
         ),
         waitingForApprovalReceivedDelegations:
           await receivedDelegationsToDigest(
             receivedDelegations,
             delegationState.waitingForApproval,
             readModelService,
-            selfcareId
+            selfcareId,
+            LIST_ITEMS
           ),
         revokedReceivedDelegations: await receivedDelegationsToDigest(
           receivedDelegations,
           delegationState.revoked,
           readModelService,
-          selfcareId
+          selfcareId,
+          LIST_ITEMS
         ),
         receivedAttributes: combineAttributeDigests(
           await verifiedAttributeToDigest(
             verifiedAssignedAttributes,
             readModelService
           ),
-          certifiedAttributeToDigest(certifiedAssignedAttributes)
+          certifiedAttributeToDigest(certifiedAssignedAttributes),
+          LIST_ITEMS
         ),
         revokedAttributes: combineAttributeDigests(
           await verifiedAttributeToDigest(
             verifiedRevokedAttributes,
             readModelService
           ),
-          certifiedAttributeToDigest(certifiedRevokedAttributes)
+          certifiedAttributeToDigest(certifiedRevokedAttributes),
+          LIST_ITEMS
         ),
       };
     },
