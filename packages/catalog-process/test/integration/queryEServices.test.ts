@@ -20,6 +20,7 @@ import {
   EServiceTemplateId,
   ListResult,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
+  PurposeTemplate,
   Tenant,
   TenantId,
   agreementState,
@@ -27,6 +28,7 @@ import {
   delegationState,
   descriptorState,
   generateId,
+  purposeTemplateState,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it } from "vitest";
@@ -940,8 +942,18 @@ describe("query eservices", () => {
   });
 
   describe("hasLinkedPurposeTemplates", () => {
-    const purposeTemplateA = getMockPurposeTemplate();
-    const purposeTemplateB = getMockPurposeTemplate();
+    const publishedPurposeTemplate = (): PurposeTemplate =>
+      getMockPurposeTemplate(undefined, purposeTemplateState.published);
+    const purposeTemplateA = publishedPurposeTemplate();
+    const purposeTemplateB = publishedPurposeTemplate();
+    const purposeTemplateDraft = getMockPurposeTemplate(
+      undefined,
+      purposeTemplateState.draft
+    );
+    const purposeTemplateArchived = getMockPurposeTemplate(
+      undefined,
+      purposeTemplateState.archived
+    );
 
     const eserviceLinked = buildEService(
       "Linked",
@@ -959,14 +971,38 @@ describe("query eservices", () => {
       "NotLinked",
       new Date("2024-04-01T00:00:00Z")
     );
+    const eserviceLinkedToDraft = buildEService(
+      "LinkedToDraft",
+      new Date("2024-05-01T00:00:00Z")
+    );
+    const eserviceLinkedToArchived = buildEService(
+      "LinkedToArchived",
+      new Date("2024-06-01T00:00:00Z")
+    );
 
     beforeEach(async () => {
       await addOnePurposeTemplate(purposeTemplateA);
       await addOnePurposeTemplate(purposeTemplateB);
+      await addOnePurposeTemplate(purposeTemplateDraft);
+      await addOnePurposeTemplate(purposeTemplateArchived);
       await addOneEService(eserviceLinked);
       await addOneEService(eserviceLinkedToOldDescriptor);
       await addOneEService(eserviceLinkedTwice);
       await addOneEService(eserviceNotLinked);
+      await addOneEService(eserviceLinkedToDraft);
+      await addOneEService(eserviceLinkedToArchived);
+      await addOnePurposeTemplateEServiceDescriptor({
+        purposeTemplateId: purposeTemplateDraft.id,
+        eserviceId: eserviceLinkedToDraft.id,
+        descriptorId: eserviceLinkedToDraft.descriptors[0].id,
+        createdAt: new Date(),
+      });
+      await addOnePurposeTemplateEServiceDescriptor({
+        purposeTemplateId: purposeTemplateArchived.id,
+        eserviceId: eserviceLinkedToArchived.id,
+        descriptorId: eserviceLinkedToArchived.descriptors[0].id,
+        createdAt: new Date(),
+      });
       await addOnePurposeTemplateEServiceDescriptor({
         purposeTemplateId: purposeTemplateA.id,
         eserviceId: eserviceLinked.id,
@@ -997,7 +1033,7 @@ describe("query eservices", () => {
     it("should not filter the e-services when hasLinkedPurposeTemplates is not set", async () => {
       const result = await filterEServices({});
 
-      expect(result.totalCount).toBe(4);
+      expect(result.totalCount).toBe(6);
     });
 
     it("should not filter the e-services when hasLinkedPurposeTemplates is false", async () => {
@@ -1005,10 +1041,10 @@ describe("query eservices", () => {
         hasLinkedPurposeTemplates: false,
       });
 
-      expect(result.totalCount).toBe(4);
+      expect(result.totalCount).toBe(6);
     });
 
-    it("should return only the e-services with at least one linked purpose template, once each (hasLinkedPurposeTemplates: true)", async () => {
+    it("should return only the e-services with at least one linked published purpose template, once each (hasLinkedPurposeTemplates: true)", async () => {
       const result = await filterEServices({ hasLinkedPurposeTemplates: true });
 
       expect(result.totalCount).toBe(3);
@@ -1017,6 +1053,13 @@ describe("query eservices", () => {
         eserviceLinkedToOldDescriptor.id,
         eserviceLinked.id,
       ]);
+    });
+
+    it("should not count the links to draft or archived purpose templates", async () => {
+      const result = await filterEServices({ hasLinkedPurposeTemplates: true });
+
+      expect(idsOf(result)).not.toContain(eserviceLinkedToDraft.id);
+      expect(idsOf(result)).not.toContain(eserviceLinkedToArchived.id);
     });
   });
 
@@ -1244,7 +1287,10 @@ describe("query eservices", () => {
         },
       ],
     };
-    const purposeTemplate = getMockPurposeTemplate();
+    const purposeTemplate = getMockPurposeTemplate(
+      undefined,
+      purposeTemplateState.published
+    );
 
     const eserviceMatchingAll: EService = {
       ...buildEService("Anagrafe", new Date("2024-01-01T00:00:00Z")),
