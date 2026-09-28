@@ -172,6 +172,12 @@ export function getNotificationDeepLink(
   entityId: string
 ): string {
   const section = notificationTypeToUiSection[notificationType];
+  if (
+    notificationType === "purposePublishedWithRiskAnalysisToReviewer" ||
+    notificationType === "purposeRiskAnalysisSignedToReviewer"
+  ) {
+    return `${section}/${entityId}/dettaglio`;
+  }
   return notificationTypesWithoutEntityIdInDeepLink.has(notificationType)
     ? section
     : `${section}/${entityId}`;
