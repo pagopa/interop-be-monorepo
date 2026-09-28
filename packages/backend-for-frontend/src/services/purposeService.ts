@@ -23,6 +23,8 @@ import {
   PurposeVersionDocumentId,
   PurposeVersionId,
   RiskAnalysisId,
+  WithMetadata,
+  genericError,
   unsafeBrandId,
 } from "pagopa-interop-models";
 
@@ -112,24 +114,32 @@ const enrichPurposeReviewerWorkflow = async (
     return undefined;
   }
   const isConsumer = authData.organizationId === consumerId;
-  const hasAdminOrViewerRole =
+  const hasAdminOrReviewerOrViewerRole =
     userRoles.includes(authRole.ADMIN_ROLE) ||
-    userRoles.includes(authRole.VIEWER_ROLE);
+    userRoles.includes(authRole.VIEWER_ROLE) ||
+    userRoles.includes(authRole.REVIEWER_ROLE);
 
-  if (isConsumer && hasAdminOrViewerRole) {
+  if (isConsumer && hasAdminOrReviewerOrViewerRole) {
     const reviewers = await Promise.all(
-      reviewerWorkflow.reviewerIds.map((reviewerId) =>
-        getSelfcareCompactUserById(
+      reviewerWorkflow.reviewers.map(async (reviewer) => ({
+        ...(await getSelfcareCompactUserById(
           selfcareV2UserClient,
-          reviewerId,
+          reviewer.id,
           selfcareId,
           correlationId
-        )
-      )
+        )),
+        sentToReviewerAt: reviewer.sentToReviewerAt,
+      }))
     );
     return { ...reviewerWorkflow, reviewers };
   }
-  return reviewerWorkflow;
+
+  // Reviewer details are disclosed only to the consumer, so the raw reviewers
+  // array is dropped for everyone else.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { reviewers: _reviewers, ...workflowWithoutReviewers } =
+    reviewerWorkflow;
+  return workflowWithoutReviewers;
 };
 
 const getCurrentVersion = (
@@ -148,10 +158,57 @@ const getCurrentVersion = (
     .at(-1);
 };
 
+export const sortRiskAnalysisAssignments = (
+  purposes: bffApi.Purpose[],
+  signingStates: bffApi.RiskAnalysisSigningState[],
+  reviewerId: string
+): bffApi.Purpose[] => {
+  const sortByReviewerAssignment = signingStates.every(
+    (state) =>
+      state === bffApi.RiskAnalysisSigningState.Values.ASSIGNED ||
+      state === bffApi.RiskAnalysisSigningState.Values.SUBMITTED
+  );
+  const sortBySignedOrRejected = signingStates.every(
+    (state) =>
+      state === bffApi.RiskAnalysisSigningState.Values.REJECTED ||
+      state === bffApi.RiskAnalysisSigningState.Values.SIGNED
+  );
+
+  if (!sortByReviewerAssignment && !sortBySignedOrRejected) {
+    return purposes;
+  }
+
+  const getSortDate = (purpose: bffApi.Purpose): number | undefined => {
+    const workflow = purpose.reviewerWorkflow;
+    const date = sortByReviewerAssignment
+      ? workflow?.reviewers?.find((reviewer) => reviewer.userId === reviewerId)
+          ?.sentToReviewerAt
+      : sortBySignedOrRejected
+        ? (workflow?.signedAt ?? workflow?.rejectedAt)
+        : undefined;
+
+    return date ? new Date(date).getTime() : undefined;
+  };
+
+  return [...purposes].sort((left, right) => {
+    const leftDate = getSortDate(left);
+    const rightDate = getSortDate(right);
+
+    if (leftDate === undefined) {
+      return rightDate === undefined ? 0 : 1;
+    }
+    if (rightDate === undefined) {
+      return -1;
+    }
+    return rightDate - leftDate;
+  });
+};
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function purposeServiceBuilder(
   {
     purposeProcessClient,
+    purposeProcessClientWithMetadata,
     purposeTemplateProcessClient,
     catalogProcessClient,
     tenantProcessClient,
@@ -342,6 +399,7 @@ export function purposeServiceBuilder(
         : undefined,
       isDocumentReady,
       rulesetExpiration: rulesetExpiration?.toJSON(),
+      riskAnalysisReviewMode: purpose.riskAnalysisReviewMode,
       reviewerWorkflow: await enrichPurposeReviewerWorkflow(
         purpose.reviewerWorkflow,
         authData,
@@ -503,10 +561,11 @@ export function purposeServiceBuilder(
     },
     async signRiskAnalysis(
       purposeId: PurposeId,
+      seed: bffApi.RiskAnalysisSignSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
       logger.info(`Signing risk analysis for purpose ${purposeId}`);
-      await purposeProcessClient.signRiskAnalysis(undefined, {
+      await purposeProcessClient.signRiskAnalysis(seed, {
         params: { purposeId },
         headers,
       });
@@ -677,7 +736,7 @@ export function purposeServiceBuilder(
       logger.info(
         `Retrieving risk analysis assignments for reviewerId ${authData.userId}, signingState ${signingStates.join(",")}, EServices ${filters.eservicesIds}, offset ${offset}, limit ${limit}`
       );
-      return await getPurposes(
+      const purposes = await getPurposes(
         authData,
         {
           reviewerId: authData.userId,
@@ -690,6 +749,15 @@ export function purposeServiceBuilder(
         },
         ctx
       );
+
+      return {
+        ...purposes,
+        results: sortRiskAnalysisAssignments(
+          purposes.results,
+          signingStates,
+          authData.userId
+        ),
+      };
     },
     async clonePurpose(
       purposeId: PurposeId,
@@ -931,7 +999,7 @@ export function purposeServiceBuilder(
     async getPurpose(
       id: PurposeId,
       ctx: WithLogger<BffAppContext>
-    ): Promise<bffApi.Purpose> {
+    ): Promise<WithMetadata<bffApi.Purpose>> {
       const { headers, authData, logger, correlationId } = ctx;
       logger.info(`Retrieving Purpose ${id}`);
       const notificationsPromise = filterUnreadNotifications(
@@ -939,12 +1007,19 @@ export function purposeServiceBuilder(
         [id],
         ctx
       );
-      const purpose = await purposeProcessClient.getPurpose({
-        params: {
-          id,
-        },
-        headers,
-      });
+      const purposeWithMetadata =
+        await purposeProcessClientWithMetadata.getPurpose({
+          params: {
+            id,
+          },
+          headers,
+        });
+
+      if (purposeWithMetadata.metadata === undefined) {
+        throw genericError(`Missing metadata for purpose ${id}`);
+      }
+
+      const purpose = purposeWithMetadata.data;
 
       const eservice = await catalogProcessClient.getEServiceById({
         params: {
@@ -979,18 +1054,21 @@ export function purposeServiceBuilder(
           })
         : undefined;
 
-      return await enhancePurpose(
-        authData,
-        purpose,
-        [eservice],
-        [producer],
-        [consumer],
-        purposeTemplate,
-        false,
-        headers,
-        correlationId,
-        notification
-      );
+      return {
+        data: await enhancePurpose(
+          authData,
+          purpose,
+          [eservice],
+          [producer],
+          [consumer],
+          purposeTemplate,
+          false,
+          headers,
+          correlationId,
+          notification
+        ),
+        metadata: purposeWithMetadata.metadata,
+      };
     },
     async retrieveLatestRiskAnalysisConfiguration(
       tenantKind: bffApi.TenantKind | undefined,

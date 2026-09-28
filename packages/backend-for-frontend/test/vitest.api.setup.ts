@@ -102,6 +102,8 @@ export const clients = {
   catalogProcessClient: {} as catalogApi.CatalogProcessClient,
   agreementProcessClient: {} as agreementApi.AgreementProcessClient,
   purposeProcessClient: {} as purposeApi.PurposeProcessClient,
+  purposeProcessClientWithMetadata:
+    {} as purposeApi.PurposeProcessClientWithMetadata,
   purposeTemplateProcessClient:
     {} as purposeTemplateApi.PurposeTemplateProcessClient,
   authorizationClient: {
