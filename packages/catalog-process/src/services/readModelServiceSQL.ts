@@ -36,6 +36,7 @@ import {
   AgreementState,
   ListResult,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
+  purposeTemplateState,
   DescriptorId,
   WithMetadata,
   Attribute,
@@ -100,6 +101,7 @@ import {
   eserviceDescriptorArchivingScheduleInReadmodelCatalog,
   eserviceDescriptorArchivingRequestInReadmodelCatalog,
   purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
+  purposeTemplateInReadmodelPurposeTemplate,
   tenantCertifiedAttributeInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
 import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
@@ -426,6 +428,7 @@ const onlyTemplateInstancesFilter = (
     : undefined;
 
 // The link counts whatever descriptor the purpose template was linked to.
+// Only published purpose templates count: the e-service page shows only those.
 const hasLinkedPurposeTemplatesFilter = (
   tx: DrizzleTransactionType,
   hasLinkedPurposeTemplates: boolean | undefined
@@ -435,10 +438,23 @@ const hasLinkedPurposeTemplatesFilter = (
         tx
           .select()
           .from(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
-          .where(
+          .innerJoin(
+            purposeTemplateInReadmodelPurposeTemplate,
             eq(
-              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
-              eserviceInReadmodelCatalog.id
+              purposeTemplateInReadmodelPurposeTemplate.id,
+              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId
+            )
+          )
+          .where(
+            and(
+              eq(
+                purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
+                eserviceInReadmodelCatalog.id
+              ),
+              eq(
+                purposeTemplateInReadmodelPurposeTemplate.state,
+                purposeTemplateState.published
+              )
             )
           )
       )
