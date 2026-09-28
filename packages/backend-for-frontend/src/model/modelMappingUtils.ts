@@ -120,67 +120,67 @@ export type UiSection =
   | "/gestione-client/api-interop"
   | "/notifiche/configurazione";
 
-export const notificationTypeToUiSection: Record<NotificationType, UiSection> =
-  {
-    agreementManagementToProducer: "/erogazione/richieste",
-    agreementSuspendedUnsuspendedToProducer: "/erogazione/richieste",
-    agreementSuspendedUnsuspendedToConsumer: "/fruizione/richieste",
-    clientAddedRemovedToProducer: "/erogazione/finalita",
-    purposeStatusChangedToProducer: "/erogazione/finalita",
-    templateStatusChangedToProducer: "/erogazione/template-eservice",
-    eserviceStateChangedToProducer: "/erogazione/e-service",
-    newEserviceTemplateVersionToInstantiator: "/erogazione/e-service",
-    eserviceTemplateNameChangedToInstantiator: "/erogazione/e-service",
-    eserviceTemplateStatusChangedToInstantiator: "/erogazione/e-service",
-    clientKeyAddedDeletedToClientUsers: "/gestione-client/api-interop",
-    clientKeyConsumerAddedDeletedToClientUsers:
-      "/gestione-client/api-e-service",
-    agreementActivatedRejectedToConsumer: "/fruizione/richieste",
-    purposeActivatedRejectedToConsumer: "/fruizione/finalita",
-    purposeSuspendedUnsuspendedToConsumer: "/fruizione/finalita",
-    eserviceStateChangedToConsumer: "/catalogo-e-service",
-    delegationApprovedRejectedToDelegator: "/aderente/deleghe",
-    eserviceNewVersionSubmittedToDelegator: "/aderente/deleghe",
-    eserviceNewVersionApprovedRejectedToDelegate: "/aderente/deleghe",
-    delegationSubmittedRevokedToDelegate: "/aderente/deleghe",
-    certifiedVerifiedAttributeAssignedRevokedToAssignee: "/aderente/anagrafica",
-    producerKeychainKeyAddedDeletedToClientUsers: "/erogazione/portachiavi",
-    purposeQuotaAdjustmentRequestToProducer: "/erogazione/finalita",
-    purposeOverQuotaStateToConsumer: "/fruizione/finalita",
-    purposeRiskAnalysisAssignedForSigningToReviewer: "/analisi-del-rischio",
-    purposeRiskAnalysisAssignedForWritingAndSigningToReviewer:
-      "/analisi-del-rischio",
-    purposePublishedWithRiskAnalysisToReviewer: "/analisi-del-rischio",
-    draftPurposeDeletedWithRiskAnalysisToReviewer: "/analisi-del-rischio",
-    purposeRiskAnalysisAssignmentRemovedToReviewer: "/analisi-del-rischio",
-    purposeRiskAnalysisSignedToReviewer: "/analisi-del-rischio",
-    purposeRiskAnalysisSignedToAdmin: "/fruizione/finalita",
-    purposeRiskAnalysisRejectedToAdmin: "/fruizione/finalita",
-    eserviceArchivingRequestedToDelegator: "/erogazione/e-service",
-    eserviceArchivingApprovedRejectedToDelegate: "/erogazione/e-service",
-  } as const;
+type NotificationUiPath =
+  | UiSection
+  | `${UiSection}/:entityId`
+  | `${UiSection}/:entityId/dettaglio`;
 
-const notificationTypesWithoutEntityIdInDeepLink: Set<NotificationType> =
-  new Set([
-    "certifiedVerifiedAttributeAssignedRevokedToAssignee",
-    "draftPurposeDeletedWithRiskAnalysisToReviewer",
-    "purposeRiskAnalysisAssignmentRemovedToReviewer",
-  ]);
+export const notificationTypeToUiPath: Record<
+  NotificationType,
+  NotificationUiPath
+> = {
+  agreementManagementToProducer: "/erogazione/richieste/:entityId",
+  agreementSuspendedUnsuspendedToProducer: "/erogazione/richieste/:entityId",
+  agreementSuspendedUnsuspendedToConsumer: "/fruizione/richieste/:entityId",
+  clientAddedRemovedToProducer: "/erogazione/finalita/:entityId",
+  purposeStatusChangedToProducer: "/erogazione/finalita/:entityId",
+  templateStatusChangedToProducer: "/erogazione/template-eservice/:entityId",
+  eserviceStateChangedToProducer: "/erogazione/e-service/:entityId",
+  newEserviceTemplateVersionToInstantiator: "/erogazione/e-service/:entityId",
+  eserviceTemplateNameChangedToInstantiator: "/erogazione/e-service/:entityId",
+  eserviceTemplateStatusChangedToInstantiator:
+    "/erogazione/e-service/:entityId",
+  clientKeyAddedDeletedToClientUsers: "/gestione-client/api-interop/:entityId",
+  clientKeyConsumerAddedDeletedToClientUsers:
+    "/gestione-client/api-e-service/:entityId",
+  agreementActivatedRejectedToConsumer: "/fruizione/richieste/:entityId",
+  purposeActivatedRejectedToConsumer: "/fruizione/finalita/:entityId",
+  purposeSuspendedUnsuspendedToConsumer: "/fruizione/finalita/:entityId",
+  eserviceStateChangedToConsumer: "/catalogo-e-service/:entityId",
+  delegationApprovedRejectedToDelegator: "/aderente/deleghe/:entityId",
+  eserviceNewVersionSubmittedToDelegator: "/aderente/deleghe/:entityId",
+  eserviceNewVersionApprovedRejectedToDelegate: "/aderente/deleghe/:entityId",
+  delegationSubmittedRevokedToDelegate: "/aderente/deleghe/:entityId",
+  certifiedVerifiedAttributeAssignedRevokedToAssignee: "/aderente/anagrafica",
+  producerKeychainKeyAddedDeletedToClientUsers:
+    "/erogazione/portachiavi/:entityId",
+  purposeQuotaAdjustmentRequestToProducer: "/erogazione/finalita/:entityId",
+  purposeOverQuotaStateToConsumer: "/fruizione/finalita/:entityId",
+  purposeRiskAnalysisAssignedForSigningToReviewer:
+    "/analisi-del-rischio/:entityId",
+  purposeRiskAnalysisAssignedForWritingAndSigningToReviewer:
+    "/analisi-del-rischio/:entityId",
+  purposePublishedWithRiskAnalysisToReviewer:
+    "/analisi-del-rischio/:entityId/dettaglio",
+  draftPurposeDeletedWithRiskAnalysisToReviewer: "/analisi-del-rischio",
+  purposeRiskAnalysisAssignmentRemovedToReviewer: "/analisi-del-rischio",
+  purposeRiskAnalysisSignedToReviewer:
+    "/analisi-del-rischio/:entityId/dettaglio",
+  purposeRiskAnalysisSignedToAdmin: "/fruizione/finalita/:entityId",
+  purposeRiskAnalysisRejectedToAdmin: "/fruizione/finalita/:entityId",
+  eserviceArchivingRequestedToDelegator: "/erogazione/e-service/:entityId",
+  eserviceArchivingApprovedRejectedToDelegate:
+    "/erogazione/e-service/:entityId",
+} as const;
 
 export function getNotificationDeepLink(
   notificationType: NotificationType,
   entityId: string
 ): string {
-  const section = notificationTypeToUiSection[notificationType];
-  if (
-    notificationType === "purposePublishedWithRiskAnalysisToReviewer" ||
-    notificationType === "purposeRiskAnalysisSignedToReviewer"
-  ) {
-    return `${section}/${entityId}/dettaglio`;
-  }
-  return notificationTypesWithoutEntityIdInDeepLink.has(notificationType)
-    ? section
-    : `${section}/${entityId}`;
+  return notificationTypeToUiPath[notificationType].replace(
+    ":entityId",
+    entityId
+  );
 }
 
 export const Category = z.enum([
