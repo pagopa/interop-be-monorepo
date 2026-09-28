@@ -305,6 +305,12 @@ catalogs:
       version: 3.3.0
 
 patchedDependencies:
+  '@apidevtools/swagger-parser@10.1.1':
+    hash: 0206d4002892391ffad56abde603d750b86e5a5aae064a388fe35df381727655
+    path: patches/@apidevtools__swagger-parser@10.1.1.patch
+  '@stoplight/spectral-rulesets@1.22.0':
+    hash: e3a835b277e2b9c06d4dddf1e7242d4482f2c0b1ad5fae685d22c648d102a1ef
+    path: patches/@stoplight__spectral-rulesets@1.22.0.patch
   '@zodios/core@10.9.6':
     hash: 672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919
     path: patches/@zodios__core@10.9.6.patch
@@ -682,7 +688,7 @@ importers:
     devDependencies:
       '@apidevtools/swagger-parser':
         specifier: 'catalog:'
-        version: 10.1.1(openapi-types@12.1.3)
+        version: 10.1.1(patch_hash=0206d4002892391ffad56abde603d750b86e5a5aae064a388fe35df381727655)(openapi-types@12.1.3)
       '@stoplight/spectral-cli':
         specifier: 'catalog:'
         version: 6.15.0
@@ -1932,7 +1938,7 @@ importers:
     dependencies:
       '@apidevtools/swagger-parser':
         specifier: 'catalog:'
-        version: 10.1.1(openapi-types@12.1.3)
+        version: 10.1.1(patch_hash=0206d4002892391ffad56abde603d750b86e5a5aae064a388fe35df381727655)(openapi-types@12.1.3)
       '@aws-sdk/client-dynamodb':
         specifier: 'catalog:'
         version: 3.840.0
@@ -12400,7 +12406,7 @@ snapshots:
 
   '@apidevtools/swagger-methods@3.0.2': {}
 
-  '@apidevtools/swagger-parser@10.1.1(openapi-types@12.1.3)':
+  '@apidevtools/swagger-parser@10.1.1(patch_hash=0206d4002892391ffad56abde603d750b86e5a5aae064a388fe35df381727655)(openapi-types@12.1.3)':
     dependencies:
       '@apidevtools/json-schema-ref-parser': 11.7.2
       '@apidevtools/openapi-schemas': 2.1.0
@@ -15310,7 +15316,7 @@ snapshots:
       '@stoplight/spectral-ref-resolver': 1.0.5
       '@stoplight/spectral-ruleset-bundler': 1.6.3
       '@stoplight/spectral-ruleset-migrator': 1.11.2
-      '@stoplight/spectral-rulesets': 1.22.0
+      '@stoplight/spectral-rulesets': 1.22.0(patch_hash=e3a835b277e2b9c06d4dddf1e7242d4482f2c0b1ad5fae685d22c648d102a1ef)
       '@stoplight/spectral-runtime': 1.1.4
       '@stoplight/types': 13.20.0
       chalk: 4.1.2
@@ -15420,7 +15426,7 @@ snapshots:
       '@stoplight/spectral-parsers': 1.0.5
       '@stoplight/spectral-ref-resolver': 1.0.5
       '@stoplight/spectral-ruleset-migrator': 1.11.2
-      '@stoplight/spectral-rulesets': 1.22.0
+      '@stoplight/spectral-rulesets': 1.22.0(patch_hash=e3a835b277e2b9c06d4dddf1e7242d4482f2c0b1ad5fae685d22c648d102a1ef)
       '@stoplight/spectral-runtime': 1.1.4
       '@stoplight/types': 13.20.0
       '@types/node': 20.19.9
@@ -15450,7 +15456,7 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
-  '@stoplight/spectral-rulesets@1.22.0':
+  '@stoplight/spectral-rulesets@1.22.0(patch_hash=e3a835b277e2b9c06d4dddf1e7242d4482f2c0b1ad5fae685d22c648d102a1ef)':
     dependencies:
       '@asyncapi/specs': 6.8.1
       '@stoplight/better-ajv-errors': 1.0.3(ajv@8.17.1)
@@ -18196,7 +18202,7 @@ snapshots:
 
   openapi-zod-client@1.18.3(patch_hash=a490e20ae5ba48e7d914db052a47be6d0e8fe974fa3b665116f52cbddaf27418):
     dependencies:
-      '@apidevtools/swagger-parser': 10.1.1(openapi-types@12.1.3)
+      '@apidevtools/swagger-parser': 10.1.1(patch_hash=0206d4002892391ffad56abde603d750b86e5a5aae064a388fe35df381727655)(openapi-types@12.1.3)
       '@liuli-util/fs-extra': 0.1.0
       '@zodios/core': 10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8)
       axios: 1.18.0
