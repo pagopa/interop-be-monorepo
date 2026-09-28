@@ -4,7 +4,8 @@ meta {
   seq: 47
 }
 
-post {
+http {
+  method: QUERY
   url: {{host-catalog}}/catalog
   body: json
   auth: none

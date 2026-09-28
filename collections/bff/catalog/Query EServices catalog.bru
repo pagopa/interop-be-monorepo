@@ -4,7 +4,8 @@ meta {
   seq: 52
 }
 
-post {
+http {
+  method: QUERY
   url: {{host-bff}}/catalog
   body: json
   auth: none

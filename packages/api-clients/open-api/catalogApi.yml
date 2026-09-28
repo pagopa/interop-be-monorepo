@@ -1,4 +1,4 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
   title: Catalog Process Micro Service
   description: This service is the catalog process
@@ -208,7 +208,7 @@ paths:
   /catalog:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
-    post:
+    query:
       security:
         - bearerAuth: []
       tags:

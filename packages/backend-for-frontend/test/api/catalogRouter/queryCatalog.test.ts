@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { createServer } from "http";
 import { authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
 import { generateId } from "pagopa-interop-models";
@@ -14,7 +15,7 @@ import {
 import { getMockBffApiCatalogEService } from "../../mockUtils.js";
 import { api, services } from "../../vitest.api.setup.js";
 
-describe("API POST /catalog", () => {
+describe("API QUERY /catalog", () => {
   const defaultBody = {
     offset: 0,
     limit: 5,
@@ -42,8 +43,7 @@ describe("API POST /catalog", () => {
     token: string,
     body: typeof defaultBody = defaultBody
   ) =>
-    request(api)
-      .post(`${appBasePath}/catalog`)
+    new request.Test(createServer(api), "query", `${appBasePath}/catalog`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(body);

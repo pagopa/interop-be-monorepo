@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { createServer } from "http";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
@@ -19,7 +20,7 @@ import { describe, it, expect, vi } from "vitest";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import { api, catalogService } from "../vitest.api.setup.js";
 
-describe("API POST /catalog authorization test", () => {
+describe("API QUERY /catalog authorization test", () => {
   const producerId: TenantId = generateId();
   const descriptor1: Descriptor = {
     ...getMockDescriptor(),
@@ -68,8 +69,7 @@ describe("API POST /catalog authorization test", () => {
     token: string,
     payload: catalogApi.EServicesFilterPayload = body
   ) =>
-    request(api)
-      .post("/catalog")
+    new request.Test(createServer(api), "query", "/catalog")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(payload);
