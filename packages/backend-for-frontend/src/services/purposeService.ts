@@ -275,6 +275,13 @@ export function purposeServiceBuilder(
       (v) =>
         v.state === purposeApi.PurposeVersionState.Values.WAITING_FOR_APPROVAL
     );
+    const normalizedCurrentVersion =
+      purpose.suspendedByConsumer &&
+      currentVersion &&
+      waitingForApprovalVersion &&
+      currentVersion.dailyCalls === waitingForApprovalVersion.dailyCalls
+        ? undefined
+        : currentVersion;
     const latestVersion = [...purpose.versions]
       .sort(
         (a, b) =>
@@ -370,7 +377,9 @@ export function purposeServiceBuilder(
         canBeUpgraded: isAgreementUpgradable(eservice, latestAgreement),
         consumerId: latestAgreement.consumerId,
       },
-      currentVersion: currentVersion && toBffApiPurposeVersion(currentVersion),
+      currentVersion:
+        normalizedCurrentVersion &&
+        toBffApiPurposeVersion(normalizedCurrentVersion),
       versions: purpose.versions.map(toBffApiPurposeVersion),
       clients: await Promise.all(
         clients.map((client) =>
