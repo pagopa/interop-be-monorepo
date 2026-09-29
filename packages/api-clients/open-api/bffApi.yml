@@ -18654,6 +18654,9 @@ components:
         - clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers
         - purposeQuotaAdjustmentRequestToProducer
         - purposeOverQuotaStateToConsumer
+        - purposeRiskAnalysisAssignmentStatusToAdmin
+        - purposeRiskAnalysisAssignmentStatusToReviewer
+        - purposePublishedWithRiskAnalysisToReviewer
         - eserviceArchivingRequestedToDelegator
         - eserviceArchivingApprovedRejectedToDelegate
       properties:
@@ -18700,6 +18703,14 @@ components:
         purposeQuotaAdjustmentRequestToProducer:
           type: boolean
         purposeOverQuotaStateToConsumer:
+          type: boolean
+        purposeRiskAnalysisAssignmentStatusToAdmin:
+          type: boolean
+          description: Enables risk analysis approval and rejection notifications for administrators.
+        purposeRiskAnalysisAssignmentStatusToReviewer:
+          type: boolean
+          description: Enables assignment, removal, draft deletion and approval by another reviewer notifications.
+        purposePublishedWithRiskAnalysisToReviewer:
           type: boolean
         eserviceArchivingRequestedToDelegator:
           type: boolean
@@ -19066,6 +19077,9 @@ components:
         rejectedBy:
           type: string
           format: uuid
+        rejectedAt:
+          type: string
+          format: date-time
         rejectionReason:
           type: string
       required:
