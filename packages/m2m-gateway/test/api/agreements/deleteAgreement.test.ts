@@ -1,14 +1,15 @@
-import { describe, it, expect, vi } from "vitest";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockedApiAgreement,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
 import { generateId } from "pagopa-interop-models";
-import { api, mockAgreementService } from "../../vitest.api.setup.js";
-import { appBasePath } from "../../../src/config/appBasePath.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { toM2MGatewayApiAgreement } from "../../../src/api/agreementApiConverter.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
+import { api, mockAgreementService } from "../../vitest.api.setup.js";
 
 describe("DELETE /purpose/:purposeId router test", () => {
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];

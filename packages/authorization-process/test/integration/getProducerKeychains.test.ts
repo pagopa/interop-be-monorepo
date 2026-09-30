@@ -1,3 +1,10 @@
+import { userRole } from "pagopa-interop-commons";
+import {
+  getMockProducerKeychain,
+  getMockAuthData,
+  getMockContext,
+  sortProducerKeychain,
+} from "pagopa-interop-commons-test";
 import {
   EServiceId,
   ProducerKeychain,
@@ -6,19 +13,13 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  getMockProducerKeychain,
-  getMockAuthData,
-  getMockContext,
-  sortProducerKeychain,
-} from "pagopa-interop-commons-test";
-import { userRole } from "pagopa-interop-commons";
+
+import { GetProducerKeychainsFilters } from "../../src/services/readModelServiceSQL.js";
 import {
   addOneProducerKeychain,
   authorizationService,
   readModelService,
 } from "../integrationUtils.js";
-import { GetProducerKeychainsFilters } from "../../src/services/readModelServiceSQL.js";
 
 describe("getProducerKeychains", async () => {
   const producerId: TenantId = generateId();

@@ -1,3 +1,8 @@
+import { tenantApi } from "pagopa-interop-api-clients";
+import {
+  applicationAuditBeginMiddleware,
+  applicationAuditEndMiddleware,
+} from "pagopa-interop-application-audit";
 import {
   authenticationMiddleware,
   contextMiddleware,
@@ -6,14 +11,10 @@ import {
   loggerMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
-import {
-  applicationAuditBeginMiddleware,
-  applicationAuditEndMiddleware,
-} from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
-import { tenantApi } from "pagopa-interop-api-clients";
-import tenantRouter from "./routers/TenantRouter.js";
+
 import { config } from "./config/config.js";
+import tenantRouter from "./routers/TenantRouter.js";
 import { TenantService } from "./services/tenantService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

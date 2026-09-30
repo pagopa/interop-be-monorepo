@@ -1,6 +1,15 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { fail } from "assert";
 import {
+  decodeProtobufPayload,
+  getMockEService,
+  getMockTenant,
+  getMockPurposeTemplate,
+  getMockDescriptor,
+  getMockAuthData,
+  getMockContext,
+} from "pagopa-interop-commons-test";
+import {
   Descriptor,
   DescriptorId,
   EService,
@@ -17,21 +26,20 @@ import {
   PurposeTemplateId,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
+
+import { config } from "../../src/config/config.js";
 import {
-  decodeProtobufPayload,
-  getMockEService,
-  getMockTenant,
-  getMockPurposeTemplate,
-  getMockDescriptor,
-  getMockAuthData,
-  getMockContext,
-} from "pagopa-interop-commons-test";
+  eserviceNotAssociatedError,
+  eserviceNotFound,
+  invalidDescriptorStateError,
+} from "../../src/errors/purposeTemplateValidationErrors.js";
 import {
   disassociationEServicesFromPurposeTemplateFailed,
   purposeTemplateNotFound,
   tooManyEServicesForPurposeTemplate,
   associationBetweenEServiceAndPurposeTemplateDoesNotExist,
 } from "../../src/model/domain/errors.js";
+import { ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_DISASSOCIATION } from "../../src/services/validators.js";
 import {
   addOneEService,
   addOnePurposeTemplate,
@@ -40,13 +48,6 @@ import {
   purposeTemplateService,
   readLastPurposeTemplateEvent,
 } from "../integrationUtils.js";
-import { config } from "../../src/config/config.js";
-import {
-  eserviceNotAssociatedError,
-  eserviceNotFound,
-  invalidDescriptorStateError,
-} from "../../src/errors/purposeTemplateValidationErrors.js";
-import { ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_DISASSOCIATION } from "../../src/services/validators.js";
 
 describe("unlinkEservicesFromPurposeTemplate", () => {
   const tenant: Tenant = {

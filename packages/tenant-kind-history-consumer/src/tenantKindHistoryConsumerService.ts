@@ -7,6 +7,7 @@ import {
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
+
 import { TenantKindHistoryWriterService } from "./tenantKindHistoryWriterService.js";
 
 export async function handleMessageV1(

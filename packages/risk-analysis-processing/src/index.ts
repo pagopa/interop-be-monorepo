@@ -1,4 +1,3 @@
-import { z } from "zod";
 import {
   logger,
   InteropTokenGenerator,
@@ -10,9 +9,11 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { makeDrizzleConnection } from "pagopa-interop-readmodel";
+import { z } from "zod";
+
+import { getInteropBeClients } from "./clients/clientsProvider.js";
 import { config } from "./configs/config.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
-import { getInteropBeClients } from "./clients/clientsProvider.js";
 import { riskAnalysisProcessingServiceBuilder } from "./services/riskAnalysisProcessingService.js";
 
 const correlationId = generateId<CorrelationId>();

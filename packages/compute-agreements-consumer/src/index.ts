@@ -1,5 +1,6 @@
 import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
+import { agreementApi } from "pagopa-interop-api-clients";
 import {
   decodeKafkaMessage,
   InteropTokenGenerator,
@@ -16,7 +17,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import { agreementApi } from "pagopa-interop-api-clients";
+
 import { config } from "./config/config.js";
 import { toApiCompactTenant } from "./converters.js";
 

@@ -1,15 +1,16 @@
-import { match } from "ts-pattern";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import { logger, decodeKafkaMessage } from "pagopa-interop-commons";
-import { runConsumer } from "kafka-iam-auth";
 import {
   CorrelationId,
   generateId,
   TenantEvent,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
+import { match } from "ts-pattern";
+
 import { config } from "./config/config.js";
 import {
   handleMessageV1,

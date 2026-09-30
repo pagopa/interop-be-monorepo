@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { UserNotificationConfig, generateId } from "pagopa-interop-models";
+import { notificationConfigApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockNotificationConfig,
@@ -7,16 +7,17 @@ import {
   mockTokenOrganizationId,
   mockTokenUserId,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
+import { UserNotificationConfig, generateId } from "pagopa-interop-models";
 import request from "supertest";
-import { notificationConfigApi } from "pagopa-interop-api-clients";
-import { api, notificationConfigService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { userNotificationConfigToApiUserNotificationConfig } from "../../src/model/domain/apiConverter.js";
-import { expectedUserIdAndOrganizationId } from "../utils.js";
 import {
   notificationConfigNotAllowedForUserRoles,
   userNotificationConfigNotFound,
 } from "../../src/model/domain/errors.js";
+import { expectedUserIdAndOrganizationId } from "../utils.js";
+import { api, notificationConfigService } from "../vitest.api.setup.js";
 
 describe("API POST /userNotificationConfigs test", () => {
   const userId = mockTokenUserId;
@@ -58,6 +59,7 @@ describe("API POST /userNotificationConfigs test", () => {
     authRole.ADMIN_ROLE,
     authRole.API_ROLE,
     authRole.SECURITY_ROLE,
+    authRole.REVIEWER_ROLE,
   ];
 
   it.each(authorizedRoles)(
@@ -85,13 +87,18 @@ describe("API POST /userNotificationConfigs test", () => {
       error: notificationConfigNotAllowedForUserRoles(userId, tenantId),
       expectedStatus: 403,
     },
+    {
+      error: notificationConfigNotAllowedForUserRoles(userId, tenantId),
+      expectedStatus: 403,
+      role: authRole.REVIEWER_ROLE,
+    },
   ])(
-    "Should return $expectedStatus for $error.code",
-    async ({ error, expectedStatus }) => {
+    "Should return $expectedStatus for $error.code with role $role",
+    async ({ error, expectedStatus, role = authRole.ADMIN_ROLE }) => {
       notificationConfigService.updateUserNotificationConfig = vi
         .fn()
         .mockRejectedValue(error);
-      const token = generateToken(authRole.ADMIN_ROLE);
+      const token = generateToken(role);
       const res = await makeRequest(token);
       expect(res.status).toBe(expectedStatus);
       expect(

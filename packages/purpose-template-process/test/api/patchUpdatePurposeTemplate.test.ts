@@ -1,21 +1,21 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { constants } from "http2";
-import { describe, it, expect, vi } from "vitest";
-import request from "supertest";
+import { purposeTemplateApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockPurposeTemplate,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   generateId,
   PurposeTemplateId,
   purposeTemplateState,
   tenantKind,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockPurposeTemplate,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import { purposeTemplateApi } from "pagopa-interop-api-clients";
-import { api, purposeTemplateService } from "../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { purposeTemplateToApiPurposeTemplate } from "../../src/model/domain/apiConverter.js";
 import {
   invalidFreeOfChargeReason,
@@ -25,6 +25,7 @@ import {
   purposeTemplateNotInExpectedStates,
   riskAnalysisTemplateValidationFailed,
 } from "../../src/model/domain/errors.js";
+import { api, purposeTemplateService } from "../vitest.api.setup.js";
 
 describe("PATCH /purposeTemplates/{id} router test", () => {
   const {

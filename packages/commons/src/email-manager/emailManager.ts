@@ -1,18 +1,19 @@
-import nodemailer from "nodemailer";
-// a bit of a hack to import MailComposer from nodemailer that is not exported
-// this is necessary because nodemailer does not support SesV2 (only SesV1)
-// this solution is suggested in this issue:
-// https://github.com/nodemailer/nodemailer/issues/1430#issuecomment-2046884660
-import MailComposer from "nodemailer/lib/mail-composer/index.js";
 import {
   SESv2Client,
   SendEmailCommand,
   SendEmailCommandInput,
   TooManyRequestsException,
 } from "@aws-sdk/client-sesv2";
+import nodemailer from "nodemailer";
+// a bit of a hack to import MailComposer from nodemailer that is not exported
+// this is necessary because nodemailer does not support SesV2 (only SesV1)
+// this solution is suggested in this issue:
+// https://github.com/nodemailer/nodemailer/issues/1430#issuecomment-2046884660
+import MailComposer from "nodemailer/lib/mail-composer/index.js";
 import Mail from "nodemailer/lib/mailer/index.js";
-import { PecEmailManagerConfig, Logger } from "../index.js";
+
 import { AWSSesConfig } from "../config/awsSesConfig.js";
+import { PecEmailManagerConfig, Logger } from "../index.js";
 
 export type EmailManagerKind = "PEC" | "SES";
 

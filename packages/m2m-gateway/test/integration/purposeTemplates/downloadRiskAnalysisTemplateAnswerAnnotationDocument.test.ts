@@ -1,23 +1,24 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
+import {
+  getMockedApiRiskAnalysisTemplateAnswerAnnotationDocument,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   generateId,
   PurposeTemplateId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
 } from "pagopa-interop-models";
-import {
-  getMockedApiRiskAnalysisTemplateAnswerAnnotationDocument,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
-import { genericLogger } from "pagopa-interop-commons";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { config } from "../../../src/config/config.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   fileManager,
   mockInteropBeClients,
   purposeTemplateService,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { config } from "../../../src/config/config.js";
 import { expectDownloadedDocumentToBeEqual } from "../../multipartTestUtils.js";
 
 describe("downloadRiskAnalysisTemplateAnswerAnnotationDocument", () => {

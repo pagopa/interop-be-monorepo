@@ -27,8 +27,9 @@ import {
   AttributeEventEnvelope,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { DBContext } from "../db/db.js";
+
 import { config } from "../config/config.js";
+import { DBContext } from "../db/db.js";
 import { handleAgreementMessageV1 } from "./agreement/consumerServiceV1.js";
 import { handleAgreementMessageV2 } from "./agreement/consumerServiceV2.js";
 import { handleAttributeMessageV1 } from "./attribute/consumerServiceV1.js";

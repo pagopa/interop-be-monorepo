@@ -1,6 +1,3 @@
-import { readFileSync } from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
 import {
   CreateTableCommand,
   CreateTableInput,
@@ -12,8 +9,12 @@ import {
   ScanCommand,
 } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
+import { readFileSync } from "fs";
 import { ProducerKeychainPlatformStatesPK } from "pagopa-interop-models";
+import path from "path";
+import { fileURLToPath } from "url";
 import { inject } from "vitest";
+
 import { ProducerKeychainPlatformStateEntry } from "../src/utils.js";
 
 const config = inject("tokenGenerationReadModelConfig");

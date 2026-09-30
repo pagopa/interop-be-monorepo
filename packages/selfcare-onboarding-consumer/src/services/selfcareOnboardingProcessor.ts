@@ -1,16 +1,17 @@
+import { EachMessagePayload } from "kafkajs";
+import { tenantApi } from "pagopa-interop-api-clients";
 import {
   getInteropHeaders,
   logger,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
-import { EachMessagePayload } from "kafkajs";
-import { tenantApi } from "pagopa-interop-api-clients";
 import {
   generateId,
   CorrelationId,
   genericInternalError,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
 } from "pagopa-interop-models";
+
 import { InstitutionEventPayload } from "../model/institutionEvent.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

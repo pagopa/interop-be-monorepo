@@ -1,4 +1,4 @@
-import { match } from "ts-pattern";
+import { and, eq, inArray } from "drizzle-orm";
 import {
   NotificationType,
   TenantId,
@@ -16,7 +16,8 @@ import {
   userEnabledEmailNotificationInReadmodelNotificationConfig,
   userNotificationConfigInReadmodelNotificationConfig,
 } from "pagopa-interop-readmodel-models";
-import { and, eq, inArray } from "drizzle-orm";
+import { match } from "ts-pattern";
+
 import {
   aggregateTenantNotificationConfig,
   aggregateUserNotificationConfig,
