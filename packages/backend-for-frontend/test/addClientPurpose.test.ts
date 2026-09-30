@@ -90,7 +90,7 @@ describe("addClientPurpose", () => {
     vi.useRealTimers();
   });
 
-  it("should retry authorization event conflicts and complete the association", async () => {
+  it("should retry after authorization event conflicts and complete the association", async () => {
     addClientPurpose
       .mockRejectedValueOnce(axiosError(eventConflictProblem))
       .mockResolvedValueOnce(undefined);
@@ -122,7 +122,7 @@ describe("addClientPurpose", () => {
     expect(addClientPurpose).toHaveBeenCalledTimes(EVENT_CONFLICT_MAX_ATTEMPTS);
   });
 
-  it("should not retry other conflicts", async () => {
+  it("should not retry after other conflicts", async () => {
     const conflict = axiosError(purposeAlreadyLinkedProblem);
     addClientPurpose.mockRejectedValue(conflict);
 
@@ -133,7 +133,7 @@ describe("addClientPurpose", () => {
     expect(addClientPurpose).toHaveBeenCalledTimes(1);
   });
 
-  it("should not retry a conflict without a problem body", async () => {
+  it("should not retry after a conflict without a problem body", async () => {
     const conflict = axiosError(eventConflictProblem, null);
     addClientPurpose.mockRejectedValue(conflict);
 
@@ -144,7 +144,7 @@ describe("addClientPurpose", () => {
     expect(addClientPurpose).toHaveBeenCalledTimes(1);
   });
 
-  it("should not retry errors that are not conflicts", async () => {
+  it("should not retry after errors that are not conflicts", async () => {
     addClientPurpose.mockRejectedValue(new Error("network error"));
 
     await expect(
