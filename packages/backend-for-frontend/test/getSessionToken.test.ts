@@ -14,6 +14,7 @@ import {
   invalidClaim,
   SelfcareId,
   TenantId,
+  tokenVerificationFailed,
   UserId,
   userRole,
 } from "pagopa-interop-models";
@@ -37,33 +38,9 @@ const selfcareIdTokenLoginNotAllowed = generateId<SelfcareId>();
 const identityTokenJti = "identity-token-jti";
 const identityTokenUid = generateId<UserId>();
 
-const b64UrlEncode = (payload: object): string =>
-  Buffer.from(JSON.stringify(payload)).toString("base64url");
-
-// The signature is irrelevant, verifyJwtToken is mocked below
-const jwtShapedIdentityToken = (claims: object): string =>
-  [
-    b64UrlEncode({ alg: "RS256", typ: "JWT" }),
-    b64UrlEncode(claims),
-    "signature",
-  ].join(".");
-
-const validIdentityToken = jwtShapedIdentityToken({
-  jti: identityTokenJti,
-  uid: identityTokenUid,
-});
-
-// Not among the tokens known by the verifyJwtToken mock, so its verification fails
-const unverifiableIdentityTokenJti = "unverifiable-identity-token-jti";
-const unverifiableIdentityToken = jwtShapedIdentityToken({
-  jti: unverifiableIdentityTokenJti,
-  uid: identityTokenUid,
-});
-
-const identityTokenWithForgingClaims = jwtShapedIdentityToken({
-  jti: `${identityTokenJti}\nForged log line`,
-  uid: identityTokenUid,
-});
+const validIdentityToken = "validIdentityToken";
+const unverifiableIdentityToken = "unverifiableIdentityToken";
+const identityTokenWithForgingClaims = "identityTokenWithForgingClaims";
 
 const identityTokenTenantNotFound = "identityTokenTenantNotFound";
 const identityTokenTenantLoginNotAllowed = "identityTokenTenantLoginNotAllowed";
@@ -96,7 +73,21 @@ const rateLimiterStatus = {
 const verifyJwtTokenMockFn = vi.fn().mockImplementation((token: string) =>
   match(token)
     .with(validIdentityToken, () => ({
-      decoded: getMockSessionClaims([userRole.ADMIN_ROLE], validSelfcareId),
+      decoded: {
+        ...getMockSessionClaims([userRole.ADMIN_ROLE], validSelfcareId),
+        jti: identityTokenJti,
+        uid: identityTokenUid,
+      },
+    }))
+    .with(unverifiableIdentityToken, () =>
+      Promise.reject(tokenVerificationFailed(undefined, undefined))
+    )
+    .with(identityTokenWithForgingClaims, () => ({
+      decoded: {
+        ...getMockSessionClaims([userRole.ADMIN_ROLE], validSelfcareId),
+        jti: `${identityTokenJti}\nForged log line`,
+        uid: identityTokenUid,
+      },
     }))
     .with(identityTokenTenantNotFound, () => ({
       decoded: getMockSessionClaims([userRole.ADMIN_ROLE], selfcareIdNotFound),
@@ -256,7 +247,7 @@ describe("getSessionToken", async () => {
     );
   });
 
-  it("should log the jti and uid claims of the identity token", async () => {
+  it("should log the jti and uid claims of the verified identity token", async () => {
     const loggerSpy = vi.spyOn(mockContext.logger, "info");
 
     await authorizationService.getSessionToken(validIdentityToken, mockContext);
@@ -268,7 +259,7 @@ describe("getSessionToken", async () => {
     );
   });
 
-  it("should log the identity token claims before verifying it, so that failed exchanges are traced too", async () => {
+  it("should not log the identity token claims when its verification fails", async () => {
     const loggerSpy = vi.spyOn(mockContext.logger, "info");
 
     await expect(
@@ -276,24 +267,20 @@ describe("getSessionToken", async () => {
         unverifiableIdentityToken,
         mockContext
       )
-    ).rejects.toThrowError();
+    ).rejects.toThrowError(tokenVerificationFailed(undefined, undefined));
 
-    expect(loggerSpy).toHaveBeenCalledWith(
-      expect.stringContaining(
-        `[JTI=${unverifiableIdentityTokenJti}][UID=${identityTokenUid}]`
-      )
+    expect(loggerSpy).not.toHaveBeenCalledWith(
+      expect.stringContaining("[JTI=")
     );
   });
 
   it("should not log identity token claims that could forge log lines", async () => {
     const infoSpy = vi.spyOn(mockContext.logger, "info");
 
-    await expect(
-      authorizationService.getSessionToken(
-        identityTokenWithForgingClaims,
-        mockContext
-      )
-    ).rejects.toThrowError();
+    await authorizationService.getSessionToken(
+      identityTokenWithForgingClaims,
+      mockContext
+    );
 
     // The jti carries a newline, so it is discarded, while the uid is still logged
     expect(infoSpy).toHaveBeenCalledWith(
@@ -301,25 +288,6 @@ describe("getSessionToken", async () => {
     );
     expect(infoSpy).not.toHaveBeenCalledWith(
       expect.stringContaining("Forged log line")
-    );
-  });
-
-  it("should not fail the exchange when the identity token claims cannot be read", async () => {
-    const loggerSpy = vi.spyOn(mockContext.logger, "warn");
-
-    // This token is not JWT shaped: the exchange must still fail on its own
-    // validation, not on the logging
-    await expect(
-      authorizationService.getSessionToken(
-        identityTokenTenantLoginNotAllowed,
-        mockContext
-      )
-    ).rejects.toThrowError(
-      tenantLoginNotAllowed(selfcareIdTokenLoginNotAllowed)
-    );
-
-    expect(loggerSpy).toHaveBeenCalledWith(
-      "No loggable jti and uid claims in the identity token"
     );
   });
 });
