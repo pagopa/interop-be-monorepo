@@ -4,6 +4,7 @@ import {
   m2mEventVisibility,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
+
 import { generateM2MEventId } from "../../utils/uuidv7.js";
 
 export function createProducerKeychainM2MEvent(

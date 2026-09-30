@@ -5,6 +5,7 @@ import {
   toAgreementV2,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import { agreementReadModelService, agreementWriterService } from "./utils.js";
 

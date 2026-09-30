@@ -14,8 +14,12 @@ import {
   RiskAnalysisId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { M2MGatewayAppContext } from "../utils/context.js";
+
+import {
+  toM2MGatewayApiCertifiedAttribute,
+  toM2MGatewayApiDeclaredAttribute,
+  toM2MGatewayApiVerifiedAttribute,
+} from "../api/attributeApiConverter.js";
 import {
   toM2MGatewayApiEServiceTemplateRiskAnalysis,
   toM2MGatewayEServiceTemplate,
@@ -24,6 +28,8 @@ import {
   toM2MGatewayApiDocument,
   toEServiceTemplateApiEServiceTemplateVersionSeed,
 } from "../api/eserviceTemplateApiConverter.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { config } from "../config/config.js";
 import {
   cannotDeleteLastEServiceTemplateVersion,
   eserviceTemplateRiskAnalysisNotFound,
@@ -31,21 +37,16 @@ import {
   eserviceTemplateVersionNotFound,
   eserviceTemplateVersionAttributeGroupNotFound,
 } from "../model/errors.js";
-import {
-  toM2MGatewayApiCertifiedAttribute,
-  toM2MGatewayApiDeclaredAttribute,
-  toM2MGatewayApiVerifiedAttribute,
-} from "../api/attributeApiConverter.js";
+import { M2MGatewayAppContext } from "../utils/context.js";
+import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
+import { uploadEServiceTemplateDocument } from "../utils/fileUpload.js";
+import { getResolvedAttributesMap } from "../utils/getResolvedAttributesMap.js";
 import {
   pollResourceWithMetadata,
   isPolledVersionAtLeastResponseVersion,
   isPolledVersionAtLeastMetadataTargetVersion,
   pollResourceUntilDeletion,
 } from "../utils/polling.js";
-import { uploadEServiceTemplateDocument } from "../utils/fileUpload.js";
-import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
-import { config } from "../config/config.js";
-import { getResolvedAttributesMap } from "../utils/getResolvedAttributesMap.js";
 
 export type EserviceTemplateService = ReturnType<
   typeof eserviceTemplateServiceBuilder

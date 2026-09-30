@@ -1,13 +1,14 @@
-import { inject, afterEach } from "vitest";
-import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-import { attributeReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import { eq } from "drizzle-orm";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { AttributeId } from "pagopa-interop-models";
+import { attributeReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import {
   DrizzleReturnType,
   AttributeSQL,
   attributeInReadmodelAttribute,
 } from "pagopa-interop-readmodel-models";
+import { inject, afterEach } from "vitest";
+
 import { attributeWriterServiceBuilder } from "../src/attributeWriterService.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(

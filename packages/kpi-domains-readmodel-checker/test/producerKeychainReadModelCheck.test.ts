@@ -1,12 +1,13 @@
-import { getMockProducerKeychain } from "pagopa-interop-commons-test";
-import { describe, expect, it } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
+import { getMockProducerKeychain } from "pagopa-interop-commons-test";
 import {
   generateId,
   ProducerKeychain,
   WithMetadata,
 } from "pagopa-interop-models";
 import { upsertProducerKeychain } from "pagopa-interop-readmodel/testUtils";
+import { describe, expect, it } from "vitest";
+
 import { compare } from "../src/utils.js";
 import {
   addOneProducerKeychain,

@@ -4,13 +4,6 @@
 
 import { randomUUID } from "crypto";
 import {
-  FileManager,
-  getAllFromPaginated,
-  isValidFile,
-  removeDuplicates,
-  WithLogger,
-} from "pagopa-interop-commons";
-import {
   bffApi,
   catalogApi,
   agreementApi,
@@ -18,35 +11,43 @@ import {
   attributeRegistryApi,
   delegationApi,
 } from "pagopa-interop-api-clients";
+import {
+  FileManager,
+  getAllFromPaginated,
+  isValidFile,
+  removeDuplicates,
+  WithLogger,
+} from "pagopa-interop-commons";
+import { invalidFileUploadError } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { BffAppContext, Headers } from "../utilities/context.js";
-import {
-  agreementDescriptorNotFound,
-  contractException,
-  contractNotFound,
-} from "../model/errors.js";
-import { config } from "../config/config.js";
-import {
-  getLatestActiveDescriptor,
-  getLatestTenantContactEmail,
-} from "../model/modelMappingUtils.js";
-import {
-  toCompactEservice,
-  toCompactDescriptor,
-} from "../api/catalogApiConverter.js";
+
 import {
   toBffAgreementConsumerDocument,
   toBffAttribute,
   toBffCompactOrganization,
   toCompactEserviceLight,
 } from "../api/agreementApiConverter.js";
+import {
+  toCompactEservice,
+  toCompactDescriptor,
+} from "../api/catalogApiConverter.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { config } from "../config/config.js";
+import {
+  agreementDescriptorNotFound,
+  contractException,
+  contractNotFound,
+} from "../model/errors.js";
+import {
+  getLatestActiveDescriptor,
+  getLatestTenantContactEmail,
+} from "../model/modelMappingUtils.js";
+import { BffAppContext, Headers } from "../utilities/context.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { getAllBulkAttributes } from "./attributeService.js";
+import { getTenantById } from "./delegationService.js";
 import { enhanceTenantAttributes } from "./tenantService.js";
 import { isAgreementUpgradable } from "./validators.js";
-import { getTenantById } from "./delegationService.js";
-import { invalidFileUploadError } from "pagopa-interop-models";
 
 export async function getAllAgreements(
   agreementProcessClient: agreementApi.AgreementProcessClient,
@@ -444,7 +445,7 @@ export function agreementServiceBuilder(
       });
     },
 
-    async activateAgreement(
+    async approveAgreement(
       agreementId: string,
       delegationId: string | undefined,
       ctx: WithLogger<BffAppContext>
@@ -454,7 +455,26 @@ export function agreementServiceBuilder(
           delegationId ? ` with delegation ${delegationId}` : ""
         }`
       );
-      const agreement = await agreementProcessClient.activateAgreement(
+      const agreement = await agreementProcessClient.approveAgreement(
+        { delegationId },
+        {
+          params: { agreementId },
+          headers: ctx.headers,
+        }
+      );
+      return enrichAgreement(agreement, clients, ctx);
+    },
+    async unsuspendAgreement(
+      agreementId: string,
+      delegationId: string | undefined,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.Agreement> {
+      ctx.logger.info(
+        `Unsuspending agreement ${agreementId}${
+          delegationId ? ` with delegation ${delegationId}` : ""
+        }`
+      );
+      const agreement = await agreementProcessClient.unsuspendAgreement(
         { delegationId },
         {
           params: { agreementId },

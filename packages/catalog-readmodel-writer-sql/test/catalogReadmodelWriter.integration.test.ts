@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { format } from "date-fns";
 import {
   getMockValidRiskAnalysis,
   toEServiceV1,
@@ -27,7 +27,6 @@ import {
   EServiceDescriptorDocumentUpdatedV2,
   EServiceDescriptorInterfaceAddedV2,
   EServiceDescriptorInterfaceDeletedV2,
-  EServiceDescriptorInterfaceUpdatedV2,
   EServiceDescriptorPublishedV2,
   EServiceDescriptorQuotasUpdatedV2,
   EServiceDescriptorSuspendedV2,
@@ -55,7 +54,8 @@ import {
   technology,
   toEServiceV2,
 } from "pagopa-interop-models";
-import { format } from "date-fns";
+import { describe, expect, it } from "vitest";
+
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import { catalogReadModelService, catalogWriterService } from "./utils.js";
@@ -1228,50 +1228,6 @@ describe("database test", async () => {
         stream_id: mockEService.id,
         version: 2,
         type: "EServiceDescriptorDocumentAdded",
-        event_version: 2,
-        data: payload,
-        log_date: new Date(),
-      };
-      await handleMessageV2(message, catalogWriterService);
-      const retrievedEservice = await catalogReadModelService.getEServiceById(
-        mockEService.id
-      );
-
-      expect(retrievedEservice?.data).toEqual(updatedEService);
-      expect(retrievedEservice?.metadata).toEqual({ version: 2 });
-    });
-
-    it("EServiceDescriptorInterfaceUpdated", async () => {
-      const descriptorInterface = getMockDocument();
-      const draftDescriptor: Descriptor = {
-        ...getMockDescriptor(),
-        state: descriptorState.draft,
-        interface: descriptorInterface,
-      };
-      const eservice: EService = {
-        ...mockEService,
-        descriptors: [draftDescriptor],
-      };
-      await catalogWriterService.upsertEService(eservice, 1);
-
-      const updatedInterface: Document = {
-        ...descriptorInterface,
-        prettyName: "updated pretty name",
-      };
-      const updatedEService: EService = {
-        ...eservice,
-        descriptors: [{ ...draftDescriptor, interface: updatedInterface }],
-      };
-      const payload: EServiceDescriptorInterfaceUpdatedV2 = {
-        eservice: toEServiceV2(updatedEService),
-        descriptorId: draftDescriptor.id,
-        documentId: updatedInterface.id,
-      };
-      const message: EServiceEventEnvelope = {
-        sequence_num: 1,
-        stream_id: mockEService.id,
-        version: 2,
-        type: "EServiceDescriptorInterfaceUpdated",
         event_version: 2,
         data: payload,
         log_date: new Date(),

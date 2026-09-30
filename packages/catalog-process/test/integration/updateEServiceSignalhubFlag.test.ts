@@ -20,16 +20,17 @@ import {
   delegationKind,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
+
+import {
+  eServiceNotFound,
+  eserviceWithoutValidDescriptors,
+} from "../../src/model/domain/errors.js";
 import {
   addOneDelegation,
   addOneEService,
   catalogService,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
-import {
-  eServiceNotFound,
-  eserviceWithoutValidDescriptors,
-} from "../../src/model/domain/errors.js";
 
 describe("update E-service signalhub flag for an already created E-service", async () => {
   it("should write on event-store for the update of the E-service signalhub flag (false->true)", async () => {

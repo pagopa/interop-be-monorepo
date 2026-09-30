@@ -1,14 +1,21 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { generateMock } from "@anatine/zod-mock";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
-import {
-  pollingMaxRetriesExceeded,
-  unsafeBrandId,
-} from "pagopa-interop-models";
 import {
   getMockedApiPurpose,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { generateMock } from "@anatine/zod-mock";
+import {
+  pollingMaxRetriesExceeded,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { config } from "../../../src/config/config.js";
+import {
+  invalidSeedForPurposeFromTemplate,
+  missingMetadata,
+} from "../../../src/model/errors.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientGetToHaveBeenNthCalledWith,
@@ -17,12 +24,6 @@ import {
   mockPollingResponse,
   purposeService,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { config } from "../../../src/config/config.js";
-import {
-  invalidSeedForPurposeFromTemplate,
-  missingMetadata,
-} from "../../../src/model/errors.js";
 import {
   getMockM2MAdminAppContext,
   testToM2mGatewayApiPurposeVersion,

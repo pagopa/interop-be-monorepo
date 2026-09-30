@@ -8,6 +8,7 @@ import {
   TokenGenerationConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
+
 import { SQSConsumerConfig } from "./sqsConfig.js";
 
 const SignedObjectsPersisterConfig = SQSConsumerConfig.and(LoggerConfig)
@@ -21,6 +22,7 @@ const SignedObjectsPersisterConfig = SQSConsumerConfig.and(LoggerConfig)
       .object({
         S3_BUCKET_SIGNED_DOCUMENTS: z.string(),
         S3_BUCKET_AUDIT: z.string(),
+        S3_BUCKET_M2M_AUDIT: z.string(),
         S3_BUCKET_EVENTS: z.string(),
         DELEGATION_PROCESS_URL: APIEndpoint,
         PURPOSE_PROCESS_URL: APIEndpoint,
@@ -30,6 +32,7 @@ const SignedObjectsPersisterConfig = SQSConsumerConfig.and(LoggerConfig)
       .transform((c) => ({
         signedDocumentsBucket: c.S3_BUCKET_SIGNED_DOCUMENTS,
         auditBucket: c.S3_BUCKET_AUDIT,
+        m2mAuditBucket: c.S3_BUCKET_M2M_AUDIT,
         eventsBucket: c.S3_BUCKET_EVENTS,
         delegationProcessUrl: c.DELEGATION_PROCESS_URL,
         purposeProcessUrl: c.PURPOSE_PROCESS_URL,

@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { getMockAttribute } from "pagopa-interop-commons-test";
 import { Attribute } from "pagopa-interop-models";
-import { describe, expect, it } from "vitest";
 import { aggregateAttribute } from "pagopa-interop-readmodel";
+import { describe, expect, it } from "vitest";
+
 import {
   attributeWriterService,
   readModelDB,

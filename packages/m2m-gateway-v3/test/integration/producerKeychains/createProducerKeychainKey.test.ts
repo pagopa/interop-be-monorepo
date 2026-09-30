@@ -1,4 +1,3 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   getMockWithMetadata,
@@ -7,6 +6,9 @@ import {
   getMockedApiProducerJWK,
 } from "pagopa-interop-commons-test";
 import { ProducerKeychainId, generateId } from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
@@ -15,7 +17,6 @@ import {
   mockPollingResponse,
 } from "../../integrationUtils.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 
 describe("createProducerKeychainKey", () => {
   const producerKeychainId = generateId<ProducerKeychainId>();

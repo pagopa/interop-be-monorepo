@@ -6,17 +6,19 @@ import {
   getMockTenant,
   getMockAuthData,
 } from "pagopa-interop-commons-test";
-import { describe, expect, it, vi } from "vitest";
 import {
   ConsumerDelegationRejectedV2,
   DelegationId,
   delegationKind,
   generateId,
+  hyperlinkDetectionError,
   ProducerDelegationRejectedV2,
   TenantId,
   toDelegationV2,
 } from "pagopa-interop-models";
 import { delegationState } from "pagopa-interop-models";
+import { describe, expect, it, vi } from "vitest";
+
 import {
   delegationNotFound,
   operationRestrictedToDelegate,
@@ -161,4 +163,20 @@ describe.each([
       );
     }
   );
+  it("should throw hyperlinkDetectionError when the rejectionReason contains a hyperlink", async () => {
+    const delegate = getMockTenant();
+    const authData = getMockAuthData(delegate.id);
+    const delegation = getMockDelegation({
+      kind,
+      state: delegationState.waitingForApproval,
+      delegateId: delegate.id,
+    });
+    await addOneDelegation(delegation);
+
+    const rejectionReason = "see https://evil.example.com";
+
+    await expect(
+      rejectFn(delegation.id, rejectionReason, getMockContext({ authData }))
+    ).rejects.toThrowError(hyperlinkDetectionError(rejectionReason));
+  });
 });

@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   decodeProtobufPayload,
   getMockAttribute,
@@ -17,8 +18,8 @@ import {
   EServiceDescriptorAttributesUpdatedByTemplateUpdateV2,
   AttributeId,
 } from "pagopa-interop-models";
-import { catalogApi } from "pagopa-interop-api-clients";
 import { expect, describe, it, beforeEach } from "vitest";
+
 import {
   attributeNotFound,
   eServiceDescriptorNotFound,
