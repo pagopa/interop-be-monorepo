@@ -6,6 +6,8 @@ import { digestTemplateServiceBuilder } from "../src/services/templateService.js
 import {
   getMockTenantDigestData,
   getMockPartialDigestData,
+  getMockSingularTenantDigestData,
+  getMockLimitedTenantDigestData,
 } from "../test/mockUtils.js";
 import { getVisibleSections } from "../src/utils/digestAdmittedRoles.js";
 
@@ -30,6 +32,22 @@ const fullHtml = digestTemplateService.compileDigestEmail(fullData,
 const fullOutputPath = path.join(outputDir, "mock-digest-email.html");
 fs.writeFileSync(fullOutputPath, fullHtml);
 
+// Generate singular data email
+const singularData = getMockSingularTenantDigestData();
+const singularHtml = digestTemplateService.compileDigestEmail(singularData,
+  adminVisibility
+);
+const singularOutputPath = path.join(outputDir, "mock-digest-email-singular.html");
+fs.writeFileSync(singularOutputPath, singularHtml);
+
+// Generate limited data email
+const limitedData = getMockLimitedTenantDigestData();
+const limitedHtml = digestTemplateService.compileDigestEmail(limitedData,
+  adminVisibility
+);
+const limitedOutputPath = path.join(outputDir, "mock-digest-email-limited.html");
+fs.writeFileSync(limitedOutputPath, limitedHtml);
+
 // Generate partial data email (only E-services and Attributes)
 const partialData = getMockPartialDigestData();
 const partialHtml = digestTemplateService.compileDigestEmail(partialData, adminVisibility);
@@ -43,6 +61,8 @@ fs.writeFileSync(partialOutputPath, partialHtml);
 console.log(`✅ Mock digest emails generated successfully!`);
 console.log(`\n📧 Output files:`);
 console.log(`   - ${fullOutputPath} (all sections)`);
+console.log(`   - ${singularOutputPath} (one item per section)`);
+console.log(`   - ${limitedOutputPath} (limited to max items per section)`);
 console.log(`   - ${partialOutputPath} (only E-services and Attributes)`);
 console.log(`\nYou can open them in your browser to preview the emails.`);
 /* eslint-enable no-console */
