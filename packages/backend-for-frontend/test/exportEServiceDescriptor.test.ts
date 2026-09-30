@@ -1,3 +1,4 @@
+import AdmZip from "adm-zip";
 import {
   agreementApi,
   attributeRegistryApi,
@@ -267,6 +268,79 @@ describe("exportEServiceDescriptor", () => {
         filename: zipFileName,
         url: mockPresignedUrl,
       });
+    });
+
+    it("should include async exchange configuration and callback interface", async () => {
+      const callbackInterface = {
+        id: "callback-interface-id",
+        name: "callback.yaml",
+        path: "path/to/callback.yaml",
+        contentType: "application/yaml",
+        prettyName: "Callback interface",
+        checksum: "callback-checksum",
+        uploadDate: new Date(mockDate).toISOString(),
+      };
+      const asyncExchangeProperties = {
+        responseTime: 60,
+        resourceAvailableTime: 120,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 100,
+      };
+      const asyncEService: catalogApi.EService = {
+        ...baseEService,
+        asyncExchange: true,
+        descriptors: [
+          {
+            ...baseEService.descriptors[0],
+            asyncExchangeProperties,
+            asyncExchangeCallbackInterface: callbackInterface,
+          },
+        ],
+      };
+      const { service } = createTestCatalogService(asyncEService);
+
+      vi.spyOn(fileManager, "storeBytes").mockResolvedValue("mockResourceId");
+      vi.spyOn(fileManager, "generateGetPresignedUrl").mockResolvedValue(
+        "https://mockpresignedurl.com/file.zip"
+      );
+      vi.spyOn(fileManager, "get").mockResolvedValue(
+        Buffer.from("document content")
+      );
+
+      await service.exportEServiceDescriptor(
+        eServiceId,
+        descriptorId,
+        bffMockContext
+      );
+
+      const storedZip = vi.mocked(fileManager.storeBytes).mock.calls[0][0]
+        .content;
+      const zip = new AdmZip(Buffer.from(storedZip));
+      const zipFolderName = `${eServiceId}_${descriptorId}`;
+      const configurationEntry = zip.getEntry(
+        `${zipFolderName}/configuration.json`
+      );
+      const callbackEntry = zip.getEntry(
+        `${zipFolderName}/asyncExchangeCallbackInterface/${callbackInterface.name}`
+      );
+
+      expect(configurationEntry).not.toBeNull();
+      expect(
+        JSON.parse(configurationEntry!.getData().toString("utf8"))
+      ).toEqual(
+        expect.objectContaining({
+          asyncExchange: true,
+          descriptor: expect.objectContaining({
+            asyncExchangeProperties,
+            asyncExchangeCallbackInterface: {
+              prettyName: callbackInterface.prettyName,
+              path: `asyncExchangeCallbackInterface/${callbackInterface.name}`,
+            },
+          }),
+        })
+      );
+      expect(callbackEntry?.getData()).toEqual(Buffer.from("document content"));
     });
   });
 });

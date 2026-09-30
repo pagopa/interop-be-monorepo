@@ -7,6 +7,7 @@ type RiskAnalysisTemplateValidationIssueCode =
   | "unexpectedRiskAnalysisTemplateDependencyEditableError"
   | "unexpectedRiskAnalysisTemplateFieldValueError"
   | "unexpectedRiskAnalysisTemplateFieldError"
+  | "unexpectedRiskAnalysisTemplateFieldHyperlinkError"
   | "noRiskAnalysisTemplateRulesVersionFoundError"
   | "unexpectedRiskAnalysisTemplateRulesVersionError"
   | "unexpectedRiskAnalysisTemplateDependencyValueError"
@@ -66,6 +67,15 @@ export function unexpectedRiskAnalysisTemplateFieldError(
   return new RiskAnalysisTemplateValidationIssue({
     code: "unexpectedRiskAnalysisTemplateFieldError",
     detail: `Unexpected field ${fieldName}`,
+  });
+}
+
+export function unexpectedRiskAnalysisTemplateFieldHyperlinkError(
+  fieldName: string
+): RiskAnalysisTemplateValidationIssue {
+  return new RiskAnalysisTemplateValidationIssue({
+    code: "unexpectedRiskAnalysisTemplateFieldHyperlinkError",
+    detail: `Field ${fieldName} must not contain hyperlinks or URLs`,
   });
 }
 

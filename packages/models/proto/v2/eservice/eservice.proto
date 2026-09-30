@@ -21,6 +21,7 @@ message EServiceV2 {
   optional string instanceLabel = 15;
   optional bool asyncExchange = 16;
   optional string archivingReason = 17;
+  repeated DelegatedEServiceArchivingRequestV2 delegatedArchivingRequest = 18;
 }
 
 message EServiceRiskAnalysisV2 {
@@ -112,6 +113,7 @@ message EServiceDescriptorV2 {
   optional AsyncExchangePropertiesV2 asyncExchangeProperties = 22;
   optional ArchivingScheduleV2 archivingSchedule = 23;
   repeated string serverUrlsDescriptions = 24;
+  repeated DelegatedDescriptorArchivingRequestV2 delegatedArchivingRequest = 25;
 }
 
 message TemplateInstanceInterfaceMetadataV2 {
@@ -190,4 +192,23 @@ enum GracePeriodDaysV2 {
   GRACE_PERIOD_30_DAYS = 1;
   GRACE_PERIOD_60_DAYS = 2;
   GRACE_PERIOD_120_DAYS = 3;
+}
+
+message DelegatedDescriptorArchivingRequestV2 {
+  int64 requestedAt = 1;
+  optional int64 acceptedAt = 2;
+  optional int64 rejectedAt = 3;
+  optional string rejectionReason = 4;
+  string requesterId = 5;
+  GracePeriodDaysV2 gracePeriodDays = 6;
+}
+
+message DelegatedEServiceArchivingRequestV2 {
+  int64 requestedAt = 1;
+  optional int64 acceptedAt = 2;
+  optional int64 rejectedAt = 3;
+  optional string rejectionReason = 4;
+  string requesterId = 5;
+  GracePeriodDaysV2 gracePeriodDays = 6;
+  string archivingReason = 7;
 }
