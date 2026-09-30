@@ -17,6 +17,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { purposeToApiPurpose } from "../../src/model/domain/apiConverter.js";
 import {
   missingRiskAnalysis,
+  purposeMetadataVersionMismatch,
   purposeNotFound,
   riskAnalysisValidationFailed,
   reviewerWorkflowNotFound,
@@ -31,6 +32,9 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/sign test", () => {
   const apiResponse = purposeApi.Purpose.parse(
     purposeToApiPurpose(mockPurpose)
   );
+  const defaultBody: purposeApi.RiskAnalysisSignSeed = {
+    metadataVersionToSign: 1,
+  };
 
   beforeEach(() => {
     purposeService.signRiskAnalysis = vi
@@ -40,12 +44,14 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/sign test", () => {
 
   const makeRequest = async (
     token: string,
-    purposeId: PurposeId = mockPurpose.id
+    purposeId: PurposeId = mockPurpose.id,
+    body: purposeApi.RiskAnalysisSignSeed = defaultBody
   ) =>
     request(api)
       .post(`/purposes/${purposeId}/riskAnalysis/sign`)
       .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId());
+      .set("X-Correlation-Id", generateId())
+      .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.REVIEWER_ROLE];
 
@@ -58,6 +64,11 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/sign test", () => {
       expect(res.body).toEqual(apiResponse);
       expect(res.headers["x-metadata-version"]).toBe(
         serviceResponse.metadata.version.toString()
+      );
+      expect(purposeService.signRiskAnalysis).toHaveBeenCalledWith(
+        mockPurpose.id,
+        defaultBody,
+        expect.anything()
       );
     }
   );
@@ -78,6 +89,10 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/sign test", () => {
     },
     {
       error: reviewerWorkflowNotInSignableState(mockPurpose.id),
+      expectedStatus: 409,
+    },
+    {
+      error: purposeMetadataVersionMismatch(mockPurpose.id, 0, 1),
       expectedStatus: 409,
     },
     {
@@ -104,9 +119,22 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/sign test", () => {
     }
   );
 
-  it("Should return 400 if purposeId is invalid", async () => {
-    const token = generateToken(authRole.REVIEWER_ROLE);
-    const res = await makeRequest(token, "invalid" as PurposeId);
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { purposeId: "invalid" as PurposeId },
+    { body: {} },
+    { body: { metadataVersionToSign: -1 } },
+    { body: { metadataVersionToSign: 1.5 } },
+    { body: { ...defaultBody, extraField: 1 } },
+  ])(
+    "Should return 400 if passed invalid data: %s",
+    async ({ purposeId, body }) => {
+      const token = generateToken(authRole.REVIEWER_ROLE);
+      const res = await makeRequest(
+        token,
+        purposeId,
+        body as purposeApi.RiskAnalysisSignSeed
+      );
+      expect(res.status).toBe(400);
+    }
+  );
 });
