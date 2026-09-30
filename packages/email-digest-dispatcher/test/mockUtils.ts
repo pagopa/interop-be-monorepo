@@ -9,7 +9,6 @@ export function getMockTenantDigestData(): TenantDigestData {
   return {
     tenantId: generateId(),
     tenantName: "Mock Tenant Organization",
-    timePeriod: "1-15 Dicembre 2025",
     notificationSettingsLink: "https://example.com/notification-settings",
     viewAllNewEservicesLink: "https://example.com/eservices/new",
     viewAllUpdatedEservicesLink: "https://example.com/eservices/updated",
@@ -17,13 +16,10 @@ export function getMockTenantDigestData(): TenantDigestData {
     viewAllSentPurposesLink: "https://example.com/purposes/sent",
     viewAllReceivedAgreementsLink: "https://example.com/agreements/received",
     viewAllReceivedPurposesLink: "https://example.com/purposes/received",
-    viewAllSentDelegationsLink: "https://example.com/delegations/sent",
     viewAllReceivedDelegationsLink: "https://example.com/delegations/received",
     viewAllAttributesLink: "https://example.com/attributes",
     viewAllUpdatedEserviceTemplatesLink:
       "https://example.com/eservice-templates/updated",
-    viewAllPopularEserviceTemplatesLink:
-      "https://example.com/eservice-templates/popular",
     newEservices: {
       items: [
         {
@@ -36,8 +32,29 @@ export function getMockTenantDigestData(): TenantDigestData {
           producerName: "Agenzia delle Entrate",
           link: "https://example.com/eservice/2",
         },
+        {
+          name: "Servizio Consultazione Catasto",
+          producerName: "Agenzia delle Entrate",
+          link: "https://example.com/eservice/3",
+        },
+        {
+          name: "API Registro Imprese",
+          producerName: "Unioncamere",
+          link: "https://example.com/eservice/4",
+        },
+        {
+          name: "Piattaforma Notifiche Digitali",
+          producerName: "PagoPA S.p.A.",
+          link: "https://example.com/eservice/5",
+        },
+        {
+          name: "Servizio Mobilita Nazionale",
+          producerName: "Ministero delle Infrastrutture e dei Trasporti",
+          link: "https://example.com/eservice/6",
+        },
       ],
-      totalCount: 5,
+      totalCount: 8,
+      remainingCount: 2,
     },
     updatedEservices: {
       items: [
@@ -46,8 +63,34 @@ export function getMockTenantDigestData(): TenantDigestData {
           producerName: "AgID",
           link: "https://example.com/eservice/3",
         },
+        {
+          name: "API Pagamenti Digitali",
+          producerName: "PagoPA S.p.A.",
+          link: "https://example.com/eservice/4",
+        },
+        {
+          name: "Servizio Dati Territoriali",
+          producerName: "Agenzia delle Entrate",
+          link: "https://example.com/eservice/5",
+        },
+        {
+          name: "API Mobilita Pubblica",
+          producerName: "Ministero delle Infrastrutture e dei Trasporti",
+          link: "https://example.com/eservice/6",
+        },
+        {
+          name: "Servizio Albo Nazionale",
+          producerName: "Ministero della Giustizia",
+          link: "https://example.com/eservice/7",
+        },
+        {
+          name: "API Imprese e Professionisti",
+          producerName: "Unioncamere",
+          link: "https://example.com/eservice/8",
+        },
       ],
-      totalCount: 3,
+      totalCount: 9,
+      remainingCount: 3,
     },
     updatedEserviceTemplates: {
       items: [
@@ -61,28 +104,29 @@ export function getMockTenantDigestData(): TenantDigestData {
           producerName: "Agenzia delle Entrate",
           link: "https://example.com/eservice-template/2",
         },
-      ],
-      totalCount: 4,
-    },
-    popularEserviceTemplates: {
-      items: [
         {
-          name: "Template Gestione Documenti",
-          producerName: "Mock Tenant Organization",
+          name: "Template Servizi Demografici",
+          producerName: "Ministero dell'Interno",
           link: "https://example.com/eservice-template/3",
         },
         {
-          name: "Template Servizi Pagamento",
-          producerName: "Mock Tenant Organization",
+          name: "Template Pagamenti Telematici",
+          producerName: "PagoPA S.p.A.",
           link: "https://example.com/eservice-template/4",
         },
         {
-          name: "Template API Certificati",
-          producerName: "Mock Tenant Organization",
+          name: "Template Dati Territoriali",
+          producerName: "Agenzia delle Entrate",
           link: "https://example.com/eservice-template/5",
+        },
+        {
+          name: "Template Registro Imprese",
+          producerName: "Unioncamere",
+          link: "https://example.com/eservice-template/6",
         },
       ],
       totalCount: 7,
+      remainingCount: 1,
     },
     acceptedSentAgreements: {
       items: [
@@ -96,8 +140,24 @@ export function getMockTenantDigestData(): TenantDigestData {
           producerName: "PagoPA S.p.A.",
           link: "https://example.com/agreement/2",
         },
+        {
+          name: "Consultazione Dati Catastali",
+          producerName: "Agenzia delle Entrate",
+          link: "https://example.com/agreement/6",
+        },
+        {
+          name: "Accesso Registro Imprese",
+          producerName: "Unioncamere",
+          link: "https://example.com/agreement/7",
+        },
+        {
+          name: "Servizi di Mobilita",
+          producerName: "Comune di Milano",
+          link: "https://example.com/agreement/8",
+        },
       ],
-      totalCount: 2,
+      totalCount: 7,
+      remainingCount: 2,
     },
     rejectedSentAgreements: {
       items: [
@@ -106,8 +166,29 @@ export function getMockTenantDigestData(): TenantDigestData {
           producerName: "Ente Test",
           link: "https://example.com/agreement/3",
         },
+        {
+          name: "Servizio Dati Rifiutato",
+          producerName: "Comune di Torino",
+          link: "https://example.com/agreement/9",
+        },
+        {
+          name: "API Pagamenti Rifiutata",
+          producerName: "Ente Pagamenti",
+          link: "https://example.com/agreement/10",
+        },
+        {
+          name: "Servizio Mobilita Rifiutato",
+          producerName: "Comune di Napoli",
+          link: "https://example.com/agreement/11",
+        },
+        {
+          name: "Servizio Anagrafe Rifiutato",
+          producerName: "Comune di Bologna",
+          link: "https://example.com/agreement/12",
+        },
       ],
-      totalCount: 1,
+      totalCount: 7,
+      remainingCount: 2,
     },
     suspendedSentAgreements: {
       items: [
@@ -116,8 +197,29 @@ export function getMockTenantDigestData(): TenantDigestData {
           producerName: "Ente Sospeso",
           link: "https://example.com/agreement/4",
         },
+        {
+          name: "Servizio Catasto Sospeso",
+          producerName: "Agenzia delle Entrate",
+          link: "https://example.com/agreement/13",
+        },
+        {
+          name: "API Imprese Sospesa",
+          producerName: "Unioncamere",
+          link: "https://example.com/agreement/14",
+        },
+        {
+          name: "Servizio Pagamenti Sospeso",
+          producerName: "PagoPA S.p.A.",
+          link: "https://example.com/agreement/15",
+        },
+        {
+          name: "Servizio Trasporti Sospeso",
+          producerName: "Comune di Genova",
+          link: "https://example.com/agreement/16",
+        },
       ],
-      totalCount: 1,
+      totalCount: 7,
+      remainingCount: 2,
     },
     publishedSentPurposes: {
       items: [
@@ -126,8 +228,29 @@ export function getMockTenantDigestData(): TenantDigestData {
           producerName: "Sistema Centrale",
           link: "https://example.com/purpose/1",
         },
+        {
+          name: "Finalità Accesso Servizi",
+          producerName: "Comune di Roma",
+          link: "https://example.com/purpose/6",
+        },
+        {
+          name: "Finalità Gestione Pagamenti",
+          producerName: "PagoPA S.p.A.",
+          link: "https://example.com/purpose/7",
+        },
+        {
+          name: "Finalità Consultazione Dati",
+          producerName: "Agenzia delle Entrate",
+          link: "https://example.com/purpose/8",
+        },
+        {
+          name: "Finalità Servizi Territoriali",
+          producerName: "Regione Lazio",
+          link: "https://example.com/purpose/9",
+        },
       ],
-      totalCount: 1,
+      totalCount: 7,
+      remainingCount: 2,
     },
     rejectedSentPurposes: {
       items: [
@@ -136,8 +259,29 @@ export function getMockTenantDigestData(): TenantDigestData {
           producerName: "Ente Rifiutante",
           link: "https://example.com/purpose/2",
         },
+        {
+          name: "Finalità Dati Rifiutata",
+          producerName: "Comune di Torino",
+          link: "https://example.com/purpose/10",
+        },
+        {
+          name: "Finalità Pagamenti Rifiutata",
+          producerName: "Ente Pagamenti",
+          link: "https://example.com/purpose/11",
+        },
+        {
+          name: "Finalità Mobilita Rifiutata",
+          producerName: "Comune di Napoli",
+          link: "https://example.com/purpose/12",
+        },
+        {
+          name: "Finalità Anagrafe Rifiutata",
+          producerName: "Comune di Bologna",
+          link: "https://example.com/purpose/13",
+        },
       ],
-      totalCount: 1,
+      totalCount: 7,
+      remainingCount: 2,
     },
     waitingForApprovalSentPurposes: {
       items: [
@@ -146,8 +290,29 @@ export function getMockTenantDigestData(): TenantDigestData {
           producerName: "Ente Erogatore",
           link: "https://example.com/purpose/3",
         },
+        {
+          name: "Finalità Catasto in Attesa",
+          producerName: "Agenzia delle Entrate",
+          link: "https://example.com/purpose/14",
+        },
+        {
+          name: "Finalità Imprese in Attesa",
+          producerName: "Unioncamere",
+          link: "https://example.com/purpose/15",
+        },
+        {
+          name: "Finalità Pagamenti in Attesa",
+          producerName: "PagoPA S.p.A.",
+          link: "https://example.com/purpose/16",
+        },
+        {
+          name: "Finalità Trasporti in Attesa",
+          producerName: "Comune di Genova",
+          link: "https://example.com/purpose/17",
+        },
       ],
-      totalCount: 1,
+      totalCount: 7,
+      remainingCount: 2,
     },
     waitingForApprovalReceivedAgreements: {
       items: [
@@ -156,8 +321,29 @@ export function getMockTenantDigestData(): TenantDigestData {
           producerName: "Ente Richiedente",
           link: "https://example.com/agreement/5",
         },
+        {
+          name: "Richiesta Dati in Attesa",
+          producerName: "Comune di Torino",
+          link: "https://example.com/agreement/17",
+        },
+        {
+          name: "Richiesta Pagamenti in Attesa",
+          producerName: "Ente Pagamenti",
+          link: "https://example.com/agreement/18",
+        },
+        {
+          name: "Richiesta Mobilita in Attesa",
+          producerName: "Comune di Napoli",
+          link: "https://example.com/agreement/19",
+        },
+        {
+          name: "Richiesta Anagrafe in Attesa",
+          producerName: "Comune di Bologna",
+          link: "https://example.com/agreement/20",
+        },
       ],
-      totalCount: 1,
+      totalCount: 7,
+      remainingCount: 2,
     },
     publishedReceivedPurposes: {
       items: [
@@ -167,8 +353,33 @@ export function getMockTenantDigestData(): TenantDigestData {
           link: "https://example.com/purpose/4",
           consumerName: "Ente Fruitore",
         },
+        {
+          name: "Finalità Dati Ricevuta",
+          producerName: "Comune di Torino",
+          link: "https://example.com/purpose/18",
+          consumerName: "Comune di Torino",
+        },
+        {
+          name: "Finalità Pagamenti Ricevuta",
+          producerName: "Ente Pagamenti",
+          link: "https://example.com/purpose/19",
+          consumerName: "Ente Pagamenti",
+        },
+        {
+          name: "Finalità Mobilita Ricevuta",
+          producerName: "Comune di Napoli",
+          link: "https://example.com/purpose/20",
+          consumerName: "Comune di Napoli",
+        },
+        {
+          name: "Finalità Anagrafe Ricevuta",
+          producerName: "Comune di Bologna",
+          link: "https://example.com/purpose/21",
+          consumerName: "Comune di Bologna",
+        },
       ],
-      totalCount: 1,
+      totalCount: 7,
+      remainingCount: 2,
     },
     waitingForApprovalReceivedPurposes: {
       items: [
@@ -178,30 +389,33 @@ export function getMockTenantDigestData(): TenantDigestData {
           link: "https://example.com/purpose/5",
           consumerName: "Ente in Attesa",
         },
-      ],
-      totalCount: 1,
-    },
-    activeSentDelegations: {
-      items: [
         {
-          name: "Delega Attiva",
-          producerName: "Ente Delegato",
-          link: "https://example.com/delegation/1",
-          delegationKind: "erogazione",
+          name: "Finalità Dati in Attesa",
+          producerName: "Comune di Torino",
+          link: "https://example.com/purpose/22",
+          consumerName: "Comune di Torino",
+        },
+        {
+          name: "Finalità Pagamenti in Attesa",
+          producerName: "Ente Pagamenti",
+          link: "https://example.com/purpose/23",
+          consumerName: "Ente Pagamenti",
+        },
+        {
+          name: "Finalità Mobilita in Attesa",
+          producerName: "Comune di Napoli",
+          link: "https://example.com/purpose/24",
+          consumerName: "Comune di Napoli",
+        },
+        {
+          name: "Finalità Anagrafe in Attesa",
+          producerName: "Comune di Bologna",
+          link: "https://example.com/purpose/25",
+          consumerName: "Comune di Bologna",
         },
       ],
-      totalCount: 1,
-    },
-    rejectedSentDelegations: {
-      items: [
-        {
-          name: "Delega Rifiutata",
-          producerName: "Ente Rifiutante",
-          link: "https://example.com/delegation/2",
-          delegationKind: "fruizione",
-        },
-      ],
-      totalCount: 1,
+      totalCount: 7,
+      remainingCount: 2,
     },
     waitingForApprovalReceivedDelegations: {
       items: [
@@ -211,8 +425,33 @@ export function getMockTenantDigestData(): TenantDigestData {
           link: "https://example.com/delegation/3",
           delegationKind: "erogazione",
         },
+        {
+          name: "Delega Dati in Attesa",
+          producerName: "Comune di Torino",
+          link: "https://example.com/delegation/5",
+          delegationKind: "erogazione",
+        },
+        {
+          name: "Delega Pagamenti in Attesa",
+          producerName: "Ente Pagamenti",
+          link: "https://example.com/delegation/6",
+          delegationKind: "fruizione",
+        },
+        {
+          name: "Delega Mobilita in Attesa",
+          producerName: "Comune di Napoli",
+          link: "https://example.com/delegation/7",
+          delegationKind: "erogazione",
+        },
+        {
+          name: "Delega Anagrafe in Attesa",
+          producerName: "Comune di Bologna",
+          link: "https://example.com/delegation/8",
+          delegationKind: "fruizione",
+        },
       ],
-      totalCount: 1,
+      totalCount: 7,
+      remainingCount: 2,
     },
     revokedReceivedDelegations: {
       items: [
@@ -222,8 +461,33 @@ export function getMockTenantDigestData(): TenantDigestData {
           link: "https://example.com/delegation/4",
           delegationKind: "fruizione",
         },
+        {
+          name: "Delega Dati Revocata",
+          producerName: "Comune di Torino",
+          link: "https://example.com/delegation/9",
+          delegationKind: "erogazione",
+        },
+        {
+          name: "Delega Pagamenti Revocata",
+          producerName: "Ente Pagamenti",
+          link: "https://example.com/delegation/10",
+          delegationKind: "fruizione",
+        },
+        {
+          name: "Delega Mobilita Revocata",
+          producerName: "Comune di Napoli",
+          link: "https://example.com/delegation/11",
+          delegationKind: "erogazione",
+        },
+        {
+          name: "Delega Anagrafe Revocata",
+          producerName: "Comune di Bologna",
+          link: "https://example.com/delegation/12",
+          delegationKind: "fruizione",
+        },
       ],
-      totalCount: 1,
+      totalCount: 7,
+      remainingCount: 2,
     },
     receivedAttributes: {
       items: [
@@ -234,8 +498,37 @@ export function getMockTenantDigestData(): TenantDigestData {
           attributeKind: "certified",
           attributeKindLabel: "(certificato)",
         },
+        {
+          name: "Attributo Identita Digitale",
+          producerName: "AgID",
+          link: "https://example.com/attribute/3",
+          attributeKind: "certified",
+          attributeKindLabel: "(certificato)",
+        },
+        {
+          name: "Attributo Impresa Attiva",
+          producerName: "Unioncamere",
+          link: "https://example.com/attribute/4",
+          attributeKind: "verified",
+          attributeKindLabel: "(verificato)",
+        },
+        {
+          name: "Attributo Residenza",
+          producerName: "Comune di Roma",
+          link: "https://example.com/attribute/5",
+          attributeKind: "certified",
+          attributeKindLabel: "(certificato)",
+        },
+        {
+          name: "Attributo Professionale",
+          producerName: "Ordine Professionale",
+          link: "https://example.com/attribute/6",
+          attributeKind: "verified",
+          attributeKindLabel: "(verificato)",
+        },
       ],
-      totalCount: 1,
+      totalCount: 7,
+      remainingCount: 2,
     },
     revokedAttributes: {
       items: [
@@ -246,8 +539,37 @@ export function getMockTenantDigestData(): TenantDigestData {
           attributeKind: "verified",
           attributeKindLabel: "(verificato)",
         },
+        {
+          name: "Attributo Identita Revocato",
+          producerName: "AgID",
+          link: "https://example.com/attribute/7",
+          attributeKind: "certified",
+          attributeKindLabel: "(certificato)",
+        },
+        {
+          name: "Attributo Impresa Revocato",
+          producerName: "Unioncamere",
+          link: "https://example.com/attribute/8",
+          attributeKind: "verified",
+          attributeKindLabel: "(verificato)",
+        },
+        {
+          name: "Attributo Residenza Revocato",
+          producerName: "Comune di Roma",
+          link: "https://example.com/attribute/9",
+          attributeKind: "certified",
+          attributeKindLabel: "(certificato)",
+        },
+        {
+          name: "Attributo Professionale Revocato",
+          producerName: "Ordine Professionale",
+          link: "https://example.com/attribute/10",
+          attributeKind: "verified",
+          attributeKindLabel: "(verificato)",
+        },
       ],
-      totalCount: 1,
+      totalCount: 7,
+      remainingCount: 2,
     },
   };
 }
@@ -260,7 +582,6 @@ export function getMockPartialDigestData(): TenantDigestData {
   return {
     tenantId: generateId(),
     tenantName: "Mock Tenant Organization",
-    timePeriod: "1-15 Dicembre 2025",
     notificationSettingsLink: "https://example.com/notification-settings",
     viewAllNewEservicesLink: "https://example.com/eservices/new",
     viewAllUpdatedEservicesLink: "https://example.com/eservices/updated",
@@ -268,13 +589,10 @@ export function getMockPartialDigestData(): TenantDigestData {
     viewAllSentPurposesLink: "https://example.com/purposes/sent",
     viewAllReceivedAgreementsLink: "https://example.com/agreements/received",
     viewAllReceivedPurposesLink: "https://example.com/purposes/received",
-    viewAllSentDelegationsLink: "https://example.com/delegations/sent",
     viewAllReceivedDelegationsLink: "https://example.com/delegations/received",
     viewAllAttributesLink: "https://example.com/attributes",
     viewAllUpdatedEserviceTemplatesLink:
       "https://example.com/eservice-templates/updated",
-    viewAllPopularEserviceTemplatesLink:
-      "https://example.com/eservice-templates/popular",
     // E-services section - populated
     newEservices: {
       items: [
@@ -289,7 +607,8 @@ export function getMockPartialDigestData(): TenantDigestData {
           link: "https://example.com/eservice/2",
         },
       ],
-      totalCount: 5,
+      totalCount: 2,
+      remainingCount: 0,
     },
     updatedEservices: {
       items: [
@@ -299,26 +618,40 @@ export function getMockPartialDigestData(): TenantDigestData {
           link: "https://example.com/eservice/3",
         },
       ],
-      totalCount: 3,
+      totalCount: 1,
+      remainingCount: 0,
     },
-    updatedEserviceTemplates: { items: [], totalCount: 0 },
-    popularEserviceTemplates: { items: [], totalCount: 0 },
+    updatedEserviceTemplates: { items: [], totalCount: 0, remainingCount: 0 },
     // Sent Items section - empty
-    acceptedSentAgreements: { items: [], totalCount: 0 },
-    rejectedSentAgreements: { items: [], totalCount: 0 },
-    suspendedSentAgreements: { items: [], totalCount: 0 },
-    publishedSentPurposes: { items: [], totalCount: 0 },
-    rejectedSentPurposes: { items: [], totalCount: 0 },
-    waitingForApprovalSentPurposes: { items: [], totalCount: 0 },
+    acceptedSentAgreements: { items: [], totalCount: 0, remainingCount: 0 },
+    rejectedSentAgreements: { items: [], totalCount: 0, remainingCount: 0 },
+    suspendedSentAgreements: { items: [], totalCount: 0, remainingCount: 0 },
+    publishedSentPurposes: { items: [], totalCount: 0, remainingCount: 0 },
+    rejectedSentPurposes: { items: [], totalCount: 0, remainingCount: 0 },
+    waitingForApprovalSentPurposes: {
+      items: [],
+      totalCount: 0,
+      remainingCount: 0,
+    },
     // Received Items section - empty
-    waitingForApprovalReceivedAgreements: { items: [], totalCount: 0 },
-    publishedReceivedPurposes: { items: [], totalCount: 0 },
-    waitingForApprovalReceivedPurposes: { items: [], totalCount: 0 },
+    waitingForApprovalReceivedAgreements: {
+      items: [],
+      totalCount: 0,
+      remainingCount: 0,
+    },
+    publishedReceivedPurposes: { items: [], totalCount: 0, remainingCount: 0 },
+    waitingForApprovalReceivedPurposes: {
+      items: [],
+      totalCount: 0,
+      remainingCount: 0,
+    },
     // Delegations section - empty
-    activeSentDelegations: { items: [], totalCount: 0 },
-    rejectedSentDelegations: { items: [], totalCount: 0 },
-    waitingForApprovalReceivedDelegations: { items: [], totalCount: 0 },
-    revokedReceivedDelegations: { items: [], totalCount: 0 },
+    waitingForApprovalReceivedDelegations: {
+      items: [],
+      totalCount: 0,
+      remainingCount: 0,
+    },
+    revokedReceivedDelegations: { items: [], totalCount: 0, remainingCount: 0 },
     // Attributes section - populated
     receivedAttributes: {
       items: [
@@ -331,6 +664,7 @@ export function getMockPartialDigestData(): TenantDigestData {
         },
       ],
       totalCount: 1,
+      remainingCount: 0,
     },
     revokedAttributes: {
       items: [
@@ -343,6 +677,7 @@ export function getMockPartialDigestData(): TenantDigestData {
         },
       ],
       totalCount: 1,
+      remainingCount: 0,
     },
   };
 }
