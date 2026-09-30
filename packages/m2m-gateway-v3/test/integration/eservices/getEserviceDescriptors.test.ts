@@ -68,6 +68,7 @@ describe("getEserviceDescriptors", () => {
     templateVersionId: descriptor.templateVersionRef?.id,
     archivingSchedule: descriptor.archivingSchedule,
     asyncExchangeProperties: descriptor.asyncExchangeProperties,
+    delegatedArchivingRequest: descriptor.delegatedArchivingRequest,
   });
 
   const m2mEserviceDescriptorResponse1: m2mGatewayApiV3.EServiceDescriptor =

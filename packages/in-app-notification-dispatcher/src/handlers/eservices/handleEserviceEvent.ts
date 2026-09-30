@@ -5,6 +5,10 @@ import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { handleEserviceArchivingCanceledToConsumer } from "./handleEserviceArchivingCanceledToConsumer.js";
 import { handleEserviceArchivingCanceledToProducer } from "./handleEserviceArchivingCanceledToProducer.js";
+import { handleEserviceArchivingRequestApprovedRejectedToDelegate } from "./handleEserviceArchivingRequestApprovedRejectedToDelegate.js";
+import { handleEserviceArchivingRequestCanceledToDelegate } from "./handleEserviceArchivingRequestCanceledToDelegate.js";
+import { handleEserviceArchivingRequestCanceledToProducer } from "./handleEserviceArchivingRequestCanceledToProducer.js";
+import { handleEserviceArchivingRequestedToDelegator } from "./handleEserviceArchivingRequestedToDelegator.js";
 import { handleEserviceArchivingToConsumer } from "./handleEserviceArchivingToConsumer.js";
 import { handleEserviceArchivingToProducer } from "./handleEserviceArchivingToProducer.js";
 import { handleEserviceNewVersionApprovedRejectedToDelegate } from "./handleEserviceNewVersionApprovedRejectedToDelegate.js";
@@ -132,6 +136,59 @@ export async function handleEServiceEvent(
     .with(
       {
         type: P.union(
+          "EServiceDescriptorArchivingRequestedByDelegate",
+          "EServiceArchivingRequestedByDelegate"
+        ),
+      },
+      (msg) =>
+        handleEserviceArchivingRequestedToDelegator(
+          msg,
+          logger,
+          readModelService
+        )
+    )
+    .with(
+      {
+        type: P.union(
+          "EServiceDescriptorArchivingRequestApprovedByDelegator",
+          "EServiceDescriptorArchivingRequestRejectedByDelegator",
+          "EServiceArchivingRequestApprovedByDelegator",
+          "EServiceArchivingRequestRejectedByDelegator"
+        ),
+      },
+      (msg) =>
+        handleEserviceArchivingRequestApprovedRejectedToDelegate(
+          msg,
+          logger,
+          readModelService
+        )
+    )
+    .with(
+      {
+        type: P.union(
+          "EServiceArchivingRequestCanceledByDelegate",
+          "EServiceDescriptorArchivingRequestCanceledByDelegate"
+        ),
+      },
+      async (msg) => {
+        const [prod, delegate] = await Promise.all([
+          handleEserviceArchivingRequestCanceledToProducer(
+            msg,
+            logger,
+            readModelService
+          ),
+          handleEserviceArchivingRequestCanceledToDelegate(
+            msg,
+            logger,
+            readModelService
+          ),
+        ]);
+        return [...prod, ...delegate];
+      }
+    )
+    .with(
+      {
+        type: P.union(
           "EServiceAdded",
           "EServiceCloned",
           "EServiceDeleted",
@@ -160,7 +217,9 @@ export async function handleEServiceEvent(
           "EServiceDescriptorDocumentDeleted",
           "EServiceInstanceLabelUpdated",
           "MaintenanceEServicePersonalDataFlagReset",
-          "MaintenanceEServiceDescriptorUnarchived"
+          "MaintenanceEServiceDescriptorUnarchived",
+          "EServiceArchivingRequestCanceledByRevokedDelegation",
+          "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation"
         ),
       },
       () => {
