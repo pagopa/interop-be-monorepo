@@ -185,6 +185,7 @@ export const fromReviewerWorkflowV2 = (
   rejectedBy: input.rejectedBy
     ? unsafeBrandId<UserId>(input.rejectedBy)
     : undefined,
+  rejectedAt: bigIntToDate(input.rejectedAt),
   rejectionReason: input.rejectionReason,
   sentToReviewerAt: bigIntToDate(input.sentToReviewerAt),
 });
