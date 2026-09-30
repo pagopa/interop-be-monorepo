@@ -126,10 +126,16 @@ describe("handleEserviceArchivingScheduledReminderInApp", () => {
   });
 
   it.each([...gracePeriodDays])(
-    "notifies producer + all consumers across all eservice-scope descriptors with copy that does NOT cite a specific version (gracePeriodDays: %d)",
+    "notifies only the producer across all eservice-scope descriptors with copy that does NOT cite a specific version (gracePeriodDays: %d)",
     async (gracePeriodDaysValue: GracePeriodDays) => {
-      const descriptorA = makeDescriptor({}, gracePeriodDaysValue);
-      const descriptorB = makeDescriptor({}, gracePeriodDaysValue);
+      const descriptorA = makeDescriptor(
+        { version: "1" },
+        gracePeriodDaysValue
+      );
+      const descriptorB = makeDescriptor(
+        { version: "2" },
+        gracePeriodDaysValue
+      );
       const eservice = makeEservice({
         descriptors: [descriptorA, descriptorB],
       });
@@ -187,22 +193,15 @@ describe("handleEserviceArchivingScheduledReminderInApp", () => {
         genericLogger
       );
 
-      expect(result).toHaveLength(3); // 1 producer + 2 consumers
+      expect(result).toHaveLength(1);
       const producer = result.find(
         (n) => n.notificationType === "eserviceStateChangedToProducer"
       );
-      const consumers = result.filter(
-        (n) => n.notificationType === "eserviceStateChangedToConsumer"
-      );
       expect(producer?.userId).toBe(producerUserId);
-      expect(producer?.entityId).toBe(eservice.id);
+      expect(producer?.entityId).toBe(`${eservice.id}/${descriptorB.id}`);
       expect(producer?.body).toContain("sarà archiviato");
       expect(producer?.body).not.toMatch(/versione\s+\d/);
-      expect(consumers).toHaveLength(2);
-      expect(consumers.every((c) => c.body.includes("producer-tenant"))).toBe(
-        false
-      );
-      expect(consumers.every((c) => !/versione\s+\d/.test(c.body))).toBe(true);
+      expect(readModelService.getAgreementsByEserviceId).not.toHaveBeenCalled();
     }
   );
 });
