@@ -296,7 +296,7 @@ export async function getWaitingForApprovalReason(
     quotas.currentTotalCalls + dailyCalls > quotas.maxDailyCallsTotal;
 
   if (exceedsConsumerQuota && exceedsTotalQuota) {
-    return purposeWaitingForApprovalReason.both;
+    return purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal;
   }
   if (exceedsConsumerQuota) {
     return purposeWaitingForApprovalReason.dailyCallsPerConsumer;

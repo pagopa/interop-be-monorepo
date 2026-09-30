@@ -85,12 +85,12 @@ export type PurposeVersionStampKind = z.infer<typeof PurposeVersionStampKind>;
 export const purposeWaitingForApprovalReason = {
   dailyCallsPerConsumer: "DailyCallsPerConsumer",
   dailyCallsTotal: "DailyCallsTotal",
-  both: "Both",
+  dailyCallsPerConsumerAndTotal: "DailyCallsPerConsumerAndTotal",
 } as const;
 export const PurposeWaitingForApprovalReason = z.enum([
   purposeWaitingForApprovalReason.dailyCallsPerConsumer,
   purposeWaitingForApprovalReason.dailyCallsTotal,
-  purposeWaitingForApprovalReason.both,
+  purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
 ]);
 export type PurposeWaitingForApprovalReason = z.infer<
   typeof PurposeWaitingForApprovalReason

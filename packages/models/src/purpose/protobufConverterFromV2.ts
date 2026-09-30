@@ -101,8 +101,8 @@ export const fromPurposeWaitingForApprovalReasonV2 = (
       return purposeWaitingForApprovalReason.dailyCallsPerConsumer;
     case PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_TOTAL:
       return purposeWaitingForApprovalReason.dailyCallsTotal;
-    case PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_BOTH:
-      return purposeWaitingForApprovalReason.both;
+    case PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_PER_CONSUMER_AND_TOTAL:
+      return purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal;
     case PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_UNSPECIFIED:
       return undefined;
   }

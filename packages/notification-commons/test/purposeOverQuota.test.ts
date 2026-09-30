@@ -16,7 +16,7 @@ describe("purposeOverQuotaTemplate", () => {
       "sono già state superate le soglie totali di chiamate API definite dall'erogatore",
     ],
     [
-      purposeWaitingForApprovalReason.both,
+      purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
       "Superamento soglie per fruitore e soglie totali",
       "è stata superata almeno una delle soglie di chiamate API/giorno definite dall’erogatore (per fruitore o totali)",
     ],
@@ -35,7 +35,7 @@ describe("purposeOverQuotaTemplate", () => {
       purposeOverQuotaTemplate(
         "Finalità",
         "Servizio",
-        purposeWaitingForApprovalReason.both
+        purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal
       )
     );
   });

@@ -272,7 +272,7 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
       "sono già state superate le soglie totali",
     ],
     [
-      purposeWaitingForApprovalReason.both,
+      purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
       "Superamento soglie per fruitore e soglie totali",
       "almeno una delle soglie",
     ],

@@ -491,7 +491,8 @@ describe("activatePurposeVersion", () => {
           dailyCalls: purposeVersion.dailyCalls,
           createdAt: purposeVersion.createdAt,
           state: purposeVersionState.waitingForApproval,
-          waitingForApprovalReason: purposeWaitingForApprovalReason.both,
+          waitingForApprovalReason:
+            purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
         },
       ],
       suspendedByConsumer: true,
@@ -638,7 +639,8 @@ describe("activatePurposeVersion", () => {
         {
           ...purposeVersion,
           state: purposeVersionState.waitingForApproval,
-          waitingForApprovalReason: purposeWaitingForApprovalReason.both,
+          waitingForApprovalReason:
+            purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
           stamps: {
             creation: {
               who: authData.userId,

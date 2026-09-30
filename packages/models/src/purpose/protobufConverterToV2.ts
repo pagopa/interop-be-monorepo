@@ -93,9 +93,9 @@ export const toPurposeWaitingForApprovalReasonV2 = (
         PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_TOTAL
     )
     .with(
-      purposeWaitingForApprovalReason.both,
+      purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
       () =>
-        PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_BOTH
+        PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_PER_CONSUMER_AND_TOTAL
     )
     .exhaustive();
 

@@ -70,7 +70,8 @@ describe("Purpose splitter", () => {
     const purposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(purposeVersionState.draft, purposeVersionStamps),
       rejectionReason,
-      waitingForApprovalReason: purposeWaitingForApprovalReason.both,
+      waitingForApprovalReason:
+        purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
       suspendedAt,
       updatedAt,
       firstActivationAt,
@@ -173,7 +174,8 @@ describe("Purpose splitter", () => {
       updatedAt: updatedAt.toISOString(),
       firstActivationAt: firstActivationAt.toISOString(),
       rejectionReason,
-      waitingForApprovalReason: purposeWaitingForApprovalReason.both,
+      waitingForApprovalReason:
+        purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
       id: purposeVersion.id,
       state: purposeVersion.state,
       dailyCalls: purposeVersion.dailyCalls,

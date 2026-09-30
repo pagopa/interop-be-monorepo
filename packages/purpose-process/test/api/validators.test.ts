@@ -180,7 +180,7 @@ describe("getWaitingForApprovalReason", () => {
       consumerDailyCalls: 90,
       totalDailyCalls: 990,
       dailyCalls: 20,
-      expected: purposeWaitingForApprovalReason.both,
+      expected: purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
     },
     {
       consumerDailyCalls: 110,

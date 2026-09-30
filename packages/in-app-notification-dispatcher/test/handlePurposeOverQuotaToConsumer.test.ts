@@ -206,7 +206,10 @@ describe("handlePurposeOverQuotaToConsumer", () => {
       purposeWaitingForApprovalReason.dailyCallsTotal,
       "sono già state superate le soglie totali",
     ],
-    [purposeWaitingForApprovalReason.both, "almeno una delle soglie"],
+    [
+      purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+      "almeno una delle soglie",
+    ],
     [undefined, "almeno una delle soglie"],
   ] as const)(
     "uses event reason %s without reading descriptor quotas",

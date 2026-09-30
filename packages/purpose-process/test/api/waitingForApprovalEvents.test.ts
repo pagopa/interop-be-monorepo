@@ -45,7 +45,7 @@ describe.each(events)("$name reason payload", ({ create, codec }) => {
   it.each([
     purposeWaitingForApprovalReason.dailyCallsPerConsumer,
     purposeWaitingForApprovalReason.dailyCallsTotal,
-    purposeWaitingForApprovalReason.both,
+    purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
   ])(
     "round-trips reason %s on the affected version",
     (waitingForApprovalReason) => {
