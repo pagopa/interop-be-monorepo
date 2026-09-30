@@ -1,5 +1,6 @@
-import { z } from "zod";
 import { match, P } from "ts-pattern";
+import { z } from "zod";
+
 import { UserId, TenantId, SelfcareId, unsafeBrandId } from "../brandedIds.js";
 
 export const userRole = {

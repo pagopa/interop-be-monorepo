@@ -1,4 +1,9 @@
-import { z } from "zod";
+import {
+  certifiedAttributesSatisfied,
+  declaredAttributesSatisfied,
+  verifiedAttributesSatisfied,
+} from "pagopa-interop-agreement-lifecycle";
+import { agreementApi } from "pagopa-interop-api-clients";
 import {
   AppContext,
   AuthData,
@@ -15,8 +20,8 @@ import {
   eventRepository,
   isFeatureFlagEnabled,
   ownership,
+  validateNoHyperlinksSafe,
 } from "pagopa-interop-commons";
-import { agreementApi } from "pagopa-interop-api-clients";
 import {
   Agreement,
   AgreementDocument,
@@ -43,12 +48,42 @@ import {
   DelegationId,
   AgreementSignedContract,
 } from "pagopa-interop-models";
-import {
-  certifiedAttributesSatisfied,
-  declaredAttributesSatisfied,
-  verifiedAttributesSatisfied,
-} from "pagopa-interop-agreement-lifecycle";
 import { match } from "ts-pattern";
+import { z } from "zod";
+
+import { config } from "../config/config.js";
+import {
+  agreementArchivableStates,
+  agreementClonableStates,
+  agreementCloningConflictingStates,
+  agreementDeletableStates,
+  agreementRejectableStates,
+  agreementSuspendableStates,
+  agreementUpdatableStates,
+  agreementUpgradableStates,
+  assertActivableState,
+  assertRequesterCanActAsProducer,
+  assertRequesterCanRetrieveAgreement,
+  assertCanWorkOnConsumerDocuments,
+  assertExpectedState,
+  assertRequesterIsDelegateConsumer,
+  assertSubmittableState,
+  failOnActivationFailure,
+  matchingCertifiedAttributes,
+  matchingDeclaredAttributes,
+  matchingVerifiedAttributes,
+  validateActivationOnDescriptor,
+  validateActiveSuspendedOrPendingAgreement,
+  validateCertifiedAttributes,
+  validateCreationOnDescriptor,
+  validateSubmitOnDescriptor,
+  verifyCreationConflictingAgreements,
+  verifySubmissionConflictingAgreements,
+  assertRequesterCanActAsConsumer,
+  getOrganizationRole,
+  assertAgreementIsPending,
+  assertAgreementIsSuspended,
+} from "../model/domain/agreement-validators.js";
 import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
 import {
   agreementActivationFailed,
@@ -89,39 +124,6 @@ import {
   toCreateEventAgreementSignedContractGenerated,
   toCreateEventAgreementActivated,
 } from "../model/domain/toEvent.js";
-import {
-  agreementArchivableStates,
-  agreementClonableStates,
-  agreementCloningConflictingStates,
-  agreementDeletableStates,
-  agreementRejectableStates,
-  agreementSuspendableStates,
-  agreementUpdatableStates,
-  agreementUpgradableStates,
-  assertActivableState,
-  assertRequesterCanActAsProducer,
-  assertRequesterCanRetrieveAgreement,
-  assertCanWorkOnConsumerDocuments,
-  assertExpectedState,
-  assertRequesterIsDelegateConsumer,
-  assertSubmittableState,
-  failOnActivationFailure,
-  matchingCertifiedAttributes,
-  matchingDeclaredAttributes,
-  matchingVerifiedAttributes,
-  validateActivationOnDescriptor,
-  validateActiveSuspendedOrPendingAgreement,
-  validateCertifiedAttributes,
-  validateCreationOnDescriptor,
-  validateSubmitOnDescriptor,
-  verifyCreationConflictingAgreements,
-  verifySubmissionConflictingAgreements,
-  assertRequesterCanActAsConsumer,
-  getOrganizationRole,
-  assertAgreementIsPending,
-  assertAgreementIsSuspended,
-} from "../model/domain/agreement-validators.js";
-import { config } from "../config/config.js";
 import {
   archiveRelatedToAgreements,
   createActivationEvent,
@@ -629,6 +631,8 @@ export function agreementServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Agreement>> {
       logger.info(`Submitting agreement ${agreementId}`);
+
+      validateNoHyperlinksSafe(payload.consumerNotes);
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
 
@@ -1245,6 +1249,8 @@ export function agreementServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Agreement>> {
       logger.info(`Rejecting agreement ${agreementId}`);
+
+      validateNoHyperlinksSafe(rejectionReason);
 
       const agreementToBeRejected = await retrieveAgreement(
         agreementId,

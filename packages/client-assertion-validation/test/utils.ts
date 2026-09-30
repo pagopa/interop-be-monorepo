@@ -1,6 +1,7 @@
 import crypto from "crypto";
-import { ClientId, generateId } from "pagopa-interop-models";
 import { getMockClientAssertion } from "pagopa-interop-commons-test";
+import { ClientId, generateId } from "pagopa-interop-models";
+
 import { ClientAssertionValidationRequest } from ".././src/types.js";
 import {
   EXPECTED_CLIENT_ASSERTION_TYPE,

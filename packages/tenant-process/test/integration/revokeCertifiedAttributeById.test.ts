@@ -1,5 +1,13 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import {
+  getMockAttribute,
+  getMockTenant,
+  readEventByStreamIdAndVersion,
+  getMockAuthData,
+  getTenantOneCertifierFeature,
+  getMockContext,
+} from "pagopa-interop-commons-test";
 import { tenantAttributeType, tenantKind } from "pagopa-interop-models";
 import {
   generateId,
@@ -11,14 +19,7 @@ import {
   TenantCertifiedAttributeRevokedV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
-import {
-  getMockAttribute,
-  getMockTenant,
-  readEventByStreamIdAndVersion,
-  getMockAuthData,
-  getTenantOneCertifierFeature,
-  getMockContext,
-} from "pagopa-interop-commons-test";
+
 import {
   tenantNotFound,
   attributeNotFound,

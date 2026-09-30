@@ -1,11 +1,12 @@
 import { delegationApi, tenantApi } from "pagopa-interop-api-clients";
-import { DelegationId, TenantId } from "pagopa-interop-models";
 import { M2MAdminAuthData } from "pagopa-interop-commons";
+import { DelegationId, TenantId } from "pagopa-interop-models";
+
+import { DelegationProcessClientWithMetadata } from "../../clients/clientsProvider.js";
 import {
   cannotEditDeclaredAttributesForTenant,
   missingSelfcareId,
 } from "../../model/errors.js";
-import { DelegationProcessClientWithMetadata } from "../../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../context.js";
 import { assertRequesterIsDelegateConsumer } from "./delegationValidators.js";
 

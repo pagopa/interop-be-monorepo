@@ -1,5 +1,10 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
+  getMockContextMaintenance,
+  getMockTenant,
+  readLastEventByStreamId,
+} from "pagopa-interop-commons-test";
+import {
   MaintenanceTenantUpdatedV2,
   Tenant,
   TenantFeature,
@@ -8,11 +13,7 @@ import {
   toTenantV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, beforeAll, vi, afterAll } from "vitest";
-import {
-  getMockContextMaintenance,
-  getMockTenant,
-  readLastEventByStreamId,
-} from "pagopa-interop-commons-test";
+
 import { tenantNotFound } from "../../src/model/domain/errors.js";
 import {
   addOneTenant,

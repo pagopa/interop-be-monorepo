@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { constants } from "http2";
-import { describe, expect, it } from "vitest";
-import request from "supertest";
-import { Problem } from "pagopa-interop-models";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
-import { api } from "../../vitest.api.setup.js";
+import { Problem } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, expect, it } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { api } from "../../vitest.api.setup.js";
 
 describe("API GET /status test", () => {
   const { HTTP_STATUS_OK } = constants;

@@ -2,14 +2,15 @@ import {
   attributeRegistryApi,
   m2mGatewayApi,
 } from "pagopa-interop-api-clients";
-import { ApiError } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
+import { ApiError } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
+import { attributeNotFound } from "../model/errors.js";
 import {
   assertAttributeKindIs,
   assertAttributeOriginAndCodeAreDefined,
 } from "../utils/validators/attributeValidators.js";
-import { attributeNotFound } from "../model/errors.js";
 
 /**
  * The m2m-gateway (v1) contract is frozen and intentionally does not expose

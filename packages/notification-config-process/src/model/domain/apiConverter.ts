@@ -71,6 +71,24 @@ export function userNotificationConfigToApiUserNotificationConfig({
     purposeQuotaAdjustmentRequestToProducer:
       purposeQuotaAdjustmentRequestToProducerInApp,
     purposeOverQuotaStateToConsumer: purposeOverQuotaStateToConsumerInApp,
+    purposeRiskAnalysisAssignedForSigningToReviewer:
+      purposeRiskAnalysisAssignedForSigningToReviewerInApp,
+    purposeRiskAnalysisAssignedForWritingAndSigningToReviewer:
+      purposeRiskAnalysisAssignedForWritingAndSigningToReviewerInApp,
+    purposePublishedWithRiskAnalysisToReviewer:
+      purposePublishedWithRiskAnalysisToReviewerInApp,
+    draftPurposeDeletedWithRiskAnalysisToReviewer:
+      draftPurposeDeletedWithRiskAnalysisToReviewerInApp,
+    purposeRiskAnalysisAssignmentRemovedToReviewer:
+      purposeRiskAnalysisAssignmentRemovedToReviewerInApp,
+    purposeRiskAnalysisSignedToReviewer:
+      purposeRiskAnalysisSignedToReviewerInApp,
+    purposeRiskAnalysisSignedToAdmin: purposeRiskAnalysisSignedToAdminInApp,
+    purposeRiskAnalysisRejectedToAdmin: purposeRiskAnalysisRejectedToAdminInApp,
+    eserviceArchivingRequestedToDelegator:
+      eserviceArchivingRequestedToDelegatorInApp,
+    eserviceArchivingApprovedRejectedToDelegate:
+      eserviceArchivingApprovedRejectedToDelegateInApp,
   },
   emailConfig: {
     agreementSuspendedUnsuspendedToProducer:
@@ -112,6 +130,24 @@ export function userNotificationConfigToApiUserNotificationConfig({
     purposeQuotaAdjustmentRequestToProducer:
       purposeQuotaAdjustmentRequestToProducerEmail,
     purposeOverQuotaStateToConsumer: purposeOverQuotaStateToConsumerEmail,
+    purposeRiskAnalysisAssignedForSigningToReviewer:
+      purposeRiskAnalysisAssignedForSigningToReviewerEmail,
+    purposeRiskAnalysisAssignedForWritingAndSigningToReviewer:
+      purposeRiskAnalysisAssignedForWritingAndSigningToReviewerEmail,
+    purposePublishedWithRiskAnalysisToReviewer:
+      purposePublishedWithRiskAnalysisToReviewerEmail,
+    draftPurposeDeletedWithRiskAnalysisToReviewer:
+      draftPurposeDeletedWithRiskAnalysisToReviewerEmail,
+    purposeRiskAnalysisAssignmentRemovedToReviewer:
+      purposeRiskAnalysisAssignmentRemovedToReviewerEmail,
+    purposeRiskAnalysisSignedToReviewer:
+      purposeRiskAnalysisSignedToReviewerEmail,
+    purposeRiskAnalysisSignedToAdmin: purposeRiskAnalysisSignedToAdminEmail,
+    purposeRiskAnalysisRejectedToAdmin: purposeRiskAnalysisRejectedToAdminEmail,
+    eserviceArchivingRequestedToDelegator:
+      eserviceArchivingRequestedToDelegatorEmail,
+    eserviceArchivingApprovedRejectedToDelegate:
+      eserviceArchivingApprovedRejectedToDelegateEmail,
   },
   createdAt,
   updatedAt,
@@ -167,6 +203,25 @@ export function userNotificationConfigToApiUserNotificationConfig({
       purposeQuotaAdjustmentRequestToProducer:
         purposeQuotaAdjustmentRequestToProducerInApp,
       purposeOverQuotaStateToConsumer: purposeOverQuotaStateToConsumerInApp,
+      purposeRiskAnalysisAssignedForSigningToReviewer:
+        purposeRiskAnalysisAssignedForSigningToReviewerInApp,
+      purposeRiskAnalysisAssignedForWritingAndSigningToReviewer:
+        purposeRiskAnalysisAssignedForWritingAndSigningToReviewerInApp,
+      purposePublishedWithRiskAnalysisToReviewer:
+        purposePublishedWithRiskAnalysisToReviewerInApp,
+      draftPurposeDeletedWithRiskAnalysisToReviewer:
+        draftPurposeDeletedWithRiskAnalysisToReviewerInApp,
+      purposeRiskAnalysisAssignmentRemovedToReviewer:
+        purposeRiskAnalysisAssignmentRemovedToReviewerInApp,
+      purposeRiskAnalysisSignedToReviewer:
+        purposeRiskAnalysisSignedToReviewerInApp,
+      purposeRiskAnalysisSignedToAdmin: purposeRiskAnalysisSignedToAdminInApp,
+      purposeRiskAnalysisRejectedToAdmin:
+        purposeRiskAnalysisRejectedToAdminInApp,
+      eserviceArchivingRequestedToDelegator:
+        eserviceArchivingRequestedToDelegatorInApp,
+      eserviceArchivingApprovedRejectedToDelegate:
+        eserviceArchivingApprovedRejectedToDelegateInApp,
     },
     emailConfig: {
       agreementSuspendedUnsuspendedToProducer:
@@ -210,6 +265,25 @@ export function userNotificationConfigToApiUserNotificationConfig({
       purposeQuotaAdjustmentRequestToProducer:
         purposeQuotaAdjustmentRequestToProducerEmail,
       purposeOverQuotaStateToConsumer: purposeOverQuotaStateToConsumerEmail,
+      purposeRiskAnalysisAssignedForSigningToReviewer:
+        purposeRiskAnalysisAssignedForSigningToReviewerEmail,
+      purposeRiskAnalysisAssignedForWritingAndSigningToReviewer:
+        purposeRiskAnalysisAssignedForWritingAndSigningToReviewerEmail,
+      purposePublishedWithRiskAnalysisToReviewer:
+        purposePublishedWithRiskAnalysisToReviewerEmail,
+      draftPurposeDeletedWithRiskAnalysisToReviewer:
+        draftPurposeDeletedWithRiskAnalysisToReviewerEmail,
+      purposeRiskAnalysisAssignmentRemovedToReviewer:
+        purposeRiskAnalysisAssignmentRemovedToReviewerEmail,
+      purposeRiskAnalysisSignedToReviewer:
+        purposeRiskAnalysisSignedToReviewerEmail,
+      purposeRiskAnalysisSignedToAdmin: purposeRiskAnalysisSignedToAdminEmail,
+      purposeRiskAnalysisRejectedToAdmin:
+        purposeRiskAnalysisRejectedToAdminEmail,
+      eserviceArchivingRequestedToDelegator:
+        eserviceArchivingRequestedToDelegatorEmail,
+      eserviceArchivingApprovedRejectedToDelegate:
+        eserviceArchivingApprovedRejectedToDelegateEmail,
     },
     createdAt: createdAt.toJSON(),
     updatedAt: updatedAt?.toJSON(),

@@ -1,3 +1,4 @@
+import { diff } from "json-diff";
 import { Logger } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -16,7 +17,6 @@ import {
   PurposeVersion,
   purposeVersionState,
 } from "pagopa-interop-models";
-import { diff } from "json-diff";
 
 type DescriptorWithAsyncExchangeProperties = Descriptor & {
   asyncExchangeProperties: AsyncExchangeProperties;

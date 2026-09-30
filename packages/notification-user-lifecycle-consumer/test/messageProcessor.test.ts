@@ -1,5 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { AxiosError } from "axios";
+import { notificationConfigApi } from "pagopa-interop-api-clients";
 import { logger } from "pagopa-interop-commons";
+import { RefreshableInteropToken } from "pagopa-interop-commons";
 import {
   genericInternalError,
   TenantId,
@@ -10,9 +12,8 @@ import {
   UserId,
   UsersEventPayload,
 } from "pagopa-interop-models";
-import { notificationConfigApi } from "pagopa-interop-api-clients";
-import { RefreshableInteropToken } from "pagopa-interop-commons";
-import { AxiosError } from "axios";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { processUserEvent } from "../src/services/messageProcessor.js";
 import { ReadModelServiceSQL } from "../src/services/readModelServiceSQL.js";
 

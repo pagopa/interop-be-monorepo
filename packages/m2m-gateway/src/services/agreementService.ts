@@ -1,10 +1,11 @@
-import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
   agreementApi,
   delegationApi,
   m2mGatewayApi,
   WithMaybeMetadata,
 } from "pagopa-interop-api-clients";
+import { FileManager, WithLogger } from "pagopa-interop-commons";
+import { isValidFile } from "pagopa-interop-commons";
 import {
   AgreementDocumentId,
   AgreementId,
@@ -13,15 +14,6 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 
-import { isValidFile } from "pagopa-interop-commons";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { M2MGatewayAppContext } from "../utils/context.js";
-import {
-  isPolledVersionAtLeastMetadataTargetVersion,
-  isPolledVersionAtLeastResponseVersion,
-  pollResourceUntilDeletion,
-  pollResourceWithMetadata,
-} from "../utils/polling.js";
 import {
   toGetAgreementsApiQueryParams,
   toGetPurposesApiQueryParamsForAgreement,
@@ -29,9 +21,17 @@ import {
   toM2MGatewayApiDocument,
 } from "../api/agreementApiConverter.js";
 import { toM2MGatewayApiPurpose } from "../api/purposeApiConverter.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
-import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
 import { agreementContractNotFound } from "../model/errors.js";
+import { M2MGatewayAppContext } from "../utils/context.js";
+import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
+import {
+  isPolledVersionAtLeastMetadataTargetVersion,
+  isPolledVersionAtLeastResponseVersion,
+  pollResourceUntilDeletion,
+  pollResourceWithMetadata,
+} from "../utils/polling.js";
 import {
   assertAgreementIsPending,
   assertAgreementIsSuspended,

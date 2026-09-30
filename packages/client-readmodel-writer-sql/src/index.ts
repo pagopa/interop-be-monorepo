@@ -1,18 +1,19 @@
+import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import { logger, decodeKafkaMessage } from "pagopa-interop-commons";
-import { runConsumer } from "kafka-iam-auth";
 import {
   AuthorizationEvent,
   CorrelationId,
   generateId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 import { makeDrizzleConnection } from "pagopa-interop-readmodel";
+import { match } from "ts-pattern";
+
 import { handleMessageV1 } from "./clientConsumerServiceV1.js";
 import { handleMessageV2 } from "./clientConsumerServiceV2.js";
-import { config } from "./config/config.js";
 import { clientWriterServiceBuilder } from "./clientWriterService.js";
+import { config } from "./config/config.js";
 
 const db = makeDrizzleConnection(config);
 const clientWriterService = clientWriterServiceBuilder(db);

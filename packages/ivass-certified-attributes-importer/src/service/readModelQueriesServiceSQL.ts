@@ -1,3 +1,4 @@
+import { and, eq, inArray, isNull } from "drizzle-orm";
 import {
   Attribute,
   genericInternalError,
@@ -12,7 +13,6 @@ import {
   TenantReadModelService,
   toTenantAggregatorArray,
 } from "pagopa-interop-readmodel";
-import { and, eq, inArray, isNull } from "drizzle-orm";
 import {
   attributeInReadmodelAttribute,
   DrizzleReturnType,
@@ -20,8 +20,9 @@ import {
   tenantFeatureInReadmodelTenant,
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
-import { IvassReadModelTenant } from "../model/tenant.js";
+
 import { IVASS_ORIGIN_NAME } from "../config/constants.js";
+import { IvassReadModelTenant } from "../model/tenant.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelQueriesBuilderSQL(
