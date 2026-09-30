@@ -55,8 +55,6 @@ export function digestTemplateServiceBuilder(
       const updatedEservicesSingular = data.updatedEservices?.totalCount === 1;
       const updatedEserviceTemplatesSingular =
         data.updatedEserviceTemplates?.totalCount === 1;
-      const popularEserviceTemplatesSingular =
-        data.popularEserviceTemplates?.totalCount === 1;
       const acceptedSentAgreementsSingular =
         data.acceptedSentAgreements?.totalCount === 1;
       const rejectedSentAgreementsSingular =
@@ -73,10 +71,6 @@ export function digestTemplateServiceBuilder(
         data.waitingForApprovalReceivedDelegations?.totalCount === 1;
       const revokedReceivedDelegationsSingular =
         data.revokedReceivedDelegations?.totalCount === 1;
-      const activeSentDelegationsSingular =
-        data.activeSentDelegations?.totalCount === 1;
-      const rejectedSentDelegationsSingular =
-        data.rejectedSentDelegations?.totalCount === 1;
       const receivedAttributesSingular =
         data.receivedAttributes?.totalCount === 1;
       const revokedAttributesSingular =
@@ -89,7 +83,6 @@ export function digestTemplateServiceBuilder(
         showNewEservices: visibility.newEservices,
         showUpdatedEservices: visibility.updatedEservices,
         showUpdatedEserviceTemplates: visibility.updatedEserviceTemplates,
-        showPopularEserviceTemplates: visibility.popularEserviceTemplates,
         showSentAgreements: visibility.sentAgreements,
         showReceivedAgreements: visibility.receivedAgreements,
         showSentPurposes: visibility.sentPurposes,
@@ -99,7 +92,6 @@ export function digestTemplateServiceBuilder(
         newEservicesSingular,
         updatedEservicesSingular,
         updatedEserviceTemplatesSingular,
-        popularEserviceTemplatesSingular,
         acceptedSentAgreementsSingular,
         rejectedSentAgreementsSingular,
         suspendedSentAgreementsSingular,
@@ -108,8 +100,6 @@ export function digestTemplateServiceBuilder(
         waitingForApprovalReceivedAgreementsSingular,
         waitingForApprovalReceivedDelegationsSingular,
         revokedReceivedDelegationsSingular,
-        activeSentDelegationsSingular,
-        rejectedSentDelegationsSingular,
         receivedAttributesSingular,
         revokedAttributesSingular,
       });
