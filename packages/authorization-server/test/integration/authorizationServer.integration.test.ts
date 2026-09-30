@@ -96,6 +96,12 @@ import {
 // A real SHA-256 thumbprint that starts with a dash: "-" belongs to the
 // base64url alphabet, so a client key can produce this value.
 const dashLeadingThumbprint = "-jxMDApBd4jRqS2reSCT_WFknFezHr6EnPNpXbNsLBk";
+// The dash-leading kid tests seed no token-generation-states entry, so they
+// expect tokenGenerationStatesEntryNotFound on purpose. generateToken checks
+// the kid format before the table read, so this error proves that the format
+// rule accepts the kid. The primary key in the error proves that the lookup
+// keeps the leading dash. A kid that fails the format rule gets
+// clientAssertionValidationFailed and never reaches the table read.
 
 describe("authorization server tests", () => {
   if (!configTokenGenerationStates) {
@@ -255,7 +261,7 @@ describe("authorization server tests", () => {
     ).rejects.toThrowError(tokenGenerationStatesEntryNotFound(entryPK));
   });
 
-  it("should read token-generation-states when the kid is a thumbprint that starts with a dash", async () => {
+  it("should accept a dash-leading kid and look up the CLIENTKIDPURPOSE entry (not found, no entry seeded)", async () => {
     const purposeId = generateId<PurposeId>();
     const clientId = generateId<ClientId>();
 
@@ -292,7 +298,7 @@ describe("authorization server tests", () => {
     ).rejects.toThrowError(tokenGenerationStatesEntryNotFound(entryPK));
   });
 
-  it("should keep the leading dash of the kid in the CLIENTKID primary key", async () => {
+  it("should keep the leading dash of the kid in the CLIENTKID lookup key (not found, no entry seeded)", async () => {
     const clientId = generateId<ClientId>();
 
     const { jws } = await getMockClientAssertion({
