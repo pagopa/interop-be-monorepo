@@ -1,7 +1,8 @@
-import { describe, expect, it, vi } from "vitest";
 import { authorizationApi } from "pagopa-interop-api-clients";
 import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import { ClientId, generateId } from "pagopa-interop-models";
+import { describe, expect, it, vi } from "vitest";
+
 import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
 import { clientNotFound } from "../src/model/errors.js";
 import { clientServiceBuilder } from "../src/services/clientService.js";

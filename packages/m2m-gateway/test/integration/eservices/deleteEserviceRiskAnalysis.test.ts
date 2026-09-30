@@ -1,13 +1,17 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { catalogApi } from "pagopa-interop-api-clients";
-import {
-  pollingMaxRetriesExceeded,
-  unsafeBrandId,
-} from "pagopa-interop-models";
 import {
   getMockedApiEservice,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
+import {
+  pollingMaxRetriesExceeded,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { config } from "../../../src/config/config.js";
+import { missingMetadata } from "../../../src/model/errors.js";
 import {
   eserviceService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -15,10 +19,7 @@ import {
   mockInteropBeClients,
   mockPollingResponse,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { missingMetadata } from "../../../src/model/errors.js";
-import { config } from "../../../src/config/config.js";
 
 describe("deleteEserviceRiskAnalysis", () => {
   const mockEService: catalogApi.EService = getMockedApiEservice();

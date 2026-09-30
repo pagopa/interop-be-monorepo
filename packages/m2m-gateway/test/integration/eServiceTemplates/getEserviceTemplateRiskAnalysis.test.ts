@@ -1,25 +1,26 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { eserviceTemplateApi, m2mGatewayApi } from "pagopa-interop-api-clients";
-import {
-  RiskAnalysisId,
-  generateId,
-  unsafeBrandId,
-} from "pagopa-interop-models";
 import {
   getMockedApiEServiceTemplate,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import {
+  RiskAnalysisId,
+  generateId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { eserviceTemplateRiskAnalysisNotFound } from "../../../src/model/errors.js";
+import {
   eserviceTemplateService,
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
   getMockM2MAdminAppContext,
   testToM2MEServiceRiskAnalysisAnswers,
 } from "../../mockUtils.js";
-import { eserviceTemplateRiskAnalysisNotFound } from "../../../src/model/errors.js";
 
 describe("getEserviceTemplateRiskAnalysis", () => {
   const mockEServiceTemplate: eserviceTemplateApi.EServiceTemplate =

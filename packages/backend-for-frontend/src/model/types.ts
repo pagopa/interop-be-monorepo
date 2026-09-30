@@ -181,6 +181,8 @@ type ConfigurationDoc = z.infer<typeof ConfigurationDoc>;
 
 const ConfigurationDescriptor = z.object({
   interface: ConfigurationDoc.optional(),
+  asyncExchangeCallbackInterface: ConfigurationDoc.optional(),
+  asyncExchangeProperties: bffApi.AsyncExchangeProperties.optional(),
   docs: z.array(ConfigurationDoc),
   audience: z.array(z.string()),
   voucherLifespan: z.number(),
@@ -195,6 +197,7 @@ export const ConfigurationEservice = z.object({
   description: z.string(),
   technology: bffApi.EServiceTechnology,
   mode: bffApi.EServiceMode,
+  asyncExchange: z.boolean().optional(),
   descriptor: ConfigurationDescriptor,
   riskAnalysis: z.array(ConfigurationRiskAnalysis),
   isSignalHubEnabled: z.boolean().optional(),

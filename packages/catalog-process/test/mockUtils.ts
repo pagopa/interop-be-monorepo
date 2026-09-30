@@ -8,7 +8,7 @@ import {
   getMockAuthData,
   getMockContextM2M,
   getMockContextM2MAdmin,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   generateId,
@@ -138,6 +138,12 @@ export const getContextsAllowedToSeeInactiveDescriptors = (
     authData: {
       ...getMockAuthData(producerOrDelegateId),
       userRoles: [userRole.SUPPORT_ROLE],
+    },
+  }),
+  getMockContext({
+    authData: {
+      ...getMockAuthData(producerOrDelegateId),
+      userRoles: [userRole.VIEWER_ROLE],
     },
   }),
   getMockContextM2M({

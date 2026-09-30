@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
-import request from "supertest";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockDescriptor,
+  getMockEService,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   DescriptorId,
@@ -10,20 +15,16 @@ import {
   generateId,
   operationForbidden,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockDescriptor,
-  getMockEService,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import { api, catalogService } from "../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
+import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   eServiceDescriptorNotFound,
   eServiceNotFound,
   notValidDescriptorState,
 } from "../../src/model/domain/errors.js";
-import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
+import { api, catalogService } from "../vitest.api.setup.js";
 
 describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/scheduleArchive DELETE authorization test", () => {
   const descriptor: Descriptor = {

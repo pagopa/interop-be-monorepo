@@ -1,5 +1,7 @@
 import { match } from "ts-pattern";
 import { z } from "zod";
+
+import { EventEnvelope } from "../events/events.js";
 import {
   TenantCreatedV1,
   TenantUpdatedV1,
@@ -37,7 +39,6 @@ import {
   MaintenanceTenantRemoteIdDeletedV2,
 } from "../gen/v2/tenant/events.js";
 import { protobufDecoder } from "../protobuf/protobuf.js";
-import { EventEnvelope } from "../events/events.js";
 
 export function tenantEventToBinaryData(event: TenantEvent): Uint8Array {
   return match(event)

@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { calculateJWKThumbprint, dateToSeconds } from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
@@ -6,13 +7,7 @@ import {
 } from "pagopa-interop-commons-test";
 import { algorithm } from "pagopa-interop-models";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { calculateJWKThumbprint, dateToSeconds } from "pagopa-interop-commons";
-import {
-  checkDPoPCache,
-  verifyDPoPProof,
-  verifyDPoPProofSignature,
-  verifyDPoPThumbprintMatch,
-} from "../src/validation.js";
+
 import {
   dpopHtmNotFound,
   dpopHtuNotFound,
@@ -33,7 +28,12 @@ import {
   dpopTokenBindingMismatch,
 } from "../src/errors.js";
 import { writeDPoPCache } from "../src/utilities/dpopCacheUtils.js";
-
+import {
+  checkDPoPCache,
+  verifyDPoPProof,
+  verifyDPoPProofSignature,
+  verifyDPoPThumbprintMatch,
+} from "../src/validation.js";
 import { dpopConfig, dynamoDBClient, dpopCacheTable } from "./utils.js";
 
 describe("DPoP validation tests", async () => {

@@ -1,8 +1,9 @@
-import { startServer } from "pagopa-interop-commons";
 import { drizzle } from "drizzle-orm/node-postgres";
+import { startServer } from "pagopa-interop-commons";
 import pg from "pg";
-import { config } from "./config/config.js";
+
 import { createApp } from "./app.js";
+import { config } from "./config/config.js";
 import { inAppNotificationServiceBuilder } from "./services/inAppNotificationService.js";
 
 const pool = new pg.Pool({

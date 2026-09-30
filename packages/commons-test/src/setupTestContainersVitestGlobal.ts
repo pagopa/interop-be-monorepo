@@ -3,6 +3,9 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
 
+import type {} from "vitest";
+import type { TestProject } from "vitest/node";
+
 import { config as dotenv } from "dotenv-flow";
 import {
   AWSSesConfig,
@@ -21,8 +24,7 @@ import {
   TenantKindHistoryDBConfig,
 } from "pagopa-interop-commons";
 import { StartedTestContainer } from "testcontainers";
-import type {} from "vitest";
-import type { TestProject } from "vitest/node";
+
 import {
   TEST_AWS_SES_PORT,
   TEST_DYNAMODB_PORT,

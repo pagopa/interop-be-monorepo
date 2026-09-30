@@ -21,7 +21,6 @@
   "keywords": [],
   "devDependencies": {
     "@anatine/zod-mock": "catalog:",
-    "@types/adm-zip": "catalog:",
     "@types/express": "catalog:",
     "@types/node": "catalog:",
     "@types/supertest": "catalog:",

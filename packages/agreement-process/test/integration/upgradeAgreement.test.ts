@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable fp/no-delete */
+import { addDays } from "date-fns";
 import { FileManagerError, genericLogger } from "pagopa-interop-commons";
 import {
   addSomeRandomDelegations,
@@ -57,7 +58,8 @@ import {
   it,
   vi,
 } from "vitest";
-import { addDays } from "date-fns";
+
+import { config } from "../../src/config/config.js";
 import { agreementUpgradableStates } from "../../src/model/domain/agreement-validators.js";
 import {
   agreementAlreadyExists,
@@ -73,7 +75,6 @@ import {
   tenantNotFound,
   unexpectedVersionFormat,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
 import {
   addDelegationsAndDelegates,
   addOneAgreement,

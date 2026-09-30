@@ -1,15 +1,16 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   EServiceTemplateEventEnvelopeV2,
   NewNotification,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
+
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { handleTemplateStatusChangedToProducer } from "./handleTemplateStatusChangedToProducer.js";
-import { handleNewEserviceTemplateVersionToInstantiator } from "./handleNewEserviceTemplateVersionToInstantiator.js";
-import { handleNewEserviceTemplateVersionToProducer } from "./handleNewEserviceTemplateVersionToProducer.js";
 import { handleEserviceTemplateNameChangedToInstantiator } from "./handleEserviceTemplateNameChangedToInstantiator.js";
 import { handleEserviceTemplateStatusChangedToInstantiator } from "./handleEserviceTemplateStatusChangedToInstantiator.js";
+import { handleNewEserviceTemplateVersionToInstantiator } from "./handleNewEserviceTemplateVersionToInstantiator.js";
+import { handleNewEserviceTemplateVersionToProducer } from "./handleNewEserviceTemplateVersionToProducer.js";
+import { handleTemplateStatusChangedToProducer } from "./handleTemplateStatusChangedToProducer.js";
 
 export async function handleEServiceTemplateEvent(
   decodedMessage: EServiceTemplateEventEnvelopeV2,
@@ -87,7 +88,6 @@ export async function handleEServiceTemplateEvent(
           "EServiceTemplateVersionDocumentAdded",
           "EServiceTemplateVersionInterfaceDeleted",
           "EServiceTemplateVersionDocumentDeleted",
-          "EServiceTemplateVersionInterfaceUpdated",
           "EServiceTemplateVersionDocumentUpdated",
           "EServiceTemplateIntendedTargetUpdated",
           "EServiceTemplateDescriptionUpdated",
@@ -97,7 +97,6 @@ export async function handleEServiceTemplateEvent(
           "EServiceTemplateVersionActivated",
           "EServiceTemplatePersonalDataFlagUpdatedAfterPublication",
           "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded",
-          "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated",
           "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted"
         ),
       },

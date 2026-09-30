@@ -1,4 +1,3 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   m2mGatewayApi,
   agreementApi,
@@ -6,12 +5,14 @@ import {
 } from "pagopa-interop-api-clients";
 import { getMockedApiAgreementDocument } from "pagopa-interop-commons-test";
 import { AgreementId, generateId } from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
   agreementService,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getAgreementConsumerDocuments", () => {

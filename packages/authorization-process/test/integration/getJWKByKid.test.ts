@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { generateId } from "pagopa-interop-models";
-import { describe, it, expect } from "vitest";
+import { authorizationApi } from "pagopa-interop-api-clients";
 import {
   getMockClientJWKKey,
   getMockContext,
 } from "pagopa-interop-commons-test";
-import { authorizationApi } from "pagopa-interop-api-clients";
+import { generateId } from "pagopa-interop-models";
+import { describe, it, expect } from "vitest";
+
 import { jwkNotFound } from "../../src/model/domain/errors.js";
 import { addOneKey, authorizationService } from "../integrationUtils.js";
 

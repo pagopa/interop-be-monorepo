@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { fail } from "assert";
+import { tenantApi } from "pagopa-interop-api-clients";
+import {
+  getMockContext,
+  getMockTenant,
+  getMockAuthData,
+} from "pagopa-interop-commons-test";
 import {
   generateId,
   Tenant,
@@ -14,14 +20,9 @@ import {
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   SCP,
 } from "pagopa-interop-models";
-import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
-import { tenantApi } from "pagopa-interop-api-clients";
-import {
-  getMockContext,
-  getMockTenant,
-  getMockAuthData,
-} from "pagopa-interop-commons-test";
 import { match } from "ts-pattern";
+import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
+
 import { selfcareIdConflict } from "../../src/model/domain/errors.js";
 import {
   addOneTenant,

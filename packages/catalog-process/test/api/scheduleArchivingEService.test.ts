@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
-import request from "supertest";
+import { catalogApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockDescriptor,
+  getMockEService,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   descriptorState,
@@ -9,21 +15,17 @@ import {
   generateId,
   operationForbidden,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockDescriptor,
-  getMockEService,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import { catalogApi } from "pagopa-interop-api-clients";
-import { api, catalogService } from "../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
+import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   eServiceNotFound,
   eserviceWithoutValidDescriptors,
+  gracePeriodDaysLowerThanDescriptor,
   notValidEServiceState,
 } from "../../src/model/domain/errors.js";
-import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
+import { api, catalogService } from "../vitest.api.setup.js";
 
 describe("API /eservices/${eServiceId}/scheduleArchive authorization test", () => {
   const descriptor: Descriptor = {
@@ -42,8 +44,9 @@ describe("API /eservices/${eServiceId}/scheduleArchive authorization test", () =
 
   const mockEserviceWithMetadata = getMockWithMetadata(mockEService);
 
-  const archivingReasonSeed: catalogApi.EServiceArchivingReasonSeed = {
+  const archivingReasonSeed: catalogApi.EServiceArchivingSeed = {
     archivingReason: "No longer needed",
+    gracePeriodDays: 60,
   };
 
   catalogService.scheduleEServiceArchiving = vi
@@ -53,7 +56,7 @@ describe("API /eservices/${eServiceId}/scheduleArchive authorization test", () =
   const makeRequest = async (
     token: string,
     eServiceId: EServiceId,
-    body: catalogApi.EServiceArchivingReasonSeed = archivingReasonSeed
+    body: catalogApi.EServiceArchivingSeed = archivingReasonSeed
   ) =>
     request(api)
       .post(`/eservices/${eServiceId}/scheduleArchive`)
@@ -95,6 +98,15 @@ describe("API /eservices/${eServiceId}/scheduleArchive authorization test", () =
       expectedStatus: 400,
     },
     {
+      error: gracePeriodDaysLowerThanDescriptor(
+        mockEService.id,
+        mockEService.descriptors[0].id,
+        new Date(),
+        new Date()
+      ),
+      expectedStatus: 400,
+    },
+    {
       error: eServiceNotFound(mockEService.id),
       expectedStatus: 404,
     },
@@ -122,9 +134,14 @@ describe("API /eservices/${eServiceId}/scheduleArchive authorization test", () =
 
   it.each([
     [{}, mockEService.id],
-    [{ archivingReason: "Some reason" }, "invalidId"],
-    [{ archivingReason: 1 }, mockEService.id],
-    [{ archivingReason: "too short" }, mockEService.id],
+    [{ archivingReason: "Some reason", gracePeriodDays: 60 }, "invalidId"],
+    [{ archivingReason: 1, gracePeriodDays: 60 }, mockEService.id],
+    [{ archivingReason: "too short", gracePeriodDays: 60 }, mockEService.id],
+    [{ archivingReason: "Some reason" }, mockEService.id],
+    [{ archivingReason: "Some reason", gracePeriodDays: -1 }, mockEService.id],
+    [{ archivingReason: "Some reason", gracePeriodDays: 0 }, mockEService.id],
+    [{ archivingReason: "Some reason", gracePeriodDays: 1 }, mockEService.id],
+    [{ archivingReason: "Some reason", gracePeriodDays: 29 }, mockEService.id],
   ])(
     "Should return 400 if passed invalid params: %s",
     async (body, eServiceId) => {
@@ -132,7 +149,7 @@ describe("API /eservices/${eServiceId}/scheduleArchive authorization test", () =
       const res = await makeRequest(
         token,
         eServiceId as EServiceId,
-        body as catalogApi.EServiceArchivingReasonSeed
+        body as catalogApi.EServiceArchivingSeed
       );
 
       expect(res.status).toBe(400);

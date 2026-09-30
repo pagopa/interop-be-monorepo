@@ -1,5 +1,4 @@
 /* eslint-disable functional/immutable-data */
-import { describe, it, expect, vi, Mock } from "vitest";
 import {
   getMockContext,
   getMockDescriptor,
@@ -19,8 +18,9 @@ import {
   getNotificationRecipients,
   inAppTemplates,
 } from "pagopa-interop-notification-commons";
-import { handleNewEserviceTemplateVersionToInstantiator } from "../src/handlers/eserviceTemplates/handleNewEserviceTemplateVersionToInstantiator.js";
+import { describe, it, expect, vi, Mock } from "vitest";
 
+import { handleNewEserviceTemplateVersionToInstantiator } from "../src/handlers/eserviceTemplates/handleNewEserviceTemplateVersionToInstantiator.js";
 import {
   addOneEService,
   addOneEServiceTemplate,

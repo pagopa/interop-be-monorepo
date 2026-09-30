@@ -1,4 +1,5 @@
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockRiskAnalysisTemplateAnswerAnnotationDocument,
@@ -10,10 +11,10 @@ import {
 } from "pagopa-interop-models";
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import { api, purposeTemplateService } from "../vitest.api.setup.js";
+
 import { annotationDocumentToApiAnnotationDocumentWithAnswerId } from "../../src/model/domain/apiConverter.js";
 import { purposeTemplateNotFound } from "../../src/model/domain/errors.js";
+import { api, purposeTemplateService } from "../vitest.api.setup.js";
 
 describe("API GET /purposeTemplates/:id/riskAnalysis/annotationDocuments test", () => {
   const mockAnswerId = generateId<RiskAnalysisSingleAnswerId>();

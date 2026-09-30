@@ -1,16 +1,17 @@
 import { match } from "ts-pattern";
 import { z } from "zod";
-import { KeyUseV1, KeyV1 } from "../gen/v1/authorization/key.js";
+
+import { PurposeId, generateId } from "../brandedIds.js";
 import {
   ClientComponentStateV1,
   ClientKindV1,
   ClientStatesChainV1,
   ClientV1,
 } from "../gen/v1/authorization/client.js";
+import { KeyUseV1, KeyV1 } from "../gen/v1/authorization/key.js";
 import { dateToBigInt } from "../utils.js";
-import { PurposeId, generateId } from "../brandedIds.js";
-import { Key, KeyUse, keyUse } from "./key.js";
 import { Client, ClientKind, clientKind } from "./client.js";
+import { Key, KeyUse, keyUse } from "./key.js";
 
 const clientComponentState = {
   active: "Active",

@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { getMockPurposeTemplate } from "pagopa-interop-commons-test";
-import { describe, expect, it } from "vitest";
-import { aggregatePurposeTemplate } from "pagopa-interop-readmodel";
 import {
   EServiceDescriptorPurposeTemplate,
   generateId,
 } from "pagopa-interop-models";
+import { aggregatePurposeTemplate } from "pagopa-interop-readmodel";
+import { describe, expect, it } from "vitest";
+
 import {
   checkCompletePurposeTemplate,
   getCompleteMockPurposeTemplate,

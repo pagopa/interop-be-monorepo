@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { generateId } from "pagopa-interop-models";
 import { authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
+import { generateId } from "pagopa-interop-models";
 import request from "supertest";
-import { api, services } from "../../vitest.api.setup.js";
-import { getMockBffApiPurpose } from "../../mockUtils.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { getMockBffApiPurpose } from "../../mockUtils.js";
+import { api, services } from "../../vitest.api.setup.js";
 
 describe("API GET /purposes/riskAnalysis/assignments test", () => {
   const defaultQuery = {

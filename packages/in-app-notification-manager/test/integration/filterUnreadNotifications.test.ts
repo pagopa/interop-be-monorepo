@@ -1,7 +1,8 @@
-import { describe, it, expect } from "vitest";
 import { getMockContext } from "pagopa-interop-commons-test";
 import { getMockAuthData } from "pagopa-interop-commons-test";
 import { generateId, UserId, TenantId, userRole } from "pagopa-interop-models";
+import { describe, it, expect } from "vitest";
+
 import {
   addNotifications,
   inAppNotificationService,

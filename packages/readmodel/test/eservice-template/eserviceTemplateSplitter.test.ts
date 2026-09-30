@@ -14,7 +14,6 @@ import {
   EServiceTemplateVersion,
   tenantKind,
 } from "pagopa-interop-models";
-import { describe, expect, it } from "vitest";
 import {
   EServiceTemplateRiskAnalysisAnswerSQL,
   EServiceTemplateRiskAnalysisSQL,
@@ -25,6 +24,8 @@ import {
   EServiceTemplateVersionInterfaceSQL,
   EServiceTemplateVersionSQL,
 } from "pagopa-interop-readmodel-models";
+import { describe, expect, it } from "vitest";
+
 import { splitEServiceTemplateIntoObjectsSQL } from "../../src/eservice-template/splitters.js";
 import { generateEServiceTemplateRiskAnalysisAnswersSQL } from "./eserviceTemplateUtils.js";
 

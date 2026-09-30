@@ -1,15 +1,16 @@
+import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { bffApi } from "pagopa-interop-api-clients";
 import {
   ZodiosContext,
   ExpressContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
-import { ZodiosEndpointDefinitions } from "@zodios/core";
-import { bffApi } from "pagopa-interop-api-clients";
+
+import { makeApiProblem } from "../model/errors.js";
 import { NotificationConfigService } from "../services/notificationConfigService.js";
 import { fromBffAppContext } from "../utilities/context.js";
-import { makeApiProblem } from "../model/errors.js";
 
 const notificationConfigRouter = (
   ctx: ZodiosContext,

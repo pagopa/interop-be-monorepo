@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
-import request from "supertest";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockRiskAnalysisTemplateAnswerAnnotationDocument,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   generateId,
   PurposeTemplateId,
@@ -9,18 +13,15 @@ import {
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   WithMetadata,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockRiskAnalysisTemplateAnswerAnnotationDocument,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import { api, purposeTemplateService } from "../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import {
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
   purposeTemplateRiskAnalysisFormNotFound,
 } from "../../src/model/domain/errors.js";
+import { api, purposeTemplateService } from "../vitest.api.setup.js";
 
 describe("API /purposeTemplates/{id}/riskAnalysis/annotationDocuments/{documentId}", () => {
   const purposeTemplateId = generateId<PurposeTemplateId>();

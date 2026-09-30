@@ -1,4 +1,3 @@
-import path from "path";
 import {
   FileManager,
   Logger,
@@ -6,13 +5,15 @@ import {
   SignatureServiceBuilder,
   FileCreationRequest,
 } from "pagopa-interop-commons";
-import { match, P } from "ts-pattern";
 import {
   DelegationEventEnvelopeV2,
   delegationState,
   missingKafkaMessageDataError,
   toDelegationStateV2,
 } from "pagopa-interop-models";
+import path from "path";
+import { match, P } from "ts-pattern";
+
 import { config } from "../config/config.js";
 import { calculateSha256Base64 } from "../utils/checksum.js";
 

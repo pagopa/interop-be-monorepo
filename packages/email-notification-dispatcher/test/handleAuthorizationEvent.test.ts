@@ -1,4 +1,5 @@
 /* eslint-disable functional/immutable-data */
+import { authRole } from "pagopa-interop-commons";
 import {
   getMockContext,
   getMockEService,
@@ -7,7 +8,6 @@ import {
   getMockTenantMail,
   getMockTenant,
 } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
 import {
   AuthorizationEventEnvelope,
   CorrelationId,
@@ -23,6 +23,7 @@ import {
   UserId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { handleAuthorizationEvent } from "../src/handlers/authorization/handleAuthorizationEvent.js";
 import { readModelService, templateService } from "./utils.js";
 

@@ -2,7 +2,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable functional/immutable-data */
 
-import { describe, it, expect, beforeEach } from "vitest";
+import {
+  getMockPurpose,
+  getMockPurposeVersion,
+  getMockPurposeVersionStamps,
+  getMockValidRiskAnalysisForm,
+  toPurposeV1,
+  toPurposeVersionV1,
+} from "pagopa-interop-commons-test";
 import {
   PurposeCreatedV1,
   PurposeVersionCreatedV1,
@@ -18,14 +25,8 @@ import {
   tenantKind,
   purposeVersionState,
 } from "pagopa-interop-models";
-import {
-  getMockPurpose,
-  getMockPurposeVersion,
-  getMockPurposeVersionStamps,
-  getMockValidRiskAnalysisForm,
-  toPurposeV1,
-  toPurposeVersionV1,
-} from "pagopa-interop-commons-test";
+import { describe, it, expect, beforeEach } from "vitest";
+
 import { handlePurposeMessageV1 } from "../src/handlers/purpose/consumerServiceV1.js";
 import { handlePurposeMessageV2 } from "../src/handlers/purpose/consumerServiceV2.js";
 import { PurposeDbTable } from "../src/model/db/purpose.js";
