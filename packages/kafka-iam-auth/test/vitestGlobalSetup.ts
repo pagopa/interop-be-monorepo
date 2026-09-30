@@ -1,6 +1,7 @@
+import type { TestProject } from "vitest/node";
+
 import { createServer } from "net";
 import { GenericContainer, Wait } from "testcontainers";
-import type { TestProject } from "vitest/node";
 
 declare module "vitest" {
   export interface ProvidedContext {

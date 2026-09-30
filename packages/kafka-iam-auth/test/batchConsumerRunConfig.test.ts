@@ -6,6 +6,7 @@ import {
 } from "kafkajs";
 import { InternalError } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
+
 import { makeBatchConsumerRunConfig } from "../src/index.js";
 
 // These tests pin the offset-commit contract of the batch consumer:

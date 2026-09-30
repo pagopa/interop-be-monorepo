@@ -2,6 +2,7 @@
 import { randomUUID } from "crypto";
 import { Admin, Consumer } from "kafkajs";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+
 import { runBatchConsumer } from "../src/index.js";
 import {
   allOffsetsCommitted,
