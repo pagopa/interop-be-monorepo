@@ -12,16 +12,9 @@ message DraftPurposeUpdatedV2 {
   PurposeV2 purpose = 1;
 }
 
-enum PurposeWaitingForApprovalReasonV2 {
-  PURPOSE_WAITING_FOR_APPROVAL_REASON_UNSPECIFIED = 0;
-  PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_PER_CONSUMER = 1;
-  PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_TOTAL = 2;
-  PURPOSE_WAITING_FOR_APPROVAL_REASON_BOTH = 3;
-}
-
 message PurposeWaitingForApprovalV2 {
   PurposeV2 purpose = 1;
-  optional PurposeWaitingForApprovalReasonV2 waitingForApprovalReason = 2;
+  reserved 2;
 }
 
 message PurposeActivatedV2 {
@@ -69,13 +62,13 @@ message PurposeVersionSuspendedByConsumerV2 {
 message NewPurposeVersionWaitingForApprovalV2 {
   string versionId = 1;
   PurposeV2 purpose = 2;
-  optional PurposeWaitingForApprovalReasonV2 waitingForApprovalReason = 3;
+  reserved 3;
 }
 
 message PurposeVersionOverQuotaUnsuspendedV2 {
   string versionId = 1;
   PurposeV2 purpose = 2;
-  optional PurposeWaitingForApprovalReasonV2 waitingForApprovalReason = 3;
+  reserved 3;
 }
 
 message PurposeArchivedV2 {

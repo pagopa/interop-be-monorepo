@@ -1,4 +1,7 @@
-import { PurposeWaitingForApprovalReasonV2 } from "pagopa-interop-models";
+import {
+  PurposeWaitingForApprovalReason,
+  purposeWaitingForApprovalReason,
+} from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
 // The reason describes the quota check at event creation time. Do not recompute
@@ -6,25 +9,19 @@ import { match } from "ts-pattern";
 export function purposeOverQuotaTemplate(
   purposeName: string,
   eserviceName: string,
-  reason: PurposeWaitingForApprovalReasonV2 | undefined
+  reason: PurposeWaitingForApprovalReason | undefined
 ): { title: string; body: string } {
   const { title, explanation } = match(reason)
-    .with(
-      PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_PER_CONSUMER,
-      () => ({
-        title: "Hai superato la soglia di chiamate API per fruitore",
-        explanation:
-          "con questa stima di chiamate API superi la soglia per fruitore",
-      })
-    )
-    .with(
-      PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_TOTAL,
-      () => ({
-        title: "Superamento soglie totali di chiamate API",
-        explanation:
-          "sono già state superate le soglie totali di chiamate API definite dall'erogatore",
-      })
-    )
+    .with(purposeWaitingForApprovalReason.dailyCallsPerConsumer, () => ({
+      title: "Hai superato la soglia di chiamate API per fruitore",
+      explanation:
+        "con questa stima di chiamate API superi la soglia per fruitore",
+    }))
+    .with(purposeWaitingForApprovalReason.dailyCallsTotal, () => ({
+      title: "Superamento soglie totali di chiamate API",
+      explanation:
+        "sono già state superate le soglie totali di chiamate API definite dall'erogatore",
+    }))
     // Both quotas, legacy events without a reason, and unknown future values
     // use the generic copy: it does not claim that both quotas were exceeded.
     .otherwise(() => ({

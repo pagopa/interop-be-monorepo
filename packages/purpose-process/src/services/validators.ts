@@ -29,7 +29,8 @@ import {
   PurposeTemplate,
   PurposeTemplateId,
   PurposeVersion,
-  PurposeWaitingForApprovalReasonV2,
+  PurposeWaitingForApprovalReason,
+  purposeWaitingForApprovalReason,
   purposeVersionState,
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswer,
@@ -282,7 +283,7 @@ export async function getWaitingForApprovalReason(
   purpose: Purpose,
   dailyCalls: number,
   readModelService: ReadModelServiceSQL
-): Promise<PurposeWaitingForApprovalReasonV2 | undefined> {
+): Promise<PurposeWaitingForApprovalReason | undefined> {
   const quotas = await getUpdatedQuotas(
     eservice,
     purpose.consumerId,
@@ -295,13 +296,13 @@ export async function getWaitingForApprovalReason(
     quotas.currentTotalCalls + dailyCalls > quotas.maxDailyCallsTotal;
 
   if (exceedsConsumerQuota && exceedsTotalQuota) {
-    return PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_BOTH;
+    return purposeWaitingForApprovalReason.both;
   }
   if (exceedsConsumerQuota) {
-    return PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_PER_CONSUMER;
+    return purposeWaitingForApprovalReason.dailyCallsPerConsumer;
   }
   if (exceedsTotalQuota) {
-    return PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_TOTAL;
+    return purposeWaitingForApprovalReason.dailyCallsTotal;
   }
   return undefined;
 }

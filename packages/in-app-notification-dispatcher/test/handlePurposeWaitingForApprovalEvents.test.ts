@@ -1,13 +1,15 @@
 import {
   getMockContext,
   getMockPurpose,
+  getMockPurposeVersion,
   getMockEService,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
   toPurposeV2,
   PurposeEventEnvelope,
-  PurposeWaitingForApprovalReasonV2,
+  purposeVersionState,
+  purposeWaitingForApprovalReason,
 } from "pagopa-interop-models";
 import { getNotificationRecipients } from "pagopa-interop-notification-commons";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -48,15 +50,27 @@ describe("waiting-for-approval in-app event routing", () => {
       version: 1,
       log_date: new Date(),
     };
+    const waitingVersion = {
+      ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+      waitingForApprovalReason: purposeWaitingForApprovalReason.dailyCallsTotal,
+    };
     const data = {
-      purpose: toPurposeV2(purpose),
-      waitingForApprovalReason:
-        PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_TOTAL,
+      purpose: toPurposeV2({
+        ...purpose,
+        versions: [
+          getMockPurposeVersion(purposeVersionState.active),
+          waitingVersion,
+        ],
+      }),
     };
     const decodedMessage: PurposeEventEnvelope =
       type === "PurposeWaitingForApproval"
         ? { ...envelope, type, data }
-        : { ...envelope, type, data: { ...data, versionId: generateId() } };
+        : {
+            ...envelope,
+            type,
+            data: { ...data, versionId: waitingVersion.id },
+          };
     const notifications = await handlePurposeEvent(
       decodedMessage,
       logger,

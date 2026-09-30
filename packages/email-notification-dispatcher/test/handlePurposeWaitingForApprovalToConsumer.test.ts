@@ -6,6 +6,7 @@ import {
   getMockDescriptorPublished,
   getMockEService,
   getMockPurpose,
+  getMockPurposeVersion,
   getMockTenant,
   getMockTenantMail,
 } from "pagopa-interop-commons-test";
@@ -17,7 +18,8 @@ import {
   missingKafkaMessageDataError,
   NotificationType,
   Purpose,
-  PurposeWaitingForApprovalReasonV2,
+  purposeVersionState,
+  purposeWaitingForApprovalReason,
   Tenant,
   TenantId,
   TenantNotificationConfigId,
@@ -227,13 +229,20 @@ describe("handlePurposeWaitingForApprovalOverthreshold", async () => {
       consumerId,
     };
     const messages = await handlePurposeWaitingForApprovalToConsumer({
-      purposeV2Msg: toPurposeV2(purpose),
+      purposeV2Msg: toPurposeV2({
+        ...purpose,
+        versions: [
+          {
+            ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+            waitingForApprovalReason:
+              purposeWaitingForApprovalReason.dailyCallsPerConsumer,
+          },
+        ],
+      }),
       logger,
       templateService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
-      waitingForApprovalReason:
-        PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_PER_CONSUMER,
     });
     expect(messages).toHaveLength(3);
     expect(messages).toEqual(

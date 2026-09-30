@@ -6,7 +6,6 @@ import {
   PurposeEventV2,
   PurposeId,
   PurposeVersionId,
-  PurposeWaitingForApprovalReasonV2,
   toPurposeV2,
 } from "pagopa-interop-models";
 
@@ -311,13 +310,11 @@ export function toCreateEventNewPurposeVersionWaitingForApproval({
   version,
   versionId,
   correlationId,
-  waitingForApprovalReason,
 }: {
   purpose: Purpose;
   version: number;
   versionId: PurposeVersionId;
   correlationId: CorrelationId;
-  waitingForApprovalReason: PurposeWaitingForApprovalReasonV2;
 }): CreateEvent<PurposeEventV2> {
   return {
     streamId: purpose.id,
@@ -328,7 +325,6 @@ export function toCreateEventNewPurposeVersionWaitingForApproval({
       data: {
         purpose: toPurposeV2(purpose),
         versionId,
-        waitingForApprovalReason,
       },
     },
     correlationId,
@@ -358,19 +354,17 @@ export const toCreateEventPurposeWaitingForApproval = ({
   purpose,
   version,
   correlationId,
-  waitingForApprovalReason,
 }: {
   purpose: Purpose;
   version: number;
   correlationId: CorrelationId;
-  waitingForApprovalReason: PurposeWaitingForApprovalReasonV2;
 }): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,
   version,
   event: {
     type: "PurposeWaitingForApproval",
     event_version: 2,
-    data: { purpose: toPurposeV2(purpose), waitingForApprovalReason },
+    data: { purpose: toPurposeV2(purpose) },
   },
   correlationId,
 });
@@ -443,13 +437,11 @@ export const toCreateEventPurposeVersionOverQuotaUnsuspended = ({
   version,
   versionId,
   correlationId,
-  waitingForApprovalReason,
 }: {
   purpose: Purpose;
   version: number;
   versionId: PurposeVersionId;
   correlationId: CorrelationId;
-  waitingForApprovalReason: PurposeWaitingForApprovalReasonV2;
 }): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,
   version,
@@ -459,7 +451,6 @@ export const toCreateEventPurposeVersionOverQuotaUnsuspended = ({
     data: {
       purpose: toPurposeV2(purpose),
       versionId,
-      waitingForApprovalReason,
     },
   },
   correlationId,

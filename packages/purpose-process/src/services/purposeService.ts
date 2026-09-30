@@ -42,7 +42,7 @@ import {
   PurposeTemplate,
   PurposeTemplateId,
   PurposeVersion,
-  PurposeWaitingForApprovalReasonV2,
+  PurposeWaitingForApprovalReason,
   PurposeVersionDocument,
   PurposeVersionDocumentId,
   PurposeVersionId,
@@ -1468,6 +1468,7 @@ export function purposeServiceBuilder(
           id: generateId<PurposeVersionId>(),
           createdAt: new Date(),
           state: purposeVersionState.waitingForApproval,
+          waitingForApprovalReason,
           dailyCalls: seed.dailyCalls,
           stamps: {
             creation: {
@@ -1485,7 +1486,6 @@ export function purposeServiceBuilder(
 
         const event = await repository.createEvent(
           toCreateEventNewPurposeVersionWaitingForApproval({
-            waitingForApprovalReason,
             purpose: updatedPurpose,
             versionId: newPurposeVersion.id,
             version: purpose.metadata.version,
@@ -2793,7 +2793,7 @@ function changePurposeVersionToWaitForApprovalFromDraftLogic(
   purposeVersion: PurposeVersion,
   authData: UIAuthData | M2MAdminAuthData,
   correlationId: CorrelationId,
-  waitingForApprovalReason: PurposeWaitingForApprovalReasonV2
+  waitingForApprovalReason: PurposeWaitingForApprovalReason
 ): {
   event: CreateEvent<PurposeEvent>;
   updatedPurposeVersion: PurposeVersion;
@@ -2801,6 +2801,7 @@ function changePurposeVersionToWaitForApprovalFromDraftLogic(
   const updatedPurposeVersion: PurposeVersion = {
     ...purposeVersion,
     state: purposeVersionState.waitingForApproval,
+    waitingForApprovalReason,
     updatedAt: new Date(),
     stamps: {
       creation: {
@@ -2817,7 +2818,6 @@ function changePurposeVersionToWaitForApprovalFromDraftLogic(
 
   return {
     event: toCreateEventPurposeWaitingForApproval({
-      waitingForApprovalReason,
       purpose: updatedPurpose,
       version: purpose.metadata.version,
       correlationId,
@@ -2830,7 +2830,7 @@ function activatePurposeVersionFromOverQuotaSuspendedLogic(
   purpose: WithMetadata<Purpose>,
   purposeVersion: PurposeVersion,
   correlationId: CorrelationId,
-  waitingForApprovalReason: PurposeWaitingForApprovalReasonV2
+  waitingForApprovalReason: PurposeWaitingForApprovalReason
 ): {
   event: CreateEvent<PurposeEvent>;
   updatedPurposeVersion: PurposeVersion;
@@ -2838,6 +2838,7 @@ function activatePurposeVersionFromOverQuotaSuspendedLogic(
   const newPurposeVersion: PurposeVersion = {
     createdAt: new Date(),
     state: purposeVersionState.waitingForApproval,
+    waitingForApprovalReason,
     id: generateId<PurposeVersionId>(),
     dailyCalls: purposeVersion.dailyCalls,
   };
@@ -2854,7 +2855,6 @@ function activatePurposeVersionFromOverQuotaSuspendedLogic(
 
   return {
     event: toCreateEventPurposeVersionOverQuotaUnsuspended({
-      waitingForApprovalReason,
       purpose: updatedPurpose,
       versionId: newPurposeVersion.id,
       version: purpose.metadata.version,

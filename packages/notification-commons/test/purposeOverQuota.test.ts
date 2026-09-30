@@ -1,4 +1,4 @@
-import { PurposeWaitingForApprovalReasonV2 } from "pagopa-interop-models";
+import { purposeWaitingForApprovalReason } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 
 import { purposeOverQuotaTemplate } from "../src/templates/purposeOverQuota.js";
@@ -6,17 +6,17 @@ import { purposeOverQuotaTemplate } from "../src/templates/purposeOverQuota.js";
 describe("purposeOverQuotaTemplate", () => {
   it.each([
     [
-      PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_PER_CONSUMER,
+      purposeWaitingForApprovalReason.dailyCallsPerConsumer,
       "Hai superato la soglia di chiamate API per fruitore",
       "con questa stima di chiamate API superi la soglia per fruitore",
     ],
     [
-      PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_TOTAL,
+      purposeWaitingForApprovalReason.dailyCallsTotal,
       "Superamento soglie totali di chiamate API",
       "sono già state superate le soglie totali di chiamate API definite dall'erogatore",
     ],
     [
-      PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_BOTH,
+      purposeWaitingForApprovalReason.both,
       "Superamento soglie per fruitore e soglie totali",
       "è stata superata almeno una delle soglie di chiamate API/giorno definite dall’erogatore (per fruitore o totali)",
     ],
@@ -30,15 +30,12 @@ describe("purposeOverQuotaTemplate", () => {
     }
   );
 
-  it.each([
-    undefined,
-    PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_UNSPECIFIED,
-  ])("uses generic copy for legacy/unspecified reason %s", (reason) => {
-    expect(purposeOverQuotaTemplate("Finalità", "Servizio", reason)).toEqual(
+  it("uses generic copy for legacy reasons", () => {
+    expect(purposeOverQuotaTemplate("Finalità", "Servizio", undefined)).toEqual(
       purposeOverQuotaTemplate(
         "Finalità",
         "Servizio",
-        PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_BOTH
+        purposeWaitingForApprovalReason.both
       )
     );
   });

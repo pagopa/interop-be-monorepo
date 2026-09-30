@@ -2,7 +2,7 @@ import { dateAtRomeZone } from "pagopa-interop-commons";
 import {
   EService,
   EServiceTemplate,
-  PurposeWaitingForApprovalReasonV2,
+  PurposeWaitingForApprovalReason,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -395,7 +395,7 @@ export const inAppTemplates = {
   purposeOverQuotaToConsumer: (
     eserviceName: string,
     purposeName: string,
-    reason?: PurposeWaitingForApprovalReasonV2
+    reason?: PurposeWaitingForApprovalReason
   ): string => purposeOverQuotaTemplate(purposeName, eserviceName, reason).body,
   purposeQuotaAdjustmentResponseToConsumer: (
     producerName: string,

@@ -124,7 +124,7 @@ export async function handlePurposeEvent(
     )
     .with(
       { type: "NewPurposeVersionWaitingForApproval" },
-      async ({ data: { purpose, waitingForApprovalReason } }) => [
+      async ({ data: { purpose, versionId } }) => [
         ...(await handleNewPurposeVersionWaitingForApprovalToProducer({
           purposeV2Msg: purpose,
           logger,
@@ -133,7 +133,7 @@ export async function handlePurposeEvent(
           correlationId,
         })),
         ...(await handleNewPurposeVersionWaitingForApprovalToConsumer({
-          waitingForApprovalReason,
+          versionId,
           purposeV2Msg: purpose,
           logger,
           readModelService,
@@ -144,7 +144,7 @@ export async function handlePurposeEvent(
     )
     .with(
       { type: "PurposeWaitingForApproval" },
-      async ({ data: { purpose, waitingForApprovalReason } }) => [
+      async ({ data: { purpose } }) => [
         ...(await handlePurposeWaitingForApprovalToProducer({
           purposeV2Msg: purpose,
           logger,
@@ -153,7 +153,6 @@ export async function handlePurposeEvent(
           correlationId,
         })),
         ...(await handlePurposeWaitingForApprovalToConsumer({
-          waitingForApprovalReason,
           purposeV2Msg: purpose,
           logger,
           readModelService,
@@ -164,10 +163,10 @@ export async function handlePurposeEvent(
     )
     .with(
       { type: "PurposeVersionOverQuotaUnsuspended" },
-      ({ data: { purpose, waitingForApprovalReason }, type }) =>
+      ({ data: { purpose, versionId }, type }) =>
         handleNewPurposeVersionWaitingForApprovalToConsumer({
           purposeV2Msg: purpose,
-          waitingForApprovalReason,
+          versionId,
           eventType: type,
           logger,
           readModelService,

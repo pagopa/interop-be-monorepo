@@ -1,7 +1,7 @@
 import {
   EService,
   Purpose,
-  PurposeWaitingForApprovalReasonV2,
+  purposeWaitingForApprovalReason,
   Tenant,
   Agreement,
   tenantKind,
@@ -168,29 +168,25 @@ describe("getWaitingForApprovalReason", () => {
       consumerDailyCalls: 90,
       totalDailyCalls: 100,
       dailyCalls: 20,
-      expected:
-        PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_PER_CONSUMER,
+      expected: purposeWaitingForApprovalReason.dailyCallsPerConsumer,
     },
     {
       consumerDailyCalls: 0,
       totalDailyCalls: 990,
       dailyCalls: 20,
-      expected:
-        PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_TOTAL,
+      expected: purposeWaitingForApprovalReason.dailyCallsTotal,
     },
     {
       consumerDailyCalls: 90,
       totalDailyCalls: 990,
       dailyCalls: 20,
-      expected:
-        PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_BOTH,
+      expected: purposeWaitingForApprovalReason.both,
     },
     {
       consumerDailyCalls: 110,
       totalDailyCalls: 1100,
       dailyCalls: -20,
-      expected:
-        PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_TOTAL,
+      expected: purposeWaitingForApprovalReason.dailyCallsTotal,
     },
     {
       consumerDailyCalls: 110,
@@ -313,9 +309,7 @@ describe("getWaitingForApprovalReason", () => {
       250,
       mockReadModelService
     );
-    expect(result2).toBe(
-      PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_PER_CONSUMER
-    );
+    expect(result2).toBe(purposeWaitingForApprovalReason.dailyCallsPerConsumer);
   });
 });
 

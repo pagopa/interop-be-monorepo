@@ -14,7 +14,7 @@ import {
   PurposeId,
   toPurposeV2,
   purposeVersionState,
-  PurposeWaitingForApprovalReasonV2,
+  purposeWaitingForApprovalReason,
 } from "pagopa-interop-models";
 import {
   getNotificationRecipients,
@@ -199,17 +199,14 @@ describe("handlePurposeOverQuotaToConsumer", () => {
 
   it.each([
     [
-      PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_PER_CONSUMER,
+      purposeWaitingForApprovalReason.dailyCallsPerConsumer,
       "con questa stima di chiamate API superi la soglia per fruitore",
     ],
     [
-      PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_TOTAL,
+      purposeWaitingForApprovalReason.dailyCallsTotal,
       "sono già state superate le soglie totali",
     ],
-    [
-      PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_BOTH,
-      "almeno una delle soglie",
-    ],
+    [purposeWaitingForApprovalReason.both, "almeno una delle soglie"],
     [undefined, "almeno una delle soglie"],
   ] as const)(
     "uses event reason %s without reading descriptor quotas",
@@ -220,11 +217,18 @@ describe("handlePurposeOverQuotaToConsumer", () => {
       ]);
 
       const notifications = await handlePurposeOverQuotaToConsumer(
-        toPurposeV2(purpose),
+        toPurposeV2({
+          ...purpose,
+          versions: [
+            {
+              ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+              waitingForApprovalReason: reason,
+            },
+          ],
+        }),
         logger,
         readModelService,
-        "PurposeWaitingForApproval",
-        reason
+        "PurposeWaitingForApproval"
       );
 
       expect(notifications).toHaveLength(1);

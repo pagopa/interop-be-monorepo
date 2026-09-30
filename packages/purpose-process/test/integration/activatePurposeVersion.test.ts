@@ -40,7 +40,7 @@ import {
   PurposeVersionUnsuspendedByProducerV2,
   PurposeVersionOverQuotaUnsuspendedV2,
   PurposeWaitingForApprovalV2,
-  PurposeWaitingForApprovalReasonV2,
+  purposeWaitingForApprovalReason,
   eserviceMode,
   PurposeVersionActivatedV2,
   delegationState,
@@ -491,6 +491,7 @@ describe("activatePurposeVersion", () => {
           dailyCalls: purposeVersion.dailyCalls,
           createdAt: purposeVersion.createdAt,
           state: purposeVersionState.waitingForApproval,
+          waitingForApprovalReason: purposeWaitingForApprovalReason.both,
         },
       ],
       suspendedByConsumer: true,
@@ -509,8 +510,6 @@ describe("activatePurposeVersion", () => {
     }).toEqual({
       purpose: sortPurpose(toPurposeV2(expectedPurpose)),
       versionId: activateResponse.data.id,
-      waitingForApprovalReason:
-        PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_BOTH,
     });
 
     expect(activateResponse).toMatchObject({
@@ -639,6 +638,7 @@ describe("activatePurposeVersion", () => {
         {
           ...purposeVersion,
           state: purposeVersionState.waitingForApproval,
+          waitingForApprovalReason: purposeWaitingForApprovalReason.both,
           stamps: {
             creation: {
               who: authData.userId,
@@ -659,8 +659,6 @@ describe("activatePurposeVersion", () => {
       ...writtenPayload,
       purpose: sortPurpose(writtenPayload.purpose),
     }).toEqual({
-      waitingForApprovalReason:
-        PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_BOTH,
       purpose: sortPurpose(toPurposeV2(expectedPurpose)),
     });
     expect(activateResponse).toMatchObject({

@@ -2,6 +2,7 @@ import { match } from "ts-pattern";
 
 import {
   PurposeStateV2,
+  PurposeWaitingForApprovalReasonV2,
   PurposeV2,
   PurposeVersionDocumentV2,
   PurposeVersionSignedDocumentV2,
@@ -18,6 +19,8 @@ import { toTenantKindV2 } from "../tenant/protobufConverterToV2.js";
 import { dateToBigInt } from "../utils.js";
 import {
   Purpose,
+  PurposeWaitingForApprovalReason,
+  purposeWaitingForApprovalReason,
   PurposeVersion,
   PurposeVersionDocument,
   PurposeVersionSignedDocument,
@@ -75,11 +78,36 @@ export const toPurposeVersionStampsV2 = (
   creation: toPurposeVersionStampV2(input.creation),
 });
 
+export const toPurposeWaitingForApprovalReasonV2 = (
+  input: PurposeWaitingForApprovalReason
+): PurposeWaitingForApprovalReasonV2 =>
+  match(input)
+    .with(
+      purposeWaitingForApprovalReason.dailyCallsPerConsumer,
+      () =>
+        PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_PER_CONSUMER
+    )
+    .with(
+      purposeWaitingForApprovalReason.dailyCallsTotal,
+      () =>
+        PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_TOTAL
+    )
+    .with(
+      purposeWaitingForApprovalReason.both,
+      () =>
+        PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_BOTH
+    )
+    .exhaustive();
+
 export const toPurposeVersionV2 = (
   input: PurposeVersion
 ): PurposeVersionV2 => ({
   ...input,
   state: toPurposeVersionStateV2(input.state),
+  waitingForApprovalReason:
+    input.waitingForApprovalReason !== undefined
+      ? toPurposeWaitingForApprovalReasonV2(input.waitingForApprovalReason)
+      : undefined,
   createdAt: dateToBigInt(input.createdAt),
   updatedAt: dateToBigInt(input.updatedAt),
   firstActivationAt: dateToBigInt(input.firstActivationAt),

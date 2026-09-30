@@ -3,7 +3,7 @@ import {
   fromPurposeV2,
   missingKafkaMessageDataError,
   PurposeV2,
-  PurposeWaitingForApprovalReasonV2,
+  purposeVersionState,
   NewNotification,
 } from "pagopa-interop-models";
 import {
@@ -24,7 +24,7 @@ export async function handlePurposeOverQuotaToConsumer(
   logger: Logger,
   readModelService: ReadModelServiceSQL,
   type: PurposeOverQuotaToConsumerType,
-  waitingForApprovalReason?: PurposeWaitingForApprovalReasonV2
+  versionId?: string
 ): Promise<NewNotification[]> {
   if (!purposeV2Msg) {
     throw missingKafkaMessageDataError("purpose", type);
@@ -51,7 +51,11 @@ export async function handlePurposeOverQuotaToConsumer(
   const body = inAppTemplates.purposeOverQuotaToConsumer(
     eservice.name,
     purpose.title,
-    waitingForApprovalReason
+    purpose.versions.find((v) =>
+      versionId
+        ? v.id === versionId
+        : v.state === purposeVersionState.waitingForApproval
+    )?.waitingForApprovalReason
   );
 
   return usersWithNotifications.map(({ userId, tenantId }) => ({

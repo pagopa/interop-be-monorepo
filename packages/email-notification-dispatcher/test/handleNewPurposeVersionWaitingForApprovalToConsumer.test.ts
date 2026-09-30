@@ -7,6 +7,7 @@ import {
   getMockDescriptorPublished,
   getMockEService,
   getMockPurpose,
+  getMockPurposeVersion,
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
@@ -18,7 +19,8 @@ import {
   missingKafkaMessageDataError,
   NotificationType,
   Purpose,
-  PurposeWaitingForApprovalReasonV2,
+  purposeVersionState,
+  purposeWaitingForApprovalReason,
   Tenant,
   TenantId,
   TenantNotificationConfigId,
@@ -260,17 +262,17 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
 
   it.each([
     [
-      PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_PER_CONSUMER,
+      purposeWaitingForApprovalReason.dailyCallsPerConsumer,
       "Hai superato la soglia di chiamate API per fruitore",
       "con questa stima di chiamate API superi la soglia per fruitore",
     ],
     [
-      PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_TOTAL,
+      purposeWaitingForApprovalReason.dailyCallsTotal,
       "Superamento soglie totali di chiamate API",
       "sono già state superate le soglie totali",
     ],
     [
-      PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_BOTH,
+      purposeWaitingForApprovalReason.both,
       "Superamento soglie per fruitore e soglie totali",
       "almeno una delle soglie",
     ],
@@ -284,8 +286,17 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
       };
       const messages =
         await handleNewPurposeVersionWaitingForApprovalToConsumer({
-          purposeV2Msg: toPurposeV2(purpose),
-          waitingForApprovalReason,
+          purposeV2Msg: toPurposeV2({
+            ...purpose,
+            versions: [
+              {
+                ...getMockPurposeVersion(
+                  purposeVersionState.waitingForApproval
+                ),
+                waitingForApprovalReason,
+              },
+            ],
+          }),
           logger,
           templateService,
           readModelService,

@@ -4,7 +4,7 @@ import {
   generateId,
   missingKafkaMessageDataError,
   NotificationType,
-  PurposeWaitingForApprovalReasonV2,
+  purposeVersionState,
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
@@ -23,7 +23,7 @@ const notificationType: NotificationType = "purposeOverQuotaStateToConsumer";
 
 export async function handleNewPurposeVersionWaitingForApprovalToConsumer(
   data: PurposeHandlerParams & {
-    waitingForApprovalReason?: PurposeWaitingForApprovalReasonV2;
+    versionId?: string;
     eventType?:
       | "NewPurposeVersionWaitingForApproval"
       | "PurposeVersionOverQuotaUnsuspended";
@@ -35,7 +35,7 @@ export async function handleNewPurposeVersionWaitingForApprovalToConsumer(
     logger,
     templateService,
     correlationId,
-    waitingForApprovalReason,
+    versionId,
     eventType = "NewPurposeVersionWaitingForApproval",
   } = data;
 
@@ -54,7 +54,11 @@ export async function handleNewPurposeVersionWaitingForApprovalToConsumer(
   const content = purposeOverQuotaTemplate(
     purpose.title,
     eservice.name,
-    waitingForApprovalReason
+    purpose.versions.find((v) =>
+      versionId
+        ? v.id === versionId
+        : v.state === purposeVersionState.waitingForApproval
+    )?.waitingForApprovalReason
   );
 
   const consumer = await retrieveTenant(purpose.consumerId, readModelService);

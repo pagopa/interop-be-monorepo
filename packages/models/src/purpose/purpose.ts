@@ -82,12 +82,28 @@ export type PurposeVersionStamps = z.infer<typeof PurposeVersionStamps>;
 export const PurposeVersionStampKind = PurposeVersionStamps.keyof();
 export type PurposeVersionStampKind = z.infer<typeof PurposeVersionStampKind>;
 
+export const purposeWaitingForApprovalReason = {
+  dailyCallsPerConsumer: "DailyCallsPerConsumer",
+  dailyCallsTotal: "DailyCallsTotal",
+  both: "Both",
+} as const;
+export const PurposeWaitingForApprovalReason = z.enum([
+  purposeWaitingForApprovalReason.dailyCallsPerConsumer,
+  purposeWaitingForApprovalReason.dailyCallsTotal,
+  purposeWaitingForApprovalReason.both,
+]);
+export type PurposeWaitingForApprovalReason = z.infer<
+  typeof PurposeWaitingForApprovalReason
+>;
+
 export const PurposeVersion = z.object({
   id: PurposeVersionId,
   state: PurposeVersionState,
   riskAnalysis: PurposeVersionDocument.optional(),
   dailyCalls: z.number(),
   rejectionReason: z.string().optional(),
+  // Quota decision at entry into waiting for approval, retained after state changes.
+  waitingForApprovalReason: PurposeWaitingForApprovalReason.optional(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date().optional(),
   firstActivationAt: z.coerce.date().optional(),
