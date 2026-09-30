@@ -479,7 +479,10 @@ export function combineAttributeDigests(
   verifiedDigest: AttributeDigest,
   certifiedDigest: AttributeDigest
 ): AttributeDigest {
-  const combinedItems = [...verifiedDigest.items, ...certifiedDigest.items];
+  const combinedItems = [
+    ...verifiedDigest.items,
+    ...certifiedDigest.items,
+  ].slice(0, 5);
   const totalCount = verifiedDigest.totalCount + certifiedDigest.totalCount;
 
   return {
