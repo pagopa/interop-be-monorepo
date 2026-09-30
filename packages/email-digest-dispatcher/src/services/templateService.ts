@@ -65,6 +65,12 @@ export function digestTemplateServiceBuilder(
         data.publishedSentPurposes?.totalCount === 1;
       const rejectedSentPurposesSingular =
         data.rejectedSentPurposes?.totalCount === 1;
+      const waitingForApprovalSentPurposesSingular =
+        data.waitingForApprovalSentPurposes?.totalCount === 1;
+      const publishedReceivedPurposesSingular =
+        data.publishedReceivedPurposes?.totalCount === 1;
+      const waitingForApprovalReceivedPurposesSingular =
+        data.waitingForApprovalReceivedPurposes?.totalCount === 1;
       const waitingForApprovalReceivedAgreementsSingular =
         data.waitingForApprovalReceivedAgreements?.totalCount === 1;
       const waitingForApprovalReceivedDelegationsSingular =
@@ -97,6 +103,9 @@ export function digestTemplateServiceBuilder(
         suspendedSentAgreementsSingular,
         publishedSentPurposesSingular,
         rejectedSentPurposesSingular,
+        publishedReceivedPurposesSingular,
+        waitingForApprovalReceivedPurposesSingular,
+        waitingForApprovalSentPurposesSingular,
         waitingForApprovalReceivedAgreementsSingular,
         waitingForApprovalReceivedDelegationsSingular,
         revokedReceivedDelegationsSingular,
