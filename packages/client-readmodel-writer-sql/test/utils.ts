@@ -1,11 +1,9 @@
+import { eq } from "drizzle-orm";
 import {
   getMockClient,
   getMockKey,
   setupTestContainersVitest,
 } from "pagopa-interop-commons-test";
-import { clientReadModelServiceBuilder } from "pagopa-interop-readmodel";
-import { inject, afterEach } from "vitest";
-import { eq } from "drizzle-orm";
 import {
   WithMetadata,
   Client,
@@ -13,6 +11,7 @@ import {
   UserId,
   ClientId,
 } from "pagopa-interop-models";
+import { clientReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import {
   ClientSQL,
   ClientUserSQL,
@@ -23,6 +22,8 @@ import {
   clientPurposeInReadmodelClient,
   clientKeyInReadmodelClient,
 } from "pagopa-interop-readmodel-models";
+import { inject, afterEach } from "vitest";
+
 import { clientWriterServiceBuilder } from "../src/clientWriterService.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(

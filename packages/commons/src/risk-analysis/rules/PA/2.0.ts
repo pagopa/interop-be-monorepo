@@ -1,4 +1,6 @@
-export const pa2 = {
+import { RiskAnalysisFormRules } from "../riskAnalysisFormRules.js";
+
+export const pa2: RiskAnalysisFormRules = {
   version: "2.0",
   expiration: new Date("2023-07-26T23:59:59"),
   questions: [

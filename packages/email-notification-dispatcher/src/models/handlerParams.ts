@@ -19,6 +19,7 @@ import {
   HandlerParams as CommonsHandlerParams,
 } from "pagopa-interop-notification-commons";
 import { z } from "zod";
+
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 
 export type HandlerCommonParams =

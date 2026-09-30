@@ -8,6 +8,7 @@ import {
   authorizationApi,
   delegationApi,
 } from "pagopa-interop-api-clients";
+
 import { config } from "../config/config.js";
 
 export type PagoPAInteropBeClients = {

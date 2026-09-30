@@ -1,9 +1,9 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
-import { missingHeader, badDPoPToken } from "pagopa-interop-models";
 import {
   genericLogger,
   jwtsFromAuthAndDPoPHeaders,
 } from "pagopa-interop-commons";
+import { missingHeader, badDPoPToken } from "pagopa-interop-models";
+import { describe, it, expect, vi, afterEach } from "vitest";
 
 describe("headers", () => {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

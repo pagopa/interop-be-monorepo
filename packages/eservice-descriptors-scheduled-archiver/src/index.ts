@@ -5,10 +5,11 @@ import {
 } from "pagopa-interop-commons";
 import { CorrelationId, generateId } from "pagopa-interop-models";
 import { makeDrizzleConnectionWithCleanup } from "pagopa-interop-readmodel";
+
 import { config } from "./config/config.js";
+import { catalogProcessClientBuilder } from "./services/catalogProcessClient.js";
 import { eserviceDescriptorsScheduledArchiverServiceBuilder } from "./services/eserviceDescriptorsScheduledArchiverService.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
-import { catalogProcessClientBuilder } from "./services/catalogProcessClient.js";
 
 const { db, cleanup } = makeDrizzleConnectionWithCleanup(config);
 const readModelServiceSQL = readModelServiceBuilderSQL(db);

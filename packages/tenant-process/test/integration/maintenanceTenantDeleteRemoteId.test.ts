@@ -1,4 +1,10 @@
 import {
+  getMockContextMaintenance,
+  getMockTenant,
+  ReadEvent,
+  readLastEventByStreamId,
+} from "pagopa-interop-commons-test";
+import {
   generateId,
   MaintenanceTenantRemoteIdDeletedV2,
   protobufDecoder,
@@ -8,12 +14,7 @@ import {
   toTenantV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
-import {
-  getMockContextMaintenance,
-  getMockTenant,
-  ReadEvent,
-  readLastEventByStreamId,
-} from "pagopa-interop-commons-test";
+
 import { tenantNotFound } from "../../src/model/domain/errors.js";
 import {
   addOneTenant,

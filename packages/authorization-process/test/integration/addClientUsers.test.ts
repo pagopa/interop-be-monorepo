@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
+import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
+import { AuthData } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockClient,
@@ -15,8 +17,7 @@ import {
   toClientV2,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
-import { AuthData } from "pagopa-interop-commons";
-import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
+
 import {
   clientNotFound,
   tenantNotAllowedOnClient,

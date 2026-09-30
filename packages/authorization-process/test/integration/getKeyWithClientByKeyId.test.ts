@@ -2,14 +2,15 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import crypto, { JsonWebKey } from "crypto";
 import { createJWK } from "pagopa-interop-commons";
-import { Client } from "pagopa-interop-models";
-import { describe, it, expect } from "vitest";
 import {
   getMockClient,
   getMockContext,
   getMockKey,
   sortClient,
 } from "pagopa-interop-commons-test";
+import { Client } from "pagopa-interop-models";
+import { describe, it, expect } from "vitest";
+
 import {
   clientNotFound,
   clientKeyNotFound,

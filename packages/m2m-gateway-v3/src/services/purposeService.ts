@@ -1,4 +1,3 @@
-import { basename } from "path";
 import { m2mGatewayApiV3, purposeApi } from "pagopa-interop-api-clients";
 import {
   FileManager,
@@ -12,6 +11,9 @@ import {
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { basename } from "path";
+
+import { toM2MGatewayApiAgreement } from "../api/agreementApiConverter.js";
 import {
   toGetAgreementsApiQueryParamsForPurpose,
   toGetPurposesApiQueryParams,
@@ -20,29 +22,28 @@ import {
   toM2MGatewayApiRemainingDailyCallsResponse,
 } from "../api/purposeApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { M2MGatewayAppContext } from "../utils/context.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
-import {
-  pollResourceWithMetadata,
-  isPolledVersionAtLeastResponseVersion,
-  isPolledVersionAtLeastMetadataTargetVersion,
-  pollResourceUntilDeletion,
-} from "../utils/polling.js";
+import { config } from "../config/config.js";
 import {
   purposeAgreementNotFound,
   purposeVersionDocumentNotFound,
   purposeVersionDocumentNotReady,
   purposeVersionNotFound,
 } from "../model/errors.js";
+import { M2MGatewayAppContext } from "../utils/context.js";
+import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
+import {
+  pollResourceWithMetadata,
+  isPolledVersionAtLeastResponseVersion,
+  isPolledVersionAtLeastMetadataTargetVersion,
+  pollResourceUntilDeletion,
+} from "../utils/polling.js";
+import { assertRequesterIsDelegateConsumerForEservice } from "../utils/validators/delegationValidators.js";
 import {
   assertPurposeCurrentVersionExists,
   assertPurposeVersionExistsWithState,
   assertSeedPatchPurposeUpdateFromTemplateContent,
 } from "../utils/validators/purposeValidator.js";
-import { toM2MGatewayApiAgreement } from "../api/agreementApiConverter.js";
-import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
-import { config } from "../config/config.js";
-import { assertRequesterIsDelegateConsumerForEservice } from "../utils/validators/delegationValidators.js";
 
 export type PurposeService = ReturnType<typeof purposeServiceBuilder>;
 

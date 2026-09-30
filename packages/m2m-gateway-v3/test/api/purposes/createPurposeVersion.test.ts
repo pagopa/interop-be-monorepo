@@ -1,25 +1,26 @@
-import { describe, it, expect, vi } from "vitest";
+import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockedApiPurpose,
   getMockedApiPurposeVersion,
   getMockDPoPProof,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
-import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   pollingMaxRetriesExceeded,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { api, mockPurposeService } from "../../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
+import { toM2mGatewayApiPurposeVersion } from "../../../src/api/purposeApiConverter.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { config } from "../../../src/config/config.js";
 import {
   missingMetadata,
   purposeVersionNotFound,
 } from "../../../src/model/errors.js";
-import { toM2mGatewayApiPurposeVersion } from "../../../src/api/purposeApiConverter.js";
-import { config } from "../../../src/config/config.js";
+import { api, mockPurposeService } from "../../vitest.api.setup.js";
 
 describe("POST /purposes/:purposeId/versions router test", () => {
   const mockPurposeVersion = getMockedApiPurposeVersion();

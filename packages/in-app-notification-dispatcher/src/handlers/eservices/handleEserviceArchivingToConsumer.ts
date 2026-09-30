@@ -1,8 +1,10 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   Agreement,
   Descriptor,
   DescriptorId,
   EService,
+  EServiceEventV2,
   EServiceIdDescriptorId,
   fromEServiceV2,
   missingKafkaMessageDataError,
@@ -10,8 +12,6 @@ import {
   Tenant,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
-import { match } from "ts-pattern";
 import {
   getNotificationRecipients,
   inAppTemplates,
@@ -19,8 +19,17 @@ import {
   retrieveLatestDescriptor,
   retrieveTenant,
 } from "pagopa-interop-notification-commons";
+import { match } from "ts-pattern";
+
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { ArchivingEvent } from "./handleEserviceArchivingToProducer.js";
+
+type ArchivingEventType =
+  | "EServiceDescriptorArchivingScheduled"
+  | "EServiceArchivingScheduled"
+  | "EServiceDescriptorArchivingCompleted"
+  | "EServiceArchivingCompleted";
+
+type ArchivingEvent = Extract<EServiceEventV2, { type: ArchivingEventType }>;
 
 export async function handleEserviceArchivingToConsumer(
   msg: ArchivingEvent,
@@ -32,19 +41,6 @@ export async function handleEserviceArchivingToConsumer(
   }
   const eservice = fromEServiceV2(msg.data.eservice);
 
-  // Discriminator: skip auto-archive routine (Deprecated/Suspended -> Archived)
-  if (msg.type === "EServiceDescriptorArchived") {
-    const archivedDescriptor = eservice.descriptors.find(
-      (d) => d.id === unsafeBrandId<DescriptorId>(msg.data.descriptorId)
-    );
-    if (!archivedDescriptor?.archivingSchedule) {
-      logger.info(
-        `Skipping in-app notification for EServiceDescriptorArchived without archivingSchedule (eservice ${eservice.id}, descriptor ${msg.data.descriptorId}) — routine auto-archiving`
-      );
-      return [];
-    }
-  }
-
   logger.info(
     `Sending in-app notification to consumers for ${msg.type} - eservice ${eservice.id}`
   );
@@ -52,16 +48,15 @@ export async function handleEserviceArchivingToConsumer(
   // when archiving is completed/early-archived, consumer agreements may
   // already be in archived state, so include them to reach those consumers
   const includeArchived =
-    msg.type === "EServiceDescriptorArchived" ||
     msg.type === "EServiceArchivingCompleted" ||
     msg.type === "EServiceDescriptorArchivingCompleted";
 
-  const [producer, agreements] = await Promise.all([
-    retrieveTenant(eservice.producerId, readModelService),
-    readModelService.getAgreementsByEserviceId(eservice.id, {
+  const agreements = await readModelService.getAgreementsByEserviceId(
+    eservice.id,
+    {
       includeArchived,
-    }),
-  ]);
+    }
+  );
   if (!agreements || agreements.length === 0) {
     return [];
   }
@@ -82,11 +77,7 @@ export async function handleEserviceArchivingToConsumer(
     return [];
   }
 
-  const { body, descriptor } = bodyAndDescriptorForConsumer(
-    msg,
-    eservice,
-    producer.name
-  );
+  const { body, descriptor } = bodyAndDescriptorForConsumer(msg, eservice);
   const entityId = EServiceIdDescriptorId.parse(
     `${eservice.id}/${descriptor.id}`
   );
@@ -102,8 +93,7 @@ export async function handleEserviceArchivingToConsumer(
 
 function bodyAndDescriptorForConsumer(
   msg: ArchivingEvent,
-  eservice: EService,
-  producerName: string
+  eservice: EService
 ): { body: string; descriptor: Descriptor } {
   return match(msg)
     .with(
@@ -117,7 +107,6 @@ function bodyAndDescriptorForConsumer(
           body: inAppTemplates.eserviceArchivingStartedDescriptorToConsumer(
             eservice.name,
             descriptor.version,
-            producerName,
             descriptor.archivingSchedule?.archivableOn
           ),
           descriptor,
@@ -129,7 +118,6 @@ function bodyAndDescriptorForConsumer(
       return {
         body: inAppTemplates.eserviceArchivingStartedEserviceToConsumer(
           eservice.name,
-          producerName,
           descriptor.archivingSchedule?.archivableOn
         ),
         descriptor,
@@ -146,7 +134,7 @@ function bodyAndDescriptorForConsumer(
           body: inAppTemplates.eserviceArchivingCompletedDescriptorToConsumer(
             eservice.name,
             descriptor.version,
-            producerName
+            descriptor.archivingSchedule?.archivableOn
           ),
           descriptor,
         };
@@ -157,27 +145,10 @@ function bodyAndDescriptorForConsumer(
       return {
         body: inAppTemplates.eserviceArchivingCompletedEserviceToConsumer(
           eservice.name,
-          producerName
+          descriptor.archivingSchedule?.archivableOn
         ),
         descriptor,
       };
     })
-    .with(
-      { type: "EServiceDescriptorArchived" },
-      ({ data: { descriptorId } }) => {
-        const descriptor = retrieveDescriptor(
-          eservice,
-          unsafeBrandId<DescriptorId>(descriptorId)
-        );
-        return {
-          body: inAppTemplates.eserviceArchivingEarlyArchivedToConsumer(
-            eservice.name,
-            descriptor.version,
-            producerName
-          ),
-          descriptor,
-        };
-      }
-    )
     .exhaustive();
 }

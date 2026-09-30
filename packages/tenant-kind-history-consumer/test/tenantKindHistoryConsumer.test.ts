@@ -1,13 +1,14 @@
 /* eslint-disable functional/immutable-data */
+import { asc, desc, eq } from "drizzle-orm";
+import { getMockTenant } from "pagopa-interop-commons-test";
 import { Tenant } from "pagopa-interop-models";
+import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
 import { describe, expect, it } from "vitest";
+
 import {
   tenantKindHistoryDB,
   tenantKindHistoryWriterService,
 } from "./utils.js";
-import { getMockTenant } from "pagopa-interop-commons-test";
-import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
-import { asc, desc, eq } from "drizzle-orm";
 
 describe("tenantKindHistory Writer Service", () => {
   it("writes history only when there is a tenant kind change", async () => {

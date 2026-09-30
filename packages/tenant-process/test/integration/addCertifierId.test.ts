@@ -1,5 +1,11 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
+  getMockAttribute,
+  getMockContextMaintenance,
+  getMockTenant,
+  readLastEventByStreamId,
+} from "pagopa-interop-commons-test";
+import {
   Attribute,
   MaintenanceTenantPromotedToCertifierV2,
   Tenant,
@@ -8,12 +14,7 @@ import {
   toTenantV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
-import {
-  getMockAttribute,
-  getMockContextMaintenance,
-  getMockTenant,
-  readLastEventByStreamId,
-} from "pagopa-interop-commons-test";
+
 import {
   tenantNotFound,
   tenantIsAlreadyACertifier,
