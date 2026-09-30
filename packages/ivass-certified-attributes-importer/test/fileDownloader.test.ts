@@ -80,4 +80,30 @@ describe("downloadCSV", () => {
 
     expect(mockFileManager.storeBytesByKey).not.toHaveBeenCalled();
   });
+
+  it.each(["attachment; filename=", 'attachment; filename=""'])(
+    "should throw a descriptive error when the content-disposition filename is empty (%s)",
+    async (contentDisposition) => {
+      vi.mocked(axios.get)
+        .mockResolvedValueOnce(mockRedirectResponse)
+        .mockResolvedValueOnce({
+          status: 200,
+          headers: { "content-disposition": contentDisposition },
+          data: Buffer.from("irrelevant"),
+        });
+
+      await expect(
+        downloadCSV(
+          "http://ivass-source.url",
+          mockFileManager,
+          "bucket",
+          mockLogger
+        )
+      ).rejects.toThrow(
+        /Unexpected response from IVASS while downloading the file/
+      );
+
+      expect(mockFileManager.storeBytesByKey).not.toHaveBeenCalled();
+    }
+  );
 });
