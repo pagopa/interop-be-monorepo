@@ -1,19 +1,19 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockAgreement,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   AgreementDocumentId,
   AgreementId,
   agreementState,
   generateId,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockAgreement,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { api, agreementService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import {
   agreementDocumentNotFound,
   documentsChangeNotAllowed,
@@ -21,6 +21,7 @@ import {
   tenantIsNotTheDelegateConsumer,
 } from "../../src/model/domain/errors.js";
 import { getMockConsumerDocument } from "../mockUtils.js";
+import { api, agreementService } from "../vitest.api.setup.js";
 
 describe("API DELETE /agreements/{agreementId}/consumer-documents/{documentId} test", () => {
   const mockAgreement = getMockAgreement();

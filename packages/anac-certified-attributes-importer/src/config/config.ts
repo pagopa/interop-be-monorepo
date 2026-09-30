@@ -5,6 +5,7 @@ import {
   TokenGenerationConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
+
 import { SftpConfig } from "./sftpConfig.js";
 
 const AnacCertifiedAttributesImporterConfig = LoggerConfig.and(

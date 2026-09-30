@@ -1,4 +1,5 @@
 import z from "zod";
+
 import { AttributeId } from "../brandedIds.js";
 
 export const attributeKind = {

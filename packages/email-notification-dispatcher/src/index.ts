@@ -6,7 +6,6 @@ import {
   decodeKafkaMessage,
   logger,
 } from "pagopa-interop-commons";
-import { registerEmailTemplatePartials } from "pagopa-interop-notification-commons";
 import {
   AgreementEvent,
   AuthorizationEvent,
@@ -22,7 +21,7 @@ import {
   genericInternalError,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
+import { registerEmailTemplatePartials } from "pagopa-interop-notification-commons";
 import {
   attributeReadModelServiceBuilder,
   agreementReadModelServiceBuilder,
@@ -34,18 +33,20 @@ import {
   delegationReadModelServiceBuilder,
   producerKeychainReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
+import { match } from "ts-pattern";
 import { z } from "zod";
+
 import { config } from "./config/config.js";
+import { handleAgreementEvent } from "./handlers/agreements/handleAgreementEvent.js";
+import { handleAuthorizationEvent } from "./handlers/authorization/handleAuthorizationEvent.js";
+import { handleDelegationEvent } from "./handlers/delegations/handleDelegationEvent.js";
+import { handleEServiceEvent } from "./handlers/eservices/handleEserviceEvent.js";
+import { handleEServiceTemplateEvent } from "./handlers/eserviceTemplates/handleEserviceTemplatesEvent.js";
+import { handlePurposeEvent } from "./handlers/purposes/handlePurposeEvent.js";
+import { handleTenantEvent } from "./handlers/tenants/handleTenantEvent.js";
+import { HandlerParams } from "./models/handlerParams.js";
 import { emailNotificationDispatcherServiceBuilder } from "./services/emailNotificationDispatcherService.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
-import { handleEServiceEvent } from "./handlers/eservices/handleEserviceEvent.js";
-import { handleAgreementEvent } from "./handlers/agreements/handleAgreementEvent.js";
-import { handleDelegationEvent } from "./handlers/delegations/handleDelegationEvent.js";
-import { handlePurposeEvent } from "./handlers/purposes/handlePurposeEvent.js";
-import { HandlerParams } from "./models/handlerParams.js";
-import { handleTenantEvent } from "./handlers/tenants/handleTenantEvent.js";
-import { handleAuthorizationEvent } from "./handlers/authorization/handleAuthorizationEvent.js";
-import { handleEServiceTemplateEvent } from "./handlers/eserviceTemplates/handleEserviceTemplatesEvent.js";
 
 interface TopicNames {
   catalogTopic: string;

@@ -1,6 +1,7 @@
-import { EmailNotificationMessagePayload } from "pagopa-interop-models";
 import { initProducer } from "kafka-iam-auth";
 import { logger } from "pagopa-interop-commons";
+import { EmailNotificationMessagePayload } from "pagopa-interop-models";
+
 import { config } from "../config/config.js";
 import { encodeEmailEvent } from "./utils.js";
 

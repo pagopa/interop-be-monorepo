@@ -1,5 +1,5 @@
-import { dateToString, PurposeM2MEvent } from "pagopa-interop-models";
 import { PurposeM2MEventSQL } from "pagopa-interop-m2m-event-db-models";
+import { dateToString, PurposeM2MEvent } from "pagopa-interop-models";
 
 export function toPurposeM2MEventSQL(
   event: PurposeM2MEvent

@@ -1,28 +1,30 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { generateId } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
-import request from "supertest";
 import { attributeRegistryApi, bffApi } from "pagopa-interop-api-clients";
-import { api, clients } from "../../vitest.api.setup.js";
+import { authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test";
+import { generateId } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { toCompactAttribute } from "../../../src/api/attributeApiConverter.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockBffApiAttribute } from "../../mockUtils.js";
-import { toCompactAttribute } from "../../../src/api/attributeApiConverter.js";
+import { api, clients } from "../../vitest.api.setup.js";
 
 describe("API GET /attributes", () => {
   const defaultQuery = {
     offset: 0,
     limit: 5,
-    kinds: ["CERTIFIED", "VERIFIED", "DECLARED"],
+    kinds: ["CERTIFIED", "CERTIFIED_DISCRETE", "VERIFIED", "DECLARED"],
   };
   const mockAttributes: attributeRegistryApi.Attributes = {
     results: [
       getMockBffApiAttribute("CERTIFIED"),
+      getMockBffApiAttribute("CERTIFIED_DISCRETE"),
       getMockBffApiAttribute("VERIFIED"),
       getMockBffApiAttribute("DECLARED"),
     ],
-    totalCount: 3,
+    totalCount: 4,
   };
   const mockResponse: bffApi.Attributes = {
     results: mockAttributes.results.map(toCompactAttribute),
@@ -54,6 +56,13 @@ describe("API GET /attributes", () => {
     const res = await makeRequest(token);
     expect(res.status).toBe(200);
     expect(res.body).toEqual(mockResponse);
+    expect(clients.attributeProcessClient.getAttributes).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queries: expect.objectContaining({
+          kinds: defaultQuery.kinds,
+        }),
+      })
+    );
   });
 
   it.each([

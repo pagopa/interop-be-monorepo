@@ -13,6 +13,7 @@ import {
   UpdateItemInput,
 } from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
+import { Logger } from "pagopa-interop-commons";
 import {
   genericInternalError,
   itemState,
@@ -36,7 +37,7 @@ import {
   TokenGenStatesConsumerClientGSIPurpose,
 } from "pagopa-interop-models";
 import { z } from "zod";
-import { Logger } from "pagopa-interop-commons";
+
 import { config } from "./config/config.js";
 
 export const getPurposeStateFromPurposeVersions = (

@@ -3,6 +3,7 @@ import {
   m2mGatewayApiV3,
   purposeApi,
 } from "pagopa-interop-api-clients";
+
 import {
   getPurposeCurrentVersion,
   sortPurposeVersionsByDate,

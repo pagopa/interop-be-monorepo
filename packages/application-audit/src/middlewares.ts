@@ -2,16 +2,6 @@
 import { RequestHandler, Request } from "express";
 import { initProducer } from "kafka-iam-auth";
 import {
-  ApplicationAuditBeginRequest,
-  ApplicationAuditEndRequest,
-  ApplicationAuditEndRequestSessionTokenExchange,
-  ApplicationAuditEndRequestAuthServer,
-  ApplicationAuditPhase,
-  fallbackApplicationAuditingFailed,
-  genericInternalError,
-  kafkaApplicationAuditingFailed,
-} from "pagopa-interop-models";
-import {
   AppContext,
   ApplicationAuditProducerConfig,
   AuthData,
@@ -27,6 +17,16 @@ import {
   QueueManager,
   readAuthDataFromJwtToken,
 } from "pagopa-interop-commons";
+import {
+  ApplicationAuditBeginRequest,
+  ApplicationAuditEndRequest,
+  ApplicationAuditEndRequestSessionTokenExchange,
+  ApplicationAuditEndRequestAuthServer,
+  ApplicationAuditPhase,
+  fallbackApplicationAuditingFailed,
+  genericInternalError,
+  kafkaApplicationAuditingFailed,
+} from "pagopa-interop-models";
 import { z } from "zod";
 
 export function parseAmznTraceIdHeader(req: Request): string | undefined {
@@ -172,6 +172,8 @@ export async function applicationAuditEndMiddleware(
           context.authData
         );
 
+        const jwtId = context.authData?.jti;
+
         const finalAudit: ApplicationAuditEndRequest = {
           correlationId,
           spanId: context.spanId,
@@ -186,6 +188,7 @@ export async function applicationAuditEndMiddleware(
           uptimeSeconds: Math.round(process.uptime()),
           timestamp: endTimestamp,
           amazonTraceId: amznTraceId,
+          jwtId,
           organizationId,
           userId,
           httpResponseStatus: res.statusCode,
@@ -287,6 +290,12 @@ export async function applicationAuditEndSessionTokenExchangeMiddleware(
 
         const { organizationId, selfcareId } =
           getUserInfoFromAuthData(authData);
+
+        const requestRawToken = req.body?.identity_token;
+        const requestJwtId = requestRawToken
+          ? decodeJwtToken(requestRawToken, ctxWithLogger.logger)?.jti
+          : undefined;
+        const producedJwtId = authData?.jti;
         const endTimestamp = Date.now();
 
         const finalAudit: ApplicationAuditEndRequestSessionTokenExchange = {
@@ -303,6 +312,8 @@ export async function applicationAuditEndSessionTokenExchangeMiddleware(
           uptimeSeconds: Math.round(process.uptime()),
           timestamp: endTimestamp,
           amazonTraceId: amznTraceId,
+          requestJwtId,
+          producedJwtId,
           organizationId,
           selfcareId,
           httpResponseStatus: res.statusCode,

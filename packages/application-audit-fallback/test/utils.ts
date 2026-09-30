@@ -1,15 +1,15 @@
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { QueueManager, initQueueManager } from "pagopa-interop-commons";
 import {
   CorrelationId,
   generateId,
   SpanId,
   ApplicationAuditPhase,
 } from "pagopa-interop-models";
-
-import { afterAll, beforeAll } from "vitest";
 import { GenericContainer, StartedTestContainer } from "testcontainers";
-import { QueueManager, initQueueManager } from "pagopa-interop-commons";
+import { afterAll, beforeAll } from "vitest";
+
 import { ApplicationAuditEvent } from "../src/models/application-audit.js";
 
 export const getMockBeginRequestAudit: ApplicationAuditEvent = {

@@ -2,11 +2,13 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { bffApi, notificationConfigApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
-import { BffAppContext } from "../utilities/context.js";
+
 import {
   toBffApiTenantNotificationConfig,
   toBffApiUserNotificationConfig,
+  toNotificationConfigApiUserNotificationConfigUpdateSeed,
 } from "../api/notificationConfigApiConverter.js";
+import { BffAppContext } from "../utilities/context.js";
 
 export function notificationConfigServiceBuilder(
   notificationConfigClient: notificationConfigApi.NotificationConfigProcessClient
@@ -66,41 +68,8 @@ export function notificationConfigServiceBuilder(
       logger.info(
         `Updating notification configuration for user ${userId} in tenant ${organizationId}`
       );
-      const {
-        inAppConfig: {
-          clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:
-            inAppClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
-          ...restInAppConfig
-        },
-        emailConfig: {
-          clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers:
-            emailClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
-          ...restEmailConfig
-        },
-        ...restSeed
-      } = seed;
       await notificationConfigClient.updateUserNotificationConfig(
-        {
-          ...restSeed,
-          inAppConfig: {
-            ...restInAppConfig,
-            clientKeyAddedDeletedToClientUsers:
-              inAppClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
-            clientKeyConsumerAddedDeletedToClientUsers:
-              inAppClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
-            producerKeychainKeyAddedDeletedToClientUsers:
-              inAppClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
-          },
-          emailConfig: {
-            ...restEmailConfig,
-            clientKeyAddedDeletedToClientUsers:
-              emailClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
-            clientKeyConsumerAddedDeletedToClientUsers:
-              emailClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
-            producerKeychainKeyAddedDeletedToClientUsers:
-              emailClientKeyAndProducerKeychainKeyAddedDeletedToClientUsers,
-          },
-        },
+        toNotificationConfigApiUserNotificationConfigUpdateSeed(seed),
         {
           headers,
         }

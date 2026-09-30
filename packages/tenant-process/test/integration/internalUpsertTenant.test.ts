@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { fail } from "assert";
+import { tenantApi } from "pagopa-interop-api-clients";
 import {
   getMockContextInternal,
   getMockTenant,
@@ -18,7 +19,7 @@ import {
   tenantAttributeType,
 } from "pagopa-interop-models";
 import { describe, it, expect, afterAll, beforeAll, vi } from "vitest";
-import { tenantApi } from "pagopa-interop-api-clients";
+
 import {
   attributeNotFound,
   certifiedAttributeAlreadyAssigned,
