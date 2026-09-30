@@ -91,6 +91,7 @@ async function processMessage(
       .with(
         FileKindSchema.Enum.EVENT_JOURNAL,
         FileKindSchema.Enum.VOUCHER_AUDIT,
+        FileKindSchema.Enum.M2M_VOUCHER_AUDIT,
         () => signature.path
       )
       .otherwise(() => path.dirname(signature.path));

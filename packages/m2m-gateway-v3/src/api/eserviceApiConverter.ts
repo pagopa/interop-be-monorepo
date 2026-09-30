@@ -42,6 +42,7 @@ export function toM2MGatewayApiEService(
     personalData: eservice.personalData,
     archivingReason: eservice.archivingReason,
     asyncExchange: eservice.asyncExchange,
+    delegatedArchivingRequest: eservice.delegatedArchivingRequest,
   };
 }
 
@@ -69,9 +70,11 @@ export function toM2MGatewayApiEServiceDescriptor(
           archivableOn: descriptor.archivingSchedule.archivableOn,
           startedAt: descriptor.archivingSchedule.startedAt,
           scope: descriptor.archivingSchedule.scope,
+          gracePeriodDays: descriptor.archivingSchedule.gracePeriodDays,
         }
       : undefined,
     asyncExchangeProperties: descriptor.asyncExchangeProperties,
+    delegatedArchivingRequest: descriptor.delegatedArchivingRequest,
   };
 }
 

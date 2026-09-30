@@ -14,6 +14,7 @@ import {
   toTenantV2,
   operationForbidden,
   TenantMailAddedV2,
+  hyperlinkDetectionError,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 
@@ -280,5 +281,27 @@ describe("addTenantMail", async () => {
         })
       )
     ).rejects.toThrowError(notValidMailAddress());
+  });
+
+  it("Should throw hyperlinkDetectionError when the mail description contains a hyperlink", async () => {
+    const mockTenant: Tenant = getMockTenant();
+    const description = "see https://evil.example.com";
+    const mailSeedWithHyperlink: tenantApi.MailSeed = {
+      kind: "CONTACT_EMAIL",
+      address: "testMail@test.it",
+      description,
+    };
+    await addOneTenant(mockTenant);
+    expect(
+      tenantService.addTenantMail(
+        {
+          tenantId: mockTenant.id,
+          mailSeed: mailSeedWithHyperlink,
+        },
+        getMockContext({
+          authData: getMockAuthData(mockTenant.id),
+        })
+      )
+    ).rejects.toThrowError(hyperlinkDetectionError(description));
   });
 });

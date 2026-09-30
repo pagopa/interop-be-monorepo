@@ -20,6 +20,7 @@ import {
   eventRepository,
   isFeatureFlagEnabled,
   ownership,
+  validateNoHyperlinksSafe,
 } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -630,6 +631,8 @@ export function agreementServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Agreement>> {
       logger.info(`Submitting agreement ${agreementId}`);
+
+      validateNoHyperlinksSafe(payload.consumerNotes);
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
 
@@ -1246,6 +1249,8 @@ export function agreementServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Agreement>> {
       logger.info(`Rejecting agreement ${agreementId}`);
+
+      validateNoHyperlinksSafe(rejectionReason);
 
       const agreementToBeRejected = await retrieveAgreement(
         agreementId,

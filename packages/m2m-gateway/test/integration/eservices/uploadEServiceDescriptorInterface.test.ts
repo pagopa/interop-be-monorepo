@@ -7,6 +7,7 @@ import {
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import {
+  invalidInterfaceFileDetected,
   pollingMaxRetriesExceeded,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -161,6 +162,36 @@ servers:
       params: { eServiceId: mockGetEServiceResponse.data.id },
     });
     expect(mockGetEService).toHaveBeenCalledTimes(3);
+  });
+
+  it("Should throw invalidInterfaceFileDetected in case the interface file is not a valid OpenAPI file", async () => {
+    mockGetEService.mockResolvedValueOnce(mockGetEServiceResponse);
+
+    const invalidFileUpload: m2mGatewayApi.FileUploadMultipart = {
+      file: new File(
+        [Buffer.from("openapi: 3.0.0\n")],
+        mockAddDocumentResponse.data.name,
+        {
+          type: mockAddDocumentResponse.data.contentType,
+        }
+      ),
+      prettyName: mockAddDocumentResponse.data.prettyName,
+    };
+
+    await expect(
+      eserviceService.uploadEServiceDescriptorInterface(
+        unsafeBrandId(mockGetEServiceResponse.data.id),
+        unsafeBrandId(mockDescriptor.id),
+        invalidFileUpload,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(
+      invalidInterfaceFileDetected({
+        id: mockGetEServiceResponse.data.id,
+        isEserviceTemplate: false,
+      })
+    );
+    expect(mockCreateEServiceDocument).not.toHaveBeenCalled();
   });
 
   it("Should throw missingMetadata in case the data returned by the POST call has no metadata", async () => {

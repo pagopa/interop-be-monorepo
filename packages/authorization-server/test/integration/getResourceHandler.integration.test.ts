@@ -228,7 +228,7 @@ const setupGetResourceScenario = async (overrides?: {
   await writePlatformCatalogEntry(catalogEntry, dynamoDBClient);
 
   mockProducer.send.mockImplementationOnce(async () => [
-    { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
   ]);
 
   const startResult = await asyncTokenService.generateAsyncToken(
@@ -405,7 +405,7 @@ describe("async token service - get_resource", () => {
 
   it("should generate token for get_resource scope (from callback_invocation)", async () => {
     mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { consumerJws, consumerClientId } = await setupGetResourceScenario();
@@ -421,7 +421,7 @@ describe("async token service - get_resource", () => {
 
   it("should allow get_resource self-loop", async () => {
     mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { consumerJws, consumerClientId, interactionId } =
@@ -449,7 +449,7 @@ describe("async token service - get_resource", () => {
 
   it("should generate a token with all expected header and payload claims", async () => {
     mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const {
@@ -507,7 +507,7 @@ describe("async token service - get_resource", () => {
 
   it("should update interaction state to get_resource", async () => {
     mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { consumerJws, consumerClientId, interactionId } =
@@ -557,7 +557,7 @@ describe("async token service - get_resource", () => {
 
   it("should throw interactionClientMismatch when clientId on the interaction differs", async () => {
     mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { consumerJws, consumerClientId, interactionId } =
@@ -583,7 +583,7 @@ describe("async token service - get_resource", () => {
 
   it("should throw interactionStateNotAllowed when interaction is still in start_interaction", async () => {
     mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { consumerJws, consumerClientId } = await setupGetResourceScenario({
@@ -599,7 +599,7 @@ describe("async token service - get_resource", () => {
 
   it("should throw callbackInvocationTokenIssuedAtMissing when the timestamp is absent", async () => {
     mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { consumerJws, consumerClientId } = await setupGetResourceScenario({
@@ -613,7 +613,7 @@ describe("async token service - get_resource", () => {
 
   it("should throw resourceAvailableTimeExpired when the window elapsed", async () => {
     mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { consumerJws, consumerClientId } = await setupGetResourceScenario({
@@ -627,7 +627,7 @@ describe("async token service - get_resource", () => {
 
   it("should throw platformStateValidationFailed when agreement state is INACTIVE", async () => {
     mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { consumerJws, consumerClientId } = await setupGetResourceScenario({
@@ -641,7 +641,7 @@ describe("async token service - get_resource", () => {
 
   it("should throw platformStateValidationFailed when purpose state is INACTIVE", async () => {
     mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { consumerJws, consumerClientId } = await setupGetResourceScenario({
@@ -655,7 +655,7 @@ describe("async token service - get_resource", () => {
 
   it("should throw platformStateValidationFailed when descriptor state is INACTIVE", async () => {
     mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { consumerJws, consumerClientId } = await setupGetResourceScenario({
@@ -669,7 +669,7 @@ describe("async token service - get_resource", () => {
 
   it("should throw platformStateValidationFailed when pinned descriptor catalog state is INACTIVE", async () => {
     mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { consumerJws, consumerClientId } = await setupGetResourceScenario({
@@ -685,7 +685,7 @@ describe("async token service - get_resource", () => {
 
   it("should throw catalogEntryNotFound when catalog entry is absent", async () => {
     mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { consumerJws, consumerClientId } = await setupGetResourceScenario({
@@ -699,7 +699,7 @@ describe("async token service - get_resource", () => {
 
   it("should throw tokenGenerationStatesEntryNotFound when consumer entry is absent", async () => {
     mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { consumerJws, consumerClientId } = await setupGetResourceScenario({

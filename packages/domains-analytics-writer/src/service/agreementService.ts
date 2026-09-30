@@ -2,18 +2,16 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/cognitive-complexity */
 import { genericLogger } from "pagopa-interop-commons";
+import {
+  AgreementItemsSchema,
+  AgreementConsumerDocumentSchema,
+  AgreementContractSchema,
+} from "pagopa-interop-kpi-models";
 
 import { config } from "../config/config.js";
 import { DBContext } from "../db/db.js";
-import {
-  AgreementDeletingSchema,
-  AgreementItemsSchema,
-} from "../model/agreement/agreement.js";
-import {
-  AgreementConsumerDocumentDeletingSchema,
-  AgreementConsumerDocumentSchema,
-} from "../model/agreement/agreementConsumerDocument.js";
-import { AgreementContractSchema } from "../model/agreement/agreementContract.js";
+import { AgreementDeletingSchema } from "../model/agreement/agreement.js";
+import { AgreementConsumerDocumentDeletingSchema } from "../model/agreement/agreementConsumerDocument.js";
 import { AgreementDbTable, DeletingDbTable } from "../model/db/index.js";
 import { agreementRepo } from "../repository/agreement/agreement.repository.js";
 import { agreementAttributeRepo } from "../repository/agreement/agreementAttribute.repository.js";

@@ -26,13 +26,13 @@ import {
   asyncExchangeResponseTimeExceeded,
   entityNumberExceedsMaxResultSet,
 } from "../../model/domain/errors.js";
+import { publishProducerAudit } from "../../utilities/audit.js";
 import {
   readInteraction,
   updateInteractionState,
 } from "../../utilities/interactionsUtils.js";
 import {
   logTokenGenerationInfo,
-  publishProducerAudit,
   retrieveAsyncCatalogEntry,
   retrieveProducerKey,
   retrieveTokenGenStatesEntryByPurposeId,
