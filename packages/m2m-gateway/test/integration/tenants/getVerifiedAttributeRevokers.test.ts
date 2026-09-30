@@ -1,13 +1,14 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
-import { generateId, unsafeBrandId } from "pagopa-interop-models";
 import { getMockedApiVerifiedTenantAttributeRevoker } from "pagopa-interop-commons-test";
+import { generateId, unsafeBrandId } from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
   tenantService,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getTenantVerifiedAttributeRevokers", () => {

@@ -6,10 +6,11 @@ import {
   makeDrizzleConnection,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
-import { config } from "./config/config.js";
+
 import { createApp } from "./app.js";
-import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
+import { config } from "./config/config.js";
 import { delegationServiceBuilder } from "./services/delegationService.js";
+import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 
 const readModelDB = makeDrizzleConnection(config);
 const delegationReadModelServiceSQL =

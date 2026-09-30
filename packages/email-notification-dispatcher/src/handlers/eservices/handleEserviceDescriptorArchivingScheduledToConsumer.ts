@@ -1,3 +1,4 @@
+import { dateAtRomeZone } from "pagopa-interop-commons";
 import {
   Agreement,
   DescriptorId,
@@ -16,9 +17,9 @@ import {
   retrieveHTMLTemplate,
   retrieveTenant,
 } from "pagopa-interop-notification-commons";
-import { EServiceDescriptorHandlerParams } from "../../models/handlerParams.js";
+
 import { config } from "../../config/config.js";
-import { dateAtRomeZone } from "pagopa-interop-commons";
+import { EServiceDescriptorHandlerParams } from "../../models/handlerParams.js";
 
 const notificationType: NotificationType = "eserviceStateChangedToConsumer";
 
@@ -97,7 +98,7 @@ export async function handleEserviceDescriptorArchivingScheduledToConsumer(
             eserviceVersion: descriptor.version,
             producerName: producer.name,
             archivableOn,
-            ctaLabel: `Visualizza e-service`,
+            ctaLabel: `Accedi a PDND`,
             selfcareId: t.selfcareId,
             bffUrl: config.bffUrl,
           }),

@@ -1,4 +1,5 @@
 import { JsonWebKey } from "crypto";
+import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
 import {
   M2MAdminAuthData,
   M2MAuthData,
@@ -25,7 +26,8 @@ import {
   TenantId,
   UserId,
 } from "pagopa-interop-models";
-import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
+
+import { config } from "../config/config.js";
 import {
   userWithoutSecurityPrivileges,
   tenantNotAllowedOnPurpose,
@@ -41,7 +43,6 @@ import {
   missingSelfcareId,
   duplicatedMembersInSeed,
 } from "../model/domain/errors.js";
-import { config } from "../config/config.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const assertUserSelfcareSecurityPrivileges = async ({

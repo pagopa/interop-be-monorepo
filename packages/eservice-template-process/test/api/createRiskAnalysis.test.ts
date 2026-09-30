@@ -1,12 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
-  EServiceTemplate,
-  EServiceTemplateId,
-  generateId,
-  operationForbidden,
-  tenantKind,
-} from "pagopa-interop-models";
+  AuthRole,
+  RiskAnalysisValidationIssue,
+  authRole,
+} from "pagopa-interop-commons";
 import {
   generateToken,
   getMockEServiceTemplate,
@@ -14,14 +12,16 @@ import {
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import {
-  AuthRole,
-  RiskAnalysisValidationIssue,
-  authRole,
-} from "pagopa-interop-commons";
+  EServiceTemplate,
+  EServiceTemplateId,
+  generateId,
+  operationForbidden,
+  tenantKind,
+} from "pagopa-interop-models";
 import request from "supertest";
-import { eserviceTemplateApi } from "pagopa-interop-api-clients";
-import { api, eserviceTemplateService } from "../vitest.api.setup.js";
-import { buildRiskAnalysisSeed } from "../mockUtils.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { eserviceTemplateToApiEServiceTemplate } from "../../src/model/domain/apiConverter.js";
 import {
   eserviceTemplateNotFound,
   eserviceTemplateNotInDraftState,
@@ -29,7 +29,8 @@ import {
   riskAnalysisValidationFailed,
   templateNotInReceiveMode,
 } from "../../src/model/domain/errors.js";
-import { eserviceTemplateToApiEServiceTemplate } from "../../src/model/domain/apiConverter.js";
+import { buildRiskAnalysisSeed } from "../mockUtils.js";
+import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 
 describe("API POST /templates/:templateId/riskAnalysis", () => {
   const eserviceTemplateId = generateId<EServiceTemplateId>();

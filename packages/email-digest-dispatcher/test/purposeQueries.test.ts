@@ -1,5 +1,4 @@
 /* eslint-disable functional/no-let */
-import { describe, it, expect } from "vitest";
 import {
   getMockTenant,
   getMockEService,
@@ -11,6 +10,8 @@ import {
   purposeVersionState,
   TenantId,
 } from "pagopa-interop-models";
+import { describe, it, expect } from "vitest";
+
 import {
   addOneEService,
   addOnePurpose,

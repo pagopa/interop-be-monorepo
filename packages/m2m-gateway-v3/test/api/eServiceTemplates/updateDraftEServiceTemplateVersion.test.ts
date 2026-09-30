@@ -1,22 +1,23 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
-import request from "supertest";
-import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockedApiEserviceTemplateVersion,
   getMockDPoPProof,
 } from "pagopa-interop-commons-test";
-import { api, mockEServiceTemplateService } from "../../vitest.api.setup.js";
+import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { toM2MGatewayEServiceTemplateVersion } from "../../../src/api/eserviceTemplateApiConverter.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
+import { config } from "../../../src/config/config.js";
 import {
   eserviceTemplateVersionNotFound,
   missingMetadata,
 } from "../../../src/model/errors.js";
-import { appBasePath } from "../../../src/config/appBasePath.js";
-import { config } from "../../../src/config/config.js";
+import { api, mockEServiceTemplateService } from "../../vitest.api.setup.js";
 
 describe("PATCH /eserviceTemplates/:templateId/versions/:versionId/ router test", () => {
   const versionSeed: m2mGatewayApiV3.EServiceTemplateVersionDraftUpdateSeed = {

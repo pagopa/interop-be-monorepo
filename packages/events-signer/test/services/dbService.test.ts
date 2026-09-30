@@ -1,15 +1,16 @@
 /* eslint-disable functional/no-let */
 
-import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { generateId } from "pagopa-interop-models";
 import { genericLogger, signatureServiceBuilder } from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
 } from "pagopa-interop-commons-test";
-import { dynamoDBClient } from "../utils/utils.js";
+import { generateId } from "pagopa-interop-models";
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+
 import { config } from "../../src/config/config.js";
+import { dynamoDBClient } from "../utils/utils.js";
 describe("signatureServiceBuilder - Integration Tests", () => {
   beforeEach(async () => {
     vi.clearAllMocks();

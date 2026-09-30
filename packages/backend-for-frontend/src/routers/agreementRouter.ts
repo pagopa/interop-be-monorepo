@@ -7,16 +7,18 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
+
 import { makeApiProblem } from "../model/errors.js";
+import { AgreementService } from "../services/agreementService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
-  activateAgreementErrorMapper,
+  approveAgreementErrorMapper,
+  unsuspendAgreementErrorMapper,
   getAgreementByIdErrorMapper,
   getAgreementContractErrorMapper,
   getAgreementSignedContractErrorMapper,
   getAgreementsErrorMapper,
 } from "../utilities/errorMappers.js";
-import { AgreementService } from "../services/agreementService.js";
 
 const agreementRouter = (
   ctx: ZodiosContext,
@@ -277,11 +279,11 @@ const agreementRouter = (
       }
     })
 
-    .post("/agreements/:agreementId/activate", async (req, res) => {
+    .post("/agreements/:agreementId/approve", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
-        const result = await agreementService.activateAgreement(
+        const result = await agreementService.approveAgreement(
           req.params.agreementId,
           req.body.delegationId,
           ctx
@@ -290,9 +292,29 @@ const agreementRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          activateAgreementErrorMapper,
+          approveAgreementErrorMapper,
           ctx,
-          `Error activating agreement ${req.params.agreementId}`
+          `Error approving agreement ${req.params.agreementId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/agreements/:agreementId/unsuspend", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result = await agreementService.unsuspendAgreement(
+          req.params.agreementId,
+          req.body.delegationId,
+          ctx
+        );
+        return res.status(200).send(bffApi.Agreement.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          unsuspendAgreementErrorMapper,
+          ctx,
+          `Error unsuspending agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }

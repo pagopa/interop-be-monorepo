@@ -21,6 +21,7 @@ import {
   DelegationSignedContractDocumentSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
+
 import { makeUniqueKey, throwIfMultiple } from "../utils.js";
 
 export const aggregateDelegationArray = ({

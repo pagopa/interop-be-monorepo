@@ -1,8 +1,9 @@
 import { match } from "ts-pattern";
 import { z } from "zod";
+
+import { EventEnvelope } from "../events/events.js";
 import { AttributeAddedV1 } from "../gen/v1/attribute/events.js";
 import { protobufDecoder } from "../protobuf/protobuf.js";
-import { EventEnvelope } from "../events/events.js";
 
 export function attributeEventToBinaryData(event: AttributeEvent): Uint8Array {
   return match(event)

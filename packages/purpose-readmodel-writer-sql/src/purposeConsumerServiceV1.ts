@@ -5,6 +5,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import { PurposeWriterService } from "./purposeWriterService.js";
 import { getPurposeFromMessage } from "./utils.js";
 

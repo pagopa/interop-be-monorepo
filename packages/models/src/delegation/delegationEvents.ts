@@ -1,6 +1,7 @@
-import { z } from "zod";
 import { match } from "ts-pattern";
+import { z } from "zod";
 
+import { EventEnvelope } from "../events/events.js";
 import {
   ProducerDelegationSubmittedV2,
   ProducerDelegationApprovedV2,
@@ -14,7 +15,6 @@ import {
   DelegationSignedContractGeneratedV2,
 } from "../gen/v2/delegation/events.js";
 import { protobufDecoder } from "../protobuf/protobuf.js";
-import { EventEnvelope } from "../events/events.js";
 
 export const DelegationEventV2 = z.discriminatedUnion("type", [
   z.object({

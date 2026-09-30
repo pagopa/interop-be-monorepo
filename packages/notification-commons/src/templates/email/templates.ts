@@ -1,12 +1,23 @@
-import { fileURLToPath } from "url";
-import fs from "fs/promises";
 import fsSync from "fs";
-import path from "path";
-import { z } from "zod";
+import fs from "fs/promises";
 import { HtmlTemplateService } from "pagopa-interop-commons";
+import path from "path";
+import { fileURLToPath } from "url";
+import { z } from "zod";
+
 import { htmlTemplateNotFound } from "../../models/errors.js";
 
 export const eventMailTemplateType = {
+  purposeRiskAnalysisSignedToAdminMailTemplate:
+    "purpose-risk-analysis-signed-to-admin-mail",
+  purposeRiskAnalysisSignedToReviewerMailTemplate:
+    "purpose-risk-analysis-signed-to-reviewer-mail",
+  purposeRiskAnalysisAssignmentRemovedToReviewerMailTemplate:
+    "purpose-risk-analysis-assignment-removed-to-reviewer-mail",
+  purposeRiskAnalysisAssignedForWritingAndSigningToReviewerMailTemplate:
+    "purpose-risk-analysis-assigned-for-writing-and-signing-to-reviewer-mail",
+  purposeRiskAnalysisRejectedToAdminMailTemplate:
+    "purpose-risk-analysis-rejected-to-admin-mail",
   agreementActivatedToConsumerMailTemplate:
     "agreement-activated-to-consumer-mail",
   agreementActivatedToProducerMailTemplate:
@@ -112,6 +123,12 @@ export const eventMailTemplateType = {
   purposeQuotaOverthresholdMailTemplate: "purpose-quota-overthreshold-mail",
   purposeQuotaAdjustmentResponseMailTemplate:
     "purpose-quota-adjustment-response-mail",
+  purposeRiskAnalysisAssignedForSigningToReviewerMailTemplate:
+    "purpose-risk-analysis-assigned-for-signing-to-reviewer-mail",
+  purposePublishedWithRiskAnalysisToReviewerMailTemplate:
+    "purpose-published-with-risk-analysis-to-reviewer-mail",
+  draftPurposeDeletedWithRiskAnalysisToReviewerMailTemplate:
+    "draft-purpose-deleted-with-risk-analysis-to-reviewer-mail",
   eserviceArchivingStartedDescriptorToProducerMailTemplate:
     "eservice-archiving-started-descriptor-to-producer-mail",
   eserviceArchivingStartedDescriptorToConsumerMailTemplate:
@@ -138,6 +155,26 @@ export const eventMailTemplateType = {
     "eservice-archiving-canceled-descriptor-to-producer-mail",
   eserviceArchivingCanceledEserviceToProducerMailTemplate:
     "eservice-archiving-canceled-eservice-to-producer-mail",
+  eserviceDescriptorArchivingRequestedByDelegateMailTemplate:
+    "eservice-descriptor-archiving-requested-by-delegate-mail",
+  eserviceArchivingRequestedByDelegateMailTemplate:
+    "eservice-archiving-requested-by-delegate-mail",
+  eserviceDescriptorArchivingRequestApprovedByDelegatorMailTemplate:
+    "eservice-descriptor-archiving-request-approved-by-delegator-mail",
+  eserviceDescriptorArchivingRequestRejectedByDelegatorMailTemplate:
+    "eservice-descriptor-archiving-request-rejected-by-delegator-mail",
+  eserviceArchivingRequestApprovedByDelegatorMailTemplate:
+    "eservice-archiving-request-approved-by-delegator-mail",
+  eserviceArchivingRequestRejectedByDelegatorMailTemplate:
+    "eservice-archiving-request-rejected-by-delegator-mail",
+  eserviceArchivingRequestCanceledByDelegateToProducerMailTemplate:
+    "eservice-archiving-request-canceled-by-delegate-to-producer-mail",
+  eserviceArchivingRequestCanceledByDelegateToDelegateMailTemplate:
+    "eservice-archiving-request-canceled-by-delegate-to-delegate-mail",
+  eserviceDescriptorArchivingRequestCanceledByDelegateToProducerMailTemplate:
+    "eservice-descriptor-archiving-request-canceled-by-delegate-to-producer-mail",
+  eserviceDescriptorArchivingRequestCanceledByDelegateToDelegateMailTemplate:
+    "eservice-descriptor-archiving-request-canceled-by-delegate-to-delegate-mail",
   eserviceStateChangedToProducerScheduledReminderDescriptorMailTemplate:
     "eservice-state-changed-to-producer-scheduled-reminder-descriptor-mail",
   eserviceStateChangedToConsumerScheduledReminderDescriptorMailTemplate:

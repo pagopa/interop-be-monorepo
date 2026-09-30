@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
-import { generateId } from "pagopa-interop-models";
+import { attributeRegistryApi } from "pagopa-interop-api-clients";
+import { authRole, genericLogger } from "pagopa-interop-commons";
 import {
   generateToken,
   mockM2MAdminClientId,
@@ -8,17 +8,18 @@ import {
   getMockedApiAttribute,
   getMockDPoPProof,
 } from "pagopa-interop-commons-test";
-import { authRole, genericLogger } from "pagopa-interop-commons";
+import { generateId } from "pagopa-interop-models";
 import request from "supertest";
-import { attributeRegistryApi } from "pagopa-interop-api-clients";
+import { describe, it, expect, vi } from "vitest";
+
+import { toM2MGatewayApiCertifiedAttribute } from "../../src/api/attributeApiConverter.js";
+import { appBasePath } from "../../src/config/appBasePath.js";
+import { clientAdminIdNotFound } from "../../src/model/errors.js";
 import {
   api,
   mockAttributeService,
   mockGetClientAdminId,
 } from "../vitest.api.setup.js";
-import { appBasePath } from "../../src/config/appBasePath.js";
-import { clientAdminIdNotFound } from "../../src/model/errors.js";
-import { toM2MGatewayApiCertifiedAttribute } from "../../src/api/attributeApiConverter.js";
 
 describe("m2mAuthDataValidationMiddleware", () => {
   const makeRequest = async (token: string) =>

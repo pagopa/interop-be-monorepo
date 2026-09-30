@@ -1,13 +1,14 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { TenantId, UserId, generateId, userRole } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test";
+import { TenantId, UserId, generateId, userRole } from "pagopa-interop-models";
 import request from "supertest";
-import { api, notificationConfigService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import {
   userNotificationConfigNotFound,
   userRoleNotInUserNotificationConfig,
 } from "../../src/model/domain/errors.js";
+import { api, notificationConfigService } from "../vitest.api.setup.js";
 
 describe("API DELETE /internal/userNotificationConfigs/tenantId/{tenantId}/userId/{userId}/userRole/{userRole} test", () => {
   const defaultTenantId: TenantId = generateId();

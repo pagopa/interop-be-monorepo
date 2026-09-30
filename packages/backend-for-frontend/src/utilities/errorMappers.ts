@@ -2,6 +2,7 @@
 import { constants } from "http2";
 import { ApiError, CommonErrorCodes } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import { ErrorCodes as BFFErrorCodes } from "../model/errors.js";
 
 type ErrorCodes = BFFErrorCodes | CommonErrorCodes;
@@ -135,7 +136,14 @@ export const getAgreementSignedContractErrorMapper = (
     .with("contractNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const activateAgreementErrorMapper = (
+export const approveAgreementErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("agreementDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const unsuspendAgreementErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
@@ -300,18 +308,6 @@ export const getPurposeTemplateErrorMapper = (
 ): number =>
   match(error.code)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
-export const getPurposeTemplateEServiceDescriptorsErrorMapper = (
-  error: ApiError<ErrorCodes>
-): number =>
-  match(error.code)
-    .with(
-      "eServiceNotFound",
-      "eserviceDescriptorNotFound",
-      "tenantNotFound",
-      () => HTTP_STATUS_NOT_FOUND
-    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getPurposeTemplateLinkableResourcesErrorMapper = (

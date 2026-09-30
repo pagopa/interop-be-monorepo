@@ -1,3 +1,4 @@
+import { generateMock } from "@anatine/zod-mock";
 import {
   attributeRegistryApi,
   catalogApi,
@@ -9,7 +10,6 @@ import {
   eserviceTemplateApi,
   purposeTemplateApi,
 } from "pagopa-interop-api-clients";
-import { generateMock } from "@anatine/zod-mock";
 import {
   ClientId,
   ProducerKeychainId,
@@ -17,8 +17,9 @@ import {
   algorithm,
   generateId,
 } from "pagopa-interop-models";
-import { z } from "zod";
 import { match } from "ts-pattern";
+import { z } from "zod";
+
 import {
   getMockClientJWKKey,
   getMockProducerJWKKey,
@@ -406,11 +407,13 @@ export function getMockedApiEserviceDescriptor({
   interfaceDoc,
   attributes,
   archivingSchedule,
+  delegatedArchivingRequest,
 }: {
   state?: catalogApi.EServiceDescriptorState;
   interfaceDoc?: catalogApi.EServiceDoc;
   attributes?: catalogApi.Attributes;
   archivingSchedule?: catalogApi.ArchivingSchedule;
+  delegatedArchivingRequest?: catalogApi.DelegatedDescriptorArchivingRequest[];
 } = {}): catalogApi.EServiceDescriptor {
   return {
     id: generateId(),
@@ -435,6 +438,11 @@ export function getMockedApiEserviceDescriptor({
     ...(archivingSchedule
       ? { archivingSchedule: generateMock(catalogApi.ArchivingSchedule) }
       : {}),
+    delegatedArchivingRequest:
+      delegatedArchivingRequest ??
+      generateMock(
+        z.array(catalogApi.DelegatedDescriptorArchivingRequest).optional()
+      ),
   };
 }
 
@@ -526,6 +534,19 @@ export function getMockedApiCertifiedTenantAttribute({
   return {
     id: generateId(),
     assignmentTimestamp: new Date().toISOString(),
+    revocationTimestamp: revoked ? new Date().toISOString() : undefined,
+  };
+}
+
+export function getMockedApiCertifiedDiscreteTenantAttribute({
+  revoked = false,
+}: {
+  revoked?: boolean;
+} = {}): tenantApi.CertifiedDiscreteTenantAttribute {
+  return {
+    id: generateId(),
+    assignmentTimestamp: new Date().toISOString(),
+    discreteValue: generateMock(z.number().int().min(1).max(1000000)),
     revocationTimestamp: revoked ? new Date().toISOString() : undefined,
   };
 }
