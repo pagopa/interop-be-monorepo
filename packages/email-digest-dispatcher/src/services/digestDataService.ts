@@ -11,13 +11,11 @@ import {
   sentAgreementsToBaseDigest,
   eserviceTemplateToBaseDigest,
   eserviceToBaseDigest,
-  popularEserviceTemplateToBaseDigest,
   verifiedAttributeToDigest,
   certifiedAttributeToDigest,
   combineAttributeDigests,
   sentPurposesToBaseDigest,
   receivedPurposesToBaseDigest,
-  sentDelegationsToDigest,
   receivedDelegationsToDigest,
 } from "../model/digestDataConverter.js";
 import {
@@ -26,11 +24,9 @@ import {
   viewAllSentPurposesLink,
   viewAllReceivedAgreementsLink,
   viewAllReceivedPurposesLink,
-  viewAllSentDelegationsLink,
   viewAllReceivedDelegationsLink,
   viewAllAttributesLink,
   viewAllUpdatedEserviceTemplatesLink,
-  viewAllPopularEserviceTemplatesLink,
   notificationSettingsLink,
 } from "./deeplinkBuilder.js";
 import { NewEservice, ReadModelService } from "./readModelService.js";
@@ -72,7 +68,6 @@ export type AttributeDigest = BaseDigest & {
 export type TenantDigestData = {
   tenantId: TenantId;
   tenantName: string;
-  timePeriod: string;
   notificationSettingsLink: string;
   viewAllNewEservicesLink: string;
   viewAllUpdatedEservicesLink: string;
@@ -80,15 +75,12 @@ export type TenantDigestData = {
   viewAllSentPurposesLink: string;
   viewAllReceivedAgreementsLink: string;
   viewAllReceivedPurposesLink: string;
-  viewAllSentDelegationsLink: string;
   viewAllReceivedDelegationsLink: string;
   viewAllAttributesLink: string;
   viewAllUpdatedEserviceTemplatesLink: string;
-  viewAllPopularEserviceTemplatesLink: string;
   newEservices?: BaseDigest;
   updatedEservices?: BaseDigest;
   updatedEserviceTemplates?: BaseDigest;
-  popularEserviceTemplates?: BaseDigest;
   acceptedSentAgreements?: BaseDigest;
   rejectedSentAgreements?: BaseDigest;
   suspendedSentAgreements?: BaseDigest;
@@ -98,8 +90,6 @@ export type TenantDigestData = {
   waitingForApprovalReceivedAgreements?: BaseDigest;
   publishedReceivedPurposes?: ReceivedPurposeDigest;
   waitingForApprovalReceivedPurposes?: ReceivedPurposeDigest;
-  activeSentDelegations?: DelegationDigest;
-  rejectedSentDelegations?: DelegationDigest;
   waitingForApprovalReceivedDelegations?: DelegationDigest;
   revokedReceivedDelegations?: DelegationDigest;
   receivedAttributes?: AttributeDigest;
@@ -164,13 +154,11 @@ export function digestDataServiceBuilder(
       const [
         updatedEservices,
         updatedEserviceTemplates,
-        popularEserviceTemplates,
         tenantDataMap,
         sentAgreements,
         receivedAgreements,
         sentPurposes,
         receivedPurposes,
-        sentDelegations,
         receivedDelegations,
         verifiedAssignedAttributes,
         verifiedRevokedAttributes,
@@ -179,13 +167,11 @@ export function digestDataServiceBuilder(
       ] = await Promise.all([
         readModelService.getNewVersionEservices(tenantId),
         readModelService.getNewEserviceTemplates(tenantId),
-        readModelService.getPopularEserviceTemplates(tenantId),
         readModelService.getTenantsByIds([tenantId]),
         readModelService.getSentAgreements(tenantId), // tenantId as consumerId
         readModelService.getReceivedAgreements(tenantId), // tenantId as producerId
         readModelService.getSentPurposes(tenantId), // tenantId as consumerId
         readModelService.getReceivedPurposes(tenantId), // tenantId as producerId
-        readModelService.getSentDelegations(tenantId), // tenantId as delegatorId
         readModelService.getReceivedDelegations(tenantId), // tenantId as delegateId
         readModelService.getVerifiedAssignedAttributes(tenantId),
         readModelService.getVerifiedRevokedAttributes(tenantId),
@@ -207,7 +193,6 @@ export function digestDataServiceBuilder(
       return {
         tenantId,
         tenantName,
-        timePeriod: "Time Period Placeholder",
         notificationSettingsLink: notificationSettingsLink(selfcareId),
         viewAllNewEservicesLink: viewAllNewUpdatedEservicesLink(selfcareId),
         viewAllUpdatedEservicesLink: viewAllNewUpdatedEservicesLink(selfcareId),
@@ -216,14 +201,11 @@ export function digestDataServiceBuilder(
         viewAllReceivedAgreementsLink:
           viewAllReceivedAgreementsLink(selfcareId),
         viewAllReceivedPurposesLink: viewAllReceivedPurposesLink(selfcareId),
-        viewAllSentDelegationsLink: viewAllSentDelegationsLink(selfcareId),
         viewAllReceivedDelegationsLink:
           viewAllReceivedDelegationsLink(selfcareId),
         viewAllAttributesLink: viewAllAttributesLink(selfcareId),
         viewAllUpdatedEserviceTemplatesLink:
           viewAllUpdatedEserviceTemplatesLink(selfcareId),
-        viewAllPopularEserviceTemplatesLink:
-          viewAllPopularEserviceTemplatesLink(selfcareId),
         newEservices,
         updatedEservices: await eserviceToBaseDigest(
           updatedEservices,
@@ -233,12 +215,6 @@ export function digestDataServiceBuilder(
         ),
         updatedEserviceTemplates: await eserviceTemplateToBaseDigest(
           updatedEserviceTemplates,
-          readModelService,
-          selfcareId,
-          CARD_ITEMS
-        ),
-        popularEserviceTemplates: await popularEserviceTemplateToBaseDigest(
-          popularEserviceTemplates,
           readModelService,
           selfcareId,
           CARD_ITEMS
@@ -301,20 +277,6 @@ export function digestDataServiceBuilder(
           selfcareId,
           LIST_ITEMS
         ),
-        activeSentDelegations: await sentDelegationsToDigest(
-          sentDelegations,
-          delegationState.active,
-          readModelService,
-          selfcareId,
-          LIST_ITEMS
-        ),
-        rejectedSentDelegations: await sentDelegationsToDigest(
-          sentDelegations,
-          delegationState.rejected,
-          readModelService,
-          selfcareId,
-          LIST_ITEMS
-        ),
         waitingForApprovalReceivedDelegations:
           await receivedDelegationsToDigest(
             receivedDelegations,
@@ -354,7 +316,6 @@ export function digestDataServiceBuilder(
         data.newEservices?.totalCount ||
         data.updatedEservices?.totalCount ||
         data.updatedEserviceTemplates?.totalCount ||
-        data.popularEserviceTemplates?.totalCount ||
         data.acceptedSentAgreements?.totalCount ||
         data.rejectedSentAgreements?.totalCount ||
         data.suspendedSentAgreements?.totalCount ||
@@ -364,8 +325,6 @@ export function digestDataServiceBuilder(
         data.waitingForApprovalReceivedAgreements?.totalCount ||
         data.publishedReceivedPurposes?.totalCount ||
         data.waitingForApprovalReceivedPurposes?.totalCount ||
-        data.activeSentDelegations?.totalCount ||
-        data.rejectedSentDelegations?.totalCount ||
         data.waitingForApprovalReceivedDelegations?.totalCount ||
         data.revokedReceivedDelegations?.totalCount ||
         data.receivedAttributes?.totalCount ||
