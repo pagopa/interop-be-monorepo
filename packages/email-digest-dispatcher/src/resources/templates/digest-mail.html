@@ -601,16 +601,19 @@
                                       <p class="body-text">
                                         {{#if newEservicesSingular}}
                                         È stato pubblicato
-                                        <strong
-                                          >un nuovo
-                                          e-service</strong
-                                        >:
+                                        <strong>
+                                          un nuovo e-service
+                                        </strong>:
                                         {{else}}
                                         Sono stati pubblicati
-                                        <strong
-                                          >{{ newEservices.totalCount }} nuovi
-                                          e-service</strong
-                                        >, tra cui:
+                                        <strong>{{ newEservices.totalCount
+                                           }} nuovi e-service
+                                        </strong>
+                                          {{#if newEservices.remainingCount }}
+                                          , tra cui:
+                                          {{else}}
+                                            :
+                                          {{/if}}
                                         {{/if}}
                                       </p>
 
@@ -696,7 +699,11 @@
                                         <strong>{{ updatedEservices.totalCount 
                                           }} e-service di cui sei fruitore
                                         </strong>
-                                        , tra cui:
+                                          {{#if updatedEservices.remainingCount }}
+                                          , tra cui:
+                                          {{else}}
+                                            :
+                                          {{/if}}
                                         {{/if}}
                                       </p>
 
@@ -766,16 +773,19 @@
                                       <p class="body-text">
                                         {{#if updatedEserviceTemplatesSingular}}
                                         È stato aggiornato
-                                        <strong
-                                          >un
-                                          template e-service che hai usato per creare una istanza</strong
-                                        >:
+                                        <strong>un
+                                          template e-service che hai usato per creare una istanza
+                                        </strong>:
                                         {{else}}
                                         Sono stati aggiornati
-                                        <strong
-                                          >{{ updatedEserviceTemplates.totalCount }}
-                                          template e-service che hai usato per creare una istanza</strong
-                                        >:
+                                        <strong>{{ updatedEserviceTemplates.totalCount }}
+                                          template e-service che hai usato per creare una istanza
+                                        </strong>
+                                          {{#if updatedEserviceTemplates.remainingCount }}
+                                          , tra cui:
+                                          {{else}}
+                                            :
+                                          {{/if}}
                                         {{/if}}
                                       </p>
 
