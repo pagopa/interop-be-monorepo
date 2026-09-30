@@ -12,3 +12,6 @@ export const CATALOG_EVENT_CONFLICT_CODE = `${
 export const AUTHORIZATION_EVENT_CONFLICT_CODE = `${
   serviceErrorCode[serviceName.AUTHORIZATION_PROCESS]
 }-${commonErrorCodes.eventConflictError}`;
+
+export const ASYNC_EXCHANGE_CALLBACK_INTERFACE_FOLDER =
+  "asyncExchangeCallbackInterface";

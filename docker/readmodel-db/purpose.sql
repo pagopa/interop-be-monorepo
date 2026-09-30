@@ -15,9 +15,12 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose.purpose (
   is_free_of_charge BOOLEAN NOT NULL,
   free_of_charge_reason VARCHAR,
   purpose_template_id UUID,
+  risk_analysis_review_mode VARCHAR,
   reviewer_workflow_review_mode VARCHAR,
   reviewer_workflow_signing_state VARCHAR,
   reviewer_workflow_signed_by UUID,
+  reviewer_workflow_signed_at TIMESTAMP WITH TIME ZONE,
+  reviewer_workflow_rejected_by UUID,
   reviewer_workflow_rejection_reason VARCHAR,
   reviewer_workflow_sent_to_reviewer_at TIMESTAMP WITH TIME ZONE,
   PRIMARY KEY (id),
@@ -28,6 +31,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose.risk_analysis_reviewer (
   purpose_id UUID NOT NULL REFERENCES readmodel_purpose.purpose (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   reviewer_id UUID NOT NULL,
+  sent_to_reviewer_at TIMESTAMP WITH TIME ZONE,
   PRIMARY KEY (purpose_id, reviewer_id),
   FOREIGN KEY (purpose_id, metadata_version) REFERENCES readmodel_purpose.purpose (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );

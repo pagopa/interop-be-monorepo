@@ -51,6 +51,7 @@ import {
   internalAddCertifiedDiscreteAttributeErrorMapper,
   internalRevokeCertifiedDiscreteAttributeErrorMapper,
   internalUpdateCertifiedDiscreteAttributeErrorMapper,
+  updateCertifiedDiscreteAttributeErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const tenantsRouter = (
@@ -225,7 +226,6 @@ const tenantsRouter = (
         validateAuthorization(ctx, [
           ADMIN_ROLE,
           API_ROLE,
-          M2M_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
           VIEWER_ROLE,
@@ -257,12 +257,7 @@ const tenantsRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [
-          ADMIN_ROLE,
-          M2M_ROLE,
-          SUPPORT_ROLE,
-          VIEWER_ROLE,
-        ]);
+        validateAuthorization(ctx, [ADMIN_ROLE, SUPPORT_ROLE, VIEWER_ROLE]);
 
         const { offset, limit } = req.query;
         const { results, totalCount } =
@@ -639,7 +634,6 @@ const tenantsRouter = (
         validateAuthorization(ctx, [
           ADMIN_ROLE,
           API_ROLE,
-          M2M_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
           INTERNAL_ROLE,
@@ -915,7 +909,7 @@ const tenantsRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ROLE, M2M_ADMIN_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
           const { tenantId } = req.params;
           const { data: tenant, metadata } =
@@ -1044,7 +1038,7 @@ const tenantsRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ROLE, M2M_ADMIN_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
           const { tenantId, attributeId } = req.params;
           const { data: tenant, metadata } =
@@ -1071,13 +1065,47 @@ const tenantsRouter = (
         }
       }
     )
+    .put(
+      "/tenants/:tenantId/attributes/certifiedDiscrete/:attributeId",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+          const { tenantId, attributeId } = req.params;
+          const { data: tenant, metadata } =
+            await tenantService.updateCertifiedDiscreteAttributeById(
+              {
+                tenantId: unsafeBrandId(tenantId),
+                attributeId: unsafeBrandId(attributeId),
+                tenantAttributeSeed: req.body,
+              },
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+
+          return res
+            .status(200)
+            .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateCertifiedDiscreteAttributeErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .delete(
       "/tenants/:tenantId/attributes/certifiedDiscrete/:attributeId",
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ROLE, M2M_ADMIN_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
           const { tenantId, attributeId } = req.params;
           const { data: tenant, metadata } =

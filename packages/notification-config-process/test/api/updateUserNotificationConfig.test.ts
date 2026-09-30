@@ -59,6 +59,7 @@ describe("API POST /userNotificationConfigs test", () => {
     authRole.ADMIN_ROLE,
     authRole.API_ROLE,
     authRole.SECURITY_ROLE,
+    authRole.REVIEWER_ROLE,
   ];
 
   it.each(authorizedRoles)(
