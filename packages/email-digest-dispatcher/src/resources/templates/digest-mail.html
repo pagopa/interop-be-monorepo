@@ -202,6 +202,7 @@
         font-size: 16px;
         color: #17324d;
         margin-bottom: 4px;
+        padding-left: 0;
       }
       .list-item-secondary {
         color: #17324d;
@@ -252,7 +253,7 @@
         margin: 0 -8px;
       }
       .list-items {
-        padding-left: 20px;
+        padding-left: 0;
         margin-top: 0;
         margin-bottom: 16px;
       }
@@ -603,15 +604,14 @@
                                         <strong
                                           >un nuovo
                                           e-service</strong
-                                        >,
+                                        >:
                                         {{else}}
                                         Sono stati pubblicati
                                         <strong
                                           >{{ newEservices.totalCount }} nuovi
                                           e-service</strong
-                                        >,
+                                        >, tra cui:
                                         {{/if}}
-                                        tra cui:
                                       </p>
 
                                       <!-- Grid Wrapper -->
@@ -624,7 +624,7 @@
                                         "
                                       >
                                         {{#each newEservices.items}}
-                                        <div class="card-grid-item" style="display: inline-block; width: 100%; max-width: 288px; vertical-align: top; padding: 0 8px; margin-bottom: 16px; box-sizing: border-box;">
+                                        <div class="card-grid-item" style="display: inline-block; width: 100%; max-width: 288px; vertical-align: top; padding: 0; margin: 0px 8px 16px 0px; box-sizing: border-box;">
                                           <div class="card" style="border: 1px solid #e3e7eb; border-radius: 8px; padding: 0; height: 140px; box-sizing: border-box; background-color: #ffffff;">
                                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="height: 100%;">
                                               <tr>
@@ -688,26 +688,22 @@
                                       <p class="body-text">
                                         {{#if updatedEservicesSingular}}
                                         È stato aggiornato
-                                        <strong
-                                          >un
-                                          e-service</strong
-                                        >
-                                        di cui sei fruitore,
+                                        <strong>
+                                          un e-service di cui sei fruitore
+                                        </strong>:
                                         {{else}}
                                         Sono stati aggiornati
-                                        <strong
-                                          >{{ updatedEservices.totalCount }}
-                                          e-service</strong
-                                        >
-                                        di cui sei fruitore,
+                                        <strong>{{ updatedEservices.totalCount 
+                                          }} e-service di cui sei fruitore
+                                        </strong>
+                                        , tra cui:
                                         {{/if}}
-                                        tra cui:
                                       </p>
 
                                       <!-- Grid Wrapper -->
                                       <div class="card-grid-wrapper" style="font-size: 0; text-align: left; margin: 0 -8px;">
                                         {{#each updatedEservices.items}}
-                                        <div class="card-grid-item" style="display: inline-block; width: 100%; max-width: 288px; vertical-align: top; padding: 0 8px; margin-bottom: 16px; box-sizing: border-box;">
+                                        <div class="card-grid-item" style="display: inline-block; width: 100%; max-width: 288px; vertical-align: top; padding: 0; margin: 0px 8px 16px 0px; box-sizing: border-box;">
                                           <div class="card" style="border: 1px solid #e3e7eb; border-radius: 8px; padding: 0; height: 140px; box-sizing: border-box; background-color: #ffffff;">
                                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="height: 100%;">
                                               <tr>
@@ -786,7 +782,7 @@
                                       <!-- Grid Wrapper -->
                                       <div class="card-grid-wrapper" style="font-size: 0; text-align: left; margin: 0 -8px;">
                                         {{#each updatedEserviceTemplates.items}}
-                                        <div class="card-grid-item" style="display: inline-block; width: 100%; max-width: 288px; vertical-align: top; padding: 0 8px; margin-bottom: 16px; box-sizing: border-box;">
+                                        <div class="card-grid-item" style="display: inline-block; width: 100%; max-width: 288px; vertical-align: top; padding: 0; margin: 0px 8px 16px 0px; box-sizing: border-box;">
                                           <div class="card" style="border: 1px solid #e3e7eb; border-radius: 8px; padding: 0; height: 140px; box-sizing: border-box; background-color: #ffffff;">
                                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="height: 100%;">
                                               <tr>
@@ -915,7 +911,8 @@
                                       </strong>
                                       {{/if}}
                                     </p>
-                                      <ul class="list-items section-cell">
+                                    <div class="section-cell">
+                                      <ul class="list-items">
                                         {{#each rejectedSentAgreements.items}}
                                         <ul class="list-item">
                                           <a
@@ -935,6 +932,7 @@
                                         </ul>
                                         {{/if}}
                                       </ul>
+                                    </div>
                                     {{/if}} {{#if
                                     suspendedSentAgreements.totalCount}}
                                     <div class="section-divider">
@@ -951,26 +949,28 @@
                                       </strong>
                                       {{/if}}
                                     </p>
-                                    <ul class="list-items section-cell">
-                                      {{#each suspendedSentAgreements.items}}
-                                      <ul class="list-item">
-                                        <a
-                                          href="{{ link }}"
-                                          class="link-primary" style="color: #0073e6;"
-                                          >{{ name }}</a
-                                        >
-                                        <span class="list-item-secondary"
-                                          >da {{ producerName }}</span
-                                        >
+                                    <div class="section-cell">
+                                      <ul class="list-items">
+                                        {{#each suspendedSentAgreements.items}}
+                                        <ul class="list-item">
+                                          <a
+                                            href="{{ link }}"
+                                            class="link-primary" style="color: #0073e6;"
+                                            >{{ name }}</a
+                                          >
+                                          <span class="list-item-secondary"
+                                            >da {{ producerName }}</span
+                                          >
+                                        </ul>
+                                        {{/each}}
+                                        {{#if suspendedSentAgreements.remainingCount}}
+                                        <ul class="list-item">
+                                          E altre
+                                          <strong>{{ suspendedSentAgreements.remainingCount }}</strong>.
+                                        </ul>
+                                        {{/if}}
                                       </ul>
-                                      {{/each}}
-                                      {{#if suspendedSentAgreements.remainingCount}}
-                                      <ul class="list-item">
-                                        E altre
-                                        <strong>{{ suspendedSentAgreements.remainingCount }}</strong>.
-                                      </ul>
-                                      {{/if}}
-                                    </ul>
+                                    </div>
                                     </div>
                                     {{/if}}
                                     {{/if}}
@@ -1060,23 +1060,25 @@
                                       </strong>
                                       {{/if}}
                                     </p>
-                                    <ul class="list-items section-cell">
-                                      {{#each rejectedSentPurposes.items}}
-                                      <ul class="list-item">
-                                        <a
-                                          href="{{ link }}"
-                                          class="link-primary" style="color: #0073e6;"
-                                          >{{ name }}</a
-                                        >
+                                    <div class="section-cell">
+                                      <ul class="list-items">
+                                        {{#each rejectedSentPurposes.items}}
+                                        <ul class="list-item">
+                                          <a
+                                            href="{{ link }}"
+                                            class="link-primary" style="color: #0073e6;"
+                                            >{{ name }}</a
+                                          >
+                                        </ul>
+                                        {{/each}}
+                                        {{#if rejectedSentPurposes.remainingCount}}
+                                        <ul class="list-item">
+                                          E altre
+                                          <strong>{{ rejectedSentPurposes.remainingCount }}</strong>.
+                                        </ul>
+                                        {{/if}}
                                       </ul>
-                                      {{/each}}
-                                      {{#if rejectedSentPurposes.remainingCount}}
-                                      <ul class="list-item">
-                                        E altre
-                                        <strong>{{ rejectedSentPurposes.remainingCount }}</strong>.
-                                      </ul>
-                                      {{/if}}
-                                    </ul>
+                                    </div>
                                     {{/if}} {{#if
                                     waitingForApprovalSentPurposes.totalCount}}
                                     <div class="section-divider">
@@ -1091,23 +1093,25 @@
                                           {{/if}}
                                         </strong>
                                       </p>
-                                      <ul class="list-items section-cell">
-                                        {{#each waitingForApprovalSentPurposes.items}}
-                                        <ul class="list-item">
-                                          <a
-                                            href="{{ link }}"
-                                            class="link-primary" style="color: #0073e6;"
-                                            >{{ name }}</a
-                                          >
+                                      <div class="section-cell">
+                                        <ul class="list-items">
+                                          {{#each waitingForApprovalSentPurposes.items}}
+                                          <ul class="list-item">
+                                            <a
+                                              href="{{ link }}"
+                                              class="link-primary" style="color: #0073e6;"
+                                              >{{ name }}</a
+                                            >
+                                          </ul>
+                                          {{/each}}
+                                          {{#if waitingForApprovalSentPurposes.remainingCount}}
+                                          <ul class="list-item">
+                                            E altre
+                                            <strong>{{ waitingForApprovalSentPurposes.remainingCount }}</strong>.
+                                          </ul>
+                                          {{/if}}
                                         </ul>
-                                        {{/each}}
-                                        {{#if waitingForApprovalSentPurposes.remainingCount}}
-                                        <ul class="list-item">
-                                          E altre
-                                          <strong>{{ waitingForApprovalSentPurposes.remainingCount }}</strong>.
-                                        </ul>
-                                        {{/if}}
-                                      </ul>
+                                      </div>
                                     </div>
                                     {{/if}}
                                     {{/if}}
@@ -1179,13 +1183,13 @@
                                             >
                                             </ul>
                                           {{/each}}
+                                          {{#if waitingForApprovalReceivedAgreements.remainingCount}}
+                                          <ul class="list-item">
+                                            E altre
+                                            <strong>{{ waitingForApprovalReceivedAgreements.remainingCount }}</strong>.
+                                          </ul>
+                                          {{/if}}
                                         </ul>
-                                        {{#if waitingForApprovalReceivedAgreements.remainingCount}}
-                                        <ul class="list-item">
-                                          E altre
-                                          <strong>{{ waitingForApprovalReceivedAgreements.remainingCount }}</strong>.
-                                        </ul>
-                                        {{/if}}
 
                                         <!-- Yellow Alert -->
                                         <div class="alert-warning" role="note">
@@ -1240,28 +1244,30 @@
                                           finalità inoltrate al tuo ente:
                                         </strong>
                                       </p>
-                                      <ul class="list-items section-cell">
-                                        {{#each
-                                        publishedReceivedPurposes.items}}
-                                        <ul class="list-item">
-                                          <a
-                                            href="{{ link }}"
-                                            class="link-primary" style="color: #0073e6;"
-                                            >{{ name }}</a
-                                          >
-                                          <span class="list-item-secondary"
-                                            >richiesta da {{ producerName
-                                            }}</span
-                                          >
+                                      <div class="section-cell">
+                                        <ul class="list-items">
+                                          {{#each
+                                          publishedReceivedPurposes.items}}
+                                          <ul class="list-item">
+                                            <a
+                                              href="{{ link }}"
+                                              class="link-primary" style="color: #0073e6;"
+                                              >{{ name }}</a
+                                            >
+                                            <span class="list-item-secondary"
+                                              >richiesta da {{ producerName
+                                              }}</span
+                                            >
+                                          </ul>
+                                          {{/each}}
+                                          {{#if publishedReceivedPurposes.remainingCount}}
+                                          <ul class="list-item">
+                                            E altre
+                                            <strong>{{ publishedReceivedPurposes.remainingCount }}</strong>.
+                                          </ul>
+                                          {{/if}}
                                         </ul>
-                                        {{/each}}
-                                        {{#if publishedReceivedPurposes.remainingCount}}
-                                        <ul class="list-item">
-                                          E altre
-                                          <strong>{{ publishedReceivedPurposes.remainingCount }}</strong>.
-                                        </ul>
-                                        {{/if}}
-                                      </ul>
+                                      </div>
                                     </div>
                                     {{/if}} {{#if
                                     waitingForApprovalReceivedPurposes.totalCount}}
@@ -1441,6 +1447,7 @@
                                   </td>
                                 </tr>
                                 {{/if}}
+                                  {{/if}}
                                 {{#if hasAttributesContent}}
                                 <tr>
                                   <td
@@ -1488,27 +1495,29 @@
                                           {{/if}}
                                           </strong>
                                       </p>
-                                      <ul class="list-items section-cell">
-                                        {{#each receivedAttributes.items}}
-                                        <ul class="list-item">
-                                          <a
-                                            href="{{ link }}"
-                                            class="link-primary" style="color: #0073e6;"
-                                            >{{ name }}</a
-                                          >
-                                          <span class="list-item-secondary">
-                                            (Certificato) assegnato da {{
-                                            producerName }}</span
-                                          >
+                                      <div class="section-cell">
+                                        <ul class="list-items">
+                                          {{#each receivedAttributes.items}}
+                                          <ul class="list-item">
+                                            <a
+                                              href="{{ link }}"
+                                              class="link-primary" style="color: #0073e6;"
+                                              >{{ name }}</a
+                                            >
+                                            <span class="list-item-secondary">
+                                              (Certificato) assegnato da {{
+                                              producerName }}</span
+                                            >
+                                          </ul>
+                                          {{/each}}
+                                          {{#if receivedAttributes.remainingCount}}
+                                          <ul class="list-item">
+                                            E altre
+                                            <strong>{{ receivedAttributes.remainingCount }}</strong>.
+                                          </ul>
+                                          {{/if}}
                                         </ul>
-                                        {{/each}}
-                                        {{#if receivedAttributes.remainingCount}}
-                                        <ul class="list-item">
-                                          E altre
-                                          <strong>{{ receivedAttributes.remainingCount }}</strong>.
-                                        </ul>
-                                        {{/if}}
-                                      </ul>
+                                      </div>
                                     </div>
                                     {{/if}}
                                     <!-- Revoked Attributes -->
@@ -1558,6 +1567,7 @@
                                   </td>
                                 </tr>
                                 {{/if}}
+                                  {{/if}}
                                 <tr>
                                   <td
                                     align="left"
