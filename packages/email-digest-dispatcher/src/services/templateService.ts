@@ -35,6 +35,9 @@ export function digestTemplateServiceBuilder(
     "icon-error",
   ];
 
+  const SECTION_CARD_LIMIT = 6;
+  const SECTION_ITEMS_LIMIT = 5;
+
   iconPartials.forEach((iconName) => {
     const iconPath = `${dirname}/../resources/templates/partials/${iconName}.svg`;
     const iconContent = fs.readFileSync(iconPath).toString();
@@ -82,6 +85,92 @@ export function digestTemplateServiceBuilder(
       const revokedAttributesSingular =
         data.revokedAttributes?.totalCount === 1;
 
+      // Count for items that exceeded list or card limits
+      const newEservicesExceededItemsCount =
+        data.newEservices && data.newEservices.totalCount > SECTION_CARD_LIMIT
+          ? data.newEservices.totalCount - SECTION_CARD_LIMIT
+          : 0;
+      const updatedEservicesExceededItemsCount =
+        data.updatedEservices &&
+        data.updatedEservices.totalCount > SECTION_CARD_LIMIT
+          ? data.updatedEservices.totalCount - SECTION_CARD_LIMIT
+          : 0;
+      const updatedEserviceTemplatesExceededItemsCount =
+        data.updatedEserviceTemplates &&
+        data.updatedEserviceTemplates.totalCount > SECTION_CARD_LIMIT
+          ? data.updatedEserviceTemplates.totalCount - SECTION_CARD_LIMIT
+          : 0;
+      const acceptedSentAgreementsExceededItemsCount =
+        data.acceptedSentAgreements &&
+        data.acceptedSentAgreements.totalCount > SECTION_ITEMS_LIMIT
+          ? data.acceptedSentAgreements.totalCount - SECTION_ITEMS_LIMIT
+          : 0;
+      const rejectedSentAgreementsExceededItemsCount =
+        data.rejectedSentAgreements &&
+        data.rejectedSentAgreements.totalCount > SECTION_ITEMS_LIMIT
+          ? data.rejectedSentAgreements.totalCount - SECTION_ITEMS_LIMIT
+          : 0;
+      const suspendedSentAgreementsExceededItemsCount =
+        data.suspendedSentAgreements &&
+        data.suspendedSentAgreements.totalCount > SECTION_ITEMS_LIMIT
+          ? data.suspendedSentAgreements.totalCount - SECTION_ITEMS_LIMIT
+          : 0;
+      const publishedSentPurposesExceededItemsCount =
+        data.publishedSentPurposes &&
+        data.publishedSentPurposes.totalCount > SECTION_ITEMS_LIMIT
+          ? data.publishedSentPurposes.totalCount - SECTION_ITEMS_LIMIT
+          : 0;
+      const rejectedSentPurposesExceededItemsCount =
+        data.rejectedSentPurposes &&
+        data.rejectedSentPurposes.totalCount > SECTION_ITEMS_LIMIT
+          ? data.rejectedSentPurposes.totalCount - SECTION_ITEMS_LIMIT
+          : 0;
+      const waitingForApprovalSentPurposesExceededItemsCount =
+        data.waitingForApprovalSentPurposes &&
+        data.waitingForApprovalSentPurposes.totalCount > SECTION_ITEMS_LIMIT
+          ? data.waitingForApprovalSentPurposes.totalCount - SECTION_ITEMS_LIMIT
+          : 0;
+      const waitingForApprovalReceivedAgreementsExceededItemsCount =
+        data.waitingForApprovalReceivedAgreements &&
+        data.waitingForApprovalReceivedAgreements.totalCount >
+          SECTION_ITEMS_LIMIT
+          ? data.waitingForApprovalReceivedAgreements.totalCount -
+            SECTION_ITEMS_LIMIT
+          : 0;
+      const publishedReceivedPurposesExceededItemsCount =
+        data.publishedReceivedPurposes &&
+        data.publishedReceivedPurposes.totalCount > SECTION_ITEMS_LIMIT
+          ? data.publishedReceivedPurposes.totalCount - SECTION_ITEMS_LIMIT
+          : 0;
+      const waitingForApprovalReceivedPurposesExceededItemsCount =
+        data.waitingForApprovalReceivedPurposes &&
+        data.waitingForApprovalReceivedPurposes.totalCount > SECTION_ITEMS_LIMIT
+          ? data.waitingForApprovalReceivedPurposes.totalCount -
+            SECTION_ITEMS_LIMIT
+          : 0;
+      const waitingForApprovalReceivedDelegationsExceededItemsCount =
+        data.waitingForApprovalReceivedDelegations &&
+        data.waitingForApprovalReceivedDelegations.totalCount >
+          SECTION_ITEMS_LIMIT
+          ? data.waitingForApprovalReceivedDelegations.totalCount -
+            SECTION_ITEMS_LIMIT
+          : 0;
+      const revokedReceivedDelegationsExceededItemsCount =
+        data.revokedReceivedDelegations &&
+        data.revokedReceivedDelegations.totalCount > SECTION_ITEMS_LIMIT
+          ? data.revokedReceivedDelegations.totalCount - SECTION_ITEMS_LIMIT
+          : 0;
+      const receivedAttributesExceededItemsCount =
+        data.receivedAttributes &&
+        data.receivedAttributes.totalCount > SECTION_ITEMS_LIMIT
+          ? data.receivedAttributes.totalCount - SECTION_ITEMS_LIMIT
+          : 0;
+      const revokedAttributesExceededItemsCount =
+        data.revokedAttributes &&
+        data.revokedAttributes.totalCount > SECTION_ITEMS_LIMIT
+          ? data.revokedAttributes.totalCount - SECTION_ITEMS_LIMIT
+          : 0;
+
       return templateService.compileHtml(digestTemplate, {
         title: "Riepilogo notifiche",
         ...data,
@@ -111,6 +200,22 @@ export function digestTemplateServiceBuilder(
         revokedReceivedDelegationsSingular,
         receivedAttributesSingular,
         revokedAttributesSingular,
+        newEservicesExceededItemsCount,
+        updatedEservicesExceededItemsCount,
+        updatedEserviceTemplatesExceededItemsCount,
+        acceptedSentAgreementsExceededItemsCount,
+        rejectedSentAgreementsExceededItemsCount,
+        suspendedSentAgreementsExceededItemsCount,
+        publishedSentPurposesExceededItemsCount,
+        rejectedSentPurposesExceededItemsCount,
+        waitingForApprovalSentPurposesExceededItemsCount,
+        waitingForApprovalReceivedAgreementsExceededItemsCount,
+        publishedReceivedPurposesExceededItemsCount,
+        waitingForApprovalReceivedPurposesExceededItemsCount,
+        waitingForApprovalReceivedDelegationsExceededItemsCount,
+        revokedReceivedDelegationsExceededItemsCount,
+        receivedAttributesExceededItemsCount,
+        revokedAttributesExceededItemsCount,
       });
     },
   };

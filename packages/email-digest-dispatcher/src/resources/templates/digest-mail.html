@@ -609,7 +609,7 @@
                                         <strong>{{ newEservices.totalCount
                                            }} nuovi e-service
                                         </strong>
-                                          {{#if newEservices.remainingCount }}
+                                          {{#if newEservicesExceededItemsCount }}
                                           , tra cui:
                                           {{else}}
                                             :
@@ -699,7 +699,7 @@
                                         <strong>{{ updatedEservices.totalCount 
                                           }} e-service di cui sei fruitore
                                         </strong>
-                                          {{#if updatedEservices.remainingCount }}
+                                          {{#if updatedEservicesExceededItemsCount }}
                                           , tra cui:
                                           {{else}}
                                             :
@@ -781,7 +781,7 @@
                                         <strong>{{ updatedEserviceTemplates.totalCount }}
                                           template e-service che hai usato per creare una istanza
                                         </strong>
-                                          {{#if updatedEserviceTemplates.remainingCount }}
+                                          {{#if updatedEserviceTemplatesExceededItemsCount }}
                                           , tra cui:
                                           {{else}}
                                             :
@@ -888,10 +888,10 @@
                                             >
                                           </ul>
                                           {{/each}}
-                                          {{#if acceptedSentAgreements.remainingCount}}
+                                          {{#if acceptedSentAgreementsExceededItemsCount }}
                                           <ul class="list-item">
                                             E altre
-                                            <strong>{{ acceptedSentAgreements.remainingCount }}</strong>.
+                                            <strong>{{ acceptedSentAgreementsExceededItemsCount }}</strong>.
                                           </ul>
                                           {{/if}}
                                         </ul>
@@ -935,10 +935,10 @@
                                           >
                                         </ul>
                                         {{/each}}
-                                        {{#if rejectedSentAgreements.remainingCount}}
+                                        {{#if rejectedSentAgreementsExceededItemsCount }}
                                         <ul class="list-item">
                                           E altre
-                                          <strong>{{ rejectedSentAgreements.remainingCount }}</strong>.
+                                          <strong>{{ rejectedSentAgreementsExceededItemsCount }}</strong>.
                                         </ul>
                                         {{/if}}
                                       </ul>
@@ -973,10 +973,10 @@
                                           >
                                         </ul>
                                         {{/each}}
-                                        {{#if suspendedSentAgreements.remainingCount}}
+                                        {{#if suspendedSentAgreementsExceededItemsCount }}
                                         <ul class="list-item">
                                           E altre
-                                          <strong>{{ suspendedSentAgreements.remainingCount }}</strong>.
+                                          <strong>{{ suspendedSentAgreementsExceededItemsCount }}</strong>.
                                         </ul>
                                         {{/if}}
                                       </ul>
@@ -1040,10 +1040,10 @@
                                           </ul>
                                           {{/each}}
                                         </ul>
-                                        {{#if publishedSentPurposes.remainingCount}}
+                                        {{#if publishedSentPurposesExceededItemsCount }}
                                         <ul class="list-item">
                                           E altre
-                                          <strong>{{ publishedSentPurposes.remainingCount }}</strong>.
+                                          <strong>{{ publishedSentPurposesExceededItemsCount }}</strong>.
                                         </ul>
                                         {{/if}}
 
@@ -1081,10 +1081,10 @@
                                           >
                                         </ul>
                                         {{/each}}
-                                        {{#if rejectedSentPurposes.remainingCount}}
+                                        {{#if rejectedSentPurposesExceededItemsCount }}
                                         <ul class="list-item">
                                           E altre
-                                          <strong>{{ rejectedSentPurposes.remainingCount }}</strong>.
+                                          <strong>{{ rejectedSentPurposesExceededItemsCount }}</strong>.
                                         </ul>
                                         {{/if}}
                                       </ul>
@@ -1114,10 +1114,10 @@
                                             >
                                           </ul>
                                           {{/each}}
-                                          {{#if waitingForApprovalSentPurposes.remainingCount}}
+                                          {{#if waitingForApprovalSentPurposesExceededItemsCount }}
                                           <ul class="list-item">
                                             E altre
-                                            <strong>{{ waitingForApprovalSentPurposes.remainingCount }}</strong>.
+                                            <strong>{{ waitingForApprovalSentPurposesExceededItemsCount }}</strong>.
                                           </ul>
                                           {{/if}}
                                         </ul>
@@ -1193,10 +1193,10 @@
                                             >
                                             </ul>
                                           {{/each}}
-                                          {{#if waitingForApprovalReceivedAgreements.remainingCount}}
+                                          {{#if waitingForApprovalReceivedAgreementsExceededItemsCount }}
                                           <ul class="list-item">
                                             E altre
-                                            <strong>{{ waitingForApprovalReceivedAgreements.remainingCount }}</strong>.
+                                            <strong>{{ waitingForApprovalReceivedAgreementsExceededItemsCount }}</strong>.
                                           </ul>
                                           {{/if}}
                                         </ul>
@@ -1270,10 +1270,10 @@
                                             >
                                           </ul>
                                           {{/each}}
-                                          {{#if publishedReceivedPurposes.remainingCount}}
+                                          {{#if publishedReceivedPurposesExceededItemsCount }}
                                           <ul class="list-item">
                                             E altre
-                                            <strong>{{ publishedReceivedPurposes.remainingCount }}</strong>.
+                                            <strong>{{ publishedReceivedPurposesExceededItemsCount }}</strong>.
                                           </ul>
                                           {{/if}}
                                         </ul>
@@ -1308,10 +1308,10 @@
                                           >
                                           </ul>
                                         {{/each}}
-                                        {{#if waitingForApprovalReceivedPurposes.remainingCount}}
+                                        {{#if waitingForApprovalReceivedPurposesExceededItemsCount }}
                                         <ul class="list-item">
                                           E altre
-                                          <strong>{{ waitingForApprovalReceivedPurposes.remainingCount }}</strong>.
+                                          <strong>{{ waitingForApprovalReceivedPurposesExceededItemsCount }}</strong>.
                                         </ul>
                                         {{/if}}
                                       </ul>
@@ -1391,10 +1391,10 @@
                                             >
                                           </ul>
                                           {{/each}}
-                                          {{#if waitingForApprovalReceivedDelegations.remainingCount}}
+                                          {{#if waitingForApprovalReceivedDelegationsExceededItemsCount }}
                                           <ul class="list-item">
                                             E altre
-                                            <strong>{{ waitingForApprovalReceivedDelegations.remainingCount }}</strong>.
+                                            <strong>{{ waitingForApprovalReceivedDelegationsExceededItemsCount }}</strong>.
                                           </ul>
                                           {{/if}}
                                         </ul>
@@ -1437,10 +1437,10 @@
                                             >
                                           </ul>
                                           {{/each}}
-                                          {{#if revokedReceivedDelegations.remainingCount}}
+                                          {{#if revokedReceivedDelegationsExceededItemsCount }}
                                           <ul class="list-item">
                                             E altre
-                                            <strong>{{ revokedReceivedDelegations.remainingCount }}</strong>.
+                                            <strong>{{ revokedReceivedDelegationsExceededItemsCount }}</strong>.
                                           </ul>
                                           {{/if}}
                                         </ul>
@@ -1520,10 +1520,10 @@
                                             >
                                           </ul>
                                           {{/each}}
-                                          {{#if receivedAttributes.remainingCount}}
+                                          {{#if receivedAttributesExceededItemsCount }}
                                           <ul class="list-item">
                                             E altre
-                                            <strong>{{ receivedAttributes.remainingCount }}</strong>.
+                                            <strong>{{ receivedAttributesExceededItemsCount }}</strong>.
                                           </ul>
                                           {{/if}}
                                         </ul>
@@ -1557,10 +1557,10 @@
                                           >
                                         </ul>
                                         {{/each}}
-                                        {{#if revokedAttributes.remainingCount}}
+                                        {{#if revokedAttributesExceededItemsCount }}
                                         <ul class="list-item">
                                           E altre
-                                          <strong>{{ revokedAttributes.remainingCount }}</strong>.
+                                          <strong>{{ revokedAttributesExceededItemsCount }}</strong>.
                                         </ul>
                                         {{/if}}
                                       </ul>

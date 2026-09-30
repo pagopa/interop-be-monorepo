@@ -180,7 +180,7 @@ describe("ReadModelService - getVerifiedAssignedAttributes", () => {
       const result =
         await readModelService.getVerifiedAssignedAttributes(tenantId);
 
-      expect(result.length).toBeLessThanOrEqual(TEST_LIMITS.MAX_RESULTS);
+      expect(result.length).toBeLessThanOrEqual(TEST_LIMITS.MAX_LIST_RESULTS);
     });
   });
 
@@ -345,7 +345,7 @@ describe("ReadModelService - getVerifiedRevokedAttributes", () => {
       const result =
         await readModelService.getVerifiedRevokedAttributes(tenantId);
 
-      expect(result.length).toBeLessThanOrEqual(TEST_LIMITS.MAX_RESULTS);
+      expect(result.length).toBeLessThanOrEqual(TEST_LIMITS.MAX_LIST_RESULTS);
     });
   });
 
@@ -702,23 +702,25 @@ describe("TotalCount accuracy with separate queries", () => {
 
     // Verified assigned: 4 created, should return max 5 with totalCount = 4
     expect(verifiedAssigned.length).toBeLessThanOrEqual(
-      TEST_LIMITS.MAX_RESULTS
+      TEST_LIMITS.MAX_LIST_RESULTS
     );
     expect(verifiedAssigned[0].totalCount).toBe(4);
 
     // Verified revoked: 3 created, should return 3 with totalCount = 3
-    expect(verifiedRevoked.length).toBeLessThanOrEqual(TEST_LIMITS.MAX_RESULTS);
+    expect(verifiedRevoked.length).toBeLessThanOrEqual(
+      TEST_LIMITS.MAX_LIST_RESULTS
+    );
     expect(verifiedRevoked[0].totalCount).toBe(3);
 
     // Certified assigned: 4 created, should return max 5 with totalCount = 4
     expect(certifiedAssigned.length).toBeLessThanOrEqual(
-      TEST_LIMITS.MAX_RESULTS
+      TEST_LIMITS.MAX_LIST_RESULTS
     );
     expect(certifiedAssigned[0].totalCount).toBe(4);
 
     // Certified revoked: 3 created, should return 3 with totalCount = 3
     expect(certifiedRevoked.length).toBeLessThanOrEqual(
-      TEST_LIMITS.MAX_RESULTS
+      TEST_LIMITS.MAX_LIST_RESULTS
     );
     expect(certifiedRevoked[0].totalCount).toBe(3);
 
@@ -752,8 +754,8 @@ describe("TotalCount accuracy with separate queries", () => {
       await readModelService.getVerifiedRevokedAttributes(tenantId);
 
     // Items should be limited to 5
-    expect(verifiedAssigned.length).toBe(TEST_LIMITS.MAX_RESULTS);
-    expect(verifiedRevoked.length).toBe(TEST_LIMITS.MAX_RESULTS);
+    expect(verifiedAssigned.length).toBe(TEST_LIMITS.MAX_LIST_RESULTS);
+    expect(verifiedRevoked.length).toBe(TEST_LIMITS.MAX_LIST_RESULTS);
 
     // But totalCount should reflect the actual count in DB
     expect(verifiedAssigned[0].totalCount).toBe(6);

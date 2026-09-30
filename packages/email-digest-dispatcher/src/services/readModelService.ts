@@ -58,6 +58,7 @@ import {
 import { config } from "../config/config.js";
 
 const SECTION_LIST_LIMIT = 5;
+const SECTION_CARDS_LIMIT = 6;
 
 export type DigestUser = {
   userId: UserId;
@@ -422,7 +423,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           desc(count(agreementInReadmodelAgreement.id)),
           asc(eserviceDescriptorInReadmodelCatalog.publishedAt)
         )
-        .limit(SECTION_LIST_LIMIT);
+        .limit(SECTION_CARDS_LIMIT);
 
       logger.info(`Retrieved ${results.length} new e-services`);
 
@@ -509,7 +510,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
             newVersionInt > agreementVersionInt
           );
         })
-        .slice(0, SECTION_LIST_LIMIT);
+        .slice(0, SECTION_CARDS_LIMIT);
 
       logger.info(
         `Retrieved ${filteredResults.length} new e-service versions for consumer ${consumerId}`
@@ -646,7 +647,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
       }
       const filteredResults = Array.from(templateMap.values()).slice(
         0,
-        SECTION_LIST_LIMIT
+        SECTION_CARDS_LIMIT
       );
 
       logger.info(
@@ -761,7 +762,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           eserviceTemplateInReadmodelEserviceTemplate.creatorId
         )
         .orderBy(desc(countDistinct(eserviceInReadmodelCatalog.id)))
-        .limit(5);
+        .limit(SECTION_CARDS_LIMIT);
 
       logger.info(
         `Retrieved ${results.length} popular eservice templates for creator ${creatorId}`
