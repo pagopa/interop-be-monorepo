@@ -1,10 +1,11 @@
-import { startServer } from "pagopa-interop-commons";
 import { drizzle } from "drizzle-orm/node-postgres";
+import { startServer } from "pagopa-interop-commons";
 import pg from "pg";
-import { config } from "./config/config.js";
+
 import { createApp } from "./app.js";
-import { m2mEventServiceBuilder } from "./services/m2mEventService.js";
+import { config } from "./config/config.js";
 import { m2mEventReaderServiceSQLBuilder } from "./services/m2mEventReaderServiceSQL.js";
+import { m2mEventServiceBuilder } from "./services/m2mEventService.js";
 
 const pool = new pg.Pool({
   host: config.m2mEventSQLDbHost,

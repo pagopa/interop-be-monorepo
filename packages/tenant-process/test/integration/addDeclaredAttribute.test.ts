@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { attributeKind, DelegationId, TenantId } from "pagopa-interop-models";
 import {
   getMockAttribute,
   readLastEventByStreamId,
@@ -9,6 +8,7 @@ import {
   getMockContext,
   getMockAuthData,
 } from "pagopa-interop-commons-test";
+import { attributeKind, DelegationId, TenantId } from "pagopa-interop-models";
 import {
   generateId,
   Tenant,
@@ -20,6 +20,7 @@ import {
   tenantAttributeType,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
+
 import {
   tenantNotFound,
   attributeNotFound,

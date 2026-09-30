@@ -6,6 +6,7 @@ import {
   ClientId,
   ProducerKeychainId,
 } from "pagopa-interop-models";
+
 import { createJWK } from "./jwk.js";
 
 export const keyToClientJWKKey = (

@@ -1,5 +1,3 @@
-import { describe, beforeAll, vi, afterEach, it, expect } from "vitest";
-import { EmailManagerSES, HtmlTemplateService } from "pagopa-interop-commons";
 import {
   AccountSuspendedException,
   BadRequestException,
@@ -11,7 +9,10 @@ import {
   TooManyRequestsException,
 } from "@aws-sdk/client-sesv2";
 import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
+import { EmailManagerSES, HtmlTemplateService } from "pagopa-interop-commons";
 import { TenantReadModelService } from "pagopa-interop-readmodel";
+import { describe, beforeAll, vi, afterEach, it, expect } from "vitest";
+
 import { emailSenderProcessorBuilder } from "../src/services/emailSenderProcessor.js";
 import {
   correctTenantEventPayload,

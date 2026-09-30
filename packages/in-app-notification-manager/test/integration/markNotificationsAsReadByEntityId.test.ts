@@ -1,8 +1,9 @@
 import { eq } from "drizzle-orm";
-import { notification as notificationTable } from "pagopa-interop-in-app-notification-db-models";
 import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
+import { notification as notificationTable } from "pagopa-interop-in-app-notification-db-models";
 import { generateId, UserId, TenantId, IDS } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
+
 import {
   addNotifications,
   getMockNotification,

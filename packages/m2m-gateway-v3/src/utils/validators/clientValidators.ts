@@ -1,5 +1,6 @@
 import { authorizationApi } from "pagopa-interop-api-clients";
 import { unauthorizedError } from "pagopa-interop-models";
+
 import { unexpectedClientKind } from "../../model/errors.js";
 
 export function assertClientKindIs<K extends authorizationApi.ClientKind>(

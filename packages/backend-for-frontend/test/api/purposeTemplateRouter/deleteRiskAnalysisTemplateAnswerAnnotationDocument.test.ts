@@ -1,5 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockRiskAnalysisTemplateAnswerAnnotation,
+  getMockRiskAnalysisTemplateAnswerAnnotationDocument,
+  getMockValidRiskAnalysisFormTemplate,
+} from "pagopa-interop-commons-test";
 import {
   PurposeTemplateId,
   RiskAnalysisMultiAnswerId,
@@ -9,16 +15,11 @@ import {
   generateId,
   tenantKind,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockRiskAnalysisTemplateAnswerAnnotation,
-  getMockRiskAnalysisTemplateAnswerAnnotationDocument,
-  getMockValidRiskAnalysisFormTemplate,
-} from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { api, clients } from "../../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { api, clients } from "../../vitest.api.setup.js";
 
 describe("API DELETE /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{answerId}/annotation/documents/{documentId} test", () => {
   const riskAnalysisTemplate = getMockValidRiskAnalysisFormTemplate(

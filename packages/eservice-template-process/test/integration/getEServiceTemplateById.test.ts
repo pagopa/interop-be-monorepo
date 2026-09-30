@@ -1,4 +1,12 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { userRole } from "pagopa-interop-commons";
+import {
+  getMockAuthData,
+  getMockContext,
+  getMockDocument,
+  getMockEServiceTemplate,
+  getMockEServiceTemplateVersion,
+} from "pagopa-interop-commons-test";
 import {
   EServiceTemplateVersion,
   eserviceTemplateVersionState,
@@ -7,14 +15,7 @@ import {
   EServiceTemplateId,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
-import {
-  getMockAuthData,
-  getMockContext,
-  getMockDocument,
-  getMockEServiceTemplate,
-  getMockEServiceTemplateVersion,
-} from "pagopa-interop-commons-test";
-import { userRole } from "pagopa-interop-commons";
+
 import { eserviceTemplateNotFound } from "../../src/model/domain/errors.js";
 import {
   addOneEServiceTemplate,

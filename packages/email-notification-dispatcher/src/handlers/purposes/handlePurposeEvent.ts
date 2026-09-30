@@ -2,21 +2,31 @@ import {
   EmailNotificationMessagePayload,
   PurposeEvent,
 } from "pagopa-interop-models";
+import { getRiskAnalysisAssignmentRecipients } from "pagopa-interop-notification-commons";
 import { P, match } from "ts-pattern";
+
 import { HandlerParams } from "../../models/handlerParams.js";
-import { handlePurposeVersionSuspendedByConsumer } from "./handlePurposeVersionSuspendedByConsumer.js";
-import { handlePurposeVersionUnsuspendedByConsumer } from "./handlePurposeVersionUnsuspendedByConsumer.js";
-import { handlePurposeArchived } from "./handlePurposeArchived.js";
-import { handlePurposeVersionActivatedFirstVersion } from "./handlePurposeVersionActivatedFirstVersion.js";
-import { handlePurposeVersionRejectedFirstVersion } from "./handlePurposeVersionRejectedFirstVersion.js";
-import { handlePurposeVersionSuspendedByProducer } from "./handlePurposeVersionSuspendedByProducer.js";
-import { handlePurposeVersionUnsuspendedByProducer } from "./handlePurposeVersionUnsuspendedByProducer.js";
-import { handleNewPurposeVersionWaitingForApprovalToProducer } from "./handleNewPurposeVersionWaitingForApprovalToProducer.js";
-import { handlePurposeWaitingForApprovalToProducer } from "./handlePurposeWaitingForApprovalToProducer.js";
+import { handleDraftPurposeDeletedWithRiskAnalysisToReviewer } from "./handleDraftPurposeDeletedWithRiskAnalysisToReviewer.js";
 import { handleNewPurposeVersionWaitingForApprovalToConsumer } from "./handleNewPurposeVersionWaitingForApprovalToConsumer.js";
-import { handlePurposeWaitingForApprovalToConsumer } from "./handlePurposeWaitingForApprovalToConsumer.js";
+import { handleNewPurposeVersionWaitingForApprovalToProducer } from "./handleNewPurposeVersionWaitingForApprovalToProducer.js";
+import { handlePurposeArchived } from "./handlePurposeArchived.js";
+import { handlePurposePublishedWithRiskAnalysisToReviewer } from "./handlePurposePublishedWithRiskAnalysisToReviewer.js";
+import { handlePurposeRiskAnalysisAssignedForSigningToReviewer } from "./handlePurposeRiskAnalysisAssignedForSigningToReviewer.js";
+import { handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer } from "./handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer.js";
+import { handlePurposeRiskAnalysisAssignmentRemovedToReviewer } from "./handlePurposeRiskAnalysisAssignmentRemovedToReviewer.js";
+import { handlePurposeRiskAnalysisRejectedToAdmin } from "./handlePurposeRiskAnalysisRejectedToAdmin.js";
+import { handlePurposeRiskAnalysisSignedToAdmin } from "./handlePurposeRiskAnalysisSignedToAdmin.js";
+import { handlePurposeRiskAnalysisSignedToReviewer } from "./handlePurposeRiskAnalysisSignedToReviewer.js";
+import { handlePurposeVersionActivatedFirstVersion } from "./handlePurposeVersionActivatedFirstVersion.js";
 import { handlePurposeVersionActivatedOtherVersion } from "./handlePurposeVersionActivatedOtherVersion.js";
+import { handlePurposeVersionRejectedFirstVersion } from "./handlePurposeVersionRejectedFirstVersion.js";
 import { handlePurposeVersionRejectedOtherVersion } from "./handlePurposeVersionRejectedOtherVersion.js";
+import { handlePurposeVersionSuspendedByConsumer } from "./handlePurposeVersionSuspendedByConsumer.js";
+import { handlePurposeVersionSuspendedByProducer } from "./handlePurposeVersionSuspendedByProducer.js";
+import { handlePurposeVersionUnsuspendedByConsumer } from "./handlePurposeVersionUnsuspendedByConsumer.js";
+import { handlePurposeVersionUnsuspendedByProducer } from "./handlePurposeVersionUnsuspendedByProducer.js";
+import { handlePurposeWaitingForApprovalToConsumer } from "./handlePurposeWaitingForApprovalToConsumer.js";
+import { handlePurposeWaitingForApprovalToProducer } from "./handlePurposeWaitingForApprovalToProducer.js";
 
 export async function handlePurposeEvent(
   params: HandlerParams<typeof PurposeEvent>
@@ -157,16 +167,67 @@ export async function handlePurposeEvent(
           templateService,
           correlationId,
         })),
+        ...(await handlePurposePublishedWithRiskAnalysisToReviewer({
+          purposeV2Msg: purpose,
+          eventType: "PurposeWaitingForApproval",
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })),
       ]
+    )
+    .with({ type: "PurposeActivated" }, ({ data: { purpose }, type }) =>
+      handlePurposePublishedWithRiskAnalysisToReviewer({
+        purposeV2Msg: purpose,
+        eventType: type,
+        logger,
+        readModelService,
+        templateService,
+        correlationId,
+      })
+    )
+    .with({ type: "PurposeRiskAnalysisWorkflowCreated" }, async (event) => {
+      const recipients = getRiskAnalysisAssignmentRecipients(event);
+      return [
+        ...(await handlePurposeRiskAnalysisAssignedForSigningToReviewer({
+          purposeV2Msg: event.data.purpose,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+          reviewerIds: recipients.signingReviewerIds,
+          eventType: event.type,
+        })),
+        ...(await handlePurposeRiskAnalysisAssignmentRemovedToReviewer({
+          purposeV2Msg: event.data.purpose,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+          reviewerIds: recipients.assignmentRemovedReviewerIds,
+          eventType: event.type,
+        })),
+      ];
+    })
+    .with({ type: "PurposeRiskAnalysisSubmitted" }, (event) =>
+      handlePurposeRiskAnalysisAssignedForSigningToReviewer({
+        purposeV2Msg: event.data.purpose,
+        reviewerIds:
+          getRiskAnalysisAssignmentRecipients(event).signingReviewerIds,
+        eventType: event.type,
+        logger,
+        readModelService,
+        templateService,
+        correlationId,
+      })
     )
     .with(
       {
         type: P.union(
-          "DraftPurposeDeleted",
           "WaitingForApprovalPurposeDeleted",
           "PurposeAdded",
           "DraftPurposeUpdated",
-          "PurposeActivated",
           "PurposeVersionOverQuotaUnsuspended",
           "WaitingForApprovalPurposeVersionDeleted",
           "NewPurposeVersionActivated",
@@ -176,11 +237,6 @@ export async function handlePurposeEvent(
           "RiskAnalysisDocumentGenerated",
           "RiskAnalysisSignedDocumentGenerated",
           "MaintenancePurposeRiskAnalysisSetTenantKind",
-          "PurposeRiskAnalysisWorkflowCreated",
-          "PurposeRiskAnalysisAssigned",
-          "PurposeRiskAnalysisSubmitted",
-          "PurposeRiskAnalysisSigned",
-          "PurposeRiskAnalysisRejected",
           "PurposeRiskAnalysisFormEdited"
         ),
       },
@@ -190,6 +246,80 @@ export async function handlePurposeEvent(
         );
         return [];
       }
+    )
+    .with({ type: "PurposeRiskAnalysisAssigned" }, async (event) => {
+      const recipients = getRiskAnalysisAssignmentRecipients(event);
+      return [
+        ...(await handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer(
+          {
+            purposeV2Msg: event.data.purpose,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+            reviewerIds: recipients.writingReviewerIds,
+          }
+        )),
+        ...(await handlePurposeRiskAnalysisAssignmentRemovedToReviewer({
+          purposeV2Msg: event.data.purpose,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+          reviewerIds: recipients.assignmentRemovedReviewerIds,
+          eventType: event.type,
+        })),
+      ];
+    })
+    .with({ type: "PurposeRiskAnalysisSelfAssigned" }, (event) =>
+      handlePurposeRiskAnalysisAssignmentRemovedToReviewer({
+        purposeV2Msg: event.data.purpose,
+        reviewerIds:
+          getRiskAnalysisAssignmentRecipients(event)
+            .assignmentRemovedReviewerIds,
+        eventType: event.type,
+        logger,
+        readModelService,
+        templateService,
+        correlationId,
+      })
+    )
+    .with(
+      { type: "PurposeRiskAnalysisSigned" },
+      async ({ data: { purpose } }) => [
+        ...(await handlePurposeRiskAnalysisSignedToReviewer({
+          purposeV2Msg: purpose,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })),
+        ...(await handlePurposeRiskAnalysisSignedToAdmin({
+          purposeV2Msg: purpose,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })),
+      ]
+    )
+    .with({ type: "DraftPurposeDeleted" }, ({ data: { purpose } }) =>
+      handleDraftPurposeDeletedWithRiskAnalysisToReviewer({
+        purposeV2Msg: purpose,
+        logger,
+        readModelService,
+        templateService,
+        correlationId,
+      })
+    )
+    .with({ type: "PurposeRiskAnalysisRejected" }, ({ data: { purpose } }) =>
+      handlePurposeRiskAnalysisRejectedToAdmin({
+        purposeV2Msg: purpose,
+        logger,
+        readModelService,
+        templateService,
+        correlationId,
+      })
     )
     .exhaustive();
 }
