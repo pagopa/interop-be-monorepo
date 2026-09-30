@@ -1,16 +1,10 @@
-import {
-  AgreementDbTableConfig,
-  AgreementDbTableReadModel,
-} from "./agreement.js";
-import {
-  AttributeDbTableConfig,
-  AttributeDbTableReadModel,
-} from "./attribute.js";
+import { DomainDbTableReadModels } from "pagopa-interop-kpi-models";
+
+import { AgreementDbTableConfig } from "./agreement.js";
+import { AttributeDbTableConfig } from "./attribute.js";
 import {
   ClientDbTableConfig,
-  ClientDbTableReadModel,
   ProducerKeychainDbTableConfig,
-  ProducerKeychainDbTableReadModel,
   ClientDbTablePartialTableConfig,
   ClientDbTablePartialTableReadModel,
 } from "./authorization.js";
@@ -18,26 +12,15 @@ import {
   CatalogDbPartialTableConfig,
   CatalogDbPartialTableReadModel,
   CatalogDbTableConfig,
-  CatalogDbTableReadModel,
 } from "./catalog.js";
-import {
-  DelegationDbTableConfig,
-  DelegationDbTableReadModel,
-} from "./delegation.js";
+import { DelegationDbTableConfig } from "./delegation.js";
 import { DeletingDbTableConfig, DeletingDbTableReadModel } from "./deleting.js";
-import {
-  EserviceTemplateDbTableConfig,
-  EserviceTemplateDbTableReadModel,
-} from "./eserviceTemplate.js";
-import { PurposeDbTableConfig, PurposeDbTableReadModel } from "./purpose.js";
-import {
-  PurposeTemplateDbTableConfig,
-  PurposeTemplateDbTableReadModel,
-} from "./purposeTemplate.js";
+import { EserviceTemplateDbTableConfig } from "./eserviceTemplate.js";
+import { PurposeDbTableConfig } from "./purpose.js";
+import { PurposeTemplateDbTableConfig } from "./purposeTemplate.js";
 import {
   TenantDbPartialTableConfig,
   TenantDbTableConfig,
-  TenantDbTableReadModel,
   TenantDbPartialTableReadModel,
 } from "./tenant.js";
 
@@ -71,20 +54,6 @@ export const DbTable = {
 } as const;
 type DbTableSchemas = typeof DbTable;
 export type DbTable = keyof DbTableSchemas;
-
-const DomainDbTableReadModels = {
-  ...AttributeDbTableReadModel,
-  ...CatalogDbTableReadModel,
-  ...AgreementDbTableReadModel,
-  ...DelegationDbTableReadModel,
-  ...PurposeDbTableReadModel,
-  ...TenantDbTableReadModel,
-  ...ClientDbTableReadModel,
-  ...ProducerKeychainDbTableReadModel,
-  ...EserviceTemplateDbTableReadModel,
-  ...PurposeTemplateDbTableReadModel,
-} as const;
-type DomainDbTableReadModels = typeof DomainDbTableReadModels;
 
 const PartialDbTableReadModels = {
   ...TenantDbPartialTableReadModel,

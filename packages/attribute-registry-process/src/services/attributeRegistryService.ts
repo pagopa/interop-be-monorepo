@@ -9,6 +9,7 @@ import {
   InternalAuthData,
   M2MAdminAuthData,
   retrieveOriginFromAuthData,
+  validateNoHyperlinksSafe,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -45,6 +46,20 @@ const retrieveTenant = async (
     throw tenantNotFound(tenantId);
   }
   return tenant;
+};
+
+const validateAttributeSeedFields = ({
+  name,
+  description,
+  code,
+}: {
+  name: string;
+  description: string;
+  code?: string;
+}): void => {
+  validateNoHyperlinksSafe(name);
+  validateNoHyperlinksSafe(description);
+  validateNoHyperlinksSafe(code);
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -156,6 +171,8 @@ export function attributeRegistryServiceBuilder(
         `Creating declared attribute with name ${apiDeclaredAttributeSeed.name}}`
       );
 
+      validateAttributeSeedFields(apiDeclaredAttributeSeed);
+
       const origin = await retrieveOriginFromAuthData(
         authData,
         readModelService,
@@ -210,6 +227,8 @@ export function attributeRegistryServiceBuilder(
         `Creating verified attribute with name ${apiVerifiedAttributeSeed.name}`
       );
 
+      validateAttributeSeedFields(apiVerifiedAttributeSeed);
+
       const origin = await retrieveOriginFromAuthData(
         authData,
         readModelService,
@@ -263,6 +282,9 @@ export function attributeRegistryServiceBuilder(
       logger.info(
         `Creating certified attribute with code ${apiCertifiedAttributeSeed.code}`
       );
+
+      validateAttributeSeedFields(apiCertifiedAttributeSeed);
+
       const certifierId = await getCertifierId(
         authData.organizationId,
         readModelService
@@ -308,6 +330,65 @@ export function attributeRegistryServiceBuilder(
       };
     },
 
+    async createCertifiedDiscreteAttribute(
+      apiCertifiedDiscreteAttributeSeed: attributeRegistryApi.CertifiedAttributeSeed,
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Attribute>> {
+      logger.info(
+        `Creating certified discrete attribute with code ${apiCertifiedDiscreteAttributeSeed.code}`
+      );
+      const certifierId = await getCertifierId(
+        authData.organizationId,
+        readModelService
+      );
+      const duplicatedAttribute =
+        await readModelService.getAttributeByCodeOriginOrName(
+          apiCertifiedDiscreteAttributeSeed.code,
+          apiCertifiedDiscreteAttributeSeed.name,
+          certifierId
+        );
+
+      if (duplicatedAttribute) {
+        throw attributeDuplicateByCodeOriginOrName(
+          apiCertifiedDiscreteAttributeSeed.name,
+          apiCertifiedDiscreteAttributeSeed.code,
+          certifierId
+        );
+      }
+
+      const newCertifiedDiscreteAttribute: Attribute = {
+        id: generateId(),
+        kind: attributeKind.certifiedDiscrete,
+        name: apiCertifiedDiscreteAttributeSeed.name,
+        description: apiCertifiedDiscreteAttributeSeed.description,
+        creationTime: new Date(),
+        code: apiCertifiedDiscreteAttributeSeed.code,
+        origin: certifierId,
+      };
+
+      logger.info(
+        `Certified discrete attribute created with id ${newCertifiedDiscreteAttribute.id}`
+      );
+
+      const event = await repository.createEvent(
+        toCreateEventAttributeAdded(
+          newCertifiedDiscreteAttribute,
+          correlationId
+        )
+      );
+
+      return {
+        data: newCertifiedDiscreteAttribute,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+
     async internalCreateCertifiedAttribute(
       apiInternalCertifiedAttributeSeed: attributeRegistryApi.InternalCertifiedAttributeSeed,
       { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
@@ -315,6 +396,8 @@ export function attributeRegistryServiceBuilder(
       logger.info(
         `Creating certified attribute with origin ${apiInternalCertifiedAttributeSeed.origin} and code ${apiInternalCertifiedAttributeSeed.code} - Internal Request`
       );
+
+      validateAttributeSeedFields(apiInternalCertifiedAttributeSeed);
 
       const duplicatedAttribute =
         await readModelService.getAttributeByCodeOriginOrName(

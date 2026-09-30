@@ -13,6 +13,32 @@ export type EserviceNewVersionApprovedRejectedToDelegateEventType =
   | "EServiceDescriptorRejectedByDelegator";
 
 export const inAppTemplates = {
+  purposeRiskAnalysisSignedToAdmin: (
+    purposeTitle: string,
+    eserviceName: string
+  ): string =>
+    `L'analisi del rischio per la finalità ${purposeTitle} associata all'e-service ${eserviceName} è stata approvata.`,
+  purposeRiskAnalysisSignedToReviewer: (
+    purposeName: string,
+    eserviceName: string
+  ): string =>
+    `L'analisi del rischio per la finalità ${purposeName} associata all'e-service ${eserviceName} è già stata approvata.`,
+  purposeRiskAnalysisAssignmentRemovedToReviewer: (
+    purposeName: string,
+    eserviceName: string
+  ): string =>
+    `L'amministratore ha rimosso l'assegnazione dell'analisi del rischio per la finalità ${purposeName} associata all'e-service ${eserviceName}.`,
+  purposeRiskAnalysisAssignedForWritingAndSigningToReviewer: (
+    producerName: string,
+    purposeName: string,
+    eserviceName: string
+  ): string =>
+    `L'ente ${producerName} ti ha assegnato un'analisi del rischio da compilare e approvare per la finalità ${purposeName} associata all'e-service ${eserviceName}.`,
+  purposeRiskAnalysisRejectedToAdmin: (
+    purposeTitle: string,
+    eserviceName: string
+  ): string =>
+    `L'analisi del rischio per la finalità ${purposeTitle} associata all'e-service ${eserviceName} è stata rifiutata.`,
   // agreements - erogazione
   agreementSubmittedToProducer: (
     consumerName: string,
@@ -127,11 +153,7 @@ export const inAppTemplates = {
       eserviceName
     } è al momento sospesa. L'archiviazione avverrà il giorno ${dateAtRomeZone(
       archivableOn
-    )}${
-      newVersionAvailable
-        ? ". È disponibile una nuova versione per continuare a scambiare dati con l'e-service"
-        : ""
-    }.`,
+    )}${newVersionAvailable ? ". È disponibile una nuova versione" : ""}.`,
   eserviceArchivingDescriptorSuspendedToProducer: (
     eserviceName: string,
     version: string,
@@ -157,7 +179,7 @@ export const inAppTemplates = {
   ): string =>
     `La versione ${version ?? ""} dell'e-service ${
       eserviceName
-    } è di nuovo attiva. ${isEserviceArchiving ? "L'e-service sarà archiviato" : "Sarà archiviata"} il giorno ${dateAtRomeZone(archivableOn)}.`,
+    } è di nuovo attiva. L'archiviazione avverrà il giorno ${dateAtRomeZone(archivableOn)}${isEserviceArchiving ? "" : ". È disponibile una nuova versione"}.`,
   eserviceArchivingDescriptorActivatedToProducer: (
     eserviceName: string,
     version: string,
@@ -223,6 +245,63 @@ export const inAppTemplates = {
       additional ? additional : ``
     }`;
   },
+  eserviceDescriptorArchivingRequestedByDelegateToDelegator: (
+    delegateName: string,
+    descriptorVersion: string,
+    eserviceName: string
+  ): string =>
+    `L'ente delegato ${delegateName} ha richiesto l'archiviazione della versione ${descriptorVersion} dell'e-service ${eserviceName}. Puoi confermare o rifiutare la richiesta.`,
+  eserviceArchivingRequestedByDelegateToDelegator: (
+    delegateName: string,
+    eserviceName: string
+  ): string =>
+    `L'ente delegato ${delegateName} ha richiesto l'archiviazione dell'e-service ${eserviceName}. Puoi confermare o rifiutare la richiesta.`,
+  eserviceDescriptorArchivingRequestApprovedByDelegatorToDelegate: (
+    delegatorName: string,
+    descriptorVersion: string,
+    eserviceName: string,
+    archivableOn: Date | undefined
+  ): string =>
+    `L'ente delegante ${delegatorName} ha approvato la tua richiesta di archiviazione della versione ${descriptorVersion} dell'e-service ${eserviceName}${archivableOn ? `. L'archiviazione avverrà il giorno ${dateAtRomeZone(archivableOn)}` : ""}.`,
+  eserviceDescriptorArchivingRequestRejectedByDelegatorToDelegate: (
+    delegatorName: string,
+    descriptorVersion: string,
+    eserviceName: string
+  ): string =>
+    `L'ente delegante ${delegatorName} ha rifiutato la tua richiesta di archiviazione della versione ${descriptorVersion} dell'e-service ${eserviceName}.`,
+  eserviceArchivingRequestApprovedByDelegatorToDelegate: (
+    delegatorName: string,
+    eserviceName: string,
+    archivableOn: Date | undefined
+  ): string =>
+    `L'ente delegante ${delegatorName} ha approvato la tua richiesta di archiviazione dell'e-service ${eserviceName}${archivableOn ? `. L'archiviazione avverrà il giorno ${dateAtRomeZone(archivableOn)}` : ""}.`,
+  eserviceArchivingRequestRejectedByDelegatorToDelegate: (
+    delegatorName: string,
+    eserviceName: string
+  ): string =>
+    `L'ente delegante ${delegatorName} ha rifiutato la tua richiesta di archiviazione dell'e-service ${eserviceName}.`,
+  eserviceArchivingRequestCanceledToDelegate: (
+    delegatorName: string,
+    eserviceName: string
+  ): string =>
+    `È stata annullata la richiesta di archiviazione per l'e-service ${eserviceName} inviata all'ente delegante ${delegatorName}.`,
+  eserviceArchivingRequestCanceledToProducer: (
+    delegatorName: string,
+    eserviceName: string
+  ): string =>
+    `L'ente delegato ${delegatorName} ha annullato la richiesta di archiviazione per l'e-service ${eserviceName}.`,
+  eserviceDescriptorArchivingRequestCanceledToDelegate: (
+    delegatorName: string,
+    eserviceName: string,
+    descriptorVersion: string
+  ): string =>
+    `È stata annullata la richiesta di archiviazione per la versione ${descriptorVersion} dell'e-service ${eserviceName} inviata all'ente delegante ${delegatorName}.`,
+  eserviceDescriptorArchivingRequestCanceledToProducer: (
+    delegatorName: string,
+    eserviceName: string,
+    descriptorVersion: string
+  ): string =>
+    `L'ente delegato ${delegatorName} ha annullato la richiesta di archiviazione per la versione ${descriptorVersion} dell'e-service ${eserviceName}.`,
   eserviceNewVersionSubmittedToDelegator: (
     delegateName: string,
     eserviceName: string
@@ -321,6 +400,22 @@ export const inAppTemplates = {
     eserviceName: string
   ): string =>
     `L'ente erogatore ${producerName} ha rifiutato la finalità ${purposeName} che il tuo ente ha inoltrato per l'e-service ${eserviceName}.`,
+  purposeRiskAnalysisAssignedForSigningToReviewer: (
+    producerName: string,
+    purposeName: string,
+    eserviceName: string
+  ): string =>
+    `L'ente ${producerName} ti ha assegnato un'analisi del rischio da approvare per la finalità ${purposeName} associata all'e-service ${eserviceName}.`,
+  purposePublishedWithRiskAnalysisToReviewer: (
+    purposeName: string,
+    eserviceName: string
+  ): string =>
+    `L'amministratore ha pubblicato la finalità ${purposeName} associata all'e-service ${eserviceName} con analisi del rischio che ti era stata assegnata.`,
+  draftPurposeDeletedWithRiskAnalysisToReviewer: (
+    purposeName: string,
+    eserviceName: string
+  ): string =>
+    `L'amministratore ha eliminato la finalità ${purposeName} associata all'e-service ${eserviceName} con analisi del rischio che ti era stata assegnata.`,
   purposeQuotaAdjustmentNewVersionToProducer: (
     consumerName: string,
     purposeName: string,
@@ -485,11 +580,11 @@ export const inAppTemplates = {
     eserviceName: string,
     descriptorVersion: string
   ): string =>
-    `La versione ${descriptorVersion} dell'e-service "${eserviceName}" non è più in fase di archiviazione.`,
+    `La versione ${descriptorVersion} dell'e-service ${eserviceName} non è più in fase di archiviazione.`,
   eserviceArchivingCanceledEserviceToConsumer: (eserviceName: string): string =>
     `L'e-service ${eserviceName} non è più in fase di archiviazione.`,
   eserviceArchivingCanceledEserviceToProducer: (eserviceName: string): string =>
-    `L'e-service "${eserviceName}" non è più in fase di archiviazione.`,
+    `L'e-service ${eserviceName} non è più in fase di archiviazione.`,
   asyncEserviceWithoutKeychainToProducer: (eserviceName: string): string =>
     `All'e-service asincrono "${eserviceName}" non è collegato nessun portachiavi. Per scambiare i dati in modalità asincrona con i fruitori, è necessario collegare almeno un portachiavi con una chiave.`,
   producerKeychainNoKeysForAsyncEserviceToProducerUsers: (

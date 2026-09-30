@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { bffApi } from "pagopa-interop-api-clients";
 import { authRole } from "pagopa-interop-commons";
-import { generateToken } from "pagopa-interop-commons-test/index.js";
+import { generateToken } from "pagopa-interop-commons-test";
 import {
   DescriptorId,
   generateId,

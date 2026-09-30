@@ -102,7 +102,8 @@ export const toBffApiRequesterCertifiedAttributes = (
   tenantName: input.name,
   attributeId: input.attributeId,
   attributeName: input.attributeName,
-  kind: tenantAttributeKind.certified,
+  kind: input.kind,
+  discreteValue: input.discreteValue,
 });
 
 export type RegistryAttributesMap = Map<

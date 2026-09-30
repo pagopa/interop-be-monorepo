@@ -41,9 +41,12 @@ import {
 } from "../model/domain/errors.js";
 import { HttpDPoPHeader } from "../model/domain/models.js";
 import {
+  publishApiTokenAudit,
+  publishConsumerTokenAudit,
+} from "../utilities/audit.js";
+import {
   deconstructGSIPK_eserviceId_descriptorId,
   logTokenGenerationInfo,
-  publishAudit,
   retrieveKey,
   validateDPoPProof,
 } from "../utilities/tokenServiceHelpers.js";
@@ -68,13 +71,15 @@ export function tokenServiceBuilder({
   tokenGenerator,
   dynamoDBClient,
   redisRateLimiter,
-  producer,
+  consumerTokenAuditProducer,
+  apiTokenAuditProducer,
   fileManager,
 }: {
   tokenGenerator: InteropTokenGenerator;
   dynamoDBClient: DynamoDBClient;
   redisRateLimiter: RateLimiter;
-  producer: Awaited<ReturnType<typeof initProducer>>;
+  consumerTokenAuditProducer: Awaited<ReturnType<typeof initProducer>>;
+  apiTokenAuditProducer: Awaited<ReturnType<typeof initProducer>>;
   fileManager: FileManager;
 }) {
   return {
@@ -250,8 +255,8 @@ export function tokenServiceBuilder({
               dpopJWK: dpopProofJWT?.header.jwk,
             });
 
-            await publishAudit({
-              producer,
+            await publishConsumerTokenAudit({
+              producer: consumerTokenAuditProducer,
               generatedToken: token,
               key,
               eserviceId,
@@ -287,6 +292,18 @@ export function tokenServiceBuilder({
             // Pass JWK directly (can be undefined).
             // generateInteropApiToken handles conditional 'cnf' inclusion.
             dpopJWK: dpopProofJWT?.header.jwk,
+          });
+
+          await publishApiTokenAudit({
+            producer: apiTokenAuditProducer,
+            generatedToken: token,
+            adminId: key.adminId,
+            organizationId: key.consumerId,
+            clientAssertion: clientAssertionJWT,
+            dpop: dpopProofJWT,
+            correlationId: getCtx().correlationId,
+            fileManager,
+            logger: getCtx().logger,
           });
 
           logTokenGenerationInfo({

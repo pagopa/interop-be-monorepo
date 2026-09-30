@@ -73,7 +73,7 @@ async function processMessage(
     await signatureService.saveSignatureReference(
       {
         safeStorageId: key,
-        fileKind: "VOUCHER_AUDIT",
+        fileKind: config.fileKind,
         fileName,
         correlationId,
         path: path.dirname(s3Key),
