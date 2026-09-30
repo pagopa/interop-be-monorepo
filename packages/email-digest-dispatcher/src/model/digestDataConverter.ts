@@ -130,22 +130,6 @@ async function enrichWithEServiceNames<T extends EntityWithEService>(
 }
 
 /**
- * Limits data to show in digest
- */
-function limitDataToShow<T>(
-  items: readonly T[],
-  maxItems: number,
-  totalCount = items.length
-): { limitedData: T[]; remainingCount: number } {
-  const limitedData = items.slice(0, maxItems);
-
-  return {
-    limitedData,
-    remainingCount: Math.max(totalCount - limitedData.length, 0),
-  };
-}
-
-/**
  * Common type for template data that can be converted to a digest.
  */
 type TemplateDigestData = {
@@ -170,21 +154,14 @@ async function templateDataToBaseDigest<
     eserviceTemplateId: string,
     eserviceTemplateVersionId: string,
     selfcareId: string | null
-  ) => string,
-  maxItems: number
+  ) => string
 ): Promise<BaseDigest> {
   if (data.length === 0) {
-    return { items: [], totalCount: 0, remainingCount: 0 };
+    return { items: [], totalCount: 0 };
   }
 
-  const { limitedData, remainingCount } = limitDataToShow(
-    data,
-    maxItems,
-    data[0].totalCount
-  );
-
   const enrichedItems = await enrichWithProducerNames(
-    limitedData.map((item) => ({
+    data.map((item) => ({
       ...item,
       entityProducerId: getProducerId(item),
     })),
@@ -203,7 +180,6 @@ async function templateDataToBaseDigest<
       ),
     })),
     totalCount: data[0].totalCount,
-    remainingCount,
   };
 }
 
@@ -213,16 +189,14 @@ async function templateDataToBaseDigest<
 export async function eserviceTemplateToBaseDigest(
   data: NewEserviceTemplate[],
   readModelService: ReadModelService,
-  selfcareId: string | null,
-  maxItems: number
+  selfcareId: string | null
 ): Promise<BaseDigest> {
   return templateDataToBaseDigest(
     data,
     readModelService,
     selfcareId,
     (item) => item.eserviceTemplateProducerId,
-    buildEserviceTemplateLinkToCreator,
-    maxItems
+    buildEserviceTemplateLinkToCreator
   );
 }
 
@@ -232,21 +206,14 @@ export async function eserviceTemplateToBaseDigest(
 export async function eserviceToBaseDigest(
   data: NewEservice[],
   readModelService: ReadModelService,
-  selfcareId: string | null,
-  maxItems: number
+  selfcareId: string | null
 ): Promise<BaseDigest> {
   if (data.length === 0) {
-    return { items: [], totalCount: 0, remainingCount: 0 };
+    return { items: [], totalCount: 0 };
   }
 
-  const { limitedData, remainingCount } = limitDataToShow(
-    data,
-    maxItems,
-    data[0].totalCount
-  );
-
   const enrichedItems = await enrichWithProducerNames(
-    limitedData.map((item) => ({
+    data.map((item) => ({
       ...item,
       entityProducerId: item.eserviceProducerId,
     })),
@@ -265,7 +232,6 @@ export async function eserviceToBaseDigest(
       ),
     })),
     totalCount: data[0].totalCount,
-    remainingCount,
   };
 }
 
@@ -276,16 +242,14 @@ export async function eserviceToBaseDigest(
 export async function popularEserviceTemplateToBaseDigest(
   data: PopularEserviceTemplate[],
   readModelService: ReadModelService,
-  selfcareId: string | null,
-  maxItems: number
+  selfcareId: string | null
 ): Promise<BaseDigest> {
   return templateDataToBaseDigest(
     data,
     readModelService,
     selfcareId,
     (item) => item.eserviceTemplateCreatorId,
-    buildEserviceTemplateLinkToInstantiator,
-    maxItems
+    buildEserviceTemplateLinkToInstantiator
   );
 }
 
@@ -311,22 +275,15 @@ async function agreementsToBaseDigest<T extends AgreementWithIds>(
   data: T[],
   getTenantId: (agreement: T) => TenantId,
   readModelService: ReadModelService,
-  selfcareId: string | null,
-  maxItems: number
+  selfcareId: string | null
 ): Promise<BaseDigest> {
   if (data.length === 0) {
-    return { items: [], totalCount: 0, remainingCount: 0 };
+    return { items: [], totalCount: 0 };
   }
-
-  const { limitedData, remainingCount } = limitDataToShow(
-    data,
-    maxItems,
-    data[0].totalCount
-  );
 
   // Enrich with e-service names
   const withEServiceNames = await enrichWithEServiceNames(
-    limitedData,
+    data,
     readModelService
   );
 
@@ -346,7 +303,6 @@ async function agreementsToBaseDigest<T extends AgreementWithIds>(
       ),
     })),
     totalCount: data[0].totalCount,
-    remainingCount,
   };
 }
 
@@ -364,16 +320,14 @@ export async function sentAgreementsToBaseDigest(
   data: SentAgreement[],
   state: AgreementState,
   readModelService: ReadModelService,
-  selfcareId: string | null,
-  maxItems: number
+  selfcareId: string | null
 ): Promise<BaseDigest> {
   const filteredData = data.filter((a) => a.state === state);
   return agreementsToBaseDigest(
     filteredData,
     (agreement) => agreement.producerId,
     readModelService,
-    selfcareId,
-    maxItems
+    selfcareId
   );
 }
 
@@ -389,15 +343,13 @@ export async function sentAgreementsToBaseDigest(
 export async function receivedAgreementsToBaseDigest(
   data: ReceivedAgreement[],
   readModelService: ReadModelService,
-  selfcareId: string | null,
-  maxItems: number
+  selfcareId: string | null
 ): Promise<BaseDigest> {
   return agreementsToBaseDigest(
     data,
     (agreement) => agreement.consumerId,
     readModelService,
-    selfcareId,
-    maxItems
+    selfcareId
   );
 }
 
@@ -413,29 +365,21 @@ export async function receivedAgreementsToBaseDigest(
 export function sentPurposesToBaseDigest(
   data: SentPurpose[],
   state: SentPurposeState,
-  selfcareId: string | null,
-  maxItems: number
+  selfcareId: string | null
 ): BaseDigest {
   const filteredData = data.filter((p) => p.state === state);
 
   if (filteredData.length === 0) {
-    return { items: [], totalCount: 0, remainingCount: 0 };
+    return { items: [], totalCount: 0 };
   }
 
-  const { limitedData, remainingCount } = limitDataToShow(
-    filteredData,
-    maxItems,
-    filteredData[0].totalCount
-  );
-
   return {
-    items: limitedData.map((purpose) => ({
+    items: filteredData.map((purpose) => ({
       name: purpose.purposeTitle,
       producerName: "",
       link: buildPurposeLink(purpose.purposeId, false, selfcareId),
     })),
     totalCount: filteredData[0].totalCount,
-    remainingCount,
   };
 }
 
@@ -452,30 +396,22 @@ export function sentPurposesToBaseDigest(
 export function receivedPurposesToBaseDigest(
   data: ReceivedPurpose[],
   state: ReceivedPurposeState,
-  selfcareId: string | null,
-  maxItems: number
+  selfcareId: string | null
 ): ReceivedPurposeDigest {
   const filteredData = data.filter((p) => p.state === state);
 
   if (filteredData.length === 0) {
-    return { items: [], totalCount: 0, remainingCount: 0 };
+    return { items: [], totalCount: 0 };
   }
 
-  const { limitedData, remainingCount } = limitDataToShow(
-    filteredData,
-    maxItems,
-    filteredData[0].totalCount
-  );
-
   return {
-    items: limitedData.map((purpose) => ({
+    items: filteredData.map((purpose) => ({
       name: purpose.purposeTitle,
       producerName: purpose.consumerName,
       consumerName: purpose.consumerName,
       link: buildPurposeLink(purpose.purposeId, true, selfcareId),
     })),
     totalCount: filteredData[0].totalCount,
-    remainingCount,
   };
 }
 
@@ -489,7 +425,7 @@ export async function verifiedAttributeToDigest(
   readModelService: ReadModelService
 ): Promise<AttributeDigest> {
   if (data.length === 0) {
-    return { items: [], totalCount: 0, remainingCount: 0 };
+    return { items: [], totalCount: 0 };
   }
 
   const enrichedItems = await enrichWithProducerNames(
@@ -509,7 +445,6 @@ export async function verifiedAttributeToDigest(
       attributeKindLabel: "(verificato)",
     })),
     totalCount: data[0].totalCount,
-    remainingCount: 0,
   };
 }
 
@@ -521,7 +456,7 @@ export function certifiedAttributeToDigest(
   data: CertifiedAttribute[]
 ): AttributeDigest {
   if (data.length === 0) {
-    return { items: [], totalCount: 0, remainingCount: 0 };
+    return { items: [], totalCount: 0 };
   }
 
   return {
@@ -533,7 +468,6 @@ export function certifiedAttributeToDigest(
       attributeKindLabel: "(certificato)",
     })),
     totalCount: data[0].totalCount,
-    remainingCount: 0,
   };
 }
 
@@ -543,21 +477,14 @@ export function certifiedAttributeToDigest(
  */
 export function combineAttributeDigests(
   verifiedDigest: AttributeDigest,
-  certifiedDigest: AttributeDigest,
-  maxItems: number
+  certifiedDigest: AttributeDigest
 ): AttributeDigest {
   const combinedItems = [...verifiedDigest.items, ...certifiedDigest.items];
   const totalCount = verifiedDigest.totalCount + certifiedDigest.totalCount;
-  const { limitedData, remainingCount } = limitDataToShow(
-    combinedItems,
-    maxItems,
-    totalCount
-  );
 
   return {
-    items: limitedData,
+    items: combinedItems,
     totalCount,
-    remainingCount,
   };
 }
 
@@ -597,36 +524,29 @@ async function delegationsToDigest<T extends DelegationWithIds>(
   state: DelegationState,
   getCounterpartyId: (delegation: T) => TenantId,
   readModelService: ReadModelService,
-  selfcareId: string | null,
-  maxItems: number
+  selfcareId: string | null
 ): Promise<DelegationDigest> {
   const filteredData = data.filter((d) => d.state === state);
 
   if (filteredData.length === 0) {
-    return { items: [], totalCount: 0, remainingCount: 0 };
+    return { items: [], totalCount: 0 };
   }
 
-  const { limitedData, remainingCount } = limitDataToShow(
-    filteredData,
-    maxItems,
-    filteredData[0].totalCount
-  );
-
   const uniqueCounterpartyIds = [
-    ...new Set(limitedData.map(getCounterpartyId)),
+    ...new Set(filteredData.map(getCounterpartyId)),
   ];
   const tenantDataMap = await readModelService.getTenantsByIds(
     uniqueCounterpartyIds
   );
 
-  const uniqueEServiceIds = [...new Set(limitedData.map((d) => d.eserviceId))];
+  const uniqueEServiceIds = [...new Set(filteredData.map((d) => d.eserviceId))];
   const descriptorIdsMap = await getCachedDescriptorIds(
     uniqueEServiceIds,
     readModelService
   );
 
   return {
-    items: limitedData.map((delegation) => {
+    items: filteredData.map((delegation) => {
       const descriptorId = descriptorIdsMap.get(delegation.eserviceId);
       return {
         name: delegation.delegationName,
@@ -640,7 +560,6 @@ async function delegationsToDigest<T extends DelegationWithIds>(
       };
     }),
     totalCount: filteredData[0].totalCount,
-    remainingCount,
   };
 }
 
@@ -657,16 +576,14 @@ export async function sentDelegationsToDigest(
   data: SentDelegation[],
   state: DelegationState,
   readModelService: ReadModelService,
-  selfcareId: string | null,
-  maxItems: number
+  selfcareId: string | null
 ): Promise<DelegationDigest> {
   return delegationsToDigest(
     data,
     state,
     (delegation) => delegation.delegateId,
     readModelService,
-    selfcareId,
-    maxItems
+    selfcareId
   );
 }
 
@@ -683,15 +600,13 @@ export async function receivedDelegationsToDigest(
   data: ReceivedDelegation[],
   state: DelegationState,
   readModelService: ReadModelService,
-  selfcareId: string | null,
-  maxItems: number
+  selfcareId: string | null
 ): Promise<DelegationDigest> {
   return delegationsToDigest(
     data,
     state,
     (delegation) => delegation.delegatorId,
     readModelService,
-    selfcareId,
-    maxItems
+    selfcareId
   );
 }

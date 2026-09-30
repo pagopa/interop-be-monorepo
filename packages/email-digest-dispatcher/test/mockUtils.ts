@@ -54,7 +54,6 @@ export function getMockTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 8,
-      remainingCount: 2,
     },
     updatedEservices: {
       items: [
@@ -90,7 +89,6 @@ export function getMockTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 9,
-      remainingCount: 3,
     },
     updatedEserviceTemplates: {
       items: [
@@ -126,7 +124,6 @@ export function getMockTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 7,
-      remainingCount: 1,
     },
     acceptedSentAgreements: {
       items: [
@@ -157,7 +154,6 @@ export function getMockTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 7,
-      remainingCount: 2,
     },
     rejectedSentAgreements: {
       items: [
@@ -188,7 +184,6 @@ export function getMockTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 7,
-      remainingCount: 2,
     },
     suspendedSentAgreements: {
       items: [
@@ -219,7 +214,6 @@ export function getMockTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 7,
-      remainingCount: 2,
     },
     publishedSentPurposes: {
       items: [
@@ -250,7 +244,6 @@ export function getMockTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 7,
-      remainingCount: 2,
     },
     rejectedSentPurposes: {
       items: [
@@ -281,7 +274,6 @@ export function getMockTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 7,
-      remainingCount: 2,
     },
     waitingForApprovalSentPurposes: {
       items: [
@@ -312,7 +304,6 @@ export function getMockTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 7,
-      remainingCount: 2,
     },
     waitingForApprovalReceivedAgreements: {
       items: [
@@ -343,7 +334,6 @@ export function getMockTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 7,
-      remainingCount: 2,
     },
     publishedReceivedPurposes: {
       items: [
@@ -379,7 +369,6 @@ export function getMockTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 7,
-      remainingCount: 2,
     },
     waitingForApprovalReceivedPurposes: {
       items: [
@@ -415,7 +404,6 @@ export function getMockTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 7,
-      remainingCount: 2,
     },
     waitingForApprovalReceivedDelegations: {
       items: [
@@ -451,7 +439,6 @@ export function getMockTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 7,
-      remainingCount: 2,
     },
     revokedReceivedDelegations: {
       items: [
@@ -487,7 +474,6 @@ export function getMockTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 7,
-      remainingCount: 2,
     },
     receivedAttributes: {
       items: [
@@ -528,7 +514,6 @@ export function getMockTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 7,
-      remainingCount: 2,
     },
     revokedAttributes: {
       items: [
@@ -569,7 +554,6 @@ export function getMockTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 7,
-      remainingCount: 2,
     },
   };
 }
@@ -626,7 +610,6 @@ export function getMockLimitedTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 6,
-      remainingCount: 0,
     },
     updatedEservices: {
       items: [
@@ -662,7 +645,6 @@ export function getMockLimitedTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 6,
-      remainingCount: 0,
     },
     updatedEserviceTemplates: {
       items: [
@@ -698,7 +680,6 @@ export function getMockLimitedTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 6,
-      remainingCount: 0,
     },
     acceptedSentAgreements: {
       items: [
@@ -729,7 +710,6 @@ export function getMockLimitedTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 5,
-      remainingCount: 0,
     },
     rejectedSentAgreements: {
       items: [
@@ -760,7 +740,6 @@ export function getMockLimitedTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 5,
-      remainingCount: 0,
     },
     suspendedSentAgreements: {
       items: [
@@ -791,7 +770,6 @@ export function getMockLimitedTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 5,
-      remainingCount: 0,
     },
     publishedSentPurposes: {
       items: [
@@ -822,7 +800,6 @@ export function getMockLimitedTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 5,
-      remainingCount: 0,
     },
     rejectedSentPurposes: {
       items: [
@@ -853,7 +830,6 @@ export function getMockLimitedTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 5,
-      remainingCount: 0,
     },
     waitingForApprovalSentPurposes: {
       items: [
@@ -884,7 +860,6 @@ export function getMockLimitedTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 5,
-      remainingCount: 0,
     },
     waitingForApprovalReceivedAgreements: {
       items: [
@@ -915,7 +890,6 @@ export function getMockLimitedTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 5,
-      remainingCount: 0,
     },
     publishedReceivedPurposes: {
       items: [
@@ -951,7 +925,6 @@ export function getMockLimitedTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 5,
-      remainingCount: 0,
     },
     waitingForApprovalReceivedPurposes: {
       items: [
@@ -987,7 +960,6 @@ export function getMockLimitedTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 5,
-      remainingCount: 0,
     },
     waitingForApprovalReceivedDelegations: {
       items: [
@@ -1023,7 +995,6 @@ export function getMockLimitedTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 5,
-      remainingCount: 0,
     },
     revokedReceivedDelegations: {
       items: [
@@ -1059,7 +1030,6 @@ export function getMockLimitedTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 5,
-      remainingCount: 0,
     },
     receivedAttributes: {
       items: [
@@ -1100,7 +1070,6 @@ export function getMockLimitedTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 5,
-      remainingCount: 0,
     },
     revokedAttributes: {
       items: [
@@ -1141,7 +1110,6 @@ export function getMockLimitedTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 5,
-      remainingCount: 0,
     },
   };
 }
@@ -1173,7 +1141,6 @@ export function getMockSingularTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 1,
-      remainingCount: 0,
     },
     updatedEservices: {
       items: [
@@ -1184,7 +1151,6 @@ export function getMockSingularTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 1,
-      remainingCount: 0,
     },
     updatedEserviceTemplates: {
       items: [
@@ -1195,7 +1161,6 @@ export function getMockSingularTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 1,
-      remainingCount: 0,
     },
     acceptedSentAgreements: {
       items: [
@@ -1206,7 +1171,6 @@ export function getMockSingularTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 1,
-      remainingCount: 0,
     },
     rejectedSentAgreements: {
       items: [
@@ -1217,7 +1181,6 @@ export function getMockSingularTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 1,
-      remainingCount: 0,
     },
     suspendedSentAgreements: {
       items: [
@@ -1228,7 +1191,6 @@ export function getMockSingularTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 1,
-      remainingCount: 0,
     },
     publishedSentPurposes: {
       items: [
@@ -1239,7 +1201,6 @@ export function getMockSingularTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 1,
-      remainingCount: 0,
     },
     rejectedSentPurposes: {
       items: [
@@ -1250,7 +1211,6 @@ export function getMockSingularTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 1,
-      remainingCount: 0,
     },
     waitingForApprovalSentPurposes: {
       items: [
@@ -1261,7 +1221,6 @@ export function getMockSingularTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 1,
-      remainingCount: 0,
     },
     waitingForApprovalReceivedAgreements: {
       items: [
@@ -1272,7 +1231,6 @@ export function getMockSingularTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 1,
-      remainingCount: 0,
     },
     publishedReceivedPurposes: {
       items: [
@@ -1284,7 +1242,6 @@ export function getMockSingularTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 1,
-      remainingCount: 0,
     },
     waitingForApprovalReceivedPurposes: {
       items: [
@@ -1296,7 +1253,6 @@ export function getMockSingularTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 1,
-      remainingCount: 0,
     },
     waitingForApprovalReceivedDelegations: {
       items: [
@@ -1308,7 +1264,6 @@ export function getMockSingularTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 1,
-      remainingCount: 0,
     },
     revokedReceivedDelegations: {
       items: [
@@ -1320,7 +1275,6 @@ export function getMockSingularTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 1,
-      remainingCount: 0,
     },
     receivedAttributes: {
       items: [
@@ -1333,7 +1287,6 @@ export function getMockSingularTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 1,
-      remainingCount: 0,
     },
     revokedAttributes: {
       items: [
@@ -1346,7 +1299,6 @@ export function getMockSingularTenantDigestData(): TenantDigestData {
         },
       ],
       totalCount: 1,
-      remainingCount: 0,
     },
   };
 }
@@ -1385,7 +1337,6 @@ export function getMockPartialDigestData(): TenantDigestData {
         },
       ],
       totalCount: 2,
-      remainingCount: 0,
     },
     updatedEservices: {
       items: [
@@ -1396,39 +1347,34 @@ export function getMockPartialDigestData(): TenantDigestData {
         },
       ],
       totalCount: 1,
-      remainingCount: 0,
     },
-    updatedEserviceTemplates: { items: [], totalCount: 0, remainingCount: 0 },
+    updatedEserviceTemplates: { items: [], totalCount: 0 },
     // Sent Items section - empty
-    acceptedSentAgreements: { items: [], totalCount: 0, remainingCount: 0 },
-    rejectedSentAgreements: { items: [], totalCount: 0, remainingCount: 0 },
-    suspendedSentAgreements: { items: [], totalCount: 0, remainingCount: 0 },
-    publishedSentPurposes: { items: [], totalCount: 0, remainingCount: 0 },
-    rejectedSentPurposes: { items: [], totalCount: 0, remainingCount: 0 },
+    acceptedSentAgreements: { items: [], totalCount: 0 },
+    rejectedSentAgreements: { items: [], totalCount: 0 },
+    suspendedSentAgreements: { items: [], totalCount: 0 },
+    publishedSentPurposes: { items: [], totalCount: 0 },
+    rejectedSentPurposes: { items: [], totalCount: 0 },
     waitingForApprovalSentPurposes: {
       items: [],
       totalCount: 0,
-      remainingCount: 0,
     },
     // Received Items section - empty
     waitingForApprovalReceivedAgreements: {
       items: [],
       totalCount: 0,
-      remainingCount: 0,
     },
-    publishedReceivedPurposes: { items: [], totalCount: 0, remainingCount: 0 },
+    publishedReceivedPurposes: { items: [], totalCount: 0 },
     waitingForApprovalReceivedPurposes: {
       items: [],
       totalCount: 0,
-      remainingCount: 0,
     },
     // Delegations section - empty
     waitingForApprovalReceivedDelegations: {
       items: [],
       totalCount: 0,
-      remainingCount: 0,
     },
-    revokedReceivedDelegations: { items: [], totalCount: 0, remainingCount: 0 },
+    revokedReceivedDelegations: { items: [], totalCount: 0 },
     // Attributes section - populated
     receivedAttributes: {
       items: [
@@ -1441,7 +1387,6 @@ export function getMockPartialDigestData(): TenantDigestData {
         },
       ],
       totalCount: 1,
-      remainingCount: 0,
     },
     revokedAttributes: {
       items: [
@@ -1454,7 +1399,6 @@ export function getMockPartialDigestData(): TenantDigestData {
         },
       ],
       totalCount: 1,
-      remainingCount: 0,
     },
   };
 }
