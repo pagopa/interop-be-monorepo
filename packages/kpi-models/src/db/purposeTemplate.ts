@@ -1,4 +1,5 @@
 import {
+  eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate as purposeTemplateEserviceTemplateVersionInReadmodelPurposeTemplate,
   purposeTemplateInReadmodelPurposeTemplate,
   purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
@@ -9,6 +10,7 @@ import {
 
 import { PurposeTemplateSchema } from "../purposeTemplate/purposeTemplate.js";
 import { PurposeTemplateEServiceDescriptorSchema } from "../purposeTemplate/purposeTemplateEserviceDescriptor.js";
+import { PurposeTemplateEserviceTemplateVersionSchema } from "../purposeTemplate/purposeTemplateEserviceTemplateVersion.js";
 import { PurposeTemplateRiskAnalysisAnswerSchema } from "../purposeTemplate/purposeTemplateRiskAnalysisAnswer.js";
 import { PurposeTemplateRiskAnalysisAnswerAnnotationSchema } from "../purposeTemplate/purposeTemplateRiskAnalysisAnswerAnnotation.js";
 import { PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSchema } from "../purposeTemplate/purposeTemplateRiskAnalysisAnswerAnnotationDocument.js";
@@ -24,6 +26,8 @@ export const PurposeTemplateDbTableConfig = {
     PurposeTemplateRiskAnalysisAnswerAnnotationSchema,
   purpose_template_risk_analysis_answer_annotation_document:
     PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSchema,
+  purpose_template_eservice_template_version:
+    PurposeTemplateEserviceTemplateVersionSchema,
 } as const;
 export type PurposeTemplateDbTableConfig = typeof PurposeTemplateDbTableConfig;
 
@@ -39,6 +43,8 @@ export const PurposeTemplateDbTableReadModel = {
     purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
   purpose_template_risk_analysis_answer_annotation_document:
     purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
+  purpose_template_eservice_template_version:
+    purposeTemplateEserviceTemplateVersionInReadmodelPurposeTemplate,
 } as const;
 export type PurposeTemplateDbTableReadModel =
   typeof PurposeTemplateDbTableReadModel;
@@ -46,5 +52,5 @@ export type PurposeTemplateDbTableReadModel =
 export type PurposeTemplateDbTable = keyof typeof PurposeTemplateDbTableConfig;
 
 export const PurposeTemplateDbTable = Object.fromEntries(
-  Object.keys(PurposeTemplateDbTableConfig).map((k) => [k, k])
+  Object.keys(PurposeTemplateDbTableConfig).map((k) => [k, k]),
 ) as { [K in PurposeTemplateDbTable]: K };
