@@ -1,10 +1,14 @@
 import { initProducer } from "kafka-iam-auth";
+import { buildHTMLTemplateService, logger } from "pagopa-interop-commons";
 import {
   CorrelationId,
   NotificationType,
   generateId,
 } from "pagopa-interop-models";
-import { buildHTMLTemplateService, logger } from "pagopa-interop-commons";
+import {
+  registerEmailTemplatePartials,
+  runScheduledDeliveryBatch,
+} from "pagopa-interop-notification-commons";
 import {
   agreementReadModelServiceBuilder,
   attributeReadModelServiceBuilder,
@@ -16,13 +20,10 @@ import {
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import {
-  registerEmailTemplatePartials,
-  runScheduledDeliveryBatch,
-} from "pagopa-interop-notification-commons";
-import {
   makeScheduledNotificationDrizzleConnection,
   scheduledNotificationChannel,
 } from "pagopa-interop-scheduled-notification-db-models";
+
 import { config } from "./config/config.js";
 import { dispatchEmailDeliveryBuilder } from "./handlers/dispatchEmailDelivery.js";
 import { emailKafkaSinkBuilder } from "./services/emailKafkaSinkService.js";

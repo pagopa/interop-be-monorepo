@@ -1,11 +1,12 @@
+import { KafkaMessage } from "kafkajs";
 import {
   FileManager,
   formatDateyyyyMMdd,
   formatTimeHHmmss,
   Logger,
 } from "pagopa-interop-commons";
-import { KafkaMessage } from "kafkajs";
 import { generateId } from "pagopa-interop-models";
+
 import { config } from "./config/config.js";
 
 export async function handleMessages(

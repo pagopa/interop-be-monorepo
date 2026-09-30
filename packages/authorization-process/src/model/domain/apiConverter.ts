@@ -17,6 +17,7 @@ import {
   ClientKind,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import { assertJwkKtyIsDefined } from "../../services/validators.js";
 
 const clientKindToApiClientKind = (

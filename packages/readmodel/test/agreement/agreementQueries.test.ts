@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
-import { Agreement, WithMetadata } from "pagopa-interop-models";
 import { getMockAgreement } from "pagopa-interop-commons-test";
+import { Agreement, WithMetadata } from "pagopa-interop-models";
+import { describe, expect, it } from "vitest";
+
 import { upsertAgreement } from "../../src/testUtils.js";
 import { readModelDB } from "../utils.js";
 import { agreementReadModelService } from "./agreementUtils.js";

@@ -1,10 +1,11 @@
-import { WithLogger } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
-import { ApiError, featureFlagNotEnabled } from "pagopa-interop-models";
+import { WithLogger } from "pagopa-interop-commons";
 import {
   verifyDPoPProof,
   verifyDPoPProofSignature,
 } from "pagopa-interop-dpop-validation";
+import { ApiError, featureFlagNotEnabled } from "pagopa-interop-models";
+
 import { config, type BffProcessConfig } from "../config/config.js";
 import { BffAppContext } from "../utilities/context.js";
 

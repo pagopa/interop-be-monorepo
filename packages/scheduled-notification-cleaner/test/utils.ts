@@ -1,5 +1,4 @@
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-import { inject, afterEach, beforeEach, vi } from "vitest";
 import {
   NotificationId,
   generateId,
@@ -12,6 +11,7 @@ import {
   scheduledNotification,
   ScheduledNotificationChannel,
 } from "pagopa-interop-scheduled-notification-db-models";
+import { inject, afterEach, beforeEach, vi } from "vitest";
 
 export const { cleanup, scheduledNotificationDB } =
   await setupTestContainersVitest(

@@ -1,3 +1,4 @@
+import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import {
   InteropTokenGenerator,
   RefreshableInteropToken,
@@ -10,13 +11,13 @@ import {
   makeDrizzleConnectionWithCleanup,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
+
 import { config } from "./config/config.js";
-import { TenantProcessService } from "./service/tenantProcessService.js";
 import { AttributeProcessService } from "./service/attributeProcessService.js";
+import { IstatClient } from "./service/istatClient.js";
 import { importAttributes } from "./service/processor.js";
 import { readModelQueriesBuilderSQL } from "./service/readModelServiceSQL.js";
-import { IstatClient } from "./service/istatClient.js";
-import { attributeRegistryApi } from "pagopa-interop-api-clients";
+import { TenantProcessService } from "./service/tenantProcessService.js";
 
 const istatClient = new IstatClient(config.istatDownloadUrl);
 const { db, cleanup } = makeDrizzleConnectionWithCleanup(config);

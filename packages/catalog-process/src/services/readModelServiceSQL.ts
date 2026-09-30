@@ -1,4 +1,21 @@
 import {
+  and,
+  asc,
+  count,
+  countDistinct,
+  desc,
+  eq,
+  exists,
+  inArray,
+  isNotNull,
+  isNull,
+  lte,
+  notExists,
+  or,
+  SQL,
+} from "drizzle-orm";
+import { PgSelect } from "drizzle-orm/pg-core";
+import {
   ascLower,
   createListResult,
   escapeSqlLike,
@@ -76,26 +93,11 @@ import {
   agreementSignedContractInReadmodelAgreement,
   delegationSignedContractDocumentInReadmodelDelegation,
   eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+  eserviceDescriptorArchivingRequestInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
 import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
-import {
-  and,
-  asc,
-  count,
-  countDistinct,
-  desc,
-  eq,
-  exists,
-  inArray,
-  isNotNull,
-  isNull,
-  lte,
-  notExists,
-  or,
-  SQL,
-} from "drizzle-orm";
 import { match } from "ts-pattern";
-import { PgSelect } from "drizzle-orm/pg-core";
+
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import { activeDescriptorStates } from "./descriptorStates.js";
 import { hasRoleToAccessInactiveDescriptors } from "./validators.js";
@@ -462,6 +464,8 @@ export function readModelServiceBuilderSQL(
                 eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
               archivingSchedule:
                 eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+              archivingRequests:
+                eserviceDescriptorArchivingRequestInReadmodelCatalog,
               asyncExchangeProperties:
                 eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
             })
@@ -541,6 +545,24 @@ export function readModelServiceBuilderSQL(
               eq(
                 eserviceDescriptorInReadmodelCatalog.id,
                 eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+              )
+            )
+            .leftJoin(
+              eserviceDescriptorArchivingRequestInReadmodelCatalog,
+              or(
+                eq(
+                  eserviceDescriptorInReadmodelCatalog.id,
+                  eserviceDescriptorArchivingRequestInReadmodelCatalog.descriptorId
+                ),
+                and(
+                  eq(
+                    eserviceInReadmodelCatalog.id,
+                    eserviceDescriptorArchivingRequestInReadmodelCatalog.eserviceId
+                  ),
+                  isNull(
+                    eserviceDescriptorArchivingRequestInReadmodelCatalog.descriptorId
+                  )
+                )
               )
             )
             .orderBy(ascLower(eserviceInReadmodelCatalog.name)),

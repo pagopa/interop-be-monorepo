@@ -8,9 +8,10 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { makeScheduledNotificationDrizzleConnection } from "pagopa-interop-scheduled-notification-db-models";
+
 import { config } from "./config/config.js";
-import { schedulerServiceBuilder } from "./services/schedulerService.js";
 import { handleCatalogMessageV2 } from "./handlers/catalog/handleCatalogMessageV2.js";
+import { schedulerServiceBuilder } from "./services/schedulerService.js";
 
 const db = makeScheduledNotificationDrizzleConnection(config);
 const schedulerService = schedulerServiceBuilder(db);

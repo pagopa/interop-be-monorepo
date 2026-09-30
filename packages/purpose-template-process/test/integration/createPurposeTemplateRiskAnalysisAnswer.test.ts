@@ -3,6 +3,10 @@
 import { fail } from "assert";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
+  unexpectedRiskAnalysisTemplateFieldError,
+  unexpectedRiskAnalysisTemplateFieldValueError,
+} from "pagopa-interop-commons";
+import {
   decodeProtobufPayload,
   getMockAuthData,
   getMockContext,
@@ -18,10 +22,7 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
-import {
-  unexpectedRiskAnalysisTemplateFieldError,
-  unexpectedRiskAnalysisTemplateFieldValueError,
-} from "pagopa-interop-commons";
+
 import {
   hyperlinkDetectionError,
   purposeTemplateNotFound,

@@ -3,10 +3,11 @@ import {
   attributeRegistryApi,
 } from "pagopa-interop-api-clients";
 import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
-import { ApiGatewayAppContext } from "../utilities/context.js";
+
 import { toApiGatewayAttribute } from "../api/attributeApiConverter.js";
 import { clientStatusCodeToError } from "../clients/catchClientError.js";
 import { attributeAlreadyExists, attributeNotFound } from "../models/errors.js";
+import { ApiGatewayAppContext } from "../utilities/context.js";
 
 export async function getAllBulkAttributes(
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient,

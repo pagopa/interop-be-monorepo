@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { rulesVersionNotFoundError } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAuthData,
@@ -25,7 +26,7 @@ import {
   tenantKind,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
-import { rulesVersionNotFoundError } from "pagopa-interop-commons";
+
 import {
   editNotAllowedForReviewMode,
   purposeNotFound,
@@ -63,11 +64,11 @@ describe("editRiskAnalysisForm", () => {
       ...getMockPurpose([getMockPurposeVersion()]),
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
+      riskAnalysisReviewMode:
+        riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-        reviewerIds: [reviewerId],
+        reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.assigned,
-        sentToReviewerAt: new Date(),
       },
     };
 
@@ -154,9 +155,9 @@ describe("editRiskAnalysisForm", () => {
       ...getMockPurpose([getMockPurposeVersion()]),
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-        reviewerIds: [reviewerId],
+        reviewers: [{ id: reviewerId }],
         signingState: riskAnalysisSigningState.draft,
       },
     };
@@ -180,39 +181,45 @@ describe("editRiskAnalysisForm", () => {
     ).rejects.toThrowError(editNotAllowedForReviewMode(mockPurpose.id));
   });
 
-  it("should throw reviewerWorkflowNotEditable if the workflow is not in Assigned state", async () => {
-    const reviewerId: UserId = generateId();
-    const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
-      consumerId: mockTenant.id,
-      eserviceId: mockEService.id,
-      reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-        reviewerIds: [reviewerId],
-        signingState: riskAnalysisSigningState.signed,
-        signedBy: reviewerId,
-        sentToReviewerAt: new Date(),
-      },
-    };
+  it.each([
+    riskAnalysisSigningState.submitted,
+    riskAnalysisSigningState.signed,
+  ])(
+    "should throw reviewerWorkflowNotEditable if the workflow is not in Assigned state (%s)",
+    async (signingState) => {
+      const reviewerId: UserId = generateId();
+      const mockPurpose: Purpose = {
+        ...getMockPurpose([getMockPurposeVersion()]),
+        consumerId: mockTenant.id,
+        eserviceId: mockEService.id,
+        riskAnalysisReviewMode:
+          riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+        reviewerWorkflow: {
+          reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
+          signingState,
+          signedBy: reviewerId,
+        },
+      };
 
-    await addOneTenant(mockTenant);
-    await addOneEService(mockEService);
-    await addOnePurpose(mockPurpose);
+      await addOneTenant(mockTenant);
+      await addOneEService(mockEService);
+      await addOnePurpose(mockPurpose);
 
-    const riskAnalysisFormSeed = buildRiskAnalysisFormSeed(
-      getMockValidRiskAnalysisForm(tenantKind.PA)
-    );
+      const riskAnalysisFormSeed = buildRiskAnalysisFormSeed(
+        getMockValidRiskAnalysisForm(tenantKind.PA)
+      );
 
-    await expect(
-      purposeService.editRiskAnalysisForm(
-        mockPurpose.id,
-        riskAnalysisFormSeed,
-        getMockContext({
-          authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
-        })
-      )
-    ).rejects.toThrowError(reviewerWorkflowNotEditable(mockPurpose.id));
-  });
+      await expect(
+        purposeService.editRiskAnalysisForm(
+          mockPurpose.id,
+          riskAnalysisFormSeed,
+          getMockContext({
+            authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
+          })
+        )
+      ).rejects.toThrowError(reviewerWorkflowNotEditable(mockPurpose.id));
+    }
+  );
 
   it("should throw tenantIsNotTheConsumer if the requester is not the consumer", async () => {
     const reviewerId: UserId = generateId();
@@ -220,11 +227,11 @@ describe("editRiskAnalysisForm", () => {
       ...getMockPurpose([getMockPurposeVersion()]),
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
+      riskAnalysisReviewMode:
+        riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-        reviewerIds: [reviewerId],
+        reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.assigned,
-        sentToReviewerAt: new Date(),
       },
     };
 
@@ -254,11 +261,11 @@ describe("editRiskAnalysisForm", () => {
       ...getMockPurpose([getMockPurposeVersion()]),
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
+      riskAnalysisReviewMode:
+        riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-        reviewerIds: [generateId<UserId>()],
+        reviewers: [{ id: generateId<UserId>(), sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.assigned,
-        sentToReviewerAt: new Date(),
       },
     };
 
@@ -290,11 +297,11 @@ describe("editRiskAnalysisForm", () => {
       ...getMockPurpose([getMockPurposeVersion()]),
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
+      riskAnalysisReviewMode:
+        riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-        reviewerIds: [reviewerId],
+        reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.assigned,
-        sentToReviewerAt: new Date(),
       },
     };
 

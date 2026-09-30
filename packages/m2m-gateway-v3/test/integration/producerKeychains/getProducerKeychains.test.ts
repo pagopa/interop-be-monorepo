@@ -1,20 +1,21 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { generateMock } from "@anatine/zod-mock";
 import { authorizationApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
-import { generateId } from "pagopa-interop-models";
 import {
   getMockedApiPartialProducerKeychain,
   getMockedApiFullProducerKeychain,
 } from "pagopa-interop-commons-test";
-import { generateMock } from "@anatine/zod-mock";
+import { generateId } from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { z } from "zod";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 import {
   producerKeychainService,
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 
 describe("getProducerKeychains", () => {
   const mockParams: m2mGatewayApiV3.GetProducerKeychainsQueryParams = {
