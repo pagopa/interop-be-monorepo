@@ -1,14 +1,15 @@
-import { initDB, initFileManager, startServer } from "pagopa-interop-commons";
 import { drizzle } from "drizzle-orm/node-postgres";
-import pg from "pg";
+import { initDB, initFileManager, startServer } from "pagopa-interop-commons";
 import {
   makeDrizzleConnection,
   catalogReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
   eserviceTemplateReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
-import { config } from "./config/config.js";
+import pg from "pg";
+
 import { createApp } from "./app.js";
+import { config } from "./config/config.js";
 import { catalogServiceBuilder } from "./services/catalogService.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 

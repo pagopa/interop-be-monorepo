@@ -2,6 +2,7 @@
 import path from "node:path";
 import { FileManager, Logger } from "pagopa-interop-commons";
 import { genericInternalError } from "pagopa-interop-models";
+
 import { EventSignerConfig } from "../config/config.js";
 
 type PreparedFileForUpload = {

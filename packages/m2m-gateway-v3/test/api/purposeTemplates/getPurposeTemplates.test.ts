@@ -1,19 +1,20 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { generateMock } from "@anatine/zod-mock";
+import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import { authRole, AuthRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockedApiPurposeTemplate,
   getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { generateId, tenantKind } from "pagopa-interop-models";
-import { describe, expect, it, vi } from "vitest";
-import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import request from "supertest";
-import { authRole, AuthRole } from "pagopa-interop-commons";
-import { generateMock } from "@anatine/zod-mock";
+import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
-import { api, mockPurposeTemplateService } from "../../vitest.api.setup.js";
-import { appBasePath } from "../../../src/config/appBasePath.js";
+
 import { toM2MGatewayApiPurposeTemplate } from "../../../src/api/purposeTemplateApiConverter.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
+import { api, mockPurposeTemplateService } from "../../vitest.api.setup.js";
 
 describe("API GET /purposeTemplates router test", () => {
   const authorizedRoles: AuthRole[] = [

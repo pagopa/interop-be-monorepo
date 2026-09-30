@@ -1,4 +1,3 @@
-import { match } from "ts-pattern";
 import {
   Agreement,
   AgreementDocument,
@@ -7,6 +6,8 @@ import {
   AgreementState,
   agreementState,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
+
 import {
   AgreementDocumentV1Notification,
   AgreementStampV1Notification,

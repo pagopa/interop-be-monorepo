@@ -1,17 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable functional/immutable-data */
-import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
-import {
-  PurposeTemplateEventEnvelopeV2,
-  generateId,
-  PurposeTemplateAddedV2,
-  PurposeTemplateArchivedV2,
-  PurposeTemplateEServiceTemplateLinkedV2,
-  PurposeTemplateEServiceTemplateUnlinkedV2,
-  toPurposeTemplateV2,
-  toEServiceTemplateV2,
-} from "pagopa-interop-models";
 import {
   FileManager,
   initFileManager,
@@ -27,9 +16,21 @@ import {
   getMockPurposeTemplate,
   getMockEServiceTemplate,
 } from "pagopa-interop-commons-test";
+import {
+  PurposeTemplateEventEnvelopeV2,
+  generateId,
+  PurposeTemplateAddedV2,
+  PurposeTemplateArchivedV2,
+  PurposeTemplateEServiceTemplateLinkedV2,
+  PurposeTemplateEServiceTemplateUnlinkedV2,
+  toPurposeTemplateV2,
+  toEServiceTemplateV2,
+} from "pagopa-interop-models";
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+
 import { config } from "../../src/config/config.js";
-import { dynamoDBClient } from "../utils/utils.js";
 import { handlePurposeTemplateMessageV2 } from "../../src/handlers/handlePurposeTemplateMessageV2.js";
+import { dynamoDBClient } from "../utils/utils.js";
 
 const fileManager: FileManager = initFileManager(config);
 const safeStorageService: SafeStorageService =

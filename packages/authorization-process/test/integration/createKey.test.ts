@@ -1,5 +1,18 @@
 import crypto from "crypto";
-import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
+import {
+  authorizationApi,
+  selfcareV2ClientApi,
+} from "pagopa-interop-api-clients";
+import { AuthData, calculateKid, createJWK } from "pagopa-interop-commons";
+import {
+  decodeProtobufPayload,
+  getMockAuthData,
+  getMockContext,
+  getMockKey,
+  getMockProducerKeychain,
+  readLastEventByStreamId,
+} from "pagopa-interop-commons-test";
+import { getMockClient } from "pagopa-interop-commons-test";
 import {
   Client,
   ClientKeyAddedV2,
@@ -15,21 +28,10 @@ import {
   notAllowedPrivateKeyException,
   notAnRSAKey,
   toClientV2,
+  hyperlinkDetectionError,
 } from "pagopa-interop-models";
-import { AuthData, calculateKid, createJWK } from "pagopa-interop-commons";
-import {
-  decodeProtobufPayload,
-  getMockAuthData,
-  getMockContext,
-  getMockKey,
-  getMockProducerKeychain,
-  readLastEventByStreamId,
-} from "pagopa-interop-commons-test";
-import { getMockClient } from "pagopa-interop-commons-test";
-import {
-  authorizationApi,
-  selfcareV2ClientApi,
-} from "pagopa-interop-api-clients";
+import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
+
 import {
   clientNotFound,
   keyAlreadyExists,
@@ -494,5 +496,21 @@ describe("createKey", () => {
         getMockContext({ authData: mockAuthData })
       )
     ).rejects.toThrowError(invalidKeyLength(1024, 2048));
+  });
+  it("should throw hyperlinkDetectionError when the key name contains a hyperlink", async () => {
+    const nameWithHyperlink = "key https://evil.example.com";
+    const seedWithHyperlink: authorizationApi.KeySeed = {
+      ...keySeed,
+      name: nameWithHyperlink,
+    };
+    await expect(
+      authorizationService.createKey(
+        {
+          clientId: mockClient.id,
+          keySeed: seedWithHyperlink,
+        },
+        getMockContext({ authData: mockAuthData })
+      )
+    ).rejects.toThrowError(hyperlinkDetectionError(nameWithHyperlink));
   });
 });

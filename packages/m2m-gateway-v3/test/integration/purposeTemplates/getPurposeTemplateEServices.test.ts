@@ -1,4 +1,3 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   m2mGatewayApiV3,
   purposeTemplateApi,
@@ -8,15 +7,17 @@ import {
   getMockedApiEServiceDescriptorPurposeTemplate,
 } from "pagopa-interop-commons-test";
 import { generateId, PurposeTemplateId } from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { toM2MGatewayApiEService } from "../../../src/api/eserviceApiConverter.js";
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
   purposeTemplateService,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
-import { toM2MGatewayApiEService } from "../../../src/api/eserviceApiConverter.js";
 
 describe("getPurposeTemplateEServiceDescriptors", () => {
   const mockParams: m2mGatewayApiV3.GetPurposeTemplateEServicesQueryParams = {

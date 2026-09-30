@@ -8,7 +8,8 @@ import {
 import {
   generateId,
   ClientId,
-  GeneratedTokenAuditDetails,
+  GeneratedConsumerTokenAuditDetails,
+  GeneratedApiTokenAuditDetails,
   EServiceId,
   DescriptorId,
   AgreementId,
@@ -19,6 +20,7 @@ import {
   genericInternalError,
 } from "pagopa-interop-models";
 import { inject, vi } from "vitest";
+
 import { HttpDPoPHeader } from "../src/model/domain/models.js";
 
 export const dpopConfig = inject("dpopConfig");
@@ -27,6 +29,9 @@ if (!dpopConfig) {
 }
 
 export const mockProducer = {
+  send: vi.fn(),
+};
+export const mockApiProducer = {
   send: vi.fn(),
 };
 export const mockKMSClient = {
@@ -57,46 +62,82 @@ export const getMockTokenRequest = async (
   body: await getMockAccessTokenRequest(),
 });
 
-export const getMockAuditMessage = (): GeneratedTokenAuditDetails => {
-  const correlationId = generateId();
-  const eserviceId = generateId<EServiceId>();
-  const descriptorId = generateId<DescriptorId>();
-  const agreementId = generateId<AgreementId>();
-  const clientId = generateId<ClientId>();
-  const purposeId = generateId<PurposeId>();
-  const kid = "kid";
-  const purposeVersionId = generateId<PurposeVersionId>();
-  const consumerId = generateId<TenantId>();
-  const clientAssertionJti = generateId();
+export const getMockApiTokenAuditMessage =
+  (): GeneratedApiTokenAuditDetails => {
+    const correlationId = generateId();
+    const clientId = generateId<ClientId>();
+    const organizationId = generateId<TenantId>();
+    const kid = "kid";
+    const clientAssertionJti = generateId();
 
-  return {
-    correlationId,
-    eserviceId,
-    descriptorId,
-    agreementId,
-    subject: clientId,
-    audience: "pagopa.it",
-    purposeId,
-    algorithm: algorithm.RS256,
-    clientId,
-    keyId: kid,
-    typ: "at+jwt",
-    purposeVersionId,
-    jwtId: generateId(),
-    issuedAt: dateToSeconds(new Date()),
-    issuer: "interop jwt issuer",
-    expirationTime: dateToSeconds(new Date()),
-    organizationId: consumerId,
-    notBefore: 0,
-    clientAssertion: {
+    return {
+      correlationId,
       subject: clientId,
       audience: "pagopa.it",
       algorithm: algorithm.RS256,
+      clientId,
       keyId: kid,
-      jwtId: clientAssertionJti,
+      typ: "at+jwt",
+      jwtId: generateId(),
       issuedAt: dateToSeconds(new Date()),
-      issuer: consumerId,
+      issuer: "interop jwt issuer",
       expirationTime: dateToSeconds(new Date()),
-    },
+      organizationId,
+      notBefore: 0,
+      clientAssertion: {
+        subject: clientId,
+        audience: "pagopa.it",
+        algorithm: algorithm.RS256,
+        keyId: kid,
+        jwtId: clientAssertionJti,
+        issuedAt: dateToSeconds(new Date()),
+        issuer: organizationId,
+        expirationTime: dateToSeconds(new Date()),
+      },
+    };
   };
-};
+
+export const getMockConsumerTokenAuditMessage =
+  (): GeneratedConsumerTokenAuditDetails => {
+    const correlationId = generateId();
+    const eserviceId = generateId<EServiceId>();
+    const descriptorId = generateId<DescriptorId>();
+    const agreementId = generateId<AgreementId>();
+    const clientId = generateId<ClientId>();
+    const purposeId = generateId<PurposeId>();
+    const kid = "kid";
+    const purposeVersionId = generateId<PurposeVersionId>();
+    const consumerId = generateId<TenantId>();
+    const clientAssertionJti = generateId();
+
+    return {
+      correlationId,
+      eserviceId,
+      descriptorId,
+      agreementId,
+      subject: clientId,
+      audience: "pagopa.it",
+      purposeId,
+      algorithm: algorithm.RS256,
+      clientId,
+      keyId: kid,
+      typ: "at+jwt",
+      purposeVersionId,
+      jwtId: generateId(),
+      issuedAt: dateToSeconds(new Date()),
+      issuer: "interop jwt issuer",
+      expirationTime: dateToSeconds(new Date()),
+      organizationId: consumerId,
+      notBefore: 0,
+      clientAssertion: {
+        subject: clientId,
+        audience: "pagopa.it",
+        algorithm: algorithm.RS256,
+        keyId: kid,
+        jwtId: clientAssertionJti,
+        issuedAt: dateToSeconds(new Date()),
+        issuer: consumerId,
+        expirationTime: dateToSeconds(new Date()),
+      },
+    };
+  };

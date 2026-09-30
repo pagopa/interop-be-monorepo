@@ -1,11 +1,11 @@
 /* eslint-disable functional/immutable-data */
+import { authRole } from "pagopa-interop-commons";
 import {
   getMockContext,
   getMockDescriptor,
   getMockEService,
   getMockTenant,
 } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
 import {
   archivingScope,
   CorrelationId,
@@ -13,11 +13,14 @@ import {
   descriptorState,
   EService,
   generateId,
+  GracePeriodDays,
+  gracePeriodDays,
   missingKafkaMessageDataError,
   TenantId,
   toEServiceV2,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { handleEserviceArchivingScheduledToProducer } from "../src/handlers/eservices/handleEserviceArchivingScheduledToProducer.js";
 import {
   addOneEService,
@@ -31,26 +34,22 @@ describe("handleEserviceArchivingScheduledToProducer", () => {
   const producerId = generateId<TenantId>();
   const producerTenant = { ...getMockTenant(producerId), name: "Producer T" };
 
-  const archivingDescriptor: Descriptor = {
+  const getArchivingDescriptor = (
+    gracePeriodDaysValue: GracePeriodDays
+  ): Descriptor => ({
     ...getMockDescriptor(descriptorState.archiving),
     archivingSchedule: {
       archivableOn: new Date("2026-12-31T00:00:00.000Z"),
       startedAt: new Date("2026-05-14T00:00:00.000Z"),
       scope: archivingScope.eservice,
+      gracePeriodDays: gracePeriodDaysValue,
     },
-  };
-  const eservice: EService = {
-    ...getMockEService(),
-    name: "Test E-service",
-    producerId,
-    descriptors: [archivingDescriptor],
-  };
+  });
   const users = [getMockUser(producerTenant.id)];
 
   const { logger } = getMockContext({});
 
   beforeEach(async () => {
-    await addOneEService(eservice);
     await addOneTenant(producerTenant);
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
@@ -79,17 +78,29 @@ describe("handleEserviceArchivingScheduledToProducer", () => {
     );
   });
 
-  it("emits one email per producer user with the expected subject", async () => {
-    const messages = await handleEserviceArchivingScheduledToProducer({
-      eserviceV2Msg: toEServiceV2(eservice),
-      logger,
-      templateService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
-    expect(messages).toHaveLength(users.length);
-    expect(messages[0].email.subject).toContain(
-      "Un tuo e-service è in fase di archiviazione"
-    );
-  });
+  it.each([...gracePeriodDays])(
+    "emits one email per producer user with the expected subject (gracePeriodDays: %d)",
+    async (gracePeriodDaysValue: GracePeriodDays) => {
+      const archivingDescriptor = getArchivingDescriptor(gracePeriodDaysValue);
+      const eservice: EService = {
+        ...getMockEService(),
+        name: "Test E-service",
+        producerId,
+        descriptors: [archivingDescriptor],
+      };
+      await addOneEService(eservice);
+
+      const messages = await handleEserviceArchivingScheduledToProducer({
+        eserviceV2Msg: toEServiceV2(eservice),
+        logger,
+        templateService,
+        readModelService,
+        correlationId: generateId<CorrelationId>(),
+      });
+      expect(messages).toHaveLength(users.length);
+      expect(messages[0].email.subject).toContain(
+        "Un tuo e-service è in fase di archiviazione"
+      );
+    }
+  );
 });

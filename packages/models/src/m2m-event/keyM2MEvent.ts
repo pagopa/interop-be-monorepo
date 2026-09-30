@@ -1,6 +1,7 @@
 import { z } from "zod";
-import { ClientId, KeyM2MEventId } from "../brandedIds.js";
+
 import { AuthorizationEvent } from "../authorization/authorizationEvents.js";
+import { ClientId, KeyM2MEventId } from "../brandedIds.js";
 
 export const KeyM2MEventType = z.enum(["ClientKeyAdded", "ClientKeyDeleted"]);
 export type KeyM2MEventType = z.infer<typeof KeyM2MEventType>;

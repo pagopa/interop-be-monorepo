@@ -12,9 +12,9 @@ import {
   EServiceTemplateVersion,
   tenantKind,
 } from "pagopa-interop-models";
+import { aggregateEServiceTemplate } from "pagopa-interop-readmodel";
 import { describe, expect, it } from "vitest";
 
-import { aggregateEServiceTemplate } from "pagopa-interop-readmodel";
 import {
   checkCompleteEServiceTemplate,
   eserviceTemplateWriterService,

@@ -1,15 +1,16 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApiV3, agreementApi } from "pagopa-interop-api-clients";
 import { getMockedApiAgreementDocument } from "pagopa-interop-commons-test";
 import { AgreementId, generateId } from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
   agreementService,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 
 describe("getAgreementConsumerDocuments", () => {
   const mockQueryParams: m2mGatewayApiV3.GetAgreementConsumerDocumentsQueryParams =
