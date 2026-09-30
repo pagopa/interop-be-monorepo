@@ -116,7 +116,7 @@ describe("hasVisibleDigestContent", () => {
   });
 
   it("should return false when all visible sections have no data", () => {
-    const empty = { items: [], totalCount: 0, remainingCount: 0 };
+    const empty = { items: [], totalCount: 0 };
     const emptyData = {
       ...getMockTenantDigestData(),
       newEservices: empty,
@@ -131,7 +131,7 @@ describe("hasVisibleDigestContent", () => {
   });
 
   it("should return false when data exists only in non-visible sections", () => {
-    const empty = { items: [], totalCount: 0, remainingCount: 0 };
+    const empty = { items: [], totalCount: 0 };
     // Zero out everything except delegations
     const delegationsOnlyData = {
       ...getMockTenantDigestData(),
@@ -160,7 +160,7 @@ describe("hasVisibleDigestContent", () => {
   });
 
   it("should return false when all sections are empty even if role allows them", () => {
-    const empty = { items: [], totalCount: 0, remainingCount: 0 };
+    const empty = { items: [], totalCount: 0 };
     const allEmptyData = {
       ...getMockTenantDigestData(),
       newEservices: empty,
