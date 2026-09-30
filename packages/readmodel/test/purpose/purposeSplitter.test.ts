@@ -52,10 +52,15 @@ describe("Purpose splitter", () => {
     const riskAnalysisId = generateId<RiskAnalysisId>();
 
     const reviewerWorkflow: ReviewerWorkflow = {
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-      reviewerIds: [generateId<UserId>(), generateId<UserId>()],
+      reviewers: [
+        { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+        { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+      ],
       signingState: riskAnalysisSigningState.signed,
       signedBy: generateId<UserId>(),
+      signedAt: new Date(),
+      rejectedBy: generateId<UserId>(),
+      rejectedAt: new Date(),
       rejectionReason: "Reviewer workflow rejection reason",
       sentToReviewerAt: new Date(),
     };
@@ -91,6 +96,7 @@ describe("Purpose splitter", () => {
       riskAnalysisForm: purposeRiskAnalysisForm,
       versions: [purposeVersion],
       purposeTemplateId: generateId<PurposeTemplateId>(),
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow,
     };
     const {
@@ -119,12 +125,15 @@ describe("Purpose splitter", () => {
       description: purpose.description,
       isFreeOfCharge: purpose.isFreeOfCharge,
       purposeTemplateId: purpose.purposeTemplateId!,
-      reviewerWorkflowReviewMode: reviewerWorkflow.reviewMode,
+      riskAnalysisReviewMode: purpose.riskAnalysisReviewMode!,
+      reviewerWorkflowReviewMode: null,
       reviewerWorkflowSigningState: reviewerWorkflow.signingState,
       reviewerWorkflowSignedBy: reviewerWorkflow.signedBy!,
+      reviewerWorkflowSignedAt: reviewerWorkflow.signedAt!.toISOString(),
+      reviewerWorkflowRejectedBy: reviewerWorkflow.rejectedBy!,
+      reviewerWorkflowRejectedAt: reviewerWorkflow.rejectedAt!.toISOString(),
       reviewerWorkflowRejectionReason: reviewerWorkflow.rejectionReason!,
-      reviewerWorkflowSentToReviewerAt:
-        reviewerWorkflow.sentToReviewerAt!.toISOString(),
+      reviewerWorkflowSentToReviewerAt: null,
     };
 
     const expectedPurposeRiskAnalysisFormSQL: PurposeRiskAnalysisFormSQL = {
@@ -236,10 +245,11 @@ describe("Purpose splitter", () => {
       expectedPurposeVersionSignedDocumentSQL,
     ]);
     const expectedReviewersSQL: RiskAnalysisReviewerSQL[] =
-      reviewerWorkflow.reviewerIds.map((reviewerId) => ({
+      reviewerWorkflow.reviewers.map((reviewer) => ({
         purposeId: purpose.id,
         metadataVersion: 1,
-        reviewerId,
+        reviewerId: reviewer.id,
+        sentToReviewerAt: reviewer.sentToReviewerAt!.toISOString(),
       }));
     expect(reviewersSQL).toStrictEqual(expectedReviewersSQL);
   });
@@ -276,6 +286,10 @@ describe("Purpose splitter", () => {
       freeOfChargeReason: undefined,
       riskAnalysisForm: purposeRiskAnalysisForm,
       versions: [purposeVersion],
+      reviewerWorkflow: {
+        reviewers: [{ id: generateId<UserId>() }],
+        signingState: riskAnalysisSigningState.signed,
+      },
     };
 
     const {
@@ -304,9 +318,13 @@ describe("Purpose splitter", () => {
       description: purpose.description,
       isFreeOfCharge: purpose.isFreeOfCharge,
       purposeTemplateId: null,
+      riskAnalysisReviewMode: null,
       reviewerWorkflowReviewMode: null,
-      reviewerWorkflowSigningState: null,
+      reviewerWorkflowSigningState: riskAnalysisSigningState.signed,
       reviewerWorkflowSignedBy: null,
+      reviewerWorkflowSignedAt: null,
+      reviewerWorkflowRejectedBy: null,
+      reviewerWorkflowRejectedAt: null,
       reviewerWorkflowRejectionReason: null,
       reviewerWorkflowSentToReviewerAt: null,
     };
@@ -399,6 +417,13 @@ describe("Purpose splitter", () => {
     expect(versionSignedDocumentsSQL).toStrictEqual([
       expectedPurposeVersionSignedDocumentSQL,
     ]);
-    expect(reviewersSQL).toStrictEqual([]);
+    expect(reviewersSQL).toStrictEqual([
+      {
+        purposeId: purpose.id,
+        metadataVersion: 1,
+        reviewerId: purpose.reviewerWorkflow!.reviewers[0].id,
+        sentToReviewerAt: null,
+      },
+    ]);
   });
 });
