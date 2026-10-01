@@ -43,6 +43,19 @@ user lookups used by the BFF. Its source dataset is
 Docker data is persistent. Use `infra:reset` only when a clean rebuild is
 intended; it deletes this Compose project's local volumes.
 
+Infrastructure startup copies `docker/minio-seed` into MinIO and waits for that
+copy to finish before the catalog seed runs. This includes the demo OpenAPI
+document at `interop-local-bucket/local-development/openapi-demo.yaml`; new
+interface metadata uses the SHA-256 checksum of those exact fixture bytes.
+Start infrastructure before running `pnpm local:seed` separately.
+
+For environments seeded before the demo document was included, restart local
+infrastructure with `pnpm local:infra:start` to restore the missing file. The
+existing published interface keeps its metadata, including the old
+`local-development` placeholder checksum. A clean reset is required to recreate
+it with the correct checksum; rerunning the catalog seed does not mutate a
+published interface.
+
 The frontend-oriented process set starts backend services without file watching
 to keep the complete stack within typical Docker Desktop memory limits. Set
 `INTEROP_BACKEND_WATCH=true` before startup when working on backend code; this
