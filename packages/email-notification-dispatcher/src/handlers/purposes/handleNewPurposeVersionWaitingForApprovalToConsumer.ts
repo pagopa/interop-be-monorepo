@@ -4,7 +4,6 @@ import {
   generateId,
   missingKafkaMessageDataError,
   NotificationType,
-  purposeVersionState,
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
@@ -23,7 +22,7 @@ const notificationType: NotificationType = "purposeOverQuotaStateToConsumer";
 
 export async function handleNewPurposeVersionWaitingForApprovalToConsumer(
   data: PurposeHandlerParams & {
-    versionId?: string;
+    versionId: string;
     eventType?:
       | "NewPurposeVersionWaitingForApproval"
       | "PurposeVersionOverQuotaUnsuspended";
@@ -43,15 +42,11 @@ export async function handleNewPurposeVersionWaitingForApprovalToConsumer(
     throw missingKafkaMessageDataError("purpose", eventType);
   }
   const purpose = fromPurposeV2(purposeV2Msg);
-  const version = purpose.versions.find((v) =>
-    versionId
-      ? v.id === versionId
-      : v.state === purposeVersionState.waitingForApproval
-  );
+  const version = purpose.versions.find((v) => v.id === versionId);
   const reason = version?.waitingForApprovalReason;
   if (!reason) {
     logger.warn(
-      `Expected waitingForApprovalReason was not found; skipping consumer quota notification - purposeId: ${purpose.id}, versionId: ${version?.id ?? versionId ?? "unknown"}, eventType: ${eventType}`
+      `Expected waitingForApprovalReason was not found; skipping consumer quota notification - purposeId: ${purpose.id}, versionId: ${versionId}, eventType: ${eventType}`
     );
     return [];
   }

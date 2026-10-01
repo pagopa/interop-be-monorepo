@@ -107,6 +107,7 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
     await expect(() =>
       handleNewPurposeVersionWaitingForApprovalToConsumer({
         purposeV2Msg: undefined,
+        versionId: generateId(),
         logger,
         templateService,
         readModelService,
@@ -139,6 +140,7 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
     await expect(() =>
       handleNewPurposeVersionWaitingForApprovalToConsumer({
         purposeV2Msg: toPurposeV2(purpose),
+        versionId: purpose.versions[0].id,
         logger,
         templateService,
         readModelService,
@@ -166,6 +168,7 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
     await expect(() =>
       handleNewPurposeVersionWaitingForApprovalToConsumer({
         purposeV2Msg: toPurposeV2(purpose),
+        versionId: purpose.versions[0].id,
         logger,
         templateService,
         readModelService,
@@ -190,6 +193,7 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
 
     const messages = await handleNewPurposeVersionWaitingForApprovalToConsumer({
       purposeV2Msg: toPurposeV2(purpose),
+      versionId: purpose.versions[0].id,
       logger,
       templateService,
       readModelService,
@@ -235,6 +239,7 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
 
     const messages = await handleNewPurposeVersionWaitingForApprovalToConsumer({
       purposeV2Msg: toPurposeV2(purpose),
+      versionId: purpose.versions[0].id,
       logger,
       templateService,
       readModelService,
@@ -279,6 +284,7 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
 
     const messages = await handleNewPurposeVersionWaitingForApprovalToConsumer({
       purposeV2Msg: toPurposeV2(purpose),
+      versionId: purpose.versions[0].id,
       logger,
       templateService,
       readModelService,
@@ -322,6 +328,7 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
       };
       const messages =
         await handleNewPurposeVersionWaitingForApprovalToConsumer({
+          versionId: purpose.versions[0].id,
           purposeV2Msg: toPurposeV2({
             ...purpose,
             versions: [
@@ -329,6 +336,7 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
                 ...getMockPurposeVersion(
                   purposeVersionState.waitingForApproval
                 ),
+                id: purpose.versions[0].id,
                 waitingForApprovalReason,
               },
             ],
@@ -364,6 +372,7 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
 
     const messages = await handleNewPurposeVersionWaitingForApprovalToConsumer({
       purposeV2Msg: toPurposeV2(purpose),
+      versionId: purpose.versions[0].id,
       logger,
       templateService,
       readModelService,
@@ -422,6 +431,7 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
 
     const messages = await handleNewPurposeVersionWaitingForApprovalToConsumer({
       purposeV2Msg: toPurposeV2(purpose),
+      versionId: purpose.versions[0].id,
       logger,
       templateService,
       readModelService,
