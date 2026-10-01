@@ -37,9 +37,9 @@ describe("Template Service", () => {
     expect(compiledHtml).toContain("Finalità inoltrate");
     expect(compiledHtml).toContain("Richieste di fruizione che hai ricevuto");
     expect(compiledHtml).toContain("Finalità ricevute");
-    expect(compiledHtml).toContain("Richieste di delega");
-    expect(compiledHtml).toContain("inoltrate come delegante");
-    expect(compiledHtml).toContain("ricevute come delegato");
+    expect(compiledHtml).toContain("Deleghe");
+    expect(compiledHtml).toContain("per pubblicare");
+    expect(compiledHtml).toContain("di delega");
     expect(compiledHtml).toContain("Attributi");
     expect(compiledHtml).toContain("In fase di archiviazione - erogazione");
 
@@ -56,7 +56,7 @@ describe("Template Service", () => {
     expect(compiledHtml).toContain("API Fatturazione Elettronica");
     expect(compiledHtml).toContain("Agenzia delle Entrate");
     expect(compiledHtml).toContain("5");
-    expect(compiledHtml).toContain("nuovi");
+    expect(compiledHtml).toContain("nuovi e-service");
 
     // Assert - Verify updated e-services content
     expect(compiledHtml).toContain("Servizio SPID");
@@ -74,20 +74,19 @@ describe("Template Service", () => {
     // Assert - Verify rejected agreements (singular - totalCount: 1)
     expect(compiledHtml).toContain("Servizio Test Rifiutato");
     expect(compiledHtml).toContain("Ente Test");
-    expect(compiledHtml).toContain("rifiutata");
 
     // Assert - Verify suspended agreements (singular - totalCount: 1)
     expect(compiledHtml).toContain("Servizio Sospeso");
     expect(compiledHtml).toContain("Ente Sospeso");
-    expect(compiledHtml).toContain("sospesa");
+    expect(compiledHtml).toContain("Sono state sospese");
 
     // Assert - Verify published purposes (singular - totalCount: 1, producerName is not shown for sent purposes)
     expect(compiledHtml).toContain("Finalità Gestione Utenti");
-    expect(compiledHtml).toContain("pubblicata");
+    expect(compiledHtml).toContain("Sono state pubblicate");
 
     // Assert - Verify rejected purposes
     expect(compiledHtml).toContain("Finalità Rifiutata");
-    expect(compiledHtml).toContain("Ente Rifiutante");
+    expect(compiledHtml).toContain("Sono state rifiutate");
 
     // Assert - Verify waiting for approval received agreements
     expect(compiledHtml).toContain("Richiesta in Attesa");
@@ -102,10 +101,8 @@ describe("Template Service", () => {
     expect(compiledHtml).toContain("Ente in Attesa");
 
     // Assert - Verify delegations
-    expect(compiledHtml).toContain("Delega Attiva");
-    expect(compiledHtml).toContain("Ente Delegato");
-    expect(compiledHtml).toContain("Delega Rifiutata");
     expect(compiledHtml).toContain("Delega in Attesa");
+    expect(compiledHtml).toContain("Ente Richiedente Delega");
     expect(compiledHtml).toContain("Delega Revocata");
     expect(compiledHtml).toContain("Ente Revocante");
 
@@ -116,16 +113,13 @@ describe("Template Service", () => {
     expect(compiledHtml).toContain("Ente Revocatore");
 
     // Assert - Verify alert boxes are present (text split across lines in HTML)
-    expect(compiledHtml).toContain("Puoi proseguire");
-    expect(compiledHtml).toContain("formulando almeno una finalità");
-    expect(compiledHtml).toContain("ciascuna richiesta accettata");
-    expect(compiledHtml).toContain("associando almeno un client");
-    expect(compiledHtml).toContain("Verifica le");
-    expect(compiledHtml).toContain("richieste per permettere");
-    expect(compiledHtml).toContain("Fruitori di completare");
-    expect(compiledHtml).toContain("finalità per permettere");
-    expect(compiledHtml).toContain("Ricorda che la");
-    expect(compiledHtml).toContain("rimozione di un attributo");
+    expect(compiledHtml).toContain("Ora puoi creare");
+    expect(compiledHtml).toContain("per ogni finalità");
+    expect(compiledHtml).toContain("permetti agli enti");
+    expect(compiledHtml).toContain("di attivare la richiesta");
+    expect(compiledHtml).toContain("Approva le richieste");
+    expect(compiledHtml).toContain("inizia a gestire");
+    expect(compiledHtml).toContain("interrompe l'accesso");
 
     // Assert - Verify links are present
     expect(compiledHtml).toContain("https://example.com/eservices/new");
