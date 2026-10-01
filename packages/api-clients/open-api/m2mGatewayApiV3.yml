@@ -8505,6 +8505,58 @@ paths:
           $ref: "#/components/responses/Conflict"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /purposes/{purposeId}/riskAnalysis/assign:
+    parameters:
+      - name: purposeId
+        description: The ID of the Purpose whose risk analysis reviewer is being assigned
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/PurposeId"
+    post:
+      tags:
+        - purposes
+      summary: Assign risk analysis reviewer
+      description: |
+        Assign reviewer mode and reviewers to the purpose risk analysis.
+        Assigning ADMIN_WRITES_ADMIN_SIGNS with no reviewers removes any existing assignment.
+      operationId: assignRiskAnalysisReviewer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisAssignmentSeed"
+        required: true
+      responses:
+        "200":
+          description: Risk analysis reviewer assigned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /purposes/{purposeId}/activate:
     parameters:
       - name: purposeId
@@ -14715,6 +14767,8 @@ components:
           $ref: "#/components/schemas/PurposeVersion"
         purposeTemplateId:
           $ref: "#/components/schemas/PurposeTemplateId"
+        riskAnalysisReviewMode:
+          $ref: "#/components/schemas/RiskAnalysisReviewMode"
       required:
         - id
         - eserviceId
@@ -14723,6 +14777,29 @@ components:
         - description
         - createdAt
         - isFreeOfCharge
+    RiskAnalysisReviewMode:
+      type: string
+      description: Risk analysis review mode
+      enum:
+        - ADMIN_WRITES_ADMIN_SIGNS
+        - ADMIN_WRITES_REVIEWER_SIGNS
+        - REVIEWER_WRITES_REVIEWER_SIGNS
+    RiskAnalysisAssignmentSeed:
+      type: object
+      additionalProperties: false
+      description: Payload to assign reviewer mode and reviewers to a purpose risk analysis
+      properties:
+        reviewMode:
+          $ref: "#/components/schemas/RiskAnalysisReviewMode"
+        reviewerIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 1
+          uniqueItems: true
+      required:
+        - reviewMode
     PurposeSeed:
       type: object
       additionalProperties: false

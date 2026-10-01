@@ -279,6 +279,28 @@ const purposeRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post("/purposes/:purposeId/riskAnalysis/assign", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const purpose = await purposeService.assignRiskAnalysisReviewer(
+          unsafeBrandId(req.params.purposeId),
+          req.body,
+          ctx
+        );
+
+        return res.status(200).send(m2mGatewayApiV3.Purpose.parse(purpose));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error assigning risk analysis reviewer for purpose ${req.params.purposeId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get(
       "/purposes/:purposeId/versions/:versionId/riskAnalysisDocument",
       async (req, res) => {
