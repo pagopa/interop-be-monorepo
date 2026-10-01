@@ -109,7 +109,11 @@ import {
   EServiceSortBy,
   RequesterDelegationRole,
 } from "../model/domain/models.js";
-import { activeDescriptorStates } from "./descriptorStates.js";
+import {
+  activeDescriptorStates,
+  catalogRelevantDescriptorStates,
+  catalogVisibleDescriptorStates,
+} from "./descriptorStates.js";
 import { hasRoleToAccessInactiveDescriptors } from "./validators.js";
 
 const existsValidDescriptor = (
@@ -133,7 +137,7 @@ const existsValidDescriptor = (
       )
   );
 
-const existsActiveDescriptor = (
+const existsCatalogVisibleDescriptor = (
   readmodelDB: DrizzleTransactionType
 ): SQL<unknown> | undefined =>
   exists(
@@ -146,10 +150,10 @@ const existsActiveDescriptor = (
             eserviceDescriptorInReadmodelCatalog.eserviceId,
             eserviceInReadmodelCatalog.id
           ),
-          inArray(eserviceDescriptorInReadmodelCatalog.state, [
-            descriptorState.published,
-            descriptorState.suspended,
-          ])
+          inArray(
+            eserviceDescriptorInReadmodelCatalog.state,
+            catalogVisibleDescriptorStates
+          )
         )
       )
   );
@@ -214,19 +218,29 @@ const fuzzyMatches = (keyword: string): SQL => {
 };
 
 // As in the public catalog, the trigram matches are the fallback when the
-// full text search has no match at all.
-const keywordFilter = (keyword: string | undefined): SQL | undefined => {
+// full text search has no match at all. The check runs on the e-services the
+// query can return: a match excluded by the other conditions must not disable
+// the fallback.
+const keywordFilter = async (
+  tx: DrizzleTransactionType,
+  keyword: string | undefined,
+  condition: SQL | undefined
+): Promise<SQL | undefined> => {
   if (keyword === undefined) {
     return undefined;
   }
-  const fullText = fullTextMatches(keyword);
-  return or(
-    inArray(eserviceInReadmodelCatalog.id, fullText),
-    and(
-      notExists(fullText),
-      inArray(eserviceInReadmodelCatalog.id, fuzzyMatches(keyword))
-    )
+  const fullTextFilter = inArray(
+    eserviceInReadmodelCatalog.id,
+    fullTextMatches(keyword)
   );
+  const fullTextMatch = await tx
+    .select({ id: eserviceInReadmodelCatalog.id })
+    .from(eserviceInReadmodelCatalog)
+    .where(and(condition, fullTextFilter))
+    .limit(1);
+  return fullTextMatch.length > 0
+    ? fullTextFilter
+    : inArray(eserviceInReadmodelCatalog.id, fuzzyMatches(keyword));
 };
 
 // The producer vector keeps weight A and the e-service vector is lowered to
@@ -315,7 +329,7 @@ const onlyActiveEservicesFilter = (
                       ),
                       inArray(
                         newerActiveDescriptor.state,
-                        activeDescriptorStates
+                        catalogRelevantDescriptorStates
                       ),
                       gt(
                         sql`CAST(${newerActiveDescriptor.version} AS INTEGER)`,
@@ -869,7 +883,7 @@ export function readModelServiceBuilderSQL(
       }: EServicesQueryFilters
     ): Promise<ListResult<EService>> {
       return await readmodelDB.transaction(async (tx) => {
-        const activeEservicesFilter = existsActiveDescriptor(tx);
+        const visibleEservicesFilter = existsCatalogVisibleDescriptor(tx);
 
         const filtersCondition = and(
           producersFilter(tx, producersIds),
@@ -886,10 +900,10 @@ export function readModelServiceBuilderSQL(
           )
         );
 
+        const baseCondition = and(visibleEservicesFilter, filtersCondition);
         const condition = and(
-          activeEservicesFilter,
-          filtersCondition,
-          keywordFilter(keyword)
+          baseCondition,
+          await keywordFilter(tx, keyword, baseCondition)
         );
         const orderBy =
           keyword === undefined

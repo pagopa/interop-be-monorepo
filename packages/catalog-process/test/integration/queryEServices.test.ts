@@ -464,6 +464,36 @@ describe("query eservices", () => {
       expect(fuzzyResult.totalCount).toBe(0);
       expect(fuzzyResult.results).toEqual([]);
     });
+
+    it("should fall back to trigram similarity when the only full text match is not visible to the requester", async () => {
+      const draftEService: EService = {
+        ...buildEService("Anagrfe", new Date("2024-05-01T00:00:00Z")),
+        descriptors: [{ ...getMockDescriptor(), state: descriptorState.draft }],
+        producerId: comuneDiMilano.id,
+      };
+      await addOneEService(draftEService);
+
+      const result = await search("anagrfe");
+
+      expect(result.totalCount).toBe(1);
+      expect(idsOf(result)).toEqual([eserviceAnagrafe.id]);
+    });
+
+    it("should fall back to trigram similarity when the only full text match is excluded by the filters", async () => {
+      const otherProducerEService: EService = {
+        ...buildEService("Anagrfe", new Date("2024-05-01T00:00:00Z")),
+        producerId: regioneLombardia.id,
+      };
+      await addOneEService(otherProducerEService);
+
+      const result = await filterEServices({
+        keyword: "anagrfe",
+        producersIds: [comuneDiMilano.id],
+      });
+
+      expect(result.totalCount).toBe(1);
+      expect(idsOf(result)).toEqual([eserviceAnagrafe.id]);
+    });
   });
 
   describe("producersIds", () => {
@@ -619,6 +649,21 @@ describe("query eservices", () => {
 
       expect(idsOf(result)).toContain(eserviceRepublished.id);
       expect(idsOf(result)).not.toContain(eserviceSuspended.id);
+    });
+
+    it("should exclude an e-service whose suspended descriptor is followed only by an archived one (onlyActiveEservices: true)", async () => {
+      const eserviceNewerArchived: EService = {
+        ...buildEService("Newer archived", new Date("2024-04-01T00:00:00Z")),
+        descriptors: [
+          { ...getMockDescriptor(descriptorState.suspended), version: "1" },
+          { ...getMockDescriptor(descriptorState.archived), version: "2" },
+        ],
+      };
+      await addOneEService(eserviceNewerArchived);
+
+      const result = await filterEServices({ onlyActiveEservices: true });
+
+      expect(idsOf(result)).not.toContain(eserviceNewerArchived.id);
     });
   });
 
