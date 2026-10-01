@@ -1,2 +1,2 @@
-Process,Error,BFF endpoint,Possible user action / Recovery,Additional FE data needed,UI component to be,Copy IT,Copy EN,Note
-Catalog Process,gracePeriodDaysLowerThanDescriptor,POST /eservices/:eServiceId/scheduleArchive,--,--,Snackbar,Non è stato possibile archiviare {eserviceName},{eserviceName} was not archived,--
+Process,Error,BFF endpoint,Recovery,Additional FE data needed,UI component to be,copy it,copy en
+Catalog Process,eServiceNameDuplicateForProducer,POST /templates/eservices/:eServiceId,,SÌ,Snackbar,Esiste già un e-service con la parola identificativa {identifyingWord}. Scegli un'altra parola identificativa.,There is already an e-service with the identifying word {identifyingWord}. Choose a different identifying word.

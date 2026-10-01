@@ -44,17 +44,17 @@ const catalogRouter = (
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  const commonCatalogProducerPlaceholderMapper = (
-    eserviceId: string,
+  const commonCatalogProducerPlaceholderMapper = async (
+    usedFor: "EService" | "Template",
+    id: string,
     ctx: WithLogger<BffAppContext>
   ) =>
     placeholderMapperGenerator(
       async () =>
-        catalogService.getProducerEServiceDetails(
-          unsafeBrandId(eserviceId),
-          ctx
-        ),
-      (value, message) => message.replace("{eserviceName}", value.name)
+        usedFor === "Template"
+          ? catalogService.getEserviceTemplateById(unsafeBrandId(id), ctx)
+          : catalogService.getProducerEServiceDetails(unsafeBrandId(id), ctx),
+      (value, message) => message.replace("{identifyingWord}", value.name)
     );
 
   catalogRouter
@@ -184,11 +184,17 @@ const catalogRouter = (
           .status(200)
           .send(bffApi.CreatedEServiceDescriptor.parse(response));
       } catch (error) {
+        const placeholderMapper = await commonCatalogProducerPlaceholderMapper(
+          "Template",
+          req.params.templateId,
+          ctx
+        );
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
           ctx,
-          `Error creating EService instance from template ${req.params.templateId}`
+          `Error creating EService instance from template ${req.params.templateId}`,
+          placeholderMapper
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -886,11 +892,17 @@ const catalogRouter = (
           .status(200)
           .send(bffApi.CreatedResource.parse(createdResource));
       } catch (error) {
+        const placeholderMapper = await commonCatalogProducerPlaceholderMapper(
+          "EService",
+          req.params.eServiceId,
+          ctx
+        );
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
           ctx,
-          `Error updating EService ${req.params.eServiceId} template instance`
+          `Error updating EService ${req.params.eServiceId} template instance`,
+          placeholderMapper
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -905,16 +917,11 @@ const catalogRouter = (
         );
         return res.status(204).send();
       } catch (error) {
-        const placeholderMapper = await commonCatalogProducerPlaceholderMapper(
-          req.params.eServiceId,
-          ctx
-        );
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
           ctx,
-          `Error scheduling archive for EService ${req.params.eServiceId}`,
-          placeholderMapper
+          `Error scheduling archive for EService ${req.params.eServiceId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -1414,11 +1421,18 @@ const catalogRouter = (
           );
           return res.status(200).send(bffApi.CreatedResource.parse(result));
         } catch (error) {
+          const placeholderMapper =
+            await commonCatalogProducerPlaceholderMapper(
+              "EService",
+              req.params.eServiceId,
+              ctx
+            );
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
             ctx,
-            `Error updating instance label for eservice with Id: ${req.params.eServiceId}`
+            `Error updating instance label for eservice with Id: ${req.params.eServiceId}`,
+            placeholderMapper
           );
           return res.status(errorRes.status).send(errorRes);
         }

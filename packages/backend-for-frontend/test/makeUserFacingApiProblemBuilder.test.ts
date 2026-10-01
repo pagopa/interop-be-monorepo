@@ -114,10 +114,7 @@ describe("makeUserFacingApiProblemBuilder", () => {
   });
 
   it("should correctly show the localised user messages with replaced values", async () => {
-    const mockEServiceArchivingReasonSeed: bffApi.EServiceArchivingSeed = {
-      archivingReason: "Generic archiving reason",
-      gracePeriodDays: 60,
-    };
+    const mockEServiceBody: bffApi.UpdateEServiceTemplateInstanceSeed = {};
 
     const token = generateToken(authRole.ADMIN_ROLE);
     clients.catalogProcessClient.scheduleEServiceArchiving = vi
@@ -125,13 +122,13 @@ describe("makeUserFacingApiProblemBuilder", () => {
       .mockRejectedValue(
         makeAxiosError({
           type: "about:blank",
-          status: 400,
-          title: "gracePeriodDaysLowerThanDescriptor",
+          status: 409,
+          title: "eServiceNameDuplicateForProducer",
           correlationId: generateId(),
           detail: "Detail message",
           errors: [
             {
-              code: "001-0070",
+              code: "001-007",
               detail: "Detail message",
             },
           ],
@@ -146,17 +143,17 @@ describe("makeUserFacingApiProblemBuilder", () => {
     const makeRequest = async () =>
       request(api)
         .post(
-          `${appBasePath}/eservices/${mockApiProducerEServiceDetails.id}/scheduleArchive`
+          `${appBasePath}/templates/eservices/${mockApiProducerEServiceDetails.id}`
         )
         .set("Authorization", `Bearer ${token}`)
         .set("X-Correlation-Id", generateId())
-        .send(mockEServiceArchivingReasonSeed);
+        .send(mockEServiceBody);
 
     const res = await makeRequest();
     const body = res.body;
     expect(body).toHaveProperty("userMessages");
-    const itMessage = `Non è stato possibile archiviare ${mockApiProducerEServiceDetails.name}`;
-    const enMessage = `${mockApiProducerEServiceDetails.name} was not archived`;
+    const itMessage = `Esiste già un e-service con la parola identificativa ${mockApiProducerEServiceDetails.name}. Scegli un'altra parola identificativa.`;
+    const enMessage = `There is already an e-service with the identifying word ${mockApiProducerEServiceDetails.name}. Choose a different identifying word.`;
     expect(body.userMessages).toEqual({
       it: itMessage,
       en: enMessage,
