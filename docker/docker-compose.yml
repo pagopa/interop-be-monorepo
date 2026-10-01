@@ -23,6 +23,8 @@ volumes:
   mailpit-data:
   local-kms-data:
   redis-data:
+  dynamodb-data:
+  minio-data:
 
 services:
   # Event Store Postgres DB
@@ -187,8 +189,13 @@ services:
       - /tmp
     volumes:
       - zookeeper-data:/zookeeper/data
-      - zookeeper-logs:/zookeeper/logs
+      - zookeeper-logs:/zookeeper/txns
     image: quay.io/debezium/zookeeper:2.3
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/2181"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
 
   # Kafka server
   kafka:
@@ -206,7 +213,8 @@ services:
       - 9092:9092
       - 29092:29092
     depends_on:
-      - zookeeper
+      zookeeper:
+        condition: service_healthy
     environment:
       ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LISTENERS: LISTENER_DOCKER://kafka:29092,LISTENER_HOST://kafka:9092
@@ -215,6 +223,11 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER
       KAFKA_NUM_PARTITIONS: 3
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: ["CMD", "/kafka/bin/kafka-topics.sh", "--bootstrap-server", "kafka:29092", "--list"]
+      interval: 3s
+      timeout: 3s
+      retries: 40
 
   # Debezium to stream event store changes to kafka
   connect:
@@ -238,7 +251,8 @@ services:
       STATUS_STORAGE_TOPIC: connect_statuses
       CONNECT__BINARY_HANDLING_MODE: hex
     depends_on:
-      - kafka
+      kafka:
+        condition: service_healthy
 
   # Dynamo DB readmodel for token generation and privacy notices
   dynamodb-local:
@@ -246,13 +260,14 @@ services:
       - no-new-privileges:true
     read_only: true
     tmpfs:
-      - /tmp
-    command: "-jar DynamoDBLocal.jar -inMemory -sharedDb"
+      - /tmp:exec
+    user: "0:0"
+    command: "-jar DynamoDBLocal.jar -dbPath /data -sharedDb"
     image: amazon/dynamodb-local:2.5.2
     ports:
       - 8085:8000
     volumes:
-      - ./dynamo-db-data:/data
+      - dynamodb-data:/data
     working_dir: /home/dynamodblocal
 
   # Web GUI for dynamodb
@@ -360,7 +375,7 @@ services:
       MINIO_ROOT_PASSWORD: testawssecret # use this as AWS S3 secret access key
       MINIO_SITE_REGION: eu-south-1
     volumes:
-      - ./minio-data:/data
+      - minio-data:/data
     restart: always
 
   # Seed data for MinIO
@@ -478,3 +493,26 @@ services:
     image: "redis:7.2.5-alpine3.20"
     ports:
       - "6379:6379"
+
+  # Minimal implementation of the Selfcare APIs consumed by the BFF.
+  selfcare-mock:
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+    image: node:20-alpine
+    command: node /app/selfcare-mock.mjs
+    environment:
+      PORT: 8006
+      SELFCARE_MOCK_DATASET: /app/dataset.json
+    ports:
+      - "8006:8006"
+    volumes:
+      - ./selfcare-mock/selfcare-mock.mjs:/app/selfcare-mock.mjs:ro
+      - ./local-development/dataset.json:/app/dataset.json:ro
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8006/health"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
