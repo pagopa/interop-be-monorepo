@@ -1074,6 +1074,11 @@ export function catalogServiceBuilder(
         subscribedByRequester: filters.subscribedByRequester,
         requesterDelegationRoles,
         availableForRequester,
+        mode: filters.mode
+          ? apiEServiceModeToEServiceMode(filters.mode)
+          : undefined,
+        onlySignalHubEnabled: filters.onlySignalHubEnabled,
+        asyncExchange: filters.asyncExchange,
       });
 
       const eservicesToReturn = await Promise.all(

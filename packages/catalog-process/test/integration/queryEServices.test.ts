@@ -83,6 +83,236 @@ describe("query eservices", () => {
   ): Promise<ListResult<EService>> =>
     catalogService.queryEServices({ offset, limit, ...filters }, context);
 
+  describe("mode", () => {
+    const eservice0: EService = {
+      ...buildEService("Service 0", new Date("2024-01-01T00:00:00Z")),
+      mode: "Deliver",
+    };
+    const eservice1: EService = {
+      ...buildEService("Service 1", new Date("2024-02-01T00:00:00Z")),
+      mode: "Receive",
+    };
+
+    beforeEach(async () => {
+      await addOneEService(eservice0);
+      await addOneEService(eservice1);
+    });
+
+    it("should return the expected e-services when mode is not set", async () => {
+      const result = await filterEServices({});
+
+      expect(result.totalCount).toBe(2);
+      expect(idsOf(result)).toEqual([eservice1.id, eservice0.id]);
+    });
+
+    it("should return the expected e-services when mode is DELIVER", async () => {
+      const result = await filterEServices({ mode: "DELIVER" });
+
+      expect(result.totalCount).toBe(1);
+      expect(idsOf(result)).toEqual([eservice0.id]);
+    });
+
+    it("should return the expected e-services when mode is RECEIVE", async () => {
+      const result = await filterEServices({ mode: "RECEIVE" });
+
+      expect(result.totalCount).toBe(1);
+      expect(idsOf(result)).toEqual([eservice1.id]);
+    });
+
+    it("should preserve filtered counts and ordering across pages", async () => {
+      const additional: EService = {
+        ...eservice0,
+        descriptors: [getPublishedDescriptor()],
+        id: generateId(),
+        name: "Additional",
+        createdAt: new Date("2024-04-01T00:00:00Z"),
+      };
+      await addOneEService(additional);
+      const pages = await Promise.all(
+        [0, 1, 2].map((offset) =>
+          filterEServices({ mode: "DELIVER" }, getMockContext({}), offset, 1)
+        )
+      );
+
+      expect(pages.map((page) => page.totalCount)).toEqual([2, 2, 2]);
+      expect(pages.map(idsOf)).toEqual([[additional.id], [eservice0.id], []]);
+    });
+  });
+
+  describe("onlySignalHubEnabled", () => {
+    const eservice0: EService = {
+      ...buildEService("Service 0", new Date("2024-01-01T00:00:00Z")),
+      isSignalHubEnabled: true,
+    };
+    const eservice1: EService = {
+      ...buildEService("Service 1", new Date("2024-02-01T00:00:00Z")),
+      isSignalHubEnabled: false,
+    };
+    const eservice2: EService = {
+      ...buildEService("Service 2", new Date("2024-03-01T00:00:00Z")),
+      isSignalHubEnabled: undefined,
+    };
+
+    beforeEach(async () => {
+      await addOneEService(eservice0);
+      await addOneEService(eservice1);
+      await addOneEService(eservice2);
+    });
+
+    it("should return the expected e-services when onlySignalHubEnabled is not set", async () => {
+      const result = await filterEServices({});
+
+      expect(result.totalCount).toBe(3);
+      expect(idsOf(result)).toEqual([eservice2.id, eservice1.id, eservice0.id]);
+    });
+
+    it("should return the expected e-services when onlySignalHubEnabled is true", async () => {
+      const result = await filterEServices({ onlySignalHubEnabled: true });
+
+      expect(result.totalCount).toBe(1);
+      expect(idsOf(result)).toEqual([eservice0.id]);
+    });
+
+    it("should return the expected e-services when onlySignalHubEnabled is false", async () => {
+      const result = await filterEServices({ onlySignalHubEnabled: false });
+
+      expect(result.totalCount).toBe(2);
+      expect(idsOf(result)).toEqual([eservice2.id, eservice1.id]);
+    });
+
+    it("should preserve filtered counts and ordering across pages", async () => {
+      const additional: EService = {
+        ...eservice0,
+        descriptors: [getPublishedDescriptor()],
+        id: generateId(),
+        name: "Additional",
+        createdAt: new Date("2024-04-01T00:00:00Z"),
+      };
+      await addOneEService(additional);
+      const pages = await Promise.all(
+        [0, 1, 2].map((offset) =>
+          filterEServices(
+            { onlySignalHubEnabled: true },
+            getMockContext({}),
+            offset,
+            1
+          )
+        )
+      );
+
+      expect(pages.map((page) => page.totalCount)).toEqual([2, 2, 2]);
+      expect(pages.map(idsOf)).toEqual([[additional.id], [eservice0.id], []]);
+    });
+  });
+
+  describe("asyncExchange", () => {
+    const eservice0: EService = {
+      ...buildEService("Service 0", new Date("2024-01-01T00:00:00Z")),
+      asyncExchange: true,
+    };
+    const eservice1: EService = {
+      ...buildEService("Service 1", new Date("2024-02-01T00:00:00Z")),
+      asyncExchange: false,
+    };
+    const eservice2: EService = {
+      ...buildEService("Service 2", new Date("2024-03-01T00:00:00Z")),
+      asyncExchange: undefined,
+    };
+
+    beforeEach(async () => {
+      await addOneEService(eservice0);
+      await addOneEService(eservice1);
+      await addOneEService(eservice2);
+    });
+
+    it("should return the expected e-services when asyncExchange is not set", async () => {
+      const result = await filterEServices({});
+
+      expect(result.totalCount).toBe(3);
+      expect(idsOf(result)).toEqual([eservice2.id, eservice1.id, eservice0.id]);
+    });
+
+    it("should return the expected e-services when asyncExchange is true", async () => {
+      const result = await filterEServices({ asyncExchange: true });
+
+      expect(result.totalCount).toBe(1);
+      expect(idsOf(result)).toEqual([eservice0.id]);
+    });
+
+    it("should return the expected e-services when asyncExchange is false", async () => {
+      const result = await filterEServices({ asyncExchange: false });
+
+      expect(result.totalCount).toBe(2);
+      expect(idsOf(result)).toEqual([eservice2.id, eservice1.id]);
+    });
+
+    it("should preserve filtered counts and ordering across pages", async () => {
+      const additional: EService = {
+        ...eservice0,
+        descriptors: [getPublishedDescriptor()],
+        id: generateId(),
+        name: "Additional",
+        createdAt: new Date("2024-04-01T00:00:00Z"),
+      };
+      await addOneEService(additional);
+      const pages = await Promise.all(
+        [0, 1, 2].map((offset) =>
+          filterEServices(
+            { asyncExchange: true },
+            getMockContext({}),
+            offset,
+            1
+          )
+        )
+      );
+
+      expect(pages.map((page) => page.totalCount)).toEqual([2, 2, 2]);
+      expect(pages.map(idsOf)).toEqual([[additional.id], [eservice0.id], []]);
+    });
+  });
+
+  describe("combined mode, Signal Hub and async exchange filters", () => {
+    it("should require all three filters to match", async () => {
+      const matching: EService = {
+        ...buildEService("Matching", new Date("2024-01-01T00:00:00Z")),
+        mode: "Deliver",
+        isSignalHubEnabled: true,
+        asyncExchange: true,
+      };
+      const otherMode: EService = {
+        ...matching,
+        descriptors: [getPublishedDescriptor()],
+        id: generateId(),
+        mode: "Receive",
+      };
+      const withoutSignalHub: EService = {
+        ...matching,
+        descriptors: [getPublishedDescriptor()],
+        id: generateId(),
+        isSignalHubEnabled: false,
+      };
+      const synchronous: EService = {
+        ...matching,
+        descriptors: [getPublishedDescriptor()],
+        id: generateId(),
+        asyncExchange: false,
+      };
+      await addOneEService(matching);
+      await addOneEService(otherMode);
+      await addOneEService(withoutSignalHub);
+      await addOneEService(synchronous);
+
+      const result = await filterEServices({
+        mode: "DELIVER",
+        onlySignalHubEnabled: true,
+        asyncExchange: true,
+      });
+
+      expect(result.totalCount).toBe(1);
+      expect(idsOf(result)).toEqual([matching.id]);
+    });
+  });
+
   describe("sortBy", () => {
     const eserviceApple = buildEService(
       "apple",
