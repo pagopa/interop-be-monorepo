@@ -1059,9 +1059,10 @@ export function catalogServiceBuilder(
       const producersIds = (filters.producersIds ?? []).map<TenantId>(
         unsafeBrandId
       );
+      const availableForRequester = filters.availableForRequester;
       const requesterDelegationRoles = filters.requesterDelegationRoles ?? [];
       logger.info(
-        `Querying EServices, limit = ${filters.limit}, offset = ${filters.offset}, sortBy = ${sortBy}, keyword = ${keyword}, producersIds = ${producersIds}, onlyActiveEservices = ${filters.onlyActiveEservices}, subscribedByRequester = ${filters.subscribedByRequester}, requesterDelegationRoles = ${requesterDelegationRoles}`
+        `Querying EServices, limit = ${filters.limit}, offset = ${filters.offset}, sortBy = ${sortBy}, keyword = ${keyword}, producersIds = ${producersIds}, onlyActiveEservices = ${filters.onlyActiveEservices}, subscribedByRequester = ${filters.subscribedByRequester}, requesterDelegationRoles = ${requesterDelegationRoles}, availableForRequester = ${availableForRequester} `
       );
       const eservicesList = await readModelService.queryEServices(authData, {
         offset: filters.offset,
@@ -1072,6 +1073,7 @@ export function catalogServiceBuilder(
         onlyActiveEservices: filters.onlyActiveEservices,
         subscribedByRequester: filters.subscribedByRequester,
         requesterDelegationRoles,
+        availableForRequester,
       });
 
       const eservicesToReturn = await Promise.all(
