@@ -110,6 +110,7 @@ export type UiSection =
   | "/fruizione"
   | "/fruizione/richieste"
   | "/fruizione/finalita"
+  | "/analisi-del-rischio"
   | "/catalogo-e-service"
   | "/aderente"
   | "/aderente/deleghe"
@@ -146,12 +147,35 @@ export const notificationTypeToUiSection: Record<NotificationType, UiSection> =
     producerKeychainKeyAddedDeletedToClientUsers: "/erogazione/portachiavi",
     purposeQuotaAdjustmentRequestToProducer: "/erogazione/finalita",
     purposeOverQuotaStateToConsumer: "/fruizione/finalita",
+    purposeRiskAnalysisAssignedForSigningToReviewer: "/analisi-del-rischio",
+    purposeRiskAnalysisAssignedForWritingAndSigningToReviewer:
+      "/analisi-del-rischio",
+    purposePublishedWithRiskAnalysisToReviewer: "/analisi-del-rischio",
+    draftPurposeDeletedWithRiskAnalysisToReviewer: "/analisi-del-rischio",
+    purposeRiskAnalysisAssignmentRemovedToReviewer: "/analisi-del-rischio",
+    purposeRiskAnalysisSignedToReviewer: "/analisi-del-rischio",
+    purposeRiskAnalysisSignedToAdmin: "/fruizione/finalita",
+    purposeRiskAnalysisRejectedToAdmin: "/fruizione/finalita",
     eserviceArchivingRequestedToDelegator: "/erogazione/e-service",
     eserviceArchivingApprovedRejectedToDelegate: "/erogazione/e-service",
   } as const;
 
-export const notificationTypesWithoutEntityIdInDeepLink: Set<NotificationType> =
-  new Set(["certifiedVerifiedAttributeAssignedRevokedToAssignee"]);
+const notificationTypesWithoutEntityIdInDeepLink: Set<NotificationType> =
+  new Set([
+    "certifiedVerifiedAttributeAssignedRevokedToAssignee",
+    "draftPurposeDeletedWithRiskAnalysisToReviewer",
+    "purposeRiskAnalysisAssignmentRemovedToReviewer",
+  ]);
+
+export function getNotificationDeepLink(
+  notificationType: NotificationType,
+  entityId: string
+): string {
+  const section = notificationTypeToUiSection[notificationType];
+  return notificationTypesWithoutEntityIdInDeepLink.has(notificationType)
+    ? section
+    : `${section}/${entityId}`;
+}
 
 export const Category = z.enum([
   "Subscribers",
@@ -186,6 +210,14 @@ export const notificationTypeToCategory: Record<NotificationType, Category> = {
   producerKeychainKeyAddedDeletedToClientUsers: "AttributesAndKeys",
   purposeQuotaAdjustmentRequestToProducer: "Providers",
   purposeOverQuotaStateToConsumer: "Subscribers",
+  purposeRiskAnalysisAssignedForSigningToReviewer: "Subscribers",
+  purposeRiskAnalysisAssignedForWritingAndSigningToReviewer: "Subscribers",
+  purposePublishedWithRiskAnalysisToReviewer: "Subscribers",
+  draftPurposeDeletedWithRiskAnalysisToReviewer: "Subscribers",
+  purposeRiskAnalysisAssignmentRemovedToReviewer: "Subscribers",
+  purposeRiskAnalysisSignedToReviewer: "Subscribers",
+  purposeRiskAnalysisSignedToAdmin: "Subscribers",
+  purposeRiskAnalysisRejectedToAdmin: "Subscribers",
   eserviceArchivingRequestedToDelegator: "Delegations",
   eserviceArchivingApprovedRejectedToDelegate: "Delegations",
 };

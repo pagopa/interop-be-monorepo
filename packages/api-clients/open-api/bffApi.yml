@@ -6101,6 +6101,12 @@ paths:
       operationId: signRiskAnalysis
       description: Sign/approve the risk analysis as a reviewer
       summary: Sign risk analysis
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisSignSeed"
+        required: true
       responses:
         "204":
           description: Risk analysis signed
@@ -6471,6 +6477,11 @@ paths:
         "200":
           description: Purpose requested
           headers:
+            "X-Metadata-Version":
+              schema:
+                type: integer
+                format: int32
+              description: The version of the retrieved purpose
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
@@ -15905,6 +15916,8 @@ components:
         rulesetExpiration:
           type: string
           format: date-time
+        riskAnalysisReviewMode:
+          $ref: "#/components/schemas/RiskAnalysisReviewMode"
         reviewerWorkflow:
           $ref: "#/components/schemas/ReviewerWorkflow"
       required:
@@ -18760,6 +18773,9 @@ components:
         - clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers
         - purposeQuotaAdjustmentRequestToProducer
         - purposeOverQuotaStateToConsumer
+        - purposeRiskAnalysisAssignmentStatusToAdmin
+        - purposeRiskAnalysisAssignmentStatusToReviewer
+        - purposePublishedWithRiskAnalysisToReviewer
         - eserviceArchivingRequestedToDelegator
         - eserviceArchivingApprovedRejectedToDelegate
       properties:
@@ -18806,6 +18822,14 @@ components:
         purposeQuotaAdjustmentRequestToProducer:
           type: boolean
         purposeOverQuotaStateToConsumer:
+          type: boolean
+        purposeRiskAnalysisAssignmentStatusToAdmin:
+          type: boolean
+          description: Enables risk analysis approval and rejection notifications for administrators.
+        purposeRiskAnalysisAssignmentStatusToReviewer:
+          type: boolean
+          description: Enables assignment, removal, draft deletion and approval by another reviewer notifications.
+        purposePublishedWithRiskAnalysisToReviewer:
           type: boolean
         eserviceArchivingRequestedToDelegator:
           type: boolean
@@ -19121,6 +19145,7 @@ components:
       type: string
       description: Risk analysis review mode
       enum:
+        - ADMIN_WRITES_ADMIN_SIGNS
         - ADMIN_WRITES_REVIEWER_SIGNS
         - REVIEWER_WRITES_REVIEWER_SIGNS
     RiskAnalysisSigningState:
@@ -19132,35 +19157,51 @@ components:
         - SUBMITTED
         - SIGNED
         - REJECTED
-    ReviewerWorkflow:
+    Reviewer:
+      description: A designated reviewer enriched with its user details
       type: object
       additionalProperties: false
-      description: Reviewer workflow state for a purpose risk analysis
       properties:
-        reviewMode:
-          $ref: "#/components/schemas/RiskAnalysisReviewMode"
-        reviewerIds:
-          type: array
-          items:
-            type: string
-            format: uuid
-        reviewers:
-          type: array
-          items:
-            $ref: "#/components/schemas/CompactUser"
-        signingState:
-          $ref: "#/components/schemas/RiskAnalysisSigningState"
-        signedBy:
+        userId:
           type: string
           format: uuid
-        rejectionReason:
+        name:
+          type: string
+        familyName:
           type: string
         sentToReviewerAt:
           type: string
           format: date-time
       required:
-        - reviewMode
-        - reviewerIds
+        - userId
+        - name
+        - familyName
+    ReviewerWorkflow:
+      type: object
+      additionalProperties: false
+      description: Reviewer workflow state for a purpose risk analysis
+      properties:
+        reviewers:
+          type: array
+          items:
+            $ref: "#/components/schemas/Reviewer"
+        signingState:
+          $ref: "#/components/schemas/RiskAnalysisSigningState"
+        signedBy:
+          type: string
+          format: uuid
+        signedAt:
+          type: string
+          format: date-time
+        rejectedBy:
+          type: string
+          format: uuid
+        rejectedAt:
+          type: string
+          format: date-time
+        rejectionReason:
+          type: string
+      required:
         - signingState
     RiskAnalysisAssignmentSeed:
       type: object
@@ -19177,7 +19218,6 @@ components:
           minItems: 1
       required:
         - reviewMode
-        - reviewerIds
     RiskAnalysisSubmissionSeed:
       type: object
       additionalProperties: false
@@ -19187,6 +19227,17 @@ components:
           $ref: "#/components/schemas/RiskAnalysisFormSeed"
       required:
         - riskAnalysisForm
+    RiskAnalysisSignSeed:
+      type: object
+      additionalProperties: false
+      description: Payload to sign the latest version of a purpose risk analysis
+      properties:
+        metadataVersionToSign:
+          type: integer
+          format: int32
+          minimum: 0
+      required:
+        - metadataVersionToSign
     RiskAnalysisRejectionSeed:
       type: object
       additionalProperties: false
