@@ -71,7 +71,7 @@ import {
   tenantIsNotTheProducer,
   tenantNotAllowed,
   tenantNotFound,
-  userWithoutReviewerPrivileges,
+  userNotFoundOrWithoutReviewerPrivileges,
 } from "../model/domain/errors.js";
 import { UpdatedQuotas } from "../model/domain/models.js";
 import {
@@ -914,6 +914,6 @@ export const assertUserSelfcareReviewerPrivileges = async ({
       },
     });
   if (users.length === 0) {
-    throw userWithoutReviewerPrivileges(consumerId, userIdToCheck);
+    throw userNotFoundOrWithoutReviewerPrivileges(consumerId, userIdToCheck);
   }
 };

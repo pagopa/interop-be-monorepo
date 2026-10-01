@@ -372,7 +372,7 @@ export const assignRiskAnalysisReviewerErrorMapper = (
     .with("tenantIsNotTheConsumer", () => HTTP_STATUS_FORBIDDEN)
     .with("reviewerWorkflowConflict", () => HTTP_STATUS_CONFLICT)
     .with(
-      "userWithoutReviewerPrivileges",
+      "userNotFoundOrWithoutReviewerPrivileges",
       "duplicatedReviewersInSeed",
       "purposeFromTemplateCannotBeModified",
       "purposeNotInDraftState",

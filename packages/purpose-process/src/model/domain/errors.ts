@@ -74,7 +74,7 @@ const errorCodes = {
   reviewerWorkflowNotEditable: "0054",
   reviewerWorkflowNotInSignedState: "0055",
   riskAnalysisFormCannotBeUpdated: "0056",
-  userWithoutReviewerPrivileges: "0057",
+  userNotFoundOrWithoutReviewerPrivileges: "0057",
   missingSelfcareId: "0058",
   reviewerWorkflowNotAllowedForDelegatedPurpose: "0059",
   reviewerWorkflowNotAllowedForReceiveMode: "0060",
@@ -673,14 +673,14 @@ export function riskAnalysisFormCannotBeUpdated(
   });
 }
 
-export function userWithoutReviewerPrivileges(
+export function userNotFoundOrWithoutReviewerPrivileges(
   consumerId: TenantId,
   userId: UserId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `User ${userId} does not have reviewer privileges for tenant ${consumerId}`,
-    code: "userWithoutReviewerPrivileges",
-    title: "User without reviewer privileges",
+    code: "userNotFoundOrWithoutReviewerPrivileges",
+    title: "User not found or without reviewer privileges",
   });
 }
 
