@@ -1,0 +1,25 @@
+openapi: 3.0.3
+info:
+  title: Catalogo Demo
+  version: 1.0.0
+servers:
+  - url: http://api.demo.local
+paths:
+  /status:
+    get:
+      operationId: getStatus
+      summary: Get demo status
+      responses:
+        "200":
+          description: Demo service status
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    type: string
+                    enum:
+                      - ok

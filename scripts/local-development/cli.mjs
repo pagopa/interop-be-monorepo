@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { KMSClient, SignCommand } from "@aws-sdk/client-kms";
+import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -16,6 +17,7 @@ import {
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const datasetPath = resolve(repositoryRoot, "docker/local-development/dataset.json");
 const statePath = resolve(repositoryRoot, ".local-development/state.json");
+const demoInterfaceFilePath = "local-development/openapi-demo.yaml";
 const keyId = "ffcc9b5b-4612-49b1-9374-9d203a3834f2";
 
 const argument = (name, fallback) => {
@@ -247,6 +249,11 @@ const seed = async () => {
     descriptor = eservice.descriptors[0];
   }
   if (descriptor.state === "DRAFT" && !descriptor.interface) {
+    // Infrastructure startup copies this fixture to MinIO and waits for the
+    // minio-seed container before the catalog seed registers its metadata.
+    const interfaceBytes = await readFile(
+      resolve(repositoryRoot, "docker/minio-seed/interop-local-bucket", demoInterfaceFilePath)
+    );
     await requestJson(
       `${catalogUrl}/eservices/${eservice.id}/descriptors/${descriptor.id}/documents`,
       {
@@ -256,10 +263,10 @@ const seed = async () => {
           documentId: crypto.randomUUID(),
           kind: "INTERFACE",
           prettyName: "OpenAPI Demo",
-          filePath: "local-development/openapi-demo.yaml",
+          filePath: demoInterfaceFilePath,
           fileName: "openapi-demo.yaml",
           contentType: "application/yaml",
-          checksum: "local-development",
+          checksum: createHash("sha256").update(interfaceBytes).digest("hex"),
           serverUrls: ["http://api.demo.local"]
         }
       }
