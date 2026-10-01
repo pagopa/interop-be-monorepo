@@ -55,7 +55,11 @@ describe("handlePurposeOverQuotaToConsumer", () => {
 
   const purpose = {
     ...getMockPurpose([
-      getMockPurposeVersion(purposeVersionState.waitingForApproval),
+      {
+        ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+        waitingForApprovalReason:
+          purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+      },
     ]),
     id: purposeId,
     eserviceId,
@@ -157,7 +161,8 @@ describe("handlePurposeOverQuotaToConsumer", () => {
 
     const expectedBody = inAppTemplates.purposeOverQuotaToConsumer(
       eservice.name,
-      purpose.title
+      purpose.title,
+      purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal
     );
 
     const expectedNotifications = consumerUsers.map((user) => ({
@@ -200,17 +205,16 @@ describe("handlePurposeOverQuotaToConsumer", () => {
   it.each([
     [
       purposeWaitingForApprovalReason.dailyCallsPerConsumer,
-      "con questa stima di chiamate API superi la soglia per fruitore",
+      "è stata superata la soglia per fruitore di chiamate API",
     ],
     [
       purposeWaitingForApprovalReason.dailyCallsTotal,
-      "sono già state superate le soglie totali",
+      "è stata superata la soglia totale",
     ],
     [
       purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
-      "almeno una delle soglie",
+      "sia la soglia di chiamate API per fruitore sia la soglia totale",
     ],
-    [undefined, "almeno una delle soglie"],
   ] as const)(
     "uses event reason %s without reading descriptor quotas",
     async (reason, text) => {

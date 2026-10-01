@@ -119,7 +119,13 @@ describe("handlePurposeWaitingForApprovalOverthreshold", async () => {
     const unknownConsumerId = generateId<TenantId>();
 
     const purpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([
+        {
+          ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+          waitingForApprovalReason:
+            purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+        },
+      ]),
       eserviceId: eservice.id,
       consumerId: unknownConsumerId,
     };
@@ -140,7 +146,13 @@ describe("handlePurposeWaitingForApprovalOverthreshold", async () => {
     const unknownEServiceId = generateId<EServiceId>();
 
     const purpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([
+        {
+          ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+          waitingForApprovalReason:
+            purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+        },
+      ]),
       eserviceId: unknownEServiceId,
       consumerId: consumerTenant.id,
     };
@@ -159,7 +171,13 @@ describe("handlePurposeWaitingForApprovalOverthreshold", async () => {
 
   it("should generate one message per user of the consumer", async () => {
     const purpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([
+        {
+          ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+          waitingForApprovalReason:
+            purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+        },
+      ]),
       eserviceId: eservice.id,
       consumerId: consumerTenant.id,
     };
@@ -198,7 +216,13 @@ describe("handlePurposeWaitingForApprovalOverthreshold", async () => {
       ]);
 
     const purpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([
+        {
+          ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+          waitingForApprovalReason:
+            purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+        },
+      ]),
       eserviceId: eservice.id,
       consumerId: consumerTenant.id,
     };
@@ -224,7 +248,13 @@ describe("handlePurposeWaitingForApprovalOverthreshold", async () => {
     const mail = getMockTenantMail();
     await addOneTenant({ ...consumerTenant, mails: [mail] });
     const purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([
+        {
+          ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+          waitingForApprovalReason:
+            purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+        },
+      ]),
       eserviceId: eservice.id,
       consumerId,
     };
@@ -255,7 +285,7 @@ describe("handlePurposeWaitingForApprovalOverthreshold", async () => {
         "Hai superato la soglia di chiamate API per fruitore"
       );
       expect(message.email.body).toContain(
-        "con questa stima di chiamate API superi la soglia per fruitore"
+        "è stata superata la soglia per fruitore di chiamate API"
       );
       expect(message.email.body).toContain("Visualizza finalità");
     }
@@ -263,7 +293,13 @@ describe("handlePurposeWaitingForApprovalOverthreshold", async () => {
 
   it("should generate a complete and correct message", async () => {
     const purpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([
+        {
+          ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+          waitingForApprovalReason:
+            purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+        },
+      ]),
       eserviceId: eservice.id,
       consumerId: consumerTenant.id,
     };
@@ -282,7 +318,9 @@ describe("handlePurposeWaitingForApprovalOverthreshold", async () => {
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain(eservice.name);
       expect(message.email.body).toContain(purpose.title);
-      expect(message.email.body).toContain("almeno una delle soglie");
+      expect(message.email.body).toContain(
+        "sia la soglia di chiamate API per fruitore sia la soglia totale"
+      );
       if (message.type === "User") {
         expect(message.email.body).toContain("{{ recipientName }}");
       }

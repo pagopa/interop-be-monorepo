@@ -43,6 +43,18 @@ export async function handleNewPurposeVersionWaitingForApprovalToConsumer(
     throw missingKafkaMessageDataError("purpose", eventType);
   }
   const purpose = fromPurposeV2(purposeV2Msg);
+  const version = purpose.versions.find((v) =>
+    versionId
+      ? v.id === versionId
+      : v.state === purposeVersionState.waitingForApproval
+  );
+  const reason = version?.waitingForApprovalReason;
+  if (!reason) {
+    logger.warn(
+      `Expected waitingForApprovalReason was not found; skipping consumer quota notification - purposeId: ${purpose.id}, versionId: ${version?.id ?? versionId ?? "unknown"}, eventType: ${eventType}`
+    );
+    return [];
+  }
 
   const [htmlTemplate, eservice] = await Promise.all([
     retrieveHTMLTemplate(
@@ -54,11 +66,7 @@ export async function handleNewPurposeVersionWaitingForApprovalToConsumer(
   const content = purposeOverQuotaTemplate(
     purpose.title,
     eservice.name,
-    purpose.versions.find((v) =>
-      versionId
-        ? v.id === versionId
-        : v.state === purposeVersionState.waitingForApproval
-    )?.waitingForApprovalReason
+    reason
   );
 
   const consumer = await retrieveTenant(purpose.consumerId, readModelService);

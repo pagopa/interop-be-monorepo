@@ -29,10 +29,23 @@ export async function handlePurposeOverQuotaToConsumer(
   if (!purposeV2Msg) {
     throw missingKafkaMessageDataError("purpose", type);
   }
+  const purpose = fromPurposeV2(purposeV2Msg);
+  const version = purpose.versions.find((v) =>
+    versionId
+      ? v.id === versionId
+      : v.state === purposeVersionState.waitingForApproval
+  );
+  const reason = version?.waitingForApprovalReason;
+  if (!reason) {
+    logger.warn(
+      `Expected waitingForApprovalReason was not found; skipping consumer quota notification - purposeId: ${purpose.id}, versionId: ${version?.id ?? versionId ?? "unknown"}, eventType: ${type}`
+    );
+    return [];
+  }
+
   logger.info(
     `Sending in-app notification for handlePurposeOverQuotaToConsumer - entityId: ${purposeV2Msg.id}, eventType: ${type}`
   );
-  const purpose = fromPurposeV2(purposeV2Msg);
   const eservice = await retrieveEservice(purpose.eserviceId, readModelService);
 
   const usersWithNotifications = await getNotificationRecipients(
@@ -51,11 +64,7 @@ export async function handlePurposeOverQuotaToConsumer(
   const body = inAppTemplates.purposeOverQuotaToConsumer(
     eservice.name,
     purpose.title,
-    purpose.versions.find((v) =>
-      versionId
-        ? v.id === versionId
-        : v.state === purposeVersionState.waitingForApproval
-    )?.waitingForApprovalReason
+    reason
   );
 
   return usersWithNotifications.map(({ userId, tenantId }) => ({

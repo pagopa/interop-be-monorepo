@@ -395,7 +395,7 @@ export const inAppTemplates = {
   purposeOverQuotaToConsumer: (
     eserviceName: string,
     purposeName: string,
-    reason?: PurposeWaitingForApprovalReason
+    reason: PurposeWaitingForApprovalReason
   ): string => purposeOverQuotaTemplate(purposeName, eserviceName, reason).body,
   purposeQuotaAdjustmentResponseToConsumer: (
     producerName: string,

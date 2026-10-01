@@ -9,26 +9,26 @@ import { match } from "ts-pattern";
 export function purposeOverQuotaTemplate(
   purposeName: string,
   eserviceName: string,
-  reason: PurposeWaitingForApprovalReason | undefined
+  reason: PurposeWaitingForApprovalReason
 ): { title: string; body: string } {
   const { title, explanation } = match(reason)
     .with(purposeWaitingForApprovalReason.dailyCallsPerConsumer, () => ({
       title: "Hai superato la soglia di chiamate API per fruitore",
-      explanation:
-        "con questa stima di chiamate API superi la soglia per fruitore",
+      explanation: "è stata superata la soglia per fruitore di chiamate API",
     }))
     .with(purposeWaitingForApprovalReason.dailyCallsTotal, () => ({
       title: "Superamento soglie totali di chiamate API",
-      explanation:
-        "sono già state superate le soglie totali di chiamate API definite dall'erogatore",
+      explanation: "è stata superata la soglia totale di chiamate API",
     }))
-    // Both quotas, legacy events without a reason, and unknown future values
-    // use the generic copy: it does not claim that both quotas were exceeded.
-    .otherwise(() => ({
-      title: "Superamento soglie per fruitore e soglie totali",
-      explanation:
-        "è stata superata almeno una delle soglie di chiamate API/giorno definite dall’erogatore (per fruitore o totali)",
-    }));
+    .with(
+      purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+      () => ({
+        title: "Superamento soglie per fruitore e soglie totali",
+        explanation:
+          "sono state superate sia la soglia di chiamate API per fruitore sia la soglia totale",
+      })
+    )
+    .exhaustive();
 
   return {
     title,

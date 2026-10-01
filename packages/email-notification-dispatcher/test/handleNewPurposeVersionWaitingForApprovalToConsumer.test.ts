@@ -124,7 +124,13 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
     const unknownConsumerId = generateId<TenantId>();
 
     const purpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([
+        {
+          ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+          waitingForApprovalReason:
+            purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+        },
+      ]),
       eserviceId: eservice.id,
       consumerId: unknownConsumerId,
     };
@@ -145,7 +151,13 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
     const unknownEServiceId = generateId<EServiceId>();
 
     const purpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([
+        {
+          ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+          waitingForApprovalReason:
+            purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+        },
+      ]),
       eserviceId: unknownEServiceId,
       consumerId: consumerTenant.id,
     };
@@ -164,7 +176,13 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
 
   it("should generate one message per user of the consumer", async () => {
     const purpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([
+        {
+          ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+          waitingForApprovalReason:
+            purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+        },
+      ]),
       eserviceId: eservice.id,
       consumerId: consumerTenant.id,
     };
@@ -203,7 +221,13 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
       ]);
 
     const purpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([
+        {
+          ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+          waitingForApprovalReason:
+            purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+        },
+      ]),
       eserviceId: eservice.id,
       consumerId: consumerTenant.id,
     };
@@ -241,7 +265,13 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
       });
 
     const purpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([
+        {
+          ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+          waitingForApprovalReason:
+            purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+        },
+      ]),
       eserviceId: eservice.id,
       consumerId: consumerTenant.id,
     };
@@ -264,23 +294,29 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
     [
       purposeWaitingForApprovalReason.dailyCallsPerConsumer,
       "Hai superato la soglia di chiamate API per fruitore",
-      "con questa stima di chiamate API superi la soglia per fruitore",
+      "è stata superata la soglia per fruitore di chiamate API",
     ],
     [
       purposeWaitingForApprovalReason.dailyCallsTotal,
       "Superamento soglie totali di chiamate API",
-      "sono già state superate le soglie totali",
+      "è stata superata la soglia totale",
     ],
     [
       purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
       "Superamento soglie per fruitore e soglie totali",
-      "almeno una delle soglie",
+      "sia la soglia di chiamate API per fruitore sia la soglia totale",
     ],
   ] as const)(
     "renders reason %s",
     async (waitingForApprovalReason, title, text) => {
       const purpose = {
-        ...getMockPurpose(),
+        ...getMockPurpose([
+          {
+            ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+            waitingForApprovalReason:
+              purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+          },
+        ]),
         eserviceId: eservice.id,
         consumerId,
       };
@@ -314,7 +350,13 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
 
   it("should generate a complete and correct message", async () => {
     const purpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([
+        {
+          ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+          waitingForApprovalReason:
+            purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+        },
+      ]),
       eserviceId: eservice.id,
       consumerId: consumerTenant.id,
     };
@@ -333,7 +375,9 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain(eservice.name);
       expect(message.email.body).toContain(purpose.title);
-      expect(message.email.body).toContain("almeno una delle soglie");
+      expect(message.email.body).toContain(
+        "sia la soglia di chiamate API per fruitore sia la soglia totale"
+      );
       if (message.type === "User") {
         expect(message.email.body).toContain("{{ recipientName }}");
       }
@@ -364,7 +408,13 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
     await addOneEService(eserviceWithMultipleDescriptors);
 
     const purpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([
+        {
+          ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+          waitingForApprovalReason:
+            purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+        },
+      ]),
       eserviceId: eserviceWithMultipleDescriptors.id,
       consumerId: consumerTenant.id,
     };
@@ -380,7 +430,9 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
 
     expect(messages.length).toBe(2);
     messages.forEach((message) => {
-      expect(message.email.body).toContain("almeno una delle soglie");
+      expect(message.email.body).toContain(
+        "sia la soglia di chiamate API per fruitore sia la soglia totale"
+      );
       expect(message.email.body).not.toContain("<strong>2000</strong>");
       expect(message.email.body).not.toContain("<strong>500</strong>");
     });

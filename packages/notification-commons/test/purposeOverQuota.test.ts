@@ -8,17 +8,17 @@ describe("purposeOverQuotaTemplate", () => {
     [
       purposeWaitingForApprovalReason.dailyCallsPerConsumer,
       "Hai superato la soglia di chiamate API per fruitore",
-      "con questa stima di chiamate API superi la soglia per fruitore",
+      "è stata superata la soglia per fruitore di chiamate API",
     ],
     [
       purposeWaitingForApprovalReason.dailyCallsTotal,
       "Superamento soglie totali di chiamate API",
-      "sono già state superate le soglie totali di chiamate API definite dall'erogatore",
+      "è stata superata la soglia totale di chiamate API",
     ],
     [
       purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
       "Superamento soglie per fruitore e soglie totali",
-      "è stata superata almeno una delle soglie di chiamate API/giorno definite dall’erogatore (per fruitore o totali)",
+      "sono state superate sia la soglia di chiamate API per fruitore sia la soglia totale",
     ],
   ] as const)(
     "renders the approved copy for reason %s",
@@ -29,14 +29,4 @@ describe("purposeOverQuotaTemplate", () => {
       });
     }
   );
-
-  it("uses generic copy for legacy reasons", () => {
-    expect(purposeOverQuotaTemplate("Finalità", "Servizio", undefined)).toEqual(
-      purposeOverQuotaTemplate(
-        "Finalità",
-        "Servizio",
-        purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal
-      )
-    );
-  });
 });
