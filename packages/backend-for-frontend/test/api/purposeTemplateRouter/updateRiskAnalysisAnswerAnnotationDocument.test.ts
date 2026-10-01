@@ -1,7 +1,7 @@
 import { constants } from "http2";
 import { bffApi } from "pagopa-interop-api-clients";
 import { authRole } from "pagopa-interop-commons";
-import { generateToken } from "pagopa-interop-commons-test/src/mockedPayloadForToken.js";
+import { generateToken } from "pagopa-interop-commons-test";
 import {
   generateId,
   RiskAnalysisSingleAnswerId,

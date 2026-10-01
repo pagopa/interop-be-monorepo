@@ -18,6 +18,8 @@ import {
   archivingScope,
   AsyncExchangeProperties,
   AttributeId,
+  DelegatedDescriptorArchivingRequest,
+  DelegatedEServiceArchivingRequest,
   Delegation,
   delegationKind,
   delegationState,
@@ -57,6 +59,7 @@ import {
   eserviceWithActiveOrPendingDelegation,
   eserviceDescriptorWithActiveOrPendingDelegation,
   eserviceArchivingWithActiveOrPendingDelegation,
+  eserviceCloningWithActiveOrPendingDelegation,
   notValidDescriptorState,
   riskAnalysisNotValid,
   riskAnalysisValidationFailed,
@@ -83,7 +86,13 @@ import {
   eserviceNotInArchiving,
   eServiceAlreadyArchived,
   gracePeriodDaysLowerThanDescriptor,
+  delegatedArchivingRequestAlreadyInProgress,
+  noDelegatedArchivingRequestFound,
+  delegatedArchivingRequestNotActive,
+  noActiveDelegationFound,
+  delegatedArchiveRequestForIncorrectDelegateProducer,
 } from "../model/domain/errors.js";
+import { hasActiveArchivingRequest } from "../utilities/archivingRequests.js";
 import { calculateArchivableOn } from "../utilities/dateCalculator.js";
 import {
   getLatestActiveDescriptor,
@@ -290,6 +299,23 @@ export async function assertNoExistingProducerDelegationForEServiceArchiving(
 
   if (producerDelegation) {
     throw eserviceArchivingWithActiveOrPendingDelegation(
+      eserviceId,
+      producerDelegation.id
+    );
+  }
+}
+
+export async function assertNoExistingProducerDelegationForEServiceCloning(
+  eserviceId: EServiceId,
+  readModelService: ReadModelServiceSQL
+): Promise<void> {
+  const producerDelegation = await getActiveOrPendingProducerDelegation(
+    eserviceId,
+    readModelService
+  );
+
+  if (producerDelegation) {
+    throw eserviceCloningWithActiveOrPendingDelegation(
       eserviceId,
       producerDelegation.id
     );
@@ -942,7 +968,8 @@ export function assertEServiceGracePeriodIsNotLowerThanDescriptors(
   for (const descriptor of eservice.descriptors) {
     if (
       descriptor.archivingSchedule &&
-      requestedArchivableOn < descriptor.archivingSchedule.archivableOn
+      requestedArchivableOn < descriptor.archivingSchedule.archivableOn &&
+      descriptor.state !== descriptorState.archived
     ) {
       throw gracePeriodDaysLowerThanDescriptor(
         eservice.id,
@@ -951,5 +978,92 @@ export function assertEServiceGracePeriodIsNotLowerThanDescriptors(
         descriptor.archivingSchedule.archivableOn
       );
     }
+  }
+}
+
+export function assertDelegatedEserviceHasNoActiveArchivingRequests(
+  eservice: EService
+): void {
+  const eserviceHasPendingArchivingRequests = hasActiveArchivingRequest(
+    eservice.delegatedArchivingRequest
+  );
+  const descriptorsHavePendingArchivingRequests = eservice.descriptors.some(
+    (descriptor) =>
+      hasActiveArchivingRequest(descriptor.delegatedArchivingRequest)
+  );
+  if (
+    eserviceHasPendingArchivingRequests ||
+    descriptorsHavePendingArchivingRequests
+  ) {
+    throw delegatedArchivingRequestAlreadyInProgress(eservice.id);
+  }
+}
+
+export function assertRequesterIsDelegateForArchiving(
+  producerDelegation: Delegation,
+  authData: UIAuthData | M2MAdminAuthData
+): void {
+  if (
+    producerDelegation.kind !== delegationKind.delegatedProducer ||
+    authData.organizationId !== producerDelegation.delegateId
+  ) {
+    throw operationForbidden;
+  }
+}
+export function assertDelegatedEserviceHasAtLeastOneArchivingRequests(
+  eservice: EService
+): void {
+  const archivingRequests = eservice.delegatedArchivingRequest;
+  if (!archivingRequests || archivingRequests.length === 0) {
+    throw noDelegatedArchivingRequestFound(eservice.id);
+  }
+}
+
+export function assertDelegatedEserviceHasActiveArchivingRequests(
+  eservice: EService
+): void {
+  if (!hasActiveArchivingRequest(eservice.delegatedArchivingRequest)) {
+    throw delegatedArchivingRequestNotActive(eservice.id);
+  }
+}
+
+export function assertDelegatedDescriptorHasAtLeastOneArchivingRequests(
+  descriptor: Descriptor,
+  eserviceId: EServiceId
+): void {
+  const archivingRequests = descriptor.delegatedArchivingRequest;
+  if (!archivingRequests || archivingRequests.length === 0) {
+    throw noDelegatedArchivingRequestFound(eserviceId, descriptor.id);
+  }
+}
+
+export function assertDelegatedDescriptorHasActiveArchivingRequests(
+  descriptor: Descriptor,
+  eserviceId: EServiceId
+): void {
+  if (!hasActiveArchivingRequest(descriptor.delegatedArchivingRequest)) {
+    throw delegatedArchivingRequestNotActive(eserviceId, descriptor.id);
+  }
+}
+
+export function assertDelegatedArchivingRequestDelegationIsStillValid(
+  producerDelegation: Delegation | undefined,
+  archivingRequest:
+    | DelegatedEServiceArchivingRequest
+    | DelegatedDescriptorArchivingRequest,
+  eserviceId: EServiceId,
+  descriptorId?: DescriptorId
+): asserts producerDelegation is Delegation {
+  if (!producerDelegation) {
+    throw noActiveDelegationFound(eserviceId);
+  }
+  if (
+    producerDelegation.kind !== delegationKind.delegatedProducer ||
+    archivingRequest.requesterId !== producerDelegation.delegateId
+  ) {
+    throw delegatedArchiveRequestForIncorrectDelegateProducer(
+      eserviceId,
+      descriptorId
+    );
   }
 }

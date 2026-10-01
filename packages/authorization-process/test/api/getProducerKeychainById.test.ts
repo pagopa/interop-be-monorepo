@@ -5,7 +5,7 @@ import {
   getMockProducerKeychain,
   getMockWithMetadata,
   mockTokenOrganizationId,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   ProducerKeychain,
   ProducerKeychainId,

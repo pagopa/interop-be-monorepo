@@ -7,6 +7,7 @@ import {
   M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
+  validateNoHyperlinksSafe,
   WithLogger,
 } from "pagopa-interop-commons";
 import {
@@ -56,6 +57,7 @@ import {
   assertDelegatorIsNotDelegate,
   assertDelegatorIsProducer,
   assertEserviceIsConsumerDelegable,
+  assertEserviceIsNotArchived,
   assertIsDelegate,
   assertIsDelegator,
   assertIsState,
@@ -144,6 +146,8 @@ export function delegationServiceBuilder(
       retrieveTenantById(readModelService, delegateId),
       retrieveEserviceById(readModelService, eserviceId),
     ]);
+
+    assertEserviceIsNotArchived(eservice);
 
     assertTenantAllowedToReceiveDelegation(delegate, kind);
     assertDelegatorAndDelegateAllowedForDelegation(delegator, delegate);
@@ -282,6 +286,8 @@ export function delegationServiceBuilder(
     logger.info(
       `Rejecting delegation ${delegationId} by delegate ${authData.organizationId}`
     );
+
+    validateNoHyperlinksSafe(rejectionReason);
 
     const { data: delegation, metadata } = await retrieveDelegationById(
       {

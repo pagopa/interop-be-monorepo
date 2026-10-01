@@ -2,6 +2,10 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/cognitive-complexity */
 import {
+  PurposeTemplateItemsSchema,
+  PurposeTemplateEServiceDescriptorSchema,
+} from "pagopa-interop-kpi-models";
+import {
   PurposeTemplateEventEnvelope,
   fromPurposeTemplateV2,
   missingKafkaMessageDataError,
@@ -11,14 +15,8 @@ import { match, P } from "ts-pattern";
 import { z } from "zod";
 
 import { DBContext } from "../../db/db.js";
-import {
-  PurposeTemplateDeletingSchema,
-  PurposeTemplateItemsSchema,
-} from "../../model/purposeTemplate/purposeTemplate.js";
-import {
-  PurposeTemplateEServiceDescriptorDeletingSchema,
-  PurposeTemplateEServiceDescriptorSchema,
-} from "../../model/purposeTemplate/purposeTemplateEserviceDescriptor.js";
+import { PurposeTemplateDeletingSchema } from "../../model/purposeTemplate/purposeTemplate.js";
+import { PurposeTemplateEServiceDescriptorDeletingSchema } from "../../model/purposeTemplate/purposeTemplateEserviceDescriptor.js";
 import { purposeTemplateServiceBuilder } from "../../service/purposeTemplateService.js";
 
 export async function handlePurposeTemplateMessageV2(

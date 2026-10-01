@@ -4,11 +4,14 @@ import {
   agreementState,
   Delegation,
   DelegationId,
+  EService,
+  EServiceId,
   Purpose,
   purposeVersionState,
 } from "pagopa-interop-models";
 import {
   AgreementReadModelService,
+  CatalogReadModelService,
   PurposeReadModelService,
 } from "pagopa-interop-readmodel";
 import {
@@ -23,12 +26,20 @@ export function readModelServiceBuilderSQL({
   readModelDB,
   agreementReadModelServiceSQL,
   purposeReadModelServiceSQL,
+  catalogReadModelServiceSQL,
 }: {
   readModelDB: DrizzleReturnType;
   agreementReadModelServiceSQL: AgreementReadModelService;
   purposeReadModelServiceSQL: PurposeReadModelService;
+  catalogReadModelServiceSQL: CatalogReadModelService;
 }) {
   return {
+    async getEService(eserviceId: EServiceId): Promise<EService | undefined> {
+      const eserviceWithMetadata =
+        await catalogReadModelServiceSQL.getEServiceById(eserviceId);
+
+      return eserviceWithMetadata?.data;
+    },
     async getPurposes(delegationId: DelegationId): Promise<Purpose[]> {
       const purposesWithMetadata =
         await purposeReadModelServiceSQL.getPurposesByFilter(
