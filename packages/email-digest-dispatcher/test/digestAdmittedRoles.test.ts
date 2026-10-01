@@ -29,6 +29,7 @@ describe("getVisibleSections", () => {
     expect(visibility.receivedPurposes).toBe(true);
     expect(visibility.delegations).toBe(true);
     expect(visibility.attributes).toBe(true);
+    expect(visibility.archivingProducer).toBe(true);
   });
 
   it("should enable only eservices and received purposes for api role", () => {
@@ -38,6 +39,7 @@ describe("getVisibleSections", () => {
     expect(visibility.updatedEservices).toBe(true);
     expect(visibility.updatedEserviceTemplates).toBe(true);
     expect(visibility.receivedPurposes).toBe(true);
+    expect(visibility.archivingProducer).toBe(true);
 
     expect(visibility.sentAgreements).toBe(false);
     expect(visibility.receivedAgreements).toBe(false);
@@ -53,6 +55,7 @@ describe("getVisibleSections", () => {
     expect(visibility.updatedEservices).toBe(true);
     expect(visibility.sentAgreements).toBe(true);
     expect(visibility.sentPurposes).toBe(true);
+    expect(visibility.archivingProducer).toBe(true);
 
     expect(visibility.updatedEserviceTemplates).toBe(false);
     expect(visibility.receivedAgreements).toBe(false);
@@ -81,6 +84,7 @@ describe("getVisibleSections", () => {
     expect(visibility.sentAgreements).toBe(true);
     expect(visibility.sentPurposes).toBe(true);
     expect(visibility.receivedPurposes).toBe(true);
+    expect(visibility.archivingProducer).toBe(true);
 
     // Still denied: receivedAgreements (admin only), delegations (admin only), attributes (admin only)
     expect(visibility.receivedAgreements).toBe(false);
@@ -115,6 +119,36 @@ describe("hasVisibleDigestContent", () => {
     expect(hasVisibleDigestContent(fullData, visibility)).toBe(false);
   });
 
+  it("should return true when producer archiving data is the only content visible to the role", () => {
+    const empty = { items: [], totalCount: 0 };
+    const archivingOnlyData = {
+      ...getMockTenantDigestData(),
+      newEservices: empty,
+      updatedEservices: empty,
+      updatedEserviceTemplates: empty,
+      popularEserviceTemplates: empty,
+      acceptedSentAgreements: empty,
+      rejectedSentAgreements: empty,
+      suspendedSentAgreements: empty,
+      publishedSentPurposes: empty,
+      rejectedSentPurposes: empty,
+      waitingForApprovalSentPurposes: empty,
+      waitingForApprovalReceivedAgreements: empty,
+      publishedReceivedPurposes: empty,
+      waitingForApprovalReceivedPurposes: empty,
+      activeSentDelegations: empty,
+      rejectedSentDelegations: empty,
+      waitingForApprovalReceivedDelegations: empty,
+      revokedReceivedDelegations: empty,
+      receivedAttributes: empty,
+      revokedAttributes: empty,
+      // archivingImminentEservices / archivingInProgressEservices still have data
+    };
+
+    const visibility = getVisibleSections(["api"]);
+    expect(hasVisibleDigestContent(archivingOnlyData, visibility)).toBe(true);
+  });
+
   it("should return false when all visible sections have no data", () => {
     const empty = { items: [], totalCount: 0 };
     const emptyData = {
@@ -124,6 +158,8 @@ describe("hasVisibleDigestContent", () => {
       updatedEserviceTemplates: empty,
       publishedReceivedPurposes: empty,
       waitingForApprovalReceivedPurposes: empty,
+      archivingImminentEservices: empty,
+      archivingInProgressEservices: empty,
     };
 
     const visibility = getVisibleSections(["api"]);
@@ -149,6 +185,8 @@ describe("hasVisibleDigestContent", () => {
       waitingForApprovalReceivedPurposes: empty,
       receivedAttributes: empty,
       revokedAttributes: empty,
+      archivingImminentEservices: empty,
+      archivingInProgressEservices: empty,
       // delegations still have data from getMockTenantDigestData
     };
 
@@ -179,6 +217,8 @@ describe("hasVisibleDigestContent", () => {
       revokedReceivedDelegations: empty,
       receivedAttributes: empty,
       revokedAttributes: empty,
+      archivingImminentEservices: empty,
+      archivingInProgressEservices: empty,
     };
 
     // Admin can see everything, but there's no data at all

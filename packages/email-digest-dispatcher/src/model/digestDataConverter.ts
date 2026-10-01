@@ -1,3 +1,4 @@
+import { dateAtRomeZone } from "pagopa-interop-commons";
 import {
   AgreementState,
   DelegationKind,
@@ -16,6 +17,7 @@ import {
   buildDelegationLink,
 } from "../services/deeplinkBuilder.js";
 import {
+  ArchivingProducerDigest,
   AttributeDigest,
   BaseDigest,
   DelegationDigest,
@@ -38,6 +40,7 @@ import {
   ReceivedPurposeState,
   SentDelegation,
   ReceivedDelegation,
+  ArchivingEservice,
 } from "../services/readModelService.js";
 
 // Module-level cache for descriptor IDs to avoid repeated readModelService calls
@@ -251,6 +254,32 @@ export async function popularEserviceTemplateToBaseDigest(
     (item) => item.eserviceTemplateCreatorId,
     buildEserviceTemplateLinkToInstantiator
   );
+}
+
+/**
+ * Transforms producer-side archiving data (in-progress or imminent) into a digest object.
+ * No producer name lookup is needed: the recipient is the producer itself.
+ */
+export function archivingEservicesToDigest(
+  data: ArchivingEservice[],
+  selfcareId: string | null
+): ArchivingProducerDigest {
+  if (data.length === 0) {
+    return { items: [], totalCount: 0 };
+  }
+
+  return {
+    items: data.map((item) => ({
+      id: item.eserviceId,
+      eserviceName: item.eserviceName,
+      version: item.version,
+      scope: item.scope,
+      isEserviceScope: item.scope === "EService",
+      archivableOn: dateAtRomeZone(new Date(item.archivableOn)),
+      link: buildEserviceLink(item.eserviceId, item.descriptorId, selfcareId),
+    })),
+    totalCount: data[0].totalCount,
+  };
 }
 
 /**
