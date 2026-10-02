@@ -444,7 +444,15 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           )
         );
 
-      return aggregatePurposeArray(toPurposeAggregatorArray(queryResult));
+      const purposeRows = toPurposeAggregatorArray(queryResult);
+      return aggregatePurposeArray({
+        ...purposeRows,
+        // Compare only fields persisted in both readmodels.
+        versionsSQL: purposeRows.versionsSQL.map((version) => ({
+          ...version,
+          waitingForApprovalReason: null,
+        })),
+      });
     },
 
     async getAllAgreements(): Promise<Array<WithMetadata<Agreement>>> {

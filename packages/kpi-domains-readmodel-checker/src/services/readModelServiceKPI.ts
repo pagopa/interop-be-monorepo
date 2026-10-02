@@ -285,7 +285,11 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
           ...ra,
           value: JSON.parse(ra.value),
         })),
-        versionsSQL,
+        // The analytics schema does not store the operational quota reason.
+        versionsSQL: versionsSQL.map((version) => ({
+          ...version,
+          waitingForApprovalReason: null,
+        })),
         versionDocumentsSQL,
         versionStampsSQL,
         versionSignedDocumentsSQL,
