@@ -148,3 +148,7 @@ message PurposeRiskAnalysisSelfAssignedV2 {
   repeated RiskAnalysisReviewerV2 removedReviewers = 2;
   optional RiskAnalysisReviewModeV2 previousRiskAnalysisReviewMode = 3;
 }
+
+message MaintenancePurposeRiskAnalysisFixReviewerWorkflowV2 {
+  PurposeV2 purpose = 1;
+}

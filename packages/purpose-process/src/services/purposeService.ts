@@ -109,6 +109,7 @@ import {
   missingReviewers,
   reviewersNotAllowedForReviewMode,
   purposeMetadataVersionMismatch,
+  riskAnalysisReviewModeNotFound,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -123,6 +124,7 @@ import {
   toCreateEventPurposeSuspendedByConsumer,
   toCreateEventPurposeSuspendedByProducer,
   toCreateEventMaintenancePurposeRiskAnalysisSetTenantKind,
+  toCreateEventMaintenancePurposeRiskAnalysisFixReviewerWorkflow,
   toCreateEventPurposeVersionActivated,
   toCreateEventPurposeVersionArchivedByRevokedDelegation,
   toCreateEventPurposeVersionOverQuotaUnsuspended,
@@ -456,6 +458,31 @@ export function purposeServiceBuilder(
 
       return {
         data: updatedPurpose,
+        metadata: { version: createdEvent.newVersion },
+      };
+    },
+    async fixReviewerWorkflow(
+      purposeId: PurposeId,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<WithMetadata<Purpose>> {
+      logger.info(`Fixing review mode for Purpose ${purposeId}`);
+
+      const purpose = await retrievePurpose(purposeId, readModelService);
+      if (!purpose.data.riskAnalysisReviewMode) {
+        throw riskAnalysisReviewModeNotFound(purposeId);
+      }
+
+      const event =
+        toCreateEventMaintenancePurposeRiskAnalysisFixReviewerWorkflow({
+          purpose: purpose.data,
+          version: purpose.metadata.version,
+          correlationId,
+        });
+
+      const createdEvent = await repository.createEvent(event);
+
+      return {
+        data: purpose.data,
         metadata: { version: createdEvent.newVersion },
       };
     },
