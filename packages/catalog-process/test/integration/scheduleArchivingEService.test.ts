@@ -126,6 +126,90 @@ describe("schedule archiving of an EService", () => {
     }
   );
 
+  it("should write on event-store if an archived descriptor has a later archivableOn than the new EService archiving request", async () => {
+    const archivedDescriptorArchivableOn = new Date(
+      Date.now() + 1000 * 60 * 60 * 24 * 90
+    );
+    const descriptor1: Descriptor = {
+      ...mockDescriptor,
+      id: generateId(),
+      version: "1",
+      state: descriptorState.archived,
+      archivingSchedule: {
+        archivableOn: archivedDescriptorArchivableOn,
+        startedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10),
+        scope: "Descriptor",
+        gracePeriodDays: GracePeriodDays.parse(90),
+      },
+    };
+    const descriptor2: Descriptor = {
+      ...mockDescriptor,
+      id: generateId(),
+      version: "2",
+      state: descriptorState.published,
+    };
+
+    const eservice: EService = {
+      ...mockEService,
+      id: generateId(),
+      descriptors: [descriptor1, descriptor2],
+    };
+
+    await addOneEService(eservice);
+    const scheduleEServiceArchivingResponse =
+      await catalogService.scheduleEServiceArchiving(
+        eservice.id,
+        {
+          archivingReason: mockArchivingReason,
+          gracePeriodDays: mockGracePeriodDays,
+        },
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      );
+
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    expect(writtenEvent.stream_id).toBe(eservice.id);
+    expect(writtenEvent.version).toBe("1");
+    expect(writtenEvent.type).toBe("EServiceArchivingScheduled");
+    expect(writtenEvent.event_version).toBe(2);
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceArchivingScheduledV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedDescriptor2: Descriptor = {
+      ...descriptor2,
+      state: descriptorState.archiving,
+      archivingSchedule: {
+        archivableOn: new Date(
+          Number(
+            writtenPayload.eservice!.descriptors[1]!.archivingSchedule!
+              .archivableOn
+          )
+        ),
+        startedAt: new Date(
+          Number(
+            writtenPayload.eservice!.descriptors[1]!.archivingSchedule!
+              .startedAt
+          )
+        ),
+        scope: "EService",
+        gracePeriodDays: mockGracePeriodDays,
+      },
+    };
+
+    const expectedEService: EService = {
+      ...eservice,
+      archivingReason: mockArchivingReason,
+      descriptors: [descriptor1, expectedDescriptor2],
+    };
+
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+    expect(scheduleEServiceArchivingResponse).toEqual({
+      data: expectedEService,
+      metadata: { version: parseInt(writtenEvent.version, 10) },
+    });
+  });
+
   it.each([...gracePeriodDaysValues])(
     "should compute archivableOn from the requested gracePeriodDays (gracePeriodDays: %d)",
     async (gracePeriodDaysValue: GracePeriodDays) => {
