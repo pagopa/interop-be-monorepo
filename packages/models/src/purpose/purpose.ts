@@ -110,6 +110,7 @@ export const ReviewerWorkflow = z.object({
   signedBy: UserId.optional(),
   signedAt: z.coerce.date().optional(),
   rejectedBy: UserId.optional(),
+  rejectedAt: z.coerce.date().optional(),
   rejectionReason: z.string().optional(),
   sentToReviewerAt: z.coerce.date().optional(),
 });
