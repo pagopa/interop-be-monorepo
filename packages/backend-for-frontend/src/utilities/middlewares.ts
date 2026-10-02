@@ -31,3 +31,15 @@ export function uiAuthDataValidationMiddleware(): ZodiosRouterContextRequestHand
     return next();
   };
 }
+
+export function endpointContextMiddleware(): ZodiosRouterContextRequestHandler<ExpressContext> {
+  return (req, _res, next) => {
+    Object.defineProperty(req.ctx, "endpoint", {
+      configurable: true,
+      enumerable: true,
+      get: () =>
+        req.route ? `${req.method.toUpperCase()} ${req.route.path}` : undefined,
+    });
+    return next();
+  };
+}
