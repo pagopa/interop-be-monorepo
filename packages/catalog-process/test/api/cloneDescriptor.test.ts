@@ -8,6 +8,7 @@ import {
   getMockEService,
 } from "pagopa-interop-commons-test";
 import {
+  DelegationId,
   Descriptor,
   DescriptorId,
   descriptorState,
@@ -26,6 +27,7 @@ import {
   eServiceNameDuplicateForProducer,
   templateInstanceNotAllowed,
   eserviceTemplateNameConflict,
+  eserviceCloningWithActiveOrPendingDelegation,
 } from "../../src/model/domain/errors.js";
 import { api, catalogService } from "../vitest.api.setup.js";
 
@@ -125,6 +127,13 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/clone authoriza
     },
     {
       error: operationForbidden,
+      expectedStatus: 403,
+    },
+    {
+      error: eserviceCloningWithActiveOrPendingDelegation(
+        eservice.id,
+        generateId<DelegationId>()
+      ),
       expectedStatus: 403,
     },
   ])(
