@@ -96,7 +96,8 @@ const errorCodes = {
   noActiveDelegationFound: "0075",
   delegatedArchiveRequestForIncorrectDelegateProducer: "0076",
   interfaceDocumentNotUpdatable: "0077",
-  templateInstanceInterfaceDataMissing: "0078",
+  eserviceCloningWithActiveOrPendingDelegation: "0078",
+  templateInstanceInterfaceDataMissing: "0079",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -430,6 +431,17 @@ export function eserviceArchivingWithActiveOrPendingDelegation(
     detail: `E-service ${eserviceId} can't be archived with an active or pending delegation ${delegationId}`,
     code: "eserviceArchivingWithActiveOrPendingDelegation",
     title: "E-service archiving with active or pending delegation",
+  });
+}
+
+export function eserviceCloningWithActiveOrPendingDelegation(
+  eserviceId: EServiceId,
+  delegationId: DelegationId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `E-service ${eserviceId} can't be cloned with an active or pending delegation ${delegationId}`,
+    code: "eserviceCloningWithActiveOrPendingDelegation",
+    title: "E-service cloning with active or pending delegation",
   });
 }
 

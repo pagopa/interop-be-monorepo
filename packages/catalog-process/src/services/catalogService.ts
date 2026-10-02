@@ -223,6 +223,7 @@ import {
   assertNoExistingProducerDelegationInActiveOrPendingState,
   assertNoExistingProducerDelegationForDescriptorArchiving,
   assertNoExistingProducerDelegationForEServiceArchiving,
+  assertNoExistingProducerDelegationForEServiceCloning,
   assertEServiceNameAvailableForProducer,
   assertRequesterIsDelegateProducerOrProducer,
   assertRequesterIsProducer,
@@ -2359,7 +2360,7 @@ export function catalogServiceBuilder(
       );
 
       assertRequesterIsProducer(eservice.data.producerId, authData);
-      await assertNoExistingProducerDelegationInActiveOrPendingState(
+      await assertNoExistingProducerDelegationForEServiceCloning(
         eservice.data.id,
         readModelService
       );
@@ -2434,6 +2435,7 @@ export function catalogServiceBuilder(
             suspendedAt: undefined,
             deprecatedAt: undefined,
             archivedAt: undefined,
+            archivingSchedule: undefined,
             rejectionReasons: undefined,
             delegatedArchivingRequest: undefined,
           },
@@ -2497,17 +2499,16 @@ export function catalogServiceBuilder(
 
       await repository.createEvent(event);
     },
-    async internalArchiveDelegatedArchivingRequest(
+    async internalDeleteDelegatedArchivingRequest(
       eserviceId: EServiceId,
-      seed: catalogApi.InternalArchiveDelegatedArchivingRequestSeed,
+      seed: catalogApi.InternalDeleteDelegatedArchivingRequestSeed,
       { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<void> {
       logger.info(
-        `Internal archiving delegated archiving request for EService ${eserviceId}`
+        `Internal deleting delegated archiving request for EService ${eserviceId}`
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      const rejectionReason = seed.reason;
 
       if (seed.descriptorId) {
         const descriptorId = unsafeBrandId<DescriptorId>(seed.descriptorId);
@@ -2520,14 +2521,8 @@ export function catalogServiceBuilder(
           return;
         }
 
-        const updatedRequests = updateLatestActiveArchivingRequest(
-          descriptor.delegatedArchivingRequest ?? [],
-          {
-            rejectedAt: new Date(),
-            rejectionReason,
-          },
-          eserviceId,
-          descriptorId
+        const updatedRequests = removeActiveArchivingRequest(
+          descriptor.delegatedArchivingRequest
         );
 
         const updatedEService = replaceDescriptor(eservice.data, {
@@ -2553,13 +2548,8 @@ export function catalogServiceBuilder(
         return;
       }
 
-      const updatedRequests = updateLatestActiveArchivingRequest(
-        eservice.data.delegatedArchivingRequest ?? [],
-        {
-          rejectedAt: new Date(),
-          rejectionReason,
-        },
-        eserviceId
+      const updatedRequests = removeActiveArchivingRequest(
+        eservice.data.delegatedArchivingRequest
       );
 
       const updatedEService: EService = {

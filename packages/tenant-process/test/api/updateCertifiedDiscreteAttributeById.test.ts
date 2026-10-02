@@ -17,9 +17,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { toApiTenant } from "../../src/model/domain/apiConverter.js";
 import {
-  attributeAlreadyRevoked,
   attributeDoesNotBelongToCertifier,
   attributeNotFound,
+  certifiedDiscreteAttributeRevoked,
   tenantIsNotACertifier,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
@@ -43,7 +43,6 @@ describe("API PUT /tenants/{tenantId}/attributes/certifiedDiscrete/{attributeId}
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
-    authRole.M2M_ROLE,
     authRole.M2M_ADMIN_ROLE,
   ];
 
@@ -93,7 +92,7 @@ describe("API PUT /tenants/{tenantId}/attributes/certifiedDiscrete/{attributeId}
     },
     { error: tenantIsNotACertifier(generateId()), expectedStatus: 403 },
     {
-      error: attributeAlreadyRevoked(generateId(), generateId(), generateId()),
+      error: certifiedDiscreteAttributeRevoked(generateId(), generateId()),
       expectedStatus: 409,
     },
   ])(

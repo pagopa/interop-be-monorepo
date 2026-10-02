@@ -12,6 +12,7 @@ import {
   AgreementId,
   Delegation,
   EService,
+  EServiceId,
   delegationKind,
   generateId,
 } from "pagopa-interop-models";
@@ -28,6 +29,7 @@ import {
   delegationNotAllowedForTenant,
   tenantNotAllowedToDelegation,
   tenantNotFound,
+  eserviceAlreadyArchived,
 } from "../../src/model/domain/errors.js";
 import { api, delegationService } from "../vitest.api.setup.js";
 
@@ -123,6 +125,10 @@ describe("API POST /consumer/delegations test", () => {
         mockDelegator.id
       ),
       expectedStatus: 409,
+    },
+    {
+      error: eserviceAlreadyArchived(generateId<EServiceId>()),
+      expectedStatus: 400,
     },
   ])(
     "Should return $expectedStatus for $error.code",

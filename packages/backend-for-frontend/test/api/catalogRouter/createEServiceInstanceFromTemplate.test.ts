@@ -5,7 +5,7 @@ import {
   generateToken,
   getMockDescriptor,
   getMockEService,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   EServiceId,
   EServiceTemplateId,

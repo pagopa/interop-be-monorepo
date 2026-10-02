@@ -2,7 +2,7 @@ import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockTenantNotificationConfig,
   getMockUserNotificationConfig,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   NotificationConfigEventEnvelope,
   TenantNotificationConfig,
@@ -211,6 +211,22 @@ describe("database test", async () => {
             !initialInAppConfig.purposeQuotaAdjustmentRequestToProducer,
           purposeOverQuotaStateToConsumer:
             !initialInAppConfig.purposeOverQuotaStateToConsumer,
+          purposeRiskAnalysisAssignedForSigningToReviewer:
+            !initialInAppConfig.purposeRiskAnalysisAssignedForSigningToReviewer,
+          purposeRiskAnalysisAssignedForWritingAndSigningToReviewer:
+            !initialInAppConfig.purposeRiskAnalysisAssignedForWritingAndSigningToReviewer,
+          purposePublishedWithRiskAnalysisToReviewer:
+            !initialInAppConfig.purposePublishedWithRiskAnalysisToReviewer,
+          draftPurposeDeletedWithRiskAnalysisToReviewer:
+            !initialInAppConfig.draftPurposeDeletedWithRiskAnalysisToReviewer,
+          purposeRiskAnalysisAssignmentRemovedToReviewer:
+            !initialInAppConfig.purposeRiskAnalysisAssignmentRemovedToReviewer,
+          purposeRiskAnalysisSignedToReviewer:
+            !initialInAppConfig.purposeRiskAnalysisSignedToReviewer,
+          purposeRiskAnalysisSignedToAdmin:
+            !initialInAppConfig.purposeRiskAnalysisSignedToAdmin,
+          purposeRiskAnalysisRejectedToAdmin:
+            !initialInAppConfig.purposeRiskAnalysisRejectedToAdmin,
           eserviceArchivingRequestedToDelegator:
             !initialInAppConfig.eserviceArchivingRequestedToDelegator,
           eserviceArchivingApprovedRejectedToDelegate:
@@ -265,6 +281,22 @@ describe("database test", async () => {
             !initialEmailConfig.purposeQuotaAdjustmentRequestToProducer,
           purposeOverQuotaStateToConsumer:
             !initialEmailConfig.purposeOverQuotaStateToConsumer,
+          purposeRiskAnalysisAssignedForSigningToReviewer:
+            !initialEmailConfig.purposeRiskAnalysisAssignedForSigningToReviewer,
+          purposeRiskAnalysisAssignedForWritingAndSigningToReviewer:
+            !initialEmailConfig.purposeRiskAnalysisAssignedForWritingAndSigningToReviewer,
+          purposePublishedWithRiskAnalysisToReviewer:
+            !initialEmailConfig.purposePublishedWithRiskAnalysisToReviewer,
+          draftPurposeDeletedWithRiskAnalysisToReviewer:
+            !initialEmailConfig.draftPurposeDeletedWithRiskAnalysisToReviewer,
+          purposeRiskAnalysisAssignmentRemovedToReviewer:
+            !initialEmailConfig.purposeRiskAnalysisAssignmentRemovedToReviewer,
+          purposeRiskAnalysisSignedToReviewer:
+            !initialEmailConfig.purposeRiskAnalysisSignedToReviewer,
+          purposeRiskAnalysisSignedToAdmin:
+            !initialEmailConfig.purposeRiskAnalysisSignedToAdmin,
+          purposeRiskAnalysisRejectedToAdmin:
+            !initialEmailConfig.purposeRiskAnalysisRejectedToAdmin,
           eserviceArchivingRequestedToDelegator:
             !initialEmailConfig.eserviceArchivingRequestedToDelegator,
           eserviceArchivingApprovedRejectedToDelegate:
