@@ -1,3 +1,4 @@
+import { tenantErrorCodes } from "pagopa-interop-commons";
 import {
   ApiError,
   AttributeId,
@@ -7,46 +8,9 @@ import {
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
-const errorCodes = {
-  attributeNotFound: "0001",
-  invalidAttributeStructure: "0002",
-  tenantDuplicate: "0003",
-  tenantNotFound: "0004",
-  eServiceNotFound: "0005",
-  tenantNotFoundBySelfcareId: "0006",
-  selfcareIdConflict: "0007",
-  verifiedAttributeNotFoundInTenant: "0008",
-  expirationDateCannotBeInThePast: "009",
-  tenantNotFoundInVerifiers: "0010",
-  expirationDateNotFoundInVerifier: "0011",
-  tenantIsNotACertifier: "0012",
-  attributeDoesNotBelongToCertifier: "0013",
-  certifiedAttributeAlreadyAssigned: "0014",
-  attributeVerificationNotAllowed: "0015",
-  verifiedAttributeSelfVerificationNotAllowed: "0016",
-  mailNotFound: "0017",
-  mailAlreadyExists: "0018",
-  attributeAlreadyRevoked: "0019",
-  attributeRevocationNotAllowed: "0020",
-  verifiedAttributeSelfRevocationNotAllowed: "0021",
-  tenantIsAlreadyACertifier: "0022",
-  certifierWithExistingAttributes: "0023",
-  attributeNotFoundInTenant: "0024",
-  tenantNotFoundByExternalId: "0025",
-  notValidMailAddress: "0026",
-  agreementNotFound: "0027",
-  descriptorNotFoundInEservice: "0028",
-  delegationNotFound: "0029",
-  operationRestrictedToDelegate: "0030",
-  invalidTenantFeature: "0031",
-  certifiedDiscreteAttributeAlreadyAssigned: "0032",
-  tenantNotFoundByRemoteId: "0033",
-  certifiedDiscreteAttributeRevoked: "0034",
-};
+export type ErrorCodes = keyof typeof tenantErrorCodes;
 
-export type ErrorCodes = keyof typeof errorCodes;
-
-export const makeApiProblem = makeApiProblemBuilder(errorCodes);
+export const makeApiProblem = makeApiProblemBuilder(tenantErrorCodes);
 
 export function verifiedAttributeSelfVerificationNotAllowed(): ApiError<ErrorCodes> {
   return new ApiError({

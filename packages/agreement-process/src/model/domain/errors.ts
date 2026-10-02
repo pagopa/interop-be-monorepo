@@ -1,3 +1,4 @@
+import { agreementErrorCodes } from "pagopa-interop-commons";
 import {
   AgreementDocumentId,
   AgreementId,
@@ -11,41 +12,9 @@ import {
   DelegationId,
 } from "pagopa-interop-models";
 
-const errorCodes = {
-  missingCertifiedAttributesError: "0001",
-  agreementSubmissionFailed: "0002",
-  agreementNotInExpectedState: "0003",
-  descriptorNotInExpectedState: "0004",
-  eServiceNotFound: "0005",
-  contractAlreadyExists: "0006",
-  tenantNotAllowed: "0007",
-  agreementActivationFailed: "0008",
-  agreementNotFound: "0009",
-  agreementAlreadyExists: "0010",
-  noNewerDescriptor: "0011",
-  publishedDescriptorNotFound: "0012",
-  unexpectedVersionFormat: "0013",
-  descriptorNotFound: "0014",
-  stampNotFound: "0015",
-  documentNotFound: "0017",
-  documentsChangeNotAllowed: "0018",
-  tenantNotFound: "0020",
-  notLatestEServiceDescriptor: "0021",
-  attributeNotFound: "0022",
-  invalidAttributeStructure: "0023",
-  consumerWithNotValidEmail: "0024",
-  agreementDocumentAlreadyExists: "0025",
-  delegationNotFound: "0026",
-  tenantIsNotTheConsumer: "0027",
-  tenantIsNotTheDelegateConsumer: "0028",
-  tenantIsNotTheProducer: "0029",
-  tenantIsNotTheDelegateProducer: "0030",
-  tenantIsNotTheDelegate: "0031",
-};
+export type ErrorCodes = keyof typeof agreementErrorCodes;
 
-export type ErrorCodes = keyof typeof errorCodes;
-
-export const makeApiProblem = makeApiProblemBuilder(errorCodes);
+export const makeApiProblem = makeApiProblemBuilder(agreementErrorCodes);
 
 export function eServiceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
   return new ApiError({

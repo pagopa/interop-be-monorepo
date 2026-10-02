@@ -1,3 +1,4 @@
+import { delegationErrorCodes } from "pagopa-interop-commons";
 import {
   ApiError,
   EServiceId,
@@ -12,28 +13,9 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
-const errorCodes = {
-  delegationNotFound: "0001",
-  eserviceNotFound: "0002",
-  delegationAlreadyExists: "0003",
-  tenantNotFound: "0004",
-  invalidDelegatorAndDelegateIds: "0005",
-  delegationNotAllowedForTenant: "0006",
-  tenantNotAllowedToDelegation: "0007",
-  stampNotFound: "0008",
-  operationRestrictedToDelegator: "0009",
-  operationRestrictedToDelegate: "0010",
-  incorrectState: "0011",
-  differentEserviceProducer: "0012",
-  delegationContractNotFound: "0013",
-  eserviceNotConsumerDelegable: "0014",
-  delegationRelatedAgreementExists: "0015",
-  eserviceAlreadyArchived: "0016",
-};
+export type ErrorCodes = keyof typeof delegationErrorCodes;
 
-export type ErrorCodes = keyof typeof errorCodes;
-
-export const makeApiProblem = makeApiProblemBuilder(errorCodes);
+export const makeApiProblem = makeApiProblemBuilder(delegationErrorCodes);
 
 export function delegationNotFound(
   delegationId: DelegationId,

@@ -1,4 +1,7 @@
-import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
+import {
+  RiskAnalysisValidationIssue,
+  purposeErrorCodes,
+} from "pagopa-interop-commons";
 import {
   ApiError,
   DelegationId,
@@ -18,75 +21,9 @@ import {
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
-const errorCodes = {
-  purposeNotFound: "0001",
-  eserviceNotFound: "0002",
-  tenantNotFound: "0003",
-  tenantKindNotFound: "0004",
-  purposeVersionNotFound: "0005",
-  purposeVersionDocumentNotFound: "0006",
-  tenantNotAllowed: "0007",
-  tenantIsNotTheConsumer: "0008",
-  purposeVersionCannotBeDeleted: "0009",
-  tenantIsNotTheProducer: "0010",
-  notValidVersionState: "0011",
-  eServiceModeNotAllowed: "0012",
-  missingFreeOfChargeReason: "0013",
-  riskAnalysisValidationFailed: "0014",
-  purposeNotInDraftState: "0015",
-  duplicatedPurposeTitle: "0016",
-  purposeCannotBeDeleted: "0017",
-  agreementNotFound: "0018",
-  eserviceRiskAnalysisNotFound: "0019",
-  purposeCannotBeCloned: "0020",
-  riskAnalysisConfigVersionNotFound: "0021",
-  descriptorNotFound: "0022",
-  unchangedDailyCalls: "0023",
-  missingRiskAnalysis: "0024",
-  purposeVersionStateConflict: "0025",
-  riskAnalysisConfigLatestVersionNotFound: "0026",
-  tenantIsNotTheDelegatedConsumer: "0027",
-  tenantIsNotTheDelegatedProducer: "0028",
-  purposeDelegationNotFound: "0029",
-  purposeCannotBeUpdated: "0030",
-  tenantIsNotTheDelegate: "0031",
-  purposeTemplateNotFound: "0032",
-  invalidPurposeTenantKind: "0033",
-  riskAnalysisContainsNotEditableAnswers: "0034",
-  riskAnalysisAnswerNotInSuggestValues: "0035",
-  riskAnalysisMissingExpectedFieldError: "0036",
-  riskAnalysisVersionMismatch: "0037",
-  invalidPersonalData: "0038",
-  purposeDraftVersionNotFound: "0039",
-  purposeFromTemplateCannotBeModified: "0040",
-  invalidFreeOfChargeReason: "0041",
-  riskAnalysisTenantKindMismatch: "0042",
-  unableToDetermineTenantKind: "0043",
-  reviewerWorkflowConflict: "0044",
-  reviewerWorkflowNotFound: "0046",
-  reviewerWorkflowNotSubmittable: "0047",
-  submitNotAllowedForReviewMode: "0048",
-  reviewerWorkflowNotInSignableState: "0049",
-  requesterIsNotDesignatedReviewer: "0050",
-  rejectNotAllowedInCurrentMode: "0051",
-  reviewerWorkflowNotInSubmittedState: "0052",
-  editNotAllowedForReviewMode: "0053",
-  reviewerWorkflowNotEditable: "0054",
-  reviewerWorkflowNotInSignedState: "0055",
-  riskAnalysisFormCannotBeUpdated: "0056",
-  userWithoutReviewerPrivileges: "0057",
-  missingSelfcareId: "0058",
-  reviewerWorkflowNotAllowedForDelegatedPurpose: "0059",
-  reviewerWorkflowNotAllowedForReceiveMode: "0060",
-  duplicatedReviewersInSeed: "0061",
-  missingReviewers: "0062",
-  reviewersNotAllowedForReviewMode: "0063",
-  purposeMetadataVersionMismatch: "0064",
-};
+export type ErrorCodes = keyof typeof purposeErrorCodes;
 
-export type ErrorCodes = keyof typeof errorCodes;
-
-export const makeApiProblem = makeApiProblemBuilder(errorCodes);
+export const makeApiProblem = makeApiProblemBuilder(purposeErrorCodes);
 
 export function duplicatedReviewersInSeed(): ApiError<ErrorCodes> {
   return new ApiError({
