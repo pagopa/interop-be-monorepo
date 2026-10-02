@@ -1407,6 +1407,9 @@ components:
         rejectedBy:
           type: string
           format: uuid
+        rejectedAt:
+          type: string
+          format: date-time
         rejectionReason:
           type: string
       required:
