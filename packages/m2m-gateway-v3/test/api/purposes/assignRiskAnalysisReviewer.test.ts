@@ -5,12 +5,14 @@ import {
   getMockDPoPProof,
   getMockedApiPurpose,
 } from "pagopa-interop-commons-test";
-import { generateId } from "pagopa-interop-models";
+import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, expect, it, vi } from "vitest";
 
 import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { config } from "../../../src/config/config.js";
+import { missingMetadata } from "../../../src/model/errors.js";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 
 describe("POST /purposes/:purposeId/riskAnalysis/assign router test", () => {
@@ -18,7 +20,8 @@ describe("POST /purposes/:purposeId/riskAnalysis/assign router test", () => {
   const mockM2MPurposeResponse = toM2MGatewayApiPurpose(mockApiPurpose);
   const seed: m2mGatewayApiV3.RiskAnalysisAssignmentSeed = {
     reviewMode:
-      m2mGatewayApiV3.RiskAnalysisReviewMode.Enum.REVIEWER_WRITES_REVIEWER_SIGNS,
+      m2mGatewayApiV3.RiskAnalysisReviewMode.Enum
+        .REVIEWER_WRITES_REVIEWER_SIGNS,
     reviewerIds: [generateId()],
   };
 
@@ -34,6 +37,32 @@ describe("POST /purposes/:purposeId/riskAnalysis/assign router test", () => {
       .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
+
+  it.each([
+    m2mGatewayApiV3.RiskAnalysisReviewMode.Enum.ADMIN_WRITES_ADMIN_SIGNS,
+    m2mGatewayApiV3.RiskAnalysisReviewMode.Enum.ADMIN_WRITES_REVIEWER_SIGNS,
+    m2mGatewayApiV3.RiskAnalysisReviewMode.Enum.REVIEWER_WRITES_REVIEWER_SIGNS,
+  ])("Should return 200 for review mode %s", async (reviewMode) => {
+    mockPurposeService.assignRiskAnalysisReviewer = vi
+      .fn()
+      .mockResolvedValue(mockM2MPurposeResponse);
+
+    const body = {
+      reviewMode,
+      ...(reviewMode ===
+      m2mGatewayApiV3.RiskAnalysisReviewMode.Enum.ADMIN_WRITES_ADMIN_SIGNS
+        ? {}
+        : { reviewerIds: [generateId()] }),
+    };
+    const res = await makeRequest(
+      generateToken(authRole.M2M_ADMIN_ROLE),
+      mockApiPurpose.id,
+      body
+    );
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(mockM2MPurposeResponse);
+  });
 
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
@@ -54,17 +83,20 @@ describe("POST /purposes/:purposeId/riskAnalysis/assign router test", () => {
     { reviewMode: "INVALID_MODE" },
     {
       reviewMode:
-        m2mGatewayApiV3.RiskAnalysisReviewMode.Enum.REVIEWER_WRITES_REVIEWER_SIGNS,
+        m2mGatewayApiV3.RiskAnalysisReviewMode.Enum
+          .REVIEWER_WRITES_REVIEWER_SIGNS,
       reviewerIds: ["INVALID_ID"],
     },
     {
       reviewMode:
-        m2mGatewayApiV3.RiskAnalysisReviewMode.Enum.REVIEWER_WRITES_REVIEWER_SIGNS,
+        m2mGatewayApiV3.RiskAnalysisReviewMode.Enum
+          .REVIEWER_WRITES_REVIEWER_SIGNS,
       reviewerIds: [],
     },
     {
       reviewMode:
-        m2mGatewayApiV3.RiskAnalysisReviewMode.Enum.REVIEWER_WRITES_REVIEWER_SIGNS,
+        m2mGatewayApiV3.RiskAnalysisReviewMode.Enum
+          .REVIEWER_WRITES_REVIEWER_SIGNS,
       unsupportedField: "unsupportedValue",
     },
   ])("Should return 400 for invalid assignment seed", async (body) => {
@@ -82,9 +114,14 @@ describe("POST /purposes/:purposeId/riskAnalysis/assign router test", () => {
       .fn()
       .mockResolvedValue(mockM2MPurposeResponse);
 
-    const res = await makeRequest(generateToken(authRole.M2M_ADMIN_ROLE), mockApiPurpose.id, {
-      reviewMode: m2mGatewayApiV3.RiskAnalysisReviewMode.Enum.ADMIN_WRITES_ADMIN_SIGNS,
-    });
+    const res = await makeRequest(
+      generateToken(authRole.M2M_ADMIN_ROLE),
+      mockApiPurpose.id,
+      {
+        reviewMode:
+          m2mGatewayApiV3.RiskAnalysisReviewMode.Enum.ADMIN_WRITES_ADMIN_SIGNS,
+      }
+    );
 
     expect(res.status).toBe(200);
   });
@@ -105,4 +142,44 @@ describe("POST /purposes/:purposeId/riskAnalysis/assign router test", () => {
 
     expect(res.status).toBe(403);
   });
+
+  it.each([
+    missingMetadata(),
+    pollingMaxRetriesExceeded(
+      config.defaultPollingMaxRetries,
+      config.defaultPollingRetryDelay
+    ),
+  ])("Should return 500 in case of $code error", async (error) => {
+    mockPurposeService.assignRiskAnalysisReviewer = vi
+      .fn()
+      .mockRejectedValue(error);
+
+    const res = await makeRequest(
+      generateToken(authRole.M2M_ADMIN_ROLE),
+      mockApiPurpose.id
+    );
+
+    expect(res.status).toBe(500);
+  });
+
+  it.each([
+    { ...mockM2MPurposeResponse, createdAt: undefined },
+    { ...mockM2MPurposeResponse, eserviceId: "invalidId" },
+    { ...mockM2MPurposeResponse, extraParam: "extraValue" },
+    {},
+  ])(
+    "Should return 500 when API model parsing fails for response",
+    async (response) => {
+      mockPurposeService.assignRiskAnalysisReviewer = vi
+        .fn()
+        .mockResolvedValue(response);
+
+      const res = await makeRequest(
+        generateToken(authRole.M2M_ADMIN_ROLE),
+        mockApiPurpose.id
+      );
+
+      expect(res.status).toBe(500);
+    }
+  );
 });

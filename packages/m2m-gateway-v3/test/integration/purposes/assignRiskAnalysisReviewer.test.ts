@@ -3,10 +3,17 @@ import {
   getMockedApiPurpose,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { generateId, unsafeBrandId, WithMetadata } from "pagopa-interop-models";
+import {
+  generateId,
+  pollingMaxRetriesExceeded,
+  unsafeBrandId,
+  WithMetadata,
+} from "pagopa-interop-models";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { config } from "../../../src/config/config.js";
+import { missingMetadata } from "../../../src/model/errors.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
@@ -48,8 +55,10 @@ describe("assignRiskAnalysisReviewer", () => {
   } as unknown as PagoPAInteropBeClients["purposeProcessClient"];
 
   beforeEach(() => {
-    mockAssignRiskAnalysisReviewer.mockClear();
-    mockGetPurpose.mockClear();
+    mockAssignRiskAnalysisReviewer.mockReset();
+    mockAssignRiskAnalysisReviewer.mockResolvedValue(assignmentResponse);
+    mockGetPurpose.mockReset();
+    mockGetPurpose.mockImplementation(mockPollingResponse(mockApiPurpose, 2));
   });
 
   it("Should forward the assignment and poll the updated purpose", async () => {
@@ -72,9 +81,10 @@ describe("assignRiskAnalysisReviewer", () => {
       mockGet: mockGetPurpose,
       params: { id: mockApiPurpose.data.id },
     });
+    expect(mockGetPurpose).toHaveBeenCalledTimes(1);
   });
 
-  it("Should throw when the assignment response has no metadata", async () => {
+  it("Should throw missingMetadata when the assignment response has no metadata", async () => {
     mockAssignRiskAnalysisReviewer.mockResolvedValueOnce({
       data: mockApiPurpose.data,
       metadata: undefined,
@@ -86,6 +96,43 @@ describe("assignRiskAnalysisReviewer", () => {
         assignmentSeed,
         getMockM2MAdminAppContext()
       )
-    ).rejects.toThrow();
+    ).rejects.toThrowError(missingMetadata());
+  });
+
+  it("Should throw missingMetadata when the polling response has no metadata", async () => {
+    mockGetPurpose.mockResolvedValueOnce({
+      data: mockApiPurpose.data,
+      metadata: undefined,
+    });
+
+    await expect(
+      purposeService.assignRiskAnalysisReviewer(
+        unsafeBrandId(mockApiPurpose.data.id),
+        assignmentSeed,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(missingMetadata());
+  });
+
+  it("Should throw pollingMaxRetriesExceeded when polling reaches the maximum attempts", async () => {
+    mockGetPurpose.mockImplementation(
+      mockPollingResponse(mockApiPurpose, config.defaultPollingMaxRetries + 1)
+    );
+
+    await expect(
+      purposeService.assignRiskAnalysisReviewer(
+        unsafeBrandId(mockApiPurpose.data.id),
+        assignmentSeed,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(
+      pollingMaxRetriesExceeded(
+        config.defaultPollingMaxRetries,
+        config.defaultPollingRetryDelay
+      )
+    );
+    expect(mockGetPurpose).toHaveBeenCalledTimes(
+      config.defaultPollingMaxRetries
+    );
   });
 });
