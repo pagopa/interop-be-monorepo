@@ -31,6 +31,7 @@ import {
   agreementApprovalPolicy,
   agreementState,
   AttributeId,
+  buildEServiceInstanceName,
   catalogEventToBinaryData,
   Delegation,
   delegationKind,
@@ -57,6 +58,7 @@ import {
   generateId,
   ListResult,
   operationForbidden,
+  parseEServiceInstanceLabel,
   RiskAnalysis,
   RiskAnalysisId,
   Tenant,
@@ -1209,11 +1211,13 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      const { parsedInstanceLabel, instanceName: updatedInstanceName } =
-        buildInstanceName({
-          templateName: template.name,
-          instanceLabel: eserviceSeed.instanceLabel,
-        });
+      const parsedInstanceLabel = parseEServiceInstanceLabel(
+        eserviceSeed.instanceLabel
+      );
+      const updatedInstanceName = buildEServiceInstanceName({
+        templateName: template.name,
+        instanceLabel: parsedInstanceLabel,
+      });
 
       if (updatedInstanceName !== eservice.data.name) {
         await assertEServiceNameAvailableForProducer(
@@ -4189,7 +4193,7 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      const { instanceName: updatedInstanceName } = buildInstanceName({
+      const updatedInstanceName = buildEServiceInstanceName({
         templateName: updatedTemplateName,
         instanceLabel: eservice.data.instanceLabel,
       });
@@ -4631,9 +4635,12 @@ export function catalogServiceBuilder(
         .with({ mode: eserviceMode.deliver }, () => Promise.resolve([]))
         .exhaustive();
 
-      const { parsedInstanceLabel, instanceName } = buildInstanceName({
+      const parsedInstanceLabel = parseEServiceInstanceLabel(
+        seed.instanceLabel
+      );
+      const instanceName = buildEServiceInstanceName({
         templateName: template.name,
-        instanceLabel: seed.instanceLabel,
+        instanceLabel: parsedInstanceLabel,
       });
 
       const instanceAsyncExchange =
@@ -5117,11 +5124,11 @@ export function catalogServiceBuilder(
 
       assertEServiceUpdatableAfterPublish(eservice.data);
 
-      const { parsedInstanceLabel, instanceName: updatedInstanceName } =
-        buildInstanceName({
-          templateName: template.name,
-          instanceLabel,
-        });
+      const parsedInstanceLabel = parseEServiceInstanceLabel(instanceLabel);
+      const updatedInstanceName = buildEServiceInstanceName({
+        templateName: template.name,
+        instanceLabel: parsedInstanceLabel,
+      });
 
       if (updatedInstanceName !== eservice.data.name) {
         await assertEServiceNameAvailableForProducer(
@@ -6225,31 +6232,4 @@ async function updateDraftDescriptor(
   };
 }
 
-/**
- * Builds the instance name from the template name and optional instance label.
- * - templateName: maxLength 45
- * - separator " - ": 3 characters
- * - instanceLabel: maxLength 12
- * - eservice name (result): maxLength 60
- *
- * Also, empty spaces are removed, and an empty string is treated as undefined
- */
-const buildInstanceName = ({
-  templateName,
-  instanceLabel,
-}: {
-  templateName: string;
-  instanceLabel: string | undefined;
-}): { parsedInstanceLabel?: string; instanceName: string } => {
-  const trimmedInstanceLabel = instanceLabel?.trim();
-  const parsedInstanceLabel =
-    trimmedInstanceLabel && trimmedInstanceLabel.length > 0
-      ? trimmedInstanceLabel
-      : undefined;
-
-  const instanceName = parsedInstanceLabel
-    ? `${templateName} - ${parsedInstanceLabel}`
-    : templateName;
-  return { parsedInstanceLabel, instanceName };
-};
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
