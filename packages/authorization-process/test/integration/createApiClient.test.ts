@@ -18,7 +18,11 @@ import {
 import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
 
 import { duplicatedMembersInSeed } from "../../src/model/domain/errors.js";
-import { authorizationService, postgresDB } from "../integrationUtils.js";
+import {
+  authorizationService,
+  postgresDB,
+  selfcareV2Client,
+} from "../integrationUtils.js";
 
 describe("createConsumerClient", () => {
   const userId: UserId = generateId();
@@ -39,6 +43,11 @@ describe("createConsumerClient", () => {
   };
   it("should write on event-store for the creation of a api client", async () => {
     const organizationId: TenantId = generateId();
+    selfcareV2Client.getInstitutionUsersByProductUsingGET = vi
+      .fn()
+      .mockResolvedValue(
+        clientSeed.members.map((id) => ({ id, name: "Test", surname: "User" }))
+      );
     const client = await authorizationService.createApiClient(
       {
         clientSeed,
