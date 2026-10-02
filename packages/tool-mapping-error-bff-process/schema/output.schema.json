@@ -1,0 +1,284 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "Endpoint details",
+  "type": "object",
+  "description": "Structured output produced by the error-messages generator: process endpoints discovered from router files, together with the BFF endpoints that call them.",
+  "properties": {
+    "output": {
+      "type": "object",
+      "description": "Map keyed by process name. Each entry contains the endpoints exported by that process's router.",
+      "patternProperties": {
+        "[a-z-]+": {
+          "type": "array",
+          "description": "List of endpoints exported by a specific backend process.",
+          "items": {
+            "$ref": "#/definitions/Endpoint"
+          }
+        }
+      }
+    },
+    "bff": {
+      "type": "array",
+      "description": "List of BFF routes discovered in the backend-for-frontend package that map to backend process calls.",
+      "items": {
+        "$ref": "#/definitions/BffEndpoint"
+      }
+    }
+  },
+  "definitions": {
+    "ErrorWithCode": {
+      "type": "object",
+      "description": "A single error mapping from an endpoint mapper: the error code and the corresponding message text.",
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "Error code identifier returned by the backend logic for this mapped failure."
+        },
+        "message": {
+          "type": "string",
+          "description": "Human-readable description associated with the error code."
+        }
+      },
+      "required": ["code", "message"]
+    },
+    "ErrorMapper": {
+      "type": "object",
+      "description": "Metadata for the error mapper linked to a router endpoint, including the mapped error codes used by that endpoint.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the mapper referenced by the route definition."
+        },
+        "file": {
+          "type": "string",
+          "description": "Absolute or project-relative path to the file that contains the mapper implementation."
+        },
+        "errors": {
+          "type": "array",
+          "description": "List of error codes and messages extracted from the mapper file.",
+          "items": {
+            "$ref": "#/definitions/ErrorWithCode"
+          }
+        }
+      },
+      "required": ["name", "file"]
+    },
+    "Service": {
+      "type": "object",
+      "description": "Details of the backend service method bound to a route, resolved from the process router implementation.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the service object or method referenced by the route."
+        },
+        "method": {
+          "type": "string",
+          "description": "Method name that handles the HTTP route within the service."
+        },
+        "file": {
+          "type": "string",
+          "description": "Path to the source file containing the service implementation."
+        },
+        "startLine": {
+          "type": "integer",
+          "description": "Optional start line of the method definition in the source file."
+        },
+        "endLine": {
+          "type": "integer",
+          "description": "Optional end line of the method definition in the source file."
+        }
+      },
+      "required": ["name", "method", "file"]
+    },
+    "BffProcess": {
+      "type": "object",
+      "description": "A backend process that a BFF service calls, together with the method name used in that call.",
+      "properties": {
+        "process": {
+          "type": "string",
+          "description": "Normalized process name, such as agreement, catalog, or tenant."
+        },
+        "method": {
+          "type": "string",
+          "description": "Method invoked on the process client from the BFF service."
+        }
+      },
+      "required": ["process", "method"]
+    },
+    "BffService": {
+      "type": "object",
+      "description": "Details of the BFF service method that exposes a route and the backend processes it depends on.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the BFF service object or method referenced by the route."
+        },
+        "method": {
+          "type": "string",
+          "description": "BFF route handler method name."
+        },
+        "file": {
+          "type": "string",
+          "description": "Path to the BFF router source file."
+        },
+        "startLine": {
+          "type": "integer",
+          "description": "Optional start line of the BFF handler method in the source file."
+        },
+        "endLine": {
+          "type": "integer",
+          "description": "Optional end line of the BFF handler method in the source file."
+        },
+        "processes": {
+          "type": "array",
+          "description": "Backend processes invoked by this BFF service, mapped to the concrete client methods used.",
+          "items": {
+            "$ref": "#/definitions/BffProcess"
+          }
+        }
+      },
+      "required": ["name", "method", "file", "processes"]
+    },
+    "OpenApi": {
+      "type": "object",
+      "description": "OpenAPI metadata for the route, linking the router declaration to the generated API contract.",
+      "properties": {
+        "operationId": {
+          "type": "string",
+          "description": "Unique OpenAPI operation identifier for the route."
+        },
+        "path": {
+          "type": "string",
+          "description": "HTTP path declared in the OpenAPI document."
+        },
+        "fileName": {
+          "type": "string",
+          "description": "Path to the OpenAPI YAML file used to resolve the route metadata."
+        }
+      },
+      "required": ["operationId", "path", "fileName"]
+    },
+    "BffEndpoint": {
+      "type": "object",
+      "description": "A BFF endpoint entry discovered in the frontend-facing router and linked to the OpenAPI contract and backing service.",
+      "properties": {
+        "method": {
+          "type": "string",
+          "description": "HTTP method of the BFF route, such as GET, POST, or PUT."
+        },
+        "path": {
+          "type": "string",
+          "description": "Route path exposed by the BFF endpoint."
+        },
+        "fileName": {
+          "type": "string",
+          "description": "Source router file where the BFF endpoint is declared."
+        },
+        "openApi": {
+          "$ref": "#/definitions/OpenApi",
+          "description": "OpenAPI operation metadata for this BFF route."
+        },
+        "service": {
+          "$ref": "#/definitions/BffService",
+          "description": "BFF service implementation associated with the route."
+        },
+        "frontendServiceFile": {
+          "$ref": "#/definitions/FrontendServiceFileWithStackCalls",
+          "description": "Frontend service file containing the most likely stack calls related to this BFF endpoint."
+        }
+      },
+      "required": ["method", "path", "fileName", "openApi", "service"]
+    },
+    "FrontendStackCall": {
+      "type": "object",
+      "description": "A call from the frontend stack to a backend service, including the BFF endpoint and the target process endpoint.",
+      "properties": {
+        "fileName": {
+          "type": "string",
+          "description": "Source file where the frontend stack call is declared."
+        },
+        "lineNumber": {
+          "type": "integer",
+          "description": "Line number in the source file where the frontend stack call is declared."
+        }
+      },
+      "required": ["fileName", "lineNumber"]
+    },
+    "FrontendServiceFileWithStackCalls": {
+      "type": "object",
+      "description": "A frontend service file containing stack calls.",
+      "properties": {
+        "fileName": {
+          "type": "string",
+          "description": "Path to the frontend service file."
+        },
+        "functionName": {
+          "type": "string",
+          "description": "Name of the function in the frontend service file containing the call to the backend-for-frontend endpoint."
+        },
+        "stackCalls": {
+          "type": "array",
+          "description": "List of frontend stack calls found in the file.",
+          "items": {
+            "$ref": "#/definitions/FrontendStackCall"
+          }
+        }
+      },
+      "required": ["fileName", "functionName", "stackCalls"]
+    },
+    "Endpoint": {
+      "type": "object",
+      "description": "A backend process endpoint found in a router file, including its implementation, mapper, security roles and matching BFF routes.",
+      "properties": {
+        "method": {
+          "type": "string",
+          "description": "HTTP method of the process route, such as GET, POST, PUT, or DELETE."
+        },
+        "path": {
+          "type": "string",
+          "description": "Route path declared in the process router."
+        },
+        "fileName": {
+          "type": "string",
+          "description": "Router file where the route is declared."
+        },
+        "openApi": {
+          "$ref": "#/definitions/OpenApi",
+          "description": "Matching OpenAPI operation metadata for this process endpoint."
+        },
+        "service": {
+          "$ref": "#/definitions/Service",
+          "description": "Backend service method that handles the route."
+        },
+        "mapper": {
+          "$ref": "#/definitions/ErrorMapper",
+          "description": "Error mapper attached to the endpoint and the list of errors it resolves."
+        },
+        "roles": {
+          "type": "array",
+          "description": "Authorization roles required to invoke the endpoint.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bffEndpoints": {
+          "type": "array",
+          "description": "Matching BFF endpoints that call this process endpoint.",
+          "items": {
+            "$ref": "#/definitions/BffEndpoint"
+          }
+        }
+      },
+      "required": [
+        "method",
+        "path",
+        "fileName",
+        "openApi",
+        "service",
+        "mapper",
+        "roles",
+        "bffEndpoints"
+      ]
+    }
+  }
+}
