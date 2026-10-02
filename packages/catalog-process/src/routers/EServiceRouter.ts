@@ -95,6 +95,7 @@ import {
   approveDelegatedDescriptorArchivingErrorMapper,
   rejectDelegatedDescriptorArchivingErrorMapper,
   internalDeleteDelegatedArchivingRequestErrorMapper,
+  internalDeleteDelegatedPendingDescriptorErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const eservicesRouter = (
@@ -1146,6 +1147,30 @@ const eservicesRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .delete(
+      "/internal/eservices/:eServiceId/descriptors/:descriptorId/pending",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+          await catalogService.internalDeleteDelegatedPendingDescriptor(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            internalDeleteDelegatedPendingDescriptorErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .post(
       "/maintenance/eservices/:eServiceId/descriptors/:descriptorId/unarchive",
       async (req, res) => {

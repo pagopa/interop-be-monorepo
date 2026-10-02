@@ -49,6 +49,7 @@ const purposeProcessClient = {
 } as unknown as purposeApi.PurposeProcessClient;
 const catalogProcessClient = {
   internalDeleteDelegatedArchivingRequest: vi.fn(),
+  internalDeleteDelegatedPendingDescriptor: vi.fn(),
 } as unknown as catalogApi.CatalogProcessClient;
 
 describe("delegationItemsArchiverConsumerServiceV2", () => {
@@ -616,7 +617,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
       );
     });
 
-    it("should not call catalog-process when no archiving request is pending", async () => {
+    it("should not call catalog-process when no archiving request or descriptor is pending", async () => {
       await addOneEService({
         ...getMockEService(delegation.eserviceId, delegation.delegatorId, [
           getMockDescriptor(descriptorState.published),
@@ -635,6 +636,10 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
       expect(
         catalogProcessClient.internalDeleteDelegatedArchivingRequest
       ).not.toHaveBeenCalled();
+
+      expect(
+        catalogProcessClient.internalDeleteDelegatedPendingDescriptor
+      ).not.toHaveBeenCalled();
     });
 
     it("should not call catalog-process when the e-service is not in the read model", async () => {
@@ -643,6 +648,47 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
       expect(
         catalogProcessClient.internalDeleteDelegatedArchivingRequest
       ).not.toHaveBeenCalled();
+
+      expect(
+        catalogProcessClient.internalDeleteDelegatedPendingDescriptor
+      ).not.toHaveBeenCalled();
     });
+
+    it.each([descriptorState.draft, descriptorState.waitingForApproval])(
+      "Should call catalog-process to delete %s descriptor when the delegation is revoked",
+      async (state) => {
+        const descriptorInPendingState: Descriptor = {
+          ...getMockDescriptor(state),
+          version: "1",
+        };
+        const descriptorWithoutRequests: Descriptor = {
+          ...getMockDescriptor(descriptorState.published),
+          version: "2",
+        };
+
+        await addOneEService({
+          ...getMockEService(delegation.eserviceId, delegation.delegatorId, [
+            descriptorInPendingState,
+            descriptorWithoutRequests,
+          ]),
+        });
+
+        await handleMessage();
+
+        expect(
+          catalogProcessClient.internalDeleteDelegatedPendingDescriptor
+        ).toHaveBeenCalled();
+
+        expect(
+          catalogProcessClient.internalDeleteDelegatedPendingDescriptor
+        ).toHaveBeenCalledWith(undefined, {
+          params: {
+            descriptorId: descriptorInPendingState.id,
+            eServiceId: delegation.eserviceId,
+          },
+          headers: testHeaders,
+        });
+      }
+    );
   });
 });
