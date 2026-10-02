@@ -87,6 +87,7 @@ export function toM2MGatewayApiPurpose(
       ? toM2mGatewayApiPurposeVersion(rejectedVersion)
       : undefined,
     purposeTemplateId: purpose.purposeTemplateId,
+    riskAnalysisReviewMode: purpose.riskAnalysisReviewMode,
   };
 }
 
