@@ -1806,6 +1806,10 @@ export function catalogServiceBuilder(
       logger.info(`Creating Descriptor for EService ${eserviceId}`);
 
       validateNoHyperlinksSafe(eserviceDescriptorSeed.description);
+      eserviceDescriptorSeed.docs?.forEach((doc) => {
+        validateNoHyperlinksSafe(doc.fileName);
+        validateNoHyperlinksSafe(doc.prettyName);
+      });
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 

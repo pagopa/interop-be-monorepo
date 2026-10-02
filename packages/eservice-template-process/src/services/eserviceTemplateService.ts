@@ -1629,6 +1629,10 @@ export function eserviceTemplateServiceBuilder(
       );
 
       validateNoHyperlinksSafe(seed.description);
+      seed.docs?.forEach((doc) => {
+        validateNoHyperlinksSafe(doc.fileName);
+        validateNoHyperlinksSafe(doc.prettyName);
+      });
 
       const eserviceTemplate = await retrieveEServiceTemplate(
         eserviceTemplateId,
