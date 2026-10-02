@@ -17,6 +17,7 @@ import {
   Tenant,
   descriptorState,
   generateId,
+  hyperlinkDetectionError,
   tenantKind,
   toEServiceV2,
 } from "pagopa-interop-models";
@@ -546,6 +547,30 @@ describe("import eservice", () => {
         getMockContext({ authData: getMockAuthData(producer.id) })
       )
     ).rejects.toMatchObject({ code: "documentIdDuplicate" });
+
+    const events = await postgresDB.any("SELECT * FROM catalog.events");
+    expect(events).toEqual([]);
+  });
+
+  it("should throw hyperlinkDetectionError and commit no events if a document prettyName contains a hyperlink", async () => {
+    await addOneTenant(producer);
+
+    await expect(
+      catalogService.importEService(
+        {
+          ...importSeed,
+          descriptor: {
+            ...importSeed.descriptor,
+            docs: [
+              { ...documentSeed1, prettyName: "see https://evil.example.com" },
+            ],
+          },
+        },
+        getMockContext({ authData: getMockAuthData(producer.id) })
+      )
+    ).rejects.toThrowError(
+      hyperlinkDetectionError("see https://evil.example.com")
+    );
 
     const events = await postgresDB.any("SELECT * FROM catalog.events");
     expect(events).toEqual([]);

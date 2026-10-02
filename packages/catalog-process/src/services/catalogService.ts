@@ -922,6 +922,11 @@ async function addDocumentsToImportedEservice(
     })),
   ];
 
+  documentSeeds.forEach((documentSeed) => {
+    validateNoHyperlinksSafe(documentSeed.fileName);
+    validateNoHyperlinksSafe(documentSeed.prettyName);
+  });
+
   const documentIds = documentSeeds.map((seed) => seed.documentId);
   const duplicateDocumentId = documentIds.find(
     (documentId, index) => documentIds.indexOf(documentId) !== index
