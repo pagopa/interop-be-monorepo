@@ -10,6 +10,7 @@ import {
   healthRouter,
   initRedisRateLimiter,
   loggerMiddleware,
+  problemContentTypeMiddleware,
   rateLimiterMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
@@ -24,6 +25,7 @@ const serviceName = modelsServiceName.API_GATEWAY;
 const clients = getInteropBeClients();
 
 const app = zodiosCtx.app();
+app.use(problemContentTypeMiddleware);
 
 const redisRateLimiter = await initRedisRateLimiter({
   limiterGroup: "API_GW",
