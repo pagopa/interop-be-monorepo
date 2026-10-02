@@ -102,7 +102,7 @@ export const PurposeVersion = z.object({
   riskAnalysis: PurposeVersionDocument.optional(),
   dailyCalls: z.number(),
   rejectionReason: z.string().optional(),
-  // Quota decision at entry into waiting for approval, retained after state changes.
+  // Quota decision while waiting for approval, cleared on rejection or activation.
   waitingForApprovalReason: PurposeWaitingForApprovalReason.optional(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date().optional(),

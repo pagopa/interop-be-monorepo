@@ -50,13 +50,21 @@ import { handleMessageV2 } from "../src/purposeConsumerServiceV2.js";
 import { purposeReadModelService, purposeWriterService } from "./utils.js";
 
 describe("Integration tests", async () => {
-  it.each([
-    "PurposeWaitingForApproval",
-    "NewPurposeVersionWaitingForApproval",
-    "PurposeVersionOverQuotaUnsuspended",
-  ] as const)(
-    "persists the affected version reason from %s and preserves it on approval",
-    async (type) => {
+  it.each(
+    (
+      [
+        "PurposeWaitingForApproval",
+        "NewPurposeVersionWaitingForApproval",
+        "PurposeVersionOverQuotaUnsuspended",
+      ] as const
+    ).flatMap((type) =>
+      (["PurposeVersionActivated", "PurposeVersionRejected"] as const).map(
+        (transition) => ({ type, transition })
+      )
+    )
+  )(
+    "persists the reason from $type and clears it on $transition",
+    async ({ type, transition }) => {
       for (const waitingForApprovalReason of Object.values(
         purposeWaitingForApprovalReason
       )) {
@@ -95,20 +103,31 @@ describe("Integration tests", async () => {
           result?.data.versions.find((v) => v.id === activeVersion.id)
             ?.waitingForApprovalReason
         ).toBeUndefined();
-        const approvedPurpose = {
+        const transitionedPurpose = {
           ...purpose,
           versions: [
             activeVersion,
-            { ...waitingVersion, state: purposeVersionState.active },
+            {
+              ...waitingVersion,
+              state:
+                transition === "PurposeVersionActivated"
+                  ? purposeVersionState.active
+                  : purposeVersionState.rejected,
+              waitingForApprovalReason: undefined,
+              rejectionReason:
+                transition === "PurposeVersionRejected"
+                  ? "Rejected by producer"
+                  : undefined,
+            },
           ],
         };
         await handleMessageV2(
           {
             ...envelope,
             version: 2,
-            type: "PurposeVersionActivated",
+            type: transition,
             data: {
-              purpose: toPurposeV2(approvedPurpose),
+              purpose: toPurposeV2(transitionedPurpose),
               versionId: waitingVersion.id,
             },
           },
@@ -118,7 +137,7 @@ describe("Integration tests", async () => {
         expect(
           result?.data.versions.find((v) => v.id === waitingVersion.id)
             ?.waitingForApprovalReason
-        ).toBe(waitingForApprovalReason);
+        ).toBeUndefined();
       }
     }
   );

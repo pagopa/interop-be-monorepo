@@ -982,6 +982,7 @@ export function purposeServiceBuilder(
       const updatedPurposeVersion: PurposeVersion = {
         ...purposeVersion,
         state: purposeVersionState.rejected,
+        waitingForApprovalReason: undefined,
         rejectionReason,
         updatedAt: new Date(),
       };
@@ -2915,6 +2916,7 @@ async function activatePurposeLogic({
   const updatedPurposeVersion: PurposeVersion = {
     ...purposeVersion,
     state: purposeVersionState.active,
+    waitingForApprovalReason: undefined,
     stamps,
     updatedAt: new Date(),
     firstActivationAt: new Date(),

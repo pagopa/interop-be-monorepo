@@ -43,7 +43,7 @@ message PurposeVersionV2 {
   optional string rejectionReason = 9;
   optional PurposeVersionStampsV2 stamps = 10;
   optional PurposeVersionSignedDocumentV2 signedContract = 11;
-  // Quota decision at entry into waiting for approval, retained after state changes.
+  // Quota decision while waiting for approval, cleared on rejection or activation.
   optional PurposeWaitingForApprovalReasonV2 waitingForApprovalReason = 12;
 }
 
