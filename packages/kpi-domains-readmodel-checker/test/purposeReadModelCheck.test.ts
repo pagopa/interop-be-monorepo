@@ -1,6 +1,15 @@
 import { genericLogger } from "pagopa-interop-commons";
-import { getMockPurpose } from "pagopa-interop-commons-test";
-import { generateId, Purpose, WithMetadata } from "pagopa-interop-models";
+import {
+  getMockPurpose,
+  getMockPurposeVersion,
+} from "pagopa-interop-commons-test";
+import {
+  generateId,
+  Purpose,
+  WithMetadata,
+  purposeVersionState,
+  purposeWaitingForApprovalReason,
+} from "pagopa-interop-models";
 import { upsertPurpose } from "pagopa-interop-readmodel/testUtils";
 import { describe, expect, it } from "vitest";
 
@@ -58,6 +67,39 @@ describe("Check purpose readmodels", () => {
 
     expect(res).toEqual(0);
   });
+
+  it.each(Object.values(purposeWaitingForApprovalReason))(
+    "ignores operational quota reason %s when comparing purpose readmodels",
+    async (waitingForApprovalReason) => {
+      const purpose: WithMetadata<Purpose> = {
+        data: getMockPurpose([
+          {
+            ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+            waitingForApprovalReason,
+          },
+        ]),
+        metadata: { version: 1 },
+      };
+      await addOnePurpose(purpose);
+      await upsertPurpose(readModelDB, purpose.data, purpose.metadata.version);
+      const kpiItems = await readModelServiceKPI.getAllPurposes();
+      const postgresItems = await readModelServiceSQL.getAllPurposes();
+      expect(
+        kpiItems[0].data.versions[0].waitingForApprovalReason
+      ).toBeUndefined();
+      expect(
+        postgresItems[0].data.versions[0].waitingForApprovalReason
+      ).toBeUndefined();
+      expect(
+        compare({
+          kpiItems,
+          postgresItems,
+          schema: "purposes",
+          loggerInstance: genericLogger,
+        })
+      ).toBe(0);
+    }
+  );
 
   it("should detect differences if the postgres item is not present", async () => {
     const purpose1: WithMetadata<Purpose> = {

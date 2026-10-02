@@ -1098,6 +1098,7 @@ export const purposeVersionInReadmodelPurpose = readmodelPurpose.table(
     metadataVersion: integer("metadata_version").notNull(),
     state: varchar().notNull(),
     dailyCalls: integer("daily_calls").notNull(),
+    waitingForApprovalReason: varchar("waiting_for_approval_reason"),
     rejectionReason: varchar("rejection_reason"),
     createdAt: timestamp("created_at", {
       withTimezone: true,

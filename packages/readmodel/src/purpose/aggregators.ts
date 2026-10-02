@@ -12,6 +12,7 @@ import {
   PurposeVersionStamp,
   PurposeVersionStampKind,
   PurposeVersionState,
+  PurposeWaitingForApprovalReason,
   ReviewerWorkflow,
   RiskAnalysisAnswerKind,
   riskAnalysisAnswerKind,
@@ -202,6 +203,13 @@ PurposeItemsSQL): WithMetadata<Purpose> => {
       id: unsafeBrandId(versionSQL.id),
       state: PurposeVersionState.parse(versionSQL.state),
       dailyCalls: versionSQL.dailyCalls,
+      ...(versionSQL.waitingForApprovalReason !== null
+        ? {
+            waitingForApprovalReason: PurposeWaitingForApprovalReason.parse(
+              versionSQL.waitingForApprovalReason
+            ),
+          }
+        : {}),
       createdAt: stringToDate(versionSQL.createdAt),
       ...(versionSQL.rejectionReason
         ? { rejectionReason: versionSQL.rejectionReason }

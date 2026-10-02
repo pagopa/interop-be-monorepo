@@ -7,6 +7,7 @@ import {
 } from "../brandedIds.js";
 import {
   PurposeStateV2,
+  PurposeWaitingForApprovalReasonV2,
   PurposeVersionDocumentV2,
   PurposeVersionStampV2,
   PurposeVersionV2,
@@ -23,6 +24,8 @@ import { fromTenantKindV2 } from "../tenant/protobufConverterFromV2.js";
 import { bigIntToDate } from "../utils.js";
 import {
   Purpose,
+  PurposeWaitingForApprovalReason,
+  purposeWaitingForApprovalReason,
   PurposeVersion,
   PurposeVersionDocument,
   PurposeVersionSignedDocument,
@@ -90,12 +93,31 @@ export const fromPurposeVersionStampsV2 = (
   creation: fromPurposeVersionStampV2(input?.creation)!,
 });
 
+export const fromPurposeWaitingForApprovalReasonV2 = (
+  input: PurposeWaitingForApprovalReasonV2
+): PurposeWaitingForApprovalReason | undefined => {
+  switch (input) {
+    case PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_PER_CONSUMER:
+      return purposeWaitingForApprovalReason.dailyCallsPerConsumer;
+    case PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_TOTAL:
+      return purposeWaitingForApprovalReason.dailyCallsTotal;
+    case PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_PER_CONSUMER_AND_TOTAL:
+      return purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal;
+    case PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_UNSPECIFIED:
+      return undefined;
+  }
+};
+
 export const fromPurposeVersionV2 = (
   input: PurposeVersionV2
 ): PurposeVersion => ({
   ...input,
   id: unsafeBrandId(input.id),
   state: fromPurposeVersionStateV2(input.state),
+  waitingForApprovalReason:
+    input.waitingForApprovalReason !== undefined
+      ? fromPurposeWaitingForApprovalReasonV2(input.waitingForApprovalReason)
+      : undefined,
   riskAnalysis: input.riskAnalysis
     ? fromPurposeVersionDocumentV2(input.riskAnalysis)
     : undefined,

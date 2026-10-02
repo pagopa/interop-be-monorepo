@@ -4,11 +4,12 @@ import { z } from "zod";
 
 import { PurposeVersionDocumentSchema } from "./purposeVersionDocument.js";
 
+// The quota approval reason belongs to the operational readmodel, not the analytics table.
 export const PurposeVersionSchema = createSelectSchema(
   purposeVersionInReadmodelPurpose
-).extend({
-  deleted: z.boolean().default(false).optional(),
-});
+)
+  .omit({ waitingForApprovalReason: true })
+  .extend({ deleted: z.boolean().default(false).optional() });
 export type PurposeVersionSchema = z.infer<typeof PurposeVersionSchema>;
 
 export const PurposeVersionItemsSchema = z.object({
