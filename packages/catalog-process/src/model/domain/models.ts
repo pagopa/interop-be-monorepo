@@ -21,11 +21,17 @@ export type EServiceSortBy = catalogApi.EServiceSortBy;
 
 export const defaultEServiceSortBy: EServiceSortBy = "CREATED_AT_DESC";
 
+export type RequesterDelegationRole = catalogApi.RequesterDelegationRole;
+
 export type EServicesQueryFilters = {
   offset: number;
   limit: number;
   sortBy: EServiceSortBy;
   keyword?: string;
+  producersIds: TenantId[];
+  onlyActiveEservices?: boolean;
+  subscribedByRequester?: boolean;
+  requesterDelegationRoles: RequesterDelegationRole[];
 };
 
 export type ApiGetEServicesFilters = {
