@@ -48,6 +48,17 @@ describe("API POST /import/eservices", () => {
     expect(res.body).toEqual(mockCreatedEServiceDescriptor);
   });
 
+  it.each([authRole.SECURITY_ROLE, authRole.SUPPORT_ROLE])(
+    "Should return 403 for user with role %s, without uploading anything",
+    async (role) => {
+      const token = generateToken(role);
+      const res = await makeRequest(token);
+
+      expect(res.status).toBe(403);
+      expect(services.catalogService.importEService).not.toHaveBeenCalled();
+    }
+  );
+
   it.each([
     {
       error: eserviceDescriptorNotFound(generateId(), generateId()),

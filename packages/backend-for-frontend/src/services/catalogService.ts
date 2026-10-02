@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
 import AdmZip from "adm-zip";
+import { isAxiosError } from "axios";
 import { randomUUID } from "crypto";
 import {
   agreementApi,
@@ -17,12 +18,11 @@ import {
 import {
   FileManager,
   WithLogger,
-  createPollingByCondition,
   formatDateyyyyMMddTHHmmss,
   getAllFromPaginated,
   getRulesetExpiration,
   verifyAndCreateDocument,
-  verifyAndCreateImportedDocument,
+  verifyAndUploadImportedDocument,
 } from "pagopa-interop-commons";
 import {
   DescriptorId,
@@ -1842,46 +1842,66 @@ export function catalogServiceBuilder(
         );
       }
 
-      const eserviceSeed: catalogApi.EServiceSeed = {
-        name: importedEservice.name,
-        description: importedEservice.description,
-        technology: importedEservice.technology,
-        mode: importedEservice.mode,
-        asyncExchange: importedEservice.asyncExchange,
-        descriptor: {
-          description: importedEservice.descriptor.description,
-          audience: importedEservice.descriptor.audience,
-          voucherLifespan: importedEservice.descriptor.voucherLifespan,
-          dailyCallsPerConsumer:
-            importedEservice.descriptor.dailyCallsPerConsumer,
-          dailyCallsTotal: importedEservice.descriptor.dailyCallsTotal,
-          agreementApprovalPolicy:
-            importedEservice.descriptor.agreementApprovalPolicy,
-        },
-        isSignalHubEnabled: importedEservice.isSignalHubEnabled,
-        isConsumerDelegable: importedEservice.isConsumerDelegable,
-        isClientAccessDelegable: importedEservice.isClientAccessDelegable,
+      const fileSizeLimits = {
+        maxFileSizeBytes: config.maxFileSizeBytes,
+        maxInterfaceFileSizeBytes: config.maxInterfaceFileSizeBytes,
+      };
+      const technology = apiTechnologyToTechnology(importedEservice.technology);
+
+      const uploadedPaths: string[] = [];
+
+      const uploadImportedDocument = async (
+        doc: { prettyName: string; path: string },
+        kind: "INTERFACE" | "DOCUMENT" | "ASYNC_EXCHANGE_CALLBACK_INTERFACE"
+      ): Promise<catalogApi.EServiceImportDocumentSeed> => {
+        const uploaded = await verifyAndUploadImportedDocument(
+          fileManager,
+          technology,
+          entriesMap,
+          doc,
+          kind,
+          config.eserviceDocumentsContainer,
+          config.eserviceDocumentsPath,
+          fileSizeLimits,
+          logger
+        );
+        uploadedPaths.push(uploaded.filePath);
+        return {
+          documentId: uploaded.documentId,
+          prettyName: uploaded.prettyName,
+          fileName: uploaded.fileName,
+          filePath: uploaded.filePath,
+          contentType: uploaded.contentType,
+          checksum: uploaded.checksum,
+          serverUrls: uploaded.serverUrls,
+        };
       };
 
-      const pollEServiceById = createPollingByCondition(() =>
-        catalogProcessClient.getEServiceById({
-          params: {
-            eServiceId: eservice.id,
-          },
-          headers,
-        })
-      );
+      let importRequestSent = false;
+      try {
+        const interfaceSeed = descriptorInterface
+          ? await uploadImportedDocument(descriptorInterface, "INTERFACE")
+          : undefined;
 
-      const eservice = await catalogProcessClient.createEService(eserviceSeed, {
-        headers,
-      });
-      await pollEServiceById({
-        condition: (result) => result.descriptors.length > 0,
-      });
+        const asyncExchangeCallbackInterfaceSeed =
+          asyncExchangeCallbackInterface
+            ? await uploadImportedDocument(
+                asyncExchangeCallbackInterface,
+                "ASYNC_EXCHANGE_CALLBACK_INTERFACE"
+              )
+            : undefined;
 
-      if (importedEservice.descriptor.asyncExchangeProperties) {
-        await catalogProcessClient.updateDraftDescriptor(
-          {
+        const documentSeeds: catalogApi.EServiceImportDocumentSeed[] = [];
+        for (const doc of importedEservice.descriptor.docs) {
+          documentSeeds.push(await uploadImportedDocument(doc, "DOCUMENT"));
+        }
+
+        const importSeed: catalogApi.EServiceImportSeed = {
+          name: importedEservice.name,
+          description: importedEservice.description,
+          technology: importedEservice.technology,
+          mode: importedEservice.mode,
+          descriptor: {
             description: importedEservice.descriptor.description,
             audience: importedEservice.descriptor.audience,
             voucherLifespan: importedEservice.descriptor.voucherLifespan,
@@ -1890,171 +1910,60 @@ export function catalogServiceBuilder(
             dailyCallsTotal: importedEservice.descriptor.dailyCallsTotal,
             agreementApprovalPolicy:
               importedEservice.descriptor.agreementApprovalPolicy,
-            attributes: {
-              certified: [],
-              declared: [],
-              verified: [],
-            },
+            interface: interfaceSeed,
             asyncExchangeProperties:
               importedEservice.descriptor.asyncExchangeProperties,
+            asyncExchangeCallbackInterface: asyncExchangeCallbackInterfaceSeed,
+            docs: documentSeeds,
           },
-          {
-            headers,
-            params: {
-              eServiceId: eservice.id,
-              descriptorId: eservice.descriptors[0].id,
-            },
-          }
-        );
-        await pollEServiceById({
-          condition: (result) =>
-            result.descriptors.some(
-              (descriptor) =>
-                descriptor.id === eservice.descriptors[0].id &&
-                descriptor.asyncExchangeProperties !== undefined
-            ),
-        });
-      }
+          riskAnalysis: importedEservice.riskAnalysis.map(
+            toBffCatalogApiEserviceRiskAnalysisSeed
+          ),
+          isSignalHubEnabled: importedEservice.isSignalHubEnabled,
+          isConsumerDelegable: importedEservice.isConsumerDelegable,
+          isClientAccessDelegable: importedEservice.isClientAccessDelegable,
+          asyncExchange: importedEservice.asyncExchange,
+        };
 
-      for (const riskAnalysis of importedEservice.riskAnalysis) {
-        try {
-          await catalogProcessClient.createRiskAnalysis(
-            toBffCatalogApiEserviceRiskAnalysisSeed(riskAnalysis),
-            {
-              headers,
-              params: {
-                eServiceId: eservice.id,
-              },
-            }
+        importRequestSent = true;
+        const { eservice, createdDescriptorId } =
+          await catalogProcessClient.importEService(importSeed, { headers });
+
+        return {
+          id: eservice.id,
+          descriptorId: createdDescriptorId,
+        };
+      } catch (error) {
+        // a 4xx is thrown before committing; any other failure after the
+        // request was sent may have committed, so the files must be kept
+        const isDefiniteRejection =
+          isAxiosError(error) &&
+          error.response !== undefined &&
+          error.response.status < 500;
+
+        if (importRequestSent && !isDefiniteRejection) {
+          logger.warn(
+            `Import of EService failed without a definite rejection from catalog-process: keeping the uploaded documents, as the import may have been committed: ${uploadedPaths.join(
+              ", "
+            )}`
           );
-        } catch (error) {
-          await catalogProcessClient.deleteEService(undefined, {
-            headers: context.headers,
-            params: {
-              eServiceId: eservice.id,
-            },
-          });
           throw error;
         }
-        await pollEServiceById({
-          condition: (result) => result.riskAnalysis.length > 0,
-        });
-      }
 
-      const createEserviceDocumentRequest = async (
-        documentId: string,
-        fileName: string,
-        filePath: string,
-        prettyName: string,
-        kind: "INTERFACE" | "DOCUMENT" | "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
-        serverUrls: string[],
-        contentType: string,
-        checksum: string
-      ) =>
-        await catalogProcessClient.createEServiceDocument(
-          {
-            documentId,
-            prettyName,
-            fileName,
-            filePath,
-            kind,
-            contentType,
-            checksum,
-            serverUrls,
-          },
-          {
-            headers: context.headers,
-            params: {
-              eServiceId: eservice.id,
-              descriptorId: descriptor.id,
-            },
+        const cleanupOutcomes = await Promise.allSettled(
+          uploadedPaths.map((path) =>
+            fileManager.delete(config.eserviceDocumentsContainer, path, logger)
+          )
+        );
+        cleanupOutcomes.forEach((outcome, index) => {
+          if (outcome.status === "rejected") {
+            logger.error(
+              `Error deleting uploaded document ${uploadedPaths[index]} after failed import of EService: ${outcome.reason}`
+            );
           }
-        );
-
-      const descriptor = eservice.descriptors[0];
-      if (descriptorInterface) {
-        await verifyAndCreateImportedDocument(
-          fileManager,
-          unsafeBrandId(eservice.id),
-          apiTechnologyToTechnology(eservice.technology),
-          entriesMap,
-          descriptorInterface,
-          "INTERFACE",
-          createEserviceDocumentRequest,
-          config.eserviceDocumentsContainer,
-          config.eserviceDocumentsPath,
-          {
-            maxFileSizeBytes: config.maxFileSizeBytes,
-            maxInterfaceFileSizeBytes: config.maxInterfaceFileSizeBytes,
-          },
-          context.logger
-        );
-      }
-      await pollEServiceById({
-        condition: (result) =>
-          result.descriptors.some(
-            (d) => d.id === descriptor.id && d.interface !== undefined
-          ),
-      });
-
-      if (asyncExchangeCallbackInterface) {
-        await verifyAndCreateImportedDocument(
-          fileManager,
-          unsafeBrandId(eservice.id),
-          apiTechnologyToTechnology(eservice.technology),
-          entriesMap,
-          asyncExchangeCallbackInterface,
-          "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
-          createEserviceDocumentRequest,
-          config.eserviceDocumentsContainer,
-          config.eserviceDocumentsPath,
-          {
-            maxFileSizeBytes: config.maxFileSizeBytes,
-            maxInterfaceFileSizeBytes: config.maxInterfaceFileSizeBytes,
-          },
-          context.logger
-        );
-        await pollEServiceById({
-          condition: (result) =>
-            result.descriptors.some(
-              (d) =>
-                d.id === descriptor.id &&
-                d.asyncExchangeCallbackInterface !== undefined
-            ),
         });
+        throw error;
       }
-
-      for (const doc of importedEservice.descriptor.docs) {
-        await verifyAndCreateImportedDocument(
-          fileManager,
-          unsafeBrandId(eservice.id),
-          apiTechnologyToTechnology(eservice.technology),
-          entriesMap,
-          doc,
-          "DOCUMENT",
-          createEserviceDocumentRequest,
-          config.eserviceDocumentsContainer,
-          config.eserviceDocumentsPath,
-          {
-            maxFileSizeBytes: config.maxFileSizeBytes,
-            maxInterfaceFileSizeBytes: config.maxInterfaceFileSizeBytes,
-          },
-          context.logger
-        );
-        await pollEServiceById({
-          condition: (result) =>
-            result.descriptors.some(
-              (d) =>
-                d.id === descriptor.id &&
-                d.docs.some((d) => d.prettyName === doc.prettyName)
-            ),
-        });
-      }
-
-      return {
-        id: eservice.id,
-        descriptorId: eservice.descriptors[0].id,
-      };
     },
     approveDelegatedEServiceDescriptor: async (
       eServiceId: EServiceId,
