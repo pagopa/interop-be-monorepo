@@ -663,7 +663,7 @@ async function innerCreateEService(
   }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
 ): Promise<{
   eService: EService;
-  events: Array<CreateEvent<EServiceEvent>>;
+  events: CreateEvent<EServiceEvent>[];
 }> {
   validateNoHyperlinksSafe(seed.name);
   validateNoHyperlinksSafe(seed.description);
@@ -5393,7 +5393,7 @@ async function createOpenApiInterfaceByTemplate(
   eserviceWithMetadata: WithMetadata<EService>,
   descriptorId: DescriptorId,
   eserviceTemplateInterface: Document,
-  serverUrls: Array<{ url: string; description?: string }>,
+  serverUrls: { url: string; description?: string }[],
   eserviceInstanceInterfaceRestData:
     | {
         contactEmail: string;

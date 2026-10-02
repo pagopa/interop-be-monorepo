@@ -50,18 +50,18 @@ export const splitUserNotificationConfigIntoObjectsSQL = (
   }: UserNotificationConfig,
   metadataVersion: number
 ): UserNotificationConfigItemsSQL & {
-  enabledInAppNotificationsSQL: Array<{ notificationType: NotificationType }>;
-  enabledEmailNotificationsSQL: Array<{ notificationType: NotificationType }>;
+  enabledInAppNotificationsSQL: { notificationType: NotificationType }[];
+  enabledEmailNotificationsSQL: { notificationType: NotificationType }[];
 } => {
   void (rest satisfies Record<string, never>);
 
   const makeEnabledNotifications = (
     config: NotificationConfig
-  ): Array<{
+  ): {
     notificationType: NotificationType;
     userNotificationConfigId: UserNotificationConfigId;
     metadataVersion: number;
-  }> =>
+  }[] =>
     NotificationType.options
       .filter((notificationType) => config[notificationType])
       .map((notificationType) => ({

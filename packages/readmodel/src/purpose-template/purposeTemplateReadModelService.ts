@@ -124,7 +124,7 @@ export function purposeTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
     },
     async getPurposeTemplatesByFilter(
       filter: SQL | undefined
-    ): Promise<Array<WithMetadata<PurposeTemplate>>> {
+    ): Promise<WithMetadata<PurposeTemplate>[]> {
       if (filter === undefined) {
         throw genericInternalError("Filter cannot be undefined");
       }
@@ -196,7 +196,7 @@ export function purposeTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
     },
     async getPurposeTemplateEServiceDescriptorsByPurposeTemplateId(
       purposeTemplateId: PurposeTemplateId
-    ): Promise<Array<WithMetadata<EServiceDescriptorPurposeTemplate>>> {
+    ): Promise<WithMetadata<EServiceDescriptorPurposeTemplate>[]> {
       return await this.getPurposeTemplateEServiceDescriptorsByFilter(
         eq(
           purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId,
@@ -206,7 +206,7 @@ export function purposeTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
     },
     async getPurposeTemplateEServiceDescriptorsByFilter(
       filter: SQL | undefined
-    ): Promise<Array<WithMetadata<EServiceDescriptorPurposeTemplate>>> {
+    ): Promise<WithMetadata<EServiceDescriptorPurposeTemplate>[]> {
       if (filter === undefined) {
         throw genericInternalError("Filter cannot be undefined");
       }
@@ -228,7 +228,7 @@ export function purposeTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
     },
     async getEServiceTemplateVersionPurposeTemplatesByPurposeTemplateId(
       purposeTemplateId: PurposeTemplateId
-    ): Promise<Array<WithMetadata<EServiceTemplateVersionPurposeTemplate>>> {
+    ): Promise<WithMetadata<EServiceTemplateVersionPurposeTemplate>[]> {
       return await this.getEServiceTemplateVersionPurposeTemplatesByFilter(
         eq(
           eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.purposeTemplateId,
@@ -238,7 +238,7 @@ export function purposeTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
     },
     async getEServiceTemplateVersionPurposeTemplatesByFilter(
       filter: SQL | undefined
-    ): Promise<Array<WithMetadata<EServiceTemplateVersionPurposeTemplate>>> {
+    ): Promise<WithMetadata<EServiceTemplateVersionPurposeTemplate>[]> {
       if (filter === undefined) {
         throw genericInternalError("Filter cannot be undefined");
       }
