@@ -134,10 +134,9 @@ export const processEServiceArchivingRequests = async ({
   ];
 
   for (const descriptorId of scopes) {
-    await catalogProcessClient.internalArchiveDelegatedArchivingRequest(
+    await catalogProcessClient.internalDeleteDelegatedArchivingRequest(
       {
         descriptorId,
-        reason: `Producer delegation ${delegation.id} has been revoked`,
       },
       {
         params: { eServiceId: eservice.id },

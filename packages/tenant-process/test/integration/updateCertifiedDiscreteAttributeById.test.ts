@@ -28,7 +28,7 @@ import {
   attributeNotFound,
   tenantIsNotACertifier,
   attributeDoesNotBelongToCertifier,
-  attributeAlreadyRevoked,
+  certifiedDiscreteAttributeRevoked,
 } from "../../src/model/domain/errors.js";
 import {
   addOneAttribute,
@@ -276,7 +276,7 @@ describe("updateCertifiedDiscreteAttributeById", async () => {
     );
   });
 
-  it("Should throw attributeAlreadyRevoked if the attribute was already revoked", async () => {
+  it("Should throw certifiedDiscreteAttributeRevoked if the attribute was already revoked", async () => {
     const tenantWithRevokedAttribute: Tenant = {
       ...getMockTenant(),
       attributes: [
@@ -301,9 +301,8 @@ describe("updateCertifiedDiscreteAttributeById", async () => {
         getMockContext({ authData })
       )
     ).rejects.toThrow(
-      attributeAlreadyRevoked(
+      certifiedDiscreteAttributeRevoked(
         tenantWithRevokedAttribute.id,
-        requesterTenant.id,
         attribute.id
       )
     );

@@ -38,7 +38,6 @@ describe("API POST /tenants/{tenantId}/attributes/certifiedDiscrete test", () =>
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
-    authRole.M2M_ROLE,
     authRole.M2M_ADMIN_ROLE,
   ];
 
