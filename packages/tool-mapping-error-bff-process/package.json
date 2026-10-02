@@ -13,7 +13,8 @@
     "lint": "eslint .",
     "lint:autofix": "eslint . --fix",
     "start": "tsx ./src/index.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "map-errors": "pnpm exec tsx src/run-error-map-automation.ts"
   },
   "keywords": [],
   "devDependencies": {
