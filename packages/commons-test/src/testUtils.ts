@@ -1010,6 +1010,13 @@ export const generateKeySet = (
   };
 };
 
+// Shape of the keys uploaded before PIN-5568: garbage line, no trailing newline.
+export const dirtifyEncodedPem = (publicKeyEncodedPem: string): string => {
+  const pem = Buffer.from(publicKeyEncodedPem, "base64").toString("utf-8");
+  const dirtyPem = `--keyPath /Users/some.user/dev/misc/client-assertion.rsa.priv\n${pem.trimEnd()}`;
+  return Buffer.from(dirtyPem).toString("base64");
+};
+
 export const signJWT = async ({
   payload,
   headers,

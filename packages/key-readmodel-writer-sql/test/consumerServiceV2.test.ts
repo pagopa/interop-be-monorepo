@@ -1,6 +1,11 @@
 import crypto from "crypto";
 import { keyToClientJWKKey } from "pagopa-interop-commons";
-import { getMockClient, getMockKey } from "pagopa-interop-commons-test";
+import {
+  dirtifyEncodedPem,
+  generateKeySet,
+  getMockClient,
+  getMockKey,
+} from "pagopa-interop-commons-test";
 import {
   Key,
   Client,
@@ -84,6 +89,48 @@ describe("Events V2", () => {
     expect(retrievedKey?.metadata).toStrictEqual({
       version: 1,
     });
+  });
+  it("ClientKeyAdded - key stored before the upload sanitization", async () => {
+    const clientId: ClientId = generateId();
+    const addedKey: Key = {
+      ...getMockKey(),
+      encodedPem: dirtifyEncodedPem(generateKeySet().publicKeyEncodedPem),
+    };
+    const updatedClient: Client = {
+      ...getMockClient(),
+      id: clientId,
+      keys: [addedKey],
+    };
+
+    const payload: ClientKeyAddedV2 = {
+      client: toClientV2(updatedClient),
+      kid: addedKey.kid,
+    };
+
+    const message: AuthorizationEventEnvelopeV2 = {
+      sequence_num: 1,
+      stream_id: clientId,
+      version: 1,
+      type: "ClientKeyAdded",
+      event_version: 2,
+      data: payload,
+      log_date: new Date(),
+    };
+
+    await handleMessageV2(message, clientJWKKeyWriterService);
+
+    const retrievedKey =
+      await clientJWKKeyReadModelService.getClientJWKKeyByClientIdAndKid(
+        clientId,
+        addedKey.kid
+      );
+
+    expect(retrievedKey?.data).toStrictEqual(
+      keyToClientJWKKey(addedKey, clientId)
+    );
+    expect(retrievedKey?.data.kty).toBeDefined();
+    expect(retrievedKey?.data.n).toBeDefined();
+    expect(retrievedKey?.data.e).toBeDefined();
   });
   it("ClientKeyDeleted", async () => {
     const clientId: ClientId = generateId();
