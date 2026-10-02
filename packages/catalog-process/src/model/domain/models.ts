@@ -21,6 +21,13 @@ export type EServiceSortBy = catalogApi.EServiceSortBy;
 
 export const defaultEServiceSortBy: EServiceSortBy = "CREATED_AT_DESC";
 
+export type EServicesQueryFilters = {
+  offset: number;
+  limit: number;
+  sortBy: EServiceSortBy;
+  keyword?: string;
+};
+
 export type ApiGetEServicesFilters = {
   eservicesIds: EServiceId[];
   producersIds: TenantId[];
