@@ -52,6 +52,7 @@ describe("assignTenantVerifiedAttribute", () => {
     {
       id: mockVerifiedAttribute2.id,
       agreementId: generateId(),
+      delegationId: generateId(),
       expirationDate: new Date().toISOString(),
     };
 

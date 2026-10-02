@@ -27,6 +27,7 @@ describe("API POST /tenants/{tenantId}/attributes/verified test", () => {
   const defaultBody: tenantApi.VerifiedTenantAttributeSeed = {
     id: generateId(),
     agreementId: generateId(),
+    delegationId: generateId(),
   };
 
   const apiResponse = tenantApi.Tenant.parse(toApiTenant(tenant));
@@ -60,6 +61,16 @@ describe("API POST /tenants/{tenantId}/attributes/verified test", () => {
       expect(res.body).toEqual(apiResponse);
       expect(res.headers["x-metadata-version"]).toBe(
         serviceResponse.metadata.version.toString()
+      );
+      expect(tenantService.verifyVerifiedAttribute).toHaveBeenLastCalledWith(
+        {
+          tenantId: tenant.id,
+          attributeId: defaultBody.id,
+          agreementId: defaultBody.agreementId,
+          delegationId: defaultBody.delegationId,
+          expirationDate: defaultBody.expirationDate,
+        },
+        expect.anything()
       );
     }
   );
@@ -107,6 +118,7 @@ describe("API POST /tenants/{tenantId}/attributes/verified test", () => {
     { body: { ...defaultBody, id: "invalid" } },
     { body: { ...defaultBody, agreementId: 1 } },
     { body: { ...defaultBody, agreementId: "invalid" } },
+    { body: { ...defaultBody, delegationId: "invalid" } },
     { body: { ...defaultBody, extraField: 1 } },
   ])(
     "Should return 400 if passed invalid data: %s",

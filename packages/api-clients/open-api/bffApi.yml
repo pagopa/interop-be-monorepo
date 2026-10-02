@@ -8358,6 +8358,9 @@ paths:
                 agreementId:
                   type: string
                   format: uuid
+                delegationId:
+                  type: string
+                  format: uuid
       responses:
         "204":
           description: Updated Tenant
@@ -17451,6 +17454,9 @@ components:
           type: string
           format: uuid
         agreementId:
+          type: string
+          format: uuid
+        delegationId:
           type: string
           format: uuid
         expirationDate:
