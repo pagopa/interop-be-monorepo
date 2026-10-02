@@ -4,6 +4,7 @@ import {
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
+// eslint-disable-next-line interop/require-type-for-object
 const errorCodes = {
   attributeNotFound: "0001",
   attributeDuplicate: "0002",

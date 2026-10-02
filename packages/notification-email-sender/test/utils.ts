@@ -56,6 +56,7 @@ const sesEmailManagerFailure: EmailManagerSES = {
   send: vi.fn().mockRejectedValue(new Error("Generic error during send email")),
 };
 
+// eslint-disable-next-line interop/require-type-for-object
 export const sesEmailSenderData = {
   label: "ses_sender",
   mail: "ses_sender@test.com",

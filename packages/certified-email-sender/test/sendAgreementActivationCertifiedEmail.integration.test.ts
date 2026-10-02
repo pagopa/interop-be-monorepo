@@ -9,6 +9,8 @@ import {
   getMockTenantMail,
 } from "pagopa-interop-commons-test";
 import {
+  Agreement,
+  EService,
   Tenant,
   UserId,
   generateId,
@@ -61,12 +63,12 @@ describe("sendAgreementActivatedCertifiedEmail", () => {
     await addOneTenant(producer);
 
     const descriptor = getMockDescriptor();
-    const eservice = {
+    const eservice: EService = {
       ...getMockEService(),
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
       producerId: producer.id,
@@ -113,24 +115,24 @@ describe("sendAgreementActivatedCertifiedEmail", () => {
   });
 
   it("should throw tenantDigitalAddressNotFound for Producer digital address not found", async () => {
-    const producer = { ...getMockTenant(), mails: [] };
+    const producer: Tenant = { ...getMockTenant(), mails: [] };
 
     await addOneTenant(producer);
 
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       mails: [getMockTenantMail(tenantMailKind.DigitalAddress)],
     };
     await addOneTenant(consumer);
 
     const descriptor = getMockDescriptor();
-    const eservice = {
+    const eservice: EService = {
       ...getMockEService(),
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
       producerId: producer.id,

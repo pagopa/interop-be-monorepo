@@ -11,6 +11,7 @@ import {
   TokenGenerationStatesClientKidPurposePK,
 } from "pagopa-interop-models";
 
+// eslint-disable-next-line interop/require-type-for-object
 const errorCodes = {
   clientAssertionRequestValidationFailed: "0001",
   clientAssertionValidationFailed: "0002",

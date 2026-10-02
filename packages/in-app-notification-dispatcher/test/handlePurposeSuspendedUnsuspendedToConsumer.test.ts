@@ -14,6 +14,7 @@ import {
   PurposeId,
   toPurposeV2,
   purposeVersionState,
+  EService,
 } from "pagopa-interop-models";
 import {
   getNotificationRecipients,
@@ -37,7 +38,7 @@ describe("handlePurposeSuspendedUnsuspendedToConsumer", () => {
   const eserviceId = generateId<EServiceId>();
   const purposeId = generateId<PurposeId>();
 
-  const eservice = {
+  const eservice: EService = {
     ...getMockEService(),
     id: eserviceId,
     producerId,
@@ -47,7 +48,7 @@ describe("handlePurposeSuspendedUnsuspendedToConsumer", () => {
   const producerTenant = getMockTenant(producerId);
   const consumerTenant = getMockTenant(consumerId);
 
-  const purpose = {
+  const purpose: Purpose = {
     ...getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
     id: purposeId,
     eserviceId,

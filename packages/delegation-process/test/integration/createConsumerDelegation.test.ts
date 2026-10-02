@@ -1,3 +1,5 @@
+import type { Tenant } from "pagopa-interop-models";
+
 import {
   getMockAgreement,
   getMockContext,
@@ -10,6 +12,8 @@ import {
   generateId,
   TenantId,
   agreementState,
+  EService,
+  Tenant,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 
@@ -28,7 +32,7 @@ describe("create consumer delegation", () => {
   it("should throw an eserviceNotConsumerDelegable error if Eservice is not consumer delegable", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getMockAuthData(delegatorId);
-    const delegator = {
+    const delegator: Tenant = {
       ...getMockTenant(delegatorId),
       externalId: {
         origin: "IPA",
@@ -36,7 +40,7 @@ describe("create consumer delegation", () => {
       },
     };
 
-    const delegate = {
+    const delegate: Tenant = {
       ...getMockTenant(),
       features: [
         {
@@ -46,7 +50,7 @@ describe("create consumer delegation", () => {
       ],
     };
 
-    const eservice = {
+    const eservice: EService = {
       ...getMockEService(generateId<EServiceId>(), delegatorId),
       isConsumerDelegable: false,
     };
@@ -75,14 +79,14 @@ describe("create consumer delegation", () => {
     async (state) => {
       const delegatorId = generateId<TenantId>();
       const authData = getMockAuthData(delegatorId);
-      const delegator = {
+      const delegator: Tenant = {
         ...getMockTenant(delegatorId),
         externalId: {
           origin: "IPA",
           value: "test",
         },
       };
-      const delegate = {
+      const delegate: Tenant = {
         ...getMockTenant(),
         features: [
           {
@@ -91,7 +95,7 @@ describe("create consumer delegation", () => {
           },
         ],
       };
-      const eservice = {
+      const eservice: EService = {
         ...getMockEService(generateId<EServiceId>(), delegatorId),
         isConsumerDelegable: true,
       };

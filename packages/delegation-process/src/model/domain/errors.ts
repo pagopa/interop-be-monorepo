@@ -12,6 +12,7 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
+// eslint-disable-next-line interop/require-type-for-object
 const errorCodes = {
   delegationNotFound: "0001",
   eserviceNotFound: "0002",

@@ -32,7 +32,7 @@ describe("handleDelegationSubmittedRevokedToDelegate", () => {
   const delegate = getMockTenant();
   const eserviceId: EServiceId = generateId();
 
-  const eservice = {
+  const eservice: EService = {
     id: eserviceId,
     name: "Test EService",
     producerId: delegator.id,

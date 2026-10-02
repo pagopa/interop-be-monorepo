@@ -14,6 +14,7 @@ import {
 } from "./authData.js";
 import { userRole, UserRole, systemRole, SystemRole } from "./roles.js";
 
+// eslint-disable-next-line interop/require-type-for-object
 export const authRole = {
   ...userRole,
   ...systemRole,

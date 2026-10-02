@@ -1,3 +1,4 @@
+// eslint-disable-next-line interop/require-type-for-object
 export const catalogItemDescriptorUpdatedNotification = {
   messageUUID: "57a36acf-f9ca-45c2-a353-b29a13613bb3",
   eventJournalPersistenceId: "interop-be-catalog-management-persistence|11",

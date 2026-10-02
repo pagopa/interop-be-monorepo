@@ -11,6 +11,8 @@ import {
   generateId,
   TenantId,
   EServiceId,
+  Tenant,
+  EService,
 } from "pagopa-interop-models";
 import {
   getNotificationRecipients,
@@ -29,7 +31,7 @@ import {
 } from "./utils.js";
 
 describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
-  const eservice = {
+  const eservice: EService = {
     ...getMockEService(),
     producerId: generateId<TenantId>(),
     descriptors: [
@@ -420,7 +422,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
   });
 
   it("should use correct notification template", async () => {
-    const testEservice = {
+    const testEservice: EService = {
       ...getMockEService(),
       name: "Test E-Service",
       producerId: generateId<TenantId>(),
@@ -432,7 +434,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
         },
       ],
     };
-    const testProducer = {
+    const testProducer: Tenant = {
       ...getMockTenant(testEservice.producerId),
       name: "Test Producer",
     };

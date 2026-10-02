@@ -25,6 +25,7 @@ describe("formatError", () => {
   });
 
   it("should serialize a plain object", () => {
+    // eslint-disable-next-line interop/require-type-for-object
     const obj = { foo: "bar" };
     const result = formatError(obj);
 

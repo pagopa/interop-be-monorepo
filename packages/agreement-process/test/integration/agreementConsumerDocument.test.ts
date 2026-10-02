@@ -96,7 +96,7 @@ describe("agreement consumer document", () => {
       const producer = getMockTenant();
       const consumer = getMockTenant();
       const authData = getMockAuthData();
-      const eservice = {
+      const eservice: EService  = {
         ...getMockEService(),
         producerId: producer.id,
         consumerId: consumer.id,
@@ -204,7 +204,7 @@ describe("agreement consumer document", () => {
       const producer = getMockTenant();
       const consumer = getMockTenant();
       const authData = getMockAuthData(producer.id);
-      const eservice = {
+      const eservice: EService  = {
         ...getMockEService(),
         producerId: producer.id,
         consumerId: consumer.id,

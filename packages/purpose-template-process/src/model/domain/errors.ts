@@ -15,6 +15,7 @@ import {
 
 import { PurposeTemplateValidationIssue } from "../../errors/purposeTemplateValidationErrors.js";
 
+// eslint-disable-next-line interop/require-type-for-object
 const errorCodes = {
   missingFreeOfChargeReason: "0001",
   purposeTemplateTitleConflict: "0002",

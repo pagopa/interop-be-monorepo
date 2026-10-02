@@ -37,7 +37,7 @@ describe("handleAgreementActivatedRejectedToConsumer", () => {
   const eserviceId = generateId<EServiceId>();
   const agreementId = generateId<AgreementId>();
 
-  const eservice = {
+  const eservice: EService = {
     ...getMockEService(),
     id: eserviceId,
     producerId,

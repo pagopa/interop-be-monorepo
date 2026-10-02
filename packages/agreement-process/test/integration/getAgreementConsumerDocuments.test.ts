@@ -90,7 +90,7 @@ describe("getAgreementConsumerDocuments", () => {
     const producer = getMockTenant();
     const consumer = getMockTenant();
     const delegate = getMockTenant();
-    const eservice = {
+    const eservice: EService  = {
       ...getMockEService(),
       producerId: producer.id,
       consumerId: consumer.id,
@@ -138,7 +138,7 @@ describe("getAgreementConsumerDocuments", () => {
     const producer = getMockTenant();
     const consumer = getMockTenant();
     const delegate = getMockTenant();
-    const eservice = {
+    const eservice: EService  = {
       ...getMockEService(),
       producerId: producer.id,
       consumerId: consumer.id,

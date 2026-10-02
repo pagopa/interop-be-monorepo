@@ -56,7 +56,7 @@ describe("handleEserviceArchivingRequestApprovedRejectedToDelegate", () => {
     ],
   };
 
-  const eservice = {
+  const eservice: EService = {
     ...getMockEService(generateId<EServiceId>(), delegatorTenant.id),
     name: "Test E-service",
     descriptors: [archivingDescriptor],

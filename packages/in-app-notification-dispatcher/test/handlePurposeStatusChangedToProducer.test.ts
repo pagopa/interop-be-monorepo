@@ -37,7 +37,7 @@ describe("handlePurposeStatusChangedToProducer", () => {
   const eserviceId = generateId<EServiceId>();
   const purposeId = generateId<PurposeId>();
 
-  const eservice = {
+  const eservice: EService = {
     ...getMockEService(),
     id: eserviceId,
     producerId,
@@ -47,7 +47,7 @@ describe("handlePurposeStatusChangedToProducer", () => {
   const producerTenant = getMockTenant(producerId);
   const consumerTenant = getMockTenant(consumerId);
 
-  const purpose = {
+  const purpose: Purpose = {
     ...getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
     id: purposeId,
     eserviceId,

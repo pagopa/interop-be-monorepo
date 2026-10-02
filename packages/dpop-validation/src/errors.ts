@@ -1,5 +1,6 @@
 import { ApiError } from "pagopa-interop-models";
 
+// eslint-disable-next-line interop/require-type-for-object
 export const errorCodes = {
   unexpectedDPoPProofSignatureVerificationError: "0001",
   invalidDPoPProofFormat: "0002",
