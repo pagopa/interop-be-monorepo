@@ -75,4 +75,5 @@ export const catalogErrorCodes = {
   noActiveDelegationFound: "0075",
   delegatedArchiveRequestForIncorrectDelegateProducer: "0076",
   interfaceDocumentNotUpdatable: "0077",
+  eserviceCloningWithActiveOrPendingDelegation: "0078",
 };

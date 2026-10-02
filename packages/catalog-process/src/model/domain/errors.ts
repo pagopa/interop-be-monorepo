@@ -354,6 +354,17 @@ export function eserviceArchivingWithActiveOrPendingDelegation(
   });
 }
 
+export function eserviceCloningWithActiveOrPendingDelegation(
+  eserviceId: EServiceId,
+  delegationId: DelegationId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `E-service ${eserviceId} can't be cloned with an active or pending delegation ${delegationId}`,
+    code: "eserviceCloningWithActiveOrPendingDelegation",
+    title: "E-service cloning with active or pending delegation",
+  });
+}
+
 export function eserviceDescriptorWithActiveOrPendingDelegation(
   eserviceId: EServiceId,
   descriptorId: DescriptorId,
