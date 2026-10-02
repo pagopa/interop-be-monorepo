@@ -30,6 +30,8 @@ import {
   delegationKind,
   agreementState,
   technology,
+  EServiceTemplateId,
+  EServiceTemplateVersionId,
 } from "pagopa-interop-models";
 import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
 
@@ -48,6 +50,7 @@ import {
   missingAsyncExchangeProperties,
   missingAsyncExchangeCallbackInterface,
   riskAnalysisTenantKindMismatch,
+  templateInstanceInterfaceDataMissing,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -590,6 +593,30 @@ describe("publish descriptor", () => {
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eServiceDescriptorWithoutInterface(descriptor.id));
+  });
+
+  it("should throw templateInstanceInterfaceDataMissing if the descriptor of a template instance doesn't have an interface", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      templateVersionRef: { id: generateId<EServiceTemplateVersionId>() },
+    };
+    const eservice: EService = {
+      ...mockEService,
+      templateId: generateId<EServiceTemplateId>(),
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+
+    expect(
+      catalogService.publishDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(
+      templateInstanceInterfaceDataMissing(eservice.id, descriptor.id)
+    );
   });
 
   it("should throw tenantNotFound if the eService has mode Receive and the producer tenant doesn't exist", async () => {
