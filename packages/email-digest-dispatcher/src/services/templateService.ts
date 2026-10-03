@@ -93,6 +93,24 @@ export function digestTemplateServiceBuilder(
           (data.archivingInProgressEservices?.items.length ?? 0),
         0
       );
+      const archivingConsumerImminentEservicesSingular =
+        data.archivingConsumerImminentEservices?.totalCount === 1;
+      const archivingConsumerInProgressEservicesSingular =
+        data.archivingConsumerInProgressEservices?.totalCount === 1;
+      const archivingConsumerInProgressRemainder = Math.max(
+        (data.archivingConsumerInProgressEservices?.totalCount ?? 0) -
+          (data.archivingConsumerInProgressEservices?.items.length ?? 0),
+        0
+      );
+      // Consumer stat cards with a zero count are hidden: the remaining ones share the row.
+      const archivingConsumerVisibleCardsCount = [
+        data.archivingConsumerImminentEservices?.totalCount,
+        data.archivingConsumerEserviceScopeCount,
+        data.archivingConsumerDescriptorScopeCount,
+      ].filter(Boolean).length;
+      const archivingConsumerCardWidth = `${Math.floor(
+        100 / Math.max(archivingConsumerVisibleCardsCount, 1)
+      )}%`;
 
       // Count for items that exceeded list or card limits
       const newEservicesExceededItemsCount =
@@ -194,6 +212,7 @@ export function digestTemplateServiceBuilder(
         showDelegations: visibility.delegations,
         showAttributes: visibility.attributes,
         showArchivingProducer: visibility.archivingProducer,
+        showArchivingConsumer: visibility.archivingConsumer,
         newEservicesSingular,
         updatedEservicesSingular,
         updatedEserviceTemplatesSingular,
@@ -213,6 +232,10 @@ export function digestTemplateServiceBuilder(
         archivingImminentEservicesSingular,
         archivingInProgressEservicesSingular,
         archivingInProgressRemainder,
+        archivingConsumerImminentEservicesSingular,
+        archivingConsumerInProgressEservicesSingular,
+        archivingConsumerInProgressRemainder,
+        archivingConsumerCardWidth,
         newEservicesExceededItemsCount,
         updatedEservicesExceededItemsCount,
         updatedEserviceTemplatesExceededItemsCount,
