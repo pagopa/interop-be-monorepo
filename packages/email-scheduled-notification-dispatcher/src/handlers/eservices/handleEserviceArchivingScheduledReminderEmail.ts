@@ -13,6 +13,7 @@ import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
   retrieveHTMLTemplate,
+  retrieveLatestDescriptor,
   retrieveTenant,
 } from "pagopa-interop-notification-commons";
 import {
@@ -70,7 +71,8 @@ export async function handleEserviceArchivingScheduledReminderEmail(
     Math.min(...archivableOns.map((d) => d.getTime()))
   );
   const archivableOnFormatted = dateAtRomeZone(archivableOn);
-  const entityId = eservice.id;
+  const latestDescriptor = retrieveLatestDescriptor(eservice);
+  const entityId = `${eservice.id}/${latestDescriptor.id}`;
 
   const [producerTemplate, producerTenant] = await Promise.all([
     retrieveHTMLTemplate(
