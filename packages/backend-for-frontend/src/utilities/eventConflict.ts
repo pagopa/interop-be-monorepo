@@ -12,10 +12,7 @@ const { HTTP_STATUS_CONFLICT } = constants;
 
 // Only the event stream conflict of the given process is transient.
 // Other 409 responses are business conflicts and must not be retried.
-export const isEventConflict = (
-  error: unknown,
-  eventConflictCode: string
-): boolean =>
+const isEventConflict = (error: unknown, eventConflictCode: string): boolean =>
   isAxiosError<Problem>(error) &&
   error.response?.status === HTTP_STATUS_CONFLICT &&
   error.response.data?.errors?.some(
