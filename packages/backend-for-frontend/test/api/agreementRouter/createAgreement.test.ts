@@ -44,6 +44,22 @@ describe("API POST /agreements", () => {
     expect(res.body).toEqual(mockApiCreatedResource);
   });
 
+  it("Should return 200 and omit delegationId if passed as null", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, {
+      ...mockAgreementPayload,
+      delegationId: null,
+    });
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(mockApiCreatedResource);
+    expect(
+      clients.agreementProcessClient.createAgreement
+    ).toHaveBeenCalledWith(
+      { ...mockAgreementPayload, delegationId: undefined },
+      expect.anything()
+    );
+  });
+
   it.each([
     { body: {} },
     { body: { eserviceId: mockAgreementPayload.eserviceId } },
