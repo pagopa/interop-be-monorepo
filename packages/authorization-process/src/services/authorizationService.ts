@@ -922,6 +922,7 @@ export function authorizationServiceBuilder(
       logger.info(`Creating keys for client ${clientId}`);
 
       validateNoHyperlinksSafe(keySeed.name);
+      validateNoHyperlinksSafe(keySeed.alg);
 
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(authData, client.data);
@@ -1391,6 +1392,7 @@ export function authorizationServiceBuilder(
       logger.info(`Creating keys for producer keychain ${producerKeychainId}`);
 
       validateNoHyperlinksSafe(keySeed.name);
+      validateNoHyperlinksSafe(keySeed.alg);
 
       const producerKeychain = await retrieveProducerKeychain(
         producerKeychainId,
