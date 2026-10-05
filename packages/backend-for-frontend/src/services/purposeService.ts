@@ -275,6 +275,18 @@ export function purposeServiceBuilder(
       (v) =>
         v.state === purposeApi.PurposeVersionState.Values.WAITING_FOR_APPROVAL
     );
+    // Reactivating a consumer-suspended purpose over quota creates a new
+    // waiting-for-approval version with the same daily calls as the suspended one.
+    // Omit currentVersion so the frontend presents a reactivation awaiting approval,
+    // rather than a current version with a pending daily calls change.
+    // Both distinct versions remain in the version history.
+    const normalizedCurrentVersion =
+      purpose.suspendedByConsumer &&
+      currentVersion &&
+      waitingForApprovalVersion &&
+      currentVersion.dailyCalls === waitingForApprovalVersion.dailyCalls
+        ? undefined
+        : currentVersion;
     const latestVersion = [...purpose.versions]
       .sort(
         (a, b) =>
@@ -370,7 +382,9 @@ export function purposeServiceBuilder(
         canBeUpgraded: isAgreementUpgradable(eservice, latestAgreement),
         consumerId: latestAgreement.consumerId,
       },
-      currentVersion: currentVersion && toBffApiPurposeVersion(currentVersion),
+      currentVersion:
+        normalizedCurrentVersion &&
+        toBffApiPurposeVersion(normalizedCurrentVersion),
       versions: purpose.versions.map(toBffApiPurposeVersion),
       clients: await Promise.all(
         clients.map((client) =>
