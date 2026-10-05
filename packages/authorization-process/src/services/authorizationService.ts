@@ -240,7 +240,7 @@ export function authorizationServiceBuilder(
     authorizationEventToBinaryData
   );
 
-  const validateClientMembers = async (
+  const validateMembersInSelfcare = async (
     members: string[],
     authData: UIAuthData | M2MAdminAuthData,
     correlationId: CorrelationId
@@ -296,7 +296,11 @@ export function authorizationServiceBuilder(
       validateNoHyperlinksSafe(clientSeed.description);
 
       assertMembersAreUnique(clientSeed.members);
-      await validateClientMembers(clientSeed.members, authData, correlationId);
+      await validateMembersInSelfcare(
+        clientSeed.members,
+        authData,
+        correlationId
+      );
 
       const client: Client = {
         id: generateId(),
@@ -337,7 +341,11 @@ export function authorizationServiceBuilder(
       validateNoHyperlinksSafe(clientSeed.description);
 
       assertMembersAreUnique(clientSeed.members);
-      await validateClientMembers(clientSeed.members, authData, correlationId);
+      await validateMembersInSelfcare(
+        clientSeed.members,
+        authData,
+        correlationId
+      );
 
       const client: Client = {
         id: generateId(),
@@ -1051,6 +1059,11 @@ export function authorizationServiceBuilder(
       validateNoHyperlinksSafe(producerKeychainSeed.description);
 
       assertMembersAreUnique(producerKeychainSeed.members);
+      await validateMembersInSelfcare(
+        producerKeychainSeed.members,
+        authData,
+        correlationId
+      );
 
       const producerKeychain: ProducerKeychain = {
         id: generateId(),
