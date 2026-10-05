@@ -75,6 +75,8 @@ paths:
                 $ref: "#/components/schemas/FullClient"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /clientsApi:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -99,6 +101,8 @@ paths:
                 $ref: "#/components/schemas/FullClient"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /clientsWithKeys:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
