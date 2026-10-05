@@ -345,33 +345,9 @@ describe("E-service aggregator", () => {
       descriptors: [descriptor],
     };
 
-    const {
-      eserviceSQL,
-      riskAnalysesSQL,
-      riskAnalysisAnswersSQL,
-      descriptorsSQL,
-      attributesSQL,
-      interfacesSQL,
-      documentsSQL,
-      rejectionReasonsSQL,
-      templateVersionRefsSQL,
-      archivingSchedulesSQL,
-      asyncExchangePropertiesSQL,
-    } = splitEserviceIntoObjectsSQL(eservice, 1);
-
-    const aggregatedEservice = aggregateEservice({
-      eserviceSQL,
-      riskAnalysesSQL,
-      riskAnalysisAnswersSQL,
-      descriptorsSQL,
-      attributesSQL,
-      interfacesSQL,
-      documentsSQL,
-      rejectionReasonsSQL,
-      templateVersionRefsSQL,
-      archivingSchedulesSQL,
-      asyncExchangePropertiesSQL,
-    });
+    const aggregatedEservice = aggregateEservice(
+      splitEserviceIntoObjectsSQL(eservice, 1)
+    );
 
     expect(
       aggregatedEservice.data.descriptors[0].rejectionReasons
