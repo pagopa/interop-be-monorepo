@@ -25,7 +25,6 @@ import {
 import { makeApiProblem } from "../model/errors.js";
 import { CatalogService } from "../services/catalogService.js";
 import { fromBffAppContext } from "../utilities/context.js";
-import { contentDispositionAttachment } from "../utilities/fileUtils.js";
 import {
   addEServiceInterfaceByTemplateErrorMapper,
   bffGetCatalogErrorMapper,
@@ -34,6 +33,7 @@ import {
   importEServiceErrorMapper,
   getEServiceTemplateInstancesErrorMapper,
 } from "../utilities/errorMappers.js";
+import { contentDispositionAttachment } from "../utilities/fileUtils.js";
 
 const catalogRouter = (
   ctx: ZodiosContext,
