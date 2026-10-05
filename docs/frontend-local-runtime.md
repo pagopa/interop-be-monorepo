@@ -60,3 +60,33 @@ The frontend-oriented process set starts backend services without file watching
 to keep the complete stack within typical Docker Desktop memory limits. Set
 `INTEROP_BACKEND_WATCH=true` before startup when working on backend code; this
 uses more memory and may require increasing the Docker VM allocation.
+
+## pgAdmin
+
+Open `http://localhost:8082` after infrastructure startup. The Event Store and
+Read Model servers are configured automatically and connect to the `root`
+database without a password prompt. Other databases on those servers use the
+same local `root` credentials.
+
+pgAdmin runs directly from the backend Docker Compose configuration; it does
+not depend on the frontend devcontainer. From the backend repository, start it
+with `docker compose -f docker/docker-compose.yml up -d pg-admin` after starting
+the databases. The shell entrypoint prepares the password file with private
+permissions, then delegates initialization to the image's official entrypoint.
+
+The server definitions are imported only when pgAdmin creates its configuration
+database. Later starts preserve configured servers and preferences.
+
+If an older failed startup left both default servers absent from an existing
+volume, import them once after pgAdmin is running:
+
+```bash
+docker compose -f docker/docker-compose.yml exec -T pg-admin \
+  /venv/bin/python3 /pgadmin4/setup.py load-servers /pgadmin4/servers.json \
+  --user root@example.com
+```
+
+This uses pgAdmin's supported CLI and adds the definitions without replacing
+custom servers. Run it only when both defaults are absent: repeating it adds
+duplicates. Existing defaults that still reference `/pgadmin4/pgpass` need their
+password-file path changed to `/var/lib/pgadmin/pgpass` in pgAdmin.
