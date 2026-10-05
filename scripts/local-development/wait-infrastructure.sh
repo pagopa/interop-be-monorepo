@@ -31,5 +31,5 @@ wait_http() {
 }
 
 wait_container_success dynamodb-migrations
-wait_container_success minio-seed
+wait_container_success rustfs-seed
 wait_http "Selfcare mock" "http://localhost:8006/health"

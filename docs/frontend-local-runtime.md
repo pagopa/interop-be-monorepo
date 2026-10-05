@@ -31,7 +31,7 @@ from old local scripts.
 ## Infrastructure
 
 Docker Compose supplies PostgreSQL event store/readmodels, Kafka and
-Zookeeper, Debezium, DynamoDB, Redis, MinIO, local KMS/JWKS, ElasticMQ, Mailpit,
+Zookeeper, Debezium, DynamoDB, Redis, RustFS, local KMS/JWKS, ElasticMQ, Mailpit,
 and the local Selfcare mock. The frontend-specific infrastructure command
 waits for seed containers, creates Kafka topics, and registers Debezium through
 the shared `infra:start` command.
@@ -43,7 +43,7 @@ user lookups used by the BFF. Its source dataset is
 Docker data is persistent. Use `infra:reset` only when a clean rebuild is
 intended; it deletes this Compose project's local volumes.
 
-Infrastructure startup copies `docker/minio-seed` into MinIO and waits for that
+Infrastructure startup copies `docker/rustfs-seed` into RustFS and waits for that
 copy to finish before the catalog seed runs. This includes the demo OpenAPI
 document at `interop-local-bucket/local-development/openapi-demo.yaml`; new
 interface metadata uses the SHA-256 checksum of those exact fixture bytes.

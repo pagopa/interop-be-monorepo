@@ -249,10 +249,10 @@ const seed = async () => {
     descriptor = eservice.descriptors[0];
   }
   if (descriptor.state === "DRAFT" && !descriptor.interface) {
-    // Infrastructure startup copies this fixture to MinIO and waits for the
-    // minio-seed container before the catalog seed registers its metadata.
+    // Infrastructure startup copies this fixture to RustFS and waits for the
+    // rustfs-seed container before the catalog seed registers its metadata.
     const interfaceBytes = await readFile(
-      resolve(repositoryRoot, "docker/minio-seed/interop-local-bucket", demoInterfaceFilePath)
+      resolve(repositoryRoot, "docker/rustfs-seed/interop-local-bucket", demoInterfaceFilePath)
     );
     await requestJson(
       `${catalogUrl}/eservices/${eservice.id}/descriptors/${descriptor.id}/documents`,
