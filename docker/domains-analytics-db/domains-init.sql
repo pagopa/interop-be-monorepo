@@ -313,6 +313,7 @@ CREATE TABLE IF NOT EXISTS domains.purpose_version (
   metadata_version INTEGER NOT NULL,
   state VARCHAR(2048) NOT NULL,
   daily_calls INTEGER NOT NULL,
+  waiting_for_approval_reason VARCHAR(2048),
   rejection_reason VARCHAR(2048),
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE,

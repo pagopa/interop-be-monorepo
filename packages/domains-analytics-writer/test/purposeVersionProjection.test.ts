@@ -15,7 +15,7 @@ import { generateMergeQuery } from "../src/utils/sqlQueryHelper.js";
 
 describe("purpose version analytics projection", () => {
   it.each([undefined, ...Object.values(purposeWaitingForApprovalReason)])(
-    "excludes operational quota reason %s from analytics records and merge SQL",
+    "includes waiting-for-approval reason %s in analytics records and merge SQL",
     (waitingForApprovalReason) => {
       const version = {
         ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
@@ -27,12 +27,12 @@ describe("purpose version analytics projection", () => {
         waitingForApprovalReason ?? null
       );
       const analyticsVersion = PurposeVersionSchema.parse(versionsSQL[0]);
-      expect(analyticsVersion).not.toHaveProperty("waitingForApprovalReason");
       expect(analyticsVersion).toMatchObject({
         id: version.id,
         purposeId: purpose.id,
         state: version.state,
         dailyCalls: version.dailyCalls,
+        waitingForApprovalReason: waitingForApprovalReason ?? null,
       });
       const merge = generateMergeQuery(
         PurposeVersionSchema,
@@ -40,7 +40,7 @@ describe("purpose version analytics projection", () => {
         PurposeDbTable.purpose_version,
         ["id"]
       );
-      expect(merge).not.toContain("waiting_for_approval_reason");
+      expect(merge).toContain('source."waiting_for_approval_reason"');
       expect(merge).toContain('source."daily_calls"');
     }
   );
