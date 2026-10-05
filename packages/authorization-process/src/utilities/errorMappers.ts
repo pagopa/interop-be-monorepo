@@ -215,6 +215,7 @@ export const createProducerKeychainErrorMapper = (
 ): number =>
   match(error.code)
     .with("duplicatedMembersInSeed", () => HTTP_STATUS_BAD_REQUEST)
+    .with("userNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getProducerKeychainsErrorMapper = (

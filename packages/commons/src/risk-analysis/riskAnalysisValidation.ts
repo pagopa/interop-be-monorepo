@@ -1,7 +1,6 @@
 import { tenantKind, TenantKind } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 
-import { containsHyperlink } from "../utils/regexpUtils.js";
 import {
   RiskAnalysisFormToValidate,
   RiskAnalysisValidatedForm,
@@ -25,6 +24,7 @@ import {
   unexpectedFieldHyperlinkError,
   unexpectedFieldValueError,
 } from "./riskAnalysisValidationErrors.js";
+import { containsUnexpectedRiskAnalysisHyperlink } from "./riskAnalysisValidationUtils.js";
 import {
   FormQuestionRules,
   RiskAnalysisFormRules,
@@ -301,7 +301,7 @@ function validateFieldValue(
 ): RiskAnalysisValidationIssue[] {
   if (rule.dataType === dataType.freeText) {
     return fieldValue.flatMap((v) =>
-      containsHyperlink(v)
+      containsUnexpectedRiskAnalysisHyperlink(rule.fieldName, v)
         ? [unexpectedFieldHyperlinkError(rule.fieldName)]
         : []
     );

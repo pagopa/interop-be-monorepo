@@ -9,6 +9,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   generateId,
+  hyperlinkDetectionError,
   invalidKeyLength,
   invalidPublicKey,
   notAnRSAKey,
@@ -105,6 +106,10 @@ describe("API /producerKeychains/{producerKeychainId}/keys authorization test", 
         mockProducerKeychain.data.id
       ),
       expectedStatus: 403,
+    },
+    {
+      error: hyperlinkDetectionError("RS256 https://example.com"),
+      expectedStatus: 400,
     },
   ])(
     "Should return $expectedStatus for $error.code",
