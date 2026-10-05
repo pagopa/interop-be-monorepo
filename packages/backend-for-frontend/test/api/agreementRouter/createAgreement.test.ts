@@ -52,9 +52,7 @@ describe("API POST /agreements", () => {
     });
     expect(res.status).toBe(200);
     expect(res.body).toEqual(mockApiCreatedResource);
-    expect(
-      clients.agreementProcessClient.createAgreement
-    ).toHaveBeenCalledWith(
+    expect(clients.agreementProcessClient.createAgreement).toHaveBeenCalledWith(
       { ...mockAgreementPayload, delegationId: undefined },
       expect.anything()
     );
