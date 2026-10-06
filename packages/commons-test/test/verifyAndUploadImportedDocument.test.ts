@@ -1,25 +1,21 @@
 import AdmZip from "adm-zip";
 import {
   genericLogger,
-  verifyAndCreateImportedDocument,
+  verifyAndUploadImportedDocument,
 } from "pagopa-interop-commons";
 import {
   contentTooLargeError,
-  generateId,
   genericError,
-  invalidInterfaceFileDetected,
+  invalidImportedInterfaceFileDetected,
   Technology,
 } from "pagopa-interop-models";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 
-import { getMockEService } from "../src/index.js";
 import { fileManager, s3Bucket } from "./utils.js";
 
-describe("verifyAndCreateImportedDocument", () => {
-  const eservice = getMockEService();
+describe("verifyAndUploadImportedDocument", () => {
   const technology = Technology.Enum.Rest;
   const kind = "INTERFACE";
-  const documentId = generateId();
   const noLimitFileSizePolicy = {
     maxFileSizeBytes: Number.MAX_SAFE_INTEGER,
   };
@@ -35,7 +31,7 @@ describe("verifyAndCreateImportedDocument", () => {
     return entries.find((entry) => entry.entryName === path)!;
   };
 
-  it("should successfully create a document from a zip entry", async () => {
+  it("should successfully upload a document from a zip entry and return its info", async () => {
     const fileContent = JSON.stringify({
       openapi: "3.0.2",
       servers: [{ url: "https://example.com" }],
@@ -49,13 +45,8 @@ describe("verifyAndCreateImportedDocument", () => {
       [filePath, zipEntry],
     ]);
 
-    const mockCreateDocumentHandler = vi
-      .fn()
-      .mockResolvedValue({ id: documentId });
-
-    await verifyAndCreateImportedDocument(
+    const uploaded = await verifyAndUploadImportedDocument(
       fileManager,
-      eservice.id,
       technology,
       entriesMap,
       {
@@ -63,23 +54,31 @@ describe("verifyAndCreateImportedDocument", () => {
         path: filePath,
       },
       kind,
-      mockCreateDocumentHandler,
       s3Bucket.toString(),
       "document-path",
       noLimitFileSizePolicy,
       genericLogger
     );
 
-    expect(mockCreateDocumentHandler).toHaveBeenCalledOnce();
+    expect(uploaded).toMatchObject({
+      fileName: filePath,
+      prettyName,
+      contentType: "application/json",
+      serverUrls: ["https://example.com"],
+    });
+    expect(uploaded.documentId).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
+    );
+    expect(uploaded.filePath).toContain("document-path");
+    expect(uploaded.checksum).toEqual(expect.any(String));
   });
 
   it("should throw genericError if the file path is not found in entries", async () => {
     const entriesMap = new Map<string, AdmZip.IZipEntry>();
 
     await expect(
-      verifyAndCreateImportedDocument(
+      verifyAndUploadImportedDocument(
         fileManager,
-        eservice.id,
         technology,
         entriesMap,
         {
@@ -87,7 +86,6 @@ describe("verifyAndCreateImportedDocument", () => {
           path: "non-existent.json",
         },
         kind,
-        () => Promise.resolve(),
         s3Bucket.toString(),
         "document-path",
         noLimitFileSizePolicy,
@@ -112,9 +110,8 @@ describe("verifyAndCreateImportedDocument", () => {
     const maxFileSizeBytes = zipEntry.getData().byteLength - 1;
 
     await expect(
-      verifyAndCreateImportedDocument(
+      verifyAndUploadImportedDocument(
         fileManager,
-        eservice.id,
         technology,
         entriesMap,
         {
@@ -122,7 +119,6 @@ describe("verifyAndCreateImportedDocument", () => {
           path: filePath,
         },
         kind,
-        () => Promise.resolve(),
         s3Bucket.toString(),
         "document-path",
         { maxFileSizeBytes },
@@ -152,7 +148,7 @@ describe("verifyAndCreateImportedDocument", () => {
       }),
     },
   ])(
-    "should throw invalidInterfaceFileDetected for an imported REST interface with $description",
+    "should throw invalidImportedInterfaceFileDetected for an imported REST interface with $description",
     async ({ fileContent }) => {
       const filePath = "test.openapi.3.0.2.json";
       const zipEntry = createMockZipEntry(fileContent, filePath);
@@ -161,9 +157,8 @@ describe("verifyAndCreateImportedDocument", () => {
       ]);
 
       await expect(
-        verifyAndCreateImportedDocument(
+        verifyAndUploadImportedDocument(
           fileManager,
-          eservice.id,
           technology,
           entriesMap,
           {
@@ -171,18 +166,12 @@ describe("verifyAndCreateImportedDocument", () => {
             path: filePath,
           },
           kind,
-          () => Promise.resolve(),
           s3Bucket.toString(),
           "document-path",
           noLimitFileSizePolicy,
           genericLogger
         )
-      ).rejects.toThrow(
-        invalidInterfaceFileDetected({
-          id: eservice.id,
-          isEserviceTemplate: false,
-        })
-      );
+      ).rejects.toThrow(invalidImportedInterfaceFileDetected(filePath));
     }
   );
 });
