@@ -10,7 +10,8 @@ import { MakeUserFacingApiProblemFn, UserFacingProblem } from "./types.js";
 export function applyErrorCopy(
   problem: Problem,
   endpoint: string | undefined,
-  errorCopy: ErrorCopy
+  errorCopy: ErrorCopy,
+  defaultLanguage?: keyof ErrorMessage
 ): UserFacingProblem {
   const endpointCopy = endpoint ? errorCopy[endpoint] : undefined;
   if (!endpointCopy) {
@@ -28,7 +29,7 @@ export function applyErrorCopy(
 
   return {
     ...problem,
-    detail: copy.messages.it,
+    detail: copy.messages[defaultLanguage ?? "it"],
     userMessages: copy.messages,
   };
 }
@@ -85,7 +86,8 @@ export function makeUserFacingApiProblemBuilder<T extends string>(
     const userFacingProblem = applyErrorCopy(
       problem,
       context.endpoint,
-      errorCopy
+      errorCopy,
+      context.locale
     );
 
     if (placeholderMapper) {

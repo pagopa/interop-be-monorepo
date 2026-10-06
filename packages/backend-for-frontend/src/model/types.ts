@@ -218,6 +218,7 @@ export type MakeUserFacingApiProblemFn<T extends string> = (
   httpMapper: Parameters<MakeApiProblemFn<T>>[1],
   context: Parameters<MakeApiProblemFn<T>>[2] & {
     endpoint?: string;
+    locale?: keyof ErrorMessage;
   },
   operationalLogMessage?: Parameters<MakeApiProblemFn<T>>[3],
   placeholderMapper?: (

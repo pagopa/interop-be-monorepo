@@ -113,51 +113,63 @@ describe("makeUserFacingApiProblemBuilder", () => {
     expect(problem).toEqual(error);
   });
 
-  it("should correctly show the localised user messages with replaced values", async () => {
-    const mockEServiceBody: bffApi.UpdateEServiceTemplateInstanceSeed = {};
+  it.each([
+    ["it-IT", "it"],
+    ["en-US", "en"],
+    ["en-GB", "en"],
+    ["fr-FR", "it"],
+    [undefined, "it"],
+  ] as [string | undefined, "it" | "en"][])(
+    "should correctly show the localised user messages with replaced values with Accept-Language header %s",
+    async (acceptLanguageHeader, expectedLocale) => {
+      const mockEServiceBody: bffApi.UpdateEServiceTemplateInstanceSeed = {};
 
-    const token = generateToken(authRole.ADMIN_ROLE);
-    clients.catalogProcessClient.scheduleEServiceArchiving = vi
-      .fn()
-      .mockRejectedValue(
-        makeAxiosError({
-          type: "about:blank",
-          status: 409,
-          title: "eServiceNameDuplicateForProducer",
-          correlationId: generateId(),
-          detail: "Detail message",
-          errors: [
-            {
-              code: "001-007",
-              detail: "Detail message",
-            },
-          ],
-        })
-      );
-    const mockApiProducerEServiceDetails =
-      getMockBffApiProducerEServiceDetails();
-    services.catalogService.getProducerEServiceDetails = vi
-      .fn()
-      .mockResolvedValue(mockApiProducerEServiceDetails);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      clients.catalogProcessClient.scheduleEServiceArchiving = vi
+        .fn()
+        .mockRejectedValue(
+          makeAxiosError({
+            type: "about:blank",
+            status: 409,
+            title: "eServiceNameDuplicateForProducer",
+            correlationId: generateId(),
+            detail: "Detail message",
+            errors: [
+              {
+                code: "001-007",
+                detail: "Detail message",
+              },
+            ],
+          })
+        );
+      const mockApiProducerEServiceDetails =
+        getMockBffApiProducerEServiceDetails();
+      services.catalogService.getProducerEServiceDetails = vi
+        .fn()
+        .mockResolvedValue(mockApiProducerEServiceDetails);
 
-    const makeRequest = async () =>
-      request(api)
-        .post(
-          `${appBasePath}/templates/eservices/${mockApiProducerEServiceDetails.id}`
-        )
-        .set("Authorization", `Bearer ${token}`)
-        .set("X-Correlation-Id", generateId())
-        .send(mockEServiceBody);
+      const makeRequest = async () =>
+        request(api)
+          .post(
+            `${appBasePath}/templates/eservices/${mockApiProducerEServiceDetails.id}`
+          )
+          .set("Authorization", `Bearer ${token}`)
+          .set("X-Correlation-Id", generateId())
+          .set("Accept-Language", acceptLanguageHeader ?? "")
+          .send(mockEServiceBody);
 
-    const res = await makeRequest();
-    const body = res.body;
-    expect(body).toHaveProperty("userMessages");
-    const itMessage = `Esiste già un e-service con la parola identificativa ${mockApiProducerEServiceDetails.name}. Scegli un'altra parola identificativa.`;
-    const enMessage = `There is already an e-service with the identifying word ${mockApiProducerEServiceDetails.name}. Choose a different identifying word.`;
-    expect(body.userMessages).toEqual({
-      it: itMessage,
-      en: enMessage,
-    });
-    expect(body.detail).toEqual(itMessage);
-  });
+      const res = await makeRequest();
+      const body = res.body;
+      expect(body).toHaveProperty("userMessages");
+      const itMessage = `Esiste già un e-service con la parola identificativa ${mockApiProducerEServiceDetails.name}. Scegli un'altra parola identificativa.`;
+      const enMessage = `There is already an e-service with the identifying word ${mockApiProducerEServiceDetails.name}. Choose a different identifying word.`;
+      expect(body.userMessages).toEqual({
+        it: itMessage,
+        en: enMessage,
+      });
+      const expectedDetailMessage =
+        expectedLocale === "it" ? itMessage : enMessage;
+      expect(body.detail).toEqual(expectedDetailMessage);
+    }
+  );
 });
