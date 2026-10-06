@@ -188,6 +188,9 @@ const digestSectionFields: Record<DigestSection, DigestDataField[]> = {
   delegations: [
     "waitingForApprovalReceivedDelegations",
     "revokedReceivedDelegations",
+    "archivingRequests",
+    "approvedArchivingRequests",
+    "rejectedArchivingRequests",
   ],
   attributes: ["receivedAttributes", "revokedAttributes"],
   archivingProducer: [
