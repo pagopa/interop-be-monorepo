@@ -2,6 +2,120 @@ import { generateId } from "pagopa-interop-models";
 
 import { TenantDigestData } from "../src/services/digestDataService.js";
 
+const CARDS_LIMIT = 6;
+const LISTS_LIMIT = 5;
+
+/**
+ * Returns mock eservices data with the specified number of items
+ */
+function generateNewEservices(
+  itemsNumber: number,
+  isTemplate: boolean = false
+): TenantDigestData["newEservices"] {
+  const items = Array.from(
+    { length: itemsNumber > CARDS_LIMIT ? CARDS_LIMIT : itemsNumber },
+    (_, index) => ({
+      name: `Servizio ${index + 1}`,
+      producerName: `Ente ${index + 1}`,
+      link: `https://example.com/eservice${isTemplate ? "-template" : ""}/${index + 1}`,
+    })
+  );
+  return {
+    items,
+    totalCount: itemsNumber,
+  };
+}
+
+/**
+ * Returns mock digest data for agreements or purposes with the specified number of items
+ */
+function generateAgreementOrPurposeItems(
+  itemsNumber: number,
+  type: "agreement" | "purpose"
+): TenantDigestData["acceptedSentAgreements"] {
+  const items = Array.from(
+    { length: itemsNumber > LISTS_LIMIT ? LISTS_LIMIT : itemsNumber },
+    (_, index) => ({
+      name: `${type === "agreement" ? "Richiesta" : "Finalità"} ${index + 1}`,
+      producerName: `Ente ${index + 1}`,
+      link: `https://example.com/${type}/${index + 1}`,
+    })
+  );
+  return {
+    items,
+    totalCount: itemsNumber,
+  };
+}
+
+/**
+ * Returns mock digest data for received purposes with the specified number of items
+ */
+function generateReceivedPurposes(
+  itemsNumber: number
+): TenantDigestData["publishedReceivedPurposes"] {
+  const items = Array.from(
+    { length: itemsNumber > LISTS_LIMIT ? LISTS_LIMIT : itemsNumber },
+    (_, index) => ({
+      name: `Finalità Ricevuta ${index + 1}`,
+      producerName: `Ente ${index + 1}`,
+      link: `https://example.com/purpose/${index + 1}`,
+      consumerName: `Ente Consumatore ${index + 1}`,
+    })
+  );
+  return {
+    items,
+    totalCount: itemsNumber,
+  };
+}
+
+/**
+ * Returns mock digest data for received delegations with the specified number of items
+ */
+function generateReceivedDelegations(
+  itemsNumber: number
+): TenantDigestData["waitingForApprovalReceivedDelegations"] {
+  const items = Array.from(
+    { length: itemsNumber > LISTS_LIMIT ? LISTS_LIMIT : itemsNumber },
+    (_, index) => ({
+      name: `Delega in Attesa ${index + 1}`,
+      producerName: `Ente Richiedente Delega ${index + 1}`,
+      link: `https://example.com/delegation/${index + 1}`,
+      delegationKind: (index % 2 === 0 ? "erogazione" : "fruizione") as
+        | "erogazione"
+        | "fruizione",
+    })
+  );
+  return {
+    items,
+    totalCount: itemsNumber,
+  };
+}
+
+/**
+ * Returns mock digest data for Attributes with the specified number of items
+ */
+function generateAttributes(
+  itemsNumber: number
+): TenantDigestData["receivedAttributes"] {
+  const items = Array.from(
+    { length: itemsNumber > LISTS_LIMIT ? LISTS_LIMIT : itemsNumber },
+    (_, index) => ({
+      name: `Attributo ${index + 1}`,
+      producerName: `Ente ${index + 1}`,
+      link: `https://example.com/attribute/${index + 1}`,
+      attributeKind:
+        index % 2 === 0
+          ? "certified"
+          : ("verified" as "certified" | "verified"),
+      attributeKindLabel: index % 2 === 0 ? "(certificato)" : "(verificato)",
+    })
+  );
+  return {
+    items,
+    totalCount: itemsNumber,
+  };
+}
+
 /**
  * Returns mock digest data with all sections populated (full data)
  */
@@ -20,541 +134,28 @@ export function getMockTenantDigestData(): TenantDigestData {
     viewAllAttributesLink: "https://example.com/attributes",
     viewAllUpdatedEserviceTemplatesLink:
       "https://example.com/eservice-templates/updated",
-    newEservices: {
-      items: [
-        {
-          name: "Servizio Anagrafica Nazionale",
-          producerName: "Ministero dell'Interno",
-          link: "https://example.com/eservice/1",
-        },
-        {
-          name: "API Fatturazione Elettronica",
-          producerName: "Agenzia delle Entrate",
-          link: "https://example.com/eservice/2",
-        },
-        {
-          name: "Servizio Consultazione Catasto",
-          producerName: "Agenzia delle Entrate",
-          link: "https://example.com/eservice/3",
-        },
-        {
-          name: "API Registro Imprese",
-          producerName: "Unioncamere",
-          link: "https://example.com/eservice/4",
-        },
-        {
-          name: "Piattaforma Notifiche Digitali",
-          producerName: "PagoPA S.p.A.",
-          link: "https://example.com/eservice/5",
-        },
-        {
-          name: "Servizio Mobilita Nazionale",
-          producerName: "Ministero delle Infrastrutture e dei Trasporti",
-          link: "https://example.com/eservice/6",
-        },
-      ],
-      totalCount: 8,
-    },
-    updatedEservices: {
-      items: [
-        {
-          name: "Servizio SPID",
-          producerName: "AgID",
-          link: "https://example.com/eservice/3",
-        },
-        {
-          name: "API Pagamenti Digitali",
-          producerName: "PagoPA S.p.A.",
-          link: "https://example.com/eservice/4",
-        },
-        {
-          name: "Servizio Dati Territoriali",
-          producerName: "Agenzia delle Entrate",
-          link: "https://example.com/eservice/5",
-        },
-        {
-          name: "API Mobilita Pubblica",
-          producerName: "Ministero delle Infrastrutture e dei Trasporti",
-          link: "https://example.com/eservice/6",
-        },
-        {
-          name: "Servizio Albo Nazionale",
-          producerName: "Ministero della Giustizia",
-          link: "https://example.com/eservice/7",
-        },
-        {
-          name: "API Imprese e Professionisti",
-          producerName: "Unioncamere",
-          link: "https://example.com/eservice/8",
-        },
-      ],
-      totalCount: 9,
-    },
-    updatedEserviceTemplates: {
-      items: [
-        {
-          name: "Template Anagrafe Nazionale",
-          producerName: "Ministero dell'Interno",
-          link: "https://example.com/eservice-template/1",
-        },
-        {
-          name: "Template Fatturazione PA",
-          producerName: "Agenzia delle Entrate",
-          link: "https://example.com/eservice-template/2",
-        },
-        {
-          name: "Template Servizi Demografici",
-          producerName: "Ministero dell'Interno",
-          link: "https://example.com/eservice-template/3",
-        },
-        {
-          name: "Template Pagamenti Telematici",
-          producerName: "PagoPA S.p.A.",
-          link: "https://example.com/eservice-template/4",
-        },
-        {
-          name: "Template Dati Territoriali",
-          producerName: "Agenzia delle Entrate",
-          link: "https://example.com/eservice-template/5",
-        },
-        {
-          name: "Template Registro Imprese",
-          producerName: "Unioncamere",
-          link: "https://example.com/eservice-template/6",
-        },
-      ],
-      totalCount: 7,
-    },
-    acceptedSentAgreements: {
-      items: [
-        {
-          name: "Richiesta Dati Anagrafici",
-          producerName: "Comune di Roma",
-          link: "https://example.com/agreement/1",
-        },
-        {
-          name: "Accesso API Pagamenti",
-          producerName: "PagoPA S.p.A.",
-          link: "https://example.com/agreement/2",
-        },
-        {
-          name: "Consultazione Dati Catastali",
-          producerName: "Agenzia delle Entrate",
-          link: "https://example.com/agreement/6",
-        },
-        {
-          name: "Accesso Registro Imprese",
-          producerName: "Unioncamere",
-          link: "https://example.com/agreement/7",
-        },
-        {
-          name: "Servizi di Mobilita",
-          producerName: "Comune di Milano",
-          link: "https://example.com/agreement/8",
-        },
-      ],
-      totalCount: 7,
-    },
-    rejectedSentAgreements: {
-      items: [
-        {
-          name: "Servizio Test Rifiutato",
-          producerName: "Ente Test",
-          link: "https://example.com/agreement/3",
-        },
-        {
-          name: "Servizio Dati Rifiutato",
-          producerName: "Comune di Torino",
-          link: "https://example.com/agreement/9",
-        },
-        {
-          name: "API Pagamenti Rifiutata",
-          producerName: "Ente Pagamenti",
-          link: "https://example.com/agreement/10",
-        },
-        {
-          name: "Servizio Mobilita Rifiutato",
-          producerName: "Comune di Napoli",
-          link: "https://example.com/agreement/11",
-        },
-        {
-          name: "Servizio Anagrafe Rifiutato",
-          producerName: "Comune di Bologna",
-          link: "https://example.com/agreement/12",
-        },
-      ],
-      totalCount: 7,
-    },
-    suspendedSentAgreements: {
-      items: [
-        {
-          name: "Servizio Sospeso",
-          producerName: "Ente Sospeso",
-          link: "https://example.com/agreement/4",
-        },
-        {
-          name: "Servizio Catasto Sospeso",
-          producerName: "Agenzia delle Entrate",
-          link: "https://example.com/agreement/13",
-        },
-        {
-          name: "API Imprese Sospesa",
-          producerName: "Unioncamere",
-          link: "https://example.com/agreement/14",
-        },
-        {
-          name: "Servizio Pagamenti Sospeso",
-          producerName: "PagoPA S.p.A.",
-          link: "https://example.com/agreement/15",
-        },
-        {
-          name: "Servizio Trasporti Sospeso",
-          producerName: "Comune di Genova",
-          link: "https://example.com/agreement/16",
-        },
-      ],
-      totalCount: 7,
-    },
-    publishedSentPurposes: {
-      items: [
-        {
-          name: "Finalità Gestione Utenti",
-          producerName: "Sistema Centrale",
-          link: "https://example.com/purpose/1",
-        },
-        {
-          name: "Finalità Accesso Servizi",
-          producerName: "Comune di Roma",
-          link: "https://example.com/purpose/6",
-        },
-        {
-          name: "Finalità Gestione Pagamenti",
-          producerName: "PagoPA S.p.A.",
-          link: "https://example.com/purpose/7",
-        },
-        {
-          name: "Finalità Consultazione Dati",
-          producerName: "Agenzia delle Entrate",
-          link: "https://example.com/purpose/8",
-        },
-        {
-          name: "Finalità Servizi Territoriali",
-          producerName: "Regione Lazio",
-          link: "https://example.com/purpose/9",
-        },
-      ],
-      totalCount: 7,
-    },
-    rejectedSentPurposes: {
-      items: [
-        {
-          name: "Finalità Rifiutata",
-          producerName: "Ente Rifiutante",
-          link: "https://example.com/purpose/2",
-        },
-        {
-          name: "Finalità Dati Rifiutata",
-          producerName: "Comune di Torino",
-          link: "https://example.com/purpose/10",
-        },
-        {
-          name: "Finalità Pagamenti Rifiutata",
-          producerName: "Ente Pagamenti",
-          link: "https://example.com/purpose/11",
-        },
-        {
-          name: "Finalità Mobilita Rifiutata",
-          producerName: "Comune di Napoli",
-          link: "https://example.com/purpose/12",
-        },
-        {
-          name: "Finalità Anagrafe Rifiutata",
-          producerName: "Comune di Bologna",
-          link: "https://example.com/purpose/13",
-        },
-      ],
-      totalCount: 7,
-    },
-    waitingForApprovalSentPurposes: {
-      items: [
-        {
-          name: "Finalità In Attesa",
-          producerName: "Ente Erogatore",
-          link: "https://example.com/purpose/3",
-        },
-        {
-          name: "Finalità Catasto in Attesa",
-          producerName: "Agenzia delle Entrate",
-          link: "https://example.com/purpose/14",
-        },
-        {
-          name: "Finalità Imprese in Attesa",
-          producerName: "Unioncamere",
-          link: "https://example.com/purpose/15",
-        },
-        {
-          name: "Finalità Pagamenti in Attesa",
-          producerName: "PagoPA S.p.A.",
-          link: "https://example.com/purpose/16",
-        },
-        {
-          name: "Finalità Trasporti in Attesa",
-          producerName: "Comune di Genova",
-          link: "https://example.com/purpose/17",
-        },
-      ],
-      totalCount: 7,
-    },
-    waitingForApprovalReceivedAgreements: {
-      items: [
-        {
-          name: "Richiesta in Attesa",
-          producerName: "Ente Richiedente",
-          link: "https://example.com/agreement/5",
-        },
-        {
-          name: "Richiesta Dati in Attesa",
-          producerName: "Comune di Torino",
-          link: "https://example.com/agreement/17",
-        },
-        {
-          name: "Richiesta Pagamenti in Attesa",
-          producerName: "Ente Pagamenti",
-          link: "https://example.com/agreement/18",
-        },
-        {
-          name: "Richiesta Mobilita in Attesa",
-          producerName: "Comune di Napoli",
-          link: "https://example.com/agreement/19",
-        },
-        {
-          name: "Richiesta Anagrafe in Attesa",
-          producerName: "Comune di Bologna",
-          link: "https://example.com/agreement/20",
-        },
-      ],
-      totalCount: 7,
-    },
-    publishedReceivedPurposes: {
-      items: [
-        {
-          name: "Finalità Ricevuta",
-          producerName: "Ente Fruitore",
-          link: "https://example.com/purpose/4",
-          consumerName: "Ente Fruitore",
-        },
-        {
-          name: "Finalità Dati Ricevuta",
-          producerName: "Comune di Torino",
-          link: "https://example.com/purpose/18",
-          consumerName: "Comune di Torino",
-        },
-        {
-          name: "Finalità Pagamenti Ricevuta",
-          producerName: "Ente Pagamenti",
-          link: "https://example.com/purpose/19",
-          consumerName: "Ente Pagamenti",
-        },
-        {
-          name: "Finalità Mobilita Ricevuta",
-          producerName: "Comune di Napoli",
-          link: "https://example.com/purpose/20",
-          consumerName: "Comune di Napoli",
-        },
-        {
-          name: "Finalità Anagrafe Ricevuta",
-          producerName: "Comune di Bologna",
-          link: "https://example.com/purpose/21",
-          consumerName: "Comune di Bologna",
-        },
-      ],
-      totalCount: 7,
-    },
-    waitingForApprovalReceivedPurposes: {
-      items: [
-        {
-          name: "Finalità in Attesa di Approvazione",
-          producerName: "Ente in Attesa",
-          link: "https://example.com/purpose/5",
-          consumerName: "Ente in Attesa",
-        },
-        {
-          name: "Finalità Dati in Attesa",
-          producerName: "Comune di Torino",
-          link: "https://example.com/purpose/22",
-          consumerName: "Comune di Torino",
-        },
-        {
-          name: "Finalità Pagamenti in Attesa",
-          producerName: "Ente Pagamenti",
-          link: "https://example.com/purpose/23",
-          consumerName: "Ente Pagamenti",
-        },
-        {
-          name: "Finalità Mobilita in Attesa",
-          producerName: "Comune di Napoli",
-          link: "https://example.com/purpose/24",
-          consumerName: "Comune di Napoli",
-        },
-        {
-          name: "Finalità Anagrafe in Attesa",
-          producerName: "Comune di Bologna",
-          link: "https://example.com/purpose/25",
-          consumerName: "Comune di Bologna",
-        },
-      ],
-      totalCount: 7,
-    },
-    waitingForApprovalReceivedDelegations: {
-      items: [
-        {
-          name: "Delega in Attesa",
-          producerName: "Ente Richiedente Delega",
-          link: "https://example.com/delegation/3",
-          delegationKind: "erogazione",
-        },
-        {
-          name: "Delega Dati in Attesa",
-          producerName: "Comune di Torino",
-          link: "https://example.com/delegation/5",
-          delegationKind: "erogazione",
-        },
-        {
-          name: "Delega Pagamenti in Attesa",
-          producerName: "Ente Pagamenti",
-          link: "https://example.com/delegation/6",
-          delegationKind: "fruizione",
-        },
-        {
-          name: "Delega Mobilita in Attesa",
-          producerName: "Comune di Napoli",
-          link: "https://example.com/delegation/7",
-          delegationKind: "erogazione",
-        },
-        {
-          name: "Delega Anagrafe in Attesa",
-          producerName: "Comune di Bologna",
-          link: "https://example.com/delegation/8",
-          delegationKind: "fruizione",
-        },
-      ],
-      totalCount: 7,
-    },
-    revokedReceivedDelegations: {
-      items: [
-        {
-          name: "Delega Revocata",
-          producerName: "Ente Revocante",
-          link: "https://example.com/delegation/4",
-          delegationKind: "fruizione",
-        },
-        {
-          name: "Delega Dati Revocata",
-          producerName: "Comune di Torino",
-          link: "https://example.com/delegation/9",
-          delegationKind: "erogazione",
-        },
-        {
-          name: "Delega Pagamenti Revocata",
-          producerName: "Ente Pagamenti",
-          link: "https://example.com/delegation/10",
-          delegationKind: "fruizione",
-        },
-        {
-          name: "Delega Mobilita Revocata",
-          producerName: "Comune di Napoli",
-          link: "https://example.com/delegation/11",
-          delegationKind: "erogazione",
-        },
-        {
-          name: "Delega Anagrafe Revocata",
-          producerName: "Comune di Bologna",
-          link: "https://example.com/delegation/12",
-          delegationKind: "fruizione",
-        },
-      ],
-      totalCount: 7,
-    },
-    receivedAttributes: {
-      items: [
-        {
-          name: "Attributo Certificato Nuovo",
-          producerName: "Ente Certificatore",
-          link: "https://example.com/attribute/1",
-          attributeKind: "certified",
-          attributeKindLabel: "(certificato)",
-        },
-        {
-          name: "Attributo Identita Digitale",
-          producerName: "AgID",
-          link: "https://example.com/attribute/3",
-          attributeKind: "certified",
-          attributeKindLabel: "(certificato)",
-        },
-        {
-          name: "Attributo Impresa Attiva",
-          producerName: "Unioncamere",
-          link: "https://example.com/attribute/4",
-          attributeKind: "verified",
-          attributeKindLabel: "(verificato)",
-        },
-        {
-          name: "Attributo Residenza",
-          producerName: "Comune di Roma",
-          link: "https://example.com/attribute/5",
-          attributeKind: "certified",
-          attributeKindLabel: "(certificato)",
-        },
-        {
-          name: "Attributo Professionale",
-          producerName: "Ordine Professionale",
-          link: "https://example.com/attribute/6",
-          attributeKind: "verified",
-          attributeKindLabel: "(verificato)",
-        },
-      ],
-      totalCount: 7,
-    },
-    revokedAttributes: {
-      items: [
-        {
-          name: "Attributo Revocato",
-          producerName: "Ente Revocatore",
-          link: "https://example.com/attribute/2",
-          attributeKind: "verified",
-          attributeKindLabel: "(verificato)",
-        },
-        {
-          name: "Attributo Identita Revocato",
-          producerName: "AgID",
-          link: "https://example.com/attribute/7",
-          attributeKind: "certified",
-          attributeKindLabel: "(certificato)",
-        },
-        {
-          name: "Attributo Impresa Revocato",
-          producerName: "Unioncamere",
-          link: "https://example.com/attribute/8",
-          attributeKind: "verified",
-          attributeKindLabel: "(verificato)",
-        },
-        {
-          name: "Attributo Residenza Revocato",
-          producerName: "Comune di Roma",
-          link: "https://example.com/attribute/9",
-          attributeKind: "certified",
-          attributeKindLabel: "(certificato)",
-        },
-        {
-          name: "Attributo Professionale Revocato",
-          producerName: "Ordine Professionale",
-          link: "https://example.com/attribute/10",
-          attributeKind: "verified",
-          attributeKindLabel: "(verificato)",
-        },
-      ],
-      totalCount: 7,
-    },
+    newEservices: generateNewEservices(8),
+    updatedEservices: generateNewEservices(9),
+    updatedEserviceTemplates: generateNewEservices(10, true),
+    acceptedSentAgreements: generateAgreementOrPurposeItems(7, "agreement"),
+    rejectedSentAgreements: generateAgreementOrPurposeItems(8, "agreement"),
+    suspendedSentAgreements: generateAgreementOrPurposeItems(9, "agreement"),
+    publishedSentPurposes: generateAgreementOrPurposeItems(10, "purpose"),
+    rejectedSentPurposes: generateAgreementOrPurposeItems(11, "purpose"),
+    waitingForApprovalSentPurposes: generateAgreementOrPurposeItems(
+      12,
+      "purpose"
+    ),
+    waitingForApprovalReceivedAgreements: generateAgreementOrPurposeItems(
+      7,
+      "agreement"
+    ),
+    publishedReceivedPurposes: generateReceivedPurposes(8),
+    waitingForApprovalReceivedPurposes: generateReceivedPurposes(9),
+    waitingForApprovalReceivedDelegations: generateReceivedDelegations(10),
+    revokedReceivedDelegations: generateReceivedDelegations(11),
+    receivedAttributes: generateAttributes(12),
+    revokedAttributes: generateAttributes(13),
     viewAllArchivingProducerLink: "https://example.com/archiving",
     archivingImminentEservices: {
       items: [
@@ -616,541 +217,28 @@ export function getMockLimitedTenantDigestData(): TenantDigestData {
     viewAllAttributesLink: "https://example.com/attributes",
     viewAllUpdatedEserviceTemplatesLink:
       "https://example.com/eservice-templates/updated",
-    newEservices: {
-      items: [
-        {
-          name: "Servizio Anagrafica Nazionale",
-          producerName: "Ministero dell'Interno",
-          link: "https://example.com/eservice/1",
-        },
-        {
-          name: "API Fatturazione Elettronica",
-          producerName: "Agenzia delle Entrate",
-          link: "https://example.com/eservice/2",
-        },
-        {
-          name: "Servizio Consultazione Catasto",
-          producerName: "Agenzia delle Entrate",
-          link: "https://example.com/eservice/3",
-        },
-        {
-          name: "API Registro Imprese",
-          producerName: "Unioncamere",
-          link: "https://example.com/eservice/4",
-        },
-        {
-          name: "Piattaforma Notifiche Digitali",
-          producerName: "PagoPA S.p.A.",
-          link: "https://example.com/eservice/5",
-        },
-        {
-          name: "Servizio Mobilita Nazionale",
-          producerName: "Ministero delle Infrastrutture e dei Trasporti",
-          link: "https://example.com/eservice/6",
-        },
-      ],
-      totalCount: 6,
-    },
-    updatedEservices: {
-      items: [
-        {
-          name: "Servizio SPID",
-          producerName: "AgID",
-          link: "https://example.com/eservice/3",
-        },
-        {
-          name: "API Pagamenti Digitali",
-          producerName: "PagoPA S.p.A.",
-          link: "https://example.com/eservice/4",
-        },
-        {
-          name: "Servizio Dati Territoriali",
-          producerName: "Agenzia delle Entrate",
-          link: "https://example.com/eservice/5",
-        },
-        {
-          name: "API Mobilita Pubblica",
-          producerName: "Ministero delle Infrastrutture e dei Trasporti",
-          link: "https://example.com/eservice/6",
-        },
-        {
-          name: "Servizio Albo Nazionale",
-          producerName: "Ministero della Giustizia",
-          link: "https://example.com/eservice/7",
-        },
-        {
-          name: "API Imprese e Professionisti",
-          producerName: "Unioncamere",
-          link: "https://example.com/eservice/8",
-        },
-      ],
-      totalCount: 6,
-    },
-    updatedEserviceTemplates: {
-      items: [
-        {
-          name: "Template Anagrafe Nazionale",
-          producerName: "Ministero dell'Interno",
-          link: "https://example.com/eservice-template/1",
-        },
-        {
-          name: "Template Fatturazione PA",
-          producerName: "Agenzia delle Entrate",
-          link: "https://example.com/eservice-template/2",
-        },
-        {
-          name: "Template Servizi Demografici",
-          producerName: "Ministero dell'Interno",
-          link: "https://example.com/eservice-template/3",
-        },
-        {
-          name: "Template Pagamenti Telematici",
-          producerName: "PagoPA S.p.A.",
-          link: "https://example.com/eservice-template/4",
-        },
-        {
-          name: "Template Dati Territoriali",
-          producerName: "Agenzia delle Entrate",
-          link: "https://example.com/eservice-template/5",
-        },
-        {
-          name: "Template Registro Imprese",
-          producerName: "Unioncamere",
-          link: "https://example.com/eservice-template/6",
-        },
-      ],
-      totalCount: 6,
-    },
-    acceptedSentAgreements: {
-      items: [
-        {
-          name: "Richiesta Dati Anagrafici",
-          producerName: "Comune di Roma",
-          link: "https://example.com/agreement/1",
-        },
-        {
-          name: "Accesso API Pagamenti",
-          producerName: "PagoPA S.p.A.",
-          link: "https://example.com/agreement/2",
-        },
-        {
-          name: "Consultazione Dati Catastali",
-          producerName: "Agenzia delle Entrate",
-          link: "https://example.com/agreement/6",
-        },
-        {
-          name: "Accesso Registro Imprese",
-          producerName: "Unioncamere",
-          link: "https://example.com/agreement/7",
-        },
-        {
-          name: "Servizi di Mobilita",
-          producerName: "Comune di Milano",
-          link: "https://example.com/agreement/8",
-        },
-      ],
-      totalCount: 5,
-    },
-    rejectedSentAgreements: {
-      items: [
-        {
-          name: "Servizio Test Rifiutato",
-          producerName: "Ente Test",
-          link: "https://example.com/agreement/3",
-        },
-        {
-          name: "Servizio Dati Rifiutato",
-          producerName: "Comune di Torino",
-          link: "https://example.com/agreement/9",
-        },
-        {
-          name: "API Pagamenti Rifiutata",
-          producerName: "Ente Pagamenti",
-          link: "https://example.com/agreement/10",
-        },
-        {
-          name: "Servizio Mobilita Rifiutato",
-          producerName: "Comune di Napoli",
-          link: "https://example.com/agreement/11",
-        },
-        {
-          name: "Servizio Anagrafe Rifiutato",
-          producerName: "Comune di Bologna",
-          link: "https://example.com/agreement/12",
-        },
-      ],
-      totalCount: 5,
-    },
-    suspendedSentAgreements: {
-      items: [
-        {
-          name: "Servizio Sospeso",
-          producerName: "Ente Sospeso",
-          link: "https://example.com/agreement/4",
-        },
-        {
-          name: "Servizio Catasto Sospeso",
-          producerName: "Agenzia delle Entrate",
-          link: "https://example.com/agreement/13",
-        },
-        {
-          name: "API Imprese Sospesa",
-          producerName: "Unioncamere",
-          link: "https://example.com/agreement/14",
-        },
-        {
-          name: "Servizio Pagamenti Sospeso",
-          producerName: "PagoPA S.p.A.",
-          link: "https://example.com/agreement/15",
-        },
-        {
-          name: "Servizio Trasporti Sospeso",
-          producerName: "Comune di Genova",
-          link: "https://example.com/agreement/16",
-        },
-      ],
-      totalCount: 5,
-    },
-    publishedSentPurposes: {
-      items: [
-        {
-          name: "Finalità Gestione Utenti",
-          producerName: "Sistema Centrale",
-          link: "https://example.com/purpose/1",
-        },
-        {
-          name: "Finalità Accesso Servizi",
-          producerName: "Comune di Roma",
-          link: "https://example.com/purpose/6",
-        },
-        {
-          name: "Finalità Gestione Pagamenti",
-          producerName: "PagoPA S.p.A.",
-          link: "https://example.com/purpose/7",
-        },
-        {
-          name: "Finalità Consultazione Dati",
-          producerName: "Agenzia delle Entrate",
-          link: "https://example.com/purpose/8",
-        },
-        {
-          name: "Finalità Servizi Territoriali",
-          producerName: "Regione Lazio",
-          link: "https://example.com/purpose/9",
-        },
-      ],
-      totalCount: 5,
-    },
-    rejectedSentPurposes: {
-      items: [
-        {
-          name: "Finalità Rifiutata",
-          producerName: "Ente Rifiutante",
-          link: "https://example.com/purpose/2",
-        },
-        {
-          name: "Finalità Dati Rifiutata",
-          producerName: "Comune di Torino",
-          link: "https://example.com/purpose/10",
-        },
-        {
-          name: "Finalità Pagamenti Rifiutata",
-          producerName: "Ente Pagamenti",
-          link: "https://example.com/purpose/11",
-        },
-        {
-          name: "Finalità Mobilita Rifiutata",
-          producerName: "Comune di Napoli",
-          link: "https://example.com/purpose/12",
-        },
-        {
-          name: "Finalità Anagrafe Rifiutata",
-          producerName: "Comune di Bologna",
-          link: "https://example.com/purpose/13",
-        },
-      ],
-      totalCount: 5,
-    },
-    waitingForApprovalSentPurposes: {
-      items: [
-        {
-          name: "Finalità In Attesa",
-          producerName: "Ente Erogatore",
-          link: "https://example.com/purpose/3",
-        },
-        {
-          name: "Finalità Catasto in Attesa",
-          producerName: "Agenzia delle Entrate",
-          link: "https://example.com/purpose/14",
-        },
-        {
-          name: "Finalità Imprese in Attesa",
-          producerName: "Unioncamere",
-          link: "https://example.com/purpose/15",
-        },
-        {
-          name: "Finalità Pagamenti in Attesa",
-          producerName: "PagoPA S.p.A.",
-          link: "https://example.com/purpose/16",
-        },
-        {
-          name: "Finalità Trasporti in Attesa",
-          producerName: "Comune di Genova",
-          link: "https://example.com/purpose/17",
-        },
-      ],
-      totalCount: 5,
-    },
-    waitingForApprovalReceivedAgreements: {
-      items: [
-        {
-          name: "Richiesta in Attesa",
-          producerName: "Ente Richiedente",
-          link: "https://example.com/agreement/5",
-        },
-        {
-          name: "Richiesta Dati in Attesa",
-          producerName: "Comune di Torino",
-          link: "https://example.com/agreement/17",
-        },
-        {
-          name: "Richiesta Pagamenti in Attesa",
-          producerName: "Ente Pagamenti",
-          link: "https://example.com/agreement/18",
-        },
-        {
-          name: "Richiesta Mobilita in Attesa",
-          producerName: "Comune di Napoli",
-          link: "https://example.com/agreement/19",
-        },
-        {
-          name: "Richiesta Anagrafe in Attesa",
-          producerName: "Comune di Bologna",
-          link: "https://example.com/agreement/20",
-        },
-      ],
-      totalCount: 5,
-    },
-    publishedReceivedPurposes: {
-      items: [
-        {
-          name: "Finalità Ricevuta",
-          producerName: "Ente Fruitore",
-          link: "https://example.com/purpose/4",
-          consumerName: "Ente Fruitore",
-        },
-        {
-          name: "Finalità Dati Ricevuta",
-          producerName: "Comune di Torino",
-          link: "https://example.com/purpose/18",
-          consumerName: "Comune di Torino",
-        },
-        {
-          name: "Finalità Pagamenti Ricevuta",
-          producerName: "Ente Pagamenti",
-          link: "https://example.com/purpose/19",
-          consumerName: "Ente Pagamenti",
-        },
-        {
-          name: "Finalità Mobilita Ricevuta",
-          producerName: "Comune di Napoli",
-          link: "https://example.com/purpose/20",
-          consumerName: "Comune di Napoli",
-        },
-        {
-          name: "Finalità Anagrafe Ricevuta",
-          producerName: "Comune di Bologna",
-          link: "https://example.com/purpose/21",
-          consumerName: "Comune di Bologna",
-        },
-      ],
-      totalCount: 5,
-    },
-    waitingForApprovalReceivedPurposes: {
-      items: [
-        {
-          name: "Finalità in Attesa di Approvazione",
-          producerName: "Ente in Attesa",
-          link: "https://example.com/purpose/5",
-          consumerName: "Ente in Attesa",
-        },
-        {
-          name: "Finalità Dati in Attesa",
-          producerName: "Comune di Torino",
-          link: "https://example.com/purpose/22",
-          consumerName: "Comune di Torino",
-        },
-        {
-          name: "Finalità Pagamenti in Attesa",
-          producerName: "Ente Pagamenti",
-          link: "https://example.com/purpose/23",
-          consumerName: "Ente Pagamenti",
-        },
-        {
-          name: "Finalità Mobilita in Attesa",
-          producerName: "Comune di Napoli",
-          link: "https://example.com/purpose/24",
-          consumerName: "Comune di Napoli",
-        },
-        {
-          name: "Finalità Anagrafe in Attesa",
-          producerName: "Comune di Bologna",
-          link: "https://example.com/purpose/25",
-          consumerName: "Comune di Bologna",
-        },
-      ],
-      totalCount: 5,
-    },
-    waitingForApprovalReceivedDelegations: {
-      items: [
-        {
-          name: "Delega in Attesa",
-          producerName: "Ente Richiedente Delega",
-          link: "https://example.com/delegation/3",
-          delegationKind: "erogazione",
-        },
-        {
-          name: "Delega Dati in Attesa",
-          producerName: "Comune di Torino",
-          link: "https://example.com/delegation/5",
-          delegationKind: "erogazione",
-        },
-        {
-          name: "Delega Pagamenti in Attesa",
-          producerName: "Ente Pagamenti",
-          link: "https://example.com/delegation/6",
-          delegationKind: "fruizione",
-        },
-        {
-          name: "Delega Mobilita in Attesa",
-          producerName: "Comune di Napoli",
-          link: "https://example.com/delegation/7",
-          delegationKind: "erogazione",
-        },
-        {
-          name: "Delega Anagrafe in Attesa",
-          producerName: "Comune di Bologna",
-          link: "https://example.com/delegation/8",
-          delegationKind: "fruizione",
-        },
-      ],
-      totalCount: 5,
-    },
-    revokedReceivedDelegations: {
-      items: [
-        {
-          name: "Delega Revocata",
-          producerName: "Ente Revocante",
-          link: "https://example.com/delegation/4",
-          delegationKind: "fruizione",
-        },
-        {
-          name: "Delega Dati Revocata",
-          producerName: "Comune di Torino",
-          link: "https://example.com/delegation/9",
-          delegationKind: "erogazione",
-        },
-        {
-          name: "Delega Pagamenti Revocata",
-          producerName: "Ente Pagamenti",
-          link: "https://example.com/delegation/10",
-          delegationKind: "fruizione",
-        },
-        {
-          name: "Delega Mobilita Revocata",
-          producerName: "Comune di Napoli",
-          link: "https://example.com/delegation/11",
-          delegationKind: "erogazione",
-        },
-        {
-          name: "Delega Anagrafe Revocata",
-          producerName: "Comune di Bologna",
-          link: "https://example.com/delegation/12",
-          delegationKind: "fruizione",
-        },
-      ],
-      totalCount: 5,
-    },
-    receivedAttributes: {
-      items: [
-        {
-          name: "Attributo Certificato Nuovo",
-          producerName: "Ente Certificatore",
-          link: "https://example.com/attribute/1",
-          attributeKind: "certified",
-          attributeKindLabel: "(certificato)",
-        },
-        {
-          name: "Attributo Identita Digitale",
-          producerName: "AgID",
-          link: "https://example.com/attribute/3",
-          attributeKind: "certified",
-          attributeKindLabel: "(certificato)",
-        },
-        {
-          name: "Attributo Impresa Attiva",
-          producerName: "Unioncamere",
-          link: "https://example.com/attribute/4",
-          attributeKind: "verified",
-          attributeKindLabel: "(verificato)",
-        },
-        {
-          name: "Attributo Residenza",
-          producerName: "Comune di Roma",
-          link: "https://example.com/attribute/5",
-          attributeKind: "certified",
-          attributeKindLabel: "(certificato)",
-        },
-        {
-          name: "Attributo Professionale",
-          producerName: "Ordine Professionale",
-          link: "https://example.com/attribute/6",
-          attributeKind: "verified",
-          attributeKindLabel: "(verificato)",
-        },
-      ],
-      totalCount: 5,
-    },
-    revokedAttributes: {
-      items: [
-        {
-          name: "Attributo Revocato",
-          producerName: "Ente Revocatore",
-          link: "https://example.com/attribute/2",
-          attributeKind: "verified",
-          attributeKindLabel: "(verificato)",
-        },
-        {
-          name: "Attributo Identita Revocato",
-          producerName: "AgID",
-          link: "https://example.com/attribute/7",
-          attributeKind: "certified",
-          attributeKindLabel: "(certificato)",
-        },
-        {
-          name: "Attributo Impresa Revocato",
-          producerName: "Unioncamere",
-          link: "https://example.com/attribute/8",
-          attributeKind: "verified",
-          attributeKindLabel: "(verificato)",
-        },
-        {
-          name: "Attributo Residenza Revocato",
-          producerName: "Comune di Roma",
-          link: "https://example.com/attribute/9",
-          attributeKind: "certified",
-          attributeKindLabel: "(certificato)",
-        },
-        {
-          name: "Attributo Professionale Revocato",
-          producerName: "Ordine Professionale",
-          link: "https://example.com/attribute/10",
-          attributeKind: "verified",
-          attributeKindLabel: "(verificato)",
-        },
-      ],
-      totalCount: 5,
-    },
+    newEservices: generateNewEservices(6),
+    updatedEservices: generateNewEservices(6),
+    updatedEserviceTemplates: generateNewEservices(6, true),
+    acceptedSentAgreements: generateAgreementOrPurposeItems(5, "agreement"),
+    rejectedSentAgreements: generateAgreementOrPurposeItems(5, "agreement"),
+    suspendedSentAgreements: generateAgreementOrPurposeItems(5, "agreement"),
+    publishedSentPurposes: generateAgreementOrPurposeItems(5, "purpose"),
+    rejectedSentPurposes: generateAgreementOrPurposeItems(5, "purpose"),
+    waitingForApprovalSentPurposes: generateAgreementOrPurposeItems(
+      5,
+      "purpose"
+    ),
+    waitingForApprovalReceivedAgreements: generateAgreementOrPurposeItems(
+      5,
+      "agreement"
+    ),
+    publishedReceivedPurposes: generateReceivedPurposes(5),
+    waitingForApprovalReceivedPurposes: generateReceivedPurposes(5),
+    waitingForApprovalReceivedDelegations: generateReceivedDelegations(5),
+    revokedReceivedDelegations: generateReceivedDelegations(5),
+    receivedAttributes: generateAttributes(5),
+    revokedAttributes: generateAttributes(5),
     viewAllArchivingProducerLink: "https://example.com/archiving",
   };
 }
@@ -1173,174 +261,28 @@ export function getMockSingularTenantDigestData(): TenantDigestData {
     viewAllAttributesLink: "https://example.com/attributes",
     viewAllUpdatedEserviceTemplatesLink:
       "https://example.com/eservice-templates/updated",
-    newEservices: {
-      items: [
-        {
-          name: "Servizio Anagrafica Nazionale",
-          producerName: "Ministero dell'Interno",
-          link: "https://example.com/eservice/1",
-        },
-      ],
-      totalCount: 1,
-    },
-    updatedEservices: {
-      items: [
-        {
-          name: "Servizio SPID",
-          producerName: "AgID",
-          link: "https://example.com/eservice/3",
-        },
-      ],
-      totalCount: 1,
-    },
-    updatedEserviceTemplates: {
-      items: [
-        {
-          name: "Template Anagrafe Nazionale",
-          producerName: "Ministero dell'Interno",
-          link: "https://example.com/eservice-template/1",
-        },
-      ],
-      totalCount: 1,
-    },
-    acceptedSentAgreements: {
-      items: [
-        {
-          name: "Richiesta Dati Anagrafici",
-          producerName: "Comune di Roma",
-          link: "https://example.com/agreement/1",
-        },
-      ],
-      totalCount: 1,
-    },
-    rejectedSentAgreements: {
-      items: [
-        {
-          name: "Servizio Test Rifiutato",
-          producerName: "Ente Test",
-          link: "https://example.com/agreement/3",
-        },
-      ],
-      totalCount: 1,
-    },
-    suspendedSentAgreements: {
-      items: [
-        {
-          name: "Servizio Sospeso",
-          producerName: "Ente Sospeso",
-          link: "https://example.com/agreement/4",
-        },
-      ],
-      totalCount: 1,
-    },
-    publishedSentPurposes: {
-      items: [
-        {
-          name: "Finalità Gestione Utenti",
-          producerName: "Sistema Centrale",
-          link: "https://example.com/purpose/1",
-        },
-      ],
-      totalCount: 1,
-    },
-    rejectedSentPurposes: {
-      items: [
-        {
-          name: "Finalità Rifiutata",
-          producerName: "Ente Rifiutante",
-          link: "https://example.com/purpose/2",
-        },
-      ],
-      totalCount: 1,
-    },
-    waitingForApprovalSentPurposes: {
-      items: [
-        {
-          name: "Finalità In Attesa",
-          producerName: "Ente Erogatore",
-          link: "https://example.com/purpose/3",
-        },
-      ],
-      totalCount: 1,
-    },
-    waitingForApprovalReceivedAgreements: {
-      items: [
-        {
-          name: "Richiesta in Attesa",
-          producerName: "Ente Richiedente",
-          link: "https://example.com/agreement/5",
-        },
-      ],
-      totalCount: 1,
-    },
-    publishedReceivedPurposes: {
-      items: [
-        {
-          name: "Finalità Ricevuta",
-          producerName: "Ente Fruitore",
-          link: "https://example.com/purpose/4",
-          consumerName: "Ente Fruitore",
-        },
-      ],
-      totalCount: 1,
-    },
-    waitingForApprovalReceivedPurposes: {
-      items: [
-        {
-          name: "Finalità in Attesa di Approvazione",
-          producerName: "Ente in Attesa",
-          link: "https://example.com/purpose/5",
-          consumerName: "Ente in Attesa",
-        },
-      ],
-      totalCount: 1,
-    },
-    waitingForApprovalReceivedDelegations: {
-      items: [
-        {
-          name: "Delega in Attesa",
-          producerName: "Ente Richiedente Delega",
-          link: "https://example.com/delegation/3",
-          delegationKind: "erogazione",
-        },
-      ],
-      totalCount: 1,
-    },
-    revokedReceivedDelegations: {
-      items: [
-        {
-          name: "Delega Revocata",
-          producerName: "Ente Revocante",
-          link: "https://example.com/delegation/4",
-          delegationKind: "fruizione",
-        },
-      ],
-      totalCount: 1,
-    },
-    receivedAttributes: {
-      items: [
-        {
-          name: "Attributo Certificato Nuovo",
-          producerName: "Ente Certificatore",
-          link: "https://example.com/attribute/1",
-          attributeKind: "certified",
-          attributeKindLabel: "(certificato)",
-        },
-      ],
-      totalCount: 1,
-    },
-    revokedAttributes: {
-      items: [
-        {
-          name: "Attributo Revocato",
-          producerName: "Ente Revocatore",
-          link: "https://example.com/attribute/2",
-          attributeKind: "verified",
-          attributeKindLabel: "(verificato)",
-        },
-      ],
-      totalCount: 1,
-    },
+    newEservices: generateNewEservices(1),
+    updatedEservices: generateNewEservices(1),
+    updatedEserviceTemplates: generateNewEservices(1, true),
+    acceptedSentAgreements: generateAgreementOrPurposeItems(1, "agreement"),
+    rejectedSentAgreements: generateAgreementOrPurposeItems(1, "agreement"),
+    suspendedSentAgreements: generateAgreementOrPurposeItems(1, "agreement"),
+    publishedSentPurposes: generateAgreementOrPurposeItems(1, "purpose"),
+    rejectedSentPurposes: generateAgreementOrPurposeItems(1, "purpose"),
+    waitingForApprovalSentPurposes: generateAgreementOrPurposeItems(
+      1,
+      "purpose"
+    ),
+    waitingForApprovalReceivedAgreements: generateAgreementOrPurposeItems(
+      1,
+      "agreement"
+    ),
+    publishedReceivedPurposes: generateReceivedPurposes(1),
+    waitingForApprovalReceivedPurposes: generateReceivedPurposes(1),
+    waitingForApprovalReceivedDelegations: generateReceivedDelegations(1),
+    revokedReceivedDelegations: generateReceivedDelegations(1),
+    receivedAttributes: generateAttributes(1),
+    revokedAttributes: generateAttributes(1),
     viewAllArchivingProducerLink: "https://example.com/archiving",
     archivingImminentEservices: {
       items: [
@@ -1396,31 +338,8 @@ export function getMockPartialDigestData(): TenantDigestData {
       "https://example.com/eservice-templates/updated",
     viewAllArchivingProducerLink: "https://example.com/archiving",
     // E-services section - populated
-    newEservices: {
-      items: [
-        {
-          name: "Servizio Anagrafica Nazionale",
-          producerName: "Ministero dell'Interno",
-          link: "https://example.com/eservice/1",
-        },
-        {
-          name: "API Fatturazione Elettronica",
-          producerName: "Agenzia delle Entrate",
-          link: "https://example.com/eservice/2",
-        },
-      ],
-      totalCount: 2,
-    },
-    updatedEservices: {
-      items: [
-        {
-          name: "Servizio SPID",
-          producerName: "AgID",
-          link: "https://example.com/eservice/3",
-        },
-      ],
-      totalCount: 1,
-    },
+    newEservices: generateNewEservices(2),
+    updatedEservices: generateNewEservices(2),
     updatedEserviceTemplates: { items: [], totalCount: 0 },
     // Sent Items section - empty
     acceptedSentAgreements: { items: [], totalCount: 0 },
@@ -1449,29 +368,7 @@ export function getMockPartialDigestData(): TenantDigestData {
     },
     revokedReceivedDelegations: { items: [], totalCount: 0 },
     // Attributes section - populated
-    receivedAttributes: {
-      items: [
-        {
-          name: "Attributo Certificato Nuovo",
-          producerName: "Ente Certificatore",
-          link: "https://example.com/attribute/1",
-          attributeKind: "certified",
-          attributeKindLabel: "(certificato)",
-        },
-      ],
-      totalCount: 1,
-    },
-    revokedAttributes: {
-      items: [
-        {
-          name: "Attributo Revocato",
-          producerName: "Ente Revocatore",
-          link: "https://example.com/attribute/2",
-          attributeKind: "verified",
-          attributeKindLabel: "(verificato)",
-        },
-      ],
-      totalCount: 1,
-    },
+    receivedAttributes: generateAttributes(1),
+    revokedAttributes: generateAttributes(1),
   };
 }
