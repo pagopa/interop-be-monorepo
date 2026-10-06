@@ -4,7 +4,7 @@ info:
   description: PDND Interoperability API for machine-to-machine interaction with
     interoperability features
   x-summary: PDND Interoperability API
-  version: "3.2.0"
+  version: "3.2.1"
   contact:
     name: API Support
     url: "https://github.com/pagopa/pdnd-interop-frontend/issues"
@@ -1850,6 +1850,8 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /clients/{clientId}:
@@ -12095,6 +12097,7 @@ components:
             - RISK_ANALYSIS_DOCUMENT_GENERATED
             - PURPOSE_RISK_ANALYSIS_WORKFLOW_CREATED
             - PURPOSE_RISK_ANALYSIS_ASSIGNED
+            - PURPOSE_RISK_ANALYSIS_SELF_ASSIGNED
             - PURPOSE_RISK_ANALYSIS_SUBMITTED
             - PURPOSE_RISK_ANALYSIS_SIGNED
             - PURPOSE_RISK_ANALYSIS_REJECTED
