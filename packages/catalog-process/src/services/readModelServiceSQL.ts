@@ -981,7 +981,8 @@ export function readModelServiceBuilderSQL(
         hasLinkedPurposeTemplates,
         producerCategories,
         availableForRequester,
-      }: EServicesQueryFilters
+      }: EServicesQueryFilters,
+      certifiedDiscreteEnabled: boolean
     ): Promise<ListResult<EService>> {
       return await readmodelDB.transaction(async (tx) => {
         const visibleEservicesFilter = existsCatalogVisibleDescriptor(tx);
@@ -1005,7 +1006,8 @@ export function readModelServiceBuilderSQL(
           availableForRequesterFilter(
             tx,
             authData.organizationId,
-            availableForRequester
+            availableForRequester,
+            certifiedDiscreteEnabled
           )
         );
 
@@ -1431,7 +1433,8 @@ const attributeInCurrentGroup = alias(
 function availableForRequesterFilter(
   tx: Parameters<Parameters<DrizzleReturnType["transaction"]>[0]>[0],
   requesterId: TenantId,
-  enabled?: boolean
+  enabled?: boolean,
+  certifiedDiscreteEnabled = false
 ) {
   if (enabled === undefined) {
     return undefined;
@@ -1574,10 +1577,15 @@ function availableForRequesterFilter(
             eq(attributeInCurrentGroup.kind, attributeKind.certified),
             requesterOwnsNonRevokedCertifiedAttribute
           ),
-          and(
-            eq(attributeInCurrentGroup.kind, attributeKind.certifiedDiscrete),
-            requesterSatisfiesDiscreteCertifiedAttribute
-          )
+          certifiedDiscreteEnabled
+            ? and(
+                eq(
+                  attributeInCurrentGroup.kind,
+                  attributeKind.certifiedDiscrete
+                ),
+                requesterSatisfiesDiscreteCertifiedAttribute
+              )
+            : undefined
         )
       )
     );
@@ -1618,10 +1626,12 @@ function availableForRequesterFilter(
           descriptorState.suspended,
         ]),
 
-        inArray(currentGroupAttribute.kind, [
-          attributeKind.certified,
-          attributeKind.certifiedDiscrete,
-        ]),
+        inArray(
+          currentGroupAttribute.kind,
+          certifiedDiscreteEnabled
+            ? [attributeKind.certified, attributeKind.certifiedDiscrete]
+            : [attributeKind.certified]
+        ),
 
         /*
          * The current group is unsatisfied if the requester satisfies none of

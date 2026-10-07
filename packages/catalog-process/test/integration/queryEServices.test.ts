@@ -35,8 +35,9 @@ import {
   purposeTemplateState,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
+import { config } from "../../src/config/config.js";
 import {
   addOneAgreement,
   addOneAttribute,
@@ -1357,6 +1358,160 @@ describe("query eservices", () => {
   });
 
   describe("availableForRequester", () => {
+    const originalCertifiedDiscreteFlag =
+      config.featureFlagAttributeCertifiedDiscrete;
+
+    beforeEach(() => {
+      config.featureFlagAttributeCertifiedDiscrete = true;
+    });
+
+    afterEach(() => {
+      config.featureFlagAttributeCertifiedDiscrete =
+        originalCertifiedDiscreteFlag;
+    });
+
+    describe("when the certified discrete feature flag is disabled", () => {
+      const standardAttribute = {
+        ...getMockCertifiedTenantAttribute(),
+        revocationTimestamp: undefined,
+      };
+      const discreteAttribute = getMockCertifiedDiscreteTenantAttribute();
+      const requester: Tenant = {
+        ...getMockTenant(),
+        attributes: [standardAttribute, discreteAttribute],
+      };
+      const requesterContext = getMockContext({
+        authData: getMockAuthData(requester.id),
+      });
+      const ownedStandard = {
+        id: standardAttribute.id,
+        explicitAttributeVerification: false,
+      };
+      const missingStandard = {
+        id: generateId<AttributeId>(),
+        explicitAttributeVerification: false,
+      };
+      const satisfiedDiscrete = {
+        id: discreteAttribute.id,
+        explicitAttributeVerification: false,
+        discreteConfig: {
+          comparator: attributeCertifiedDiscreteComparator.GTE,
+          threshold: discreteAttribute.discreteValue,
+        },
+      };
+      const unsatisfiedDiscrete = {
+        ...satisfiedDiscrete,
+        discreteConfig: {
+          ...satisfiedDiscrete.discreteConfig,
+          threshold: discreteAttribute.discreteValue + 1,
+        },
+      };
+      const missingDiscrete = {
+        ...satisfiedDiscrete,
+        id: generateId<AttributeId>(),
+      };
+
+      beforeEach(async () => {
+        config.featureFlagAttributeCertifiedDiscrete = false;
+        await addOneTenant(requester);
+      });
+
+      it.each<{
+        description: string;
+        certified: Descriptor["attributes"]["certified"];
+        available: boolean;
+      }>([
+        {
+          description: "a satisfied discrete-only group",
+          certified: [[satisfiedDiscrete]],
+          available: true,
+        },
+        {
+          description: "an unsatisfied discrete-only group",
+          certified: [[unsatisfiedDiscrete]],
+          available: true,
+        },
+        {
+          description:
+            "a discrete-only group with an attribute the requester does not own",
+          certified: [[missingDiscrete]],
+          available: true,
+        },
+        {
+          description: "multiple unsatisfied discrete-only groups",
+          certified: [[unsatisfiedDiscrete], [missingDiscrete]],
+          available: true,
+        },
+        {
+          description:
+            "a satisfied standard group and an unsatisfied discrete-only group",
+          certified: [[ownedStandard], [unsatisfiedDiscrete]],
+          available: true,
+        },
+        {
+          description:
+            "an unsatisfied standard group and a satisfied discrete-only group",
+          certified: [[missingStandard], [satisfiedDiscrete]],
+          available: false,
+        },
+        {
+          description:
+            "a mixed group with a satisfied standard and an unsatisfied discrete requirement",
+          certified: [[ownedStandard, unsatisfiedDiscrete]],
+          available: true,
+        },
+        {
+          description:
+            "a mixed group with an unsatisfied standard and a satisfied discrete requirement",
+          certified: [[missingStandard, satisfiedDiscrete]],
+          available: false,
+        },
+        {
+          description: "a mixed group with neither requirement satisfied",
+          certified: [[missingStandard, unsatisfiedDiscrete]],
+          available: false,
+        },
+      ])(
+        "should ignore discrete requirements in $description",
+        async ({ certified, available }) => {
+          const eservice: EService = {
+            ...buildEService(
+              "Feature flag disabled",
+              new Date("2024-01-01T00:00:00Z")
+            ),
+            descriptors: [
+              {
+                ...getPublishedDescriptor(),
+                attributes: { certified, declared: [], verified: [] },
+              },
+            ],
+          };
+          await addOneEService(eservice);
+
+          const availableResult = await filterEServices(
+            { availableForRequester: true },
+            requesterContext
+          );
+          const unavailableResult = await filterEServices(
+            { availableForRequester: false },
+            requesterContext
+          );
+          const unfilteredResult = await filterEServices({}, requesterContext);
+
+          expect(availableResult.totalCount).toBe(available ? 1 : 0);
+          expect(idsOf(availableResult)).toEqual(
+            available ? [eservice.id] : []
+          );
+          expect(unavailableResult.totalCount).toBe(available ? 0 : 1);
+          expect(idsOf(unavailableResult)).toEqual(
+            available ? [] : [eservice.id]
+          );
+          expect(unfilteredResult.totalCount).toBe(1);
+          expect(idsOf(unfilteredResult)).toEqual([eservice.id]);
+        }
+      );
+    });
+
     describe("when the filter is not set", () => {
       it("should not filter e-services when availableForRequester is not set", async () => {
         const requester: Tenant = {
