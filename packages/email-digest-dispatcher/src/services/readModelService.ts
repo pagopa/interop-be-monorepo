@@ -141,7 +141,7 @@ type BaseDelegation = {
   totalCount: number;
 };
 
-export type SentDelegation = BaseDelegation & {
+type SentDelegation = BaseDelegation & {
   state: DelegationState;
   delegateId: TenantId;
 };

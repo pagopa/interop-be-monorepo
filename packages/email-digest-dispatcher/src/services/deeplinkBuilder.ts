@@ -164,12 +164,6 @@ export function viewAllUpdatedEserviceTemplatesLink(
   return buildDeeplinkUrl("eserviceTemplateToCreator", { selfcareId });
 }
 
-export function viewAllPopularEserviceTemplatesLink(
-  selfcareId: string | null
-): string {
-  return buildDeeplinkUrl("eserviceTemplateToInstantiator", { selfcareId });
-}
-
 export function viewAllArchivingProducerLink(
   selfcareId: string | null
 ): string {

@@ -38,7 +38,6 @@ import {
   SentPurposeState,
   ReceivedPurpose,
   ReceivedPurposeState,
-  SentDelegation,
   ReceivedDelegation,
   ArchivingEservice,
 } from "../services/readModelService.js";
@@ -593,30 +592,6 @@ async function delegationsToDigest<T extends DelegationWithIds>(
     }),
     totalCount: filteredData[0].totalCount,
   };
-}
-
-/**
- * Filters sent delegations by state and transforms to DelegationDigest.
- * Sent delegations show e-service name with link, and delegate name as producerName.
- *
- * @param data - Sent delegation data to filter and transform
- * @param state - The delegation state to filter by
- * @param readModelService - Service for fetching tenant names and descriptor IDs
- * @param selfcareId - The tenant's selfcare ID for deeplink authentication
- */
-export async function sentDelegationsToDigest(
-  data: SentDelegation[],
-  state: DelegationState,
-  readModelService: ReadModelService,
-  selfcareId: string | null
-): Promise<DelegationDigest> {
-  return delegationsToDigest(
-    data,
-    state,
-    (delegation) => delegation.delegateId,
-    readModelService,
-    selfcareId
-  );
 }
 
 /**
