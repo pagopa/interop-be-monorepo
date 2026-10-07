@@ -125,7 +125,7 @@ describe("makeUserFacingApiProblemBuilder", () => {
       const mockEServiceBody: bffApi.UpdateEServiceTemplateInstanceSeed = {};
 
       const token = generateToken(authRole.ADMIN_ROLE);
-      clients.catalogProcessClient.scheduleEServiceArchiving = vi
+      clients.catalogProcessClient.updateEServiceTemplateInstanceById = vi
         .fn()
         .mockRejectedValue(
           makeAxiosError({
