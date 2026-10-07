@@ -1,127 +1,134 @@
 import { buildHTMLTemplateService } from "pagopa-interop-commons";
-import { describe, it, expect } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 
 import { digestTemplateServiceBuilder } from "../src/services/templateService.js";
 import { getVisibleSections } from "../src/utils/digestAdmittedRoles.js";
 import { getMockTenantDigestData } from "./mockUtils.js";
 
 describe("Template Service", () => {
-  it("should compile digest email template with mock data and verify content is present", () => {
-    // Arrange
+  let compiledHtml: string;
+  let compiledText: string;
+
+  beforeAll(() => {
     const htmlTemplateService = buildHTMLTemplateService();
     const digestTemplateService =
       digestTemplateServiceBuilder(htmlTemplateService);
     const mockData = getMockTenantDigestData();
     const visibility = getVisibleSections(["admin"]);
 
-    // Act
-    const compiledHtml = digestTemplateService.compileDigestEmail(
+    compiledHtml = digestTemplateService.compileDigestEmail(
       mockData,
       visibility
     );
+    compiledText = compiledHtml
+      .replace(/<head\b[^>]*>[\s\S]*?<\/head>/gi, " ")
+      .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ")
+      .replace(/<!--[\s\S]*?-->/g, " ")
+      .replace(/<[^>]*>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  });
 
-    // Assert - Verify the HTML was compiled
+  it("Should compile the digest and includes its basic structure", () => {
     expect(compiledHtml).toBeDefined();
     expect(compiledHtml.length).toBeGreaterThan(0);
-
-    // Assert - Verify basic structure
     expect(compiledHtml).toContain("<!DOCTYPE html>");
-    expect(compiledHtml).toContain("PDND Interoperabilità");
-    expect(compiledHtml).toContain("Riepilogo notifiche");
+    expect(compiledText).toContain("PDND Interoperabilità");
+    expect(compiledText).toContain("Il tuo riepilogo settimanale su PDND");
+  });
 
-    // Assert - Verify section headers are present (split across lines in HTML)
-    expect(compiledHtml).toContain("Nuovi e-service");
-    expect(compiledHtml).toContain("E-service");
-    expect(compiledHtml).toContain("aggiornati");
-    expect(compiledHtml).toContain("Richieste di fruizione inoltrate");
-    expect(compiledHtml).toContain("Finalità inoltrate");
-    expect(compiledHtml).toContain("Richieste di fruizione che hai ricevuto");
-    expect(compiledHtml).toContain("Finalità ricevute");
-    expect(compiledHtml).toContain("Deleghe");
-    expect(compiledHtml).toContain("per pubblicare");
-    expect(compiledHtml).toContain("di delega");
-    expect(compiledHtml).toContain("Attributi");
+  it("Should render new, updated, and template e-services", () => {
+    expect(compiledText).toContain("Nuovi e-service");
+    expect(compiledText).toContain("8 nuovi e-service");
+    expect(compiledText).toContain("Nuovo e-service 1");
 
-    // Assert - Verify new e-services content
-    expect(compiledHtml).toContain("Servizio Anagrafica Nazionale");
-    expect(compiledHtml).toContain("Ministero dell&#x27;Interno");
-    expect(compiledHtml).toContain("API Fatturazione Elettronica");
-    expect(compiledHtml).toContain("Agenzia delle Entrate");
-    expect(compiledHtml).toContain("5");
-    expect(compiledHtml).toContain("nuovi e-service");
+    expect(compiledText).toContain("E-service aggiornati");
+    expect(compiledText).toContain("9 e-service di cui sei fruitore");
+    expect(compiledText).toContain("E-service aggiornato 1");
 
-    // Assert - Verify updated e-services content
-    expect(compiledHtml).toContain("Servizio SPID");
-    expect(compiledHtml).toContain("AgID");
-    expect(compiledHtml).toContain("3");
+    expect(compiledText).toContain("Template e-service aggiornati");
+    expect(compiledText).toContain("10 template e-service");
+    expect(compiledText).toContain("Template aggiornato 1");
 
-    // Assert - Verify accepted agreements content
-    expect(compiledHtml).toContain("Richiesta Dati Anagrafici");
-    expect(compiledHtml).toContain("Comune di Roma");
-    expect(compiledHtml).toContain("Accesso API Pagamenti");
-    expect(compiledHtml).toContain("PagoPA S.p.A.");
-    expect(compiledHtml).toContain("2");
-    expect(compiledHtml).toContain("richieste");
-
-    // Assert - Verify rejected agreements (singular - totalCount: 1)
-    expect(compiledHtml).toContain("Servizio Test Rifiutato");
-    expect(compiledHtml).toContain("Ente Test");
-
-    // Assert - Verify suspended agreements (singular - totalCount: 1)
-    expect(compiledHtml).toContain("Servizio Sospeso");
-    expect(compiledHtml).toContain("Ente Sospeso");
-    expect(compiledHtml).toContain("Sono state sospese");
-
-    // Assert - Verify published purposes (singular - totalCount: 1, producerName is not shown for sent purposes)
-    expect(compiledHtml).toContain("Finalità Gestione Utenti");
-    expect(compiledHtml).toContain("Sono state pubblicate");
-
-    // Assert - Verify rejected purposes
-    expect(compiledHtml).toContain("Finalità Rifiutata");
-    expect(compiledHtml).toContain("Sono state rifiutate");
-
-    // Assert - Verify waiting for approval received agreements
-    expect(compiledHtml).toContain("Richiesta in Attesa");
-    expect(compiledHtml).toContain("Ente Richiedente");
-
-    // Assert - Verify received purposes
-    expect(compiledHtml).toContain("Finalità Ricevuta");
-    expect(compiledHtml).toContain("Ente Fruitore");
-
-    // Assert - Verify waiting for approval purposes
-    expect(compiledHtml).toContain("Finalità in Attesa di Approvazione");
-    expect(compiledHtml).toContain("Ente in Attesa");
-
-    // Assert - Verify delegations
-    expect(compiledHtml).toContain("Delega in Attesa");
-    expect(compiledHtml).toContain("Ente Richiedente Delega");
-    expect(compiledHtml).toContain("Delega Revocata");
-    expect(compiledHtml).toContain("Ente Revocante");
-
-    // Assert - Verify attributes
-    expect(compiledHtml).toContain("Attributo Certificato Nuovo");
-    expect(compiledHtml).toContain("Ente Certificatore");
-    expect(compiledHtml).toContain("Attributo Revocato");
-    expect(compiledHtml).toContain("Ente Revocatore");
-
-    // Assert - Verify alert boxes are present (text split across lines in HTML)
-    expect(compiledHtml).toContain("Ora puoi creare");
-    expect(compiledHtml).toContain("per ogni finalità");
-    expect(compiledHtml).toContain("permetti agli enti");
-    expect(compiledHtml).toContain("di attivare la richiesta");
-    expect(compiledHtml).toContain("Approva le richieste");
-    expect(compiledHtml).toContain("inizia a gestire");
-    expect(compiledHtml).toContain("interrompe l'accesso");
-
-    // Assert - Verify links are present
     expect(compiledHtml).toContain("https://example.com/eservices/new");
     expect(compiledHtml).toContain("https://example.com/eservices/updated");
-    expect(compiledHtml).toContain("https://example.com/agreements/sent");
     expect(compiledHtml).toContain("https://example.com/eservice/1");
-    expect(compiledHtml).toContain("https://example.com/agreement/1");
+  });
 
-    // Assert - Verify "Visualizza" CTAs are present
-    expect(compiledHtml).toContain("Visualizza tutti");
-    expect(compiledHtml).toContain("Visualizza tutte");
+  it("Should render sent agreements and purposes", () => {
+    expect(compiledText).toContain("Richieste di fruizione inoltrate");
+    expect(compiledText).toContain("7 richieste di fruizione per:");
+    expect(compiledText).toContain("Richiesta approvata 1");
+    expect(compiledText).toContain("Sono state rifiutate 8 richieste");
+    expect(compiledText).toContain("Richiesta rifiutata 1");
+    expect(compiledText).toContain(
+      "Sono state sospese 9 richieste di fruizione"
+    );
+    expect(compiledText).toContain("Richiesta sospesa 1");
+
+    expect(compiledText).toContain("Finalità inoltrate");
+    expect(compiledText).toContain("Sono state pubblicate 10 finalità");
+    expect(compiledText).toContain("Finalità pubblicata 1");
+    expect(compiledText).toContain("Sono state rifiutate 11 finalità");
+    expect(compiledText).toContain("Finalità rifiutata 1");
+    expect(compiledText).toContain(
+      "12 finalità sono in attesa di approvazione:"
+    );
+    expect(compiledText).toContain("Finalità in attesa di approvazione 1");
+
+    expect(compiledHtml).toContain("https://example.com/agreements/sent");
+    expect(compiledHtml).toContain("https://example.com/agreement/1");
+  });
+
+  it("Should render received agreements and purposes", () => {
+    expect(compiledText).toContain("Richieste di fruizione ricevute");
+    expect(compiledText).toContain(
+      "Ci sono 7 richieste di fruizione in attesa di approvazione:"
+    );
+    expect(compiledText).toContain("Richiesta ricevuta 1");
+    expect(compiledText).toContain("richiesta da Richiesta ricevuta - Ente 1");
+
+    expect(compiledText).toContain("Finalità ricevute");
+    expect(compiledText).toContain(
+      "Sono state pubblicate 8 finalità inoltrate al tuo ente:"
+    );
+    expect(compiledText).toContain("Finalità ricevuta 1");
+    expect(compiledText).toContain(
+      "Ci sono 9 finalità in attesa di approvazione:"
+    );
+    expect(compiledText).toContain("Finalità ricevuta in attesa 1");
+
+    expect(compiledHtml).toContain("https://example.com/agreements/received");
+    expect(compiledHtml).toContain("https://example.com/purposes/received");
+  });
+
+  it("Should render received delegations", () => {
+    expect(compiledText).toContain("Deleghe");
+    expect(compiledText).toContain("Hai ricevuto 10 richieste");
+    expect(compiledText).toContain("Delega in attesa 1");
+    expect(compiledText).toContain("Delega in attesa - Ente Richiedente 1");
+    expect(compiledText).toContain("Hai ricevuto 11 richieste di delega:");
+    expect(compiledText).toContain("Delega revocata 1");
+  });
+
+  it("Should render assigned and revoked attributes", () => {
+    expect(compiledText).toContain("Attributi");
+    expect(compiledText).toContain(
+      "Ti sono stati assegnati 12 nuovi attributi:"
+    );
+    expect(compiledText).toContain("Attributo assegnato 1");
+    expect(compiledText).toContain("assegnato da Attributo assegnato - Ente 1");
+    expect(compiledText).toContain("Ti sono stati revocati 13 attributi:");
+    expect(compiledText).toContain("Attributo revocato 1");
+  });
+
+  it("Should render the section alert messages", () => {
+    expect(compiledText).toContain("Ora puoi creare almeno una finalità");
+    expect(compiledText).toContain("per ogni richiesta approvata.");
+    expect(compiledText).toContain("permetti agli enti");
+    expect(compiledText).toContain("di attivare la richiesta di fruizione.");
+    expect(compiledText).toContain("Approva le richieste");
+    expect(compiledText).toContain("inizia a gestire");
+    expect(compiledText).toContain("interrompe l'accesso");
   });
 });
