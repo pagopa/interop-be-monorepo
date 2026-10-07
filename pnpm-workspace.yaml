@@ -110,3 +110,10 @@ catalog:
   zod-validation-error: 3.3.0
 
 catalogMode: strict
+
+patchedDependencies:
+  "@zodios/core@10.9.6": patches/@zodios__core@10.9.6.patch
+  "@zodios/express@10.6.1": patches/@zodios__express@10.6.1.patch
+  "openapi-zod-client@1.18.3": patches/openapi-zod-client@1.18.3.patch
+  "@apidevtools/swagger-parser@10.1.1": patches/@apidevtools__swagger-parser@10.1.1.patch
+  "@stoplight/spectral-rulesets@1.22.0": patches/@stoplight__spectral-rulesets@1.22.0.patch

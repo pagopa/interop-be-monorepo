@@ -47,6 +47,7 @@ import { match } from "ts-pattern";
 import { config } from "../config/config.js";
 import {
   descriptorNotFound,
+  duplicatedReviewersInSeed,
   duplicatedPurposeTitle,
   eServiceModeNotAllowed,
   invalidFreeOfChargeReason,
@@ -879,6 +880,12 @@ export function assertTenantHasSelfcareId(
 ): asserts tenant is Tenant & { selfcareId: string } {
   if (!tenant.selfcareId) {
     throw missingSelfcareId(tenant.id);
+  }
+}
+
+export function assertReviewerIdsAreUnique(reviewerIds: string[]): void {
+  if (new Set(reviewerIds).size !== reviewerIds.length) {
+    throw duplicatedReviewersInSeed();
   }
 }
 
