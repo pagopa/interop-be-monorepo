@@ -10,13 +10,14 @@ const LISTS_LIMIT = 5;
  */
 function generateNewEservices(
   itemsNumber: number,
+  sectionLabel: string,
   isTemplate: boolean = false
 ): TenantDigestData["newEservices"] {
   const items = Array.from(
     { length: itemsNumber > CARDS_LIMIT ? CARDS_LIMIT : itemsNumber },
     (_, index) => ({
-      name: `Servizio ${index + 1}`,
-      producerName: `Ente ${index + 1}`,
+      name: `${sectionLabel} ${index + 1}`,
+      producerName: `${sectionLabel} - Ente ${index + 1}`,
       link: `https://example.com/eservice${isTemplate ? "-template" : ""}/${index + 1}`,
     })
   );
@@ -31,13 +32,14 @@ function generateNewEservices(
  */
 function generateAgreementOrPurposeItems(
   itemsNumber: number,
-  type: "agreement" | "purpose"
+  type: "agreement" | "purpose",
+  sectionLabel: string
 ): TenantDigestData["acceptedSentAgreements"] {
   const items = Array.from(
     { length: itemsNumber > LISTS_LIMIT ? LISTS_LIMIT : itemsNumber },
     (_, index) => ({
-      name: `${type === "agreement" ? "Richiesta" : "Finalità"} ${index + 1}`,
-      producerName: `Ente ${index + 1}`,
+      name: `${sectionLabel} ${index + 1}`,
+      producerName: `${sectionLabel} - Ente ${index + 1}`,
       link: `https://example.com/${type}/${index + 1}`,
     })
   );
@@ -51,13 +53,14 @@ function generateAgreementOrPurposeItems(
  * Returns mock digest data for received purposes with the specified number of items
  */
 function generateReceivedPurposes(
-  itemsNumber: number
+  itemsNumber: number,
+  sectionLabel: string
 ): TenantDigestData["publishedReceivedPurposes"] {
   const items = Array.from(
     { length: itemsNumber > LISTS_LIMIT ? LISTS_LIMIT : itemsNumber },
     (_, index) => ({
-      name: `Finalità Ricevuta ${index + 1}`,
-      producerName: `Ente ${index + 1}`,
+      name: `${sectionLabel} ${index + 1}`,
+      producerName: `${sectionLabel} - Ente ${index + 1}`,
       link: `https://example.com/purpose/${index + 1}`,
       consumerName: `Ente Consumatore ${index + 1}`,
     })
@@ -72,13 +75,14 @@ function generateReceivedPurposes(
  * Returns mock digest data for received delegations with the specified number of items
  */
 function generateReceivedDelegations(
-  itemsNumber: number
+  itemsNumber: number,
+  sectionLabel: string
 ): TenantDigestData["waitingForApprovalReceivedDelegations"] {
   const items = Array.from(
     { length: itemsNumber > LISTS_LIMIT ? LISTS_LIMIT : itemsNumber },
     (_, index) => ({
-      name: `Delega in Attesa ${index + 1}`,
-      producerName: `Ente Richiedente Delega ${index + 1}`,
+      name: `${sectionLabel} ${index + 1}`,
+      producerName: `${sectionLabel} - Ente Richiedente ${index + 1}`,
       link: `https://example.com/delegation/${index + 1}`,
       delegationKind: (index % 2 === 0 ? "erogazione" : "fruizione") as
         | "erogazione"
@@ -95,13 +99,14 @@ function generateReceivedDelegations(
  * Returns mock digest data for Attributes with the specified number of items
  */
 function generateAttributes(
-  itemsNumber: number
+  itemsNumber: number,
+  sectionLabel: string
 ): TenantDigestData["receivedAttributes"] {
   const items = Array.from(
     { length: itemsNumber > LISTS_LIMIT ? LISTS_LIMIT : itemsNumber },
     (_, index) => ({
-      name: `Attributo ${index + 1}`,
-      producerName: `Ente ${index + 1}`,
+      name: `${sectionLabel} ${index + 1}`,
+      producerName: `${sectionLabel} - Ente ${index + 1}`,
       link: `https://example.com/attribute/${index + 1}`,
       attributeKind:
         index % 2 === 0
@@ -134,28 +139,63 @@ export function getMockTenantDigestData(): TenantDigestData {
     viewAllAttributesLink: "https://example.com/attributes",
     viewAllUpdatedEserviceTemplatesLink:
       "https://example.com/eservice-templates/updated",
-    newEservices: generateNewEservices(8),
-    updatedEservices: generateNewEservices(9),
-    updatedEserviceTemplates: generateNewEservices(10, true),
-    acceptedSentAgreements: generateAgreementOrPurposeItems(7, "agreement"),
-    rejectedSentAgreements: generateAgreementOrPurposeItems(8, "agreement"),
-    suspendedSentAgreements: generateAgreementOrPurposeItems(9, "agreement"),
-    publishedSentPurposes: generateAgreementOrPurposeItems(10, "purpose"),
-    rejectedSentPurposes: generateAgreementOrPurposeItems(11, "purpose"),
+    newEservices: generateNewEservices(8, "Nuovo e-service"),
+    updatedEservices: generateNewEservices(9, "E-service aggiornato"),
+    updatedEserviceTemplates: generateNewEservices(
+      10,
+      "Template aggiornato",
+      true
+    ),
+    acceptedSentAgreements: generateAgreementOrPurposeItems(
+      7,
+      "agreement",
+      "Richiesta approvata"
+    ),
+    rejectedSentAgreements: generateAgreementOrPurposeItems(
+      8,
+      "agreement",
+      "Richiesta rifiutata"
+    ),
+    suspendedSentAgreements: generateAgreementOrPurposeItems(
+      9,
+      "agreement",
+      "Richiesta sospesa"
+    ),
+    publishedSentPurposes: generateAgreementOrPurposeItems(
+      10,
+      "purpose",
+      "Finalità pubblicata"
+    ),
+    rejectedSentPurposes: generateAgreementOrPurposeItems(
+      11,
+      "purpose",
+      "Finalità rifiutata"
+    ),
     waitingForApprovalSentPurposes: generateAgreementOrPurposeItems(
       12,
-      "purpose"
+      "purpose",
+      "Finalità in attesa di approvazione"
     ),
     waitingForApprovalReceivedAgreements: generateAgreementOrPurposeItems(
       7,
-      "agreement"
+      "agreement",
+      "Richiesta ricevuta"
     ),
-    publishedReceivedPurposes: generateReceivedPurposes(8),
-    waitingForApprovalReceivedPurposes: generateReceivedPurposes(9),
-    waitingForApprovalReceivedDelegations: generateReceivedDelegations(10),
-    revokedReceivedDelegations: generateReceivedDelegations(11),
-    receivedAttributes: generateAttributes(12),
-    revokedAttributes: generateAttributes(13),
+    publishedReceivedPurposes: generateReceivedPurposes(8, "Finalità ricevuta"),
+    waitingForApprovalReceivedPurposes: generateReceivedPurposes(
+      9,
+      "Finalità ricevuta in attesa"
+    ),
+    waitingForApprovalReceivedDelegations: generateReceivedDelegations(
+      10,
+      "Delega in attesa"
+    ),
+    revokedReceivedDelegations: generateReceivedDelegations(
+      11,
+      "Delega revocata"
+    ),
+    receivedAttributes: generateAttributes(12, "Attributo assegnato"),
+    revokedAttributes: generateAttributes(13, "Attributo revocato"),
   };
 }
 
@@ -177,28 +217,63 @@ export function getMockLimitedTenantDigestData(): TenantDigestData {
     viewAllAttributesLink: "https://example.com/attributes",
     viewAllUpdatedEserviceTemplatesLink:
       "https://example.com/eservice-templates/updated",
-    newEservices: generateNewEservices(6),
-    updatedEservices: generateNewEservices(6),
-    updatedEserviceTemplates: generateNewEservices(6, true),
-    acceptedSentAgreements: generateAgreementOrPurposeItems(5, "agreement"),
-    rejectedSentAgreements: generateAgreementOrPurposeItems(5, "agreement"),
-    suspendedSentAgreements: generateAgreementOrPurposeItems(5, "agreement"),
-    publishedSentPurposes: generateAgreementOrPurposeItems(5, "purpose"),
-    rejectedSentPurposes: generateAgreementOrPurposeItems(5, "purpose"),
+    newEservices: generateNewEservices(6, "Nuovo e-service"),
+    updatedEservices: generateNewEservices(6, "E-service aggiornato"),
+    updatedEserviceTemplates: generateNewEservices(
+      6,
+      "Template aggiornato",
+      true
+    ),
+    acceptedSentAgreements: generateAgreementOrPurposeItems(
+      5,
+      "agreement",
+      "Richiesta approvata"
+    ),
+    rejectedSentAgreements: generateAgreementOrPurposeItems(
+      5,
+      "agreement",
+      "Richiesta rifiutata"
+    ),
+    suspendedSentAgreements: generateAgreementOrPurposeItems(
+      5,
+      "agreement",
+      "Richiesta sospesa"
+    ),
+    publishedSentPurposes: generateAgreementOrPurposeItems(
+      5,
+      "purpose",
+      "Finalità pubblicata"
+    ),
+    rejectedSentPurposes: generateAgreementOrPurposeItems(
+      5,
+      "purpose",
+      "Finalità rifiutata"
+    ),
     waitingForApprovalSentPurposes: generateAgreementOrPurposeItems(
       5,
-      "purpose"
+      "purpose",
+      "Finalità in attesa di approvazione"
     ),
     waitingForApprovalReceivedAgreements: generateAgreementOrPurposeItems(
       5,
-      "agreement"
+      "agreement",
+      "Richiesta ricevuta"
     ),
-    publishedReceivedPurposes: generateReceivedPurposes(5),
-    waitingForApprovalReceivedPurposes: generateReceivedPurposes(5),
-    waitingForApprovalReceivedDelegations: generateReceivedDelegations(5),
-    revokedReceivedDelegations: generateReceivedDelegations(5),
-    receivedAttributes: generateAttributes(5),
-    revokedAttributes: generateAttributes(5),
+    publishedReceivedPurposes: generateReceivedPurposes(5, "Finalità ricevuta"),
+    waitingForApprovalReceivedPurposes: generateReceivedPurposes(
+      5,
+      "Finalità ricevuta in attesa"
+    ),
+    waitingForApprovalReceivedDelegations: generateReceivedDelegations(
+      5,
+      "Delega in attesa"
+    ),
+    revokedReceivedDelegations: generateReceivedDelegations(
+      5,
+      "Delega revocata"
+    ),
+    receivedAttributes: generateAttributes(5, "Attributo assegnato"),
+    revokedAttributes: generateAttributes(5, "Attributo revocato"),
   };
 }
 
@@ -220,28 +295,63 @@ export function getMockSingularTenantDigestData(): TenantDigestData {
     viewAllAttributesLink: "https://example.com/attributes",
     viewAllUpdatedEserviceTemplatesLink:
       "https://example.com/eservice-templates/updated",
-    newEservices: generateNewEservices(1),
-    updatedEservices: generateNewEservices(1),
-    updatedEserviceTemplates: generateNewEservices(1, true),
-    acceptedSentAgreements: generateAgreementOrPurposeItems(1, "agreement"),
-    rejectedSentAgreements: generateAgreementOrPurposeItems(1, "agreement"),
-    suspendedSentAgreements: generateAgreementOrPurposeItems(1, "agreement"),
-    publishedSentPurposes: generateAgreementOrPurposeItems(1, "purpose"),
-    rejectedSentPurposes: generateAgreementOrPurposeItems(1, "purpose"),
+    newEservices: generateNewEservices(1, "Nuovo e-service"),
+    updatedEservices: generateNewEservices(1, "E-service aggiornato"),
+    updatedEserviceTemplates: generateNewEservices(
+      1,
+      "Template aggiornato",
+      true
+    ),
+    acceptedSentAgreements: generateAgreementOrPurposeItems(
+      1,
+      "agreement",
+      "Richiesta approvata"
+    ),
+    rejectedSentAgreements: generateAgreementOrPurposeItems(
+      1,
+      "agreement",
+      "Richiesta rifiutata"
+    ),
+    suspendedSentAgreements: generateAgreementOrPurposeItems(
+      1,
+      "agreement",
+      "Richiesta sospesa"
+    ),
+    publishedSentPurposes: generateAgreementOrPurposeItems(
+      1,
+      "purpose",
+      "Finalità pubblicata"
+    ),
+    rejectedSentPurposes: generateAgreementOrPurposeItems(
+      1,
+      "purpose",
+      "Finalità rifiutata"
+    ),
     waitingForApprovalSentPurposes: generateAgreementOrPurposeItems(
       1,
-      "purpose"
+      "purpose",
+      "Finalità in attesa di approvazione"
     ),
     waitingForApprovalReceivedAgreements: generateAgreementOrPurposeItems(
       1,
-      "agreement"
+      "agreement",
+      "Richiesta ricevuta"
     ),
-    publishedReceivedPurposes: generateReceivedPurposes(1),
-    waitingForApprovalReceivedPurposes: generateReceivedPurposes(1),
-    waitingForApprovalReceivedDelegations: generateReceivedDelegations(1),
-    revokedReceivedDelegations: generateReceivedDelegations(1),
-    receivedAttributes: generateAttributes(1),
-    revokedAttributes: generateAttributes(1),
+    publishedReceivedPurposes: generateReceivedPurposes(1, "Finalità ricevuta"),
+    waitingForApprovalReceivedPurposes: generateReceivedPurposes(
+      1,
+      "Finalità ricevuta in attesa"
+    ),
+    waitingForApprovalReceivedDelegations: generateReceivedDelegations(
+      1,
+      "Delega in attesa"
+    ),
+    revokedReceivedDelegations: generateReceivedDelegations(
+      1,
+      "Delega revocata"
+    ),
+    receivedAttributes: generateAttributes(1, "Attributo assegnato"),
+    revokedAttributes: generateAttributes(1, "Attributo revocato"),
   };
 }
 
@@ -265,8 +375,8 @@ export function getMockPartialDigestData(): TenantDigestData {
     viewAllUpdatedEserviceTemplatesLink:
       "https://example.com/eservice-templates/updated",
     // E-services section - populated
-    newEservices: generateNewEservices(2),
-    updatedEservices: generateNewEservices(2),
+    newEservices: generateNewEservices(2, "Nuovo e-service"),
+    updatedEservices: generateNewEservices(2, "E-service aggiornato"),
     updatedEserviceTemplates: { items: [], totalCount: 0 },
     // Sent Items section - empty
     acceptedSentAgreements: { items: [], totalCount: 0 },
@@ -295,7 +405,7 @@ export function getMockPartialDigestData(): TenantDigestData {
     },
     revokedReceivedDelegations: { items: [], totalCount: 0 },
     // Attributes section - populated
-    receivedAttributes: generateAttributes(1),
-    revokedAttributes: generateAttributes(1),
+    receivedAttributes: generateAttributes(1, "Attributo assegnato"),
+    revokedAttributes: generateAttributes(1, "Attributo revocato"),
   };
 }
