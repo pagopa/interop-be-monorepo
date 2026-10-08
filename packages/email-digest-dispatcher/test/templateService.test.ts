@@ -219,4 +219,43 @@ describe("Template Service", () => {
 
     expect(compiledHtml).not.toContain("In fase di archiviazione - fruizione");
   });
+
+  it("Should render the delegated archiving section for the admin role", () => {
+    const htmlTemplateService = buildHTMLTemplateService();
+    const digestTemplateService =
+      digestTemplateServiceBuilder(htmlTemplateService);
+
+    const compiledHtml = digestTemplateService.compileDigestEmail(
+      getMockTenantDigestData(),
+      getVisibleSections(["admin"])
+    );
+
+    expect(compiledHtml).toContain("Hai ricevuto 6 richieste");
+    expect(compiledHtml).toContain("Richiesta di Archiviazione 3");
+    expect(compiledHtml).toContain("Hai approvato 7 richieste");
+    expect(compiledHtml).toContain("Richiesta accettata 3");
+    expect(compiledHtml).toContain("Hai rifiutato 8 richieste");
+    expect(compiledHtml).toContain("Richiesta rifiutata 3");
+  });
+
+  it("Should use the singular form for the producer delegated archiving section", () => {
+    const htmlTemplateService = buildHTMLTemplateService();
+    const digestTemplateService =
+      digestTemplateServiceBuilder(htmlTemplateService);
+
+    const compiledHtml = digestTemplateService.compileDigestEmail(
+      getMockSingularTenantDigestData(),
+      getVisibleSections(["admin"])
+    );
+
+    expect(compiledHtml).toContain(
+      "Hai ricevuto una richiesta di archiviazione"
+    );
+    expect(compiledHtml).toContain(
+      "Hai approvato una richiesta di archiviazione"
+    );
+    expect(compiledHtml).toContain(
+      "Hai rifiutato una richiesta di archiviazione"
+    );
+  });
 });
