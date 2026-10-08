@@ -10,6 +10,7 @@ COPY package.json /app/
 COPY pnpm-lock.yaml /app/
 COPY pnpm-workspace.yaml /app/
 COPY .npmrc /app/
+COPY patches /app/patches/
 
 COPY ./packages/producer-key-readmodel-writer-sql/package.json /app/packages/producer-key-readmodel-writer-sql/package.json
 COPY ./packages/commons/package.json /app/packages/commons/package.json
