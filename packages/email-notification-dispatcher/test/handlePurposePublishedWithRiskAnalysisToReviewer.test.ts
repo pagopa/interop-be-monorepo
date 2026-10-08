@@ -6,6 +6,7 @@ import {
   getMockEService,
   getMockPurpose,
   getMockTenant,
+  getMockTenantMail,
 } from "pagopa-interop-commons-test";
 import {
   CorrelationId,
@@ -64,13 +65,19 @@ describe("handlePurposePublishedWithRiskAnalysisToReviewer", () => {
     descriptors: [getMockDescriptorPublished()],
   };
   const producer: Tenant = getMockTenant(producerId);
-  const consumer: Tenant = getMockTenant(consumerId);
+  const consumer: Tenant = {
+    ...getMockTenant(consumerId),
+    mails: [getMockTenantMail()],
+  };
   const { logger } = getMockContext({});
 
   beforeEach(async () => {
     await addOneEService(eservice);
     await addOneTenant(producer);
     await addOneTenant(consumer);
+    readModelService.getTenantNotificationConfigByTenantId = vi
+      .fn()
+      .mockResolvedValue(undefined);
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockImplementation(
@@ -144,6 +151,50 @@ describe("handlePurposePublishedWithRiskAnalysisToReviewer", () => {
           "L'amministratore ha pubblicato la finalità Finalità test associata all'e-service E-service test con analisi del rischio che ti era stata assegnata."
         );
       });
+    }
+  );
+
+  it.each([
+    { enabled: true, reviewerNotifications: true },
+    { enabled: false, reviewerNotifications: true },
+    { enabled: true, reviewerNotifications: false },
+  ])(
+    "should respect tenant preference $enabled with reviewer notifications $reviewerNotifications",
+    async ({ enabled, reviewerNotifications }) => {
+      readModelService.getTenantNotificationConfigByTenantId = vi
+        .fn()
+        .mockResolvedValue({ enabled });
+      if (!reviewerNotifications) {
+        readModelService.getTenantUsersWithNotificationEnabled = vi
+          .fn()
+          .mockResolvedValue([]);
+      }
+
+      const messages = await handlePurposePublishedWithRiskAnalysisToReviewer({
+        purposeV2Msg: toPurposeV2(purpose),
+        eventType: "PurposeActivated",
+        logger,
+        readModelService,
+        templateService,
+        correlationId,
+      });
+
+      expect(
+        messages.flatMap((message) =>
+          message.type === "User" ? [message.userId] : []
+        )
+      ).toEqual(reviewerNotifications ? reviewerIds : []);
+      expect(messages.filter((message) => message.type === "Tenant")).toEqual(
+        enabled
+          ? [
+              expect.objectContaining({
+                type: "Tenant",
+                tenantId: consumerId,
+                address: consumer.mails[0].address,
+              }),
+            ]
+          : []
+      );
     }
   );
 
