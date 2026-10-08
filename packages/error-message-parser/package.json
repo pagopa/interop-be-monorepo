@@ -29,6 +29,7 @@
   "dependencies": {
     "csv-parse": "catalog:",
     "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-models": "workspace:*",
     "ts-pattern": "catalog:",
     "zod": "catalog:"
   }

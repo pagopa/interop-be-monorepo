@@ -10,6 +10,7 @@ import {
   purposeTemplateErrorCodes,
   tenantErrorCodes,
 } from "pagopa-interop-commons";
+import { commonErrorCodes } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
 function getProcessCode(processName: string): string | undefined {
@@ -34,6 +35,9 @@ export function getErrorCode(
   const processCode = getProcessCode(processName);
   if (!processCode) {
     return undefined;
+  }
+  if (errorCode in commonErrorCodes) {
+    return `${processCode}-${commonErrorCodes[errorCode as keyof typeof commonErrorCodes]}`;
   }
   const errorCodeNumber = match(processName)
     .with("agreementProcess", () => {
