@@ -25,6 +25,7 @@ import {
   EService,
   WithMetadata,
   EServiceId,
+  DescriptorId,
   TenantId,
   Tenant,
   Purpose,
@@ -172,7 +173,7 @@ const getReviewerIdFilter = (
           .where(
             and(
               isNotNull(
-                purposeInReadmodelPurpose.reviewerWorkflowSentToReviewerAt
+                riskAnalysisReviewerInReadmodelPurpose.sentToReviewerAt
               ),
               eq(
                 riskAnalysisReviewerInReadmodelPurpose.purposeId,
@@ -514,11 +515,13 @@ export function readModelServiceBuilderSQL({
     },
     async getActiveVersionsDailyCalls(
       eserviceId: EServiceId,
-      consumerId: TenantId
+      consumerId: TenantId,
+      descriptorId: DescriptorId
     ): Promise<{ consumerDailyCalls: number; totalDailyCalls: number }> {
       // Aggregates the daily calls of the Active purpose versions for the given
       // e-service directly in the DB, returning both the total across all
-      // consumers and the amount attributable to the requesting consumer.
+      // consumers with an Active or Suspended agreement on the given descriptor
+      // and the amount attributable to the requesting consumer.
       // This avoids loading every purpose of the e-service into memory (which,
       // for e-services with many purposes, could exhaust the heap and lead to OOM).
       const [result] = await readModelDB
@@ -540,9 +543,27 @@ export function readModelServiceBuilderSQL({
             purposeInReadmodelPurpose.id
           )
         )
+        .innerJoin(
+          agreementInReadmodelAgreement,
+          and(
+            eq(
+              agreementInReadmodelAgreement.eserviceId,
+              purposeInReadmodelPurpose.eserviceId
+            ),
+            eq(
+              agreementInReadmodelAgreement.consumerId,
+              purposeInReadmodelPurpose.consumerId
+            ),
+            inArray(agreementInReadmodelAgreement.state, [
+              agreementState.active,
+              agreementState.suspended,
+            ])
+          )
+        )
         .where(
           and(
             eq(purposeInReadmodelPurpose.eserviceId, eserviceId),
+            eq(agreementInReadmodelAgreement.descriptorId, descriptorId),
             eq(
               purposeVersionInReadmodelPurpose.state,
               purposeVersionState.active

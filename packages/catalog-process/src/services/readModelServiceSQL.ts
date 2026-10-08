@@ -18,6 +18,7 @@ import { PgSelect } from "drizzle-orm/pg-core";
 import {
   ascLower,
   createListResult,
+  descLower,
   escapeSqlLike,
   ilikeEscaped,
   M2MAdminAuthData,
@@ -98,7 +99,11 @@ import {
 import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
 import { match } from "ts-pattern";
 
-import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
+import {
+  ApiGetEServicesFilters,
+  Consumer,
+  EServiceSortBy,
+} from "../model/domain/models.js";
 import { activeDescriptorStates } from "./descriptorStates.js";
 import { hasRoleToAccessInactiveDescriptors } from "./validators.js";
 
@@ -122,6 +127,38 @@ const existsValidDescriptor = (
         )
       )
   );
+
+const existsActiveDescriptor = (
+  readmodelDB: DrizzleTransactionType
+): SQL<unknown> | undefined =>
+  exists(
+    readmodelDB
+      .select()
+      .from(eserviceDescriptorInReadmodelCatalog)
+      .where(
+        and(
+          eq(
+            eserviceDescriptorInReadmodelCatalog.eserviceId,
+            eserviceInReadmodelCatalog.id
+          ),
+          inArray(eserviceDescriptorInReadmodelCatalog.state, [
+            descriptorState.published,
+            descriptorState.suspended,
+          ])
+        )
+      )
+  );
+
+// The id tie-break keeps pagination deterministic on equal names or dates.
+const getEServicesOrderBy = (sortBy: EServiceSortBy): SQL[] => [
+  match(sortBy)
+    .with("NAME_ASC", () => ascLower(eserviceInReadmodelCatalog.name))
+    .with("NAME_DESC", () => descLower(eserviceInReadmodelCatalog.name))
+    .with("CREATED_AT_ASC", () => asc(eserviceInReadmodelCatalog.createdAt))
+    .with("CREATED_AT_DESC", () => desc(eserviceInReadmodelCatalog.createdAt))
+    .exhaustive(),
+  asc(eserviceInReadmodelCatalog.id),
+];
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL(
@@ -577,6 +614,44 @@ export function readModelServiceBuilderSQL(
           eservices.map((e) => e.data),
           totalCount[0]?.count
         );
+      });
+    },
+    async queryEServices(
+      offset: number,
+      limit: number,
+      sortBy: EServiceSortBy
+    ): Promise<ListResult<EService>> {
+      return await readmodelDB.transaction(async (tx) => {
+        const activeEservicesFilter = existsActiveDescriptor(tx);
+
+        const [pageIds, totalCount] = await Promise.all([
+          tx
+            .select({ id: eserviceInReadmodelCatalog.id })
+            .from(eserviceInReadmodelCatalog)
+            .where(activeEservicesFilter)
+            .orderBy(...getEServicesOrderBy(sortBy))
+            .limit(limit)
+            .offset(offset),
+          tx
+            .select({ count: countDistinct(eserviceInReadmodelCatalog.id) })
+            .from(eserviceInReadmodelCatalog)
+            .where(activeEservicesFilter),
+        ]);
+
+        const ids = pageIds.map((e) => e.id);
+        if (ids.length === 0) {
+          return createListResult([], totalCount[0]?.count);
+        }
+
+        const eservices = await catalogReadModelService.getEServicesByFilter(
+          inArray(eserviceInReadmodelCatalog.id, ids)
+        );
+
+        const orderedEservices = ids
+          .map((id) => eservices.find((e) => e.id === id))
+          .filter((e): e is EService => e !== undefined);
+
+        return createListResult(orderedEservices, totalCount[0]?.count);
       });
     },
     async isEServiceNameAvailableForProducer({

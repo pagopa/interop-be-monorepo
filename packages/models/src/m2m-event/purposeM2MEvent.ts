@@ -37,6 +37,7 @@ export const PurposeM2MEventType = z.enum([
   "RiskAnalysisSignedDocumentGenerated",
   "PurposeRiskAnalysisWorkflowCreated",
   "PurposeRiskAnalysisAssigned",
+  "PurposeRiskAnalysisSelfAssigned",
   "PurposeRiskAnalysisSubmitted",
   "PurposeRiskAnalysisSigned",
   "PurposeRiskAnalysisRejected",

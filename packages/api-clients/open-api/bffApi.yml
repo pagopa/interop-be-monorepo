@@ -1,4 +1,4 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
   title: Backend for Frontend Micro Service
   description: Interop BFF implementation
@@ -1277,14 +1277,6 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
   "/catalog":
-    parameters:
-      - name: personalData
-        description: if "TRUE" only e-services that handle personal data will be returned, if "FALSE" only non-personal data e-services will be returned, if not present all e-services will be returned, if "DEFINED" all e-services with a defined personal data flag will be returned
-        in: query
-        required: false
-        schema:
-          $ref: "#/components/schemas/PersonalDataFilter"
-
     get:
       tags:
         - eservices
@@ -1292,6 +1284,12 @@ paths:
       description: Retrieves EServices catalog
       operationId: getEServicesCatalog
       parameters:
+        - name: personalData
+          description: if "TRUE" only e-services that handle personal data will be returned, if "FALSE" only non-personal data e-services will be returned, if not present all e-services will be returned, if "DEFINED" all e-services with a defined personal data flag will be returned
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/PersonalDataFilter"
         - in: query
           name: q
           description: Query to filter EServices by name
@@ -1385,6 +1383,48 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
           $ref: "#/components/responses/BadRequest"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    query:
+      tags:
+        - eservices
+      summary: Query the EServices catalog
+      description: Retrieves the EServices catalog matching the given filters
+      operationId: queryEServicesCatalog
+      requestBody:
+        required: true
+        description: Catalog query filters
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CatalogFilterPayload"
+      responses:
+        "200":
+          description: A list of EServices
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CatalogEServices"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   "/consumers/delegations/delegators":
@@ -6063,6 +6103,12 @@ paths:
       operationId: signRiskAnalysis
       description: Sign/approve the risk analysis as a reviewer
       summary: Sign risk analysis
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisSignSeed"
+        required: true
       responses:
         "204":
           description: Risk analysis signed
@@ -6433,6 +6479,11 @@ paths:
         "200":
           description: Purpose requested
           headers:
+            "X-Metadata-Version":
+              schema:
+                type: integer
+                format: int32
+              description: The version of the retrieved purpose
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
@@ -15100,6 +15151,101 @@ components:
           type: boolean
         asyncExchange:
           type: boolean
+    CatalogFilterPayload:
+      type: object
+      additionalProperties: false
+      description: Filters for the catalog query
+      required:
+        - offset
+        - limit
+      properties:
+        offset:
+          type: integer
+          format: int32
+          minimum: 0
+        limit:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 200
+        keyword:
+          type: string
+          description: Case-insensitive text search on e-service name, description and producer name
+        sortBy:
+          $ref: "#/components/schemas/EServiceSortBy"
+        onlyActiveEservices:
+          type: boolean
+          description: If true, excludes e-services whose relevant descriptor is SUSPENDED
+        availableForRequester:
+          type: boolean
+          description: Filter by whether the requester satisfies the required certified attributes
+        subscribedByRequester:
+          type: boolean
+          description: Filter by presence of a valid agreement of the requester
+        onlyTemplateInstances:
+          type: boolean
+          description: If true, returns only e-services with a templateId
+        hasLinkedPurposeTemplates:
+          type: boolean
+          description: If true, returns only e-services with linked purpose templates
+        producerCategories:
+          type: array
+          description: Producer entity macro-categories
+          items:
+            $ref: "#/components/schemas/EServiceProducerCategory"
+        asyncExchange:
+          type: boolean
+          description: If true, returns only asynchronous/bulk e-services; if false, only synchronous ones
+        mode:
+          $ref: "#/components/schemas/EServiceMode"
+        onlySignalHubEnabled:
+          type: boolean
+          description: If true, returns only e-services with Signal Hub enabled
+        requesterDelegationRoles:
+          type: array
+          description: Filter by the requester role in producer delegations
+          items:
+            $ref: "#/components/schemas/RequesterDelegationRole"
+        templateId:
+          type: string
+          format: uuid
+          description: Returns only e-services belonging to the given template collection
+        producersIds:
+          type: array
+          description: Filter by producer tenant ids
+          items:
+            type: string
+            format: uuid
+    EServiceSortBy:
+      type: string
+      description: Sort criteria for the catalog query
+      enum:
+        - NAME_ASC
+        - NAME_DESC
+        - CREATED_AT_ASC
+        - CREATED_AT_DESC
+    RequesterDelegationRole:
+      type: string
+      description: Role of the requester in a producer delegation
+      enum:
+        - DELEGATE
+        - DELEGATOR
+    EServiceProducerCategory:
+      type: string
+      description: Producer entity macro-category, resolved backend-side to certified attribute codes
+      enum:
+        - ALTRE_PUBBLICHE_AMMINISTRAZIONI_LOCALI
+        - AZIENDE_OSPEDALIERE_ASL
+        - COMUNI
+        - PROVINCE_CITTA_METROPOLITANE
+        - PUBBLICHE_AMMINISTRAZIONI_CENTRALI
+        - ENTI_NAZIONALI_PREVIDENZA_ASSISTENZA
+        - REGIONI_PROVINCE_AUTONOME
+        - CONSORZI_ASSOCIAZIONI_REGIONALI
+        - SCUOLE
+        - UNIVERSITA_AFAM
+        - ISTITUTI_RICERCA
+        - STAZIONI_APPALTANTI_GESTORI_PUBBLICI_SERVIZI
     ClientKind:
       type: string
       enum:
@@ -15774,6 +15920,8 @@ components:
         rulesetExpiration:
           type: string
           format: date-time
+        riskAnalysisReviewMode:
+          $ref: "#/components/schemas/RiskAnalysisReviewMode"
         reviewerWorkflow:
           $ref: "#/components/schemas/ReviewerWorkflow"
       required:
@@ -18629,6 +18777,9 @@ components:
         - clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers
         - purposeQuotaAdjustmentRequestToProducer
         - purposeOverQuotaStateToConsumer
+        - purposeRiskAnalysisAssignmentStatusToAdmin
+        - purposeRiskAnalysisAssignmentStatusToReviewer
+        - purposePublishedWithRiskAnalysisToReviewer
         - eserviceArchivingRequestedToDelegator
         - eserviceArchivingApprovedRejectedToDelegate
       properties:
@@ -18675,6 +18826,14 @@ components:
         purposeQuotaAdjustmentRequestToProducer:
           type: boolean
         purposeOverQuotaStateToConsumer:
+          type: boolean
+        purposeRiskAnalysisAssignmentStatusToAdmin:
+          type: boolean
+          description: Enables risk analysis approval and rejection notifications for administrators.
+        purposeRiskAnalysisAssignmentStatusToReviewer:
+          type: boolean
+          description: Enables assignment, removal, draft deletion and approval by another reviewer notifications.
+        purposePublishedWithRiskAnalysisToReviewer:
           type: boolean
         eserviceArchivingRequestedToDelegator:
           type: boolean
@@ -18990,6 +19149,7 @@ components:
       type: string
       description: Risk analysis review mode
       enum:
+        - ADMIN_WRITES_ADMIN_SIGNS
         - ADMIN_WRITES_REVIEWER_SIGNS
         - REVIEWER_WRITES_REVIEWER_SIGNS
     RiskAnalysisSigningState:
@@ -19001,35 +19161,51 @@ components:
         - SUBMITTED
         - SIGNED
         - REJECTED
-    ReviewerWorkflow:
+    Reviewer:
+      description: A designated reviewer enriched with its user details
       type: object
       additionalProperties: false
-      description: Reviewer workflow state for a purpose risk analysis
       properties:
-        reviewMode:
-          $ref: "#/components/schemas/RiskAnalysisReviewMode"
-        reviewerIds:
-          type: array
-          items:
-            type: string
-            format: uuid
-        reviewers:
-          type: array
-          items:
-            $ref: "#/components/schemas/CompactUser"
-        signingState:
-          $ref: "#/components/schemas/RiskAnalysisSigningState"
-        signedBy:
+        userId:
           type: string
           format: uuid
-        rejectionReason:
+        name:
+          type: string
+        familyName:
           type: string
         sentToReviewerAt:
           type: string
           format: date-time
       required:
-        - reviewMode
-        - reviewerIds
+        - userId
+        - name
+        - familyName
+    ReviewerWorkflow:
+      type: object
+      additionalProperties: false
+      description: Reviewer workflow state for a purpose risk analysis
+      properties:
+        reviewers:
+          type: array
+          items:
+            $ref: "#/components/schemas/Reviewer"
+        signingState:
+          $ref: "#/components/schemas/RiskAnalysisSigningState"
+        signedBy:
+          type: string
+          format: uuid
+        signedAt:
+          type: string
+          format: date-time
+        rejectedBy:
+          type: string
+          format: uuid
+        rejectedAt:
+          type: string
+          format: date-time
+        rejectionReason:
+          type: string
+      required:
         - signingState
     RiskAnalysisAssignmentSeed:
       type: object
@@ -19046,7 +19222,6 @@ components:
           minItems: 1
       required:
         - reviewMode
-        - reviewerIds
     RiskAnalysisSubmissionSeed:
       type: object
       additionalProperties: false
@@ -19056,6 +19231,17 @@ components:
           $ref: "#/components/schemas/RiskAnalysisFormSeed"
       required:
         - riskAnalysisForm
+    RiskAnalysisSignSeed:
+      type: object
+      additionalProperties: false
+      description: Payload to sign the latest version of a purpose risk analysis
+      properties:
+        metadataVersionToSign:
+          type: integer
+          format: int32
+          minimum: 0
+      required:
+        - metadataVersionToSign
     RiskAnalysisRejectionSeed:
       type: object
       additionalProperties: false
