@@ -34,6 +34,7 @@ import {
   Agreement,
   Descriptor,
   agreementState,
+  descriptorState,
   PurposeActivatedV2,
   toPurposeV2,
   PurposeVersionUnsuspendedByConsumerV2,
@@ -725,6 +726,85 @@ describe("activatePurposeVersion", () => {
     expect(activateResponse).toMatchObject({
       data: updatedVersion,
       metadata: { version: 1 },
+    });
+  });
+
+  it("should activate a purpose version in draft ignoring the daily calls of consumers with an agreement on another descriptor", async () => {
+    const descriptorV1: Descriptor = {
+      ...getMockDescriptorPublished(),
+      version: "1",
+      state: descriptorState.deprecated,
+      dailyCallsPerConsumer: 1000,
+      dailyCallsTotal: 1001,
+    };
+    const descriptorV2: Descriptor = {
+      ...getMockDescriptorPublished(),
+      version: "2",
+      dailyCallsPerConsumer: 5000,
+      dailyCallsTotal: 5001,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptorV1, descriptorV2],
+    };
+    const agreement: Agreement = {
+      ...mockAgreement,
+      descriptorId: descriptorV1.id,
+    };
+    const otherConsumerId = generateId<TenantId>();
+    const otherConsumerAgreement: Agreement = {
+      ...getMockAgreement(eservice.id, otherConsumerId, agreementState.active),
+      descriptorId: descriptorV2.id,
+    };
+    const otherConsumerPurpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: eservice.id,
+      consumerId: otherConsumerId,
+      versions: [
+        {
+          ...getMockPurposeVersion(purposeVersionState.active),
+          dailyCalls: 3000,
+        },
+      ],
+    };
+    const purposeVersion: PurposeVersion = {
+      ...mockPurposeVersion,
+      state: purposeVersionState.draft,
+      dailyCalls: 100,
+    };
+    const purpose: Purpose = {
+      ...mockPurpose,
+      versions: [purposeVersion],
+    };
+
+    await addOnePurpose(purpose);
+    await addOnePurpose(otherConsumerPurpose);
+    await addOneEService(eservice);
+    await addOneAgreement(agreement);
+    await addOneAgreement(otherConsumerAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
+
+    await purposeService.activatePurposeVersion(
+      {
+        purposeId: purpose.id,
+        versionId: purposeVersion.id,
+        delegationId: undefined,
+      },
+      getMockContext({ authData: getMockAuthData(mockConsumer.id, userId) })
+    );
+
+    const writtenEvent = await readLastEventByStreamId(
+      purpose.id,
+      "purpose",
+      postgresDB
+    );
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: purpose.id,
+      version: "1",
+      type: "PurposeActivated",
+      event_version: 2,
     });
   });
 

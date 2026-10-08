@@ -79,6 +79,12 @@ describe("getRemainingDailyCalls", () => {
       consumerId,
       id: generateId(),
     };
+    const otherConsumerId: TenantId = generateId();
+    const otherConsumerAgreement: Agreement = {
+      ...getMockAgreement(eservice.id, otherConsumerId, agreementState.active),
+      descriptorId: descriptor.id,
+      producerId,
+    };
     const otherConsumerPurpose: Purpose = {
       ...getMockPurpose([
         {
@@ -87,13 +93,14 @@ describe("getRemainingDailyCalls", () => {
         },
       ]),
       eserviceId: eservice.id,
-      consumerId: generateId(),
+      consumerId: otherConsumerId,
       id: generateId(),
     };
 
     await addOneTenant({ ...getMockTenant(consumerId) });
     await addOneEService(eservice);
     await addOneAgreement(agreement);
+    await addOneAgreement(otherConsumerAgreement);
     await addOnePurpose(consumerPurpose);
     await addOnePurpose(anotherConsumerPurpose);
     await addOnePurpose(otherConsumerPurpose);
