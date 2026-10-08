@@ -57,10 +57,11 @@ export async function handlePurposePublishedWithRiskAnalysisToReviewer({
       notificationType,
       readModelService,
       logger,
-      includeTenantContactEmails: false,
+      includeTenantContactEmails: true,
     })
   ).filter(
-    (target) => target.type === "User" && selectedReviewerIds.has(target.userId)
+    (target) =>
+      target.type === "Tenant" || selectedReviewerIds.has(target.userId)
   );
 
   return targets.map((target) => ({
