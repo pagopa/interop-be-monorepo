@@ -808,6 +808,77 @@ describe("activatePurposeVersion", () => {
     });
   });
 
+  it("should change a purpose version in draft to waiting for approval when the daily calls of consumers with an agreement on the same descriptor exceed the descriptor total", async () => {
+    const descriptor: Descriptor = {
+      ...getMockDescriptorPublished(),
+      dailyCallsPerConsumer: 1000,
+      dailyCallsTotal: 1001,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    const agreement: Agreement = {
+      ...mockAgreement,
+      descriptorId: descriptor.id,
+    };
+    const otherConsumerId = generateId<TenantId>();
+    const otherConsumerAgreement: Agreement = {
+      ...getMockAgreement(eservice.id, otherConsumerId, agreementState.active),
+      descriptorId: descriptor.id,
+    };
+    const otherConsumerPurpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: eservice.id,
+      consumerId: otherConsumerId,
+      versions: [
+        {
+          ...getMockPurposeVersion(purposeVersionState.active),
+          dailyCalls: 1000,
+        },
+      ],
+    };
+    const purposeVersion: PurposeVersion = {
+      ...mockPurposeVersion,
+      state: purposeVersionState.draft,
+      dailyCalls: 100,
+    };
+    const purpose: Purpose = {
+      ...mockPurpose,
+      versions: [purposeVersion],
+    };
+
+    await addOnePurpose(purpose);
+    await addOnePurpose(otherConsumerPurpose);
+    await addOneEService(eservice);
+    await addOneAgreement(agreement);
+    await addOneAgreement(otherConsumerAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
+
+    await purposeService.activatePurposeVersion(
+      {
+        purposeId: purpose.id,
+        versionId: purposeVersion.id,
+        delegationId: undefined,
+      },
+      getMockContext({ authData: getMockAuthData(mockConsumer.id, userId) })
+    );
+
+    const writtenEvent = await readLastEventByStreamId(
+      purpose.id,
+      "purpose",
+      postgresDB
+    );
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: purpose.id,
+      version: "1",
+      type: "PurposeWaitingForApproval",
+      event_version: 2,
+    });
+  });
+
   it("should succeed when requester is Consumer Delegate and the purpose version in draft state is activated correctly", async () => {
     const consumerDelegate = {
       ...getMockTenant(),
