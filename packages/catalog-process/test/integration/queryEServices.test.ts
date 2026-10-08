@@ -160,12 +160,7 @@ describe("query eservices", () => {
       }
     });
 
-    it.each<catalogApi.EServiceSortBy>([
-      "NAME_ASC",
-      "NAME_DESC",
-      "CREATED_AT_ASC",
-      "CREATED_AT_DESC",
-    ])(
+    it.each(catalogApi.EServiceSortBy.options)(
       "should paginate e-services with the same name and creation date in a deterministic order (sortBy: %s)",
       async (sortBy) => {
         const pages = await Promise.all(
