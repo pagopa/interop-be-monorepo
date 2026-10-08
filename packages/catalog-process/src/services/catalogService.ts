@@ -224,6 +224,7 @@ import {
   assertNoExistingProducerDelegationInActiveOrPendingState,
   assertNoExistingProducerDelegationForDescriptorArchiving,
   assertNoExistingProducerDelegationForEServiceArchiving,
+  assertNoExistingProducerDelegationForEServiceCloning,
   assertEServiceNameAvailableForProducer,
   assertRequesterIsDelegateProducerOrProducer,
   assertRequesterIsProducer,
@@ -1031,6 +1032,33 @@ export function catalogServiceBuilder(
         filters,
         offset,
         limit
+      );
+
+      const eservicesToReturn = await Promise.all(
+        eservicesList.results.map((eservice) =>
+          applyVisibilityToEService(eservice, authData, readModelService)
+        )
+      );
+
+      return {
+        results: eservicesToReturn,
+        totalCount: eservicesList.totalCount,
+      };
+    },
+
+    async queryEServices(
+      filters: catalogApi.EServicesFilterPayload,
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<ListResult<EService>> {
+      logger.info(
+        `Querying EServices, limit = ${filters.limit}, offset = ${filters.offset}`
+      );
+      const eservicesList = await readModelService.queryEServices(
+        filters.offset,
+        filters.limit
       );
 
       const eservicesToReturn = await Promise.all(
@@ -2358,7 +2386,7 @@ export function catalogServiceBuilder(
       );
 
       assertRequesterIsProducer(eservice.data.producerId, authData);
-      await assertNoExistingProducerDelegationInActiveOrPendingState(
+      await assertNoExistingProducerDelegationForEServiceCloning(
         eservice.data.id,
         readModelService
       );
