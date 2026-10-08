@@ -77,20 +77,32 @@ export async function handlePurposeEvent(
           "PurposeWaitingForApproval"
         ),
       },
-      async ({ data: { purpose }, type }) => [
+      async ({ data, type }) => [
         ...(await handlePurposeQuotaAdjustmentRequestToProducer(
-          purpose,
+          data.purpose,
           logger,
           readModelService,
           type
         )),
         ...(await handlePurposeOverQuotaToConsumer(
+          data.purpose,
+          logger,
+          readModelService,
+          type,
+          "versionId" in data ? data.versionId : undefined
+        )),
+      ]
+    )
+    .with(
+      { type: "PurposeVersionOverQuotaUnsuspended" },
+      ({ data: { purpose, versionId }, type }) =>
+        handlePurposeOverQuotaToConsumer(
           purpose,
           logger,
           readModelService,
-          type
-        )),
-      ]
+          type,
+          versionId
+        )
     )
     .with(
       {
@@ -100,7 +112,6 @@ export async function handlePurposeEvent(
           "PurposeAdded",
           "DraftPurposeUpdated",
           "PurposeActivated",
-          "PurposeVersionOverQuotaUnsuspended",
           "WaitingForApprovalPurposeVersionDeleted",
           "NewPurposeVersionActivated",
           "PurposeCloned",

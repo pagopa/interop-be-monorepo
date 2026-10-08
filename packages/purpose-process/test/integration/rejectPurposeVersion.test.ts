@@ -10,6 +10,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   purposeVersionState,
+  purposeWaitingForApprovalReason,
   Purpose,
   generateId,
   PurposeVersionRejectedV2,
@@ -41,66 +42,71 @@ import {
 } from "../integrationUtils.js";
 
 describe("rejectPurposeVersion", () => {
-  it("should write on event-store for the rejection of a purpose version ", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date());
+  it.each(Object.values(purposeWaitingForApprovalReason))(
+    "clears quota reason %s when rejecting a purpose version",
+    async (waitingForApprovalReason) => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date());
 
-    const mockEService = getMockEService();
-    const mockPurposeVersion = {
-      ...getMockPurposeVersion(),
-      state: purposeVersionState.waitingForApproval,
-    };
-    const mockPurpose: Purpose = {
-      ...getMockPurpose(),
-      eserviceId: mockEService.id,
-      versions: [mockPurposeVersion],
-    };
+      const mockEService = getMockEService();
+      const mockPurposeVersion = {
+        ...getMockPurposeVersion(),
+        state: purposeVersionState.waitingForApproval,
+        waitingForApprovalReason,
+      };
+      const mockPurpose: Purpose = {
+        ...getMockPurpose(),
+        eserviceId: mockEService.id,
+        versions: [mockPurposeVersion],
+      };
 
-    await addOnePurpose(mockPurpose);
-    await addOneEService(mockEService);
+      await addOnePurpose(mockPurpose);
+      await addOneEService(mockEService);
 
-    await purposeService.rejectPurposeVersion(
-      {
-        purposeId: mockPurpose.id,
-        versionId: mockPurposeVersion.id,
+      await purposeService.rejectPurposeVersion(
+        {
+          purposeId: mockPurpose.id,
+          versionId: mockPurposeVersion.id,
+          rejectionReason: "test",
+        },
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      );
+
+      const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
+
+      expect(writtenEvent).toMatchObject({
+        stream_id: mockPurpose.id,
+        version: "1",
+        type: "PurposeVersionRejected",
+        event_version: 2,
+      });
+
+      const writtenPayload = decodeProtobufPayload({
+        messageType: PurposeVersionRejectedV2,
+        payload: writtenEvent.data,
+      });
+
+      const expectedPurposeVersion: PurposeVersion = {
+        ...mockPurposeVersion,
+        state: purposeVersionState.rejected,
+        waitingForApprovalReason: undefined,
         rejectionReason: "test",
-      },
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
-    );
+        updatedAt: new Date(),
+      };
+      const expectedPurpose: Purpose = {
+        ...mockPurpose,
+        versions: [expectedPurposeVersion],
+        updatedAt: new Date(),
+      };
 
-    const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
+      expect(writtenPayload).toEqual({
+        purpose: toPurposeV2(expectedPurpose),
+        versionId: mockPurposeVersion.id,
+      });
 
-    expect(writtenEvent).toMatchObject({
-      stream_id: mockPurpose.id,
-      version: "1",
-      type: "PurposeVersionRejected",
-      event_version: 2,
-    });
-
-    const writtenPayload = decodeProtobufPayload({
-      messageType: PurposeVersionRejectedV2,
-      payload: writtenEvent.data,
-    });
-
-    const expectedPurposeVersion: PurposeVersion = {
-      ...mockPurposeVersion,
-      state: purposeVersionState.rejected,
-      rejectionReason: "test",
-      updatedAt: new Date(),
-    };
-    const expectedPurpose: Purpose = {
-      ...mockPurpose,
-      versions: [expectedPurposeVersion],
-      updatedAt: new Date(),
-    };
-
-    expect(writtenPayload).toEqual({
-      purpose: toPurposeV2(expectedPurpose),
-      versionId: mockPurposeVersion.id,
-    });
-
-    vi.useRealTimers();
-  });
+      vi.useRealTimers();
+    }
+  );
   it("should write on event-store for the rejection of a purpose version when the requester is delegate producer", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());

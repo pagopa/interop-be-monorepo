@@ -5,6 +5,7 @@ import {
   missingExpectedFieldError,
   unexpectedDependencyValueError,
   unexpectedFieldError,
+  unexpectedFieldHyperlinkError,
   unexpectedFieldValueError,
   validateRiskAnalysis,
   rulesVersionNotFoundError,
@@ -33,6 +34,99 @@ import {
 } from "../src/riskAnalysisTestUtils.js";
 
 describe("Risk Analysis Validation", () => {
+  describe.each([
+    validRiskAnalysis3_1_Pa,
+    validRiskAnalysis3_2_Pa,
+    validRiskAnalysis2_0_Private,
+    validRiskAnalysis2_1_Private,
+  ])("online privacy policy ($tenantKind, $version)", (form) => {
+    function onlinePolicyForm(): RiskAnalysisFormToValidate {
+      return {
+        ...form,
+        answers: {
+          ...Object.fromEntries(
+            Object.entries(form.answers).filter(
+              ([key]) => key !== "reasonPolicyNotProvided"
+            )
+          ),
+          policyProvided: ["YES"],
+          policyProvidedMedium: ["ONLINE"],
+          policyProvidedOnlineLink: ["https://example.com/privacy"],
+        },
+      };
+    }
+
+    function validate(
+      input: RiskAnalysisFormToValidate,
+      schemaOnlyValidation: boolean
+    ): ReturnType<typeof validateRiskAnalysis> {
+      return validateRiskAnalysis(
+        input,
+        schemaOnlyValidation,
+        undefined,
+        new Date("2026-10-02T00:00:00Z"),
+        true
+      );
+    }
+
+    describe.each([true, false])("schemaOnlyValidation: %s", (schemaOnly) => {
+      it.each([
+        "https://example.com/privacy",
+        "http://example.com/privacy?lang=it",
+        "www.example.com/privacy",
+      ])("should accept the privacy policy link %s", (url) => {
+        const input = onlinePolicyForm();
+        input.answers.policyProvidedOnlineLink = [url];
+
+        const result = validate(input, schemaOnly);
+
+        expect(result.type).toBe("valid");
+        if (result.type === "valid") {
+          expect(result.value.singleAnswers).toContainEqual({
+            key: "policyProvidedOnlineLink",
+            value: url,
+          });
+        }
+      });
+
+      it("should still reject hyperlinks in other free text answers", () => {
+        const input = onlinePolicyForm();
+        input.answers.institutionalPurpose = ["https://example.com/privacy"];
+
+        expect(validate(input, schemaOnly)).toEqual({
+          type: "invalid",
+          issues: [unexpectedFieldHyperlinkError("institutionalPurpose")],
+        });
+      });
+    });
+
+    it("should still require the link when the privacy policy is online", () => {
+      const input = onlinePolicyForm();
+      delete input.answers.policyProvidedOnlineLink;
+
+      expect(validate(input, false)).toEqual({
+        type: "invalid",
+        issues: [missingExpectedFieldError("policyProvidedOnlineLink")],
+      });
+    });
+
+    it("should still validate the privacy policy link dependencies", () => {
+      const input = onlinePolicyForm();
+      input.answers.policyProvidedMedium = ["PRINT"];
+
+      expect(validate(input, false)).toEqual({
+        type: "invalid",
+        issues: [
+          unexpectedDependencyValueError(
+            "policyProvidedOnlineLink",
+            "policyProvidedMedium",
+            "ONLINE"
+          ),
+        ],
+      });
+    });
+  });
+
   it("should succeed on correct form 2.0 (when it wasn't expired) on tenant kind PA", () => {
     const mockDate = new Date("2023-01-01");
     vi.useFakeTimers();

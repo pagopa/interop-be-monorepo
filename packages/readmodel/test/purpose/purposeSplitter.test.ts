@@ -19,6 +19,7 @@ import {
   PurposeVersionStampKind,
   PurposeVersionStamps,
   purposeVersionState,
+  purposeWaitingForApprovalReason,
   riskAnalysisAnswerKind,
   riskAnalysisReviewMode,
   riskAnalysisSigningState,
@@ -69,6 +70,8 @@ describe("Purpose splitter", () => {
     const purposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(purposeVersionState.draft, purposeVersionStamps),
       rejectionReason,
+      waitingForApprovalReason:
+        purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
       suspendedAt,
       updatedAt,
       firstActivationAt,
@@ -171,6 +174,8 @@ describe("Purpose splitter", () => {
       updatedAt: updatedAt.toISOString(),
       firstActivationAt: firstActivationAt.toISOString(),
       rejectionReason,
+      waitingForApprovalReason:
+        purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
       id: purposeVersion.id,
       state: purposeVersion.state,
       dailyCalls: purposeVersion.dailyCalls,
@@ -355,6 +360,7 @@ describe("Purpose splitter", () => {
       updatedAt: null,
       firstActivationAt: null,
       rejectionReason: null,
+      waitingForApprovalReason: null,
       id: purposeVersion.id,
       state: purposeVersion.state,
       dailyCalls: purposeVersion.dailyCalls,
