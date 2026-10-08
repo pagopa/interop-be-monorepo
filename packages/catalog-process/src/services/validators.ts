@@ -1067,3 +1067,11 @@ export function assertDelegatedArchivingRequestDelegationIsStillValid(
     );
   }
 }
+
+export function assertDescriptorIsWaitingForApprovalState(
+  descriptor: Descriptor
+): void {
+  if (descriptor.state !== descriptorState.waitingForApproval) {
+    throw notValidDescriptorState(descriptor.id, descriptor.state);
+  }
+}

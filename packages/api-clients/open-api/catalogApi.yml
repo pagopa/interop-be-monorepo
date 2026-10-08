@@ -1396,6 +1396,40 @@ paths:
           $ref: "#/components/responses/NotFound"
         "409":
           $ref: "#/components/responses/Conflict"
+  /internal/eservices/{eServiceId}/descriptors/{descriptorId}/revokeDelegation:
+    put:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Revoke a waitingForApproval descriptor.
+      operationId: internalRevokeDelegatedDescriptor
+      description: Update descriptor state after delegation revoke for the specified E-Service
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: the descriptor Id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: E-Service Descriptor updated
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /internal/eservices/{eServiceId}/delegatedArchivingRequests/archive:
     post:
       security:

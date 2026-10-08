@@ -200,6 +200,7 @@ import {
   toCreateEventEServiceDescriptorArchivingRequestApprovedByDelegator,
   toCreateEventEServiceArchivingRequestCanceledByDelegate,
   toCreateEventEServiceDescriptorArchivingRequestCanceledByDelegate,
+  toCreateEventEServiceDescriptorUpdatedtAfterDelegationRevoke,
 } from "../model/domain/toEvent.js";
 import {
   appendArchivingRequest,
@@ -271,6 +272,7 @@ import {
   assertDelegatedDescriptorHasAtLeastOneArchivingRequests,
   assertDelegatedDescriptorHasActiveArchivingRequests,
   assertDelegatedArchivingRequestDelegationIsStillValid,
+  assertDescriptorIsWaitingForApprovalState,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -2527,6 +2529,40 @@ export function catalogServiceBuilder(
             );
 
       await repository.createEvent(event);
+    },
+    async internalRevokeDelegatedDescriptor(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<void> {
+      logger.info(
+        `Internal revoking delegated waitingForApproval descriptor ${descriptorId} for EService ${eserviceId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      assertDescriptorIsWaitingForApprovalState(descriptor);
+
+      const updatedDescriptor = updateDescriptorState(
+        descriptor,
+        descriptorState.draft
+      );
+
+      const updatedEService = replaceDescriptor(
+        eservice.data,
+        updatedDescriptor
+      );
+
+      const delegatedDescriptorRevokedEvent =
+        toCreateEventEServiceDescriptorUpdatedtAfterDelegationRevoke(
+          eservice.metadata.version,
+          descriptorId,
+          updatedEService,
+          correlationId
+        );
+
+      await repository.createEvent(delegatedDescriptorRevokedEvent);
     },
     async internalDeleteDelegatedArchivingRequest(
       eserviceId: EServiceId,
