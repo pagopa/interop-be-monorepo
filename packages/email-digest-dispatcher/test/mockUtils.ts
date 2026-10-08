@@ -122,6 +122,34 @@ function generateAttributes(
 }
 
 /**
+ * Returns mock digest data for archiving requests with the specified number of items
+ */
+function generateArchivingRequest(
+  itemsNumber: number,
+  sectionLabel: string
+): TenantDigestData["archivingRequests"] {
+  const items = Array.from(
+    { length: itemsNumber > LISTS_LIMIT ? LISTS_LIMIT : itemsNumber },
+    (_, index) => ({
+      name: `${sectionLabel} ${index + 1}`,
+      producerName: `${sectionLabel} - Ente ${index + 1}`,
+      link: `https://example.com/archiving-request/${index + 1}`,
+      eserviceName: `${sectionLabel} - Servizio ${index + 1}`,
+      descriptorVersion: index % 2 !== 0 ? `${index + 1}` : null,
+      eserviceId: generateId(),
+      descriptorId: index % 2 !== 0 ? generateId() : null,
+      requestedAt: new Date().toISOString(),
+      acceptedAt: null,
+      rejectedAt: null,
+    })
+  );
+  return {
+    items,
+    totalCount: itemsNumber,
+  };
+}
+
+/**
  * Returns mock digest data with all sections populated (full data)
  */
 export function getMockTenantDigestData(): TenantDigestData {
@@ -311,6 +339,18 @@ export function getMockTenantDigestData(): TenantDigestData {
     },
     archivingConsumerEserviceScopeCount: 0,
     archivingConsumerDescriptorScopeCount: 10,
+    archivingRequests: generateArchivingRequest(
+      6,
+      "Richiesta di Archiviazione"
+    ),
+    approvedArchivingRequests: generateArchivingRequest(
+      7,
+      "Richiesta accettata"
+    ),
+    rejectedArchivingRequests: generateArchivingRequest(
+      8,
+      "Richiesta rifiutata"
+    ),
   };
 }
 
@@ -390,6 +430,18 @@ export function getMockLimitedTenantDigestData(): TenantDigestData {
     receivedAttributes: generateAttributes(5, "Attributo assegnato"),
     revokedAttributes: generateAttributes(5, "Attributo revocato"),
     viewAllArchivingProducerLink: "https://example.com/archiving",
+    archivingRequests: generateArchivingRequest(
+      5,
+      "Richiesta di Archiviazione"
+    ),
+    approvedArchivingRequests: generateArchivingRequest(
+      5,
+      "Richiesta accettata"
+    ),
+    rejectedArchivingRequests: generateArchivingRequest(
+      5,
+      "Richiesta rifiutata"
+    ),
   };
 }
 
@@ -529,6 +581,18 @@ export function getMockSingularTenantDigestData(): TenantDigestData {
     },
     archivingConsumerEserviceScopeCount: 0,
     archivingConsumerDescriptorScopeCount: 1,
+    archivingRequests: generateArchivingRequest(
+      1,
+      "Richiesta di Archiviazione"
+    ),
+    approvedArchivingRequests: generateArchivingRequest(
+      1,
+      "Richiesta accettata"
+    ),
+    rejectedArchivingRequests: generateArchivingRequest(
+      1,
+      "Richiesta rifiutata"
+    ),
   };
 }
 
