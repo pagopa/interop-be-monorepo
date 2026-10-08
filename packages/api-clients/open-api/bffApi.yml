@@ -1,4 +1,4 @@
-openapi: 3.2.0
+openapi: 3.0.3
 info:
   title: Backend for Frontend Micro Service
   description: Interop BFF implementation
@@ -1385,7 +1385,7 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "429":
           $ref: "#/components/responses/TooManyRequests"
-    query:
+    post:
       tags:
         - eservices
       summary: Query the EServices catalog
