@@ -5,6 +5,7 @@ import {
   WithLogger,
   logger,
 } from "pagopa-interop-commons";
+import { ErrorMessage } from "pagopa-interop-error-message-parser";
 import { CorrelationId } from "pagopa-interop-models";
 
 export type Headers = {
@@ -15,6 +16,8 @@ export type Headers = {
 
 export type BffAppContext = AppContext<UIAuthData> & {
   headers: Headers;
+  endpoint?: string;
+  locale?: keyof ErrorMessage;
 };
 /* ^ BFF can be called only by UI, so we can use UIAuthData as auth data type.
 This is enforced by the audience check during authentication and by the

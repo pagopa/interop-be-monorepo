@@ -2398,6 +2398,18 @@ export function catalogServiceBuilder(
         );
       return { id: eservice.id };
     },
+    getEserviceTemplateById: async (
+      templateId: EServiceTemplateId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<eserviceTemplateApi.EServiceTemplate> => {
+      logger.info(`Retrieving e-service template with id = ${templateId}`);
+      return await eserviceTemplateProcessClient.getEServiceTemplateById({
+        headers,
+        params: {
+          templateId,
+        },
+      });
+    },
   };
 }
 
