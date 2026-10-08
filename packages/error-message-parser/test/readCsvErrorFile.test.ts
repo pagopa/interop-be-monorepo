@@ -311,6 +311,85 @@ describe("readCsvErrorFile", () => {
         expect(parsedErrors).toEqual(expectedErrors);
       }
     );
+
+    it.each([
+      {
+        process: "Tenant Process",
+        errorCode: "hyperlinkDetectionError",
+        expected: "005-10027",
+      },
+      {
+        process: "Purpose Template Process",
+        errorCode: "hyperlinkDetectionError",
+        expected: "015-10027",
+      },
+      {
+        process: "Purpose Process",
+        errorCode: "hyperlinkDetectionError",
+        expected: "004-10027",
+      },
+      {
+        process: "Notification Config process",
+        errorCode: "hyperlinkDetectionError",
+        expected: "014-10027",
+      },
+      {
+        process: "Eservice Template Process",
+        errorCode: "hyperlinkDetectionError",
+        expected: "011-10027",
+      },
+      {
+        process: "Delegation Process",
+        errorCode: "hyperlinkDetectionError",
+        expected: "010-10027",
+      },
+      {
+        process: "Catalog Process",
+        errorCode: "hyperlinkDetectionError",
+        expected: "001-10027",
+      },
+      {
+        process: "Authorization Process",
+        errorCode: "hyperlinkDetectionError",
+        expected: "006-10027",
+      },
+      {
+        process: "Attribute Registry Process",
+        errorCode: "hyperlinkDetectionError",
+        expected: "003-10027",
+      },
+      {
+        process: "Agreement Process",
+        errorCode: "hyperlinkDetectionError",
+        expected: "002-10027",
+      },
+    ])(
+      "and correctly map common error codes for process $process",
+      ({ process, errorCode, expected }) => {
+        const csvPath = createTestCsvFile([
+          {
+            process,
+            errorCode,
+            methodUrl: "GET /tenant/:tenantId",
+            en: "Some error message",
+            it: "Un messaggio di errore",
+          },
+        ]);
+        const parsedErrors = readCsvErrorFile(csvPath, ["it", "en"]);
+        const expectedErrors = {
+          "GET /tenant/:tenantId": {
+            [expected]: {
+              key: expected,
+              messages: {
+                it: "Un messaggio di errore",
+                en: "Some error message",
+              },
+            },
+          },
+        };
+        expect(parsedErrors).toEqual(expectedErrors);
+      }
+    );
   });
 
   it("should throw an error if the file is missing", () => {
