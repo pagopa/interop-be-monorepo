@@ -1,6 +1,7 @@
 /* eslint-disable sonarjs/no-identical-functions */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
+  APIEndpoint,
   decodeJwtToken,
   genericLogger,
   InternalAuthData,
@@ -17,13 +18,16 @@ import {
   UIAuthData,
   UserRole,
   userRole,
+  verifyJwtToken,
 } from "pagopa-interop-commons";
-import { invalidClaim } from "pagopa-interop-models";
+import { invalidClaim, tokenVerificationFailed } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 
+import { startJwksServer } from "../src/jwksServer.js";
 import {
   createPayload,
   createUserPayload,
+  generateM2MAdminAccessTokenWithDPoPProof,
   mockM2MAdminUserId,
   signPayload,
 } from "../src/mockedPayloadForToken.js";
@@ -135,6 +139,107 @@ const expectMissingClaimError =
   };
 
 describe("JWT tests", () => {
+  describe("verifyJwtToken", () => {
+    it("should retry a transient JWKS read failure", async () => {
+      const { accessToken, authServerPublicJwk } =
+        await generateM2MAdminAccessTokenWithDPoPProof({
+          htu: "https://interop.pagopa.it/test",
+        });
+      const jwksServer = await startJwksServer(authServerPublicJwk, {
+        failuresBeforeSuccess: 1,
+      });
+
+      try {
+        await expect(
+          verifyJwtToken(
+            accessToken,
+            {
+              wellKnownUrls: [APIEndpoint.parse(jwksServer.url)],
+              acceptedAudiences: ["dev.interop.pagopa.it/m2m"],
+              jwksCacheMaxAge: undefined,
+            },
+            genericLogger
+          )
+        ).resolves.toBeDefined();
+        expect(jwksServer.requestCount()).toBe(2);
+      } finally {
+        await jwksServer.close();
+      }
+    });
+
+    it("should try the next JWKS URL after retrying a failed one", async () => {
+      const { accessToken, authServerPublicJwk } =
+        await generateM2MAdminAccessTokenWithDPoPProof({
+          htu: "https://interop.pagopa.it/test",
+        });
+      const unavailableJwksServer = await startJwksServer(authServerPublicJwk, {
+        failuresBeforeSuccess: 2,
+      });
+      const availableJwksServer = await startJwksServer(authServerPublicJwk);
+
+      try {
+        await expect(
+          verifyJwtToken(
+            accessToken,
+            {
+              wellKnownUrls: [
+                APIEndpoint.parse(unavailableJwksServer.url),
+                APIEndpoint.parse(availableJwksServer.url),
+              ],
+              acceptedAudiences: ["dev.interop.pagopa.it/m2m"],
+              jwksCacheMaxAge: undefined,
+            },
+            genericLogger
+          )
+        ).resolves.toBeDefined();
+        expect(unavailableJwksServer.requestCount()).toBe(2);
+        expect(availableJwksServer.requestCount()).toBe(1);
+      } finally {
+        await unavailableJwksServer.close();
+        await availableJwksServer.close();
+      }
+    });
+
+    it("should reject the token after all JWKS retries are exhausted", async () => {
+      const { accessToken, authServerPublicJwk } =
+        await generateM2MAdminAccessTokenWithDPoPProof({
+          htu: "https://interop.pagopa.it/test",
+        });
+      const firstUnavailableJwksServer = await startJwksServer(
+        authServerPublicJwk,
+        { failuresBeforeSuccess: 2 }
+      );
+      const secondUnavailableJwksServer = await startJwksServer(
+        authServerPublicJwk,
+        { failuresBeforeSuccess: 2 }
+      );
+
+      try {
+        await expect(
+          verifyJwtToken(
+            accessToken,
+            {
+              wellKnownUrls: [
+                APIEndpoint.parse(firstUnavailableJwksServer.url),
+                APIEndpoint.parse(secondUnavailableJwksServer.url),
+              ],
+              acceptedAudiences: ["dev.interop.pagopa.it/m2m"],
+              jwksCacheMaxAge: undefined,
+            },
+            genericLogger
+          )
+        ).rejects.toThrowError(
+          tokenVerificationFailed(mockM2MAdminUserId, undefined)
+        );
+        expect(firstUnavailableJwksServer.requestCount()).toBe(2);
+        expect(secondUnavailableJwksServer.requestCount()).toBe(2);
+      } finally {
+        await firstUnavailableJwksServer.close();
+        await secondUnavailableJwksServer.close();
+      }
+    });
+  });
+
   describe("readAuthDataFromJwtToken", () => {
     it("should successfully read data from a UI token with a single user role", async () => {
       const tokenPayload = decodeJwtToken(
