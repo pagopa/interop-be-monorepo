@@ -21,6 +21,7 @@ import {
   invalidClaim,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { z } from "zod";
 
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
@@ -34,6 +35,26 @@ import { BffAppContext, Headers } from "../utilities/context.js";
 import { validateSamlResponse } from "../utilities/samlValidator.js";
 
 const { HTTP_STATUS_NOT_FOUND } = constants;
+
+/*
+  Each claim is accepted only if it looks like an identifier: a claim containing
+  newlines would be turned into additional log lines by the log format. Claims
+  are parsed one by one, so that one is still logged when the other is missing
+  or malformed.
+*/
+const LoggedIdentityTokenClaim = z
+  .string()
+  .max(64)
+  .regex(/^[A-Za-z0-9._:-]+$/)
+  .optional()
+  .catch(undefined);
+
+const LoggedIdentityTokenClaims = z
+  .object({
+    jti: LoggedIdentityTokenClaim,
+    uid: LoggedIdentityTokenClaim,
+  })
+  .catch({ jti: undefined, uid: undefined });
 
 export type GetSessionTokenReturnType =
   | {
@@ -55,6 +76,20 @@ export function authorizationServiceBuilder(
   allowList: string[],
   rateLimiter: RateLimiter
 ) {
+  const logIdentityTokenClaims = (
+    decodedIdentityToken: unknown,
+    logger: Logger
+  ): void => {
+    const { jti, uid } = LoggedIdentityTokenClaims.parse(decodedIdentityToken);
+
+    if (!jti && !uid) {
+      logger.warn("No loggable jti and uid claims in the identity token");
+      return;
+    }
+
+    logger.info(`[JTI=${jti}][UID=${uid}] Verified identity token claims`);
+  };
+
   const readJwt = async (
     identityToken: string,
     logger: Logger
@@ -64,6 +99,7 @@ export function authorizationServiceBuilder(
     selfcareId: SelfcareId;
   }> => {
     const { decoded } = await verifyJwtToken(identityToken, config, logger);
+    logIdentityTokenClaims(decoded, logger);
 
     const { data: sessionClaims, error } = SessionClaims.safeParse(decoded);
 
