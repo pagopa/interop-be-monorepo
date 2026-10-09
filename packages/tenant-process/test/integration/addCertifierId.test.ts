@@ -7,6 +7,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   Attribute,
+  attributeKind,
   MaintenanceTenantPromotedToCertifierV2,
   Tenant,
   generateId,
@@ -143,6 +144,39 @@ describe("addCertifierId", async () => {
     await addOneTenant(certifierTenant);
     await addOneAttribute(attribute);
     expect(
+      tenantService.addCertifierId(
+        {
+          tenantId: certifierTenant.id,
+          certifierId,
+        },
+        getMockContextMaintenance({})
+      )
+    ).rejects.toThrowError(
+      certifierWithExistingAttributes(certifierTenant.id, previousCertifierId)
+    );
+  });
+
+  it("Should throw certifierWithExistingAttributes if the organization has already created discrete attributes", async () => {
+    const previousCertifierId: string = generateId();
+
+    const attribute: Attribute = {
+      ...getMockAttribute(attributeKind.certifiedDiscrete),
+      origin: previousCertifierId,
+    };
+
+    const certifierTenant: Tenant = {
+      ...getMockTenant(),
+      features: [
+        {
+          type: "PersistentCertifier",
+          certifierId: previousCertifierId,
+        },
+      ],
+    };
+
+    await addOneTenant(certifierTenant);
+    await addOneAttribute(attribute);
+    await expect(
       tenantService.addCertifierId(
         {
           tenantId: certifierTenant.id,
