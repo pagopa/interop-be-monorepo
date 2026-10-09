@@ -108,6 +108,8 @@ describe("updateDraftPurpose", () => {
       updatedAt: mockPurposeProcessGetResponse.data.updatedAt,
       waitingForApprovalVersion: undefined,
       purposeTemplateId: mockPurposeProcessGetResponse.data.purposeTemplateId,
+      riskAnalysisReviewMode:
+        mockPurposeProcessGetResponse.data.riskAnalysisReviewMode,
     };
 
     expect(result).toStrictEqual(expectedM2MPurpose);
@@ -172,6 +174,8 @@ describe("updateDraftPurpose", () => {
       waitingForApprovalVersion: undefined,
       purposeTemplateId:
         mockPurposeProcessGetResponseWithTemplate.data.purposeTemplateId,
+      riskAnalysisReviewMode:
+        mockPurposeProcessGetResponseWithTemplate.data.riskAnalysisReviewMode,
     };
 
     expect(result).toStrictEqual(expectedM2MPurpose);

@@ -20,7 +20,7 @@ import {
   purposeNotFound,
   tenantIsNotTheConsumer,
   reviewerWorkflowConflict,
-  userWithoutReviewerPrivileges,
+  userNotFoundOrWithoutReviewerPrivileges,
   purposeFromTemplateCannotBeModified,
   purposeNotInDraftState,
   reviewerWorkflowNotAllowedForDelegatedPurpose,
@@ -102,7 +102,10 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/assign test", () => {
     { error: reviewerWorkflowConflict(mockPurpose.id), expectedStatus: 409 },
     { error: duplicatedReviewersInSeed(), expectedStatus: 400 },
     {
-      error: userWithoutReviewerPrivileges(generateId(), generateId()),
+      error: userNotFoundOrWithoutReviewerPrivileges(
+        generateId(),
+        generateId()
+      ),
       expectedStatus: 400,
     },
     {
