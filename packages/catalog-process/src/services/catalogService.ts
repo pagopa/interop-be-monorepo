@@ -1086,6 +1086,11 @@ export function catalogServiceBuilder(
           hasLinkedPurposeTemplates: filters.hasLinkedPurposeTemplates,
           producerCategories,
           availableForRequester,
+          mode: filters.mode
+            ? apiEServiceModeToEServiceMode(filters.mode)
+            : undefined,
+          onlySignalHubEnabled: filters.onlySignalHubEnabled,
+          asyncExchange: filters.asyncExchange,
         },
         certifiedDiscreteEnabled
       );
