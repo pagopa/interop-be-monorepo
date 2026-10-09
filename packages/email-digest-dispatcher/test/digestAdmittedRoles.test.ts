@@ -23,7 +23,6 @@ describe("getVisibleSections", () => {
     expect(visibility.newEservices).toBe(true);
     expect(visibility.updatedEservices).toBe(true);
     expect(visibility.updatedEserviceTemplates).toBe(true);
-    expect(visibility.popularEserviceTemplates).toBe(true);
     expect(visibility.sentAgreements).toBe(true);
     expect(visibility.receivedAgreements).toBe(true);
     expect(visibility.sentPurposes).toBe(true);
@@ -38,7 +37,6 @@ describe("getVisibleSections", () => {
     expect(visibility.newEservices).toBe(true);
     expect(visibility.updatedEservices).toBe(true);
     expect(visibility.updatedEserviceTemplates).toBe(true);
-    expect(visibility.popularEserviceTemplates).toBe(true);
     expect(visibility.receivedPurposes).toBe(true);
 
     expect(visibility.sentAgreements).toBe(false);
@@ -57,7 +55,6 @@ describe("getVisibleSections", () => {
     expect(visibility.sentPurposes).toBe(true);
 
     expect(visibility.updatedEserviceTemplates).toBe(false);
-    expect(visibility.popularEserviceTemplates).toBe(false);
     expect(visibility.receivedAgreements).toBe(false);
     expect(visibility.receivedPurposes).toBe(false);
     expect(visibility.delegations).toBe(false);
@@ -75,13 +72,12 @@ describe("getVisibleSections", () => {
   it("should apply union of permissions for multi-role users", () => {
     const visibility = getVisibleSections(["api", "security"]);
 
-    // From api: eservices (all 4), receivedPurposes
+    // From api: e-services, receivedPurposes
     // From security: newEservices, updatedEservices, sentAgreements, sentPurposes
-    // Union: all 4 eservices + sentAgreements + sentPurposes + receivedPurposes
+    // Union: e-services + sentAgreements + sentPurposes + receivedPurposes
     expect(visibility.newEservices).toBe(true);
     expect(visibility.updatedEservices).toBe(true);
     expect(visibility.updatedEserviceTemplates).toBe(true);
-    expect(visibility.popularEserviceTemplates).toBe(true);
     expect(visibility.sentAgreements).toBe(true);
     expect(visibility.sentPurposes).toBe(true);
     expect(visibility.receivedPurposes).toBe(true);
@@ -126,7 +122,6 @@ describe("hasVisibleDigestContent", () => {
       newEservices: empty,
       updatedEservices: empty,
       updatedEserviceTemplates: empty,
-      popularEserviceTemplates: empty,
       publishedReceivedPurposes: empty,
       waitingForApprovalReceivedPurposes: empty,
     };
@@ -143,7 +138,6 @@ describe("hasVisibleDigestContent", () => {
       newEservices: empty,
       updatedEservices: empty,
       updatedEserviceTemplates: empty,
-      popularEserviceTemplates: empty,
       acceptedSentAgreements: empty,
       rejectedSentAgreements: empty,
       suspendedSentAgreements: empty,
@@ -172,7 +166,6 @@ describe("hasVisibleDigestContent", () => {
       newEservices: empty,
       updatedEservices: empty,
       updatedEserviceTemplates: empty,
-      popularEserviceTemplates: empty,
       acceptedSentAgreements: empty,
       rejectedSentAgreements: empty,
       suspendedSentAgreements: empty,
@@ -182,8 +175,6 @@ describe("hasVisibleDigestContent", () => {
       waitingForApprovalReceivedAgreements: empty,
       publishedReceivedPurposes: empty,
       waitingForApprovalReceivedPurposes: empty,
-      activeSentDelegations: empty,
-      rejectedSentDelegations: empty,
       waitingForApprovalReceivedDelegations: empty,
       revokedReceivedDelegations: empty,
       receivedAttributes: empty,
