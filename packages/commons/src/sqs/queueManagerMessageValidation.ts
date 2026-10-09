@@ -1,5 +1,4 @@
 import { Message } from "@aws-sdk/client-sqs";
-import { invalidSqsMessage } from "pagopa-interop-models";
 
 import { Logger } from "../logging/index.js";
 
@@ -22,6 +21,11 @@ export const validateSqsMessage = (
 
     return "ValidEvent";
   } catch (error) {
-    throw invalidSqsMessage(message.MessageId, error);
+    logger.warn(
+      `Skipping SQS message with id ${
+        message.MessageId
+      }: body is not valid JSON. Body: ${message.Body}. Error: ${error}`
+    );
+    return "SkipEvent";
   }
 };
