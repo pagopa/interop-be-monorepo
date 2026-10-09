@@ -128,6 +128,7 @@ import {
   templateVersionMissingAsyncExchangeProperties,
   certifiedAttributeGroupNotFoundInSeed,
   noDelegationForArchivingRequest,
+  templateInstanceInterfaceDataMissing,
 } from "../model/domain/errors.js";
 import {
   ApiGetEServicesFilters,
@@ -2190,6 +2191,9 @@ export function catalogServiceBuilder(
       }
 
       if (descriptor.interface === undefined) {
+        if (descriptor.templateVersionRef !== undefined) {
+          throw templateInstanceInterfaceDataMissing(eserviceId, descriptor.id);
+        }
         throw eServiceDescriptorWithoutInterface(descriptor.id);
       }
 
