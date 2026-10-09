@@ -35,6 +35,8 @@ import {
   Agreement,
   AgreementState,
   ListResult,
+  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
+  purposeTemplateState,
   DescriptorId,
   WithMetadata,
   Attribute,
@@ -98,6 +100,9 @@ import {
   delegationSignedContractDocumentInReadmodelDelegation,
   eserviceDescriptorArchivingScheduleInReadmodelCatalog,
   eserviceDescriptorArchivingRequestInReadmodelCatalog,
+  purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
+  purposeTemplateInReadmodelPurposeTemplate,
+  tenantCertifiedAttributeInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
 import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
 import { match } from "ts-pattern";
@@ -105,8 +110,10 @@ import { match } from "ts-pattern";
 import {
   ApiGetEServicesFilters,
   Consumer,
+  EServiceProducerCategory,
   EServicesQueryFilters,
   EServiceSortBy,
+  producerCategoryAttributeCodes,
   RequesterDelegationRole,
 } from "../model/domain/models.js";
 import {
@@ -408,6 +415,90 @@ const requesterDelegationRolesFilter = (
           ),
           eq(delegationInReadmodelDelegation.state, delegationState.active),
           roleFilter
+        )
+      )
+  );
+};
+
+const onlyTemplateInstancesFilter = (
+  onlyTemplateInstances: boolean | undefined
+): SQL | undefined =>
+  onlyTemplateInstances
+    ? isNotNull(eserviceInReadmodelCatalog.templateId)
+    : undefined;
+
+// The link counts whatever descriptor the purpose template was linked to.
+// Only published purpose templates count: the e-service page shows only those.
+const hasLinkedPurposeTemplatesFilter = (
+  tx: DrizzleTransactionType,
+  hasLinkedPurposeTemplates: boolean | undefined
+): SQL | undefined =>
+  hasLinkedPurposeTemplates
+    ? exists(
+        tx
+          .select()
+          .from(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
+          .innerJoin(
+            purposeTemplateInReadmodelPurposeTemplate,
+            eq(
+              purposeTemplateInReadmodelPurposeTemplate.id,
+              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId
+            )
+          )
+          .where(
+            and(
+              eq(
+                purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
+                eserviceInReadmodelCatalog.id
+              ),
+              eq(
+                purposeTemplateInReadmodelPurposeTemplate.state,
+                purposeTemplateState.published
+              )
+            )
+          )
+      )
+    : undefined;
+
+// The IPA category codes are matched with their origin: a certifier can
+// create a certified attribute with any code.
+const producerCategoriesFilter = (
+  tx: DrizzleTransactionType,
+  producerCategories: EServiceProducerCategory[]
+): SQL | undefined => {
+  if (producerCategories.length === 0) {
+    return undefined;
+  }
+  const attributeCodes = [
+    ...new Set(
+      producerCategories.flatMap(
+        (category) => producerCategoryAttributeCodes[category]
+      )
+    ),
+  ];
+  return exists(
+    tx
+      .select()
+      .from(tenantCertifiedAttributeInReadmodelTenant)
+      .innerJoin(
+        attributeInReadmodelAttribute,
+        eq(
+          attributeInReadmodelAttribute.id,
+          tenantCertifiedAttributeInReadmodelTenant.attributeId
+        )
+      )
+      .where(
+        and(
+          eq(
+            tenantCertifiedAttributeInReadmodelTenant.tenantId,
+            eserviceInReadmodelCatalog.producerId
+          ),
+          isNull(tenantCertifiedAttributeInReadmodelTenant.revocationTimestamp),
+          eq(
+            attributeInReadmodelAttribute.origin,
+            PUBLIC_ADMINISTRATIONS_IDENTIFIER
+          ),
+          inArray(attributeInReadmodelAttribute.code, attributeCodes)
         )
       )
   );
@@ -880,6 +971,9 @@ export function readModelServiceBuilderSQL(
         onlyActiveEservices,
         subscribedByRequester,
         requesterDelegationRoles,
+        onlyTemplateInstances,
+        hasLinkedPurposeTemplates,
+        producerCategories,
       }: EServicesQueryFilters
     ): Promise<ListResult<EService>> {
       return await readmodelDB.transaction(async (tx) => {
@@ -897,7 +991,10 @@ export function readModelServiceBuilderSQL(
             tx,
             authData.organizationId,
             requesterDelegationRoles
-          )
+          ),
+          onlyTemplateInstancesFilter(onlyTemplateInstances),
+          hasLinkedPurposeTemplatesFilter(tx, hasLinkedPurposeTemplates),
+          producerCategoriesFilter(tx, producerCategories)
         );
 
         const baseCondition = and(visibleEservicesFilter, filtersCondition);
