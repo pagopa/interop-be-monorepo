@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { generateMock } from "@anatine/zod-mock";
+import { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { bffApi } from "pagopa-interop-api-clients";
 import { authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
@@ -42,6 +43,30 @@ describe("API POST /producerKeychains test", () => {
     const res = await makeRequest(token);
     expect(res.status).toBe(200);
     expect(res.body).toEqual(mockCreatedResource);
+  });
+
+  it("Should propagate 404 for a missing producer keychain member", async () => {
+    const problem = {
+      type: "about:blank",
+      title: "Not Found",
+      status: 404,
+      detail: "User not found",
+      errors: [{ code: "005-0016", detail: "User not found" }],
+    };
+    clients.authorizationClient.producerKeychain.createProducerKeychain = vi
+      .fn()
+      .mockRejectedValueOnce(
+        new AxiosError("User not found", "404", undefined, undefined, {
+          status: 404,
+          statusText: "Not Found",
+          data: problem,
+          headers: {},
+          config: {} as InternalAxiosRequestConfig,
+        })
+      );
+    const res = await makeRequest(generateToken(authRole.ADMIN_ROLE));
+    expect(res.status).toBe(404);
+    expect(res.body).toMatchObject({ status: 404, errors: problem.errors });
   });
 
   it.each([
