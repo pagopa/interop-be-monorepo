@@ -32,6 +32,7 @@ import {
   DelegationKind,
   DelegationState,
   delegationState,
+  attributeKind,
 } from "pagopa-interop-models";
 import {
   DrizzleReturnType,
@@ -47,6 +48,7 @@ import {
   tenantVerifiedAttributeVerifierInReadmodelTenant,
   tenantVerifiedAttributeRevokerInReadmodelTenant,
   tenantCertifiedAttributeInReadmodelTenant,
+  tenantCertifiedDiscreteAttributeInReadmodelTenant,
   tenantFeatureInReadmodelTenant,
   attributeInReadmodelAttribute,
   purposeInReadmodelPurpose,
@@ -1270,12 +1272,47 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
               ),
           })
         )
-        .from(tenantCertifiedAttributeInReadmodelTenant)
-        .innerJoin(
-          attributeInReadmodelAttribute,
-          eq(
-            tenantCertifiedAttributeInReadmodelTenant.attributeId,
-            attributeInReadmodelAttribute.id
+        .from(attributeInReadmodelAttribute)
+        .leftJoin(
+          tenantCertifiedAttributeInReadmodelTenant,
+          and(
+            eq(
+              tenantCertifiedAttributeInReadmodelTenant.attributeId,
+              attributeInReadmodelAttribute.id
+            ),
+            eq(attributeInReadmodelAttribute.kind, attributeKind.certified),
+            eq(tenantCertifiedAttributeInReadmodelTenant.tenantId, tenantId),
+            gte(
+              tenantCertifiedAttributeInReadmodelTenant.assignmentTimestamp,
+              dateThreshold.toISOString()
+            ),
+            isNull(
+              tenantCertifiedAttributeInReadmodelTenant.revocationTimestamp
+            )
+          )
+        )
+        .leftJoin(
+          tenantCertifiedDiscreteAttributeInReadmodelTenant,
+          and(
+            eq(
+              tenantCertifiedDiscreteAttributeInReadmodelTenant.attributeId,
+              attributeInReadmodelAttribute.id
+            ),
+            eq(
+              attributeInReadmodelAttribute.kind,
+              attributeKind.certifiedDiscrete
+            ),
+            eq(
+              tenantCertifiedDiscreteAttributeInReadmodelTenant.tenantId,
+              tenantId
+            ),
+            gte(
+              tenantCertifiedDiscreteAttributeInReadmodelTenant.assignmentTimestamp,
+              dateThreshold.toISOString()
+            ),
+            isNull(
+              tenantCertifiedDiscreteAttributeInReadmodelTenant.revocationTimestamp
+            )
           )
         )
         .leftJoin(
@@ -1293,18 +1330,14 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           eq(certifierTenant.id, tenantFeatureInReadmodelTenant.tenantId)
         )
         .where(
-          and(
-            eq(tenantCertifiedAttributeInReadmodelTenant.tenantId, tenantId),
-            gte(
-              tenantCertifiedAttributeInReadmodelTenant.assignmentTimestamp,
-              dateThreshold.toISOString()
-            ),
-            isNull(
-              tenantCertifiedAttributeInReadmodelTenant.revocationTimestamp
+          or(
+            isNotNull(tenantCertifiedAttributeInReadmodelTenant.attributeId),
+            isNotNull(
+              tenantCertifiedDiscreteAttributeInReadmodelTenant.attributeId
             )
           )
         )
-        .limit(5);
+        .limit(SECTION_LIST_LIMIT);
 
       logger.info(
         `Retrieved ${results.length} certified assigned attributes for tenant ${tenantId}`
@@ -1344,12 +1377,41 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
               ),
           })
         )
-        .from(tenantCertifiedAttributeInReadmodelTenant)
-        .innerJoin(
-          attributeInReadmodelAttribute,
-          eq(
-            tenantCertifiedAttributeInReadmodelTenant.attributeId,
-            attributeInReadmodelAttribute.id
+        .from(attributeInReadmodelAttribute)
+        .leftJoin(
+          tenantCertifiedAttributeInReadmodelTenant,
+          and(
+            eq(
+              tenantCertifiedAttributeInReadmodelTenant.attributeId,
+              attributeInReadmodelAttribute.id
+            ),
+            eq(attributeInReadmodelAttribute.kind, attributeKind.certified),
+            eq(tenantCertifiedAttributeInReadmodelTenant.tenantId, tenantId),
+            gte(
+              tenantCertifiedAttributeInReadmodelTenant.revocationTimestamp,
+              dateThreshold.toISOString()
+            )
+          )
+        )
+        .leftJoin(
+          tenantCertifiedDiscreteAttributeInReadmodelTenant,
+          and(
+            eq(
+              tenantCertifiedDiscreteAttributeInReadmodelTenant.attributeId,
+              attributeInReadmodelAttribute.id
+            ),
+            eq(
+              attributeInReadmodelAttribute.kind,
+              attributeKind.certifiedDiscrete
+            ),
+            eq(
+              tenantCertifiedDiscreteAttributeInReadmodelTenant.tenantId,
+              tenantId
+            ),
+            gte(
+              tenantCertifiedDiscreteAttributeInReadmodelTenant.revocationTimestamp,
+              dateThreshold.toISOString()
+            )
           )
         )
         .leftJoin(
@@ -1367,15 +1429,14 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           eq(certifierTenant.id, tenantFeatureInReadmodelTenant.tenantId)
         )
         .where(
-          and(
-            eq(tenantCertifiedAttributeInReadmodelTenant.tenantId, tenantId),
-            gte(
-              tenantCertifiedAttributeInReadmodelTenant.revocationTimestamp,
-              dateThreshold.toISOString()
+          or(
+            isNotNull(tenantCertifiedAttributeInReadmodelTenant.attributeId),
+            isNotNull(
+              tenantCertifiedDiscreteAttributeInReadmodelTenant.attributeId
             )
           )
         )
-        .limit(5);
+        .limit(SECTION_LIST_LIMIT);
 
       logger.info(
         `Retrieved ${results.length} certified revoked attributes for tenant ${tenantId}`
