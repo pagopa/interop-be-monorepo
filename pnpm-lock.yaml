@@ -6142,9 +6142,6 @@ importers:
       '@aws-sdk/client-dynamodb':
         specifier: 'catalog:'
         version: 3.840.0
-      '@aws-sdk/client-s3':
-        specifier: 'catalog:'
-        version: 3.842.0
       '@aws-sdk/client-sqs':
         specifier: 'catalog:'
         version: 3.840.0
