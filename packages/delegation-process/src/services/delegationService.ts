@@ -59,8 +59,8 @@ import {
   assertEserviceIsConsumerDelegable,
   assertEserviceIsNotArchived,
   assertIsDelegate,
-  assertIsDelegator,
-  assertIsState,
+  assertRequesterIsDelegator,
+  assertDelegationIsInExpectedState,
   assertNoDelegationRelatedAgreementExists,
   assertRequesterIsDelegateOrDelegator,
   assertTenantAllowedToReceiveDelegation,
@@ -232,7 +232,10 @@ export function delegationServiceBuilder(
     );
 
     assertIsDelegate(delegation, authData);
-    assertIsState(delegationState.waitingForApproval, delegation);
+    assertDelegationIsInExpectedState(
+      [delegationState.waitingForApproval],
+      delegation
+    );
 
     const now = new Date();
     const approvedDelegationWithoutContract: Delegation = {
@@ -298,7 +301,10 @@ export function delegationServiceBuilder(
     );
 
     assertIsDelegate(delegation, authData);
-    assertIsState(delegationState.waitingForApproval, delegation);
+    assertDelegationIsInExpectedState(
+      [delegationState.waitingForApproval],
+      delegation
+    );
 
     const now = new Date();
 
@@ -360,8 +366,8 @@ export function delegationServiceBuilder(
       readModelService
     );
 
-    assertIsDelegator(delegation, authData);
-    assertIsState(activeDelegationStates, delegation);
+    assertRequesterIsDelegator(delegation, authData);
+    assertDelegationIsInExpectedState(activeDelegationStates, delegation);
 
     const now = new Date();
     const revokedDelegationWithoutContract: Delegation = {
@@ -459,7 +465,7 @@ export function delegationServiceBuilder(
       readModelService
     );
 
-    assertIsState(
+    assertDelegationIsInExpectedState(
       [delegationState.active, delegationState.revoked],
       delegation
     );
