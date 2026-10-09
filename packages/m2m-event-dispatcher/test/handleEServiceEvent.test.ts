@@ -128,7 +128,8 @@ describe("handleEServiceEvent test", async () => {
                   "EServiceDescriptorArchivingRequestRejectedByDelegator",
                   "EServiceDescriptorArchivingRequestApprovedByDelegator",
                   "EServiceDescriptorArchivingRequestCanceledByDelegate",
-                  "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation"
+                  "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation",
+                  "EServiceDescriptorUpdatedByRevokedDelegation"
                 ),
                 async () => [
                   {
@@ -188,8 +189,7 @@ describe("handleEServiceEvent test", async () => {
                   "EServiceDescriptorArchivingCompleted",
                   "EServiceDescriptorArchivingCanceled",
                   "MaintenanceEServiceDescriptorUnarchived",
-                  "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
-                  "EServiceDescriptorUpdatedByRevokedDelegation"
+                  "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated"
                 ),
                 async () => [
                   {
