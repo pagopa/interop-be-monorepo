@@ -30,9 +30,12 @@ describe("API GET /emailDeepLink/:notificationType/:entityId", () => {
     ],
     [
       "purposePublishedWithRiskAnalysisToReviewer",
-      `/analisi-del-rischio/${entityId}`,
+      `/analisi-del-rischio/${entityId}/dettaglio`,
     ],
-    ["purposeRiskAnalysisSignedToReviewer", `/analisi-del-rischio/${entityId}`],
+    [
+      "purposeRiskAnalysisSignedToReviewer",
+      `/analisi-del-rischio/${entityId}/dettaglio`,
+    ],
     ["purposeRiskAnalysisAssignmentRemovedToReviewer", "/analisi-del-rischio"],
     ["purposeRiskAnalysisSignedToAdmin", `/fruizione/finalita/${entityId}`],
     ["purposeRiskAnalysisRejectedToAdmin", `/fruizione/finalita/${entityId}`],

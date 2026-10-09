@@ -114,22 +114,23 @@ export async function handlePurposeEvent(
           "PurposeWaitingForApproval"
         ),
       },
-      async ({ data: { purpose }, type }) => [
+      async ({ data, type }) => [
         ...(await handlePurposeQuotaAdjustmentRequestToProducer(
-          purpose,
+          data.purpose,
           logger,
           readModelService,
           type
         )),
         ...(await handlePurposeOverQuotaToConsumer(
-          purpose,
+          data.purpose,
           logger,
           readModelService,
-          type
+          type,
+          "versionId" in data ? data.versionId : undefined
         )),
         ...(type === "PurposeWaitingForApproval"
           ? await handlePurposePublishedWithRiskAnalysisToReviewer(
-              purpose,
+              data.purpose,
               logger,
               readModelService,
               type
@@ -146,12 +147,22 @@ export async function handlePurposeEvent(
       )
     )
     .with(
+      { type: "PurposeVersionOverQuotaUnsuspended" },
+      ({ data: { purpose, versionId }, type }) =>
+        handlePurposeOverQuotaToConsumer(
+          purpose,
+          logger,
+          readModelService,
+          type,
+          versionId
+        )
+    )
+    .with(
       {
         type: P.union(
           "WaitingForApprovalPurposeDeleted",
           "PurposeAdded",
           "DraftPurposeUpdated",
-          "PurposeVersionOverQuotaUnsuspended",
           "WaitingForApprovalPurposeVersionDeleted",
           "NewPurposeVersionActivated",
           "PurposeCloned",

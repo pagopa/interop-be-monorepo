@@ -43,6 +43,7 @@ function toOutboundPurposeVersionV2(
       purposeVersion.stamps &&
       toOutboundPurposeVersionStampsV2(purposeVersion.stamps),
     signedContract: undefined,
+    waitingForApprovalReason: undefined,
   };
 }
 

@@ -11,6 +11,7 @@ import {
   Client,
   ClientId,
   generateId,
+  hyperlinkDetectionError,
   invalidKeyLength,
   invalidPublicKey,
   jwkDecodingError,
@@ -152,6 +153,10 @@ describe("API /clients/{clientId}/keys authorization test", () => {
     {
       error: userNotFound(userId, generateId()),
       expectedStatus: 403,
+    },
+    {
+      error: hyperlinkDetectionError("RS256 https://example.com"),
+      expectedStatus: 400,
     },
   ])(
     "Should return $expectedStatus for $error.code",

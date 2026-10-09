@@ -472,7 +472,10 @@ export const toCreateEventPurposeVersionOverQuotaUnsuspended = ({
   event: {
     type: "PurposeVersionOverQuotaUnsuspended",
     event_version: 2,
-    data: { purpose: toPurposeV2(purpose), versionId },
+    data: {
+      purpose: toPurposeV2(purpose),
+      versionId,
+    },
   },
   correlationId,
 });

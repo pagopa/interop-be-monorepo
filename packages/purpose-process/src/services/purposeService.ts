@@ -42,6 +42,7 @@ import {
   PurposeTemplate,
   PurposeTemplateId,
   PurposeVersion,
+  PurposeWaitingForApprovalReason,
   PurposeVersionDocument,
   PurposeVersionDocumentId,
   PurposeVersionId,
@@ -168,7 +169,7 @@ import {
   isClonable,
   isDeletable,
   isDeletableVersion,
-  isOverQuota,
+  getWaitingForApprovalReason,
   isRejectable,
   isSuspendable,
   purposeIsArchived,
@@ -1037,6 +1038,7 @@ export function purposeServiceBuilder(
       const updatedPurposeVersion: PurposeVersion = {
         ...purposeVersion,
         state: purposeVersionState.rejected,
+        waitingForApprovalReason: undefined,
         rejectionReason,
         updatedAt: new Date(),
       };
@@ -1502,7 +1504,7 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      // isOverQuota doesn't include dailyCalls of suspended versions, so we don't have to calculate the delta. The delta is needed for active versions because those would be counted again inside isOverQuota
+      // Quotas don't include dailyCalls of suspended versions, so we don't have to calculate the delta. Active versions would otherwise be counted twice.
       const deltaDailyCalls =
         previousVersion.state === purposeVersionState.suspended
           ? seed.dailyCalls
@@ -1512,18 +1514,18 @@ export function purposeServiceBuilder(
        * If, with the given daily calls, the purpose goes in over quota,
        * we will create a new version in waiting for approval state
        */
-      if (
-        await isOverQuota(
-          eservice,
-          purpose.data,
-          deltaDailyCalls,
-          readModelService
-        )
-      ) {
+      const waitingForApprovalReason = await getWaitingForApprovalReason(
+        eservice,
+        purpose.data,
+        deltaDailyCalls,
+        readModelService
+      );
+      if (waitingForApprovalReason !== undefined) {
         const newPurposeVersion: PurposeVersion = {
           id: generateId<PurposeVersionId>(),
           createdAt: new Date(),
           state: purposeVersionState.waitingForApproval,
+          waitingForApprovalReason,
           dailyCalls: seed.dailyCalls,
           stamps: {
             creation: {
@@ -1697,19 +1699,19 @@ export function purposeServiceBuilder(
             ),
           },
           async () => {
-            if (
-              await isOverQuota(
-                eservice,
-                purpose.data,
-                purposeVersion.dailyCalls,
-                readModelService
-              )
-            ) {
+            const waitingForApprovalReason = await getWaitingForApprovalReason(
+              eservice,
+              purpose.data,
+              purposeVersion.dailyCalls,
+              readModelService
+            );
+            if (waitingForApprovalReason !== undefined) {
               return changePurposeVersionToWaitForApprovalFromDraftLogic(
                 purpose,
                 purposeVersion,
                 authData,
-                correlationId
+                correlationId,
+                waitingForApprovalReason
               );
             }
             return await activatePurposeLogic({
@@ -1783,18 +1785,18 @@ export function purposeServiceBuilder(
           },
           () => purpose.data.suspendedByConsumer,
           async () => {
-            if (
-              await isOverQuota(
-                eservice,
-                purpose.data,
-                purposeVersion.dailyCalls,
-                readModelService
-              )
-            ) {
+            const waitingForApprovalReason = await getWaitingForApprovalReason(
+              eservice,
+              purpose.data,
+              purposeVersion.dailyCalls,
+              readModelService
+            );
+            if (waitingForApprovalReason !== undefined) {
               return activatePurposeVersionFromOverQuotaSuspendedLogic(
                 purpose,
                 purposeVersion,
-                correlationId
+                correlationId,
+                waitingForApprovalReason
               );
             }
             return activatePurposeVersionFromSuspendedLogic(
@@ -1811,18 +1813,18 @@ export function purposeServiceBuilder(
             purposeOwnership: ownership.SELF_CONSUMER,
           },
           async () => {
-            if (
-              await isOverQuota(
-                eservice,
-                purpose.data,
-                purposeVersion.dailyCalls,
-                readModelService
-              )
-            ) {
+            const waitingForApprovalReason = await getWaitingForApprovalReason(
+              eservice,
+              purpose.data,
+              purposeVersion.dailyCalls,
+              readModelService
+            );
+            if (waitingForApprovalReason !== undefined) {
               return activatePurposeVersionFromOverQuotaSuspendedLogic(
                 purpose,
                 purposeVersion,
-                correlationId
+                correlationId,
+                waitingForApprovalReason
               );
             }
             return activatePurposeVersionFromSuspendedLogic(
@@ -2847,7 +2849,8 @@ function changePurposeVersionToWaitForApprovalFromDraftLogic(
   purpose: WithMetadata<Purpose>,
   purposeVersion: PurposeVersion,
   authData: UIAuthData | M2MAdminAuthData,
-  correlationId: CorrelationId
+  correlationId: CorrelationId,
+  waitingForApprovalReason: PurposeWaitingForApprovalReason
 ): {
   event: CreateEvent<PurposeEvent>;
   updatedPurposeVersion: PurposeVersion;
@@ -2855,6 +2858,7 @@ function changePurposeVersionToWaitForApprovalFromDraftLogic(
   const updatedPurposeVersion: PurposeVersion = {
     ...purposeVersion,
     state: purposeVersionState.waitingForApproval,
+    waitingForApprovalReason,
     updatedAt: new Date(),
     stamps: {
       creation: {
@@ -2882,7 +2886,8 @@ function changePurposeVersionToWaitForApprovalFromDraftLogic(
 function activatePurposeVersionFromOverQuotaSuspendedLogic(
   purpose: WithMetadata<Purpose>,
   purposeVersion: PurposeVersion,
-  correlationId: CorrelationId
+  correlationId: CorrelationId,
+  waitingForApprovalReason: PurposeWaitingForApprovalReason
 ): {
   event: CreateEvent<PurposeEvent>;
   updatedPurposeVersion: PurposeVersion;
@@ -2890,6 +2895,7 @@ function activatePurposeVersionFromOverQuotaSuspendedLogic(
   const newPurposeVersion: PurposeVersion = {
     createdAt: new Date(),
     state: purposeVersionState.waitingForApproval,
+    waitingForApprovalReason,
     id: generateId<PurposeVersionId>(),
     dailyCalls: purposeVersion.dailyCalls,
   };
@@ -2966,6 +2972,7 @@ async function activatePurposeLogic({
   const updatedPurposeVersion: PurposeVersion = {
     ...purposeVersion,
     state: purposeVersionState.active,
+    waitingForApprovalReason: undefined,
     stamps,
     updatedAt: new Date(),
     firstActivationAt: new Date(),
