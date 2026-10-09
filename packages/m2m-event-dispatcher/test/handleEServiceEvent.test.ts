@@ -188,7 +188,8 @@ describe("handleEServiceEvent test", async () => {
                   "EServiceDescriptorArchivingCompleted",
                   "EServiceDescriptorArchivingCanceled",
                   "MaintenanceEServiceDescriptorUnarchived",
-                  "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated"
+                  "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
+                  "EServiceDescriptorUpdatedByRevokedDelegation"
                 ),
                 async () => [
                   {
