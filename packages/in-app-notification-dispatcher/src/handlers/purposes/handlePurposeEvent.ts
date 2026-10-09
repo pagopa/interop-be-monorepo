@@ -128,6 +128,14 @@ export async function handlePurposeEvent(
           type,
           "versionId" in data ? data.versionId : undefined
         )),
+        ...(type === "PurposeWaitingForApproval"
+          ? await handlePurposePublishedWithRiskAnalysisToReviewer(
+              data.purpose,
+              logger,
+              readModelService,
+              type
+            )
+          : []),
       ]
     )
     .with({ type: "PurposeActivated" }, ({ data: { purpose }, type }) =>
