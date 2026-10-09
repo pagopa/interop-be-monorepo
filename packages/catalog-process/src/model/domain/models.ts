@@ -91,6 +91,7 @@ export type EServicesQueryFilters = {
   onlyTemplateInstances?: boolean;
   hasLinkedPurposeTemplates?: boolean;
   producerCategories: EServiceProducerCategory[];
+  availableForRequester?: boolean;
 };
 
 export type ApiGetEServicesFilters = {

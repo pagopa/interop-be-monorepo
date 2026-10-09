@@ -1060,24 +1060,35 @@ export function catalogServiceBuilder(
       const producersIds = (filters.producersIds ?? []).map<TenantId>(
         unsafeBrandId
       );
+      const availableForRequester = filters.availableForRequester;
       const requesterDelegationRoles = filters.requesterDelegationRoles ?? [];
       const producerCategories = filters.producerCategories ?? [];
       logger.info(
-        `Querying EServices, limit = ${filters.limit}, offset = ${filters.offset}, sortBy = ${sortBy}, keyword = ${keyword}, producersIds = ${producersIds}, onlyActiveEservices = ${filters.onlyActiveEservices}, subscribedByRequester = ${filters.subscribedByRequester}, requesterDelegationRoles = ${requesterDelegationRoles}, onlyTemplateInstances = ${filters.onlyTemplateInstances}, hasLinkedPurposeTemplates = ${filters.hasLinkedPurposeTemplates}, producerCategories = ${producerCategories}`
+        `Querying EServices, limit = ${filters.limit}, offset = ${filters.offset}, sortBy = ${sortBy}, keyword = ${keyword}, producersIds = ${producersIds}, onlyActiveEservices = ${filters.onlyActiveEservices}, subscribedByRequester = ${filters.subscribedByRequester}, requesterDelegationRoles = ${requesterDelegationRoles}, onlyTemplateInstances = ${filters.onlyTemplateInstances}, hasLinkedPurposeTemplates = ${filters.hasLinkedPurposeTemplates}, producerCategories = ${producerCategories}, availableForRequester = ${availableForRequester}`
       );
-      const eservicesList = await readModelService.queryEServices(authData, {
-        offset: filters.offset,
-        limit: filters.limit,
-        sortBy,
-        keyword,
-        producersIds,
-        onlyActiveEservices: filters.onlyActiveEservices,
-        subscribedByRequester: filters.subscribedByRequester,
-        requesterDelegationRoles,
-        onlyTemplateInstances: filters.onlyTemplateInstances,
-        hasLinkedPurposeTemplates: filters.hasLinkedPurposeTemplates,
-        producerCategories,
-      });
+      const certifiedDiscreteEnabled = isFeatureFlagEnabled(
+        config,
+        "featureFlagAttributeCertifiedDiscrete"
+      );
+
+      const eservicesList = await readModelService.queryEServices(
+        authData,
+        {
+          offset: filters.offset,
+          limit: filters.limit,
+          sortBy,
+          keyword,
+          producersIds,
+          onlyActiveEservices: filters.onlyActiveEservices,
+          subscribedByRequester: filters.subscribedByRequester,
+          requesterDelegationRoles,
+          onlyTemplateInstances: filters.onlyTemplateInstances,
+          hasLinkedPurposeTemplates: filters.hasLinkedPurposeTemplates,
+          producerCategories,
+          availableForRequester,
+        },
+        certifiedDiscreteEnabled
+      );
 
       const eservicesToReturn = await Promise.all(
         eservicesList.results.map((eservice) =>

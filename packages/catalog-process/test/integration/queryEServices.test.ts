@@ -3,6 +3,7 @@ import {
   getMockAgreement,
   getMockAttribute,
   getMockAuthData,
+  getMockCertifiedDiscreteTenantAttribute,
   getMockCertifiedTenantAttribute,
   getMockContext,
   getMockDelegation,
@@ -14,6 +15,8 @@ import {
 import {
   Attribute,
   CertifiedTenantAttribute,
+  AttributeCertifiedDiscreteComparator,
+  AttributeId,
   Descriptor,
   EService,
   EServiceId,
@@ -24,6 +27,7 @@ import {
   Tenant,
   TenantId,
   agreementState,
+  attributeCertifiedDiscreteComparator,
   delegationKind,
   delegationState,
   descriptorState,
@@ -31,8 +35,9 @@ import {
   purposeTemplateState,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
+import { config } from "../../src/config/config.js";
 import {
   addOneAgreement,
   addOneAttribute,
@@ -1349,6 +1354,1403 @@ describe("query eservices", () => {
 
       expect(result.totalCount).toBe(1);
       expect(idsOf(result)).toEqual([eserviceMatchingAll.id]);
+    });
+  });
+
+  describe("availableForRequester", () => {
+    const originalCertifiedDiscreteFlag =
+      config.featureFlagAttributeCertifiedDiscrete;
+
+    beforeEach(() => {
+      config.featureFlagAttributeCertifiedDiscrete = true;
+    });
+
+    afterEach(() => {
+      config.featureFlagAttributeCertifiedDiscrete =
+        originalCertifiedDiscreteFlag;
+    });
+
+    describe("when the certified discrete feature flag is disabled", () => {
+      const standardAttribute = {
+        ...getMockCertifiedTenantAttribute(),
+        revocationTimestamp: undefined,
+      };
+      const discreteAttribute = getMockCertifiedDiscreteTenantAttribute();
+      const requester: Tenant = {
+        ...getMockTenant(),
+        attributes: [standardAttribute, discreteAttribute],
+      };
+      const requesterContext = getMockContext({
+        authData: getMockAuthData(requester.id),
+      });
+      const ownedStandard = {
+        id: standardAttribute.id,
+        explicitAttributeVerification: false,
+      };
+      const missingStandard = {
+        id: generateId<AttributeId>(),
+        explicitAttributeVerification: false,
+      };
+      const satisfiedDiscrete = {
+        id: discreteAttribute.id,
+        explicitAttributeVerification: false,
+        discreteConfig: {
+          comparator: attributeCertifiedDiscreteComparator.GTE,
+          threshold: discreteAttribute.discreteValue,
+        },
+      };
+      const unsatisfiedDiscrete = {
+        ...satisfiedDiscrete,
+        discreteConfig: {
+          ...satisfiedDiscrete.discreteConfig,
+          threshold: discreteAttribute.discreteValue + 1,
+        },
+      };
+      const missingDiscrete = {
+        ...satisfiedDiscrete,
+        id: generateId<AttributeId>(),
+      };
+
+      beforeEach(async () => {
+        config.featureFlagAttributeCertifiedDiscrete = false;
+        await addOneTenant(requester);
+      });
+
+      it.each<{
+        description: string;
+        certified: Descriptor["attributes"]["certified"];
+        available: boolean;
+      }>([
+        {
+          description: "a satisfied discrete-only group",
+          certified: [[satisfiedDiscrete]],
+          available: true,
+        },
+        {
+          description: "an unsatisfied discrete-only group",
+          certified: [[unsatisfiedDiscrete]],
+          available: true,
+        },
+        {
+          description:
+            "a discrete-only group with an attribute the requester does not own",
+          certified: [[missingDiscrete]],
+          available: true,
+        },
+        {
+          description: "multiple unsatisfied discrete-only groups",
+          certified: [[unsatisfiedDiscrete], [missingDiscrete]],
+          available: true,
+        },
+        {
+          description:
+            "a satisfied standard group and an unsatisfied discrete-only group",
+          certified: [[ownedStandard], [unsatisfiedDiscrete]],
+          available: true,
+        },
+        {
+          description:
+            "an unsatisfied standard group and a satisfied discrete-only group",
+          certified: [[missingStandard], [satisfiedDiscrete]],
+          available: false,
+        },
+        {
+          description:
+            "a mixed group with a satisfied standard and an unsatisfied discrete requirement",
+          certified: [[ownedStandard, unsatisfiedDiscrete]],
+          available: true,
+        },
+        {
+          description:
+            "a mixed group with an unsatisfied standard and a satisfied discrete requirement",
+          certified: [[missingStandard, satisfiedDiscrete]],
+          available: false,
+        },
+        {
+          description: "a mixed group with neither requirement satisfied",
+          certified: [[missingStandard, unsatisfiedDiscrete]],
+          available: false,
+        },
+      ])(
+        "should ignore discrete requirements in $description",
+        async ({ certified, available }) => {
+          const eservice: EService = {
+            ...buildEService(
+              "Feature flag disabled",
+              new Date("2024-01-01T00:00:00Z")
+            ),
+            descriptors: [
+              {
+                ...getPublishedDescriptor(),
+                attributes: { certified, declared: [], verified: [] },
+              },
+            ],
+          };
+          await addOneEService(eservice);
+
+          const availableResult = await filterEServices(
+            { availableForRequester: true },
+            requesterContext
+          );
+          const unavailableResult = await filterEServices(
+            { availableForRequester: false },
+            requesterContext
+          );
+          const unfilteredResult = await filterEServices({}, requesterContext);
+
+          expect(availableResult.totalCount).toBe(available ? 1 : 0);
+          expect(idsOf(availableResult)).toEqual(
+            available ? [eservice.id] : []
+          );
+          expect(unavailableResult.totalCount).toBe(available ? 0 : 1);
+          expect(idsOf(unavailableResult)).toEqual(
+            available ? [] : [eservice.id]
+          );
+          expect(unfilteredResult.totalCount).toBe(1);
+          expect(idsOf(unfilteredResult)).toEqual([eservice.id]);
+        }
+      );
+    });
+
+    describe("when the filter is not set", () => {
+      it("should not filter e-services when availableForRequester is not set", async () => {
+        const requester: Tenant = {
+          ...getMockTenant(),
+          attributes: [],
+        };
+        const requesterContext = getMockContext({
+          authData: getMockAuthData(requester.id),
+        });
+        const eserviceWithoutRequirements: EService = {
+          ...buildEService(
+            "Without requirements",
+            new Date("2024-01-01T00:00:00Z")
+          ),
+          descriptors: [
+            {
+              ...getPublishedDescriptor(),
+              attributes: { certified: [], declared: [], verified: [] },
+            },
+          ],
+        };
+        const eserviceWithUnmetRequirement: EService = {
+          ...buildEService(
+            "With unmet requirement",
+            new Date("2024-02-01T00:00:00Z")
+          ),
+          descriptors: [
+            {
+              ...getPublishedDescriptor(),
+              attributes: {
+                certified: [
+                  [{ id: generateId(), explicitAttributeVerification: false }],
+                ],
+                declared: [],
+                verified: [],
+              },
+            },
+          ],
+        };
+
+        await addOneTenant(requester);
+        await addOneEService(eserviceWithoutRequirements);
+        await addOneEService(eserviceWithUnmetRequirement);
+
+        const result = await filterEServices({}, requesterContext);
+
+        expect(result.totalCount).toBe(2);
+        expect(idsOf(result)).toEqual([
+          eserviceWithUnmetRequirement.id,
+          eserviceWithoutRequirements.id,
+        ]);
+      });
+    });
+
+    describe("e-services without certified requirements", () => {
+      const requester: Tenant = {
+        ...getMockTenant(),
+        attributes: [],
+      };
+      const requesterContext = getMockContext({
+        authData: getMockAuthData(requester.id),
+      });
+      const eserviceWithoutRequirements: EService = {
+        ...buildEService(
+          "Without requirements",
+          new Date("2024-01-01T00:00:00Z")
+        ),
+        descriptors: [
+          {
+            ...getPublishedDescriptor(),
+            attributes: { certified: [], declared: [], verified: [] },
+          },
+        ],
+      };
+
+      beforeEach(async () => {
+        await addOneTenant(requester);
+        await addOneEService(eserviceWithoutRequirements);
+      });
+
+      it("should consider an e-service without certified requirements available", async () => {
+        const result = await filterEServices(
+          { availableForRequester: true },
+          requesterContext
+        );
+
+        expect(result.totalCount).toBe(1);
+        expect(idsOf(result)).toEqual([eserviceWithoutRequirements.id]);
+      });
+
+      it("should exclude an e-service without certified requirements when availableForRequester is false", async () => {
+        const result = await filterEServices(
+          { availableForRequester: false },
+          requesterContext
+        );
+
+        expect(result.totalCount).toBe(0);
+        expect(result.results).toEqual([]);
+      });
+    });
+
+    describe("standard certified requirements", () => {
+      const certifiedAttribute = {
+        ...getMockCertifiedTenantAttribute(),
+        revocationTimestamp: undefined,
+      };
+      const requester: Tenant = {
+        ...getMockTenant(),
+        attributes: [],
+      };
+      const requesterContext = getMockContext({
+        authData: getMockAuthData(requester.id),
+      });
+      const eserviceWithRequirement: EService = {
+        ...buildEService(
+          "With certified requirement",
+          new Date("2024-01-01T00:00:00Z")
+        ),
+        descriptors: [
+          {
+            ...getPublishedDescriptor(),
+            attributes: {
+              certified: [
+                [
+                  {
+                    id: certifiedAttribute.id,
+                    explicitAttributeVerification: false,
+                  },
+                ],
+              ],
+              declared: [],
+              verified: [],
+            },
+          },
+        ],
+      };
+
+      beforeEach(async () => {
+        await addOneEService(eserviceWithRequirement);
+      });
+
+      it("should return an e-service when the requester owns its certified requirement", async () => {
+        await addOneTenant({
+          ...requester,
+          attributes: [certifiedAttribute],
+        });
+
+        const result = await filterEServices(
+          { availableForRequester: true },
+          requesterContext
+        );
+
+        expect(result.totalCount).toBe(1);
+        expect(idsOf(result)).toEqual([eserviceWithRequirement.id]);
+      });
+
+      it("should exclude an e-service when the requester does not own its certified requirement", async () => {
+        await addOneTenant({
+          ...requester,
+          attributes: [
+            {
+              ...getMockCertifiedTenantAttribute(),
+              revocationTimestamp: undefined,
+            },
+          ],
+        });
+
+        const result = await filterEServices(
+          { availableForRequester: true },
+          requesterContext
+        );
+
+        expect(result.totalCount).toBe(0);
+        expect(result.results).toEqual([]);
+      });
+
+      it("should not consider a certified attribute owned by another tenant", async () => {
+        await addOneTenant(requester);
+        await addOneTenant({
+          ...getMockTenant(),
+          attributes: [certifiedAttribute],
+        });
+
+        const result = await filterEServices(
+          { availableForRequester: true },
+          requesterContext
+        );
+
+        expect(result.totalCount).toBe(0);
+        expect(result.results).toEqual([]);
+      });
+
+      it("should not satisfy a certified requirement with a revoked attribute", async () => {
+        await addOneTenant({
+          ...requester,
+          attributes: [
+            {
+              ...certifiedAttribute,
+              revocationTimestamp: new Date(),
+            },
+          ],
+        });
+
+        const result = await filterEServices(
+          { availableForRequester: true },
+          requesterContext
+        );
+
+        expect(result.totalCount).toBe(0);
+        expect(result.results).toEqual([]);
+      });
+
+      it("should not satisfy a standard certified requirement with a discrete certified attribute", async () => {
+        await addOneTenant({
+          ...requester,
+          attributes: [
+            getMockCertifiedDiscreteTenantAttribute(certifiedAttribute.id),
+          ],
+        });
+
+        const result = await filterEServices(
+          { availableForRequester: true },
+          requesterContext
+        );
+
+        expect(result.totalCount).toBe(0);
+        expect(result.results).toEqual([]);
+      });
+    });
+
+    describe("certified requirement groups", () => {
+      const certifiedAttributes = Array.from({ length: 4 }, () => ({
+        ...getMockCertifiedTenantAttribute(),
+        revocationTimestamp: undefined,
+      }));
+      const [attributeA, attributeB, attributeC, attributeD] =
+        certifiedAttributes;
+      const requirementA = {
+        id: attributeA.id,
+        explicitAttributeVerification: false,
+      };
+      const requirementB = {
+        id: attributeB.id,
+        explicitAttributeVerification: false,
+      };
+      const requirementC = {
+        id: attributeC.id,
+        explicitAttributeVerification: false,
+      };
+      const requirementD = {
+        id: attributeD.id,
+        explicitAttributeVerification: false,
+      };
+      const requester: Tenant = {
+        ...getMockTenant(),
+        attributes: [],
+      };
+      const requesterContext = getMockContext({
+        authData: getMockAuthData(requester.id),
+      });
+
+      const buildEServiceWithAttributeGroups = (
+        certified: Descriptor["attributes"]["certified"]
+      ): EService => ({
+        ...buildEService(
+          "With certified groups",
+          new Date("2024-01-01T00:00:00Z")
+        ),
+        descriptors: [
+          {
+            ...getPublishedDescriptor(),
+            attributes: { certified, declared: [], verified: [] },
+          },
+        ],
+      });
+
+      it("should consider a group satisfied when the requester owns at least one attribute in the group", async () => {
+        const eservice = buildEServiceWithAttributeGroups([
+          [requirementA, requirementB],
+        ]);
+        await addOneEService(eservice);
+        await addOneTenant({
+          ...requester,
+          attributes: [attributeB],
+        });
+
+        const result = await filterEServices(
+          { availableForRequester: true },
+          requesterContext
+        );
+
+        expect(result.totalCount).toBe(1);
+        expect(idsOf(result)).toEqual([eservice.id]);
+      });
+
+      it("should consider a group unsatisfied when the requester owns none of its attributes", async () => {
+        const eservice = buildEServiceWithAttributeGroups([
+          [requirementA, requirementB],
+        ]);
+        await addOneEService(eservice);
+        await addOneTenant({
+          ...requester,
+          attributes: [attributeC],
+        });
+
+        const result = await filterEServices(
+          { availableForRequester: true },
+          requesterContext
+        );
+
+        expect(result.totalCount).toBe(0);
+        expect(result.results).toEqual([]);
+      });
+
+      it("should require at least one satisfied attribute in every certified group", async () => {
+        const eservice = buildEServiceWithAttributeGroups([
+          [requirementA, requirementB],
+          [requirementC, requirementD],
+        ]);
+        await addOneEService(eservice);
+        await addOneTenant({
+          ...requester,
+          attributes: [attributeA, attributeB],
+        });
+
+        const result = await filterEServices(
+          { availableForRequester: true },
+          requesterContext
+        );
+
+        expect(result.totalCount).toBe(0);
+        expect(result.results).toEqual([]);
+      });
+
+      it("should return an e-service when every certified group is satisfied", async () => {
+        const eservice = buildEServiceWithAttributeGroups([
+          [requirementA, requirementB],
+          [requirementC, requirementD],
+        ]);
+        await addOneEService(eservice);
+        await addOneTenant({
+          ...requester,
+          attributes: [attributeB, attributeD],
+        });
+
+        const result = await filterEServices(
+          { availableForRequester: true },
+          requesterContext
+        );
+
+        expect(result.totalCount).toBe(1);
+        expect(idsOf(result)).toEqual([eservice.id]);
+      });
+
+      it.each(["standard", "discrete"] as const)(
+        "should satisfy a group containing both standard and discrete requirements when at least one requirement is satisfied (%s)",
+        async (satisfiedRequirement) => {
+          const discreteAttribute = getMockCertifiedDiscreteTenantAttribute();
+          const eservice = buildEServiceWithAttributeGroups([
+            [
+              requirementA,
+              {
+                id: discreteAttribute.id,
+                explicitAttributeVerification: false,
+                discreteConfig: {
+                  comparator: attributeCertifiedDiscreteComparator.GTE,
+                  threshold: discreteAttribute.discreteValue,
+                },
+              },
+            ],
+          ]);
+          await addOneEService(eservice);
+          await addOneTenant({
+            ...requester,
+            attributes: [
+              satisfiedRequirement === "standard"
+                ? attributeA
+                : discreteAttribute,
+            ],
+          });
+
+          const result = await filterEServices(
+            { availableForRequester: true },
+            requesterContext
+          );
+
+          expect(result.totalCount).toBe(1);
+          expect(idsOf(result)).toEqual([eservice.id]);
+        }
+      );
+    });
+
+    describe("discrete certified requirements", () => {
+      const discreteAttribute = getMockCertifiedDiscreteTenantAttribute();
+      const threshold = 10;
+      const requester: Tenant = {
+        ...getMockTenant(),
+        attributes: [],
+      };
+      const requesterContext = getMockContext({
+        authData: getMockAuthData(requester.id),
+      });
+      const buildEServiceWithDiscreteRequirement = (
+        comparator: AttributeCertifiedDiscreteComparator
+      ): EService => ({
+        ...buildEService(
+          "With discrete certified requirement",
+          new Date("2024-01-01T00:00:00Z")
+        ),
+        descriptors: [
+          {
+            ...getPublishedDescriptor(),
+            attributes: {
+              certified: [
+                [
+                  {
+                    id: discreteAttribute.id,
+                    explicitAttributeVerification: false,
+                    discreteConfig: { comparator, threshold },
+                  },
+                ],
+              ],
+              declared: [],
+              verified: [],
+            },
+          },
+        ],
+      });
+
+      describe("GT comparator", () => {
+        it("should satisfy a GT requirement when the requester value is greater than the threshold", async () => {
+          const eservice = buildEServiceWithDiscreteRequirement(
+            attributeCertifiedDiscreteComparator.GT
+          );
+          await addOneEService(eservice);
+          await addOneTenant({
+            ...requester,
+            attributes: [
+              { ...discreteAttribute, discreteValue: threshold + 1 },
+            ],
+          });
+
+          const result = await filterEServices(
+            { availableForRequester: true },
+            requesterContext
+          );
+
+          expect(result.totalCount).toBe(1);
+          expect(idsOf(result)).toEqual([eservice.id]);
+        });
+
+        it("should not satisfy a GT requirement when the requester value is equal to the threshold", async () => {
+          const eservice = buildEServiceWithDiscreteRequirement(
+            attributeCertifiedDiscreteComparator.GT
+          );
+          await addOneEService(eservice);
+          await addOneTenant({
+            ...requester,
+            attributes: [{ ...discreteAttribute, discreteValue: threshold }],
+          });
+
+          const result = await filterEServices(
+            { availableForRequester: true },
+            requesterContext
+          );
+
+          expect(result.totalCount).toBe(0);
+          expect(result.results).toEqual([]);
+        });
+
+        it("should not satisfy a GT requirement when the requester value is lower than the threshold", async () => {
+          const eservice = buildEServiceWithDiscreteRequirement(
+            attributeCertifiedDiscreteComparator.GT
+          );
+          await addOneEService(eservice);
+          await addOneTenant({
+            ...requester,
+            attributes: [
+              { ...discreteAttribute, discreteValue: threshold - 1 },
+            ],
+          });
+
+          const result = await filterEServices(
+            { availableForRequester: true },
+            requesterContext
+          );
+
+          expect(result.totalCount).toBe(0);
+          expect(result.results).toEqual([]);
+        });
+      });
+
+      describe("LT comparator", () => {
+        it("should satisfy an LT requirement when the requester value is lower than the threshold", async () => {
+          const eservice = buildEServiceWithDiscreteRequirement(
+            attributeCertifiedDiscreteComparator.LT
+          );
+          await addOneEService(eservice);
+          await addOneTenant({
+            ...requester,
+            attributes: [
+              { ...discreteAttribute, discreteValue: threshold - 1 },
+            ],
+          });
+
+          const result = await filterEServices(
+            { availableForRequester: true },
+            requesterContext
+          );
+
+          expect(result.totalCount).toBe(1);
+          expect(idsOf(result)).toEqual([eservice.id]);
+        });
+
+        it("should not satisfy an LT requirement when the requester value is equal to the threshold", async () => {
+          const eservice = buildEServiceWithDiscreteRequirement(
+            attributeCertifiedDiscreteComparator.LT
+          );
+          await addOneEService(eservice);
+          await addOneTenant({
+            ...requester,
+            attributes: [{ ...discreteAttribute, discreteValue: threshold }],
+          });
+
+          const result = await filterEServices(
+            { availableForRequester: true },
+            requesterContext
+          );
+
+          expect(result.totalCount).toBe(0);
+          expect(result.results).toEqual([]);
+        });
+
+        it("should not satisfy an LT requirement when the requester value is greater than the threshold", async () => {
+          const eservice = buildEServiceWithDiscreteRequirement(
+            attributeCertifiedDiscreteComparator.LT
+          );
+          await addOneEService(eservice);
+          await addOneTenant({
+            ...requester,
+            attributes: [
+              { ...discreteAttribute, discreteValue: threshold + 1 },
+            ],
+          });
+
+          const result = await filterEServices(
+            { availableForRequester: true },
+            requesterContext
+          );
+
+          expect(result.totalCount).toBe(0);
+          expect(result.results).toEqual([]);
+        });
+      });
+
+      describe("EQ comparator", () => {
+        it("should satisfy an EQ requirement when the requester value is equal to the threshold", async () => {
+          const eservice = buildEServiceWithDiscreteRequirement(
+            attributeCertifiedDiscreteComparator.EQ
+          );
+          await addOneEService(eservice);
+          await addOneTenant({
+            ...requester,
+            attributes: [{ ...discreteAttribute, discreteValue: threshold }],
+          });
+
+          const result = await filterEServices(
+            { availableForRequester: true },
+            requesterContext
+          );
+
+          expect(result.totalCount).toBe(1);
+          expect(idsOf(result)).toEqual([eservice.id]);
+        });
+
+        it.each([threshold - 1, threshold + 1])(
+          "should not satisfy an EQ requirement when the requester value is different from the threshold (%s)",
+          async (discreteValue) => {
+            const eservice = buildEServiceWithDiscreteRequirement(
+              attributeCertifiedDiscreteComparator.EQ
+            );
+            await addOneEService(eservice);
+            await addOneTenant({
+              ...requester,
+              attributes: [
+                { ...discreteAttribute, discreteValue: discreteValue },
+              ],
+            });
+
+            const result = await filterEServices(
+              { availableForRequester: true },
+              requesterContext
+            );
+
+            expect(result.totalCount).toBe(0);
+            expect(result.results).toEqual([]);
+          }
+        );
+      });
+
+      describe("GTE comparator", () => {
+        it("should satisfy a GTE requirement when the requester value is greater than the threshold", async () => {
+          const eservice = buildEServiceWithDiscreteRequirement(
+            attributeCertifiedDiscreteComparator.GTE
+          );
+          await addOneEService(eservice);
+          await addOneTenant({
+            ...requester,
+            attributes: [
+              { ...discreteAttribute, discreteValue: threshold + 1 },
+            ],
+          });
+
+          const result = await filterEServices(
+            { availableForRequester: true },
+            requesterContext
+          );
+
+          expect(result.totalCount).toBe(1);
+          expect(idsOf(result)).toEqual([eservice.id]);
+        });
+
+        it("should satisfy a GTE requirement when the requester value is equal to the threshold", async () => {
+          const eservice = buildEServiceWithDiscreteRequirement(
+            attributeCertifiedDiscreteComparator.GTE
+          );
+          await addOneEService(eservice);
+          await addOneTenant({
+            ...requester,
+            attributes: [{ ...discreteAttribute, discreteValue: threshold }],
+          });
+
+          const result = await filterEServices(
+            { availableForRequester: true },
+            requesterContext
+          );
+
+          expect(result.totalCount).toBe(1);
+          expect(idsOf(result)).toEqual([eservice.id]);
+        });
+
+        it("should not satisfy a GTE requirement when the requester value is lower than the threshold", async () => {
+          const eservice = buildEServiceWithDiscreteRequirement(
+            attributeCertifiedDiscreteComparator.GTE
+          );
+          await addOneEService(eservice);
+          await addOneTenant({
+            ...requester,
+            attributes: [
+              { ...discreteAttribute, discreteValue: threshold - 1 },
+            ],
+          });
+
+          const result = await filterEServices(
+            { availableForRequester: true },
+            requesterContext
+          );
+
+          expect(result.totalCount).toBe(0);
+          expect(result.results).toEqual([]);
+        });
+      });
+
+      describe("LTE comparator", () => {
+        it("should satisfy an LTE requirement when the requester value is lower than the threshold", async () => {
+          const eservice = buildEServiceWithDiscreteRequirement(
+            attributeCertifiedDiscreteComparator.LTE
+          );
+          await addOneEService(eservice);
+          await addOneTenant({
+            ...requester,
+            attributes: [
+              { ...discreteAttribute, discreteValue: threshold - 1 },
+            ],
+          });
+
+          const result = await filterEServices(
+            { availableForRequester: true },
+            requesterContext
+          );
+
+          expect(result.totalCount).toBe(1);
+          expect(idsOf(result)).toEqual([eservice.id]);
+        });
+
+        it("should satisfy an LTE requirement when the requester value is equal to the threshold", async () => {
+          const eservice = buildEServiceWithDiscreteRequirement(
+            attributeCertifiedDiscreteComparator.LTE
+          );
+          await addOneEService(eservice);
+          await addOneTenant({
+            ...requester,
+            attributes: [{ ...discreteAttribute, discreteValue: threshold }],
+          });
+
+          const result = await filterEServices(
+            { availableForRequester: true },
+            requesterContext
+          );
+
+          expect(result.totalCount).toBe(1);
+          expect(idsOf(result)).toEqual([eservice.id]);
+        });
+
+        it("should not satisfy an LTE requirement when the requester value is greater than the threshold", async () => {
+          const eservice = buildEServiceWithDiscreteRequirement(
+            attributeCertifiedDiscreteComparator.LTE
+          );
+          await addOneEService(eservice);
+          await addOneTenant({
+            ...requester,
+            attributes: [
+              { ...discreteAttribute, discreteValue: threshold + 1 },
+            ],
+          });
+
+          const result = await filterEServices(
+            { availableForRequester: true },
+            requesterContext
+          );
+
+          expect(result.totalCount).toBe(0);
+          expect(result.results).toEqual([]);
+        });
+      });
+
+      describe("NE comparator", () => {
+        it.each([threshold - 1, threshold + 1])(
+          "should satisfy an NE requirement when the requester value is different from the threshold (%s)",
+          async (discreteValue) => {
+            const eservice = buildEServiceWithDiscreteRequirement(
+              attributeCertifiedDiscreteComparator.NE
+            );
+            await addOneEService(eservice);
+            await addOneTenant({
+              ...requester,
+              attributes: [
+                { ...discreteAttribute, discreteValue: discreteValue },
+              ],
+            });
+
+            const result = await filterEServices(
+              { availableForRequester: true },
+              requesterContext
+            );
+
+            expect(result.totalCount).toBe(1);
+            expect(idsOf(result)).toEqual([eservice.id]);
+          }
+        );
+
+        it("should not satisfy an NE requirement when the requester value is equal to the threshold", async () => {
+          const eservice = buildEServiceWithDiscreteRequirement(
+            attributeCertifiedDiscreteComparator.NE
+          );
+          await addOneEService(eservice);
+          await addOneTenant({
+            ...requester,
+            attributes: [{ ...discreteAttribute, discreteValue: threshold }],
+          });
+
+          const result = await filterEServices(
+            { availableForRequester: true },
+            requesterContext
+          );
+
+          expect(result.totalCount).toBe(0);
+          expect(result.results).toEqual([]);
+        });
+      });
+
+      it("should not satisfy a discrete certified requirement with a revoked attribute", async () => {
+        const eservice = buildEServiceWithDiscreteRequirement(
+          attributeCertifiedDiscreteComparator.EQ
+        );
+        await addOneEService(eservice);
+        await addOneTenant({
+          ...requester,
+          attributes: [
+            {
+              ...discreteAttribute,
+              discreteValue: threshold,
+              revocationTimestamp: new Date(),
+            },
+          ],
+        });
+
+        const result = await filterEServices(
+          { availableForRequester: true },
+          requesterContext
+        );
+
+        expect(result.totalCount).toBe(0);
+        expect(result.results).toEqual([]);
+      });
+
+      it("should not consider a discrete certified attribute owned by another tenant", async () => {
+        const eservice = buildEServiceWithDiscreteRequirement(
+          attributeCertifiedDiscreteComparator.EQ
+        );
+        await addOneEService(eservice);
+        await addOneTenant(requester);
+        await addOneTenant({
+          ...getMockTenant(),
+          attributes: [{ ...discreteAttribute, discreteValue: threshold }],
+        });
+
+        const result = await filterEServices(
+          { availableForRequester: true },
+          requesterContext
+        );
+
+        expect(result.totalCount).toBe(0);
+        expect(result.results).toEqual([]);
+      });
+
+      it("should not satisfy a discrete certified requirement with a standard certified attribute", async () => {
+        const eservice = buildEServiceWithDiscreteRequirement(
+          attributeCertifiedDiscreteComparator.EQ
+        );
+        await addOneEService(eservice);
+        await addOneTenant({
+          ...requester,
+          attributes: [
+            {
+              ...getMockCertifiedTenantAttribute(discreteAttribute.id),
+              revocationTimestamp: undefined,
+            },
+          ],
+        });
+
+        const result = await filterEServices(
+          { availableForRequester: true },
+          requesterContext
+        );
+
+        expect(result.totalCount).toBe(0);
+        expect(result.results).toEqual([]);
+      });
+    });
+
+    describe("when availableForRequester is false", () => {
+      const ownedAttribute = {
+        ...getMockCertifiedTenantAttribute(),
+        revocationTimestamp: undefined,
+      };
+      const ownedRequirement = {
+        id: ownedAttribute.id,
+        explicitAttributeVerification: false,
+      };
+      const missingRequirement = {
+        id: generateId<AttributeId>(),
+        explicitAttributeVerification: false,
+      };
+      const requester: Tenant = {
+        ...getMockTenant(),
+        attributes: [ownedAttribute],
+      };
+      const requesterContext = getMockContext({
+        authData: getMockAuthData(requester.id),
+      });
+      const buildDescriptor = (
+        certified: Descriptor["attributes"]["certified"],
+        state: Descriptor["state"] = descriptorState.published,
+        version = "1"
+      ): Descriptor => ({
+        ...getPublishedDescriptor(),
+        state,
+        version,
+        attributes: { certified, declared: [], verified: [] },
+      });
+      const buildTestEService = (
+        name: string,
+        descriptors: Descriptor[]
+      ): EService => ({
+        ...buildEService(name, new Date("2024-01-01T00:00:00Z")),
+        descriptors,
+      });
+
+      beforeEach(async () => {
+        await addOneTenant(requester);
+      });
+
+      it("should return only e-services with at least one unsatisfied certified group", async () => {
+        const unavailable = buildTestEService("Unavailable", [
+          buildDescriptor([[ownedRequirement], [missingRequirement]]),
+        ]);
+        const available = buildTestEService("Available", [
+          buildDescriptor([[ownedRequirement]]),
+        ]);
+        const withoutRequirements = buildTestEService("Without requirements", [
+          buildDescriptor([]),
+        ]);
+        await addOneEService(unavailable);
+        await addOneEService(available);
+        await addOneEService(withoutRequirements);
+
+        const result = await filterEServices(
+          { availableForRequester: false },
+          requesterContext
+        );
+
+        expect(result.totalCount).toBe(1);
+        expect(idsOf(result)).toEqual([unavailable.id]);
+      });
+
+      it("should exclude e-services whose certified groups are all satisfied", async () => {
+        const secondAttribute = {
+          ...getMockCertifiedTenantAttribute(),
+          revocationTimestamp: undefined,
+        };
+        await addOneTenant({
+          ...requester,
+          attributes: [ownedAttribute, secondAttribute],
+        });
+        await addOneEService(
+          buildTestEService("Available", [
+            buildDescriptor([
+              [ownedRequirement, missingRequirement],
+              [
+                {
+                  id: secondAttribute.id,
+                  explicitAttributeVerification: false,
+                },
+              ],
+            ]),
+          ])
+        );
+
+        const result = await filterEServices(
+          { availableForRequester: false },
+          requesterContext
+        );
+
+        expect(result.totalCount).toBe(0);
+        expect(idsOf(result)).toEqual([]);
+      });
+
+      it("should exclude e-services without certified requirements", async () => {
+        await addOneEService(
+          buildTestEService("Without requirements", [buildDescriptor([])])
+        );
+
+        const result = await filterEServices(
+          { availableForRequester: false },
+          requesterContext
+        );
+
+        expect(result.totalCount).toBe(0);
+        expect(idsOf(result)).toEqual([]);
+      });
+    });
+
+    describe("descriptor selection", () => {
+      const ownedAttribute = {
+        ...getMockCertifiedTenantAttribute(),
+        revocationTimestamp: undefined,
+      };
+      const ownedRequirement = {
+        id: ownedAttribute.id,
+        explicitAttributeVerification: false,
+      };
+      const missingRequirement = {
+        id: generateId<AttributeId>(),
+        explicitAttributeVerification: false,
+      };
+      const requester: Tenant = {
+        ...getMockTenant(),
+        attributes: [ownedAttribute],
+      };
+      const requesterContext = getMockContext({
+        authData: getMockAuthData(requester.id),
+      });
+      const buildDescriptor = (
+        certified: Descriptor["attributes"]["certified"],
+        state: Descriptor["state"] = descriptorState.published,
+        version = "1"
+      ): Descriptor => ({
+        ...getPublishedDescriptor(),
+        state,
+        version,
+        attributes: { certified, declared: [], verified: [] },
+      });
+      const buildTestEService = (
+        name: string,
+        descriptors: Descriptor[]
+      ): EService => ({
+        ...buildEService(name, new Date("2024-01-01T00:00:00Z")),
+        descriptors,
+      });
+
+      beforeEach(async () => {
+        await addOneTenant(requester);
+      });
+
+      it("should evaluate certified requirements belonging to a published descriptor", async () => {
+        const available = buildTestEService("Available", [
+          buildDescriptor([[ownedRequirement]], descriptorState.published),
+        ]);
+        const unavailable = buildTestEService("Unavailable", [
+          buildDescriptor([[missingRequirement]], descriptorState.published),
+        ]);
+        await addOneEService(available);
+        await addOneEService(unavailable);
+
+        const result = await filterEServices(
+          { availableForRequester: true },
+          requesterContext
+        );
+
+        expect(result.totalCount).toBe(1);
+        expect(idsOf(result)).toEqual([available.id]);
+      });
+
+      it("should evaluate certified requirements belonging to a suspended descriptor", async () => {
+        const available = buildTestEService("Available", [
+          buildDescriptor([[ownedRequirement]], descriptorState.suspended),
+        ]);
+        const unavailable = buildTestEService("Unavailable", [
+          buildDescriptor([[missingRequirement]], descriptorState.suspended),
+        ]);
+        await addOneEService(available);
+        await addOneEService(unavailable);
+
+        const result = await filterEServices(
+          { availableForRequester: true },
+          requesterContext
+        );
+
+        expect(result.totalCount).toBe(1);
+        expect(idsOf(result)).toEqual([available.id]);
+      });
+
+      it("should ignore certified requirements belonging to a draft descriptor", async () => {
+        const eservice = buildTestEService("Available", [
+          buildDescriptor([[missingRequirement]], descriptorState.draft, "1"),
+          buildDescriptor([[ownedRequirement]], descriptorState.published, "2"),
+        ]);
+        await addOneEService(eservice);
+
+        const result = await filterEServices(
+          { availableForRequester: true },
+          requesterContext
+        );
+
+        expect(result.totalCount).toBe(1);
+        expect(idsOf(result)).toEqual([eservice.id]);
+      });
+
+      it("should ignore certified requirements belonging to a deprecated descriptor", async () => {
+        const eservice = buildTestEService("Available", [
+          buildDescriptor(
+            [[missingRequirement]],
+            descriptorState.deprecated,
+            "1"
+          ),
+          buildDescriptor([[ownedRequirement]], descriptorState.published, "2"),
+        ]);
+        await addOneEService(eservice);
+
+        const result = await filterEServices(
+          { availableForRequester: true },
+          requesterContext
+        );
+
+        expect(result.totalCount).toBe(1);
+        expect(idsOf(result)).toEqual([eservice.id]);
+      });
+
+      it("should evaluate availability against the relevant visible descriptor when multiple descriptor versions exist", async () => {
+        const eservice = buildTestEService("Unavailable", [
+          buildDescriptor(
+            [[ownedRequirement]],
+            descriptorState.deprecated,
+            "1"
+          ),
+          buildDescriptor(
+            [[missingRequirement]],
+            descriptorState.published,
+            "2"
+          ),
+          buildDescriptor([[ownedRequirement]], descriptorState.draft, "3"),
+        ]);
+        await addOneEService(eservice);
+
+        const result = await filterEServices(
+          { availableForRequester: true },
+          requesterContext
+        );
+
+        expect(result.totalCount).toBe(0);
+        expect(idsOf(result)).toEqual([]);
+        const unavailableResult = await filterEServices(
+          { availableForRequester: false },
+          requesterContext
+        );
+
+        expect(unavailableResult.totalCount).toBe(1);
+        expect(idsOf(unavailableResult)).toEqual([eservice.id]);
+      });
+    });
+
+    describe("interaction with other query features", () => {
+      const ownedAttribute = {
+        ...getMockCertifiedTenantAttribute(),
+        revocationTimestamp: undefined,
+      };
+      const ownedRequirement = {
+        id: ownedAttribute.id,
+        explicitAttributeVerification: false,
+      };
+      const missingRequirement = {
+        id: generateId<AttributeId>(),
+        explicitAttributeVerification: false,
+      };
+      const requester: Tenant = {
+        ...getMockTenant(),
+        attributes: [ownedAttribute],
+      };
+      const requesterContext = getMockContext({
+        authData: getMockAuthData(requester.id),
+      });
+      const buildDescriptor = (
+        certified: Descriptor["attributes"]["certified"],
+        state: Descriptor["state"] = descriptorState.published,
+        version = "1"
+      ): Descriptor => ({
+        ...getPublishedDescriptor(),
+        state,
+        version,
+        attributes: { certified, declared: [], verified: [] },
+      });
+      const buildTestEService = (
+        name: string,
+        descriptors: Descriptor[]
+      ): EService => ({
+        ...buildEService(name, new Date("2024-01-01T00:00:00Z")),
+        descriptors,
+      });
+
+      beforeEach(async () => {
+        await addOneTenant(requester);
+      });
+
+      it("should combine availableForRequester with the other catalog filters", async () => {
+        const matching = buildTestEService("Catasto", [
+          buildDescriptor([[ownedRequirement]]),
+        ]);
+        const unavailable = buildTestEService("Catasto unavailable", [
+          buildDescriptor([[missingRequirement]]),
+        ]);
+        const otherProducer: EService = {
+          ...buildTestEService("Catasto other producer", [
+            buildDescriptor([[ownedRequirement]]),
+          ]),
+          producerId: generateId(),
+        };
+        const otherKeyword = buildTestEService("Anagrafe", [
+          buildDescriptor([[ownedRequirement]]),
+        ]);
+        const suspended = buildTestEService("Catasto suspended", [
+          buildDescriptor([[ownedRequirement]], descriptorState.suspended),
+        ]);
+        await addOneEService(matching);
+        await addOneEService(unavailable);
+        await addOneEService(otherProducer);
+        await addOneEService(otherKeyword);
+        await addOneEService(suspended);
+
+        const result = await filterEServices(
+          {
+            availableForRequester: true,
+            producersIds: [producerId],
+            keyword: "Catasto",
+            onlyActiveEservices: true,
+          },
+          requesterContext
+        );
+
+        expect(result.totalCount).toBe(1);
+        expect(idsOf(result)).toEqual([matching.id]);
+      });
+
+      it("should preserve the filtered totalCount when results are paginated", async () => {
+        const first = buildTestEService("Apple", [
+          buildDescriptor([[ownedRequirement]]),
+        ]);
+        const excluded = buildTestEService("Banana", [
+          buildDescriptor([[missingRequirement]]),
+        ]);
+        const second = buildTestEService("Cherry", [
+          buildDescriptor([[ownedRequirement]]),
+        ]);
+        await addOneEService(second);
+        await addOneEService(excluded);
+        await addOneEService(first);
+
+        const pages = await Promise.all(
+          [0, 1, 2].map((offset) =>
+            filterEServices(
+              { availableForRequester: true, sortBy: "NAME_ASC" },
+              requesterContext,
+              offset,
+              1
+            )
+          )
+        );
+
+        expect(pages.map((page) => page.totalCount)).toEqual([2, 2, 2]);
+        expect(pages.map(idsOf)).toEqual([[first.id], [second.id], []]);
+      });
+
+      it("should not return duplicate e-services when a descriptor contains multiple satisfied attributes", async () => {
+        const secondAttribute = {
+          ...getMockCertifiedTenantAttribute(),
+          revocationTimestamp: undefined,
+        };
+        await addOneTenant({
+          ...requester,
+          attributes: [ownedAttribute, secondAttribute],
+        });
+        const eservice = buildTestEService("Available", [
+          buildDescriptor([
+            [
+              ownedRequirement,
+              { id: secondAttribute.id, explicitAttributeVerification: false },
+            ],
+          ]),
+        ]);
+        await addOneEService(eservice);
+
+        const result = await filterEServices(
+          { availableForRequester: true },
+          requesterContext
+        );
+
+        expect(result.totalCount).toBe(1);
+        expect(idsOf(result)).toEqual([eservice.id]);
+      });
     });
   });
 });

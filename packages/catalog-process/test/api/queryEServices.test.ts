@@ -74,6 +74,63 @@ describe("API POST /catalog authorization test", () => {
       .set("X-Correlation-Id", generateId())
       .send(payload);
 
+  describe("availableForRequester validation", () => {
+    it("should accept availableForRequester when it is true", async () => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, {
+        ...body,
+        availableForRequester: true,
+      });
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(apiResponse);
+    });
+
+    it("should accept availableForRequester when it is false", async () => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, {
+        ...body,
+        availableForRequester: false,
+      });
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(apiResponse);
+    });
+
+    it.each(["true", "false", 0, 1, null, [], {}].map((value) => [value]))(
+      "should return 400 when availableForRequester is not a boolean (%j)",
+      async (availableForRequester) => {
+        const token = generateToken(authRole.ADMIN_ROLE);
+        vi.mocked(catalogService.queryEServices).mockClear();
+
+        const res = await makeRequest(token, {
+          ...body,
+          availableForRequester,
+        } as catalogApi.EServicesFilterPayload);
+
+        expect(res.status).toBe(400);
+        expect(catalogService.queryEServices).not.toHaveBeenCalled();
+      }
+    );
+
+    it.each([true, false])(
+      "should forward availableForRequester to the catalog service (%s)",
+      async (availableForRequester) => {
+        const token = generateToken(authRole.ADMIN_ROLE);
+        const payload = { ...body, availableForRequester };
+        vi.mocked(catalogService.queryEServices).mockClear();
+
+        const res = await makeRequest(token, payload);
+
+        expect(res.status).toBe(200);
+        expect(catalogService.queryEServices).toHaveBeenCalledExactlyOnceWith(
+          payload,
+          expect.anything()
+        );
+      }
+    );
+  });
+
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
     authRole.API_ROLE,
