@@ -41,6 +41,7 @@ import {
   PurposeVersionUnsuspendedByProducerV2,
   PurposeVersionOverQuotaUnsuspendedV2,
   PurposeWaitingForApprovalV2,
+  purposeWaitingForApprovalReason,
   eserviceMode,
   PurposeVersionActivatedV2,
   delegationState,
@@ -112,6 +113,7 @@ describe("activatePurposeVersion", () => {
     mockEServiceDescriptor = {
       ...getMockDescriptorPublished(),
       dailyCallsPerConsumer: 20,
+      dailyCallsTotal: 50,
     };
 
     mockEService = {
@@ -146,81 +148,91 @@ describe("activatePurposeVersion", () => {
     vi.useRealTimers();
   });
 
-  it("should write on event-store for the activation of a purpose version in the waiting for approval state", async () => {
-    const consumerUserId = generateId<UserId>();
-    const versionWithStamp: PurposeVersion = {
-      ...mockPurposeVersion,
-      stamps: {
-        creation: {
-          who: consumerUserId,
-          when: new Date(),
+  it.each(Object.values(purposeWaitingForApprovalReason))(
+    "clears quota reason %s when approving a purpose version",
+    async (waitingForApprovalReason) => {
+      const consumerUserId = generateId<UserId>();
+      const versionWithStamp: PurposeVersion = {
+        ...mockPurposeVersion,
+        waitingForApprovalReason,
+        stamps: {
+          creation: {
+            who: consumerUserId,
+            when: new Date(),
+          },
         },
-      },
-    };
-    const purposeWithStamp: Purpose = {
-      ...mockPurpose,
-      versions: [versionWithStamp],
-      consumerId: mockConsumer.id,
-    };
-    await addOnePurpose(purposeWithStamp);
-    await addOneEService(mockEService);
-    await addOneAgreement(mockAgreement);
-    await addOneTenant(mockConsumer);
-    await addOneTenant(mockProducer);
+      };
+      const purposeWithStamp: Purpose = {
+        ...mockPurpose,
+        versions: [versionWithStamp],
+        consumerId: mockConsumer.id,
+      };
+      await addOnePurpose(purposeWithStamp);
+      await addOneEService(mockEService);
+      await addOneAgreement(mockAgreement);
+      await addOneTenant(mockConsumer);
+      await addOneTenant(mockProducer);
 
-    const activateResponse = await purposeService.activatePurposeVersion(
-      {
-        purposeId: purposeWithStamp.id,
+      const activateResponse = await purposeService.activatePurposeVersion(
+        {
+          purposeId: purposeWithStamp.id,
+          versionId: versionWithStamp.id,
+          delegationId: undefined,
+        },
+        getMockContext({ authData: getMockAuthData(mockProducer.id, userId) })
+      );
+
+      const updatedVersion = activateResponse.data;
+
+      const writtenEvent = await readLastEventByStreamId(
+        purposeWithStamp.id,
+        "purpose",
+        postgresDB
+      );
+
+      expect(writtenEvent).toMatchObject({
+        stream_id: mockPurpose.id,
+        version: "1",
+        type: "PurposeVersionActivated",
+        event_version: 2,
+      });
+
+      const expectedPurpose: Purpose = {
+        ...purposeWithStamp,
+        suspendedByConsumer: false,
+        suspendedByProducer: false,
+        versions: [updatedVersion],
+        updatedAt: new Date(),
+      };
+
+      const writtenPayload = decodeProtobufPayload({
+        messageType: PurposeVersionActivatedV2,
+        payload: writtenEvent.data,
+      });
+
+      expect(updatedVersion.riskAnalysis).toBeDefined();
+
+      expect(updatedVersion.waitingForApprovalReason).toBeUndefined();
+      expect(
+        writtenPayload.purpose?.versions.find(
+          (v) => v.id === versionWithStamp.id
+        )?.waitingForApprovalReason
+      ).toBeUndefined();
+      expect(updatedVersion.stamps?.creation.who).toEqual(consumerUserId);
+
+      expect({
+        ...writtenPayload,
+        purpose: sortPurpose(writtenPayload.purpose),
+      }).toEqual({
+        purpose: sortPurpose(toPurposeV2(expectedPurpose)),
         versionId: versionWithStamp.id,
-        delegationId: undefined,
-      },
-      getMockContext({ authData: getMockAuthData(mockProducer.id, userId) })
-    );
-
-    const updatedVersion = activateResponse.data;
-
-    const writtenEvent = await readLastEventByStreamId(
-      purposeWithStamp.id,
-      "purpose",
-      postgresDB
-    );
-
-    expect(writtenEvent).toMatchObject({
-      stream_id: mockPurpose.id,
-      version: "1",
-      type: "PurposeVersionActivated",
-      event_version: 2,
-    });
-
-    const expectedPurpose: Purpose = {
-      ...purposeWithStamp,
-      suspendedByConsumer: false,
-      suspendedByProducer: false,
-      versions: [updatedVersion],
-      updatedAt: new Date(),
-    };
-
-    const writtenPayload = decodeProtobufPayload({
-      messageType: PurposeVersionActivatedV2,
-      payload: writtenEvent.data,
-    });
-
-    expect(updatedVersion.riskAnalysis).toBeDefined();
-
-    expect(updatedVersion.stamps?.creation.who).toEqual(consumerUserId);
-
-    expect({
-      ...writtenPayload,
-      purpose: sortPurpose(writtenPayload.purpose),
-    }).toEqual({
-      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
-      versionId: versionWithStamp.id,
-    });
-    expect(activateResponse).toMatchObject({
-      data: updatedVersion,
-      metadata: { version: 1 },
-    });
-  });
+      });
+      expect(activateResponse).toMatchObject({
+        data: updatedVersion,
+        metadata: { version: 1 },
+      });
+    }
+  );
 
   it("should write on event-store for the activation of a purpose version in the waiting for approval state (With producer delegation)", async () => {
     const delegate: Tenant = { ...getMockTenant(), kind: "PA" };
@@ -490,6 +502,8 @@ describe("activatePurposeVersion", () => {
           dailyCalls: purposeVersion.dailyCalls,
           createdAt: purposeVersion.createdAt,
           state: purposeVersionState.waitingForApproval,
+          waitingForApprovalReason:
+            purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
         },
       ],
       suspendedByConsumer: true,
@@ -636,6 +650,8 @@ describe("activatePurposeVersion", () => {
         {
           ...purposeVersion,
           state: purposeVersionState.waitingForApproval,
+          waitingForApprovalReason:
+            purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
           stamps: {
             creation: {
               who: authData.userId,

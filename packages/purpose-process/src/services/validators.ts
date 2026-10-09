@@ -29,6 +29,8 @@ import {
   PurposeTemplate,
   PurposeTemplateId,
   PurposeVersion,
+  PurposeWaitingForApprovalReason,
+  purposeWaitingForApprovalReason,
   purposeVersionState,
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswer,
@@ -277,23 +279,33 @@ export const assertPersonalDataCompliant = (
   }
 };
 
-export async function isOverQuota(
+export async function getWaitingForApprovalReason(
   eservice: EService,
   purpose: Purpose,
   dailyCalls: number,
   readModelService: ReadModelServiceSQL
-): Promise<boolean> {
+): Promise<PurposeWaitingForApprovalReason | undefined> {
   const quotas = await getUpdatedQuotas(
     eservice,
     purpose.consumerId,
     readModelService
   );
 
-  return !(
-    quotas.currentConsumerCalls + dailyCalls <=
-      quotas.maxDailyCallsPerConsumer &&
-    quotas.currentTotalCalls + dailyCalls <= quotas.maxDailyCallsTotal
-  );
+  const exceedsConsumerQuota =
+    quotas.currentConsumerCalls + dailyCalls > quotas.maxDailyCallsPerConsumer;
+  const exceedsTotalQuota =
+    quotas.currentTotalCalls + dailyCalls > quotas.maxDailyCallsTotal;
+
+  if (exceedsConsumerQuota && exceedsTotalQuota) {
+    return purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal;
+  }
+  if (exceedsConsumerQuota) {
+    return purposeWaitingForApprovalReason.dailyCallsPerConsumer;
+  }
+  if (exceedsTotalQuota) {
+    return purposeWaitingForApprovalReason.dailyCallsTotal;
+  }
+  return undefined;
 }
 
 export async function getUpdatedQuotas(
