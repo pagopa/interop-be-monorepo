@@ -112,6 +112,7 @@ import {
   assertPurposeTemplateIsDraft,
   assertPurposeTemplateStateIsValid,
   assertPurposeTemplateTitleIsNotDuplicated,
+  assertRequesterCanManagePurposeTemplate,
   assertRequesterIsCreator,
   assertSuspendableState,
   hasRoleToAccessDraftPurposeTemplates,
@@ -629,7 +630,7 @@ async function activatePurposeTemplate({
     throw purposeTemplateRiskAnalysisFormNotFound(purposeTemplate.data.id);
   }
 
-  assertRequesterIsCreator(id, purposeTemplate.data.creatorId, authData);
+  assertRequesterCanManagePurposeTemplate(purposeTemplate.data, authData);
   assertActivatableState(purposeTemplate.data, expectedInitialState);
 
   const eserviceStateValidationIssues =
@@ -2050,7 +2051,7 @@ export function purposeTemplateServiceBuilder(
         readModelService
       );
 
-      assertRequesterIsCreator(id, purposeTemplate.data.creatorId, authData);
+      assertRequesterCanManagePurposeTemplate(purposeTemplate.data, authData);
       assertSuspendableState(purposeTemplate.data);
 
       const updatedPurposeTemplate: PurposeTemplate = {
@@ -2087,7 +2088,7 @@ export function purposeTemplateServiceBuilder(
         readModelService
       );
 
-      assertRequesterIsCreator(id, purposeTemplate.data.creatorId, authData);
+      assertRequesterCanManagePurposeTemplate(purposeTemplate.data, authData);
       assertArchivableState(purposeTemplate.data);
 
       const updatedPurposeTemplate: PurposeTemplate = {
