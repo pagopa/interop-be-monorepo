@@ -1,6 +1,8 @@
 import crypto from "crypto";
 import { keyToProducerJWKKey } from "pagopa-interop-commons";
 import {
+  dirtifyEncodedPem,
+  generateKeySet,
   getMockKey,
   getMockProducerKeychain,
 } from "pagopa-interop-commons-test";
@@ -100,6 +102,48 @@ describe("Events V2", () => {
     expect(retrievedKey?.metadata).toStrictEqual({
       version: 1,
     });
+  });
+  it("ProducerKeychainKeyAdded - key stored before the upload sanitization", async () => {
+    const producerKeychainId: ProducerKeychainId = generateId();
+    const addedKey: Key = {
+      ...getMockKey(),
+      encodedPem: dirtifyEncodedPem(generateKeySet().publicKeyEncodedPem),
+    };
+    const updatedProducerKeychain: ProducerKeychain = {
+      ...getMockProducerKeychain(),
+      id: producerKeychainId,
+      keys: [addedKey],
+    };
+
+    const payload: ProducerKeychainKeyAddedV2 = {
+      producerKeychain: toProducerKeychainV2(updatedProducerKeychain),
+      kid: addedKey.kid,
+    };
+
+    const message: AuthorizationEventEnvelopeV2 = {
+      sequence_num: 1,
+      stream_id: producerKeychainId,
+      version: 1,
+      type: "ProducerKeychainKeyAdded",
+      event_version: 2,
+      data: payload,
+      log_date: new Date(),
+    };
+
+    await handleMessageV2(message, producerJWKKeyWriterService);
+
+    const retrievedKey =
+      await producerJWKKeyReadModelService.getProducerJWKKeyByProducerKeychainIdAndKid(
+        producerKeychainId,
+        addedKey.kid
+      );
+
+    expect(retrievedKey?.data).toStrictEqual(
+      keyToProducerJWKKey(addedKey, producerKeychainId)
+    );
+    expect(retrievedKey?.data.kty).toBeDefined();
+    expect(retrievedKey?.data.n).toBeDefined();
+    expect(retrievedKey?.data.e).toBeDefined();
   });
   it("ProducerKeychainKeyDeleted", async () => {
     const producerKeychainId: ProducerKeychainId = generateId();
