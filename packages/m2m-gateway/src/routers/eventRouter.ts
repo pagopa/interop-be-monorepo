@@ -46,7 +46,7 @@ const eventRouter = (
         ctx,
         "Error retrieving eservice events"
       );
-      return res.status(errorRes.status).send();
+      return res.status(errorRes.status).send(errorRes);
     }
   });
 
@@ -71,7 +71,7 @@ const eventRouter = (
         ctx,
         "Error retrieving attribute events"
       );
-      return res.status(errorRes.status).send();
+      return res.status(errorRes.status).send(errorRes);
     }
   });
 
@@ -97,7 +97,7 @@ const eventRouter = (
         ctx,
         "Error retrieving purpose events"
       );
-      return res.status(errorRes.status).send();
+      return res.status(errorRes.status).send(errorRes);
     }
   });
   eventRouter.get("/tenantEvents", async (req, res) => {
@@ -120,7 +120,7 @@ const eventRouter = (
         ctx,
         "Error retrieving tenant events"
       );
-      return res.status(errorRes.status).send();
+      return res.status(errorRes.status).send(errorRes);
     }
   });
 
@@ -146,7 +146,7 @@ const eventRouter = (
         ctx,
         "Error retrieving eservice template events"
       );
-      return res.status(errorRes.status).send();
+      return res.status(errorRes.status).send(errorRes);
     }
   });
   eventRouter.get("/agreementEvents", async (req, res) => {
@@ -171,7 +171,7 @@ const eventRouter = (
         ctx,
         "Error retrieving agreement events"
       );
-      return res.status(errorRes.status).send();
+      return res.status(errorRes.status).send(errorRes);
     }
   });
 
@@ -196,7 +196,7 @@ const eventRouter = (
         ctx,
         "Error retrieving key events"
       );
-      return res.status(errorRes.status).send();
+      return res.status(errorRes.status).send(errorRes);
     }
   });
 
@@ -221,7 +221,7 @@ const eventRouter = (
         ctx,
         "Error retrieving client events"
       );
-      return res.status(errorRes.status).send();
+      return res.status(errorRes.status).send(errorRes);
     }
   });
 
@@ -248,7 +248,7 @@ const eventRouter = (
         ctx,
         "Error retrieving producer key events"
       );
-      return res.status(errorRes.status).send();
+      return res.status(errorRes.status).send(errorRes);
     }
   });
 
@@ -275,7 +275,7 @@ const eventRouter = (
         ctx,
         "Error retrieving producer keychain events"
       );
-      return res.status(errorRes.status).send();
+      return res.status(errorRes.status).send(errorRes);
     }
   });
 
@@ -302,7 +302,7 @@ const eventRouter = (
         ctx,
         "Error retrieving producer delegation events"
       );
-      return res.status(errorRes.status).send();
+      return res.status(errorRes.status).send(errorRes);
     }
   });
 
@@ -329,7 +329,7 @@ const eventRouter = (
         ctx,
         "Error retrieving consumer delegation events"
       );
-      return res.status(errorRes.status).send();
+      return res.status(errorRes.status).send(errorRes);
     }
   });
 
