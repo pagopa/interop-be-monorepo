@@ -58,6 +58,7 @@ import {
   delegationInReadmodelDelegation,
   delegationStampInReadmodelDelegation,
   eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+  eserviceDescriptorArchivingRequestInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
 
 import { config } from "../config/config.js";
@@ -201,6 +202,18 @@ export type ReceivedPurposeState =
 export type ReceivedPurpose = BasePurpose & {
   state: ReceivedPurposeState;
   consumerName: string;
+};
+
+export type DelegatedArchivingRequest = {
+  eserviceId: string;
+  eserviceName: string;
+  descriptorId: string | null;
+  requestedAt: string;
+  acceptedAt: string | null;
+  rejectedAt: string | null;
+  descriptorVersion: string | null;
+  tenantId: TenantId;
+  totalCount: number;
 };
 
 /**
@@ -2064,6 +2077,269 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         userId: unsafeBrandId<UserId>(row.userId),
         tenantId: unsafeBrandId<TenantId>(row.tenantId),
         userRoles: row.userRoles.map((r) => UserRole.parse(r)),
+      }));
+    },
+
+    /**
+     * Returns all Received delegated eservice and descriptor archiving requests
+     * that are waiting for approval (acceptedAt and rejectedAt are null) in the last configured frequency hours.
+     * Limited to 5 results.
+     */
+    async getReceivedDelegationArchivingRequests(
+      delegateId: TenantId
+    ): Promise<DelegatedArchivingRequest[]> {
+      logger.info(
+        `Retrieving received delegation archiving requests for delegate ${delegateId} since ${dateThreshold.toISOString()}`
+      );
+
+      const results = await db
+        .select(
+          withTotalCount({
+            eserviceId:
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.eserviceId,
+            descriptorId:
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.descriptorId,
+            requestedAt:
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.requestedAt,
+            acceptedAt:
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.acceptedAt,
+            rejectedAt:
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.rejectedAt,
+            eserviceName: eserviceInReadmodelCatalog.name,
+            descriptorVersion: eserviceDescriptorInReadmodelCatalog.version,
+          })
+        )
+        .from(eserviceDescriptorArchivingRequestInReadmodelCatalog)
+        .innerJoin(
+          eserviceInReadmodelCatalog,
+          eq(
+            eserviceDescriptorArchivingRequestInReadmodelCatalog.eserviceId,
+            eserviceInReadmodelCatalog.id
+          )
+        )
+        .leftJoin(
+          eserviceDescriptorInReadmodelCatalog,
+          and(
+            eq(
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.eserviceId,
+              eserviceDescriptorInReadmodelCatalog.eserviceId
+            ),
+            eq(
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.descriptorId,
+              eserviceDescriptorInReadmodelCatalog.id
+            )
+          )
+        )
+        .where(
+          and(
+            eq(eserviceInReadmodelCatalog.producerId, delegateId),
+            gte(
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.requestedAt,
+              dateThreshold.toISOString()
+            ),
+            isNull(
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.rejectedAt
+            ),
+            isNull(
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.acceptedAt
+            )
+          )
+        )
+        .orderBy(
+          desc(eserviceDescriptorArchivingRequestInReadmodelCatalog.requestedAt)
+        )
+        .limit(SECTION_LIST_LIMIT);
+
+      logger.info(
+        `Retrieved ${results.length} received delegation archiving requests for delegate ${delegateId}`
+      );
+
+      return results.map((row) => ({
+        eserviceId: row.eserviceId,
+        descriptorId: row.descriptorId,
+        eserviceName: row.eserviceName,
+        requestedAt: row.requestedAt,
+        acceptedAt: row.acceptedAt,
+        rejectedAt: row.rejectedAt,
+        descriptorVersion: row.descriptorVersion,
+        tenantId: delegateId,
+        totalCount: row.totalCount,
+      }));
+    },
+
+    /**
+     * Returns all Received delegated eservice and descriptor archiving requests
+     * that have been approved (acceptedAt is not null) in the last configured frequency hours.
+     * Limited to 5 results.
+     */
+    async getApprovedDelegationArchivingRequests(
+      delegateId: TenantId
+    ): Promise<DelegatedArchivingRequest[]> {
+      logger.info(
+        `Retrieving approved delegation archiving requests for delegate ${delegateId} since ${dateThreshold.toISOString()}`
+      );
+
+      const results = await db
+        .select(
+          withTotalCount({
+            eserviceId:
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.eserviceId,
+            descriptorId:
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.descriptorId,
+            requestedAt:
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.requestedAt,
+            acceptedAt:
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.acceptedAt,
+            rejectedAt:
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.rejectedAt,
+            eserviceName: eserviceInReadmodelCatalog.name,
+            descriptorVersion: eserviceDescriptorInReadmodelCatalog.version,
+          })
+        )
+        .from(eserviceDescriptorArchivingRequestInReadmodelCatalog)
+        .innerJoin(
+          eserviceInReadmodelCatalog,
+          eq(
+            eserviceDescriptorArchivingRequestInReadmodelCatalog.eserviceId,
+            eserviceInReadmodelCatalog.id
+          )
+        )
+        .leftJoin(
+          eserviceDescriptorInReadmodelCatalog,
+          and(
+            eq(
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.eserviceId,
+              eserviceDescriptorInReadmodelCatalog.eserviceId
+            ),
+            eq(
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.descriptorId,
+              eserviceDescriptorInReadmodelCatalog.id
+            )
+          )
+        )
+        .where(
+          and(
+            eq(eserviceInReadmodelCatalog.producerId, delegateId),
+            gte(
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.requestedAt,
+              dateThreshold.toISOString()
+            ),
+            isNotNull(
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.acceptedAt
+            ),
+            isNull(
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.rejectedAt
+            )
+          )
+        )
+        .orderBy(
+          desc(eserviceDescriptorArchivingRequestInReadmodelCatalog.acceptedAt)
+        )
+        .limit(SECTION_LIST_LIMIT);
+
+      logger.info(
+        `Retrieved ${results.length} approved delegation archiving requests for delegate ${delegateId}`
+      );
+
+      return results
+        .filter((row) => row.acceptedAt != null)
+        .map((row) => ({
+          eserviceId: row.eserviceId,
+          descriptorId: row.descriptorId,
+          eserviceName: row.eserviceName,
+          requestedAt: row.requestedAt,
+          descriptorVersion: row.descriptorVersion,
+          tenantId: delegateId,
+          totalCount: row.totalCount,
+          acceptedAt: row.acceptedAt,
+          rejectedAt: row.rejectedAt,
+        }));
+    },
+
+    /**
+     * Returns all Received delegated eservice and descriptor archiving requests
+     * that have been rejected (rejectedAt is not null) in the last configured frequency hours.
+     * Limited to 5 results.
+     */
+    async getRejectedDelegationArchivingRequests(
+      delegateId: TenantId
+    ): Promise<DelegatedArchivingRequest[]> {
+      logger.info(
+        `Retrieving rejected delegation archiving requests for delegate ${delegateId} since ${dateThreshold.toISOString()}`
+      );
+
+      const results = await db
+        .select(
+          withTotalCount({
+            eserviceId:
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.eserviceId,
+            descriptorId:
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.descriptorId,
+            requestedAt:
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.requestedAt,
+            acceptedAt:
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.acceptedAt,
+            rejectedAt:
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.rejectedAt,
+            eserviceName: eserviceInReadmodelCatalog.name,
+            descriptorVersion: eserviceDescriptorInReadmodelCatalog.version,
+          })
+        )
+        .from(eserviceDescriptorArchivingRequestInReadmodelCatalog)
+        .innerJoin(
+          eserviceInReadmodelCatalog,
+          eq(
+            eserviceDescriptorArchivingRequestInReadmodelCatalog.eserviceId,
+            eserviceInReadmodelCatalog.id
+          )
+        )
+        .leftJoin(
+          eserviceDescriptorInReadmodelCatalog,
+          and(
+            eq(
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.eserviceId,
+              eserviceDescriptorInReadmodelCatalog.eserviceId
+            ),
+            eq(
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.descriptorId,
+              eserviceDescriptorInReadmodelCatalog.id
+            )
+          )
+        )
+        .where(
+          and(
+            eq(eserviceInReadmodelCatalog.producerId, delegateId),
+            gte(
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.rejectedAt,
+              dateThreshold.toISOString()
+            ),
+            isNull(
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.acceptedAt
+            ),
+            isNotNull(
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.rejectedAt
+            )
+          )
+        )
+        .orderBy(
+          desc(eserviceDescriptorArchivingRequestInReadmodelCatalog.rejectedAt)
+        )
+        .limit(SECTION_LIST_LIMIT);
+
+      logger.info(
+        `Retrieved ${results.length} rejected delegation archiving requests for delegate ${delegateId}`
+      );
+
+      return results.map((row) => ({
+        eserviceId: row.eserviceId,
+        descriptorId: row.descriptorId,
+        eserviceName: row.eserviceName,
+        requestedAt: row.requestedAt,
+        acceptedAt: row.acceptedAt,
+        rejectedAt: row.rejectedAt,
+        descriptorVersion: row.descriptorVersion,
+        tenantId: delegateId,
+        totalCount: row.totalCount,
       }));
     },
   };
