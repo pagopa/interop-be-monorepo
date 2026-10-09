@@ -1055,14 +1055,29 @@ export function catalogServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<ListResult<EService>> {
       const sortBy = filters.sortBy ?? defaultEServiceSortBy;
+      const trimmedKeyword = filters.keyword?.trim();
+      const keyword = trimmedKeyword === "" ? undefined : trimmedKeyword;
+      const producersIds = (filters.producersIds ?? []).map<TenantId>(
+        unsafeBrandId
+      );
+      const requesterDelegationRoles = filters.requesterDelegationRoles ?? [];
+      const producerCategories = filters.producerCategories ?? [];
       logger.info(
-        `Querying EServices, limit = ${filters.limit}, offset = ${filters.offset}, sortBy = ${sortBy}`
+        `Querying EServices, limit = ${filters.limit}, offset = ${filters.offset}, sortBy = ${sortBy}, keyword = ${keyword}, producersIds = ${producersIds}, onlyActiveEservices = ${filters.onlyActiveEservices}, subscribedByRequester = ${filters.subscribedByRequester}, requesterDelegationRoles = ${requesterDelegationRoles}, onlyTemplateInstances = ${filters.onlyTemplateInstances}, hasLinkedPurposeTemplates = ${filters.hasLinkedPurposeTemplates}, producerCategories = ${producerCategories}`
       );
-      const eservicesList = await readModelService.queryEServices(
-        filters.offset,
-        filters.limit,
-        sortBy
-      );
+      const eservicesList = await readModelService.queryEServices(authData, {
+        offset: filters.offset,
+        limit: filters.limit,
+        sortBy,
+        keyword,
+        producersIds,
+        onlyActiveEservices: filters.onlyActiveEservices,
+        subscribedByRequester: filters.subscribedByRequester,
+        requesterDelegationRoles,
+        onlyTemplateInstances: filters.onlyTemplateInstances,
+        hasLinkedPurposeTemplates: filters.hasLinkedPurposeTemplates,
+        producerCategories,
+      });
 
       const eservicesToReturn = await Promise.all(
         eservicesList.results.map((eservice) =>
