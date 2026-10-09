@@ -30,7 +30,10 @@ export const healthRouter = (
       title: "Service status OK",
     };
 
-    res.type("application/problem+json").status(200).send(healthProblem);
+    res
+      .type("application/problem+json")
+      .status(constants.HTTP_STATUS_OK)
+      .send(healthProblem);
   });
 
   return healthRouter;

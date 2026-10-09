@@ -36,12 +36,6 @@ export const createApiClientErrorMapper = (
     .with("userNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const getClientsErrorMapper = (error: ApiError<ErrorCodes>): number =>
-  match(error.code).otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
-/** @alias */
-export const getClientsWithKeysErrorMapper = getClientsErrorMapper;
-
 export const deleteClientErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
@@ -216,11 +210,6 @@ export const createProducerKeychainErrorMapper = (
   match(error.code)
     .with("duplicatedMembersInSeed", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
-export const getProducerKeychainsErrorMapper = (
-  error: ApiError<ErrorCodes>
-): number =>
-  match(error.code).otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const deleteProducerKeychainErrorMapper = (
   error: ApiError<ErrorCodes>
