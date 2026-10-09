@@ -4,7 +4,10 @@ import {
   SafeStorageApiConfig,
   DynamoDBClientConfig,
   AWSConfig,
-  APIEndpoint,
+  AgreementProcessServerConfig,
+  DelegationProcessServerConfig,
+  PurposeProcessServerConfig,
+  PurposeTemplateProcessServerConfig,
   TokenGenerationConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -17,6 +20,10 @@ const SignedObjectsPersisterConfig = SQSConsumerConfig.and(LoggerConfig)
   .and(DynamoDBClientConfig)
   .and(AWSConfig)
   .and(TokenGenerationConfig)
+  .and(DelegationProcessServerConfig)
+  .and(PurposeProcessServerConfig)
+  .and(PurposeTemplateProcessServerConfig)
+  .and(AgreementProcessServerConfig)
   .and(
     z
       .object({
@@ -24,20 +31,12 @@ const SignedObjectsPersisterConfig = SQSConsumerConfig.and(LoggerConfig)
         S3_BUCKET_AUDIT: z.string(),
         S3_BUCKET_M2M_AUDIT: z.string(),
         S3_BUCKET_EVENTS: z.string(),
-        DELEGATION_PROCESS_URL: APIEndpoint,
-        PURPOSE_PROCESS_URL: APIEndpoint,
-        PURPOSE_TEMPLATE_PROCESS_URL: APIEndpoint,
-        AGREEMENT_PROCESS_URL: APIEndpoint,
       })
       .transform((c) => ({
         signedDocumentsBucket: c.S3_BUCKET_SIGNED_DOCUMENTS,
         auditBucket: c.S3_BUCKET_AUDIT,
         m2mAuditBucket: c.S3_BUCKET_M2M_AUDIT,
         eventsBucket: c.S3_BUCKET_EVENTS,
-        delegationProcessUrl: c.DELEGATION_PROCESS_URL,
-        purposeProcessUrl: c.PURPOSE_PROCESS_URL,
-        purposeTemplateProcessUrl: c.PURPOSE_TEMPLATE_PROCESS_URL,
-        agreementProcessUrl: c.AGREEMENT_PROCESS_URL,
       }))
   );
 
