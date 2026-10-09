@@ -1776,6 +1776,134 @@
                                   </td>
                                 </tr>
                                 {{/if}}
+                                {{#if hasArchivingConsumerContent}}
+                                <tr>
+                                  <td align="left" class="mobile-padding content-wrapper">
+                                    <!-- In fase di archiviazione - fruizione -->
+                                    {{#if showArchivingConsumer}}
+                                    <div class="section-divider">
+                                      <table class="section-header-table" role="presentation" width="100%" cellpadding="0"
+                                        cellspacing="0" border="0">
+                                        <tr>
+                                          <td valign="middle">
+                                            <h2 class="h2-title">
+                                              In fase di archiviazione - fruizione
+                                            </h2>
+                                          </td>
+                                        </tr>
+                                      </table>
+
+                                      <!-- Stat cards (cards with a zero count are hidden) -->
+                                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 16px; margin-bottom: 16px;">
+                                        <tr>
+                                          {{#if archivingConsumerImminentEservices.totalCount}}
+                                          <td width="{{ archivingConsumerCardWidth }}" valign="top" style="padding: 0 4px;">
+                                            <div class="stat-card-highlight">
+                                              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                                                <tr>
+                                                  <td valign="middle" style="padding-right: 12px;">
+                                                    <p class="stat-number">{{ archivingConsumerImminentEservices.totalCount }}</p>
+                                                  </td>
+                                                  <td valign="middle">
+                                                    <p class="stat-label">archiviazioni previste a breve</p>
+                                                  </td>
+                                                </tr>
+                                              </table>
+                                            </div>
+                                          </td>
+                                          {{/if}}
+                                          {{#if archivingConsumerEserviceScopeCount}}
+                                          <td width="{{ archivingConsumerCardWidth }}" valign="top" style="padding: 0 4px;">
+                                            <div class="stat-card">
+                                              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                                                <tr>
+                                                  <td valign="middle" style="padding-right: 12px;">
+                                                    <p class="stat-number">{{ archivingConsumerEserviceScopeCount }}</p>
+                                                  </td>
+                                                  <td valign="middle">
+                                                    <p class="stat-label">e-service in fase di archiviazione</p>
+                                                  </td>
+                                                </tr>
+                                              </table>
+                                            </div>
+                                          </td>
+                                          {{/if}}
+                                          {{#if archivingConsumerDescriptorScopeCount}}
+                                          <td width="{{ archivingConsumerCardWidth }}" valign="top" style="padding: 0 4px;">
+                                            <div class="stat-card">
+                                              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                                                <tr>
+                                                  <td valign="middle" style="padding-right: 12px;">
+                                                    <p class="stat-number">{{ archivingConsumerDescriptorScopeCount }}</p>
+                                                  </td>
+                                                  <td valign="middle">
+                                                    <p class="stat-label">versioni in fase di archiviazione</p>
+                                                  </td>
+                                                </tr>
+                                              </table>
+                                            </div>
+                                          </td>
+                                          {{/if}}
+                                        </tr>
+                                      </table>
+
+                                      {{#if archivingConsumerImminentEservices.totalCount}}
+                                      <p class="body-text-no-margin">
+                                        {{#if archivingConsumerImminentEservicesSingular}}
+                                        C'è <strong>1 archiviazione prevista a breve</strong>:
+                                        {{else}}
+                                        Ci sono <strong>{{ archivingConsumerImminentEservices.totalCount }} archiviazioni previste a breve</strong>:
+                                        {{/if}}
+                                      </p>
+                                      <div class="archiving-box">
+                                        {{#each archivingConsumerImminentEservices.items}}
+                                        <p class="archiving-item">
+                                          {{#if isEserviceScope}}
+                                          L'archiviazione dell'e-service <a href="{{ link }}" class="link-primary" style="color: #0073e6;">{{ eserviceName }}</a> avverrà il giorno <strong>{{ archivableOn }}</strong>.
+                                          {{else}}
+                                          L'archiviazione della versione <strong>{{ version }}</strong> dell'e-service <a href="{{ link }}" class="link-primary" style="color: #0073e6;">{{ eserviceName }}</a> avverrà il giorno <strong>{{ archivableOn }}</strong>.
+                                          {{/if}}
+                                        </p>
+                                        {{/each}}
+
+                                        <!-- Red Alert -->
+                                        <div class="alert-error" role="note">
+                                          <p class="alert-text">
+                                            Se disponibile, passa a una nuova versione per continuare a scambiare dati.<br />
+                                            Dopo l'archiviazione di un e-service, non potrai più scambiare dati.
+                                          </p>
+                                        </div>
+                                      </div>
+                                      {{/if}}
+
+                                      {{#if archivingConsumerInProgressEservices.totalCount}}
+                                      <p class="body-text-no-margin">
+                                        {{#if archivingConsumerInProgressEservicesSingular}}
+                                        C'è <strong>1 versione di e-service o e-service in fase di archiviazione</strong>, tra cui:
+                                        {{else}}
+                                        Ci sono <strong>{{ archivingConsumerInProgressEservices.totalCount }} versioni di e-service o e-service in fase di archiviazione</strong>, tra cui:
+                                        {{/if}}
+                                      </p>
+                                      <div class="archiving-box">
+                                        {{#each archivingConsumerInProgressEservices.items}}
+                                        <p class="archiving-item">
+                                          {{#if isEserviceScope}}
+                                          L'e-service <a href="{{ link }}" class="link-primary" style="color: #0073e6;">{{ eserviceName }}</a> è in fase di archiviazione. L'archiviazione avverrà il giorno <strong>{{ archivableOn }}</strong>.
+                                          {{else}}
+                                          La versione <strong>{{ version }}</strong> dell'e-service <a href="{{ link }}" class="link-primary" style="color: #0073e6;">{{ eserviceName }}</a> è in fase di archiviazione. L'archiviazione avverrà il giorno <strong>{{ archivableOn }}</strong>.
+                                          {{/if}}
+                                        </p>
+                                        {{/each}}
+                                        {{#if archivingConsumerInProgressRemainder}}
+                                        <p class="archiving-item">E altre <strong>{{ archivingConsumerInProgressRemainder }}</strong>.</p>
+                                        {{/if}}
+                                      </div>
+                                      {{/if}}
+                                    </div>
+                                    {{/if}}
+                                  </td>
+                                </tr>
+                                {{/if}}
                                 <tr>
                                   <td
                                     align="left"

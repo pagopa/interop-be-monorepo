@@ -236,6 +236,81 @@ export function getMockTenantDigestData(): TenantDigestData {
     },
     archivingEserviceScopeCount: 1,
     archivingDescriptorScopeCount: 1,
+    archivingConsumerImminentEservices: {
+      items: [
+        {
+          id: "eservice-7",
+          eserviceName: "Servizio Pagamenti Fruito",
+          version: "2",
+          scope: "Descriptor",
+          isEserviceScope: false,
+          archivableOn: "06/10/2026",
+          link: "https://example.com/eservice/7",
+        },
+        {
+          id: "eservice-8",
+          eserviceName: "Servizio Residenze Fruito",
+          version: "1",
+          scope: "EService",
+          isEserviceScope: true,
+          archivableOn: "07/10/2026",
+          link: "https://example.com/eservice/8",
+        },
+      ],
+      totalCount: 2,
+    },
+    archivingConsumerInProgressEservices: {
+      items: [
+        {
+          id: "eservice-9",
+          eserviceName: "Servizio Tributi Fruito",
+          version: "4",
+          scope: "Descriptor",
+          isEserviceScope: false,
+          archivableOn: "30/10/2026",
+          link: "https://example.com/eservice/9",
+        },
+        {
+          id: "eservice-10",
+          eserviceName: "Servizio Anagrafe Fruito",
+          version: "2",
+          scope: "Descriptor",
+          isEserviceScope: false,
+          archivableOn: "31/10/2026",
+          link: "https://example.com/eservice/10",
+        },
+        {
+          id: "eservice-11",
+          eserviceName: "Servizio Catasto Fruito",
+          version: "3",
+          scope: "Descriptor",
+          isEserviceScope: false,
+          archivableOn: "02/11/2026",
+          link: "https://example.com/eservice/11",
+        },
+        {
+          id: "eservice-12",
+          eserviceName: "Servizio Protocollo Fruito",
+          version: "1",
+          scope: "Descriptor",
+          isEserviceScope: false,
+          archivableOn: "04/11/2026",
+          link: "https://example.com/eservice/12",
+        },
+        {
+          id: "eservice-13",
+          eserviceName: "Servizio Notifiche Fruito",
+          version: "1",
+          scope: "EService",
+          isEserviceScope: true,
+          archivableOn: "06/11/2026",
+          link: "https://example.com/eservice/13",
+        },
+      ],
+      totalCount: 10,
+    },
+    archivingConsumerEserviceScopeCount: 0,
+    archivingConsumerDescriptorScopeCount: 10,
   };
 }
 
@@ -424,6 +499,36 @@ export function getMockSingularTenantDigestData(): TenantDigestData {
     },
     archivingEserviceScopeCount: 1,
     archivingDescriptorScopeCount: 1,
+    archivingConsumerImminentEservices: {
+      items: [
+        {
+          id: "eservice-7",
+          eserviceName: "Servizio Pagamenti Fruito",
+          version: "2",
+          scope: "Descriptor",
+          isEserviceScope: false,
+          archivableOn: "06/10/2026",
+          link: "https://example.com/eservice/7",
+        },
+      ],
+      totalCount: 1,
+    },
+    archivingConsumerInProgressEservices: {
+      items: [
+        {
+          id: "eservice-7",
+          eserviceName: "Servizio Pagamenti Fruito",
+          version: "2",
+          scope: "Descriptor",
+          isEserviceScope: false,
+          archivableOn: "06/10/2026",
+          link: "https://example.com/eservice/7",
+        },
+      ],
+      totalCount: 1,
+    },
+    archivingConsumerEserviceScopeCount: 0,
+    archivingConsumerDescriptorScopeCount: 1,
   };
 }
 
