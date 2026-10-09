@@ -14,11 +14,11 @@ describe("getNotificationRecipients", () => {
 
   const tenants: TenantId[] = [generateId<TenantId>(), generateId<TenantId>()];
 
-  const users: Array<{
+  const users: {
     userId: UserId;
     tenantId: TenantId;
     userRoles: UserRole[];
-  }> = [
+  }[] = [
     {
       userId: generateId(),
       tenantId: tenants[0],

@@ -93,9 +93,10 @@ export const processPurposes = async ({
 
 const hasPendingArchivingRequest = (
   archivingRequests:
-    | Array<
-        DelegatedEServiceArchivingRequest | DelegatedDescriptorArchivingRequest
-      >
+    | (
+        | DelegatedEServiceArchivingRequest
+        | DelegatedDescriptorArchivingRequest
+      )[]
     | undefined
 ): boolean =>
   archivingRequests?.some(
@@ -126,7 +127,7 @@ export const processEServiceArchivingRequests = async ({
     )
     .map((descriptor) => descriptor.id);
 
-  const scopes: Array<DescriptorId | undefined> = [
+  const scopes: (DescriptorId | undefined)[] = [
     ...descriptorIdsWithPendingRequest,
     ...(hasPendingArchivingRequest(eservice.delegatedArchivingRequest)
       ? [undefined]

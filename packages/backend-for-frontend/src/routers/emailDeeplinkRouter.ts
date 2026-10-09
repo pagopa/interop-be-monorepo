@@ -43,7 +43,7 @@ function buildTokenExchangeUrl(
 
 const emailDeeplinkRouters = (
   ctx: ZodiosContext
-): Array<ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>> => {
+): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>[] => {
   const emailDeeplinkRouter = ctx.router(bffApi.emailDeepLinkApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });

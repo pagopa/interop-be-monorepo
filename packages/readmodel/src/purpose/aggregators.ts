@@ -62,7 +62,7 @@ export const aggregatePurposeArray = ({
   versionStampsSQL: PurposeVersionStampSQL[];
   versionSignedDocumentsSQL: PurposeVersionSignedDocumentSQL[];
   reviewersSQL: RiskAnalysisReviewerSQL[];
-}): Array<WithMetadata<Purpose>> => {
+}): WithMetadata<Purpose>[] => {
   const riskAnalysisFormsSQLByPurposeId =
     createPurposeSQLPropertyMap(riskAnalysisFormsSQL);
   const riskAnalysisAnswersSQLByPurposeId = createPurposeSQLPropertyMap(
@@ -427,7 +427,7 @@ const purposeVersionStampSQLtoPurposeVersionStamp = (
 });
 
 export const toPurposeAggregator = (
-  queryRes: Array<{
+  queryRes: {
     purpose: PurposeSQL;
     purposeRiskAnalysisForm: PurposeRiskAnalysisFormSQL | null;
     purposeRiskAnalysisAnswer: PurposeRiskAnalysisAnswerSQL | null;
@@ -436,7 +436,7 @@ export const toPurposeAggregator = (
     purposeVersionStamp: PurposeVersionStampSQL | null;
     purposeVersionSignedDocument: PurposeVersionSignedDocumentSQL | null;
     purposeRiskAnalysisReviewer: RiskAnalysisReviewerSQL | null;
-  }>
+  }[]
 ): PurposeItemsSQL => {
   const {
     purposesSQL,
@@ -464,7 +464,7 @@ export const toPurposeAggregator = (
 };
 
 export const toPurposeAggregatorArray = (
-  queryRes: Array<{
+  queryRes: {
     purpose: PurposeSQL;
     purposeRiskAnalysisForm: PurposeRiskAnalysisFormSQL | null;
     purposeRiskAnalysisAnswer: PurposeRiskAnalysisAnswerSQL | null;
@@ -473,7 +473,7 @@ export const toPurposeAggregatorArray = (
     purposeVersionStamp: PurposeVersionStampSQL | null;
     purposeVersionSignedDocument: PurposeVersionSignedDocumentSQL | null;
     purposeRiskAnalysisReviewer: RiskAnalysisReviewerSQL | null;
-  }>
+  }[]
 ): {
   purposesSQL: PurposeSQL[];
   riskAnalysisFormsSQL: PurposeRiskAnalysisFormSQL[];

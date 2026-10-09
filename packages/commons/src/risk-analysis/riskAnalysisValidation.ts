@@ -231,9 +231,7 @@ function validateFormAnswers(
   answers: RiskAnalysisFormToValidate["answers"],
   schemaOnlyValidation: boolean,
   validationRules: ValidationRule[]
-): Array<
-  RiskAnalysisValidationResult<RiskAnalysisValidatedSingleOrMultiAnswer>
-> {
+): RiskAnalysisValidationResult<RiskAnalysisValidatedSingleOrMultiAnswer>[] {
   return Object.entries(answers)
     .map(([answerKey, answerValue]) => {
       const validationRule = validationRules.find(

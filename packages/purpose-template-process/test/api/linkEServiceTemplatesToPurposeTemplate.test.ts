@@ -37,27 +37,26 @@ describe("API POST /purposeTemplates/:id/linkEserviceTemplates", () => {
     generateId<EServiceTemplateId>(),
   ];
 
-  const mockLinks: Array<WithMetadata<EServiceTemplateVersionPurposeTemplate>> =
-    [
-      {
-        data: {
-          purposeTemplateId,
-          eserviceTemplateId: eserviceTemplateIds[0],
-          eserviceTemplateVersionId: generateId<EServiceTemplateVersionId>(),
-          createdAt: new Date(),
-        },
-        metadata: { version: 1 },
+  const mockLinks: WithMetadata<EServiceTemplateVersionPurposeTemplate>[] = [
+    {
+      data: {
+        purposeTemplateId,
+        eserviceTemplateId: eserviceTemplateIds[0],
+        eserviceTemplateVersionId: generateId<EServiceTemplateVersionId>(),
+        createdAt: new Date(),
       },
-      {
-        data: {
-          purposeTemplateId,
-          eserviceTemplateId: eserviceTemplateIds[1],
-          eserviceTemplateVersionId: generateId<EServiceTemplateVersionId>(),
-          createdAt: new Date(),
-        },
-        metadata: { version: 1 },
+      metadata: { version: 1 },
+    },
+    {
+      data: {
+        purposeTemplateId,
+        eserviceTemplateId: eserviceTemplateIds[1],
+        eserviceTemplateVersionId: generateId<EServiceTemplateVersionId>(),
+        createdAt: new Date(),
       },
-    ];
+      metadata: { version: 1 },
+    },
+  ];
 
   const validLinkRequest: purposeTemplateApi.linkEServiceTemplatesToPurposeTemplate_Body =
     {
