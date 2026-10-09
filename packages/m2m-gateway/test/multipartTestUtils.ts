@@ -118,6 +118,17 @@ export function addTestMultipartFileAnnotationDocumentToSupertestRequest(
   return req;
 }
 
+export function fileFromTestMultipartFileUpload(
+  file: TestMultipartFileUpload
+): File {
+  return new File([file.fileContent], file.filename, {
+    type: file.contentType,
+    // Must match the lastModified set in the multipart middleware. Both use
+    // new Date() so the timestamp is mocked consistently via fake timers.
+    lastModified: new Date().getTime(),
+  });
+}
+
 async function expectFilesToBeEqual(file1: File, file2: File): Promise<void> {
   expect(file1.name).toEqual(file2.name);
   expect(file1.type).toEqual(file2.type);
