@@ -4,7 +4,11 @@
     "-lintignore"
   ],
   "workspaces": {
-    ".": {}
+    ".": {
+      "entry": [
+        "docker/selfcare-mock/selfcare-mock.mjs"
+      ]
+    }
   },
   "ignoreDependencies": [
     "prettier",
