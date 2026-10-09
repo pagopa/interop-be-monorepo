@@ -1313,3 +1313,22 @@ export const toCreateEventEServiceDescriptorArchivingRequestCanceledByDelegate =
     },
     correlationId,
   });
+
+export const toCreateEventEServiceDescriptorUpdatedtAfterDelegationRevoke = (
+  version: number,
+  descriptorId: DescriptorId,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceDescriptorUpdatedByRevokedDelegation",
+    event_version: 2,
+    data: {
+      descriptorId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
