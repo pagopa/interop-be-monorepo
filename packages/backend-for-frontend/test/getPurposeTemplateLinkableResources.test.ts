@@ -95,6 +95,7 @@ describe("getPurposeTemplateLinkableResources (service)", () => {
   const buildConcreteFixture = (createdAt: string) => {
     const descriptor = getMockedApiEserviceDescriptor();
     const eservice = getMockedApiEservice({ descriptors: [descriptor] });
+    eservice.mode = catalogApi.EServiceMode.Values.DELIVER;
     const link: purposeTemplateApi.EServiceDescriptorPurposeTemplate = {
       purposeTemplateId,
       eserviceId: eservice.id,
@@ -169,6 +170,46 @@ describe("getPurposeTemplateLinkableResources (service)", () => {
     expect(result.results[2].createdAt).toBe(concreteOldest.link.createdAt);
     expect(mocks.getEServices).toHaveBeenCalledTimes(1);
     expect(mocks.getEServiceTemplates).toHaveBeenCalledTimes(1);
+  });
+
+  it("filters out receive mode concrete e-services from the linkable resources", async () => {
+    const deliverConcrete = buildConcreteFixture("2026-01-01T00:00:00.000Z");
+    const receiveConcrete = buildConcreteFixture("2026-02-01T00:00:00.000Z");
+    deliverConcrete.eservice.mode = catalogApi.EServiceMode.Values.DELIVER;
+    receiveConcrete.eservice.mode = catalogApi.EServiceMode.Values.RECEIVE;
+
+    const { service } = buildService({
+      getPurposeTemplateEServices: vi.fn().mockResolvedValue({
+        results: [deliverConcrete.link, receiveConcrete.link],
+        totalCount: 2,
+      }),
+      getEServices: vi.fn().mockResolvedValue({
+        results: [deliverConcrete.eservice, receiveConcrete.eservice],
+      }),
+      getTenant: vi
+        .fn()
+        .mockImplementation(({ params: { id } }) =>
+          Promise.resolve(
+            [deliverConcrete.tenant, receiveConcrete.tenant].find(
+              (t) => t.id === id
+            )
+          )
+        ),
+    });
+
+    const result = await service.getPurposeTemplateLinkableResources({
+      purposeTemplateId,
+      publisherIds: [],
+      offset: 0,
+      limit: 10,
+      ctx,
+    });
+
+    expect(result.pagination).toEqual({ offset: 0, limit: 10, totalCount: 1 });
+    expect(result.results).toHaveLength(1);
+    expect(result.results[0]).toMatchObject({
+      eservice: { id: deliverConcrete.eservice.id },
+    });
   });
 
   it("performs multi round-trip until each upstream is exhausted", async () => {
@@ -287,7 +328,7 @@ describe("getPurposeTemplateLinkableResources (service)", () => {
     expect(result.results).toHaveLength(50);
   });
 
-  it("returns empty results without invoking enrichment when offset is past the merged list size", async () => {
+  it("returns empty results without enriching the page when offset is past the merged list size", async () => {
     const fixtures = [1, 2, 3].map((i) =>
       buildConcreteFixture(`2026-0${i}-01T00:00:00.000Z`)
     );
@@ -311,7 +352,7 @@ describe("getPurposeTemplateLinkableResources (service)", () => {
       results: [],
       pagination: { offset: 10, limit: 10, totalCount: 3 },
     });
-    expect(mocks.getEServices).toHaveBeenCalledTimes(0);
+    expect(mocks.getEServices).toHaveBeenCalledTimes(1);
     expect(mocks.getEServiceTemplates).toHaveBeenCalledTimes(0);
     expect(mocks.getTenant).toHaveBeenCalledTimes(0);
   });
