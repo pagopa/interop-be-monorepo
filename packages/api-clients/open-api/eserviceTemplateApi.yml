@@ -1902,7 +1902,6 @@ components:
         - version
         - docs
         - state
-        - creationDate
         - voucherLifespan
         - attributes
       properties:
