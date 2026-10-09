@@ -2,6 +2,7 @@ import { match } from "ts-pattern";
 
 import {
   PurposeStateV2,
+  PurposeWaitingForApprovalReasonV2,
   PurposeV2,
   PurposeVersionDocumentV2,
   PurposeVersionSignedDocumentV2,
@@ -9,6 +10,7 @@ import {
   PurposeVersionStampV2,
   PurposeVersionV2,
   ReviewerWorkflowV2,
+  RiskAnalysisReviewerV2,
   RiskAnalysisReviewModeV2,
   RiskAnalysisSigningStateV2,
 } from "../gen/v2/purpose/purpose.js";
@@ -18,6 +20,8 @@ import { toTenantKindV2 } from "../tenant/protobufConverterToV2.js";
 import { dateToBigInt } from "../utils.js";
 import {
   Purpose,
+  PurposeWaitingForApprovalReason,
+  purposeWaitingForApprovalReason,
   PurposeVersion,
   PurposeVersionDocument,
   PurposeVersionSignedDocument,
@@ -26,6 +30,7 @@ import {
   PurposeVersionState,
   purposeVersionState,
   ReviewerWorkflow,
+  RiskAnalysisReviewer,
   RiskAnalysisReviewMode,
   riskAnalysisReviewMode,
   RiskAnalysisSigningState,
@@ -75,11 +80,36 @@ export const toPurposeVersionStampsV2 = (
   creation: toPurposeVersionStampV2(input.creation),
 });
 
+export const toPurposeWaitingForApprovalReasonV2 = (
+  input: PurposeWaitingForApprovalReason
+): PurposeWaitingForApprovalReasonV2 =>
+  match(input)
+    .with(
+      purposeWaitingForApprovalReason.dailyCallsPerConsumer,
+      () =>
+        PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_PER_CONSUMER
+    )
+    .with(
+      purposeWaitingForApprovalReason.dailyCallsTotal,
+      () =>
+        PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_TOTAL
+    )
+    .with(
+      purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+      () =>
+        PurposeWaitingForApprovalReasonV2.PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_PER_CONSUMER_AND_TOTAL
+    )
+    .exhaustive();
+
 export const toPurposeVersionV2 = (
   input: PurposeVersion
 ): PurposeVersionV2 => ({
   ...input,
   state: toPurposeVersionStateV2(input.state),
+  waitingForApprovalReason:
+    input.waitingForApprovalReason !== undefined
+      ? toPurposeWaitingForApprovalReasonV2(input.waitingForApprovalReason)
+      : undefined,
   createdAt: dateToBigInt(input.createdAt),
   updatedAt: dateToBigInt(input.updatedAt),
   firstActivationAt: dateToBigInt(input.firstActivationAt),
@@ -104,6 +134,10 @@ export const toRiskAnalysisReviewModeV2 = (
   input: RiskAnalysisReviewMode
 ): RiskAnalysisReviewModeV2 =>
   match(input)
+    .with(
+      riskAnalysisReviewMode.adminWritesAdminSigns,
+      () => RiskAnalysisReviewModeV2.ADMIN_WRITES_ADMIN_SIGNS
+    )
     .with(
       riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       () => RiskAnalysisReviewModeV2.REVIEWER_WRITES_REVIEWER_SIGNS
@@ -140,13 +174,23 @@ export const toRiskAnalysisSigningStateV2 = (
     )
     .exhaustive();
 
+export const toRiskAnalysisReviewerV2 = (
+  input: RiskAnalysisReviewer
+): RiskAnalysisReviewerV2 => ({
+  id: input.id,
+  sentToReviewerAt: dateToBigInt(input.sentToReviewerAt),
+});
+
 export const toReviewerWorkflowV2 = (
   input: ReviewerWorkflow
 ): ReviewerWorkflowV2 => ({
-  reviewMode: toRiskAnalysisReviewModeV2(input.reviewMode),
-  reviewerIds: input.reviewerIds,
+  reviewerIds: [],
+  reviewers: input.reviewers.map(toRiskAnalysisReviewerV2),
   signingState: toRiskAnalysisSigningStateV2(input.signingState),
   signedBy: input.signedBy,
+  signedAt: dateToBigInt(input.signedAt),
+  rejectedBy: input.rejectedBy,
+  rejectedAt: dateToBigInt(input.rejectedAt),
   rejectionReason: input.rejectionReason,
   sentToReviewerAt: dateToBigInt(input.sentToReviewerAt),
 });
@@ -158,6 +202,9 @@ export const toPurposeV2 = (input: Purpose): PurposeV2 => ({
   updatedAt: dateToBigInt(input.updatedAt),
   riskAnalysisForm: input.riskAnalysisForm
     ? toPurposeRiskAnalysisFormV2(input.riskAnalysisForm)
+    : undefined,
+  riskAnalysisReviewMode: input.riskAnalysisReviewMode
+    ? toRiskAnalysisReviewModeV2(input.riskAnalysisReviewMode)
     : undefined,
   reviewerWorkflow: input.reviewerWorkflow
     ? toReviewerWorkflowV2(input.reviewerWorkflow)

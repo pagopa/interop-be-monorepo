@@ -6,18 +6,20 @@ import {
   riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate,
   unexpectedRiskAnalysisTemplateDependencyValueError,
   unexpectedRiskAnalysisTemplateFieldError,
+  unexpectedRiskAnalysisTemplateFieldHyperlinkError,
   unexpectedRiskAnalysisTemplateFieldValueError,
   unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError,
   unexpectedRiskAnalysisTemplateRulesVersionError,
   validatePurposeTemplateRiskAnalysis,
+  validateRiskAnalysisAnswer,
 } from "pagopa-interop-commons";
 import { TenantKind, tenantKind } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 
 import {
   getMockValidRiskAnalysisFormTemplate,
-  validatedRiskAnalysisTemplate2_0_Private,
-  validatedRiskAnalysisTemplate3_1_Pa,
+  validatedRiskAnalysisTemplate2_1_Private,
+  validatedRiskAnalysisTemplate3_2_Pa,
 } from "../src/riskAnalysisTemplateTestUtils.js";
 
 describe("Risk Analysis Template Validation", () => {
@@ -110,7 +112,7 @@ describe("Risk Analysis Template Validation", () => {
     };
   }
 
-  it("should succeed on correct form 3.1 on tenant kind PA", () => {
+  it("should succeed on correct form 3.2 on tenant kind PA", () => {
     const template = createValidTemplate(tenantKind.PA);
     const result = validatePurposeTemplateRiskAnalysis(
       template,
@@ -120,11 +122,105 @@ describe("Risk Analysis Template Validation", () => {
 
     expect(result).toEqual({
       type: "valid",
-      value: validatedRiskAnalysisTemplate3_1_Pa,
+      value: validatedRiskAnalysisTemplate3_2_Pa,
     });
   });
 
-  it("should succeed on correct form 2.0 on tenant kind PRIVATE", () => {
+  describe.each([tenantKind.PA, tenantKind.PRIVATE])(
+    "online privacy policy suggestions (%s)",
+    (kind) => {
+      const urls = [
+        "https://example.com/privacy",
+        "http://example.com/privacy",
+      ];
+
+      it("should accept URL suggestions in a complete risk analysis template", () => {
+        const template = createTemplateWithoutField(
+          createValidTemplate(kind),
+          "reasonPolicyNotProvided"
+        );
+        template.answers.policyProvided = {
+          values: ["YES"],
+          editable: false,
+          suggestedValues: [],
+        };
+        template.answers.policyProvidedMedium = {
+          values: ["ONLINE"],
+          editable: false,
+          suggestedValues: [],
+        };
+        template.answers.policyProvidedOnlineLink = {
+          values: [],
+          editable: false,
+          suggestedValues: urls,
+        };
+
+        const result = validatePurposeTemplateRiskAnalysis(
+          template,
+          kind,
+          true
+        );
+
+        expect(result.type).toBe("valid");
+        if (result.type === "valid") {
+          expect(result.value.singleAnswers).toContainEqual({
+            key: "policyProvidedOnlineLink",
+            value: undefined,
+            editable: false,
+            suggestedValues: urls,
+          });
+        }
+      });
+
+      it("should accept URL suggestions when validating a single answer", () => {
+        const result = validateRiskAnalysisAnswer(
+          "policyProvidedOnlineLink",
+          { values: [], editable: false, suggestedValues: urls },
+          kind
+        );
+
+        expect(result.type).toBe("valid");
+      });
+
+      it("should still reject URL suggestions in other free text fields", () => {
+        const template = createTemplateWithModifiedField(
+          createValidTemplate(kind),
+          "institutionalPurpose",
+          { suggestedValues: urls }
+        );
+
+        expect(
+          validatePurposeTemplateRiskAnalysis(template, kind, true)
+        ).toEqual({
+          type: "invalid",
+          issues: [
+            unexpectedRiskAnalysisTemplateFieldHyperlinkError(
+              "institutionalPurpose"
+            ),
+          ],
+        });
+      });
+
+      it("should still enforce the privacy policy suggestion structure", () => {
+        const result = validateRiskAnalysisAnswer(
+          "policyProvidedOnlineLink",
+          { values: [], editable: true, suggestedValues: urls },
+          kind
+        );
+
+        expect(result).toEqual({
+          type: "invalid",
+          issues: [
+            malformedRiskAnalysisTemplateFieldValueOrSuggestionError(
+              "policyProvidedOnlineLink"
+            ),
+          ],
+        });
+      });
+    }
+  );
+
+  it("should succeed on correct form 2.1 on tenant kind PRIVATE", () => {
     const template = createValidTemplate(tenantKind.PRIVATE);
     const result = validatePurposeTemplateRiskAnalysis(
       template,
@@ -134,7 +230,7 @@ describe("Risk Analysis Template Validation", () => {
 
     expect(result).toEqual({
       type: "valid",
-      value: validatedRiskAnalysisTemplate2_0_Private,
+      value: validatedRiskAnalysisTemplate2_1_Private,
     });
   });
 

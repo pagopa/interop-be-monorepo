@@ -1,4 +1,4 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
   title: Catalog Process Micro Service
   description: This service is the catalog process
@@ -205,6 +205,35 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "409":
           $ref: "#/components/responses/Conflict"
+  /catalog:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    query:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Query a list of E-Service
+      operationId: queryEServices
+      description: Retrieves a paginated list of E-Services matching the given filters
+      requestBody:
+        required: true
+        description: E-service query filters
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServicesFilterPayload"
+      responses:
+        "200":
+          description: A list of E-Service
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServices"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
   /eservices/{eServiceId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -435,6 +464,329 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /eservices/{eServiceId}/approveDelegatedArchiving:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: eServiceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Approve a delegated archiving request for an E-Service
+      operationId: approveDelegatedEServiceArchiving
+      description: Allows the owner (delegator) to approve a delegate's archiving request.
+      responses:
+        "200":
+          description: Delegated archiving request approved.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /eservices/{eServiceId}/rejectDelegatedArchiving:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: eServiceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Reject a delegated archiving request for an E-Service
+      operationId: rejectDelegatedEServiceArchiving
+      description: Allows the owner (delegator) to reject a delegate's archiving request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RejectDelegatedEServiceArchivingSeed"
+      responses:
+        "200":
+          description: Delegated archiving request rejected.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /eservices/{eServiceId}/submitDelegatedArchiving:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: eServiceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Submit a delegated archiving request for an E-Service
+      operationId: submitDelegatedEServiceArchiving
+      description: Allows a delegate to request the archiving of the specified E-Service. The owner must then approve or reject the request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceArchivingSeed"
+      responses:
+        "200":
+          description: Delegated archiving request submitted.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Cancel a delegated archiving request for an E-Service
+      operationId: cancelDelegatedEServiceArchiving
+      description: Allows a delegate to cancel the archiving request of the specified E-Service.
+      responses:
+        "200":
+          description: Delegated archiving request canceled.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /eservices/{eServiceId}/descriptors/{descriptorId}/submitDelegatedArchiving:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: eServiceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: descriptorId
+        in: path
+        description: the descriptor Id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Submit a delegated archiving request for an E-Service
+      operationId: submitDelegatedDescriptorArchiving
+      description: Allows a delegate to request the archiving of the specified Descriptor. The owner must then approve or reject the request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GracePeriodDaysSeed"
+      responses:
+        "200":
+          description: Delegated archiving request submitted.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Cancel a delegated archiving request for a descriptor
+      operationId: cancelDelegatedDescriptorArchiving
+      description: Allows a delegate to cancel the archiving request of the specified Descriptor.
+      responses:
+        "200":
+          description: Delegated archiving request canceled.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /eservices/{eServiceId}/descriptors/{descriptorId}/approveDelegatedArchiving:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: eServiceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: descriptorId
+        in: path
+        description: the descriptor Id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Approve a delegated archiving request for a descriptor
+      operationId: approveDelegatedDescriptorArchiving
+      description: Allows the delegator producer to approve a delegate's descriptor archiving request, starting the regular archiving grace period.
+      responses:
+        "200":
+          description: Delegated archiving request approved.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /eservices/{eServiceId}/descriptors/{descriptorId}/rejectDelegatedArchiving:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: eServiceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: descriptorId
+        in: path
+        description: the descriptor Id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Reject a delegated archiving request for a descriptor
+      operationId: rejectDelegatedDescriptorArchiving
+      description: Allows the delegator producer to reject a delegate's descriptor archiving request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RejectDelegatedDescriptorArchivingSeed"
+      responses:
+        "200":
+          description: Delegated archiving request rejected.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /templates/eservices/{eServiceId}:
     post:
       security:
@@ -1044,6 +1396,40 @@ paths:
           $ref: "#/components/responses/NotFound"
         "409":
           $ref: "#/components/responses/Conflict"
+  /internal/eservices/{eServiceId}/delegatedArchivingRequests/archive:
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Archive a delegated archiving request for the selected E-Service.
+      operationId: internalDeleteDelegatedArchivingRequest
+      description: Archives (closes) an active delegated archiving request for the specified E-Service or one of its descriptors.
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Payload
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InternalDeleteDelegatedArchivingRequestSeed"
+      responses:
+        "204":
+          description: Delegated archiving request archived
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /internal/eservices/{eServiceId}/archive:
     post:
       security:
@@ -3367,6 +3753,10 @@ components:
           type: boolean
         archivingReason:
           type: string
+        delegatedArchivingRequest:
+          type: array
+          items:
+            $ref: "#/components/schemas/DelegatedEServiceArchivingRequest"
         asyncExchange:
           type: boolean
     CreatedEServiceRiskAnalysis:
@@ -3582,6 +3972,101 @@ components:
       required:
         - results
         - totalCount
+    EServicesFilterPayload:
+      type: object
+      additionalProperties: false
+      description: Filters for the e-service query
+      required:
+        - offset
+        - limit
+      properties:
+        offset:
+          type: integer
+          format: int32
+          minimum: 0
+        limit:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 200
+        keyword:
+          type: string
+          description: Case-insensitive text search on e-service name, description and producer name
+        sortBy:
+          $ref: "#/components/schemas/EServiceSortBy"
+        onlyActiveEservices:
+          type: boolean
+          description: If true, excludes e-services whose relevant descriptor is SUSPENDED
+        availableForRequester:
+          type: boolean
+          description: Filter by whether the requester satisfies the required certified attributes
+        subscribedByRequester:
+          type: boolean
+          description: Filter by presence of a valid agreement of the requester
+        onlyTemplateInstances:
+          type: boolean
+          description: If true, returns only e-services with a templateId
+        hasLinkedPurposeTemplates:
+          type: boolean
+          description: If true, returns only e-services with linked purpose templates
+        producerCategories:
+          type: array
+          description: Producer entity macro-categories
+          items:
+            $ref: "#/components/schemas/EServiceProducerCategory"
+        asyncExchange:
+          type: boolean
+          description: If true, returns only asynchronous/bulk e-services; if false, only synchronous ones
+        mode:
+          $ref: "#/components/schemas/EServiceMode"
+        onlySignalHubEnabled:
+          type: boolean
+          description: If true, returns only e-services with Signal Hub enabled
+        requesterDelegationRoles:
+          type: array
+          description: Filter by the requester role in producer delegations
+          items:
+            $ref: "#/components/schemas/RequesterDelegationRole"
+        templateId:
+          type: string
+          format: uuid
+          description: Returns only e-services belonging to the given template collection
+        producersIds:
+          type: array
+          description: Filter by producer tenant ids
+          items:
+            type: string
+            format: uuid
+    EServiceSortBy:
+      type: string
+      description: Sort criteria for the e-service query
+      enum:
+        - NAME_ASC
+        - NAME_DESC
+        - CREATED_AT_ASC
+        - CREATED_AT_DESC
+    RequesterDelegationRole:
+      type: string
+      description: Role of the requester in a producer delegation
+      enum:
+        - DELEGATE
+        - DELEGATOR
+    EServiceProducerCategory:
+      type: string
+      description: Producer entity macro-category, resolved backend-side to certified attribute codes
+      enum:
+        - ALTRE_PUBBLICHE_AMMINISTRAZIONI_LOCALI
+        - AZIENDE_OSPEDALIERE_ASL
+        - COMUNI
+        - PROVINCE_CITTA_METROPOLITANE
+        - PUBBLICHE_AMMINISTRAZIONI_CENTRALI
+        - ENTI_NAZIONALI_PREVIDENZA_ASSISTENZA
+        - REGIONI_PROVINCE_AUTONOME
+        - CONSORZI_ASSOCIAZIONI_REGIONALI
+        - SCUOLE
+        - UNIVERSITA_AFAM
+        - ISTITUTI_RICERCA
+        - STAZIONI_APPALTANTI_GESTORI_PUBBLICI_SERVIZI
     EServiceDoc:
       type: object
       additionalProperties: false
@@ -3760,6 +4245,61 @@ components:
           $ref: "#/components/schemas/EServiceDoc"
         archivingSchedule:
           $ref: "#/components/schemas/ArchivingSchedule"
+        delegatedArchivingRequest:
+          type: array
+          items:
+            $ref: "#/components/schemas/DelegatedDescriptorArchivingRequest"
+    DelegatedDescriptorArchivingRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - requestedAt
+        - requesterId
+        - gracePeriodDays
+      properties:
+        requestedAt:
+          type: string
+          format: date-time
+        acceptedAt:
+          type: string
+          format: date-time
+        rejectedAt:
+          type: string
+          format: date-time
+        rejectionReason:
+          type: string
+        requesterId:
+          type: string
+          format: uuid
+        gracePeriodDays:
+          $ref: "#/components/schemas/GracePeriodDays"
+    DelegatedEServiceArchivingRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - requestedAt
+        - requesterId
+        - gracePeriodDays
+        - archivingReason
+      properties:
+        requestedAt:
+          type: string
+          format: date-time
+        acceptedAt:
+          type: string
+          format: date-time
+        rejectedAt:
+          type: string
+          format: date-time
+        rejectionReason:
+          type: string
+        requesterId:
+          type: string
+          format: uuid
+        gracePeriodDays:
+          $ref: "#/components/schemas/GracePeriodDays"
+        archivingReason:
+          type: string
     ArchivingSchedule:
       type: object
       additionalProperties: false
@@ -3797,6 +4337,14 @@ components:
             - MANUAL
       required:
         - kind
+    InternalDeleteDelegatedArchivingRequestSeed:
+      type: object
+      additionalProperties: false
+      description: Seed for deleting a delegated archiving request
+      properties:
+        descriptorId:
+          type: string
+          format: uuid
     GracePeriodDays:
       description: Number of days for the archiving grace period
       type: integer
@@ -3809,7 +4357,7 @@ components:
         gracePeriodDays:
           $ref: "#/components/schemas/GracePeriodDays"
       required:
-       - gracePeriodDays
+        - gracePeriodDays
     EServiceArchivingSeed:
       type: object
       additionalProperties: false
@@ -3824,6 +4372,26 @@ components:
       required:
         - archivingReason
         - gracePeriodDays
+    RejectDelegatedEServiceArchivingSeed:
+      type: object
+      additionalProperties: false
+      description: Seed for an owner to reject a delegated archiving request
+      properties:
+        rejectionReason:
+          type: string
+          minLength: 1
+      required:
+        - rejectionReason
+    RejectDelegatedDescriptorArchivingSeed:
+      type: object
+      additionalProperties: false
+      description: Seed for the delegator to reject a delegate's descriptor archiving request
+      properties:
+        rejectionReason:
+          type: string
+          minLength: 1
+      required:
+        - rejectionReason
     ForceTargetState:
       type: object
       additionalProperties: false

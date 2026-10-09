@@ -114,18 +114,18 @@ export function riskAnalysisFormToRiskAnalysisFormToValidate(
     version: form.version,
     tenantKind: form.tenantKind,
     answers: {
-      ...form.singleAnswers.reduce(
-        (acc, singleAnswer) => ({
-          ...acc,
-          [singleAnswer.key]: singleAnswer.value ? [singleAnswer.value] : [],
-        }),
+      ...form.singleAnswers.reduce<Record<string, string[]>>(
+        (acc, { key, value }) => {
+          acc[key] = value ? [value] : [];
+          return acc;
+        },
         {}
       ),
-      ...form.multiAnswers.reduce(
-        (acc, multiAnswer) => ({
-          ...acc,
-          [multiAnswer.key]: multiAnswer.values,
-        }),
+      ...form.multiAnswers.reduce<Record<string, string[]>>(
+        (acc, { key, values }) => {
+          acc[key] = values;
+          return acc;
+        },
         {}
       ),
     },

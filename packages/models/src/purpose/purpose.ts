@@ -27,6 +27,7 @@ export const PurposeVersionState = z.enum([
 export type PurposeVersionState = z.infer<typeof PurposeVersionState>;
 
 export const riskAnalysisReviewMode = {
+  adminWritesAdminSigns: "AdminWritesAdminSigns",
   reviewerWritesReviewerSigns: "ReviewerWritesReviewerSigns",
   adminWritesReviewerSigns: "AdminWritesReviewerSigns",
 } as const;
@@ -82,12 +83,28 @@ export type PurposeVersionStamps = z.infer<typeof PurposeVersionStamps>;
 export const PurposeVersionStampKind = PurposeVersionStamps.keyof();
 export type PurposeVersionStampKind = z.infer<typeof PurposeVersionStampKind>;
 
+export const purposeWaitingForApprovalReason = {
+  dailyCallsPerConsumer: "DailyCallsPerConsumer",
+  dailyCallsTotal: "DailyCallsTotal",
+  dailyCallsPerConsumerAndTotal: "DailyCallsPerConsumerAndTotal",
+} as const;
+export const PurposeWaitingForApprovalReason = z.enum([
+  purposeWaitingForApprovalReason.dailyCallsPerConsumer,
+  purposeWaitingForApprovalReason.dailyCallsTotal,
+  purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+]);
+export type PurposeWaitingForApprovalReason = z.infer<
+  typeof PurposeWaitingForApprovalReason
+>;
+
 export const PurposeVersion = z.object({
   id: PurposeVersionId,
   state: PurposeVersionState,
   riskAnalysis: PurposeVersionDocument.optional(),
   dailyCalls: z.number(),
   rejectionReason: z.string().optional(),
+  // Quota decision while waiting for approval, cleared on rejection or activation.
+  waitingForApprovalReason: PurposeWaitingForApprovalReason.optional(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date().optional(),
   firstActivationAt: z.coerce.date().optional(),
@@ -97,11 +114,19 @@ export const PurposeVersion = z.object({
 });
 export type PurposeVersion = z.infer<typeof PurposeVersion>;
 
+export const RiskAnalysisReviewer = z.object({
+  id: UserId,
+  sentToReviewerAt: z.coerce.date().optional(),
+});
+export type RiskAnalysisReviewer = z.infer<typeof RiskAnalysisReviewer>;
+
 export const ReviewerWorkflow = z.object({
-  reviewMode: RiskAnalysisReviewMode,
-  reviewerIds: z.array(UserId),
+  reviewers: z.array(RiskAnalysisReviewer),
   signingState: RiskAnalysisSigningState,
   signedBy: UserId.optional(),
+  signedAt: z.coerce.date().optional(),
+  rejectedBy: UserId.optional(),
+  rejectedAt: z.coerce.date().optional(),
   rejectionReason: z.string().optional(),
   sentToReviewerAt: z.coerce.date().optional(),
 });
@@ -123,6 +148,7 @@ export const Purpose = z.object({
   isFreeOfCharge: z.boolean(),
   freeOfChargeReason: z.string().optional(),
   purposeTemplateId: PurposeTemplateId.optional(),
+  riskAnalysisReviewMode: RiskAnalysisReviewMode.optional(),
   reviewerWorkflow: ReviewerWorkflow.optional(),
 });
 export type Purpose = z.infer<typeof Purpose>;
