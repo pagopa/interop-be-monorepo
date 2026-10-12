@@ -574,7 +574,11 @@ export function purposeServiceBuilder(
     async assignRiskAnalysisReviewer(
       purposeId: PurposeId,
       seed: RiskAnalysisReviewAssignment,
-      { correlationId, authData, logger }: WithLogger<AppContext<UIAuthData>>
+      {
+        correlationId,
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Purpose>> {
       logger.info(`Assigning risk analysis reviewer to Purpose ${purposeId}`);
 
