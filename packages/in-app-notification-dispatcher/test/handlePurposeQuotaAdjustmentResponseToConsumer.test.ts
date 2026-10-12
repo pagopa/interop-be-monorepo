@@ -37,7 +37,7 @@ describe("handlePurposeQuotaAdjustmentResponseToConsumer", () => {
   const eserviceId = generateId<EServiceId>();
   const purposeId = generateId<PurposeId>();
 
-  const eservice = {
+  const eservice: EService = {
     ...getMockEService(),
     id: eserviceId,
     producerId,
@@ -48,7 +48,7 @@ describe("handlePurposeQuotaAdjustmentResponseToConsumer", () => {
   const consumerTenant = getMockTenant(consumerId);
 
   // Purpose with multiple versions (> 1) to trigger the notification
-  const purpose = {
+  const purpose: Purpose = {
     ...getMockPurpose([
       getMockPurposeVersion(purposeVersionState.active),
       getMockPurposeVersion(purposeVersionState.active),

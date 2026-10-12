@@ -161,7 +161,7 @@ describe("createReversePurpose", () => {
     const consumer = getMockTenant();
     const producer: Tenant = { ...getMockTenant(), kind: tenantKind.PA };
 
-    const delegateTenant = { ...getMockTenant(), kind: tenantKind.PA };
+    const delegateTenant: Tenant = { ...getMockTenant(), kind: tenantKind.PA };
 
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
@@ -272,13 +272,13 @@ describe("createReversePurpose", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
-    const producer = {
+    const producer: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
     };
 
-    const producerDelegate = {
+    const producerDelegate: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
@@ -308,13 +308,13 @@ describe("createReversePurpose", () => {
       state: delegationState.active,
     });
 
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
     };
 
-    const consumerDelegate = {
+    const consumerDelegate: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
@@ -416,7 +416,7 @@ describe("createReversePurpose", () => {
     vi.useRealTimers();
   });
   it("should throw tenantIsNotTheConsumer if the requester is not the consumer", async () => {
-    const consumer = { ...getMockTenant(), kind: tenantKind.PA };
+    const consumer: Tenant = { ...getMockTenant(), kind: tenantKind.PA };
     const producer: Tenant = { ...getMockTenant(), kind: tenantKind.PA };
 
     const mockDescriptor: Descriptor = {

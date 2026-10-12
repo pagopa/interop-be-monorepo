@@ -5,6 +5,7 @@ import {
   parseErrorMessage,
 } from "pagopa-interop-models";
 
+// eslint-disable-next-line interop/require-type-for-object
 const errorCodes = {
   purposeNotFound: "0001",
   userNotFound: "0002",

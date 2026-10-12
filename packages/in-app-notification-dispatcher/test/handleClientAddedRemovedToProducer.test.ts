@@ -35,7 +35,7 @@ describe("handleClientAddedRemovedToProducer", () => {
   const eserviceId = generateId<EServiceId>();
   const purposeId = generateId<PurposeId>();
 
-  const eservice = {
+  const eservice: EService = {
     ...getMockEService(),
     id: eserviceId,
     producerId,
@@ -45,7 +45,7 @@ describe("handleClientAddedRemovedToProducer", () => {
   const producerTenant = getMockTenant(producerId);
   const consumerTenant = getMockTenant(consumerId);
 
-  const purpose = {
+  const purpose: Purpose = {
     ...getMockPurpose([getMockPurposeVersion()]),
     id: purposeId,
     eserviceId,
