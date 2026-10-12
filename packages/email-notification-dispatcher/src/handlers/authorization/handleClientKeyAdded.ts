@@ -6,7 +6,6 @@ import {
   fromClientV2,
   clientKind,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
@@ -15,9 +14,10 @@ import {
   mapRecipientToEmailPayload,
   clientKeyNotFound,
 } from "pagopa-interop-notification-commons";
-import { ClientKeyHandlerParams } from "../../models/handlerParams.js";
+import { match } from "ts-pattern";
 
 import { config } from "../../config/config.js";
+import { ClientKeyHandlerParams } from "../../models/handlerParams.js";
 
 export async function handleClientKeyAdded(
   data: ClientKeyHandlerParams

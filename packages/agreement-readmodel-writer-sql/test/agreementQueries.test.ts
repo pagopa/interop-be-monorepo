@@ -1,9 +1,10 @@
-import { describe, expect, it } from "vitest";
-import { Agreement, WithMetadata } from "pagopa-interop-models";
 import {
   getMockAgreementDocument,
   getMockAgreementStamp,
 } from "pagopa-interop-commons-test";
+import { Agreement, WithMetadata } from "pagopa-interop-models";
+import { describe, expect, it } from "vitest";
+
 import {
   agreementReadModelService,
   agreementWriterService,

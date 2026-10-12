@@ -6,6 +6,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+
 import { AuthTokenPayload } from "../interop-token/models.js";
 import { SystemRole, UserRole, systemRole } from "./roles.js";
 

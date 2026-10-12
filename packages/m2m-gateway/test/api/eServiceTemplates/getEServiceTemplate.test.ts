@@ -1,14 +1,15 @@
-import { describe, it, expect, vi } from "vitest";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockedApiEServiceTemplate,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
 import { generateId } from "pagopa-interop-models";
-import { api, mockEServiceTemplateService } from "../../vitest.api.setup.js";
-import { appBasePath } from "../../../src/config/appBasePath.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { toM2MGatewayEServiceTemplate } from "../../../src/api/eserviceTemplateApiConverter.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
+import { api, mockEServiceTemplateService } from "../../vitest.api.setup.js";
 
 describe("GET /eserviceTemplates/:templateId router test", () => {
   const makeRequest = async (token: string, templateId: string) =>

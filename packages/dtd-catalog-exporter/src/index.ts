@@ -5,6 +5,7 @@ import {
   makeDrizzleConnectionWithCleanup,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
+
 import { config } from "./config/config.js";
 import { dtdCatalogExporterServiceBuilder } from "./services/dtdCatalogExporterService.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";

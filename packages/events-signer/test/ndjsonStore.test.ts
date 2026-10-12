@@ -1,12 +1,13 @@
-import { describe, it, expect } from "vitest";
 import AdmZip from "adm-zip";
 import { genericLogger } from "pagopa-interop-commons";
 import { generateId } from "pagopa-interop-models";
-import { prepareNdjsonEventData } from "../src/utils/ndjsonStore.js";
+import { describe, it, expect } from "vitest";
+
 import {
   AuthorizationEventData,
   DelegationEventData,
 } from "../src/models/eventTypes.js";
+import { prepareNdjsonEventData } from "../src/utils/ndjsonStore.js";
 
 const getFirstFileContent = (buffer: Buffer): string => {
   const zip = new AdmZip(buffer);

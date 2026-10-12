@@ -13,6 +13,7 @@ import {
   scheduledNotification,
   scheduledNotificationChannel,
 } from "pagopa-interop-scheduled-notification-db-models";
+
 import { computeSendAt } from "./sendAtCalculator.js";
 
 const SEND_AT_MARGIN_MINUTES = 5;

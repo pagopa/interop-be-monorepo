@@ -1,16 +1,24 @@
-import { describe, it, vi, beforeEach, expect } from "vitest";
-import {
-  generateId,
-  pollingMaxRetriesExceeded,
-  unsafeBrandId,
-} from "pagopa-interop-models";
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   getMockWithMetadata,
   getMockedApiEServiceAttribute,
   getMockedApiEservice,
   getMockedApiEserviceDescriptor,
 } from "pagopa-interop-commons-test";
-import { catalogApi } from "pagopa-interop-api-clients";
+import {
+  generateId,
+  pollingMaxRetriesExceeded,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import { describe, it, vi, beforeEach, expect } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { config } from "../../../src/config/config.js";
+import {
+  eserviceDescriptorAttributeGroupNotFound,
+  eserviceDescriptorNotFound,
+  missingMetadata,
+} from "../../../src/model/errors.js";
 import {
   eserviceService,
   expectApiClientPostToHaveBeenCalledWith,
@@ -18,14 +26,7 @@ import {
   mockInteropBeClients,
   mockPollingResponse,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import {
-  eserviceDescriptorAttributeGroupNotFound,
-  eserviceDescriptorNotFound,
-  missingMetadata,
-} from "../../../src/model/errors.js";
-import { config } from "../../../src/config/config.js";
 
 describe("assignEServiceDescriptorDeclaredAttributesToGroup", () => {
   const mockNewAttribute1 = getMockedApiEServiceAttribute();

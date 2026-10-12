@@ -1,4 +1,20 @@
 import {
+  and,
+  asc,
+  desc,
+  eq,
+  exists,
+  inArray,
+  isNotNull,
+  lte,
+  ne,
+  notExists,
+  or,
+  sql,
+  SQL,
+} from "drizzle-orm";
+import { alias, PgSelect } from "drizzle-orm/pg-core";
+import {
   ascLower,
   createListResult,
   escapeSqlLike,
@@ -9,6 +25,7 @@ import {
   EService,
   WithMetadata,
   EServiceId,
+  DescriptorId,
   TenantId,
   Tenant,
   Purpose,
@@ -32,6 +49,17 @@ import {
   TenantKind,
 } from "pagopa-interop-models";
 import {
+  aggregatePurposeArray,
+  AgreementReadModelService,
+  CatalogReadModelService,
+  ClientReadModelService,
+  DelegationReadModelService,
+  PurposeReadModelService,
+  PurposeTemplateReadModelService,
+  TenantReadModelService,
+  toPurposeAggregatorArray,
+} from "pagopa-interop-readmodel";
+import {
   agreementInReadmodelAgreement,
   delegationInReadmodelDelegation,
   DrizzleReturnType,
@@ -47,32 +75,6 @@ import {
   purposeVersionStampInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
 import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
-import {
-  aggregatePurposeArray,
-  AgreementReadModelService,
-  CatalogReadModelService,
-  ClientReadModelService,
-  DelegationReadModelService,
-  PurposeReadModelService,
-  PurposeTemplateReadModelService,
-  TenantReadModelService,
-  toPurposeAggregatorArray,
-} from "pagopa-interop-readmodel";
-import {
-  and,
-  asc,
-  desc,
-  eq,
-  exists,
-  inArray,
-  isNotNull,
-  lte,
-  ne,
-  notExists,
-  or,
-  SQL,
-} from "drizzle-orm";
-import { alias, PgSelect } from "drizzle-orm/pg-core";
 
 export type GetPurposesFilters = {
   title?: string;
@@ -171,7 +173,7 @@ const getReviewerIdFilter = (
           .where(
             and(
               isNotNull(
-                purposeInReadmodelPurpose.reviewerWorkflowSentToReviewerAt
+                riskAnalysisReviewerInReadmodelPurpose.sentToReviewerAt
               ),
               eq(
                 riskAnalysisReviewerInReadmodelPurpose.purposeId,
@@ -387,7 +389,10 @@ export function readModelServiceBuilderSQL({
             )
           )
           .groupBy(purposeInReadmodelPurpose.id)
-          .orderBy(ascLower(purposeInReadmodelPurpose.title))
+          .orderBy(
+            ascLower(purposeInReadmodelPurpose.title),
+            asc(purposeInReadmodelPurpose.id)
+          )
           .limit(limit)
           .offset(offset)
           .$dynamic()
@@ -481,7 +486,10 @@ export function readModelServiceBuilderSQL({
             eserviceInReadmodelCatalog.id
           )
         )
-        .orderBy(ascLower(purposeInReadmodelPurpose.title));
+        .orderBy(
+          ascLower(purposeInReadmodelPurpose.title),
+          asc(purposeInReadmodelPurpose.id)
+        );
 
       const purposes = aggregatePurposeArray(
         toPurposeAggregatorArray(queryResult)
@@ -505,17 +513,68 @@ export function readModelServiceBuilderSQL({
         )
       )?.data;
     },
-    async getAllPurposes(
-      filters: Pick<
-        GetPurposesFilters,
-        "eservicesIds" | "states" | "excludeDraft"
-      >
-    ): Promise<Purpose[]> {
-      return (
-        await purposeReadModelServiceSQL.getPurposesByFilter(
-          and(...getPurposesFilters(readModelDB, filters))
+    async getActiveVersionsDailyCalls(
+      eserviceId: EServiceId,
+      consumerId: TenantId,
+      descriptorId: DescriptorId
+    ): Promise<{ consumerDailyCalls: number; totalDailyCalls: number }> {
+      // Aggregates the daily calls of the Active purpose versions for the given
+      // e-service directly in the DB, returning both the total across all
+      // consumers with an Active or Suspended agreement on the given descriptor
+      // and the amount attributable to the requesting consumer.
+      // This avoids loading every purpose of the e-service into memory (which,
+      // for e-services with many purposes, could exhaust the heap and lead to OOM).
+      const [result] = await readModelDB
+        .select({
+          totalDailyCalls:
+            sql`COALESCE(SUM(${purposeVersionInReadmodelPurpose.dailyCalls}), 0)`.mapWith(
+              Number
+            ),
+          consumerDailyCalls:
+            sql`COALESCE(SUM(${purposeVersionInReadmodelPurpose.dailyCalls}) FILTER (WHERE ${purposeInReadmodelPurpose.consumerId} = ${consumerId}), 0)`.mapWith(
+              Number
+            ),
+        })
+        .from(purposeInReadmodelPurpose)
+        .innerJoin(
+          purposeVersionInReadmodelPurpose,
+          eq(
+            purposeVersionInReadmodelPurpose.purposeId,
+            purposeInReadmodelPurpose.id
+          )
         )
-      ).map((d) => d.data);
+        .innerJoin(
+          agreementInReadmodelAgreement,
+          and(
+            eq(
+              agreementInReadmodelAgreement.eserviceId,
+              purposeInReadmodelPurpose.eserviceId
+            ),
+            eq(
+              agreementInReadmodelAgreement.consumerId,
+              purposeInReadmodelPurpose.consumerId
+            ),
+            inArray(agreementInReadmodelAgreement.state, [
+              agreementState.active,
+              agreementState.suspended,
+            ])
+          )
+        )
+        .where(
+          and(
+            eq(purposeInReadmodelPurpose.eserviceId, eserviceId),
+            eq(agreementInReadmodelAgreement.descriptorId, descriptorId),
+            eq(
+              purposeVersionInReadmodelPurpose.state,
+              purposeVersionState.active
+            )
+          )
+        );
+
+      return {
+        consumerDailyCalls: result?.consumerDailyCalls ?? 0,
+        totalDailyCalls: result?.totalDailyCalls ?? 0,
+      };
     },
     async getActiveProducerDelegationByEserviceId(
       eserviceId: EServiceId

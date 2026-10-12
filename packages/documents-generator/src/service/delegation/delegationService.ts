@@ -1,4 +1,5 @@
 import { EService, EServiceId, Tenant, TenantId } from "pagopa-interop-models";
+
 import { eServiceNotFound, tenantNotFound } from "../../model/errors.js";
 import { ReadModelServiceSQL } from "../readModelSql.js";
 

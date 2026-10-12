@@ -9,12 +9,13 @@ import {
   Purpose,
   tenantKind,
 } from "pagopa-interop-models";
-import { afterEach, inject } from "vitest";
 import {
   upsertEService,
   upsertEServiceTemplate,
   upsertPurpose,
 } from "pagopa-interop-readmodel/testUtils";
+import { afterEach, inject } from "vitest";
+
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
 const config = inject("readModelSQLConfig");

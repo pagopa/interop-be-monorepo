@@ -1,19 +1,19 @@
 import {
-  PurposeEventEnvelopeV2,
-  PurposeVersionV2,
-  PurposeV2,
-  PurposeVersionStampsV2,
-  PurposeVersionStampV2,
-} from "pagopa-interop-models";
-import {
   PurposeEvent as OutboundPurposeEvent,
   PurposeVersionV2 as OutboundPurposeVersionV2,
   PurposeV2 as OutboundPurposeV2,
   PurposeVersionStampsV2 as OutboundPurposeVersionStampsV2,
   PurposeVersionStampV2 as OutboundPurposeVersionStampV2,
 } from "@pagopa/interop-outbound-models";
-import { match } from "ts-pattern";
 import { Exact } from "pagopa-interop-commons";
+import {
+  PurposeEventEnvelopeV2,
+  PurposeVersionV2,
+  PurposeV2,
+  PurposeVersionStampsV2,
+  PurposeVersionStampV2,
+} from "pagopa-interop-models";
+import { match } from "ts-pattern";
 
 function toOutboundPurposeVersionStampV2(
   stamp: PurposeVersionStampV2
@@ -43,6 +43,7 @@ function toOutboundPurposeVersionV2(
       purposeVersion.stamps &&
       toOutboundPurposeVersionStampsV2(purposeVersion.stamps),
     signedContract: undefined,
+    waitingForApprovalReason: undefined,
   };
 }
 
@@ -54,7 +55,8 @@ function toOutboundPurposeV2(
     versions: purpose.versions.map(toOutboundPurposeVersionV2),
     riskAnalysisForm: undefined,
     purposeTemplateId: purpose.purposeTemplateId,
-    reviewerWorkflow: undefined, // TODO
+    riskAnalysisReviewMode: undefined,
+    reviewerWorkflow: undefined,
   };
 }
 
@@ -113,6 +115,7 @@ export function toOutboundEventV2(
       { type: "MaintenancePurposeRiskAnalysisSetTenantKind" },
       { type: "PurposeRiskAnalysisWorkflowCreated" },
       { type: "PurposeRiskAnalysisAssigned" },
+      { type: "PurposeRiskAnalysisSelfAssigned" },
       { type: "PurposeRiskAnalysisSubmitted" },
       { type: "PurposeRiskAnalysisSigned" },
       { type: "PurposeRiskAnalysisRejected" },

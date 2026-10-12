@@ -1,11 +1,12 @@
-import { beforeEach, describe, expect, it } from "vitest";
 import { getMockContextM2M } from "pagopa-interop-commons-test";
 import { ProducerDelegationM2MEventType } from "pagopa-interop-models";
-import { getMockedProducerDelegationM2MEvent } from "../mockUtils.js";
+import { beforeEach, describe, expect, it } from "vitest";
+
 import {
   m2mEventService,
   writeProducerDelegationM2MEvent,
 } from "../integrationUtils.js";
+import { getMockedProducerDelegationM2MEvent } from "../mockUtils.js";
 
 describe("getProducerDelegationM2MEvents", () => {
   const mockProducerDelegationM2MEvents = ProducerDelegationM2MEventType.options

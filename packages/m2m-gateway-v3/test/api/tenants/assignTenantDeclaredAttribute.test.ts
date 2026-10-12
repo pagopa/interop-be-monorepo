@@ -1,4 +1,5 @@
-import { describe, it, expect, vi } from "vitest";
+import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockedApiDeclaredTenantAttribute,
@@ -6,24 +7,24 @@ import {
   getMockedApiTenant,
   getMockDPoPProof,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
-import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   TenantId,
   generateId,
   pollingMaxRetriesExceeded,
 } from "pagopa-interop-models";
-import { api, mockTenantService } from "../../vitest.api.setup.js";
-import { appBasePath } from "../../../src/config/appBasePath.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { toM2MGatewayApiTenantDeclaredAttribute } from "../../../src/api/tenantApiConverter.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
+import { config } from "../../../src/config/config.js";
 import {
   tenantDeclaredAttributeNotFound,
   missingMetadata,
   requesterIsNotTheDelegateConsumer,
   cannotEditDeclaredAttributesForTenant,
 } from "../../../src/model/errors.js";
-import { config } from "../../../src/config/config.js";
+import { api, mockTenantService } from "../../vitest.api.setup.js";
 
 describe("POST /tenants/:tenantId/declaredAttributes router test", () => {
   const mockApiResponse = getMockedApiDeclaredTenantAttribute();

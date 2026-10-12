@@ -12,8 +12,9 @@ import {
   DelegationState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { toCompactDescriptor } from "./catalogApiConverter.js";
+
 import { toCompactEserviceLight } from "./agreementApiConverter.js";
+import { toCompactDescriptor } from "./catalogApiConverter.js";
 
 export type DelegationsQueryParams = {
   delegatorIds?: string[];

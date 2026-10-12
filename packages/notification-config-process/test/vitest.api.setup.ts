@@ -1,5 +1,5 @@
-import { vi } from "vitest";
 import { Request, Response, NextFunction } from "express";
+import { vi } from "vitest";
 
 vi.mock("pagopa-interop-application-audit", async () => ({
   applicationAuditBeginMiddleware: vi.fn(
@@ -53,6 +53,7 @@ import {
   decodeJwtToken,
   AppContext,
 } from "pagopa-interop-commons";
+
 import { createApp } from "../src/app.js";
 import { NotificationConfigService } from "../src/services/notificationConfigService.js";
 

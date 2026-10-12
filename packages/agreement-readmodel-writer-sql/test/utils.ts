@@ -1,13 +1,12 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable fp/no-delete */
+import { eq } from "drizzle-orm";
 import {
   getMockAgreement,
   setupTestContainersVitest,
 } from "pagopa-interop-commons-test";
-import { agreementReadModelServiceBuilder } from "pagopa-interop-readmodel";
-import { afterEach, inject } from "vitest";
-import { eq } from "drizzle-orm";
 import { AgreementId, Agreement } from "pagopa-interop-models";
+import { agreementReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import {
   AgreementStampSQL,
   agreementStampInReadmodelAgreement,
@@ -18,6 +17,8 @@ import {
   AgreementContractSQL,
   agreementContractInReadmodelAgreement,
 } from "pagopa-interop-readmodel-models";
+import { afterEach, inject } from "vitest";
+
 import { agreementWriterServiceBuilder } from "../src/agreementWriterService.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(

@@ -1,5 +1,6 @@
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { inject, afterEach } from "vitest";
+
 import { config } from "../src/config/config.js";
 
 export const { cleanup, postgresDB } = await setupTestContainersVitest(

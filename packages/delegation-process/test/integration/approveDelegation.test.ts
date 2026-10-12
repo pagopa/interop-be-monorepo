@@ -7,7 +7,6 @@ import {
   getMockAuthData,
   getMockContext,
 } from "pagopa-interop-commons-test";
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   ConsumerDelegationApprovedV2,
   DelegationId,
@@ -19,6 +18,8 @@ import {
   Delegation,
 } from "pagopa-interop-models";
 import { delegationState } from "pagopa-interop-models";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+
 import {
   delegationNotFound,
   operationRestrictedToDelegate,

@@ -1,26 +1,27 @@
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { KMSClient } from "@aws-sdk/client-kms";
 import {
   initFileManager,
   initRedisRateLimiter,
   rateLimiterMiddleware as rateLimiterMiddlewareBuilder,
   startServer,
 } from "pagopa-interop-commons";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { KMSClient } from "@aws-sdk/client-kms";
-import { config } from "./config/config.js";
+
 import { M2MGatewayServices, RateLimiterMiddleware, createApp } from "./app.js";
 import { getInteropBeClients } from "./clients/clientsProvider.js";
+import { config } from "./config/config.js";
 import { agreementServiceBuilder } from "./services/agreementService.js";
 import { attributeServiceBuilder } from "./services/attributeService.js";
 import { clientServiceBuilder } from "./services/clientService.js";
 import { delegationServiceBuilder } from "./services/delegationService.js";
 import { eserviceServiceBuilder } from "./services/eserviceService.js";
 import { eserviceTemplateServiceBuilder } from "./services/eserviceTemplateService.js";
+import { eventServiceBuilder } from "./services/eventService.js";
+import { keyServiceBuilder } from "./services/keyService.js";
+import { producerKeychainServiceBuilder } from "./services/producerKeychainService.js";
 import { purposeServiceBuilder } from "./services/purposeService.js";
 import { purposeTemplateServiceBuilder } from "./services/purposeTemplateService.js";
 import { tenantServiceBuilder } from "./services/tenantService.js";
-import { keyServiceBuilder } from "./services/keyService.js";
-import { producerKeychainServiceBuilder } from "./services/producerKeychainService.js";
-import { eventServiceBuilder } from "./services/eventService.js";
 import { userServiceBuilder } from "./services/userService.js";
 
 const clients = getInteropBeClients();

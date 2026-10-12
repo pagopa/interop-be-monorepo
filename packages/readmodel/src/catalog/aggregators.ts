@@ -27,8 +27,12 @@ import {
   EServiceAttributeCertifiedDiscrete,
   ArchivingScope,
   TenantKind,
+  DelegatedDescriptorArchivingRequest,
+  DelegatedEServiceArchivingRequest,
+  GracePeriodDays,
 } from "pagopa-interop-models";
 import {
+  EServiceDescriptorArchivingRequestSQL,
   EServiceDescriptorArchivingScheduleSQL,
   EServiceDescriptorAsyncExchangePropertiesSQL,
   EServiceDescriptorAttributeSQL,
@@ -46,6 +50,7 @@ import {
   EServiceTemplateVersionDocumentSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
+
 import { makeUniqueKey, throwIfMultiple } from "../utils.js";
 
 export const documentSQLtoDocument = (
@@ -72,6 +77,7 @@ export const aggregateDescriptor = ({
   templateVersionRefSQL,
   archivingScheduleSQL,
   asyncExchangePropertiesSQL,
+  descriptorArchivingRequestsSQL,
 }: {
   descriptorSQL: EServiceDescriptorSQL;
   interfacesSQL: EServiceDescriptorInterfaceSQL[];
@@ -83,6 +89,7 @@ export const aggregateDescriptor = ({
   asyncExchangePropertiesSQL:
     | EServiceDescriptorAsyncExchangePropertiesSQL
     | undefined;
+  descriptorArchivingRequestsSQL: EServiceDescriptorArchivingRequestSQL[];
   // eslint-disable-next-line sonarjs/cognitive-complexity
 }): Descriptor => {
   const mainInterfaceSQL = interfacesSQL.find((i) => i.kind === "INTERFACE");
@@ -170,6 +177,24 @@ export const aggregateDescriptor = ({
         }
       : undefined;
 
+  const archivingRequests: DelegatedDescriptorArchivingRequest[] =
+    descriptorArchivingRequestsSQL
+      .filter((archivingRequest) => archivingRequest.descriptorId !== null)
+      .map<DelegatedDescriptorArchivingRequest>((archivingRequest) => ({
+        gracePeriodDays: GracePeriodDays.parse(
+          archivingRequest.gracePeriodDays
+        ),
+        requestedAt: stringToDate(archivingRequest.requestedAt),
+        requesterId: unsafeBrandId(archivingRequest.requesterId),
+        rejectedAt: archivingRequest.rejectedAt
+          ? stringToDate(archivingRequest.rejectedAt)
+          : undefined,
+        acceptedAt: archivingRequest.acceptedAt
+          ? stringToDate(archivingRequest.acceptedAt)
+          : undefined,
+        rejectionReason: archivingRequest.rejectionReason ?? undefined,
+      }));
+
   return {
     id: unsafeBrandId(descriptorSQL.id),
     version: descriptorSQL.version,
@@ -183,6 +208,7 @@ export const aggregateDescriptor = ({
     dailyCallsTotal: descriptorSQL.dailyCallsTotal,
     createdAt: stringToDate(descriptorSQL.createdAt),
     serverUrls: descriptorSQL.serverUrls,
+    serverUrlsDescriptions: descriptorSQL.serverUrlsDescriptions ?? undefined,
     attributes: {
       certified: certifiedAttributes,
       declared: declaredAttributes,
@@ -234,8 +260,14 @@ export const aggregateDescriptor = ({
             scope: ArchivingScope.parse(archivingScheduleSQL.scope),
             archivableOn: stringToDate(archivingScheduleSQL.archivableOn),
             startedAt: stringToDate(archivingScheduleSQL.startedAt),
+            gracePeriodDays: GracePeriodDays.parse(
+              archivingScheduleSQL.gracePeriodDays
+            ),
           },
         }
+      : {}),
+    ...(archivingRequests.length > 0
+      ? { delegatedArchivingRequest: archivingRequests }
       : {}),
   };
 };
@@ -252,6 +284,7 @@ export const aggregateEservice = ({
   templateVersionRefsSQL,
   archivingSchedulesSQL,
   asyncExchangePropertiesSQL,
+  archivingRequestsSQL,
 }: EServiceItemsSQL): WithMetadata<EService> => {
   const interfacesSQLByDescriptorId = interfacesSQL.reduce((acc, i) => {
     acc.set(i.descriptorId, [...(acc.get(i.descriptorId) || []), i]);
@@ -291,6 +324,18 @@ export const aggregateEservice = ({
       acc.set(a.descriptorId, a);
       return acc;
     }, new Map<string, EServiceDescriptorAsyncExchangePropertiesSQL>());
+  const archivingRequestsSQLByDescriptorId = archivingRequestsSQL
+    .filter((a) => a.descriptorId !== null)
+    .reduce((acc, a) => {
+      acc.set(a.descriptorId ?? "", [
+        ...(acc.get(a.descriptorId ?? "") || []),
+        a,
+      ]);
+      return acc;
+    }, new Map<string, EServiceDescriptorArchivingRequestSQL[]>());
+  const archivingRequestsSQLWithNullDescriptorId = archivingRequestsSQL.filter(
+    (a) => a.descriptorId === null
+  );
   const descriptors = [...descriptorsSQL]
     .sort((d1, d2) => Number(d1.version) - Number(d2.version))
     .map((descriptorSQL) =>
@@ -309,6 +354,8 @@ export const aggregateEservice = ({
         ),
         asyncExchangePropertiesSQL:
           asyncExchangePropertiesSQLByDescriptorId.get(descriptorSQL.id),
+        descriptorArchivingRequestsSQL:
+          archivingRequestsSQLByDescriptorId.get(descriptorSQL.id) || [],
       })
     );
 
@@ -365,6 +412,28 @@ export const aggregateEservice = ({
     ...(eserviceSQL.asyncExchange !== null
       ? { asyncExchange: eserviceSQL.asyncExchange }
       : {}),
+    ...(archivingRequestsSQLWithNullDescriptorId.length > 0
+      ? {
+          delegatedArchivingRequest:
+            archivingRequestsSQLWithNullDescriptorId.map<DelegatedEServiceArchivingRequest>(
+              (archivingRequest) => ({
+                gracePeriodDays: GracePeriodDays.parse(
+                  archivingRequest.gracePeriodDays
+                ),
+                archivingReason: archivingRequest.archivingReason ?? "",
+                requestedAt: stringToDate(archivingRequest.requestedAt),
+                requesterId: unsafeBrandId(archivingRequest.requesterId),
+                rejectedAt: archivingRequest.rejectedAt
+                  ? stringToDate(archivingRequest.rejectedAt)
+                  : undefined,
+                acceptedAt: archivingRequest.acceptedAt
+                  ? stringToDate(archivingRequest.acceptedAt)
+                  : undefined,
+                rejectionReason: archivingRequest.rejectionReason ?? undefined,
+              })
+            ),
+        }
+      : {}),
   };
   return {
     data: eservice,
@@ -384,6 +453,7 @@ export const aggregateEserviceArray = ({
   templateVersionRefsSQL,
   archivingSchedulesSQL,
   asyncExchangePropertiesSQL,
+  archivingRequestsSQL,
 }: {
   eservicesSQL: EServiceSQL[];
   riskAnalysesSQL: EServiceRiskAnalysisSQL[];
@@ -396,6 +466,7 @@ export const aggregateEserviceArray = ({
   templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[];
   archivingSchedulesSQL: EServiceDescriptorArchivingScheduleSQL[];
   asyncExchangePropertiesSQL: EServiceDescriptorAsyncExchangePropertiesSQL[];
+  archivingRequestsSQL: EServiceDescriptorArchivingRequestSQL[];
 }): Array<WithMetadata<EService>> => {
   const riskAnalysesSQLByEServiceId =
     createEServiceSQLPropertyMap(riskAnalysesSQL);
@@ -418,6 +489,8 @@ export const aggregateEserviceArray = ({
   const asyncExchangePropertiesSQLByEServiceId = createEServiceSQLPropertyMap(
     asyncExchangePropertiesSQL
   );
+  const archivingRequestsSQLByEServiceId =
+    createEServiceSQLPropertyMap(archivingRequestsSQL);
 
   return eservicesSQL.map((eserviceSQL) => {
     const eserviceId = unsafeBrandId<EServiceId>(eserviceSQL.id);
@@ -438,6 +511,8 @@ export const aggregateEserviceArray = ({
         archivingSchedulesSQLByEServiceId.get(eserviceId) || [],
       asyncExchangePropertiesSQL:
         asyncExchangePropertiesSQLByEServiceId.get(eserviceId) || [],
+      archivingRequestsSQL:
+        archivingRequestsSQLByEServiceId.get(eserviceId) || [],
     });
   });
 };
@@ -453,7 +528,8 @@ const createEServiceSQLPropertyMap = <
     | EServiceDescriptorRejectionReasonSQL
     | EServiceDescriptorTemplateVersionRefSQL
     | EServiceDescriptorArchivingScheduleSQL
-    | EServiceDescriptorAsyncExchangePropertiesSQL,
+    | EServiceDescriptorAsyncExchangePropertiesSQL
+    | EServiceDescriptorArchivingRequestSQL,
 >(
   items: T[]
 ): Map<EServiceId, T[]> =>
@@ -587,6 +663,7 @@ export const toEServiceAggregator = (
     templateVersionRef: EServiceDescriptorTemplateVersionRefSQL | null;
     archivingSchedule: EServiceDescriptorArchivingScheduleSQL | null;
     asyncExchangeProperties: EServiceDescriptorAsyncExchangePropertiesSQL | null;
+    archivingRequests: EServiceDescriptorArchivingRequestSQL | null;
   }>
 ): EServiceItemsSQL => {
   const {
@@ -601,6 +678,7 @@ export const toEServiceAggregator = (
     templateVersionRefsSQL,
     archivingSchedulesSQL,
     asyncExchangePropertiesSQL,
+    archivingRequestsSQL,
   } = toEServiceAggregatorArray(queryRes);
 
   throwIfMultiple(eservicesSQL, "e-service");
@@ -617,6 +695,7 @@ export const toEServiceAggregator = (
     templateVersionRefsSQL,
     archivingSchedulesSQL,
     asyncExchangePropertiesSQL,
+    archivingRequestsSQL,
   };
 };
 
@@ -633,6 +712,7 @@ export const toEServiceAggregatorArray = (
     templateVersionRef: EServiceDescriptorTemplateVersionRefSQL | null;
     archivingSchedule: EServiceDescriptorArchivingScheduleSQL | null;
     asyncExchangeProperties: EServiceDescriptorAsyncExchangePropertiesSQL | null;
+    archivingRequests: EServiceDescriptorArchivingRequestSQL | null;
   }>
 ): {
   eservicesSQL: EServiceSQL[];
@@ -646,6 +726,7 @@ export const toEServiceAggregatorArray = (
   templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[];
   archivingSchedulesSQL: EServiceDescriptorArchivingScheduleSQL[];
   asyncExchangePropertiesSQL: EServiceDescriptorAsyncExchangePropertiesSQL[];
+  archivingRequestsSQL: EServiceDescriptorArchivingRequestSQL[];
 } => {
   const eserviceIdSet = new Set<string>();
   const eservicesSQL: EServiceSQL[] = [];
@@ -679,6 +760,9 @@ export const toEServiceAggregatorArray = (
   const asyncExchangeIdSet = new Set<string>();
   const asyncExchangePropertiesSQL: EServiceDescriptorAsyncExchangePropertiesSQL[] =
     [];
+  const archivingRequestsSQL: EServiceDescriptorArchivingRequestSQL[] = [];
+  const descriptorArchivingRequestIdSet = new Set<string>();
+  const eserviceArchivingRequestIdSet = new Set<string>();
 
   // eslint-disable-next-line sonarjs/cognitive-complexity, complexity
   queryRes.forEach((row) => {
@@ -788,6 +872,15 @@ export const toEServiceAggregatorArray = (
         // eslint-disable-next-line functional/immutable-data
         asyncExchangePropertiesSQL.push(asyncExchangeRowSQL);
       }
+
+      const archivingRequestSQL = row.archivingRequests;
+      if (archivingRequestSQL?.descriptorId) {
+        if (!descriptorArchivingRequestIdSet.has(archivingRequestSQL.id)) {
+          descriptorArchivingRequestIdSet.add(archivingRequestSQL.id);
+          // eslint-disable-next-line functional/immutable-data
+          archivingRequestsSQL.push(archivingRequestSQL);
+        }
+      }
     }
 
     const riskAnalysisSQL = row.riskAnalysis;
@@ -818,6 +911,15 @@ export const toEServiceAggregatorArray = (
         riskAnalysisAnswersSQL.push(riskAnalysisAnswerSQL);
       }
     }
+
+    const archivingRequestEService = row.archivingRequests;
+    if (archivingRequestEService?.descriptorId === null) {
+      if (!eserviceArchivingRequestIdSet.has(archivingRequestEService.id)) {
+        eserviceArchivingRequestIdSet.add(archivingRequestEService.id);
+        // eslint-disable-next-line functional/immutable-data
+        archivingRequestsSQL.push(archivingRequestEService);
+      }
+    }
   });
 
   return {
@@ -832,5 +934,6 @@ export const toEServiceAggregatorArray = (
     templateVersionRefsSQL,
     archivingSchedulesSQL,
     asyncExchangePropertiesSQL,
+    archivingRequestsSQL,
   };
 };

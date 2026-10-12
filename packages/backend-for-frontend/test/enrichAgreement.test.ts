@@ -1,20 +1,21 @@
-import { genericLogger, WithLogger } from "pagopa-interop-commons";
-import {
-  getMockedApiAgreement,
-  getMockedApiAttribute,
-  getMockedApiTenant,
-} from "pagopa-interop-commons-test";
 import {
   agreementApi,
   attributeRegistryApi,
   catalogApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
+import { genericLogger, WithLogger } from "pagopa-interop-commons";
+import {
+  getMockedApiAgreement,
+  getMockedApiAttribute,
+  getMockedApiTenant,
+} from "pagopa-interop-commons-test";
 import { AttributeId, generateId } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
+
+import { tenantAttributeKind } from "../src/api/tenantApiConverter.js";
 import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
 import { enrichAgreement } from "../src/services/agreementService.js";
-import { tenantAttributeKind } from "../src/api/tenantApiConverter.js";
 import { BffAppContext } from "../src/utilities/context.js";
 import {
   getMockCatalogApiEService,

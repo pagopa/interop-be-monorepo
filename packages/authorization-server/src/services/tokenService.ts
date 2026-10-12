@@ -1,22 +1,13 @@
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { IncomingHttpHeaders } from "http";
+import { initProducer } from "kafka-iam-auth";
+import { authorizationServerApi } from "pagopa-interop-api-clients";
 import {
   validateClientKindAndPlatformState,
   validateRequestParameters,
   verifyClientAssertion,
   verifyClientAssertionSignature,
 } from "pagopa-interop-client-assertion-validation";
-import { authorizationServerApi } from "pagopa-interop-api-clients";
-import {
-  clientKindTokenGenStates,
-  makeTokenGenerationStatesClientKidPK,
-  makeTokenGenerationStatesClientKidPurposePK,
-  TenantId,
-  ClientKindTokenGenStates,
-  ClientId,
-  unsafeBrandId,
-} from "pagopa-interop-models";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { match } from "ts-pattern";
 import {
   AuthServerAppContext,
   FileManager,
@@ -28,8 +19,18 @@ import {
   RateLimiterStatus,
   WithLogger,
 } from "pagopa-interop-commons";
-import { initProducer } from "kafka-iam-auth";
 import { checkDPoPCache } from "pagopa-interop-dpop-validation";
+import {
+  clientKindTokenGenStates,
+  makeTokenGenerationStatesClientKidPK,
+  makeTokenGenerationStatesClientKidPurposePK,
+  TenantId,
+  ClientKindTokenGenStates,
+  ClientId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import { match } from "ts-pattern";
+
 import { config } from "../config/config.js";
 import {
   clientAssertionRequestValidationFailed,
@@ -40,9 +41,12 @@ import {
 } from "../model/domain/errors.js";
 import { HttpDPoPHeader } from "../model/domain/models.js";
 import {
+  publishApiTokenAudit,
+  publishConsumerTokenAudit,
+} from "../utilities/audit.js";
+import {
   deconstructGSIPK_eserviceId_descriptorId,
   logTokenGenerationInfo,
-  publishAudit,
   retrieveKey,
   validateDPoPProof,
 } from "../utilities/tokenServiceHelpers.js";
@@ -67,13 +71,15 @@ export function tokenServiceBuilder({
   tokenGenerator,
   dynamoDBClient,
   redisRateLimiter,
-  producer,
+  consumerTokenAuditProducer,
+  apiTokenAuditProducer,
   fileManager,
 }: {
   tokenGenerator: InteropTokenGenerator;
   dynamoDBClient: DynamoDBClient;
   redisRateLimiter: RateLimiter;
-  producer: Awaited<ReturnType<typeof initProducer>>;
+  consumerTokenAuditProducer: Awaited<ReturnType<typeof initProducer>>;
+  apiTokenAuditProducer: Awaited<ReturnType<typeof initProducer>>;
   fileManager: FileManager;
 }) {
   return {
@@ -249,8 +255,8 @@ export function tokenServiceBuilder({
               dpopJWK: dpopProofJWT?.header.jwk,
             });
 
-            await publishAudit({
-              producer,
+            await publishConsumerTokenAudit({
+              producer: consumerTokenAuditProducer,
               generatedToken: token,
               key,
               eserviceId,
@@ -286,6 +292,18 @@ export function tokenServiceBuilder({
             // Pass JWK directly (can be undefined).
             // generateInteropApiToken handles conditional 'cnf' inclusion.
             dpopJWK: dpopProofJWT?.header.jwk,
+          });
+
+          await publishApiTokenAudit({
+            producer: apiTokenAuditProducer,
+            generatedToken: token,
+            adminId: key.adminId,
+            organizationId: key.consumerId,
+            clientAssertion: clientAssertionJWT,
+            dpop: dpopProofJWT,
+            correlationId: getCtx().correlationId,
+            fileManager,
+            logger: getCtx().logger,
           });
 
           logTokenGenerationInfo({

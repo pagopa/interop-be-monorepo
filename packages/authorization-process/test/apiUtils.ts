@@ -1,5 +1,6 @@
 import { authorizationApi } from "pagopa-interop-api-clients";
 import { Client, ProducerKeychain } from "pagopa-interop-models";
+
 import { keyToApiKey } from "../src/model/domain/apiConverter.js";
 
 export function testToPartialClient(

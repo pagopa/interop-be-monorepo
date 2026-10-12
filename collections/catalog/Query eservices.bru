@@ -1,0 +1,29 @@
+meta {
+  name: Query eservices
+  type: http
+  seq: 47
+}
+
+post {
+  url: {{host-catalog}}/catalog
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "offset": 0,
+    "limit": 50
+  }
+}
+
+docs {
+  Retrieves a paginated list of E-Services matching the given filters.
+  
+  Optional body properties: keyword, sortBy, onlyActiveEservices, availableForRequester, subscribedByRequester, onlyTemplateInstances, hasLinkedPurposeTemplates, producerCategories, asyncExchange, mode, onlySignalHubEnabled, requesterDelegationRoles, templateId, producersIds
+}

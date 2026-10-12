@@ -1,3 +1,4 @@
+import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import {
   decodeKafkaMessage,
@@ -5,33 +6,36 @@ import {
   logger,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
-import { runConsumer } from "kafka-iam-auth";
 import {
   CorrelationId,
   DelegationEvent,
   generateId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 import {
   agreementReadModelServiceBuilder,
+  catalogReadModelServiceBuilder,
   makeDrizzleConnection,
   purposeReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
-import { handleMessageV2 } from "./delegationItemsArchiverConsumerServiceV2.js";
-import { config } from "./config/config.js";
+import { match } from "ts-pattern";
+
 import { getInteropBeClients } from "./clients/clientsProvider.js";
+import { config } from "./config/config.js";
+import { handleMessageV2 } from "./delegationItemsArchiverConsumerServiceV2.js";
 import { readModelServiceBuilderSQL } from "./readModelServiceSQL.js";
 
 const readModelDB = makeDrizzleConnection(config);
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
 const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
+const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
 
 const readModelServiceSQL = readModelServiceBuilderSQL({
   readModelDB,
   agreementReadModelServiceSQL,
   purposeReadModelServiceSQL,
+  catalogReadModelServiceSQL,
 });
 
 const refreshableToken = new RefreshableInteropToken(
@@ -39,7 +43,8 @@ const refreshableToken = new RefreshableInteropToken(
 );
 await refreshableToken.init();
 
-const { agreementProcessClient, purposeProcessClient } = getInteropBeClients();
+const { agreementProcessClient, purposeProcessClient, catalogProcessClient } =
+  getInteropBeClients();
 
 async function processMessage({
   message,
@@ -73,6 +78,7 @@ async function processMessage({
         readModelService: readModelServiceSQL,
         agreementProcessClient,
         purposeProcessClient,
+        catalogProcessClient,
       })
     )
     .exhaustive();
