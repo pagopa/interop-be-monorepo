@@ -10,6 +10,7 @@ COPY package.json /app/
 COPY pnpm-lock.yaml /app/
 COPY pnpm-workspace.yaml /app/
 COPY .npmrc /app/
+COPY patches /app/patches/
 
 COPY ./packages/email-scheduled-notification-dispatcher/package.json /app/packages/email-scheduled-notification-dispatcher/package.json
 COPY ./packages/notification-commons/package.json /app/packages/notification-commons/package.json

@@ -1,0 +1,36 @@
+diff --git a/dist/generateZodClientFromOpenAPI-5b2305b4.cjs.prod.js b/dist/generateZodClientFromOpenAPI-5b2305b4.cjs.prod.js
+--- a/dist/generateZodClientFromOpenAPI-5b2305b4.cjs.prod.js
++++ b/dist/generateZodClientFromOpenAPI-5b2305b4.cjs.prod.js
+@@ -1746,7 +1746,7 @@ var getZodiosEndpointDefinitionList = function getZodiosEndpointDefinitionList(d
+   for (var path in doc.paths) {
+     var _pathItemObj$paramete;
+     var pathItemObj = doc.paths[path];
+-    var pathItem = pick(pathItemObj, ["get", "put", "post", "delete", "options", "head", "patch", "trace"]);
++    var pathItem = pick(pathItemObj, ["get", "put", "post", "delete", "options", "head", "patch", "trace", "query"]);
+     var parametersMap = getParametersMap((_pathItemObj$paramete = pathItemObj.parameters) !== null && _pathItemObj$paramete !== void 0 ? _pathItemObj$paramete : []);
+     for (var method in pathItem) {
+       var _operation$parameters, _operation$responses;
+diff --git a/dist/generateZodClientFromOpenAPI-99f61d6d.esm.js b/dist/generateZodClientFromOpenAPI-99f61d6d.esm.js
+--- a/dist/generateZodClientFromOpenAPI-99f61d6d.esm.js
++++ b/dist/generateZodClientFromOpenAPI-99f61d6d.esm.js
+@@ -1720,7 +1720,7 @@ var getZodiosEndpointDefinitionList = function getZodiosEndpointDefinitionList(d
+   for (var path in doc.paths) {
+     var _pathItemObj$paramete;
+     var pathItemObj = doc.paths[path];
+-    var pathItem = pick(pathItemObj, ["get", "put", "post", "delete", "options", "head", "patch", "trace"]);
++    var pathItem = pick(pathItemObj, ["get", "put", "post", "delete", "options", "head", "patch", "trace", "query"]);
+     var parametersMap = getParametersMap((_pathItemObj$paramete = pathItemObj.parameters) !== null && _pathItemObj$paramete !== void 0 ? _pathItemObj$paramete : []);
+     for (var method in pathItem) {
+       var _operation$parameters, _operation$responses;
+diff --git a/dist/generateZodClientFromOpenAPI-e014c53f.cjs.dev.js b/dist/generateZodClientFromOpenAPI-e014c53f.cjs.dev.js
+--- a/dist/generateZodClientFromOpenAPI-e014c53f.cjs.dev.js
++++ b/dist/generateZodClientFromOpenAPI-e014c53f.cjs.dev.js
+@@ -1746,7 +1746,7 @@ var getZodiosEndpointDefinitionList = function getZodiosEndpointDefinitionList(d
+   for (var path in doc.paths) {
+     var _pathItemObj$paramete;
+     var pathItemObj = doc.paths[path];
+-    var pathItem = pick(pathItemObj, ["get", "put", "post", "delete", "options", "head", "patch", "trace"]);
++    var pathItem = pick(pathItemObj, ["get", "put", "post", "delete", "options", "head", "patch", "trace", "query"]);
+     var parametersMap = getParametersMap((_pathItemObj$paramete = pathItemObj.parameters) !== null && _pathItemObj$paramete !== void 0 ? _pathItemObj$paramete : []);
+     for (var method in pathItem) {
+       var _operation$parameters, _operation$responses;

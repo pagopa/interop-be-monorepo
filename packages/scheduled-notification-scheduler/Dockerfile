@@ -11,6 +11,7 @@ COPY package.json /app/
 COPY pnpm-lock.yaml /app/
 COPY pnpm-workspace.yaml /app/
 COPY .npmrc /app/
+COPY patches /app/patches/
 
 COPY ./packages/scheduled-notification-scheduler/package.json /app/packages/scheduled-notification-scheduler/package.json
 COPY ./packages/kafka-iam-auth/package.json /app/packages/kafka-iam-auth/package.json
