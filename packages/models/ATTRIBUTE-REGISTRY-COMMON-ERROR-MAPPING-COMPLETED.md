@@ -21,14 +21,6 @@ Unauthorized.
 | `attribute-registry-process` | `POST /declaredAttributes` | `validateAuthorization` in the process rejects a requester without `ADMIN_ROLE`, `API_ROLE` or `M2M_ADMIN_ROLE`. | Cannot happen — the FE creates declared attributes from the e-service create/edit wizard, whose routes require admin/API; M2M admin has no UI action. | — | — |
 | `attribute-registry-process` | `POST /verifiedAttributes` | `validateAuthorization` in the process rejects a requester without `ADMIN_ROLE`, `API_ROLE` or `M2M_ADMIN_ROLE`. | Cannot happen — the FE creates verified attributes from the e-service create/edit wizard, whose routes require admin/API; M2M admin has no UI action. | — | — |
 
-## `featureFlagNotEnabled`
-
-Feature flag not enabled.
-
-| Process | BFF endpoint | When it happens | Reachable from the FE? | Steps to reproduce (UI) | Resolution steps |
-| ------- | ------------ | --------------- | ---------------------- | ----------------------- | ---------------- |
-| `attribute-registry-process` | `POST /certifiedDiscreteAttributes` | The BFF throws `featureFlagNotEnabled` in `attributeService.createCertifiedDiscreteAttribute` when `assertFeatureFlagEnabled(config, "featureFlagAttributeCertifiedDiscrete")` sees the BFF flag disabled; this check runs before calling the process. | **CAN HAPPEN** — the FE form exposes the discrete kind when its runtime `FEATURE_FLAG_ATTRIBUTE_CERTIFIED_DISCRETE` is true, independently of the BFF flag, so a normal submit reaches the BFF check when the flags differ. | **Data precondition:** you are an admin of certifier tenant A; the FE runtime flag `FEATURE_FLAG_ATTRIBUTE_CERTIFIED_DISCRETE=true` and the BFF flag `FEATURE_FLAG_ATTRIBUTE_CERTIFIED_DISCRETE=false`.<br>1. Go to `/aderente/certificatore` and open _Gestione attributi_.<br>2. Click _Crea nuovo_.<br>3. Select _Attributo certificato con valore da personalizzare_, enter a name and description, then click _Crea attributo_. | 🟡 **Medium resolution**<br>1. If certified-discrete attributes should be available, set the BFF `FEATURE_FLAG_ATTRIBUTE_CERTIFIED_DISCRETE=true` and keep the FE runtime flag enabled.<br>2. Otherwise set the FE runtime flag to `false` so the form no longer offers the discrete kind.<br>3. Restart/redeploy the component whose flag changed and reload the page. |
-
 ## `hyperlinkDetectionError`
 
 Hyperlink not allowed.
