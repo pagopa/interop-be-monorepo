@@ -120,6 +120,7 @@ export function toOutboundEventV2(
       { type: "PurposeRiskAnalysisSigned" },
       { type: "PurposeRiskAnalysisRejected" },
       { type: "PurposeRiskAnalysisFormEdited" },
+      { type: "MaintenancePurposeRiskAnalysisFixReviewerWorkflow" },
       () => undefined
     )
     .with({ type: "PurposeCloned" }, (msg) => ({
