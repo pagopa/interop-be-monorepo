@@ -43,6 +43,7 @@ function toOutboundPurposeVersionV2(
       purposeVersion.stamps &&
       toOutboundPurposeVersionStampsV2(purposeVersion.stamps),
     signedContract: undefined,
+    waitingForApprovalReason: undefined,
   };
 }
 
@@ -119,6 +120,7 @@ export function toOutboundEventV2(
       { type: "PurposeRiskAnalysisSigned" },
       { type: "PurposeRiskAnalysisRejected" },
       { type: "PurposeRiskAnalysisFormEdited" },
+      { type: "MaintenancePurposeRiskAnalysisFixReviewerWorkflow" },
       () => undefined
     )
     .with({ type: "PurposeCloned" }, (msg) => ({
