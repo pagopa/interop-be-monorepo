@@ -1,23 +1,30 @@
 import {
   and,
   asc,
+  Column,
   count,
   countDistinct,
   desc,
   eq,
   exists,
+  gt,
+  gte,
   inArray,
   isNotNull,
   isNull,
+  lt,
   lte,
+  ne,
   notExists,
   or,
   SQL,
+  sql,
 } from "drizzle-orm";
-import { PgSelect } from "drizzle-orm/pg-core";
+import { alias, PgSelect } from "drizzle-orm/pg-core";
 import {
   ascLower,
   createListResult,
+  descLower,
   escapeSqlLike,
   ilikeEscaped,
   M2MAdminAuthData,
@@ -31,6 +38,8 @@ import {
   Agreement,
   AgreementState,
   ListResult,
+  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
+  purposeTemplateState,
   DescriptorId,
   WithMetadata,
   Attribute,
@@ -53,6 +62,9 @@ import {
   stringToDate,
   AttributeKind,
   TenantKind,
+  attributeCertifiedDiscreteComparator,
+  attributeKind,
+  EServiceMode,
 } from "pagopa-interop-models";
 import {
   aggregateAgreementArray,
@@ -94,12 +106,28 @@ import {
   delegationSignedContractDocumentInReadmodelDelegation,
   eserviceDescriptorArchivingScheduleInReadmodelCatalog,
   eserviceDescriptorArchivingRequestInReadmodelCatalog,
+  purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
+  purposeTemplateInReadmodelPurposeTemplate,
+  tenantCertifiedDiscreteAttributeInReadmodelTenant,
+  tenantCertifiedAttributeInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
 import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
 import { match } from "ts-pattern";
 
-import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
-import { activeDescriptorStates } from "./descriptorStates.js";
+import {
+  ApiGetEServicesFilters,
+  Consumer,
+  EServiceProducerCategory,
+  EServicesQueryFilters,
+  EServiceSortBy,
+  producerCategoryAttributeCodes,
+  RequesterDelegationRole,
+} from "../model/domain/models.js";
+import {
+  activeDescriptorStates,
+  catalogRelevantDescriptorStates,
+  catalogVisibleDescriptorStates,
+} from "./descriptorStates.js";
 import { hasRoleToAccessInactiveDescriptors } from "./validators.js";
 
 const existsValidDescriptor = (
@@ -122,6 +150,366 @@ const existsValidDescriptor = (
         )
       )
   );
+
+const existsCatalogVisibleDescriptor = (
+  readmodelDB: DrizzleTransactionType
+): SQL<unknown> | undefined =>
+  exists(
+    readmodelDB
+      .select()
+      .from(eserviceDescriptorInReadmodelCatalog)
+      .where(
+        and(
+          eq(
+            eserviceDescriptorInReadmodelCatalog.eserviceId,
+            eserviceInReadmodelCatalog.id
+          ),
+          inArray(
+            eserviceDescriptorInReadmodelCatalog.state,
+            catalogVisibleDescriptorStates
+          )
+        )
+      )
+  );
+
+// The id tie-break keeps pagination deterministic on equal names or dates.
+const getEServicesOrderBy = (sortBy: EServiceSortBy): SQL[] => [
+  match(sortBy)
+    .with("NAME_ASC", () => ascLower(eserviceInReadmodelCatalog.name))
+    .with("NAME_DESC", () => descLower(eserviceInReadmodelCatalog.name))
+    .with("CREATED_AT_ASC", () => asc(eserviceInReadmodelCatalog.createdAt))
+    .with("CREATED_AT_DESC", () => desc(eserviceInReadmodelCatalog.createdAt))
+    .exhaustive(),
+  asc(eserviceInReadmodelCatalog.id),
+];
+
+// Keyword search, same approach as the public catalog: normalized text,
+// Italian full text search that ignores accents, trigram similarity as fallback.
+// normalize_text, italian_unaccent and the search_vector generated columns are
+// defined in docker/readmodel-db. They are not part of the drizzle schema.
+const normalizeText = (value: Column | SQL): SQL =>
+  sql`public.normalize_text(${value})`;
+
+const eserviceSearchVector = sql`${eserviceInReadmodelCatalog}.search_vector`;
+const tenantSearchVector = sql`${tenantInReadmodelTenant}.search_vector`;
+const eserviceName = normalizeText(eserviceInReadmodelCatalog.name);
+const eserviceDescription = normalizeText(
+  eserviceInReadmodelCatalog.description
+);
+const producerName = normalizeText(tenantInReadmodelTenant.name);
+
+const eserviceProducerJoin = eq(
+  eserviceInReadmodelCatalog.producerId,
+  tenantInReadmodelTenant.id
+);
+
+const keywordTsQuery = (keyword: string): SQL => {
+  const normalizedKeyword = normalizeText(sql`${keyword}`);
+  return sql`websearch_to_tsquery('public.italian_unaccent'::regconfig, ${normalizedKeyword})`;
+};
+
+// The e-service and the producer conditions are two UNION branches instead
+// of one OR: an OR across two tables cannot use the GIN indexes.
+const fullTextMatches = (keyword: string): SQL => {
+  const tsQuery = keywordTsQuery(keyword);
+  return sql`(SELECT ${eserviceInReadmodelCatalog.id} FROM ${eserviceInReadmodelCatalog}
+    WHERE ${eserviceSearchVector} @@ ${tsQuery}
+    UNION
+    SELECT ${eserviceInReadmodelCatalog.id} FROM ${eserviceInReadmodelCatalog}
+    JOIN ${tenantInReadmodelTenant} ON ${eserviceProducerJoin}
+    WHERE ${tenantSearchVector} @@ ${tsQuery})`;
+};
+
+const fuzzyMatches = (keyword: string): SQL => {
+  const normalizedKeyword = normalizeText(sql`${keyword}`);
+  return sql`(SELECT ${eserviceInReadmodelCatalog.id} FROM ${eserviceInReadmodelCatalog}
+    WHERE ${eserviceName} % ${normalizedKeyword}
+      OR ${eserviceDescription} % ${normalizedKeyword}
+    UNION
+    SELECT ${eserviceInReadmodelCatalog.id} FROM ${eserviceInReadmodelCatalog}
+    JOIN ${tenantInReadmodelTenant} ON ${eserviceProducerJoin}
+    WHERE ${producerName} % ${normalizedKeyword})`;
+};
+
+// As in the public catalog, the trigram matches are the fallback when the
+// full text search has no match at all. The check runs on the e-services the
+// query can return: a match excluded by the other conditions must not disable
+// the fallback.
+const keywordFilter = async (
+  tx: DrizzleTransactionType,
+  keyword: string | undefined,
+  condition: SQL | undefined
+): Promise<SQL | undefined> => {
+  if (keyword === undefined) {
+    return undefined;
+  }
+  const fullTextFilter = inArray(
+    eserviceInReadmodelCatalog.id,
+    fullTextMatches(keyword)
+  );
+  const fullTextMatch = await tx
+    .select({ id: eserviceInReadmodelCatalog.id })
+    .from(eserviceInReadmodelCatalog)
+    .where(and(condition, fullTextFilter))
+    .limit(1);
+  return fullTextMatch.length > 0
+    ? fullTextFilter
+    : inArray(eserviceInReadmodelCatalog.id, fuzzyMatches(keyword));
+};
+
+// The producer vector keeps weight A and the e-service vector is lowered to
+// weight B, so a match on the producer name ranks first, as in the public catalog.
+// The tenant columns can be NULL because of the left join.
+const keywordRelevance = (keyword: string): SQL => {
+  const tsQuery = keywordTsQuery(keyword);
+  const normalizedKeyword = normalizeText(sql`${keyword}`);
+  const searchVector = sql`COALESCE(${tenantSearchVector}, ''::tsvector) || setweight(${eserviceSearchVector}, 'B')`;
+  const fullTextRank = sql`COALESCE(ts_rank_cd(${searchVector}, ${tsQuery}), 0)`;
+  const fuzzySimilarity = sql`GREATEST(
+    similarity(${eserviceName}, ${normalizedKeyword}),
+    similarity(${eserviceDescription}, ${normalizedKeyword}),
+    similarity(${producerName}, ${normalizedKeyword}))`;
+  return sql`(${fullTextRank} + 0.5 * ${fuzzySimilarity})`;
+};
+
+const producersFilter = (
+  tx: DrizzleTransactionType,
+  producersIds: TenantId[]
+): SQL | undefined =>
+  producersIds.length > 0
+    ? or(
+        inArray(eserviceInReadmodelCatalog.producerId, producersIds),
+        exists(
+          tx
+            .select()
+            .from(delegationInReadmodelDelegation)
+            .where(
+              and(
+                eq(
+                  delegationInReadmodelDelegation.eserviceId,
+                  eserviceInReadmodelCatalog.id
+                ),
+                inArray(
+                  delegationInReadmodelDelegation.delegateId,
+                  producersIds
+                ),
+                eq(
+                  delegationInReadmodelDelegation.state,
+                  delegationState.active
+                ),
+                eq(
+                  delegationInReadmodelDelegation.kind,
+                  delegationKind.delegatedProducer
+                )
+              )
+            )
+        )
+      )
+    : undefined;
+
+const newerActiveDescriptor = alias(
+  eserviceDescriptorInReadmodelCatalog,
+  "newerActiveDescriptor"
+);
+
+const onlyActiveEservicesFilter = (
+  tx: DrizzleTransactionType,
+  onlyActiveEservices: boolean | undefined
+): SQL | undefined =>
+  onlyActiveEservices
+    ? notExists(
+        tx
+          .select()
+          .from(eserviceDescriptorInReadmodelCatalog)
+          .where(
+            and(
+              eq(
+                eserviceDescriptorInReadmodelCatalog.eserviceId,
+                eserviceInReadmodelCatalog.id
+              ),
+              eq(
+                eserviceDescriptorInReadmodelCatalog.state,
+                descriptorState.suspended
+              ),
+              notExists(
+                tx
+                  .select()
+                  .from(newerActiveDescriptor)
+                  .where(
+                    and(
+                      eq(
+                        newerActiveDescriptor.eserviceId,
+                        eserviceInReadmodelCatalog.id
+                      ),
+                      inArray(
+                        newerActiveDescriptor.state,
+                        catalogRelevantDescriptorStates
+                      ),
+                      gt(
+                        sql`CAST(${newerActiveDescriptor.version} AS INTEGER)`,
+                        sql`CAST(${eserviceDescriptorInReadmodelCatalog.version} AS INTEGER)`
+                      )
+                    )
+                  )
+              )
+            )
+          )
+      )
+    : undefined;
+
+const subscribedByRequesterFilter = (
+  tx: DrizzleTransactionType,
+  requesterId: TenantId,
+  subscribedByRequester: boolean | undefined
+): SQL | undefined => {
+  if (subscribedByRequester === undefined) {
+    return undefined;
+  }
+  const subscriptionQuery = tx
+    .select()
+    .from(agreementInReadmodelAgreement)
+    .where(
+      and(
+        eq(
+          agreementInReadmodelAgreement.eserviceId,
+          eserviceInReadmodelCatalog.id
+        ),
+        eq(agreementInReadmodelAgreement.consumerId, requesterId),
+        inArray(agreementInReadmodelAgreement.state, [
+          agreementState.active,
+          agreementState.suspended,
+        ])
+      )
+    );
+  return subscribedByRequester
+    ? exists(subscriptionQuery)
+    : notExists(subscriptionQuery);
+};
+
+const requesterDelegationRolesFilter = (
+  tx: DrizzleTransactionType,
+  requesterId: TenantId,
+  requesterDelegationRoles: RequesterDelegationRole[]
+): SQL | undefined => {
+  if (requesterDelegationRoles.length === 0) {
+    return undefined;
+  }
+  const roleFilter = or(
+    ...requesterDelegationRoles.map((role) =>
+      match(role)
+        .with("DELEGATE", () =>
+          eq(delegationInReadmodelDelegation.delegateId, requesterId)
+        )
+        .with("DELEGATOR", () =>
+          eq(delegationInReadmodelDelegation.delegatorId, requesterId)
+        )
+        .exhaustive()
+    )
+  );
+  return exists(
+    tx
+      .select()
+      .from(delegationInReadmodelDelegation)
+      .where(
+        and(
+          eq(
+            delegationInReadmodelDelegation.eserviceId,
+            eserviceInReadmodelCatalog.id
+          ),
+          eq(
+            delegationInReadmodelDelegation.kind,
+            delegationKind.delegatedProducer
+          ),
+          eq(delegationInReadmodelDelegation.state, delegationState.active),
+          roleFilter
+        )
+      )
+  );
+};
+
+const onlyTemplateInstancesFilter = (
+  onlyTemplateInstances: boolean | undefined
+): SQL | undefined =>
+  onlyTemplateInstances
+    ? isNotNull(eserviceInReadmodelCatalog.templateId)
+    : undefined;
+
+// The link counts whatever descriptor the purpose template was linked to.
+// Only published purpose templates count: the e-service page shows only those.
+const hasLinkedPurposeTemplatesFilter = (
+  tx: DrizzleTransactionType,
+  hasLinkedPurposeTemplates: boolean | undefined
+): SQL | undefined =>
+  hasLinkedPurposeTemplates
+    ? exists(
+        tx
+          .select()
+          .from(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
+          .innerJoin(
+            purposeTemplateInReadmodelPurposeTemplate,
+            eq(
+              purposeTemplateInReadmodelPurposeTemplate.id,
+              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId
+            )
+          )
+          .where(
+            and(
+              eq(
+                purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
+                eserviceInReadmodelCatalog.id
+              ),
+              eq(
+                purposeTemplateInReadmodelPurposeTemplate.state,
+                purposeTemplateState.published
+              )
+            )
+          )
+      )
+    : undefined;
+
+// The IPA category codes are matched with their origin: a certifier can
+// create a certified attribute with any code.
+const producerCategoriesFilter = (
+  tx: DrizzleTransactionType,
+  producerCategories: EServiceProducerCategory[]
+): SQL | undefined => {
+  if (producerCategories.length === 0) {
+    return undefined;
+  }
+  const attributeCodes = [
+    ...new Set(
+      producerCategories.flatMap(
+        (category) => producerCategoryAttributeCodes[category]
+      )
+    ),
+  ];
+  return exists(
+    tx
+      .select()
+      .from(tenantCertifiedAttributeInReadmodelTenant)
+      .innerJoin(
+        attributeInReadmodelAttribute,
+        eq(
+          attributeInReadmodelAttribute.id,
+          tenantCertifiedAttributeInReadmodelTenant.attributeId
+        )
+      )
+      .where(
+        and(
+          eq(
+            tenantCertifiedAttributeInReadmodelTenant.tenantId,
+            eserviceInReadmodelCatalog.producerId
+          ),
+          isNull(tenantCertifiedAttributeInReadmodelTenant.revocationTimestamp),
+          eq(
+            attributeInReadmodelAttribute.origin,
+            PUBLIC_ADMINISTRATIONS_IDENTIFIER
+          ),
+          inArray(attributeInReadmodelAttribute.code, attributeCodes)
+        )
+      )
+  );
+};
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL(
@@ -196,24 +584,13 @@ export function readModelServiceBuilderSQL(
                   ? inArray(eserviceInReadmodelCatalog.id, eservicesIds)
                   : undefined,
                 // mode filter
-                mode ? eq(eserviceInReadmodelCatalog.mode, mode) : undefined,
+                eserviceModeFilter(mode),
                 // technology filter
                 technology
                   ? eq(eserviceInReadmodelCatalog.technology, technology)
                   : undefined,
                 // isSignalHubEnabled filter
-                match(isSignalHubEnabled)
-                  .with(true, () =>
-                    eq(eserviceInReadmodelCatalog.isSignalHubEnabled, true)
-                  )
-                  .with(false, () =>
-                    or(
-                      isNull(eserviceInReadmodelCatalog.isSignalHubEnabled),
-                      eq(eserviceInReadmodelCatalog.isSignalHubEnabled, false)
-                    )
-                  )
-                  .with(undefined, () => undefined)
-                  .exhaustive(),
+                eserviceSignalHubEnabledFilter(isSignalHubEnabled),
                 // isClientAccessDelegable filter
                 match(isClientAccessDelegable)
                   .with(true, () =>
@@ -579,6 +956,98 @@ export function readModelServiceBuilderSQL(
         );
       });
     },
+    async queryEServices(
+      authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
+      {
+        offset,
+        limit,
+        sortBy,
+        keyword,
+        producersIds,
+        onlyActiveEservices,
+        subscribedByRequester,
+        requesterDelegationRoles,
+        onlyTemplateInstances,
+        hasLinkedPurposeTemplates,
+        producerCategories,
+        availableForRequester,
+        mode,
+        onlySignalHubEnabled,
+        asyncExchange,
+      }: EServicesQueryFilters,
+      certifiedDiscreteEnabled: boolean
+    ): Promise<ListResult<EService>> {
+      return await readmodelDB.transaction(async (tx) => {
+        const visibleEservicesFilter = existsCatalogVisibleDescriptor(tx);
+
+        const filtersCondition = and(
+          producersFilter(tx, producersIds),
+          onlyActiveEservicesFilter(tx, onlyActiveEservices),
+          subscribedByRequesterFilter(
+            tx,
+            authData.organizationId,
+            subscribedByRequester
+          ),
+          requesterDelegationRolesFilter(
+            tx,
+            authData.organizationId,
+            requesterDelegationRoles
+          ),
+          onlyTemplateInstancesFilter(onlyTemplateInstances),
+          hasLinkedPurposeTemplatesFilter(tx, hasLinkedPurposeTemplates),
+          producerCategoriesFilter(tx, producerCategories),
+          availableForRequesterFilter(
+            tx,
+            authData.organizationId,
+            availableForRequester,
+            certifiedDiscreteEnabled
+          ),
+          eserviceModeFilter(mode),
+          eserviceSignalHubEnabledFilter(onlySignalHubEnabled),
+          eserviceAsyncExchangeFilter(asyncExchange)
+        );
+
+        const baseCondition = and(visibleEservicesFilter, filtersCondition);
+        const condition = and(
+          baseCondition,
+          await keywordFilter(tx, keyword, baseCondition)
+        );
+        const orderBy =
+          keyword === undefined
+            ? getEServicesOrderBy(sortBy)
+            : [desc(keywordRelevance(keyword)), ...getEServicesOrderBy(sortBy)];
+
+        const [pageIds, totalCount] = await Promise.all([
+          tx
+            .select({ id: eserviceInReadmodelCatalog.id })
+            .from(eserviceInReadmodelCatalog)
+            .leftJoin(tenantInReadmodelTenant, eserviceProducerJoin)
+            .where(condition)
+            .orderBy(...orderBy)
+            .limit(limit)
+            .offset(offset),
+          tx
+            .select({ count: countDistinct(eserviceInReadmodelCatalog.id) })
+            .from(eserviceInReadmodelCatalog)
+            .where(condition),
+        ]);
+
+        const ids = pageIds.map((e) => e.id);
+        if (ids.length === 0) {
+          return createListResult([], totalCount[0]?.count);
+        }
+
+        const eservices = await catalogReadModelService.getEServicesByFilter(
+          inArray(eserviceInReadmodelCatalog.id, ids)
+        );
+
+        const orderedEservices = ids
+          .map((id) => eservices.find((e) => e.id === id))
+          .filter((e): e is EService => e !== undefined);
+
+        return createListResult(orderedEservices, totalCount[0]?.count);
+      });
+    },
     async isEServiceNameAvailableForProducer({
       name,
       producerId,
@@ -929,4 +1398,295 @@ export function readModelServiceBuilderSQL(
       );
     },
   };
+}
+
+function eserviceModeFilter(mode: EServiceMode | undefined) {
+  if (mode === undefined) {
+    return undefined;
+  }
+  return eq(eserviceInReadmodelCatalog.mode, mode);
+}
+
+function eserviceSignalHubEnabledFilter(
+  isSignalHubEnabled: boolean | undefined
+) {
+  return match(isSignalHubEnabled)
+    .with(true, () => eq(eserviceInReadmodelCatalog.isSignalHubEnabled, true))
+    .with(false, () =>
+      or(
+        isNull(eserviceInReadmodelCatalog.isSignalHubEnabled),
+        eq(eserviceInReadmodelCatalog.isSignalHubEnabled, false)
+      )
+    )
+    .with(undefined, () => undefined)
+    .exhaustive();
+}
+
+function eserviceAsyncExchangeFilter(asyncExchange: boolean | undefined) {
+  return match(asyncExchange)
+    .with(true, () => eq(eserviceInReadmodelCatalog.asyncExchange, true))
+    .with(false, () =>
+      or(
+        isNull(eserviceInReadmodelCatalog.asyncExchange),
+        eq(eserviceInReadmodelCatalog.asyncExchange, false)
+      )
+    )
+    .with(undefined, () => undefined)
+    .exhaustive();
+}
+
+/*
+ * The same descriptor-attribute table is referenced twice because the query
+ * needs to compare one row with all the rows belonging to the same group.
+ *
+ * Example:
+ *
+ *   Descriptor D1
+ *
+ *   Group G1
+ *   ├── Attribute A
+ *   ├── Attribute B
+ *   └── Attribute C
+ *
+ * `currentGroupAttribute` is one row used to identify G1.
+ * `attributeInCurrentGroup` iterates over A, B and C.
+ */
+const currentGroupAttribute = alias(
+  eserviceDescriptorAttributeInReadmodelCatalog,
+  "current_group_attribute"
+);
+
+const attributeInCurrentGroup = alias(
+  eserviceDescriptorAttributeInReadmodelCatalog,
+  "attribute_in_current_group"
+);
+
+function availableForRequesterFilter(
+  tx: Parameters<Parameters<DrizzleReturnType["transaction"]>[0]>[0],
+  requesterId: TenantId,
+  enabled?: boolean,
+  certifiedDiscreteEnabled = false
+) {
+  if (enabled === undefined) {
+    return undefined;
+  }
+
+  /*
+   * Checks whether the requester owns a non-revoked standard certified
+   * attribute matching the attribute currently being evaluated.
+   */
+  const requesterOwnsNonRevokedCertifiedAttribute = exists(
+    tx
+      .select()
+      .from(tenantCertifiedAttributeInReadmodelTenant)
+      .where(
+        and(
+          eq(tenantCertifiedAttributeInReadmodelTenant.tenantId, requesterId),
+          eq(
+            tenantCertifiedAttributeInReadmodelTenant.attributeId,
+            attributeInCurrentGroup.attributeId
+          ),
+          isNull(tenantCertifiedAttributeInReadmodelTenant.revocationTimestamp)
+        )
+      )
+  );
+
+  /*
+   * Checks whether the requester owns a non-revoked discrete certified
+   * attribute whose value satisfies the comparator and threshold defined by
+   * the descriptor requirement.
+   */
+  const requesterSatisfiesDiscreteCertifiedAttribute = exists(
+    tx
+      .select()
+      .from(tenantCertifiedDiscreteAttributeInReadmodelTenant)
+      .where(
+        and(
+          eq(
+            tenantCertifiedDiscreteAttributeInReadmodelTenant.tenantId,
+            requesterId
+          ),
+          eq(
+            tenantCertifiedDiscreteAttributeInReadmodelTenant.attributeId,
+            attributeInCurrentGroup.attributeId
+          ),
+          isNull(
+            tenantCertifiedDiscreteAttributeInReadmodelTenant.revocationTimestamp
+          ),
+          or(
+            and(
+              eq(
+                attributeInCurrentGroup.comparator,
+                attributeCertifiedDiscreteComparator.GT
+              ),
+              gt(
+                tenantCertifiedDiscreteAttributeInReadmodelTenant.discreteValue,
+                attributeInCurrentGroup.threshold
+              )
+            ),
+            and(
+              eq(
+                attributeInCurrentGroup.comparator,
+                attributeCertifiedDiscreteComparator.LT
+              ),
+              lt(
+                tenantCertifiedDiscreteAttributeInReadmodelTenant.discreteValue,
+                attributeInCurrentGroup.threshold
+              )
+            ),
+            and(
+              eq(
+                attributeInCurrentGroup.comparator,
+                attributeCertifiedDiscreteComparator.EQ
+              ),
+              eq(
+                tenantCertifiedDiscreteAttributeInReadmodelTenant.discreteValue,
+                attributeInCurrentGroup.threshold
+              )
+            ),
+            and(
+              eq(
+                attributeInCurrentGroup.comparator,
+                attributeCertifiedDiscreteComparator.GTE
+              ),
+              gte(
+                tenantCertifiedDiscreteAttributeInReadmodelTenant.discreteValue,
+                attributeInCurrentGroup.threshold
+              )
+            ),
+            and(
+              eq(
+                attributeInCurrentGroup.comparator,
+                attributeCertifiedDiscreteComparator.LTE
+              ),
+              lte(
+                tenantCertifiedDiscreteAttributeInReadmodelTenant.discreteValue,
+                attributeInCurrentGroup.threshold
+              )
+            ),
+            and(
+              eq(
+                attributeInCurrentGroup.comparator,
+                attributeCertifiedDiscreteComparator.NE
+              ),
+              ne(
+                tenantCertifiedDiscreteAttributeInReadmodelTenant.discreteValue,
+                attributeInCurrentGroup.threshold
+              )
+            )
+          )
+        )
+      )
+  );
+
+  /*
+   * Searches the current group for at least one attribute satisfied by the
+   * requester.
+   */
+  const satisfiedAttributeInCurrentGroupSubquery = tx
+    .select({
+      attributeId: attributeInCurrentGroup.attributeId,
+    })
+    .from(attributeInCurrentGroup)
+    .where(
+      and(
+        /*
+         * The attribute must belong to the same descriptor.
+         */
+        eq(
+          attributeInCurrentGroup.descriptorId,
+          currentGroupAttribute.descriptorId
+        ),
+
+        /*
+         * The attribute must belong to the same requirement group.
+         */
+        eq(attributeInCurrentGroup.groupId, currentGroupAttribute.groupId),
+
+        or(
+          and(
+            eq(attributeInCurrentGroup.kind, attributeKind.certified),
+            requesterOwnsNonRevokedCertifiedAttribute
+          ),
+          certifiedDiscreteEnabled
+            ? and(
+                eq(
+                  attributeInCurrentGroup.kind,
+                  attributeKind.certifiedDiscrete
+                ),
+                requesterSatisfiesDiscreteCertifiedAttribute
+              )
+            : undefined
+        )
+      )
+    );
+
+  /*
+   * Searches the current e-service's visible descriptors for at least one
+   * certified requirement group that the requester does not satisfy.
+   */
+  const unsatisfiedCertifiedGroupSubquery = tx
+    .select({
+      groupId: currentGroupAttribute.groupId,
+    })
+    .from(currentGroupAttribute)
+    .innerJoin(
+      eserviceDescriptorInReadmodelCatalog,
+      eq(
+        eserviceDescriptorInReadmodelCatalog.id,
+        currentGroupAttribute.descriptorId
+      )
+    )
+    .where(
+      and(
+        /*
+         * Restricts the check to descriptors belonging to the e-service
+         * currently being evaluated by the outer catalog query.
+         */
+        eq(
+          eserviceDescriptorInReadmodelCatalog.eserviceId,
+          eserviceInReadmodelCatalog.id
+        ),
+
+        /*
+         * Only requirements belonging to visible descriptors participate in
+         * the availability check.
+         */
+        inArray(eserviceDescriptorInReadmodelCatalog.state, [
+          descriptorState.published,
+          descriptorState.suspended,
+        ]),
+
+        inArray(
+          currentGroupAttribute.kind,
+          certifiedDiscreteEnabled
+            ? [attributeKind.certified, attributeKind.certifiedDiscrete]
+            : [attributeKind.certified]
+        ),
+
+        /*
+         * The current group is unsatisfied if the requester satisfies none of
+         * the attributes belonging to it.
+         */
+        notExists(satisfiedAttributeInCurrentGroupSubquery)
+      )
+    );
+
+  /*
+   * enabled = true
+   *
+   *   Include the e-service only if no unsatisfied certified group exists:
+   *
+   *   NOT EXISTS (unsatisfied group)
+   *
+   * enabled = false
+   *
+   *   Include the e-service only if at least one unsatisfied certified group
+   *   exists:
+   *
+   *   EXISTS (unsatisfied group)
+   */
+  return enabled
+    ? notExists(unsatisfiedCertifiedGroupSubquery)
+    : exists(unsatisfiedCertifiedGroupSubquery);
 }
