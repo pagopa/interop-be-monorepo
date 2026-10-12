@@ -17,6 +17,7 @@ import {
   sentPurposesToBaseDigest,
   receivedPurposesToBaseDigest,
   receivedDelegationsToDigest,
+  archivingEservicesToDigest,
 } from "../model/digestDataConverter.js";
 import {
   viewAllNewUpdatedEservicesLink,
@@ -27,6 +28,7 @@ import {
   viewAllReceivedDelegationsLink,
   viewAllAttributesLink,
   viewAllUpdatedEserviceTemplatesLink,
+  viewAllArchivingProducerLink,
   notificationSettingsLink,
 } from "./deeplinkBuilder.js";
 import { NewEservice, ReadModelService } from "./readModelService.js";
@@ -61,6 +63,21 @@ export type AttributeDigest = BaseDigest & {
   }>;
 };
 
+type ArchivingProducerItem = {
+  id: string;
+  eserviceName: string;
+  version: string;
+  scope: "Descriptor" | "EService";
+  isEserviceScope: boolean;
+  archivableOn: string;
+  link: string;
+};
+
+export type ArchivingProducerDigest = {
+  items: ArchivingProducerItem[];
+  totalCount: number;
+};
+
 export type TenantDigestData = {
   tenantId: TenantId;
   tenantName: string;
@@ -74,6 +91,7 @@ export type TenantDigestData = {
   viewAllReceivedDelegationsLink: string;
   viewAllAttributesLink: string;
   viewAllUpdatedEserviceTemplatesLink: string;
+  viewAllArchivingProducerLink: string;
   newEservices?: BaseDigest;
   updatedEservices?: BaseDigest;
   updatedEserviceTemplates?: BaseDigest;
@@ -90,6 +108,10 @@ export type TenantDigestData = {
   revokedReceivedDelegations?: DelegationDigest;
   receivedAttributes?: AttributeDigest;
   revokedAttributes?: AttributeDigest;
+  archivingImminentEservices?: ArchivingProducerDigest;
+  archivingInProgressEservices?: ArchivingProducerDigest;
+  archivingEserviceScopeCount?: number;
+  archivingDescriptorScopeCount?: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -149,6 +171,9 @@ export function digestDataServiceBuilder(
         verifiedRevokedAttributes,
         certifiedAssignedAttributes,
         certifiedRevokedAttributes,
+        archivingInProgressEservices,
+        archivingImminentEservices,
+        archivingScopeCounts,
       ] = await Promise.all([
         readModelService.getNewVersionEservices(tenantId),
         readModelService.getNewEserviceTemplates(tenantId),
@@ -162,6 +187,9 @@ export function digestDataServiceBuilder(
         readModelService.getVerifiedRevokedAttributes(tenantId),
         readModelService.getCertifiedAssignedAttributes(tenantId),
         readModelService.getCertifiedRevokedAttributes(tenantId),
+        readModelService.getArchivingInProgressEservices(tenantId), // tenantId as producerId
+        readModelService.getArchivingImminentEservices(tenantId), // tenantId as producerId
+        readModelService.getArchivingScopeCounts(tenantId), // tenantId as producerId
       ]);
 
       const tenantData = tenantDataMap.get(tenantId);
@@ -190,6 +218,7 @@ export function digestDataServiceBuilder(
         viewAllAttributesLink: viewAllAttributesLink(selfcareId),
         viewAllUpdatedEserviceTemplatesLink:
           viewAllUpdatedEserviceTemplatesLink(selfcareId),
+        viewAllArchivingProducerLink: viewAllArchivingProducerLink(selfcareId),
         newEservices,
         updatedEservices: await eserviceToBaseDigest(
           updatedEservices,
@@ -277,6 +306,17 @@ export function digestDataServiceBuilder(
           ),
           certifiedAttributeToDigest(certifiedRevokedAttributes)
         ),
+        archivingInProgressEservices: archivingEservicesToDigest(
+          archivingInProgressEservices,
+          selfcareId
+        ),
+        archivingImminentEservices: archivingEservicesToDigest(
+          archivingImminentEservices,
+          selfcareId
+        ),
+        archivingEserviceScopeCount: archivingScopeCounts.eserviceScopeCount,
+        archivingDescriptorScopeCount:
+          archivingScopeCounts.descriptorScopeCount,
       };
     },
 
@@ -297,7 +337,9 @@ export function digestDataServiceBuilder(
         data.waitingForApprovalReceivedDelegations?.totalCount ||
         data.revokedReceivedDelegations?.totalCount ||
         data.receivedAttributes?.totalCount ||
-        data.revokedAttributes?.totalCount
+        data.revokedAttributes?.totalCount ||
+        data.archivingInProgressEservices?.totalCount ||
+        data.archivingImminentEservices?.totalCount
       );
     },
   };
