@@ -1,6 +1,12 @@
 import { dateAtRomeZone } from "pagopa-interop-commons";
-import { EService, EServiceTemplate } from "pagopa-interop-models";
+import {
+  EService,
+  EServiceTemplate,
+  PurposeWaitingForApprovalReason,
+} from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
+import { purposeOverQuotaTemplate } from "../purposeOverQuota.js";
 
 export type DelegationApprovedRejectedToDelegatorEventType =
   | "ProducerDelegationApproved"
@@ -14,6 +20,32 @@ export type EserviceNewVersionApprovedRejectedToDelegateEventType =
 
 // eslint-disable-next-line interop/require-type-for-object
 export const inAppTemplates = {
+  purposeRiskAnalysisSignedToAdmin: (
+    purposeTitle: string,
+    eserviceName: string
+  ): string =>
+    `L'analisi del rischio per la finalità ${purposeTitle} associata all'e-service ${eserviceName} è stata approvata.`,
+  purposeRiskAnalysisSignedToReviewer: (
+    purposeName: string,
+    eserviceName: string
+  ): string =>
+    `L'analisi del rischio per la finalità ${purposeName} associata all'e-service ${eserviceName} è già stata approvata.`,
+  purposeRiskAnalysisAssignmentRemovedToReviewer: (
+    purposeName: string,
+    eserviceName: string
+  ): string =>
+    `L'amministratore ha rimosso l'assegnazione dell'analisi del rischio per la finalità ${purposeName} associata all'e-service ${eserviceName}.`,
+  purposeRiskAnalysisAssignedForWritingAndSigningToReviewer: (
+    producerName: string,
+    purposeName: string,
+    eserviceName: string
+  ): string =>
+    `L'ente ${producerName} ti ha assegnato un'analisi del rischio da compilare e approvare per la finalità ${purposeName} associata all'e-service ${eserviceName}.`,
+  purposeRiskAnalysisRejectedToAdmin: (
+    purposeTitle: string,
+    eserviceName: string
+  ): string =>
+    `L'analisi del rischio per la finalità ${purposeTitle} associata all'e-service ${eserviceName} è stata rifiutata.`,
   // agreements - erogazione
   agreementSubmittedToProducer: (
     consumerName: string,
@@ -375,6 +407,22 @@ export const inAppTemplates = {
     eserviceName: string
   ): string =>
     `L'ente erogatore ${producerName} ha rifiutato la finalità ${purposeName} che il tuo ente ha inoltrato per l'e-service ${eserviceName}.`,
+  purposeRiskAnalysisAssignedForSigningToReviewer: (
+    producerName: string,
+    purposeName: string,
+    eserviceName: string
+  ): string =>
+    `L'ente ${producerName} ti ha assegnato un'analisi del rischio da approvare per la finalità ${purposeName} associata all'e-service ${eserviceName}.`,
+  purposePublishedWithRiskAnalysisToReviewer: (
+    purposeName: string,
+    eserviceName: string
+  ): string =>
+    `L'amministratore ha pubblicato la finalità ${purposeName} associata all'e-service ${eserviceName} con analisi del rischio che ti era stata assegnata.`,
+  draftPurposeDeletedWithRiskAnalysisToReviewer: (
+    purposeName: string,
+    eserviceName: string
+  ): string =>
+    `L'amministratore ha eliminato la finalità ${purposeName} associata all'e-service ${eserviceName} con analisi del rischio che ti era stata assegnata.`,
   purposeQuotaAdjustmentNewVersionToProducer: (
     consumerName: string,
     purposeName: string,
@@ -389,9 +437,9 @@ export const inAppTemplates = {
     `L'ente ${consumerName} ha inviato la finalità "${purposeName}", che prevede un piano di carico superiore alla tua soglia, associata al tuo e-service ${eserviceName}.`,
   purposeOverQuotaToConsumer: (
     eserviceName: string,
-    dailyCalls: number
-  ): string =>
-    `La stima di carico complessiva per le finalità associate all'e-service "${eserviceName}" ha superato la soglia massima consentita dall'erogatore pari a ${dailyCalls} chiamate API giornaliere.`,
+    purposeName: string,
+    reason: PurposeWaitingForApprovalReason
+  ): string => purposeOverQuotaTemplate(purposeName, eserviceName, reason).body,
   purposeQuotaAdjustmentResponseToConsumer: (
     producerName: string,
     purposeName: string,

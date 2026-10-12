@@ -57,6 +57,7 @@ describe("API GET /notifications", () => {
     authRole.ADMIN_ROLE,
     authRole.API_ROLE,
     authRole.SECURITY_ROLE,
+    authRole.REVIEWER_ROLE,
   ];
   it.each(authorizedRoles)(
     "Should return 200 with notifications for user with role %s",

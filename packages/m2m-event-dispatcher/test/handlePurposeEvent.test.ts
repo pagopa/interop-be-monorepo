@@ -112,6 +112,7 @@ describe("handlePurposeEvent test", async () => {
                   "PurposeCloned",
                   "PurposeRiskAnalysisWorkflowCreated",
                   "PurposeRiskAnalysisAssigned",
+                  "PurposeRiskAnalysisSelfAssigned",
                   "PurposeRiskAnalysisSubmitted",
                   "PurposeRiskAnalysisSigned",
                   "PurposeRiskAnalysisRejected",

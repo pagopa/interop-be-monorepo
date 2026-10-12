@@ -32,6 +32,7 @@ import {
   eserviceMode,
   NewPurposeVersionActivatedV2,
   NewPurposeVersionWaitingForApprovalV2,
+  purposeWaitingForApprovalReason,
   delegationKind,
   delegationState,
   TenantId,
@@ -443,6 +444,8 @@ describe("createPurposeVersion", () => {
       id: createdPurposeVersion.id,
       createdAt: new Date(),
       state: purposeVersionState.waitingForApproval,
+      waitingForApprovalReason:
+        purposeWaitingForApprovalReason.dailyCallsPerConsumer,
       dailyCalls: 30,
       stamps: {
         creation: {

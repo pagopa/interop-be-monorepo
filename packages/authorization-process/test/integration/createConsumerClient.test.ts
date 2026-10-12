@@ -19,7 +19,11 @@ import {
 import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
 
 import { duplicatedMembersInSeed } from "../../src/model/domain/errors.js";
-import { authorizationService, postgresDB } from "../integrationUtils.js";
+import {
+  authorizationService,
+  postgresDB,
+  selfcareV2Client,
+} from "../integrationUtils.js";
 
 describe("createConsumerClient", () => {
   const organizationId: TenantId = generateId();
@@ -39,6 +43,11 @@ describe("createConsumerClient", () => {
     members: [organizationId],
   };
   it("should write on event-store for the creation of a consumer client", async () => {
+    selfcareV2Client.getInstitutionUsersByProductUsingGET = vi
+      .fn()
+      .mockResolvedValue(
+        clientSeed.members.map((id) => ({ id, name: "Test", surname: "User" }))
+      );
     const client = await authorizationService.createConsumerClient(
       {
         clientSeed,

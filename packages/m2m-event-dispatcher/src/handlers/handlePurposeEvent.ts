@@ -71,6 +71,7 @@ async function handlePurposeEventV2(
             "PurposeDeletedByRevokedDelegation",
             "PurposeRiskAnalysisWorkflowCreated",
             "PurposeRiskAnalysisAssigned",
+            "PurposeRiskAnalysisSelfAssigned",
             "PurposeRiskAnalysisSubmitted",
             "PurposeRiskAnalysisSigned",
             "PurposeRiskAnalysisRejected",

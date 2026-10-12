@@ -269,6 +269,7 @@ export async function handlePurposeMessage(
           "MaintenancePurposeRiskAnalysisSetTenantKind",
           "PurposeRiskAnalysisWorkflowCreated",
           "PurposeRiskAnalysisAssigned",
+          "PurposeRiskAnalysisSelfAssigned",
           "PurposeRiskAnalysisSubmitted",
           "PurposeRiskAnalysisSigned",
           "PurposeRiskAnalysisRejected",
