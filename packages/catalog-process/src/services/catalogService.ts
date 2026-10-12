@@ -129,7 +129,11 @@ import {
   certifiedAttributeGroupNotFoundInSeed,
   noDelegationForArchivingRequest,
 } from "../model/domain/errors.js";
-import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
+import {
+  ApiGetEServicesFilters,
+  Consumer,
+  defaultEServiceSortBy,
+} from "../model/domain/models.js";
 import {
   toCreateEventClonedEServiceAdded,
   toCreateEventEServiceAdded,
@@ -1029,6 +1033,35 @@ export function catalogServiceBuilder(
         filters,
         offset,
         limit
+      );
+
+      const eservicesToReturn = await Promise.all(
+        eservicesList.results.map((eservice) =>
+          applyVisibilityToEService(eservice, authData, readModelService)
+        )
+      );
+
+      return {
+        results: eservicesToReturn,
+        totalCount: eservicesList.totalCount,
+      };
+    },
+
+    async queryEServices(
+      filters: catalogApi.EServicesFilterPayload,
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<ListResult<EService>> {
+      const sortBy = filters.sortBy ?? defaultEServiceSortBy;
+      logger.info(
+        `Querying EServices, limit = ${filters.limit}, offset = ${filters.offset}, sortBy = ${sortBy}`
+      );
+      const eservicesList = await readModelService.queryEServices(
+        filters.offset,
+        filters.limit,
+        sortBy
       );
 
       const eservicesToReturn = await Promise.all(

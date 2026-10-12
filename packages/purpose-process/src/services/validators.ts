@@ -301,11 +301,18 @@ export async function getUpdatedQuotas(
   consumerId: TenantId,
   readModelService: ReadModelServiceSQL
 ): Promise<UpdatedQuotas> {
-  const [{ consumerDailyCalls, totalDailyCalls }, agreement] =
-    await Promise.all([
-      readModelService.getActiveVersionsDailyCalls(eservice.id, consumerId),
-      retrieveActiveAgreement(eservice.id, consumerId, readModelService),
-    ]);
+  const agreement = await retrieveActiveAgreement(
+    eservice.id,
+    consumerId,
+    readModelService
+  );
+
+  const { consumerDailyCalls, totalDailyCalls } =
+    await readModelService.getActiveVersionsDailyCalls(
+      eservice.id,
+      consumerId,
+      agreement.descriptorId
+    );
 
   const currentDescriptor = eservice.descriptors.find(
     (d) => d.id === agreement.descriptorId

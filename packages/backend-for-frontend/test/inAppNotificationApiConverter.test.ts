@@ -284,9 +284,12 @@ describe("toBffApiNotification", () => {
     ],
     [
       "purposePublishedWithRiskAnalysisToReviewer",
-      "/analisi-del-rischio/entity-uuid",
+      "/analisi-del-rischio/entity-uuid/dettaglio",
     ],
-    ["purposeRiskAnalysisSignedToReviewer", "/analisi-del-rischio/entity-uuid"],
+    [
+      "purposeRiskAnalysisSignedToReviewer",
+      "/analisi-del-rischio/entity-uuid/dettaglio",
+    ],
     ["purposeRiskAnalysisSignedToAdmin", "/fruizione/finalita/entity-uuid"],
     ["purposeRiskAnalysisRejectedToAdmin", "/fruizione/finalita/entity-uuid"],
     ["purposeActivatedRejectedToConsumer", "/fruizione/finalita/entity-uuid"],

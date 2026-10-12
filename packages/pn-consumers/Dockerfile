@@ -10,6 +10,7 @@ COPY package.json /app/
 COPY pnpm-lock.yaml /app/
 COPY pnpm-workspace.yaml /app/
 COPY .npmrc /app/
+COPY patches /app/patches/
 
 COPY ./packages/pn-consumers/package.json /app/packages/pn-consumers/package.json
 COPY ./packages/commons/package.json /app/packages/commons/package.json
