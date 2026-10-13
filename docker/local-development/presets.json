@@ -1,0 +1,152 @@
+[
+  {
+    "id": "frontend-full",
+    "name": "Frontend fullstack",
+    "source": "shared",
+    "packages": [
+      {
+        "name": "pagopa-interop-tenant-process",
+        "watch": false
+      },
+      {
+        "name": "pagopa-interop-tenant-readmodel-writer-sql",
+        "watch": false
+      },
+      {
+        "name": "pagopa-interop-catalog-process",
+        "watch": false
+      },
+      {
+        "name": "pagopa-interop-catalog-readmodel-writer-sql",
+        "watch": false
+      },
+      {
+        "name": "pagopa-interop-catalog-platformstate-writer",
+        "watch": false
+      },
+      {
+        "name": "pagopa-interop-backend-for-frontend",
+        "watch": false
+      },
+      {
+        "name": "pagopa-interop-attribute-registry-process",
+        "watch": false
+      },
+      {
+        "name": "pagopa-interop-attribute-registry-readmodel-writer-sql",
+        "watch": false
+      },
+      {
+        "name": "pagopa-interop-agreement-process",
+        "watch": false
+      },
+      {
+        "name": "pagopa-interop-agreement-readmodel-writer-sql",
+        "watch": false
+      },
+      {
+        "name": "pagopa-interop-agreement-platformstate-writer",
+        "watch": false
+      },
+      {
+        "name": "pagopa-interop-authorization-process",
+        "watch": false
+      },
+      {
+        "name": "pagopa-interop-authorization-platformstate-writer",
+        "watch": false
+      },
+      {
+        "name": "pagopa-interop-client-readmodel-writer-sql",
+        "watch": false
+      },
+      {
+        "name": "pagopa-interop-key-readmodel-writer-sql",
+        "watch": false
+      },
+      {
+        "name": "pagopa-interop-producer-key-readmodel-writer-sql",
+        "watch": false
+      },
+      {
+        "name": "pagopa-interop-producer-keychain-readmodel-writer-sql",
+        "watch": false
+      },
+      {
+        "name": "pagopa-interop-producer-keychain-platformstate-writer",
+        "watch": false
+      },
+      {
+        "name": "pagopa-interop-delegation-process",
+        "watch": false
+      },
+      {
+        "name": "pagopa-interop-delegation-readmodel-writer-sql",
+        "watch": false
+      },
+      {
+        "name": "pagopa-interop-eservice-template-process",
+        "watch": false
+      },
+      {
+        "name": "pagopa-interop-eservice-template-readmodel-writer-sql",
+        "watch": false
+      },
+      {
+        "name": "pagopa-interop-purpose-process",
+        "watch": false
+      },
+      {
+        "name": "pagopa-interop-purpose-readmodel-writer-sql",
+        "watch": false
+      },
+      {
+        "name": "pagopa-interop-purpose-platformstate-writer",
+        "watch": false
+      },
+      {
+        "name": "pagopa-interop-purpose-template-process",
+        "watch": false
+      },
+      {
+        "name": "pagopa-interop-purpose-template-readmodel-writer-sql",
+        "watch": false
+      },
+      {
+        "name": "pagopa-interop-notification-config-process",
+        "watch": false
+      },
+      {
+        "name": "pagopa-interop-notification-config-readmodel-writer-sql",
+        "watch": false
+      },
+      {
+        "name": "pagopa-interop-in-app-notification-manager",
+        "watch": false
+      }
+    ],
+    "seed": true,
+    "fullstack": true
+  },
+  {
+    "id": "tenant-seeding",
+    "name": "Tenant Seeding",
+    "source": "shared",
+    "packages": [
+      {
+        "name": "pagopa-interop-tenant-process"
+      },
+      {
+        "name": "pagopa-interop-tenant-readmodel-writer-sql"
+      },
+      {
+        "name": "pagopa-interop-catalog-process"
+      },
+      {
+        "name": "pagopa-interop-catalog-readmodel-writer-sql"
+      }
+    ],
+    "seed": false,
+    "fullstack": false
+  }
+]
