@@ -1,19 +1,21 @@
 # Frontend local runtime
 
 The backend-owned [development dashboard](development-dashboard.md) orchestrates
-the local environment independently of the frontend and VS Code. Its fullstack
+the backend environment independently of the frontend and VS Code. Its Frontend backend
 preset starts the BFF, processes, SQL readmodel writers and DynamoDB platform-state
-writers needed by the back office. The frontend CLI delegates to that API.
+writers needed by the back office. The frontend runs in a separate container;
+its launcher uses the dashboard API for backend startup, seed and token generation,
+then manages Vite and frontend checks itself.
 
 ## Backend commands
 
 | Command | Effect |
 | --- | --- |
 | `bash scripts/local-development/dashboard.sh start` | Starts the dashboard and infrastructure without application packages |
-| `bash scripts/local-development/dashboard.sh start --frontend /path/to/frontend --preset frontend-full` | Starts the common runtime and fullstack preset |
+| `bash scripts/local-development/dashboard.sh start --preset frontend-full` | Starts infrastructure and the frontend's backend packages, without seed or Vite |
 | `pnpm local:seed` | Idempotently creates local tenants and the base published catalog entry through APIs/events |
 | `pnpm local:token -- --tenant comune --user admin` | Prints a local-KMS signed token |
-| `pnpm local:token -- --tenant comune --user admin --output .local-development/frontend-token` | Writes the token used by the frontend |
+| `pnpm local:token -- --tenant comune --user admin --output .local-development/manual-token` | Writes a token for manual local use |
 | `pnpm local:infra:start` | Starts infrastructure and prepares it for the frontend runtime |
 | `pnpm local:infra:stop` | Stops frontend infrastructure while preserving named volumes |
 | `pnpm infra:reset` | Removes infrastructure data while preserving the dashboard and its configuration |
@@ -55,7 +57,7 @@ existing published interface keeps its metadata, including the old
 it with the correct checksum; rerunning the catalog seed does not mutate a
 published interface.
 
-The fullstack preset starts backend services without watching to keep memory
+The Frontend backend preset starts backend services without watching to keep memory
 use manageable. Toggle watch per package in the dashboard when working on backend
 code. Individual packages enable watch by default. Watch choices can be saved in
 personal presets.

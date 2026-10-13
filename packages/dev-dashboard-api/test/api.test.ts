@@ -38,12 +38,41 @@ const setup = (extraPackages: Package[] = [], presets: Preset[] = []) => {
   return { app, supervisor, driver };
 };
 describe("dashboard HTTP boundary", () => {
-  it("returns dashboard status without a global mode", async () => {
+  it.each(["fullstack.start", "fullstack.stop", "frontend.restart"])(
+    "rejects removed frontend control %s without an operation",
+    async (type) => {
+      const { app, supervisor, driver } = setup();
+      const run = vi.spyOn(driver, "run");
+      const response = await request(app)
+        .post("/__local-dashboard/api/actions")
+        .send({
+          type,
+          ...(type === "frontend.restart" ? { mode: "local" } : {}),
+        });
+      expect(response.status).toBe(400);
+      expect(supervisor.status().operations).toEqual([]);
+      expect(run).not.toHaveBeenCalled();
+    }
+  );
+
+  it.each(["seed", "fullstack"])(
+    "rejects obsolete preset input flag %s",
+    async (flag) => {
+      const { app, supervisor } = setup();
+      const response = await request(app)
+        .post("/__local-dashboard/api/presets")
+        .send({ name: "Mine", packages: [{ name: "a" }], [flag]: false });
+      expect(response.status).toBe(400);
+      expect(supervisor.status().presets).toEqual([]);
+    }
+  );
+  it("returns dashboard status without frontend runtime or global mode", async () => {
     const { app } = setup();
     const response = await request(app).get("/__local-dashboard/api/status");
 
     expect(response.status).toBe(200);
     expect(response.body).not.toHaveProperty("mode");
+    expect(response.body).not.toHaveProperty("frontendAvailable");
   });
 
   it.each([
@@ -236,8 +265,6 @@ describe("dashboard HTTP boundary", () => {
           name: "Core",
           source: "shared",
           packages: [{ name: "a" }, { name: "b" }],
-          seed: false,
-          fullstack: false,
         },
       ]
     );
@@ -358,7 +385,7 @@ describe("dashboard HTTP boundary", () => {
       "ERROR restarted seed member",
     ]);
   });
-  it("includes frontend and checks only for the fullstack preset", async () => {
+  it("keeps preset log groups restricted to backend members and orchestration", async () => {
     const { app, supervisor } = setup(
       [],
       [
@@ -367,16 +394,12 @@ describe("dashboard HTTP boundary", () => {
           name: "Backend",
           source: "personal",
           packages: [{ name: "a" }],
-          seed: false,
-          fullstack: false,
         },
         {
           id: "full",
           name: "Fullstack",
           source: "shared",
           packages: [{ name: "a" }],
-          seed: true,
-          fullstack: true,
         },
       ]
     );
@@ -402,8 +425,6 @@ describe("dashboard HTTP boundary", () => {
     ]);
     expect((await read("full")).entries.map((entry) => entry.source)).toEqual([
       "a",
-      "frontend",
-      "checks",
       "orchestration",
     ]);
   });
@@ -416,8 +437,6 @@ describe("dashboard HTTP boundary", () => {
           name: "Empty",
           source: "shared",
           packages: [],
-          seed: false,
-          fullstack: false,
         },
       ]
     );
@@ -610,7 +629,7 @@ describe("dashboard HTTP boundary", () => {
       state.operations.find((op) => op.id === accepted.operationId)?.state
     ).toBe("passed");
   });
-  it("preserves the frontend identity/session shape and denies cross-origin mutations", async () => {
+  it("preserves the identity/session shape and denies cross-origin mutations", async () => {
     const { app } = setup();
     expect(
       schemas.IdentitiesResponse.parse(

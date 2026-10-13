@@ -126,7 +126,7 @@ describe("dashboard transport", () => {
         .mockResolvedValue(Response.json({ unexpected: true }))
     );
     await expect(
-      request("/status", z.object({ frontendAvailable: z.boolean() }).strict())
+      request("/status", z.object({ seedReady: z.boolean() }).strict())
     ).rejects.toThrow("invalid API response");
   });
   it("reports the same invalid-response error when a successful response contains malformed JSON", async () => {
@@ -137,7 +137,7 @@ describe("dashboard transport", () => {
         .mockResolvedValue(new Response("not json", { status: 200 }))
     );
     await expect(
-      request("/status", z.object({ frontendAvailable: z.boolean() }))
+      request("/status", z.object({ seedReady: z.boolean() }))
     ).rejects.toThrow("invalid API response");
   });
 });

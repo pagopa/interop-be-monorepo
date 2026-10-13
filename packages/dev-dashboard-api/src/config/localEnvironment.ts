@@ -7,7 +7,7 @@ import {
 
 export const localEnvironmentOverrides: Readonly<NodeJS.ProcessEnv> = {
   NODE_ENV: ENVIRONMENT_RULES.nodeEnvironment,
-  FRONTEND_BASE_URL: LOCAL_ENDPOINTS.frontend,
+  FRONTEND_BASE_URL: `${LOCAL_ENDPOINTS.frontendPublic}/ui/it`,
   SELFCARE_V2_URL: LOCAL_ENDPOINTS.selfcare,
   SELFCARE_V2_API_KEY: "local-selfcare-key",
   DYNAMO_DB_ENDPOINT: LOCAL_ENDPOINTS.dynamodb,
@@ -57,14 +57,14 @@ export const packageEnvironmentOverrides: Readonly<
     BFF_URL: LOCAL_ENDPOINTS.backendForFrontend,
   },
   "pagopa-interop-in-app-notification-dispatcher": {
-    INTEROP_FE_BASE_URL: LOCAL_ENDPOINTS.frontend,
+    INTEROP_FE_BASE_URL: LOCAL_ENDPOINTS.frontendPublic,
   },
   "pagopa-interop-m2m-event-dispatcher": {
     PURPOSE_TEMPLATE_TOPIC: "event-store.purpose_template.events",
   },
   "pagopa-interop-m2m-gateway-v3": { DPOP_CACHE_TABLE: "dpop-cache" },
   "pagopa-interop-notification-email-sender": {
-    INTEROP_FE_BASE_URL: LOCAL_ENDPOINTS.frontend,
+    INTEROP_FE_BASE_URL: LOCAL_ENDPOINTS.frontendPublic,
   },
   "pagopa-interop-notifier-seeder": {
     AGREEMENT_TOPIC: "event-store.agreement.events",

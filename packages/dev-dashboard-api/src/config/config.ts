@@ -13,7 +13,6 @@ const defaultBackendRoot = resolve(
 export const DashboardApiConfig = z
   .object({
     INTEROP_BE_ROOT: z.string().default(defaultBackendRoot),
-    INTEROP_FE_ROOT: z.string().optional(),
     DASHBOARD_PORT: z.coerce.number().int().min(1).max(MAX_PORT).default(8076),
     DASHBOARD_AUTOSTART: z.string().optional(),
     DASHBOARD_AUTOSTART_PRESET: PresetId.optional()
@@ -25,7 +24,6 @@ export const DashboardApiConfig = z
 
     return {
       beRoot,
-      feRoot: env.INTEROP_FE_ROOT ? resolve(env.INTEROP_FE_ROOT) : undefined,
       port: env.DASHBOARD_PORT,
       autostart: env.DASHBOARD_AUTOSTART !== "false",
       autostartPreset: env.DASHBOARD_AUTOSTART_PRESET,

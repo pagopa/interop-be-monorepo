@@ -31,14 +31,12 @@ type ApplicationServiceOptions = {
 type ApplicationService = {
   has: (name: string) => boolean;
   startPackage: (name: string) => Promise<void>;
-  launch: (name: string, command: Command) => Promise<void>;
-  waitFor: (name: string, url: string) => Promise<void>;
   stop: (name: string) => Promise<boolean>;
   stopAll: () => Promise<void>;
 };
 
 function packageReadinessUrl(item: Package): string {
-  const endpoint = new URL(LOCAL_ENDPOINTS.frontend);
+  const endpoint = new URL(LOCAL_ENDPOINTS.backendForFrontend);
   const path =
     item.name === PACKAGE_NAMES.backendForFrontend
       ? PACKAGE_READINESS_PATHS.backendForFrontend
@@ -217,8 +215,6 @@ export function applicationServiceBuilder(
   return {
     has: (name: string): boolean => children.has(name),
     startPackage,
-    launch,
-    waitFor,
     stop,
     stopAll,
   };

@@ -42,7 +42,6 @@ import { Separator } from "./ui/separator";
 type Props = {
   presets: Preset[];
   packages: Package[];
-  frontendAvailable: boolean;
   busy: Record<string, string>;
   onAction: (
     action: DashboardAction,
@@ -57,7 +56,6 @@ type Props = {
 export function PresetPanel({
   presets,
   packages,
-  frontendAvailable,
   busy,
   onAction,
   onSave,
@@ -120,7 +118,6 @@ export function PresetPanel({
                         key={preset.id}
                         preset={preset}
                         packages={packages}
-                        frontendAvailable={frontendAvailable}
                         busy={busy}
                         failure={actionFailures?.[`preset:${preset.id}`]}
                         first={index === 0}
@@ -151,7 +148,6 @@ export function PresetPanel({
 function PresetItem({
   preset,
   packages,
-  frontendAvailable,
   busy,
   failure,
   first,
@@ -162,7 +158,6 @@ function PresetItem({
 }: {
   preset: Preset;
   packages: Package[];
-  frontendAvailable: boolean;
   busy: Record<string, string>;
   failure?: ActionFailure;
   first: boolean;
@@ -191,7 +186,6 @@ function PresetItem({
   const starting = Boolean(busy[startKey]);
   const stopping = Boolean(busy[stopKey]);
   const pending = Boolean(busy[key]) || starting || stopping;
-  const unavailable = preset.fullstack && !frontendAvailable;
   return (
     <>
       {!first && <Separator />}
@@ -234,7 +228,7 @@ function PresetItem({
             <Button
               size="sm"
               className="w-20"
-              disabled={pending || unavailable || allRunning}
+              disabled={pending || allRunning}
               aria-busy={starting}
               aria-label={`Start ${preset.name}`}
               onClick={() =>

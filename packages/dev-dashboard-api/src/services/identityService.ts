@@ -4,8 +4,8 @@ import type {
   SessionResponse,
 } from "pagopa-interop-dev-dashboard-contracts";
 
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 
 import {
   DASHBOARD_PATHS,
@@ -60,8 +60,7 @@ async function readSeedState(root: string): Promise<LocalSeedState> {
 
 export function identityServiceBuilder(
   beRoot: string,
-  driver: Driver,
-  feRoot?: string
+  driver: Driver
 ): IdentityService {
   let selections: Promise<void> = Promise.resolve();
 
@@ -84,6 +83,7 @@ export function identityServiceBuilder(
           users: (usersBySelfcareId.get(tenant.selfcareId) ?? []).map(
             ({ user, roles }) => ({
               id: user.id,
+              key: user.key,
               name: user.name,
               surname: user.surname,
               email: user.email,
@@ -129,11 +129,6 @@ export function identityServiceBuilder(
     const sessionToken = (await driver.run(command, () => undefined)).trim();
     if (!/^[-\w]+\.[-\w]+\.[-\w]+$/.test(sessionToken))
       throw new Error("Local CLI returned an invalid session token");
-    if (feRoot) {
-      const tokenPath = join(beRoot, DASHBOARD_PATHS.frontendToken);
-      await mkdir(dirname(tokenPath), { recursive: true });
-      await writeFile(tokenPath, `${sessionToken}\n`, { mode: 0o600 });
-    }
     return { sessionToken };
   }
 

@@ -3,16 +3,13 @@ FROM mcr.microsoft.com/devcontainers/typescript-node:1-20-bookworm
 
 ENV npm_config_store_dir=/home/node/.local/share/pnpm/store \
     PUPPETEER_SKIP_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium \
-    PLAYWRIGHT_BROWSERS_PATH=/home/node/.cache/ms-playwright
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
-# Debian Chromium is available on both amd64 and arm64. The same image provides
-# the fullstack devcontainer tools without tying the runtime to VS Code.
+# Debian Chromium supports the backend documents generator on amd64 and arm64.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends chromium curl jq socat gosu \
     && corepack enable \
     && corepack prepare pnpm@10.29.3 --activate \
-    && npx --yes playwright@1.61.1 install-deps chromium \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=docker-cli /usr/local/bin/docker /usr/local/bin/docker

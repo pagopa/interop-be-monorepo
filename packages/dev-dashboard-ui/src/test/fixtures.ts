@@ -17,7 +17,6 @@ export function statusFixture(
       "pagopa-interop-catalog-process",
       "pagopa-interop-catalog-readmodel-writer-sql",
     ],
-    frontendAvailable: false,
     packages: [
       {
         name: "pagopa-interop-backend-for-frontend",
@@ -51,8 +50,6 @@ export function statusFixture(
         packages: [
           { name: "pagopa-interop-backend-for-frontend", watch: true },
         ],
-        seed: true,
-        fullstack: false,
       },
       {
         id: "personal-core",
@@ -61,8 +58,6 @@ export function statusFixture(
         packages: [
           { name: "pagopa-interop-catalog-readmodel-writer-sql", watch: false },
         ],
-        seed: false,
-        fullstack: false,
       },
     ],
     infrastructure: [{ name: "postgres", state: "running", status: "healthy" }],
@@ -130,6 +125,7 @@ export const identitiesFixture: IdentitiesResponse = {
       name: "Consumer tenant",
       users: [
         {
+          key: "admin",
           id: "admin",
           name: "Anna",
           surname: "Rossi",
@@ -145,6 +141,7 @@ export const identitiesFixture: IdentitiesResponse = {
       name: "Producer tenant",
       users: [
         {
+          key: "operator",
           id: "operator",
           name: "Luca",
           surname: "Verdi",

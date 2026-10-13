@@ -60,8 +60,6 @@ const preset: Preset = {
   name: "Pair",
   source: "shared",
   packages: [{ name: "a" }, { name: "b" }],
-  seed: false,
-  fullstack: false,
 };
 const seedPackages = [
   "pagopa-interop-tenant-process",
@@ -81,30 +79,34 @@ afterEach(async () => {
 const setup = (
   options: {
     personalPath?: string;
-    fullstack?: boolean;
+    includeSeedPackages?: boolean;
     watchSource?: (path: string, changed: () => void) => () => void;
   } = {}
 ) => {
   const driver = new FakeDriver();
   const supervisor = supervisorServiceBuilder({
     beRoot: "/be",
-    feRoot: "/fe",
     driver,
     packages: [
       member("a"),
       member("b"),
       member("outside"),
       member("remote"),
-      ...(options.fullstack ? seedPackages.map((name) => member(name)) : []),
+      ...(options.includeSeedPackages
+        ? seedPackages.map((name) => member(name))
+        : []),
     ],
     presets: [
       {
         ...preset,
         packages: [
           ...preset.packages,
-          ...(options.fullstack ? seedPackages.map((name) => ({ name })) : []),
-        ].map((item) => (options.fullstack ? { ...item, watch: false } : item)),
-        fullstack: options.fullstack ?? false,
+          ...(options.includeSeedPackages
+            ? seedPackages.map((name) => ({ name }))
+            : []),
+        ].map((item) =>
+          options.includeSeedPackages ? { ...item, watch: false } : item
+        ),
       },
     ],
     personalPath: options.personalPath,
@@ -162,11 +164,11 @@ describe("local dashboard supervisor", () => {
     await first.supervisor.shutdown();
   });
 
-  it("starts individual packages with watch enabled when a frontend checkout is available", async () => {
+  it("starts individual packages with watch enabled without frontend orchestration", async () => {
     const watchSource = vi.fn(() => () => undefined);
     const { supervisor } = setup({ watchSource });
 
-    expect(supervisor.status().frontendAvailable).toBe(true);
+    expect(supervisor.status()).not.toHaveProperty("frontendAvailable");
     expect(supervisor.status().packages.every((item) => item.watch)).toBe(true);
     expect(supervisor.status()).not.toHaveProperty("mode");
 
@@ -180,7 +182,7 @@ describe("local dashboard supervisor", () => {
   });
 
   it("autostarts infrastructure only without selecting application packages", async () => {
-    const { supervisor, driver } = setup({ fullstack: true });
+    const { supervisor, driver } = setup({ includeSeedPackages: true });
 
     const accepted = supervisor.autostart();
     await supervisor.idle();
@@ -233,10 +235,13 @@ describe("local dashboard supervisor", () => {
     ).toBe(false);
   });
 
-  it("autostarts a selected fullstack preset with its watch choices and complete frontend timeline", async () => {
+  it("autostarts the frontend backend group with its watch choices without seed or frontend work", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true }));
     const watchSource = vi.fn(() => () => undefined);
-    const { supervisor, driver } = setup({ fullstack: true, watchSource });
+    const { supervisor, driver } = setup({
+      includeSeedPackages: true,
+      watchSource,
+    });
 
     const accepted = supervisor.autostart("pair");
     expect(supervisor.autostart("pair")).toEqual(accepted);
@@ -255,12 +260,6 @@ describe("local dashboard supervisor", () => {
       "start:a",
       "start:b",
       ...seedPackages.map((name) => `start:${name}`),
-      "frontend:install",
-      "seed",
-      "frontend:token",
-      "frontend:start",
-      "frontend:smoke",
-      "frontend:browser-checks",
     ]);
     expect(watchSource).not.toHaveBeenCalled();
     expect(
@@ -270,19 +269,22 @@ describe("local dashboard supervisor", () => {
       supervisor.status().packages.find((item) => item.name === "outside")
     ).toMatchObject({ state: "stopped", watch: true });
     expect(
-      driver.commands.find((command) => command.args.includes("token"))?.args
-    ).toContain("/be/.local-development/frontend-token");
+      driver.commands.some(
+        (command) =>
+          command.args.includes("seed") || command.args.includes("token")
+      )
+    ).toBe(false);
     expect(
       driver.commands
         .filter((command) => command.source === "checks")
         .map((command) => command.args.at(-1))
-    ).toEqual(["smoke", "browser-checks"]);
+    ).toEqual([]);
   });
 
   it.each(["recover", "start", "wait", "topics", "connector"])(
-    "skips the selected fullstack preset after autostart infrastructure %s fails",
+    "skips the selected backend preset after autostart infrastructure %s fails",
     async (phase) => {
-      const { supervisor, driver } = setup({ fullstack: true });
+      const { supervisor, driver } = setup({ includeSeedPackages: true });
       driver.failPhase = phase;
 
       supervisor.autostart("pair");
@@ -673,7 +675,7 @@ describe("local dashboard supervisor", () => {
     expect(supervisor.status().seedPrerequisites).toEqual([seedPackages[1]]);
   });
   it("builds and starts only the four seed packages without infrastructure or seed commands", async () => {
-    const { supervisor, driver } = setup({ fullstack: true });
+    const { supervisor, driver } = setup({ includeSeedPackages: true });
     const previous = supervisor.status();
     supervisor.action({ type: "seed.prepare" });
     await supervisor.idle();
@@ -714,7 +716,7 @@ describe("local dashboard supervisor", () => {
     });
   });
   it("retains the complete seed package metadata while prerequisites shrink, returning cloned data", async () => {
-    const { supervisor } = setup({ fullstack: true });
+    const { supervisor } = setup({ includeSeedPackages: true });
     const before = supervisor.status();
     expect(before.seedPackages).toEqual(seedPackages);
     expect(before.seedPrerequisites).toEqual(seedPackages);
@@ -734,7 +736,7 @@ describe("local dashboard supervisor", () => {
   it("keeps running children and watch preferences while preparing missing seed packages", async () => {
     const closeWatcher = vi.fn();
     const { supervisor, driver } = setup({
-      fullstack: true,
+      includeSeedPackages: true,
       watchSource: () => closeWatcher,
     });
     supervisor.action({
@@ -796,7 +798,7 @@ describe("local dashboard supervisor", () => {
     expect(closeWatcher).not.toHaveBeenCalled();
   });
   it("skips every seed service start after a failed preparation build", async () => {
-    const { supervisor, driver } = setup({ fullstack: true });
+    const { supervisor, driver } = setup({ includeSeedPackages: true });
     driver.failPhase = "build";
     supervisor.action({ type: "seed.prepare" });
     await supervisor.idle();
@@ -809,7 +811,7 @@ describe("local dashboard supervisor", () => {
     ).toEqual(["failed", "skipped", "skipped", "skipped", "skipped"]);
   });
   it("stops preparation after a seed service fails to start", async () => {
-    const { supervisor, driver } = setup({ fullstack: true });
+    const { supervisor, driver } = setup({ includeSeedPackages: true });
     driver.failStart = seedPackages[1];
     supervisor.action({ type: "seed.prepare" });
     await supervisor.idle();
@@ -849,7 +851,7 @@ describe("local dashboard supervisor", () => {
     }
   );
   it("deduplicates in-flight seed preparation with the same operation id", async () => {
-    const { supervisor, driver } = setup({ fullstack: true });
+    const { supervisor, driver } = setup({ includeSeedPackages: true });
     let release: () => void = () => undefined;
     driver.gate = new Promise<void>((resolve) => {
       release = resolve;
@@ -866,55 +868,43 @@ describe("local dashboard supervisor", () => {
       driver.commands.filter((command) => command.executable === "pnpm")
     ).toHaveLength(1);
   });
-  it("runs the complete first fullstack timeline and skips already owned frontend work on additive starts", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true }));
-    const { supervisor, driver } = setup({
-      fullstack: true,
-    });
-    const accepted = supervisor.action({ type: "fullstack.start" });
-    expect(supervisor.action({ type: "fullstack.start" })).toEqual(accepted);
+  it("starts preset members additively without infrastructure, seed, token or frontend commands", async () => {
+    const { supervisor, driver } = setup({ includeSeedPackages: true });
+    const accepted = supervisor.action({ type: "preset.start", id: "pair" });
+    expect(supervisor.action({ type: "preset.start", id: "pair" })).toEqual(
+      accepted
+    );
     await supervisor.idle();
-    const operation = supervisor.status().operations[0];
-    expect(operation.state).toBe("passed");
-    expect(operation.phases.map((phase) => phase.id)).toEqual([
-      "infra:recover",
-      "infra:start",
-      "infra:wait",
-      "infra:topics",
-      "infra:connector",
+    expect(supervisor.status().operations[0]).toMatchObject({
+      state: "passed",
+    });
+    expect(
+      supervisor.status().operations[0].phases.map((phase) => phase.id)
+    ).toEqual([
       "build",
       "start:a",
       "start:b",
       ...seedPackages.map((name) => `start:${name}`),
-      "frontend:install",
-      "seed",
-      "frontend:token",
-      "frontend:start",
-      "frontend:smoke",
-      "frontend:browser-checks",
     ]);
-    expect(
-      driver.commands
-        .filter((command) => command.source === "checks")
-        .map((command) => command.args.at(-1))
-    ).toEqual(["smoke", "browser-checks"]);
-    expect(
-      driver.commands.find((command) => command.args.includes("token"))?.args
-    ).toContain("/be/.local-development/frontend-token");
-    const firstCommands = driver.commands.filter(
-      (command) => command.source === "frontend" || command.source === "checks"
-    ).length;
-    supervisor.action({ type: "fullstack.start" });
+    expect(driver.commands.map((command) => command.source)).toEqual([
+      "orchestration",
+      "a",
+      "b",
+      ...seedPackages,
+    ]);
+    const firstCommands = driver.commands.length;
+    supervisor.action({ type: "preset.start", id: "pair" });
     await supervisor.idle();
+    expect(driver.commands).toHaveLength(firstCommands);
     expect(
-      driver.commands.filter(
-        (command) =>
-          command.source === "frontend" || command.source === "checks"
-      )
-    ).toHaveLength(firstCommands);
+      supervisor
+        .status()
+        .operations.at(-1)
+        ?.phases.every((phase) => phase.state === "skipped")
+    ).toBe(true);
   });
   it.each(["shared", "personal"] satisfies Preset["source"][])(
-    "does not seed a non-fullstack %s preset even with a previously saved seed flag",
+    "does not implicitly seed a %s package preset",
     async (source) => {
       const driver = new FakeDriver();
       const supervisor = supervisorServiceBuilder({
@@ -925,7 +915,6 @@ describe("local dashboard supervisor", () => {
           {
             ...preset,
             source,
-            seed: true,
             packages: seedPackages.map((name) => ({ name })),
           },
         ],
@@ -944,26 +933,18 @@ describe("local dashboard supervisor", () => {
       ).toBe(false);
     }
   );
-  it.each(["smoke", "browser-checks"])(
-    "marks a failed fullstack %s phase and skips subsequent work",
-    async (phase) => {
-      vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true }));
-      const { supervisor, driver } = setup({
-        fullstack: true,
-      });
-      driver.failPhase = phase;
-      supervisor.action({ type: "fullstack.start" });
-      await supervisor.idle();
-      const operation = supervisor.status().operations[0];
-      expect(operation.state).toBe("failed");
-      expect(
-        operation.phases.find((item) => item.id === `frontend:${phase}`)?.state
-      ).toBe("failed");
-      if (phase === "smoke")
-        expect(
-          operation.phases.find((item) => item.id === "frontend:browser-checks")
-            ?.state
-        ).toBe("skipped");
+  it.each(["fullstack.start", "fullstack.stop", "frontend.restart"])(
+    "rejects removed frontend control %s before queuing any command",
+    (type) => {
+      const { supervisor, driver } = setup();
+      expect(() =>
+        supervisor.action({
+          type,
+          ...(type === "frontend.restart" ? { mode: "local" } : {}),
+        })
+      ).toThrow();
+      expect(supervisor.status().operations).toEqual([]);
+      expect(driver.commands).toEqual([]);
     }
   );
   it("serializes concurrent personal preset writes without losing either definition", async () => {
@@ -975,13 +956,11 @@ describe("local dashboard supervisor", () => {
         id: "first",
         name: "First",
         packages: [{ name: "a" }],
-        seed: false,
       }),
       supervisor.savePreset({
         id: "second",
         name: "Second",
         packages: [{ name: "b" }],
-        seed: false,
       }),
     ]);
     expect(
@@ -1154,7 +1133,6 @@ describe("local dashboard supervisor", () => {
     await supervisor.savePreset({
       name: "Personal",
       packages: [{ name: "a" }],
-      seed: false,
     });
     supervisor.action({ type: "package.start", name: "a" });
     await supervisor.idle();
@@ -1179,12 +1157,11 @@ describe("local dashboard supervisor", () => {
     ]);
     expect(operation?.phases.every((p) => p.state === "passed")).toBe(true);
   });
-  it("respects each preset member's explicit watch setting with a frontend checkout available", async () => {
+  it("respects each preset member's explicit watch setting", async () => {
     const driver = new FakeDriver();
     const watchSource = vi.fn(() => () => undefined);
     const supervisor = supervisorServiceBuilder({
       beRoot: "/be",
-      feRoot: "/fe",
       driver,
       packages: [member("a"), member("b")],
       presets: [

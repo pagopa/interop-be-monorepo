@@ -8,7 +8,6 @@ export function PresetsPage() {
     <PresetPanel
       presets={dashboard.status.presets}
       packages={dashboard.status.packages}
-      frontendAvailable={dashboard.status.frontendAvailable}
       busy={dashboard.busy}
       actionError={dashboard.actionError}
       actionFailures={dashboard.actionFailures}

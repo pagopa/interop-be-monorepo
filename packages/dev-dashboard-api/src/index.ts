@@ -13,10 +13,9 @@ import { errorMessage } from "./utilities/errorUtils.js";
 import { watchSource } from "./utilities/watch.js";
 
 const driver = processDriverServiceBuilder();
-const identities = identityServiceBuilder(config.beRoot, driver, config.feRoot);
+const identities = identityServiceBuilder(config.beRoot, driver);
 const supervisor = supervisorServiceBuilder({
   beRoot: config.beRoot,
-  feRoot: config.feRoot,
   driver,
   packages: await discoverPackages(config.beRoot),
   presets: await readPresets(config.beRoot, config.personalPath),

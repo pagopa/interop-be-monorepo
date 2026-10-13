@@ -22,14 +22,11 @@ if [[ "${1:-}" != --user ]]; then
   fi
   usermod -aG "$socket_group" node
 
-  dependency_paths=("$INTEROP_BE_ROOT/node_modules" /home/node/.local/share/pnpm /home/node/.cache)
+  dependency_paths=("$INTEROP_BE_ROOT/node_modules" /home/node/.local/share/pnpm)
   for manifest in "$INTEROP_BE_ROOT"/packages/*/package.json; do
     [[ -f "$manifest" ]] || continue
     dependency_paths+=("${manifest%/package.json}/node_modules")
   done
-  if [[ -n "${INTEROP_FE_ROOT:-}" ]]; then
-    dependency_paths+=("$INTEROP_FE_ROOT/node_modules")
-  fi
   for directory in "${dependency_paths[@]}"; do
     mountpoint -q "$directory" || {
       echo "Missing dependency volume: $directory. Regenerate the Compose override." >&2; exit 1;
@@ -67,6 +64,7 @@ done
 echo 'Installing backend workspace dependencies'
 CI=true pnpm install --frozen-lockfile
 echo 'Building the dashboard'
+pnpm --filter pagopa-interop-dev-dashboard-contracts generate-model
 pnpm --filter pagopa-interop-dev-dashboard-contracts build
 pnpm --filter pagopa-interop-dev-dashboard-api build
 pnpm --filter pagopa-interop-dev-dashboard-ui build

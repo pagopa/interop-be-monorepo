@@ -68,7 +68,6 @@ export function usePresetDraft({
           ...(preset ? { id: preset.id } : {}),
           name: name.trim(),
           packages: members,
-          seed: false,
         })
       )
         onCancel();

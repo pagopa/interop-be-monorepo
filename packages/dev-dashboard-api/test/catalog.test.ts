@@ -53,6 +53,42 @@ const fixture = async (): Promise<string> => {
   return root;
 };
 describe("runnable package catalogue and local boundary", () => {
+  it("loads legacy disk presets as package groups without obsolete orchestration flags", async () => {
+    const root = await fixture();
+    await mkdir(join(root, "docker/local-development"), { recursive: true });
+    const shared = {
+      id: "frontend-full",
+      name: "Frontend backend",
+      source: "shared",
+      packages: [{ name: "backend", watch: false }],
+      seed: true,
+      fullstack: true,
+    };
+    const personal = {
+      ...shared,
+      id: "mine",
+      source: "personal",
+      fullstack: false,
+    };
+    await writeFile(
+      join(root, "docker/local-development/presets.json"),
+      JSON.stringify([shared])
+    );
+    const personalPath = join(root, "presets.json");
+    await writeFile(personalPath, JSON.stringify([personal]));
+    const presets = await readPresets(root, personalPath);
+    expect(presets).toHaveLength(2);
+    presets.forEach((preset) => {
+      expect(preset).not.toHaveProperty("seed");
+      expect(preset).not.toHaveProperty("fullstack");
+      expect(preset.packages).toEqual(shared.packages);
+    });
+    await writeFile(
+      personalPath,
+      JSON.stringify([{ ...personal, command: "bash" }])
+    );
+    await expect(readPresets(root, personalPath)).rejects.toThrow();
+  });
   it.each([
     ["/* documentation */\n   // comment\n", false],
     ['export * from "./clients.js";\n', false],
@@ -98,15 +134,22 @@ describe("runnable package catalogue and local boundary", () => {
     }
   });
 
-  it("loads the shared fullstack workload with runnable packages and watch disabled", async () => {
+  it("loads the shared frontend backend workload with runnable packages and watch disabled", async () => {
     const root = fileURLToPath(new URL("../../..", import.meta.url));
     const personalRoot = await mkdtemp(join(tmpdir(), "dashboard-presets-"));
     dirs.push(personalRoot);
     const presets = await readPresets(root, join(personalRoot, "presets.json"));
-    const fullstack = presets.find((preset) => preset.fullstack);
-    if (!fullstack) throw new Error("Fullstack preset is missing");
-    expect(fullstack).toMatchObject({ source: "shared", seed: true });
-    const names = fullstack.packages.map((member) => member.name);
+    const frontendBackend = presets.find(
+      (preset) => preset.id === "frontend-full"
+    );
+    if (!frontendBackend) throw new Error("Frontend backend preset is missing");
+    expect(frontendBackend).toMatchObject({
+      source: "shared",
+      name: "Frontend backend",
+    });
+    expect(frontendBackend).not.toHaveProperty("seed");
+    expect(frontendBackend).not.toHaveProperty("fullstack");
+    const names = frontendBackend.packages.map((member) => member.name);
     expect(names).toEqual(
       expect.arrayContaining([
         "pagopa-interop-backend-for-frontend",
@@ -121,9 +164,9 @@ describe("runnable package catalogue and local boundary", () => {
     const catalogue = await discoverPackages(root);
     const runnable = new Set(catalogue.map((item) => item.name));
     expect(names.every((name) => runnable.has(name))).toBe(true);
-    expect(fullstack.packages.every((member) => member.watch === false)).toBe(
-      true
-    );
+    expect(
+      frontendBackend.packages.every((member) => member.watch === false)
+    ).toBe(true);
   });
   it("lists executable packages without a manually reviewed support profile", async () => {
     const root = await fixture();

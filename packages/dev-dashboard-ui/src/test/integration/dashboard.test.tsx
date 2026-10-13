@@ -83,7 +83,6 @@ beforeEach(() => {
       return Response.json({
         id: "created",
         source: "personal",
-        fullstack: false,
         ...JSON.parse(String(init.body)),
       });
     }
@@ -795,12 +794,6 @@ describe("development dashboard", () => {
   });
 
   it("edits and deletes a personal preset without stopping its members", async () => {
-    currentStatus = statusFixture({
-      presets: currentStatus.presets.map((preset) => ({
-        ...preset,
-        seed: true,
-      })),
-    });
     const user = userEvent.setup();
     renderDashboard();
     await user.click(screen.getByRole("link", { name: "Presets" }));
@@ -820,7 +813,6 @@ describe("development dashboard", () => {
         id: "personal-core",
         name: "My worker",
         packages: [{ name: workerName, watch: false }],
-        seed: false,
       })
     );
     await waitFor(() =>
@@ -875,101 +867,39 @@ describe("development dashboard", () => {
     );
   });
 
-  it("hides fullstack and frontend controls when the frontend is unavailable", async () => {
-    renderDashboard();
-    await screen.findByRole("heading", { name: "Package catalogue" });
-    const toolbar = screen.getByRole("region", { name: "Runtime status" });
-    expect(
-      within(toolbar).queryByText(/^(backend|fullstack)$/)
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: "Start fullstack" })
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: "Stop fullstack" })
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByLabelText("Frontend environment")
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: "Restart frontend" })
-    ).not.toBeInTheDocument();
-  });
-
-  it("offers fullstack controls and frontend restart whenever the frontend is available", async () => {
-    window.history.replaceState(null, "", "#/logs");
-    currentStatus = statusFixture({
-      frontendAvailable: true,
-      operations: [
-        {
-          id: "fullstack",
-          kind: "preset.start",
-          state: "running",
-          startedAt: "2026-10-06T11:00:00Z",
-          phases: [
-            {
-              id: "frontend:install",
-              label: "Frontend install",
-              state: "passed",
-            },
-            { id: "seed", label: "Seed", state: "running" },
-            { id: "frontend:start", label: "Frontend", state: "pending" },
-            { id: "frontend:smoke", label: "Smoke checks", state: "pending" },
-            {
-              id: "frontend:browser-checks",
-              label: "Browser",
-              state: "pending",
-            },
-          ],
-        },
-      ],
-    });
-    const user = userEvent.setup();
-    renderDashboard();
-    await screen.findByLabelText("Frontend environment");
-    expect(screen.getByRole("button", { name: "Working…" })).toBeDisabled();
-    expect(
-      screen.getByRole("button", { name: "Stop fullstack" })
-    ).toBeDisabled();
-    expect(screen.getByLabelText("Frontend environment")).toBeDisabled();
-    expect(screen.queryByText("Smoke checks")).not.toBeInTheDocument();
-    expect(screen.queryByText("Browser")).not.toBeInTheDocument();
-    const restart = screen.getByRole("button", { name: "Restart frontend" });
-    expect(restart).toBeDisabled();
-    currentStatus = {
-      ...currentStatus,
-      operations: currentStatus.operations.map((operation) => ({
-        ...operation,
-        state: "passed",
-      })),
-    };
-    await user.click(
-      screen.getByRole("button", { name: "Refresh runtime status" })
-    );
-    await waitFor(() => expect(restart).toBeEnabled());
-    expect(
-      screen.getByRole("button", { name: "Start fullstack" })
-    ).toBeEnabled();
-    expect(
-      screen.getByRole("button", { name: "Stop fullstack" })
-    ).toBeEnabled();
-    expect(screen.getByLabelText("Frontend environment")).toBeEnabled();
-    await user.selectOptions(
-      screen.getByLabelText("Frontend environment"),
-      "dev"
-    );
-    await user.click(screen.getByRole("button", { name: "Restart frontend" }));
-    await waitFor(() =>
-      expect(postedBodies("/actions")).toContainEqual({
-        type: "frontend.restart",
-        mode: "dev",
-      })
-    );
-    expect(screen.getByRole("link", { name: "Open frontend" })).toHaveAttribute(
-      "href",
-      "http://localhost:3000/ui/it/"
-    );
-  });
+  it.each([
+    { path: "packages", heading: "Package catalogue" },
+    { path: "presets", heading: "Presets" },
+    { path: "infrastructure", heading: "Local infrastructure" },
+    { path: "access-token", heading: "Local access token" },
+    { path: "logs", heading: "Aggregate logs" },
+  ])(
+    "never exposes frontend lifecycle controls on the backend $path page",
+    async ({ path, heading }) => {
+      window.history.replaceState(null, "", `#/${path}`);
+      renderDashboard();
+      await screen.findByRole("heading", { name: heading });
+      const toolbar = screen.getByRole("region", { name: "Runtime status" });
+      expect(
+        within(toolbar).getByRole("button", { name: "Refresh runtime status" })
+      ).toBeEnabled();
+      expect(
+        screen.queryByRole("button", { name: "Start fullstack" })
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Stop fullstack" })
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByLabelText("Frontend environment")
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Restart frontend" })
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("link", { name: "Open frontend" })
+      ).not.toBeInTheDocument();
+    }
+  );
 
   it("starts one package and changes its watch mode without replacing other running packages", async () => {
     const user = userEvent.setup();
@@ -1430,7 +1360,6 @@ describe("development dashboard", () => {
       expect(postedBodies("/presets")).toContainEqual({
         name: "Focused agreement",
         packages: [{ name: bffName, watch: true }],
-        seed: false,
       })
     );
   });
@@ -1553,13 +1482,13 @@ describe("development dashboard", () => {
     }
   );
 
-  it("does not derive infrastructure loading from fullstack operation phases", async () => {
+  it("does not derive infrastructure loading from preset operation phases", async () => {
     const fixture = statusFixture();
     currentStatus = statusFixture({
       operations: [
         {
           ...fixture.operations[0],
-          kind: "fullstack.start",
+          kind: "preset.start",
           state: "running",
           phases: [
             { id: "infra.start", label: "Infrastructure", state: "running" },
@@ -2124,7 +2053,7 @@ describe("development dashboard", () => {
     }
   );
 
-  it.each(["infra.start", "preset.start", "package.start", "fullstack.start"])(
+  it.each(["infra.start", "preset.start", "package.start"])(
     "does not show startup loading for an unrelated %s operation",
     async (kind) => {
       currentStatus = statusFixture({
@@ -2486,11 +2415,11 @@ describe("development dashboard", () => {
   );
 
   it.each(["passed", "failed"])(
-    "shows fullstack seed loading only during that phase and handles %s without duplicate identity reloads",
+    "ignores preset seed phases ending in %s without loading or reloading identities",
     async (terminal) => {
       const operation = {
-        id: "fullstack-seed",
-        kind: "fullstack.start",
+        id: "preset-seed",
+        kind: "preset.start",
         state: "running",
         startedAt: "2026-10-08T15:00:00Z",
         phases: [
@@ -2527,7 +2456,8 @@ describe("development dashboard", () => {
       await user.click(
         screen.getByRole("button", { name: "Refresh runtime status" })
       );
-      expect(seed).toHaveAttribute("aria-busy", "true");
+      expect(seed).toHaveAttribute("aria-busy", "false");
+      expect(seed).toBeEnabled();
       currentStatus = {
         ...currentStatus,
         operations: [
@@ -2551,10 +2481,7 @@ describe("development dashboard", () => {
       expect(
         await screen.findByRole("button", { name: "Generate token" })
       ).toBeEnabled();
-      if (terminal === "failed")
-        expect(await screen.findByRole("alert")).toHaveTextContent(
-          "Seed failed"
-        );
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
       currentStatus = {
         ...currentStatus,
         operations: [
@@ -2571,7 +2498,7 @@ describe("development dashboard", () => {
         fetchMock.mock.calls.filter(([input]) =>
           String(input).endsWith("/identities")
         )
-      ).toHaveLength(terminal === "passed" ? 2 : 1);
+      ).toHaveLength(1);
       expect(postedBodies("/actions")).toEqual([]);
     }
   );

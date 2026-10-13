@@ -599,8 +599,6 @@ describe("aggregate log filters", () => {
             label: "Orchestration",
             kind: "orchestration",
           },
-          { id: "frontend", label: "Frontend", kind: "frontend" },
-          { id: "checks", label: "Checks", kind: "checks" },
         ]}
         selectedSource="preset:personal-core"
         selectedLevel=""
@@ -633,7 +631,7 @@ describe("aggregate log filters", () => {
       within(
         within(source).getByRole("group", { name: "Runtime" })
       ).getAllByRole("option")
-    ).toHaveLength(3);
+    ).toHaveLength(1);
     await waitFor(() =>
       expect(screen.getByRole("status")).toHaveTextContent("0 lines")
     );

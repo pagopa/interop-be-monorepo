@@ -8,13 +8,14 @@ product
 
 PDND backend and frontend developers working against local infrastructure on Linux,
 macOS or Windows through WSL2. They need to launch a few services, inspect their
-logs, or prepare the fullstack environment without managing terminal sessions.
+logs, or prepare the backend used by a fullstack environment.
 
 ## Product Purpose
 
 A backend-owned development tool available independently of Vite and VS Code.
-The dashboard controls one shared runtime, shows the actual startup plan and
-keeps process failures and infrastructure state visible.
+The dashboard controls backend processes and infrastructure, keeping failures
+and runtime state visible. The frontend launcher owns Vite and frontend checks
+in a separate devcontainer and coordinates backend actions through the API.
 
 ## Brand Personality
 
@@ -75,11 +76,11 @@ project while standard controls keep attention on development work.
   results through a bottom-right snackbar, prevent concurrent requests and wait briefly
   before allowing another manual refresh. Use the
   standard Terminal and Logs button for failure diagnostics. Keep seed out of local preset
-  controls and retain automatic seed in the fullstack startup flow.
+  controls. The frontend launcher requests seed explicitly during fullstack startup.
   Dialogs open with a brief animation
   that respects reduced-motion preferences.
 - Keep preset section headings smaller than the page title, with clear separators
-  between sections and presets. Shared presets are Frontend fullstack and Tenant Seeding.
+  between sections and presets. Shared presets are Frontend backend and Tenant Seeding.
 - Logs uses Source, Level and Search. Search includes correlation IDs in metadata.
   Keep the line count badge sized to its text.
   Offer per-row message copy on hover, always visible on touch devices. Centre it

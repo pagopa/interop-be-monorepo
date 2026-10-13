@@ -7,11 +7,9 @@ OVERRIDE="$STATE_ROOT/compose.yml"
 COMPOSE_FILE="$REPOSITORY_ROOT/docker/docker-compose.yml"
 COMMAND="${1:-start}"
 shift || true
-FRONTEND_ROOT=""
 STARTUP_PRESET="${DASHBOARD_AUTOSTART_PRESET:-}"
 while (( $# )); do
   case "$1" in
-    --frontend) FRONTEND_ROOT="${2:?Missing frontend checkout path}"; shift 2 ;;
     --preset) STARTUP_PRESET="${2:?Missing startup preset ID}"; shift 2 ;;
     *) echo "Unknown argument: $1" >&2; exit 1 ;;
   esac
@@ -30,29 +28,26 @@ json_string() {
 
 prepare() {
   REPOSITORY_ROOT="$(cd "$REPOSITORY_ROOT" && pwd -P)"
-  [[ -z "$FRONTEND_ROOT" ]] || FRONTEND_ROOT="$(cd "$FRONTEND_ROOT" && pwd -P)"
   mkdir -p "$STATE_ROOT"
-  local volume_names=(dashboard-be-modules dashboard-pnpm-store dashboard-browser-cache)
+  local volume_names=(dashboard-be-modules dashboard-pnpm-store)
   {
     printf '{"services":{"dashboard":{"working_dir":'
     json_string "$REPOSITORY_ROOT"
     printf ',"environment":{"INTEROP_BE_ROOT":'
     json_string "$REPOSITORY_ROOT"
-    printf ',"INTEROP_FE_ROOT":'
-    json_string "$FRONTEND_ROOT"
     if [[ -n "$STARTUP_PRESET" ]]; then
       printf ',"DASHBOARD_AUTOSTART_PRESET":'
       json_string "$STARTUP_PRESET"
     fi
-    printf ',"DASHBOARD_AUTOSTART":"%s","INTEROP_DEVCONTAINER":"%s","INTEROP_DASHBOARD_RUNTIME":"true","LOCAL_UID":"%s","LOCAL_GID":"%s"},' \
-      "${DASHBOARD_AUTOSTART:-true}" "$([[ -n "$FRONTEND_ROOT" ]] && echo true || echo false)" "$(id -u)" "$(id -g)"
+    printf ',"DASHBOARD_AUTOSTART":"%s","INTEROP_DASHBOARD_RUNTIME":"true","LOCAL_UID":"%s","LOCAL_GID":"%s"},' \
+      "${DASHBOARD_AUTOSTART:-true}" "$(id -u)" "$(id -g)"
     printf '"volumes":[{"type":"bind","source":'
     json_string "$REPOSITORY_ROOT"
     printf ',"target":'
     json_string "$REPOSITORY_ROOT"
     printf '},{"type":"volume","source":"dashboard-be-modules","target":'
     json_string "$REPOSITORY_ROOT/node_modules"
-    printf ',"volume":{"nocopy":true}},{"type":"volume","source":"dashboard-pnpm-store","target":"/home/node/.local/share/pnpm","volume":{"nocopy":true}},{"type":"volume","source":"dashboard-browser-cache","target":"/home/node/.cache","volume":{"nocopy":true}}'
+    printf ',"volume":{"nocopy":true}},{"type":"volume","source":"dashboard-pnpm-store","target":"/home/node/.local/share/pnpm","volume":{"nocopy":true}}'
     for manifest in "$REPOSITORY_ROOT"/packages/*/package.json; do
       [[ -f "$manifest" ]] || continue
       local directory="${manifest%/package.json}"
@@ -62,28 +57,13 @@ prepare() {
       json_string "$directory/node_modules"
       printf ',"volume":{"nocopy":true}}'
     done
-    if [[ -n "$FRONTEND_ROOT" ]]; then
-      volume_names+=(dashboard-fe-modules)
-      printf ',{"type":"bind","source":'
-      json_string "$FRONTEND_ROOT"
-      printf ',"target":'
-      json_string "$FRONTEND_ROOT"
-      printf '},{"type":"volume","source":"dashboard-fe-modules","target":'
-      json_string "$FRONTEND_ROOT/node_modules"
-      printf ',"volume":{"nocopy":true}}'
-    fi
     printf ']'
     # Publish development APIs on loopback; catalog uses 13000 because the FE
-    # public origin occupies 3000 in the fullstack environment.
+    # public origin occupies 3000 in its separate container.
     printf ',"ports":[{"target":3000,"published":"13000","host_ip":"127.0.0.1"}'
     for port in 3100 3200 3300 3400 3500 3600 3700 3800 3900 4000 4100 4200 4300 4400 4600 4700; do
       printf ',{"target":%s,"published":"%s","host_ip":"127.0.0.1"}' "$port" "$port"
     done
-    if [[ -n "$FRONTEND_ROOT" ]]; then
-      # Preserve the existing public frontend origin and Docker gateway access
-      # used by the fullstack browser checks on Linux and WSL2.
-      printf ',{"target":5173,"published":"3000"}'
-    fi
     printf ']}},"volumes":{'
     local separator=""
     for name in "${volume_names[@]}"; do
@@ -107,5 +87,5 @@ case "$COMMAND" in
   status) compose ps dashboard ;;
   logs) compose logs --follow dashboard ;;
   stop) compose stop dashboard ;;
-  *) echo "Usage: $0 {prepare|start|status|logs|stop} [--frontend PATH] [--preset ID]" >&2; exit 1 ;;
+  *) echo "Usage: $0 {prepare|start|status|logs|stop} [--preset ID]" >&2; exit 1 ;;
 esac
