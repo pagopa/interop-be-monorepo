@@ -63,7 +63,7 @@ appears in the button used. There is no operations page or timeline; diagnostics
 are available through Logs.
 
 Each package has start, stop, logs and watch controls. Watch is on
-by default and off for backend packages in the fullstack preset.
+by default and off for packages in the Frontend backend preset.
 Changing watch for a running package restarts that package. Crashes are isolated
 and remain visible until started again; there is no automatic crash restart.
 
@@ -91,16 +91,16 @@ with a Logs action that selects the preset's error logs. Retrying clears the fai
 The Source selector groups Presets, Packages, Infrastructure and Runtime.
 All packages (`group:packages`) includes only backend package logs. Infra
 (`group:infra`) includes infrastructure logs, including retained logs from stopped
-containers. Neither aggregate includes orchestration, frontend or check logs.
+containers. Neither aggregate includes orchestration logs.
 Selecting a preset aggregates its package logs and orchestration diagnostics;
-fullstack presets also include frontend and checks. The selection persists in
+frontend and browser-check logs belong to the frontend launcher. The selection persists in
 the URL together with the level filter. Search matches message text or correlation ID metadata,
 case-insensitively and by substring. Package and infrastructure log actions keep all levels.
 Orchestration logs are shared across runtime operations.
 
-The shared Frontend fullstack preset contains the same 30 backend services, in
+The shared Frontend backend preset (`frontend-full`) contains the same 30 backend services, in
 the same startup order, as the previous devcontainer script. All members have
-watch disabled, while seed and the frontend startup/check flow remain enabled.
+watch disabled. Starting this preset only starts its backend packages.
 The shared Tenant Seeding preset starts the four packages used by Start seed packages.
 Manual seed remains a separate action in Access token.
 
@@ -110,14 +110,14 @@ all its members, including members started separately, and leaves outsiders
 running. Save per-package watch choices in the preset.
 
 Access token offers an explicit **Seed local data** action using the existing
-`pnpm local:seed` workflow. Seed is not a local preset option. Non-fullstack
-presets do not execute seed, including older definitions with `seed: true`.
-The fullstack/devcontainer flow retains automatic seed.
+`pnpm local:seed` workflow. Presets do not execute seed, including older definitions
+with `seed: true` or `fullstack: true`. The frontend launcher requests seed separately
+when preparing its fullstack environment.
 It requires the local tenant/catalog services and their readmodel writers and
 uses `docker/local-development/dataset.json` to
 create or reuse four demo tenants and a published Catalogo Demo eservice with
 its OpenAPI interface. The local users and roles in that dataset are used for
-token generation. The same base seed is used for every preset; identifiers are
+token generation. The seed dataset is independent of presets; identifiers are
 kept in `.local-development/state.json`. **Start seed packages** on Access token
 starts tenant-process, catalog-process and their SQL readmodel writers. It starts
 missing processes and preserves other running packages and watch choices.
@@ -131,8 +131,7 @@ seed data or generate a token: use **Seed local data** next.
 **Packages** remains available during and after startup and opens
 `#/packages?group=seed`. The **Group** filter uses the complete seed package
 list, so running members remain visible; refresh and browser history retain it.
-Required packages must be running for manual seed or included in the fullstack
-preset.
+Required packages must be running before seed; both shared presets include them.
 **Logs** opens `#/logs?source=group%3Aseed`, combining the four seed packages and
 orchestration diagnostics. The same group is selectable as **Seed packages**
 in the log source filter; infrastructure and other packages are excluded.
@@ -149,37 +148,49 @@ orchestration error logs. Successful seed reloads the available identities.
 Access token also loads identities when opened and offers **Reload identities**,
 so an external seed can be discovered without relying on cached readiness.
 When local identities are available, the UI offers tenant/user selection to
-generate and copy a local API token. The fullstack preset retains automatic
-seed and frontend token generation.
+generate and copy a local API token. Token generation returns the token to its caller;
+the dashboard does not write a token into a frontend checkout.
 
 ## Fullstack and VS Code
 
-To start the fullstack preset automatically with the frontend checkout available:
+To prepare infrastructure and the backend service group used by the frontend:
 
 ```bash
-bash scripts/local-development/dashboard.sh start \
-  --frontend /absolute/path/to/pdnd-interop-frontend \
-  --preset frontend-full
+bash scripts/local-development/dashboard.sh start --preset frontend-full
 ```
 
-This selects the startup preset: infrastructure, the existing backend service set,
-seed, token, frontend startup, smoke checks and browser checks. The runtime reports
-progress through controls and logs. `--frontend` only mounts the checkout and makes
-frontend controls available; without `--preset`, startup prepares infrastructure
-without starting application packages. `--preset` accepts any shared or personal
+This starts infrastructure and the selected backend packages. It does not seed data
+or start Vite. Without `--preset`, startup prepares infrastructure without starting
+application packages. `--preset` accepts any shared or personal
 preset ID and can also be configured through `DASHBOARD_AUTOSTART_PRESET`.
 `DASHBOARD_AUTOSTART=false` disables all automatic startup.
 
-The frontend `.devcontainer` attaches VS Code to this same Compose service.
-Its initialization generates the same mounts and explicitly selects the
-`frontend-full` startup preset. It does not create a second supervisor.
-Closing VS Code leaves the runtime running. Rebuilding the container
-recreates it and disconnects existing sessions. Opening a fullstack checkout
-after backend-only use changes the runtime configuration; stop or finish current
-work before recreating the container.
+The frontend `.devcontainer` runs in a separate Compose service. VS Code, frontend
+dependencies, Vite, smoke checks and browser checks belong to that container.
+Its launcher calls the dashboard API to start infrastructure, start `frontend-full`,
+seed local data and request a token. It then starts and checks the frontend itself.
+The dashboard does not mount the frontend checkout or manage frontend processes.
+There are no fullstack Start/Stop or Restart frontend controls in its UI or API.
+Use the frontend repository's launcher for those workflows. Closing VS Code leaves
+the containers running; rebuilding the frontend container does not rebuild the backend
+dashboard or replace its managed processes.
+
+The launcher uses the existing API under `/__local-dashboard/api`:
+
+1. Submit `POST /actions` with `{"type":"infra.start"}`.
+2. Submit `POST /actions` with `{"type":"preset.start","id":"frontend-full"}`.
+3. Submit `POST /actions` with `{"type":"seed"}` when local data is needed.
+4. Read `GET /identities`, select a tenant and user, then submit `POST /identity`
+   with `tenantKey` and `userId`. Store the returned `sessionToken` in the frontend's
+   own ignored local state.
+
+Each accepted action returns `operationId`. Wait for that operation in `GET /status`
+to reach `passed` before the next step; a `failed` operation stops startup. The
+identity endpoint returns the token directly. These endpoints also support other
+local launchers without adding frontend-specific commands to the backend API.
 
 The frontend is published at **http://localhost:3000/ui/it/**. The catalog process
-uses port 3000 inside the runtime and is published on **http://localhost:13000**.
+uses port 3000 inside the backend runtime and is published on **http://localhost:13000**.
 Other backend API ports retain their numbers on host loopback. The frontend keeps
 its existing Docker publication for access through the host gateway; dashboard
 and backend API publications are bound to host loopback.
@@ -239,10 +250,12 @@ instead of Go's PID 1 fallback exit 2. This applies when Compose recreates the
 container on the next infrastructure start; existing exit codes are retained.
 
 Infrastructure **stop** preserves data. **Reset** requires confirmation in the
-UI, stops managed processes and removes infrastructure data volumes and generated
-seed/token state, then initializes clean infrastructure. It preserves the dashboard
+UI, stops managed backend processes and removes infrastructure data volumes and generated
+seed state, then initializes clean infrastructure. It preserves the dashboard
 container, dependency/cache volumes and personal presets. Application packages
-remain stopped until explicitly started.
+remain stopped until explicitly started. It does not control Vite or delete files
+in the frontend container; rerun the frontend launcher to prepare fresh seed data
+and a token after resetting the backend.
 
 Runtime state and generated Compose mounts are ignored under `.local-development`.
 Regenerate the mounts and recreate the runtime after adding or removing workspace

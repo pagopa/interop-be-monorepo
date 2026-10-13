@@ -53,13 +53,11 @@ export const DASHBOARD_PATHS = Object.freeze({
   sharedPresets: "docker/local-development/presets.json",
   dataset: "docker/local-development/dataset.json",
   seedState: ".local-development/state.json",
-  frontendToken: ".local-development/frontend-token",
   bootstrapLog: ".local-development/dashboard/logs/bootstrap.log",
   uiDist: "packages/dev-dashboard-ui/dist",
   composeFile: "docker/docker-compose.yml",
   infraScript: "scripts/local-development/dashboard-infra.sh",
   localCli: "scripts/local-development/cli.mjs",
-  frontendRuntimeScript: "scripts/local-development/runtime.sh",
 });
 
 export const DASHBOARD_TIMING = Object.freeze({
@@ -68,8 +66,6 @@ export const DASHBOARD_TIMING = Object.freeze({
   commandTimeoutMs: 120_000,
   infraCommandTimeoutMs: 180_000,
   workspaceBuildTimeoutMs: 900_000,
-  frontendInstallTimeoutMs: 900_000,
-  frontendChecksTimeoutMs: 300_000,
   identityCommandTimeoutMs: 30_000,
   inventoryCommandTimeoutMs: 15_000,
   inventoryIntervalMs: 3000,
@@ -100,8 +96,6 @@ export const PROCESS_LIMITS = Object.freeze({
 
 export const LOG_SOURCES = Object.freeze({
   orchestration: "orchestration",
-  frontend: "frontend",
-  checks: "checks",
   identity: "identity",
 });
 
@@ -128,14 +122,11 @@ export const DASHBOARD_ACTION_TYPES = Object.freeze({
   packageWatch: "package.watch",
   presetStart: "preset.start",
   presetStop: "preset.stop",
-  fullstackStart: "fullstack.start",
-  fullstackStop: "fullstack.stop",
   infraStart: "infra.start",
   infraStop: "infra.stop",
   infraReset: "infra.reset",
   seed: "seed",
   seedPrepare: "seed.prepare",
-  frontendRestart: "frontend.restart",
 } satisfies Record<string, DashboardAction["type"]>);
 
 export const PACKAGE_NAMES = Object.freeze({
@@ -155,7 +146,7 @@ export const SEED_PACKAGES: readonly string[] = [
 ];
 
 export const LOCAL_ENDPOINTS = Object.freeze({
-  frontend: "http://localhost:5173",
+  frontendPublic: "http://localhost:3000",
   selfcare: "http://localhost:8006",
   dynamodb: "http://localhost:8085",
   jwks: "http://127.0.0.1:4500/jwks.json",
@@ -191,6 +182,5 @@ export const INHERITED_ENVIRONMENT_KEYS: readonly string[] = [
   "COMPOSE_PROJECT_NAME",
   "PUPPETEER_SKIP_DOWNLOAD",
   "PUPPETEER_EXECUTABLE_PATH",
-  "PLAYWRIGHT_BROWSERS_PATH",
   "npm_config_store_dir",
 ];

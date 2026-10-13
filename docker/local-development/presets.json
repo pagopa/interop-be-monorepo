@@ -1,7 +1,7 @@
 [
   {
     "id": "frontend-full",
-    "name": "Frontend fullstack",
+    "name": "Frontend backend",
     "source": "shared",
     "packages": [
       {
@@ -124,9 +124,7 @@
         "name": "pagopa-interop-in-app-notification-manager",
         "watch": false
       }
-    ],
-    "seed": true,
-    "fullstack": true
+    ]
   },
   {
     "id": "tenant-seeding",
@@ -145,8 +143,6 @@
       {
         "name": "pagopa-interop-catalog-readmodel-writer-sql"
       }
-    ],
-    "seed": false,
-    "fullstack": false
+    ]
   }
 ]

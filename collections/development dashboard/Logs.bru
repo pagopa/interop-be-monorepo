@@ -18,8 +18,8 @@ params:query {
 
 docs {
   Enable source to view a preset's package and orchestration logs.
-  Use preset:<id> from Status; fullstack presets include frontend and checks.
+  Use preset:<id> from Status to select its backend packages and orchestration.
   Use group:packages for backend package logs or group:infra for infrastructure logs.
-  These groups exclude orchestration, frontend and check logs.
+  These groups exclude orchestration logs. Frontend/check logs belong to the frontend launcher.
   Search matches message text or correlation IDs, case-insensitively and by substring.
 }

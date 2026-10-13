@@ -83,6 +83,5 @@ function presetSources(id: string, supervisor: Supervisor): string[] {
   return [
     ...preset.packages.map((member) => member.name),
     LOG_SOURCES.orchestration,
-    ...(preset.fullstack ? [LOG_SOURCES.frontend, LOG_SOURCES.checks] : []),
   ];
 }

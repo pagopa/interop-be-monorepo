@@ -16,7 +16,6 @@ describe("dashboard startup configuration", () => {
 
     expect(config).toEqual({
       beRoot: "/be",
-      feRoot: undefined,
       port: 8076,
       autostart: true,
       autostartPreset: undefined,
@@ -37,11 +36,11 @@ describe("dashboard startup configuration", () => {
 
     expect(config).toMatchObject({
       beRoot: resolve("../backend"),
-      feRoot: resolve("../frontend"),
       autostartPreset: "frontend-full",
       port: 8090,
       autostart: false,
     });
+    expect(config).not.toHaveProperty("feRoot");
   });
 
   it.each([undefined, "true", "0", ""])(

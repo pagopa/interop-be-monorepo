@@ -18,7 +18,6 @@ type PresetServiceOptions = {
 
 type PresetService = {
   get: (id: string) => Preset;
-  fullstack: () => Preset;
   list: () => Preset[];
   save: (input: unknown) => Promise<Preset>;
   delete: (id: string) => Promise<void>;
@@ -56,7 +55,6 @@ export function presetServiceBuilder(
         ...data,
         id: data.id ?? randomUUID(),
         source: "personal",
-        fullstack: false,
       };
       const next = [...presets.filter((p) => p.id !== preset.id), preset];
       await persist(next);
@@ -103,15 +101,8 @@ export function presetServiceBuilder(
     await rename(temporary, path);
   }
 
-  function fullstack(): Preset {
-    const preset = presets.find((item) => item.fullstack);
-    if (!preset) throw new Error("Fullstack preset is unavailable");
-    return preset;
-  }
-
   return {
     get: getPreset,
-    fullstack,
     list: (): Preset[] => presets,
     save: savePreset,
     delete: deletePreset,

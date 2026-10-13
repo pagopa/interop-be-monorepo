@@ -75,18 +75,6 @@ function deriveBusy(
     if (operation.kind === "seed") busy.seed ??= operation.id;
     if (operation.kind === "seed.prepare")
       busy["seed-prepare"] ??= operation.id;
-    if (
-      operation.kind === "fullstack.start" ||
-      operation.kind === "fullstack.stop" ||
-      ((operation.kind === "preset.start" ||
-        operation.kind === "preset.stop") &&
-        operation.phases.some(
-          (phase) =>
-            phase.id.startsWith("frontend:") || phase.id === "stop:frontend"
-        ))
-    )
-      busy.fullstack ??= operation.id;
-    if (operation.kind === "frontend.restart") busy.frontend ??= operation.id;
     for (const phase of operation.phases) {
       const key = packagePhaseKey(phase.id);
       const watching =

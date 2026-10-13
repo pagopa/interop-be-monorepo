@@ -35,20 +35,19 @@ test('prepare mounts the source checkout and isolates every workspace dependency
       assert.equal(mount.volume.nocopy, true);
     }
     const second = prepare(['--frontend', frontend]);
-    assert.equal(second.status, 0, second.stderr);
-    const fullstack = JSON.parse(await readFile(file, 'utf8'));
-    assert.ok(!('DASHBOARD_MODE' in fullstack.services.dashboard.environment));
-    assert.ok(!('DASHBOARD_AUTOSTART_PRESET' in fullstack.services.dashboard.environment));
-    assert.equal(fullstack.services.dashboard.environment.INTEROP_FE_ROOT, frontend);
-    assert.ok(fullstack.services.dashboard.volumes.some((v) => v.source === frontend));
-    assert.ok(fullstack.services.dashboard.ports.some((p) => p.target === 5173 && p.published === '3000'));
-    assert.ok(!fullstack.services.dashboard.ports.some((p) => p.target === 3000 && p.published === '3000'));
-    assert.ok(fullstack.services.dashboard.ports.some((p) => p.target === 3000 && p.published === '13000'));
-    assert.ok(fullstack.services.dashboard.ports.some((p) => p.target === 4700 && p.published === '4700' && p.host_ip === '127.0.0.1'));
-    const repeated = prepare(['--frontend', frontend]);
+    assert.notEqual(second.status, 0);
+    assert.match(second.stderr, /Unknown argument: --frontend/);
+    assert.deepEqual(JSON.parse(await readFile(file, 'utf8')), backendOnly);
+    assert.ok(!('INTEROP_FE_ROOT' in runtime.environment));
+    assert.ok(!('INTEROP_DEVCONTAINER' in runtime.environment));
+    assert.ok(!runtime.volumes.some((v) => v.source === frontend || v.source === 'dashboard-browser-cache'));
+    assert.ok(!runtime.ports.some((p) => p.target === 5173 || p.published === '3000'));
+    assert.ok(runtime.ports.some((p) => p.target === 3000 && p.published === '13000'));
+    assert.ok(runtime.ports.some((p) => p.target === 4700 && p.published === '4700' && p.host_ip === '127.0.0.1'));
+    const repeated = prepare();
     assert.equal(repeated.status, 0, repeated.stderr);
-    assert.deepEqual(JSON.parse(await readFile(file, 'utf8')), fullstack);
-    const selected = prepare(['--frontend', frontend, '--preset', 'frontend-full']);
+    assert.deepEqual(JSON.parse(await readFile(file, 'utf8')), backendOnly);
+    const selected = prepare(['--preset', 'frontend-full']);
     assert.equal(selected.status, 0, selected.stderr);
     const startup = JSON.parse(await readFile(file, 'utf8'));
     assert.equal(startup.services.dashboard.environment.DASHBOARD_AUTOSTART_PRESET, 'frontend-full');
@@ -61,7 +60,7 @@ test('prepare mounts the source checkout and isolates every workspace dependency
     const configured = JSON.parse(await readFile(file, 'utf8')).services.dashboard;
     assert.equal(configured.environment.DASHBOARD_AUTOSTART_PRESET, 'tenant-seeding');
     assert.equal(configured.environment.DASHBOARD_AUTOSTART, 'false');
-    assert.equal(configured.environment.INTEROP_FE_ROOT, '');
+    assert.ok(!('INTEROP_FE_ROOT' in configured.environment));
   } finally {
     await rm(root, { recursive: true, force: true });
   }
@@ -71,6 +70,11 @@ test('infra operations target infrastructure and preserve the dashboard during r
   const scriptPath = new URL('./dashboard-infra.sh', import.meta.url).pathname;
   const root = await mkdtemp(path.join(tmpdir(), 'interop-infra-test-'));
   try {
+    await mkdir(path.join(root, '.local-development'));
+    const stateFile = path.join(root, '.local-development', 'state.json');
+    const legacyTokenFile = path.join(root, '.local-development', 'frontend-token');
+    await writeFile(stateFile, '{"tenants":{}}');
+    await writeFile(legacyTokenFile, 'legacy frontend token');
     const calls = path.join(root, 'calls');
     const fakeDocker = path.join(root, 'docker');
     await writeFile(fakeDocker, `#!/usr/bin/env bash
@@ -82,7 +86,7 @@ esac
 `, { mode: 0o755 });
     for (const action of ['start', 'stop', 'reset']) {
       const result = spawnSync('bash', [scriptPath, action], {
-        env: { ...process.env, PATH: `${root}:${process.env.PATH}`, TEST_CALLS: calls }, encoding: 'utf8',
+        env: { ...process.env, INTEROP_BE_ROOT: root, PATH: `${root}:${process.env.PATH}`, TEST_CALLS: calls }, encoding: 'utf8',
       });
       assert.equal(result.status, 0, result.stderr);
     }
@@ -92,6 +96,8 @@ esac
     assert.ok(mutations.every((c) => !/\bdashboard\b/.test(c)));
     assert.ok(mutations.every((c) => !/\bdown\b|--remove-orphans|modules/.test(c)));
     assert.ok(mutations.some((c) => c.includes('volume rm pagopa-interop_event-store-data')));
+    await assert.rejects(readFile(stateFile, 'utf8'), { code: 'ENOENT' });
+    assert.equal(await readFile(legacyTokenFile, 'utf8'), 'legacy frontend token');
   } finally {
     await rm(root, { recursive: true, force: true });
   }

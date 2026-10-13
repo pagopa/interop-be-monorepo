@@ -31,7 +31,6 @@ import { presetServiceBuilder } from "./presetService.js";
 
 type SupervisorOptions = {
   beRoot: string;
-  feRoot?: string;
   driver: Driver;
   packages: Package[];
   presets: Preset[];
@@ -117,7 +116,6 @@ export function supervisorServiceBuilder(
       seedReady: seeded,
       seedPackages: [...SEED_PACKAGES],
       seedPrerequisites: seedPrerequisites(),
-      frontendAvailable: Boolean(options.feRoot),
       logSources: [
         {
           id: LOG_SOURCES.orchestration,
@@ -134,20 +132,6 @@ export function supervisorServiceBuilder(
           label: p.name,
           kind: "infrastructure",
         })),
-        ...(options.feRoot
-          ? ([
-              {
-                id: LOG_SOURCES.frontend,
-                label: "Frontend",
-                kind: "frontend",
-              },
-              {
-                id: LOG_SOURCES.checks,
-                label: "Frontend checks",
-                kind: "checks",
-              },
-            ] satisfies DashboardStatus["logSources"])
-          : []),
       ] satisfies DashboardStatus["logSources"],
     });
   }
@@ -168,11 +152,6 @@ export function supervisorServiceBuilder(
     const item = packages.find((p) => p.name === name);
     if (!item) throw new Error(`Unknown package: ${name}`);
     return item;
-  }
-
-  function getFullstackPreset(): Preset {
-    if (!options.feRoot) throw new Error("Frontend checkout is unavailable");
-    return presetStore.fullstack();
   }
 
   function action(input: unknown): OperationAccepted {
@@ -239,7 +218,6 @@ export function supervisorServiceBuilder(
       case DASHBOARD_ACTION_TYPES.presetStop: {
         const preset = presetStore.get(action.id);
         steps = preset.packages.map((p) => stopStep(p.name));
-        if (preset.fullstack) steps.push(stopStep(LOG_SOURCES.frontend));
         break;
       }
       case DASHBOARD_ACTION_TYPES.infraStart:
@@ -257,21 +235,6 @@ export function supervisorServiceBuilder(
       case DASHBOARD_ACTION_TYPES.seedPrepare:
         steps = startSteps(SEED_PACKAGES.map((name) => ({ name })));
         break;
-      case DASHBOARD_ACTION_TYPES.fullstackStart:
-        steps = [...infraStart(), ...presetStart(getFullstackPreset())];
-        break;
-      case DASHBOARD_ACTION_TYPES.fullstackStop:
-        steps = [
-          ...getFullstackPreset().packages.map((p) => stopStep(p.name)),
-          stopStep(LOG_SOURCES.frontend),
-        ];
-        break;
-      case DASHBOARD_ACTION_TYPES.frontendRestart: {
-        if (!options.feRoot)
-          throw new Error("Frontend checkout is unavailable");
-        steps = [stopStep(LOG_SOURCES.frontend), frontendStep(action.mode)];
-        break;
-      }
     }
     return steps;
   }
@@ -382,21 +345,7 @@ export function supervisorServiceBuilder(
   }
 
   function presetStart(preset: Preset): OperationStep[] {
-    const steps = startSteps(preset.packages);
-    if (!preset.fullstack) return steps;
-    if (!options.feRoot) throw new Error("Frontend checkout is unavailable");
-
-    const frontendRunning = applications.has(LOG_SOURCES.frontend);
-
-    return [
-      ...steps,
-      frontendCommandStep("install"),
-      seedStep(),
-      frontendCommandStep("token"),
-      frontendStep("local"),
-      frontendCommandStep("smoke", frontendRunning),
-      frontendCommandStep("browser-checks", frontendRunning),
-    ];
+    return startSteps(preset.packages);
   }
 
   function seedStep(): OperationStep {
@@ -431,91 +380,6 @@ export function supervisorServiceBuilder(
     return SEED_PACKAGES.filter(
       (name) => packages.find((item) => item.name === name)?.state !== "running"
     );
-  }
-
-  function frontendCommandStep(
-    phase: "install" | "token" | "smoke" | "browser-checks",
-    skipExisting = true
-  ): OperationStep {
-    return {
-      id: `frontend:${phase}`,
-      label: `Frontend ${phase}`,
-      run: async () => {
-        const root = options.feRoot;
-        if (!root) throw new Error("Frontend checkout is unavailable");
-        if (skipExisting && applications.has(LOG_SOURCES.frontend))
-          return false;
-        if (phase === "token")
-          await run({
-            source: LOG_SOURCES.orchestration,
-            executable: "node",
-            args: [
-              join(options.beRoot, DASHBOARD_PATHS.localCli),
-              "token",
-              "--tenant",
-              "comune",
-              "--user",
-              "admin",
-              "--output",
-              join(options.beRoot, DASHBOARD_PATHS.frontendToken),
-            ],
-            cwd: options.beRoot,
-            timeoutMs: DASHBOARD_TIMING.identityCommandTimeoutMs,
-            privateOutput: true,
-            env: { LOCAL_KMS_ENDPOINT: LOCAL_ENDPOINTS.localstack },
-          });
-        else
-          await run({
-            source:
-              phase === "install" ? LOG_SOURCES.frontend : LOG_SOURCES.checks,
-            executable: "bash",
-            args: [join(root, DASHBOARD_PATHS.frontendRuntimeScript), phase],
-            cwd: root,
-            timeoutMs:
-              phase === "install"
-                ? DASHBOARD_TIMING.frontendInstallTimeoutMs
-                : DASHBOARD_TIMING.frontendChecksTimeoutMs,
-            env: {
-              INTEROP_BE_ROOT: options.beRoot,
-              INTEROP_FE_ROOT: root,
-              INTEROP_DEVCONTAINER: "true",
-            },
-          });
-        return true;
-      },
-    };
-  }
-
-  function frontendStep(mode: "local" | "dev"): OperationStep {
-    return {
-      id: "frontend:start",
-      label: `Start frontend (${mode})`,
-      run: async () => {
-        if (applications.has(LOG_SOURCES.frontend)) return false;
-        const root = options.feRoot;
-        if (!root) throw new Error("Frontend checkout is unavailable");
-        await applications.launch(LOG_SOURCES.frontend, {
-          source: LOG_SOURCES.frontend,
-          executable: "bash",
-          args: [
-            join(root, DASHBOARD_PATHS.frontendRuntimeScript),
-            "frontend",
-            mode,
-          ],
-          cwd: root,
-          env: {
-            INTEROP_BE_ROOT: options.beRoot,
-            INTEROP_FE_ROOT: root,
-            INTEROP_DEVCONTAINER: "true",
-          },
-        });
-        await applications.waitFor(
-          LOG_SOURCES.frontend,
-          `${LOCAL_ENDPOINTS.frontend}/`
-        );
-        return true;
-      },
-    };
   }
 
   function stopStep(name: string): OperationStep {

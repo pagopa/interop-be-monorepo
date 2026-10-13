@@ -9,6 +9,19 @@ import { isFileNotFoundError } from "../utilities/errorUtils.js";
 import { readPackageManifest } from "../utilities/packageUtils.js";
 import { effectiveEnvironment } from "./environmentService.js";
 
+// Old disk presets can retain orchestration flags; public inputs stay strict.
+const StoredPreset = Preset.extend({
+  seed: z.boolean().optional(),
+  fullstack: z.boolean().optional(),
+}).transform(
+  ({ id, name, source, packages }): Preset => ({
+    id,
+    name,
+    source,
+    packages,
+  })
+);
+
 const packageKind = (directory: string, port?: number): Package["kind"] => {
   if (Number.isFinite(port)) return "service";
   return /writer|consumer|dispatcher|updater/.test(directory)
@@ -82,7 +95,7 @@ export const readPresets = async (
   root: string,
   personalPath: string
 ): Promise<Preset[]> => {
-  const shared = Preset.array().parse(
+  const shared = StoredPreset.array().parse(
     JSON.parse(
       await readFile(join(root, DASHBOARD_PATHS.sharedPresets), "utf8")
     )
@@ -90,7 +103,7 @@ export const readPresets = async (
 
   let personal: Preset[] = [];
   try {
-    personal = Preset.array().parse(
+    personal = StoredPreset.array().parse(
       JSON.parse(await readFile(personalPath, "utf8"))
     );
   } catch (error) {
@@ -106,7 +119,7 @@ export const readPresets = async (
   });
   if (
     shared.some((p) => p.source !== "shared") ||
-    personal.some((p) => p.source !== "personal" || p.fullstack)
+    personal.some((p) => p.source !== "personal")
   )
     throw new Error("Invalid preset ownership");
   return presets;

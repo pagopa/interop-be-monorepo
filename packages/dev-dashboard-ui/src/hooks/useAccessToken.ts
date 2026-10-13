@@ -23,13 +23,6 @@ type Selection = {
   error?: string;
 };
 
-function fullstackSeed(operation: Operation) {
-  return operation.kind === "fullstack.start" ||
-    operation.kind === "preset.start"
-    ? operation.phases.find((phase) => phase.id === "seed")
-    : undefined;
-}
-
 type Props = {
   packages: Package[];
   seedPackages: string[];
@@ -52,10 +45,8 @@ export function useAccessToken({
   onPrepare,
 }: Props) {
   const passedSeedIds = operations
-    .filter((operation) =>
-      operation.kind === "seed"
-        ? operation.state === "passed"
-        : fullstackSeed(operation)?.state === "passed"
+    .filter(
+      (operation) => operation.kind === "seed" && operation.state === "passed"
     )
     .map((operation) => operation.id);
   const observedSeed = passedSeedIds.at(-1);
@@ -104,8 +95,7 @@ export function useAccessToken({
   const activeSeed = operations.find(
     (operation) =>
       (operation.state === "pending" || operation.state === "running") &&
-      (operation.kind === "seed" ||
-        fullstackSeed(operation)?.state === "running")
+      operation.kind === "seed"
   );
   const activePrepare = operations.find(
     (operation) =>
@@ -144,12 +134,7 @@ export function useAccessToken({
       : operations.find(
           (item) => item.kind === kind && !tracked.knownIds.has(item.id)
         );
-    return (
-      operation &&
-      (operation.kind === "seed" || operation.kind === "seed.prepare"
-        ? operation.state === "failed"
-        : fullstackSeed(operation)?.state === "failed")
-    );
+    return operation && operation.kind === kind && operation.state === "failed";
   });
   const seedFailed = terminalFailures.includes("seed");
   const prepareFailed = terminalFailures.includes("seed.prepare");

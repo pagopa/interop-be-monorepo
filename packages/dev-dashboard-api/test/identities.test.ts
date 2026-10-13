@@ -148,7 +148,7 @@ describe("local identities", () => {
       },
       start: async () => ({ pid: 1, stop: async () => undefined }),
     };
-    const identities = identityServiceBuilder(root, driver, "/frontend");
+    const identities = identityServiceBuilder(root, driver);
     expect(await identities.identities()).toEqual({
       ready: false,
       tenants: [],
@@ -167,23 +167,23 @@ describe("local identities", () => {
         {
           key: "comune",
           id: "tenant-id",
-          users: [{ id: "user-id", roles: ["admin"] }],
+          users: [{ id: "user-id", key: "admin", roles: ["admin"] }],
         },
       ],
     });
     expect(
       await identities.identity({ tenantKey: "comune", userId: "user-id" })
     ).toEqual({ sessionToken: "header.payload.signature" });
-    expect(
-      await readFile(join(root, ".local-development/frontend-token"), "utf8")
-    ).toBe("header.payload.signature\n");
+    await expect(
+      readFile(join(root, ".local-development/frontend-token"), "utf8")
+    ).rejects.toMatchObject({ code: "ENOENT" });
     expect(commands).toHaveLength(1);
     expect(commands[0]).toMatchObject({
       privateOutput: true,
       env: { LOCAL_KMS_ENDPOINT: "http://localhost:4566" },
     });
   });
-  it("serializes simultaneous token selections so the persisted token cannot interleave", async () => {
+  it("serializes simultaneous token selections and returns each token without persisting it", async () => {
     const root = await fixture();
     await writeFile(
       join(root, ".local-development/state.json"),
@@ -203,14 +203,18 @@ describe("local identities", () => {
       },
       start: async () => ({ pid: 1, stop: async () => undefined }),
     };
-    const identities = identityServiceBuilder(root, driver, "/frontend");
-    await Promise.all([
+    const identities = identityServiceBuilder(root, driver);
+    const tokens = await Promise.all([
       identities.identity({ tenantKey: "comune", userId: "user-id" }),
       identities.identity({ tenantKey: "comune", userId: "user-id" }),
     ]);
     expect(maximum).toBe(1);
-    expect(
-      await readFile(join(root, ".local-development/frontend-token"), "utf8")
-    ).toBe("header.payload.2\n");
+    expect(tokens).toEqual([
+      { sessionToken: "header.payload.1" },
+      { sessionToken: "header.payload.2" },
+    ]);
+    await expect(
+      readFile(join(root, ".local-development/frontend-token"), "utf8")
+    ).rejects.toMatchObject({ code: "ENOENT" });
   });
 });

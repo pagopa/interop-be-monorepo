@@ -21,7 +21,6 @@ function renderPresets(saveSucceeds = true) {
     <PresetPanel
       presets={[preset]}
       packages={fixture.packages}
-      frontendAvailable={false}
       busy={{}}
       onAction={onAction}
       onSave={onSave}
@@ -46,7 +45,6 @@ function renderRuntimePreset(
     <PresetPanel
       presets={[preset]}
       packages={packages}
-      frontendAvailable={false}
       busy={busy}
       onAction={onAction}
       onSave={vi.fn()}
@@ -61,30 +59,36 @@ function renderRuntimePreset(
 }
 
 describe("preset package controls", () => {
-  it("keeps an unavailable fullstack preset without a checkout warning", () => {
+  it("starts the frontend backend package preset without a frontend checkout", async () => {
     const fixture = statusFixture();
+    const user = userEvent.setup();
+    const onAction = vi.fn().mockResolvedValue(true);
     const preset = {
       ...fixture.presets[0],
       id: "frontend-full",
-      name: "Frontend fullstack",
-      fullstack: true,
+      name: "Frontend backend packages",
     };
     render(
       <PresetPanel
         presets={[preset]}
         packages={fixture.packages}
-        frontendAvailable={false}
         busy={{}}
-        onAction={vi.fn()}
+        onAction={onAction}
         onSave={vi.fn()}
         onRemove={vi.fn()}
       />
     );
     const article = screen.getByRole("article", { name: preset.name });
     expect(within(article).queryByRole("status")).not.toBeInTheDocument();
-    expect(
-      within(article).getByRole("button", { name: `Start ${preset.name}` })
-    ).toBeDisabled();
+    const start = within(article).getByRole("button", {
+      name: `Start ${preset.name}`,
+    });
+    expect(start).toBeEnabled();
+    await user.click(start);
+    expect(onAction).toHaveBeenCalledExactlyOnceWith(
+      { type: "preset.start", id: preset.id },
+      [`preset:${preset.id}`, `preset-start:${preset.id}`]
+    );
   });
   it("counts all included packages even when filtered out and does not count watch changes", async () => {
     const fixture = statusFixture();
@@ -200,7 +204,6 @@ describe("preset package controls", () => {
         { name: bff.name, watch: true },
         { name: tenant.name, watch: false },
       ],
-      seed: false,
     });
   });
 
@@ -213,7 +216,6 @@ describe("preset package controls", () => {
       <PresetPanel
         presets={fixture.presets}
         packages={fixture.packages}
-        frontendAvailable={false}
         busy={{}}
         onAction={vi.fn()}
         onSave={onSave}
@@ -262,7 +264,6 @@ describe("preset package controls", () => {
         { name: worker.name, watch: true },
         { name: tenant.name, watch: true },
       ],
-      seed: false,
     });
   });
 
@@ -275,7 +276,6 @@ describe("preset package controls", () => {
         <PresetPanel
           presets={fixture.presets}
           packages={fixture.packages}
-          frontendAvailable={false}
           busy={{}}
           actionFailures={{
             "preset:backend": {
@@ -326,7 +326,6 @@ describe("preset package controls", () => {
     expect(onSave).toHaveBeenCalledExactlyOnceWith({
       name: "My packages",
       packages: [{ name: item.name, watch: true }],
-      seed: false,
     });
     await waitFor(() =>
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
@@ -403,7 +402,6 @@ describe("preset package controls", () => {
       <PresetPanel
         presets={fixture.presets}
         packages={fixture.packages}
-        frontendAvailable={false}
         busy={{}}
         onAction={vi.fn()}
         onSave={vi.fn()}

@@ -52,7 +52,7 @@ paths:
           description:
             A log source ID, group:packages for backend package logs, group:infra for infrastructure
             logs, group:seed for seed packages and orchestration, or preset:<id> for that preset's packages
-            and orchestration. Fullstack presets also include frontend and checks. Unknown presets return
+            and orchestration. Unknown presets return
             400; empty presets return no logs.
           schema:
             type: string
@@ -322,17 +322,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/PresetMember"
-        seed:
-          type: boolean
-        fullstack:
-          type: boolean
       required:
         - id
         - name
         - source
         - packages
-        - seed
-        - fullstack
       additionalProperties: false
     PresetInput:
       type: object
@@ -350,12 +344,9 @@ components:
           items:
             $ref: "#/components/schemas/PresetMember"
           minItems: 1
-        seed:
-          type: boolean
       required:
         - name
         - packages
-        - seed
       additionalProperties: false
     Infrastructure:
       type: object
@@ -443,8 +434,6 @@ components:
             - backend
             - infrastructure
             - orchestration
-            - frontend
-            - checks
       required:
         - id
         - label
@@ -486,8 +475,6 @@ components:
             type: string
         seedReady:
           type: boolean
-        frontendAvailable:
-          type: boolean
       required:
         - packages
         - presets
@@ -497,7 +484,6 @@ components:
         - seedPackages
         - seedPrerequisites
         - seedReady
-        - frontendAvailable
       additionalProperties: false
     LogEntry:
       type: object
@@ -554,6 +540,9 @@ components:
       properties:
         id:
           type: string
+        key:
+          type: string
+          description: Stable user key from the local dataset, such as admin.
         name:
           type: string
         surname:
@@ -566,6 +555,7 @@ components:
             type: string
       required:
         - id
+        - key
         - name
         - surname
         - email
@@ -764,23 +754,6 @@ components:
               enum:
                 - seed
                 - seed.prepare
-                - fullstack.start
-                - fullstack.stop
           required:
             - type
-          additionalProperties: false
-        - type: object
-          properties:
-            type:
-              type: string
-              enum:
-                - frontend.restart
-            mode:
-              type: string
-              enum:
-                - local
-                - dev
-          required:
-            - type
-            - mode
           additionalProperties: false

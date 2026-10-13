@@ -69,8 +69,7 @@ case "${1:-}" in
     if (( ${#volumes[@]} )); then
       docker volume rm "${volumes[@]}"
     fi
-    rm -f "$REPOSITORY_ROOT/.local-development/state.json" \
-      "$REPOSITORY_ROOT/.local-development/frontend-token"
+    rm -f "$REPOSITORY_ROOT/.local-development/state.json"
     echo 'Local infrastructure data reset; dashboard configuration preserved'
     ;;
   *) echo "Usage: $0 {recover|start|wait|topics|connector|stop|reset}" >&2; exit 1 ;;

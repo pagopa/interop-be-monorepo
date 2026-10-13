@@ -3,7 +3,6 @@ import { RefreshCw } from "lucide-react";
 import { useDashboardContext } from "../../providers/DashboardProvider";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
-import { FullstackControls } from "./FullstackControls";
 
 export function RuntimeToolbar() {
   const dashboard = useDashboardContext();
@@ -38,7 +37,6 @@ export function RuntimeToolbar() {
         )}
       </div>
       <div className="flex flex-wrap gap-2">
-        <FullstackControls />
         <Button
           variant="outline"
           aria-label="Refresh runtime status"

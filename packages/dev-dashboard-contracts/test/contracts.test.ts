@@ -17,7 +17,7 @@ function logParameter(name: string): ZodType<unknown> {
 }
 
 describe("generated dashboard contracts", () => {
-  it("describes runtime availability without a global backend/fullstack mode", () => {
+  it("describes backend state without frontend runtime availability", () => {
     const status = {
       packages: [],
       presets: [],
@@ -27,13 +27,58 @@ describe("generated dashboard contracts", () => {
       seedPackages: [],
       seedPrerequisites: [],
       seedReady: false,
-      frontendAvailable: true,
     };
 
     expect(schemas.DashboardStatus.parse(status)).toEqual(status);
     expect(
       schemas.DashboardStatus.safeParse({ ...status, mode: "backend" }).success
     ).toBe(false);
+    expect(
+      schemas.DashboardStatus.safeParse({ ...status, frontendAvailable: true })
+        .success
+    ).toBe(false);
+  });
+
+  it.each(["fullstack.start", "fullstack.stop", "frontend.restart"])(
+    "rejects the removed frontend control %s",
+    (type) => {
+      expect(
+        schemas.DashboardAction.safeParse({
+          type,
+          ...(type === "frontend.restart" ? { mode: "local" } : {}),
+        }).success
+      ).toBe(false);
+    }
+  );
+
+  it("accepts package-only presets and rejects obsolete orchestration flags", () => {
+    const input = { name: "Backend group", packages: [{ name: "backend" }] };
+    expect(schemas.PresetInput.parse(input)).toEqual(input);
+    for (const flag of ["seed", "fullstack"]) {
+      expect(
+        schemas.PresetInput.safeParse({ ...input, [flag]: false }).success
+      ).toBe(false);
+    }
+    const preset = { ...input, id: "frontend-full", source: "shared" };
+    expect(schemas.Preset.parse(preset)).toEqual(preset);
+    expect(
+      schemas.Preset.safeParse({ ...preset, fullstack: true }).success
+    ).toBe(false);
+  });
+
+  it("exposes the configured user key while retaining UUID identity input", () => {
+    const user = {
+      id: "user-id",
+      key: "admin",
+      name: "User",
+      surname: "Admin",
+      email: "admin@local.test",
+      roles: ["admin"],
+    };
+    expect(schemas.IdentityUser.parse(user)).toEqual(user);
+    expect(
+      schemas.IdentityInput.parse({ tenantKey: "comune", userId: user.id })
+    ).toEqual({ tenantKey: "comune", userId: "user-id" });
   });
 
   it("matches the supported log levels at the HTTP boundary", () => {

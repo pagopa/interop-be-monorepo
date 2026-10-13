@@ -233,7 +233,7 @@ describe("shared runtime state", () => {
     await waitFor(() => expect(result.current.first.status).toBeDefined());
     expect(result.current.second.status).toEqual(result.current.first.status);
   });
-  it("discovers active seed, infrastructure, fullstack and frontend busy keys after reload", async () => {
+  it("discovers active seed, seed preparation and infrastructure busy keys after reload", async () => {
     const currentStatus = statusFixture({
       operations: [
         {
@@ -251,16 +251,9 @@ describe("shared runtime state", () => {
           phases: [],
         },
         {
-          id: "fullstack",
-          kind: "fullstack.start",
+          id: "seed",
+          kind: "seed",
           state: "running",
-          startedAt: "2026-10-08T12:00:00Z",
-          phases: [],
-        },
-        {
-          id: "frontend",
-          kind: "frontend.restart",
-          state: "pending",
           startedAt: "2026-10-08T12:00:00Z",
           phases: [],
         },
@@ -278,43 +271,34 @@ describe("shared runtime state", () => {
       "seed-prepare": "prepare",
       "infra-start": "infra",
       infra: "infra",
-      fullstack: "fullstack",
-      frontend: "frontend",
+      seed: "seed",
     });
   });
   it.each([
     {
       kind: "preset.start",
       state: "pending",
-      phases: ["frontend:install", "seed", "frontend:start"],
-      fullstack: true,
+      phase: "start",
     },
     {
       kind: "preset.start",
       state: "running",
-      phases: ["frontend:install", "seed", "frontend:start"],
-      fullstack: true,
+      phase: "start",
     },
     {
       kind: "preset.stop",
       state: "running",
-      phases: ["stop:frontend"],
-      fullstack: true,
-    },
-    {
-      kind: "preset.start",
-      state: "running",
-      phases: ["seed"],
-      fullstack: false,
+      phase: "stop",
     },
   ] satisfies Array<{
     kind: Operation["kind"];
     state: Operation["state"];
-    phases: string[];
-    fullstack: boolean;
+    phase: string;
   }>)(
-    "derives fullstack busy=$fullstack from $state $kind frontend phases after reload",
-    async ({ kind, state, phases, fullstack }) => {
+    "locks a backend package during a $state $kind phase after reload",
+    async ({ kind, state, phase }) => {
+      const name = statusFixture().packages[0].name;
+      const key = `package:${name}`;
       let currentStatus = statusFixture({
         operations: [
           {
@@ -322,7 +306,7 @@ describe("shared runtime state", () => {
             kind,
             state,
             startedAt: "2026-10-08T12:00:00Z",
-            phases: phases.map((id) => ({ id, label: id, state: "pending" })),
+            phases: [{ id: `${phase}:${name}`, label: name, state: "pending" }],
           },
         ],
       });
@@ -332,25 +316,19 @@ describe("shared runtime state", () => {
       vi.stubGlobal("fetch", fetchMock);
       const { result } = renderHook(() => useDashboard());
       await waitFor(() => expect(result.current.status).toBeDefined());
-      expect(result.current.busy.fullstack).toBe(
-        fullstack ? "autostart" : undefined
-      );
+      expect(result.current.busy[key]).toBe("autostart");
       expect(result.current.busy.infra).toBeUndefined();
-      if (fullstack) {
-        await act(async () => {
-          expect(
-            await result.current.runAction(
-              { type: "fullstack.start" },
-              "fullstack"
-            )
-          ).toBe(false);
-        });
+      expect(result.current.busy.seed).toBeUndefined();
+      await act(async () => {
         expect(
-          fetchMock.mock.calls.some(([input]) =>
-            String(input).endsWith("/actions")
-          )
+          await result.current.runAction({ type: "package.start", name }, key)
         ).toBe(false);
-      }
+      });
+      expect(
+        fetchMock.mock.calls.some(([input]) =>
+          String(input).endsWith("/actions")
+        )
+      ).toBe(false);
       currentStatus = {
         ...currentStatus,
         operations: currentStatus.operations.map((operation) => ({
@@ -359,9 +337,7 @@ describe("shared runtime state", () => {
         })),
       };
       await act(() => result.current.refresh());
-      await waitFor(() =>
-        expect(result.current.busy.fullstack).toBeUndefined()
-      );
+      await waitFor(() => expect(result.current.busy[key]).toBeUndefined());
     }
   );
   it.each([
