@@ -2472,7 +2472,7 @@ export function catalogServiceBuilder(
         )
       );
 
-      const completeDescriptor = explicitPropertiesChecker<Descriptor>({
+      const newDescriptor = explicitPropertiesChecker<Descriptor>({
         id: generateId(),
         version: "1",
         interface: clonedInterfaceDocument,
@@ -2481,7 +2481,7 @@ export function catalogServiceBuilder(
         docs: clonedDocuments,
         state: descriptorState.draft,
         createdAt: new Date(),
-        publishedAt: undefined, // Obbligatorio specificarlo!
+        publishedAt: undefined,
         suspendedAt: undefined,
         deprecatedAt: undefined,
         archivedAt: undefined,
@@ -2498,6 +2498,7 @@ export function catalogServiceBuilder(
         asyncExchangeProperties: descriptor.asyncExchangeProperties,
         rejectionReasons: descriptor.rejectionReasons,
         templateVersionRef: descriptor.templateVersionRef,
+        delegatedArchivingRequest: undefined,
       });
 
       const clonedEservice: EService = {
@@ -2509,7 +2510,7 @@ export function catalogServiceBuilder(
         createdAt: new Date(),
         riskAnalysis: eservice.data.riskAnalysis,
         mode: eservice.data.mode,
-        descriptors: [completeDescriptor],
+        descriptors: [newDescriptor],
         personalData: eservice.data.personalData,
         asyncExchange: eservice.data.asyncExchange,
         delegatedArchivingRequest: undefined,

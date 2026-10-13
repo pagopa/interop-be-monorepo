@@ -2096,6 +2096,7 @@ export function purposeServiceBuilder(
         stamps: undefined,
         signedContract: undefined,
         firstActivationAt: undefined,
+        waitingForApprovalReason: undefined,
       });
 
       const riskAnalysisFormToClone = purposeToClone.data.riskAnalysisForm;
@@ -2159,6 +2160,7 @@ export function purposeServiceBuilder(
         suspendedByProducer: undefined,
         purposeTemplateId: undefined,
         reviewerWorkflow: undefined,
+        riskAnalysisReviewMode: undefined,
       });
 
       const event = toCreateEventPurposeCloned({
