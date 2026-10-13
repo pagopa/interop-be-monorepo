@@ -136,7 +136,7 @@ export async function handlePurposeEvent(
     )
     .with(
       { type: "NewPurposeVersionWaitingForApproval" },
-      async ({ data: { purpose } }) => [
+      async ({ data: { purpose, versionId } }) => [
         ...(await handleNewPurposeVersionWaitingForApprovalToProducer({
           purposeV2Msg: purpose,
           logger,
@@ -145,6 +145,7 @@ export async function handlePurposeEvent(
           correlationId,
         })),
         ...(await handleNewPurposeVersionWaitingForApprovalToConsumer({
+          versionId,
           purposeV2Msg: purpose,
           logger,
           readModelService,
@@ -226,12 +227,24 @@ export async function handlePurposeEvent(
       })
     )
     .with(
+      { type: "PurposeVersionOverQuotaUnsuspended" },
+      ({ data: { purpose, versionId }, type }) =>
+        handleNewPurposeVersionWaitingForApprovalToConsumer({
+          purposeV2Msg: purpose,
+          versionId,
+          eventType: type,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })
+    )
+    .with(
       {
         type: P.union(
           "WaitingForApprovalPurposeDeleted",
           "PurposeAdded",
           "DraftPurposeUpdated",
-          "PurposeVersionOverQuotaUnsuspended",
           "WaitingForApprovalPurposeVersionDeleted",
           "NewPurposeVersionActivated",
           "PurposeCloned",
@@ -240,7 +253,8 @@ export async function handlePurposeEvent(
           "RiskAnalysisDocumentGenerated",
           "RiskAnalysisSignedDocumentGenerated",
           "MaintenancePurposeRiskAnalysisSetTenantKind",
-          "PurposeRiskAnalysisFormEdited"
+          "PurposeRiskAnalysisFormEdited",
+          "MaintenancePurposeRiskAnalysisFixReviewerWorkflow"
         ),
       },
       () => {

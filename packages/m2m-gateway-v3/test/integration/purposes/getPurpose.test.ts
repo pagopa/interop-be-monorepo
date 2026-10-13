@@ -51,6 +51,8 @@ describe("getPurpose", () => {
       updatedAt: mockApiPurposeResponse.data.updatedAt,
       waitingForApprovalVersion: undefined,
       purposeTemplateId: mockApiPurposeResponse.data.purposeTemplateId,
+      riskAnalysisReviewMode:
+        mockApiPurposeResponse.data.riskAnalysisReviewMode,
     };
 
     const result = await purposeService.getPurpose(
