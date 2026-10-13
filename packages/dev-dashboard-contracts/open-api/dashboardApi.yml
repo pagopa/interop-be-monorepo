@@ -1,0 +1,786 @@
+openapi: 3.0.3
+info:
+  title: Local development dashboard API
+  description: Manages local backend packages, infrastructure, presets, identities and development logs.
+  version: 1.0.0
+  contact:
+    name: PDND Interop
+servers:
+  - url: http://localhost:8076
+    description: Local development dashboard
+tags:
+  - name: health
+    description: Dashboard API health
+  - name: dashboard
+    description: Local development runtime
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      tags: [health]
+      summary: Get dashboard API health
+      description: Reports whether the dashboard API is available.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+  /__local-dashboard/api/status:
+    get:
+      operationId: getStatus
+      tags: [dashboard]
+      summary: Get local runtime status
+      description: Returns package, infrastructure, preset and action states for the shared local runtime.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStatus"
+  /__local-dashboard/api/logs:
+    get:
+      operationId: getLogs
+      tags: [dashboard]
+      summary: Get incremental local logs
+      description: Returns a bounded log window, with independent source cursors and reset detection.
+      parameters:
+        - name: source
+          in: query
+          description:
+            A log source ID, group:packages for backend package logs, group:infra for infrastructure
+            logs, group:seed for seed packages and orchestration, or preset:<id> for that preset's packages
+            and orchestration. Fullstack presets also include frontend and checks. Unknown presets return
+            400; empty presets return no logs.
+          schema:
+            type: string
+            maxLength: 200
+        - name: service
+          in: query
+          description: Filters by the service name found in log metadata.
+          schema:
+            type: string
+            maxLength: 200
+        - name: level
+          in: query
+          description: Filters by the detected log severity.
+          schema:
+            type: string
+            enum: [debug, info, warn, error, unknown]
+        - name: search
+          in: query
+          description: Case-insensitive substring in message text or correlation ID.
+          schema:
+            type: string
+            maxLength: 1000
+        - name: cid
+          in: query
+          description: Filters by an exact correlation ID.
+          schema:
+            type: string
+            maxLength: 300
+        - name: cursors
+          in: query
+          description: JSON object mapping log sources to opaque incremental cursor strings.
+          schema:
+            type: string
+            maxLength: 30000
+        - name: limit
+          in: query
+          description: Maximum number of log entries returned in this batch.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LogsResponse"
+        "400":
+          description: Invalid query
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /__local-dashboard/api/identities:
+    get:
+      operationId: getIdentities
+      tags: [dashboard]
+      summary: Get local identities
+      description: Discovers the tenants and users available in the local seeded environment.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IdentitiesResponse"
+  /__local-dashboard/api/identity:
+    post:
+      operationId: selectIdentity
+      tags: [dashboard]
+      summary: Generate a local access token
+      description: Returns a local session token for the selected tenant and user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IdentityInput"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionResponse"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "409":
+          description: Unavailable action
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "403":
+          $ref: "#/components/responses/CrossOriginForbidden"
+  /__local-dashboard/api/actions:
+    post:
+      operationId: runAction
+      tags: [dashboard]
+      summary: Run a local development action
+      description: Queues a supported local runtime action and returns an identifier for status polling.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DashboardAction"
+      responses:
+        "202":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OperationAccepted"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "409":
+          description: Unavailable action
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "403":
+          $ref: "#/components/responses/CrossOriginForbidden"
+  /__local-dashboard/api/presets:
+    post:
+      operationId: savePreset
+      tags: [dashboard]
+      summary: Save a personal preset
+      description: Creates or updates a personal package preset without starting or stopping its members.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PresetInput"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Preset"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "409":
+          description: Unavailable action
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "403":
+          $ref: "#/components/responses/CrossOriginForbidden"
+  /__local-dashboard/api/presets/{id}:
+    delete:
+      operationId: deletePreset
+      tags: [dashboard]
+      summary: Delete a personal preset
+      description: Deletes a personal preset while preserving any running packages.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identifier of the personal preset to delete.
+          schema:
+            type: string
+            maxLength: 100
+            pattern: ^[a-zA-Z0-9_-]+$
+      responses:
+        "204":
+          description: Deleted
+        "400":
+          description: Invalid id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "409":
+          description: Preset is shared
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "403":
+          $ref: "#/components/responses/CrossOriginForbidden"
+components:
+  responses:
+    CrossOriginForbidden:
+      description: Cross-origin dashboard mutations are forbidden.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+  schemas:
+    Package:
+      type: object
+      properties:
+        name:
+          type: string
+        label:
+          type: string
+        kind:
+          type: string
+          enum:
+            - service
+            - worker
+            - job
+        port:
+          type: integer
+        state:
+          type: string
+          enum:
+            - stopped
+            - building
+            - starting
+            - running
+            - failed
+        watch:
+          type: boolean
+        pid:
+          type: integer
+        error:
+          type: string
+      required:
+        - name
+        - label
+        - kind
+        - state
+        - watch
+      additionalProperties: false
+    PresetMember:
+      type: object
+      properties:
+        name:
+          type: string
+        watch:
+          type: boolean
+      required:
+        - name
+      additionalProperties: false
+    Preset:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        source:
+          type: string
+          enum:
+            - shared
+            - personal
+        packages:
+          type: array
+          items:
+            $ref: "#/components/schemas/PresetMember"
+        seed:
+          type: boolean
+        fullstack:
+          type: boolean
+      required:
+        - id
+        - name
+        - source
+        - packages
+        - seed
+        - fullstack
+      additionalProperties: false
+    PresetInput:
+      type: object
+      properties:
+        id:
+          type: string
+          pattern: ^[a-zA-Z0-9_-]+$
+          maxLength: 100
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        packages:
+          type: array
+          items:
+            $ref: "#/components/schemas/PresetMember"
+          minItems: 1
+        seed:
+          type: boolean
+      required:
+        - name
+        - packages
+        - seed
+      additionalProperties: false
+    Infrastructure:
+      type: object
+      properties:
+        name:
+          type: string
+        state:
+          type: string
+          enum:
+            - running
+            - stopped
+            - starting
+            - failed
+        status:
+          type: string
+        exitCode:
+          type: integer
+      required:
+        - name
+        - state
+      additionalProperties: false
+    Phase:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        state:
+          type: string
+          enum:
+            - pending
+            - running
+            - passed
+            - failed
+            - skipped
+        error:
+          type: string
+      required:
+        - id
+        - label
+        - state
+      additionalProperties: false
+    Operation:
+      type: object
+      properties:
+        id:
+          type: string
+        kind:
+          type: string
+        state:
+          type: string
+          enum:
+            - pending
+            - running
+            - passed
+            - failed
+        startedAt:
+          type: string
+        finishedAt:
+          type: string
+        error:
+          type: string
+        phases:
+          type: array
+          items:
+            $ref: "#/components/schemas/Phase"
+      required:
+        - id
+        - kind
+        - state
+        - startedAt
+        - phases
+      additionalProperties: false
+    LogSource:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        kind:
+          type: string
+          enum:
+            - backend
+            - infrastructure
+            - orchestration
+            - frontend
+            - checks
+      required:
+        - id
+        - label
+        - kind
+      additionalProperties: false
+    DashboardStatus:
+      type: object
+      properties:
+        packages:
+          type: array
+          items:
+            $ref: "#/components/schemas/Package"
+        presets:
+          type: array
+          items:
+            $ref: "#/components/schemas/Preset"
+        infrastructure:
+          type: array
+          items:
+            $ref: "#/components/schemas/Infrastructure"
+        operations:
+          type: array
+          items:
+            $ref: "#/components/schemas/Operation"
+        logSources:
+          type: array
+          items:
+            $ref: "#/components/schemas/LogSource"
+        seedPackages:
+          type: array
+          description:
+            Complete stable group of canonical package names required by seed, including packages
+            that are already running.
+          items:
+            type: string
+        seedPrerequisites:
+          type: array
+          items:
+            type: string
+        seedReady:
+          type: boolean
+        frontendAvailable:
+          type: boolean
+      required:
+        - packages
+        - presets
+        - infrastructure
+        - operations
+        - logSources
+        - seedPackages
+        - seedPrerequisites
+        - seedReady
+        - frontendAvailable
+      additionalProperties: false
+    LogEntry:
+      type: object
+      properties:
+        id:
+          type: string
+        source:
+          type: string
+        service:
+          type: string
+        timestamp:
+          type: string
+        level:
+          type: string
+          enum:
+            - debug
+            - info
+            - warn
+            - error
+            - unknown
+        message:
+          type: string
+        cid:
+          type: string
+      required:
+        - id
+        - source
+        - service
+        - level
+        - message
+      additionalProperties: false
+    LogsResponse:
+      type: object
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/LogEntry"
+        cursors:
+          type: object
+          additionalProperties:
+            type: string
+        resetSources:
+          type: array
+          items:
+            type: string
+      required:
+        - entries
+        - cursors
+        - resetSources
+      additionalProperties: false
+    IdentityUser:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        surname:
+          type: string
+        email:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+      required:
+        - id
+        - name
+        - surname
+        - email
+        - roles
+      additionalProperties: false
+    IdentityTenant:
+      type: object
+      properties:
+        key:
+          type: string
+        id:
+          type: string
+        selfcareId:
+          type: string
+        name:
+          type: string
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/IdentityUser"
+      required:
+        - key
+        - id
+        - selfcareId
+        - name
+        - users
+      additionalProperties: false
+    IdentitiesResponse:
+      type: object
+      properties:
+        ready:
+          type: boolean
+        tenants:
+          type: array
+          items:
+            $ref: "#/components/schemas/IdentityTenant"
+      required:
+        - ready
+        - tenants
+      additionalProperties: false
+    IdentityInput:
+      type: object
+      properties:
+        tenantKey:
+          type: string
+          minLength: 1
+        userId:
+          type: string
+          minLength: 1
+      required:
+        - tenantKey
+        - userId
+      additionalProperties: false
+    SessionResponse:
+      type: object
+      properties:
+        sessionToken:
+          type: string
+      required:
+        - sessionToken
+      additionalProperties: false
+    OperationAccepted:
+      type: object
+      properties:
+        operationId:
+          type: string
+      required:
+        - operationId
+      additionalProperties: false
+    ApiError:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+      additionalProperties: false
+    Health:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - ok
+      required:
+        - status
+      additionalProperties: false
+    DashboardAction:
+      oneOf:
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - packages.start
+                - packages.stop
+            names:
+              type: array
+              minItems: 1
+              items:
+                type: string
+                minLength: 1
+          required:
+            - type
+            - names
+          additionalProperties: false
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - packages.watch
+            names:
+              type: array
+              minItems: 1
+              items:
+                type: string
+                minLength: 1
+            watch:
+              type: boolean
+          required:
+            - type
+            - names
+            - watch
+          additionalProperties: false
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - package.start
+                - package.stop
+                - package.restart
+            name:
+              type: string
+          required:
+            - type
+            - name
+          additionalProperties: false
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - package.watch
+            name:
+              type: string
+            watch:
+              type: boolean
+          required:
+            - type
+            - name
+            - watch
+          additionalProperties: false
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - preset.start
+                - preset.stop
+            id:
+              type: string
+          required:
+            - type
+            - id
+          additionalProperties: false
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - infra.start
+                - infra.stop
+          required:
+            - type
+          additionalProperties: false
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - infra.reset
+            confirm:
+              type: boolean
+              enum:
+                - true
+          required:
+            - type
+            - confirm
+          additionalProperties: false
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - seed
+                - seed.prepare
+                - fullstack.start
+                - fullstack.stop
+          required:
+            - type
+          additionalProperties: false
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - frontend.restart
+            mode:
+              type: string
+              enum:
+                - local
+                - dev
+          required:
+            - type
+            - mode
+          additionalProperties: false

@@ -1,0 +1,26 @@
+meta {
+  name: Bulk Watch Packages
+  type: http
+  seq: 22
+}
+
+post {
+  url: {{host-dashboard}}/__local-dashboard/api/actions
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "type": "packages.watch",
+    "names": ["pagopa-interop-tenant-process", "pagopa-interop-tenant-readmodel-writer-sql"],
+    "watch": false
+  }
+}
+
+tests {
+  test("Bulk watch operation was accepted", function () {
+    expect(res.getStatus()).to.equal(202);
+    expect(res.getBody().operationId).to.be.a("string");
+  });
+}

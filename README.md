@@ -4,7 +4,17 @@
 
 ## How to start
 
-To get started, you will need:
+To manage a local backend environment with Docker only, start the
+[development dashboard](docs/development-dashboard.md):
+
+```bash
+bash scripts/local-development/dashboard.sh start
+```
+
+Open http://localhost:8076 to start packages, manage presets, inspect logs and
+prepare infrastructure. Node.js and pnpm run inside the container.
+
+For development directly on the host, you will need:
 
 - Node.js (https://nodejs.org/en/download/package-manager)
 - pnpm (https://pnpm.io/installation)
