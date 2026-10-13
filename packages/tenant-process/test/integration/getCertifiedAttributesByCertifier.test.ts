@@ -9,6 +9,7 @@ import {
 import {
   Attribute,
   attributeKind,
+  CertifiedDiscreteTenantAttribute,
   Tenant,
   TenantAttribute,
 } from "pagopa-interop-models";
@@ -37,7 +38,7 @@ describe("getCertifiedAttributesByCertifier", () => {
       ...getMockCertifiedTenantAttribute(),
       revocationTimestamp: undefined,
     };
-    const tenantCertifiedDiscreteAttribute: TenantAttribute = {
+    const tenantCertifiedDiscreteAttribute: CertifiedDiscreteTenantAttribute = {
       ...getMockCertifiedDiscreteTenantAttribute(),
       revocationTimestamp: undefined,
     };
@@ -80,6 +81,7 @@ describe("getCertifiedAttributesByCertifier", () => {
           id: tenant.id,
           kind: "CERTIFIED_DISCRETE",
           name: tenant.name,
+          discreteValue: tenantCertifiedDiscreteAttribute.discreteValue,
         },
       ]),
       totalCount: 2,
@@ -98,7 +100,7 @@ describe("getCertifiedAttributesByCertifier", () => {
       ...getMockCertifiedTenantAttribute(),
       revocationTimestamp: undefined,
     };
-    const tenantCertifiedDiscreteAttribute: TenantAttribute = {
+    const tenantCertifiedDiscreteAttribute: CertifiedDiscreteTenantAttribute = {
       ...getMockCertifiedDiscreteTenantAttribute(),
       revocationTimestamp: undefined,
     };
@@ -152,6 +154,7 @@ describe("getCertifiedAttributesByCertifier", () => {
           id: tenant.id,
           kind: "CERTIFIED_DISCRETE",
           name: tenant.name,
+          discreteValue: tenantCertifiedDiscreteAttribute.discreteValue,
         },
       ],
       totalCount: 2,

@@ -37,6 +37,7 @@ import {
   eServiceDescriptorNotFound,
   templateInstanceNotAllowed,
   eserviceTemplateNameConflict,
+  eserviceCloningWithActiveOrPendingDelegation,
 } from "../../src/model/domain/errors.js";
 import {
   addOneDelegation,
@@ -96,12 +97,30 @@ describe("clone descriptor", () => {
       interface: interfaceDocument,
       asyncExchangeCallbackInterface: asyncExchangeCallbackInterfaceDoc,
       docs: [document1, document2],
+      rejectionReasons: [
+        { rejectionReason: "Some rejection reason", rejectedAt: new Date() },
+      ],
+      delegatedArchivingRequest: [
+        {
+          requestedAt: new Date(),
+          gracePeriodDays: 30,
+          requesterId: generateId(),
+        },
+      ],
     };
     const eservice: EService = {
       ...mockEService,
       descriptors: [descriptor],
       personalData: true,
       asyncExchange: true,
+      delegatedArchivingRequest: [
+        {
+          requestedAt: new Date(),
+          gracePeriodDays: 30,
+          requesterId: generateId(),
+          archivingReason: "Some reason",
+        },
+      ],
     };
     await addOneEService(eservice);
 
@@ -227,6 +246,8 @@ describe("clone descriptor", () => {
         Number(writtenPayload.eservice?.descriptors[0].createdAt)
       ),
       docs: [expectedDocument1, expectedDocument2],
+      rejectionReasons: undefined,
+      delegatedArchivingRequest: undefined,
     };
 
     const expectedEService: EService = {
@@ -237,6 +258,7 @@ describe("clone descriptor", () => {
       )} ${timeAtRomeZone(cloneTimestamp)}`,
       descriptors: [expectedDescriptor],
       createdAt: new Date(Number(writtenPayload.eservice?.createdAt)),
+      delegatedArchivingRequest: undefined,
     };
     expect(writtenPayload).toEqual({
       sourceEservice: toEServiceV2(eservice),
@@ -581,6 +603,39 @@ describe("clone descriptor", () => {
       )
     ).rejects.toThrowError(operationForbidden);
   });
+  it.each([delegationState.active, delegationState.waitingForApproval])(
+    "should throw eserviceCloningWithActiveOrPendingDelegation if the eservice is associated with a delegation with state %s",
+    async (delegationState) => {
+      const descriptor: Descriptor = {
+        ...mockDescriptor,
+        state: descriptorState.draft,
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor],
+      };
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        eserviceId: eservice.id,
+        state: delegationState,
+      });
+
+      await addOneEService(eservice);
+      await addOneDelegation(delegation);
+
+      expect(
+        catalogService.cloneDescriptor(
+          eservice.id,
+          descriptor.id,
+          getMockContext({
+            authData: getMockAuthData(eservice.producerId),
+          })
+        )
+      ).rejects.toThrowError(
+        eserviceCloningWithActiveOrPendingDelegation(eservice.id, delegation.id)
+      );
+    }
+  );
   it("should throw eServiceDescriptorNotFound if the descriptor doesn't exist", async () => {
     const eservice: EService = {
       ...mockEService,
