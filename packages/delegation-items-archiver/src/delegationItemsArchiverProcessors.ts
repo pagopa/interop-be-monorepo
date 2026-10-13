@@ -11,6 +11,7 @@ import {
   Delegation,
   DelegationId,
   DescriptorId,
+  descriptorState,
   purposeVersionState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -121,7 +122,9 @@ export const processEServiceDescriptorAfterRevoke = async ({
   }
 
   const descriptorsInWaitingForApprovalState = eservice.descriptors
-    .filter((descriptor) => descriptor.state === "WaitingForApproval")
+    .filter(
+      (descriptor) => descriptor.state === descriptorState.waitingForApproval
+    )
     .map((descriptor) => descriptor.id)
     .at(0);
 
