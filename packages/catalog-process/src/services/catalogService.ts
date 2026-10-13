@@ -2496,7 +2496,7 @@ export function catalogServiceBuilder(
         serverUrlsDescriptions: descriptor.serverUrlsDescriptions,
         agreementApprovalPolicy: descriptor.agreementApprovalPolicy,
         asyncExchangeProperties: descriptor.asyncExchangeProperties,
-        rejectionReasons: descriptor.rejectionReasons,
+        rejectionReasons: undefined,
         templateVersionRef: descriptor.templateVersionRef,
         delegatedArchivingRequest: undefined,
       });
