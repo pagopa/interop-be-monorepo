@@ -8,7 +8,7 @@ type OptionalKeys<T> = {
   [K in keyof T]-?: {} extends Pick<T, K> ? K : never;
 }[keyof T];
 
-// Mantiene intatte le obbligatorie e forza l'esplicitezza di undefined sulle opzionali
+// Keeps mandatory clauses intact and forces undefined explicitness on optional clauses.
 export type CompleteKeys<T> = {
   [K in RequiredKeys<T>]: T[K];
 } & {
