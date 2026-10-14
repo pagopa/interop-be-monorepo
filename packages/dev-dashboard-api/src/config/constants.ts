@@ -50,6 +50,7 @@ export const CONTAINER_EXIT_CODES = Object.freeze({
 
 export const DASHBOARD_PATHS = Object.freeze({
   personalPresets: ".local-development/dashboard/presets.json",
+  watchPreferences: ".local-development/dashboard/watch.json",
   sharedPresets: "docker/local-development/presets.json",
   dataset: "docker/local-development/dataset.json",
   seedState: ".local-development/state.json",

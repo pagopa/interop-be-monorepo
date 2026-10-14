@@ -1,13 +1,16 @@
 import type { Package, Preset } from "pagopa-interop-dev-dashboard-contracts";
 
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { Child, Command, Driver } from "../src/model/domain/models.js";
 
+import { DASHBOARD_PATHS } from "../src/config/constants.js";
 import { supervisorServiceBuilder } from "../src/services/supervisorService.js";
+import { readWatchPreferences } from "../src/services/watchPreferenceService.js";
 
 class FakeDriver implements Driver {
   commands: Command[] = [];
@@ -68,6 +71,11 @@ const seedPackages = [
   "pagopa-interop-catalog-readmodel-writer-sql",
 ];
 const directories: string[] = [];
+const temporaryWatchPath = (): string => {
+  const path = join(tmpdir(), `dashboard-watch-${randomUUID()}`);
+  directories.push(path);
+  return join(path, "watch.json");
+};
 afterEach(async () => {
   vi.unstubAllGlobals();
   await Promise.all(
@@ -78,6 +86,8 @@ afterEach(async () => {
 });
 const setup = (
   options: {
+    watchPath?: string;
+    watchPreferences?: Record<string, boolean>;
     personalPath?: string;
     includeSeedPackages?: boolean;
     watchSource?: (path: string, changed: () => void) => () => void;
@@ -110,6 +120,8 @@ const setup = (
       },
     ],
     personalPath: options.personalPath,
+    watchPath: options.watchPath ?? temporaryWatchPath(),
+    watchPreferences: options.watchPreferences,
     watchSource: options.watchSource,
   });
   return { driver, supervisor };
@@ -1122,6 +1134,170 @@ describe("local dashboard supervisor", () => {
       supervisor.status().packages.find((p) => p.name === "outside")?.watch
     ).toBe(false);
   });
+  it("restores per-package watch choices after dashboard restart and preserves them through infrastructure reset", async () => {
+    const root = await mkdtemp(join(tmpdir(), "dashboard-preferences-"));
+    directories.push(root);
+    const watchPath = join(root, DASHBOARD_PATHS.watchPreferences);
+    const personalPath = join(root, DASHBOARD_PATHS.personalPresets);
+    const watchSource = vi.fn(() => () => undefined);
+    const first = setup({
+      watchPath,
+      personalPath,
+      watchSource,
+      watchPreferences: await readWatchPreferences(watchPath),
+    });
+    await first.supervisor.savePreset({
+      id: "personal",
+      name: "Personal",
+      packages: [{ name: "a", watch: false }],
+    });
+    const savedPresets = await readFile(personalPath, "utf8");
+    first.supervisor.action({ type: "package.start", name: "a" });
+    await first.supervisor.idle();
+    first.supervisor.action({ type: "package.watch", name: "a", watch: false });
+    first.supervisor.action({
+      type: "package.watch",
+      name: "outside",
+      watch: false,
+    });
+    first.supervisor.action({
+      type: "packages.watch",
+      names: ["b", "remote"],
+      watch: false,
+    });
+    first.supervisor.action({
+      type: "package.watch",
+      name: "remote",
+      watch: true,
+    });
+    await first.supervisor.idle();
+    await first.supervisor.shutdown();
+
+    const watchPreferences = await readWatchPreferences(watchPath);
+    const second = setup({
+      watchPath,
+      personalPath,
+      watchPreferences,
+      watchSource,
+    });
+    const expected = [
+      { name: "a", watch: false },
+      { name: "b", watch: false },
+      { name: "outside", watch: false },
+      { name: "remote", watch: true },
+    ];
+    expect(
+      second.supervisor
+        .status()
+        .packages.map(({ name, watch }) => ({ name, watch }))
+    ).toEqual(expected);
+    watchSource.mockClear();
+    second.supervisor.action({ type: "package.start", name: "a" });
+    await second.supervisor.idle();
+    expect(watchSource).not.toHaveBeenCalled();
+    second.supervisor.action({ type: "infra.reset", confirm: true });
+    await second.supervisor.idle();
+    expect(
+      second.supervisor
+        .status()
+        .packages.map(({ name, watch }) => ({ name, watch }))
+    ).toEqual(expected);
+    expect(await readFile(personalPath, "utf8")).toBe(savedPresets);
+    expect(JSON.parse(await readFile(watchPath, "utf8"))).toEqual({
+      a: false,
+      outside: false,
+      b: false,
+      remote: true,
+    });
+    await second.supervisor.shutdown();
+  });
+  it("persists a watch choice even when restarting its running package fails", async () => {
+    const watchPath = temporaryWatchPath();
+    const { supervisor, driver } = setup({ watchPath });
+    supervisor.action({ type: "package.start", name: "a" });
+    await supervisor.idle();
+    driver.failStart = "a";
+
+    supervisor.action({ type: "package.watch", name: "a", watch: false });
+    await supervisor.idle();
+
+    expect(supervisor.status().operations.at(-1)?.state).toBe("failed");
+    expect(
+      supervisor.status().packages.find((item) => item.name === "a")
+    ).toMatchObject({
+      state: "failed",
+      watch: false,
+    });
+    const restarted = setup({
+      watchPath,
+      watchPreferences: await readWatchPreferences(watchPath),
+    });
+    expect(
+      restarted.supervisor.status().packages.find((item) => item.name === "a")
+        ?.watch
+    ).toBe(false);
+  });
+  it("keeps the watch choice unchanged and reports failed persistence", async () => {
+    const root = await mkdtemp(join(tmpdir(), "dashboard-watch-failure-"));
+    directories.push(root);
+    const blocker = join(root, "not-a-directory");
+    await writeFile(blocker, "Preserve this file");
+    const watchPath = join(blocker, "watch.json");
+    const { supervisor } = setup({ watchPath });
+
+    supervisor.action({ type: "package.watch", name: "a", watch: false });
+    await supervisor.idle();
+
+    expect(supervisor.status().operations.at(-1)).toMatchObject({
+      state: "failed",
+      phases: [{ id: "watch:a", state: "failed" }],
+    });
+    expect(
+      supervisor.status().packages.find((item) => item.name === "a")
+    ).toMatchObject({
+      state: "stopped",
+      watch: true,
+    });
+    expect(await readFile(blocker, "utf8")).toBe("Preserve this file");
+  });
+  it("reports a preset member as failed when its watch preference cannot be saved before startup", async () => {
+    const root = await mkdtemp(
+      join(tmpdir(), "dashboard-preset-watch-failure-")
+    );
+    directories.push(root);
+    const blocker = join(root, "not-a-directory");
+    await writeFile(blocker, "Preserve this file");
+    const { supervisor, driver } = setup({
+      includeSeedPackages: true,
+      watchPath: join(blocker, "watch.json"),
+    });
+
+    supervisor.action({ type: "preset.start", id: "pair" });
+    await supervisor.idle();
+
+    expect(
+      supervisor.status().packages.find((item) => item.name === "a")
+    ).toMatchObject({
+      state: "failed",
+      watch: true,
+    });
+    expect(
+      supervisor.status().packages.find((item) => item.name === "b")?.state
+    ).toBe("stopped");
+    expect(supervisor.status().operations.at(-1)).toMatchObject({
+      state: "failed",
+      phases: [
+        { id: "build", state: "passed" },
+        { id: "start:a", state: "failed" },
+        { id: "start:b", state: "skipped" },
+        ...seedPackages.map((name) => ({
+          id: `start:${name}`,
+          state: "skipped",
+        })),
+      ],
+    });
+    expect(driver.children.size).toBe(0);
+  });
   it("watches sources only while the service runs and never revives a crashed service", async () => {
     let changed: () => void = () => undefined;
     let closed = 0;
@@ -1308,8 +1484,11 @@ describe("local dashboard supervisor", () => {
   it("respects each preset member's explicit watch setting", async () => {
     const driver = new FakeDriver();
     const watchSource = vi.fn(() => () => undefined);
+    const watchPath = temporaryWatchPath();
     const supervisor = supervisorServiceBuilder({
       beRoot: "/be",
+      watchPath,
+      watchPreferences: { b: false },
       driver,
       packages: [member("a"), member("b")],
       presets: [
@@ -1338,5 +1517,9 @@ describe("local dashboard supervisor", () => {
       expect.any(Function)
     );
     expect([...driver.children.keys()]).toEqual(["a", "b"]);
+    expect(await readWatchPreferences(watchPath)).toEqual({
+      a: false,
+      b: true,
+    });
   });
 });
