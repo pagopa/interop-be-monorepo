@@ -77,6 +77,7 @@ await retryConnection(
       PurposeDbTable.purpose_risk_analysis_form,
       PurposeDbTable.purpose_risk_analysis_answer,
       PurposeDbTable.purpose_version_signed_document,
+      PurposeDbTable.purpose_risk_analysis_reviewer,
       ClientDbTable.client,
       ClientDbTable.client_purpose,
       ClientDbTable.client_user,

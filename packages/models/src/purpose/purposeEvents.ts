@@ -39,12 +39,14 @@ import {
   RiskAnalysisDocumentGeneratedV2,
   RiskAnalysisSignedDocumentGeneratedV2,
   MaintenancePurposeRiskAnalysisSetTenantKindV2,
+  MaintenancePurposeRiskAnalysisFixReviewerWorkflowV2,
   PurposeRiskAnalysisWorkflowCreatedV2,
   PurposeRiskAnalysisAssignedV2,
   PurposeRiskAnalysisSubmittedV2,
   PurposeRiskAnalysisSignedV2,
   PurposeRiskAnalysisRejectedV2,
   PurposeRiskAnalysisFormEditedV2,
+  PurposeRiskAnalysisSelfAssignedV2,
 } from "../gen/v2/purpose/events.js";
 import { protobufDecoder } from "../protobuf/protobuf.js";
 
@@ -179,6 +181,14 @@ export function purposeEventToBinaryDataV2(event: PurposeEventV2): Uint8Array {
     )
     .with({ type: "PurposeRiskAnalysisFormEdited" }, ({ data }) =>
       PurposeRiskAnalysisFormEditedV2.toBinary(data)
+    )
+    .with({ type: "PurposeRiskAnalysisSelfAssigned" }, ({ data }) =>
+      PurposeRiskAnalysisSelfAssignedV2.toBinary(data)
+    )
+    .with(
+      { type: "MaintenancePurposeRiskAnalysisFixReviewerWorkflow" },
+      ({ data }) =>
+        MaintenancePurposeRiskAnalysisFixReviewerWorkflowV2.toBinary(data)
     )
     .exhaustive();
 }
@@ -387,6 +397,16 @@ export const PurposeEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("PurposeRiskAnalysisFormEdited"),
     data: protobufDecoder(PurposeRiskAnalysisFormEditedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("PurposeRiskAnalysisSelfAssigned"),
+    data: protobufDecoder(PurposeRiskAnalysisSelfAssignedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("MaintenancePurposeRiskAnalysisFixReviewerWorkflow"),
+    data: protobufDecoder(MaintenancePurposeRiskAnalysisFixReviewerWorkflowV2),
   }),
 ]);
 export type PurposeEventV2 = z.infer<typeof PurposeEventV2>;

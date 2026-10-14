@@ -130,7 +130,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
   const mockValidRiskAnalysis = getMockValidRiskAnalysis(testTenantKind);
   const validRiskAnalysis = {
     ...mockValidRiskAnalysis,
-    version: "3.1",
+    version: "3.2",
     // remove legalObligationReference from DRAFT purpose risk analysis form, added in test
     singleAnswers: {
       ...mockValidRiskAnalysis.riskAnalysisForm.singleAnswers,
@@ -165,7 +165,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
     title: "Updated title",
     dailyCalls: 666,
     riskAnalysisForm: {
-      version: "3.1",
+      version: "3.2",
       answers: {
         institutionalPurpose: ["MyPurpose"],
         otherPersonalDataTypes: ["MyDataTypes"],
@@ -517,7 +517,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
       title: "updated title",
       dailyCalls: 666,
       riskAnalysisForm: {
-        version: "3.1",
+        version: "3.2",
         answers: {
           ...updatedSingleAnswersWithFreeText,
           ...updatedSingleAnswerFreeTextWithSuggestValue,
@@ -545,7 +545,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
       title: "updated title",
       dailyCalls: 666,
       riskAnalysisForm: {
-        version: "3.1",
+        version: "3.2",
         answers: {
           ...updatedSingleAnswersWithFreeText,
           ...updatedSingleAnswerFreeTextWithSuggestValue,
@@ -673,7 +673,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
           organizationId: consumer.id,
         })
       )
-    ).rejects.toThrowError(riskAnalysisVersionMismatch("2.0", "3.1"));
+    ).rejects.toThrowError(riskAnalysisVersionMismatch("2.0", "3.2"));
   });
 
   it("Should throw riskAnalysisMissingExpectedFieldError if a required field is missing", async () => {
@@ -716,7 +716,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
       title: "updated title",
       dailyCalls: 666,
       riskAnalysisForm: {
-        version: "3.1",
+        version: "3.2",
         answers: {
           ...updatedSingleAnswersWithFreeText,
           ...updatedSingleAnswerFreeTextWithSuggestValue,

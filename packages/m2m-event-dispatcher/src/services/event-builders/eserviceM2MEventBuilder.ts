@@ -105,11 +105,19 @@ function getEServiceM2MEventVisibility(
         "EServiceDescriptorSubmittedByDelegate",
         "EServiceDescriptorRejectedByDelegator",
         "EServiceDescriptorInterfaceAdded",
-        "EServiceDescriptorInterfaceUpdated",
         "EServiceDescriptorInterfaceDeleted",
         "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
-        "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
-        "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted"
+        "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
+        "EServiceDescriptorArchivingRequestedByDelegate",
+        "EServiceDescriptorArchivingRequestRejectedByDelegator",
+        "EServiceDescriptorArchivingRequestApprovedByDelegator",
+        "EServiceDescriptorArchivingRequestCanceledByDelegate",
+        "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation",
+        "EServiceArchivingRequestedByDelegate",
+        "EServiceArchivingRequestRejectedByDelegator",
+        "EServiceArchivingRequestApprovedByDelegator",
+        "EServiceArchivingRequestCanceledByDelegate",
+        "EServiceArchivingRequestCanceledByRevokedDelegation"
       ),
       () => m2mEventVisibility.owner
     )

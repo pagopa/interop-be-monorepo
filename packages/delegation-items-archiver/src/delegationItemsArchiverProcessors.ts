@@ -1,9 +1,16 @@
-import { agreementApi, purposeApi } from "pagopa-interop-api-clients";
+import {
+  agreementApi,
+  catalogApi,
+  purposeApi,
+} from "pagopa-interop-api-clients";
 import { InteropHeaders } from "pagopa-interop-commons";
 import {
   agreementState,
+  DelegatedDescriptorArchivingRequest,
+  DelegatedEServiceArchivingRequest,
   Delegation,
   DelegationId,
+  DescriptorId,
   purposeVersionState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -82,6 +89,61 @@ export const processPurposes = async ({
       }
     })
   );
+};
+
+const hasPendingArchivingRequest = (
+  archivingRequests:
+    | Array<
+        DelegatedEServiceArchivingRequest | DelegatedDescriptorArchivingRequest
+      >
+    | undefined
+): boolean =>
+  archivingRequests?.some(
+    (request) =>
+      request.acceptedAt === undefined && request.rejectedAt === undefined
+  ) ?? false;
+
+export const processEServiceArchivingRequests = async ({
+  readModelService,
+  catalogProcessClient,
+  headers,
+  delegation,
+}: {
+  readModelService: ReadModelServiceSQL;
+  catalogProcessClient: catalogApi.CatalogProcessClient;
+  headers: InteropHeaders;
+  delegation: Delegation;
+}): Promise<void> => {
+  const eservice = await readModelService.getEService(delegation.eserviceId);
+
+  if (!eservice) {
+    return;
+  }
+
+  const descriptorIdsWithPendingRequest = eservice.descriptors
+    .filter((descriptor) =>
+      hasPendingArchivingRequest(descriptor.delegatedArchivingRequest)
+    )
+    .map((descriptor) => descriptor.id);
+
+  const scopes: Array<DescriptorId | undefined> = [
+    ...descriptorIdsWithPendingRequest,
+    ...(hasPendingArchivingRequest(eservice.delegatedArchivingRequest)
+      ? [undefined]
+      : []),
+  ];
+
+  for (const descriptorId of scopes) {
+    await catalogProcessClient.internalDeleteDelegatedArchivingRequest(
+      {
+        descriptorId,
+      },
+      {
+        params: { eServiceId: eservice.id },
+        headers,
+      }
+    );
+  }
 };
 
 export const processAgreement = async ({

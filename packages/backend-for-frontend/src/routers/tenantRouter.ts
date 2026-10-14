@@ -309,6 +309,35 @@ const tenantRouter = (
         }
       }
     )
+    .put(
+      "/tenants/:tenantId/attributes/certifiedDiscrete/:attributeId",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        try {
+          const tenantId = unsafeBrandId<TenantId>(req.params.tenantId);
+          const attributeId = unsafeBrandId<AttributeId>(
+            req.params.attributeId
+          );
+          await tenantService.updateCertifiedDiscreteAttribute(
+            tenantId,
+            attributeId,
+            req.body,
+            ctx
+          );
+
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error updating certified discrete attribute ${req.params.attributeId} for tenant ${req.params.tenantId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .post(
       "/tenants/:tenantId/attributes/verified/:attributeId",
       async (req, res) => {

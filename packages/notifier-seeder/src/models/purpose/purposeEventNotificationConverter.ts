@@ -75,10 +75,12 @@ export const toPurposeEventNotification = (
       { type: "MaintenancePurposeRiskAnalysisSetTenantKind" },
       { type: "PurposeRiskAnalysisWorkflowCreated" },
       { type: "PurposeRiskAnalysisAssigned" },
+      { type: "PurposeRiskAnalysisSelfAssigned" },
       { type: "PurposeRiskAnalysisSubmitted" },
       { type: "PurposeRiskAnalysisSigned" },
       { type: "PurposeRiskAnalysisRejected" },
       { type: "PurposeRiskAnalysisFormEdited" },
+      { type: "MaintenancePurposeRiskAnalysisFixReviewerWorkflow" },
       () => undefined
     )
     .exhaustive();

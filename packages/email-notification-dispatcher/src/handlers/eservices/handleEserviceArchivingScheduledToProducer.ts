@@ -79,7 +79,7 @@ export async function handleEserviceArchivingScheduledToProducer(
         ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
         eserviceName: eservice.name,
         archivableOn,
-        ctaLabel: `Visualizza e-service`,
+        ctaLabel: `Accedi a PDND`,
         selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),
