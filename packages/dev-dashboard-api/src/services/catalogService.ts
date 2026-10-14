@@ -1,4 +1,4 @@
-import { access, readFile, readdir } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { Preset, type Package } from "pagopa-interop-dev-dashboard-contracts";
 import { z } from "zod";
@@ -52,14 +52,14 @@ const discoverPackage = async (
     PACKAGE_LAYOUT.entrypoint
   );
   let manifest: z.infer<typeof PackageManifest>;
+  let source: string;
   try {
     manifest = await readPackageManifest(root, directory);
-    await access(entrypoint);
+    if (!manifest.scripts?.start) return undefined;
+    source = await readFile(entrypoint, "utf8");
   } catch {
     return undefined;
   }
-  if (!manifest.scripts?.start) return undefined;
-  const source = await readFile(entrypoint, "utf8");
   if (!hasExecutableSource(source)) return undefined;
 
   const value = effectiveEnvironment(root, directory, manifest.name);
