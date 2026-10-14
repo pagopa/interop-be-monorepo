@@ -10,12 +10,16 @@ import {
   generateId,
   ProducerKeychain,
   TenantId,
+  UserId,
   WithMetadata,
 } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi } from "vitest";
 
-import { duplicatedMembersInSeed } from "../../src/model/domain/errors.js";
+import {
+  duplicatedMembersInSeed,
+  userNotFound,
+} from "../../src/model/domain/errors.js";
 import { testToFullProducerKeychain } from "../apiUtils.js";
 import { api, authorizationService } from "../vitest.api.setup.js";
 
@@ -84,6 +88,21 @@ describe("API /producerKeychains authorization test", () => {
     );
 
     expect(res.status).toBe(400);
+  });
+
+  it("Should return 404 when a member is not in the institution", async () => {
+    const userId = generateId<UserId>();
+    authorizationService.createProducerKeychain = vi
+      .fn()
+      .mockRejectedValue(userNotFound(userId, "institution-id"));
+    const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), {
+      ...producerKeychainSeed,
+      members: [userId],
+    });
+    expect(res.status).toBe(404);
+    expect(res.body.errors).toEqual([
+      expect.objectContaining({ detail: expect.stringContaining(userId) }),
+    ]);
   });
 
   it("Should return 400 if passed duplicated users in body", async () => {

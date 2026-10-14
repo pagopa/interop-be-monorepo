@@ -956,6 +956,10 @@ export const purposeInReadmodelPurpose = readmodelPurpose.table(
       mode: "string",
     }),
     reviewerWorkflowRejectedBy: uuid("reviewer_workflow_rejected_by"),
+    reviewerWorkflowRejectedAt: timestamp("reviewer_workflow_rejected_at", {
+      withTimezone: true,
+      mode: "string",
+    }),
     reviewerWorkflowRejectionReason: varchar(
       "reviewer_workflow_rejection_reason"
     ),
@@ -1108,6 +1112,7 @@ export const purposeVersionInReadmodelPurpose = readmodelPurpose.table(
     metadataVersion: integer("metadata_version").notNull(),
     state: varchar().notNull(),
     dailyCalls: integer("daily_calls").notNull(),
+    waitingForApprovalReason: varchar("waiting_for_approval_reason"),
     rejectionReason: varchar("rejection_reason"),
     createdAt: timestamp("created_at", {
       withTimezone: true,

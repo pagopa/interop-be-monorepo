@@ -1,6 +1,15 @@
 import { genericLogger } from "pagopa-interop-commons";
-import { getMockPurpose } from "pagopa-interop-commons-test";
-import { generateId, Purpose, WithMetadata } from "pagopa-interop-models";
+import {
+  getMockPurpose,
+  getMockPurposeVersion,
+} from "pagopa-interop-commons-test";
+import {
+  generateId,
+  Purpose,
+  WithMetadata,
+  purposeVersionState,
+  purposeWaitingForApprovalReason,
+} from "pagopa-interop-models";
 import { upsertPurpose } from "pagopa-interop-readmodel/testUtils";
 import { describe, expect, it } from "vitest";
 
@@ -57,6 +66,86 @@ describe("Check purpose readmodels", () => {
     });
 
     expect(res).toEqual(0);
+  });
+
+  it.each(Object.values(purposeWaitingForApprovalReason))(
+    "should detect no differences if both items have waiting-for-approval reason %s",
+    async (waitingForApprovalReason) => {
+      const purpose: WithMetadata<Purpose> = {
+        data: getMockPurpose([
+          {
+            ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+            waitingForApprovalReason,
+          },
+        ]),
+        metadata: { version: 1 },
+      };
+      await addOnePurpose(purpose);
+      await upsertPurpose(readModelDB, purpose.data, purpose.metadata.version);
+      const kpiItems = await readModelServiceKPI.getAllPurposes();
+      const postgresItems = await readModelServiceSQL.getAllPurposes();
+      expect(kpiItems[0].data.versions[0].waitingForApprovalReason).toBe(
+        waitingForApprovalReason
+      );
+      expect(postgresItems[0].data.versions[0].waitingForApprovalReason).toBe(
+        waitingForApprovalReason
+      );
+      expect(
+        compare({
+          kpiItems,
+          postgresItems,
+          schema: "purpose",
+          loggerInstance: genericLogger,
+        })
+      ).toBe(0);
+    }
+  );
+
+  it("should detect differences if the waiting-for-approval reason is different", async () => {
+    const purposeVersion = {
+      ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+      waitingForApprovalReason:
+        purposeWaitingForApprovalReason.dailyCallsPerConsumer,
+    };
+    const purpose1: WithMetadata<Purpose> = {
+      data: getMockPurpose([purposeVersion]),
+      metadata: { version: 1 },
+    };
+
+    const purpose1InPostgresDb: WithMetadata<Purpose> = {
+      data: {
+        ...purpose1.data,
+        versions: [
+          {
+            ...purposeVersion,
+            waitingForApprovalReason:
+              purposeWaitingForApprovalReason.dailyCallsTotal,
+          },
+        ],
+      },
+      metadata: purpose1.metadata,
+    };
+
+    await addOnePurpose(purpose1);
+
+    await upsertPurpose(
+      readModelDB,
+      purpose1InPostgresDb.data,
+      purpose1InPostgresDb.metadata.version
+    );
+
+    const purposes = await readModelServiceKPI.getAllPurposes();
+
+    const postgresPurposes = await readModelServiceSQL.getAllPurposes();
+
+    const res = compare({
+      kpiItems: purposes,
+      postgresItems: postgresPurposes,
+      schema: "purpose",
+      loggerInstance: genericLogger,
+    });
+
+    expect(res).toEqual(1);
   });
 
   it("should detect differences if the postgres item is not present", async () => {
