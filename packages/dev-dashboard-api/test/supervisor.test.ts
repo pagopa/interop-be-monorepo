@@ -1062,6 +1062,38 @@ describe("local dashboard supervisor", () => {
     expect(driver.children.get("b")?.stopped).toBe(true);
     expect(driver.children.get("outside")?.stopped).toBe(false);
   });
+  it("continues stopping preset members after one stop fails", async () => {
+    const { supervisor, driver } = setup();
+    supervisor.action({ type: "preset.start", id: "pair" });
+    supervisor.action({ type: "package.start", name: "outside" });
+    await supervisor.idle();
+    driver.failStop = "a";
+
+    supervisor.action({ type: "preset.stop", id: "pair" });
+    await supervisor.idle();
+
+    expect(driver.children.get("a")?.stopped).toBe(false);
+    expect(driver.children.get("b")?.stopped).toBe(true);
+    expect(driver.children.get("outside")?.stopped).toBe(false);
+    expect(
+      supervisor.status().packages.find((item) => item.name === "a")
+    ).toMatchObject({
+      state: "running",
+      error: "Expected a stop failure",
+    });
+    expect(
+      supervisor.status().packages.find((item) => item.name === "b")?.state
+    ).toBe("stopped");
+    expect(supervisor.status().operations.at(-1)).toMatchObject({
+      kind: "preset.stop",
+      state: "failed",
+      error: "Expected a stop failure",
+      phases: [
+        { id: "stop:a", state: "failed", error: "Expected a stop failure" },
+        { id: "stop:b", state: "passed" },
+      ],
+    });
+  });
   it("isolates crashes and never automatically restarts a crashed service", async () => {
     const { supervisor, driver } = setup();
     supervisor.action({ type: "preset.start", id: "pair" });

@@ -39,7 +39,8 @@ function shouldAbort(action: DashboardAction, phase: Phase): boolean {
   const bulkAction =
     action.type === DASHBOARD_ACTION_TYPES.packagesStart ||
     action.type === DASHBOARD_ACTION_TYPES.packagesStop ||
-    action.type === DASHBOARD_ACTION_TYPES.packagesWatch;
+    action.type === DASHBOARD_ACTION_TYPES.packagesWatch ||
+    action.type === DASHBOARD_ACTION_TYPES.presetStop;
 
   return !bulkAction || phase.id === OPERATION_PHASE_IDS.build;
 }
