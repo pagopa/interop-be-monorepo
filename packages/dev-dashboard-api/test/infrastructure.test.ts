@@ -45,6 +45,61 @@ const refreshInventory = async (
 };
 
 describe("compose inventory and log collection", () => {
+  it.each([false, true])(
+    "restarts an exited log tail for an unchanged container (exit during startup: %s)",
+    async (exitDuringStartup) => {
+      const exits: Array<(error: string) => void> = [];
+      const stops: number[] = [];
+      const row = { ID: "db1", Service: "db", State: "running" };
+      const driver: Driver = {
+        run: async (command) =>
+          command.args.includes("config") ? "db" : JSON.stringify([row]),
+        start: async (_command, log, exit) => {
+          const pid = exits.push(exit);
+          log(`INFO tail ${pid} ready`);
+          if (exitDuringStartup && pid === 1) exit("Docker logs exited");
+          return {
+            pid,
+            stop: async () => {
+              stops.push(pid);
+            },
+          };
+        },
+      };
+      const supervisor = supervisorServiceBuilder({
+        beRoot: "/be",
+        driver,
+        packages: [],
+        presets: [],
+      });
+      const monitor = infrastructureServiceBuilder("/be", driver, supervisor);
+      await monitor.refresh();
+      const before = supervisor.logs.read({});
+      if (!exitDuringStartup) exits[0]("Docker logs exited");
+      await monitor.refresh();
+
+      expect(exits).toHaveLength(2);
+      expect(stops).toEqual([1]);
+      const delta = supervisor.logs.read({ cursors: before.cursors });
+      expect(delta.resetSources).toEqual(["infra:db"]);
+      expect(delta.entries.map((entry) => entry.message)).toEqual([
+        "INFO tail 2 ready",
+      ]);
+
+      exits[0]("Late exit from the original tail");
+      await monitor.refresh();
+      expect(exits).toHaveLength(2);
+      expect(stops).toEqual([1]);
+
+      exits[1]("Replacement tail exited");
+      await monitor.refresh();
+      expect(exits).toHaveLength(3);
+      expect(stops).toEqual([1, 2]);
+      await monitor.shutdown();
+      expect(stops).toEqual([1, 2, 3]);
+    }
+  );
+
   it("reuses unchanged tails, rotates changed containers and removes missing tails in order", async () => {
     let rows = [
       { ID: "first", Service: "db", State: "running" },
