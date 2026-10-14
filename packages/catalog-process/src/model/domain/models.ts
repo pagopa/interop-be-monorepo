@@ -91,6 +91,10 @@ export type EServicesQueryFilters = {
   onlyTemplateInstances?: boolean;
   hasLinkedPurposeTemplates?: boolean;
   producerCategories: EServiceProducerCategory[];
+  availableForRequester?: boolean;
+  mode?: EServiceMode;
+  onlySignalHubEnabled?: boolean;
+  asyncExchange?: boolean;
 };
 
 export type ApiGetEServicesFilters = {
