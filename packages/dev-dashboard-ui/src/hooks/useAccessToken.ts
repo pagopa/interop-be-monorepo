@@ -11,7 +11,7 @@ import { DashboardMutations } from "../api/dashboard/dashboard.mutations";
 import { DashboardQueries } from "../api/dashboard/dashboard.queries";
 import { errorMessage } from "../lib/utils";
 
-export type TokenAction = "seed" | "seed.prepare";
+type TokenAction = "seed" | "seed.prepare";
 const tokenActions: TokenAction[] = ["seed", "seed.prepare"];
 type TrackedAction = { knownIds: Set<string>; operationId?: string };
 type Selection = {

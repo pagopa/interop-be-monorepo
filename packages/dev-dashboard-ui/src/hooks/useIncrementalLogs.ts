@@ -7,7 +7,7 @@ import {
 } from "../api/dashboard/dashboard.services";
 import { errorMessage } from "../lib/utils";
 
-export type LogFilters = Required<
+type LogFilters = Required<
   Pick<RequestLogFilters, "source" | "level" | "search">
 >;
 
