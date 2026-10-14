@@ -74,7 +74,7 @@ export async function handleEserviceArchivingCompletedToProducer(
         entityId: `${eservice.id}/${descriptor.id}`,
         ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
         eserviceName: eservice.name,
-        ctaLabel: `Visualizza e-service`,
+        ctaLabel: `Accedi a PDND`,
         selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),

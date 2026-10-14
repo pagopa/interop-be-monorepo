@@ -146,6 +146,11 @@ export const toCatalogItemEventNotification = (
       { type: "EServiceArchivingScheduled" },
       { type: "EServiceArchivingCanceled" },
       { type: "EServiceArchivingCompleted" },
+      { type: "EServiceArchivingRequestedByDelegate" },
+      { type: "EServiceArchivingRequestRejectedByDelegator" },
+      { type: "EServiceArchivingRequestApprovedByDelegator" },
+      { type: "EServiceArchivingRequestCanceledByDelegate" },
+      { type: "EServiceArchivingRequestCanceledByRevokedDelegation" },
       { type: "MaintenanceEServicePersonalDataFlagReset" },
       (e): CatalogItemNotification => ({
         catalogItem: getCatalogItem(e),
@@ -177,6 +182,11 @@ export const toCatalogItemEventNotification = (
       { type: "EServiceDescriptorArchivingScheduled" },
       { type: "EServiceDescriptorArchivingCanceled" },
       { type: "EServiceDescriptorArchivingCompleted" },
+      { type: "EServiceDescriptorArchivingRequestedByDelegate" },
+      { type: "EServiceDescriptorArchivingRequestRejectedByDelegator" },
+      { type: "EServiceDescriptorArchivingRequestApprovedByDelegator" },
+      { type: "EServiceDescriptorArchivingRequestCanceledByDelegate" },
+      { type: "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation" },
       { type: "MaintenanceEServiceDescriptorUnarchived" },
       (e): CatalogDescriptorNotification => {
         const catalogItem = getCatalogItem(e);
@@ -279,52 +289,6 @@ export const toCatalogItemEventNotification = (
           eServiceId: e.data.eservice.id,
           descriptorId: e.data.descriptorId,
           documentId: e.data.documentId,
-        };
-      }
-    )
-    .with(
-      { type: "EServiceDescriptorInterfaceUpdated" }, // CatalogItemDocumentUpdatedV1
-      (e): CatalogItemDocumentUpdateNotification => {
-        const eserviceV1 = getCatalogItem(e);
-        const descriptorV1 = getCatalogItemDescriptor(
-          eserviceV1,
-          e.data.descriptorId
-        );
-        const interfaceV1 = getCatalogItemInterface(
-          descriptorV1,
-          e.data.documentId
-        );
-
-        return {
-          eServiceId: eserviceV1.id,
-          descriptorId: descriptorV1.id,
-          documentId: interfaceV1.id,
-          updatedDocument: interfaceV1,
-          serverUrls: descriptorV1.serverUrls,
-        };
-      }
-    )
-    .with(
-      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated" },
-      (e): CatalogItemDocumentUpdateNotification => {
-        const eserviceV1 = getCatalogItem(e);
-        const descriptorV1 = getCatalogItemDescriptor(
-          eserviceV1,
-          e.data.descriptorId
-        );
-        const asyncExchangeCallbackInterface =
-          getAsyncExchangeCallbackInterface(
-            e,
-            e.data.descriptorId,
-            e.data.documentId
-          );
-
-        return {
-          eServiceId: eserviceV1.id,
-          descriptorId: descriptorV1.id,
-          documentId: asyncExchangeCallbackInterface.id,
-          updatedDocument: asyncExchangeCallbackInterface,
-          serverUrls: [],
         };
       }
     )
