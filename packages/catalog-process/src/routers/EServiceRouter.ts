@@ -192,7 +192,7 @@ const eservicesRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .query("/catalog", async (req, res) => {
+    .post("/catalog", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {
