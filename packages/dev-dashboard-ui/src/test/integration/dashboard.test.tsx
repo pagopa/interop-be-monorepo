@@ -1421,6 +1421,181 @@ describe("development dashboard", () => {
     ).not.toBeInTheDocument();
   });
 
+  it.each(infrastructureActions)(
+    "shows the correlated infrastructure $intent failure with logs and clears it on retry",
+    async ({ intent, label }) => {
+      vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockReturnValue(
+        440
+      );
+      vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockReturnValue(
+        800
+      );
+      const operation = {
+        id: "infra-operation",
+        kind: `infra.${intent}`,
+        state: "pending",
+        startedAt: "2026-10-08T12:00:00Z",
+        phases: [],
+      } satisfies (typeof currentStatus.operations)[number];
+      currentStatus = statusFixture({
+        operations: [
+          {
+            ...operation,
+            id: "historical",
+            state: "failed",
+            error: "Old failure",
+          },
+        ],
+      });
+      let finishPost: (response: Response) => void = () => undefined;
+      let post = new Promise<Response>((resolve) => {
+        finishPost = resolve;
+      });
+      const implementation = fetchMock.getMockImplementation();
+      if (!implementation) throw new Error("Missing dashboard fixture handler");
+      fetchMock.mockImplementation(async (input, init) => {
+        const url = new URL(String(input), window.location.origin);
+        if (url.pathname.endsWith("/actions")) return post;
+        if (url.pathname.endsWith("/logs"))
+          return Response.json(
+            url.searchParams.get("source") === "orchestration" &&
+              url.searchParams.get("level") === "error"
+              ? {
+                  ...emptyLogs,
+                  entries: [
+                    {
+                      id: "999",
+                      source: "orchestration",
+                      service: "orchestration",
+                      level: "error",
+                      message: "Docker infrastructure failed",
+                    },
+                  ],
+                  cursors: { orchestration: "999" },
+                }
+              : emptyLogs
+          );
+        return implementation(input, init);
+      });
+      window.history.replaceState(null, "", "#/infrastructure");
+      const user = userEvent.setup();
+      renderDashboard();
+      const pressed = await screen.findByRole("button", { name: label });
+      const panel = screen.getByRole("region", {
+        name: "Local infrastructure",
+      });
+      expect(within(panel).queryByRole("alert")).not.toBeInTheDocument();
+      await user.click(pressed);
+      if (intent === "reset")
+        await user.click(
+          screen.getByRole("button", { name: "Delete data and reset" })
+        );
+      currentStatus = {
+        ...currentStatus,
+        operations: [...currentStatus.operations, operation],
+      };
+      await act(async () => {
+        finishPost(
+          Response.json({ operationId: operation.id }, { status: 202 })
+        );
+      });
+      await waitFor(() =>
+        expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument()
+      );
+      expect(pressed).toHaveAttribute("aria-busy", "true");
+      expect(within(panel).queryByRole("alert")).not.toBeInTheDocument();
+      currentStatus = {
+        ...currentStatus,
+        operations: currentStatus.operations.map((item) =>
+          item.id === operation.id ? { ...item, state: "running" } : item
+        ),
+      };
+      await user.click(
+        screen.getByRole("button", { name: "Refresh runtime status" })
+      );
+      expect(pressed).toHaveAttribute("aria-busy", "true");
+      expect(within(panel).queryByRole("alert")).not.toBeInTheDocument();
+      currentStatus = {
+        ...currentStatus,
+        operations: currentStatus.operations.map((item) =>
+          item.id === operation.id
+            ? {
+                ...item,
+                state: "failed",
+                error: "Docker infrastructure failed",
+              }
+            : item
+        ),
+      };
+      await user.click(
+        screen.getByRole("button", { name: "Refresh runtime status" })
+      );
+      const failure = await within(panel).findByRole("alert");
+      expect(failure).toHaveTextContent(`Infrastructure ${intent} failed`);
+      expect(failure).toHaveTextContent("Docker infrastructure failed");
+      const logs = within(failure).getByRole("link", { name: "Logs" });
+      expect(logs).toHaveAttribute(
+        "href",
+        "#/logs?source=orchestration&level=error"
+      );
+      expect(pressed).toHaveAttribute("aria-busy", "false");
+      expect(pressed).toBeEnabled();
+      expect(screen.queryByText("Old failure")).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("region", { name: "Active operation" })
+      ).not.toBeInTheDocument();
+      await user.click(logs);
+      await screen.findByRole("heading", { name: "Aggregate logs" });
+      await waitFor(() =>
+        expect(
+          fetchMock.mock.calls.some(([input]) => {
+            const url = new URL(String(input), window.location.origin);
+            return (
+              url.pathname.endsWith("/logs") &&
+              url.searchParams.get("source") === "orchestration" &&
+              url.searchParams.get("level") === "error"
+            );
+          })
+        ).toBe(true)
+      );
+      expect(
+        await screen.findByText("Docker infrastructure failed", { exact: true })
+      ).toBeVisible();
+      await user.click(screen.getByRole("link", { name: "Infrastructure" }));
+      expect(await screen.findByRole("alert")).toHaveTextContent(
+        "Docker infrastructure failed"
+      );
+      post = new Promise<Response>((resolve) => {
+        finishPost = resolve;
+      });
+      const retry = screen.getByRole("button", { name: label });
+      await user.click(retry);
+      if (intent === "reset")
+        await user.click(
+          screen.getByRole("button", { name: "Delete data and reset" })
+        );
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+      expect(retry).toHaveAttribute("aria-busy", "true");
+      currentStatus = {
+        ...currentStatus,
+        operations: [
+          ...currentStatus.operations,
+          { ...operation, id: "retry-success", state: "passed" },
+        ],
+      };
+      await act(async () => {
+        finishPost(
+          Response.json({ operationId: "retry-success" }, { status: 202 })
+        );
+      });
+      await waitFor(() => expect(retry).toHaveAttribute("aria-busy", "false"));
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("link", { name: /^Operations/ })
+      ).not.toBeInTheDocument();
+    }
+  );
+
   it.each(
     infrastructureActions.flatMap((action) => [
       { ...action, state: "pending", terminal: "passed" },

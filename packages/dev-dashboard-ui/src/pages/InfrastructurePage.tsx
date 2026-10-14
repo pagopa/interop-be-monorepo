@@ -10,6 +10,7 @@ export function InfrastructurePage() {
     <InfrastructurePanel
       infrastructure={dashboard.status.infrastructure}
       busy={dashboard.busy}
+      failure={dashboard.actionFailures.infra}
       onAction={dashboard.runAction}
       onLogs={viewLogs}
     />

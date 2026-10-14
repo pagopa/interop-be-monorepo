@@ -13,7 +13,12 @@ import { DashboardQueries } from "../api/dashboard/dashboard.queries";
 import { errorMessage } from "../lib/utils";
 
 export type ActionFailure = {
-  kind: "preset.start" | "preset.stop";
+  kind:
+    | "preset.start"
+    | "preset.stop"
+    | "infra.start"
+    | "infra.stop"
+    | "infra.reset";
   message: string;
   operationId: string;
 };
@@ -198,18 +203,26 @@ export function useDashboardActions(
   async function runAction(action: DashboardAction, key: string | string[]) {
     const keys = [...new Set(Array.isArray(key) ? key : [key])];
     if (blocked(keys)) return false;
-    const presetKey =
-      action.type === "preset.start" || action.type === "preset.stop"
-        ? `preset:${action.id}`
-        : undefined;
-    const kind =
-      action.type === "preset.start" || action.type === "preset.stop"
-        ? action.type
-        : undefined;
+    let failureKey: string | undefined;
+    let kind: ActionFailure["kind"] | undefined;
+    if (action.type === "preset.start" || action.type === "preset.stop") {
+      failureKey = `preset:${action.id}`;
+      kind = action.type;
+    } else if (
+      action.type === "infra.start" ||
+      action.type === "infra.stop" ||
+      action.type === "infra.reset"
+    ) {
+      failureKey = "infra";
+      kind = action.type;
+    }
     const records = Object.fromEntries(
       keys.map((item) => [
         item,
-        { operationId: "request", kind: item === presetKey ? kind : undefined },
+        {
+          operationId: "request",
+          kind: item === failureKey ? kind : undefined,
+        },
       ])
     );
     updateTracked({ ...trackedRef.current, ...records });

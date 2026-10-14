@@ -21,6 +21,123 @@ function renderHook<T>(hook: () => T) {
 
 describe("shared runtime state", () => {
   it.each([
+    {
+      action: { type: "infra.start" },
+      key: "infra-start",
+      error: " Docker startup failed ",
+      phaseError: "Phase failed",
+      message: "Docker startup failed",
+    },
+    {
+      action: { type: "infra.stop" },
+      key: "infra-stop",
+      error: " ",
+      phaseError: " Docker shutdown failed ",
+      message: "Docker shutdown failed",
+    },
+    {
+      action: { type: "infra.reset", confirm: true },
+      key: "infra-reset",
+      error: undefined,
+      phaseError: undefined,
+      message: "No failure details were provided.",
+    },
+  ] satisfies Array<{
+    action: DashboardAction;
+    key: string;
+    error: string | undefined;
+    phaseError: string | undefined;
+    message: string;
+  }>)(
+    "retains the correlated $key failure after acceptance, running and operation eviction",
+    async ({ action, key, error, phaseError, message }) => {
+      const operation = {
+        id: "infra-operation",
+        kind: action.type,
+        state: "pending",
+        startedAt: "2026-10-08T12:00:00Z",
+        phases: [],
+      } satisfies Operation;
+      let currentStatus = statusFixture({
+        operations: [{ ...operation, id: "historical", state: "failed" }],
+      });
+      vi.stubGlobal(
+        "fetch",
+        vi.fn<typeof fetch>().mockImplementation(async (input) => {
+          if (!String(input).endsWith("/actions"))
+            return Response.json(currentStatus);
+          currentStatus = {
+            ...currentStatus,
+            operations: [...currentStatus.operations, operation],
+          };
+          return Response.json({ operationId: operation.id }, { status: 202 });
+        })
+      );
+      const { result } = renderHook(() => useDashboard());
+      await waitFor(() => expect(result.current.status).toBeDefined());
+      expect(result.current.actionFailures).toEqual({});
+      await act(() => result.current.runAction(action, ["infra", key]));
+      expect(result.current.busy).toEqual({
+        infra: operation.id,
+        [key]: operation.id,
+      });
+      expect(result.current.actionFailures).toEqual({});
+      currentStatus = {
+        ...currentStatus,
+        operations: currentStatus.operations.map((item) =>
+          item.id === operation.id ? { ...item, state: "running" } : item
+        ),
+      };
+      await act(() => result.current.refresh());
+      await waitFor(() =>
+        expect(
+          result.current.status?.operations.find(
+            (item) => item.id === operation.id
+          )?.state
+        ).toBe("running")
+      );
+      expect(result.current.busy.infra).toBe(operation.id);
+      expect(result.current.actionFailures).toEqual({});
+      currentStatus = {
+        ...currentStatus,
+        operations: currentStatus.operations.map((item) =>
+          item.id === operation.id
+            ? {
+                ...item,
+                state: "failed",
+                error,
+                phases: [
+                  {
+                    id: "docker",
+                    label: "Docker",
+                    state: "failed",
+                    error: phaseError,
+                  },
+                ],
+              }
+            : item
+        ),
+      };
+      await act(() => result.current.refresh());
+      await waitFor(() => expect(result.current.busy).toEqual({}));
+      const failure = {
+        kind: action.type,
+        operationId: operation.id,
+        message,
+      };
+      expect(result.current.actionFailures).toEqual({ infra: failure });
+      expect(result.current.actionError).toBe("");
+      currentStatus = { ...currentStatus, operations: [] };
+      await act(() => result.current.refresh());
+      await waitFor(() =>
+        expect(result.current.status?.operations).toEqual([])
+      );
+      expect(result.current.busy).toEqual({});
+      expect(result.current.actionFailures).toEqual({ infra: failure });
+    }
+  );
+
+  it.each([
     { scope: "single", outcome: "passed" },
     { scope: "single", outcome: "failed" },
     { scope: "bulk", outcome: "passed" },

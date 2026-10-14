@@ -5,6 +5,10 @@ import type {
 
 import { LoaderCircle, Play, Square, Terminal, Trash2 } from "lucide-react";
 
+import type { ActionFailure } from "../hooks/useDashboard";
+
+import { paths } from "../router/paths";
+import { ErrorAlert } from "./common/ErrorAlert";
 import { Toolbar } from "./common/Toolbar";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { StatusBadge } from "./StatusBadge";
@@ -24,6 +28,7 @@ import {
 type Props = {
   infrastructure: Infrastructure[];
   busy: Record<string, string>;
+  failure?: ActionFailure;
   onAction: (
     action: DashboardAction,
     key: string | string[]
@@ -34,6 +39,7 @@ type Props = {
 export function InfrastructurePanel({
   infrastructure,
   busy,
+  failure,
   onAction,
   onLogs,
 }: Props) {
@@ -143,6 +149,19 @@ export function InfrastructurePanel({
         </Toolbar>
       </CardHeader>
       <CardContent className="flex flex-col gap-6">
+        {failure && (
+          <ErrorAlert
+            title={
+              failure.kind === "infra.start"
+                ? "Infrastructure start failed"
+                : failure.kind === "infra.stop"
+                  ? "Infrastructure stop failed"
+                  : "Infrastructure reset failed"
+            }
+            message={failure.message}
+            logsHref={`${paths.logs}?${new URLSearchParams({ source: "orchestration", level: "error" })}`}
+          />
+        )}
         <Table density="compact" className="min-w-[560px]">
           <TableCaption className="sr-only">
             Local infrastructure containers
