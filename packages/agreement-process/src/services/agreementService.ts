@@ -253,7 +253,8 @@ export function agreementServiceBuilder(
 
     const descriptor = validateActivationOnDescriptor(
       eservice,
-      agreement.data.descriptorId
+      agreement.data.descriptorId,
+      isFirstActivation
     );
 
     const consumer = await retrieveTenant(
