@@ -52,7 +52,7 @@ trap 'exit 0' INT TERM
 
 # Service .env files and the local seed CLI deliberately address loopback.
 # Proxy only infrastructure ports; application processes share this container.
-for port in 4500 4566 6001 6002 6003 6004 6006 6007 6008 6009 6379 8005 8006 8083 8085 9000 9092 9324; do
+for port in 1025 4500 4566 6001 6002 6003 6004 6006 6007 6008 6009 6379 8005 8006 8083 8085 9000 9092 9324; do
   socat "TCP4-LISTEN:$port,bind=127.0.0.1,fork,reuseaddr" "TCP4:host.docker.internal:$port" &
   pids+=("$!")
 done
