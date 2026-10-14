@@ -11,10 +11,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
-import {
-  cannotDeleteLastEServiceDescriptor,
-  missingMetadata,
-} from "../../../src/model/errors.js";
+import { missingMetadata } from "../../../src/model/errors.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
@@ -51,9 +48,6 @@ describe("deleteDraftEServiceDescriptor", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    mockGetEService.mockResolvedValueOnce(mockApiEService);
-    // ^ The service first retrieves the eservice to make the check on last descriptor
-
     await eserviceService.deleteDraftEServiceDescriptor(
       unsafeBrandId(mockApiEService.data.id),
       unsafeBrandId(mockApiEserviceDescriptor1.id),
@@ -75,33 +69,10 @@ describe("deleteDraftEServiceDescriptor", () => {
     });
     expect(
       mockInteropBeClients.catalogProcessClient.getEServiceById
-    ).toHaveBeenCalledTimes(pollingAttempts + 1);
-  });
-
-  it("Should throw cannotDeleteLastEServiceDescriptor when trying to delete the descriptor", async () => {
-    mockGetEService.mockResolvedValueOnce(
-      getMockWithMetadata({
-        ...mockApiEService.data,
-        descriptors: [mockApiEserviceDescriptor1],
-      })
-    );
-
-    await expect(
-      eserviceService.deleteDraftEServiceDescriptor(
-        unsafeBrandId(mockApiEService.data.id),
-        unsafeBrandId(mockApiEserviceDescriptor1.id),
-        getMockM2MAdminAppContext()
-      )
-    ).rejects.toThrowError(
-      cannotDeleteLastEServiceDescriptor(
-        unsafeBrandId(mockApiEService.data.id),
-        unsafeBrandId(mockApiEserviceDescriptor1.id)
-      )
-    );
+    ).toHaveBeenCalledTimes(pollingAttempts);
   });
 
   it("Should throw missingMetadata in case the eservice returned by the DELETE call has no metadata", async () => {
-    mockGetEService.mockResolvedValueOnce(mockApiEService);
     mockDeleteDraft.mockResolvedValueOnce({
       metadata: undefined,
     });
@@ -116,12 +87,10 @@ describe("deleteDraftEServiceDescriptor", () => {
   });
 
   it("Should throw missingMetadata in case the eservice returned by the polling GET call has no metadata", async () => {
-    mockGetEService
-      .mockResolvedValueOnce(mockApiEService)
-      .mockResolvedValueOnce({
-        data: mockApiEService.data,
-        metadata: undefined,
-      });
+    mockGetEService.mockResolvedValueOnce({
+      data: mockApiEService.data,
+      metadata: undefined,
+    });
 
     await expect(
       eserviceService.deleteDraftEServiceDescriptor(
@@ -133,14 +102,9 @@ describe("deleteDraftEServiceDescriptor", () => {
   });
 
   it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
-    mockGetEService
-      .mockResolvedValueOnce(mockApiEService)
-      .mockImplementation(
-        mockPollingResponse(
-          mockApiEService,
-          config.defaultPollingMaxRetries + 1
-        )
-      );
+    mockGetEService.mockImplementation(
+      mockPollingResponse(mockApiEService, config.defaultPollingMaxRetries + 1)
+    );
 
     await expect(
       eserviceService.deleteDraftEServiceDescriptor(
@@ -155,7 +119,7 @@ describe("deleteDraftEServiceDescriptor", () => {
       )
     );
     expect(mockGetEService).toHaveBeenCalledTimes(
-      config.defaultPollingMaxRetries + 1
+      config.defaultPollingMaxRetries
     );
   });
 });

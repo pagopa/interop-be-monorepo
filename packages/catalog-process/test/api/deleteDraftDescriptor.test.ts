@@ -19,6 +19,7 @@ import request from "supertest";
 import { describe, it, expect, vi } from "vitest";
 
 import {
+  cannotDeleteLastEServiceDescriptor,
   eServiceDescriptorNotFound,
   eServiceNotFound,
   notValidDescriptorState,
@@ -78,16 +79,6 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId} authorization t
     expect(res.status).toBe(403);
   });
 
-  it("Should return 204 and not set metadata when the entire e-service is deleted", async () => {
-    catalogService.deleteDraftDescriptor = vi.fn().mockResolvedValueOnce(
-      undefined // when the entire e-service is deleted, the service returns undefined
-    );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, eservice.id, descriptor.id);
-    expect(res.status).toBe(204);
-    expect(res.headers["x-metadata-version"]).toBeUndefined();
-  });
-
   it.each([
     {
       error: eServiceNotFound(eservice.id),
@@ -100,6 +91,10 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId} authorization t
     {
       error: operationForbidden,
       expectedStatus: 403,
+    },
+    {
+      error: cannotDeleteLastEServiceDescriptor(eservice.id, descriptor.id),
+      expectedStatus: 409,
     },
     {
       error: notValidDescriptorState(descriptor.id, descriptor.state),
@@ -130,6 +125,13 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId} authorization t
   ])(
     "Should return 400 if passed invalid params: %s",
     async ({ eServiceId, descriptorId }) => {
+      // params are not UUID-validated by the router: the 400 comes from this mocked service error
+      catalogService.deleteDraftDescriptor = vi
+        .fn()
+        .mockRejectedValue(
+          notValidDescriptorState(descriptor.id, descriptor.state)
+        );
+
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(
         token,

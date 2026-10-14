@@ -96,7 +96,8 @@ const errorCodes = {
   noActiveDelegationFound: "0075",
   delegatedArchiveRequestForIncorrectDelegateProducer: "0076",
   interfaceDocumentNotUpdatable: "0077",
-  eserviceCloningWithActiveOrPendingDelegation: "0078",
+  cannotDeleteLastEServiceDescriptor: "0078",
+  eserviceCloningWithActiveOrPendingDelegation: "0079",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -897,5 +898,16 @@ export function delegatedArchivingRequestNotActive(
     detail: `The delegated archiving request for E-service ${eserviceId}${descriptorId ? ` and descriptor ${descriptorId}` : ""} is no longer active as it has already been processed (accepted or rejected). The delegate must resubmit.`,
     code: "delegatedArchivingRequestNotActive",
     title: "Delegated archiving request not active",
+  });
+}
+
+export function cannotDeleteLastEServiceDescriptor(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Cannot delete Descriptor ${descriptorId} for EService ${eserviceId} because it is the last remaining Descriptor. Delete the EService instead.`,
+    code: "cannotDeleteLastEServiceDescriptor",
+    title: "Cannot delete last EService descriptor",
   });
 }

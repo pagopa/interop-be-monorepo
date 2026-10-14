@@ -6,10 +6,7 @@ import { describe, it, expect, vi } from "vitest";
 
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { config } from "../../../src/config/config.js";
-import {
-  cannotDeleteLastEServiceDescriptor,
-  missingMetadata,
-} from "../../../src/model/errors.js";
+import { missingMetadata } from "../../../src/model/errors.js";
 import { api, mockEserviceService } from "../../vitest.api.setup.js";
 
 describe("DELETE /eservices/:eServiceId/descriptors/:descriptorId router test", () => {
@@ -57,17 +54,6 @@ describe("DELETE /eservices/:eServiceId/descriptors/:descriptorId router test", 
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, generateId(), "INVALID_ID");
     expect(res.status).toBe(400);
-  });
-
-  it("Should return 409 in case of cannotDeleteLastEServiceDescriptor error", async () => {
-    mockEserviceService.deleteDraftEServiceDescriptor = vi
-      .fn()
-      .mockRejectedValue(
-        cannotDeleteLastEServiceDescriptor(generateId(), generateId())
-      );
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, generateId(), generateId());
-    expect(res.status).toBe(409);
   });
 
   it.each([

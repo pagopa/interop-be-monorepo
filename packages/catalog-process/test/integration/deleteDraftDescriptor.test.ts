@@ -5,7 +5,6 @@ import {
   getMockContext,
   getMockDelegation,
   getMockAuthData,
-  readEventByStreamIdAndVersion,
   getMockEService,
   getMockDescriptor,
   getMockDocument,
@@ -19,7 +18,6 @@ import {
   operationForbidden,
   DescriptorId,
   generateId,
-  EServiceDeletedV2,
   delegationState,
   delegationKind,
   EServiceDocumentId,
@@ -28,6 +26,7 @@ import { vi, expect, describe, it } from "vitest";
 
 import { config } from "../../src/config/config.js";
 import {
+  cannotDeleteLastEServiceDescriptor,
   eServiceNotFound,
   eServiceDescriptorNotFound,
   notValidDescriptorState,
@@ -37,7 +36,6 @@ import {
   addOneEService,
   catalogService,
   readLastEserviceEvent,
-  postgresDB,
   addOneDelegation,
 } from "../integrationUtils.js";
 
@@ -99,6 +97,66 @@ describe("delete draft descriptor", () => {
     });
 
     expect(fileManager.delete).not.toHaveBeenCalled();
+  });
+
+  it("should write on event-store for the deletion of a draft descriptor (delegate)", async () => {
+    const publishedDescriptor: Descriptor = {
+      ...getMockDescriptor(descriptorState.published),
+      version: "1",
+    };
+    const descriptorToDelete: Descriptor = {
+      ...getMockDescriptor(descriptorState.draft),
+      version: "2",
+    };
+
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [publishedDescriptor, descriptorToDelete],
+    };
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice.id,
+      state: delegationState.active,
+    });
+
+    await addOneEService(eservice);
+    await addOneDelegation(delegation);
+
+    const deleteDraftReturn = await catalogService.deleteDraftDescriptor(
+      eservice.id,
+      descriptorToDelete.id,
+      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+    );
+
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    expect(writtenEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "1",
+      type: "EServiceDraftDescriptorDeleted",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceDraftDescriptorDeletedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedEservice = {
+      ...eservice,
+      descriptors: [publishedDescriptor],
+    };
+
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(expectedEservice),
+      descriptorId: descriptorToDelete.id,
+    });
+
+    expect(deleteDraftReturn).toEqual({
+      data: expectedEservice,
+      metadata: {
+        version: 1,
+      },
+    });
   });
 
   it("should write on event-store for the deletion of a draft descriptor (with interface and document to delete), and delete documents and interface files from the bucket", async () => {
@@ -278,7 +336,7 @@ describe("delete draft descriptor", () => {
     ).not.toContain(asyncExchangeCallbackInterfaceDocument.path);
   });
 
-  it("should write on event-store for the deletion of a draft descriptor and the entire eservice", async () => {
+  it("should throw cannotDeleteLastEServiceDescriptor when deleting the last remaining descriptor", async () => {
     const draftDescriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.draft),
     };
@@ -289,62 +347,18 @@ describe("delete draft descriptor", () => {
     };
     await addOneEService(eservice);
 
-    const deleteDraftReturn = await catalogService.deleteDraftDescriptor(
-      eservice.id,
-      draftDescriptor.id,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    await expect(
+      catalogService.deleteDraftDescriptor(
+        eservice.id,
+        draftDescriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(
+      cannotDeleteLastEServiceDescriptor(eservice.id, draftDescriptor.id)
     );
-
-    const descriptorDeletionEvent = await readEventByStreamIdAndVersion(
-      eservice.id,
-      1,
-      "catalog",
-      postgresDB
-    );
-
-    const eserviceDeletionEvent = await readLastEserviceEvent(eservice.id);
-
-    expect(descriptorDeletionEvent).toMatchObject({
-      stream_id: eservice.id,
-      version: "1",
-      type: "EServiceDraftDescriptorDeleted",
-      event_version: 2,
-    });
-    expect(eserviceDeletionEvent).toMatchObject({
-      stream_id: eservice.id,
-      version: "2",
-      type: "EServiceDeleted",
-      event_version: 2,
-    });
-
-    const descriptorDeletionPayload = decodeProtobufPayload({
-      messageType: EServiceDraftDescriptorDeletedV2,
-      payload: descriptorDeletionEvent.data,
-    });
-    const eserviceDeletionPayload = decodeProtobufPayload({
-      messageType: EServiceDeletedV2,
-      payload: eserviceDeletionEvent.data,
-    });
-
-    const expectedEserviceBeforeDeletion: EService = {
-      ...eservice,
-      descriptors: [],
-    };
-
-    expect(descriptorDeletionPayload).toEqual({
-      eservice: toEServiceV2(expectedEserviceBeforeDeletion),
-      descriptorId: draftDescriptor.id,
-    });
-    expect(eserviceDeletionPayload).toEqual({
-      eserviceId: eservice.id,
-      eservice: toEServiceV2(expectedEserviceBeforeDeletion),
-    });
-
-    // In case the entire e-service is deleted, the return value should be undefined
-    expect(deleteDraftReturn).toEqual(undefined);
   });
 
-  it("should write on event-store for the deletion of a draft descriptor and the entire eservice (delegate)", async () => {
+  it("should throw cannotDeleteLastEServiceDescriptor when deleting the last remaining descriptor (delegate)", async () => {
     const draftDescriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.draft),
     };
@@ -362,59 +376,15 @@ describe("delete draft descriptor", () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
 
-    const deleteDraftReturn = await catalogService.deleteDraftDescriptor(
-      eservice.id,
-      draftDescriptor.id,
-      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+    await expect(
+      catalogService.deleteDraftDescriptor(
+        eservice.id,
+        draftDescriptor.id,
+        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+      )
+    ).rejects.toThrowError(
+      cannotDeleteLastEServiceDescriptor(eservice.id, draftDescriptor.id)
     );
-
-    const descriptorDeletionEvent = await readEventByStreamIdAndVersion(
-      eservice.id,
-      1,
-      "catalog",
-      postgresDB
-    );
-
-    const eserviceDeletionEvent = await readLastEserviceEvent(eservice.id);
-
-    expect(descriptorDeletionEvent).toMatchObject({
-      stream_id: eservice.id,
-      version: "1",
-      type: "EServiceDraftDescriptorDeleted",
-      event_version: 2,
-    });
-    expect(eserviceDeletionEvent).toMatchObject({
-      stream_id: eservice.id,
-      version: "2",
-      type: "EServiceDeleted",
-      event_version: 2,
-    });
-
-    const descriptorDeletionPayload = decodeProtobufPayload({
-      messageType: EServiceDraftDescriptorDeletedV2,
-      payload: descriptorDeletionEvent.data,
-    });
-    const eserviceDeletionPayload = decodeProtobufPayload({
-      messageType: EServiceDeletedV2,
-      payload: eserviceDeletionEvent.data,
-    });
-
-    const expectedEserviceBeforeDeletion: EService = {
-      ...eservice,
-      descriptors: [],
-    };
-
-    expect(descriptorDeletionPayload).toEqual({
-      eservice: toEServiceV2(expectedEserviceBeforeDeletion),
-      descriptorId: draftDescriptor.id,
-    });
-    expect(eserviceDeletionPayload).toEqual({
-      eserviceId: eservice.id,
-      eservice: toEServiceV2(expectedEserviceBeforeDeletion),
-    });
-
-    // In case the entire e-service is deleted, the return value should be undefined
-    expect(deleteDraftReturn).toEqual(undefined);
   });
 
   it("should fail if one of the file deletions fails", async () => {
