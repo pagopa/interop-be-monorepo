@@ -27,7 +27,7 @@ type InfrastructureService = {
   shutdown(): Promise<void>;
 };
 
-type LogTail = { fingerprint: string; child: Child };
+type LogTail = { fingerprint: string; child: Child; hasExited: () => boolean };
 type InfrastructureStatus = DashboardStatus["infrastructure"][number];
 
 const parseContainers = (output: string): Container[] => {
@@ -177,12 +177,13 @@ export function infrastructureServiceBuilder(
   async function refreshTail(row: Container): Promise<void> {
     const fingerprint = `${row.ID ?? row.Service}:${row.State}`;
     const previous = tails.get(row.Service);
-    if (previous?.fingerprint === fingerprint) return;
+    if (previous?.fingerprint === fingerprint && !previous.hasExited()) return;
     const source = `${LOG_SOURCE_PREFIXES.infrastructure}${row.Service}`;
     if (previous) {
       await previous.child.stop();
       supervisor.logs.reset(source);
     }
+    let exited = false;
     const child = await driver.start(
       {
         ...command([
@@ -196,9 +197,11 @@ export function infrastructureServiceBuilder(
         source,
       },
       (line) => supervisor.logs.append(source, line),
-      () => undefined
+      () => {
+        exited = true;
+      }
     );
-    tails.set(row.Service, { fingerprint, child });
+    tails.set(row.Service, { fingerprint, child, hasExited: () => exited });
   }
 
   async function reconcileTails(
