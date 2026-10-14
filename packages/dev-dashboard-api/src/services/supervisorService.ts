@@ -28,6 +28,7 @@ import { applicationServiceBuilder } from "./applicationService.js";
 import { logServiceBuilder } from "./logService.js";
 import { operationServiceBuilder } from "./operationService.js";
 import { presetServiceBuilder } from "./presetService.js";
+import { persistWatchPreferences } from "./watchPreferenceService.js";
 
 type SupervisorOptions = {
   beRoot: string;
@@ -35,6 +36,8 @@ type SupervisorOptions = {
   packages: Package[];
   presets: Preset[];
   personalPath?: string;
+  watchPath?: string;
+  watchPreferences?: Record<string, boolean>;
   environment?: (name: string) => Promise<NodeJS.ProcessEnv>;
   seedReady?: () => Promise<boolean>;
   watchSource?: (path: string, changed: () => void) => () => void;
@@ -57,9 +60,12 @@ export function supervisorServiceBuilder(
   options: SupervisorOptions
 ): Supervisor {
   const logs = logServiceBuilder();
+  let watchPreferences = { ...options.watchPreferences };
+  const watchPath =
+    options.watchPath ?? join(options.beRoot, DASHBOARD_PATHS.watchPreferences);
   const packages: Package[] = options.packages.map((item) => ({
     ...item,
-    watch: true,
+    watch: watchPreferences[item.name] ?? true,
   }));
   let infrastructure: DashboardStatus["infrastructure"] = [];
   let seeded = false;
@@ -92,7 +98,11 @@ export function supervisorServiceBuilder(
   function onPhaseFailed(phase: Phase): void {
     const name = phase.id.replace(/^(start|stop|watch):/, "");
     const item = packages.find((entry) => entry.name === name);
-    if (item) item.error = phase.error;
+    if (item) {
+      item.error = phase.error;
+      if (phase.id.startsWith("start:") && !applications.has(name))
+        item.state = "failed";
+    }
   }
 
   function onPhaseSkipped(phase: Phase): void {
@@ -360,8 +370,11 @@ export function supervisorServiceBuilder(
         label: `Start ${member.name}`,
         run: async () => {
           if (applications.has(member.name)) return false;
-          if (member.watch !== undefined)
-            getPackage(member.name).watch = member.watch;
+          if (
+            member.watch !== undefined &&
+            getPackage(member.name).watch !== member.watch
+          )
+            await setWatchPreference(member.name, member.watch);
           await applications.startPackage(member.name);
           return true;
         },
@@ -426,11 +439,21 @@ export function supervisorServiceBuilder(
         if (!changed) return false;
 
         if (running) await applications.stop(name);
-        item.watch = watch;
+        await setWatchPreference(name, watch);
         if (running) await applications.startPackage(name);
         return true;
       },
     };
+  }
+
+  async function setWatchPreference(
+    name: string,
+    watch: boolean
+  ): Promise<void> {
+    const next = { ...watchPreferences, [name]: watch };
+    await persistWatchPreferences(watchPath, next);
+    watchPreferences = next;
+    getPackage(name).watch = watch;
   }
 
   function stopAllStep(): OperationStep {

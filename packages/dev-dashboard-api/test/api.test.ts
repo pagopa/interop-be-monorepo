@@ -1,23 +1,39 @@
+import { randomUUID } from "node:crypto";
+import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import {
   schemas,
   type Package,
   type Preset,
 } from "pagopa-interop-dev-dashboard-contracts";
 import request from "supertest";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { Driver } from "../src/model/domain/models.js";
 
 import { createApp } from "../src/app.js";
 import { supervisorServiceBuilder } from "../src/services/supervisorService.js";
 
+const directories: string[] = [];
+afterEach(async () => {
+  await Promise.all(
+    directories
+      .splice(0)
+      .map((path) => rm(path, { recursive: true, force: true }))
+  );
+});
+
 const setup = (extraPackages: Package[] = [], presets: Preset[] = []) => {
+  const watchRoot = join(tmpdir(), `dashboard-api-watch-${randomUUID()}`);
+  directories.push(watchRoot);
   const driver: Driver = {
     run: async () => "",
     start: async () => ({ pid: 1, stop: async () => undefined }),
   };
   const supervisor = supervisorServiceBuilder({
     beRoot: "/be",
+    watchPath: join(watchRoot, "watch.json"),
     packages: [
       {
         name: "a",
@@ -659,6 +675,3 @@ describe("dashboard HTTP boundary", () => {
     ).toBe(403);
   });
 });
-import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
