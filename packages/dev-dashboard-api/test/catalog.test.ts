@@ -209,6 +209,21 @@ describe("runnable package catalogue and local boundary", () => {
       "pagopa-interop-unreviewed-aws-job",
     ]);
   });
+  it("skips an unreadable package entrypoint without interrupting discovery", async () => {
+    const root = await fixture();
+    const entrypoint = join(root, "packages/tenant-process/src/index.ts");
+    await rm(entrypoint);
+    await mkdir(entrypoint);
+
+    const packages = await discoverPackages(root);
+
+    expect(packages.map((item) => item.name)).toEqual([
+      "pagopa-interop-authorization-server",
+      "pagopa-interop-local-job",
+      "pagopa-interop-remote-job",
+      "pagopa-interop-unreviewed-aws-job",
+    ]);
+  });
   it("forces local Selfcare/DynamoDB/AWS endpoint defaults and refuses remote overrides", async () => {
     const root = await fixture();
     const name = "pagopa-interop-tenant-process";
