@@ -74,9 +74,7 @@ export function supervisorServiceBuilder(
     environment: options.environment,
     watchSource: options.watchSource,
     isShuttingDown: (): boolean => shuttingDown,
-    onSourceChange: (name): void => {
-      action({ type: DASHBOARD_ACTION_TYPES.packageRestart, name });
-    },
+    onSourceChange: restartWatchedPackage,
   });
   const presetStore = presetServiceBuilder({
     beRoot: options.beRoot,
@@ -160,6 +158,33 @@ export function supervisorServiceBuilder(
     const action = DashboardAction.parse(input);
 
     return operationsService.enqueue(action, () => actionSteps(action));
+  }
+
+  function restartWatchedPackage(name: string): void {
+    const item = getPackage(name);
+    const pid = item.pid;
+    const restartAction: DashboardAction = {
+      type: DASHBOARD_ACTION_TYPES.packageRestart,
+      name,
+    };
+    let shouldRestart: boolean | undefined;
+
+    operationsService.enqueue(
+      restartAction,
+      () =>
+        actionSteps(restartAction).map((step) => ({
+          ...step,
+          run: async () => {
+            shouldRestart ??=
+              item.watch &&
+              item.state === "running" &&
+              applications.has(name) &&
+              item.pid === pid;
+            return shouldRestart ? step.run() : false;
+          },
+        })),
+      `watch:${JSON.stringify(restartAction)}`
+    );
   }
 
   function autostart(presetId?: string): OperationAccepted {

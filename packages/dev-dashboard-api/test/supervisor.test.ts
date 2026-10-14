@@ -1115,6 +1115,122 @@ describe("local dashboard supervisor", () => {
     ).toBe("failed");
     expect(closed).toBeGreaterThan(0);
   });
+  it("does not apply an obsolete watch restart after an earlier queued stop", async () => {
+    let changed: () => void = () => undefined;
+    const { supervisor, driver } = setup({
+      watchSource: (_path, callback) => {
+        changed = callback;
+        return () => undefined;
+      },
+    });
+    supervisor.action({ type: "package.start", name: "a" });
+    await supervisor.idle();
+    let release: () => void = () => undefined;
+    driver.gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    supervisor.action({ type: "infra.start" });
+    await vi.waitFor(() =>
+      expect(supervisor.status().operations.at(-1)?.state).toBe("running")
+    );
+    supervisor.action({ type: "package.stop", name: "a" });
+    changed();
+
+    release();
+    await supervisor.idle();
+
+    expect(
+      driver.commands.filter((command) => command.source === "a")
+    ).toHaveLength(1);
+    expect(driver.children.get("a")?.stopped).toBe(true);
+    expect(
+      supervisor.status().packages.find((item) => item.name === "a")?.state
+    ).toBe("stopped");
+    expect(supervisor.status().operations.at(-1)).toMatchObject({
+      kind: "package.restart",
+      state: "passed",
+      phases: [
+        { id: "stop:a", state: "skipped" },
+        { id: "build", state: "skipped" },
+        { id: "start:a", state: "skipped" },
+      ],
+    });
+
+    supervisor.action({ type: "package.restart", name: "a" });
+    await supervisor.idle();
+    expect(
+      driver.commands.filter((command) => command.source === "a")
+    ).toHaveLength(2);
+    expect(
+      supervisor.status().packages.find((item) => item.name === "a")?.state
+    ).toBe("running");
+  });
+  it("preserves a manual restart queued after an obsolete automatic watch restart", async () => {
+    let changed: () => void = () => undefined;
+    const { supervisor, driver } = setup({
+      watchSource: (_path, callback) => {
+        changed = callback;
+        return () => undefined;
+      },
+    });
+    supervisor.action({ type: "package.start", name: "a" });
+    await supervisor.idle();
+    const original = driver.children.get("a");
+    let release: () => void = () => undefined;
+    driver.gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    supervisor.action({ type: "infra.start" });
+    await vi.waitFor(() =>
+      expect(supervisor.status().operations.at(-1)?.state).toBe("running")
+    );
+    supervisor.action({ type: "package.stop", name: "a" });
+    changed();
+    const automaticId = supervisor.status().operations.at(-1)?.id;
+    changed();
+    const manual = supervisor.action({ type: "package.restart", name: "a" });
+    try {
+      expect(manual.operationId).not.toBe(automaticId);
+      expect(supervisor.status().operations).toHaveLength(5);
+    } finally {
+      release();
+      await supervisor.idle();
+    }
+
+    expect(original?.stopped).toBe(true);
+    expect(
+      supervisor.status().packages.find((item) => item.name === "a")?.state
+    ).toBe("running");
+    expect(
+      driver.commands.filter((command) => command.source === "a")
+    ).toHaveLength(2);
+    expect(
+      supervisor
+        .status()
+        .operations.find((operation) => operation.id === automaticId)
+    ).toMatchObject({
+      kind: "package.restart",
+      state: "passed",
+      phases: [
+        { id: "stop:a", state: "skipped" },
+        { id: "build", state: "skipped" },
+        { id: "start:a", state: "skipped" },
+      ],
+    });
+    expect(
+      supervisor
+        .status()
+        .operations.find((operation) => operation.id === manual.operationId)
+    ).toMatchObject({
+      kind: "package.restart",
+      state: "passed",
+      phases: [
+        { id: "stop:a", state: "skipped" },
+        { id: "build", state: "passed" },
+        { id: "start:a", state: "passed" },
+      ],
+    });
+  });
   it("rejects unknown names and reset without explicit confirmation", () => {
     const { supervisor, driver } = setup();
     expect(() =>

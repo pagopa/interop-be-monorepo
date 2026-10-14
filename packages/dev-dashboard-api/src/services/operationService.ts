@@ -28,7 +28,8 @@ type OperationServiceOptions = {
 type OperationService = {
   enqueue: (
     action: DashboardAction,
-    planSteps: () => OperationStep[]
+    planSteps: () => OperationStep[],
+    key?: string
   ) => OperationAccepted;
   idle: () => Promise<void>;
   list: () => Operation[];
@@ -137,13 +138,13 @@ export function operationServiceBuilder(
 
   function enqueue(
     action: DashboardAction,
-    planSteps: () => OperationStep[]
+    planSteps: () => OperationStep[],
+    key = JSON.stringify(action)
   ): OperationAccepted {
     if (options.isShuttingDown()) {
       throw new Error("Dashboard is shutting down");
     }
 
-    const key = JSON.stringify(action);
     const existingOperation = inFlight.get(key);
 
     if (existingOperation) {
