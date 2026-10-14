@@ -96,44 +96,46 @@ export async function writeInEventstore<T extends EventStoreSchema>(
       event.version,
       event.event.type,
       event.event.event_version,
-      match<EventStoreSchema>(schema)
-        .with("agreement", () =>
-          agreementEventToBinaryData(event.event as AgreementEvent)
-        )
-        .with("attribute", () =>
-          attributeEventToBinaryData(event.event as AttributeEvent)
-        )
-        .with("catalog", () =>
-          catalogEventToBinaryData(event.event as EServiceEvent)
-        )
-        .with("tenant", () =>
-          tenantEventToBinaryData(event.event as TenantEvent)
-        )
-        .with("purpose", () =>
-          purposeEventToBinaryData(event.event as PurposeEvent)
-        )
-        .with("purpose_template", () =>
-          purposeTemplateEventToBinaryDataV2(
-            event.event as PurposeTemplateEvent
+      Buffer.from(
+        match<EventStoreSchema>(schema)
+          .with("agreement", () =>
+            agreementEventToBinaryData(event.event as AgreementEvent)
           )
-        )
-        .with('"authorization"', () =>
-          authorizationEventToBinaryData(event.event as AuthorizationEvent)
-        )
-        .with("delegation", () =>
-          delegationEventToBinaryDataV2(event.event as DelegationEvent)
-        )
-        .with("eservice_template", () =>
-          eserviceTemplateEventToBinaryDataV2(
-            event.event as EServiceTemplateEvent
+          .with("attribute", () =>
+            attributeEventToBinaryData(event.event as AttributeEvent)
           )
-        )
-        .with("notification_config", () =>
-          notificationConfigEventToBinaryDataV2(
-            event.event as NotificationConfigEvent
+          .with("catalog", () =>
+            catalogEventToBinaryData(event.event as EServiceEvent)
           )
-        )
-        .exhaustive(),
+          .with("tenant", () =>
+            tenantEventToBinaryData(event.event as TenantEvent)
+          )
+          .with("purpose", () =>
+            purposeEventToBinaryData(event.event as PurposeEvent)
+          )
+          .with("purpose_template", () =>
+            purposeTemplateEventToBinaryDataV2(
+              event.event as PurposeTemplateEvent
+            )
+          )
+          .with('"authorization"', () =>
+            authorizationEventToBinaryData(event.event as AuthorizationEvent)
+          )
+          .with("delegation", () =>
+            delegationEventToBinaryDataV2(event.event as DelegationEvent)
+          )
+          .with("eservice_template", () =>
+            eserviceTemplateEventToBinaryDataV2(
+              event.event as EServiceTemplateEvent
+            )
+          )
+          .with("notification_config", () =>
+            notificationConfigEventToBinaryDataV2(
+              event.event as NotificationConfigEvent
+            )
+          )
+          .exhaustive()
+      ),
     ]
   );
 }

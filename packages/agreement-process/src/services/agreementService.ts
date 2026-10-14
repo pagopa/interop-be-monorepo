@@ -1514,6 +1514,7 @@ export function agreementServiceBuilder(
         attributeId,
         consumer,
         readModelService,
+        repository,
         correlationId,
         logger
       );

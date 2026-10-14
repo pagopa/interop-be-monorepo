@@ -33,6 +33,11 @@ type CreatedEvents = {
   latestNewVersions: Map<CreatedEvent["streamId"], number>;
 };
 
+export type LastEvent<T extends Event> = {
+  version: number;
+  event: T;
+};
+
 async function insertEventInTransaction<T extends Event>(
   t: ITask<unknown>,
   toBinaryData: (event: T) => Uint8Array,
@@ -161,12 +166,57 @@ async function internalCreateEvents<T extends Event>(
   }
 }
 
+async function internalReadLastEvent<T extends Event>(
+  db: DB,
+  streamId: string,
+  eventSchema: z.ZodType<T, z.ZodTypeDef, unknown>
+): Promise<LastEvent<T> | undefined> {
+  const dbRecord = await db.oneOrNone(sql.readLastEvent, {
+    stream_id: streamId,
+  });
+
+  if (!dbRecord) {
+    return undefined;
+  }
+
+  const decodedVersion = z.coerce.number().safeParse(dbRecord.version);
+  if (!decodedVersion.success) {
+    throw genericInternalError(
+      `Error reading last event version for stream ${streamId}: ${decodedVersion.error.message}`
+    );
+  }
+
+  const decodedEvent = eventSchema.safeParse(dbRecord);
+  if (!decodedEvent.success) {
+    throw genericInternalError(
+      `Error decoding last event for stream ${streamId}: ${decodedEvent.error.message}`
+    );
+  }
+
+  return { version: decodedVersion.data, event: decodedEvent.data };
+}
+
 export const eventRepository = <T extends Event>(
   db: DB,
   toBinaryData: (event: T) => Uint8Array
 ): {
   createEvent: (createEvent: CreateEvent<T>) => Promise<CreatedEvent>;
   createEvents: (createEvents: Array<CreateEvent<T>>) => Promise<CreatedEvents>;
+  /**
+   * Reads the last event of a stream directly from the event store.
+   *
+   * NOTE: process services usually read aggregates from the read model, which is
+   * updated asynchronously and can miss the events written a few seconds earlier.
+   * Use this function when a decision must be taken on the up-to-date aggregate
+   * state, for example in recomputations triggered by asynchronous consumers:
+   * deciding on a stale read model state can silently skip a required event
+   * (see PIN-11081). The returned version is the one to use as expected version
+   * when writing the next event of the stream.
+   */
+  readLastEvent: (
+    streamId: string,
+    eventSchema: z.ZodType<T, z.ZodTypeDef, unknown>
+  ) => Promise<LastEvent<T> | undefined>;
 } => ({
   async createEvent(createEvent: CreateEvent<T>): Promise<CreatedEvent> {
     return await internalCreateEvent(db, toBinaryData, createEvent);
@@ -175,6 +225,12 @@ export const eventRepository = <T extends Event>(
     createEvents: Array<CreateEvent<T>>
   ): Promise<CreatedEvents> {
     return await internalCreateEvents(db, toBinaryData, createEvents);
+  },
+  async readLastEvent(
+    streamId: string,
+    eventSchema: z.ZodType<T, z.ZodTypeDef, unknown>
+  ): Promise<LastEvent<T> | undefined> {
+    return await internalReadLastEvent(db, streamId, eventSchema);
   },
 });
 

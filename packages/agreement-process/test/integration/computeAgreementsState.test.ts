@@ -17,9 +17,11 @@ import {
   getMockContextInternal,
   sortAgreementV2,
   getMockDescriptorPublished,
+  writeInEventstore,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
+  AgreementEvent,
   AgreementSetDraftByPlatformV2,
   AgreementSuspendedByPlatformV2,
   AgreementSuspensionReasonV2,
@@ -46,6 +48,7 @@ import {
   addOneAgreement,
   addOneEService,
   agreementService,
+  postgresDB,
   readAgreementEventByVersion,
   readLastAgreementEvent,
 } from "../integrationUtils.js";
@@ -431,6 +434,66 @@ describe("compute Agreements state by attribute", () => {
       }
     );
 
+    it.each([
+      "AgreementDeleted",
+      "AgreementDeletedByRevokedDelegation",
+    ] as const)(
+      "does not update an Agreement whose %s event is not in the read model yet",
+      async (deletionEventType) => {
+        await addOneEService(eservice);
+
+        const deletedDraftAgreement: Agreement = {
+          ...getMockAgreement(eservice.id, consumer.id, agreementState.draft),
+          descriptorId: eservice.descriptors[0].id,
+          producerId: eservice.producerId,
+          suspendedByPlatform: false,
+        };
+
+        await addOneAgreement(deletedDraftAgreement);
+
+        const deletionEvent: AgreementEvent =
+          deletionEventType === "AgreementDeleted"
+            ? {
+                type: deletionEventType,
+                event_version: 2,
+                data: { agreement: toAgreementV2(deletedDraftAgreement) },
+              }
+            : {
+                type: deletionEventType,
+                event_version: 2,
+                data: {
+                  agreement: toAgreementV2(deletedDraftAgreement),
+                  delegationId: generateId(),
+                },
+              };
+        await writeInEventstore(
+          {
+            stream_id: deletedDraftAgreement.id,
+            version: 1,
+            event: deletionEvent,
+          },
+          "agreement",
+          postgresDB
+        );
+
+        await agreementService.internalComputeAgreementsStateByAttribute(
+          invalidCertifiedAttribute.id,
+          consumer,
+          getMockContextInternal({})
+        );
+
+        const lastAgreementEvent = await readLastAgreementEvent(
+          deletedDraftAgreement.id
+        );
+
+        expect(lastAgreementEvent).toMatchObject({
+          type: deletionEventType,
+          version: "1",
+          stream_id: deletedDraftAgreement.id,
+        });
+      }
+    );
+
     it("suspends an Agreement by platform even when the Agreement is already suspended but with suspendedByPlatform = false", async () => {
       await addOneEService(eservice);
 
@@ -586,6 +649,75 @@ describe("compute Agreements state by attribute", () => {
             suspendedByPlatform: false,
           })
         ),
+      });
+    });
+
+    it("un-suspends an Agreement suspended by platform right before, when the read model does not contain the suspension yet", async () => {
+      await addOneEService(eservice);
+
+      const activeAgreement: Agreement = {
+        ...getMockAgreement(eservice.id, consumer.id, agreementState.active),
+        descriptorId: eservice.descriptors[0].id,
+        producerId: eservice.producerId,
+        suspendedByPlatform: false,
+        suspendedByConsumer: false,
+        suspendedByProducer: false,
+      };
+
+      await addOneAgreement(activeAgreement);
+
+      const revokedVerifiedAttribute: VerifiedTenantAttribute = {
+        ...tenantVerifiedAttribute,
+        verifiedBy: [],
+        revokedBy: [
+          {
+            id: producerId,
+            verificationDate: new Date(),
+            revocationDate: new Date(),
+          },
+        ],
+      };
+      const consumerWithRevokedAttribute: Tenant = {
+        ...consumer,
+        attributes: [
+          tenantCertifiedAttribute,
+          tenantDeclaredAttribute,
+          revokedVerifiedAttribute,
+        ],
+      };
+
+      await agreementService.internalComputeAgreementsStateByAttribute(
+        tenantVerifiedAttribute.id,
+        consumerWithRevokedAttribute,
+        getMockContextInternal({})
+      );
+
+      await agreementService.internalComputeAgreementsStateByAttribute(
+        tenantVerifiedAttribute.id,
+        consumer,
+        getMockContextInternal({})
+      );
+
+      const agreementStateUpdateEvent = await readLastAgreementEvent(
+        activeAgreement.id
+      );
+
+      expect(agreementStateUpdateEvent).toMatchObject({
+        type: "AgreementUnsuspendedByPlatform",
+        event_version: 2,
+        version: "2",
+        stream_id: activeAgreement.id,
+      });
+
+      const agreementStateUpdateEventData = decodeProtobufPayload({
+        messageType: AgreementUnsuspendedByPlatformV2,
+        payload: agreementStateUpdateEvent.data,
+      });
+
+      expect({
+        agreement: sortAgreementV2(agreementStateUpdateEventData.agreement),
+      }).toMatchObject({
+        agreement: sortAgreementV2(toAgreementV2(activeAgreement)),
       });
     });
 

@@ -6,6 +6,7 @@ import {
 } from "pagopa-interop-agreement-lifecycle";
 import {
   CreateEvent,
+  eventRepository,
   isFeatureFlagEnabled,
   Logger,
 } from "pagopa-interop-commons";
@@ -23,6 +24,7 @@ import {
   CompactTenant,
   CorrelationId,
   TenantId,
+  fromAgreementV2,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 
@@ -362,10 +364,43 @@ function eserviceContainsAttribute(
   return allIds.includes(attributeId);
 }
 
+async function retrieveLatestAgreement(
+  agreement: WithMetadata<Agreement>,
+  repository: ReturnType<typeof eventRepository<AgreementEvent>>
+): Promise<WithMetadata<Agreement> | undefined> {
+  const lastEvent = await repository.readLastEvent(
+    agreement.data.id,
+    AgreementEvent
+  );
+
+  if (
+    lastEvent === undefined ||
+    lastEvent.event.event_version !== 2 ||
+    !("agreement" in lastEvent.event.data) ||
+    lastEvent.event.data.agreement === undefined
+  ) {
+    return agreement;
+  }
+
+  const latestAgreement = lastEvent.event.data.agreement;
+
+  return match(lastEvent.event)
+    .with(
+      { type: "AgreementDeleted" },
+      { type: "AgreementDeletedByRevokedDelegation" },
+      () => undefined
+    )
+    .otherwise(() => ({
+      data: fromAgreementV2(latestAgreement),
+      metadata: { version: lastEvent.version },
+    }));
+}
+
 export async function computeAgreementsStateByAttribute(
   attributeId: AttributeId,
   consumer: CompactTenant,
   readModelService: ReadModelServiceSQL,
+  repository: ReturnType<typeof eventRepository<AgreementEvent>>,
   correlationId: CorrelationId,
   logger: Logger
 ): Promise<Array<CreateEvent<AgreementEvent>>> {
@@ -392,7 +427,17 @@ export async function computeAgreementsStateByAttribute(
     )
   );
 
-  return agreementsToUpdate
+  const latestAgreementsToUpdate = await Promise.all(
+    agreementsToUpdate.map((agreement) =>
+      retrieveLatestAgreement(agreement, repository)
+    )
+  );
+
+  return latestAgreementsToUpdate
+    .filter(
+      (agreement): agreement is WithMetadata<Agreement> =>
+        agreement !== undefined
+    )
     .map((agreement) =>
       updateAgreementState(
         agreement,
