@@ -1,5 +1,4 @@
 import express from "express";
-import { join } from "node:path";
 
 import type { IdentityService } from "./services/identityService.js";
 import type { Supervisor } from "./services/supervisorService.js";
@@ -34,12 +33,6 @@ export const createApp = (
   if (uiRoot) {
     app.use(DASHBOARD_UI_BASE_PATH, express.static(uiRoot));
     app.use(express.static(uiRoot));
-
-    app.get("*", (_request, response, next) => {
-      response.sendFile(join(uiRoot, "index.html"), (error) => {
-        if (error) next(error);
-      });
-    });
   }
 
   app.use(dashboardErrorMiddleware);
