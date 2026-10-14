@@ -2670,6 +2670,9 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
+      '@apidevtools/swagger-parser':
+        specifier: 'catalog:'
+        version: 10.1.1(openapi-types@12.1.3)
       '@stoplight/spectral-cli':
         specifier: 'catalog:'
         version: 6.15.0
@@ -2682,12 +2685,15 @@ importers:
       openapi-zod-client:
         specifier: 'catalog:'
         version: 1.18.3(react@18.3.1)
+      openapi3-ts:
+        specifier: 'catalog:'
+        version: 3.1.0
       pagopa-interop-eslint-config:
         specifier: workspace:*
         version: link:../eslint-config
-      prettier:
+      tsx:
         specifier: 'catalog:'
-        version: 3.8.1
+        version: 4.19.1
       typescript:
         specifier: 'catalog:'
         version: 5.4.5
