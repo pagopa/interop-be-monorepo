@@ -6,6 +6,50 @@ import { spawnSync } from 'node:child_process';
 import { test } from 'node:test';
 
 const script = new URL('./dashboard.sh', import.meta.url).pathname;
+const entrypoint = new URL('../../docker/dev-dashboard/entrypoint.sh', import.meta.url).pathname;
+
+for (const existingGroup of ['', 'docker']) {
+  test(`bootstrap ${existingGroup ? 'reuses an existing' : 'creates a missing'} Docker socket group`, async () => {
+    const root = await mkdtemp(path.join(tmpdir(), 'interop-bootstrap-test-'));
+    try {
+      const calls = path.join(root, 'calls');
+      const mockCommand = `#!/usr/bin/env bash
+printf '%s %s\\n' "\${0##*/}" "$*" >> "$TEST_CALLS"
+case "\${0##*/}" in
+  id) printf '1000\\n' ;;
+  stat)
+    if [[ "$2" == '%g' ]]; then printf '4321\\n'; else printf '1000:1000\\n'; fi ;;
+  getent)
+    if [[ -z "$TEST_SOCKET_GROUP" ]]; then exit 2; fi
+    printf '%s:x:4321:\\n' "$TEST_SOCKET_GROUP" ;;
+esac
+`;
+      for (const command of ['id', 'stat', 'getent', 'groupadd', 'groupmod', 'usermod', 'mountpoint', 'chown', 'gosu']) {
+        await writeFile(path.join(root, command), mockCommand, { mode: 0o755 });
+      }
+      const result = spawnSync('bash', [entrypoint], {
+        env: {
+          ...process.env,
+          INTEROP_BE_ROOT: root,
+          LOCAL_UID: '1000',
+          LOCAL_GID: '1000',
+          PATH: `${root}:${process.env.PATH}`,
+          TEST_CALLS: calls,
+          TEST_SOCKET_GROUP: existingGroup,
+        },
+        encoding: 'utf8',
+      });
+      assert.equal(result.status, 0, result.stderr);
+      const commands = (await readFile(calls, 'utf8')).trim().split('\n');
+      assert.deepEqual(commands.filter((command) => command.startsWith('groupadd ')), existingGroup
+        ? [] : ['groupadd -g 4321 dashboard-docker']);
+      assert.ok(commands.includes(`usermod -aG ${existingGroup || 'dashboard-docker'} node`));
+      assert.equal(commands.at(-1), 'gosu node /usr/local/bin/dashboard-entrypoint --user');
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+}
 
 test('prepare mounts the source checkout and isolates every workspace dependency directory', async () => {
   const root = await mkdtemp(path.join(tmpdir(), 'interop dashboard '));
