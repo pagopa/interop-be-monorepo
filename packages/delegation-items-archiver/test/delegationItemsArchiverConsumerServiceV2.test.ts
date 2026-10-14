@@ -29,7 +29,7 @@ import {
   purposeVersionState,
   toDelegationV2,
 } from "pagopa-interop-models";
-import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { Mock, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { handleMessageV2 } from "../src/delegationItemsArchiverConsumerServiceV2.js";
 import {
@@ -47,9 +47,21 @@ const purposeProcessClient = {
   internalDeletePurposeAfterDelegationRevocation: vi.fn(),
   internalArchivePurposeVersionAfterDelegationRevocation: vi.fn(),
 } as unknown as purposeApi.PurposeProcessClient;
+
+// Necessary type to validate toHaveBeenCalledBefore function
+type MockedCatalogProcessClient = catalogApi.CatalogProcessClient & {
+  internalDeleteDelegatedArchivingRequest: Mock<
+    catalogApi.CatalogProcessClient["internalDeleteDelegatedArchivingRequest"]
+  >;
+  internalRevokeDelegatedDescriptor: Mock<
+    catalogApi.CatalogProcessClient["internalRevokeDelegatedDescriptor"]
+  >;
+};
+
 const catalogProcessClient = {
   internalDeleteDelegatedArchivingRequest: vi.fn(),
-} as unknown as catalogApi.CatalogProcessClient;
+  internalRevokeDelegatedDescriptor: vi.fn(),
+} as unknown as MockedCatalogProcessClient;
 
 describe("delegationItemsArchiverConsumerServiceV2", () => {
   describe("ConsumerDelegationRevoked", () => {
@@ -643,6 +655,68 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
       expect(
         catalogProcessClient.internalDeleteDelegatedArchivingRequest
       ).not.toHaveBeenCalled();
+    });
+
+    it("should call catalog-process when is present a descriptor in waitingForApproval state", async () => {
+      const waitingForApprovalDescriptor = getMockDescriptor(
+        descriptorState.waitingForApproval
+      );
+      await addOneEService({
+        ...getMockEService(delegation.eserviceId, delegation.delegatorId, [
+          waitingForApprovalDescriptor,
+        ]),
+      });
+
+      await handleMessage();
+
+      expect(
+        catalogProcessClient.internalRevokeDelegatedDescriptor
+      ).toHaveBeenCalledWith(undefined, {
+        params: {
+          eServiceId: delegation.eserviceId,
+          descriptorId: waitingForApprovalDescriptor.id,
+        },
+        headers: testHeaders,
+      });
+    });
+
+    it("should not call catalog when there is no descriptor in waitingForApproval state", async () => {
+      const invalidDescriptors: Descriptor[] = Object.values(descriptorState)
+        .filter((state) => state !== descriptorState.waitingForApproval)
+        .map((state) => getMockDescriptor(state));
+      await addOneEService({
+        ...getMockEService(
+          delegation.eserviceId,
+          delegation.delegatorId,
+          invalidDescriptors
+        ),
+      });
+
+      await handleMessage();
+
+      expect(
+        catalogProcessClient.internalRevokeDelegatedDescriptor
+      ).not.toHaveBeenCalled();
+    });
+
+    it.only("should call catalog-process in order when a descriptor is waitingForApproval and has an archiving request", async () => {
+      const descriptor: Descriptor = {
+        ...getMockDescriptor(descriptorState.waitingForApproval),
+        delegatedArchivingRequest: [pendingRequest],
+      };
+      await addOneEService({
+        ...getMockEService(delegation.eserviceId, delegation.delegatorId, [
+          descriptor,
+        ]),
+      });
+
+      await handleMessage();
+
+      expect(
+        catalogProcessClient.internalRevokeDelegatedDescriptor
+      ).toHaveBeenCalledBefore(
+        catalogProcessClient.internalDeleteDelegatedArchivingRequest
+      );
     });
   });
 });
