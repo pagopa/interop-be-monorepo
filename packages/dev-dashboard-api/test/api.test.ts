@@ -576,7 +576,7 @@ describe("dashboard HTTP boundary", () => {
     expect(supervisor.status().operations).toEqual([]);
   });
 
-  it("serves compiled assets under the dashboard prefix and HTML at the root", async () => {
+  it("serves dashboard HTML and compiled assets while returning 404 for unknown paths", async () => {
     const directory = await mkdtemp(join(tmpdir(), "dashboard-ui-"));
     try {
       await mkdir(join(directory, "assets"));
@@ -597,11 +597,22 @@ describe("dashboard HTTP boundary", () => {
         },
         directory
       );
-      expect((await request(app).get("/")).text).toContain("<html>");
+      for (const path of ["/", "/__local-dashboard/"]) {
+        const response = await request(app).get(path);
+        expect(response.status).toBe(200);
+        expect(response.text).toContain("<html>");
+      }
       const asset = await request(app).get("/__local-dashboard/assets/app.js");
       expect(asset.status).toBe(200);
       expect(asset.headers["content-type"]).toMatch(/javascript/);
       expect(asset.text).toBe('console.log("dashboard");');
+      for (const path of [
+        "/not-a-route",
+        "/assets/missing.js",
+        "/__local-dashboard/assets/missing.js",
+      ]) {
+        expect((await request(app).get(path)).status).toBe(404);
+      }
     } finally {
       await rm(directory, { recursive: true, force: true });
     }
