@@ -17,6 +17,7 @@ import {
   duplicatedPurposeTitle,
   eserviceNotFound,
   purposeDraftVersionNotFound,
+  purposeNotCreatedFromTemplate,
   purposeNotFound,
   purposeTemplateNotFound,
   riskAnalysisAnswerNotInSuggestValues,
@@ -118,6 +119,10 @@ describe("API PATCH /templates/{purposeTemplateId}/purposes/{purposeId} test", (
     },
     {
       error: riskAnalysisAnswerNotInSuggestValues(generateId(), "Any"),
+      expectedStatus: HTTP_STATUS_BAD_REQUEST,
+    },
+    {
+      error: purposeNotCreatedFromTemplate(generateId(), generateId()),
       expectedStatus: HTTP_STATUS_BAD_REQUEST,
     },
     {

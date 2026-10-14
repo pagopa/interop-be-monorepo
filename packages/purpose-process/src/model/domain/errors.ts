@@ -83,6 +83,7 @@ const errorCodes = {
   reviewersNotAllowedForReviewMode: "0063",
   purposeMetadataVersionMismatch: "0064",
   riskAnalysisReviewModeNotFound: "0065",
+  purposeNotCreatedFromTemplate: "0066",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -540,6 +541,17 @@ export function purposeFromTemplateCannotBeModified(
     detail: `Purpose ${purposeId} created from template ${purposeTemplateId} cannot be modified entirely`,
     code: "purposeFromTemplateCannotBeModified",
     title: "Purpose from template cannot be modified",
+  });
+}
+
+export function purposeNotCreatedFromTemplate(
+  purposeId: PurposeId,
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} was not created from purpose template ${purposeTemplateId}`,
+    code: "purposeNotCreatedFromTemplate",
+    title: "Purpose not created from template",
   });
 }
 
