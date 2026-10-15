@@ -266,23 +266,23 @@ export function useAccessToken({
     try {
       await navigator.clipboard.writeText(token);
       if (mounted.current)
-        setSelection({
-          revision: completedSeed,
-          tenantKey,
-          userId,
-          token,
-          copied: true,
-        });
+        setSelection((previous) =>
+          previous.revision === completedSeed && previous.token === token
+            ? { ...previous, copied: true, error: undefined }
+            : previous
+        );
     } catch {
       if (mounted.current)
-        setSelection({
-          revision: completedSeed,
-          tenantKey,
-          userId,
-          token,
-          error:
-            "Clipboard access is unavailable. Select and copy the token manually.",
-        });
+        setSelection((previous) =>
+          previous.revision === completedSeed && previous.token === token
+            ? {
+                ...previous,
+                copied: false,
+                error:
+                  "Clipboard access is unavailable. Select and copy the token manually.",
+              }
+            : previous
+        );
     }
   }
 
