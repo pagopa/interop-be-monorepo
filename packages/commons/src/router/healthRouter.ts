@@ -9,6 +9,7 @@ import {
 } from "pagopa-interop-models";
 
 import { ExpressContext } from "../context/context.js";
+import { problemContentType } from "./errorHandlers.js";
 
 type RequiresHealthStatus = [
   {
@@ -30,7 +31,7 @@ export const healthRouter = (
       title: "Service status OK",
     };
 
-    res.type("application/problem+json").status(200).send(healthProblem);
+    res.type(problemContentType).status(200).send(healthProblem);
   });
 
   return healthRouter;
