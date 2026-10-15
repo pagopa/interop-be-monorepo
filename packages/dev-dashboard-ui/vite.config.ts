@@ -9,7 +9,7 @@ export default defineConfig({
   server: {
     port: 4546,
     proxy: {
-      "/__local-dashboard/api": "http://127.0.0.1:4545",
+      "/__local-dashboard/api": "http://127.0.0.1:8076",
     },
   },
 });
