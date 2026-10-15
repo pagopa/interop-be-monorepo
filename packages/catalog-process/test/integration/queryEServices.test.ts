@@ -795,7 +795,7 @@ describe("query eservices", () => {
       expect(idsOf(result)).toEqual([eserviceBeta.id, eserviceAlpha.id]);
     });
 
-    it("should include an e-service whose active producer delegate is among the given producers", async () => {
+    it("should not match an e-service through its active producer delegate", async () => {
       const delegateId: TenantId = generateId();
       await addOneDelegation(
         getMockDelegation({
@@ -808,36 +808,15 @@ describe("query eservices", () => {
 
       const result = await filterEServices({ producersIds: [delegateId] });
 
-      expect(result.totalCount).toBe(1);
-      expect(idsOf(result)).toEqual([eserviceGamma.id]);
-    });
-
-    it("should ignore delegations that are not active producer delegations", async () => {
-      const pendingDelegateId: TenantId = generateId();
-      const consumerDelegateId: TenantId = generateId();
-      await addOneDelegation(
-        getMockDelegation({
-          kind: delegationKind.delegatedProducer,
-          state: delegationState.waitingForApproval,
-          eserviceId: eserviceAlpha.id,
-          delegateId: pendingDelegateId,
-        })
-      );
-      await addOneDelegation(
-        getMockDelegation({
-          kind: delegationKind.delegatedConsumer,
-          state: delegationState.active,
-          eserviceId: eserviceBeta.id,
-          delegateId: consumerDelegateId,
-        })
-      );
-
-      const result = await filterEServices({
-        producersIds: [pendingDelegateId, consumerDelegateId],
-      });
-
       expect(result.totalCount).toBe(0);
       expect(result.results).toEqual([]);
+
+      const delegatorResult = await filterEServices({
+        producersIds: [producerGamma],
+      });
+
+      expect(delegatorResult.totalCount).toBe(1);
+      expect(idsOf(delegatorResult)).toEqual([eserviceGamma.id]);
     });
   });
 
