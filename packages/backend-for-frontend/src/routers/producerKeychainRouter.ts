@@ -11,7 +11,10 @@ import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { ProducerKeychainService } from "../services/producerKeychainService.js";
 import { fromBffAppContext } from "../utilities/context.js";
-import { getProducerKeychainUsersErrorMapper } from "../utilities/errorMappers.js";
+import {
+  getProducerKeychainByIdErrorMapper,
+  getProducerKeychainUsersErrorMapper,
+} from "../utilities/errorMappers.js";
 
 const producerKeychainRouter = (
   ctx: ZodiosContext,
@@ -93,7 +96,7 @@ const producerKeychainRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          getProducerKeychainByIdErrorMapper,
           ctx,
           `Error retrieving producer keychain with id = ${req.params.producerKeychainId}`
         );
