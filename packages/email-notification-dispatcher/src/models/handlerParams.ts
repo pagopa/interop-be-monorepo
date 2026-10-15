@@ -64,11 +64,6 @@ export type EserviceTemplateHandlerParams = HandlerCommonParams & {
   eserviceTemplateVersionId: EServiceTemplateVersionId;
 };
 
-export type EserviceTemplateNameUpdatedHandlerParams = HandlerCommonParams & {
-  eserviceTemplateV2Msg?: EServiceTemplateV2;
-  oldName?: string;
-};
-
 export type ProducerKeychainKeyHandlerParams = HandlerCommonParams & {
   producerKeychainV2Msg?: ProducerKeychainV2;
   kid: string;
