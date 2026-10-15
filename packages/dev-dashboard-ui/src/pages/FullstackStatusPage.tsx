@@ -1,12 +1,10 @@
-import { Terminal } from "lucide-react";
+import { ExternalLink, Terminal } from "lucide-react";
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
 
 import { ErrorAlert } from "../components/common/ErrorAlert";
 import { FrontendLogsPanel } from "../components/FrontendLogsPanel";
-import { FullstackRuntime } from "../components/FullstackRuntime";
 import { FullstackStartup } from "../components/FullstackStartup";
-import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import {
   Card,
@@ -15,52 +13,67 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import { Separator } from "../components/ui/separator";
-import { fullstackStatus } from "../lib/fullstackStatus";
 import { useDashboardContext } from "../providers/DashboardProvider";
 import { paths } from "../router/paths";
 
 export function FullstackStatusPage() {
-  const { status, connectionError } = useDashboardContext();
+  const { status } = useDashboardContext();
   const [logsVisible, setLogsVisible] = useState(false);
   if (!status) return null;
   const { frontend } = status;
   if (!frontend) return <Navigate to={paths.packages} replace />;
-  const model = fullstackStatus(status, frontend, connectionError);
+  const phases = frontend.phases.filter(
+    (phase) =>
+      frontend.mode !== "dev" ||
+      !["infra", "backend", "seed", "identity"].includes(phase.id)
+  );
   return (
-    <Card role="region" aria-labelledby="fullstack-title">
+    <Card
+      role="region"
+      aria-labelledby="fullstack-title"
+      className="w-full max-w-3xl"
+    >
       <CardHeader className="flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <CardTitle asChild>
           <h2 id="fullstack-title">Fullstack status</h2>
         </CardTitle>
-        <Badge
-          role="status"
-          aria-label="Environment readiness"
-          variant={
-            model.readiness === "Needs attention"
-              ? "warning"
-              : model.readiness === "Starting"
-                ? "working"
-                : "success"
-          }
-        >
-          {model.readiness}
-        </Badge>
+        {frontend.running ? (
+          <Button asChild size="sm">
+            <a
+              href="http://localhost:3000/ui/it/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <ExternalLink data-icon="inline-start" aria-hidden="true" />
+              Open frontend
+            </a>
+          </Button>
+        ) : (
+          <span title="Available when the frontend is running.">
+            <Button
+              size="sm"
+              disabled
+              title="Available when the frontend is running."
+            >
+              <ExternalLink data-icon="inline-start" aria-hidden="true" />
+              Open frontend
+            </Button>
+          </span>
+        )}
       </CardHeader>
       <CardContent className="flex min-w-0 flex-col gap-6">
         {frontend.error && (
           <ErrorAlert title="Frontend startup" message={frontend.error} />
         )}
         {!frontend.available && !frontend.error && (
-          <ErrorAlert message="Frontend runtime is unavailable. Backend status is still shown below." />
+          <ErrorAlert message="Frontend runtime is unavailable. Startup details remain available." />
         )}
-        <div className="grid min-w-0 gap-8 xl:grid-cols-[minmax(240px,2fr)_minmax(0,3fr)]">
-          <FullstackStartup
-            state={frontend.state}
-            phases={model.startupPhases}
-            operations={status.operations}
-          />
-          <FullstackRuntime status={status} frontend={frontend} model={model} />
-        </div>
+        <FullstackStartup
+          state={frontend.state}
+          phases={phases}
+          mode={frontend.mode}
+          operations={status.operations}
+        />
         <Separator />
         <Button
           variant="outline"

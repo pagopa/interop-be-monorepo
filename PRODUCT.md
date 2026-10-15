@@ -46,12 +46,14 @@ project while standard controls keep attention on development work.
   Access token. Keep startup details in logs and avoid operation timelines or
   history pages in the standalone backend dashboard. When launched through the
   frontend devcontainer, offer an optional Fullstack status view with a compact
-  timeline of the current startup and its linked backend subphases. Show current
-  frontend, infrastructure, backend preset and seeded data state alongside it;
-  a successful startup must never hide current failures or stopped services.
-  Keep this view read-only, with direct backend log links and frontend startup
-  and Vite logs loaded only when opened. Shared development mode identifies its
-  API target and treats local services as observations rather than prerequisites.
+  timeline of the current startup and its linked backend subphases. Keep the
+  timeline readable within a limited width, with direct backend log links and
+  frontend startup and Vite logs loaded only when opened. Offer Open frontend
+  in a new tab as soon as its process is running, even while checks continue;
+  disable the link until then. Keep this view read-only and focused on startup;
+  runtime, infrastructure, packages and seeded data belong in their existing
+  views. Identify the local or shared development target briefly beside the
+  timeline heading, omitting local-only phases in shared development mode.
 - Discover runnable packages from the checkout instead of maintaining dependency
   or support profiles. Service groups are explicit presets.
 - Separate shared and local presets. Create and edit local presets in a modal

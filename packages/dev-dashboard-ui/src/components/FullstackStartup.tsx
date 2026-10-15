@@ -51,18 +51,27 @@ function PhaseIcon({ state }: { state: Phase["state"] }) {
 export function FullstackStartup({
   state,
   phases,
+  mode,
   operations,
 }: {
   state: FrontendStatus["state"];
   phases: Phase[];
+  mode: FrontendStatus["mode"];
   operations: Operation[];
 }) {
   return (
     <section role="region" aria-labelledby="startup-title" className="min-w-0">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <h3 id="startup-title" className="text-base font-semibold">
-          Current startup
-        </h3>
+        <div className="flex flex-wrap items-baseline gap-2">
+          <h3 id="startup-title" className="text-base font-semibold">
+            Current startup
+          </h3>
+          {mode && (
+            <span className="text-xs text-muted-foreground">
+              {mode === "dev" ? "Shared development" : "Local"}
+            </span>
+          )}
+        </div>
         <StatusBadge state={state === "running" ? "starting" : state} />
       </div>
       {!phases.length && (

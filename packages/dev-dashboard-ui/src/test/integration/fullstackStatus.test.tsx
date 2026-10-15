@@ -151,9 +151,6 @@ describe("optional fullstack status", () => {
         screen.getByRole("link", { name: "Fullstack status" })
       ).toHaveAttribute("aria-current", "page");
       expect(window.location.hash).toBe("#/status");
-      expect(
-        screen.getByRole("status", { name: "Environment readiness" })
-      ).toHaveTextContent("Ready");
       expect(frontendLogRequests()).toHaveLength(0);
     }
   );
@@ -175,9 +172,7 @@ describe("optional fullstack status", () => {
     expect(startup.getByText("Build backend packages")).toBeVisible();
     expect(startup.getByText("Build failed in tenant-process")).toBeVisible();
     expect(startup.queryByText("Unrelated old seed")).not.toBeInTheDocument();
-    expect(
-      screen.getByRole("status", { name: "Environment readiness" })
-    ).toHaveTextContent("Needs attention");
+    expect(screen.getByText("Backend startup failed")).toBeVisible();
     expect(
       startup.getByRole("link", { name: "Backend startup logs" })
     ).toHaveAttribute("href", "#/logs?source=preset%3Afrontend-full");
@@ -186,38 +181,64 @@ describe("optional fullstack status", () => {
     ).toBe(true);
   });
 
-  it.each([
-    "package",
-    "infrastructure",
-    "frontend",
-    "seed",
-    "checks",
-    "missing preset",
-  ])(
-    "uses current %s degradation instead of a previously successful startup",
-    async (failure) => {
+  it("focuses the status page on startup and logs without repeated overview sections", async () => {
+    renderDashboard();
+    const statusPage = within(
+      await screen.findByRole("region", { name: "Fullstack status" })
+    );
+    expect(
+      statusPage.getByRole("region", { name: "Current startup" })
+    ).toBeVisible();
+    expect(
+      statusPage.getByRole("button", { name: "Show frontend logs" })
+    ).toBeVisible();
+    for (const name of [
+      "Current runtime",
+      "Current infrastructure",
+      "Current backend services",
+    ])
+      expect(
+        statusPage.queryByRole("region", { name })
+      ).not.toBeInTheDocument();
+    expect(statusPage.queryByRole("table")).not.toBeInTheDocument();
+    expect(
+      statusPage.queryByRole("status", { name: "Environment readiness" })
+    ).not.toBeInTheDocument();
+  });
+
+  it.each(["passed", "running"])(
+    "opens the running frontend in a new tab during %s startup",
+    async (state) => {
       if (!currentStatus.frontend)
         throw new Error("Fullstack fixture is required");
-      if (failure === "package") currentStatus.packages[0].state = "stopped";
-      if (failure === "infrastructure")
-        currentStatus.infrastructure[0].state = "failed";
-      if (failure === "frontend") currentStatus.frontend.running = false;
-      if (failure === "seed") currentStatus.seedReady = false;
-      if (failure === "checks")
-        currentStatus.frontend.phases[3].state = "failed";
-      if (failure === "missing preset") currentStatus.presets = [];
+      currentStatus.frontend.state = state === "running" ? "running" : "passed";
+      currentStatus.frontend.phases[3].state =
+        state === "running" ? "pending" : "passed";
       renderDashboard();
-      await screen.findByRole("heading", { name: "Fullstack status" });
-      expect(
-        screen.getByRole("status", { name: "Environment readiness" })
-      ).toHaveTextContent("Needs attention");
-      expect(
-        screen.getByRole("region", { name: "Current infrastructure" })
-      ).toHaveTextContent("postgres");
+      const link = await screen.findByRole("link", { name: "Open frontend" });
+      expect(link).toHaveAttribute("href", "http://localhost:3000/ui/it/");
+      expect(link).toHaveAttribute("target", "_blank");
+      expect(link).toHaveAttribute("rel", "noopener noreferrer");
     }
   );
 
-  it("keeps backend state visible when the frontend runtime is unavailable", async () => {
+  it("disables the frontend entry until its process is running", async () => {
+    if (!currentStatus.frontend)
+      throw new Error("Fullstack fixture is required");
+    currentStatus.frontend.running = false;
+    renderDashboard();
+    const button = await screen.findByRole("button", { name: "Open frontend" });
+    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute(
+      "title",
+      "Available when the frontend is running."
+    );
+    expect(
+      screen.queryByRole("link", { name: "Open frontend" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("keeps startup details and errors visible when the frontend runtime is unavailable", async () => {
     if (!currentStatus.frontend)
       throw new Error("Fullstack fixture is required");
     currentStatus.frontend.available = false;
@@ -229,14 +250,8 @@ describe("optional fullstack status", () => {
       await screen.findByText("Frontend runtime is unavailable")
     ).toBeVisible();
     expect(
-      screen.getByRole("region", { name: "Current backend services" })
-    ).toHaveTextContent(bffName);
-    expect(
-      screen.getByRole("region", { name: "Current infrastructure" })
-    ).toHaveTextContent("postgres");
-    expect(
-      screen.getByRole("status", { name: "Environment readiness" })
-    ).toHaveTextContent("Needs attention");
+      screen.getByRole("region", { name: "Current startup" })
+    ).toHaveTextContent("Build backend packages");
   });
 
   it("shows unavailable logs without polling or presenting cached output as live", async () => {
@@ -262,7 +277,7 @@ describe("optional fullstack status", () => {
     expect(frontendLogRequests()).toHaveLength(1);
   });
 
-  it("keeps service state visible while logs load and cancels the request when leaving status", async () => {
+  it("keeps startup details visible while logs load and cancels the request when leaving status", async () => {
     holdFrontendLogs = true;
     const user = userEvent.setup();
     renderDashboard();
@@ -275,32 +290,23 @@ describe("optional fullstack status", () => {
       screen.getByRole("button", { name: "Refresh frontend logs" })
     ).toBeDisabled();
     expect(
-      screen.getByRole("region", { name: "Current backend services" })
-    ).toHaveTextContent(bffName);
+      screen.getByRole("region", { name: "Current startup" })
+    ).toHaveTextContent("Build backend packages");
     const signal = frontendLogRequests()[0][1]?.signal;
     await user.click(screen.getByRole("link", { name: "Packages" }));
     await screen.findByRole("heading", { name: "Package catalogue" });
     expect(signal?.aborted).toBe(true);
   });
 
-  it("identifies shared development APIs without requiring local startup, services or seed", async () => {
+  it("identifies shared development and omits local-only startup phases", async () => {
     if (!currentStatus.frontend)
       throw new Error("Fullstack fixture is required");
     currentStatus.frontend.mode = "dev";
     currentStatus.frontend.phases[1].state = "failed";
     currentStatus.operations[0].state = "failed";
-    currentStatus.packages[0].state = "stopped";
-    currentStatus.infrastructure[0].state = "stopped";
-    currentStatus.seedReady = false;
     renderDashboard();
     await screen.findByRole("heading", { name: "Fullstack status" });
     expect(screen.getByText("Shared development")).toBeVisible();
-    expect(
-      screen.getByRole("status", { name: "Environment readiness" })
-    ).toHaveTextContent("Frontend ready");
-    expect(
-      screen.getByRole("region", { name: "Current backend services" })
-    ).toHaveTextContent("stopped");
     expect(
       within(
         screen.getByRole("region", { name: "Current startup" })
@@ -308,33 +314,25 @@ describe("optional fullstack status", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("does not assume local readiness when infrastructure is missing", async () => {
-    currentStatus.infrastructure = [];
-    renderDashboard();
-    await screen.findByRole("heading", { name: "Fullstack status" });
-    expect(
-      screen.getByRole("status", { name: "Environment readiness" })
-    ).toHaveTextContent("Needs attention");
-    expect(
-      screen.getByRole("region", { name: "Current infrastructure" })
-    ).toHaveTextContent("No local infrastructure found");
-  });
-
-  it("keeps startup in progress while waiting for current services", async () => {
+  it("shows phase progress during startup", async () => {
     if (!currentStatus.frontend)
       throw new Error("Fullstack fixture is required");
     currentStatus.frontend.state = "running";
     currentStatus.frontend.running = false;
     currentStatus.frontend.phases[1].state = "running";
-    currentStatus.packages[0].state = "starting";
     renderDashboard();
     await screen.findByRole("heading", { name: "Fullstack status" });
     expect(
-      screen.getByRole("status", { name: "Environment readiness" })
-    ).toHaveTextContent("Starting");
+      screen.getByRole("region", { name: "Current startup" })
+    ).toHaveTextContent("starting");
+    expect(
+      within(
+        screen.getByRole("list", { name: "Start backend services details" })
+      ).getByText("Build backend packages")
+    ).toBeVisible();
   });
 
-  it("marks retained runtime data as unready when the API refresh fails", async () => {
+  it("keeps startup details visible with the connection error when an API refresh fails", async () => {
     renderDashboard();
     await screen.findByRole("heading", { name: "Fullstack status" });
     failStatus = true;
@@ -345,11 +343,8 @@ describe("optional fullstack status", () => {
       await screen.findByText("Runtime observer unavailable")
     ).toBeVisible();
     expect(
-      screen.getByRole("status", { name: "Environment readiness" })
-    ).toHaveTextContent("Needs attention");
-    expect(
-      screen.getByRole("region", { name: "Current backend services" })
-    ).toHaveTextContent(bffName);
+      screen.getByRole("region", { name: "Current startup" })
+    ).toHaveTextContent("Build backend packages");
   });
 
   it("opens infrastructure startup diagnostics with orchestration output", async () => {
@@ -365,9 +360,6 @@ describe("optional fullstack status", () => {
     expect(
       screen.getByRole("link", { name: "Prepare local infrastructure logs" })
     ).toHaveAttribute("href", "#/logs?source=orchestration");
-    expect(
-      screen.getByRole("link", { name: "Logs for postgres" })
-    ).toHaveAttribute("href", "#/logs?source=infra%3Apostgres");
   });
 
   it("loads only the selected frontend log and keeps failures separate from runtime state", async () => {
@@ -404,8 +396,8 @@ describe("optional fullstack status", () => {
       await screen.findByText("Frontend log file unavailable")
     ).toBeVisible();
     expect(
-      screen.getByRole("region", { name: "Current backend services" })
-    ).toHaveTextContent(bffName);
+      screen.getByRole("region", { name: "Current startup" })
+    ).toHaveTextContent("Build backend packages");
     await user.click(screen.getByRole("link", { name: "Packages" }));
     await screen.findByRole("heading", { name: "Package catalogue" });
     await waitFor(() =>
