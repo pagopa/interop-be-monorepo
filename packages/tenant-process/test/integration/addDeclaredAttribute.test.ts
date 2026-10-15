@@ -8,7 +8,12 @@ import {
   getMockContext,
   getMockAuthData,
 } from "pagopa-interop-commons-test";
-import { attributeKind, DelegationId, TenantId } from "pagopa-interop-models";
+import {
+  attributeKind,
+  DelegationId,
+  operationForbidden,
+  TenantId,
+} from "pagopa-interop-models";
 import {
   generateId,
   Tenant,
@@ -59,6 +64,7 @@ describe("addDeclaredAttribute", async () => {
     await addOneTenant(tenantWithoutDeclaredAttribute);
     const addDeclaredAttrReturn = await tenantService.addDeclaredAttribute(
       {
+        tenantId: tenantWithoutDeclaredAttribute.id,
         tenantAttributeSeed: { id: declaredAttribute.id },
       },
       getMockContext({
@@ -118,6 +124,7 @@ describe("addDeclaredAttribute", async () => {
     await addOneTenant(tenantWithAttributeRevoked);
     const addDeclaredAttrReturn = await tenantService.addDeclaredAttribute(
       {
+        tenantId: tenantWithAttributeRevoked.id,
         tenantAttributeSeed: { id: declaredAttribute.id },
       },
       getMockContext({
@@ -189,6 +196,7 @@ describe("addDeclaredAttribute", async () => {
 
     const addDeclaredAttrReturn = await tenantService.addDeclaredAttribute(
       {
+        tenantId: delegatorWithoutDeclaredAttribute.id,
         tenantAttributeSeed: {
           id: declaredAttribute.id,
           delegationId,
@@ -269,6 +277,7 @@ describe("addDeclaredAttribute", async () => {
 
     const addDeclaredAttrReturn = await tenantService.addDeclaredAttribute(
       {
+        tenantId: delegatorWithAttributeRevoked.id,
         tenantAttributeSeed: { id: declaredAttribute.id, delegationId },
       },
       getMockContext({
@@ -319,6 +328,7 @@ describe("addDeclaredAttribute", async () => {
     expect(
       tenantService.addDeclaredAttribute(
         {
+          tenantId: tenant.id,
           tenantAttributeSeed: { id: declaredAttribute.id },
         },
         getMockContext({
@@ -333,6 +343,7 @@ describe("addDeclaredAttribute", async () => {
     expect(
       tenantService.addDeclaredAttribute(
         {
+          tenantId: tenant.id,
           tenantAttributeSeed: { id: declaredAttribute.id },
         },
         getMockContext({
@@ -350,6 +361,7 @@ describe("addDeclaredAttribute", async () => {
     expect(
       tenantService.addDeclaredAttribute(
         {
+          tenantId: tenant.id,
           tenantAttributeSeed: {
             id: declaredAttribute.id,
             delegationId,
@@ -375,6 +387,7 @@ describe("addDeclaredAttribute", async () => {
     expect(
       tenantService.addDeclaredAttribute(
         {
+          tenantId: tenant.id,
           tenantAttributeSeed: {
             id: declaredAttribute.id,
             delegationId,
@@ -400,6 +413,7 @@ describe("addDeclaredAttribute", async () => {
     expect(
       tenantService.addDeclaredAttribute(
         {
+          tenantId: tenant.id,
           tenantAttributeSeed: {
             id: declaredAttribute.id,
             delegationId,
@@ -425,6 +439,7 @@ describe("addDeclaredAttribute", async () => {
     expect(
       tenantService.addDeclaredAttribute(
         {
+          tenantId: tenant.id,
           tenantAttributeSeed: {
             id: declaredAttribute.id,
             delegationId,
@@ -433,5 +448,49 @@ describe("addDeclaredAttribute", async () => {
         getMockContext({})
       )
     ).rejects.toThrowError(operationRestrictedToDelegate());
+  });
+
+  it("Should throw operationForbidden if requester is not the target tenant", async () => {
+    const requesterId: TenantId = generateId();
+    const targetTenantId: TenantId = generateId();
+
+    await expect(
+      tenantService.addDeclaredAttribute(
+        {
+          tenantId: targetTenantId,
+          tenantAttributeSeed: { id: declaredAttribute.id },
+        },
+        getMockContext({ authData: getMockAuthData(requesterId) })
+      )
+    ).rejects.toThrowError(operationForbidden);
+  });
+
+  it("Should throw operationForbidden if target tenant is not the delegator", async () => {
+    const requesterId: TenantId = generateId();
+    const delegatorId: TenantId = generateId();
+    const targetTenantId: TenantId = generateId();
+    const delegationId: DelegationId = generateId();
+    await addOneDelegation(
+      getMockDelegation({
+        id: delegationId,
+        kind: "DelegatedConsumer",
+        state: "Active",
+        delegatorId,
+        delegateId: requesterId,
+      })
+    );
+
+    await expect(
+      tenantService.addDeclaredAttribute(
+        {
+          tenantId: targetTenantId,
+          tenantAttributeSeed: {
+            id: declaredAttribute.id,
+            delegationId,
+          },
+        },
+        getMockContext({ authData: getMockAuthData(requesterId) })
+      )
+    ).rejects.toThrowError(operationForbidden);
   });
 });

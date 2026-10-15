@@ -13,6 +13,8 @@ import {
   AttributeId,
   TenantDeclaredAttributeRevokedV2,
   tenantAttributeType,
+  operationForbidden,
+  TenantId,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
 
@@ -56,6 +58,7 @@ describe("revokeDeclaredAttribute", async () => {
     const revokeDeclaredAttrReturn =
       await tenantService.revokeDeclaredAttribute(
         {
+          tenantId: tenant.id,
           attributeId,
         },
         getMockContext({ authData: getMockAuthData(tenant.id) })
@@ -101,6 +104,7 @@ describe("revokeDeclaredAttribute", async () => {
     expect(
       tenantService.revokeDeclaredAttribute(
         {
+          tenantId: tenant.id,
           attributeId,
         },
         getMockContext({ authData: getMockAuthData(tenant.id) })
@@ -122,10 +126,25 @@ describe("revokeDeclaredAttribute", async () => {
     expect(
       tenantService.revokeDeclaredAttribute(
         {
+          tenantId: notDeclaredAttributeTenant.id,
           attributeId,
         },
         getMockContext({ authData: getMockAuthData(tenant.id) })
       )
     ).rejects.toThrowError(attributeNotFound(attributeId));
+  });
+
+  it("Should throw operationForbidden if requester is not the target tenant", async () => {
+    const requesterId: TenantId = generateId();
+
+    await expect(
+      tenantService.revokeDeclaredAttribute(
+        {
+          tenantId: tenant.id,
+          attributeId,
+        },
+        getMockContext({ authData: getMockAuthData(requesterId) })
+      )
+    ).rejects.toThrowError(operationForbidden);
   });
 });
