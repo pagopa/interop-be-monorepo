@@ -91,6 +91,38 @@ describe("dashboard HTTP boundary", () => {
     expect(response.body).not.toHaveProperty("frontendAvailable");
   });
 
+  it.each(["preset.start", "preset.stop"])(
+    "retains the preset identity in status for %s",
+    async (type) => {
+      const { app, supervisor } = setup(
+        [],
+        [
+          {
+            id: "mine",
+            name: "My preset",
+            source: "personal",
+            packages: [{ name: "a", watch: false }],
+          },
+        ]
+      );
+      const accepted = await request(app)
+        .post("/__local-dashboard/api/actions")
+        .send({ type, id: "mine" });
+      expect(accepted.status).toBe(202);
+      await supervisor.idle();
+
+      const response = await request(app).get("/__local-dashboard/api/status");
+      const status = schemas.DashboardStatus.parse(response.body);
+      expect(status.operations).toContainEqual(
+        expect.objectContaining({
+          id: accepted.body.operationId,
+          kind: type,
+          presetId: "mine",
+        })
+      );
+    }
+  );
+
   it.each([
     { group: "group:packages", members: ["a", "b"] },
     { group: "group:infra", members: ["infra:postgres", "infra:retired"] },
