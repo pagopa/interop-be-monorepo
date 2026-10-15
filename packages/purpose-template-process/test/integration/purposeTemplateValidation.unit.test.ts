@@ -367,6 +367,62 @@ describe("Purpose Template Validation", () => {
       );
     });
 
+    it("should propagate the original error when eservice retrieval fails during disassociation", async () => {
+      const eserviceIds = [eserviceId1];
+      const dbError = new Error("Database connection failed");
+
+      mockReadModelService.getEServiceById = vi.fn().mockRejectedValue(dbError);
+
+      await expect(
+        validateEservicesDisassociations(
+          eserviceIds,
+          purposeTemplate,
+          mockReadModelService
+        )
+      ).rejects.toThrow(dbError);
+    });
+
+    it("should return valid when trying to unlink an associated eservice with a personal data flag mismatch", async () => {
+      const eserviceIds = [eserviceId1];
+      const mockDescriptor = getMockDescriptor(descriptorState.published);
+      mockDescriptor.id = descriptorId1;
+      const mockEService1 = {
+        ...getMockEService(eserviceId1, generateId<TenantId>(), [
+          mockDescriptor,
+        ]),
+        personalData: false,
+      };
+
+      const existingAssociation = {
+        eserviceId: eserviceId1,
+        descriptorId: descriptorId1,
+        purposeTemplateId: purposeTemplate.id,
+      };
+
+      mockReadModelService.getEServiceById = vi
+        .fn()
+        .mockResolvedValue(mockEService1);
+
+      mockReadModelService.getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId =
+        vi.fn().mockResolvedValue(existingAssociation);
+
+      const result = await validateEservicesDisassociations(
+        eserviceIds,
+        purposeTemplate,
+        mockReadModelService
+      );
+
+      expect(result).toEqual({
+        type: "valid",
+        value: [
+          {
+            eservice: mockEService1,
+            descriptorId: descriptorId1,
+          },
+        ],
+      });
+    });
+
     it("should return valid when trying to unlink eservice that is associated", async () => {
       const eserviceIds = [eserviceId1];
       const mockDescriptor = getMockDescriptor(descriptorState.published);
