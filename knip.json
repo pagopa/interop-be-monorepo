@@ -7,7 +7,7 @@
     ".": {
       "entry": [
         "docker/selfcare-mock/selfcare-mock.mjs",
-        "scripts/local-development/dashboard-runtime.test.mjs"
+        "scripts/local-development/test/dashboard-runtime.test.mjs"
       ]
     },
     "packages/dev-dashboard-api": {
