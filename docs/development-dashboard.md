@@ -68,11 +68,14 @@ When opened from the frontend devcontainer, the dashboard also offers **Fullstac
 status** at `#/status` and uses it as the initial page. The current startup phases
 include dependency installation, dashboard readiness, infrastructure, backend
 services, seed, local identity, Vite, smoke tests and browser checks. Backend
-operation details appear inside the corresponding startup phase. Current
-infrastructure, preset members and frontend process state remain visible after
-startup, so a successful earlier startup does not hide a later stopped service.
-Frontend startup and Vite log tails are available on this page; backend logs
-continue to use the existing Logs view.
+operation details appear inside the corresponding startup phase. The page stays
+focused on this timeline and frontend startup and Vite log tails, loaded only
+when opened. **Open frontend** opens `http://localhost:3000/ui/it/` in a new tab
+as soon as the frontend process is running, including while startup checks are
+still pending. The button remains disabled until then. The timeline identifies
+the local or shared development target; shared development omits local-only
+startup phases. Infrastructure, packages and seeded data remain in their
+existing views, and backend log links use the existing Logs view.
 
 The frontend Compose overlay enables this view with
 `DASHBOARD_FRONTEND_URL=http://frontend:8077`. This is an internal read-only
