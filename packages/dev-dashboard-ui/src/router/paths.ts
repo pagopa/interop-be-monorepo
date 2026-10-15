@@ -1,4 +1,5 @@
 export const paths = {
+  status: "/status",
   packages: "/packages",
   presets: "/presets",
   infrastructure: "/infrastructure",

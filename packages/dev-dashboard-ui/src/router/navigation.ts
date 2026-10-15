@@ -1,8 +1,16 @@
-import { Boxes, Database, KeyRound, Layers, Terminal } from "lucide-react";
+import {
+  Activity,
+  Boxes,
+  Database,
+  KeyRound,
+  Layers,
+  Terminal,
+} from "lucide-react";
 
 import { paths } from "./paths";
 
 export const navigation = [
+  { path: paths.status, label: "Fullstack status", icon: Activity },
   { path: paths.packages, label: "Packages", icon: Boxes },
   { path: paths.presets, label: "Presets", icon: Layers },
   { path: paths.infrastructure, label: "Infrastructure", icon: Database },

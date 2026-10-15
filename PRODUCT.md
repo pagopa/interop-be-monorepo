@@ -44,7 +44,14 @@ project while standard controls keep attention on development work.
   with the source selected; browser history and refresh retain the view.
 - Show startup progress in buttons on Packages, Presets, Infrastructure and
   Access token. Keep startup details in logs and avoid operation timelines or
-  history pages.
+  history pages in the standalone backend dashboard. When launched through the
+  frontend devcontainer, offer an optional Fullstack status view with a compact
+  timeline of the current startup and its linked backend subphases. Show current
+  frontend, infrastructure, backend preset and seeded data state alongside it;
+  a successful startup must never hide current failures or stopped services.
+  Keep this view read-only, with direct backend log links and frontend startup
+  and Vite logs loaded only when opened. Shared development mode identifies its
+  API target and treats local services as observations rather than prerequisites.
 - Discover runnable packages from the checkout instead of maintaining dependency
   or support profiles. Service groups are explicit presets.
 - Separate shared and local presets. Create and edit local presets in a modal
