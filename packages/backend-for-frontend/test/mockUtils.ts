@@ -882,6 +882,7 @@ export const getMockBffApiVerifiedTenantAttributeSeed =
   (): bffApi.VerifiedTenantAttributeSeed => ({
     id: generateId(),
     agreementId: generateId(),
+    delegationId: generateId(),
     expirationDate: generateMock(
       z.string().datetime({ offset: true }).optional()
     ),

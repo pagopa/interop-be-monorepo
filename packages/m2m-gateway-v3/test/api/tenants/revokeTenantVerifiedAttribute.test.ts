@@ -9,6 +9,7 @@ import {
 import {
   AgreementId,
   AttributeId,
+  DelegationId,
   TenantId,
   generateId,
   pollingMaxRetriesExceeded,
@@ -28,18 +29,20 @@ import { api, mockTenantService } from "../../vitest.api.setup.js";
 describe("DELETE /tenants/:tenantId/verifiedAttributes/:attributeId router test", () => {
   const mockApiResponse = getMockedApiVerifiedTenantAttribute();
   const mockResponse = toM2MGatewayApiTenantVerifiedAttribute(mockApiResponse);
+  const mockDelegationId = generateId<DelegationId>();
 
   const makeRequest = async (
     token: string,
     tenantId: TenantId = generateId(),
     attributeId: AttributeId = generateId(),
-    agreementId: AgreementId = generateId()
+    agreementId: AgreementId = generateId(),
+    delegationId: DelegationId | undefined = mockDelegationId
   ) =>
     request(api)
       .delete(
         `${appBasePath}/tenants/${tenantId}/verifiedAttributes/${attributeId}`
       )
-      .query({ agreementId })
+      .query({ agreementId, delegationId })
       .set("Authorization", `DPoP ${token}`)
       .set("DPoP", (await getMockDPoPProof()).dpopProofJWS);
 
@@ -56,6 +59,15 @@ describe("DELETE /tenants/:tenantId/verifiedAttributes/:attributeId router test"
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual(mockResponse);
+      expect(
+        mockTenantService.revokeTenantVerifiedAttribute
+      ).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(String),
+        expect.any(String),
+        mockDelegationId,
+        expect.anything()
+      );
     }
   );
 
@@ -97,6 +109,19 @@ describe("DELETE /tenants/:tenantId/verifiedAttributes/:attributeId router test"
       )
       .set("Authorization", `DPoP ${token}`)
       .set("DPoP", (await getMockDPoPProof()).dpopProofJWS);
+
+    expect(res.status).toBe(400);
+  });
+
+  it("Should return 400 if delegationId query param is invalid", async () => {
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(
+      token,
+      generateId<TenantId>(),
+      generateId<AttributeId>(),
+      generateId<AgreementId>(),
+      "invalid_id" as DelegationId
+    );
 
     expect(res.status).toBe(400);
   });

@@ -21,6 +21,7 @@ import {
   Agreement,
   delegationState,
   delegationKind,
+  DelegationId,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
 
@@ -49,6 +50,7 @@ import {
 describe("revokeVerifiedAttribute", async () => {
   const targetTenant = getMockTenant();
   const revokerTenant = getMockTenant();
+  const delegateTenant = getMockTenant();
   const authData = getMockAuthData(revokerTenant.id);
   const verifiedAttribute = getMockVerifiedTenantAttribute();
   const descriptor: Descriptor = {
@@ -82,7 +84,8 @@ describe("revokeVerifiedAttribute", async () => {
   const delegation = getMockDelegation({
     kind: delegationKind.delegatedProducer,
     eserviceId: eService.id,
-    delegateId: revokerTenant.id,
+    delegatorId: revokerTenant.id,
+    delegateId: delegateTenant.id,
     state: delegationState.active,
   });
 
@@ -106,7 +109,7 @@ describe("revokeVerifiedAttribute", async () => {
     },
   ])(
     "Should revoke the VerifiedAttribute if it exists $desc",
-    async (hasDelegation) => {
+    async ({ hasDelegation }) => {
       const mockVerifiedBy = getMockVerifiedBy();
       const tenantWithVerifiedAttribute: Tenant = {
         ...targetTenant,
@@ -131,6 +134,7 @@ describe("revokeVerifiedAttribute", async () => {
       await addOneEService(eService);
       await addOneAgreement(agreementEservice);
       if (hasDelegation) {
+        await addOneTenant(delegateTenant);
         await addOneDelegation(delegation);
       }
 
@@ -140,8 +144,13 @@ describe("revokeVerifiedAttribute", async () => {
             tenantId: tenantWithVerifiedAttribute.id,
             attributeId: verifiedAttribute.id,
             agreementId: agreementEservice.id,
+            delegationId: hasDelegation ? delegation.id : undefined,
           },
-          getMockContext({ authData })
+          getMockContext({
+            authData: hasDelegation
+              ? getMockAuthData(delegateTenant.id)
+              : authData,
+          })
         );
 
       const writtenEvent = await readLastEventByStreamId(
@@ -190,6 +199,58 @@ describe("revokeVerifiedAttribute", async () => {
         data: updatedTenant,
         metadata: { version: 1 },
       });
+    }
+  );
+
+  it.each([
+    { desc: "does not provide", delegationId: undefined },
+    { desc: "provides an incorrect", delegationId: generateId<DelegationId>() },
+  ])(
+    "Should throw attributeRevocationNotAllowed if a producer delegate $desc delegationId",
+    async ({ delegationId }) => {
+      const delegateTenant = getMockTenant();
+      const producerDelegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        delegatorId: revokerTenant.id,
+        delegateId: delegateTenant.id,
+        eserviceId: eService.id,
+        state: delegationState.active,
+      });
+      const tenantWithVerifiedAttribute: Tenant = {
+        ...targetTenant,
+        attributes: [
+          {
+            ...verifiedAttribute,
+            verifiedBy: [
+              { ...getMockVerifiedBy(), id: agreementEservice.producerId },
+            ],
+            revokedBy: [],
+          },
+        ],
+      };
+
+      await addOneTenant(revokerTenant);
+      await addOneTenant(delegateTenant);
+      await addOneTenant(tenantWithVerifiedAttribute);
+      await addOneEService(eService);
+      await addOneAgreement(agreementEservice);
+      await addOneDelegation(producerDelegation);
+
+      await expect(
+        tenantService.revokeVerifiedAttribute(
+          {
+            tenantId: tenantWithVerifiedAttribute.id,
+            attributeId: verifiedAttribute.id,
+            agreementId: agreementEservice.id,
+            delegationId,
+          },
+          getMockContext({
+            authData: getMockAuthData(delegateTenant.id),
+          })
+        )
+      ).rejects.toThrowError(
+        attributeRevocationNotAllowed(targetTenant.id, verifiedAttribute.id)
+      );
     }
   );
   it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
