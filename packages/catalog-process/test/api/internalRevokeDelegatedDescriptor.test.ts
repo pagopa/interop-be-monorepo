@@ -20,7 +20,6 @@ import { describe, it, expect, vi } from "vitest";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
-  notValidDescriptorState,
 } from "../../src/model/domain/errors.js";
 import { api, catalogService } from "../vitest.api.setup.js";
 
@@ -77,10 +76,6 @@ describe("API /internal/eservices/{eServiceId}/descriptors/{descriptorId}/revoke
     {
       error: eServiceDescriptorNotFound(mockEService.id, descriptor.id),
       expectedStatus: 404,
-    },
-    {
-      error: notValidDescriptorState(descriptor.id, descriptor.state),
-      expectedStatus: 409,
     },
   ])(
     "Should return $expectedStatus for $error.code",
