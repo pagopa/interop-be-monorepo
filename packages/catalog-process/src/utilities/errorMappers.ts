@@ -368,11 +368,7 @@ export const cloneEServiceByDescriptorErrorMapper = (
       () => HTTP_STATUS_CONFLICT
     )
     .with("templateInstanceNotAllowed", () => HTTP_STATUS_BAD_REQUEST)
-    .with(
-      "operationForbidden",
-      "eserviceCloningWithActiveOrPendingDelegation",
-      () => HTTP_STATUS_FORBIDDEN
-    )
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const archiveDescriptorErrorMapper = (

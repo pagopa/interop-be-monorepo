@@ -26,6 +26,7 @@ import {
   isFeatureFlagEnabled,
   RiskAnalysisFormToValidate,
   MaintenanceAuthData,
+  explicitPropertiesChecker,
 } from "pagopa-interop-commons";
 import {
   agreementApprovalPolicy,
@@ -228,7 +229,6 @@ import {
   assertNoExistingProducerDelegationInActiveOrPendingState,
   assertNoExistingProducerDelegationForDescriptorArchiving,
   assertNoExistingProducerDelegationForEServiceArchiving,
-  assertNoExistingProducerDelegationForEServiceCloning,
   assertEServiceNameAvailableForProducer,
   assertRequesterIsDelegateProducerOrProducer,
   assertRequesterIsProducer,
@@ -2422,10 +2422,6 @@ export function catalogServiceBuilder(
       );
 
       assertRequesterIsProducer(eservice.data.producerId, authData);
-      await assertNoExistingProducerDelegationForEServiceCloning(
-        eservice.data.id,
-        readModelService
-      );
 
       const currentDate = new Date();
       const suffix = ` - clone - ${dateAtRomeZone(currentDate)} ${timeAtRomeZone(currentDate)}`;
@@ -2473,6 +2469,35 @@ export function catalogServiceBuilder(
         )
       );
 
+      const newDescriptor = explicitPropertiesChecker<Descriptor>({
+        id: generateId(),
+        version: "1",
+        interface: clonedInterfaceDocument,
+        asyncExchangeCallbackInterface:
+          clonedAsyncExchangeCallbackInterfaceDocument,
+        docs: clonedDocuments,
+        state: descriptorState.draft,
+        createdAt: new Date(),
+        publishedAt: undefined,
+        suspendedAt: undefined,
+        deprecatedAt: undefined,
+        archivedAt: undefined,
+        archivingSchedule: undefined,
+        attributes: descriptor.attributes,
+        dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+        audience: descriptor.audience,
+        voucherLifespan: descriptor.voucherLifespan,
+        dailyCallsTotal: descriptor.dailyCallsTotal,
+        serverUrls: descriptor.serverUrls,
+        description: descriptor.description,
+        serverUrlsDescriptions: descriptor.serverUrlsDescriptions,
+        agreementApprovalPolicy: descriptor.agreementApprovalPolicy,
+        asyncExchangeProperties: descriptor.asyncExchangeProperties,
+        rejectionReasons: undefined,
+        templateVersionRef: descriptor.templateVersionRef,
+        delegatedArchivingRequest: undefined,
+      });
+
       const clonedEservice: EService = {
         id: generateId(),
         producerId: eservice.data.producerId,
@@ -2482,26 +2507,7 @@ export function catalogServiceBuilder(
         createdAt: new Date(),
         riskAnalysis: eservice.data.riskAnalysis,
         mode: eservice.data.mode,
-        descriptors: [
-          {
-            ...descriptor,
-            id: generateId(),
-            version: "1",
-            interface: clonedInterfaceDocument,
-            asyncExchangeCallbackInterface:
-              clonedAsyncExchangeCallbackInterfaceDocument,
-            docs: clonedDocuments,
-            state: descriptorState.draft,
-            createdAt: new Date(),
-            publishedAt: undefined,
-            suspendedAt: undefined,
-            deprecatedAt: undefined,
-            archivedAt: undefined,
-            archivingSchedule: undefined,
-            rejectionReasons: undefined,
-            delegatedArchivingRequest: undefined,
-          },
-        ],
+        descriptors: [newDescriptor],
         personalData: eservice.data.personalData,
         asyncExchange: eservice.data.asyncExchange,
         delegatedArchivingRequest: undefined,
