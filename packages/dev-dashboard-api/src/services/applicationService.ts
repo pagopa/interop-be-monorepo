@@ -101,8 +101,10 @@ export function applicationServiceBuilder(
         env: environment,
       });
       if (item.port) await waitFor(name, packageReadinessUrl(item));
-      if (!children.has(name))
+      if (!children.has(name)) {
+        if (item.kind === "job" && item.error === undefined) return;
         throw new Error(item.error ?? `Package ${name} exited during startup`);
+      }
       item.state = "running";
       if (item.watch && options.watchSource)
         watchers.set(
@@ -147,31 +149,45 @@ export function applicationServiceBuilder(
   }
 
   async function launch(name: string, command: Command): Promise<void> {
-    let exited: string | undefined;
+    const item = getPackage(name);
+    let exited = false;
     const child = await options.driver.start(
       command,
       (line) => logs.append(command.source, line),
-      (error) => {
-        exited = error;
+      (result) => {
+        exited = true;
         watchers.get(name)?.();
         watchers.delete(name);
         children.delete(name);
-        const item = packages.find((p) => p.name === name);
-        if (item) {
+        delete item.pid;
+        if (
+          item.kind === "job" &&
+          result.code === 0 &&
+          result.signal === null &&
+          result.error === undefined
+        ) {
+          item.state = "stopped";
+          delete item.error;
+          logs.append(
+            command.source,
+            `INFO ${name} completed with exit code 0`
+          );
+        } else {
           item.state = "failed";
-          item.error = error;
-          delete item.pid;
+          item.error =
+            result.error ??
+            `${name} exited with ${result.signal ?? result.code}`;
+          logs.append(command.source, `ERROR ${item.error}`);
         }
-        logs.append(command.source, `ERROR ${error}`);
       }
     );
     if (exited) {
       await child.stop();
-      throw new Error(exited);
+      if (item.error !== undefined) throw new Error(item.error);
+      return;
     }
     children.set(name, child);
-    const item = packages.find((p) => p.name === name);
-    if (item) item.pid = child.pid;
+    item.pid = child.pid;
   }
 
   async function stopChild(name: string): Promise<void> {

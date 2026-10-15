@@ -2,7 +2,12 @@ import { spawn, type ChildProcess } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import { setTimeout as delay } from "node:timers/promises";
 
-import type { Child, Command, Driver } from "../model/domain/models.js";
+import type {
+  Child,
+  Command,
+  Driver,
+  ProcessExit,
+} from "../model/domain/models.js";
 
 import {
   DASHBOARD_TIMING,
@@ -20,8 +25,6 @@ const safeEnvironment = (): NodeJS.ProcessEnv =>
         INHERITED_ENVIRONMENT_PREFIXES.some((prefix) => key.startsWith(prefix))
     )
   );
-
-type ProcessExit = { code: number | null; signal: NodeJS.Signals | null };
 
 type ManagedProcess = {
   process: ChildProcess;
@@ -171,14 +174,14 @@ export function processDriverServiceBuilder(
   async function start(
     command: Command,
     log: (line: string) => void,
-    exit: (error: string) => void
+    exit: (result: ProcessExit) => void
   ): Promise<Child> {
     const managed = spawnProcess(command, log);
     let stopping = false;
 
-    async function onProcessExit({ code, signal }: ProcessExit): Promise<void> {
+    async function onProcessExit(result: ProcessExit): Promise<void> {
       if (stopping) return;
-      exit(`${command.source} exited with ${signal ?? code}`);
+      exit(result);
       try {
         await terminate(managed.process, managed.complete);
       } catch {
@@ -187,7 +190,8 @@ export function processDriverServiceBuilder(
     }
 
     void managed.complete.then(onProcessExit, (error: unknown) => {
-      if (!stopping) exit(errorMessage(error));
+      if (!stopping)
+        exit({ code: null, signal: null, error: errorMessage(error) });
     });
     await new Promise<void>((resolve, reject) => {
       managed.process.once("spawn", resolve);

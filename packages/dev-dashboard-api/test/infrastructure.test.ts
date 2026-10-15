@@ -48,7 +48,7 @@ describe("compose inventory and log collection", () => {
   it.each([false, true])(
     "restarts an exited log tail for an unchanged container (exit during startup: %s)",
     async (exitDuringStartup) => {
-      const exits: Array<(error: string) => void> = [];
+      const exits: Array<Parameters<Driver["start"]>[2]> = [];
       const stops: number[] = [];
       const row = { ID: "db1", Service: "db", State: "running" };
       const driver: Driver = {
@@ -57,7 +57,7 @@ describe("compose inventory and log collection", () => {
         start: async (_command, log, exit) => {
           const pid = exits.push(exit);
           log(`INFO tail ${pid} ready`);
-          if (exitDuringStartup && pid === 1) exit("Docker logs exited");
+          if (exitDuringStartup && pid === 1) exit({ code: 1, signal: null });
           return {
             pid,
             stop: async () => {
@@ -75,7 +75,7 @@ describe("compose inventory and log collection", () => {
       const monitor = infrastructureServiceBuilder("/be", driver, supervisor);
       await monitor.refresh();
       const before = supervisor.logs.read({});
-      if (!exitDuringStartup) exits[0]("Docker logs exited");
+      if (!exitDuringStartup) exits[0]({ code: 1, signal: null });
       await monitor.refresh();
 
       expect(exits).toHaveLength(2);
@@ -86,12 +86,12 @@ describe("compose inventory and log collection", () => {
         "INFO tail 2 ready",
       ]);
 
-      exits[0]("Late exit from the original tail");
+      exits[0]({ code: 1, signal: null });
       await monitor.refresh();
       expect(exits).toHaveLength(2);
       expect(stops).toEqual([1]);
 
-      exits[1]("Replacement tail exited");
+      exits[1]({ code: 1, signal: null });
       await monitor.refresh();
       expect(exits).toHaveLength(3);
       expect(stops).toEqual([1, 2]);
