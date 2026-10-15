@@ -44,7 +44,7 @@ import {
   tenantNotAllowedOnClient,
   missingSelfcareId,
   duplicatedMembersInSeed,
-  archivedStateNotAllowed,
+  eserviceInArchivedState,
   userNotFound,
 } from "../model/domain/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
@@ -265,6 +265,6 @@ export const assertEServiceIsNotArchived = (eservice: EService): void => {
   );
 
   if (isArchived) {
-    throw archivedStateNotAllowed(eservice.id);
+    throw eserviceInArchivedState(eservice.id);
   }
 };

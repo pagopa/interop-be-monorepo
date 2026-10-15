@@ -52,7 +52,7 @@ const errorCodes = {
   tenantNotFound: "0037",
   missingSelfcareId: "0038",
   duplicatedMembersInSeed: "0039",
-  archivedStateNotAllowed: "0040",
+  eserviceInArchivedState: "0040",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -458,12 +458,12 @@ export function duplicatedMembersInSeed(): ApiError<ErrorCodes> {
   });
 }
 
-export function archivedStateNotAllowed(
+export function eserviceInArchivedState(
   eserviceId: EServiceId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `EService ${eserviceId} is in archived state and cannot be used for the requested operation`,
-    code: "archivedStateNotAllowed",
+    code: "eserviceInArchivedState",
     title: "EService in archived state",
   });
 }

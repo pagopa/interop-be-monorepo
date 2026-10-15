@@ -26,7 +26,7 @@ import {
   tenantNotAllowedOnEService,
   eserviceAlreadyLinkedToProducerKeychain,
   producerKeychainNotFound,
-  archivedStateNotAllowed,
+  eserviceInArchivedState,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -239,7 +239,7 @@ describe("addProducerKeychainEService", async () => {
     );
   });
 
-  it("should throw archivedStateNotAllowed if the eservice is archived", async () => {
+  it("should throw eserviceInArchivedState if the eservice is archived", async () => {
     const mockProducerId: TenantId = generateId();
     const mockEServiceId: EServiceId = generateId();
     const mockDescriptor: Descriptor = {
@@ -271,6 +271,6 @@ describe("addProducerKeychainEService", async () => {
         },
         getMockContext({ authData: getMockAuthData(mockProducerId) })
       )
-    ).rejects.toThrowError(archivedStateNotAllowed(mockEService.id));
+    ).rejects.toThrowError(eserviceInArchivedState(mockEService.id));
   });
 });
