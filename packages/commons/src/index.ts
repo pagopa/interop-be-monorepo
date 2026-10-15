@@ -37,3 +37,4 @@ export * from "./safe-storage/index.js";
 export * from "./dynamo-db-client/index.js";
 export * from "./notification/notificationAdmittedRoles.js";
 export * from "./integrity-rest-02/index.js";
+export * from "./utils/sanitizeFilenameToAscii.js";
