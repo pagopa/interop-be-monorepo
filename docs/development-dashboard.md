@@ -62,8 +62,26 @@ Use the navigation to open Packages, Presets, Infrastructure, Access token or
 Logs. Each section has its own URL hash, so browser history and refresh
 retain the selected view. A package's log action opens Logs with that package
 selected. On Packages, Presets, Infrastructure and Access token, action progress
-appears in the button used. There is no operations page or timeline; diagnostics
-are available through Logs.
+appears in the button used. Diagnostics are available through Logs.
+
+When opened from the frontend devcontainer, the dashboard also offers **Fullstack
+status** at `#/status` and uses it as the initial page. The current startup phases
+include dependency installation, dashboard readiness, infrastructure, backend
+services, seed, local identity, Vite, smoke tests and browser checks. Backend
+operation details appear inside the corresponding startup phase. Current
+infrastructure, preset members and frontend process state remain visible after
+startup, so a successful earlier startup does not hide a later stopped service.
+Frontend startup and Vite log tails are available on this page; backend logs
+continue to use the existing Logs view.
+
+The frontend Compose overlay enables this view with
+`DASHBOARD_FRONTEND_URL=http://frontend:8077`. This is an internal read-only
+observer owned by the frontend container; its port is not published on the host.
+The backend validates the observer response and keeps its own status available
+when the frontend is unreachable. Without this setting, the dashboard retains
+its backend-only navigation and never contacts a frontend observer. The
+dashboard observes frontend state; frontend lifecycle commands remain in the
+frontend launcher.
 
 Each package has start, stop, logs and watch controls. Watch is on
 by default and off for packages in the Frontend backend preset.

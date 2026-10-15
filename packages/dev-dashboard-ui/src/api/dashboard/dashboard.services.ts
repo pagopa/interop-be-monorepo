@@ -1,6 +1,7 @@
 import {
   schemas,
   type DashboardAction,
+  type FrontendLogSource,
   type IdentityInput,
   type PresetInput,
 } from "pagopa-interop-dev-dashboard-contracts";
@@ -34,6 +35,11 @@ function getStatus(signal?: AbortSignal) {
 
 function getIdentities(signal?: AbortSignal) {
   return request("/identities", schemas.IdentitiesResponse, { signal });
+}
+
+function getFrontendLogs(source: FrontendLogSource, signal?: AbortSignal) {
+  const params = new URLSearchParams({ source });
+  return request(`/frontend/logs?${params}`, schemas.FrontendLogs, { signal });
 }
 
 function getLogs(
@@ -80,6 +86,7 @@ export const DashboardService = {
   getStatus,
   getIdentities,
   getLogs,
+  getFrontendLogs,
   generateToken,
   runAction,
   savePreset,

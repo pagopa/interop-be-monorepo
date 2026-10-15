@@ -1,3 +1,5 @@
+import type { FrontendLogSource } from "pagopa-interop-dev-dashboard-contracts";
+
 import { queryOptions } from "@tanstack/react-query";
 
 import { DashboardService } from "./dashboard.services";
@@ -19,4 +21,12 @@ function identities(revision = "") {
   });
 }
 
-export const DashboardQueries = { status, identities };
+function frontendLogs(source: FrontendLogSource) {
+  return queryOptions({
+    queryKey: ["dashboard", "frontend", "logs", source],
+    queryFn: ({ signal }) => DashboardService.getFrontendLogs(source, signal),
+    refetchInterval: 2000,
+  });
+}
+
+export const DashboardQueries = { status, identities, frontendLogs };
