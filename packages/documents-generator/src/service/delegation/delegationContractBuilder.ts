@@ -9,6 +9,8 @@ import {
   Delegation,
   DelegationContractDocument,
   DelegationContractId,
+  DelegationContractKind,
+  delegationContractKind,
   delegationKind,
   DelegationStamp,
   EService,
@@ -30,13 +32,16 @@ import { PDFGenerator } from "../../pdf-generator/pdfGenerator.js";
 
 const CONTENT_TYPE_PDF = "application/pdf";
 
+const delegationContractPrettyPrefix: Record<DelegationContractKind, string> = {
+  [delegationContractKind.activation]: "Delega",
+  [delegationContractKind.revocation]: "Revoca_Delega",
+};
+
 const createDelegationContractPrettyName = (
   eServiceName: string,
-  documentType: "activation" | "revocation"
+  documentType: DelegationContractKind
 ): string => {
-  const prettyName = `${
-    documentType === "activation" ? "Delega" : "Revoca_Delega"
-  }_${eServiceName}`;
+  const prettyName = `${delegationContractPrettyPrefix[documentType]}_${eServiceName}`;
   return prettyName.length > 45 ? prettyName.slice(0, 45) : prettyName;
 };
 
@@ -47,7 +52,7 @@ const getIpaCode = (tenant: Tenant): string | undefined =>
 
 const createDelegationDocumentName = (
   documentCreatedAt: Date,
-  documentType: "activation" | "revocation"
+  documentType: DelegationContractKind
 ): string =>
   `${formatDateyyyyMMddHHmmss(
     documentCreatedAt
@@ -110,9 +115,9 @@ export const contractBuilder = {
     const documentId = generateId<DelegationContractId>();
     const documentName = createDelegationDocumentName(
       documentCreatedAt,
-      "activation"
+      delegationContractKind.activation
     );
-    assertStampExists(delegation.stamps, "activation");
+    assertStampExists(delegation.stamps, delegationContractKind.activation);
 
     const submissionDate = dateAtRomeZone(delegation.stamps.submission.when);
     const submissionTime = timeAtRomeZone(delegation.stamps.submission.when);
@@ -158,7 +163,7 @@ export const contractBuilder = {
       name: documentName,
       prettyName: createDelegationContractPrettyName(
         eservice.name,
-        "activation"
+        delegationContractKind.activation
       ),
       contentType: CONTENT_TYPE_PDF,
       path: documentPath,
@@ -199,10 +204,10 @@ export const contractBuilder = {
     const documentId = generateId<DelegationContractId>();
     const documentName = createDelegationDocumentName(
       documentCreatedAt,
-      "revocation"
+      delegationContractKind.revocation
     );
 
-    assertStampExists(delegation.stamps, "revocation");
+    assertStampExists(delegation.stamps, delegationContractKind.revocation);
     const revocationDate = dateAtRomeZone(delegation.stamps.revocation.when);
     const revocationTime = timeAtRomeZone(delegation.stamps.revocation.when);
 
@@ -244,7 +249,7 @@ export const contractBuilder = {
       name: documentName,
       prettyName: createDelegationContractPrettyName(
         eservice.name,
-        "revocation"
+        delegationContractKind.revocation
       ),
       contentType: CONTENT_TYPE_PDF,
       path: documentPath,
