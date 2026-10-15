@@ -412,7 +412,7 @@ export function purposeTemplateRiskAnalysisTemplateSignedDocumentNotFound(
   purposeTemplateRiskAnalysisForm: RiskAnalysisFormTemplateId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `No signed document found for Risk Analysis Template Form ${purposeTemplateRiskAnalysisForm}`,
+    detail: `No signed document found for Risk Analysis Template Form ${purposeTemplateRiskAnalysisForm}. The signature is asynchronous: the document can still be in progress`,
     code: "purposeTemplateRiskAnalysisTemplateSignedDocumentNotFound",
     title: "Risk Analysis Template Signed Document Not Found",
   });
