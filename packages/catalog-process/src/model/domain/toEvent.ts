@@ -1314,7 +1314,7 @@ export const toCreateEventEServiceDescriptorArchivingRequestCanceledByDelegate =
     correlationId,
   });
 
-export const toCreateEventEServiceDescriptorUpdatedtAfterDelegationRevoke = (
+export const toCreateEventEServiceDescriptorUpdatedAfterDelegationRevoke = (
   version: number,
   descriptorId: DescriptorId,
   eservice: EService,

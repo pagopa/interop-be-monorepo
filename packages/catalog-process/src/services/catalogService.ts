@@ -201,7 +201,7 @@ import {
   toCreateEventEServiceDescriptorArchivingRequestApprovedByDelegator,
   toCreateEventEServiceArchivingRequestCanceledByDelegate,
   toCreateEventEServiceDescriptorArchivingRequestCanceledByDelegate,
-  toCreateEventEServiceDescriptorUpdatedtAfterDelegationRevoke,
+  toCreateEventEServiceDescriptorUpdatedAfterDelegationRevoke,
 } from "../model/domain/toEvent.js";
 import {
   appendArchivingRequest,
@@ -2597,7 +2597,7 @@ export function catalogServiceBuilder(
       );
 
       const delegatedDescriptorRevokedEvent =
-        toCreateEventEServiceDescriptorUpdatedtAfterDelegationRevoke(
+        toCreateEventEServiceDescriptorUpdatedAfterDelegationRevoke(
           eservice.metadata.version,
           descriptorId,
           updatedEService,
