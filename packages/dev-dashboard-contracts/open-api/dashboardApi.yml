@@ -397,6 +397,9 @@ components:
           type: string
         kind:
           type: string
+        presetId:
+          type: string
+          description: Preset targeted by a preset start or stop operation.
         state:
           type: string
           enum:

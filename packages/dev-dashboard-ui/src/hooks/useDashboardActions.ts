@@ -73,6 +73,15 @@ function deriveBusy(
   }
   for (const operation of status?.operations ?? []) {
     if (!active(operation)) continue;
+    if (
+      operation.presetId &&
+      (operation.kind === "preset.start" || operation.kind === "preset.stop")
+    ) {
+      busy[`preset:${operation.presetId}`] ??= operation.id;
+      busy[
+        `preset-${operation.kind.slice("preset.".length)}:${operation.presetId}`
+      ] ??= operation.id;
+    }
     if (operation.kind.startsWith("infra.")) {
       busy.infra ??= operation.id;
       busy[`infra-${operation.kind.slice("infra.".length)}`] ??= operation.id;

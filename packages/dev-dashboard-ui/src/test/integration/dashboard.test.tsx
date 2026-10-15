@@ -101,6 +101,75 @@ function postedBodies(path: string) {
 }
 
 describe("development dashboard", () => {
+  it.each([
+    { kind: "preset.start", state: "pending", button: "Start" },
+    { kind: "preset.start", state: "running", button: "Start" },
+    { kind: "preset.stop", state: "pending", button: "Stop" },
+    { kind: "preset.stop", state: "running", button: "Stop" },
+  ] satisfies Array<{
+    kind: "preset.start" | "preset.stop";
+    state: "pending" | "running";
+    button: string;
+  }>)(
+    "restores the $state $kind progress and locks preset controls after reload",
+    async ({ kind, state, button }) => {
+      const preset = currentStatus.presets[1];
+      currentStatus = {
+        ...currentStatus,
+        operations: [
+          {
+            id: "preset-operation",
+            kind,
+            presetId: preset.id,
+            state,
+            startedAt: "2026-10-06T10:01:00Z",
+            phases: [],
+          },
+        ],
+      };
+      window.history.replaceState(null, "", "#/presets");
+      renderDashboard();
+      const row = within(
+        await screen.findByRole("article", { name: preset.name })
+      );
+      for (const action of ["Start", "Stop", "Edit", "Delete"])
+        expect(
+          row.getByRole("button", { name: `${action} ${preset.name}` })
+        ).toBeDisabled();
+      expect(
+        row.getByRole("button", { name: `${button} ${preset.name}` })
+      ).toHaveAttribute("aria-busy", "true");
+      expect(row.getByRole("status")).toBeVisible();
+      const otherPreset = currentStatus.presets[0];
+      expect(
+        within(
+          screen.getByRole("article", { name: otherPreset.name })
+        ).getByRole("button", { name: `Start ${otherPreset.name}` })
+      ).toBeEnabled();
+
+      currentStatus = {
+        ...currentStatus,
+        operations: currentStatus.operations.map((operation) => ({
+          ...operation,
+          state: "passed",
+        })),
+      };
+      await userEvent
+        .setup()
+        .click(screen.getByRole("button", { name: "Refresh runtime status" }));
+      await waitFor(() =>
+        expect(
+          row.getByRole("button", { name: `Edit ${preset.name}` })
+        ).toBeEnabled()
+      );
+      expect(
+        row.getByRole("button", { name: `Delete ${preset.name}` })
+      ).toBeEnabled();
+      expect(row.queryByRole("status")).not.toBeInTheDocument();
+      expect(postedBodies("/actions")).toEqual([]);
+    }
+  );
+
   it("removes operation navigation and timelines from all dashboard pages", async () => {
     renderDashboard();
     await screen.findByRole("heading", { name: "Package catalogue" });

@@ -156,6 +156,10 @@ export function operationServiceBuilder(
     const operation: Operation = {
       id: randomUUID(),
       kind: action.type,
+      ...(action.type === DASHBOARD_ACTION_TYPES.presetStart ||
+      action.type === DASHBOARD_ACTION_TYPES.presetStop
+        ? { presetId: action.id }
+        : {}),
       state: "pending",
       startedAt: new Date().toISOString(),
       phases: steps.map((step) => ({
