@@ -1,0 +1,36 @@
+{
+  "name": "pagopa-interop-dev-dashboard-api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "license": "MPL-2.0",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "build": "tsc",
+    "check": "tsc --noEmit -p tsconfig.check.json",
+    "test": "vitest run",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "dotenv-flow": "catalog:",
+    "express": "catalog:",
+    "pagopa-interop-dev-dashboard-contracts": "workspace:*",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@aws-sdk/client-dynamodb": "catalog:",
+    "@aws-sdk/client-kms": "catalog:",
+    "@aws-sdk/client-s3": "catalog:",
+    "@aws-sdk/client-sesv2": "catalog:",
+    "@aws-sdk/client-sqs": "catalog:",
+    "@types/express": "catalog:",
+    "@types/node": "catalog:",
+    "@types/supertest": "catalog:",
+    "eslint": "catalog:",
+    "pagopa-interop-eslint-config": "workspace:*",
+    "supertest": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

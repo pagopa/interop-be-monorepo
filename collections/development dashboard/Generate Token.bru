@@ -1,0 +1,18 @@
+meta {
+  name: Generate Token
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{host-dashboard}}/__local-dashboard/api/identity
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "tenantKey": "comune",
+    "userId": "10000000-0000-4000-8000-000000000001"
+  }
+}
