@@ -64,10 +64,7 @@ done
 echo 'Installing backend workspace dependencies'
 CI=true pnpm install --frozen-lockfile
 echo 'Building the dashboard'
-pnpm --filter pagopa-interop-dev-dashboard-contracts generate-model
-pnpm --filter pagopa-interop-dev-dashboard-contracts build
-pnpm --filter pagopa-interop-dev-dashboard-api build
-pnpm --filter pagopa-interop-dev-dashboard-ui build
+pnpm exec turbo run build --filter=pagopa-interop-dev-dashboard-api --filter=pagopa-interop-dev-dashboard-ui
 echo 'Starting dashboard API'
 node packages/dev-dashboard-api/dist/index.js &
 api_pid="$!"
