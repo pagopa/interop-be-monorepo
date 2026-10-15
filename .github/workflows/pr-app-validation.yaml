@@ -26,7 +26,7 @@ jobs:
         with:
           node-version-file: ./package.json
       - name: Run OpenAPI lint
-        run: bash -O extglob -c "pnpm --filter pagopa-interop-api-clients lint:openapi"
+        run: bash -O extglob -c "pnpm --filter pagopa-interop-api-clients --filter pagopa-interop-dev-dashboard-contracts lint:openapi"
 
   knip:
     name: Knip codebase audit
