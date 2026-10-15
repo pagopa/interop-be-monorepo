@@ -228,11 +228,11 @@ paths:
         - m2m
       operationId: m2mUpsertTenant
       description: |
-        Creates the Tenant if it does not exist. Otherwise, add missing attributes.
+        Adds the missing certified attributes to an existing Tenant.
         Used when the attribute origin should be deducted from requester
       responses:
         "200":
-          description: Tenant created or updated
+          description: Updated Tenant
           content:
             application/json:
               schema:
@@ -1799,14 +1799,9 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/M2MAttributeSeed"
-        name:
-          type: string
-          minLength: 1
-          maxLength: 1000
       required:
         - externalId
         - certifiedAttributes
-        - name
     SelfcareTenantSeed:
       description: Tenant Seed model
       type: object
