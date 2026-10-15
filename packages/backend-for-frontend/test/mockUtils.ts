@@ -667,11 +667,6 @@ export const getMockBffApiIdentityToken = (): bffApi.IdentityToken => ({
   identity_token: generateMock(z.string()),
 });
 
-export const getMockBffApiGoogleSAMLPayload = (): bffApi.GoogleSAMLPayload => ({
-  SAMLResponse: generateMock(z.string()),
-  RelayState: generateMock(z.string().nullish()),
-});
-
 export const getMockBffApiDelegationSeed = (): bffApi.DelegationSeed => ({
   eserviceId: generateId(),
   delegateId: generateId(),

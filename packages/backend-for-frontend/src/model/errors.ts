@@ -24,7 +24,6 @@ const errorCodes = {
   missingDescriptorInClonedEservice: "0016",
   agreementDescriptorNotFound: "0017",
   invalidJwtClaim: "0018",
-  samlNotValid: "0019",
   missingSelfcareId: "0020",
   invalidZipStructure: "0021",
   contractNotFound: "0022",
@@ -217,14 +216,6 @@ export function tenantLoginNotAllowed(
     detail: `Tenant origin is not allowed and SelfcareID ${selfcareId} does not belong to allow list`,
     code: "tenantLoginNotAllowed",
     title: "Tenant login not allowed",
-  });
-}
-
-export function samlNotValid(message: string): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Error while validating saml -> ${message}`,
-    code: "samlNotValid",
-    title: "SAML not valid",
   });
 }
 
