@@ -18,6 +18,9 @@ bash scripts/local-development/dashboard.sh start
 
 Open **http://localhost:8076**. Initial dependency installation and dashboard
 compilation appear in `bash scripts/local-development/dashboard.sh logs`.
+Dashboard builds use the workspace's Turbo cache: unchanged generation and
+compilation are reused on later starts, including restoring missing build
+outputs. After the shared contracts are built, the API and UI build in parallel.
 The API then prepares infrastructure automatically: Kafka recovery, container
 startup, migrations and RustFS fixtures, topic creation and Debezium registration.
 No application package starts automatically unless a startup preset is selected.
