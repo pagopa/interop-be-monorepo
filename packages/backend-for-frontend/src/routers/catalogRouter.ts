@@ -33,6 +33,7 @@ import {
   importEServiceErrorMapper,
   getEServiceTemplateInstancesErrorMapper,
 } from "../utilities/errorMappers.js";
+import { contentDispositionAttachment } from "../utilities/fileUtils.js";
 
 const catalogRouter = (
   ctx: ZodiosContext,
@@ -205,7 +206,7 @@ const catalogRouter = (
         return res
           .header(
             "Content-Disposition",
-            `attachment; filename=${response.filename}`
+            contentDispositionAttachment(response.filename)
           )
           .header("Content-Type", "application/octet-stream")
           .send(response.file);
