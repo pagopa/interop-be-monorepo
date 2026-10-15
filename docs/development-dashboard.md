@@ -330,7 +330,7 @@ pnpm --filter pagopa-interop-dev-dashboard-contracts lint:openapi
 pnpm --filter pagopa-interop-dev-dashboard-contracts test
 pnpm --filter pagopa-interop-dev-dashboard-api test
 pnpm --filter pagopa-interop-dev-dashboard-ui test
-node --test scripts/local-development/dashboard-runtime.test.mjs
+node --test scripts/local-development/test/dashboard-runtime.test.mjs
 ```
 
 The infrastructure mocks and seed workflow are described in

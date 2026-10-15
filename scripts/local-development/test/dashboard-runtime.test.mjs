@@ -5,8 +5,8 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { test } from 'node:test';
 
-const script = new URL('./dashboard.sh', import.meta.url).pathname;
-const entrypoint = new URL('../../docker/dev-dashboard/entrypoint.sh', import.meta.url).pathname;
+const script = new URL('../dashboard.sh', import.meta.url).pathname;
+const entrypoint = new URL('../../../docker/dev-dashboard/entrypoint.sh', import.meta.url).pathname;
 
 for (const existingGroup of ['', 'docker']) {
   test(`bootstrap ${existingGroup ? 'reuses an existing' : 'creates a missing'} Docker socket group`, async () => {
@@ -111,7 +111,7 @@ test('prepare mounts the source checkout and isolates every workspace dependency
 });
 
 test('infra operations target infrastructure and preserve the dashboard during reset', async () => {
-  const scriptPath = new URL('./dashboard-infra.sh', import.meta.url).pathname;
+  const scriptPath = new URL('../dashboard-infra.sh', import.meta.url).pathname;
   const root = await mkdtemp(path.join(tmpdir(), 'interop-infra-test-'));
   try {
     await mkdir(path.join(root, '.local-development'));
