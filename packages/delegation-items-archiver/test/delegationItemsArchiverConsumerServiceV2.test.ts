@@ -699,7 +699,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
       ).not.toHaveBeenCalled();
     });
 
-    it.only("should call catalog-process in order when a descriptor is waitingForApproval and has an archiving request", async () => {
+    it("should call catalog-process in order when a descriptor is waitingForApproval and has an archiving request", async () => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(descriptorState.waitingForApproval),
         delegatedArchivingRequest: [pendingRequest],

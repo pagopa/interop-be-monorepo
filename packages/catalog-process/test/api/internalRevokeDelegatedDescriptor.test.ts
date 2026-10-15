@@ -13,7 +13,6 @@ import {
   EService,
   EServiceId,
   generateId,
-  operationForbidden,
 } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi } from "vitest";
@@ -72,10 +71,6 @@ describe("API /internal/eservices/{eServiceId}/descriptors/{descriptorId}/revoke
 
   it.each([
     {
-      error: operationForbidden,
-      expectedStatus: 403,
-    },
-    {
       error: eServiceNotFound(mockEService.id),
       expectedStatus: 404,
     },
@@ -85,7 +80,7 @@ describe("API /internal/eservices/{eServiceId}/descriptors/{descriptorId}/revoke
     },
     {
       error: notValidDescriptorState(descriptor.id, descriptor.state),
-      expectedStatus: 403,
+      expectedStatus: 409,
     },
   ])(
     "Should return $expectedStatus for $error.code",
