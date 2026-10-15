@@ -1,8 +1,27 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { frontendServiceBuilder } from "../src/services/frontendService.js";
+import { supervisorServiceBuilder } from "../src/services/supervisorService.js";
 
 afterEach(() => vi.unstubAllGlobals());
+
+const frontend = () =>
+  frontendServiceBuilder(
+    "http://frontend:8077",
+    supervisorServiceBuilder({
+      beRoot: "/be",
+      packages: [],
+      presets: [],
+      driver: {
+        run: async () => "",
+        start: async () => ({ pid: 1, stop: async () => undefined }),
+      },
+    }),
+    {
+      identities: async () => ({ ready: false, tenants: [] }),
+      identity: async () => ({ sessionToken: "unused" }),
+    }
+  );
 
 describe("optional frontend observation", () => {
   it("reads validated frontend status and log tails without mutation requests", async () => {
@@ -18,10 +37,10 @@ describe("optional frontend observation", () => {
       .mockResolvedValueOnce(Response.json(status))
       .mockResolvedValueOnce(Response.json({ content: "INFO Vite ready" }));
     vi.stubGlobal("fetch", probe);
-    const frontend = frontendServiceBuilder("http://frontend:8077");
+    const service = frontend();
 
-    expect(await frontend.status()).toEqual(status);
-    expect(await frontend.logs("vite")).toEqual({ content: "INFO Vite ready" });
+    expect(await service.status()).toEqual(status);
+    expect(await service.logs("vite")).toEqual({ content: "INFO Vite ready" });
     expect(probe.mock.calls.map(([url]) => url)).toEqual([
       "http://frontend:8077/status",
       "http://frontend:8077/logs?source=vite",
@@ -46,9 +65,7 @@ describe("optional frontend observation", () => {
     "reports an unavailable observer without hiding backend status",
     async (response) => {
       vi.stubGlobal("fetch", vi.fn(response));
-      expect(
-        await frontendServiceBuilder("http://frontend:8077").status()
-      ).toEqual({
+      expect(await frontend().status()).toEqual({
         available: false,
         running: false,
         state: "pending",
@@ -63,8 +80,6 @@ describe("optional frontend observation", () => {
       "fetch",
       vi.fn(async () => Response.json({ content: "x".repeat(65537) }))
     );
-    await expect(
-      frontendServiceBuilder("http://frontend:8077").logs("startup")
-    ).rejects.toThrow();
+    await expect(frontend().logs("startup")).rejects.toThrow();
   });
 });

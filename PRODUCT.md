@@ -14,8 +14,9 @@ logs, or prepare the backend used by a fullstack environment.
 
 A backend-owned development tool available independently of Vite and VS Code.
 The dashboard controls backend processes and infrastructure, keeping failures
-and runtime state visible. The frontend launcher owns Vite and frontend checks
-in a separate devcontainer and coordinates backend actions through the API.
+and runtime state visible. With the frontend integration enabled, the API also
+coordinates fullstack startup. A small agent owns Vite and frontend checks in
+a separate devcontainer and executes the API's frontend commands.
 
 ## Brand Personality
 
@@ -85,7 +86,7 @@ project while standard controls keep attention on development work.
   results through a bottom-right snackbar, prevent concurrent requests and wait briefly
   before allowing another manual refresh. Use the
   standard Terminal and Logs button for failure diagnostics. Keep seed out of local preset
-  controls. The frontend launcher requests seed explicitly during fullstack startup.
+  controls. Fullstack startup requests seed explicitly after backend startup.
   Dialogs open with a brief animation
   that respects reduced-motion preferences.
 - Keep preset section headings smaller than the page title, with clear separators

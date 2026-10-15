@@ -107,12 +107,49 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+  /__local-dashboard/api/frontend/actions:
+    post:
+      operationId: runFrontendAction
+      tags: [dashboard]
+      summary: Control the optional fullstack environment
+      description: Starts a backend-owned lifecycle operation. Poll status.frontend using the returned operation ID. Available only with the frontend devcontainer integration.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FrontendAction"
+      responses:
+        "202":
+          description: Operation accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OperationAccepted"
+        "400":
+          description: Invalid action
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Frontend integration is disabled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "409":
+          description: Another frontend operation is running or the dashboard is shutting down
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
   /__local-dashboard/api/frontend/logs:
     get:
       operationId: getFrontendLogs
       tags: [dashboard]
       summary: Read frontend startup or Vite logs
-      description: Returns a bounded log tail from the optional frontend observer. Available only when the frontend devcontainer integration is configured.
+      description: Returns a bounded log tail from the optional frontend agent. Available only when the frontend devcontainer integration is configured.
       parameters:
         - name: source
           in: query
@@ -530,9 +567,33 @@ components:
         - seedPrerequisites
         - seedReady
       additionalProperties: false
+    FrontendAction:
+      oneOf:
+        - type: object
+          properties:
+            type:
+              type: string
+              enum: [start, stop, use-local, use-dev, reset]
+          required: [type]
+          additionalProperties: false
+        - type: object
+          properties:
+            type:
+              type: string
+              enum: [identity]
+            tenantKey:
+              type: string
+              minLength: 1
+              maxLength: 100
+            userKey:
+              type: string
+              minLength: 1
+              maxLength: 100
+          required: [type, tenantKey, userKey]
+          additionalProperties: false
     FrontendStatus:
       type: object
-      description: Read-only frontend state, included only when a frontend observer is configured.
+      description: Frontend runtime state and backend-owned lifecycle progress, included only when a frontend agent is configured.
       properties:
         available:
           type: boolean
@@ -545,6 +606,9 @@ components:
         mode:
           type: string
           enum: [local, dev]
+        operationId:
+          type: string
+          description: Identifies the latest frontend lifecycle action.
         phases:
           type: array
           items:
