@@ -49,12 +49,10 @@ try {
 }
 
 const monitor = infrastructureServiceBuilder(config.beRoot, driver, supervisor);
-const app = createApp(
-  supervisor,
-  identities,
-  config.uiRoot,
-  config.frontendUrl ? frontendServiceBuilder(config.frontendUrl) : undefined
-);
+const frontend = config.frontendUrl
+  ? frontendServiceBuilder(config.frontendUrl, supervisor, identities)
+  : undefined;
+const app = createApp(supervisor, identities, config.uiRoot, frontend);
 const server = app.listen(config.port, "0.0.0.0", () => {
   console.log(`Local dashboard listening on http://localhost:${config.port}`);
   monitor.start();
@@ -80,6 +78,7 @@ const shutdown = (): void => {
   server.close();
 
   void Promise.all([
+    frontend?.shutdown(),
     supervisor.shutdown(),
     monitor.shutdown(),
     driver.shutdown(),

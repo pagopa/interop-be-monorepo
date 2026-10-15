@@ -44,6 +44,22 @@ const dashboardRouter = (
     })
   );
 
+  router.post("/frontend/actions", (request, response, next) => {
+    if (!frontend) {
+      response
+        .status(constants.HTTP_STATUS_NOT_FOUND)
+        .json({ error: "Frontend integration is disabled" });
+      return;
+    }
+    try {
+      response
+        .status(constants.HTTP_STATUS_ACCEPTED)
+        .json(frontend.action(request.body));
+    } catch (error) {
+      next(error);
+    }
+  });
+
   router.get("/logs", (request, response, next) => {
     try {
       response.json(

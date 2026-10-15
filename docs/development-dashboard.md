@@ -78,13 +78,13 @@ startup phases. Infrastructure, packages and seeded data remain in their
 existing views, and backend log links use the existing Logs view.
 
 The frontend Compose overlay enables this view with
-`DASHBOARD_FRONTEND_URL=http://frontend:8077`. This is an internal read-only
-observer owned by the frontend container; its port is not published on the host.
-The backend validates the observer response and keeps its own status available
+`DASHBOARD_FRONTEND_URL=http://frontend:8077`. This is an internal agent
+owned by the frontend container; its port is not published on the host.
+The backend validates the agent response and keeps its own status available
 when the frontend is unreachable. Without this setting, the dashboard retains
-its backend-only navigation and never contacts a frontend observer. The
-dashboard observes frontend state; frontend lifecycle commands remain in the
-frontend launcher.
+its backend-only navigation and never contacts a frontend agent. With the
+integration enabled, the dashboard API owns fullstack lifecycle progress and
+delegates only frontend commands to the agent.
 
 Each package has start, stop, logs and watch controls. Watch is on
 by default and off for packages in the Frontend backend preset.
@@ -135,8 +135,8 @@ running. Save per-package watch choices in the preset.
 
 Access token offers an explicit **Seed local data** action using the existing
 `pnpm local:seed` workflow. Presets do not execute seed, including older definitions
-with `seed: true` or `fullstack: true`. The frontend launcher requests seed separately
-when preparing its fullstack environment.
+with `seed: true` or `fullstack: true`. Fullstack startup requests seed explicitly
+after the backend preset is ready.
 It requires the local tenant/catalog services and their readmodel writers and
 uses `docker/local-development/dataset.json` to
 create or reuse four demo tenants and a published Catalogo Demo eservice with
@@ -187,31 +187,33 @@ This starts infrastructure and the selected backend packages. It does not seed d
 or start Vite. Without `--preset`, startup prepares infrastructure without starting
 application packages. `--preset` accepts any shared or personal
 preset ID and can also be configured through `DASHBOARD_AUTOSTART_PRESET`.
-`DASHBOARD_AUTOSTART=false` disables all automatic startup.
+`DASHBOARD_AUTOSTART=false` disables backend-only automatic startup. A frontend
+agent can still explicitly request fullstack startup when its integration is enabled.
 
 The frontend `.devcontainer` runs in a separate Compose service. VS Code, frontend
 dependencies, Vite, smoke checks and browser checks belong to that container.
-Its launcher calls the dashboard API to start infrastructure, start `frontend-full`,
-seed local data and request a token. It then starts and checks the frontend itself.
-The dashboard does not mount the frontend checkout or manage frontend processes.
-There are no fullstack Start/Stop or Restart frontend controls in its UI or API.
-Use the frontend repository's launcher for those workflows. Closing VS Code leaves
+Its entrypoint starts the frontend agent and submits a startup action to the
+dashboard API. The API coordinates installation, infrastructure, `frontend-full`,
+seed, identity, Vite and checks. The agent executes frontend-only commands,
+retaining ownership of Vite and frontend files. The dashboard does not mount the
+frontend checkout. Use the frontend repository's CLI for lifecycle workflows;
+the dashboard UI continues to offer status and logs. Closing VS Code leaves
 the containers running; rebuilding the frontend container does not rebuild the backend
 dashboard or replace its managed processes.
 
-The launcher uses the existing API under `/__local-dashboard/api`:
+The CLI submits `POST /__local-dashboard/api/frontend/actions` with `type` set to
+`start`, `stop`, `use-local`, `use-dev`, `reset`, or `identity` with `tenantKey` and
+`userKey`. The endpoint is absent without the integration. Each accepted action
+returns `operationId`; poll `GET /status` and match `frontend.operationId` until
+`frontend.state` becomes `passed`, `stopped` or `failed`. Overlapping lifecycle
+operations are rejected. Each backend phase retains its operation ID for detailed
+progress. A failed startup skips subsequent phases and stops Vite; retry is explicit.
 
-1. Submit `POST /actions` with `{"type":"infra.start"}`.
-2. Submit `POST /actions` with `{"type":"preset.start","id":"frontend-full"}`.
-3. Submit `POST /actions` with `{"type":"seed"}` when local data is needed.
-4. Read `GET /identities`, select a tenant and user, then submit `POST /identity`
-   with `tenantKey` and `userId`. Store the returned `sessionToken` in the frontend's
-   own ignored local state.
-
-Each accepted action returns `operationId`. Wait for that operation in `GET /status`
-to reach `passed` before the next step; a `failed` operation stops startup. The
-identity endpoint returns the token directly. These endpoints also support other
-local launchers without adding frontend-specific commands to the backend API.
+The agent exposes status/log reads and `POST /commands` for installation,
+Vite start/stop and smoke/browser checks. Tokens travel only in a local-start
+command and remain in the frontend's ignored state. Public status contains no
+token or process ownership data. The existing backend `/actions`, `/identities`
+and `/identity` endpoints remain available for standalone workflows.
 
 The frontend is published at **http://localhost:3000/ui/it/**. The catalog process
 uses port 3000 inside the backend runtime and is published on **http://localhost:13000**.

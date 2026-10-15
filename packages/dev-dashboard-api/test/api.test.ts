@@ -82,6 +82,9 @@ describe("dashboard HTTP boundary", () => {
         })
       ),
       logs: vi.fn(async () => ({ content: "INFO starting frontend" })),
+      action: vi.fn(() => ({ operationId: "frontend-start" })),
+      idle: async () => undefined,
+      shutdown: async () => undefined,
     };
     const { app } = setup([], [], frontend);
     const response = await request(app).get("/__local-dashboard/api/status");
@@ -96,6 +99,10 @@ describe("dashboard HTTP boundary", () => {
       "/__local-dashboard/api/status"
     );
     expect(standalone.body).not.toHaveProperty("frontend");
+    const disabled = await request(setup().app)
+      .post("/__local-dashboard/api/frontend/actions")
+      .send({ type: "start" });
+    expect(disabled.status).toBe(404);
   });
 
   it("reads frontend logs through the configured observer and validates the source", async () => {
@@ -109,6 +116,9 @@ describe("dashboard HTTP boundary", () => {
         })
       ),
       logs: vi.fn(async () => ({ content: "INFO compiling Vite" })),
+      action: vi.fn(() => ({ operationId: "frontend-start" })),
+      idle: async () => undefined,
+      shutdown: async () => undefined,
     };
     const { app } = setup([], [], frontend);
     const logs = await request(app).get(

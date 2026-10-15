@@ -4,8 +4,9 @@ The backend-owned [development dashboard](development-dashboard.md) orchestrates
 the backend environment independently of the frontend and VS Code. Its Frontend backend
 preset starts the BFF, processes, SQL readmodel writers and DynamoDB platform-state
 writers needed by the back office. The frontend runs in a separate container;
-its launcher uses the dashboard API for backend startup, seed and token generation,
-then manages Vite and frontend checks itself.
+its small agent executes Vite and frontend checks. The dashboard API coordinates
+fullstack startup, seed and identity generation, delegating frontend commands to
+the agent over the internal Compose network.
 
 ## Backend commands
 

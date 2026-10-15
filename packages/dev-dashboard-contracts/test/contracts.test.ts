@@ -66,6 +66,31 @@ describe("generated dashboard contracts", () => {
     ).toBe(false);
   });
 
+  it("validates fullstack lifecycle actions separately from backend actions", () => {
+    for (const type of ["start", "stop", "use-local", "use-dev", "reset"]) {
+      expect(schemas.FrontendAction.safeParse({ type }).success).toBe(true);
+      expect(
+        schemas.FrontendAction.safeParse({ type, command: "bash" }).success
+      ).toBe(false);
+    }
+    expect(
+      schemas.FrontendAction.safeParse({
+        type: "identity",
+        tenantKey: "comune",
+        userKey: "admin",
+      }).success
+    ).toBe(true);
+    expect(
+      schemas.FrontendAction.safeParse({
+        type: "identity",
+        tenantKey: "comune",
+      }).success
+    ).toBe(false);
+    expect(schemas.FrontendAction.safeParse({ type: "shell" }).success).toBe(
+      false
+    );
+  });
+
   it("exposes the configured user key while retaining UUID identity input", () => {
     const user = {
       id: "user-id",
