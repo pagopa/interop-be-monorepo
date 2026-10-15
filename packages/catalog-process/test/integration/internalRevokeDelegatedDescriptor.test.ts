@@ -5,6 +5,7 @@ import {
   getMockContextInternal,
   getMockEService,
   getMockDescriptor,
+  readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
@@ -18,11 +19,11 @@ import { expect, describe, it } from "vitest";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
-  notValidDescriptorState,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
   catalogService,
+  postgresDB,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
 
@@ -102,15 +103,12 @@ describe("Change state to draft of delegated descriptor after delegation revoke"
     );
   });
 
-  it.each([
-    descriptorState.published,
-    descriptorState.suspended,
-    descriptorState.archived,
-    descriptorState.archiving,
-    descriptorState.archivingSuspended,
-    descriptorState.draft,
-  ])(
-    "should throw notValidDescriptorState if the descriptor is in %s state",
+  it.each(
+    Object.values(descriptorState).filter(
+      (state) => state !== descriptorState.waitingForApproval
+    )
+  )(
+    "should skip revocation without writing an event if the descriptor is in %s state",
     async (state) => {
       const descriptor: Descriptor = {
         ...mockDescriptor,
@@ -121,13 +119,26 @@ describe("Change state to draft of delegated descriptor after delegation revoke"
         descriptors: [descriptor],
       };
       await addOneEService(eservice);
-      await expect(
-        catalogService.internalRevokeDelegatedDescriptor(
-          eservice.id,
-          descriptor.id,
-          getMockContextInternal({})
-        )
-      ).rejects.toThrow(notValidDescriptorState(descriptor.id, state));
+
+      const lastEventBeforeRevocation = await readLastEventByStreamId(
+        eservice.id,
+        "catalog",
+        postgresDB
+      );
+
+      await catalogService.internalRevokeDelegatedDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContextInternal({})
+      );
+
+      const lastEventAfterRevocation = await readLastEventByStreamId(
+        eservice.id,
+        "catalog",
+        postgresDB
+      );
+
+      expect(lastEventAfterRevocation).toEqual(lastEventBeforeRevocation);
     }
   );
 });

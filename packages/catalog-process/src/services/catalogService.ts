@@ -207,6 +207,7 @@ import {
   getLatestActiveArchivingRequest,
   getLatestArchivingRequest,
   hasActiveArchivingRequest,
+  isDescriptorInWaitingForApprovalState,
   removeActiveArchivingRequest,
   updateLatestActiveArchivingRequest,
 } from "../utilities/archivingRequests.js";
@@ -272,7 +273,6 @@ import {
   assertDelegatedDescriptorHasAtLeastOneArchivingRequests,
   assertDelegatedDescriptorHasActiveArchivingRequests,
   assertDelegatedArchivingRequestDelegationIsStillValid,
-  assertDescriptorIsWaitingForApprovalState,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -2573,7 +2573,12 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      assertDescriptorIsWaitingForApprovalState(descriptor);
+      if (!isDescriptorInWaitingForApprovalState(descriptor)) {
+        logger.info(
+          `Skipping delegated descriptor revocation for EService ${eserviceId}, descriptor ${descriptorId}: state is ${descriptor.state}, expected ${descriptorState.waitingForApproval}`
+        );
+        return;
+      }
 
       const updatedDescriptor = updateDescriptorState(
         descriptor,
