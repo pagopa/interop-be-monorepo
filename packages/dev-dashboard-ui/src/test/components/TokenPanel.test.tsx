@@ -544,6 +544,103 @@ describe("local identities", () => {
     ).toBe(false);
   });
 
+  it.each(
+    ["tenant", "user", "token"].flatMap((change) =>
+      ["resolves", "rejects"].map((outcome) => ({ change, outcome }))
+    )
+  )(
+    "preserves the current $change when an earlier clipboard write $outcome",
+    async ({ change, outcome }) => {
+      const identities = {
+        ...identitiesFixture,
+        tenants: identitiesFixture.tenants.map((tenant) =>
+          tenant.key === "consumer"
+            ? {
+                ...tenant,
+                users: [...tenant.users, ...identitiesFixture.tenants[1].users],
+              }
+            : tenant
+        ),
+      };
+      let token = "original-token";
+      vi.stubGlobal(
+        "fetch",
+        vi
+          .fn<typeof fetch>()
+          .mockImplementation(async (input) =>
+            String(input).endsWith("/identity")
+              ? Response.json({ sessionToken: token })
+              : Response.json(identities)
+          )
+      );
+      const user = userEvent.setup();
+      let finishCopy: () => void = () => undefined;
+      const clipboard = vi
+        .spyOn(navigator.clipboard, "writeText")
+        .mockImplementationOnce(
+          () =>
+            new Promise<void>((resolve, reject) => {
+              finishCopy =
+                outcome === "resolves"
+                  ? resolve
+                  : () => reject(new Error("Clipboard failed"));
+            })
+        );
+      render(
+        <TokenPanel
+          {...unreadyStatus}
+          seedPackages={seedPackages}
+          operations={[]}
+          onSeed={vi.fn()}
+          onPrepare={vi.fn()}
+        />
+      );
+      await user.click(
+        await screen.findByRole("button", { name: "Generate token" })
+      );
+      expect(
+        await screen.findByRole("textbox", { name: "Session token" })
+      ).toHaveValue("original-token");
+      await user.click(screen.getByRole("button", { name: "Copy token" }));
+      expect(clipboard).toHaveBeenCalledExactlyOnceWith("original-token");
+
+      if (change === "token") {
+        token = "replacement-token";
+        await user.click(
+          screen.getByRole("button", { name: "Generate token" })
+        );
+        await screen.findByDisplayValue("replacement-token");
+      } else {
+        await user.selectOptions(
+          screen.getByRole("combobox", {
+            name: change === "tenant" ? "Tenant" : "User",
+          }),
+          change === "tenant" ? "producer" : "operator"
+        );
+      }
+      await act(async () => finishCopy());
+
+      expect(screen.getByRole("combobox", { name: "Tenant" })).toHaveValue(
+        change === "tenant" ? "producer" : "consumer"
+      );
+      expect(screen.getByRole("combobox", { name: "User" })).toHaveValue(
+        change === "token" ? "admin" : "operator"
+      );
+      if (change === "token")
+        expect(
+          screen.getByRole("textbox", { name: "Session token" })
+        ).toHaveValue("replacement-token");
+      else
+        expect(
+          screen.queryByRole("textbox", { name: "Session token" })
+        ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Copied" })
+      ).not.toBeInTheDocument();
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    }
+  );
+
   it("reloads missing identities without automatically seeding and exposes discovered identities", async () => {
     let ready = false;
     const fetchMock = vi
