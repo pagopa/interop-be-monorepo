@@ -16,12 +16,18 @@ export type Command = {
 
 export type Child = { pid: number; stop: () => Promise<void> };
 
+export type ProcessExit = {
+  code: number | null;
+  signal: NodeJS.Signals | null;
+  error?: string;
+};
+
 export interface Driver {
   run(command: Command, log: (line: string) => void): Promise<string>;
   start(
     command: Command,
     log: (line: string) => void,
-    exit: (error: string) => void
+    exit: (result: ProcessExit) => void
   ): Promise<Child>;
 }
 

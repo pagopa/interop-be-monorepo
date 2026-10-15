@@ -1,8 +1,42 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { processDriverServiceBuilder } from "../src/services/processDriverService.js";
 
 describe("local process driver", () => {
+  it.each([
+    { script: "process.exit(0)", code: 0, signal: null },
+    { script: "process.exit(2)", code: 2, signal: null },
+    {
+      script: "process.kill(process.pid, 'SIGTERM')",
+      code: null,
+      signal: "SIGTERM",
+    },
+  ])(
+    "preserves the process exit code $code and signal $signal",
+    async ({ script, code, signal }) => {
+      const driver = processDriverServiceBuilder(100);
+      const exited = vi.fn();
+      try {
+        const child = await driver.start(
+          {
+            source: "job",
+            executable: process.execPath,
+            args: ["-e", script],
+            cwd: process.cwd(),
+          },
+          () => undefined,
+          exited
+        );
+
+        await vi.waitFor(() =>
+          expect(exited).toHaveBeenCalledExactlyOnceWith({ code, signal })
+        );
+        expect(await driver.isRunning(child.pid)).toBe(false);
+      } finally {
+        await driver.shutdown();
+      }
+    }
+  );
   it("cancels active commands when the dashboard shuts down", async () => {
     const driver = processDriverServiceBuilder(100);
     const run = driver.run(
@@ -21,7 +55,7 @@ describe("local process driver", () => {
   });
   it("observes the actual tsx application's crash without a surviving watch wrapper", async () => {
     const driver = processDriverServiceBuilder(100);
-    let exited = "";
+    const exited = vi.fn();
     const child = await driver.start(
       {
         source: "crash",
@@ -30,13 +64,16 @@ describe("local process driver", () => {
         cwd: process.cwd(),
       },
       () => undefined,
-      (error) => {
-        exited = error;
-      }
+      exited
     );
-    for (let i = 0; i < 500 && !exited; i++)
-      await new Promise((resolve) => setTimeout(resolve, 10));
-    expect(exited).toMatch(/exited with 1/);
+    await vi.waitFor(
+      () =>
+        expect(exited).toHaveBeenCalledExactlyOnceWith({
+          code: 1,
+          signal: null,
+        }),
+      { timeout: 5000 }
+    );
     expect(await driver.isRunning(child.pid)).toBe(false);
   });
   it("runs without a shell and captures complete and trailing log lines", async () => {

@@ -6,7 +6,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import type { Child, Command, Driver } from "../src/model/domain/models.js";
+import type {
+  Child,
+  Command,
+  Driver,
+  ProcessExit,
+} from "../src/model/domain/models.js";
 
 import { DASHBOARD_PATHS } from "../src/config/constants.js";
 import { supervisorServiceBuilder } from "../src/services/supervisorService.js";
@@ -16,8 +21,9 @@ class FakeDriver implements Driver {
   commands: Command[] = [];
   children = new Map<
     string,
-    { exit: (error: string) => void; stopped: boolean }
+    { exit: (result: ProcessExit) => void; stopped: boolean }
   >();
+  exitOnStart?: ProcessExit;
   gate?: Promise<void>;
   failPhase?: string;
   failStart?: string;
@@ -33,13 +39,14 @@ class FakeDriver implements Driver {
   async start(
     command: Command,
     _log: (line: string) => void,
-    exit: (error: string) => void
+    exit: (result: ProcessExit) => void
   ): Promise<Child> {
     this.commands.push(command);
     if (command.source === this.failStart)
       throw new Error(`Expected ${command.source} startup failure`);
     const record = { exit, stopped: false };
     this.children.set(command.source, record);
+    if (this.exitOnStart) exit(this.exitOnStart);
     return {
       pid: this.commands.length,
       stop: async () => {
@@ -90,6 +97,7 @@ const setup = (
     watchPreferences?: Record<string, boolean>;
     personalPath?: string;
     includeSeedPackages?: boolean;
+    packages?: Package[];
     watchSource?: (path: string, changed: () => void) => () => void;
   } = {}
 ) => {
@@ -97,7 +105,7 @@ const setup = (
   const supervisor = supervisorServiceBuilder({
     beRoot: "/be",
     driver,
-    packages: [
+    packages: options.packages ?? [
       member("a"),
       member("b"),
       member("outside"),
@@ -128,6 +136,121 @@ const setup = (
 };
 
 describe("local dashboard supervisor", () => {
+  it.each([false, true])(
+    "completes a successful one-shot job and releases its watcher (exit during startup: %s)",
+    async (exitDuringStartup) => {
+      let changed: () => void = () => undefined;
+      const closed = vi.fn();
+      const watchSource = vi.fn((_path: string, callback: () => void) => {
+        changed = callback;
+        return closed;
+      });
+      const { supervisor, driver } = setup({
+        packages: [{ ...member("job"), kind: "job" }],
+        watchSource,
+      });
+      const result = { code: 0, signal: null } satisfies ProcessExit;
+      if (exitDuringStartup) driver.exitOnStart = result;
+
+      supervisor.action({ type: "package.start", name: "job" });
+      await supervisor.idle();
+      if (!exitDuringStartup) driver.children.get("job")?.exit(result);
+
+      const job = supervisor.status().packages[0];
+      expect(job).toMatchObject({ kind: "job", state: "stopped" });
+      expect(job).not.toHaveProperty("pid");
+      expect(job).not.toHaveProperty("error");
+      expect(supervisor.status().operations.at(-1)?.state).toBe("passed");
+      expect(closed).toHaveBeenCalledTimes(exitDuringStartup ? 0 : 1);
+      expect(watchSource).toHaveBeenCalledTimes(exitDuringStartup ? 0 : 1);
+      expect(
+        supervisor.logs
+          .read({ source: "job" })
+          .entries.map((entry) => entry.message)
+      ).toEqual(["INFO job completed with exit code 0"]);
+
+      changed();
+      await supervisor.idle();
+      expect(
+        driver.commands.filter((command) => command.source === "job")
+      ).toHaveLength(1);
+      supervisor.action({ type: "package.start", name: "job" });
+      await supervisor.idle();
+      expect(
+        driver.commands.filter((command) => command.source === "job")
+      ).toHaveLength(2);
+    }
+  );
+
+  it.each([
+    {
+      kind: "job",
+      result: { code: 2, signal: null },
+      error: "a exited with 2",
+      duringStartup: false,
+    },
+    {
+      kind: "job",
+      result: { code: null, signal: "SIGTERM" },
+      error: "a exited with SIGTERM",
+      duringStartup: false,
+    },
+    {
+      kind: "service",
+      result: { code: 0, signal: null },
+      error: "a exited with 0",
+      duringStartup: false,
+    },
+    {
+      kind: "worker",
+      result: { code: 0, signal: null },
+      error: "a exited with 0",
+      duringStartup: false,
+    },
+    {
+      kind: "job",
+      result: { code: 2, signal: null },
+      error: "a exited with 2",
+      duringStartup: true,
+    },
+    {
+      kind: "job",
+      result: { code: null, signal: null, error: "Spawn failed" },
+      error: "Spawn failed",
+      duringStartup: true,
+    },
+  ] satisfies Array<{
+    kind: Package["kind"];
+    result: ProcessExit;
+    error: string;
+    duringStartup: boolean;
+  }>)(
+    "reports $kind exit $error as failed (during startup: $duringStartup)",
+    async ({ kind, result, error, duringStartup }) => {
+      const closed = vi.fn();
+      const { supervisor, driver } = setup({
+        packages: [{ ...member("a"), kind }],
+        watchSource: () => closed,
+      });
+      if (duringStartup) driver.exitOnStart = result;
+
+      supervisor.action({ type: "package.start", name: "a" });
+      await supervisor.idle();
+      if (!duringStartup) driver.children.get("a")?.exit(result);
+
+      const item = supervisor.status().packages[0];
+      expect(item).toMatchObject({ state: "failed", error });
+      expect(item).not.toHaveProperty("pid");
+      expect(closed).toHaveBeenCalledTimes(duringStartup ? 0 : 1);
+      expect(supervisor.status().operations.at(-1)?.state).toBe(
+        duringStartup ? "failed" : "passed"
+      );
+      expect(
+        supervisor.logs.read({ source: "a" }).entries.at(-1)?.message
+      ).toBe(`ERROR ${error}`);
+    }
+  );
+
   it("isolates queues and shutdown state between supervisor instances", async () => {
     const first = setup();
     const second = setup();
@@ -1111,7 +1234,7 @@ describe("local dashboard supervisor", () => {
     supervisor.action({ type: "preset.start", id: "pair" });
     await supervisor.idle();
     const commands = driver.commands.length;
-    driver.children.get("a")?.exit("Exited with code 2");
+    driver.children.get("a")?.exit({ code: 2, signal: null });
     expect(
       supervisor.status().packages.find((p) => p.name === "a")?.state
     ).toBe("failed");
@@ -1314,7 +1437,7 @@ describe("local dashboard supervisor", () => {
     changed();
     await supervisor.idle();
     expect(driver.commands.filter((c) => c.source === "a")).toHaveLength(2);
-    driver.children.get("a")?.exit("Application crashed");
+    driver.children.get("a")?.exit({ code: 1, signal: null });
     changed();
     await supervisor.idle();
     expect(driver.commands.filter((c) => c.source === "a")).toHaveLength(2);
