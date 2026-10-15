@@ -19,6 +19,7 @@ describe("dashboard startup configuration", () => {
       port: 8076,
       autostart: true,
       autostartPreset: undefined,
+      frontendUrl: undefined,
       personalPath: "/be/.local-development/dashboard/presets.json",
       bootstrapLogPath: "/be/.local-development/dashboard/logs/bootstrap.log",
       uiRoot: "/be/packages/dev-dashboard-ui/dist",
@@ -82,5 +83,26 @@ describe("dashboard startup configuration", () => {
 
   it("does not expose a global mode in parsed startup configuration", () => {
     expect(DashboardApiConfig.parse({})).not.toHaveProperty("mode");
+  });
+
+  it("enables frontend observation only with an explicit local observer URL", () => {
+    expect(DashboardApiConfig.parse({}).frontendUrl).toBeUndefined();
+    expect(
+      DashboardApiConfig.parse({
+        DASHBOARD_FRONTEND_URL: "http://frontend:8077/",
+      }).frontendUrl
+    ).toBe("http://frontend:8077");
+  });
+
+  it.each([
+    "https://frontend:8077",
+    "http://example.com:8077",
+    "http://user:password@frontend:8077",
+    "http://frontend:8077/arbitrary",
+    "http://frontend:8077/?token=secret",
+  ])("rejects a non-local frontend observer URL: %s", (url) => {
+    expect(() =>
+      DashboardApiConfig.parse({ DASHBOARD_FRONTEND_URL: url })
+    ).toThrow();
   });
 });

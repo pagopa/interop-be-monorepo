@@ -1,7 +1,11 @@
 import { Router } from "express";
 import { constants } from "node:http2";
-import { IdentityInput } from "pagopa-interop-dev-dashboard-contracts";
+import {
+  IdentityInput,
+  FrontendLogSource,
+} from "pagopa-interop-dev-dashboard-contracts";
 
+import type { FrontendService } from "../services/frontendService.js";
 import type { IdentityService } from "../services/identityService.js";
 import type { Supervisor } from "../services/supervisorService.js";
 
@@ -11,13 +15,34 @@ import { asyncHandler } from "../utilities/middleware.js";
 
 const dashboardRouter = (
   supervisor: Supervisor,
-  identities: IdentityService
+  identities: IdentityService,
+  frontend?: FrontendService
 ): Router => {
   const router = Router();
 
-  router.get("/status", (_request, response) => {
-    response.json(supervisor.status());
-  });
+  router.get(
+    "/status",
+    asyncHandler(async (_request, response) => {
+      const frontendStatus = frontend
+        ? { frontend: await frontend.status() }
+        : {};
+      response.json({ ...supervisor.status(), ...frontendStatus });
+    })
+  );
+
+  router.get(
+    "/frontend/logs",
+    asyncHandler(async (request, response) => {
+      if (!frontend) {
+        response
+          .status(constants.HTTP_STATUS_NOT_FOUND)
+          .json({ error: "Frontend integration is disabled" });
+        return;
+      }
+      const source = FrontendLogSource.parse(request.query.source ?? "startup");
+      response.json(await frontend.logs(source));
+    })
+  );
 
   router.get("/logs", (request, response, next) => {
     try {

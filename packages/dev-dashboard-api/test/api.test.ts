@@ -6,6 +6,7 @@ import {
   schemas,
   type Package,
   type Preset,
+  type FrontendStatus,
 } from "pagopa-interop-dev-dashboard-contracts";
 import request from "supertest";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -24,7 +25,11 @@ afterEach(async () => {
   );
 });
 
-const setup = (extraPackages: Package[] = [], presets: Preset[] = []) => {
+const setup = (
+  extraPackages: Package[] = [],
+  presets: Preset[] = [],
+  frontend?: Parameters<typeof createApp>[3]
+) => {
   const watchRoot = join(tmpdir(), `dashboard-api-watch-${randomUUID()}`);
   directories.push(watchRoot);
   const driver: Driver = {
@@ -47,13 +52,81 @@ const setup = (extraPackages: Package[] = [], presets: Preset[] = []) => {
     presets,
     driver,
   });
-  const app = createApp(supervisor, {
-    identities: async () => ({ ready: false, tenants: [] }),
-    identity: async () => ({ sessionToken: "token" }),
-  });
+  const app = createApp(
+    supervisor,
+    {
+      identities: async () => ({ ready: false, tenants: [] }),
+      identity: async () => ({ sessionToken: "token" }),
+    },
+    undefined,
+    frontend
+  );
   return { app, supervisor, driver };
 };
 describe("dashboard HTTP boundary", () => {
+  it("includes read-only frontend progress only when the integration is configured", async () => {
+    const frontend = {
+      status: vi.fn(
+        async (): Promise<FrontendStatus> => ({
+          available: true,
+          running: false,
+          state: "running",
+          phases: [
+            {
+              id: "backend",
+              label: "Backend services",
+              state: "running",
+              operationId: "backend-start",
+            },
+          ],
+        })
+      ),
+      logs: vi.fn(async () => ({ content: "INFO starting frontend" })),
+    };
+    const { app } = setup([], [], frontend);
+    const response = await request(app).get("/__local-dashboard/api/status");
+    expect(response.status).toBe(200);
+    expect(response.body.frontend).toMatchObject({
+      available: true,
+      state: "running",
+      phases: [expect.objectContaining({ operationId: "backend-start" })],
+    });
+    expect(schemas.DashboardStatus.safeParse(response.body).success).toBe(true);
+    const standalone = await request(setup().app).get(
+      "/__local-dashboard/api/status"
+    );
+    expect(standalone.body).not.toHaveProperty("frontend");
+  });
+
+  it("reads frontend logs through the configured observer and validates the source", async () => {
+    const frontend = {
+      status: vi.fn(
+        async (): Promise<FrontendStatus> => ({
+          available: false,
+          running: false,
+          state: "pending",
+          phases: [],
+        })
+      ),
+      logs: vi.fn(async () => ({ content: "INFO compiling Vite" })),
+    };
+    const { app } = setup([], [], frontend);
+    const logs = await request(app).get(
+      "/__local-dashboard/api/frontend/logs?source=vite"
+    );
+    expect(logs.status).toBe(200);
+    expect(logs.body).toEqual({ content: "INFO compiling Vite" });
+    expect(frontend.logs).toHaveBeenCalledWith("vite");
+    const invalid = await request(app).get(
+      "/__local-dashboard/api/frontend/logs?source=identity"
+    );
+    expect(invalid.status).toBe(400);
+    expect(frontend.logs).toHaveBeenCalledTimes(1);
+    const disabled = await request(setup().app).get(
+      "/__local-dashboard/api/frontend/logs"
+    );
+    expect(disabled.status).toBe(404);
+  });
   it.each(["fullstack.start", "fullstack.stop", "frontend.restart"])(
     "rejects removed frontend control %s without an operation",
     async (type) => {

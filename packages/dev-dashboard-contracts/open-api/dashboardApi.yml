@@ -107,6 +107,43 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+  /__local-dashboard/api/frontend/logs:
+    get:
+      operationId: getFrontendLogs
+      tags: [dashboard]
+      summary: Read frontend startup or Vite logs
+      description: Returns a bounded log tail from the optional frontend observer. Available only when the frontend devcontainer integration is configured.
+      parameters:
+        - name: source
+          in: query
+          description: Frontend log file to observe; defaults to startup.
+          schema:
+            $ref: "#/components/schemas/FrontendLogSource"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FrontendLogs"
+        "400":
+          description: Invalid log source
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Frontend integration is disabled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "409":
+          description: Frontend logs are unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
   /__local-dashboard/api/identities:
     get:
       operationId: getIdentities
@@ -385,6 +422,9 @@ components:
             - skipped
         error:
           type: string
+        operationId:
+          type: string
+          description: Backend operation observed by this frontend startup phase.
       required:
         - id
         - label
@@ -478,6 +518,8 @@ components:
             type: string
         seedReady:
           type: boolean
+        frontend:
+          $ref: "#/components/schemas/FrontendStatus"
       required:
         - packages
         - presets
@@ -487,6 +529,40 @@ components:
         - seedPackages
         - seedPrerequisites
         - seedReady
+      additionalProperties: false
+    FrontendStatus:
+      type: object
+      description: Read-only frontend state, included only when a frontend observer is configured.
+      properties:
+        available:
+          type: boolean
+        running:
+          type: boolean
+          description: Whether the frontend runtime still owns a live Vite process.
+        state:
+          type: string
+          enum: [pending, running, passed, failed, stopped]
+        mode:
+          type: string
+          enum: [local, dev]
+        phases:
+          type: array
+          items:
+            $ref: "#/components/schemas/Phase"
+        error:
+          type: string
+      required: [available, running, state, phases]
+      additionalProperties: false
+    FrontendLogSource:
+      type: string
+      enum: [startup, vite]
+    FrontendLogs:
+      type: object
+      properties:
+        content:
+          type: string
+          maxLength: 65536
+      required: [content]
       additionalProperties: false
     LogEntry:
       type: object

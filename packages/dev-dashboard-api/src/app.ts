@@ -1,5 +1,6 @@
 import express from "express";
 
+import type { FrontendService } from "./services/frontendService.js";
 import type { IdentityService } from "./services/identityService.js";
 import type { Supervisor } from "./services/supervisorService.js";
 
@@ -16,7 +17,8 @@ import {
 export const createApp = (
   supervisor: Supervisor,
   identities: IdentityService,
-  uiRoot?: string
+  uiRoot?: string,
+  frontend?: FrontendService
 ): express.Express => {
   const app = express();
 
@@ -28,7 +30,10 @@ export const createApp = (
     response.json({ status: "ok" });
   });
 
-  app.use(DASHBOARD_API_BASE_PATH, dashboardRouter(supervisor, identities));
+  app.use(
+    DASHBOARD_API_BASE_PATH,
+    dashboardRouter(supervisor, identities, frontend)
+  );
 
   if (uiRoot) {
     app.use(DASHBOARD_UI_BASE_PATH, express.static(uiRoot));
