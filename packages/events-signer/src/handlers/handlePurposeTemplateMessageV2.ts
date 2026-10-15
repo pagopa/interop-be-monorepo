@@ -20,10 +20,10 @@ import { PurposeTemplateEventData } from "../models/eventTypes.js";
 import { processAndArchiveFiles } from "../utils/fileProcessor.js";
 
 export const handlePurposeTemplateMessageV2 = async (
-  eventsWithTimestamp: Array<{
+  eventsWithTimestamp: {
     purposeTemplateV2: PurposeTemplateEventV2;
     timestamp: Date;
-  }>,
+  }[],
   fileManager: FileManager,
   signatureService: SignatureServiceBuilder,
   safeStorage: SafeStorageService

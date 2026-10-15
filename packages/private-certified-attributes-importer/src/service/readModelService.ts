@@ -84,9 +84,7 @@ export function readModelServiceBuilderSQL({
         return tenantsWithMetadata.map((tenant) => tenant.data);
       }),
 
-    async getTenantsWithAttributes(
-      attributeIds: string[]
-    ): Promise<Array<Tenant>> {
+    async getTenantsWithAttributes(attributeIds: string[]): Promise<Tenant[]> {
       const queryResult = await readModelDB
         .select({
           tenant: tenantInReadmodelTenant,

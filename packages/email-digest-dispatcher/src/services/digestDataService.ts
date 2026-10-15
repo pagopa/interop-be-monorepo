@@ -37,32 +37,32 @@ import { NewEservice, ReadModelService } from "./readModelService.js";
 import { SimpleCache } from "./simpleCache.js";
 
 export type BaseDigest = {
-  items: Array<{
+  items: {
     id?: string;
     name: string;
     producerName: string;
     link: string;
-  }>;
+  }[];
   totalCount: number;
 };
 
 export type DelegationDigest = BaseDigest & {
-  items: Array<{
+  items: {
     delegationKind: "erogazione" | "fruizione";
-  }>;
+  }[];
 };
 
 export type ReceivedPurposeDigest = BaseDigest & {
-  items: Array<{
+  items: {
     consumerName: string;
-  }>;
+  }[];
 };
 
 export type AttributeDigest = BaseDigest & {
-  items: Array<{
+  items: {
     attributeKind: "certified" | "verified";
     attributeKindLabel: string;
-  }>;
+  }[];
 };
 
 export type TenantDigestData = {
