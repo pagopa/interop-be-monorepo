@@ -14,7 +14,9 @@ import { config } from "./config/config.js";
 import { handleMessageV1 } from "./consumerServiceV1.js";
 import { handleMessageV2 } from "./consumerServiceV2.js";
 
-const dynamoDBClient = new DynamoDBClient();
+const dynamoDBClient = new DynamoDBClient({
+  endpoint: process.env.DYNAMO_DB_ENDPOINT,
+});
 async function processMessage({
   message,
   partition,
