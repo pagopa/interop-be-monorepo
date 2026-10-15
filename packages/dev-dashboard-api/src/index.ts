@@ -10,6 +10,7 @@ import {
 } from "./config/constants.js";
 import { discoverPackages, readPresets } from "./services/catalogService.js";
 import { localEnvironment } from "./services/environmentService.js";
+import { frontendServiceBuilder } from "./services/frontendService.js";
 import { identityServiceBuilder } from "./services/identityService.js";
 import { infrastructureServiceBuilder } from "./services/infrastructureService.js";
 import { processDriverServiceBuilder } from "./services/processDriverService.js";
@@ -48,7 +49,12 @@ try {
 }
 
 const monitor = infrastructureServiceBuilder(config.beRoot, driver, supervisor);
-const app = createApp(supervisor, identities, config.uiRoot);
+const app = createApp(
+  supervisor,
+  identities,
+  config.uiRoot,
+  config.frontendUrl ? frontendServiceBuilder(config.frontendUrl) : undefined
+);
 const server = app.listen(config.port, "0.0.0.0", () => {
   console.log(`Local dashboard listening on http://localhost:${config.port}`);
   monitor.start();
