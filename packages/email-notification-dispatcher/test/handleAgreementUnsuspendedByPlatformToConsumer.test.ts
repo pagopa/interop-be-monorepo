@@ -173,6 +173,34 @@ describe("handleAgreementUnsuspendedByPlatformToConsumer", async () => {
     ).toBe(true);
   });
 
+  it("should retrieve the recipients among the users of the consumer tenant", async () => {
+    const agreement: Agreement = {
+      ...getMockAgreement(),
+      stamps: {},
+      producerId: producerTenant.id,
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: consumerTenant.id,
+    };
+    await addOneAgreement(agreement);
+
+    await handleAgreementUnsuspendedByPlatformToConsumer({
+      agreementV2Msg: toAgreementV2(agreement),
+      logger,
+      templateService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+    });
+
+    expect(
+      readModelService.getTenantUsersWithNotificationEnabled
+    ).toHaveBeenCalledWith(
+      [consumerTenant.id],
+      "agreementSuspendedUnsuspendedToConsumer",
+      "email"
+    );
+  });
+
   it("should not generate a message if the user disabled this email notification", async () => {
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
