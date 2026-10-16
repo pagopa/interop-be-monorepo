@@ -53,14 +53,14 @@ type MockedCatalogProcessClient = catalogApi.CatalogProcessClient & {
   internalDeleteDelegatedArchivingRequest: Mock<
     catalogApi.CatalogProcessClient["internalDeleteDelegatedArchivingRequest"]
   >;
-  internalRevokeDelegatedDescriptor: Mock<
-    catalogApi.CatalogProcessClient["internalRevokeDelegatedDescriptor"]
+  internalRestoreDraftDescriptorAfterDelegationRevoke: Mock<
+    catalogApi.CatalogProcessClient["internalRestoreDraftDescriptorAfterDelegationRevoke"]
   >;
 };
 
 const catalogProcessClient = {
   internalDeleteDelegatedArchivingRequest: vi.fn(),
-  internalRevokeDelegatedDescriptor: vi.fn(),
+  internalRestoreDraftDescriptorAfterDelegationRevoke: vi.fn(),
 } as unknown as MockedCatalogProcessClient;
 
 describe("delegationItemsArchiverConsumerServiceV2", () => {
@@ -670,7 +670,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
       await handleMessage();
 
       expect(
-        catalogProcessClient.internalRevokeDelegatedDescriptor
+        catalogProcessClient.internalRestoreDraftDescriptorAfterDelegationRevoke
       ).toHaveBeenCalledWith(undefined, {
         params: {
           eServiceId: delegation.eserviceId,
@@ -695,7 +695,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
       await handleMessage();
 
       expect(
-        catalogProcessClient.internalRevokeDelegatedDescriptor
+        catalogProcessClient.internalRestoreDraftDescriptorAfterDelegationRevoke
       ).not.toHaveBeenCalled();
     });
 
@@ -713,7 +713,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
       await handleMessage();
 
       expect(
-        catalogProcessClient.internalRevokeDelegatedDescriptor
+        catalogProcessClient.internalRestoreDraftDescriptorAfterDelegationRevoke
       ).toHaveBeenCalledBefore(
         catalogProcessClient.internalDeleteDelegatedArchivingRequest
       );

@@ -129,13 +129,16 @@ export const processEServiceDescriptorAfterRevoke = async ({
     .at(0);
 
   if (descriptorsInWaitingForApprovalState) {
-    await catalogProcessClient.internalRevokeDelegatedDescriptor(undefined, {
-      params: {
-        eServiceId: eservice.id,
-        descriptorId: descriptorsInWaitingForApprovalState,
-      },
-      headers,
-    });
+    await catalogProcessClient.internalRestoreDraftDescriptorAfterDelegationRevoke(
+      undefined,
+      {
+        params: {
+          eServiceId: eservice.id,
+          descriptorId: descriptorsInWaitingForApprovalState,
+        },
+        headers,
+      }
+    );
   }
 };
 

@@ -1396,15 +1396,15 @@ paths:
           $ref: "#/components/responses/NotFound"
         "409":
           $ref: "#/components/responses/Conflict"
-  /internal/eservices/{eServiceId}/descriptors/{descriptorId}/revokeDelegation:
+  /internal/eservices/{eServiceId}/descriptors/{descriptorId}/restoreDraft:
     put:
       security:
         - bearerAuth: []
       tags:
         - process
-      summary: Revoke a waitingForApproval descriptor.
-      operationId: internalRevokeDelegatedDescriptor
-      description: Update descriptor state after delegation revoke for the specified E-Service
+      summary: Restore a delegated descriptor to draft state.
+      operationId: internalRestoreDraftDescriptorAfterDelegationRevoke
+      description: Restores a descriptor from waitingForApproval to draft after its producer delegation is revoked. If the descriptor is in another state, the operation is skipped
       parameters:
         - $ref: "#/components/parameters/CorrelationIdHeader"
         - name: eServiceId

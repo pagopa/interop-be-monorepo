@@ -2567,13 +2567,13 @@ export function catalogServiceBuilder(
 
       await repository.createEvent(event);
     },
-    async internalRevokeDelegatedDescriptor(
+    async internalRestoreDraftDescriptorAfterDelegationRevoke(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<void> {
       logger.info(
-        `Internal revoking delegated waitingForApproval descriptor ${descriptorId} for EService ${eserviceId}`
+        `Internal restoring delegated waitingForApproval descriptor ${descriptorId} for EService ${eserviceId} to draft state`
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);

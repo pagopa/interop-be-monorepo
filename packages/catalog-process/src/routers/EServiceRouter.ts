@@ -95,7 +95,7 @@ import {
   approveDelegatedDescriptorArchivingErrorMapper,
   rejectDelegatedDescriptorArchivingErrorMapper,
   internalDeleteDelegatedArchivingRequestErrorMapper,
-  internalRevokeDelegatedDescriptorErrorMapper,
+  internalRestoreDraftDescriptorAfterDelegationRevokeErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const eservicesRouter = (
@@ -1176,14 +1176,14 @@ const eservicesRouter = (
       }
     })
     .put(
-      "/internal/eservices/:eServiceId/descriptors/:descriptorId/revokeDelegation",
+      "/internal/eservices/:eServiceId/descriptors/:descriptorId/restoreDraft",
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
           validateAuthorization(ctx, [INTERNAL_ROLE]);
 
-          await catalogService.internalRevokeDelegatedDescriptor(
+          await catalogService.internalRestoreDraftDescriptorAfterDelegationRevoke(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             ctx
@@ -1192,7 +1192,7 @@ const eservicesRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            internalRevokeDelegatedDescriptorErrorMapper,
+            internalRestoreDraftDescriptorAfterDelegationRevokeErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);

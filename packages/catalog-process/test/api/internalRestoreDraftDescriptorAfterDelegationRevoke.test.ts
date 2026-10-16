@@ -23,7 +23,7 @@ import {
 } from "../../src/model/domain/errors.js";
 import { api, catalogService } from "../vitest.api.setup.js";
 
-describe("API /internal/eservices/{eServiceId}/descriptors/{descriptorId}/revokeDelegation authorization test", () => {
+describe("API /internal/eservices/{eServiceId}/descriptors/{descriptorId}/restoreDraft authorization test", () => {
   const descriptor: Descriptor = {
     ...getMockDescriptor(),
     interface: getMockDocument(),
@@ -35,7 +35,7 @@ describe("API /internal/eservices/{eServiceId}/descriptors/{descriptorId}/revoke
     descriptors: [descriptor],
   };
 
-  catalogService.internalRevokeDelegatedDescriptor = vi
+  catalogService.internalRestoreDraftDescriptorAfterDelegationRevoke = vi
     .fn()
     .mockResolvedValue({});
 
@@ -46,7 +46,7 @@ describe("API /internal/eservices/{eServiceId}/descriptors/{descriptorId}/revoke
   ) =>
     request(api)
       .put(
-        `/internal/eservices/${eServiceId}/descriptors/${descriptorId}/revokeDelegation`
+        `/internal/eservices/${eServiceId}/descriptors/${descriptorId}/restoreDraft`
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
@@ -80,7 +80,7 @@ describe("API /internal/eservices/{eServiceId}/descriptors/{descriptorId}/revoke
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
-      catalogService.internalRevokeDelegatedDescriptor = vi
+      catalogService.internalRestoreDraftDescriptorAfterDelegationRevoke = vi
         .fn()
         .mockRejectedValue(error);
 

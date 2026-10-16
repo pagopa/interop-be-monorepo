@@ -41,7 +41,7 @@ describe("Change state to draft of delegated descriptor after delegation revoke"
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    await catalogService.internalRevokeDelegatedDescriptor(
+    await catalogService.internalRestoreDraftDescriptorAfterDelegationRevoke(
       eservice.id,
       descriptor.id,
       getMockContextInternal({})
@@ -77,7 +77,7 @@ describe("Change state to draft of delegated descriptor after delegation revoke"
 
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     await expect(
-      catalogService.internalRevokeDelegatedDescriptor(
+      catalogService.internalRestoreDraftDescriptorAfterDelegationRevoke(
         mockEService.id,
         mockDescriptor.id,
         getMockContextInternal({})
@@ -93,7 +93,7 @@ describe("Change state to draft of delegated descriptor after delegation revoke"
     await addOneEService(eservice);
 
     await expect(
-      catalogService.internalRevokeDelegatedDescriptor(
+      catalogService.internalRestoreDraftDescriptorAfterDelegationRevoke(
         eservice.id,
         mockDescriptor.id,
         getMockContextInternal({})
@@ -126,7 +126,7 @@ describe("Change state to draft of delegated descriptor after delegation revoke"
         postgresDB
       );
 
-      await catalogService.internalRevokeDelegatedDescriptor(
+      await catalogService.internalRestoreDraftDescriptorAfterDelegationRevoke(
         eservice.id,
         descriptor.id,
         getMockContextInternal({})

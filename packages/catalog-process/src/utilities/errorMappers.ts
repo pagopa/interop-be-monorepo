@@ -1013,7 +1013,7 @@ export const cancelDelegatedEServiceArchivingErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const internalRevokeDelegatedDescriptorErrorMapper = (
+export const internalRestoreDraftDescriptorAfterDelegationRevokeErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
