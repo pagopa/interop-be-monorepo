@@ -68,7 +68,7 @@ export const makeApiProblem = makeUserFacingApiProblemBuilder(
   errorCodes,
   {
     problemErrorsPassthrough: true,
-    forceGenericProblemOn500: true,
+    forceGenericProblemOn500: false,
   },
   readCsvErrorFile(config.errorCopyPath, config.errorMappingLanguages)
 );
