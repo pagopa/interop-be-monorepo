@@ -81,7 +81,7 @@ export const ProblemSchema = z.strictObject({
 });
 export type Problem = z.infer<typeof ProblemSchema>;
 
-type MakeApiProblemFn<T extends string> = (
+export type MakeApiProblemFn<T extends string> = (
   error: unknown,
   httpMapper: (apiError: ApiError<T | CommonErrorCodes>) => number,
   context: {
@@ -107,7 +107,7 @@ const makeProblemLogString = (
   return `- title: ${problem.title} - detail: ${problem.detail}${errorsString} - original error: ${originalError}`;
 };
 
-type ProblemBuilderOptions = {
+export type ProblemBuilderOptions = {
   /**
    * If true, allows Problem objects received from downstream services
    * to be passed through directly. If false, they are treated as generic errors.
