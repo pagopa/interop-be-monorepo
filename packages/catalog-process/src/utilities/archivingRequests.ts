@@ -1,10 +1,8 @@
 import {
   DelegatedDescriptorArchivingRequest,
   DelegatedEServiceArchivingRequest,
-  Descriptor,
   DescriptorId,
   EServiceId,
-  descriptorState,
 } from "pagopa-interop-models";
 
 import {
@@ -122,10 +120,4 @@ export function removeActiveArchivingRequest<T extends ArchivingRequest>(
     return undefined;
   }
   return filteredRequests;
-}
-
-export function isDescriptorInWaitingForApprovalState(
-  descriptor: Descriptor
-): boolean {
-  return descriptor.state === descriptorState.waitingForApproval;
 }

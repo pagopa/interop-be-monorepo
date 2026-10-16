@@ -208,7 +208,6 @@ import {
   getLatestActiveArchivingRequest,
   getLatestArchivingRequest,
   hasActiveArchivingRequest,
-  isDescriptorInWaitingForApprovalState,
   removeActiveArchivingRequest,
   updateLatestActiveArchivingRequest,
 } from "../utilities/archivingRequests.js";
@@ -2579,9 +2578,9 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      if (!isDescriptorInWaitingForApprovalState(descriptor)) {
+      if (descriptor.state !== descriptorState.waitingForApproval) {
         logger.info(
-          `Skipping delegated descriptor revocation for EService ${eserviceId}, descriptor ${descriptorId}: state is ${descriptor.state}, expected ${descriptorState.waitingForApproval}`
+          `Skipping delegated descriptor draft restore for EService ${eserviceId}, descriptor ${descriptorId}: state is ${descriptor.state}, expected ${descriptorState.waitingForApproval}`
         );
         return;
       }
