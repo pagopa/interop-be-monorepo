@@ -40,6 +40,7 @@ import {
   attributeNotFound,
   eServiceNotFound,
   descriptorNotFoundInEservice,
+  tenantNotAllowedForDelegation,
 } from "../model/domain/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -170,7 +171,7 @@ export function assertTenantAllowedForDelegation(tenant: Tenant): void {
   );
 
   if (!hasAttribute) {
-    throw operationForbidden;
+    throw tenantNotAllowedForDelegation(tenant.id, tenant.externalId.origin);
   }
 }
 
