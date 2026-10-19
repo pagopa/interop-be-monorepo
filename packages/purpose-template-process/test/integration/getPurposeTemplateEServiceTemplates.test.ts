@@ -15,13 +15,14 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it } from "vitest";
+
+import { purposeTemplateNotFound } from "../../src/model/domain/errors.js";
 import {
   addOneEServiceTemplate,
   addOneEServiceTemplateVersionPurposeTemplate,
   addOnePurposeTemplate,
   purposeTemplateService,
 } from "../integrationUtils.js";
-import { purposeTemplateNotFound } from "../../src/model/domain/errors.js";
 
 describe("getPurposeTemplateEServiceTemplates", async () => {
   const creatorId = generateId<TenantId>();

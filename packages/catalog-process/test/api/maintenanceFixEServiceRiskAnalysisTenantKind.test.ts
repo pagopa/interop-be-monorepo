@@ -1,15 +1,16 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
-import request from "supertest";
-import { EServiceId, RiskAnalysisId, generateId } from "pagopa-interop-models";
-import { generateToken, getMockEService } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
-import { api, catalogService } from "../vitest.api.setup.js";
+import { generateToken, getMockEService } from "pagopa-interop-commons-test";
+import { EServiceId, RiskAnalysisId, generateId } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import {
   eServiceNotFound,
   eServiceRiskAnalysisNotFound,
   tenantKindNotFound,
 } from "../../src/model/domain/errors.js";
+import { api, catalogService } from "../vitest.api.setup.js";
 
 describe("API POST /maintenance/eservices/{eServiceId}/riskAnalyses/{riskAnalysisId}/tenantKind/fix test", () => {
   const mockEService = getMockEService();

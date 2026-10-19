@@ -5,15 +5,16 @@ import {
   missingKafkaMessageDataError,
   NotificationType,
 } from "pagopa-interop-models";
-import { retrieveTenant } from "../../services/utils.js";
 import {
   eventMailTemplateType,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
   retrieveHTMLTemplate,
 } from "pagopa-interop-notification-commons";
+
 import { config } from "../../config/config.js";
 import { ProducerKeychainKeyHandlerParams } from "../../models/handlerParams.js";
+import { retrieveTenant } from "../../services/utils.js";
 
 const notificationType: NotificationType =
   "producerKeychainKeyAddedDeletedToClientUsers";

@@ -1,16 +1,17 @@
 import { runConsumer } from "kafka-iam-auth";
+import { selfcareV2InstitutionClientBuilder } from "pagopa-interop-api-clients";
 import {
   buildHTMLTemplateService,
   EmailManagerSES,
   initSesMailManager,
 } from "pagopa-interop-commons";
-import { selfcareV2InstitutionClientBuilder } from "pagopa-interop-api-clients";
 import {
   makeDrizzleConnection,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
-import { emailSenderProcessorBuilder } from "./services/emailSenderProcessor.js";
+
 import { config } from "./config/config.js";
+import { emailSenderProcessorBuilder } from "./services/emailSenderProcessor.js";
 
 const sesEmailSenderData = {
   label: config.senderLabel,

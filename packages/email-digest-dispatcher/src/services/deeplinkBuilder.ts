@@ -1,4 +1,5 @@
 import { DigestNotificationType } from "pagopa-interop-models";
+
 import { config } from "../config/config.js";
 
 const { bffUrl } = config;

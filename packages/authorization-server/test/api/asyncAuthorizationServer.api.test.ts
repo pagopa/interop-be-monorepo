@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import request from "supertest";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { authorizationServerApi } from "pagopa-interop-api-clients";
 import {
   ClientId,
   generateId,
   makeTokenGenerationStatesClientKidPurposePK,
   PurposeId,
 } from "pagopa-interop-models";
-import { authorizationServerApi } from "pagopa-interop-api-clients";
-import { api, asyncTokenService } from "../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import {
   asyncClientAssertionClaimsValidationFailed,
   asyncRequestValidationFailed,
@@ -16,6 +16,7 @@ import {
   invalidAsyncScope,
   tokenGenerationStatesEntryNotFound,
 } from "../../src/model/domain/errors.js";
+import { api, asyncTokenService } from "../vitest.api.setup.js";
 
 describe("POST /authorization-server/token.oauth2.async", async () => {
   const clientId = generateId<ClientId>();

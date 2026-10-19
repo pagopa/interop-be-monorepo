@@ -179,6 +179,7 @@ export function agreementNotFound(consumerId: string): ApiError<ErrorCodes> {
     title: "Agreement not found",
   });
 }
+
 export function invalidEServiceRequester(
   eserviceId: string,
   requesterId: string

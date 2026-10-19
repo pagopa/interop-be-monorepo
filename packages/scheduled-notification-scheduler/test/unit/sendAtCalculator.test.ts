@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+
 import { computeSendAt } from "../../src/services/sendAtCalculator.js";
 
 describe("computeSendAt", () => {

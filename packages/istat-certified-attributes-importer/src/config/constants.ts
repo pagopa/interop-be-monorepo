@@ -1,5 +1,5 @@
 import crypto from "crypto";
-const ISTAT_POPULATION_ATTRIBUTE_NAME = "Popolazione residente";
+const ISTAT_POPULATION_ATTRIBUTE_NAME = "Popolazione residente comune";
 export const SUMMARY_AGE_CODE = 999;
 const ISTAT_CERTIFIER_ORIGIN = "ISTAT";
 
@@ -10,7 +10,7 @@ function generateCodeFromName(name: string): string {
 export const ISTAT_ATTRIBUTE_SEED = {
   name: ISTAT_POPULATION_ATTRIBUTE_NAME,
   description:
-    "Attributo certificato discreto indicante la popolazione comunale",
+    "Questo attributo certificato indica la popolazione che risiede in un comune",
   origin: ISTAT_CERTIFIER_ORIGIN,
   code: generateCodeFromName(ISTAT_POPULATION_ATTRIBUTE_NAME),
 } as const;

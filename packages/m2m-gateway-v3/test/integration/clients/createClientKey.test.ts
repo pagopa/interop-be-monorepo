@@ -1,4 +1,3 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { authorizationApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   getMockWithMetadata,
@@ -7,13 +6,15 @@ import {
   getMockedApiKey,
 } from "pagopa-interop-commons-test";
 import { ClientId, generateId } from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
   clientService,
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
   mockInteropBeClients,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("createClientKey", () => {

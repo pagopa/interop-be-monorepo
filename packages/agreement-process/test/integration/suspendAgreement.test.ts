@@ -39,8 +39,9 @@ import {
   generateId,
   toAgreementV2,
 } from "pagopa-interop-models";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { match } from "ts-pattern";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { agreementSuspendableStates } from "../../src/model/domain/agreement-validators.js";
 import {
   agreementNotFound,

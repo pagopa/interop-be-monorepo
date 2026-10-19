@@ -3,6 +3,7 @@ import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockedApiPurposeTemplate,
   getMockedApiRiskAnalysisTemplateAnswerAnnotationDocument,
+  getMockedPdfBuffer,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import {
@@ -14,6 +15,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
 import { missingMetadata } from "../../../src/model/errors.js";
@@ -46,7 +48,7 @@ describe("uploadRiskAnalysisTemplateAnswerAnnotationDocument", () => {
     mockVersion
   );
 
-  const mockFileBuffer = Buffer.from("test content");
+  const mockFileBuffer = getMockedPdfBuffer();
   const mockFileUpload: m2mGatewayApiV3.RiskAnalysisTemplateAnnotationDocumentUploadMultipart =
     {
       file: new File(

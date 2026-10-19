@@ -5,6 +5,7 @@ import {
   ZodiosClientWithMetadata,
 } from "pagopa-interop-api-clients";
 import { Logger } from "pagopa-interop-commons";
+
 import { InteropContext } from "../model/interopContextModel.js";
 
 type MetadataVersion = {

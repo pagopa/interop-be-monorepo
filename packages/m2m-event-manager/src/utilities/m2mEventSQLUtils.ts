@@ -15,6 +15,7 @@ import {
   purposeTemplateInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
 import { m2mEventVisibility } from "pagopa-interop-models";
+
 import { DelegationIdParam } from "../model/types.js";
 
 export function afterEventIdFilter<

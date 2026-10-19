@@ -1,5 +1,4 @@
 /* eslint-disable sonarjs/no-identical-functions */
-import { describe, it, expect, beforeEach, Mock } from "vitest";
 import {
   getMockContext,
   getMockTenant,
@@ -24,9 +23,9 @@ import {
   getNotificationRecipients,
   inAppTemplates,
 } from "pagopa-interop-notification-commons";
+import { describe, it, expect, beforeEach, Mock } from "vitest";
 
 import { handleEserviceNewVersionSubmittedToDelegator } from "../src/handlers/eservices/handleEserviceNewVersionSubmittedToDelegator.js";
-
 import { addOneDelegation, addOneTenant, readModelService } from "./utils.js";
 
 describe("handleEserviceNewVersionSubmittedToDelegator", () => {

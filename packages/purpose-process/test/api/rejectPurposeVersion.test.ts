@@ -1,5 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { purposeApi } from "pagopa-interop-api-clients";
+import { authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockPurpose,
+  getMockPurposeVersion,
+} from "pagopa-interop-commons-test";
 import {
   DelegationId,
   PurposeId,
@@ -7,15 +13,9 @@ import {
   generateId,
   purposeVersionState,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockPurpose,
-  getMockPurposeVersion,
-} from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
-import { purposeApi } from "pagopa-interop-api-clients";
 import request from "supertest";
-import { api, purposeService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import {
   notValidVersionState,
   tenantIsNotTheDelegatedProducer,
@@ -23,6 +23,7 @@ import {
   purposeNotFound,
   purposeVersionNotFound,
 } from "../../src/model/domain/errors.js";
+import { api, purposeService } from "../vitest.api.setup.js";
 
 describe("API POST /purposes/{purposeId}/versions/{versionId}/reject test", () => {
   const mockPurposeVersion = getMockPurposeVersion();

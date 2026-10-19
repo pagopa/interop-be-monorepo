@@ -1,4 +1,3 @@
-import { z } from "zod";
 import {
   FileManagerConfig,
   CommonHTTPServiceConfig,
@@ -9,6 +8,7 @@ import {
   ApplicationAuditProducerConfig,
   FeatureFlagAttributeCertifiedDiscreteConfig,
 } from "pagopa-interop-commons";
+import { z } from "zod";
 
 const AgreementProcessConfig = CommonHTTPServiceConfig.and(EventStoreConfig)
   .and(ReadModelSQLDbConfig)

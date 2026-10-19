@@ -1,11 +1,12 @@
 /* eslint-disable no-console */
 import axios, { AxiosInstance, toFormData } from "axios";
 import { retry } from "pagopa-interop-commons";
+
+import { config } from "../config/config.js";
 import {
   GetNoticeContentResponseData,
   OneTrustNoticeVersion,
 } from "../models/index.js";
-import { config } from "../config/config.js";
 import {
   ONE_TRUST_API_ENDPOINT,
   ONE_TRUST_CONNECT_RETRIES,

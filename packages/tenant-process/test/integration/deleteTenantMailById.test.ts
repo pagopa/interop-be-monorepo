@@ -1,5 +1,11 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
+  getMockAuthData,
+  getMockContext,
+  getMockTenant,
+  readLastEventByStreamId,
+} from "pagopa-interop-commons-test";
+import {
   generateId,
   Tenant,
   protobufDecoder,
@@ -9,12 +15,7 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
-import {
-  getMockAuthData,
-  getMockContext,
-  getMockTenant,
-  readLastEventByStreamId,
-} from "pagopa-interop-commons-test";
+
 import { mailNotFound, tenantNotFound } from "../../src/model/domain/errors.js";
 import {
   addOneTenant,

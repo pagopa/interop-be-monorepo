@@ -1,3 +1,4 @@
+import { and, eq, inArray, isNull, ne } from "drizzle-orm";
 import {
   Attribute,
   genericInternalError,
@@ -13,7 +14,6 @@ import {
   TenantReadModelService,
   toTenantAggregatorArray,
 } from "pagopa-interop-readmodel";
-import { and, eq, inArray, isNull, ne } from "drizzle-orm";
 import {
   attributeInReadmodelAttribute,
   DrizzleReturnType,
@@ -21,6 +21,7 @@ import {
   tenantFeatureInReadmodelTenant,
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
+
 import { AnacReadModelTenant } from "../model/tenant.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

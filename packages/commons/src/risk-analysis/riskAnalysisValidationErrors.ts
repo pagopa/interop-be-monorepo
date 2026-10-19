@@ -8,6 +8,7 @@ type RiskAnalysisValidationIssueCode =
   | "dependencyNotFoundError"
   | "unexpectedDependencyValueError"
   | "unexpectedFieldFormatError"
+  | "unexpectedFieldHyperlinkError"
   | "missingExpectedFieldError"
   | "incompatiblePersonalDataError"
   | "missingTenantKindError";
@@ -92,6 +93,15 @@ export function unexpectedFieldFormatError(
   return new RiskAnalysisValidationIssue({
     code: "unexpectedFieldFormatError",
     detail: `Unexpected format for field ${fieldName}`,
+  });
+}
+
+export function unexpectedFieldHyperlinkError(
+  fieldName: string
+): RiskAnalysisValidationIssue {
+  return new RiskAnalysisValidationIssue({
+    code: "unexpectedFieldHyperlinkError",
+    detail: `Field ${fieldName} must not contain hyperlinks or URLs`,
   });
 }
 
