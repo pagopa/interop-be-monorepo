@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeEach, vi, Mock } from "vitest";
 import {
   getMockContext,
   getMockProducerKeychain,
@@ -20,12 +19,14 @@ import {
   toProducerKeychainV2,
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
-import { handleProducerKeychainNoKeysForAsyncEservice } from "../src/handlers/authorizations/handleProducerKeychainNoKeysForAsyncEservice.js";
-import { addOneTenant, readModelService } from "./utils.js";
 import {
   getNotificationRecipients,
   inAppTemplates,
 } from "pagopa-interop-notification-commons";
+import { describe, it, expect, beforeEach, vi, Mock } from "vitest";
+
+import { handleProducerKeychainNoKeysForAsyncEservice } from "../src/handlers/authorizations/handleProducerKeychainNoKeysForAsyncEservice.js";
+import { addOneTenant, readModelService } from "./utils.js";
 
 describe("handleProducerKeychainNoKeysForAsyncEservice", () => {
   const producerId = generateId<TenantId>();

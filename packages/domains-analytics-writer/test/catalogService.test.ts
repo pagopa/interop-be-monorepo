@@ -1,7 +1,17 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable functional/immutable-data */
-import { describe, it, expect, beforeEach } from "vitest";
+import {
+  getMockEService,
+  getMockDescriptor,
+  getMockDocument,
+  getMockValidRiskAnalysis,
+  toEServiceV1,
+  toDescriptorV1,
+  toDocumentV1,
+  getMockEServiceAttribute,
+  getMockAttribute,
+} from "pagopa-interop-commons-test";
 import {
   EServiceAddedV1,
   EServiceDeletedV1,
@@ -23,17 +33,8 @@ import {
   descriptorState,
   EServiceDescriptorPublishedV2,
 } from "pagopa-interop-models";
-import {
-  getMockEService,
-  getMockDescriptor,
-  getMockDocument,
-  getMockValidRiskAnalysis,
-  toEServiceV1,
-  toDescriptorV1,
-  toDocumentV1,
-  getMockEServiceAttribute,
-  getMockAttribute,
-} from "pagopa-interop-commons-test";
+import { describe, it, expect, beforeEach } from "vitest";
+
 import { handleCatalogMessageV1 } from "../src/handlers/catalog/consumerServiceV1.js";
 import { handleCatalogMessageV2 } from "../src/handlers/catalog/consumerServiceV2.js";
 import { CatalogDbTable } from "../src/model/db/index.js";

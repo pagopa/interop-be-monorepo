@@ -1,9 +1,13 @@
 /* eslint-disable max-params */
+import {
+  invalidDocumentDetected,
+  invalidPdfSignatureError,
+} from "pagopa-interop-models";
 import { Readable } from "stream";
-import { invalidDocumentDetected } from "pagopa-interop-models";
+
 import { FileManager } from "../file-manager/fileManager.js";
 import { Logger } from "../logging/index.js";
-import { calculateChecksum } from "../utils/fileUtils.js";
+import { calculateChecksum, isPdf } from "../utils/fileUtils.js";
 
 /*  Validates document as PDF and stores it with FileManager,
   its logic is the same in eserviceDocumentUtils.ts */
@@ -28,6 +32,11 @@ export async function validateAndStorePDFDocument<T>(
   if (doc.type !== "application/pdf") {
     throw invalidDocumentDetected(resourceId);
   }
+
+  if (!(await isPdf(doc))) {
+    throw invalidPdfSignatureError();
+  }
+
   const filePath = await fileManager.storeBytes(
     {
       bucket: documentContainer,

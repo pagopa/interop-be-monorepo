@@ -1,5 +1,5 @@
-import { parseDocument } from "htmlparser2";
 import { type ChildNode, Element, Text, Comment } from "domhandler";
+import { parseDocument } from "htmlparser2";
 
 interface HtmlJsonNode {
   node: "root" | "element" | "text" | "comment";

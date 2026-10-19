@@ -1,4 +1,5 @@
 import { ExternalId } from "pagopa-interop-models";
+
 import { CsvRow } from "./csvRowModel.js";
 
 export type BatchParseResult = {

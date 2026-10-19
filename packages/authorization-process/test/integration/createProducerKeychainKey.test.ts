@@ -1,7 +1,20 @@
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import crypto from "crypto";
-import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
+import {
+  authorizationApi,
+  selfcareV2ClientApi,
+} from "pagopa-interop-api-clients";
+import { AuthData, calculateKid, createJWK } from "pagopa-interop-commons";
+import {
+  decodeProtobufPayload,
+  getMockAuthData,
+  getMockClient,
+  getMockContext,
+  getMockKey,
+  readLastEventByStreamId,
+} from "pagopa-interop-commons-test";
+import { getMockProducerKeychain } from "pagopa-interop-commons-test";
 import {
   TenantId,
   UserId,
@@ -15,21 +28,10 @@ import {
   Client,
   notAnRSAKey,
   invalidPublicKey,
+  hyperlinkDetectionError,
 } from "pagopa-interop-models";
-import { AuthData, calculateKid, createJWK } from "pagopa-interop-commons";
-import {
-  decodeProtobufPayload,
-  getMockAuthData,
-  getMockClient,
-  getMockContext,
-  getMockKey,
-  readLastEventByStreamId,
-} from "pagopa-interop-commons-test";
-import { getMockProducerKeychain } from "pagopa-interop-commons-test";
-import {
-  authorizationApi,
-  selfcareV2ClientApi,
-} from "pagopa-interop-api-clients";
+import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
+
 import {
   producerKeychainNotFound,
   keyAlreadyExists,
@@ -437,5 +439,22 @@ describe("createProducerKeychainKey", () => {
         getMockContext({ authData: mockAuthData })
       )
     ).rejects.toThrowError(invalidKeyLength(1024, 2048));
+  });
+
+  it("should throw hyperlinkDetectionError when the key alg contains a hyperlink", async () => {
+    const algWithHyperlink = "A URL injected http://injected.example.test";
+    const seedWithHyperlink: authorizationApi.KeySeed = {
+      ...keySeed,
+      alg: algWithHyperlink,
+    };
+    await expect(
+      authorizationService.createProducerKeychainKey(
+        {
+          producerKeychainId: mockProducerKeychain.id,
+          keySeed: seedWithHyperlink,
+        },
+        getMockContext({ authData: mockAuthData })
+      )
+    ).rejects.toThrowError(hyperlinkDetectionError(algWithHyperlink));
   });
 });

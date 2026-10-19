@@ -1,5 +1,6 @@
-import sftp from "ssh2-sftp-client";
 import { Logger } from "pagopa-interop-commons";
+import sftp from "ssh2-sftp-client";
+
 import { SftpConfig } from "../config/sftpConfig.js";
 
 export class SftpClient {

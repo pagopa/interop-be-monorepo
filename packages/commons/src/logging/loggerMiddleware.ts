@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as express from "express";
-import { AppContext } from "../context/context.js";
+
 import { getUserInfoFromAuthData } from "../auth/authData.js";
+import { AppContext } from "../context/context.js";
 import { LoggerMetadata, logger } from "../logging/index.js";
 
 export function loggerMiddleware(serviceName: string): express.RequestHandler {

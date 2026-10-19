@@ -1,4 +1,5 @@
 import { UserRole, userRole } from "pagopa-interop-commons";
+
 import { BaseDigest, TenantDigestData } from "../services/digestDataService.js";
 
 /**

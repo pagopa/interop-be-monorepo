@@ -1,15 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   Tenant,
   TenantId,
   generateId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
-import { importAttributes } from "../src/service/processor.js";
+import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 
+import { ISTAT_ATTRIBUTE_SEED } from "../src/config/constants.js";
+import { importAttributes } from "../src/service/processor.js";
 import {
   addOneAttribute,
   addOneTenant,
@@ -21,7 +22,6 @@ import {
   persistentAttribute,
   readModelService,
 } from "./helpers.js";
-import { ISTAT_ATTRIBUTE_SEED } from "../src/config/constants.js";
 
 describe("ISTAT Certified Discrete Attributes Importer", () => {
   const tenantProcessMock = {

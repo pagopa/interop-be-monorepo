@@ -1,15 +1,4 @@
 import {
-  descriptorState,
-  DescriptorState,
-  genericInternalError,
-  GSIPKEServiceIdDescriptorId,
-  itemState,
-  ItemState,
-  PlatformStatesCatalogEntry,
-  PlatformStatesEServiceDescriptorPK,
-  TokenGenStatesConsumerClientGSIDescriptor,
-} from "pagopa-interop-models";
-import {
   AttributeValue,
   ConditionalCheckFailedException,
   DeleteItemCommand,
@@ -25,10 +14,22 @@ import {
   UpdateItemInput,
 } from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
-import { z } from "zod";
 import { Logger } from "pagopa-interop-commons";
-import { config } from "./config/config.js";
+import {
+  descriptorState,
+  DescriptorState,
+  genericInternalError,
+  GSIPKEServiceIdDescriptorId,
+  itemState,
+  ItemState,
+  PlatformStatesCatalogEntry,
+  PlatformStatesEServiceDescriptorPK,
+  TokenGenStatesConsumerClientGSIDescriptor,
+} from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { z } from "zod";
+
+import { config } from "./config/config.js";
 
 export const upsertPlatformStatesCatalogEntry = async (
   catalogEntry: PlatformStatesCatalogEntry,

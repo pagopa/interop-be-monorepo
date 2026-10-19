@@ -1,6 +1,3 @@
-import fs, { readFileSync } from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
 import {
   CreateTableCommand,
   CreateTableInput,
@@ -9,6 +6,9 @@ import {
   DynamoDBClient,
   UpdateTimeToLiveCommand,
 } from "@aws-sdk/client-dynamodb";
+import fs, { readFileSync } from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
 export const buildDynamoDBTables = async (
   dynamoDBClient: DynamoDBClient

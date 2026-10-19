@@ -1,16 +1,18 @@
-import { describe, it, expect, vi } from "vitest";
+import { AxiosError, InternalAxiosRequestConfig } from "axios";
+import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockDPoPProof,
   getMockedApiFullProducerKeychain,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
-import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { generateId, UserId } from "pagopa-interop-models";
-import { api, mockProducerKeychainService } from "../../vitest.api.setup.js";
-import { appBasePath } from "../../../src/config/appBasePath.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { toM2MGatewayApiProducerKeychain } from "../../../src/api/producerKeychainApiConverter.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
+import { api, mockProducerKeychainService } from "../../vitest.api.setup.js";
 
 describe("POST /producerKeychains router test", () => {
   const makeRequest = async (
@@ -34,6 +36,33 @@ describe("POST /producerKeychains router test", () => {
   );
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
+
+  it("Should propagate the authorization 404 for a missing member", async () => {
+    const problem = {
+      type: "about:blank",
+      title: "Not Found",
+      status: 404,
+      detail: "User not found",
+      errors: [{ code: "005-0016", detail: "User not found" }],
+    };
+    mockProducerKeychainService.createProducerKeychain = vi
+      .fn()
+      .mockRejectedValueOnce(
+        new AxiosError("User not found", "404", undefined, undefined, {
+          status: 404,
+          statusText: "Not Found",
+          data: problem,
+          headers: {},
+          config: {} as InternalAxiosRequestConfig,
+        })
+      );
+    const res = await makeRequest(
+      generateToken(authRole.M2M_ADMIN_ROLE),
+      producerKeychainSeed
+    );
+    expect(res.status).toBe(404);
+    expect(res.body).toMatchObject({ status: 404, errors: problem.errors });
+  });
 
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",

@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, expect, it } from "vitest";
 import { generateId } from "pagopa-interop-models";
 import request from "supertest";
+import { describe, expect, it } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { api } from "../../vitest.api.setup.js";
 import { config } from "../../../src/config/config.js";
+import { api } from "../../vitest.api.setup.js";
 
 describe("API GET /emailDeepLink/:digestNotificationType (with optional entityId and selfcareId query params)", () => {
   const makeRequest = async (

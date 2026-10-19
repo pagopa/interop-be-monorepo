@@ -14,13 +14,20 @@ import {
   UserId,
   algorithm,
 } from "pagopa-interop-models";
+
+import { calculateDPoPThumbprint } from "../auth/jwk.js";
 import { systemRole } from "../auth/roles.js";
 import { AuthorizationServerTokenGenerationConfig } from "../config/authorizationServerTokenGenerationConfig.js";
+import { IntegrityRest02SignatureConfig } from "../config/integrityRest02Config.js";
 import { SessionTokenGenerationConfig } from "../config/sessionTokenGenerationConfig.js";
 import { TokenGenerationConfig } from "../config/tokenGenerationConfig.js";
-import { IntegrityRest02SignatureConfig } from "../config/integrityRest02Config.js";
+import { genericLogger } from "../logging/index.js";
 import { dateToSeconds } from "../utils/date.js";
-import { calculateDPoPThumbprint } from "../auth/jwk.js";
+import {
+  SerializedAuthTokenPayload,
+  toSerializedInteropJwtPayload,
+  toSerializedJwtUIPayload,
+} from "./jwtEncoder.js";
 import {
   InteropApiToken,
   InteropAsyncConsumerToken,
@@ -40,11 +47,6 @@ import {
   IntegrityRest02SignedHeaders,
 } from "./models.js";
 import { b64ByteUrlEncode, b64UrlEncode } from "./utils.js";
-import {
-  SerializedAuthTokenPayload,
-  toSerializedInteropJwtPayload,
-  toSerializedJwtUIPayload,
-} from "./jwtEncoder.js";
 
 const JWT_HEADER_ALG = algorithm.RS256;
 const JWT_HEADER_USE = "sig";
@@ -62,6 +64,31 @@ export class InteropTokenGenerator {
     kmsClient?: KMSClient
   ) {
     this.kmsClient = kmsClient || new KMSClient();
+    this.logConfiguredKids();
+  }
+
+  /*
+    Logs the signing kids this generator was configured with, so that we can
+    verify a pod received the expected KMS key configuration before it signs
+    anything. Only the kids present in the given config are logged, since each
+    service configures just the token kinds it produces.
+  */
+  private logConfiguredKids(): void {
+    const configuredKids = {
+      internalTokenKid: this.config.kid,
+      sessionTokenKid: this.config.generatedKid,
+      interopTokenKid: this.config.generatedInteropTokenKid,
+      integrityRest02TokenKid: this.config.integrityRestSignatureKid,
+    };
+
+    const kids = Object.entries(configuredKids)
+      .filter(([, kid]) => kid !== undefined)
+      .map(([name, kid]) => `${name}: ${kid}`)
+      .join(", ");
+
+    genericLogger.info(
+      `InteropTokenGenerator initialized - configured kids: ${kids || "none"}`
+    );
   }
 
   public async generateInternalToken(): Promise<InteropInternalToken> {
@@ -485,6 +512,19 @@ export class InteropTokenGenerator {
     };
 
     const command = new SignCommand(commandParams);
+    /*
+      Logged per signature so that a given token can be traced back, via its
+      jti, to the KMS key that signed it and to the role it was issued for.
+      Integrity REST 02 tokens carry no role, UI tokens carry "user-roles".
+    */
+    const role = "role" in payload ? payload.role : undefined;
+    const userRoles =
+      "user-roles" in payload ? payload["user-roles"] : undefined;
+    genericLogger.info(
+      `Signing token with KMS kid ${keyId} - jti: ${payload.jti}${
+        role ? `, role: ${role}` : ""
+      }${userRoles ? `, user-roles: ${userRoles}` : ""}`
+    );
     const response = await this.kmsClient.send(command);
 
     if (!response.Signature) {

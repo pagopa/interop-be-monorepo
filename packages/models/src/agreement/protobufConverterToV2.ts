@@ -1,4 +1,6 @@
 import { match } from "ts-pattern";
+
+import { toAttributeCertifiedDiscreteComparatorV2 } from "../eservice/protobufConverterToV2.js";
 import {
   AgreementDocumentV2,
   AgreementSignedContractV2,
@@ -11,7 +13,6 @@ import {
   AgreementSuspensionReasonV2,
   CertifiedDiscreteAttributeFailureV2,
 } from "../gen/v2/agreement/events.js";
-import { toAttributeCertifiedDiscreteComparatorV2 } from "../eservice/protobufConverterToV2.js";
 import { dateToBigInt } from "../utils.js";
 import {
   Agreement,

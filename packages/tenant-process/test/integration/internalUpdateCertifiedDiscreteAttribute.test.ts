@@ -8,6 +8,7 @@ import {
 } from "pagopa-interop-commons-test";
 import { Tenant, tenantAttributeType } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
+
 import {
   addOneAttribute,
   addOneTenant,

@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
 import { itemState } from "pagopa-interop-models";
+import { describe, expect, it } from "vitest";
+
 import { invalidAgreementState, invalidEServiceState } from "../src/errors.js";
 import { failedValidation, successfulValidation } from "../src/utils.js";
 

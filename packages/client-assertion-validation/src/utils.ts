@@ -12,11 +12,7 @@ import {
   algorithm,
   UrlCallback,
 } from "pagopa-interop-models";
-import {
-  FailedValidation,
-  ValidationResult,
-  SuccessfulValidation,
-} from "./types.js";
+
 import {
   ErrorCodes,
   expNotFound,
@@ -46,6 +42,11 @@ import {
   invalidEntityNumberClaimFormat,
   scopeNotProvided,
 } from "./errors.js";
+import {
+  FailedValidation,
+  ValidationResult,
+  SuccessfulValidation,
+} from "./types.js";
 
 export const EXPECTED_CLIENT_ASSERTION_TYPE =
   "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";

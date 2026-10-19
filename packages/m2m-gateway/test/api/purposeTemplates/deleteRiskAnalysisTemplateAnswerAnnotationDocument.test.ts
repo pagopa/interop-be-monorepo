@@ -1,13 +1,14 @@
-import { describe, it, expect, vi } from "vitest";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockedApiPurposeTemplate,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
 import { generateId } from "pagopa-interop-models";
-import { api, mockPurposeTemplateService } from "../../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { api, mockPurposeTemplateService } from "../../vitest.api.setup.js";
 
 describe("DELETE /purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation/documents/:documentId router test", () => {
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];

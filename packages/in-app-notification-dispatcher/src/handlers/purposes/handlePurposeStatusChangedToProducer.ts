@@ -1,18 +1,19 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   fromPurposeV2,
   missingKafkaMessageDataError,
   PurposeV2,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
 import { NewNotification } from "pagopa-interop-models";
-import { match } from "ts-pattern";
-import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import {
   getNotificationRecipients,
   retrieveEservice,
   retrieveTenant,
   inAppTemplates,
 } from "pagopa-interop-notification-commons";
+import { match } from "ts-pattern";
+
+import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 type PurposeStatusChangedToProducerType =
   | "PurposeVersionSuspendedByConsumer"

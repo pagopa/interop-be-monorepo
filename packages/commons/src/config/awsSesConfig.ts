@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { AWSConfig } from "./awsConfig.js";
 
 export const AWSSesConfig = AWSConfig.and(
