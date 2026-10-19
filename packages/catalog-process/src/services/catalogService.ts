@@ -1065,7 +1065,7 @@ export function catalogServiceBuilder(
       const requesterDelegationRoles = filters.requesterDelegationRoles ?? [];
       const producerCategories = filters.producerCategories ?? [];
       logger.info(
-        `Querying EServices, limit = ${filters.limit}, offset = ${filters.offset}, sortBy = ${sortBy}, keyword = ${keyword}, producersIds = ${producersIds}, onlyActiveEservices = ${filters.onlyActiveEservices}, subscribedByRequester = ${filters.subscribedByRequester}, requesterDelegationRoles = ${requesterDelegationRoles}, onlyTemplateInstances = ${filters.onlyTemplateInstances}, hasLinkedPurposeTemplates = ${filters.hasLinkedPurposeTemplates}, producerCategories = ${producerCategories}, availableForRequester = ${availableForRequester}`
+        `Querying EServices, limit = ${filters.limit}, offset = ${filters.offset}, sortBy = ${sortBy}, keyword = ${keyword}, producersIds = ${producersIds}, onlyActiveEservices = ${filters.onlyActiveEservices}, subscribedByRequester = ${filters.subscribedByRequester}, requesterDelegationRoles = ${requesterDelegationRoles}, onlyTemplateInstances = ${filters.onlyTemplateInstances}, templateId = ${filters.templateId}, hasLinkedPurposeTemplates = ${filters.hasLinkedPurposeTemplates}, producerCategories = ${producerCategories}, availableForRequester = ${availableForRequester}`
       );
       const certifiedDiscreteEnabled = isFeatureFlagEnabled(
         config,
@@ -1084,6 +1084,9 @@ export function catalogServiceBuilder(
           subscribedByRequester: filters.subscribedByRequester,
           requesterDelegationRoles,
           onlyTemplateInstances: filters.onlyTemplateInstances,
+          templateId: filters.templateId
+            ? unsafeBrandId<EServiceTemplateId>(filters.templateId)
+            : undefined,
           hasLinkedPurposeTemplates: filters.hasLinkedPurposeTemplates,
           producerCategories,
           availableForRequester,
