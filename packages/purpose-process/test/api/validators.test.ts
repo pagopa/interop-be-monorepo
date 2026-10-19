@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach, Mock } from "vitest";
 import {
   EService,
   Purpose,
+  purposeWaitingForApprovalReason,
   Tenant,
   Agreement,
   tenantKind,
@@ -18,32 +18,33 @@ import {
   AttributeId,
   PurposeId,
   unsafeBrandId,
-  purposeVersionState,
 } from "pagopa-interop-models";
-import {
-  isOverQuota,
-  getUpdatedQuotas,
-} from "../../src/services/validators.js";
+import { describe, it, expect, vi, beforeEach, afterEach, Mock } from "vitest";
+
+import { config } from "../../src/config/config.js";
 import {
   descriptorNotFound,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
-import { ReadModelServiceSQL } from "../../src/services/readModelServiceSQL.js";
 import { retrieveActiveAgreement } from "../../src/services/purposeService.js";
-import { config } from "../../src/config/config.js";
+import { ReadModelServiceSQL } from "../../src/services/readModelServiceSQL.js";
+import {
+  getWaitingForApprovalReason,
+  getUpdatedQuotas,
+} from "../../src/services/validators.js";
 
 vi.mock("../../src/services/purposeService.js", () => ({
   retrieveActiveAgreement: vi.fn(),
 }));
 
 const mockReadModelService = {
-  getAllPurposes: vi.fn(),
+  getActiveVersionsDailyCalls: vi.fn(),
   getActiveAgreement: vi.fn(),
   getTenantById: vi.fn(),
   getEServiceById: vi.fn(),
 } as unknown as ReadModelServiceSQL;
 
-describe("isOverQuota", () => {
+describe("getWaitingForApprovalReason", () => {
   const eserviceId = "eservice-id" as EServiceId;
   const consumerId = "consumer-id" as TenantId;
   const descriptorId = "descriptor-id" as DescriptorId;
@@ -73,6 +74,7 @@ describe("isOverQuota", () => {
         interface: undefined,
         agreementApprovalPolicy: "Automatic",
         serverUrls: [],
+        serverUrlsDescriptions: [],
         attributes: {
           certified: [],
           declared: [],
@@ -149,47 +151,71 @@ describe("isOverQuota", () => {
     vi.resetAllMocks();
   });
 
-  it("should return false if the new daily calls do not exceed any quota", async () => {
-    (retrieveActiveAgreement as Mock).mockResolvedValue(agreement);
-    (mockReadModelService.getAllPurposes as Mock).mockResolvedValue([]);
-    (mockReadModelService.getTenantById as Mock).mockResolvedValue(tenant);
+  it.each([
+    {
+      consumerDailyCalls: 0,
+      totalDailyCalls: 0,
+      dailyCalls: 10,
+      expected: undefined,
+    },
+    {
+      consumerDailyCalls: 90,
+      totalDailyCalls: 990,
+      dailyCalls: 10,
+      expected: undefined,
+    },
+    {
+      consumerDailyCalls: 90,
+      totalDailyCalls: 100,
+      dailyCalls: 20,
+      expected: purposeWaitingForApprovalReason.dailyCallsPerConsumer,
+    },
+    {
+      consumerDailyCalls: 0,
+      totalDailyCalls: 990,
+      dailyCalls: 20,
+      expected: purposeWaitingForApprovalReason.dailyCallsTotal,
+    },
+    {
+      consumerDailyCalls: 90,
+      totalDailyCalls: 990,
+      dailyCalls: 20,
+      expected: purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+    },
+    {
+      consumerDailyCalls: 110,
+      totalDailyCalls: 1100,
+      dailyCalls: -20,
+      expected: purposeWaitingForApprovalReason.dailyCallsTotal,
+    },
+    {
+      consumerDailyCalls: 110,
+      totalDailyCalls: 1100,
+      dailyCalls: -100,
+      expected: undefined,
+    },
+  ])(
+    "classifies quotas for $consumerDailyCalls/$totalDailyCalls calls and a delta of $dailyCalls",
+    async ({ consumerDailyCalls, totalDailyCalls, dailyCalls, expected }) => {
+      (retrieveActiveAgreement as Mock).mockResolvedValue(agreement);
+      (
+        mockReadModelService.getActiveVersionsDailyCalls as Mock
+      ).mockResolvedValue({ consumerDailyCalls, totalDailyCalls });
+      (mockReadModelService.getTenantById as Mock).mockResolvedValue(tenant);
 
-    const result = await isOverQuota(
-      eservice,
-      purpose,
-      10,
-      mockReadModelService
-    );
-    expect(result).toBe(false);
-  });
-
-  it("should return true if the new daily calls exceed the consumer quota", async () => {
-    (retrieveActiveAgreement as Mock).mockResolvedValue(agreement);
-    (mockReadModelService.getAllPurposes as Mock).mockResolvedValue([]);
-    (mockReadModelService.getTenantById as Mock).mockResolvedValue(tenant);
-
-    const result = await isOverQuota(
-      eservice,
-      purpose,
-      200,
-      mockReadModelService
-    );
-    expect(result).toBe(true);
-  });
-
-  it("should return true if the new daily calls exceed the total quota", async () => {
-    (retrieveActiveAgreement as Mock).mockResolvedValue(agreement);
-    (mockReadModelService.getAllPurposes as Mock).mockResolvedValue([]);
-    (mockReadModelService.getTenantById as Mock).mockResolvedValue(tenant);
-
-    const result = await isOverQuota(
-      eservice,
-      purpose,
-      2000,
-      mockReadModelService
-    );
-    expect(result).toBe(true);
-  });
+      expect(
+        await getWaitingForApprovalReason(
+          eservice,
+          purpose,
+          dailyCalls,
+          mockReadModelService
+        )
+      ).toBe(expected);
+      expect(
+        mockReadModelService.getActiveVersionsDailyCalls
+      ).toHaveBeenCalledTimes(1);
+    }
+  );
 
   it("should throw descriptorNotFound if the descriptor is not found", async () => {
     const agreementWithInvalidDescriptor: Agreement = {
@@ -199,11 +225,13 @@ describe("isOverQuota", () => {
     (retrieveActiveAgreement as Mock).mockResolvedValue(
       agreementWithInvalidDescriptor
     );
-    (mockReadModelService.getAllPurposes as Mock).mockResolvedValue([]);
+    (
+      mockReadModelService.getActiveVersionsDailyCalls as Mock
+    ).mockResolvedValue({ consumerDailyCalls: 0, totalDailyCalls: 0 });
     (mockReadModelService.getTenantById as Mock).mockResolvedValue(tenant);
 
     await expect(
-      isOverQuota(eservice, purpose, 10, mockReadModelService)
+      getWaitingForApprovalReason(eservice, purpose, 10, mockReadModelService)
     ).rejects.toThrow(
       descriptorNotFound(
         eservice.id,
@@ -214,11 +242,13 @@ describe("isOverQuota", () => {
 
   it("should throw tenantNotFound if the tenant is not found", async () => {
     (retrieveActiveAgreement as Mock).mockResolvedValue(agreement);
-    (mockReadModelService.getAllPurposes as Mock).mockResolvedValue([]);
+    (
+      mockReadModelService.getActiveVersionsDailyCalls as Mock
+    ).mockResolvedValue({ consumerDailyCalls: 0, totalDailyCalls: 0 });
     (mockReadModelService.getTenantById as Mock).mockResolvedValue(undefined);
 
     await expect(
-      isOverQuota(eservice, purpose, 10, mockReadModelService)
+      getWaitingForApprovalReason(eservice, purpose, 10, mockReadModelService)
     ).rejects.toThrow(tenantNotFound(consumerId));
   });
 
@@ -258,26 +288,28 @@ describe("isOverQuota", () => {
     };
 
     (retrieveActiveAgreement as Mock).mockResolvedValue(agreement);
-    (mockReadModelService.getAllPurposes as Mock).mockResolvedValue([]);
+    (
+      mockReadModelService.getActiveVersionsDailyCalls as Mock
+    ).mockResolvedValue({ consumerDailyCalls: 0, totalDailyCalls: 0 });
     (mockReadModelService.getTenantById as Mock).mockResolvedValue(
       tenantWithCertifiedAttributes
     );
 
-    const result = await isOverQuota(
+    const result = await getWaitingForApprovalReason(
       eserviceWithCertifiedAttributes,
       purpose,
       150,
       mockReadModelService
     );
-    expect(result).toBe(false);
+    expect(result).toBeUndefined();
 
-    const result2 = await isOverQuota(
+    const result2 = await getWaitingForApprovalReason(
       eserviceWithCertifiedAttributes,
       purpose,
       250,
       mockReadModelService
     );
-    expect(result2).toBe(true);
+    expect(result2).toBe(purposeWaitingForApprovalReason.dailyCallsPerConsumer);
   });
 });
 
@@ -310,6 +342,7 @@ describe("getUpdatedQuotas", () => {
         interface: undefined,
         agreementApprovalPolicy: "Automatic",
         serverUrls: [],
+        serverUrlsDescriptions: [],
         attributes: {
           certified: [],
           declared: [],
@@ -372,19 +405,10 @@ describe("getUpdatedQuotas", () => {
 
   it("should return the correct updated quotas", async () => {
     (retrieveActiveAgreement as Mock).mockResolvedValue(agreement);
-    (mockReadModelService.getAllPurposes as Mock).mockResolvedValue([
-      {
-        consumerId,
-        versions: [
-          { state: purposeVersionState.active, dailyCalls: 10 },
-          { state: purposeVersionState.draft, dailyCalls: 50 },
-        ],
-      },
-      {
-        consumerId: "other-consumer",
-        versions: [{ state: purposeVersionState.active, dailyCalls: 20 }],
-      },
-    ]);
+    // consumer active versions sum = 10 (draft excluded), total across consumers = 30
+    (
+      mockReadModelService.getActiveVersionsDailyCalls as Mock
+    ).mockResolvedValue({ consumerDailyCalls: 10, totalDailyCalls: 30 });
     (mockReadModelService.getTenantById as Mock).mockResolvedValue(tenant);
 
     const result = await getUpdatedQuotas(
@@ -437,7 +461,9 @@ describe("getUpdatedQuotas", () => {
     };
 
     (retrieveActiveAgreement as Mock).mockResolvedValue(agreement);
-    (mockReadModelService.getAllPurposes as Mock).mockResolvedValue([]);
+    (
+      mockReadModelService.getActiveVersionsDailyCalls as Mock
+    ).mockResolvedValue({ consumerDailyCalls: 0, totalDailyCalls: 0 });
     (mockReadModelService.getTenantById as Mock).mockResolvedValue(
       tenantWithCertifiedAttributes
     );
@@ -464,7 +490,9 @@ describe("getUpdatedQuotas", () => {
     (retrieveActiveAgreement as Mock).mockResolvedValue(
       agreementWithInvalidDescriptor
     );
-    (mockReadModelService.getAllPurposes as Mock).mockResolvedValue([]);
+    (
+      mockReadModelService.getActiveVersionsDailyCalls as Mock
+    ).mockResolvedValue({ consumerDailyCalls: 0, totalDailyCalls: 0 });
     (mockReadModelService.getTenantById as Mock).mockResolvedValue(tenant);
 
     await expect(
@@ -479,7 +507,9 @@ describe("getUpdatedQuotas", () => {
 
   it("should throw tenantNotFound if the tenant is not found", async () => {
     (retrieveActiveAgreement as Mock).mockResolvedValue(agreement);
-    (mockReadModelService.getAllPurposes as Mock).mockResolvedValue([]);
+    (
+      mockReadModelService.getActiveVersionsDailyCalls as Mock
+    ).mockResolvedValue({ consumerDailyCalls: 0, totalDailyCalls: 0 });
     (mockReadModelService.getTenantById as Mock).mockResolvedValue(undefined);
 
     await expect(
@@ -524,6 +554,7 @@ describe("getUpdatedQuotas - certified discrete attributes", () => {
         interface: undefined,
         agreementApprovalPolicy: "Automatic",
         serverUrls: [],
+        serverUrlsDescriptions: [],
         attributes: {
           certified,
           declared: [],
@@ -606,7 +637,9 @@ describe("getUpdatedQuotas - certified discrete attributes", () => {
     tenant: Tenant
   ): Promise<Awaited<ReturnType<typeof getUpdatedQuotas>>> => {
     (retrieveActiveAgreement as Mock).mockResolvedValue(agreement);
-    (mockReadModelService.getAllPurposes as Mock).mockResolvedValue([]);
+    (
+      mockReadModelService.getActiveVersionsDailyCalls as Mock
+    ).mockResolvedValue({ consumerDailyCalls: 0, totalDailyCalls: 0 });
     (mockReadModelService.getTenantById as Mock).mockResolvedValue(tenant);
     return getUpdatedQuotas(eservice, consumerId, mockReadModelService);
   };

@@ -1,4 +1,5 @@
 import { InferSelectModel } from "drizzle-orm";
+
 import {
   agreementInM2MEvent,
   attributeInM2MEvent,

@@ -1,16 +1,17 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { DelegationId, PurposeId, generateId } from "pagopa-interop-models";
-import { generateToken, getMockPurpose } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
+import { generateToken, getMockPurpose } from "pagopa-interop-commons-test";
+import { DelegationId, PurposeId, generateId } from "pagopa-interop-models";
 import request from "supertest";
-import { api, purposeService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import {
   tenantIsNotTheConsumer,
   tenantIsNotTheDelegatedConsumer,
   purposeCannotBeDeleted,
   purposeNotFound,
 } from "../../src/model/domain/errors.js";
+import { api, purposeService } from "../vitest.api.setup.js";
 
 describe("API DELETE /purposes/{id} test", () => {
   const mockPurpose = getMockPurpose();

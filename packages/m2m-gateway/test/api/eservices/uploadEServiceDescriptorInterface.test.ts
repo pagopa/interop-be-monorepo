@@ -1,18 +1,23 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
-import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
-import { api, mockEserviceService } from "../../vitest.api.setup.js";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateId,
+  invalidInterfaceFileDetected,
+  pollingMaxRetriesExceeded,
+} from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { config } from "../../../src/config/config.js";
 import { missingMetadata } from "../../../src/model/errors.js";
 import {
   TestMultipartFileUpload,
   addMultipartFileToSupertestRequest,
 } from "../../multipartTestUtils.js";
-import { config } from "../../../src/config/config.js";
+import { api, mockEserviceService } from "../../vitest.api.setup.js";
 
 describe("POST /eservices/:eserviceId/descriptors/:descriptorId/interface router test", () => {
   const mockDate = new Date();
@@ -149,6 +154,26 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/interface router
       expect(res.status).toBe(400);
     }
   );
+
+  it("Should return 400 in case of invalidInterfaceFileDetected error", async () => {
+    mockEserviceService.uploadEServiceDescriptorInterface = vi
+      .fn()
+      .mockRejectedValue(
+        invalidInterfaceFileDetected({
+          id: generateId(),
+          isEserviceTemplate: false,
+        })
+      );
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(
+      token,
+      generateId(),
+      generateId(),
+      mockFileUpload
+    );
+
+    expect(res.status).toBe(400);
+  });
 
   it.each([
     missingMetadata(),

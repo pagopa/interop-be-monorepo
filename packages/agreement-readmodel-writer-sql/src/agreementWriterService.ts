@@ -1,3 +1,4 @@
+import { and, eq, lte } from "drizzle-orm";
 import {
   Agreement,
   AgreementDocument,
@@ -9,7 +10,6 @@ import {
   checkMetadataVersion,
   splitAgreementIntoObjectsSQL,
 } from "pagopa-interop-readmodel";
-import { and, eq, lte } from "drizzle-orm";
 import {
   agreementAttributeInReadmodelAgreement,
   agreementConsumerDocumentInReadmodelAgreement,

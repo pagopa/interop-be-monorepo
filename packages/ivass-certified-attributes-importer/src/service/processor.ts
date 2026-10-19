@@ -1,22 +1,23 @@
 /* eslint-disable max-params */
+import { parse } from "csv/sync";
 import {
   Logger,
   RefreshableInteropToken,
   waitForReadModelMetadataVersion,
 } from "pagopa-interop-commons";
 import { CorrelationId, TenantFeatureCertifier } from "pagopa-interop-models";
-import { parse } from "csv/sync";
+
+import { IVASS_INSURANCES_ATTRIBUTE_CODE } from "../config/constants.js";
+import { CsvRow, RawCsvRow } from "../model/csvRowModel.js";
+import { InteropContext } from "../model/interopContextModel.js";
 import {
   AttributeIdentifiers,
   BatchParseResult,
   IvassAttributes,
 } from "../model/processorModel.js";
-import { IVASS_INSURANCES_ATTRIBUTE_CODE } from "../config/constants.js";
-import { CsvRow, RawCsvRow } from "../model/csvRowModel.js";
-import { InteropContext } from "../model/interopContextModel.js";
 import { IvassReadModelTenant } from "../model/tenant.js";
-import { TenantProcessService } from "./tenantProcessService.js";
 import { ReadModelQueriesSQL } from "./readModelQueriesServiceSQL.js";
+import { TenantProcessService } from "./tenantProcessService.js";
 
 type PollingConfig = {
   defaultPollingMaxRetries: number;

@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import request from "supertest";
+import { authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockAttribute,
+  getMockTenant,
+} from "pagopa-interop-commons-test";
 import {
   Tenant,
   generateId,
@@ -8,13 +12,9 @@ import {
   tenantKind,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockAttribute,
-  getMockTenant,
-} from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
-import { api, tenantService } from "../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import {
   attributeNotFound,
   attributeNotFoundInTenant,
@@ -22,6 +22,7 @@ import {
   tenantNotFound,
   tenantNotFoundByExternalId,
 } from "../../src/model/domain/errors.js";
+import { api, tenantService } from "../vitest.api.setup.js";
 
 describe("API DELETE /m2m/origin/{origin}/externalId/{externalId}/attributes/{code} test", () => {
   const mockAttribute = { ...getMockAttribute(), code: generateId() };

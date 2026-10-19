@@ -1,13 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
 import express, { Request, Response, Express } from "express";
-import { generateId } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockedApiAttribute,
-  getMockDPoPProof,
-  mockM2MAdminClientId,
-} from "pagopa-interop-commons-test";
+import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import {
   authRole,
   genericLogger,
@@ -15,16 +8,24 @@ import {
   IntegrityRest02SignedHeaders,
   integrityRest02Middleware,
 } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockedApiAttribute,
+  getMockDPoPProof,
+  mockM2MAdminClientId,
+} from "pagopa-interop-commons-test";
+import { generateId } from "pagopa-interop-models";
 import request from "supertest";
-import { attributeRegistryApi } from "pagopa-interop-api-clients";
+import { describe, it, expect, vi } from "vitest";
+
+import { toM2MGatewayApiCertifiedAttribute } from "../../src/api/attributeApiConverter.js";
+import { appBasePath } from "../../src/config/appBasePath.js";
 import {
   api,
   mockAttributeService,
   mockClientService,
   mockKmsClient,
 } from "../vitest.api.setup.js";
-import { appBasePath } from "../../src/config/appBasePath.js";
-import { toM2MGatewayApiCertifiedAttribute } from "../../src/api/attributeApiConverter.js";
 
 function decodeJwtPayload(token: string): Record<string, unknown> {
   const [, payload] = token.split(".");

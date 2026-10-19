@@ -29,7 +29,6 @@ import {
   TenantVerifier,
   VerifiedTenantAttribute,
 } from "pagopa-interop-models";
-import { describe, it, expect } from "vitest";
 import {
   TenantCertifiedAttributeSQL,
   TenantCertifiedDiscreteAttributeSQL,
@@ -42,6 +41,8 @@ import {
   TenantVerifiedAttributeSQL,
   TenantVerifiedAttributeVerifierSQL,
 } from "pagopa-interop-readmodel-models";
+import { describe, it, expect } from "vitest";
+
 import { splitTenantIntoObjectsSQL } from "../../src/tenant/splitters.js";
 
 describe("Tenant splitters", () => {

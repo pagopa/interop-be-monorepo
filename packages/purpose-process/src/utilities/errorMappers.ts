@@ -2,6 +2,7 @@
 import { constants } from "http2";
 import { ApiError, CommonErrorCodes } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import { ErrorCodes as LocalErrorCodes } from "../model/domain/errors.js";
 
 type ErrorCodes = LocalErrorCodes | CommonErrorCodes;
@@ -108,6 +109,17 @@ export const maintenanceFixRiskAnalysisErrorMapper = (
       "eserviceNotFound",
       "tenantKindNotFound",
       "unableToDetermineTenantKind",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const maintenanceFixReviewerWorkflowErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "purposeNotFound",
+      "riskAnalysisReviewModeNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -370,12 +382,15 @@ export const assignRiskAnalysisReviewerErrorMapper = (
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("tenantIsNotTheConsumer", () => HTTP_STATUS_FORBIDDEN)
     .with("reviewerWorkflowConflict", () => HTTP_STATUS_CONFLICT)
-    .with("multipleReviewersNotAllowed", () => HTTP_STATUS_BAD_REQUEST)
     .with(
-      "userWithoutReviewerPrivileges",
+      "userNotFoundOrWithoutReviewerPrivileges",
+      "duplicatedReviewersInSeed",
       "purposeFromTemplateCannotBeModified",
+      "purposeNotInDraftState",
       "reviewerWorkflowNotAllowedForDelegatedPurpose",
       "reviewerWorkflowNotAllowedForReceiveMode",
+      "missingReviewers",
+      "reviewersNotAllowedForReviewMode",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
@@ -421,7 +436,11 @@ export const signRiskAnalysisErrorMapper = (
       "tenantIsNotTheDelegatedConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
-    .with("reviewerWorkflowNotInSignableState", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "reviewerWorkflowNotInSignableState",
+      "purposeMetadataVersionMismatch",
+      () => HTTP_STATUS_CONFLICT
+    )
     .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 

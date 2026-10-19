@@ -1,3 +1,13 @@
+import { generateMock } from "@anatine/zod-mock";
+import {
+  agreementApi,
+  authorizationApi,
+  catalogApi,
+  m2mEventApi,
+  m2mGatewayApi,
+  purposeApi,
+  purposeTemplateApi,
+} from "pagopa-interop-api-clients";
 import {
   WithLogger,
   systemRole,
@@ -11,17 +21,8 @@ import {
   TenantId,
   generateId,
 } from "pagopa-interop-models";
-import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
-import {
-  agreementApi,
-  authorizationApi,
-  catalogApi,
-  m2mEventApi,
-  m2mGatewayApi,
-  purposeApi,
-  purposeTemplateApi,
-} from "pagopa-interop-api-clients";
+
 import { M2MGatewayAppContext } from "../src/utils/context.js";
 import { DownloadedDocument } from "../src/utils/fileDownload.js";
 

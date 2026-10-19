@@ -1,4 +1,3 @@
-import { match } from "ts-pattern";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
   CertifiedDiscreteTenantAttribute,
@@ -9,6 +8,7 @@ import {
   tenantAttributeType,
   VerifiedTenantAttribute,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 
 function toApiCompactTenantCertifiedAttribute(
   attr: CertifiedTenantAttribute

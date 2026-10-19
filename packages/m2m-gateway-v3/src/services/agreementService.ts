@@ -1,9 +1,9 @@
-import { FileManager, isValidFile, WithLogger } from "pagopa-interop-commons";
 import {
   agreementApi,
   delegationApi,
   m2mGatewayApiV3,
 } from "pagopa-interop-api-clients";
+import { FileManager, isValidFile, WithLogger } from "pagopa-interop-commons";
 import {
   AgreementDocumentId,
   AgreementId,
@@ -11,9 +11,20 @@ import {
   invalidFileUploadError,
   unsafeBrandId,
 } from "pagopa-interop-models";
+
+import {
+  toGetAgreementsApiQueryParams,
+  toGetPurposesApiQueryParamsForAgreement,
+  toM2MGatewayApiAgreement,
+  toM2MGatewayApiDocument,
+} from "../api/agreementApiConverter.js";
+import { toM2MGatewayApiPurpose } from "../api/purposeApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { M2MGatewayAppContext } from "../utils/context.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
+import { config } from "../config/config.js";
+import { agreementContractNotFound } from "../model/errors.js";
+import { M2MGatewayAppContext } from "../utils/context.js";
+import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
 import {
   isPolledVersionAtLeastMetadataTargetVersion,
   isPolledVersionAtLeastResponseVersion,
@@ -23,17 +34,7 @@ import {
 import {
   assertAgreementIsPending,
   assertAgreementIsSuspended,
-} from "../utils/validators/agreementValidators.js";
-import {
-  toGetAgreementsApiQueryParams,
-  toGetPurposesApiQueryParamsForAgreement,
-  toM2MGatewayApiAgreement,
-  toM2MGatewayApiDocument,
-} from "../api/agreementApiConverter.js";
-import { toM2MGatewayApiPurpose } from "../api/purposeApiConverter.js";
-import { config } from "../config/config.js";
-import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
-import { agreementContractNotFound } from "../model/errors.js";
+} from "../utils/validators/agreementValidator.js";
 
 export type AgreementService = ReturnType<typeof agreementServiceBuilder>;
 
@@ -234,7 +235,7 @@ export function agreementServiceBuilder(
 
       assertAgreementIsPending(agreement.data);
 
-      const response = await clients.agreementProcessClient.activateAgreement(
+      const response = await clients.agreementProcessClient.approveAgreement(
         { delegationId },
         {
           params: { agreementId },
@@ -326,7 +327,7 @@ export function agreementServiceBuilder(
 
       assertAgreementIsSuspended(agreement.data);
 
-      const response = await clients.agreementProcessClient.activateAgreement(
+      const response = await clients.agreementProcessClient.unsuspendAgreement(
         { delegationId },
         {
           params: { agreementId },

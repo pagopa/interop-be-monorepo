@@ -13,9 +13,9 @@ import {
   mapRecipientToEmailPayload,
   retrieveAgreementEservice,
 } from "pagopa-interop-notification-commons";
-import { AgreementHandlerParams } from "../../models/handlerParams.js";
 
 import { config } from "../../config/config.js";
+import { AgreementHandlerParams } from "../../models/handlerParams.js";
 
 const notificationType: NotificationType =
   "agreementActivatedRejectedToConsumer";

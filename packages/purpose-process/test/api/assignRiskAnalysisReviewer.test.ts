@@ -1,31 +1,35 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { purposeApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockPurpose,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   Purpose,
   PurposeId,
   PurposeTemplateId,
   generateId,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockPurpose,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import { purposeApi } from "pagopa-interop-api-clients";
 import request from "supertest";
-import { api, purposeService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { purposeToApiPurpose } from "../../src/model/domain/apiConverter.js";
 import {
   purposeNotFound,
   tenantIsNotTheConsumer,
   reviewerWorkflowConflict,
-  multipleReviewersNotAllowed,
-  userWithoutReviewerPrivileges,
+  userNotFoundOrWithoutReviewerPrivileges,
   purposeFromTemplateCannotBeModified,
+  purposeNotInDraftState,
   reviewerWorkflowNotAllowedForDelegatedPurpose,
   reviewerWorkflowNotAllowedForReceiveMode,
+  duplicatedReviewersInSeed,
+  missingReviewers,
+  reviewersNotAllowedForReviewMode,
 } from "../../src/model/domain/errors.js";
+import { api, purposeService } from "../vitest.api.setup.js";
 
 describe("API POST /purposes/{purposeId}/riskAnalysis/assign test", () => {
   const mockPurpose: Purpose = getMockPurpose();
@@ -57,13 +61,31 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/assign test", () => {
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
 
-  it.each(authorizedRoles)(
-    "Should return 200 for user with role %s",
-    async (role) => {
+  const successfulRequests = authorizedRoles.flatMap((role) => [
+    {
+      role,
+      description: "with reviewers",
+      body: defaultBody,
+    },
+    {
+      role,
+      description: "without reviewers for AdminWritesAdminSigns",
+      body: {
+        reviewMode: "ADMIN_WRITES_ADMIN_SIGNS" as const,
+      },
+    },
+  ]);
+
+  it.each(successfulRequests)(
+    "Should return 200 for an authorized user with role $role $description",
+    async ({ role, body }) => {
       const token = generateToken(role);
-      const res = await makeRequest(token);
+      const res = await makeRequest(token, mockPurpose.id, body);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiResponse);
       expect(res.headers["x-metadata-version"]).toBe(
@@ -84,9 +106,12 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/assign test", () => {
     { error: purposeNotFound(mockPurpose.id), expectedStatus: 404 },
     { error: tenantIsNotTheConsumer(generateId()), expectedStatus: 403 },
     { error: reviewerWorkflowConflict(mockPurpose.id), expectedStatus: 409 },
-    { error: multipleReviewersNotAllowed(mockPurpose.id), expectedStatus: 400 },
+    { error: duplicatedReviewersInSeed(), expectedStatus: 400 },
     {
-      error: userWithoutReviewerPrivileges(generateId(), generateId()),
+      error: userNotFoundOrWithoutReviewerPrivileges(
+        generateId(),
+        generateId()
+      ),
       expectedStatus: 400,
     },
     {
@@ -97,11 +122,23 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/assign test", () => {
       expectedStatus: 400,
     },
     {
+      error: purposeNotInDraftState(mockPurpose.id),
+      expectedStatus: 400,
+    },
+    {
       error: reviewerWorkflowNotAllowedForDelegatedPurpose(mockPurpose.id),
       expectedStatus: 400,
     },
     {
       error: reviewerWorkflowNotAllowedForReceiveMode(mockPurpose.id),
+      expectedStatus: 400,
+    },
+    {
+      error: missingReviewers(mockPurpose.id),
+      expectedStatus: 400,
+    },
+    {
+      error: reviewersNotAllowedForReviewMode(mockPurpose.id),
       expectedStatus: 400,
     },
   ])(
@@ -119,8 +156,15 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/assign test", () => {
   it.each([
     { purposeId: "invalid" as PurposeId },
     { body: {} },
-    { body: { reviewMode: "INVALID_MODE", reviewerIds: [generateId()] } },
-    { body: { reviewMode: "REVIEWER_WRITES_REVIEWER_SIGNS", reviewerIds: [] } },
+    {
+      body: { reviewMode: "INVALID_MODE", reviewerIds: [generateId()] },
+    },
+    {
+      body: {
+        reviewMode: "REVIEWER_WRITES_REVIEWER_SIGNS",
+        reviewerIds: [],
+      },
+    },
     {
       body: {
         reviewMode: "REVIEWER_WRITES_REVIEWER_SIGNS",
