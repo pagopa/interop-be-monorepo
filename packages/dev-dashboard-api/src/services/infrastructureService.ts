@@ -210,11 +210,11 @@ export function infrastructureServiceBuilder(
   ): Promise<void> {
     for (const row of monitoredRows) {
       if (stopped) break;
-      await refreshTail(row); // NOSONAR: rows may share a service; update its tail before processing the next row.
+      await refreshTail(row);
     }
     for (const [service, tail] of tails) {
       if (!currentServices.has(service)) {
-        await tail.child.stop(); // NOSONAR: a failed stop must abort cleanup before later tails are removed.
+        await tail.child.stop();
         tails.delete(service);
       }
     }

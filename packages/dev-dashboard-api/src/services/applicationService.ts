@@ -143,7 +143,7 @@ export function applicationServiceBuilder(
       } catch {
         /* Readiness may lag behind process startup. */
       }
-      await delay(DASHBOARD_TIMING.readinessIntervalMs); // NOSONAR: each retry must wait, then recheck the child and readiness.
+      await delay(DASHBOARD_TIMING.readinessIntervalMs);
     }
     throw new Error(`${name} readiness timed out at ${url}`);
   }
@@ -224,7 +224,7 @@ export function applicationServiceBuilder(
     ]);
 
     for (const name of names) {
-      await stop(name); // NOSONAR: a failed stop must abort before stopping later packages.
+      await stop(name);
     }
   }
 
