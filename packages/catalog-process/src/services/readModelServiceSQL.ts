@@ -938,6 +938,7 @@ export function readModelServiceBuilderSQL(
         subscribedByRequester,
         requesterDelegationRoles,
         onlyTemplateInstances,
+        templateId,
         hasLinkedPurposeTemplates,
         producerCategories,
         availableForRequester,
@@ -964,6 +965,9 @@ export function readModelServiceBuilderSQL(
             requesterDelegationRoles
           ),
           onlyTemplateInstancesFilter(onlyTemplateInstances),
+          templateId
+            ? eq(eserviceInReadmodelCatalog.templateId, templateId)
+            : undefined,
           hasLinkedPurposeTemplatesFilter(tx, hasLinkedPurposeTemplates),
           producerCategoriesFilter(tx, producerCategories),
           availableForRequesterFilter(
