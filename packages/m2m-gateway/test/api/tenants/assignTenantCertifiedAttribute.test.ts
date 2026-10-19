@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
+import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockedApiCertifiedTenantAttribute,
@@ -10,17 +11,17 @@ import {
   generateId,
   pollingMaxRetriesExceeded,
 } from "pagopa-interop-models";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
-import { api, mockTenantService } from "../../vitest.api.setup.js";
+import { describe, it, expect, vi } from "vitest";
+
+import { toM2MGatewayApiTenantCertifiedAttribute } from "../../../src/api/tenantApiConverter.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { config } from "../../../src/config/config.js";
 import {
   missingMetadata,
   tenantCertifiedAttributeNotFound,
 } from "../../../src/model/errors.js";
-import { toM2MGatewayApiTenantCertifiedAttribute } from "../../../src/api/tenantApiConverter.js";
-import { config } from "../../../src/config/config.js";
+import { api, mockTenantService } from "../../vitest.api.setup.js";
 
 describe("POST /tenants/:tenantId/certifiedAttributes router test", () => {
   const mockApiResponse = getMockedApiCertifiedTenantAttribute();

@@ -5,12 +5,13 @@ import {
   Tenant,
   TenantId,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import {
   tenantNotFound,
   eserviceNotFound,
 } from "pagopa-interop-notification-commons";
+import { match } from "ts-pattern";
+
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export async function retrieveTenant(
   tenantId: TenantId,

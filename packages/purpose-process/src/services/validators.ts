@@ -1,8 +1,8 @@
+import { matchesCertifiedDescriptorAttribute } from "pagopa-interop-agreement-lifecycle";
 import {
   purposeApi,
   SelfcareV2InstitutionClient,
 } from "pagopa-interop-api-clients";
-import { matchesCertifiedDescriptorAttribute } from "pagopa-interop-agreement-lifecycle";
 import {
   isFeatureFlagEnabled,
   M2MAdminAuthData,
@@ -29,6 +29,8 @@ import {
   PurposeTemplate,
   PurposeTemplateId,
   PurposeVersion,
+  PurposeWaitingForApprovalReason,
+  purposeWaitingForApprovalReason,
   purposeVersionState,
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswer,
@@ -43,8 +45,11 @@ import {
   UserId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
+import { config } from "../config/config.js";
 import {
   descriptorNotFound,
+  duplicatedReviewersInSeed,
   duplicatedPurposeTitle,
   eServiceModeNotAllowed,
   invalidFreeOfChargeReason,
@@ -68,9 +73,8 @@ import {
   tenantIsNotTheProducer,
   tenantNotAllowed,
   tenantNotFound,
-  userWithoutReviewerPrivileges,
+  userNotFoundOrWithoutReviewerPrivileges,
 } from "../model/domain/errors.js";
-import { config } from "../config/config.js";
 import { UpdatedQuotas } from "../model/domain/models.js";
 import {
   retrieveActiveAgreement,
@@ -275,23 +279,33 @@ export const assertPersonalDataCompliant = (
   }
 };
 
-export async function isOverQuota(
+export async function getWaitingForApprovalReason(
   eservice: EService,
   purpose: Purpose,
   dailyCalls: number,
   readModelService: ReadModelServiceSQL
-): Promise<boolean> {
+): Promise<PurposeWaitingForApprovalReason | undefined> {
   const quotas = await getUpdatedQuotas(
     eservice,
     purpose.consumerId,
     readModelService
   );
 
-  return !(
-    quotas.currentConsumerCalls + dailyCalls <=
-      quotas.maxDailyCallsPerConsumer &&
-    quotas.currentTotalCalls + dailyCalls <= quotas.maxDailyCallsTotal
-  );
+  const exceedsConsumerQuota =
+    quotas.currentConsumerCalls + dailyCalls > quotas.maxDailyCallsPerConsumer;
+  const exceedsTotalQuota =
+    quotas.currentTotalCalls + dailyCalls > quotas.maxDailyCallsTotal;
+
+  if (exceedsConsumerQuota && exceedsTotalQuota) {
+    return purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal;
+  }
+  if (exceedsConsumerQuota) {
+    return purposeWaitingForApprovalReason.dailyCallsPerConsumer;
+  }
+  if (exceedsTotalQuota) {
+    return purposeWaitingForApprovalReason.dailyCallsTotal;
+  }
+  return undefined;
 }
 
 export async function getUpdatedQuotas(
@@ -299,11 +313,18 @@ export async function getUpdatedQuotas(
   consumerId: TenantId,
   readModelService: ReadModelServiceSQL
 ): Promise<UpdatedQuotas> {
-  const [{ consumerDailyCalls, totalDailyCalls }, agreement] =
-    await Promise.all([
-      readModelService.getActiveVersionsDailyCalls(eservice.id, consumerId),
-      retrieveActiveAgreement(eservice.id, consumerId, readModelService),
-    ]);
+  const agreement = await retrieveActiveAgreement(
+    eservice.id,
+    consumerId,
+    readModelService
+  );
+
+  const { consumerDailyCalls, totalDailyCalls } =
+    await readModelService.getActiveVersionsDailyCalls(
+      eservice.id,
+      consumerId,
+      agreement.descriptorId
+    );
 
   const currentDescriptor = eservice.descriptors.find(
     (d) => d.id === agreement.descriptorId
@@ -881,6 +902,12 @@ export function assertTenantHasSelfcareId(
   }
 }
 
+export function assertReviewerIdsAreUnique(reviewerIds: string[]): void {
+  if (new Set(reviewerIds).size !== reviewerIds.length) {
+    throw duplicatedReviewersInSeed();
+  }
+}
+
 export const assertUserSelfcareReviewerPrivileges = async ({
   selfcareId,
   consumerId,
@@ -906,6 +933,6 @@ export const assertUserSelfcareReviewerPrivileges = async ({
       },
     });
   if (users.length === 0) {
-    throw userWithoutReviewerPrivileges(consumerId, userIdToCheck);
+    throw userNotFoundOrWithoutReviewerPrivileges(consumerId, userIdToCheck);
   }
 };

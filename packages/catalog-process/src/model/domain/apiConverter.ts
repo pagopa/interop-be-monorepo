@@ -1,3 +1,4 @@
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   AgreementApprovalPolicy,
   DescriptorState,
@@ -15,7 +16,6 @@ import {
   archivingScope,
   ArchivingScope,
 } from "pagopa-interop-models";
-import { catalogApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
 
 export function technologyToApiTechnology(
@@ -153,7 +153,7 @@ export const documentToApiDocument = (
   uploadDate: document.uploadDate.toJSON(),
 });
 
-export const archivingScheduleScopeToApiArchivingScheduleScope = (
+const archivingScheduleScopeToApiArchivingScheduleScope = (
   input: ArchivingScope
 ): catalogApi.ArchivingScope =>
   match<ArchivingScope, catalogApi.ArchivingScope>(input)
@@ -202,6 +202,7 @@ export const descriptorToApiDescriptor = (
         scope: archivingScheduleScopeToApiArchivingScheduleScope(
           descriptor.archivingSchedule.scope
         ),
+        gracePeriodDays: descriptor.archivingSchedule.gracePeriodDays,
       }
     : undefined,
   asyncExchangeProperties: descriptor.asyncExchangeProperties
@@ -217,6 +218,18 @@ export const descriptorToApiDescriptor = (
   asyncExchangeCallbackInterface: descriptor.asyncExchangeCallbackInterface
     ? documentToApiDocument(descriptor.asyncExchangeCallbackInterface)
     : undefined,
+  delegatedArchivingRequest:
+    descriptor.delegatedArchivingRequest &&
+    descriptor.delegatedArchivingRequest.length > 0
+      ? descriptor.delegatedArchivingRequest.map((request) => ({
+          requestedAt: request.requestedAt.toJSON(),
+          requesterId: request.requesterId,
+          gracePeriodDays: request.gracePeriodDays,
+          rejectedAt: request.rejectedAt?.toJSON(),
+          rejectionReason: request.rejectionReason,
+          acceptedAt: request.acceptedAt?.toJSON(),
+        }))
+      : undefined,
 });
 
 export const eServiceToApiEService = (
@@ -249,4 +262,17 @@ export const eServiceToApiEService = (
   instanceLabel: eservice.instanceLabel,
   archivingReason: eservice.archivingReason,
   asyncExchange: eservice.asyncExchange,
+  delegatedArchivingRequest:
+    eservice.delegatedArchivingRequest &&
+    eservice.delegatedArchivingRequest.length > 0
+      ? eservice.delegatedArchivingRequest.map((request) => ({
+          requestedAt: request.requestedAt.toJSON(),
+          requesterId: request.requesterId,
+          gracePeriodDays: request.gracePeriodDays,
+          rejectedAt: request.rejectedAt?.toJSON(),
+          rejectionReason: request.rejectionReason,
+          acceptedAt: request.acceptedAt?.toJSON(),
+          archivingReason: request.archivingReason,
+        }))
+      : undefined,
 });

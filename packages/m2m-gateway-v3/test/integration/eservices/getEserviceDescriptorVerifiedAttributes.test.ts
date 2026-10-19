@@ -1,10 +1,3 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { generateId, unsafeBrandId } from "pagopa-interop-models";
-import {
-  getMockedApiEservice,
-  getMockedApiEserviceDescriptor,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
 import {
   attributeRegistryApi,
   catalogApi,
@@ -12,17 +5,25 @@ import {
 } from "pagopa-interop-api-clients";
 import { genericLogger } from "pagopa-interop-commons";
 import {
-  eserviceService,
-  expectApiClientGetToHaveBeenCalledWith,
-  mockInteropBeClients,
-} from "../../integrationUtils.js";
+  getMockedApiEservice,
+  getMockedApiEserviceDescriptor,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import { generateId, unsafeBrandId } from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { toM2MGatewayApiVerifiedAttribute } from "../../../src/api/attributeApiConverter.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
   eserviceDescriptorAttributeNotFound,
   eserviceDescriptorNotFound,
 } from "../../../src/model/errors.js";
+import {
+  eserviceService,
+  expectApiClientGetToHaveBeenCalledWith,
+  mockInteropBeClients,
+} from "../../integrationUtils.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { toM2MGatewayApiVerifiedAttribute } from "../../../src/api/attributeApiConverter.js";
 
 describe("getEserviceDescriptorVerifiedAttributes", () => {
   const attribute1: catalogApi.Attribute = {

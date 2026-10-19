@@ -1,15 +1,16 @@
-import { constants } from "http2";
+import { WithZodiosContext } from "@zodios/express";
 import express, { Response, NextFunction } from "express";
+import { constants } from "http2";
+import multer from "multer";
 import {
   badRequestError,
   genericError,
   makeApiProblemBuilder,
   parseErrorMessage,
 } from "pagopa-interop-models";
-import multer from "multer";
 import { z } from "zod";
 import { fromZodIssue } from "zod-validation-error";
-import { WithZodiosContext } from "@zodios/express";
+
 import { ExpressContext, fromAppContext } from "../context/context.js";
 
 const makeApiProblem = makeApiProblemBuilder({});

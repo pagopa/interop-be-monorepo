@@ -1,4 +1,19 @@
 import {
+  certifiedAttributesSatisfied,
+  filterCertifiedAttributes,
+  filterDeclaredAttributes,
+  filterVerifiedAttributes,
+  matchesCertifiedDiscreteAttribute,
+} from "pagopa-interop-agreement-lifecycle";
+import {
+  isFeatureFlagEnabled,
+  M2MAdminAuthData,
+  M2MAuthData,
+  ownership,
+  Ownership,
+  UIAuthData,
+} from "pagopa-interop-commons";
+import {
   Agreement,
   AgreementState,
   AttributeId,
@@ -19,21 +34,7 @@ import {
   delegationState,
   DelegationId,
 } from "pagopa-interop-models";
-import {
-  isFeatureFlagEnabled,
-  M2MAdminAuthData,
-  M2MAuthData,
-  ownership,
-  Ownership,
-  UIAuthData,
-} from "pagopa-interop-commons";
-import {
-  certifiedAttributesSatisfied,
-  filterCertifiedAttributes,
-  filterDeclaredAttributes,
-  filterVerifiedAttributes,
-  matchesCertifiedDiscreteAttribute,
-} from "pagopa-interop-agreement-lifecycle";
+
 import { config } from "../../config/config.js";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import {
@@ -67,11 +68,21 @@ export const agreementActivableStates: AgreementState[] = [
   agreementState.suspended,
 ];
 
-export const agreementActivationAllowedDescriptorStates: DescriptorState[] = [
-  descriptorState.published,
-  descriptorState.suspended,
-  descriptorState.deprecated,
-];
+export const allowedDescriptorStatesForAgreementFirstActivation: DescriptorState[] =
+  [
+    descriptorState.published,
+    descriptorState.suspended,
+    descriptorState.deprecated,
+  ];
+
+export const allowedDescriptorStatesForAgreementUnsuspension: DescriptorState[] =
+  [
+    descriptorState.published,
+    descriptorState.suspended,
+    descriptorState.deprecated,
+    descriptorState.archiving,
+    descriptorState.archivingSuspended,
+  ];
 
 export const agreementSuspendableStates: AgreementState[] = [
   agreementState.active,
@@ -515,7 +526,8 @@ export const verifyConflictingAgreements = async (
 
 export const validateActivationOnDescriptor = (
   eservice: EService,
-  descriptorId: Descriptor["id"]
+  descriptorId: Descriptor["id"],
+  isFirstActivation: boolean
 ): Descriptor => {
   const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
   if (!descriptor) {
@@ -526,7 +538,9 @@ export const validateActivationOnDescriptor = (
     eservice.id,
     descriptor.id,
     descriptor.state,
-    agreementActivationAllowedDescriptorStates
+    isFirstActivation
+      ? allowedDescriptorStatesForAgreementFirstActivation
+      : allowedDescriptorStatesForAgreementUnsuspension
   );
 
   return descriptor;

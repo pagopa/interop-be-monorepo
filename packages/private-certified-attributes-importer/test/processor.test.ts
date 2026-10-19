@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockTenant,
   getMockAttribute,
@@ -14,12 +14,13 @@ import {
   SCP,
   CorrelationId,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
-import { importAttributes } from "../src/service/processor.js";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+
 import {
   REGISTRY_ATTRIBUTES_SEEDS,
   generateCodeFromName,
 } from "../src/service/attributeService.js";
+import { importAttributes } from "../src/service/processor.js";
 import {
   cleanup,
   readModelService,

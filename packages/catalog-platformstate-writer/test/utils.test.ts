@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { ConditionalCheckFailedException } from "@aws-sdk/client-dynamodb";
+import { genericLogger } from "pagopa-interop-commons";
 import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+  getMockTokenGenStatesConsumerClient,
+  buildDynamoDBTables,
+  deleteDynamoDBTables,
+  readAllTokenGenStatesItems,
+  writeTokenGenStatesConsumerClient,
+  writePlatformCatalogEntry,
+} from "pagopa-interop-commons-test";
 import {
   PlatformStatesCatalogEntry,
   TokenGenerationStatesConsumerClient,
@@ -19,16 +19,17 @@ import {
   makePlatformStatesEServiceDescriptorPK,
   makeTokenGenerationStatesClientKidPurposePK,
 } from "pagopa-interop-models";
-import { ConditionalCheckFailedException } from "@aws-sdk/client-dynamodb";
 import {
-  getMockTokenGenStatesConsumerClient,
-  buildDynamoDBTables,
-  deleteDynamoDBTables,
-  readAllTokenGenStatesItems,
-  writeTokenGenStatesConsumerClient,
-  writePlatformCatalogEntry,
-} from "pagopa-interop-commons-test";
-import { genericLogger } from "pagopa-interop-commons";
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+
 import {
   deleteCatalogEntry,
   descriptorStateToItemState,

@@ -1,8 +1,6 @@
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-import { afterEach, inject } from "vitest";
-import { eserviceTemplateReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import {
   Agreement,
   EService,
@@ -11,6 +9,7 @@ import {
   Delegation,
   EServiceTemplate,
 } from "pagopa-interop-models";
+import { eserviceTemplateReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import {
   upsertAgreement,
   upsertDelegation,
@@ -19,6 +18,8 @@ import {
   upsertPurpose,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
+import { afterEach, inject } from "vitest";
+
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(

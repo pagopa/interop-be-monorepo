@@ -1,17 +1,17 @@
 import {
-  EServiceEventEnvelopeV1,
-  EServiceV1,
-  EServiceDescriptorV1,
-  EServiceDocumentV1,
-} from "pagopa-interop-models";
-import {
   EServiceEvent as OutboundEServiceEvent,
   EServiceV1 as OutboundEServiceV1,
   EServiceDescriptorV1 as OutboundEServiceDescriptorV1,
   EServiceDocumentV1 as OutboundEServiceDocumentV1,
 } from "@pagopa/interop-outbound-models";
-import { match } from "ts-pattern";
 import { Exact } from "pagopa-interop-commons";
+import {
+  EServiceEventEnvelopeV1,
+  EServiceV1,
+  EServiceDescriptorV1,
+  EServiceDocumentV1,
+} from "pagopa-interop-models";
+import { match } from "ts-pattern";
 
 function toOuboundEServiceDocumentV1(
   document: EServiceDocumentV1

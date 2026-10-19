@@ -1,10 +1,3 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { generateId, unsafeBrandId } from "pagopa-interop-models";
-import {
-  getMockedApiEservice,
-  getMockedApiEserviceDescriptor,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
 import {
   attributeRegistryApi,
   catalogApi,
@@ -12,17 +5,25 @@ import {
 } from "pagopa-interop-api-clients";
 import { genericLogger } from "pagopa-interop-commons";
 import {
-  eserviceService,
-  expectApiClientGetToHaveBeenCalledWith,
-  mockInteropBeClients,
-} from "../../integrationUtils.js";
+  getMockedApiEservice,
+  getMockedApiEserviceDescriptor,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import { generateId, unsafeBrandId } from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { toM2MGatewayApiCertifiedAttribute } from "../../../src/api/attributeApiConverter.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
   eserviceDescriptorAttributeNotFound,
   eserviceDescriptorNotFound,
 } from "../../../src/model/errors.js";
+import {
+  eserviceService,
+  expectApiClientGetToHaveBeenCalledWith,
+  mockInteropBeClients,
+} from "../../integrationUtils.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { toM2MGatewayApiCertifiedAttribute } from "../../../src/api/attributeApiConverter.js";
 
 describe("getEserviceDescriptorCertifiedAttributes", () => {
   const attribute1: catalogApi.Attribute = {
@@ -131,17 +132,95 @@ describe("getEserviceDescriptorCertifiedAttributes", () => {
     },
     metadata: {},
   });
-  mockInteropBeClients.catalogProcessClient = {
-    getEServiceById: mockGetEServiceById,
-  } as unknown as PagoPAInteropBeClients["catalogProcessClient"];
-
-  mockInteropBeClients.attributeProcessClient = {
-    getBulkedAttributes: mockGetBulkedAttributes,
-  } as unknown as PagoPAInteropBeClients["attributeProcessClient"];
 
   beforeEach(() => {
     mockGetEServiceById.mockClear();
     mockGetBulkedAttributes.mockClear();
+    mockInteropBeClients.catalogProcessClient = {
+      getEServiceById: mockGetEServiceById,
+    } as unknown as PagoPAInteropBeClients["catalogProcessClient"];
+    mockInteropBeClients.attributeProcessClient = {
+      getBulkedAttributes: mockGetBulkedAttributes,
+    } as unknown as PagoPAInteropBeClients["attributeProcessClient"];
+  });
+
+  it("Should return only certified attributes from the certified bucket", async () => {
+    const certifiedAttribute: catalogApi.Attribute = {
+      id: generateId(),
+      explicitAttributeVerification: false,
+    };
+
+    const discreteAttribute: catalogApi.Attribute = {
+      id: generateId(),
+      explicitAttributeVerification: false,
+    };
+
+    const descriptorWithMixedCertifiedAttributes: catalogApi.EServiceDescriptor =
+      {
+        ...getMockedApiEserviceDescriptor(),
+        attributes: {
+          certified: [[certifiedAttribute, discreteAttribute]],
+          verified: [],
+          declared: [],
+        },
+      };
+
+    const eserviceWithMixedAttributes: catalogApi.EService = {
+      ...getMockedApiEservice(),
+      descriptors: [descriptorWithMixedCertifiedAttributes],
+    };
+
+    const mockCatalogResponse = getMockWithMetadata(
+      eserviceWithMixedAttributes
+    );
+    const mockGetEServiceById = vi.fn().mockResolvedValue(mockCatalogResponse);
+    const mockGetBulkedAttributes = vi.fn().mockResolvedValue({
+      data: {
+        results: [
+          {
+            code: "regular",
+            id: certifiedAttribute.id,
+            name: "Certified",
+            creationTime: new Date().toISOString(),
+            description: "Regular Certified",
+            origin: "Origin 1",
+            kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED,
+          },
+          {
+            code: "discrete",
+            id: discreteAttribute.id,
+            name: "Discrete Certified",
+            creationTime: new Date().toISOString(),
+            description: "Discrete Certified",
+            origin: "Origin 2",
+            kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED_DISCRETE,
+          },
+        ],
+        totalCount: 2,
+      },
+      metadata: {},
+    });
+
+    mockInteropBeClients.catalogProcessClient = {
+      getEServiceById: mockGetEServiceById,
+    } as unknown as PagoPAInteropBeClients["catalogProcessClient"];
+
+    mockInteropBeClients.attributeProcessClient = {
+      getBulkedAttributes: mockGetBulkedAttributes,
+    } as unknown as PagoPAInteropBeClients["attributeProcessClient"];
+
+    const attributes =
+      await eserviceService.getEserviceDescriptorCertifiedAttributes(
+        unsafeBrandId(eserviceWithMixedAttributes.id),
+        unsafeBrandId(descriptorWithMixedCertifiedAttributes.id),
+        { limit: 10, offset: 0 },
+        getMockM2MAdminAppContext()
+      );
+
+    expect(attributes.results).toHaveLength(1);
+    expect(attributes.results[0]?.attribute.id).toBe(certifiedAttribute.id);
+    expect(attributes.results[0]?.attribute.name).toBe("Certified");
+    expect(attributes.results[0]?.attribute.code).toBe("regular");
   });
 
   it("Should succeed and perform service calls", async () => {

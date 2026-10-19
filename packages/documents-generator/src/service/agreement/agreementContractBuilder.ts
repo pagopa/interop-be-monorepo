@@ -1,6 +1,8 @@
 /* eslint-disable max-params */
-import path from "path";
-import { fileURLToPath } from "url";
+import {
+  getVerifiedAttributeExpirationDate,
+  getVerifiedAttributeDelegationId,
+} from "pagopa-interop-agreement-lifecycle";
 import {
   FileManager,
   Logger,
@@ -8,7 +10,6 @@ import {
   formatDateyyyyMMddHHmmss,
   timeAtRomeZone,
 } from "pagopa-interop-commons";
-import { PDFGenerator, getIpaCode } from "../../pdf-generator/pdfGenerator.js";
 import {
   Agreement,
   AgreementDocumentId,
@@ -27,21 +28,20 @@ import {
   AgreementStamp,
   AgreementStamps,
 } from "pagopa-interop-models";
+import path from "path";
 import { match } from "ts-pattern";
-import {
-  getVerifiedAttributeExpirationDate,
-  getVerifiedAttributeDelegationId,
-} from "pagopa-interop-agreement-lifecycle";
+import { fileURLToPath } from "url";
 
+import { DocumentsGeneratorConfig } from "../../config/config.js";
 import {
   AgreementContractPDFPayload,
   ActiveDelegations,
 } from "../../model/agreementModels.js";
-import { DocumentsGeneratorConfig } from "../../config/config.js";
 import {
   agreementStampNotFound,
   attributeNotFound,
 } from "../../model/errors.js";
+import { PDFGenerator, getIpaCode } from "../../pdf-generator/pdfGenerator.js";
 import { ReadModelServiceSQL } from "../readModelSql.js";
 import { retrieveDescriptor, retrieveTenant } from "./agreementService.js";
 

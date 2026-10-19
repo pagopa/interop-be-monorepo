@@ -23,13 +23,8 @@ import {
   RiskAnalysisMultiAnswerId,
 } from "pagopa-interop-models";
 import { expect, describe, it, vi } from "vitest";
+
 import { config } from "../../src/config/config.js";
-import {
-  addOnePurposeTemplate,
-  fileManager,
-  purposeTemplateService,
-  readLastPurposeTemplateEvent,
-} from "../integrationUtils.js";
 import {
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
@@ -37,6 +32,12 @@ import {
   riskAnalysisTemplateAnswerAnnotationNotFound,
   riskAnalysisTemplateAnswerNotFound,
 } from "../../src/model/domain/errors.js";
+import {
+  addOnePurposeTemplate,
+  fileManager,
+  purposeTemplateService,
+  readLastPurposeTemplateEvent,
+} from "../integrationUtils.js";
 
 describe("deleteRiskAnalysisTemplateAnswerAnnotation", () => {
   const mockDocument1 = getMockRiskAnalysisTemplateAnswerAnnotationDocument();

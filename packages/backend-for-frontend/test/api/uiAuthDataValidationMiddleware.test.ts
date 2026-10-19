@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
-import { generateId } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
 import { systemRole, userRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test";
+import { generateId } from "pagopa-interop-models";
 import request from "supertest";
-import { api, services } from "../vitest.api.setup.js";
+import { describe, it, expect, vi } from "vitest";
+
 import { appBasePath } from "../../src/config/appBasePath.js";
 import { getMockBffApiPurpose } from "../mockUtils.js";
+import { api, services } from "../vitest.api.setup.js";
 
 describe("uiAuthDataValidationMiddleware", () => {
   const makeRequest = async (token: string) =>
@@ -16,9 +17,10 @@ describe("uiAuthDataValidationMiddleware", () => {
       .send();
   // ^ using GET /purposes/:purposeId as a dummy endpoint to test the middleware
 
-  services.purposeService.getPurpose = vi
-    .fn()
-    .mockResolvedValue(getMockBffApiPurpose());
+  services.purposeService.getPurpose = vi.fn().mockResolvedValue({
+    data: getMockBffApiPurpose(),
+    metadata: { version: 0 },
+  });
 
   it.each(Object.values(userRole))(
     "Should correctly accept tokens with role %s",

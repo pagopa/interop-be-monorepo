@@ -41,6 +41,7 @@ const errorCodes = {
   invalidTenantFeature: "0031",
   certifiedDiscreteAttributeAlreadyAssigned: "0032",
   tenantNotFoundByRemoteId: "0033",
+  certifiedDiscreteAttributeRevoked: "0034",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -253,6 +254,17 @@ export function attributeAlreadyRevoked(
     detail: `Attribute ${attributeId} has been already revoked for ${tenantId} by ${revokerId}`,
     code: "attributeAlreadyRevoked",
     title: "Attribute is already revoked",
+  });
+}
+
+export function certifiedDiscreteAttributeRevoked(
+  tenantId: TenantId,
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Certified Discrete Attribute ${attributeId} is revoked for tenant ${tenantId} and cannot be updated`,
+    code: "certifiedDiscreteAttributeRevoked",
+    title: "Certified discrete attribute revoked",
   });
 }
 export function mailNotFound(mailId: string): ApiError<ErrorCodes> {

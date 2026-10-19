@@ -1,9 +1,9 @@
-import { z } from "zod";
 import {
   KafkaConsumerConfig,
   SelfcareConsumerConfig,
   TokenGenerationConfig,
 } from "pagopa-interop-commons";
+import { z } from "zod";
 
 const SelfcareOnboardingConsumerConfig = KafkaConsumerConfig.and(
   TokenGenerationConfig

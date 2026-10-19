@@ -7,10 +7,11 @@ import {
   clientReadModelServiceBuilder,
   makeDrizzleConnection,
 } from "pagopa-interop-readmodel";
-import { config } from "./config/config.js";
-import { selfcareClientUsersUpdaterProcessorBuilder } from "./services/selfcareClientUsersUpdaterProcessor.js";
+
 import { authorizationProcessClientBuilder } from "./clients/authorizationProcessClient.js";
+import { config } from "./config/config.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
+import { selfcareClientUsersUpdaterProcessorBuilder } from "./services/selfcareClientUsersUpdaterProcessor.js";
 
 const readModelDB = makeDrizzleConnection(config);
 const clientReadModelServiceSQL = clientReadModelServiceBuilder(readModelDB);
