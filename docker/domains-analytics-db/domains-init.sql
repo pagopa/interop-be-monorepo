@@ -273,6 +273,7 @@ CREATE TABLE IF NOT EXISTS domains.purpose (
   reviewer_workflow_signed_at TIMESTAMP WITH TIME ZONE,
   reviewer_workflow_rejected_by VARCHAR(36),
   reviewer_workflow_rejection_reason VARCHAR(2048),
+  reviewer_workflow_rejected_at TIMESTAMP WITH TIME ZONE,
   reviewer_workflow_sent_to_reviewer_at TIMESTAMP WITH TIME ZONE,
   deleted BOOLEAN,
   PRIMARY KEY (id)
@@ -317,6 +318,7 @@ CREATE TABLE IF NOT EXISTS domains.purpose_version (
   metadata_version INTEGER NOT NULL,
   state VARCHAR(2048) NOT NULL,
   daily_calls INTEGER NOT NULL,
+  waiting_for_approval_reason VARCHAR(2048),
   rejection_reason VARCHAR(2048),
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE,

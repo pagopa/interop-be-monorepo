@@ -602,6 +602,41 @@ describe("clone descriptor", () => {
       )
     ).rejects.toThrowError(operationForbidden);
   });
+  it.each([delegationState.active, delegationState.waitingForApproval])(
+    "should clone the descriptor if the requester is the delegator and the eservice has a producer delegation with state %s",
+    async (delegationState) => {
+      const descriptor: Descriptor = {
+        ...mockDescriptor,
+        state: descriptorState.draft,
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor],
+      };
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        eserviceId: eservice.id,
+        state: delegationState,
+      });
+
+      await addOneEService(eservice);
+      await addOneDelegation(delegation);
+
+      const newEService = await catalogService.cloneDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({
+          authData: getMockAuthData(eservice.producerId),
+        })
+      );
+
+      expect(newEService.producerId).toBe(eservice.producerId);
+
+      const writtenEvent = await readLastEserviceEvent(newEService.id);
+      expect(writtenEvent.stream_id).toBe(newEService.id);
+      expect(writtenEvent.type).toBe("EServiceCloned");
+    }
+  );
   it("should throw eServiceDescriptorNotFound if the descriptor doesn't exist", async () => {
     const eservice: EService = {
       ...mockEService,

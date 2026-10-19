@@ -208,6 +208,10 @@ function toApiEServiceM2MEventType(
       "MaintenanceEServiceDescriptorUnarchived",
       () => "MAINTENANCE_ESERVICE_DESCRIPTOR_UNARCHIVED"
     )
+    .with(
+      "EServiceDescriptorUpdatedByRevokedDelegation",
+      () => "ESERVICE_DESCRIPTOR_UPDATED_BY_REVOKED_DELEGATION"
+    )
     .exhaustive();
 }
 

@@ -211,6 +211,23 @@ describe("validation test", async () => {
       expect(errors).toBeUndefined();
     });
 
+    it.each([{ nbf: undefined }, { nbf: dateToSeconds(new Date()) }])(
+      "success client assertion with strict claims validation (nbf: $nbf)",
+      async ({ nbf }) => {
+        const { jws } = await getMockClientAssertion({
+          standardClaimsOverride: { nbf },
+        });
+        const { errors } = verifyClientAssertion(
+          jws,
+          undefined,
+          expectedAudiences,
+          genericLogger,
+          true
+        );
+        expect(errors).toBeUndefined();
+      }
+    );
+
     it("wrong signature", async () => {
       const { jws } = await getMockClientAssertion();
       const subStrings = jws.split(".");

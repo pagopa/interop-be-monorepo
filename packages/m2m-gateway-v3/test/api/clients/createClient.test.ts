@@ -1,3 +1,4 @@
+import { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { authorizationApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
@@ -34,6 +35,35 @@ describe("POST /clients router test", () => {
   );
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
+
+  it("Should propagate the authorization 404 Problem for a missing member", async () => {
+    const problem = {
+      type: "about:blank",
+      title: "Not Found",
+      status: 404,
+      detail: "User not found",
+      errors: [{ code: "005-0016", detail: "User not found" }],
+    };
+    mockClientService.createClient = vi.fn().mockRejectedValueOnce(
+      new AxiosError("User not found", "404", undefined, undefined, {
+        status: 404,
+        statusText: "Not Found",
+        data: problem,
+        headers: {},
+        config: {} as InternalAxiosRequestConfig,
+      })
+    );
+    const res = await makeRequest(
+      generateToken(authRole.M2M_ADMIN_ROLE),
+      clientSeed
+    );
+    expect(res.status).toBe(404);
+    expect(res.body).toMatchObject({ status: 404, errors: problem.errors });
+    expect(mockClientService.createClient).toHaveBeenCalledWith(
+      clientSeed,
+      expect.any(Object)
+    );
+  });
 
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",
