@@ -1,3 +1,8 @@
+import { notificationConfigApi } from "pagopa-interop-api-clients";
+import {
+  applicationAuditBeginMiddleware,
+  applicationAuditEndMiddleware,
+} from "pagopa-interop-application-audit";
 import {
   authenticationMiddleware,
   contextMiddleware,
@@ -6,16 +11,11 @@ import {
   loggerMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
-import {
-  applicationAuditBeginMiddleware,
-  applicationAuditEndMiddleware,
-} from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
-import { notificationConfigApi } from "pagopa-interop-api-clients";
-import notificationConfigRouter from "./routers/NotificationConfigRouter.js";
+
 import { config } from "./config/config.js";
+import notificationConfigRouter from "./routers/NotificationConfigRouter.js";
 import { NotificationConfigService } from "./services/notificationConfigService.js";
-import { notificationConfigFeatureFlagMiddleware } from "./utilities/middlewares.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function createApp(service: NotificationConfigService) {
@@ -30,7 +30,6 @@ export async function createApp(service: NotificationConfigService) {
   app.disable("x-powered-by");
 
   app.use(healthRouter(notificationConfigApi.healthApi.api));
-  app.use(notificationConfigFeatureFlagMiddleware());
   app.use(contextMiddleware(serviceName));
   app.use(await applicationAuditBeginMiddleware(serviceName, config));
   app.use(await applicationAuditEndMiddleware(serviceName, config));

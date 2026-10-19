@@ -1,17 +1,32 @@
+import { isAxiosError } from "axios";
 import { createHash } from "crypto";
-import { attributeRegistryApi, tenantApi } from "pagopa-interop-api-clients";
-import { InteropHeaders, Logger, delay } from "pagopa-interop-commons";
 import {
+  attributeRegistryApi,
+  createZodiosClientEnhancedWithMetadata,
+  tenantApi,
+  ZodiosClientWithMetadata,
+} from "pagopa-interop-api-clients";
+import {
+  InteropHeaders,
+  Logger,
+  waitForReadModelMetadataVersion,
+  delay,
+  isFeatureFlagEnabled,
+} from "pagopa-interop-commons";
+import {
+  ApiError,
   attributeKind,
   Tenant,
   Attribute,
   tenantAttributeType,
+  ProblemSchema,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   PUBLIC_SERVICES_MANAGERS,
   ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import { config } from "../config/config.js";
+
+import { IPACertifiedAttributesImporterConfig } from "../config/config.js";
 import {
   RegistryData,
   InternalCertifiedAttribute,
@@ -20,7 +35,7 @@ import {
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 const AGENCY_CLASSIFICATION = "Agency";
-
+const MUNICIPALITY_CODE = "L6";
 // Tipologia Gestori di Pubblici Servizi
 export const PUBLIC_SERVICES_MANAGERS_TYPOLOGY = "Gestori di Pubblici Servizi";
 
@@ -28,11 +43,30 @@ export const PUBLIC_SERVICES_MANAGERS_TYPOLOGY = "Gestori di Pubblici Servizi";
 export const ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY =
   "Societa' in Conto Economico Consolidato";
 
+type TenantProcessClient = ZodiosClientWithMetadata<
+  ReturnType<typeof tenantApi.createInternalApiClient>
+>;
+
+type PollingConfig = {
+  defaultPollingMaxRetries: number;
+  defaultPollingRetryDelay: number;
+};
+
+export function createTenantProcessClient(
+  tenantProcessUrl: string
+): TenantProcessClient {
+  return createZodiosClientEnhancedWithMetadata(
+    tenantApi.createInternalApiClient,
+    tenantProcessUrl
+  );
+}
+
 export type TenantSeed = {
   origin: string;
   originId: string;
   description: string;
   attributes: Array<{ origin: string; code: string }>;
+  istatCode?: string;
 };
 
 function toTenantKey(key: {
@@ -47,6 +81,64 @@ function toAttributeKey(key: {
   code: string | undefined;
 }): string {
   return JSON.stringify({ origin: key.origin, code: key.code });
+}
+
+function describeHttpError(error: unknown): string {
+  if (!isAxiosError(error) || !error.response) {
+    return String(error);
+  }
+
+  const problem = ProblemSchema.safeParse(error.response.data);
+
+  return problem.success
+    ? `status ${problem.data.status}, code ${
+        problem.data.errors?.[0]?.code ?? "unknown"
+      }, detail ${problem.data.detail ?? "unknown"}`
+    : `status ${error.response.status}`;
+}
+
+function isPollingTimeout(error: unknown): boolean {
+  return (
+    error instanceof ApiError && error.code === "pollingMaxRetriesExceeded"
+  );
+}
+
+async function runTenantOperation(params: {
+  description: string;
+  startMessage: string;
+  command: () => Promise<{ metadata?: { version: number } | undefined }>;
+  pollReadModel: (version: number) => Promise<void>;
+  loggerInstance: Logger;
+}): Promise<boolean> {
+  const { description, startMessage, command, pollReadModel, loggerInstance } =
+    params;
+
+  loggerInstance.info(startMessage);
+
+  try {
+    const { metadata } = await command();
+
+    if (!metadata) {
+      loggerInstance.warn(
+        `Missing metadata version after ${description}. Skipping polling`
+      );
+      return true;
+    }
+
+    await pollReadModel(metadata.version);
+  } catch (error: unknown) {
+    if (isPollingTimeout(error)) {
+      loggerInstance.warn(
+        `Read model not aligned after ${description}. Continuing`
+      );
+      return true;
+    }
+
+    loggerInstance.error(`Failed ${description}. ${describeHttpError(error)}`);
+    return false;
+  }
+
+  return true;
 }
 
 async function checkAttributesPresence(
@@ -73,7 +165,8 @@ async function checkAttributesPresence(
 
 export function getTenantUpsertData(
   registryData: RegistryData,
-  platformTenants: Tenant[]
+  platformTenants: Tenant[],
+  economicAccountCompaniesAllowlist: string[]
 ): TenantSeed[] {
   // Create a set of all existing tenant external IDs for quick lookup.
   // This is used to filter out institutions from the registry that don't
@@ -145,7 +238,7 @@ export function getTenantUpsertData(
         {
           kind: ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY,
           originId: P.when((originId) =>
-            config.economicAccountCompaniesAllowlist.includes(originId)
+            economicAccountCompaniesAllowlist.includes(originId)
           ),
         },
         // 3. If the institution is a new SCEC with the S01G category from IPA.
@@ -181,6 +274,11 @@ export function getTenantUpsertData(
       originId: i.originId,
       description: i.description,
       attributes,
+      istatCode:
+        i.category === MUNICIPALITY_CODE &&
+        i.classification === AGENCY_CLASSIFICATION
+          ? i.istatCode
+          : undefined,
     };
   });
 }
@@ -189,11 +287,18 @@ export async function createNewAttributes(
   newAttributes: InternalCertifiedAttribute[],
   readModelService: ReadModelServiceSQL,
   headers: InteropHeaders,
-  loggerInstance: Logger
+  loggerInstance: Logger,
+  attributeRegistryUrl: string,
+  attributeCreationWaitTime: number,
+  maxRetries: number
 ): Promise<void> {
-  const client = attributeRegistryApi.createAttributeApiClient(
-    config.attributeRegistryUrl
-  );
+  if (newAttributes.length === 0) {
+    loggerInstance.info("No new attributes to create");
+    return;
+  }
+
+  const client =
+    attributeRegistryApi.createAttributeApiClient(attributeRegistryUrl);
 
   for (const attribute of newAttributes) {
     loggerInstance.info(
@@ -205,10 +310,18 @@ export async function createNewAttributes(
   }
 
   // wait until every event reaches the read model store
-  do {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
     loggerInstance.info("Waiting for attributes to be created");
-    await delay(config.attributeCreationWaitTime);
-  } while (!(await checkAttributesPresence(readModelService, newAttributes)));
+    await delay(attributeCreationWaitTime);
+
+    if (await checkAttributesPresence(readModelService, newAttributes)) {
+      return;
+    }
+  }
+
+  loggerInstance.warn(
+    `New attributes are not present in the read model after ${maxRetries} attempts. Continuing with the import`
+  );
 }
 
 export function getNewAttributes(
@@ -246,6 +359,7 @@ export async function getAttributesToAssign(
   platformTenants: Tenant[],
   platformAttributes: Attribute[],
   tenantSeeds: TenantSeed[],
+  config: IPACertifiedAttributesImporterConfig,
   loggerInstance: Logger
 ): Promise<tenantApi.InternalTenantSeed[]> {
   const tenantsIndex = new Map(
@@ -259,7 +373,7 @@ export async function getAttributesToAssign(
   );
 
   return tenantSeeds
-    .map((seed) => {
+    .map((seed): tenantApi.InternalTenantSeed | undefined => {
       const externalId = { origin: seed.origin, value: seed.originId };
 
       const tenant = tenantsIndex.get(toTenantKey(externalId));
@@ -267,6 +381,24 @@ export async function getAttributesToAssign(
       if (!tenant) {
         loggerInstance.error(`Tenant ${externalId} not found in the platform`);
         return undefined;
+      }
+
+      const remoteIds: tenantApi.TenantRemoteId[] = [];
+
+      if (
+        isFeatureFlagEnabled(config, "featureFlagAttributeCertifiedDiscrete") &&
+        seed.istatCode
+      ) {
+        const hasIstat = tenant.remoteIds?.some(
+          (r) => r.origin === "ISTAT" && r.value === seed.istatCode
+        );
+        if (!hasIstat) {
+          remoteIds.push({
+            origin: "ISTAT",
+            value: seed.istatCode,
+            assignmentTimestamp: new Date().toISOString(),
+          });
+        }
       }
 
       const tenantCurrentAttributes = new Map(
@@ -298,33 +430,57 @@ export async function getAttributesToAssign(
             origin: a.origin,
             code: a.code,
           })),
+        remoteIds: remoteIds.length > 0 ? remoteIds : undefined,
       };
     })
     .filter(
       (t): t is tenantApi.InternalTenantSeed =>
-        t !== undefined && t.certifiedAttributes.length > 0
+        t !== undefined &&
+        (t.certifiedAttributes.length > 0 ||
+          (t.remoteIds !== undefined && t.remoteIds.length > 0))
     );
 }
 
 export async function assignNewAttributes(
   attributesToAssign: tenantApi.InternalTenantSeed[],
+  tenantClient: TenantProcessClient,
+  readModelServiceSQL: ReadModelServiceSQL,
   headers: InteropHeaders,
-  loggerInstance: Logger
-): Promise<void> {
-  const tenantClient = tenantApi.createInternalApiClient(
-    config.tenantProcessUrl
-  );
+  loggerInstance: Logger,
+  pollingConfig: PollingConfig
+): Promise<number> {
+  let failures = 0;
 
   for (const attributeToAssign of attributesToAssign) {
-    loggerInstance.info(
-      `Updating tenant ${
-        attributeToAssign.externalId.value
-      }. Adding attributes [${attributeToAssign.certifiedAttributes
-        .map((a) => a.code)
-        .join(", ")}]`
-    );
-    await tenantClient.internalUpsertTenant(attributeToAssign, { headers });
+    const attributeCodes = attributeToAssign.certifiedAttributes
+      .map((a) => a.code)
+      .join(", ");
+
+    const succeeded = await runTenantOperation({
+      description: `upsert of tenant ${attributeToAssign.externalId.value} with attributes [${attributeCodes}]`,
+      startMessage: `Updating tenant ${attributeToAssign.externalId.value}. Adding attributes [${attributeCodes}]`,
+      command: () =>
+        tenantClient.internalUpsertTenant(attributeToAssign, {
+          headers,
+        }),
+      pollReadModel: (version) =>
+        waitForReadModelMetadataVersion(
+          () =>
+            readModelServiceSQL.getTenantByExternalIdWithMetadata(
+              attributeToAssign.externalId
+            ),
+          version,
+          pollingConfig
+        ),
+      loggerInstance,
+    });
+
+    if (!succeeded) {
+      failures += 1;
+    }
   }
+
+  return failures;
 }
 
 export async function getAttributesToRevoke(
@@ -416,25 +572,45 @@ export async function revokeAttributes(
     aOrigin: string;
     aCode: string;
   }>,
+  tenantClient: TenantProcessClient,
+  readModelServiceSQL: ReadModelServiceSQL,
   headers: InteropHeaders,
-  loggerInstance: Logger
-): Promise<void> {
-  const tenantClient = tenantApi.createInternalApiClient(
-    config.tenantProcessUrl
-  );
+  loggerInstance: Logger,
+  pollingConfig: PollingConfig
+): Promise<number> {
+  let failures = 0;
 
   for (const a of attributesToRevoke) {
-    loggerInstance.info(
-      `Updating tenant ${a.tExternalId}. Revoking attribute ${a.aCode}`
-    );
-    await tenantClient.internalRevokeCertifiedAttribute(undefined, {
-      params: {
-        tOrigin: a.tOrigin,
-        tExternalId: a.tExternalId,
-        aOrigin: a.aOrigin,
-        aExternalId: a.aCode,
-      },
-      headers,
+    const succeeded = await runTenantOperation({
+      description: `revoke of attribute ${a.aCode} from tenant ${a.tExternalId}`,
+      startMessage: `Updating tenant ${a.tExternalId}. Revoking attribute ${a.aCode}`,
+      command: () =>
+        tenantClient.internalRevokeCertifiedAttribute(undefined, {
+          params: {
+            tOrigin: a.tOrigin,
+            tExternalId: a.tExternalId,
+            aOrigin: a.aOrigin,
+            aExternalId: a.aCode,
+          },
+          headers,
+        }),
+      pollReadModel: (version) =>
+        waitForReadModelMetadataVersion(
+          () =>
+            readModelServiceSQL.getTenantByExternalIdWithMetadata({
+              origin: a.tOrigin,
+              value: a.tExternalId,
+            }),
+          version,
+          pollingConfig
+        ),
+      loggerInstance,
     });
+
+    if (!succeeded) {
+      failures += 1;
+    }
   }
+
+  return failures;
 }

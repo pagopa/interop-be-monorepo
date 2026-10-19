@@ -16,6 +16,7 @@ import {
   toTenantV2,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+
 import {
   attributeNotFound,
   attributeNotFoundInTenant,
@@ -98,7 +99,10 @@ describe("m2mRevokeCertifiedAttribute", () => {
       ],
       updatedAt: new Date(),
     };
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    expect(writtenPayload).toEqual({
+      attributeId: mockAttribute.id,
+      tenant: toTenantV2(updatedTenant),
+    });
   });
   it("should throw tenantNotFound if the requester tenant doesn't exist", async () => {
     const certifierId = generateId();

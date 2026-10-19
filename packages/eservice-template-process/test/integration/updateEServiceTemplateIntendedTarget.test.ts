@@ -16,6 +16,7 @@ import {
   EServiceTemplateIntendedTargetUpdatedV2,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
+
 import {
   eserviceTemplateWithoutPublishedVersion,
   eserviceTemplateNotFound,
@@ -64,12 +65,12 @@ describe("updateEServiceTemplateIntendedTarget", () => {
       messageType: EServiceTemplateIntendedTargetUpdatedV2,
       payload: writtenEvent.data,
     });
-    expect(writtenPayload.eserviceTemplate).toEqual(
-      toEServiceTemplateV2(updatedEServiceTemplate)
-    );
-    expect(writtenPayload.eserviceTemplate).toEqual(
-      toEServiceTemplateV2(returnedEServiceTemplate.data)
-    );
+    expect(writtenPayload).toEqual({
+      eserviceTemplate: toEServiceTemplateV2(updatedEServiceTemplate),
+    });
+    expect(writtenPayload).toEqual({
+      eserviceTemplate: toEServiceTemplateV2(returnedEServiceTemplate.data),
+    });
   });
 
   it("should throw eserviceTemplateNotFound if the eservice template doesn't exist", async () => {

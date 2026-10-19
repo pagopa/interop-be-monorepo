@@ -1,5 +1,8 @@
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import type { DeeplyAllowMatchers } from "vitest";
+
+import { genericLogger } from "pagopa-interop-commons";
 import {
   StoredEvent,
   readLastEventByStreamId,
@@ -10,8 +13,6 @@ import {
   sortAgreements,
   sortBy,
 } from "pagopa-interop-commons-test";
-import { afterAll, afterEach, expect, inject, vi } from "vitest";
-import type { DeeplyAllowMatchers } from "vitest";
 import {
   Agreement,
   AgreementEvent,
@@ -29,12 +30,6 @@ import {
   VerifiedAttributeV2,
 } from "pagopa-interop-models";
 import {
-  genericLogger,
-  initPDFGenerator,
-  launchPuppeteerBrowser,
-} from "pagopa-interop-commons";
-import puppeteer, { Browser } from "puppeteer";
-import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
@@ -48,8 +43,10 @@ import {
   upsertEService,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
-import { agreementServiceBuilder } from "../src/services/agreementService.js";
+import { afterEach, expect, inject } from "vitest";
+
 import { config } from "../src/config/config.js";
+import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
 export const { cleanup, postgresDB, fileManager, readModelDB } =
@@ -63,18 +60,6 @@ export const { cleanup, postgresDB, fileManager, readModelDB } =
   );
 
 afterEach(cleanup);
-
-const testBrowserInstance: Browser = await launchPuppeteerBrowser({
-  pipe: true,
-});
-const closeTestBrowserInstance = async (): Promise<void> =>
-  await testBrowserInstance.close();
-
-afterAll(closeTestBrowserInstance);
-
-vi.spyOn(puppeteer, "launch").mockImplementation(
-  async () => testBrowserInstance
-);
 
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
@@ -93,13 +78,10 @@ const readModelService = readModelServiceBuilderSQL(
   delegationReadModelServiceSQL
 );
 
-export const pdfGenerator = await initPDFGenerator();
-
 export const agreementService = agreementServiceBuilder(
   postgresDB,
   readModelService,
-  fileManager,
-  pdfGenerator
+  fileManager
 );
 const writeAgreementInEventstore = async (
   agreement: Agreement
@@ -260,6 +242,11 @@ export const sortAgreementAttributes = <T extends AgreementV2 | undefined>(
       : [],
     certifiedAttributes: agreement.certifiedAttributes
       ? [...agreement.certifiedAttributes].sort(
+          sortBy<CertifiedAttributeV2>((att) => att.id)
+        )
+      : [],
+    certifiedDiscreteAttributes: agreement.certifiedDiscreteAttributes
+      ? [...agreement.certifiedDiscreteAttributes].sort(
           sortBy<CertifiedAttributeV2>((att) => att.id)
         )
       : [],

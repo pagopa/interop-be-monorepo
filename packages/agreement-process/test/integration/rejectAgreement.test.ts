@@ -1,5 +1,5 @@
-/* eslint-disable fp/no-delete */
 /* eslint-disable functional/immutable-data */
+import { addDays } from "date-fns";
 import {
   decodeProtobufPayload,
   getMockAgreement,
@@ -32,10 +32,11 @@ import {
   delegationKind,
   delegationState,
   generateId,
+  hyperlinkDetectionError,
   toAgreementV2,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
-import { addDays } from "date-fns";
+
 import { agreementRejectableStates } from "../../src/model/domain/agreement-validators.js";
 import {
   agreementNotFound,
@@ -251,16 +252,15 @@ describe("reject agreement", () => {
         payload: agreementEvent.data,
       }).agreement;
 
-      /* We must delete some properties because the rejection
-    sets them to undefined thus and the protobuf
-    serialization strips them from the payload */
-      delete agreement.suspendedByConsumer;
-      delete agreement.suspendedByProducer;
-      delete agreement.suspendedByPlatform;
       const expectedAgreementRejected: Agreement = {
         ...agreement,
         state: agreementState.rejected,
         rejectionReason: "Rejected by producer due to test reasons",
+        // The rejection sets these suspension flags to undefined, and the
+        // protobuf serialization strips them from the payload
+        suspendedByConsumer: undefined,
+        suspendedByProducer: undefined,
+        suspendedByPlatform: undefined,
         // Keeps only not revoked attributes that are matching in descriptor and tenant
         verifiedAttributes: [
           { id: tenantVerifiedAttribute.id },
@@ -278,7 +278,7 @@ describe("reject agreement", () => {
         },
       };
 
-      expect(sortAgreementAttributes(actualAgreementRejected)).toMatchObject(
+      expect(sortAgreementAttributes(actualAgreementRejected)).toEqual(
         sortAgreementAttributes(toAgreementV2(expectedAgreementRejected))
       );
       expect(sortAgreement(rejectAgreementReponse)).toEqual({
@@ -495,5 +495,22 @@ describe("reject agreement", () => {
         getMockContext({ authData })
       )
     ).rejects.toThrowError(tenantIsNotTheProducer(authData.organizationId));
+  });
+
+  it("should throw hyperlinkDetectionError when the rejectionReason contains a hyperlink", async () => {
+    const agreement = {
+      ...getMockAgreement(),
+      state: randomArrayItem(agreementRejectableStates),
+    };
+    await addOneAgreement(agreement);
+    const authData = getMockAuthData(agreement.producerId);
+    const rejectionReason = "see https://evil.example.com";
+    await expect(
+      agreementService.rejectAgreement(
+        agreement.id,
+        rejectionReason,
+        getMockContext({ authData })
+      )
+    ).rejects.toThrowError(hyperlinkDetectionError(rejectionReason));
   });
 });

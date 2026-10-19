@@ -15,11 +15,12 @@ import {
   toEServiceV2,
 } from "pagopa-interop-models";
 import { vi, expect, describe, it } from "vitest";
+
+import { config } from "../../src/config/config.js";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
 import {
   fileManager,
   addOneEService,
@@ -92,9 +93,11 @@ describe("delete Document", () => {
       ],
     });
 
-    expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-    expect(writtenPayload.documentId).toEqual(document.id);
-    expect(writtenPayload.eservice).toEqual(expectedEservice);
+    expect(writtenPayload).toEqual({
+      descriptorId: descriptor.id,
+      documentId: document.id,
+      eservice: expectedEservice,
+    });
 
     expect(fileManager.delete).toHaveBeenCalledWith(
       config.s3Bucket,

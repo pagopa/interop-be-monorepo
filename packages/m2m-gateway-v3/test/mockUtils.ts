@@ -1,3 +1,13 @@
+import { generateMock } from "@anatine/zod-mock";
+import {
+  agreementApi,
+  authorizationApi,
+  catalogApi,
+  m2mEventApi,
+  m2mGatewayApiV3,
+  purposeApi,
+  purposeTemplateApi,
+} from "pagopa-interop-api-clients";
 import {
   WithLogger,
   systemRole,
@@ -8,22 +18,12 @@ import {
 } from "pagopa-interop-commons";
 import {
   CorrelationId,
-  EServiceTemplateRiskAnalysis,
   RiskAnalysis,
   TenantId,
   generateId,
 } from "pagopa-interop-models";
-import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
-import {
-  agreementApi,
-  authorizationApi,
-  catalogApi,
-  m2mEventApi,
-  m2mGatewayApiV3,
-  purposeApi,
-  purposeTemplateApi,
-} from "pagopa-interop-api-clients";
+
 import { M2MGatewayAppContext } from "../src/utils/context.js";
 import { DownloadedDocument } from "../src/utils/fileDownload.js";
 
@@ -82,22 +82,32 @@ export function getMockDownloadedDocument({
 
 export const buildRiskAnalysisSeed = (
   riskAnalysis: RiskAnalysis
-): m2mGatewayApiV3.EServiceRiskAnalysisSeed => ({
-  name: riskAnalysis.name,
-  riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
+): m2mGatewayApiV3.EServiceRiskAnalysisSeed => {
+  const { version, answers } = riskAnalysisFormToRiskAnalysisFormToValidate(
     riskAnalysis.riskAnalysisForm
-  ),
-});
+  );
+  return {
+    name: riskAnalysis.name,
+    riskAnalysisForm: {
+      version,
+      answers,
+    },
+  };
+};
 
 export const buildEserviceTemplateRiskAnalysisSeed = (
-  riskAnalysis: EServiceTemplateRiskAnalysis
-): m2mGatewayApiV3.EServiceTemplateRiskAnalysisSeed => ({
-  name: riskAnalysis.name,
-  riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
+  riskAnalysis: RiskAnalysis
+): m2mGatewayApiV3.EServiceTemplateRiskAnalysisSeed => {
+  const { version, answers } = riskAnalysisFormToRiskAnalysisFormToValidate(
     riskAnalysis.riskAnalysisForm
-  ),
-  tenantKind: riskAnalysis.tenantKind,
-});
+  );
+
+  return {
+    name: riskAnalysis.name,
+    riskAnalysisForm: { version, answers },
+    tenantKind: riskAnalysis.riskAnalysisForm.tenantKind!,
+  };
+};
 
 export function testToM2MEServiceRiskAnalysisAnswers(
   riskAnalysisForm: catalogApi.EServiceRiskAnalysis["riskAnalysisForm"]
@@ -173,6 +183,9 @@ export const testToM2mGatewayApiEService = (
   isClientAccessDelegable: eservice.isClientAccessDelegable,
   templateId: eservice.templateId,
   personalData: eservice.personalData,
+  archivingReason: eservice.archivingReason,
+  asyncExchange: eservice.asyncExchange,
+  delegatedArchivingRequest: eservice.delegatedArchivingRequest,
 });
 
 export const testToM2mGatewayApiEServiceEvent = (
@@ -202,10 +215,12 @@ export const testToM2mGatewayApiPurpose = (
     currentVersion,
     waitingForApprovalVersion,
     rejectedVersion,
+    riskAnalysisReviewMode = purpose.riskAnalysisReviewMode,
   }: {
     currentVersion?: m2mGatewayApiV3.PurposeVersion;
     waitingForApprovalVersion?: m2mGatewayApiV3.PurposeVersion;
     rejectedVersion?: m2mGatewayApiV3.PurposeVersion;
+    riskAnalysisReviewMode?: m2mGatewayApiV3.RiskAnalysisReviewMode;
   }
 ): m2mGatewayApiV3.Purpose => ({
   id: purpose.id,
@@ -217,7 +232,6 @@ export const testToM2mGatewayApiPurpose = (
   description: purpose.description,
   createdAt: purpose.createdAt,
   updatedAt: purpose.updatedAt,
-  isRiskAnalysisValid: purpose.isRiskAnalysisValid,
   isFreeOfCharge: purpose.isFreeOfCharge,
   freeOfChargeReason: purpose.freeOfChargeReason,
   delegationId: purpose.delegationId,
@@ -225,6 +239,7 @@ export const testToM2mGatewayApiPurpose = (
   waitingForApprovalVersion,
   rejectedVersion,
   purposeTemplateId: purpose.purposeTemplateId,
+  riskAnalysisReviewMode,
 });
 
 const testToM2MJWK = (key: authorizationApi.JWKKey): m2mGatewayApiV3.JWK => ({

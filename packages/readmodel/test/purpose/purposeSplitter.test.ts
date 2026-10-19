@@ -7,7 +7,6 @@ import {
   getMockPurposeVersionStamps,
   getMockValidRiskAnalysisForm,
 } from "pagopa-interop-commons-test";
-import { describe, it, expect } from "vitest";
 import {
   DelegationId,
   generateId,
@@ -20,19 +19,27 @@ import {
   PurposeVersionStampKind,
   PurposeVersionStamps,
   purposeVersionState,
+  purposeWaitingForApprovalReason,
   riskAnalysisAnswerKind,
+  riskAnalysisReviewMode,
+  riskAnalysisSigningState,
   RiskAnalysisId,
+  ReviewerWorkflow,
   tenantKind,
+  UserId,
 } from "pagopa-interop-models";
 import {
   PurposeRiskAnalysisAnswerSQL,
   PurposeRiskAnalysisFormSQL,
+  RiskAnalysisReviewerSQL,
   PurposeSQL,
   PurposeVersionDocumentSQL,
   PurposeVersionSQL,
   PurposeVersionSignedDocumentSQL,
   PurposeVersionStampSQL,
 } from "pagopa-interop-readmodel-models";
+import { describe, it, expect } from "vitest";
+
 import { splitPurposeIntoObjectsSQL } from "../../src/purpose/splitters.js";
 
 describe("Purpose splitter", () => {
@@ -45,6 +52,20 @@ describe("Purpose splitter", () => {
     const firstActivationAt = new Date();
     const riskAnalysisId = generateId<RiskAnalysisId>();
 
+    const reviewerWorkflow: ReviewerWorkflow = {
+      reviewers: [
+        { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+        { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+      ],
+      signingState: riskAnalysisSigningState.signed,
+      signedBy: generateId<UserId>(),
+      signedAt: new Date(),
+      rejectedBy: generateId<UserId>(),
+      rejectedAt: new Date(),
+      rejectionReason: "Reviewer workflow rejection reason",
+      sentToReviewerAt: new Date(),
+    };
+
     const purposeVersionRiskAnalysis: PurposeVersionDocument =
       getMockPurposeVersionDocument();
     const purposeVersionSignedContract: PurposeVersionSignedDocument =
@@ -54,6 +75,8 @@ describe("Purpose splitter", () => {
     const purposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(purposeVersionState.draft, purposeVersionStamps),
       rejectionReason,
+      waitingForApprovalReason:
+        purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
       suspendedAt,
       updatedAt,
       firstActivationAt,
@@ -76,6 +99,8 @@ describe("Purpose splitter", () => {
       riskAnalysisForm: purposeRiskAnalysisForm,
       versions: [purposeVersion],
       purposeTemplateId: generateId<PurposeTemplateId>(),
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      reviewerWorkflow,
     };
     const {
       purposeSQL,
@@ -85,6 +110,7 @@ describe("Purpose splitter", () => {
       versionDocumentsSQL,
       versionStampsSQL,
       versionSignedDocumentsSQL,
+      reviewersSQL,
     } = splitPurposeIntoObjectsSQL(purpose, 1);
 
     const expectedPurposeSQL: PurposeSQL = {
@@ -102,6 +128,15 @@ describe("Purpose splitter", () => {
       description: purpose.description,
       isFreeOfCharge: purpose.isFreeOfCharge,
       purposeTemplateId: purpose.purposeTemplateId!,
+      riskAnalysisReviewMode: purpose.riskAnalysisReviewMode!,
+      reviewerWorkflowReviewMode: null,
+      reviewerWorkflowSigningState: reviewerWorkflow.signingState,
+      reviewerWorkflowSignedBy: reviewerWorkflow.signedBy!,
+      reviewerWorkflowSignedAt: reviewerWorkflow.signedAt!.toISOString(),
+      reviewerWorkflowRejectedBy: reviewerWorkflow.rejectedBy!,
+      reviewerWorkflowRejectedAt: reviewerWorkflow.rejectedAt!.toISOString(),
+      reviewerWorkflowRejectionReason: reviewerWorkflow.rejectionReason!,
+      reviewerWorkflowSentToReviewerAt: null,
     };
 
     const expectedPurposeRiskAnalysisFormSQL: PurposeRiskAnalysisFormSQL = {
@@ -110,6 +145,7 @@ describe("Purpose splitter", () => {
       id: purposeRiskAnalysisForm.id,
       version: purposeRiskAnalysisForm.version,
       riskAnalysisId,
+      tenantKind: purposeRiskAnalysisForm.tenantKind!,
     };
 
     const expectedPurposeRiskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[] =
@@ -147,6 +183,8 @@ describe("Purpose splitter", () => {
       updatedAt: updatedAt.toISOString(),
       firstActivationAt: firstActivationAt.toISOString(),
       rejectionReason,
+      waitingForApprovalReason:
+        purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
       id: purposeVersion.id,
       state: purposeVersion.state,
       dailyCalls: purposeVersion.dailyCalls,
@@ -211,6 +249,14 @@ describe("Purpose splitter", () => {
     expect(versionSignedDocumentsSQL).toStrictEqual([
       expectedPurposeVersionSignedDocumentSQL,
     ]);
+    const expectedReviewersSQL: RiskAnalysisReviewerSQL[] =
+      reviewerWorkflow.reviewers.map((reviewer) => ({
+        purposeId: purpose.id,
+        metadataVersion: 1,
+        reviewerId: reviewer.id,
+        sentToReviewerAt: reviewer.sentToReviewerAt!.toISOString(),
+      }));
+    expect(reviewersSQL).toStrictEqual(expectedReviewersSQL);
   });
 
   it("should convert an incomplete purpose into purpose SQL objects (undefined -> null)", () => {
@@ -231,8 +277,10 @@ describe("Purpose splitter", () => {
       signedContract: purposeVersionSignedDocument,
     };
 
-    const purposeRiskAnalysisForm: PurposeRiskAnalysisForm =
-      getMockValidRiskAnalysisForm(tenantKind.PA);
+    const purposeRiskAnalysisForm: PurposeRiskAnalysisForm = {
+      ...getMockValidRiskAnalysisForm(tenantKind.PA),
+      tenantKind: undefined,
+    };
 
     const purpose: Purpose = {
       ...getMockPurpose(),
@@ -243,6 +291,10 @@ describe("Purpose splitter", () => {
       freeOfChargeReason: undefined,
       riskAnalysisForm: purposeRiskAnalysisForm,
       versions: [purposeVersion],
+      reviewerWorkflow: {
+        reviewers: [{ id: generateId<UserId>() }],
+        signingState: riskAnalysisSigningState.signed,
+      },
     };
 
     const {
@@ -253,6 +305,7 @@ describe("Purpose splitter", () => {
       versionDocumentsSQL,
       versionStampsSQL,
       versionSignedDocumentsSQL,
+      reviewersSQL,
     } = splitPurposeIntoObjectsSQL(purpose, 1);
 
     const expectedPurposeSQL: PurposeSQL = {
@@ -270,6 +323,15 @@ describe("Purpose splitter", () => {
       description: purpose.description,
       isFreeOfCharge: purpose.isFreeOfCharge,
       purposeTemplateId: null,
+      riskAnalysisReviewMode: null,
+      reviewerWorkflowReviewMode: null,
+      reviewerWorkflowSigningState: riskAnalysisSigningState.signed,
+      reviewerWorkflowSignedBy: null,
+      reviewerWorkflowSignedAt: null,
+      reviewerWorkflowRejectedBy: null,
+      reviewerWorkflowRejectedAt: null,
+      reviewerWorkflowRejectionReason: null,
+      reviewerWorkflowSentToReviewerAt: null,
     };
 
     const expectedPurposeRiskAnalysisFormSQL: PurposeRiskAnalysisFormSQL = {
@@ -278,6 +340,7 @@ describe("Purpose splitter", () => {
       id: purposeRiskAnalysisForm.id,
       version: purposeRiskAnalysisForm.version,
       riskAnalysisId: null,
+      tenantKind: null,
     };
 
     const expectedPurposeRiskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[] =
@@ -315,6 +378,7 @@ describe("Purpose splitter", () => {
       updatedAt: null,
       firstActivationAt: null,
       rejectionReason: null,
+      waitingForApprovalReason: null,
       id: purposeVersion.id,
       state: purposeVersion.state,
       dailyCalls: purposeVersion.dailyCalls,
@@ -358,6 +422,14 @@ describe("Purpose splitter", () => {
     expect(versionStampsSQL).toStrictEqual(expectedpurposeVersionStampsSQL);
     expect(versionSignedDocumentsSQL).toStrictEqual([
       expectedPurposeVersionSignedDocumentSQL,
+    ]);
+    expect(reviewersSQL).toStrictEqual([
+      {
+        purposeId: purpose.id,
+        metadataVersion: 1,
+        reviewerId: purpose.reviewerWorkflow!.reviewers[0].id,
+        sentToReviewerAt: null,
+      },
     ]);
   });
 });

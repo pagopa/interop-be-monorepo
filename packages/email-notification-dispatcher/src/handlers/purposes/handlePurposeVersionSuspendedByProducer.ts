@@ -10,15 +10,14 @@ import {
 import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-  PurposeHandlerParams,
-} from "../handlerCommons.js";
-import { config } from "../../config/config.js";
-import {
   eventMailTemplateType,
-  retrieveEService,
+  retrieveEservice,
   retrieveHTMLTemplate,
   retrieveTenant,
-} from "../../services/utils.js";
+} from "pagopa-interop-notification-commons";
+
+import { config } from "../../config/config.js";
+import { PurposeHandlerParams } from "../../models/handlerParams.js";
 
 const notificationType: NotificationType =
   "purposeSuspendedUnsuspendedToConsumer";
@@ -47,7 +46,7 @@ export async function handlePurposeVersionSuspendedByProducer(
     retrieveHTMLTemplate(
       eventMailTemplateType.purposeVersionSuspendedByProducerMailTemplate
     ),
-    retrieveEService(purpose.eserviceId, readModelService),
+    retrieveEservice(purpose.eserviceId, readModelService),
     retrieveTenant(purpose.consumerId, readModelService),
   ]);
 

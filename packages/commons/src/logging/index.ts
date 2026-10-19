@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import winston from "winston";
 import { ClientId, CorrelationId, SpanId } from "pagopa-interop-models";
+import winston from "winston";
+
 import { LoggerConfig } from "../config/loggerConfig.js";
 import { bigIntReplacer } from "./utils.js";
 
@@ -119,13 +120,21 @@ const internalLoggerInstance = getLogger();
 export const logger = (loggerMetadata: LoggerMetadata) => ({
   isDebugEnabled: () => internalLoggerInstance.isDebugEnabled(),
   debug: (msg: (typeof internalLoggerInstance.debug.arguments)[0]) =>
-    internalLoggerInstance.debug(msg, { loggerMetadata }),
+    internalLoggerInstance.log({
+      level: "debug",
+      message: msg,
+      loggerMetadata,
+    }),
   info: (msg: (typeof internalLoggerInstance.info.arguments)[0]) =>
-    internalLoggerInstance.info(msg, { loggerMetadata }),
+    internalLoggerInstance.log({ level: "info", message: msg, loggerMetadata }),
   warn: (msg: (typeof internalLoggerInstance.warn.arguments)[0]) =>
-    internalLoggerInstance.warn(msg, { loggerMetadata }),
+    internalLoggerInstance.log({ level: "warn", message: msg, loggerMetadata }),
   error: (msg: (typeof internalLoggerInstance.error.arguments)[0]) =>
-    internalLoggerInstance.error(msg, { loggerMetadata }),
+    internalLoggerInstance.log({
+      level: "error",
+      message: msg,
+      loggerMetadata,
+    }),
 });
 
 export type Logger = ReturnType<typeof logger>;

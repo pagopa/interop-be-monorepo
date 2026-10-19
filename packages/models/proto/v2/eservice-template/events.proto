@@ -23,6 +23,11 @@ message EServiceTemplateRiskAnalysisUpdatedV2 {
   EServiceTemplateV2 eserviceTemplate = 2;
 }
 
+message MaintenanceEServiceTemplateRiskAnalysisSetTenantKindV2 {
+  string riskAnalysisId = 1;
+  EServiceTemplateV2 eserviceTemplate = 2;
+}
+
 message EServiceTemplateDraftUpdatedV2 {
   EServiceTemplateV2 eserviceTemplate = 1;
 }
@@ -60,12 +65,6 @@ message EServiceTemplateVersionInterfaceDeletedV2 {
 }
 
 message EServiceTemplateVersionDocumentDeletedV2 {
-  string eserviceTemplateVersionId = 1;
-  string documentId = 2;
-  EServiceTemplateV2 eserviceTemplate = 3;
-}
-
-message EServiceTemplateVersionInterfaceUpdatedV2 {
   string eserviceTemplateVersionId = 1;
   string documentId = 2;
   EServiceTemplateV2 eserviceTemplate = 3;
@@ -123,4 +122,16 @@ message EServiceTemplateVersionActivatedV2 {
 
 message EServiceTemplatePersonalDataFlagUpdatedAfterPublicationV2 {
   EServiceTemplateV2 eserviceTemplate = 1;
+}
+
+message EServiceTemplateVersionAsyncExchangeCallbackInterfaceAddedV2 {
+  string eserviceTemplateVersionId = 1;
+  string documentId = 2;
+  EServiceTemplateV2 eserviceTemplate = 3;
+}
+
+message EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeletedV2 {
+  string eserviceTemplateVersionId = 1;
+  string documentId = 2;
+  EServiceTemplateV2 eserviceTemplate = 3;
 }

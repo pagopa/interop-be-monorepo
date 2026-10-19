@@ -2,25 +2,25 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/cognitive-complexity */
 import { genericLogger } from "pagopa-interop-commons";
+import { EserviceTemplateItemsSchema } from "pagopa-interop-kpi-models";
+
+import { config } from "../config/config.js";
 import { DBContext } from "../db/db.js";
 import { EserviceTemplateDbTable, DeletingDbTable } from "../model/db/index.js";
+import { EserviceTemplateDeletingSchema } from "../model/eserviceTemplate/eserviceTemplate.js";
+import { eserviceTemplateRepository } from "../repository/eserviceTemplate/eserviceTemplate.repository.js";
+import { eserviceTemplateRiskAnalysisRepository } from "../repository/eserviceTemplate/eserviceTemplateRiskAnalysis.repository.js";
+import { eserviceTemplateRiskAnalysisAnswerRepository } from "../repository/eserviceTemplate/eserviceTemplateRiskAnalysisAnswer.repository.js";
+import { eserviceTemplateVersionRepository } from "../repository/eserviceTemplate/eserviceTemplateVersion.repository.js";
+import { eserviceTemplateVersionAsyncExchangePropertiesRepository } from "../repository/eserviceTemplate/eserviceTemplateVersionAsyncExchangeProperties.repository.js";
+import { eserviceTemplateVersionAttributeRepository } from "../repository/eserviceTemplate/eserviceTemplateVersionAttribute.repository.js";
+import { eserviceTemplateVersionDocumentRepository } from "../repository/eserviceTemplate/eserviceTemplateVersionDocument.repository.js";
+import { eserviceTemplateVersionInterfaceRepository } from "../repository/eserviceTemplate/eserviceTemplateVersionInterface.repository.js";
 import { batchMessages } from "../utils/batchHelper.js";
 import {
   cleaningTargetTables,
   mergeDeletingCascadeById,
 } from "../utils/sqlQueryHelper.js";
-import { config } from "../config/config.js";
-import {
-  EserviceTemplateItemsSchema,
-  EserviceTemplateDeletingSchema,
-} from "../model/eserviceTemplate/eserviceTemplate.js";
-import { eserviceTemplateRepository } from "../repository/eserviceTemplate/eserviceTemplate.repository.js";
-import { eserviceTemplateVersionRepository } from "../repository/eserviceTemplate/eserviceTemplateVersion.repository.js";
-import { eserviceTemplateVersionDocumentRepository } from "../repository/eserviceTemplate/eserviceTemplateVersionDocument.repository.js";
-import { eserviceTemplateVersionInterfaceRepository } from "../repository/eserviceTemplate/eserviceTemplateVersionInterface.repository.js";
-import { eserviceTemplateRiskAnalysisRepository } from "../repository/eserviceTemplate/eserviceTemplateRiskAnalysis.repository.js";
-import { eserviceTemplateRiskAnalysisAnswerRepository } from "../repository/eserviceTemplate/eserviceTemplateRiskAnalysisAnswer.repository.js";
-import { eserviceTemplateVersionAttributeRepository } from "../repository/eserviceTemplate/eserviceTemplateVersionAttribute.repository.js";
 
 export function eserviceTemplateServiceBuilder(db: DBContext) {
   const templateRepo = eserviceTemplateRepository(db.conn);
@@ -30,6 +30,8 @@ export function eserviceTemplateServiceBuilder(db: DBContext) {
   const attributeRepo = eserviceTemplateVersionAttributeRepository(db.conn);
   const riskRepo = eserviceTemplateRiskAnalysisRepository(db.conn);
   const riskAnswerRepo = eserviceTemplateRiskAnalysisAnswerRepository(db.conn);
+  const asyncExchangePropsRepo =
+    eserviceTemplateVersionAsyncExchangePropertiesRepository(db.conn);
 
   return {
     async upsertBatchEserviceTemplate(
@@ -50,6 +52,9 @@ export function eserviceTemplateServiceBuilder(db: DBContext) {
             riskAnalysesSQL: batch.flatMap((item) => item.riskAnalysesSQL),
             riskAnalysisAnswersSQL: batch.flatMap(
               (item) => item.riskAnalysisAnswersSQL
+            ),
+            asyncExchangePropertiesSQL: batch.flatMap(
+              (item) => item.asyncExchangePropertiesSQL
             ),
           };
           if (batchItems.templateSQL.length) {
@@ -89,6 +94,13 @@ export function eserviceTemplateServiceBuilder(db: DBContext) {
               batchItems.riskAnalysisAnswersSQL
             );
           }
+          if (batchItems.asyncExchangePropertiesSQL.length) {
+            await asyncExchangePropsRepo.insert(
+              t,
+              dbContext.pgp,
+              batchItems.asyncExchangePropertiesSQL
+            );
+          }
 
           genericLogger.info(
             `Staged template batch: ${batch
@@ -104,6 +116,7 @@ export function eserviceTemplateServiceBuilder(db: DBContext) {
         await documentRepo.merge(t);
         await riskRepo.merge(t);
         await riskAnswerRepo.merge(t);
+        await asyncExchangePropsRepo.merge(t);
       });
 
       await dbContext.conn.tx(async (t) => {
@@ -116,6 +129,7 @@ export function eserviceTemplateServiceBuilder(db: DBContext) {
             EserviceTemplateDbTable.eservice_template_version_attribute,
             EserviceTemplateDbTable.eservice_template_version_document,
             EserviceTemplateDbTable.eservice_template_version_interface,
+            EserviceTemplateDbTable.eservice_template_version_async_exchange_properties,
             EserviceTemplateDbTable.eservice_template_version,
           ],
           EserviceTemplateDbTable.eservice_template
@@ -131,6 +145,7 @@ export function eserviceTemplateServiceBuilder(db: DBContext) {
       await documentRepo.clean();
       await riskRepo.clean();
       await riskAnswerRepo.clean();
+      await asyncExchangePropsRepo.clean();
 
       genericLogger.info(`Cleaned all staging tables`);
     },
@@ -159,6 +174,7 @@ export function eserviceTemplateServiceBuilder(db: DBContext) {
             EserviceTemplateDbTable.eservice_template_version_interface,
             EserviceTemplateDbTable.eservice_template_version_document,
             EserviceTemplateDbTable.eservice_template_version_attribute,
+            EserviceTemplateDbTable.eservice_template_version_async_exchange_properties,
             EserviceTemplateDbTable.eservice_template_risk_analysis,
             EserviceTemplateDbTable.eservice_template_risk_analysis_answer,
           ],

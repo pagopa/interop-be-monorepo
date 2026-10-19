@@ -3,7 +3,7 @@ import {
   getMockContext,
   getMockKey,
   getMockProducerKeychain,
-} from "pagopa-interop-commons-test/src/testUtils.js";
+} from "pagopa-interop-commons-test";
 import {
   Key,
   ProducerKeychain,
@@ -13,6 +13,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
+
 import {
   producerKeychainNotFound,
   tenantNotAllowedOnProducerKeychain,

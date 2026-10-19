@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import {
   DelegationId,
   PurposeId,
@@ -34,6 +35,13 @@ export const PurposeM2MEventType = z.enum([
   "PurposeDeletedByRevokedDelegation",
   "PurposeVersionArchivedByRevokedDelegation",
   "RiskAnalysisSignedDocumentGenerated",
+  "PurposeRiskAnalysisWorkflowCreated",
+  "PurposeRiskAnalysisAssigned",
+  "PurposeRiskAnalysisSelfAssigned",
+  "PurposeRiskAnalysisSubmitted",
+  "PurposeRiskAnalysisSigned",
+  "PurposeRiskAnalysisRejected",
+  "PurposeRiskAnalysisFormEdited",
 ]);
 export type PurposeM2MEventType = z.infer<typeof PurposeM2MEventType>;
 

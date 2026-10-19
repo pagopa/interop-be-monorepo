@@ -1,0 +1,104 @@
+import { AxiosError, InternalAxiosRequestConfig } from "axios";
+import { authorizationApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockDPoPProof,
+  getMockedApiConsumerFullClient,
+} from "pagopa-interop-commons-test";
+import { generateId, UserId } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
+import { toM2MGatewayApiConsumerClient } from "../../../src/api/clientApiConverter.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
+import { api, mockClientService } from "../../vitest.api.setup.js";
+
+describe("POST /clients router test", () => {
+  const makeRequest = async (token: string, seed: m2mGatewayApiV3.ClientSeed) =>
+    request(api)
+      .post(`${appBasePath}/clients`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
+      .send(seed);
+
+  const clientSeed: m2mGatewayApiV3.ClientSeed = {
+    name: "client seed",
+    description: "client description",
+    members: [generateId<UserId>()],
+  };
+
+  const mockM2MFullClientResponse = toM2MGatewayApiConsumerClient(
+    getMockedApiConsumerFullClient({
+      kind: authorizationApi.ClientKind.Values.CONSUMER,
+    })
+  );
+
+  const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
+
+  it("Should propagate the authorization 404 Problem for a missing member", async () => {
+    const problem = {
+      type: "about:blank",
+      title: "Not Found",
+      status: 404,
+      detail: "User not found",
+      errors: [{ code: "005-0016", detail: "User not found" }],
+    };
+    mockClientService.createClient = vi.fn().mockRejectedValueOnce(
+      new AxiosError("User not found", "404", undefined, undefined, {
+        status: 404,
+        statusText: "Not Found",
+        data: problem,
+        headers: {},
+        config: {} as InternalAxiosRequestConfig,
+      })
+    );
+    const res = await makeRequest(
+      generateToken(authRole.M2M_ADMIN_ROLE),
+      clientSeed
+    );
+    expect(res.status).toBe(404);
+    expect(res.body).toMatchObject({ status: 404, errors: problem.errors });
+    expect(mockClientService.createClient).toHaveBeenCalledWith(
+      clientSeed,
+      expect.any(Object)
+    );
+  });
+
+  it.each(authorizedRoles)(
+    "Should return 200 and perform service calls for user with role %s",
+    async (role) => {
+      mockClientService.createClient = vi
+        .fn()
+        .mockImplementation(() => Promise.resolve(mockM2MFullClientResponse));
+      const token = generateToken(role);
+      const res = await makeRequest(token, clientSeed);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(mockM2MFullClientResponse);
+      expect(mockClientService.createClient).toHaveBeenCalledWith(
+        clientSeed,
+        expect.any(Object) // context
+      );
+    }
+  );
+
+  it.each(
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
+  )("Should return 403 for user with role %s", async (role) => {
+    const token = generateToken(role);
+    const res = await makeRequest(token, clientSeed);
+    expect(res.status).toBe(403);
+  });
+
+  it.each([
+    { ...clientSeed, name: 1 },
+    { ...clientSeed, members: 7 },
+    { ...clientSeed, description: 9 },
+    {},
+  ])("Should return 400 if passed invalid body", async (seed) => {
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, seed as m2mGatewayApiV3.ClientSeed);
+
+    expect(res.status).toBe(400);
+  });
+});

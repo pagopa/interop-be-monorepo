@@ -18,15 +18,16 @@ import {
   operationForbidden,
   Document,
   EServiceTemplateVersionState,
-  EServiceTemplateVersionInterfaceUpdatedV2,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
+
 import {
   eserviceTemplateDocumentNotFound,
   eserviceTemplateNotFound,
   eserviceTemplateVersionNotFound,
   notValidEServiceTemplateVersionState,
   documentPrettyNameDuplicate,
+  interfaceDocumentNotUpdatable,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEServiceTemplate,
@@ -96,11 +97,15 @@ describe("update Document", () => {
         payload: writtenEvent.data,
       });
 
-      expect(writtenPayload.eserviceTemplateVersionId).toEqual(version.id);
-      expect(writtenPayload.documentId).toEqual(mockDocument.id);
-      expect(writtenPayload.eserviceTemplate).toEqual(expectedEserviceTemplate);
-      expect(writtenPayload.eserviceTemplate).toEqual(
-        toEServiceTemplateV2({
+      expect(writtenPayload).toEqual({
+        eserviceTemplateVersionId: version.id,
+        documentId: mockDocument.id,
+        eserviceTemplate: expectedEserviceTemplate,
+      });
+      expect(writtenPayload).toEqual({
+        eserviceTemplateVersionId: version.id,
+        documentId: mockDocument.id,
+        eserviceTemplate: toEServiceTemplateV2({
           ...eserviceTemplate,
           versions: [
             {
@@ -108,75 +113,45 @@ describe("update Document", () => {
               docs: [returnedDocument],
             },
           ],
-        })
-      );
+        }),
+      });
     }
   );
 
-  it("should write on event-store for the update of a interface in a descriptor in draft state", async () => {
-    const version: EServiceTemplateVersion = {
-      ...getMockEServiceTemplateVersion(
-        generateId<EServiceTemplateVersionId>()
-      ),
-      interface: mockDocument,
-    };
-    const eserviceTemplate: EServiceTemplate = {
-      ...mockEServiceTemplate,
-      versions: [version],
-    };
-    await addOneEServiceTemplate(eserviceTemplate);
-    const returnedDocument = await eserviceTemplateService.updateDocument(
-      eserviceTemplate.id,
-      version.id,
-      mockDocument.id,
-      { prettyName: "updated prettyName" },
-      getMockContext({
-        authData: getMockAuthData(eserviceTemplate.creatorId),
-      })
-    );
-    const writtenEvent = await readLastEserviceTemplateEvent(
-      eserviceTemplate.id
-    );
-    const expectedEserviceTemplate = toEServiceTemplateV2({
-      ...eserviceTemplate,
-      versions: [
-        {
-          ...version,
-          interface: {
-            ...mockDocument,
-            prettyName: "updated prettyName",
-          },
-        },
-      ],
-    });
-
-    expect(writtenEvent).toMatchObject({
-      stream_id: eserviceTemplate.id,
-      version: "1",
-      type: "EServiceTemplateVersionInterfaceUpdated",
-      event_version: 2,
-    });
-
-    const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceTemplateVersionInterfaceUpdatedV2,
-      payload: writtenEvent.data,
-    });
-
-    expect(writtenPayload.eserviceTemplateVersionId).toEqual(version.id);
-    expect(writtenPayload.documentId).toEqual(mockDocument.id);
-    expect(writtenPayload.eserviceTemplate).toEqual(expectedEserviceTemplate);
-    expect(writtenPayload.eserviceTemplate).toEqual(
-      toEServiceTemplateV2({
-        ...eserviceTemplate,
-        versions: [
-          {
-            ...version,
-            interface: returnedDocument,
-          },
-        ],
-      })
-    );
-  });
+  it.each(
+    Object.values(eserviceTemplateVersionState).filter(
+      (state) => state !== eserviceTemplateVersionState.deprecated
+    )
+  )(
+    "should throw interfaceDocumentNotUpdatable when updating an interface in %s state",
+    async (state) => {
+      const version: EServiceTemplateVersion = {
+        ...getMockEServiceTemplateVersion(
+          generateId<EServiceTemplateVersionId>(),
+          state
+        ),
+        interface: mockDocument,
+      };
+      const eserviceTemplate: EServiceTemplate = {
+        ...mockEServiceTemplate,
+        versions: [version],
+      };
+      await addOneEServiceTemplate(eserviceTemplate);
+      expect(
+        eserviceTemplateService.updateDocument(
+          eserviceTemplate.id,
+          version.id,
+          mockDocument.id,
+          { prettyName: "updated prettyName" },
+          getMockContext({
+            authData: getMockAuthData(eserviceTemplate.creatorId),
+          })
+        )
+      ).rejects.toThrowError(
+        interfaceDocumentNotUpdatable(version.id, mockDocument.id)
+      );
+    }
+  );
 
   it("should throw eserviceTemplateNotFound if the eservice template doesn't exist", async () => {
     expect(
@@ -274,40 +249,36 @@ describe("update Document", () => {
     }
   );
 
-  it.each(
-    Object.values(eserviceTemplateVersionState).filter(
-      (state) => state !== eserviceTemplateVersionState.draft
-    )
-  )(
-    "should throw notValidEServiceTemplateVersionState if the interface is in s% state",
-    async (state) => {
-      const version: EServiceTemplateVersion = {
-        ...getMockEServiceTemplateVersion(
-          generateId<EServiceTemplateVersionId>(),
-          state
-        ),
-        interface: mockDocument,
-      };
-      const eserviceTemplate: EServiceTemplate = {
-        ...mockEServiceTemplate,
-        versions: [version],
-      };
-      await addOneEServiceTemplate(eserviceTemplate);
-      expect(
-        eserviceTemplateService.updateDocument(
-          eserviceTemplate.id,
-          version.id,
-          mockDocument.id,
-          { prettyName: "updated prettyName" },
-          getMockContext({
-            authData: getMockAuthData(eserviceTemplate.creatorId),
-          })
-        )
-      ).rejects.toThrowError(
-        notValidEServiceTemplateVersionState(version.id, state)
-      );
-    }
-  );
+  it("should throw notValidEServiceTemplateVersionState when updating an interface in deprecated state", async () => {
+    const version: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(
+        generateId<EServiceTemplateVersionId>(),
+        eserviceTemplateVersionState.deprecated
+      ),
+      interface: mockDocument,
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...mockEServiceTemplate,
+      versions: [version],
+    };
+    await addOneEServiceTemplate(eserviceTemplate);
+    expect(
+      eserviceTemplateService.updateDocument(
+        eserviceTemplate.id,
+        version.id,
+        mockDocument.id,
+        { prettyName: "updated prettyName" },
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(
+      notValidEServiceTemplateVersionState(
+        version.id,
+        eserviceTemplateVersionState.deprecated
+      )
+    );
+  });
 
   it("should throw eServiceTemplateDocumentNotFound if the document doesn't exist", async () => {
     const version: EServiceTemplateVersion = {
@@ -367,6 +338,76 @@ describe("update Document", () => {
       documentPrettyNameDuplicate(
         document1.prettyName.toLowerCase(),
         version.id
+      )
+    );
+  });
+
+  it.each(
+    Object.values(eserviceTemplateVersionState).filter(
+      (state) => state !== eserviceTemplateVersionState.deprecated
+    )
+  )(
+    "should throw interfaceDocumentNotUpdatable when updating an asyncExchangeCallbackInterface in %s state",
+    async (state) => {
+      const callbackInterface = getMockDocument();
+      const version: EServiceTemplateVersion = {
+        ...getMockEServiceTemplateVersion(
+          generateId<EServiceTemplateVersionId>(),
+          state
+        ),
+        asyncExchangeCallbackInterface: callbackInterface,
+      };
+      const eserviceTemplate: EServiceTemplate = {
+        ...mockEServiceTemplate,
+        asyncExchange: true,
+        versions: [version],
+      };
+      await addOneEServiceTemplate(eserviceTemplate);
+      expect(
+        eserviceTemplateService.updateDocument(
+          eserviceTemplate.id,
+          version.id,
+          callbackInterface.id,
+          { prettyName: "updated prettyName" },
+          getMockContext({
+            authData: getMockAuthData(eserviceTemplate.creatorId),
+          })
+        )
+      ).rejects.toThrowError(
+        interfaceDocumentNotUpdatable(version.id, callbackInterface.id)
+      );
+    }
+  );
+
+  it("should throw notValidEServiceTemplateVersionState when updating an asyncExchangeCallbackInterface in deprecated state", async () => {
+    const callbackInterface = getMockDocument();
+    const version: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(
+        generateId<EServiceTemplateVersionId>(),
+        eserviceTemplateVersionState.deprecated
+      ),
+      asyncExchangeCallbackInterface: callbackInterface,
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...mockEServiceTemplate,
+      asyncExchange: true,
+      versions: [version],
+    };
+    await addOneEServiceTemplate(eserviceTemplate);
+    expect(
+      eserviceTemplateService.updateDocument(
+        eserviceTemplate.id,
+        version.id,
+        callbackInterface.id,
+        { prettyName: "updated prettyName" },
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(
+      notValidEServiceTemplateVersionState(
+        version.id,
+        eserviceTemplateVersionState.deprecated
       )
     );
   });

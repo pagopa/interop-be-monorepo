@@ -15,6 +15,7 @@ import {
   toAttributeV1,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
+
 import { attributeDuplicateByCodeOriginOrName } from "../../src/model/domain/errors.js";
 import {
   addOneTenant,
@@ -72,8 +73,10 @@ describe("certified attribute internal creation", () => {
       creationTime: new Date(writtenPayload.attribute!.creationTime),
       origin: getTenantOneCertifierFeature(tenant).certifierId,
     };
-    expect(writtenPayload.attribute).toEqual(toAttributeV1(expectedAttribute));
-    expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
+    expect(writtenPayload).toEqual({
+      attribute: toAttributeV1(expectedAttribute),
+    });
+    expect(writtenPayload).toEqual({ attribute: toAttributeV1(attribute) });
   });
   it("should write 2 attribute with different name and origin but same code, case insensitive", async () => {
     const attributeCode = "123456ab";

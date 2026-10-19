@@ -1,6 +1,6 @@
-import { isFeatureFlagEnabled, WithLogger } from "pagopa-interop-commons";
 import { inAppNotificationApi } from "pagopa-interop-api-clients";
-import { config } from "../config/config.js";
+import { WithLogger } from "pagopa-interop-commons";
+
 import { BffAppContext } from "./context.js";
 
 export async function filterUnreadNotifications(
@@ -8,17 +8,15 @@ export async function filterUnreadNotifications(
   entityIds: string[],
   ctx: WithLogger<BffAppContext>
 ): Promise<string[]> {
-  return isFeatureFlagEnabled(config, "featureFlagNotificationConfig")
-    ? inAppNotificationManagerClient
-        .filterUnreadNotifications({
-          queries: {
-            entityIds,
-          },
-          headers: ctx.headers,
-        })
-        .catch((err) => {
-          ctx.logger.error(`Error while fetching unread notifications: ${err}`);
-          return [];
-        })
-    : Promise.resolve([]);
+  return inAppNotificationManagerClient
+    .filterUnreadNotifications({
+      queries: {
+        entityIds,
+      },
+      headers: ctx.headers,
+    })
+    .catch((err) => {
+      ctx.logger.error(`Error while fetching unread notifications: ${err}`);
+      return [];
+    });
 }

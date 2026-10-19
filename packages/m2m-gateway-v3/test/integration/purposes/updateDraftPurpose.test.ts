@@ -1,14 +1,21 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { generateMock } from "@anatine/zod-mock";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
-import {
-  pollingMaxRetriesExceeded,
-  unsafeBrandId,
-} from "pagopa-interop-models";
 import {
   getMockedApiPurpose,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { generateMock } from "@anatine/zod-mock";
+import {
+  pollingMaxRetriesExceeded,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { config } from "../../../src/config/config.js";
+import {
+  invalidSeedForPurposeFromTemplate,
+  missingMetadata,
+} from "../../../src/model/errors.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientGetToHaveBeenNthCalledWith,
@@ -17,12 +24,6 @@ import {
   mockPollingResponse,
   purposeService,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { config } from "../../../src/config/config.js";
-import {
-  invalidSeedForPurposeFromTemplate,
-  missingMetadata,
-} from "../../../src/model/errors.js";
 import {
   getMockM2MAdminAppContext,
   testToM2mGatewayApiPurposeVersion,
@@ -95,8 +96,6 @@ describe("updateDraftPurpose", () => {
       eserviceId: mockPurposeProcessGetResponse.data.eserviceId,
       id: mockPurposeProcessGetResponse.data.id,
       isFreeOfCharge: mockPurposeProcessGetResponse.data.isFreeOfCharge,
-      isRiskAnalysisValid:
-        mockPurposeProcessGetResponse.data.isRiskAnalysisValid,
       title: mockPurposeProcessGetResponse.data.title,
       currentVersion: purposeVersion
         ? testToM2mGatewayApiPurposeVersion(purposeVersion)
@@ -109,6 +108,8 @@ describe("updateDraftPurpose", () => {
       updatedAt: mockPurposeProcessGetResponse.data.updatedAt,
       waitingForApprovalVersion: undefined,
       purposeTemplateId: mockPurposeProcessGetResponse.data.purposeTemplateId,
+      riskAnalysisReviewMode:
+        mockPurposeProcessGetResponse.data.riskAnalysisReviewMode,
     };
 
     expect(result).toStrictEqual(expectedM2MPurpose);
@@ -159,8 +160,6 @@ describe("updateDraftPurpose", () => {
       id: mockPurposeProcessGetResponseWithTemplate.data.id,
       isFreeOfCharge:
         mockPurposeProcessGetResponseWithTemplate.data.isFreeOfCharge,
-      isRiskAnalysisValid:
-        mockPurposeProcessGetResponseWithTemplate.data.isRiskAnalysisValid,
       title: mockPurposeProcessGetResponseWithTemplate.data.title,
       currentVersion: purposeVersion
         ? testToM2mGatewayApiPurposeVersion(purposeVersion)
@@ -175,6 +174,8 @@ describe("updateDraftPurpose", () => {
       waitingForApprovalVersion: undefined,
       purposeTemplateId:
         mockPurposeProcessGetResponseWithTemplate.data.purposeTemplateId,
+      riskAnalysisReviewMode:
+        mockPurposeProcessGetResponseWithTemplate.data.riskAnalysisReviewMode,
     };
 
     expect(result).toStrictEqual(expectedM2MPurpose);

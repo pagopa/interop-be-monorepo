@@ -16,6 +16,7 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
 import {
@@ -81,7 +82,6 @@ describe("createPurposeFromTemplate", () => {
     eserviceId: mockPurposeProcessGetResponse.data.eserviceId,
     id: mockPurposeProcessGetResponse.data.id,
     isFreeOfCharge: mockPurposeProcessGetResponse.data.isFreeOfCharge,
-    isRiskAnalysisValid: mockPurposeProcessGetResponse.data.isRiskAnalysisValid,
     title: mockPurposeProcessGetResponse.data.title,
     currentVersion: purposeVersion
       ? testToM2mGatewayApiPurposeVersion(purposeVersion)
@@ -94,6 +94,8 @@ describe("createPurposeFromTemplate", () => {
     updatedAt: mockPurposeProcessGetResponse.data.updatedAt,
     waitingForApprovalVersion: undefined,
     purposeTemplateId: mockPurposeTemplate.id,
+    riskAnalysisReviewMode:
+      mockPurposeProcessGetResponse.data.riskAnalysisReviewMode,
   };
 
   const mockAppContext = getMockM2MAdminAppContext();

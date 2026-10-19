@@ -30,13 +30,18 @@ import {
   EServiceDocumentId,
 } from "pagopa-interop-models";
 import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
+
+import { config } from "../../src/config/config.js";
+import {
+  DEFAULT_DAILY_CALLS_PER_CONSUMER,
+  DEFAULT_DAILY_CALLS_TOTAL,
+} from "../../src/model/domain/constants.js";
 import {
   eServiceNotFound,
   eServiceNotAnInstance,
   eServiceTemplateNotFound,
   eServiceAlreadyUpgraded,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
 import {
   fileManager,
   addOneEService,
@@ -187,11 +192,15 @@ describe("upgrade eservice template instance", () => {
       state: descriptorState.draft,
       voucherLifespan: secondTemplateVersion.voucherLifespan,
       audience: [],
-      dailyCallsPerConsumer: secondTemplateVersion.dailyCallsPerConsumer ?? 1,
-      dailyCallsTotal: secondTemplateVersion.dailyCallsTotal ?? 1,
+      dailyCallsPerConsumer:
+        secondTemplateVersion.dailyCallsPerConsumer ??
+        DEFAULT_DAILY_CALLS_PER_CONSUMER,
+      dailyCallsTotal:
+        secondTemplateVersion.dailyCallsTotal ?? DEFAULT_DAILY_CALLS_TOTAL,
       agreementApprovalPolicy: secondTemplateVersion.agreementApprovalPolicy,
       attributes: secondTemplateVersion.attributes,
       serverUrls: [],
+      serverUrlsDescriptions: [],
       publishedAt: undefined,
       suspendedAt: undefined,
       deprecatedAt: undefined,
@@ -203,7 +212,10 @@ describe("upgrade eservice template instance", () => {
       ...eservice,
       descriptors: [...eservice.descriptors, expectedDescriptor],
     };
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+    expect(writtenPayload).toEqual({
+      descriptorId: expectedDescriptor.id,
+      eservice: toEServiceV2(expectedEService),
+    });
 
     expect(fileManager.copy).toHaveBeenCalledWith(
       config.s3Bucket,
@@ -228,6 +240,111 @@ describe("upgrade eservice template instance", () => {
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(expectedDocument2.path);
   });
+
+  it("should inherit async exchange fields and callback when upgrading a template instance", async () => {
+    vi.spyOn(fileManager, "copy");
+
+    const callbackDocumentId = generateId<EServiceDocumentId>();
+    const callbackDocument: Document = {
+      ...getMockDocument(),
+      id: callbackDocumentId,
+      name: "callback.yaml",
+      prettyName: "Callback interface",
+      path: `${config.eserviceDocumentsPath}/${callbackDocumentId}/callback.yaml`,
+    };
+    const firstTemplateVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      version: 1,
+      state: descriptorState.deprecated,
+    };
+    const secondTemplateVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      version: 2,
+      state: descriptorState.published,
+      asyncExchangeProperties: {
+        responseTime: 300,
+        resourceAvailableTime: 600,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 100,
+      },
+      asyncExchangeCallbackInterface: callbackDocument,
+    };
+    const template: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [firstTemplateVersion, secondTemplateVersion],
+      asyncExchange: true,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      templateId: template.id,
+      asyncExchange: true,
+      descriptors: [
+        {
+          ...mockDescriptor,
+          templateVersionRef: { id: firstTemplateVersion.id },
+          version: "1",
+          state: descriptorState.published,
+          asyncExchangeProperties: {
+            responseTime: 900,
+            resourceAvailableTime: 1200,
+            confirmation: false,
+            bulk: true,
+            maxResultSet: 200,
+          },
+        },
+      ],
+    };
+
+    await addOneEServiceTemplate(template);
+    await addOneEService(eservice);
+    await fileManager.storeBytes(
+      {
+        bucket: config.s3Bucket,
+        path: config.eserviceDocumentsPath,
+        resourceId: callbackDocument.id,
+        name: callbackDocument.name,
+        content: Buffer.from("callback-content"),
+      },
+      genericLogger
+    );
+
+    const returnedDescriptor = await catalogService.upgradeEServiceInstance(
+      eservice.id,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
+
+    expect(returnedDescriptor.asyncExchangeProperties).toEqual(
+      secondTemplateVersion.asyncExchangeProperties
+    );
+    expect(returnedDescriptor.asyncExchangeCallbackInterface).toMatchObject({
+      name: callbackDocument.name,
+      prettyName: callbackDocument.prettyName,
+      contentType: callbackDocument.contentType,
+      checksum: callbackDocument.checksum,
+    });
+    expect(returnedDescriptor.asyncExchangeCallbackInterface?.id).not.toBe(
+      callbackDocument.id
+    );
+    expect(fileManager.copy).toHaveBeenCalledWith(
+      config.s3Bucket,
+      callbackDocument.path,
+      config.eserviceDocumentsPath,
+      returnedDescriptor.asyncExchangeCallbackInterface?.id,
+      callbackDocument.name,
+      genericLogger
+    );
+
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceDescriptorAddedV2,
+      payload: writtenEvent.data,
+    });
+    expect(
+      writtenPayload.eservice?.descriptors[1].asyncExchangeCallbackInterface
+    ).toBeDefined();
+  });
+
   it("should write on event-store for the upgrading of a eservice template instance, and clone the template version docs (producer delegate)", async () => {
     vi.spyOn(fileManager, "copy");
 
@@ -366,11 +483,15 @@ describe("upgrade eservice template instance", () => {
       state: descriptorState.draft,
       voucherLifespan: secondTemplateVersion.voucherLifespan,
       audience: [],
-      dailyCallsPerConsumer: secondTemplateVersion.dailyCallsPerConsumer ?? 1,
-      dailyCallsTotal: secondTemplateVersion.dailyCallsTotal ?? 1,
+      dailyCallsPerConsumer:
+        secondTemplateVersion.dailyCallsPerConsumer ??
+        DEFAULT_DAILY_CALLS_PER_CONSUMER,
+      dailyCallsTotal:
+        secondTemplateVersion.dailyCallsTotal ?? DEFAULT_DAILY_CALLS_TOTAL,
       agreementApprovalPolicy: secondTemplateVersion.agreementApprovalPolicy,
       attributes: secondTemplateVersion.attributes,
       serverUrls: [],
+      serverUrlsDescriptions: [],
       publishedAt: undefined,
       suspendedAt: undefined,
       deprecatedAt: undefined,
@@ -382,7 +503,10 @@ describe("upgrade eservice template instance", () => {
       ...eservice,
       descriptors: [...eservice.descriptors, expectedDescriptor],
     };
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+    expect(writtenPayload).toEqual({
+      descriptorId: expectedDescriptor.id,
+      eservice: toEServiceV2(expectedEService),
+    });
 
     expect(fileManager.copy).toHaveBeenCalledWith(
       config.s3Bucket,

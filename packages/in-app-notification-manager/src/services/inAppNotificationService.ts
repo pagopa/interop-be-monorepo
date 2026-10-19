@@ -5,7 +5,6 @@ import {
   desc,
   eq,
   getTableColumns,
-  ilike,
   inArray,
   isNotNull,
   isNull,
@@ -17,7 +16,8 @@ import {
   AppContext,
   authRole,
   createListResult,
-  escapeRegExp,
+  escapeSqlLike,
+  ilikeEscaped,
   UIAuthData,
   WithLogger,
   withTotalCount,
@@ -31,6 +31,7 @@ import {
   NotificationsByType,
   NotificationType,
 } from "pagopa-interop-models";
+
 import { notificationNotFound } from "../model/errors.js";
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function inAppNotificationServiceBuilder(
@@ -97,7 +98,9 @@ export function inAppNotificationServiceBuilder(
           and(
             eq(notification.userId, userId),
             eq(notification.tenantId, organizationId),
-            q ? ilike(notification.body, `%${escapeRegExp(q)}%`) : undefined,
+            q
+              ? ilikeEscaped(notification.body, `%${escapeSqlLike(q)}%`)
+              : undefined,
             readAtFilter,
             notificationTypes.length > 0
               ? inArray(notification.notificationType, notificationTypes)

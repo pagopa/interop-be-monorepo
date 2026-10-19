@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   expiredRulesVersionError,
   unexpectedFieldError,
@@ -33,7 +34,7 @@ import {
   operationForbidden,
 } from "pagopa-interop-models";
 import { expect, describe, it, vi, afterAll, beforeAll } from "vitest";
-import { eserviceTemplateApi } from "pagopa-interop-api-clients";
+
 import {
   eserviceTemplateNotFound,
   riskAnalysisValidationFailed,

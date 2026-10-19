@@ -1,19 +1,20 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import request from "supertest";
-import { attributeKind, generateId, Tenant } from "pagopa-interop-models";
+import { authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockAttribute,
   getMockTenant,
 } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
-import { api, tenantService } from "../vitest.api.setup.js";
+import { attributeKind, generateId, Tenant } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import {
   attributeNotFound,
   certifiedAttributeAlreadyAssigned,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
+import { api, tenantService } from "../vitest.api.setup.js";
 
 describe("API POST /internal/origin/{tOrigin}/externalId/{tExternalId}/attributes/origin/{aOrigin}/externalId/{aExternalId} test", () => {
   const attribute = getMockAttribute(attributeKind.certified);
@@ -25,7 +26,7 @@ describe("API POST /internal/origin/{tOrigin}/externalId/{tExternalId}/attribute
   beforeEach(() => {
     tenantService.internalAssignCertifiedAttribute = vi
       .fn()
-      .mockResolvedValue(undefined);
+      .mockResolvedValue({ version: 1 });
   });
 
   const makeRequest = async (token: string) =>
@@ -40,6 +41,7 @@ describe("API POST /internal/origin/{tOrigin}/externalId/{tExternalId}/attribute
     const token = generateToken(authRole.INTERNAL_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(204);
+    expect(res.headers["x-metadata-version"]).toBe("1");
   });
 
   it.each(

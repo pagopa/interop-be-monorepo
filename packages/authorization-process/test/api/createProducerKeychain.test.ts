@@ -1,15 +1,27 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
-import { generateId, ProducerKeychain, TenantId } from "pagopa-interop-models";
+import { authorizationApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockProducerKeychain,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateId,
+  ProducerKeychain,
+  TenantId,
+  UserId,
+  WithMetadata,
+} from "pagopa-interop-models";
 import request from "supertest";
-import { authorizationApi } from "pagopa-interop-api-clients";
-import { api, authorizationService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi } from "vitest";
+
+import {
+  duplicatedMembersInSeed,
+  userNotFound,
+} from "../../src/model/domain/errors.js";
 import { testToFullProducerKeychain } from "../apiUtils.js";
+import { api, authorizationService } from "../vitest.api.setup.js";
 
 describe("API /producerKeychains authorization test", () => {
   const organizationId: TenantId = generateId();
@@ -20,7 +32,8 @@ describe("API /producerKeychains authorization test", () => {
     members: [organizationId],
   };
 
-  const mockProducerKeychain: ProducerKeychain = getMockProducerKeychain();
+  const mockProducerKeychain: WithMetadata<ProducerKeychain> =
+    getMockWithMetadata(getMockProducerKeychain());
 
   authorizationService.createProducerKeychain = vi
     .fn()
@@ -36,7 +49,10 @@ describe("API /producerKeychains authorization test", () => {
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
@@ -44,7 +60,7 @@ describe("API /producerKeychains authorization test", () => {
       const res = await makeRequest(token, producerKeychainSeed);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(
-        testToFullProducerKeychain(mockProducerKeychain)
+        testToFullProducerKeychain(mockProducerKeychain.data)
       );
     }
   );
@@ -70,6 +86,37 @@ describe("API /producerKeychains authorization test", () => {
       token,
       body as authorizationApi.ProducerKeychainSeed
     );
+
+    expect(res.status).toBe(400);
+  });
+
+  it("Should return 404 when a member is not in the institution", async () => {
+    const userId = generateId<UserId>();
+    authorizationService.createProducerKeychain = vi
+      .fn()
+      .mockRejectedValue(userNotFound(userId, "institution-id"));
+    const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), {
+      ...producerKeychainSeed,
+      members: [userId],
+    });
+    expect(res.status).toBe(404);
+    expect(res.body.errors).toEqual([
+      expect.objectContaining({ detail: expect.stringContaining(userId) }),
+    ]);
+  });
+
+  it("Should return 400 if passed duplicated users in body", async () => {
+    const userId = generateId();
+    const seed = {
+      ...producerKeychainSeed,
+      members: [userId, userId, generateId()],
+    };
+    authorizationService.createProducerKeychain = vi
+      .fn()
+      .mockImplementation(() => Promise.reject(duplicatedMembersInSeed()));
+
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, seed);
 
     expect(res.status).toBe(400);
   });

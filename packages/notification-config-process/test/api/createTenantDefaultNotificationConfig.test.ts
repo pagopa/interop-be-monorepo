@@ -1,19 +1,20 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { notificationConfigApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockTenantNotificationConfig,
+} from "pagopa-interop-commons-test";
 import {
   TenantId,
   TenantNotificationConfig,
   generateId,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockTenantNotificationConfig,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { notificationConfigApi } from "pagopa-interop-api-clients";
-import { api, notificationConfigService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { tenantNotificationConfigToApiTenantNotificationConfig } from "../../src/model/domain/apiConverter.js";
 import { tenantNotificationConfigAlreadyExists } from "../../src/model/domain/errors.js";
+import { api, notificationConfigService } from "../vitest.api.setup.js";
 
 describe("API POST /internal/tenantNotificationConfigs test", () => {
   const defaultTenantId: TenantId = generateId();

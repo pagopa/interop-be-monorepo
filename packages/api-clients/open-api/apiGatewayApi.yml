@@ -2709,6 +2709,8 @@ components:
         - SUSPENDED
         - ARCHIVED
         - WAITING_FOR_APPROVAL
+        - ARCHIVING
+        - ARCHIVING_SUSPENDED
     EServiceDescriptors:
       description: eservice descriptors list model
       type: object
@@ -2949,8 +2951,6 @@ components:
           format: uuid
         name:
           type: string
-          pattern: '^[a-zA-Z0-9\s\-_]+$'
-          minLength: 2
         kind:
           $ref: "#/components/schemas/AttributeKind"
       required:

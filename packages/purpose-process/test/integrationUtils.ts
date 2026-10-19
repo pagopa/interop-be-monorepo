@@ -1,8 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import {
-  initPDFGenerator,
-  launchPuppeteerBrowser,
-} from "pagopa-interop-commons";
+import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
 import {
   ReadEvent,
   StoredEvent,
@@ -28,9 +25,9 @@ import {
   PurposeRiskAnalysisForm,
   PurposeRiskAnalysisFormV2,
   Client,
+  TenantId,
+  TenantKind,
 } from "pagopa-interop-models";
-import { afterAll, afterEach, expect, inject, vi } from "vitest";
-import puppeteer, { Browser } from "puppeteer";
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
@@ -50,21 +47,30 @@ import {
   upsertPurposeTemplateEServiceDescriptor,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
+import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
+import { afterEach, expect, inject } from "vitest";
+
 import {
   UpdatePurposeReturn,
   purposeServiceBuilder,
 } from "../src/services/purposeService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
-export const { cleanup, postgresDB, fileManager, readModelDB } =
+const { cleanup, postgresDB, readModelDB, tenantKindHistoryDB } =
   await setupTestContainersVitest(
     inject("eventStoreConfig"),
     inject("fileManagerConfig"),
     undefined,
     undefined,
     undefined,
-    inject("readModelSQLConfig")
+    inject("readModelSQLConfig"),
+    undefined,
+    undefined,
+    undefined,
+    inject("tenantKindHistoryDBConfig")
   );
+
+export { postgresDB };
 
 afterEach(cleanup);
 
@@ -88,26 +94,16 @@ const readModelService = readModelServiceBuilderSQL({
   delegationReadModelServiceSQL,
   purposeTemplateReadModelServiceSQL,
   clientReadModelServiceSQL,
+  tenantKindHistoryDB,
 });
 
-const testBrowserInstance: Browser = await launchPuppeteerBrowser({
-  pipe: true,
-});
-const closeTestBrowserInstance = async (): Promise<void> =>
-  await testBrowserInstance.close();
-
-afterAll(closeTestBrowserInstance);
-
-vi.spyOn(puppeteer, "launch").mockImplementation(
-  async () => testBrowserInstance
-);
-export const pdfGenerator = await initPDFGenerator();
+export const selfcareV2Client: SelfcareV2InstitutionClient =
+  {} as SelfcareV2InstitutionClient;
 
 export const purposeService = purposeServiceBuilder(
   postgresDB,
   readModelService,
-  fileManager,
-  pdfGenerator
+  selfcareV2Client
 );
 
 export const addOneClient = async (client: Client): Promise<void> => {
@@ -142,6 +138,25 @@ export const addOnePurposeTemplate = async (
 ): Promise<void> => {
   await writePurposeTemplateInEventstore(purposeTemplate);
   await upsertPurposeTemplate(readModelDB, purposeTemplate, 0);
+};
+
+export const addOneTenantKindHistory = async ({
+  tenantId,
+  metadataVersion,
+  kind,
+  modifiedAt,
+}: {
+  tenantId: TenantId;
+  metadataVersion: number;
+  kind: TenantKind;
+  modifiedAt: Date;
+}): Promise<void> => {
+  await tenantKindHistoryDB.insert(tenantKindHistory).values({
+    tenantId,
+    metadataVersion,
+    kind,
+    modifiedAt: modifiedAt.toISOString(),
+  });
 };
 
 export const addOnePurposeTemplateEServiceDescriptor = async (

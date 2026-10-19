@@ -1,4 +1,12 @@
-import { ilike, inArray, or, and, eq, SQL, asc } from "drizzle-orm";
+import { inArray, or, and, eq, SQL, asc } from "drizzle-orm";
+import { alias, PgColumn, PgSelect } from "drizzle-orm/pg-core";
+import {
+  ilikeEscaped,
+  escapeSqlLike,
+  createListResult,
+  ascLower,
+  withTotalCount,
+} from "pagopa-interop-commons";
 import {
   Agreement,
   AttributeId,
@@ -46,14 +54,8 @@ import {
   EServiceDescriptorSQL,
   agreementSignedContractInReadmodelAgreement,
 } from "pagopa-interop-readmodel-models";
-import {
-  escapeRegExp,
-  createListResult,
-  ascLower,
-  withTotalCount,
-} from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
-import { alias, PgColumn, PgSelect } from "drizzle-orm/pg-core";
+
 import { CompactEService } from "../model/domain/models.js";
 import {
   AgreementQueryFilters,
@@ -311,7 +313,7 @@ const getNameFilter = (
   comparisonName: string | undefined
 ): SQL | undefined =>
   comparisonName !== undefined
-    ? ilike(column, `%${escapeRegExp(comparisonName)}%`)
+    ? ilikeEscaped(column, `%${escapeSqlLike(comparisonName)}%`)
     : undefined;
 
 const getAgreementsFilters = <

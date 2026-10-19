@@ -1,13 +1,4 @@
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
@@ -21,6 +12,7 @@ import {
   writePlatformPurposeEntry,
   writeTokenGenStatesConsumerClient,
 } from "pagopa-interop-commons-test";
+import { getMockTokenGenStatesConsumerClient } from "pagopa-interop-commons-test";
 import {
   Agreement,
   generateId,
@@ -49,8 +41,17 @@ import {
   TokenGenerationStatesConsumerClient,
   toPurposeV2,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
-import { getMockTokenGenStatesConsumerClient } from "pagopa-interop-commons-test";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import {
   getPurposeStateFromPurposeVersions,

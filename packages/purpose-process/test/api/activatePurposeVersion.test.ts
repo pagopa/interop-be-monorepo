@@ -1,21 +1,21 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  DelegationId,
-  PurposeId,
-  PurposeVersionId,
-  generateId,
-} from "pagopa-interop-models";
+import { purposeApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockPurpose,
   getMockPurposeVersion,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  DelegationId,
+  PurposeId,
+  PurposeVersionId,
+  generateId,
+} from "pagopa-interop-models";
 import request from "supertest";
-import { purposeApi } from "pagopa-interop-api-clients";
-import { api, purposeService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { purposeVersionToApiPurposeVersion } from "../../src/model/domain/apiConverter.js";
 import {
   agreementNotFound,
@@ -29,7 +29,9 @@ import {
   tenantIsNotTheDelegatedConsumer,
   tenantIsNotTheDelegate,
   purposeTemplateNotFound,
+  reviewerWorkflowNotInSignedState,
 } from "../../src/model/domain/errors.js";
+import { api, purposeService } from "../vitest.api.setup.js";
 
 describe("API POST /purposes/{purposeId}/versions/{versionId}/activate test", () => {
   const mockPurposeVersion = getMockPurposeVersion();
@@ -91,6 +93,10 @@ describe("API POST /purposes/{purposeId}/versions/{versionId}/activate test", ()
       expectedStatus: 400,
     },
     { error: riskAnalysisValidationFailed([]), expectedStatus: 400 },
+    {
+      error: reviewerWorkflowNotInSignedState(mockPurpose.id),
+      expectedStatus: 400,
+    },
     { error: tenantIsNotTheConsumer(generateId()), expectedStatus: 403 },
     { error: tenantIsNotTheProducer(generateId()), expectedStatus: 403 },
     { error: tenantNotAllowed(generateId()), expectedStatus: 403 },

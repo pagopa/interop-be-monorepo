@@ -1,4 +1,5 @@
 /* eslint-disable sonarjs/no-identical-functions */
+import { drizzle } from "drizzle-orm/node-postgres";
 import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import { decodeKafkaMessage, Logger, logger } from "pagopa-interop-commons";
@@ -14,35 +15,37 @@ import {
   generateId,
   genericInternalError,
   PurposeEvent,
+  PurposeTemplateEvent,
   TenantEvent,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 import {
   catalogReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
   makeDrizzleConnection,
 } from "pagopa-interop-readmodel";
-import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
+import { match } from "ts-pattern";
 import { z } from "zod";
+
 import { config } from "./config/config.js";
-import {
-  readModelServiceBuilderSQL,
-  ReadModelServiceSQL,
-} from "./services/readModelServiceSQL.js";
+import { handleAgreementEvent } from "./handlers/handleAgreementEvent.js";
+import { handleAttributeEvent } from "./handlers/handleAttributeEvent.js";
+import { handleAuthorizationEvent } from "./handlers/handleAuthorizationEvent.js";
+import { handleDelegationEvent } from "./handlers/handleDelegationEvent.js";
+import { handleEServiceEvent } from "./handlers/handleEServiceEvent.js";
+import { handleEServiceTemplateEvent } from "./handlers/handleEServiceTemplateEvent.js";
+import { handlePurposeEvent } from "./handlers/handlePurposeEvent.js";
+import { handlePurposeTemplateEvent } from "./handlers/handlePurposeTemplateEvent.js";
+import { handleTenantEvent } from "./handlers/handleTenantEvent.js";
 import {
   M2MEventWriterServiceSQL,
   m2mEventWriterServiceSQLBuilder,
 } from "./services/m2mEventWriterServiceSQL.js";
-import { handleAgreementEvent } from "./handlers/handleAgreementEvent.js";
-import { handlePurposeEvent } from "./handlers/handlePurposeEvent.js";
-import { handleDelegationEvent } from "./handlers/handleDelegationEvent.js";
-import { handleAuthorizationEvent } from "./handlers/handleAuthorizationEvent.js";
-import { handleAttributeEvent } from "./handlers/handleAttributeEvent.js";
-import { handleEServiceEvent } from "./handlers/handleEServiceEvent.js";
-import { handleTenantEvent } from "./handlers/handleTenantEvent.js";
-import { handleEServiceTemplateEvent } from "./handlers/handleEServiceTemplateEvent.js";
+import {
+  readModelServiceBuilderSQL,
+  ReadModelServiceSQL,
+} from "./services/readModelServiceSQL.js";
 import { getEventTimestamp } from "./utils/eventTimestamp.js";
 
 interface TopicNames {
@@ -54,6 +57,7 @@ interface TopicNames {
   attributeTopic: string;
   tenantTopic: string;
   eserviceTemplateTopic: string;
+  purposeTemplateTopic: string;
 }
 
 const readModelDB = makeDrizzleConnection(config);
@@ -90,6 +94,7 @@ function processMessage(topicNames: TopicNames) {
       attributeTopic,
       tenantTopic,
       eserviceTemplateTopic,
+      purposeTemplateTopic,
     } = topicNames;
 
     const handleWith = <T extends z.ZodType>(
@@ -182,6 +187,13 @@ function processMessage(topicNames: TopicNames) {
         );
         await handleWith(decodedMessage, handleEServiceTemplateEvent);
       })
+      .with(purposeTemplateTopic, async () => {
+        const decodedMessage = decodeKafkaMessage(
+          messagePayload.message,
+          PurposeTemplateEvent
+        );
+        await handleWith(decodedMessage, handlePurposeTemplateEvent);
+      })
       .otherwise(() => {
         throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
       });
@@ -199,6 +211,7 @@ await runConsumer(
     config.attributeTopic,
     config.tenantTopic,
     config.eserviceTemplateTopic,
+    config.purposeTemplateTopic,
   ],
   processMessage({
     catalogTopic: config.catalogTopic,
@@ -209,6 +222,7 @@ await runConsumer(
     attributeTopic: config.attributeTopic,
     tenantTopic: config.tenantTopic,
     eserviceTemplateTopic: config.eserviceTemplateTopic,
+    purposeTemplateTopic: config.purposeTemplateTopic,
   }),
   "m2m-event-dispatcher"
 );

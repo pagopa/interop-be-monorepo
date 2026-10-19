@@ -1,5 +1,4 @@
 /* eslint-disable functional/immutable-data */
-import { describe, it, expect, beforeEach, Mock } from "vitest";
 import {
   getMockContext,
   getMockEServiceTemplate,
@@ -13,9 +12,13 @@ import {
   TenantId,
   toEServiceTemplateV2,
 } from "pagopa-interop-models";
-import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
+import {
+  getNotificationRecipients,
+  inAppTemplates,
+} from "pagopa-interop-notification-commons";
+import { describe, it, expect, beforeEach, Mock } from "vitest";
+
 import { handleTemplateStatusChangedToProducer } from "../src/handlers/eserviceTemplates/handleTemplateStatusChangedToProducer.js";
-import { inAppTemplates } from "../src/templates/inAppTemplates.js";
 import {
   addOneEServiceTemplate,
   addOneTenant,

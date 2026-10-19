@@ -2,6 +2,7 @@
 import { constants } from "http2";
 import { ApiError, CommonErrorCodes } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import { ErrorCodes as LocalErrorCodes } from "../model/domain/errors.js";
 
 type ErrorCodes = LocalErrorCodes | CommonErrorCodes;
@@ -44,10 +45,11 @@ export const createProducerDelegationErrorMapper = (
       "eserviceNotFound",
       "tenantNotFound",
       "invalidDelegatorAndDelegateIds",
+      "eserviceAlreadyArchived",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
-      "originNotCompliant",
+      "delegationNotAllowedForTenant",
       "tenantNotAllowedToDelegation",
       "differentEserviceProducer",
       () => HTTP_STATUS_FORBIDDEN
@@ -64,10 +66,11 @@ export const createConsumerDelegationErrorMapper = (
       "tenantNotFound",
       "invalidDelegatorAndDelegateIds",
       "eserviceNotConsumerDelegable",
+      "eserviceAlreadyArchived",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
-      "originNotCompliant",
+      "delegationNotAllowedForTenant",
       "tenantNotAllowedToDelegation",
       () => HTTP_STATUS_FORBIDDEN
     )

@@ -1,18 +1,19 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { describe, expect, it } from "vitest";
-import { z } from "zod";
 import { generateMock } from "@anatine/zod-mock";
+import {
+  getMockTenantNotificationConfig,
+  getMockUserNotificationConfig,
+} from "pagopa-interop-commons-test";
 import {
   TenantNotificationConfigSQL,
   UserEnabledInAppNotificationSQL,
   UserEnabledEmailNotificationSQL,
   UserNotificationConfigSQL,
 } from "pagopa-interop-readmodel-models";
-import {
-  getMockTenantNotificationConfig,
-  getMockUserNotificationConfig,
-} from "pagopa-interop-commons-test";
+import { describe, expect, it } from "vitest";
+import { z } from "zod";
+
 import {
   splitTenantNotificationConfigIntoObjectsSQL,
   splitUserNotificationConfigIntoObjectsSQL,
@@ -91,6 +92,7 @@ describe("Notification config splitters", () => {
             "clientAddedRemovedToProducer",
             "purposeStatusChangedToProducer",
             "templateStatusChangedToProducer",
+            "eserviceStateChangedToProducer",
             "agreementSuspendedUnsuspendedToConsumer",
             "eserviceStateChangedToConsumer",
             "agreementActivatedRejectedToConsumer",
@@ -109,6 +111,16 @@ describe("Notification config splitters", () => {
             "producerKeychainKeyAddedDeletedToClientUsers",
             "purposeQuotaAdjustmentRequestToProducer",
             "purposeOverQuotaStateToConsumer",
+            "purposeRiskAnalysisAssignedForSigningToReviewer",
+            "purposeRiskAnalysisAssignedForWritingAndSigningToReviewer",
+            "purposePublishedWithRiskAnalysisToReviewer",
+            "draftPurposeDeletedWithRiskAnalysisToReviewer",
+            "purposeRiskAnalysisAssignmentRemovedToReviewer",
+            "purposeRiskAnalysisSignedToReviewer",
+            "purposeRiskAnalysisSignedToAdmin",
+            "purposeRiskAnalysisRejectedToAdmin",
+            "eserviceArchivingRequestedToDelegator",
+            "eserviceArchivingApprovedRejectedToDelegate",
           ] as const
         )
           .filter(
@@ -128,6 +140,7 @@ describe("Notification config splitters", () => {
             "clientAddedRemovedToProducer",
             "purposeStatusChangedToProducer",
             "templateStatusChangedToProducer",
+            "eserviceStateChangedToProducer",
             "agreementSuspendedUnsuspendedToConsumer",
             "eserviceStateChangedToConsumer",
             "agreementActivatedRejectedToConsumer",
@@ -146,6 +159,16 @@ describe("Notification config splitters", () => {
             "producerKeychainKeyAddedDeletedToClientUsers",
             "purposeQuotaAdjustmentRequestToProducer",
             "purposeOverQuotaStateToConsumer",
+            "purposeRiskAnalysisAssignedForSigningToReviewer",
+            "purposeRiskAnalysisAssignedForWritingAndSigningToReviewer",
+            "purposePublishedWithRiskAnalysisToReviewer",
+            "draftPurposeDeletedWithRiskAnalysisToReviewer",
+            "purposeRiskAnalysisAssignmentRemovedToReviewer",
+            "purposeRiskAnalysisSignedToReviewer",
+            "purposeRiskAnalysisSignedToAdmin",
+            "purposeRiskAnalysisRejectedToAdmin",
+            "eserviceArchivingRequestedToDelegator",
+            "eserviceArchivingApprovedRejectedToDelegate",
           ] as const
         )
           .filter(

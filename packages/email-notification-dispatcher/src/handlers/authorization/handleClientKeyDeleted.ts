@@ -6,18 +6,17 @@ import {
   fromClientV2,
   clientKind,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
   retrieveTenant,
-} from "../../services/utils.js";
-import {
-  ClientKeyHandlerParams,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
+import { match } from "ts-pattern";
+
 import { config } from "../../config/config.js";
+import { ClientKeyHandlerParams } from "../../models/handlerParams.js";
 
 export async function handleClientKeyDeleted(
   data: ClientKeyHandlerParams

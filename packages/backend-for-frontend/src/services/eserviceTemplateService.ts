@@ -22,7 +22,7 @@ import {
   tenantKind,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { TenantProcessClient } from "../clients/clientsProvider.js";
+
 import { toBffCompactOrganization } from "../api/agreementApiConverter.js";
 import {
   apiTechnologyToTechnology,
@@ -34,6 +34,7 @@ import {
   toBffEServiceTemplateDetails,
   toBffProducerEServiceTemplate,
 } from "../api/eserviceTemplateApiConverter.js";
+import { TenantProcessClient } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import {
   eserviceTemplateNotFound,
@@ -323,6 +324,13 @@ export function eserviceTemplateServiceBuilder(
           eserviceTemplate,
           creatorTenant
         ),
+        asyncExchangeProperties:
+          eserviceTemplateVersion.asyncExchangeProperties,
+        asyncExchangeCallbackInterface:
+          eserviceTemplateVersion.asyncExchangeCallbackInterface &&
+          toBffCatalogApiDescriptorDoc(
+            eserviceTemplateVersion.asyncExchangeCallbackInterface
+          ),
         ...(hasRequesterRiskAnalysis !== null && { hasRequesterRiskAnalysis }),
       };
     },
@@ -641,6 +649,10 @@ export function eserviceTemplateServiceBuilder(
               },
             }
           );
+        },
+        {
+          maxFileSizeBytes: config.maxFileSizeBytes,
+          maxInterfaceFileSizeBytes: config.maxInterfaceFileSizeBytes,
         },
         ctx.logger
       );

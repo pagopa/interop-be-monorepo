@@ -8,16 +8,15 @@ import {
 import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
-} from "../../services/utils.js";
-import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
   retrieveAttribute,
   retrieveTenantByCertifierId,
-  TenantHandlerParams,
-} from "../handlerCommons.js";
-import { certifierDatabaseOriginNames } from "../../config/constants.js";
+} from "pagopa-interop-notification-commons";
+
 import { config } from "../../config/config.js";
+import { certifierDatabaseOriginNames } from "../../config/constants.js";
+import { TenantHandlerParams } from "../../models/handlerParams.js";
 
 const notificationType: NotificationType =
   "certifiedVerifiedAttributeAssignedRevokedToAssignee";

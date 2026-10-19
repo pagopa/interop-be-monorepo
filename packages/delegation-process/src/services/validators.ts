@@ -1,37 +1,41 @@
 import {
-  Delegation,
-  delegationKind,
-  DelegationKind,
-  DelegationStamp,
-  DelegationState,
-  delegationState,
-  EService,
-  EServiceId,
-  operationForbidden,
-  Tenant,
-  tenantFeatureType,
-  TenantId,
-} from "pagopa-interop-models";
-import { match } from "ts-pattern";
-import {
+  isFeatureFlagEnabled,
   M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
 } from "pagopa-interop-commons";
 import {
+  CertifiedTenantAttribute,
+  Delegation,
+  delegationKind,
+  DelegationKind,
+  DelegationState,
+  delegationState,
+  descriptorState,
+  EService,
+  EServiceId,
+  operationForbidden,
+  Tenant,
+  tenantAttributeType,
+  tenantFeatureType,
+  TenantId,
+} from "pagopa-interop-models";
+import { match } from "ts-pattern";
+
+import { config } from "../config/config.js";
+import {
   delegationAlreadyExists,
   delegationRelatedAgreementExists,
-  delegationStampNotFound,
   delegatorAndDelegateSameIdError,
   differentEServiceProducer,
   eserviceNotConsumerDelegable,
   incorrectState,
   operationRestrictedToDelegate,
   operationRestrictedToDelegator,
-  originNotCompliant,
+  delegationNotAllowedForTenant,
   tenantNotAllowedToDelegation,
+  eserviceAlreadyArchived,
 } from "../model/domain/errors.js";
-import { config } from "../config/config.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 /* ========= STATES ========= */
@@ -63,20 +67,28 @@ export const assertDelegatorIsNotDelegate = (
   }
 };
 
-export const assertDelegatorAndDelegateAllowedOrigins = async (
+const hasDelegationAllowedAttribute = (tenant: Tenant): boolean =>
+  tenant.attributes.some(
+    (attr): attr is CertifiedTenantAttribute =>
+      attr.type === tenantAttributeType.CERTIFIED &&
+      attr.id === config.delegationsAllowedAttributeId &&
+      !attr.revocationTimestamp
+  );
+
+export const assertDelegatorAndDelegateAllowedForDelegation = (
   delegator: Tenant,
   delegate: Tenant
-): Promise<void> => {
-  if (
-    !config.delegationsAllowedOrigins.includes(delegator?.externalId?.origin)
-  ) {
-    throw originNotCompliant(delegator, "Delegator");
+): void => {
+  if (isFeatureFlagEnabled(config, "featureFlagDelegationConstraintSkip")) {
+    return;
   }
 
-  if (
-    !config.delegationsAllowedOrigins.includes(delegate?.externalId?.origin)
-  ) {
-    throw originNotCompliant(delegate, "Delegate");
+  if (!hasDelegationAllowedAttribute(delegator)) {
+    throw delegationNotAllowedForTenant(delegator, "Delegator");
+  }
+
+  if (!hasDelegationAllowedAttribute(delegate)) {
+    throw delegationNotAllowedForTenant(delegate, "Delegate");
   }
 };
 
@@ -169,15 +181,6 @@ export const assertRequesterIsDelegateOrDelegator = (
   }
 };
 
-export function assertStampExists<S extends keyof Delegation["stamps"]>(
-  stamps: Delegation["stamps"],
-  stamp: S
-): asserts stamps is Delegation["stamps"] & Record<S, DelegationStamp> {
-  if (!stamps[stamp]) {
-    throw delegationStampNotFound(stamp);
-  }
-}
-
 export const assertEserviceIsConsumerDelegable = (eservice: EService): void => {
   if (!eservice.isConsumerDelegable) {
     throw eserviceNotConsumerDelegable(eservice.id);
@@ -200,5 +203,15 @@ export const assertNoDelegationRelatedAgreementExists = async (
       agreement.eserviceId,
       agreement.consumerId
     );
+  }
+};
+
+export const assertEserviceIsNotArchived = (eservice: EService): void => {
+  const latestDescriptor = [...eservice.descriptors].sort(
+    (a, b) => Number(a.version) - Number(b.version)
+  )[eservice.descriptors.length - 1];
+
+  if (latestDescriptor?.state === descriptorState.archived) {
+    throw eserviceAlreadyArchived(eservice.id);
   }
 };

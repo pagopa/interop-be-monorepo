@@ -1,19 +1,27 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
 import {
   authorizationApi,
   bffApi,
   SelfcareV2UsersClient,
+  tenantApi,
 } from "pagopa-interop-api-clients";
+import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
 import { CorrelationId } from "pagopa-interop-models";
-import { AuthorizationProcessClient } from "../clients/clientsProvider.js";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { BffAppContext } from "../utilities/context.js";
+import { match } from "ts-pattern";
+
 import {
   toAuthorizationKeySeed,
   toBffApiCompactClient,
 } from "../api/authorizationApiConverter.js";
+import { AuthorizationProcessClient } from "../clients/clientsProvider.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import {
+  clientNotFound,
+  eServiceNotFound,
+  purposeNotFound,
+} from "../model/errors.js";
+import { BffAppContext } from "../utilities/context.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { getSelfcareCompactUserById } from "./selfcareService.js";
 import { assertClientVisibilityIsFull } from "./validators.js";
@@ -94,7 +102,18 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
         params: { clientId },
         headers: ctx.headers,
       });
-      return enhanceClient(apiClients, client, ctx);
+      return match(client)
+        .with(
+          { visibility: authorizationApi.Visibility.Values.FULL },
+          (fullClient) => enhanceClient(apiClients, fullClient, ctx)
+        )
+        .with(
+          { visibility: authorizationApi.Visibility.Values.PARTIAL },
+          () => {
+            throw clientNotFound(clientId);
+          }
+        )
+        .exhaustive();
     },
 
     async deleteClient(
@@ -178,6 +197,7 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
           headers: ctx.headers,
         }
       );
+      assertClientVisibilityIsFull(client);
 
       return enhanceClient(apiClients, client, ctx);
     },
@@ -375,15 +395,26 @@ export type ClientService = ReturnType<typeof clientServiceBuilder>;
 
 async function enhanceClient(
   apiClients: PagoPAInteropBeClients,
-  client: authorizationApi.Client,
+  client: authorizationApi.FullClient,
   ctx: WithLogger<BffAppContext>
 ): Promise<bffApi.Client> {
-  assertClientVisibilityIsFull(client);
-  const [consumer, admin, ...purposes] = await Promise.all([
-    apiClients.tenantProcessClient.tenant.getTenant({
-      params: { id: client.consumerId },
+  const tenantById = new Map<string, Promise<tenantApi.Tenant>>();
+  const getTenant = (id: string): Promise<tenantApi.Tenant> => {
+    const cachedTenant = tenantById.get(id);
+    if (cachedTenant) {
+      return cachedTenant;
+    }
+
+    const tenant = apiClients.tenantProcessClient.tenant.getTenant({
+      params: { id },
       headers: ctx.headers,
-    }),
+    });
+    tenantById.set(id, tenant);
+    return tenant;
+  };
+
+  const [consumer, admin, purposes] = await Promise.all([
+    getTenant(client.consumerId),
     client.adminId
       ? getSelfcareCompactUserById(
           apiClients.selfcareV2UserClient,
@@ -392,7 +423,7 @@ async function enhanceClient(
           ctx.correlationId
         )
       : Promise.resolve(undefined),
-    ...client.purposes.map((p) => enhancePurpose(apiClients, p, ctx)),
+    enhancePurposes(apiClients, client, getTenant, ctx),
   ]);
 
   return {
@@ -410,43 +441,76 @@ async function enhanceClient(
   };
 }
 
-async function enhancePurpose(
-  {
-    catalogProcessClient,
-    tenantProcessClient,
-    purposeProcessClient,
-  }: PagoPAInteropBeClients,
-  clientPurposeId: string,
+async function enhancePurposes(
+  { catalogProcessClient, purposeProcessClient }: PagoPAInteropBeClients,
+  client: authorizationApi.FullClient,
+  getTenant: (id: string) => Promise<tenantApi.Tenant>,
   { headers }: WithLogger<BffAppContext>
-): Promise<bffApi.ClientPurpose> {
-  const purpose = await purposeProcessClient.getPurpose({
-    params: { id: clientPurposeId },
-    headers,
+): Promise<bffApi.ClientPurpose[]> {
+  if (client.purposes.length === 0) {
+    return [];
+  }
+
+  const purposes = await getAllFromPaginated((offset, limit) =>
+    purposeProcessClient.getPurposes({
+      queries: { clientId: client.id, offset, limit },
+      headers,
+    })
+  );
+  const purposeById = new Map(purposes.map((purpose) => [purpose.id, purpose]));
+  const orderedPurposes = client.purposes.map((purposeId) => {
+    const purpose = purposeById.get(purposeId);
+    if (!purpose) {
+      throw purposeNotFound(purposeId);
+    }
+    return purpose;
   });
 
-  const eservice = await catalogProcessClient.getEServiceById({
-    params: { eServiceId: purpose.eserviceId },
-    headers,
-  });
+  const eserviceIds = Array.from(
+    new Set(orderedPurposes.map((purpose) => purpose.eserviceId))
+  );
+  const eserviceBatches = Array.from(
+    { length: Math.ceil(eserviceIds.length / 50) },
+    (_, index) => eserviceIds.slice(index * 50, (index + 1) * 50)
+  );
+  const eservices = (
+    await Promise.all(
+      eserviceBatches.map((batch) =>
+        catalogProcessClient.getEServices({
+          queries: { eservicesIds: batch, offset: 0, limit: batch.length },
+          headers,
+        })
+      )
+    )
+  ).flatMap(({ results }) => results);
+  const eserviceById = new Map(
+    eservices.map((eservice) => [eservice.id, eservice])
+  );
 
-  const producer = await tenantProcessClient.tenant.getTenant({
-    params: { id: eservice.producerId },
-    headers,
-  });
+  return await Promise.all(
+    orderedPurposes.map(async (purpose) => {
+      const eservice = eserviceById.get(purpose.eserviceId);
+      if (!eservice) {
+        throw eServiceNotFound(purpose.eserviceId);
+      }
 
-  return {
-    purposeId: purpose.id,
-    title: purpose.title,
-    eservice: {
-      id: eservice.id,
-      name: eservice.name,
-      producer: {
-        id: producer.id,
-        name: producer.name,
-        kind: producer.kind,
-      },
-    },
-  };
+      const producer = await getTenant(eservice.producerId);
+
+      return {
+        purposeId: purpose.id,
+        title: purpose.title,
+        eservice: {
+          id: eservice.id,
+          name: eservice.name,
+          producer: {
+            id: producer.id,
+            name: producer.name,
+            kind: producer.kind,
+          },
+        },
+      };
+    })
+  );
 }
 
 export async function decorateKey(

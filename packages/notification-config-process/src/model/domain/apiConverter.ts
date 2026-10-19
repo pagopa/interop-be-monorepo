@@ -38,6 +38,7 @@ export function userNotificationConfigToApiUserNotificationConfig({
     clientAddedRemovedToProducer: clientAddedRemovedToProducerInApp,
     purposeStatusChangedToProducer: purposeStatusChangedToProducerInApp,
     templateStatusChangedToProducer: templateStatusChangedToProducerInApp,
+    eserviceStateChangedToProducer: eserviceStateChangedToProducerInApp,
     agreementSuspendedUnsuspendedToConsumer:
       agreementSuspendedUnsuspendedToConsumerInApp,
     eserviceStateChangedToConsumer: eserviceStateChangedToConsumerInApp,
@@ -70,6 +71,24 @@ export function userNotificationConfigToApiUserNotificationConfig({
     purposeQuotaAdjustmentRequestToProducer:
       purposeQuotaAdjustmentRequestToProducerInApp,
     purposeOverQuotaStateToConsumer: purposeOverQuotaStateToConsumerInApp,
+    purposeRiskAnalysisAssignedForSigningToReviewer:
+      purposeRiskAnalysisAssignedForSigningToReviewerInApp,
+    purposeRiskAnalysisAssignedForWritingAndSigningToReviewer:
+      purposeRiskAnalysisAssignedForWritingAndSigningToReviewerInApp,
+    purposePublishedWithRiskAnalysisToReviewer:
+      purposePublishedWithRiskAnalysisToReviewerInApp,
+    draftPurposeDeletedWithRiskAnalysisToReviewer:
+      draftPurposeDeletedWithRiskAnalysisToReviewerInApp,
+    purposeRiskAnalysisAssignmentRemovedToReviewer:
+      purposeRiskAnalysisAssignmentRemovedToReviewerInApp,
+    purposeRiskAnalysisSignedToReviewer:
+      purposeRiskAnalysisSignedToReviewerInApp,
+    purposeRiskAnalysisSignedToAdmin: purposeRiskAnalysisSignedToAdminInApp,
+    purposeRiskAnalysisRejectedToAdmin: purposeRiskAnalysisRejectedToAdminInApp,
+    eserviceArchivingRequestedToDelegator:
+      eserviceArchivingRequestedToDelegatorInApp,
+    eserviceArchivingApprovedRejectedToDelegate:
+      eserviceArchivingApprovedRejectedToDelegateInApp,
   },
   emailConfig: {
     agreementSuspendedUnsuspendedToProducer:
@@ -78,6 +97,7 @@ export function userNotificationConfigToApiUserNotificationConfig({
     clientAddedRemovedToProducer: clientAddedRemovedToProducerEmail,
     purposeStatusChangedToProducer: purposeStatusChangedToProducerEmail,
     templateStatusChangedToProducer: templateStatusChangedToProducerEmail,
+    eserviceStateChangedToProducer: eserviceStateChangedToProducerEmail,
     agreementSuspendedUnsuspendedToConsumer:
       agreementSuspendedUnsuspendedToConsumerEmail,
     eserviceStateChangedToConsumer: eserviceStateChangedToConsumerEmail,
@@ -110,6 +130,24 @@ export function userNotificationConfigToApiUserNotificationConfig({
     purposeQuotaAdjustmentRequestToProducer:
       purposeQuotaAdjustmentRequestToProducerEmail,
     purposeOverQuotaStateToConsumer: purposeOverQuotaStateToConsumerEmail,
+    purposeRiskAnalysisAssignedForSigningToReviewer:
+      purposeRiskAnalysisAssignedForSigningToReviewerEmail,
+    purposeRiskAnalysisAssignedForWritingAndSigningToReviewer:
+      purposeRiskAnalysisAssignedForWritingAndSigningToReviewerEmail,
+    purposePublishedWithRiskAnalysisToReviewer:
+      purposePublishedWithRiskAnalysisToReviewerEmail,
+    draftPurposeDeletedWithRiskAnalysisToReviewer:
+      draftPurposeDeletedWithRiskAnalysisToReviewerEmail,
+    purposeRiskAnalysisAssignmentRemovedToReviewer:
+      purposeRiskAnalysisAssignmentRemovedToReviewerEmail,
+    purposeRiskAnalysisSignedToReviewer:
+      purposeRiskAnalysisSignedToReviewerEmail,
+    purposeRiskAnalysisSignedToAdmin: purposeRiskAnalysisSignedToAdminEmail,
+    purposeRiskAnalysisRejectedToAdmin: purposeRiskAnalysisRejectedToAdminEmail,
+    eserviceArchivingRequestedToDelegator:
+      eserviceArchivingRequestedToDelegatorEmail,
+    eserviceArchivingApprovedRejectedToDelegate:
+      eserviceArchivingApprovedRejectedToDelegateEmail,
   },
   createdAt,
   updatedAt,
@@ -130,6 +168,7 @@ export function userNotificationConfigToApiUserNotificationConfig({
       clientAddedRemovedToProducer: clientAddedRemovedToProducerInApp,
       purposeStatusChangedToProducer: purposeStatusChangedToProducerInApp,
       templateStatusChangedToProducer: templateStatusChangedToProducerInApp,
+      eserviceStateChangedToProducer: eserviceStateChangedToProducerInApp,
       agreementSuspendedUnsuspendedToConsumer:
         agreementSuspendedUnsuspendedToConsumerInApp,
       eserviceStateChangedToConsumer: eserviceStateChangedToConsumerInApp,
@@ -164,6 +203,25 @@ export function userNotificationConfigToApiUserNotificationConfig({
       purposeQuotaAdjustmentRequestToProducer:
         purposeQuotaAdjustmentRequestToProducerInApp,
       purposeOverQuotaStateToConsumer: purposeOverQuotaStateToConsumerInApp,
+      purposeRiskAnalysisAssignedForSigningToReviewer:
+        purposeRiskAnalysisAssignedForSigningToReviewerInApp,
+      purposeRiskAnalysisAssignedForWritingAndSigningToReviewer:
+        purposeRiskAnalysisAssignedForWritingAndSigningToReviewerInApp,
+      purposePublishedWithRiskAnalysisToReviewer:
+        purposePublishedWithRiskAnalysisToReviewerInApp,
+      draftPurposeDeletedWithRiskAnalysisToReviewer:
+        draftPurposeDeletedWithRiskAnalysisToReviewerInApp,
+      purposeRiskAnalysisAssignmentRemovedToReviewer:
+        purposeRiskAnalysisAssignmentRemovedToReviewerInApp,
+      purposeRiskAnalysisSignedToReviewer:
+        purposeRiskAnalysisSignedToReviewerInApp,
+      purposeRiskAnalysisSignedToAdmin: purposeRiskAnalysisSignedToAdminInApp,
+      purposeRiskAnalysisRejectedToAdmin:
+        purposeRiskAnalysisRejectedToAdminInApp,
+      eserviceArchivingRequestedToDelegator:
+        eserviceArchivingRequestedToDelegatorInApp,
+      eserviceArchivingApprovedRejectedToDelegate:
+        eserviceArchivingApprovedRejectedToDelegateInApp,
     },
     emailConfig: {
       agreementSuspendedUnsuspendedToProducer:
@@ -172,6 +230,7 @@ export function userNotificationConfigToApiUserNotificationConfig({
       clientAddedRemovedToProducer: clientAddedRemovedToProducerEmail,
       purposeStatusChangedToProducer: purposeStatusChangedToProducerEmail,
       templateStatusChangedToProducer: templateStatusChangedToProducerEmail,
+      eserviceStateChangedToProducer: eserviceStateChangedToProducerEmail,
       agreementSuspendedUnsuspendedToConsumer:
         agreementSuspendedUnsuspendedToConsumerEmail,
       eserviceStateChangedToConsumer: eserviceStateChangedToConsumerEmail,
@@ -206,6 +265,25 @@ export function userNotificationConfigToApiUserNotificationConfig({
       purposeQuotaAdjustmentRequestToProducer:
         purposeQuotaAdjustmentRequestToProducerEmail,
       purposeOverQuotaStateToConsumer: purposeOverQuotaStateToConsumerEmail,
+      purposeRiskAnalysisAssignedForSigningToReviewer:
+        purposeRiskAnalysisAssignedForSigningToReviewerEmail,
+      purposeRiskAnalysisAssignedForWritingAndSigningToReviewer:
+        purposeRiskAnalysisAssignedForWritingAndSigningToReviewerEmail,
+      purposePublishedWithRiskAnalysisToReviewer:
+        purposePublishedWithRiskAnalysisToReviewerEmail,
+      draftPurposeDeletedWithRiskAnalysisToReviewer:
+        draftPurposeDeletedWithRiskAnalysisToReviewerEmail,
+      purposeRiskAnalysisAssignmentRemovedToReviewer:
+        purposeRiskAnalysisAssignmentRemovedToReviewerEmail,
+      purposeRiskAnalysisSignedToReviewer:
+        purposeRiskAnalysisSignedToReviewerEmail,
+      purposeRiskAnalysisSignedToAdmin: purposeRiskAnalysisSignedToAdminEmail,
+      purposeRiskAnalysisRejectedToAdmin:
+        purposeRiskAnalysisRejectedToAdminEmail,
+      eserviceArchivingRequestedToDelegator:
+        eserviceArchivingRequestedToDelegatorEmail,
+      eserviceArchivingApprovedRejectedToDelegate:
+        eserviceArchivingApprovedRejectedToDelegateEmail,
     },
     createdAt: createdAt.toJSON(),
     updatedAt: updatedAt?.toJSON(),
@@ -220,6 +298,8 @@ export function apiUserRoleToUserRole(
     .with("API", () => userRole.API_ROLE)
     .with("SECURITY", () => userRole.SECURITY_ROLE)
     .with("SUPPORT", () => userRole.SUPPORT_ROLE)
+    .with("REVIEWER", () => userRole.REVIEWER_ROLE)
+    .with("VIEWER", () => userRole.VIEWER_ROLE)
     .exhaustive();
 }
 
@@ -229,5 +309,7 @@ function userRoleToApiUserRole(role: UserRole): notificationConfigApi.UserRole {
     .with(userRole.API_ROLE, () => "API" as const)
     .with(userRole.SECURITY_ROLE, () => "SECURITY" as const)
     .with(userRole.SUPPORT_ROLE, () => "SUPPORT" as const)
+    .with(userRole.REVIEWER_ROLE, () => "REVIEWER" as const)
+    .with(userRole.VIEWER_ROLE, () => "VIEWER" as const)
     .exhaustive();
 }

@@ -1,6 +1,9 @@
+import { and, eq, inArray } from "drizzle-orm";
+import { delegationApi } from "pagopa-interop-api-clients";
 import {
   createListResult,
-  escapeRegExp,
+  escapeSqlLike,
+  ilikeEscaped,
   withTotalCount,
 } from "pagopa-interop-commons";
 import {
@@ -20,8 +23,14 @@ import {
   TenantId,
   WithMetadata,
 } from "pagopa-interop-models";
-import { z } from "zod";
-import { delegationApi } from "pagopa-interop-api-clients";
+import {
+  aggregateDelegationArray,
+  AgreementReadModelService,
+  CatalogReadModelService,
+  DelegationReadModelService,
+  TenantReadModelService,
+  toDelegationAggregatorArray,
+} from "pagopa-interop-readmodel";
 import {
   agreementInReadmodelAgreement,
   delegationContractDocumentInReadmodelDelegation,
@@ -32,15 +41,7 @@ import {
   eserviceInReadmodelCatalog,
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
-import {
-  aggregateDelegationArray,
-  AgreementReadModelService,
-  CatalogReadModelService,
-  DelegationReadModelService,
-  TenantReadModelService,
-  toDelegationAggregatorArray,
-} from "pagopa-interop-readmodel";
-import { and, eq, ilike, inArray } from "drizzle-orm";
+import { z } from "zod";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
@@ -247,9 +248,9 @@ export function readModelServiceBuilderSQL({
               : undefined,
             // TENANT FILTERS
             filters.delegatorName
-              ? ilike(
+              ? ilikeEscaped(
                   tenantInReadmodelTenant.name,
-                  `%${escapeRegExp(filters.delegatorName)}%`
+                  `%${escapeSqlLike(filters.delegatorName)}%`
                 )
               : undefined
           )
@@ -332,9 +333,9 @@ export function readModelServiceBuilderSQL({
             eq(agreementInReadmodelAgreement.state, agreementState.active),
             // TENANT FILTERS
             filters.delegatorName
-              ? ilike(
+              ? ilikeEscaped(
                   tenantInReadmodelTenant.name,
-                  `%${escapeRegExp(filters.delegatorName)}%`
+                  `%${escapeSqlLike(filters.delegatorName)}%`
                 )
               : undefined
           )
@@ -406,9 +407,9 @@ export function readModelServiceBuilderSQL({
             ),
             // E-SERVICE FILTER
             filters.eserviceName
-              ? ilike(
+              ? ilikeEscaped(
                   eserviceInReadmodelCatalog.name,
-                  `%${escapeRegExp(filters.eserviceName)}%`
+                  `%${escapeSqlLike(filters.eserviceName)}%`
                 )
               : undefined,
             // AGREEMENT FILTERS

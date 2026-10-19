@@ -30,6 +30,17 @@ message NotificationConfigV2 {
   bool purposeQuotaAdjustmentRequestToProducer = 22;
   bool purposeOverQuotaStateToConsumer = 23;
   bool clientKeyConsumerAddedDeletedToClientUsers = 24;
+  bool eserviceStateChangedToProducer = 25;
+  bool eserviceArchivingRequestedToDelegator = 26;
+  bool eserviceArchivingApprovedRejectedToDelegate = 27;
+  bool purposePublishedWithRiskAnalysisToReviewer = 28;
+  bool draftPurposeDeletedWithRiskAnalysisToReviewer = 29;
+  bool purposeRiskAnalysisAssignmentRemovedToReviewer = 30;
+  bool purposeRiskAnalysisSignedToReviewer = 31;
+  bool purposeRiskAnalysisSignedToAdmin = 32;
+  bool purposeRiskAnalysisRejectedToAdmin = 33;
+  bool purposeRiskAnalysisAssignedForSigningToReviewer = 34;
+  bool purposeRiskAnalysisAssignedForWritingAndSigningToReviewer = 35;
 }
 
 message TenantNotificationConfigV2 {
@@ -59,4 +70,6 @@ enum UserRoleV2 {
   SECURITY = 1;
   API = 2;
   SUPPORT = 3;
+  REVIEWER = 4;
+  VIEWER = 5;
 }

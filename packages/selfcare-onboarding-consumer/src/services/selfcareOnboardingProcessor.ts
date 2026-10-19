@@ -1,17 +1,17 @@
+import { EachMessagePayload } from "kafkajs";
+import { tenantApi } from "pagopa-interop-api-clients";
 import {
   getInteropHeaders,
   logger,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
-import { EachMessagePayload } from "kafkajs";
-import { tenantApi } from "pagopa-interop-api-clients";
 import {
   generateId,
   CorrelationId,
   genericInternalError,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
+
 import { InstitutionEventPayload } from "../model/institutionEvent.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -60,11 +60,7 @@ export function selfcareOnboardingProcessorBuilder(
         const eventPayload = InstitutionEventPayload.parse(jsonPayload);
 
         const institution = eventPayload.institution;
-        const origin = match(institution.institutionType)
-          .with("SCP", () => `${institution.origin}-SCP`)
-          .with("PRV", () => `${institution.origin}-PRV`)
-          .with("PT", () => `${institution.origin}-PT`)
-          .otherwise(() => institution.origin);
+        const origin = institution.origin;
 
         if (!allowedOrigins.includes(origin)) {
           loggerInstance.warn(
@@ -92,6 +88,7 @@ export function selfcareOnboardingProcessorBuilder(
             address: institution.digitalAddress,
           },
           subUnitType: institution.subUnitType || undefined,
+          selfcareInstitutionType: institution.institutionType,
         };
 
         const token = (await refreshableToken.get()).serialized;

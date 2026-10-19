@@ -63,6 +63,7 @@ export const getMockAgreement = ({
   state: agreementState.active,
   verifiedAttributes: [],
   certifiedAttributes: [],
+  certifiedDiscreteAttributes: [],
   declaredAttributes: [],
   consumerDocuments: [],
   stamps: {
@@ -86,5 +87,6 @@ export const getMockMaintenanceTenantUpdate =
     mails: [],
     name: "A tenant",
     kind: tenantKind.PA,
+    selfcareInstitutionType: "SCP",
     onboardedAt: new Date().toISOString(),
   });

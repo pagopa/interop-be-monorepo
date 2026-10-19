@@ -1,4 +1,10 @@
-import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
+import { authorizationApi } from "pagopa-interop-api-clients";
+import {
+  decodeProtobufPayload,
+  getMockAuthData,
+  getMockContext,
+  readLastEventByStreamId,
+} from "pagopa-interop-commons-test";
 import {
   Client,
   ClientAddedV2,
@@ -9,14 +15,14 @@ import {
   toClientV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
+
+import { duplicatedMembersInSeed } from "../../src/model/domain/errors.js";
 import {
-  decodeProtobufPayload,
-  getMockAuthData,
-  getMockContext,
-  readLastEventByStreamId,
-} from "pagopa-interop-commons-test";
-import { authorizationApi } from "pagopa-interop-api-clients";
-import { authorizationService, postgresDB } from "../integrationUtils.js";
+  authorizationService,
+  postgresDB,
+  selfcareV2Client,
+} from "../integrationUtils.js";
 
 describe("createConsumerClient", () => {
   const userId: UserId = generateId();
@@ -37,6 +43,11 @@ describe("createConsumerClient", () => {
   };
   it("should write on event-store for the creation of a api client", async () => {
     const organizationId: TenantId = generateId();
+    selfcareV2Client.getInstitutionUsersByProductUsingGET = vi
+      .fn()
+      .mockResolvedValue(
+        clientSeed.members.map((id) => ({ id, name: "Test", surname: "User" }))
+      );
     const client = await authorizationService.createApiClient(
       {
         clientSeed,
@@ -74,7 +85,26 @@ describe("createConsumerClient", () => {
       description: clientSeed.description,
     };
 
-    expect(writtenPayload.client).toEqual(toClientV2(expectedClient));
+    expect(writtenPayload).toEqual({
+      client: toClientV2(expectedClient),
+    });
     expect(client).toEqual(expectedClient);
+  });
+
+  it("Should fail if duplicate users are passed in the seed", async () => {
+    const userId = generateId();
+    const seed = {
+      ...clientSeed,
+      members: [userId, userId, generateId()],
+    };
+    const organizationId: TenantId = generateId();
+
+    const error = duplicatedMembersInSeed();
+    await expect(
+      authorizationService.createApiClient(
+        { clientSeed: seed },
+        getMockContext({ authData: getMockAuthData(organizationId) })
+      )
+    ).rejects.toThrowError(error);
   });
 });

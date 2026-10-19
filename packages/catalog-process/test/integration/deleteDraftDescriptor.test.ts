@@ -25,6 +25,7 @@ import {
   EServiceDocumentId,
 } from "pagopa-interop-models";
 import { vi, expect, describe, it } from "vitest";
+
 import { config } from "../../src/config/config.js";
 import {
   eServiceNotFound,
@@ -123,6 +124,14 @@ describe("delete draft descriptor", () => {
       name: `${mockDocument.name}_interface`,
       path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}_interface`,
     };
+    const asyncExchangeCallbackInterfaceDocumentId =
+      generateId<EServiceDocumentId>();
+    const asyncExchangeCallbackInterfaceDocument = {
+      ...mockDocument,
+      id: asyncExchangeCallbackInterfaceDocumentId,
+      name: `${mockDocument.name}_async_callback`,
+      path: `${config.eserviceDocumentsPath}/${asyncExchangeCallbackInterfaceDocumentId}/${mockDocument.name}_async_callback`,
+    };
 
     const publishedDescriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
@@ -132,6 +141,7 @@ describe("delete draft descriptor", () => {
       ...getMockDescriptor(descriptorState.draft),
       docs: [document1, document2],
       interface: interfaceDocument,
+      asyncExchangeCallbackInterface: asyncExchangeCallbackInterfaceDocument,
       version: "2",
     };
 
@@ -174,6 +184,17 @@ describe("delete draft descriptor", () => {
       genericLogger
     );
 
+    await fileManager.storeBytes(
+      {
+        bucket: config.s3Bucket,
+        path: config.eserviceDocumentsPath,
+        resourceId: asyncExchangeCallbackInterfaceDocument.id,
+        name: asyncExchangeCallbackInterfaceDocument.name,
+        content: Buffer.from("testtest"),
+      },
+      genericLogger
+    );
+
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(interfaceDocument.path);
@@ -183,6 +204,9 @@ describe("delete draft descriptor", () => {
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(document2.path);
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(asyncExchangeCallbackInterfaceDocument.path);
 
     const deleteDraftReturn = await catalogService.deleteDraftDescriptor(
       eservice.id,
@@ -234,6 +258,11 @@ describe("delete draft descriptor", () => {
       document2.path,
       genericLogger
     );
+    expect(fileManager.delete).toHaveBeenCalledWith(
+      config.s3Bucket,
+      asyncExchangeCallbackInterfaceDocument.path,
+      genericLogger
+    );
 
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
@@ -244,6 +273,9 @@ describe("delete draft descriptor", () => {
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).not.toContain(document2.path);
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).not.toContain(asyncExchangeCallbackInterfaceDocument.path);
   });
 
   it("should write on event-store for the deletion of a draft descriptor and the entire eservice", async () => {

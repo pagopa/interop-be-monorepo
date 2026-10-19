@@ -1,7 +1,7 @@
 /* eslint-disable no-irregular-whitespace */
+import axios, { AxiosResponse } from "axios";
 import fs from "fs/promises";
-import path from "path";
-import { fileURLToPath } from "url";
+import Mail from "nodemailer/lib/mailer/index.js";
 import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockAgreement,
@@ -17,9 +17,10 @@ import {
   generateId,
   toAgreementV2,
 } from "pagopa-interop-models";
+import path from "path";
+import { fileURLToPath } from "url";
 import { describe, expect, it, vi } from "vitest";
-import axios, { AxiosResponse } from "axios";
-import Mail from "nodemailer/lib/mailer/index.js";
+
 import {
   eventMailTemplateType,
   getFormattedAgreementStampDate,

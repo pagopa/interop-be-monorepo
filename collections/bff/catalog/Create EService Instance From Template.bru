@@ -18,6 +18,16 @@ headers {
   Authorization: {{JWT}}
 }
 
+body:json {
+  {
+      "asyncExchangeProperties": {
+          "responseTime": 60,
+          "resourceAvailableTime": 120,
+          "maxResultSet": 100
+      }
+  }
+}
+
 script:pre-request {
   const { v4 } = require('uuid');
   bru.setVar("randomUuid", v4() );

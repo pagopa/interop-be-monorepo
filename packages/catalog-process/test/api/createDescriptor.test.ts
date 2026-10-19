@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
-import request from "supertest";
+import { catalogApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockDescriptor,
+  getMockEService,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   Attribute,
   Descriptor,
@@ -9,18 +15,14 @@ import {
   generateId,
   operationForbidden,
 } from "pagopa-interop-models";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import { catalogApi } from "pagopa-interop-api-clients";
-import {
-  generateToken,
-  getMockDescriptor,
-  getMockEService,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
-import { api, catalogService } from "../vitest.api.setup.js";
-import { buildCreateDescriptorSeed } from "../mockUtils.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
+  asyncExchangeBulkNotAllowedForSoap,
+  attributeDailyCallsNotAllowed,
+  attributeDiscreteConfigNotAllowed,
   attributeDuplicatedInGroup,
   attributeNotFound,
   draftDescriptorAlreadyExists,
@@ -28,6 +30,8 @@ import {
   inconsistentDailyCalls,
   templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
+import { buildCreateDescriptorSeed } from "../mockUtils.js";
+import { api, catalogService } from "../vitest.api.setup.js";
 
 describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
   const mockDescriptor = {
@@ -128,7 +132,7 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
     {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       error: templateInstanceNotAllowed(eservice.id, eservice.templateId!),
-      expectedStatus: 403,
+      expectedStatus: 400,
     },
     {
       error: operationForbidden,
@@ -150,6 +154,18 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
       error: attributeDuplicatedInGroup(generateId()),
       expectedStatus: 400,
     },
+    {
+      error: attributeDailyCallsNotAllowed(generateId()),
+      expectedStatus: 400,
+    },
+    {
+      error: asyncExchangeBulkNotAllowedForSoap(eservice.id, newDescriptor.id),
+      expectedStatus: 400,
+    },
+    {
+      error: attributeDiscreteConfigNotAllowed(generateId()),
+      expectedStatus: 400,
+    },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
@@ -169,7 +185,142 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
     [{ ...descriptorSeed, dailyCallsTotal: -1 }, eservice.id],
     [{ ...descriptorSeed, attributes: undefined }, eservice.id],
     [{ ...descriptorSeed, docs: [{}] }, eservice.id],
+    [
+      {
+        ...descriptorSeed,
+        asyncExchangeProperties: {
+          responseTime: 1_000_000,
+          resourceAvailableTime: 999_999,
+          confirmation: true,
+          bulk: true,
+          maxResultSet: 99_999,
+        },
+      },
+      eservice.id,
+    ],
+    [
+      {
+        ...descriptorSeed,
+        asyncExchangeProperties: {
+          responseTime: 999_999,
+          resourceAvailableTime: 1_000_000,
+          confirmation: true,
+          bulk: true,
+          maxResultSet: 99_999,
+        },
+      },
+      eservice.id,
+    ],
+    [
+      {
+        ...descriptorSeed,
+        asyncExchangeProperties: {
+          responseTime: 999_999,
+          resourceAvailableTime: 999_999,
+          confirmation: true,
+          bulk: true,
+          maxResultSet: 100_000,
+        },
+      },
+      eservice.id,
+    ],
     [{}, "invalidId"],
+    // dailyCalls validation tests on attributes
+    [
+      {
+        ...descriptorSeed,
+        attributes: {
+          certified: [
+            [
+              {
+                id: attribute.id,
+                explicitAttributeVerification: false,
+                dailyCallsPerConsumer: 0,
+              },
+            ],
+          ],
+          declared: [],
+          verified: [],
+        },
+      },
+      eservice.id,
+    ],
+    [
+      {
+        ...descriptorSeed,
+        attributes: {
+          certified: [
+            [
+              {
+                id: attribute.id,
+                explicitAttributeVerification: false,
+                dailyCallsPerConsumer: -10,
+              },
+            ],
+          ],
+          declared: [],
+          verified: [],
+        },
+      },
+      eservice.id,
+    ],
+    [
+      {
+        ...descriptorSeed,
+        attributes: {
+          certified: [
+            [
+              {
+                id: attribute.id,
+                explicitAttributeVerification: false,
+                dailyCallsPerConsumer: "invalid",
+              },
+            ],
+          ],
+          declared: [],
+          verified: [],
+        },
+      },
+      eservice.id,
+    ],
+    [
+      {
+        ...descriptorSeed,
+        attributes: {
+          certified: [
+            [
+              {
+                id: attribute.id,
+                explicitAttributeVerification: false,
+                dailyCallsPerConsumer: 3.14,
+              },
+            ],
+          ],
+          declared: [],
+          verified: [],
+        },
+      },
+      eservice.id,
+    ],
+    [
+      {
+        ...descriptorSeed,
+        attributes: {
+          certified: [
+            [
+              {
+                id: attribute.id,
+                explicitAttributeVerification: false,
+                dailyCallsPerConsumer: null,
+              },
+            ],
+          ],
+          declared: [],
+          verified: [],
+        },
+      },
+      eservice.id,
+    ],
   ])(
     "Should return 400 if passed invalid descriptor params: %s (eserviceId: %s)",
     async (body, eserviceId) => {

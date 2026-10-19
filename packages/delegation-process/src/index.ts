@@ -1,9 +1,4 @@
-import {
-  initDB,
-  initFileManager,
-  initPDFGenerator,
-  startServer,
-} from "pagopa-interop-commons";
+import { initDB, startServer } from "pagopa-interop-commons";
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
@@ -11,13 +6,11 @@ import {
   makeDrizzleConnection,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
-import { config } from "./config/config.js";
-import { createApp } from "./app.js";
-import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
-import { delegationServiceBuilder } from "./services/delegationService.js";
 
-const fileManager = initFileManager(config);
-const pdfGenerator = await initPDFGenerator();
+import { createApp } from "./app.js";
+import { config } from "./config/config.js";
+import { delegationServiceBuilder } from "./services/delegationService.js";
+import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 
 const readModelDB = makeDrizzleConnection(config);
 const delegationReadModelServiceSQL =
@@ -45,9 +38,7 @@ const service = delegationServiceBuilder(
     schema: config.eventStoreDbSchema,
     useSSL: config.eventStoreDbUseSSL,
   }),
-  readModelServiceSQL,
-  pdfGenerator,
-  fileManager
+  readModelServiceSQL
 );
 
 startServer(await createApp(service), config);

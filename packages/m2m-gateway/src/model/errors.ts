@@ -59,6 +59,7 @@ const errorCodes = {
   invalidSeedForPurposeFromTemplate: "0039",
   purposeVersionDocumentNotReady: "0040",
   clientNotFound: "0041",
+  eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound: "0042",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -229,6 +230,18 @@ export function eserviceDescriptorInterfaceNotFound(
     title: "Eservice descriptor interface not found",
   });
 }
+
+export function eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound(
+  eserviceId: string,
+  descriptorId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Async exchange callback interface for descriptor ${descriptorId} not found for eservice ${eserviceId}`,
+    code: "eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound",
+    title: "Eservice descriptor async exchange callback interface not found",
+  });
+}
+
 export function purposeVersionDocumentNotFound(
   purposeId: PurposeId,
   versionId: PurposeVersionId

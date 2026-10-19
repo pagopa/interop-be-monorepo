@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   getMockDocument,
-  getMockEServiceAttribute,
+  getMockEServiceTemplateAttribute,
   getMockEServiceTemplate,
   getMockValidEServiceTemplateRiskAnalysis,
   getMockEServiceTemplateVersion,
@@ -12,9 +12,9 @@ import {
   EServiceTemplateVersion,
   tenantKind,
 } from "pagopa-interop-models";
+import { aggregateEServiceTemplate } from "pagopa-interop-readmodel";
 import { describe, expect, it } from "vitest";
 
-import { aggregateEServiceTemplate } from "pagopa-interop-readmodel";
 import {
   checkCompleteEServiceTemplate,
   eserviceTemplateWriterService,
@@ -35,8 +35,8 @@ describe("E-service template queries", () => {
         ...getMockEServiceTemplateVersion(),
         attributes: {
           certified: [
-            [getMockEServiceAttribute()],
-            [getMockEServiceAttribute()],
+            [getMockEServiceTemplateAttribute()],
+            [getMockEServiceTemplateAttribute()],
           ],
           declared: [],
           verified: [],
@@ -76,6 +76,7 @@ describe("E-service template queries", () => {
         attributesSQL,
         riskAnalysesSQL,
         riskAnalysisAnswersSQL,
+        asyncExchangePropertiesSQL,
       } = await checkCompleteEServiceTemplate(eserviceTemplate);
 
       const retrievedEServiceTemplate = aggregateEServiceTemplate({
@@ -86,6 +87,7 @@ describe("E-service template queries", () => {
         attributesSQL,
         riskAnalysesSQL,
         riskAnalysisAnswersSQL,
+        asyncExchangePropertiesSQL,
       });
 
       expect(retrievedEServiceTemplate).toStrictEqual({
@@ -156,6 +158,7 @@ describe("E-service template queries", () => {
         attributesSQL,
         riskAnalysesSQL,
         riskAnalysisAnswersSQL,
+        asyncExchangePropertiesSQL: [],
       });
 
       expect(retrievedEServiceTemplate).toStrictEqual({
@@ -171,8 +174,8 @@ describe("E-service template queries", () => {
         ...getMockEServiceTemplateVersion(),
         attributes: {
           certified: [
-            [getMockEServiceAttribute()],
-            [getMockEServiceAttribute()],
+            [getMockEServiceTemplateAttribute()],
+            [getMockEServiceTemplateAttribute()],
           ],
           declared: [],
           verified: [],
@@ -216,6 +219,7 @@ describe("E-service template queries", () => {
         attributesSQL,
         riskAnalysesSQL,
         riskAnalysisAnswersSQL,
+        asyncExchangePropertiesSQL,
       } = await checkCompleteEServiceTemplate(eserviceTemplate);
 
       const retrievedEServiceTemplate = aggregateEServiceTemplate({
@@ -226,6 +230,7 @@ describe("E-service template queries", () => {
         attributesSQL,
         riskAnalysesSQL,
         riskAnalysisAnswersSQL,
+        asyncExchangePropertiesSQL,
       });
 
       expect(retrievedEServiceTemplate).toStrictEqual({
@@ -245,7 +250,7 @@ describe("E-service template queries", () => {
           {
             ...getMockEServiceTemplateVersion(),
             attributes: {
-              certified: [[getMockEServiceAttribute()]],
+              certified: [[getMockEServiceTemplateAttribute()]],
               declared: [],
               verified: [],
             },
@@ -267,7 +272,7 @@ describe("E-service template queries", () => {
           {
             ...getMockEServiceTemplateVersion(),
             attributes: {
-              certified: [[getMockEServiceAttribute()]],
+              certified: [[getMockEServiceTemplateAttribute()]],
               declared: [],
               verified: [],
             },

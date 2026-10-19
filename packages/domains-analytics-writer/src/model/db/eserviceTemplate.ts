@@ -1,19 +1,13 @@
 import {
-  eserviceTemplateInReadmodelEserviceTemplate,
-  eserviceTemplateVersionInReadmodelEserviceTemplate,
-  eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
-  eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
-  eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
-  eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
-  eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
-} from "pagopa-interop-readmodel-models";
-import { EserviceTemplateSchema } from "../eserviceTemplate/eserviceTemplate.js";
-import { EserviceTemplateRiskAnalysisSchema } from "../eserviceTemplate/eserviceTemplateRiskAnalysis.js";
-import { EserviceTemplateRiskAnalysisAnswerSchema } from "../eserviceTemplate/eserviceTemplateRiskAnalysisAnswer.js";
-import { EserviceTemplateVersionSchema } from "../eserviceTemplate/eserviceTemplateVersion.js";
-import { EserviceTemplateVersionAttributeSchema } from "../eserviceTemplate/eserviceTemplateVersionAttribute.js";
-import { EserviceTemplateVersionDocumentSchema } from "../eserviceTemplate/eserviceTemplateVersionDocument.js";
-import { EserviceTemplateVersionInterfaceSchema } from "../eserviceTemplate/eserviceTemplateVersionInterface.js";
+  EserviceTemplateSchema,
+  EserviceTemplateVersionSchema,
+  EserviceTemplateVersionInterfaceSchema,
+  EserviceTemplateVersionDocumentSchema,
+  EserviceTemplateVersionAttributeSchema,
+  EserviceTemplateRiskAnalysisSchema,
+  EserviceTemplateRiskAnalysisAnswerSchema,
+  EserviceTemplateVersionAsyncExchangePropertiesSchema,
+} from "pagopa-interop-kpi-models";
 
 export const EserviceTemplateDbTableConfig = {
   eservice_template: EserviceTemplateSchema,
@@ -24,26 +18,11 @@ export const EserviceTemplateDbTableConfig = {
   eservice_template_risk_analysis: EserviceTemplateRiskAnalysisSchema,
   eservice_template_risk_analysis_answer:
     EserviceTemplateRiskAnalysisAnswerSchema,
+  eservice_template_version_async_exchange_properties:
+    EserviceTemplateVersionAsyncExchangePropertiesSchema,
 } as const;
 export type EserviceTemplateDbTableConfig =
   typeof EserviceTemplateDbTableConfig;
-
-export const EserviceTemplateDbTableReadModel = {
-  eservice_template: eserviceTemplateInReadmodelEserviceTemplate,
-  eservice_template_version: eserviceTemplateVersionInReadmodelEserviceTemplate,
-  eservice_template_version_interface:
-    eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
-  eservice_template_version_document:
-    eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
-  eservice_template_version_attribute:
-    eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
-  eservice_template_risk_analysis:
-    eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
-  eservice_template_risk_analysis_answer:
-    eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
-} as const;
-export type EserviceTemplateDbTableReadModel =
-  typeof EserviceTemplateDbTableReadModel;
 
 export type EserviceTemplateDbTable =
   keyof typeof EserviceTemplateDbTableConfig;

@@ -1,10 +1,11 @@
 /* eslint-disable functional/no-let */
+import { WithMaybeMetadata } from "pagopa-interop-api-clients";
 import {
   createPollingByCondition,
   createPollingUntilDeletion,
 } from "pagopa-interop-commons";
+
 import { config } from "../config/config.js";
-import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import {
   assertMetadataExists,
   assertTargetMetadataExists,

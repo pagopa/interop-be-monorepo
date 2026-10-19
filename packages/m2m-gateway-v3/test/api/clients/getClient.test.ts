@@ -1,19 +1,20 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
+import { authorizationApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockedApiConsumerPartialClient,
   getMockedApiConsumerFullClient,
   getMockDPoPProof,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
-import { authorizationApi } from "pagopa-interop-api-clients";
 import { generateId } from "pagopa-interop-models";
-import { api, mockClientService } from "../../vitest.api.setup.js";
-import { appBasePath } from "../../../src/config/appBasePath.js";
-import { unexpectedClientKind } from "../../../src/model/errors.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { toM2MGatewayApiConsumerClient } from "../../../src/api/clientApiConverter.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
+import { clientNotFound } from "../../../src/model/errors.js";
+import { api, mockClientService } from "../../vitest.api.setup.js";
 
 describe("GET /clients/:clientId route test", () => {
   const mockM2MFullClientResponse = toM2MGatewayApiConsumerClient(
@@ -107,15 +108,13 @@ describe("GET /clients/:clientId route test", () => {
     }
   );
 
-  it("Should return 500 in case of unexpectedClientKind error", async () => {
+  it("Should return 404 in case of clientNotFound error", async () => {
     mockClientService.getClient = vi
       .fn()
-      .mockRejectedValue(
-        unexpectedClientKind(getMockedApiConsumerFullClient())
-      );
+      .mockRejectedValue(clientNotFound(getMockedApiConsumerFullClient()));
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token);
 
-    expect(res.status).toBe(500);
+    expect(res.status).toBe(404);
   });
 });

@@ -1,0 +1,23 @@
+meta {
+  name: Get Remaining Daily Calls
+  type: http
+  seq: 15
+}
+
+get {
+  url: {{host-m2m-gw-v3}}/purposes/:purposeId/remainingDailyCalls
+  body: none
+  auth: none
+}
+
+params:path {
+  purposeId: {{purposeId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}
+
+docs {
+  Retrieve the remaining available daily calls for a purpose
+}

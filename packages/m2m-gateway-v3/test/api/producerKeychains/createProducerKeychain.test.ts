@@ -1,0 +1,110 @@
+import { AxiosError, InternalAxiosRequestConfig } from "axios";
+import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockDPoPProof,
+  getMockedApiFullProducerKeychain,
+} from "pagopa-interop-commons-test";
+import { generateId, UserId } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
+import { toM2MGatewayApiProducerKeychain } from "../../../src/api/producerKeychainApiConverter.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
+import { api, mockProducerKeychainService } from "../../vitest.api.setup.js";
+
+describe("POST /producerKeychains router test", () => {
+  const makeRequest = async (
+    token: string,
+    seed: m2mGatewayApiV3.ProducerKeychainSeed
+  ) =>
+    request(api)
+      .post(`${appBasePath}/producerKeychains`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
+      .send(seed);
+
+  const producerKeychainSeed: m2mGatewayApiV3.ProducerKeychainSeed = {
+    name: "producer keychain seed",
+    description: "producer keychain description",
+    members: [generateId<UserId>()],
+  };
+
+  const mockM2MFullProducerKeychainResponse = toM2MGatewayApiProducerKeychain(
+    getMockedApiFullProducerKeychain()
+  );
+
+  const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
+
+  it("Should propagate the authorization 404 for a missing member", async () => {
+    const problem = {
+      type: "about:blank",
+      title: "Not Found",
+      status: 404,
+      detail: "User not found",
+      errors: [{ code: "005-0016", detail: "User not found" }],
+    };
+    mockProducerKeychainService.createProducerKeychain = vi
+      .fn()
+      .mockRejectedValueOnce(
+        new AxiosError("User not found", "404", undefined, undefined, {
+          status: 404,
+          statusText: "Not Found",
+          data: problem,
+          headers: {},
+          config: {} as InternalAxiosRequestConfig,
+        })
+      );
+    const res = await makeRequest(
+      generateToken(authRole.M2M_ADMIN_ROLE),
+      producerKeychainSeed
+    );
+    expect(res.status).toBe(404);
+    expect(res.body).toMatchObject({ status: 404, errors: problem.errors });
+  });
+
+  it.each(authorizedRoles)(
+    "Should return 200 and perform service calls for user with role %s",
+    async (role) => {
+      mockProducerKeychainService.createProducerKeychain = vi
+        .fn()
+        .mockImplementation(() =>
+          Promise.resolve(mockM2MFullProducerKeychainResponse)
+        );
+      const token = generateToken(role);
+      const res = await makeRequest(token, producerKeychainSeed);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(mockM2MFullProducerKeychainResponse);
+      expect(
+        mockProducerKeychainService.createProducerKeychain
+      ).toHaveBeenCalledWith(
+        producerKeychainSeed,
+        expect.any(Object) // context
+      );
+    }
+  );
+
+  it.each(
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
+  )("Should return 403 for user with role %s", async (role) => {
+    const token = generateToken(role);
+    const res = await makeRequest(token, producerKeychainSeed);
+    expect(res.status).toBe(403);
+  });
+
+  it.each([
+    { ...producerKeychainSeed, name: 1 },
+    { ...producerKeychainSeed, members: 7 },
+    { ...producerKeychainSeed, description: 9 },
+    {},
+  ])("Should return 400 if passed invalid body", async (seed) => {
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(
+      token,
+      seed as m2mGatewayApiV3.ProducerKeychainSeed
+    );
+
+    expect(res.status).toBe(400);
+  });
+});

@@ -1,9 +1,11 @@
 import {
   bffApi,
   catalogApi,
+  eserviceTemplateApi,
   purposeTemplateApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
+
 import { toBffCompactOrganization } from "./agreementApiConverter.js";
 import { toBffCatalogTenant } from "./catalogApiConverter.js";
 
@@ -43,16 +45,43 @@ export function toCompactPurposeTemplateEService(
   };
 }
 
-export function toBffEServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor(
-  eserviceDescriptorPurposeTemplate: purposeTemplateApi.EServiceDescriptorPurposeTemplate,
+export function toCompactPurposeTemplateEServiceTemplate(
+  eserviceTemplate: eserviceTemplateApi.EServiceTemplate,
+  creator: tenantApi.Tenant
+): bffApi.CompactPurposeTemplateEServiceTemplate {
+  return {
+    id: eserviceTemplate.id,
+    name: eserviceTemplate.name,
+    description: eserviceTemplate.description,
+    creator: toBffCompactOrganization(creator),
+  };
+}
+
+export function toBffLinkableEService(
+  link: purposeTemplateApi.EServiceDescriptorPurposeTemplate,
   eservice: bffApi.CompactPurposeTemplateEService,
   descriptor: bffApi.CompactDescriptor
-): bffApi.EServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor {
+): bffApi.LinkableEService {
   return {
-    purposeTemplateId: eserviceDescriptorPurposeTemplate.purposeTemplateId,
+    resourceKind: "ESERVICE",
+    purposeTemplateId: link.purposeTemplateId,
     eservice,
     descriptor,
-    createdAt: eserviceDescriptorPurposeTemplate.createdAt,
+    createdAt: link.createdAt,
+  };
+}
+
+export function toBffLinkableEServiceTemplate(
+  link: purposeTemplateApi.EServiceTemplateVersionPurposeTemplate,
+  eserviceTemplate: bffApi.CompactPurposeTemplateEServiceTemplate,
+  eserviceTemplateVersion: bffApi.CompactEServiceTemplateVersion
+): bffApi.LinkableEServiceTemplate {
+  return {
+    resourceKind: "ESERVICE_TEMPLATE",
+    purposeTemplateId: link.purposeTemplateId,
+    eserviceTemplate,
+    eserviceTemplateVersion,
+    createdAt: link.createdAt,
   };
 }
 

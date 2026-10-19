@@ -7,25 +7,24 @@ import {
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
-  retrieveEService,
+  retrieveEservice,
   retrieveHTMLTemplate,
-  retrieveLatestDescriptor,
   retrieveTenant,
-} from "../../services/utils.js";
-import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-  PurposeHandlerParams,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
+
 import { config } from "../../config/config.js";
+import { PurposeVersionHandlerParams } from "../../models/handlerParams.js";
 
 const notificationType: NotificationType = "purposeOverQuotaStateToConsumer";
 
 export async function handlePurposeVersionActivatedOtherVersion(
-  data: PurposeHandlerParams
+  data: PurposeVersionHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
     purposeV2Msg,
+    purposeVersionId,
     readModelService,
     logger,
     templateService,
@@ -45,14 +44,23 @@ export async function handlePurposeVersionActivatedOtherVersion(
     return [];
   }
 
+  const activatedVersion = purpose.versions.find(
+    (version) => version.id === purposeVersionId
+  );
+
+  if (!activatedVersion) {
+    logger.error(
+      `No version found in purpose ${purpose.id} with id ${purposeVersionId}`
+    );
+    return [];
+  }
+
   const [htmlTemplate, eservice] = await Promise.all([
     retrieveHTMLTemplate(
       eventMailTemplateType.purposeQuotaAdjustmentResponseMailTemplate
     ),
-    retrieveEService(purpose.eserviceId, readModelService),
+    retrieveEservice(purpose.eserviceId, readModelService),
   ]);
-
-  const { dailyCallsPerConsumer } = retrieveLatestDescriptor(eservice);
 
   const [consumer, producer] = await Promise.all([
     retrieveTenant(purpose.consumerId, readModelService),
@@ -86,7 +94,7 @@ export async function handlePurposeVersionActivatedOtherVersion(
         producerName: producer.name,
         purposeTitle: purpose.title,
         eserviceName: eservice.name,
-        dailyCalls: dailyCallsPerConsumer,
+        dailyCalls: activatedVersion.dailyCalls,
         isAccepted: true,
         ctaLabel: `Visualizza finalità`,
         selfcareId: consumer.selfcareId,

@@ -23,6 +23,7 @@ import {
   toAgreementV2,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
+
 import { agreementArchivableStates } from "../../src/model/domain/agreement-validators.js";
 import {
   agreementNotFound,
@@ -57,7 +58,7 @@ describe("archive agreement", () => {
       agreement.id,
       getMockContext({ authData })
     );
-    const agreementId = returnedAgreement.id;
+    const agreementId = returnedAgreement.data.id;
 
     expect(agreementId).toBeDefined();
     const actualAgreementData = await readLastAgreementEvent(agreementId);
@@ -95,8 +96,10 @@ describe("archive agreement", () => {
     );
 
     expect(sortAgreementV2(actualAgreement)).toEqual(
-      sortAgreementV2(toAgreementV2(returnedAgreement))
+      sortAgreementV2(toAgreementV2(returnedAgreement.data))
     );
+
+    expect(returnedAgreement.metadata).toEqual({ version: 1 });
 
     vi.useRealTimers();
   });
@@ -130,7 +133,7 @@ describe("archive agreement", () => {
       getMockContext({ authData })
     );
 
-    const agreementId = returnedAgreement.id;
+    const agreementId = returnedAgreement.data.id;
 
     expect(agreementId).toBeDefined();
 
@@ -170,8 +173,10 @@ describe("archive agreement", () => {
     );
 
     expect(sortAgreementV2(actualAgreement)).toEqual(
-      sortAgreementV2(toAgreementV2(returnedAgreement))
+      sortAgreementV2(toAgreementV2(returnedAgreement.data))
     );
+
+    expect(returnedAgreement.metadata).toEqual({ version: 1 });
 
     vi.useRealTimers();
   });

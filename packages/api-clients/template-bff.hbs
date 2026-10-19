@@ -1,4 +1,4 @@
-import { makeApi, Zodios, type ZodiosOptions } from "@zodios/core";
+import { makeApi, Zodios, type ZodiosOptions{{#if (hasChunkedEndpointGroups endpointsGroups)}}, type ZodiosInstance{{/if}} } from "@zodios/core";
 import { z } from "zod";
 import qs from "qs";
 import { configureAxiosLogInterceptors } from "../axiosLogInterceptors.js";
@@ -10,9 +10,8 @@ export type {{@key}} = z.infer<typeof {{@key}}>;
 
 {{/each}}
 
-{{#each endpointsGroups}}
-export const {{@key}}Endpoints = makeApi([
-{{#each this.endpoints}}
+{{#*inline "renderEndpoints"}}
+{{#each endpoints}}
 	{
 		method: "{{method}}",
 		path: "{{path}}",
@@ -52,6 +51,8 @@ export const {{@key}}Endpoints = makeApi([
 						schema: z.union([z.string().optional().transform(v => v ? v.split(",") : undefined ).pipe(z.array(PurposeVersionState).optional().default([])), z.array(PurposeVersionState).optional().default([])])
 				{{else if (and (eq type "Query") (eq schema "z.array(DelegationState).optional().default([])"))}}
 						schema: z.union([z.string().optional().transform(v => v ? v.split(",") : undefined ).pipe(z.array(DelegationState).optional().default([])), z.array(DelegationState).optional().default([])])
+				{{else if (and (eq type "Query") (eq schema "z.array(RiskAnalysisSigningState).optional().default([])"))}}
+						schema: z.union([z.string().optional().transform(v => v ? v.split(",") : undefined ).pipe(z.array(RiskAnalysisSigningState).optional().default([])), z.array(RiskAnalysisSigningState).optional().default([])])
 				{{else if (and (eq type "Query") (eq schema "z.array(TenantFeatureType).optional().default([])"))}}
 						schema: z.union([z.string().optional().transform(v => v ? v.split(",") : undefined ).pipe(z.array(TenantFeatureType).optional().default([])), z.array(TenantFeatureType).optional().default([])])
 				{{else if (and (eq type "Query") (eq schema "z.array(PurposeTemplateState).optional().default([])"))}}
@@ -117,11 +118,44 @@ export const {{@key}}Endpoints = makeApi([
 		{{/if}}
 	},
 {{/each}}
+{{/inline}}
+
+{{#each endpointsGroups}}
+{{#if (shouldChunkEndpoints this.endpoints)}}
+{{#each (endpointChunks @key this.endpoints)}}
+const {{name}} = makeApi([
+{{> renderEndpoints endpoints=endpoints}}
 ]);
 
-export const {{@key}}Api = new Zodios({{#if options.baseUrl}}"{{options.baseUrl}}", {{/if}}{{@key}}Endpoints);
+{{/each}}
+export type {{pascalcase @key}}Endpoints = [
+{{#each (endpointChunks @key this.endpoints)}}
+	...typeof {{name}},
+{{/each}}
+];
 
+export const {{@key}}Endpoints: {{pascalcase @key}}Endpoints = [
+{{#each (endpointChunks @key this.endpoints)}}
+	...{{name}},
+{{/each}}
+];
+{{else}}
+export const {{@key}}Endpoints = makeApi([
+{{> renderEndpoints endpoints=this.endpoints}}
+]);
+{{/if}}
+
+{{#if (shouldChunkEndpoints this.endpoints)}}
+export const {{@key}}Api: ZodiosInstance<{{pascalcase @key}}Endpoints> = new Zodios({{#if options.baseUrl}}"{{options.baseUrl}}", {{/if}}{{@key}}Endpoints);
+{{else}}
+export const {{@key}}Api = new Zodios({{#if options.baseUrl}}"{{options.baseUrl}}", {{/if}}{{@key}}Endpoints);
+{{/if}}
+
+{{#if (shouldChunkEndpoints this.endpoints)}}
+export function create{{pascalcase @key}}ApiClient(baseUrl: string, options?: ZodiosOptions): ZodiosInstance<{{pascalcase @key}}Endpoints> {
+{{else}}
 export function create{{pascalcase @key}}ApiClient(baseUrl: string, options?: ZodiosOptions) {
+{{/if}}
 		const zodiosClient = new Zodios(baseUrl, {{@key}}Endpoints, {
 			...options,
 			validate: false,

@@ -1,6 +1,6 @@
 import {
   getMockDocument,
-  getMockEServiceAttribute,
+  getMockEServiceTemplateAttribute,
   getMockEServiceTemplate,
   getMockValidEServiceTemplateRiskAnalysis,
   getMockEServiceTemplateVersion,
@@ -14,6 +14,7 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
+
 import { upsertEServiceTemplate } from "../../src/testUtils.js";
 import { readModelDB } from "../utils.js";
 import { eserviceTemplateReadModelService } from "./eserviceTemplateUtils.js";
@@ -24,7 +25,7 @@ describe("E-service template queries", () => {
       const version: EServiceTemplateVersion = {
         ...getMockEServiceTemplateVersion(),
         attributes: {
-          certified: [[getMockEServiceAttribute()]],
+          certified: [[getMockEServiceTemplateAttribute()]],
           declared: [],
           verified: [],
         },

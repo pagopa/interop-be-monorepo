@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { fail } from "assert";
+import { tenantApi } from "pagopa-interop-api-clients";
 import {
   getMockContextM2M,
   getMockTenant,
@@ -16,7 +17,7 @@ import {
   tenantAttributeType,
 } from "pagopa-interop-models";
 import { describe, it, expect, afterAll, beforeAll, vi } from "vitest";
-import { tenantApi } from "pagopa-interop-api-clients";
+
 import {
   attributeNotFound,
   certifiedAttributeAlreadyAssigned,
@@ -134,7 +135,10 @@ describe("m2mUpsertTenant", async () => {
       ],
     };
 
-    expect(writtenPayload.tenant).toEqual(toTenantV2(expectedTenant));
+    expect(writtenPayload).toEqual({
+      attributeId: attribute.id,
+      tenant: toTenantV2(expectedTenant),
+    });
 
     const writtenEvent2 = await readEventByStreamIdAndVersion(
       mockTenant.id,
@@ -176,7 +180,10 @@ describe("m2mUpsertTenant", async () => {
       ],
     };
 
-    expect(writtenPayload2.tenant).toEqual(toTenantV2(expectedTenant2));
+    expect(writtenPayload2).toEqual({
+      attributeId: attribute2.id,
+      tenant: toTenantV2(expectedTenant2),
+    });
     expect(returnedTenant).toEqual(expectedTenant2);
   });
 
@@ -278,7 +285,10 @@ describe("m2mUpsertTenant", async () => {
       ],
     };
 
-    expect(writtenPayload.tenant).toEqual(toTenantV2(expectedTenant));
+    expect(writtenPayload).toEqual({
+      attributeId: attribute2.id,
+      tenant: toTenantV2(expectedTenant),
+    });
     expect(returnedTenant).toEqual(expectedTenant);
   });
   it("Should throw certifiedAttributeAlreadyAssigned if the attribute was already assigned", async () => {

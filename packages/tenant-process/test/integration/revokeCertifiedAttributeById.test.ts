@@ -1,5 +1,13 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import {
+  getMockAttribute,
+  getMockTenant,
+  readEventByStreamIdAndVersion,
+  getMockAuthData,
+  getTenantOneCertifierFeature,
+  getMockContext,
+} from "pagopa-interop-commons-test";
 import { tenantAttributeType, tenantKind } from "pagopa-interop-models";
 import {
   generateId,
@@ -11,14 +19,7 @@ import {
   TenantCertifiedAttributeRevokedV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
-import {
-  getMockAttribute,
-  getMockTenant,
-  readEventByStreamIdAndVersion,
-  getMockAuthData,
-  getTenantOneCertifierFeature,
-  getMockContext,
-} from "pagopa-interop-commons-test";
+
 import {
   tenantNotFound,
   attributeNotFound,
@@ -114,7 +115,10 @@ describe("revokeCertifiedAttributeById", async () => {
       kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
       updatedAt: new Date(),
     };
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    expect(writtenPayload).toEqual({
+      attributeId: attribute.id,
+      tenant: toTenantV2(updatedTenant),
+    });
 
     expect(revokeCertifiedAttributeByIdResponse).toEqual({
       data: updatedTenant,

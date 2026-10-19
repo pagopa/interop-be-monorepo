@@ -1,7 +1,20 @@
 import {
+  and,
+  count,
+  eq,
+  exists,
+  inArray,
+  isNotNull,
+  ne,
+  or,
+  sql,
+} from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
+import {
   ascLower,
   createListResult,
-  escapeRegExp,
+  escapeSqlLike,
+  ilikeEscaped,
   M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
@@ -22,7 +35,13 @@ import {
   CompactOrganization,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { z } from "zod";
+import {
+  aggregateEServiceTemplateArray,
+  AttributeReadModelService,
+  EServiceTemplateReadModelService,
+  TenantReadModelService,
+  toEServiceTemplateAggregatorArray,
+} from "pagopa-interop-readmodel";
 import {
   attributeInReadmodelAttribute,
   DrizzleReturnType,
@@ -34,31 +53,14 @@ import {
   eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
   eserviceTemplateVersionInReadmodelEserviceTemplate,
   eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
+  eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate,
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
-import {
-  aggregateEServiceTemplateArray,
-  AttributeReadModelService,
-  EServiceTemplateReadModelService,
-  TenantReadModelService,
-  toEServiceTemplateAggregatorArray,
-} from "pagopa-interop-readmodel";
-import {
-  and,
-  count,
-  eq,
-  exists,
-  ilike,
-  inArray,
-  isNotNull,
-  ne,
-  or,
-  sql,
-} from "drizzle-orm";
-import { alias } from "drizzle-orm/pg-core";
 import { match } from "ts-pattern";
-import { hasRoleToAccessDraftTemplateVersions } from "./validators.js";
+import { z } from "zod";
+
 import { GetEServiceTemplatesFilters } from "./readModelService.js";
+import { hasRoleToAccessDraftTemplateVersions } from "./validators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
@@ -91,9 +93,9 @@ export function readModelServiceBuilderSQL({
         })
         .from(eserviceTemplateInReadmodelEserviceTemplate)
         .where(
-          ilike(
+          ilikeEscaped(
             eserviceTemplateInReadmodelEserviceTemplate.name,
-            escapeRegExp(name)
+            escapeSqlLike(name)
           )
         )
         .limit(1);
@@ -143,9 +145,9 @@ export function readModelServiceBuilderSQL({
           and(
             // NAME FILTER
             name
-              ? ilike(
+              ? ilikeEscaped(
                   eserviceTemplateInReadmodelEserviceTemplate.name,
-                  `%${escapeRegExp(name)}%`
+                  `%${escapeSqlLike(name)}%`
                 )
               : undefined,
             // IDS FILTER
@@ -235,6 +237,8 @@ export function readModelServiceBuilderSQL({
           riskAnalysis: eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
           riskAnalysisAnswer:
             eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
+          asyncExchangeProperties:
+            eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate,
           totalCount: subquery.totalCount,
         })
         .from(eserviceTemplateInReadmodelEserviceTemplate)
@@ -271,6 +275,13 @@ export function readModelServiceBuilderSQL({
           eq(
             eserviceTemplateVersionInReadmodelEserviceTemplate.id,
             eserviceTemplateVersionAttributeInReadmodelEserviceTemplate.versionId
+          )
+        )
+        .leftJoin(
+          eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate,
+          eq(
+            eserviceTemplateVersionInReadmodelEserviceTemplate.id,
+            eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate.versionId
           )
         )
         .leftJoin(
@@ -313,7 +324,7 @@ export function readModelServiceBuilderSQL({
         "template_instances"
       );
 
-      const escapedNewName = escapeRegExp(newName);
+      const escapedNewName = escapeSqlLike(newName);
 
       const queryResult = await readModelDB
         .select({ count: count() })
@@ -336,7 +347,7 @@ export function readModelServiceBuilderSQL({
                       WHEN ${templateInstances.instanceLabel} IS NOT NULL
                         THEN ${escapedNewName} || ' - ' || ${templateInstances.instanceLabel}
                       ELSE ${escapedNewName}
-                    END`
+                    END ESCAPE '\\'`
                   )
                 )
             )
@@ -381,7 +392,10 @@ export function readModelServiceBuilderSQL({
             ),
             // TENANT FILTER
             name
-              ? ilike(tenantInReadmodelTenant.name, `%${escapeRegExp(name)}%`)
+              ? ilikeEscaped(
+                  tenantInReadmodelTenant.name,
+                  `%${escapeSqlLike(name)}%`
+                )
               : undefined
           )
         )

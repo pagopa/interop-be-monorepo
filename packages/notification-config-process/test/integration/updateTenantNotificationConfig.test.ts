@@ -1,10 +1,10 @@
+import { notificationConfigApi } from "pagopa-interop-api-clients";
 import {
   getMockContext,
   getMockAuthData,
   decodeProtobufPayload,
   getMockTenantNotificationConfig,
 } from "pagopa-interop-commons-test";
-import { notificationConfigApi } from "pagopa-interop-api-clients";
 import {
   generateId,
   TenantId,
@@ -13,12 +13,13 @@ import {
   toTenantNotificationConfigV2,
 } from "pagopa-interop-models";
 import { beforeAll, describe, expect, it, vi } from "vitest";
+
+import { tenantNotificationConfigNotFound } from "../../src/model/domain/errors.js";
 import {
   addOneTenantNotificationConfig,
   notificationConfigService,
   readLastNotificationConfigEvent,
 } from "../integrationUtils.js";
-import { tenantNotificationConfigNotFound } from "../../src/model/domain/errors.js";
 
 describe("updateTenantNotificationConfig", () => {
   const tenantId: TenantId = generateId();
@@ -65,9 +66,11 @@ describe("updateTenantNotificationConfig", () => {
       updatedAt: new Date(),
     };
     expect(serviceReturnValue).toEqual(expectedTenantNotificationConfig);
-    expect(writtenPayload.tenantNotificationConfig).toEqual(
-      toTenantNotificationConfigV2(expectedTenantNotificationConfig)
-    );
+    expect(writtenPayload).toEqual({
+      tenantNotificationConfig: toTenantNotificationConfigV2(
+        expectedTenantNotificationConfig
+      ),
+    });
   });
 
   it("should throw tenantNotificationConfigNotFound if no notification config exists for the tenant", async () => {

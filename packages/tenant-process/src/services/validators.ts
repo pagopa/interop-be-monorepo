@@ -1,7 +1,12 @@
-import { M2MAuthData, UIAuthData } from "pagopa-interop-commons";
+import {
+  isFeatureFlagEnabled,
+  M2MAuthData,
+  UIAuthData,
+} from "pagopa-interop-commons";
 import {
   Attribute,
   AttributeId,
+  CertifiedTenantAttribute,
   CONTRACT_AUTHORITY_PUBLIC_SERVICES_MANAGERS,
   ExternalId,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
@@ -17,12 +22,14 @@ import {
   operationForbidden,
   tenantAttributeType,
   tenantKind,
-  SCP,
   TenantFeature,
   Agreement,
   Delegation,
+  SCP,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
+import { config } from "../config/config.js";
 import {
   expirationDateCannotBeInThePast,
   tenantNotFoundInVerifiers,
@@ -33,8 +40,8 @@ import {
   attributeNotFound,
   eServiceNotFound,
   descriptorNotFoundInEservice,
+  tenantNotAllowedForDelegation,
 } from "../model/domain/errors.js";
-import { config } from "../config/config.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export function assertVerifiedAttributeExistsInTenant(
@@ -122,23 +129,23 @@ export function assertExpirationDateExist(
 
 export function getTenantKind(
   attributes: ExternalId[],
-  externalId: ExternalId
+  externalId: ExternalId,
+  selfcareInstitutionType: string | undefined
 ): TenantKind {
+  if (selfcareInstitutionType === SCP) {
+    return tenantKind.SCP;
+  }
+
   return match(externalId.origin)
-    .with(
-      PUBLIC_ADMINISTRATIONS_IDENTIFIER,
-      // condition to be satisfied
-      (origin) =>
-        attributes.some(
-          (attr) =>
-            attr.origin === origin &&
-            (attr.value === PUBLIC_SERVICES_MANAGERS ||
-              attr.value === CONTRACT_AUTHORITY_PUBLIC_SERVICES_MANAGERS)
-        ),
-      () => tenantKind.GSP
-    )
-    .with(PUBLIC_ADMINISTRATIONS_IDENTIFIER, () => tenantKind.PA)
-    .with(SCP, () => tenantKind.SCP)
+    .with(PUBLIC_ADMINISTRATIONS_IDENTIFIER, () => {
+      const isGSP = attributes.some(
+        (attr) =>
+          attr.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER &&
+          (attr.value === PUBLIC_SERVICES_MANAGERS ||
+            attr.value === CONTRACT_AUTHORITY_PUBLIC_SERVICES_MANAGERS)
+      );
+      return isGSP ? tenantKind.GSP : tenantKind.PA;
+    })
     .otherwise(() => tenantKind.PRIVATE);
 }
 
@@ -151,18 +158,28 @@ export async function assertRequesterAllowed(
   }
 }
 
-export function assertRequesterDelegationsAllowedOrigin(
-  authData: UIAuthData
-): void {
-  if (!config.delegationsAllowedOrigins.includes(authData.externalId.origin)) {
-    throw operationForbidden;
+export function assertTenantAllowedForDelegation(tenant: Tenant): void {
+  if (isFeatureFlagEnabled(config, "featureFlagDelegationConstraintSkip")) {
+    return;
+  }
+
+  const hasAttribute = tenant.attributes.some(
+    (attr): attr is CertifiedTenantAttribute =>
+      attr.type === tenantAttributeType.CERTIFIED &&
+      attr.id === config.delegationsAllowedAttributeId &&
+      !attr.revocationTimestamp
+  );
+
+  if (!hasAttribute) {
+    throw tenantNotAllowedForDelegation(tenant.id, tenant.externalId.origin);
   }
 }
 
 export async function getTenantKindLoadingCertifiedAttributes(
   readModelService: ReadModelServiceSQL,
   attributes: TenantAttribute[],
-  externalId: ExternalId
+  externalId: ExternalId,
+  selfcareInstitutionType: string | undefined
 ): Promise<TenantKind> {
   function getCertifiedAttributesIds(
     attributes: TenantAttribute[]
@@ -193,7 +210,7 @@ export async function getTenantKindLoadingCertifiedAttributes(
     }
   });
   const extIds = convertAttributes(retrievedAttributes);
-  return getTenantKind(extIds, externalId);
+  return getTenantKind(extIds, externalId, selfcareInstitutionType);
 }
 
 export function assertValidExpirationDate(

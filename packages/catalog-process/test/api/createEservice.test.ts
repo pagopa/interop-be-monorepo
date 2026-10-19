@@ -1,7 +1,4 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
-import request from "supertest";
-import { EService, generateId } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
@@ -10,14 +7,19 @@ import {
   getMockEService,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { api, catalogService } from "../vitest.api.setup.js";
+import { EService, generateId } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   eServiceNameDuplicateForProducer,
   eserviceTemplateNameConflict,
+  inconsistentDailyCalls,
   invalidDelegationFlags,
   originNotCompliant,
 } from "../../src/model/domain/errors.js";
+import { api, catalogService } from "../vitest.api.setup.js";
 
 describe("API /eservices authorization test", () => {
   const mockEService: EService = {
@@ -104,6 +106,10 @@ describe("API /eservices authorization test", () => {
     },
     {
       error: invalidDelegationFlags(false, true),
+      expectedStatus: 400,
+    },
+    {
+      error: inconsistentDailyCalls(),
       expectedStatus: 400,
     },
   ])(

@@ -1,6 +1,7 @@
 import { z } from "zod";
-import { ProducerKeychainId, ProducerKeyM2MEventId } from "../brandedIds.js";
+
 import { AuthorizationEvent } from "../authorization/authorizationEvents.js";
+import { ProducerKeychainId, ProducerKeyM2MEventId } from "../brandedIds.js";
 
 export const ProducerKeyM2MEventType = z.enum([
   "ProducerKeychainKeyAdded",

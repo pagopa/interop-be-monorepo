@@ -1,22 +1,33 @@
 /* eslint-disable max-params */
 import { parse } from "csv/sync";
-import { Logger, RefreshableInteropToken, zipBy } from "pagopa-interop-commons";
+import {
+  Logger,
+  RefreshableInteropToken,
+  waitForReadModelMetadataVersion,
+  zipBy,
+} from "pagopa-interop-commons";
 import { TenantFeatureCertifier, CorrelationId } from "pagopa-interop-models";
+
+import { CsvRow, NonPaRow, PaRow } from "../model/csvRowModel.js";
+import { InteropContext } from "../model/interopContextModel.js";
 import {
   AnacAttributes,
   AttributeIdentifiers,
   BatchParseResult,
 } from "../model/processorModel.js";
-import { CsvRow, NonPaRow, PaRow } from "../model/csvRowModel.js";
-import { InteropContext } from "../model/interopContextModel.js";
 import { AnacReadModelTenant } from "../model/tenant.js";
-import { TenantProcessService } from "./tenantProcessService.js";
-import { SftpClient } from "./sftpService.js";
 import { ReadModelQueriesSQL } from "./readmodelQueriesServiceSQL.js";
+import { SftpClient } from "./sftpService.js";
+import { TenantProcessService } from "./tenantProcessService.js";
 
 export const ANAC_ENABLED_CODE = "anac_abilitato";
 export const ANAC_ASSIGNED_CODE = "anac_incaricato";
 export const ANAC_IN_VALIDATION_CODE = "anac_in_convalida";
+
+type PollingConfig = {
+  defaultPollingMaxRetries: number;
+  defaultPollingRetryDelay: number;
+};
 
 export async function importAttributes(
   sftpClient: SftpClient,
@@ -24,6 +35,7 @@ export async function importAttributes(
   tenantProcess: TenantProcessService,
   refreshableToken: RefreshableInteropToken,
   recordsBatchSize: number,
+  pollingConfig: PollingConfig,
   anacTenantId: string,
   logger: Logger,
   correlationId: CorrelationId
@@ -44,6 +56,7 @@ export async function importAttributes(
     fileContent,
     attributes,
     recordsBatchSize,
+    pollingConfig,
     logger,
     correlationId
   );
@@ -58,6 +71,7 @@ export async function importAttributes(
     refreshableToken,
     allOrgsInFile,
     attributes,
+    pollingConfig,
     logger,
     correlationId
   );
@@ -72,6 +86,7 @@ async function processFileContent(
   fileContent: string,
   attributes: AnacAttributes,
   recordsBatchSize: number,
+  pollingConfig: PollingConfig,
   logger: Logger,
   correlationId: CorrelationId
 ): Promise<string[]> {
@@ -81,6 +96,8 @@ async function processFileContent(
     tenantProcess,
     refreshableToken,
     attributes,
+    readModel,
+    pollingConfig,
     logger,
     correlationId
   );
@@ -152,6 +169,7 @@ async function unassignMissingOrgsAttributes(
   refreshableToken: RefreshableInteropToken,
   allOrgsInFile: string[],
   attributes: AnacAttributes,
+  pollingConfig: PollingConfig,
   logger: Logger,
   correlationId: CorrelationId
 ) {
@@ -171,6 +189,8 @@ async function unassignMissingOrgsAttributes(
           refreshableToken,
           tenant,
           attributes.anacAbilitato,
+          readModel,
+          pollingConfig,
           logger,
           correlationId
         );
@@ -179,6 +199,8 @@ async function unassignMissingOrgsAttributes(
           refreshableToken,
           tenant,
           attributes.anacInConvalida,
+          readModel,
+          pollingConfig,
           logger,
           correlationId
         );
@@ -187,6 +209,8 @@ async function unassignMissingOrgsAttributes(
           refreshableToken,
           tenant,
           attributes.anacIncaricato,
+          readModel,
+          pollingConfig,
           logger,
           correlationId
         );
@@ -252,6 +276,8 @@ const prepareTenantsProcessor = (
   tenantProcess: TenantProcessService,
   refreshableToken: RefreshableInteropToken,
   attributes: AnacAttributes,
+  readModel: ReadModelQueriesSQL,
+  pollingConfig: PollingConfig,
   logger: Logger,
   correlationId: CorrelationId
 ) =>
@@ -289,6 +315,8 @@ const prepareTenantsProcessor = (
             refreshableToken,
             tenant,
             attributes.anacAbilitato,
+            readModel,
+            pollingConfig,
             logger,
             correlationId
           );
@@ -298,6 +326,8 @@ const prepareTenantsProcessor = (
             refreshableToken,
             tenant,
             attributes.anacAbilitato,
+            readModel,
+            pollingConfig,
             logger,
             correlationId
           );
@@ -309,6 +339,8 @@ const prepareTenantsProcessor = (
             refreshableToken,
             tenant,
             attributes.anacInConvalida,
+            readModel,
+            pollingConfig,
             logger,
             correlationId
           );
@@ -318,6 +350,8 @@ const prepareTenantsProcessor = (
             refreshableToken,
             tenant,
             attributes.anacInConvalida,
+            readModel,
+            pollingConfig,
             logger,
             correlationId
           );
@@ -329,6 +363,8 @@ const prepareTenantsProcessor = (
             refreshableToken,
             tenant,
             attributes.anacIncaricato,
+            readModel,
+            pollingConfig,
             logger,
             correlationId
           );
@@ -338,6 +374,8 @@ const prepareTenantsProcessor = (
             refreshableToken,
             tenant,
             attributes.anacIncaricato,
+            readModel,
+            pollingConfig,
             logger,
             correlationId
           );
@@ -351,6 +389,8 @@ async function assignAttribute(
   refreshableToken: RefreshableInteropToken,
   tenant: AnacReadModelTenant,
   attribute: AttributeIdentifiers,
+  readModel: ReadModelQueriesSQL,
+  pollingConfig: PollingConfig,
   logger: Logger,
   correlationId: CorrelationId
 ): Promise<void> {
@@ -362,13 +402,26 @@ async function assignAttribute(
       correlationId,
       bearerToken: token.serialized,
     };
-    await tenantProcess.internalAssignCertifiedAttribute(
+    const metadata = await tenantProcess.internalAssignCertifiedAttribute(
       tenant.externalId.origin,
       tenant.externalId.value,
       attribute.externalId.origin,
       attribute.externalId.value,
       context,
       logger
+    );
+
+    if (!metadata) {
+      logger.warn(
+        `Missing metadata version for tenant ${tenant.id}. Skipping polling.`
+      );
+      return;
+    }
+
+    await waitForReadModelMetadataVersion(
+      () => readModel.getTenantByIdWithMetadata(tenant.id),
+      metadata.version,
+      pollingConfig
     );
   }
 }
@@ -378,6 +431,8 @@ async function unassignAttribute(
   refreshableToken: RefreshableInteropToken,
   tenant: AnacReadModelTenant,
   attribute: AttributeIdentifiers,
+  readModel: ReadModelQueriesSQL,
+  pollingConfig: PollingConfig,
   logger: Logger,
   correlationId: CorrelationId
 ): Promise<void> {
@@ -389,13 +444,26 @@ async function unassignAttribute(
       correlationId,
       bearerToken: token.serialized,
     };
-    await tenantProcess.internalRevokeCertifiedAttribute(
+    const metadata = await tenantProcess.internalRevokeCertifiedAttribute(
       tenant.externalId.origin,
       tenant.externalId.value,
       attribute.externalId.origin,
       attribute.externalId.value,
       context,
       logger
+    );
+
+    if (!metadata) {
+      logger.warn(
+        `Missing metadata version for tenant ${tenant.id}. Skipping polling.`
+      );
+      return;
+    }
+
+    await waitForReadModelMetadataVersion(
+      () => readModel.getTenantByIdWithMetadata(tenant.id),
+      metadata.version,
+      pollingConfig
     );
   }
 }

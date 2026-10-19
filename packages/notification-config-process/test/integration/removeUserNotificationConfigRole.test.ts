@@ -9,20 +9,22 @@ import {
   UserNotificationConfig,
   UserNotificationConfigDeletedV2,
   toUserNotificationConfigV2,
+  toUserRoleV2,
   UserId,
   userRole,
   UserNotificationConfigRoleRemovedV2,
 } from "pagopa-interop-models";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+
+import {
+  userNotificationConfigNotFound,
+  userRoleNotInUserNotificationConfig,
+} from "../../src/model/domain/errors.js";
 import {
   addOneUserNotificationConfig,
   notificationConfigService,
   readLastNotificationConfigEvent,
 } from "../integrationUtils.js";
-import {
-  userNotificationConfigNotFound,
-  userRoleNotInUserNotificationConfig,
-} from "../../src/model/domain/errors.js";
 
 describe("removeUserNotificationConfigRole", () => {
   const userId: UserId = generateId();
@@ -71,9 +73,11 @@ describe("removeUserNotificationConfigRole", () => {
       messageType: UserNotificationConfigDeletedV2,
       payload: writtenEvent.data,
     });
-    expect(writtenPayload.userNotificationConfig).toEqual(
-      toUserNotificationConfigV2(userNotificationConfig)
-    );
+    expect(writtenPayload).toEqual({
+      userNotificationConfig: toUserNotificationConfigV2(
+        userNotificationConfig
+      ),
+    });
   });
 
   it("should write on event-store for the removal of the role from the user's notification configuration when there are other roles", async () => {
@@ -94,13 +98,14 @@ describe("removeUserNotificationConfigRole", () => {
       messageType: UserNotificationConfigRoleRemovedV2,
       payload: writtenEvent.data,
     });
-    expect(writtenPayload.userNotificationConfig).toEqual(
-      toUserNotificationConfigV2({
+    expect(writtenPayload).toEqual({
+      userNotificationConfig: toUserNotificationConfigV2({
         ...userNotificationConfigWithTwoRoles,
         userRoles: [userRole.API_ROLE],
         updatedAt: new Date(),
-      })
-    );
+      }),
+      userRole: toUserRoleV2(userRole.SECURITY_ROLE),
+    });
   });
 
   it.each<[string, UserId, TenantId]>([

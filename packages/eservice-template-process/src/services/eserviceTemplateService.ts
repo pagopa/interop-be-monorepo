@@ -1,3 +1,4 @@
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   AppContext,
   DB,
@@ -5,14 +6,18 @@ import {
   RiskAnalysisValidatedForm,
   WithLogger,
   eventRepository,
+  validateNoHyperlinksSafe,
   validateRiskAnalysis,
   UIAuthData,
   M2MAuthData,
   M2MAdminAuthData,
-  riskAnalysisValidatedFormToNewEServiceTemplateRiskAnalysis,
+  InternalAuthData,
   retrieveOriginFromAuthData,
   isFeatureFlagEnabled,
+  assertFeatureFlagEnabled,
   Logger,
+  RiskAnalysisFormToValidate,
+  riskAnalysisValidatedFormToNewRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -28,13 +33,11 @@ import {
   unsafeBrandId,
   WithMetadata,
   RiskAnalysisId,
-  TenantKind,
   eserviceMode,
   generateId,
   ListResult,
   Document,
   EServiceDocumentId,
-  EServiceTemplateRiskAnalysis,
   RiskAnalysisForm,
   AttributeKind,
   attributeKind,
@@ -42,9 +45,17 @@ import {
   Tenant,
   EServiceTemplateEvent,
   CompactOrganization,
+  technology,
+  RiskAnalysis,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { eserviceTemplateApi } from "pagopa-interop-api-clients";
+
+import { config } from "../config/config.js";
+import {
+  apiAgreementApprovalPolicyToAgreementApprovalPolicy,
+  apiEServiceModeToEServiceMode,
+  apiTechnologyToTechnology,
+} from "../model/domain/apiConverter.js";
 import {
   attributeNotFound,
   checksumDuplicate,
@@ -55,6 +66,7 @@ import {
   notValidEServiceTemplateVersionState,
   attributeDuplicatedInGroup,
   tenantNotFound,
+  tenantKindNotFound,
   missingPersonalDataFlag,
   eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce,
 } from "../model/domain/errors.js";
@@ -69,6 +81,12 @@ import {
   interfaceAlreadyExists,
   documentPrettyNameDuplicate,
   riskAnalysisNotFound,
+  eserviceTemplateAsyncExchangeNotEnabled,
+  asyncExchangeCallbackInterfaceAlreadyExists,
+  interfaceDocumentNotUpdatable,
+  missingAsyncExchangeProperties,
+  missingAsyncExchangeCallbackInterface,
+  asyncExchangeBulkNotAllowedForSoap,
 } from "../model/domain/errors.js";
 import {
   toCreateEventEServiceTemplateVersionActivated,
@@ -82,6 +100,7 @@ import {
   toCreateEventEServiceTemplateRiskAnalysisAdded,
   toCreateEventEServiceTemplateRiskAnalysisDeleted,
   toCreateEventEServiceTemplateRiskAnalysisUpdated,
+  toCreateEventMaintenanceEServiceTemplateRiskAnalysisSetTenantKind,
   toCreateEventEServiceTemplateDeleted,
   toCreateEventEServiceTemplateDraftVersionDeleted,
   toCreateEventEServiceTemplateVersionAdded,
@@ -90,19 +109,15 @@ import {
   toCreateEventEServiceTemplateVersionPublished,
   toCreateEventEServiceTemplateVersionInterfaceAdded,
   toCreateEventEServiceTemplateVersionDocumentAdded,
-  toCreateEventEServiceTemplateVersionInterfaceUpdated,
   toCreateEventEServiceTemplateVersionDocumentUpdated,
   toCreateEventEServiceTemplateVersionDocumentDeleted,
   toCreateEventEServiceTemplateVersionInterfaceDeleted,
   toCreateEventEServiceTemplatePersonalDataFlagUpdatedAfterPublication,
+  toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded,
+  toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted,
 } from "../model/domain/toEvent.js";
-import { config } from "../config/config.js";
-import {
-  apiAgreementApprovalPolicyToAgreementApprovalPolicy,
-  apiEServiceModeToEServiceMode,
-  apiTechnologyToTechnology,
-} from "../model/domain/apiConverter.js";
 import { GetEServiceTemplatesFilters } from "./readModelService.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import {
   assertIsReceiveTemplate,
   assertIsDraftEServiceTemplate,
@@ -118,8 +133,9 @@ import {
   assertUpdatedNameDiffersFromCurrent,
   assertUpdatedDescriptionDiffersFromCurrent,
   versionStatesNotAllowingInterfaceOperations,
+  assertAsyncExchangeReceiveTemplateNotAllowed,
+  assertDiscreteConfigForCertifiedAttributesOnly,
 } from "./validators.js";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 const retrieveEServiceTemplate = async (
   eserviceTemplateId: EServiceTemplateId,
@@ -136,7 +152,7 @@ const retrieveEServiceTemplate = async (
 const retrieveEServiceTemplateRiskAnalysis = (
   eserviceTemplate: EServiceTemplate,
   riskAnalysisId: RiskAnalysisId
-): EServiceTemplateRiskAnalysis => {
+): RiskAnalysis => {
   const riskAnalysis = eserviceTemplate.riskAnalysis.find(
     (ra) => ra.id === riskAnalysisId
   );
@@ -251,15 +267,14 @@ const replaceEServiceTemplateVersion = (
 };
 
 function validateRiskAnalysisSchemaOrThrow(
-  riskAnalysisForm: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed["riskAnalysisForm"],
-  tenantKind: TenantKind,
+  riskAnalysisForm: RiskAnalysisFormToValidate,
   dateForExpirationValidation: Date,
   personalDataInEService: boolean | undefined
 ): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     true,
-    tenantKind,
+    riskAnalysisForm.tenantKind,
     dateForExpirationValidation,
     personalDataInEService
   );
@@ -295,10 +310,19 @@ async function parseAndCheckAttributesOfKind(
     .flat()
     .map(({ id }) => id);
 
-  const attributes = await readModelService.getAttributesByIds(
-    attributesSeedIds,
-    kind
-  );
+  const attributes =
+    kind === attributeKind.certified
+      ? [
+          ...(await readModelService.getAttributesByIds(
+            attributesSeedIds,
+            attributeKind.certified
+          )),
+          ...(await readModelService.getAttributesByIds(
+            attributesSeedIds,
+            attributeKind.certifiedDiscrete
+          )),
+        ]
+      : await readModelService.getAttributesByIds(attributesSeedIds, kind);
 
   const attributesIds = attributes.map((attr) => attr.id);
   attributesSeedIds.forEach((attributeId) => {
@@ -306,6 +330,19 @@ async function parseAndCheckAttributesOfKind(
       throw attributeNotFound(attributeId);
     }
   });
+
+  if (kind === attributeKind.certified) {
+    const hasCertifiedDiscreteConfig = parsedAttributesSeed
+      .flat()
+      .some((seedAttribute) => seedAttribute.discreteConfig !== undefined);
+    const hasCertifiedDiscreteAttribute = attributes.some(
+      (attribute) => attribute.kind === attributeKind.certifiedDiscrete
+    );
+
+    if (hasCertifiedDiscreteConfig || hasCertifiedDiscreteAttribute) {
+      assertFeatureFlagEnabled(config, "featureFlagAttributeCertifiedDiscrete");
+    }
+  }
 
   return parsedAttributesSeed;
 }
@@ -348,6 +385,7 @@ const retrieveDocument = (
   const document = [
     ...eserviceTemplateVersion.docs,
     eserviceTemplateVersion.interface,
+    eserviceTemplateVersion.asyncExchangeCallbackInterface,
   ].find((doc) => doc != null && doc.id === documentId);
   if (document === undefined) {
     throw eserviceTemplateDocumentNotFound(
@@ -522,14 +560,33 @@ export function eserviceTemplateServiceBuilder(
       if (eserviceTemplate.data.mode === eserviceMode.receive) {
         assertRiskAnalysisIsValidForPublication(eserviceTemplate.data);
       }
-      if (
-        isFeatureFlagEnabled(config, "featureFlagEservicePersonalData") &&
-        eserviceTemplate.data.personalData === undefined
-      ) {
+
+      if (eserviceTemplate.data.personalData === undefined) {
         throw missingPersonalDataFlag(
           eserviceTemplateId,
           eserviceTemplateVersionId
         );
+      }
+
+      if (
+        isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+        eserviceTemplate.data.asyncExchange === true
+      ) {
+        if (eserviceTemplateVersion.asyncExchangeProperties === undefined) {
+          throw missingAsyncExchangeProperties(
+            eserviceTemplateId,
+            eserviceTemplateVersionId
+          );
+        }
+
+        if (
+          eserviceTemplateVersion.asyncExchangeCallbackInterface === undefined
+        ) {
+          throw missingAsyncExchangeCallbackInterface(
+            eserviceTemplateId,
+            eserviceTemplateVersionId
+          );
+        }
       }
 
       const publishedTemplate: EServiceTemplate = {
@@ -639,6 +696,8 @@ export function eserviceTemplateServiceBuilder(
     ): Promise<WithMetadata<EServiceTemplate>> {
       logger.info(`Updating name of EService template ${eserviceTemplateId}`);
 
+      validateNoHyperlinksSafe(name);
+
       const eserviceTemplate = await retrieveEServiceTemplate(
         eserviceTemplateId,
         readModelService
@@ -698,6 +757,8 @@ export function eserviceTemplateServiceBuilder(
         `Updating intended target description of EService template ${eserviceTemplateId}`
       );
 
+      validateNoHyperlinksSafe(intendedTarget);
+
       const eserviceTemplate = await retrieveEServiceTemplate(
         eserviceTemplateId,
         readModelService
@@ -739,6 +800,8 @@ export function eserviceTemplateServiceBuilder(
       logger.info(
         `Updating e-service description of EService template ${eserviceTemplateId}`
       );
+
+      validateNoHyperlinksSafe(description);
 
       const eserviceTemplate = await retrieveEServiceTemplate(
         eserviceTemplateId,
@@ -907,17 +970,7 @@ export function eserviceTemplateServiceBuilder(
 
       const isLastVersion = eserviceTemplate.data.versions.length === 1;
 
-      if (version.interface) {
-        await fileManager.delete(
-          config.s3Bucket,
-          version.interface.path,
-          logger
-        );
-      }
-
-      for (const document of version.docs) {
-        await fileManager.delete(config.s3Bucket, document.path, logger);
-      }
+      await deleteVersionInterfaceAndDocs(version, fileManager, logger);
 
       if (isLastVersion) {
         await repository.createEvent(
@@ -982,18 +1035,21 @@ export function eserviceTemplateServiceBuilder(
         );
       }
 
+      const formToValidate: RiskAnalysisFormToValidate = {
+        ...createRiskAnalysis.riskAnalysisForm,
+        tenantKind: createRiskAnalysis.tenantKind,
+      };
+
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
-        createRiskAnalysis.riskAnalysisForm,
-        createRiskAnalysis.tenantKind,
+        formToValidate,
         new Date(),
         template.data.personalData
       );
 
-      const newRiskAnalysis: EServiceTemplateRiskAnalysis =
-        riskAnalysisValidatedFormToNewEServiceTemplateRiskAnalysis(
+      const newRiskAnalysis: RiskAnalysis =
+        riskAnalysisValidatedFormToNewRiskAnalysis(
           validatedRiskAnalysisForm,
-          createRiskAnalysis.name,
-          createRiskAnalysis.tenantKind
+          createRiskAnalysis.name
         );
 
       const newTemplate: EServiceTemplate = {
@@ -1087,9 +1143,13 @@ export function eserviceTemplateServiceBuilder(
         riskAnalysisId
       );
 
+      const formToValidate: RiskAnalysisFormToValidate = {
+        ...updateRiskAnalysisSeed.riskAnalysisForm,
+        tenantKind: updateRiskAnalysisSeed.tenantKind,
+      };
+
       const validatedForm = validateRiskAnalysisSchemaOrThrow(
-        updateRiskAnalysisSeed.riskAnalysisForm,
-        updateRiskAnalysisSeed.tenantKind,
+        formToValidate,
         new Date(),
         template.data.personalData
       );
@@ -1105,13 +1165,13 @@ export function eserviceTemplateServiceBuilder(
           ...a,
           id: generateId(),
         })),
+        tenantKind: updateRiskAnalysisSeed.tenantKind,
       };
 
-      const updatedRiskAnalysis: EServiceTemplateRiskAnalysis = {
+      const updatedRiskAnalysis: RiskAnalysis = {
         id: riskAnalysisToUpdate.id,
         createdAt: riskAnalysisToUpdate.createdAt,
         name: updateRiskAnalysisSeed.name,
-        tenantKind: updateRiskAnalysisSeed.tenantKind,
         riskAnalysisForm: updatedRiskAnalysisForm,
       };
 
@@ -1131,6 +1191,49 @@ export function eserviceTemplateServiceBuilder(
       );
 
       await repository.createEvent(event);
+    },
+    async fixEServiceTemplateRiskAnalysisTenantKind(
+      templateId: EServiceTemplateId,
+      riskAnalysisId: RiskAnalysisId,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<WithMetadata<EServiceTemplate>> {
+      logger.info(
+        `Fixing risk analysis ${riskAnalysisId} for EService template ${templateId}`
+      );
+
+      const template = await retrieveEServiceTemplate(
+        templateId,
+        readModelService
+      );
+
+      const riskAnalysisToFix = retrieveEServiceTemplateRiskAnalysis(
+        template.data,
+        riskAnalysisId
+      );
+
+      const existingTenantKind = riskAnalysisToFix.riskAnalysisForm.tenantKind;
+      if (!existingTenantKind) {
+        throw tenantKindNotFound(template.data.creatorId);
+      }
+
+      const updatedTemplate: EServiceTemplate = {
+        ...template.data,
+      };
+
+      const event = await repository.createEvent(
+        toCreateEventMaintenanceEServiceTemplateRiskAnalysisSetTenantKind(
+          template.data.id,
+          template.metadata.version,
+          riskAnalysisId,
+          updatedTemplate,
+          correlationId
+        )
+      );
+
+      return {
+        data: updatedTemplate,
+        metadata: { version: event.newVersion },
+      };
     },
     async updateEServiceTemplateVersionAttributes(
       eserviceTemplateId: EServiceTemplateId,
@@ -1169,6 +1272,12 @@ export function eserviceTemplateServiceBuilder(
           eserviceTemplateVersion.state
         );
       }
+
+      const parsedAttributes = await parseAndCheckAttributes(
+        seed,
+        readModelService
+      );
+      assertDiscreteConfigForCertifiedAttributesOnly(parsedAttributes);
 
       /**
        * In order for the e-service template version attributes to be updatable,
@@ -1246,7 +1355,7 @@ export function eserviceTemplateServiceBuilder(
 
       const updatedEServiceTemplateVersion: EServiceTemplateVersion = {
         ...eserviceTemplateVersion,
-        attributes: await parseAndCheckAttributes(seed, readModelService),
+        attributes: parsedAttributes,
       };
 
       const updatedEServiceTemplate = replaceEServiceTemplateVersion(
@@ -1280,6 +1389,11 @@ export function eserviceTemplateServiceBuilder(
     ): Promise<WithMetadata<EServiceTemplate>> {
       logger.info(`Creating EService template with name ${seed.name}`);
 
+      validateNoHyperlinksSafe(seed.name);
+      validateNoHyperlinksSafe(seed.description);
+      validateNoHyperlinksSafe(seed.intendedTarget);
+      validateNoHyperlinksSafe(seed.version.description);
+
       const origin = await retrieveOriginFromAuthData(
         authData,
         readModelService,
@@ -1293,6 +1407,13 @@ export function eserviceTemplateServiceBuilder(
       await assertEServiceTemplateNameAvailable(seed.name, readModelService);
 
       assertConsistentDailyCalls(seed.version);
+
+      if (isFeatureFlagEnabled(config, "featureFlagAsyncExchange")) {
+        assertAsyncExchangeReceiveTemplateNotAllowed({
+          mode: apiEServiceModeToEServiceMode(seed.mode),
+          asyncExchange: seed.asyncExchange,
+        });
+      }
 
       const creationDate = new Date();
       const draftVersion: EServiceTemplateVersion = {
@@ -1329,9 +1450,10 @@ export function eserviceTemplateServiceBuilder(
         createdAt: creationDate,
         riskAnalysis: [],
         isSignalHubEnabled: seed.isSignalHubEnabled,
-        ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
-          ? { personalData: seed.personalData }
+        ...(isFeatureFlagEnabled(config, "featureFlagAsyncExchange")
+          ? { asyncExchange: seed.asyncExchange }
           : {}),
+        personalData: seed.personalData,
       };
 
       const eserviceTemplateCreationEvent = toCreateEventEServiceTemplateAdded(
@@ -1395,6 +1517,12 @@ export function eserviceTemplateServiceBuilder(
         `Creating version for EService template ${eserviceTemplateId}`
       );
 
+      validateNoHyperlinksSafe(seed.description);
+      seed.docs.forEach((doc) => {
+        validateNoHyperlinksSafe(doc.fileName);
+        validateNoHyperlinksSafe(doc.prettyName);
+      });
+
       const eserviceTemplate = await retrieveEServiceTemplate(
         eserviceTemplateId,
         readModelService
@@ -1412,6 +1540,7 @@ export function eserviceTemplateServiceBuilder(
         seed.attributes,
         readModelService
       );
+      assertDiscreteConfigForCertifiedAttributesOnly(parsedAttributes);
       assertConsistentDailyCalls({
         dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
         dailyCallsTotal: seed.dailyCallsTotal,
@@ -1585,6 +1714,9 @@ export function eserviceTemplateServiceBuilder(
         } for EService Template ${eserviceTemplateId} and Version ${eserviceTemplateVersionId}`
       );
 
+      validateNoHyperlinksSafe(document.fileName);
+      validateNoHyperlinksSafe(document.prettyName);
+
       const eserviceTemplate = await retrieveEServiceTemplate(
         eserviceTemplateId,
         readModelService
@@ -1602,6 +1734,8 @@ export function eserviceTemplateServiceBuilder(
 
       const isInterface = document.kind === "INTERFACE";
       const isDocument = document.kind === "DOCUMENT";
+      const isAsyncExchangeCallbackInterface =
+        document.kind === "ASYNC_EXCHANGE_CALLBACK_INTERFACE";
 
       if (isInterface && versionStatesNotAllowingInterfaceOperations(version)) {
         throw notValidEServiceTemplateVersionState(version.id, version.state);
@@ -1632,6 +1766,24 @@ export function eserviceTemplateServiceBuilder(
         throw checksumDuplicate(eserviceTemplate.data.id, version.id);
       }
 
+      if (isAsyncExchangeCallbackInterface) {
+        assertFeatureFlagEnabled(config, "featureFlagAsyncExchange");
+
+        if (versionStatesNotAllowingInterfaceOperations(version)) {
+          throw notValidEServiceTemplateVersionState(version.id, version.state);
+        }
+
+        if (eserviceTemplate.data.asyncExchange !== true) {
+          throw eserviceTemplateAsyncExchangeNotEnabled(
+            eserviceTemplate.data.id
+          );
+        }
+
+        if (version.asyncExchangeCallbackInterface !== undefined) {
+          throw asyncExchangeCallbackInterfaceAlreadyExists(version.id);
+        }
+      }
+
       const newDocument: Document = {
         id: unsafeBrandId(document.documentId),
         name: document.fileName,
@@ -1650,7 +1802,11 @@ export function eserviceTemplateServiceBuilder(
               ? {
                   ...v,
                   interface: isInterface ? newDocument : v.interface,
-                  docs: isInterface ? v.docs : [...v.docs, newDocument],
+                  docs: isDocument ? [...v.docs, newDocument] : v.docs,
+                  asyncExchangeCallbackInterface:
+                    isAsyncExchangeCallbackInterface
+                      ? newDocument
+                      : v.asyncExchangeCallbackInterface,
                 }
               : v
         ),
@@ -1665,14 +1821,23 @@ export function eserviceTemplateServiceBuilder(
             updatedEServiceTemplate,
             correlationId
           )
-        : toCreateEventEServiceTemplateVersionDocumentAdded(
-            eserviceTemplateId,
-            eserviceTemplate.metadata.version,
-            eserviceTemplateVersionId,
-            unsafeBrandId(document.documentId),
-            updatedEServiceTemplate,
-            correlationId
-          );
+        : isAsyncExchangeCallbackInterface
+          ? toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded(
+              eserviceTemplateId,
+              eserviceTemplate.metadata.version,
+              eserviceTemplateVersionId,
+              unsafeBrandId(document.documentId),
+              updatedEServiceTemplate,
+              correlationId
+            )
+          : toCreateEventEServiceTemplateVersionDocumentAdded(
+              eserviceTemplateId,
+              eserviceTemplate.metadata.version,
+              eserviceTemplateVersionId,
+              unsafeBrandId(document.documentId),
+              updatedEServiceTemplate,
+              correlationId
+            );
 
       const createdEvent = await repository.createEvent(event);
 
@@ -1743,6 +1908,10 @@ export function eserviceTemplateServiceBuilder(
         `Updating Document ${documentId} of Version ${eserviceTemplateVersionId} for EService template ${eserviceTemplateId}`
       );
 
+      validateNoHyperlinksSafe(
+        apiEServiceDescriptorDocumentUpdateSeed.prettyName
+      );
+
       const eserviceTemplate = await retrieveEServiceTemplate(
         eserviceTemplateId,
         readModelService
@@ -1767,10 +1936,13 @@ export function eserviceTemplateServiceBuilder(
         documentId
       );
 
-      const isInterface = document.id === version?.interface?.id;
-
-      if (isInterface && versionStatesNotAllowingInterfaceOperations(version)) {
-        throw notValidEServiceTemplateVersionState(version.id, version.state);
+      // The interface and the async exchange callback interface cannot be
+      // updated: only regular documents are updatable through this operation.
+      if (
+        document.id === version.interface?.id ||
+        document.id === version.asyncExchangeCallbackInterface?.id
+      ) {
+        throw interfaceDocumentNotUpdatable(version.id, documentId);
       }
 
       if (
@@ -1799,7 +1971,6 @@ export function eserviceTemplateServiceBuilder(
             v.id === eserviceTemplateVersionId
               ? {
                   ...v,
-                  interface: isInterface ? updatedDocument : v.interface,
                   docs: v.docs.map((doc) =>
                     doc.id === documentId ? updatedDocument : doc
                   ),
@@ -1808,23 +1979,14 @@ export function eserviceTemplateServiceBuilder(
         ),
       };
 
-      const event = isInterface
-        ? toCreateEventEServiceTemplateVersionInterfaceUpdated(
-            eserviceTemplateId,
-            eserviceTemplate.metadata.version,
-            eserviceTemplateVersionId,
-            documentId,
-            newEserviceTemplate,
-            correlationId
-          )
-        : toCreateEventEServiceTemplateVersionDocumentUpdated(
-            eserviceTemplateId,
-            eserviceTemplate.metadata.version,
-            eserviceTemplateVersionId,
-            documentId,
-            newEserviceTemplate,
-            correlationId
-          );
+      const event = toCreateEventEServiceTemplateVersionDocumentUpdated(
+        eserviceTemplateId,
+        eserviceTemplate.metadata.version,
+        eserviceTemplateVersionId,
+        documentId,
+        newEserviceTemplate,
+        correlationId
+      );
 
       await repository.createEvent(event);
       return updatedDocument;
@@ -1868,8 +2030,10 @@ export function eserviceTemplateServiceBuilder(
       );
 
       const isInterface = document.id === version?.interface?.id;
+      const isAsyncExchangeCallbackInterface =
+        document.id === version?.asyncExchangeCallbackInterface?.id;
 
-      if (isInterface) {
+      if (isInterface || isAsyncExchangeCallbackInterface) {
         if (version.state !== eserviceTemplateVersionState.draft) {
           throw notValidEServiceTemplateVersionState(version.id, version.state);
         }
@@ -1887,6 +2051,9 @@ export function eserviceTemplateServiceBuilder(
           ...version,
           interface: isInterface ? undefined : version.interface,
           docs: version.docs.filter((doc) => doc.id !== documentId),
+          asyncExchangeCallbackInterface: isAsyncExchangeCallbackInterface
+            ? undefined
+            : version.asyncExchangeCallbackInterface,
         }
       );
 
@@ -1899,14 +2066,23 @@ export function eserviceTemplateServiceBuilder(
             updatedEServiceTemplate,
             correlationId
           )
-        : toCreateEventEServiceTemplateVersionDocumentDeleted(
-            eserviceTemplate.data.id,
-            eserviceTemplate.metadata.version,
-            eserviceTemplateVersionId,
-            documentId,
-            updatedEServiceTemplate,
-            correlationId
-          );
+        : isAsyncExchangeCallbackInterface
+          ? toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted(
+              eserviceTemplate.data.id,
+              eserviceTemplate.metadata.version,
+              eserviceTemplateVersionId,
+              documentId,
+              updatedEServiceTemplate,
+              correlationId
+            )
+          : toCreateEventEServiceTemplateVersionDocumentDeleted(
+              eserviceTemplate.data.id,
+              eserviceTemplate.metadata.version,
+              eserviceTemplateVersionId,
+              documentId,
+              updatedEServiceTemplate,
+              correlationId
+            );
 
       const createdEvent = await repository.createEvent(event);
 
@@ -2098,6 +2274,10 @@ async function updateDraftEServiceTemplate(
     intendedTarget,
   } = typeAndSeed.seed;
 
+  validateNoHyperlinksSafe(name);
+  validateNoHyperlinksSafe(description);
+  validateNoHyperlinksSafe(intendedTarget);
+
   if (name && name !== eserviceTemplate.data.name) {
     await assertEServiceTemplateNameAvailable(name, readModelService);
   }
@@ -2113,9 +2293,13 @@ async function updateDraftEServiceTemplate(
     await Promise.all(
       eserviceTemplate.data.versions.map(async (d) => {
         if (d.interface !== undefined) {
-          return await fileManager.delete(
+          await fileManager.delete(config.s3Bucket, d.interface.path, logger);
+        }
+
+        if (d.asyncExchangeCallbackInterface !== undefined) {
+          await fileManager.delete(
             config.s3Bucket,
-            d.interface.path,
+            d.asyncExchangeCallbackInterface.path,
             logger
           );
         }
@@ -2151,6 +2335,19 @@ async function updateDraftEServiceTemplate(
           : eserviceTemplate.data.personalData)
     )
     .exhaustive();
+
+  const updatedAsyncExchange = match(typeAndSeed)
+    .with({ type: "post" }, ({ seed }) => seed.asyncExchange)
+    .with(
+      { type: "patch" },
+      ({ seed }) =>
+        seed.asyncExchange ??
+        (seed.asyncExchange === null
+          ? undefined
+          : eserviceTemplate.data.asyncExchange)
+    )
+    .exhaustive();
+
   const updatedEServiceTemplate: EServiceTemplate = {
     ...eserviceTemplate.data,
     name: name ?? eserviceTemplate.data.name,
@@ -2163,12 +2360,14 @@ async function updateDraftEServiceTemplate(
       ? eserviceTemplate.data.versions.map((d) => ({
           ...d,
           interface: undefined,
+          asyncExchangeCallbackInterface: undefined,
         }))
       : eserviceTemplate.data.versions,
     isSignalHubEnabled: updatedIsSignalHubEnabled,
-    ...(isFeatureFlagEnabled(config, "featureFlagEservicePersonalData")
-      ? { personalData: updatedPersonalData }
+    ...(isFeatureFlagEnabled(config, "featureFlagAsyncExchange")
+      ? { asyncExchange: updatedAsyncExchange }
       : {}),
+    personalData: updatedPersonalData,
   };
 
   const event = await repository.createEvent(
@@ -2228,12 +2427,16 @@ async function updateDraftEServiceTemplateVersion(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     agreementApprovalPolicy,
     attributes,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    asyncExchangeProperties,
     ...rest
   } = seed;
   void (rest satisfies Record<string, never>);
   // ^ To make sure we extract all the updated fields.
   // The eslint disables are needed because those fields are extracted
   // but then not used directly, since they are handled in a different way.
+
+  validateNoHyperlinksSafe(description);
 
   const eserviceTemplate = await retrieveEServiceTemplate(
     eserviceTemplateId,
@@ -2314,6 +2517,42 @@ async function updateDraftEServiceTemplateVersion(
       )
     : eserviceTemplateVersion.attributes;
 
+  if (attributes) {
+    assertDiscreteConfigForCertifiedAttributesOnly(parsedAttributes);
+  }
+
+  const asyncExchangeEnabled =
+    isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+    eserviceTemplate.data.asyncExchange === true;
+
+  const updatedAsyncExchangeProperties = asyncExchangeEnabled
+    ? match(updateSeed)
+        .with(
+          { type: "post" },
+          ({ seed }) =>
+            seed.asyncExchangeProperties ??
+            eserviceTemplateVersion.asyncExchangeProperties
+        )
+        .with({ type: "patch" }, ({ seed }) =>
+          resolvePatchValue(
+            seed.asyncExchangeProperties,
+            eserviceTemplateVersion.asyncExchangeProperties
+          )
+        )
+        .exhaustive()
+    : eserviceTemplateVersion.asyncExchangeProperties;
+
+  if (
+    asyncExchangeEnabled &&
+    eserviceTemplate.data.technology === technology.soap &&
+    updatedAsyncExchangeProperties?.bulk === true
+  ) {
+    throw asyncExchangeBulkNotAllowedForSoap(
+      eserviceTemplate.data.id,
+      eserviceTemplateVersion.id
+    );
+  }
+
   const updatedVersion: EServiceTemplateVersion = {
     ...eserviceTemplateVersion,
     agreementApprovalPolicy: updatedAgreementApprovalPolicy,
@@ -2322,6 +2561,7 @@ async function updateDraftEServiceTemplateVersion(
     description: description ?? eserviceTemplateVersion.description,
     voucherLifespan: voucherLifespan ?? eserviceTemplateVersion.voucherLifespan,
     attributes: parsedAttributes,
+    asyncExchangeProperties: updatedAsyncExchangeProperties,
   };
 
   const updatedEServiceTemplate = replaceEServiceTemplateVersion(
@@ -2352,6 +2592,15 @@ const deleteVersionInterfaceAndDocs = async (
   const versionInterface = version.interface;
   if (versionInterface !== undefined) {
     await fileManager.delete(config.s3Bucket, versionInterface.path, logger);
+  }
+
+  const asyncExchangeCallbackInterface = version.asyncExchangeCallbackInterface;
+  if (asyncExchangeCallbackInterface !== undefined) {
+    await fileManager.delete(
+      config.s3Bucket,
+      asyncExchangeCallbackInterface.path,
+      logger
+    );
   }
 
   const deleteVersionDocs = version.docs.map((doc: Document) =>

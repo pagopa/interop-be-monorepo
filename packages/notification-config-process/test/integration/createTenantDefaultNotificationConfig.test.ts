@@ -11,12 +11,13 @@ import {
   toTenantNotificationConfigV2,
 } from "pagopa-interop-models";
 import { beforeAll, describe, expect, it, vi } from "vitest";
+
+import { tenantNotificationConfigAlreadyExists } from "../../src/model/domain/errors.js";
 import {
   addOneTenantNotificationConfig,
   notificationConfigService,
   readLastNotificationConfigEvent,
 } from "../integrationUtils.js";
-import { tenantNotificationConfigAlreadyExists } from "../../src/model/domain/errors.js";
 
 describe("createTenantNotificationConfig", () => {
   const tenantId: TenantId = generateId();
@@ -50,9 +51,11 @@ describe("createTenantNotificationConfig", () => {
       createdAt: new Date(),
     };
     expect(serviceReturnValue).toEqual(expectedTenantNotificationConfig);
-    expect(writtenPayload.tenantNotificationConfig).toEqual(
-      toTenantNotificationConfigV2(expectedTenantNotificationConfig)
-    );
+    expect(writtenPayload).toEqual({
+      tenantNotificationConfig: toTenantNotificationConfigV2(
+        expectedTenantNotificationConfig
+      ),
+    });
   });
 
   it("should throw tenantNotificationConfigAlreadyExists if a notification config already exists for that tenant", async () => {

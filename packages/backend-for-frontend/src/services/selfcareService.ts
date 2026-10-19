@@ -1,23 +1,28 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { CorrelationId, TenantId } from "pagopa-interop-models";
+import { isAxiosError } from "axios";
 import {
   bffApi,
   selfcareV2ClientApi,
   SelfcareV2UsersClient,
 } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
-import { missingSelfcareId, userNotFound } from "../model/errors.js";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { BffAppContext } from "../utilities/context.js";
+import { ApiError, CorrelationId, TenantId } from "pagopa-interop-models";
+
 import {
   toApiSelfcareInstitution,
   toApiSelfcareProduct,
   toApiSelfcareUser,
   toBffApiCompactUser,
 } from "../api/selfcareApiConverter.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
+import { missingSelfcareId, userNotFound } from "../model/errors.js";
+import { BffAppContext } from "../utilities/context.js";
 import { assertRequesterCanRetrieveUsers } from "./validators.js";
+
+const isAxiosNotFoundError = (error: unknown): boolean =>
+  isAxiosError(error) && error.response?.status === 404;
 
 export async function getSelfcareCompactUserById(
   selfcareClient: SelfcareV2UsersClient,
@@ -25,15 +30,50 @@ export async function getSelfcareCompactUserById(
   selfcareId: string,
   correlationId: CorrelationId
 ): Promise<bffApi.CompactUser> {
-  const user = await selfcareClient.getUserInfoUsingGET({
-    params: { id: userId },
-    queries: { institutionId: selfcareId },
-    headers: {
-      "X-Correlation-Id": correlationId,
-    },
-  });
+  try {
+    const user = await selfcareClient.getUserInfoUsingGET({
+      params: { id: userId },
+      queries: { institutionId: selfcareId },
+      headers: { "X-Correlation-Id": correlationId },
+    });
 
-  return toBffApiCompactUser(user, userId);
+    return toBffApiCompactUser(user, userId);
+  } catch (error: unknown) {
+    /**
+     * To avoid breaking the user experience in case of a user that has been removed from selfcare but is still referenced in a client,
+     * we return a fallback user instead of throwing an error.
+     */
+    if (isAxiosNotFoundError(error)) {
+      return toBffApiCompactUser(
+        {
+          id: userId,
+          name: "Utente rimosso",
+          surname: "",
+        },
+        userId
+      );
+    }
+    throw error;
+  }
+}
+
+function toSafeApiSelfcareInstitution(
+  institution: selfcareV2ClientApi.UserInstitutionResource,
+  userId: string,
+  logger: WithLogger<BffAppContext>["logger"]
+): bffApi.SelfcareInstitution | undefined {
+  try {
+    return toApiSelfcareInstitution(institution);
+  } catch (error) {
+    if (error instanceof ApiError && error.code === "selfcareEntityNotFilled") {
+      logger.warn(
+        `Skipping incomplete selfcare institution for user ${userId} - ${error.detail}`
+      );
+      return undefined;
+    }
+
+    throw error;
+  }
 }
 
 export function selfcareServiceBuilder({
@@ -122,7 +162,15 @@ export function selfcareServiceBuilder({
         },
       });
 
-      return institutions.map(toApiSelfcareInstitution);
+      return institutions.flatMap((institution) => {
+        const selfcareInstitution = toSafeApiSelfcareInstitution(
+          institution,
+          userId,
+          logger
+        );
+
+        return selfcareInstitution ? [selfcareInstitution] : [];
+      });
     },
 
     async getInstitutionUsers(

@@ -1,5 +1,6 @@
 import { m2mGatewayApiV3, tenantApi } from "pagopa-interop-api-clients";
 import { PUBLIC_ADMINISTRATIONS_IDENTIFIER } from "pagopa-interop-models";
+
 import { taxCodeAndIPACodeConflict } from "../model/errors.js";
 
 export function toM2MGatewayApiTenant(
@@ -54,6 +55,17 @@ export function toM2MGatewayApiTenantCertifiedAttribute(
     id: tenantCertifiedAttribute.id,
     assignedAt: tenantCertifiedAttribute.assignmentTimestamp,
     revokedAt: tenantCertifiedAttribute.revocationTimestamp,
+  };
+}
+
+export function toM2MGatewayApiTenantCertifiedDiscreteAttribute(
+  tenantCertifiedDiscreteAttribute: tenantApi.CertifiedDiscreteTenantAttribute
+): m2mGatewayApiV3.TenantCertifiedDiscreteAttribute {
+  return {
+    id: tenantCertifiedDiscreteAttribute.id,
+    assignedAt: tenantCertifiedDiscreteAttribute.assignmentTimestamp,
+    revokedAt: tenantCertifiedDiscreteAttribute.revocationTimestamp,
+    discreteValue: tenantCertifiedDiscreteAttribute.discreteValue,
   };
 }
 

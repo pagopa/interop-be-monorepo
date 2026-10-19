@@ -1,9 +1,3 @@
-import path from "path";
-import {
-  AgreementEventEnvelopeV2,
-  missingKafkaMessageDataError,
-} from "pagopa-interop-models";
-import { match, P } from "ts-pattern";
 import {
   FileManager,
   Logger,
@@ -11,6 +5,13 @@ import {
   SafeStorageService,
   FileCreationRequest,
 } from "pagopa-interop-commons";
+import {
+  AgreementEventEnvelopeV2,
+  missingKafkaMessageDataError,
+} from "pagopa-interop-models";
+import path from "path";
+import { match, P } from "ts-pattern";
+
 import { config } from "../config/config.js";
 import { calculateSha256Base64 } from "../utils/checksum.js";
 
@@ -37,8 +38,9 @@ export async function handleAgreementDocument(
           logger
         );
 
+        const fileBuffer = Buffer.from(file);
         const fileName = path.basename(s3Key);
-        const checksum = await calculateSha256Base64(Buffer.from(file));
+        const checksum = await calculateSha256Base64(fileBuffer);
         const contentType = "application/pdf";
 
         const safeStorageRequest: FileCreationRequest = {
@@ -53,15 +55,21 @@ export async function handleAgreementDocument(
           logger
         );
 
-        logger.info(`Created file on safe storage with key: ${key}`);
+        logger.info(
+          `Created file ${s3Key} on safe storage with key: ${key} and checksum: ${checksum} having length: ${fileBuffer.length} bytes`
+        );
 
         await safeStorageService.uploadFileContent(
           uploadUrl,
-          Buffer.from(file),
+          fileBuffer,
           contentType,
           secret,
           checksum,
           logger
+        );
+
+        logger.info(
+          `Uploaded file ${s3Key} on safe storage with key: ${key} and checksum: ${checksum} having length: ${fileBuffer.length} bytes`
         );
 
         await signatureService.saveDocumentSignatureReference(
@@ -79,6 +87,10 @@ export async function handleAgreementDocument(
             createdAt: msg.data.agreement.createdAt,
           },
           logger
+        );
+
+        logger.info(
+          `Processed agreement document with key: ${key} and file: ${s3Key}`
         );
       }
     })

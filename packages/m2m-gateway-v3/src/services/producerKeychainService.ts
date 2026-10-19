@@ -1,27 +1,29 @@
+import { authorizationApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import { retry, WithLogger } from "pagopa-interop-commons";
 import {
   EServiceId,
   ProducerKeychainId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { retry, WithLogger } from "pagopa-interop-commons";
-import { authorizationApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { M2MGatewayAppContext } from "../utils/context.js";
-import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
+
+import { toM2MGatewayApiEService } from "../api/eserviceApiConverter.js";
+import { toM2MJWK, toM2MProducerKey } from "../api/keysApiConverter.js";
 import {
   toGetProducerKeychainsApiQueryParams,
   toM2MGatewayApiProducerKeychain,
 } from "../api/producerKeychainApiConverter.js";
-import { assertProducerKeychainVisibilityIsFull } from "../utils/validators/keychainValidators.js";
-import { toM2MGatewayApiEService } from "../api/eserviceApiConverter.js";
-import { toM2MJWK, toM2MProducerKey } from "../api/keysApiConverter.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
+import { config } from "../config/config.js";
+import { M2MGatewayAppContext } from "../utils/context.js";
 import {
   isPolledVersionAtLeastResponseVersion,
+  pollResourceUntilDeletion,
   pollResourceWithMetadata,
 } from "../utils/polling.js";
+import { assertProducerKeychainVisibilityIsFull } from "../utils/validators/keychainValidators.js";
 import { assertTenantHasSelfcareId } from "../utils/validators/tenantValidators.js";
 import { getSelfcareUserById, getInstitutionUser } from "./userService.js";
-import { config } from "../config/config.js";
 
 export type ProducerKeychainService = ReturnType<
   typeof producerKeychainServiceBuilder
@@ -49,6 +51,14 @@ export function producerKeychainServiceBuilder(
     )({
       condition: isPolledVersionAtLeastResponseVersion(response),
     });
+
+  const pollProducerKeychainUntilDeletion = (
+    keychainId: ProducerKeychainId,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<void> =>
+    pollResourceUntilDeletion(() =>
+      retrieveProducerKeychainById(keychainId, headers)
+    )({});
 
   return {
     async getProducerKeychain(
@@ -372,6 +382,41 @@ export function producerKeychainServiceBuilder(
         );
 
       await pollProducerKeychain(response, headers);
+    },
+    async createProducerKeychain(
+      seed: m2mGatewayApiV3.ProducerKeychainSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.ProducerKeychain> {
+      logger.info(`Creating producer keychain with name ${seed.name}`);
+
+      const result =
+        await clients.authorizationClient.producerKeychain.createProducerKeychain(
+          seed,
+          {
+            headers,
+          }
+        );
+
+      await pollProducerKeychain(result, headers);
+
+      return toM2MGatewayApiProducerKeychain(result.data);
+    },
+
+    async deleteProducerKeychain(
+      keychainId: ProducerKeychainId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(`Deleting producer keychain with id ${keychainId}`);
+
+      await clients.authorizationClient.producerKeychain.deleteProducerKeychain(
+        undefined,
+        {
+          params: { producerKeychainId: keychainId },
+          headers,
+        }
+      );
+
+      await pollProducerKeychainUntilDeletion(keychainId, headers);
     },
   };
 }

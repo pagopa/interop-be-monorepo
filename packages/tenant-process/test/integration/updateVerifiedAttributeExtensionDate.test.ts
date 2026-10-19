@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { fail } from "assert";
 import {
+  getMockContextInternal,
+  getMockTenant,
+} from "pagopa-interop-commons-test";
+import {
   generateId,
   protobufDecoder,
   Tenant,
@@ -9,10 +13,7 @@ import {
   toTenantV2,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import {
-  getMockContextInternal,
-  getMockTenant,
-} from "pagopa-interop-commons-test";
+
 import {
   tenantNotFound,
   expirationDateNotFoundInVerifier,
@@ -101,7 +102,10 @@ describe("updateVerifiedAttributeExtensionDate", async () => {
       ],
       updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
     };
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    expect(writtenPayload).toEqual({
+      attributeId,
+      tenant: toTenantV2(updatedTenant),
+    });
     expect(returnedTenant).toEqual(updatedTenant);
   });
   it("should throw tenantNotFound when tenant doesn't exist", async () => {

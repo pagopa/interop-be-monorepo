@@ -1,12 +1,20 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import request from "supertest";
-import { generateId, operationForbidden } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
 import { tenantApi } from "pagopa-interop-api-clients";
+import { authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateId,
+  operationForbidden,
+  TenantId,
+} from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import {
+  tenantNotAllowedForDelegation,
+  tenantNotFound,
+} from "../../src/model/domain/errors.js";
 import { api, tenantService } from "../vitest.api.setup.js";
-import { tenantNotFound } from "../../src/model/domain/errors.js";
 
 describe("API POST /tenants/delegatedFeatures/update test", () => {
   const tenantFeatures: tenantApi.TenantDelegatedFeaturesFlagsUpdateSeed = {
@@ -58,6 +66,26 @@ describe("API POST /tenants/delegatedFeatures/update test", () => {
       expect(res.status).toBe(expectedStatus);
     }
   );
+
+  it("Should return 403 with tenantNotAllowedForDelegation details", async () => {
+    const tenantId = generateId<TenantId>();
+    const origin = "UNKNOWN";
+    const error = tenantNotAllowedForDelegation(tenantId, origin);
+    tenantService.updateTenantDelegatedFeatures = vi
+      .fn()
+      .mockRejectedValue(error);
+
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+
+    expect(res.status).toBe(403);
+    expect(res.body).toMatchObject({
+      title: error.title,
+      status: 403,
+      detail: error.detail,
+      errors: [{ code: "005-0035", detail: error.detail }],
+    });
+  });
 
   it.each([
     { body: {} },

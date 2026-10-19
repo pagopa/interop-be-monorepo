@@ -1,3 +1,6 @@
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb/dist-types/DynamoDBClient.js";
+import { ZodiosRouterContextRequestHandler } from "@zodios/express";
+import { Request } from "express";
 import { constants } from "http2";
 import {
   AuthData,
@@ -11,14 +14,12 @@ import {
   DPoPConfig,
   verifyJwtDPoPToken,
 } from "pagopa-interop-commons";
-import { unauthorizedError } from "pagopa-interop-models";
-import { ZodiosRouterContextRequestHandler } from "@zodios/express";
-import { match } from "ts-pattern";
-import { Request } from "express";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb/dist-types/DynamoDBClient.js";
 import { Logger } from "pagopa-interop-commons";
-import { makeApiProblem } from "../model/errors.js";
+import { unauthorizedError } from "pagopa-interop-models";
+import { match } from "ts-pattern";
+
 import { M2MGatewayServices } from "../app.js";
+import { makeApiProblem } from "../model/errors.js";
 import {
   M2MGatewayAppContext,
   fromM2MGatewayAppContext,
@@ -130,17 +131,24 @@ export const authenticationDPoPMiddleware: (
       );
 
       // 4. Full DPoP Validation (Signature, Replay Check, Key Binding)
-      await verifyDPoPCompliance({
-        config,
-        dpopProofJWS,
-        accessToken,
-        accessTokenClientId: accessTokenDPoP.client_id,
-        accessTokenThumbprint: accessTokenDPoP.cnf.jkt,
-        expectedHtu,
-        expectedHtm,
-        dynamoDBClient,
-        logger: ctx.logger,
-      });
+      try {
+        await verifyDPoPCompliance({
+          config,
+          dpopProofJWS,
+          accessToken,
+          accessTokenClientId: accessTokenDPoP.client_id,
+          accessTokenThumbprint: accessTokenDPoP.cnf.jkt,
+          expectedHtu,
+          expectedHtm,
+          dynamoDBClient,
+          logger: ctx.logger,
+        });
+      } catch (dpopError) {
+        ctx.logger.warn(
+          `[JTI=${accessTokenDPoP.jti}] - Access token valid but DPoP validation failed`
+        );
+        throw dpopError;
+      }
 
       // eslint-disable-next-line functional/immutable-data
       req.ctx.authData = readAuthDataFromJwtToken(accessTokenDPoP);

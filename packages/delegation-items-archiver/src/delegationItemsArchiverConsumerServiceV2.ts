@@ -1,4 +1,14 @@
 import {
+  agreementApi,
+  catalogApi,
+  purposeApi,
+} from "pagopa-interop-api-clients";
+import {
+  getInteropHeaders,
+  Logger,
+  RefreshableInteropToken,
+} from "pagopa-interop-commons";
+import {
   CorrelationId,
   DelegationEventEnvelopeV2,
   DelegationId,
@@ -7,14 +17,11 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import {
-  getInteropHeaders,
-  Logger,
-  RefreshableInteropToken,
-} from "pagopa-interop-commons";
-import { agreementApi, purposeApi } from "pagopa-interop-api-clients";
+
 import {
   processAgreement,
+  processEServiceArchivingRequests,
+  processEServiceDescriptorAfterRevoke,
   processPurposes,
 } from "./delegationItemsArchiverProcessors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
@@ -29,6 +36,7 @@ export async function handleMessageV2({
   readModelService,
   agreementProcessClient,
   purposeProcessClient,
+  catalogProcessClient,
 }: {
   decodedMessage: DelegationEventEnvelopeV2;
   refreshableToken: RefreshableInteropToken;
@@ -39,6 +47,7 @@ export async function handleMessageV2({
   readModelService: ReadModelServiceSQL;
   agreementProcessClient: agreementApi.AgreementProcessClient;
   purposeProcessClient: purposeApi.PurposeProcessClient;
+  catalogProcessClient: catalogApi.CatalogProcessClient;
 }): Promise<void> {
   await match(decodedMessage)
     .with({ type: "ConsumerDelegationRevoked" }, async (delegationMsg) => {
@@ -76,12 +85,40 @@ export async function handleMessageV2({
         }),
       ]);
     })
+    .with({ type: "ProducerDelegationRevoked" }, async (delegationMsg) => {
+      logger.info(
+        `Processing ${delegationMsg.type} message - Partition number: ${partition} - Offset: ${offset}`
+      );
+
+      if (!delegationMsg.data.delegation) {
+        throw missingKafkaMessageDataError("delegation", delegationMsg.type);
+      }
+
+      const token = (await refreshableToken.get()).serialized;
+      const headers = getInteropHeaders({
+        token,
+        correlationId,
+      });
+
+      await processEServiceDescriptorAfterRevoke({
+        readModelService,
+        catalogProcessClient,
+        headers,
+        delegation: fromDelegationV2(delegationMsg.data.delegation),
+      });
+
+      await processEServiceArchivingRequests({
+        readModelService,
+        catalogProcessClient,
+        headers,
+        delegation: fromDelegationV2(delegationMsg.data.delegation),
+      });
+    })
     .with(
       { type: "ConsumerDelegationApproved" },
       { type: "ProducerDelegationSubmitted" },
       { type: "ProducerDelegationApproved" },
       { type: "ProducerDelegationRejected" },
-      { type: "ProducerDelegationRevoked" },
       { type: "ConsumerDelegationSubmitted" },
       { type: "ConsumerDelegationRejected" },
       { type: "DelegationContractGenerated" },

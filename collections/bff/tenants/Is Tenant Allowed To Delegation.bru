@@ -1,0 +1,25 @@
+meta {
+  name: Is Tenant Allowed To Delegation
+  type: http
+  seq: 18
+}
+
+get {
+  url: {{host-bff}}/tenants/:tenantId/delegations/allowed
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT}}
+}
+
+docs {
+  Checks if a tenant is allowed to use delegations (is a PA).
+
+  Con FEATURE_FLAG_DELEGATION_CONSTRAINT_SKIP=true → sempre isAllowed: true
+}
+
+params:path {
+  tenantId: a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d
+}

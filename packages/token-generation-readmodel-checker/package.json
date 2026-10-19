@@ -29,7 +29,6 @@
     "@aws-sdk/client-dynamodb": "catalog:",
     "@aws-sdk/util-dynamodb": "catalog:",
     "dotenv-flow": "catalog:",
-    "drizzle-orm": "catalog:",
     "json-diff": "catalog:",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",

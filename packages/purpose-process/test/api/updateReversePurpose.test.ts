@@ -1,5 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { purposeApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockPurpose,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   DelegationId,
   Purpose,
@@ -7,15 +13,9 @@ import {
   eserviceMode,
   generateId,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockPurpose,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { purposeApi } from "pagopa-interop-api-clients";
-import { api, purposeService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { purposeToApiPurpose } from "../../src/model/domain/apiConverter.js";
 import {
   duplicatedPurposeTitle,
@@ -29,8 +29,10 @@ import {
   eserviceNotFound,
   tenantKindNotFound,
   tenantNotFound,
+  invalidFreeOfChargeReason,
   purposeFromTemplateCannotBeModified,
 } from "../../src/model/domain/errors.js";
+import { api, purposeService } from "../vitest.api.setup.js";
 
 describe("API POST /reverse/purposes/{purposeId} test", () => {
   const mockReversePurposeUpdateContent: purposeApi.ReversePurposeUpdateContent =
@@ -42,15 +44,13 @@ describe("API POST /reverse/purposes/{purposeId} test", () => {
       freeOfChargeReason: "Mock free of charge reason",
     };
   const mockPurpose: Purpose = getMockPurpose();
-  const isRiskAnalysisValid = true;
 
   const apiResponse = purposeApi.Purpose.parse(
-    purposeToApiPurpose(mockPurpose, isRiskAnalysisValid)
+    purposeToApiPurpose(mockPurpose)
   );
 
   const processResponse = getMockWithMetadata({
     purpose: mockPurpose,
-    isRiskAnalysisValid,
   });
 
   beforeEach(() => {
@@ -97,6 +97,11 @@ describe("API POST /reverse/purposes/{purposeId} test", () => {
     { error: missingFreeOfChargeReason(), expectedStatus: 400 },
     { error: riskAnalysisValidationFailed([]), expectedStatus: 400 },
     { error: purposeNotInDraftState(mockPurpose.id), expectedStatus: 400 },
+    {
+      error: invalidFreeOfChargeReason(false, "Some reason"),
+      expectedStatus: 400,
+    },
+
     { error: tenantIsNotTheConsumer(generateId()), expectedStatus: 403 },
     {
       error: tenantIsNotTheDelegatedConsumer(

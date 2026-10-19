@@ -1,4 +1,5 @@
 import { integer, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+
 import { m2mEvent } from "../pgSchema.js";
 
 export const eserviceInM2MEvent = m2mEvent.table("eservice", {
@@ -166,4 +167,17 @@ export const producerKeyInM2MEvent = m2mEvent.table("producer_key", {
   resourceVersion: integer("resource_version").notNull(),
   kid: varchar().notNull(),
   producerKeychainId: uuid("producer_keychain_id").notNull(),
+});
+
+export const purposeTemplateInM2MEvent = m2mEvent.table("purpose_template", {
+  id: uuid().primaryKey().notNull(),
+  eventType: varchar("event_type").notNull(),
+  eventTimestamp: timestamp("event_timestamp", {
+    withTimezone: true,
+    mode: "string",
+  }).notNull(),
+  resourceVersion: integer("resource_version").notNull(),
+  purposeTemplateId: uuid("purpose_template_id").notNull(),
+  creatorId: uuid("creator_id").notNull(),
+  visibility: varchar().notNull(),
 });

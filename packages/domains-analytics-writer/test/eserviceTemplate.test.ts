@@ -1,7 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable functional/immutable-data */
-import { describe, it, expect, beforeEach } from "vitest";
+import {
+  getMockEServiceTemplate,
+  getMockEServiceTemplateVersion,
+  getMockDocument,
+  getMockEServiceTemplateAttribute,
+  getMockValidEServiceTemplateRiskAnalysis,
+} from "pagopa-interop-commons-test";
 import {
   EServiceTemplateAddedV2,
   EServiceTemplateEventEnvelope,
@@ -18,15 +24,10 @@ import {
   EServiceTemplateVersionPublishedV2,
   EServiceTemplatePersonalDataFlagUpdatedAfterPublicationV2,
 } from "pagopa-interop-models";
-import {
-  getMockEServiceTemplate,
-  getMockEServiceTemplateVersion,
-  getMockDocument,
-  getMockEServiceAttribute,
-  getMockValidEServiceTemplateRiskAnalysis,
-} from "pagopa-interop-commons-test";
-import { EserviceTemplateDbTable } from "../src/model/db/index.js";
+import { describe, it, expect, beforeEach } from "vitest";
+
 import { handleEserviceTemplateMessageV2 } from "../src/handlers/eservice-template/consumerServiceV2.js";
+import { EserviceTemplateDbTable } from "../src/model/db/index.js";
 import {
   dbContext,
   getOneFromDb,
@@ -55,7 +56,7 @@ describe("Template messages consumers - handleEserviceTemplateMessageV2", () => 
     };
     const doc = getMockDocument();
     version.docs = [doc];
-    const attr = getMockEServiceAttribute();
+    const attr = getMockEServiceTemplateAttribute();
     version.attributes = { certified: [[attr]], declared: [], verified: [] };
     const risk = getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA);
     template.riskAnalysis = [risk];
@@ -250,7 +251,7 @@ describe("Template messages consumers - handleEserviceTemplateMessageV2", () => 
     };
     const doc = getMockDocument();
     version.docs = [doc];
-    const attr = getMockEServiceAttribute();
+    const attr = getMockEServiceTemplateAttribute();
     version.attributes = { certified: [[attr]], declared: [], verified: [] };
     const risk = getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA);
 
@@ -359,7 +360,7 @@ describe("Template messages consumers - handleEserviceTemplateMessageV2", () => 
     const mockEServiceTemplate = getMockEServiceTemplate();
     const document = getMockDocument();
     const draftInterface = getMockDocument();
-    const attribute = getMockEServiceAttribute();
+    const attribute = getMockEServiceTemplateAttribute();
     const draftEServiceTemplateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       attributes: {

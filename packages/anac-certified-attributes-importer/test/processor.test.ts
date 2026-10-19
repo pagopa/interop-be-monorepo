@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { afterEach, beforeAll, describe, expect, it, vi, vitest } from "vitest";
 import {
   InteropInternalToken,
   InteropTokenGenerator,
@@ -12,11 +11,13 @@ import {
   makeDrizzleConnection,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
-import { TenantProcessService } from "../src/service/tenantProcessService.js";
-import { SftpClient } from "../src/service/sftpService.js";
-import { readModelQueriesBuilderSQL } from "../src/service/readmodelQueriesServiceSQL.js";
-import { importAttributes } from "../src/service/processor.js";
+import { afterEach, beforeAll, describe, expect, it, vi, vitest } from "vitest";
+
 import { config } from "../src/config/config.js";
+import { importAttributes } from "../src/service/processor.js";
+import { readModelQueriesBuilderSQL } from "../src/service/readmodelQueriesServiceSQL.js";
+import { SftpClient } from "../src/service/sftpService.js";
+import { TenantProcessService } from "../src/service/tenantProcessService.js";
 import {
   ATTRIBUTE_ANAC_ASSIGNED_ID,
   ATTRIBUTE_ANAC_ENABLED_ID,
@@ -27,6 +28,7 @@ import {
   getNonPATenantsMock,
   getPATenantsMock,
   getTenantByIdMock,
+  getTenantByIdWithMetadataMock,
   getTenantByIdMockGenerator,
   getTenantsMockGenerator,
   getTenantsWithAttributesMock,
@@ -81,6 +83,10 @@ describe("ANAC Certified Attributes Importer", () => {
       tenantProcessMock,
       refreshableTokenMock,
       10,
+      {
+        defaultPollingMaxRetries: 1,
+        defaultPollingRetryDelay: 1,
+      },
       "anac-tenant-id",
       genericLogger,
       generateId()
@@ -106,6 +112,11 @@ describe("ANAC Certified Attributes Importer", () => {
   const getTenantByIdSpy = vi
     .spyOn(readModelQueriesMock, "getTenantById")
     .mockImplementation((id) => getTenantByIdMock(unsafeBrandId(id)));
+  const getTenantByIdWithMetadataSpy = vi
+    .spyOn(readModelQueriesMock, "getTenantByIdWithMetadata")
+    .mockImplementation((id) =>
+      getTenantByIdWithMetadataMock(unsafeBrandId(id))
+    );
   const getAttributeByExternalIdSpy = vi
     .spyOn(readModelQueriesMock, "getAttributeByExternalId")
     .mockImplementation(getAttributeByExternalIdMock);
@@ -139,6 +150,110 @@ describe("ANAC Certified Attributes Importer", () => {
     expect(refreshableInternalTokenSpy).toBeCalled();
     expect(internalAssignCertifiedAttributeSpy).toBeCalled();
     expect(internalRevokeCertifiedAttributeSpy).toBeCalledTimes(0);
+  });
+
+  it("should fail if polling max retries are reached after assign", async () => {
+    const csvFileContent = `codiceFiscaleGestore,denominazioneGestore,PEC,codiceIPA,ANAC_incaricato,ANAC_abilitato,ANAC_in_convalida
+0123456789,Org name in IPA,gsp1@pec.it,ipa_code_123,FALSE,TRUE,FALSE`;
+
+    const readModelTenants: Tenant[] = [
+      {
+        ...persistentTenant,
+        externalId: { origin: "IPA", value: "ipa_code_123" },
+        attributes: [],
+      },
+    ];
+
+    const localDownloadCSVMock = downloadCSVMockGenerator(csvFileContent);
+    vi.spyOn(sftpClientMock, "downloadCSV").mockImplementation(
+      localDownloadCSVMock
+    );
+
+    getPATenantsSpy.mockImplementationOnce(
+      getTenantsMockGenerator((_) => readModelTenants)
+    );
+
+    internalAssignCertifiedAttributeSpy.mockResolvedValueOnce({ version: 5 });
+
+    await expect(
+      importAttributes(
+        sftpClientMock,
+        readModelQueriesMock,
+        tenantProcessMock,
+        refreshableTokenMock,
+        10,
+        {
+          defaultPollingMaxRetries: 1,
+          defaultPollingRetryDelay: 1,
+        },
+        "anac-tenant-id",
+        genericLogger,
+        generateId()
+      )
+    ).rejects.toThrowError();
+
+    expect(internalAssignCertifiedAttributeSpy).toBeCalledTimes(1);
+    expect(getTenantByIdWithMetadataSpy).toBeCalled();
+  });
+
+  it("should fail if polling max retries are reached after revoke", async () => {
+    const csvFileContent = `codiceFiscaleGestore,denominazioneGestore,PEC,codiceIPA,ANAC_incaricato,ANAC_abilitato,ANAC_in_convalida
+0123456789,Org name in IPA,gsp1@pec.it,ipa_code_123,FALSE,FALSE,FALSE`;
+
+    const readModelTenants: Tenant[] = [
+      {
+        ...persistentTenant,
+        externalId: { origin: "IPA", value: "ipa_code_123" },
+        attributes: [],
+      },
+    ];
+
+    const tenantsWithAttribute: Tenant[] = [
+      {
+        ...persistentTenant,
+        externalId: { origin: "IPA", value: "missing_from_csv" },
+        attributes: [
+          {
+            ...persistentTenantAttribute,
+            id: unsafeBrandId(ATTRIBUTE_ANAC_ENABLED_ID),
+          },
+        ],
+      },
+    ];
+
+    vi.spyOn(sftpClientMock, "downloadCSV").mockImplementation(
+      downloadCSVMockGenerator(csvFileContent)
+    );
+
+    getPATenantsSpy.mockImplementationOnce(
+      getTenantsMockGenerator((_) => readModelTenants)
+    );
+
+    getTenantsWithAttributesSpy.mockImplementationOnce(
+      getTenantsMockGenerator((_) => tenantsWithAttribute)
+    );
+
+    internalRevokeCertifiedAttributeSpy.mockResolvedValueOnce({ version: 5 });
+
+    await expect(
+      importAttributes(
+        sftpClientMock,
+        readModelQueriesMock,
+        tenantProcessMock,
+        refreshableTokenMock,
+        10,
+        {
+          defaultPollingMaxRetries: 1,
+          defaultPollingRetryDelay: 1,
+        },
+        "anac-tenant-id",
+        genericLogger,
+        generateId()
+      )
+    ).rejects.toThrowError();
+
+    expect(internalRevokeCertifiedAttributeSpy).toBeCalledTimes(1);
+    expect(getTenantByIdWithMetadataSpy).toBeCalled();
   });
 
   it("should succeed, assigning only missing attributes", async () => {
@@ -307,6 +422,10 @@ describe("ANAC Certified Attributes Importer", () => {
       tenantProcessMock,
       refreshableTokenMock,
       1,
+      {
+        defaultPollingMaxRetries: 1,
+        defaultPollingRetryDelay: 1,
+      },
       "anac-tenant-id",
       genericLogger,
       generateId()
@@ -314,6 +433,7 @@ describe("ANAC Certified Attributes Importer", () => {
 
     expect(downloadCSVSpy).toBeCalledTimes(1);
     expect(getTenantByIdSpy).toBeCalledTimes(1);
+    expect(getTenantByIdWithMetadataSpy).toBeCalled();
     expect(getAttributeByExternalIdSpy).toBeCalledTimes(3);
 
     expect(getPATenantsSpy).toBeCalledTimes(3);

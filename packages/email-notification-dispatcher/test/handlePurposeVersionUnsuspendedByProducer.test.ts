@@ -1,5 +1,6 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/no-identical-functions */
+import { authRole } from "pagopa-interop-commons";
 import {
   getMockContext,
   getMockDescriptorPublished,
@@ -8,7 +9,6 @@ import {
   getMockTenant,
   getMockTenantMail,
 } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
 import {
   CorrelationId,
   EService,
@@ -21,8 +21,12 @@ import {
   TenantNotificationConfigId,
   toPurposeV2,
 } from "pagopa-interop-models";
+import {
+  eserviceNotFound,
+  tenantNotFound,
+} from "pagopa-interop-notification-commons";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { eServiceNotFound, tenantNotFound } from "../src/models/errors.js";
+
 import { handlePurposeVersionUnsuspendedByProducer } from "../src/handlers/purposes/handlePurposeVersionUnsuspendedByProducer.js";
 import {
   addOneEService,
@@ -150,7 +154,7 @@ describe("handlePurposeVersionUnsuspendedByProducer", async () => {
     ).rejects.toThrow(tenantNotFound(unkonwnProducerId));
   });
 
-  it("should throw eServiceNotFound when eservice is not found", async () => {
+  it("should throw eserviceNotFound when eservice is not found", async () => {
     const unknownEServiceId = generateId<EServiceId>();
 
     const purpose: Purpose = {
@@ -168,7 +172,7 @@ describe("handlePurposeVersionUnsuspendedByProducer", async () => {
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
-    ).rejects.toThrow(eServiceNotFound(unknownEServiceId));
+    ).rejects.toThrow(eserviceNotFound(unknownEServiceId));
   });
 
   it("should generate one message per user of the tenant that consumed the eservice", async () => {

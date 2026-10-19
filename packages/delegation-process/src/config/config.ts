@@ -5,9 +5,8 @@ import {
   FileManagerConfig,
   ApplicationAuditProducerConfig,
   ReadModelSQLDbConfig,
-  FeatureFlagDelegationsProcessContractBuilderConfig,
+  FeatureFlagDelegationConstraintSkipConfig,
 } from "pagopa-interop-commons";
-import { PUBLIC_ADMINISTRATIONS_IDENTIFIER } from "pagopa-interop-models";
 import { z } from "zod";
 
 const DelegationDocumentConfig = z
@@ -25,22 +24,19 @@ const DelegationProcessConfig = CommonHTTPServiceConfig.and(
   .and(S3Config)
   .and(FileManagerConfig)
   .and(DelegationDocumentConfig)
-  .and(FeatureFlagDelegationsProcessContractBuilderConfig)
+  .and(FeatureFlagDelegationConstraintSkipConfig)
   .and(
     z
       .object({
-        DELEGATIONS_ALLOWED_ORIGINS: z
-          .string()
-          .optional()
-          .default(PUBLIC_ADMINISTRATIONS_IDENTIFIER),
+        DELEGATIONS_ALLOWED_ATTRIBUTE_ID: z.string().uuid(),
       })
       .transform((c) => ({
-        delegationsAllowedOrigins: c.DELEGATIONS_ALLOWED_ORIGINS.split(","),
+        delegationsAllowedAttributeId: c.DELEGATIONS_ALLOWED_ATTRIBUTE_ID,
       }))
   )
   .and(ApplicationAuditProducerConfig);
 
-export type DelegationProcessConfig = z.infer<typeof DelegationProcessConfig>;
+type DelegationProcessConfig = z.infer<typeof DelegationProcessConfig>;
 export const config: DelegationProcessConfig = DelegationProcessConfig.parse(
   process.env
 );

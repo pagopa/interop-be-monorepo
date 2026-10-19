@@ -1,16 +1,22 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { DescriptorId, EServiceId, generateId } from "pagopa-interop-models";
-import request from "supertest";
-import { generateToken } from "pagopa-interop-commons-test/index.js";
-import { authRole } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
-import { api, clients } from "../../vitest.api.setup.js";
+import { authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test";
+import {
+  AttributeId,
+  DescriptorId,
+  EServiceId,
+  generateId,
+} from "pagopa-interop-models";
+import request from "supertest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   getMockBffApiCreatedResource,
   getMockCatalogApiUpdateEServiceDescriptorQuotasSeed,
 } from "../../mockUtils.js";
-import { appBasePath } from "../../../src/config/appBasePath.js";
+import { api, clients } from "../../vitest.api.setup.js";
 
 describe("API POST /eservices/:eServiceId/descriptors/:descriptorId/update", () => {
   const mockApiUpdateEServiceDescriptorQuotas =
@@ -76,4 +82,66 @@ describe("API POST /eservices/:eServiceId/descriptors/:descriptorId/update", () 
       expect(res.status).toBe(400);
     }
   );
+
+  it("Should forward attributes with per-certified-attribute dailyCallsPerConsumer to catalog process", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const certifiedAttributeId = generateId<AttributeId>();
+
+    const body: bffApi.UpdateEServiceDescriptorQuotas = {
+      ...mockApiUpdateEServiceDescriptorQuotas,
+      attributes: {
+        certified: [
+          [
+            {
+              id: certifiedAttributeId,
+              explicitAttributeVerification: false,
+              dailyCallsPerConsumer: 500,
+            },
+          ],
+        ],
+        declared: [],
+        verified: [],
+      },
+    };
+
+    const eServiceId = generateId<EServiceId>();
+    const descriptorId = generateId<DescriptorId>();
+    const res = await makeRequest(token, eServiceId, descriptorId, body);
+
+    expect(res.status).toBe(200);
+    expect(clients.catalogProcessClient.updateDescriptor).toHaveBeenCalledWith(
+      expect.objectContaining({
+        attributes: {
+          certified: [
+            [
+              {
+                id: certifiedAttributeId,
+                explicitAttributeVerification: false,
+                dailyCallsPerConsumer: 500,
+              },
+            ],
+          ],
+          declared: [],
+          verified: [],
+        },
+      }),
+      expect.objectContaining({
+        params: { eServiceId, descriptorId },
+      })
+    );
+  });
+
+  it("Should return 400 if attributes are malformed", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(
+      token,
+      generateId<EServiceId>(),
+      generateId<DescriptorId>(),
+      {
+        ...mockApiUpdateEServiceDescriptorQuotas,
+        attributes: { certified: "invalid", declared: [], verified: [] },
+      } as unknown as bffApi.UpdateEServiceDescriptorQuotas
+    );
+    expect(res.status).toBe(400);
+  });
 });

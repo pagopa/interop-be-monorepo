@@ -1,13 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import crypto from "crypto";
-import {
-  Tenant,
-  protobufDecoder,
-  toTenantV2,
-  operationForbidden,
-  TenantMailAddedV2,
-} from "pagopa-interop-models";
-import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { tenantApi } from "pagopa-interop-api-clients";
 import {
   getMockAuthData,
@@ -16,6 +8,16 @@ import {
   getMockTenantMail,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
+import {
+  Tenant,
+  protobufDecoder,
+  toTenantV2,
+  operationForbidden,
+  TenantMailAddedV2,
+  hyperlinkDetectionError,
+} from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
+
 import {
   mailAlreadyExists,
   notValidMailAddress,
@@ -33,6 +35,10 @@ describe("addTenantMail", async () => {
     address: "testMail@test.it",
     description: "mail description",
   };
+  const expectedMailId = crypto
+    .createHash("sha256")
+    .update(mailSeed.address)
+    .digest("hex");
 
   beforeAll(async () => {
     vi.useFakeTimers();
@@ -78,13 +84,16 @@ describe("addTenantMail", async () => {
       mails: [
         {
           ...mailSeed,
-          id: writtenPayload.mailId,
+          id: expectedMailId,
           createdAt: new Date(),
         },
       ],
       updatedAt: new Date(),
     };
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    expect(writtenPayload).toEqual({
+      mailId: expectedMailId,
+      tenant: toTenantV2(updatedTenant),
+    });
   });
   it("Should correctly add the mail if address doesn't already exists as the last mail of that kind in the tenant", async () => {
     const mockTenant: Tenant = {
@@ -134,13 +143,16 @@ describe("addTenantMail", async () => {
       mails: [
         {
           ...mailSeed,
-          id: writtenPayload.mailId,
+          id: expectedMailId,
           createdAt: new Date(),
         },
       ],
       updatedAt: new Date(),
     };
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    expect(writtenPayload).toEqual({
+      mailId: expectedMailId,
+      tenant: toTenantV2(updatedTenant),
+    });
   });
   it("Should correctly add email by cleaning the address from unwanted characters", async () => {
     const mockTenant: Tenant = getMockTenant();
@@ -181,13 +193,16 @@ describe("addTenantMail", async () => {
       mails: [
         {
           ...mailSeed,
-          id: writtenPayload.mailId,
+          id: expectedMailId,
           createdAt: new Date(),
         },
       ],
       updatedAt: new Date(),
     };
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    expect(writtenPayload).toEqual({
+      mailId: expectedMailId,
+      tenant: toTenantV2(updatedTenant),
+    });
   });
   it("Should throw tenantNotFound if the tenant doesn't exists", async () => {
     const mockTenant: Tenant = getMockTenant();
@@ -266,5 +281,27 @@ describe("addTenantMail", async () => {
         })
       )
     ).rejects.toThrowError(notValidMailAddress());
+  });
+
+  it("Should throw hyperlinkDetectionError when the mail description contains a hyperlink", async () => {
+    const mockTenant: Tenant = getMockTenant();
+    const description = "see https://evil.example.com";
+    const mailSeedWithHyperlink: tenantApi.MailSeed = {
+      kind: "CONTACT_EMAIL",
+      address: "testMail@test.it",
+      description,
+    };
+    await addOneTenant(mockTenant);
+    expect(
+      tenantService.addTenantMail(
+        {
+          tenantId: mockTenant.id,
+          mailSeed: mailSeedWithHyperlink,
+        },
+        getMockContext({
+          authData: getMockAuthData(mockTenant.id),
+        })
+      )
+    ).rejects.toThrowError(hyperlinkDetectionError(description));
   });
 });

@@ -1,6 +1,6 @@
+import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import { logger, decodeKafkaMessage, initDB } from "pagopa-interop-commons";
-import { runConsumer } from "kafka-iam-auth";
 import {
   AuthorizationEvent,
   CorrelationId,
@@ -8,8 +8,9 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { handleMessageV2 } from "./producerKeyConsumerServiceV2.js";
+
 import { config } from "./config/config.js";
+import { handleMessageV2 } from "./producerKeyConsumerServiceV2.js";
 
 const db = initDB({
   username: config.eventStoreDbUsername,

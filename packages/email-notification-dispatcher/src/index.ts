@@ -1,7 +1,4 @@
 /* eslint-disable sonarjs/no-identical-functions */
-import { fileURLToPath } from "url";
-import fs from "fs";
-import path from "path";
 import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import {
@@ -17,13 +14,14 @@ import {
   EServiceEvent,
   EServiceTemplateEventV2,
   EmailNotificationMessagePayload,
+  NotificationType,
   PurposeEvent,
   TenantEvent,
   generateId,
   genericInternalError,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
+import { registerEmailTemplatePartials } from "pagopa-interop-notification-commons";
 import {
   attributeReadModelServiceBuilder,
   agreementReadModelServiceBuilder,
@@ -33,19 +31,22 @@ import {
   notificationConfigReadModelServiceBuilder,
   purposeReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
+  producerKeychainReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
+import { match } from "ts-pattern";
 import { z } from "zod";
+
 import { config } from "./config/config.js";
+import { handleAgreementEvent } from "./handlers/agreements/handleAgreementEvent.js";
+import { handleAuthorizationEvent } from "./handlers/authorization/handleAuthorizationEvent.js";
+import { handleDelegationEvent } from "./handlers/delegations/handleDelegationEvent.js";
+import { handleEServiceEvent } from "./handlers/eservices/handleEserviceEvent.js";
+import { handleEServiceTemplateEvent } from "./handlers/eserviceTemplates/handleEserviceTemplatesEvent.js";
+import { handlePurposeEvent } from "./handlers/purposes/handlePurposeEvent.js";
+import { handleTenantEvent } from "./handlers/tenants/handleTenantEvent.js";
+import { HandlerParams } from "./models/handlerParams.js";
 import { emailNotificationDispatcherServiceBuilder } from "./services/emailNotificationDispatcherService.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
-import { handleEServiceEvent } from "./handlers/eservices/handleEserviceEvent.js";
-import { handleAgreementEvent } from "./handlers/agreements/handleAgreementEvent.js";
-import { handleDelegationEvent } from "./handlers/delegations/handleDelegationEvent.js";
-import { handlePurposeEvent } from "./handlers/purposes/handlePurposeEvent.js";
-import { HandlerParams } from "./models/handlerParams.js";
-import { handleTenantEvent } from "./handlers/tenants/handleTenantEvent.js";
-import { handleAuthorizationEvent } from "./handlers/authorization/handleAuthorizationEvent.js";
-import { handleEServiceTemplateEvent } from "./handlers/eserviceTemplates/handleEserviceTemplatesEvent.js";
 
 interface TopicNames {
   catalogTopic: string;
@@ -69,6 +70,8 @@ const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const notificationConfigReadModelServiceSQL =
   notificationConfigReadModelServiceBuilder(readModelDB);
 const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
+const producerKeychainReadModelServiceSQL =
+  producerKeychainReadModelServiceBuilder(readModelDB);
 
 const readModelService = readModelServiceBuilderSQL({
   readModelDB,
@@ -79,28 +82,16 @@ const readModelService = readModelServiceBuilderSQL({
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
   purposeReadModelServiceSQL,
+  notificationTypeBlocklist:
+    config.notificationTypeBlocklist as NotificationType[],
+  producerKeychainReadModelServiceSQL,
 });
 
 const emailNotificationDispatcherService =
   emailNotificationDispatcherServiceBuilder();
 
 const templateService = buildHTMLTemplateService();
-
-const filename = fileURLToPath(import.meta.url);
-const dirname = path.dirname(filename);
-function registerPartial(name: string, path: string): void {
-  const buffer = fs.readFileSync(`${dirname}/${path}`);
-  templateService.registerPartial(name, buffer.toString());
-}
-
-registerPartial(
-  "common-header",
-  "/resources/templates/headers/common-header.hbs"
-);
-registerPartial(
-  "common-footer",
-  "/resources/templates/footers/common-footer.hbs"
-);
+registerEmailTemplatePartials(templateService);
 
 function processMessage(topicHandlers: TopicNames) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {

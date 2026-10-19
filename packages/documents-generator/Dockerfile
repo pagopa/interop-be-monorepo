@@ -54,11 +54,24 @@ RUN NODE_OPTIONS="--max-old-space-size=${NODE_HEAP_SIZE}" pnpm build && \
 
 FROM ${NODE_REGISTRY}/node:20.19.3-slim@sha256:fa43945ad45c5f8c50dbea0633d888ddeb739f7d4e06c7696a9d68b54054238a AS final
 
-# Install dependencies for Puppeteer
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    chromium \
     ca-certificates 
+
+# Install dependencies for Puppeteer
+
+# 1. Add the historical snapshot repository from June 27, 2026 (right after the package release)
+# We use [check-valid-until=no], otherwise apt will reject the packages for being "too old"
+RUN echo "deb [check-valid-until=no] http://snapshot.debian.org/archive/debian-security/20260627T000000Z/ bookworm-security main" > /etc/apt/sources.list.d/chromium-snapshot.list
+
+# 2. Update apt while ignoring the expiration of historical packages
+# and install chromium + chromium-common pinned to version 149
+RUN apt-get update -o Acquire::Check-Valid-Until=false && \
+    apt-get install -y --no-install-recommends \
+    chromium=149.0.7827.196-1~deb12u1 \
+    chromium-common=149.0.7827.196-1~deb12u1 && \
+    rm /etc/apt/sources.list.d/chromium-snapshot.list && \
+    rm -rf /var/lib/apt/lists/*
 
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 

@@ -1,5 +1,6 @@
 import { isAxiosError } from "axios";
 import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
+
 import { delay } from "./delay.js";
 
 const DEFAULT_POLLING_MAX_RETRIES = 5;
@@ -49,6 +50,28 @@ export function createPollingByCondition<T>(
 
     throw pollingMaxRetriesExceeded(maxRetries, retryDelay);
   };
+}
+
+export async function waitForReadModelMetadataVersion(
+  fetchResourceWithMetadata: () => Promise<
+    { metadata: { version: number } } | undefined
+  >,
+  targetVersion: number,
+  pollingConfig?: {
+    defaultPollingMaxRetries: number;
+    defaultPollingRetryDelay: number;
+  }
+): Promise<void> {
+  const pollResourceByVersion = createPollingByCondition(
+    fetchResourceWithMetadata,
+    pollingConfig
+  );
+
+  await pollResourceByVersion({
+    condition: (resourceWithMetadata) =>
+      resourceWithMetadata !== undefined &&
+      resourceWithMetadata.metadata.version >= targetVersion,
+  });
 }
 
 /**

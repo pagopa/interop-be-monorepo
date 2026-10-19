@@ -1,4 +1,3 @@
-import { basename } from "path";
 import { m2mGatewayApiV3, purposeApi } from "pagopa-interop-api-clients";
 import {
   FileManager,
@@ -12,36 +11,39 @@ import {
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { basename } from "path";
+
+import { toM2MGatewayApiAgreement } from "../api/agreementApiConverter.js";
 import {
   toGetAgreementsApiQueryParamsForPurpose,
   toGetPurposesApiQueryParams,
   toM2MGatewayApiPurpose,
   toM2mGatewayApiPurposeVersion,
+  toM2MGatewayApiRemainingDailyCallsResponse,
 } from "../api/purposeApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { M2MGatewayAppContext } from "../utils/context.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
-import {
-  pollResourceWithMetadata,
-  isPolledVersionAtLeastResponseVersion,
-  isPolledVersionAtLeastMetadataTargetVersion,
-  pollResourceUntilDeletion,
-} from "../utils/polling.js";
+import { config } from "../config/config.js";
 import {
   purposeAgreementNotFound,
   purposeVersionDocumentNotFound,
   purposeVersionDocumentNotReady,
   purposeVersionNotFound,
 } from "../model/errors.js";
+import { M2MGatewayAppContext } from "../utils/context.js";
+import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
+import {
+  pollResourceWithMetadata,
+  isPolledVersionAtLeastResponseVersion,
+  isPolledVersionAtLeastMetadataTargetVersion,
+  pollResourceUntilDeletion,
+} from "../utils/polling.js";
+import { assertRequesterIsDelegateConsumerForEservice } from "../utils/validators/delegationValidators.js";
 import {
   assertPurposeCurrentVersionExists,
   assertPurposeVersionExistsWithState,
   assertSeedPatchPurposeUpdateFromTemplateContent,
 } from "../utils/validators/purposeValidator.js";
-import { toM2MGatewayApiAgreement } from "../api/agreementApiConverter.js";
-import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
-import { config } from "../config/config.js";
-import { assertRequesterIsDelegateConsumerForEservice } from "../utils/validators/delegationValidators.js";
 
 export type PurposeService = ReturnType<typeof purposeServiceBuilder>;
 
@@ -597,6 +599,22 @@ export function purposeServiceBuilder(
 
       return toM2MGatewayApiAgreement(agreement, purpose.delegationId);
     },
+    async getRemainingDailyCalls(
+      purposeId: PurposeId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.RemainingDailyCallsResponse> {
+      logger.info(
+        `Retrieving remaining daily calls for purpose with id ${purposeId}`
+      );
+
+      const { data: result } =
+        await clients.purposeProcessClient.getRemainingDailyCalls({
+          params: { purposeId },
+          headers,
+        });
+
+      return toM2MGatewayApiRemainingDailyCallsResponse(result);
+    },
     async updateDraftPurpose(
       purposeId: PurposeId,
       updateSeed:
@@ -666,6 +684,22 @@ export function purposeServiceBuilder(
       const polledResource = await pollPurpose(purposeResponse, headers);
 
       return toM2MGatewayApiPurpose(polledResource.data);
+    },
+    async assignRiskAnalysisReviewer(
+      purposeId: PurposeId,
+      seed: m2mGatewayApiV3.RiskAnalysisAssignmentSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.Purpose> {
+      logger.info(`Assigning risk analysis reviewer for purpose ${purposeId}`);
+
+      const { metadata } =
+        await clients.purposeProcessClient.assignRiskAnalysisReviewer(seed, {
+          params: { purposeId },
+          headers,
+        });
+
+      const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
+      return toM2MGatewayApiPurpose(polledPurpose.data);
     },
   };
 }

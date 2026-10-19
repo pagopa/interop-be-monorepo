@@ -1,5 +1,6 @@
 import { apiGatewayApi, purposeApi } from "pagopa-interop-api-clients";
 import { Logger } from "pagopa-interop-commons";
+
 import { assertActivePurposeVersionExists } from "../services/validators.js";
 
 const allowedPurposeStates: apiGatewayApi.PurposeState[] = [
@@ -19,6 +20,7 @@ export function toPurposeProcessGetPurposesQueryParams(
     clientId: undefined,
     states: allowedPurposeStates,
     excludeDraft: false,
+    signingStates: [],
   };
 }
 
