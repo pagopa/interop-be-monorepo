@@ -48,7 +48,7 @@ describe("API GET /delegations test", () => {
 
   const makeRequest = async (
     token: string,
-    query: Partial<typeof defaultQuery> = defaultQuery
+    query: typeof defaultQuery = defaultQuery
   ) =>
     request(api)
       .get("/delegations")
@@ -58,6 +58,7 @@ describe("API GET /delegations test", () => {
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
     authRole.SECURITY_ROLE,
     authRole.M2M_ROLE,
     authRole.M2M_ADMIN_ROLE,
@@ -70,9 +71,7 @@ describe("API GET /delegations test", () => {
     "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
-
-      const res = await makeRequest(token, defaultQuery);
-
+      const res = await makeRequest(token);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiDelegations);
     }

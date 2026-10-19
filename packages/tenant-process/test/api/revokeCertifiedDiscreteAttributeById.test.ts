@@ -39,7 +39,6 @@ describe("API DELETE /tenants/{tenantId}/attributes/certifiedDiscrete/{attribute
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
-    authRole.M2M_ROLE,
     authRole.M2M_ADMIN_ROLE,
   ];
 

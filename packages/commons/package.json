@@ -24,7 +24,6 @@
     "@aws-sdk/client-sqs": "catalog:",
     "@aws-sdk/s3-request-presigner": "catalog:",
     "@aws-sdk/util-dynamodb": "catalog:",
-    "@types/adm-zip": "catalog:",
     "@types/multer": "catalog:",
     "@zodios/core": "catalog:",
     "@zodios/express": "catalog:",

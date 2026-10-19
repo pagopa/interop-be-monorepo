@@ -3,6 +3,12 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 import { createJWK } from "pagopa-interop-commons";
 import {
+  ClientItemsSchema,
+  ClientKeySchema,
+  ClientPurposeSchema,
+  ClientUserSchema,
+} from "pagopa-interop-kpi-models";
+import {
   AuthorizationEventEnvelopeV1,
   dateToString,
   fromClientV1,
@@ -15,23 +21,13 @@ import { match } from "ts-pattern";
 import { z } from "zod";
 
 import { DBContext } from "../../db/db.js";
-import {
-  ClientItemsSchema,
-  ClientDeletingSchema,
-} from "../../model/authorization/client.js";
+import { ClientDeletingSchema } from "../../model/authorization/client.js";
 import {
   ClientKeyDeletingSchema,
-  ClientKeySchema,
   ClientKeyUserMigrationSchema,
 } from "../../model/authorization/clientKey.js";
-import {
-  ClientPurposeDeletingSchema,
-  ClientPurposeSchema,
-} from "../../model/authorization/clientPurpose.js";
-import {
-  ClientUserDeletingSchema,
-  ClientUserSchema,
-} from "../../model/authorization/clientUser.js";
+import { ClientPurposeDeletingSchema } from "../../model/authorization/clientPurpose.js";
+import { ClientUserDeletingSchema } from "../../model/authorization/clientUser.js";
 import { authorizationServiceBuilder } from "../../service/authorizationService.js";
 import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 

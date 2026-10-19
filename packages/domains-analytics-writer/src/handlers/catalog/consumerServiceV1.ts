@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/cognitive-complexity */
+import { EserviceItemsSchema } from "pagopa-interop-kpi-models";
+import { EserviceDescriptorDocumentSchema } from "pagopa-interop-kpi-models";
+import { EserviceDescriptorInterfaceSchema } from "pagopa-interop-kpi-models";
 import {
   EServiceEventEnvelopeV1,
   EServiceId,
@@ -17,23 +20,16 @@ import { match, P } from "ts-pattern";
 import { z } from "zod";
 
 import { DBContext } from "../../db/db.js";
-import {
-  EserviceDeletingSchema,
-  EserviceItemsSchema,
-} from "../../model/catalog/eservice.js";
+import { EserviceDeletingSchema } from "../../model/catalog/eservice.js";
 import {
   EserviceDescriptorDeletingSchema,
   EserviceDescriptorItemsSchema,
   EserviceDescriptorServerUrlsSchema,
 } from "../../model/catalog/eserviceDescriptor.js";
-import {
-  EserviceDescriptorDocumentSchema,
-  EserviceDescriptorDocumentDeletingSchema,
-} from "../../model/catalog/eserviceDescriptorDocument.js";
+import { EserviceDescriptorDocumentDeletingSchema } from "../../model/catalog/eserviceDescriptorDocument.js";
 import {
   EserviceDescriptorDocumentOrInterfaceDeletingSchema,
   EserviceDescriptorInterfaceItemsSchema,
-  EserviceDescriptorInterfaceSchema,
 } from "../../model/catalog/eserviceDescriptorInterface.js";
 import { catalogServiceBuilder } from "../../service/catalogService.js";
 import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
@@ -94,6 +90,8 @@ export async function handleCatalogMessageV1(
               rejectionReasonsSQL: splitResult.rejectionReasonsSQL,
               templateVersionRefsSQL: splitResult.templateVersionRefsSQL,
               archivingSchedulesSQL: splitResult.archivingSchedulesSQL,
+              asyncExchangePropertiesSQL:
+                splitResult.asyncExchangePropertiesSQL,
             } satisfies z.input<typeof EserviceItemsSchema>)
           );
         }

@@ -1,6 +1,6 @@
 import { AxiosError, AxiosResponse } from "axios";
 import { WithMaybeMetadata } from "pagopa-interop-api-clients";
-import { setupTestContainersVitest } from "pagopa-interop-commons-test/index.js";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { afterEach, expect, inject } from "vitest";
 
 import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";

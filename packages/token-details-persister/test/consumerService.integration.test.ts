@@ -8,7 +8,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   algorithm,
-  GeneratedTokenAuditDetails,
+  GeneratedConsumerTokenAuditDetails,
   generateId,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
@@ -73,7 +73,7 @@ describe("consumerService", () => {
   });
 
   it("should write three entries on the bucket", async () => {
-    const auditMessages: GeneratedTokenAuditDetails[] = [
+    const auditMessages: GeneratedConsumerTokenAuditDetails[] = [
       getMockAuditDetails(),
       getMockAuditDetails(),
       getMockAuditDetails(),
@@ -151,7 +151,7 @@ describe("consumerService", () => {
   });
 });
 
-const getMockAuditDetails = (): GeneratedTokenAuditDetails => ({
+const getMockAuditDetails = (): GeneratedConsumerTokenAuditDetails => ({
   correlationId: generateId(),
   eserviceId: generateId(),
   descriptorId: generateId(),

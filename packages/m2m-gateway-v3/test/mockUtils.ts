@@ -185,6 +185,7 @@ export const testToM2mGatewayApiEService = (
   personalData: eservice.personalData,
   archivingReason: eservice.archivingReason,
   asyncExchange: eservice.asyncExchange,
+  delegatedArchivingRequest: eservice.delegatedArchivingRequest,
 });
 
 export const testToM2mGatewayApiEServiceEvent = (
@@ -214,10 +215,12 @@ export const testToM2mGatewayApiPurpose = (
     currentVersion,
     waitingForApprovalVersion,
     rejectedVersion,
+    riskAnalysisReviewMode = purpose.riskAnalysisReviewMode,
   }: {
     currentVersion?: m2mGatewayApiV3.PurposeVersion;
     waitingForApprovalVersion?: m2mGatewayApiV3.PurposeVersion;
     rejectedVersion?: m2mGatewayApiV3.PurposeVersion;
+    riskAnalysisReviewMode?: m2mGatewayApiV3.RiskAnalysisReviewMode;
   }
 ): m2mGatewayApiV3.Purpose => ({
   id: purpose.id,
@@ -236,6 +239,7 @@ export const testToM2mGatewayApiPurpose = (
   waitingForApprovalVersion,
   rejectedVersion,
   purposeTemplateId: purpose.purposeTemplateId,
+  riskAnalysisReviewMode,
 });
 
 const testToM2MJWK = (key: authorizationApi.JWKKey): m2mGatewayApiV3.JWK => ({

@@ -1,12 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericLogger } from "pagopa-interop-commons";
+import { AttributeSchema } from "pagopa-interop-kpi-models";
 
 import { config } from "../config/config.js";
 import { DBContext } from "../db/db.js";
-import {
-  AttributeSchema,
-  AttributeDeletingSchema,
-} from "../model/attribute/attribute.js";
+import { AttributeDeletingSchema } from "../model/attribute/attribute.js";
 import { AttributeDbTable } from "../model/db/attribute.js";
 import { attributeRepository } from "../repository/attribute/attribute.repository.js";
 import { batchMessages } from "../utils/batchHelper.js";

@@ -41,6 +41,8 @@ const errorCodes = {
   invalidTenantFeature: "0031",
   certifiedDiscreteAttributeAlreadyAssigned: "0032",
   tenantNotFoundByRemoteId: "0033",
+  certifiedDiscreteAttributeRevoked: "0034",
+  tenantNotAllowedForDelegation: "0035",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -76,6 +78,17 @@ export function tenantNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
     detail: `Tenant ${tenantId} not found`,
     code: "tenantNotFound",
     title: "Tenant not found",
+  });
+}
+
+export function tenantNotAllowedForDelegation(
+  tenantId: TenantId,
+  origin: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} with external origin ${origin} is not allowed for delegation`,
+    code: "tenantNotAllowedForDelegation",
+    title: "Tenant not allowed for delegation",
   });
 }
 
@@ -253,6 +266,17 @@ export function attributeAlreadyRevoked(
     detail: `Attribute ${attributeId} has been already revoked for ${tenantId} by ${revokerId}`,
     code: "attributeAlreadyRevoked",
     title: "Attribute is already revoked",
+  });
+}
+
+export function certifiedDiscreteAttributeRevoked(
+  tenantId: TenantId,
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Certified Discrete Attribute ${attributeId} is revoked for tenant ${tenantId} and cannot be updated`,
+    code: "certifiedDiscreteAttributeRevoked",
+    title: "Certified discrete attribute revoked",
   });
 }
 export function mailNotFound(mailId: string): ApiError<ErrorCodes> {
