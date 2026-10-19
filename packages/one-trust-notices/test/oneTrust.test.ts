@@ -1,5 +1,6 @@
-import { vi, describe, it, expect, beforeEach } from "vitest";
 import axios from "axios";
+import { vi, describe, it, expect, beforeEach } from "vitest";
+
 import { OneTrustClient } from "../src/services/oneTrust.js";
 import { ONE_TRUST_CONNECT_RETRIES } from "../src/utils/consts.js";
 
