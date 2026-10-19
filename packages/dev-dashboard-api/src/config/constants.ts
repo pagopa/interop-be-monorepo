@@ -26,6 +26,19 @@ export const WORKSPACE_BUILD_CONCURRENCY = 2;
 
 export const OPERATION_PHASE_IDS = Object.freeze({ build: "build" });
 
+export const FRONTEND_STARTUP_PHASES: ReadonlyArray<readonly [string, string]> =
+  [
+    ["install", "Frontend dependencies and browser"],
+    ["dashboard", "Backend dashboard API"],
+    ["infra", "Infrastructure"],
+    ["backend", "Frontend backend preset"],
+    ["seed", "Local seed"],
+    ["identity", "Local identity"],
+    ["vite", "Vite"],
+    ["smoke", "Smoke checks"],
+    ["browser", "Browser checks"],
+  ];
+
 export const ENVIRONMENT_KEYS = Object.freeze({
   ignoreConfiguredEndpoints: "AWS_IGNORE_CONFIGURED_ENDPOINT_URLS",
 });

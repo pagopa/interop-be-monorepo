@@ -14,24 +14,13 @@ import { z } from "zod";
 import type { IdentityService } from "./identityService.js";
 import type { Supervisor } from "./supervisorService.js";
 
-import { LOG_SOURCES } from "../config/constants.js";
+import { FRONTEND_STARTUP_PHASES, LOG_SOURCES } from "../config/constants.js";
 import { errorMessage } from "../utilities/errorUtils.js";
 
 const selection = z
   .object({ tenantKey: z.string(), userKey: z.string() })
   .strict();
 const agentStatus = FrontendStatus.extend({ identity: selection.optional() });
-const startupPhases = [
-  ["install", "Frontend dependencies and browser"],
-  ["dashboard", "Backend dashboard API"],
-  ["infra", "Infrastructure"],
-  ["backend", "Frontend backend preset"],
-  ["seed", "Local seed"],
-  ["identity", "Local identity"],
-  ["vite", "Vite"],
-  ["smoke", "Smoke checks"],
-  ["browser", "Browser checks"],
-] satisfies Array<[string, string]>;
 
 type AgentCommand =
   | { type: "install" | "stop" | "smoke" | "browser" }
@@ -256,7 +245,7 @@ export function frontendServiceBuilder(
     const operationId = randomUUID();
     const selected =
       action.type === "start"
-        ? startupPhases.map(([id]) => id)
+        ? FRONTEND_STARTUP_PHASES.map(([id]) => id)
         : action.type === "stop"
           ? ["vite", "backend"]
           : action.type === "reset"
@@ -267,7 +256,7 @@ export function frontendServiceBuilder(
     const current: NonNullable<typeof progress> = {
       state: "running",
       operationId,
-      phases: startupPhases.map(([id, label]) => ({
+      phases: FRONTEND_STARTUP_PHASES.map(([id, label]) => ({
         id,
         label,
         state: selected.includes(id) ? "pending" : "skipped",
