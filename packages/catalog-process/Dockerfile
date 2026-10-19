@@ -19,6 +19,7 @@ COPY ./packages/application-audit/package.json /app/packages/application-audit/p
 COPY ./packages/kafka-iam-auth/package.json /app/packages/kafka-iam-auth/package.json
 COPY ./packages/readmodel/package.json /app/packages/readmodel/package.json
 COPY ./packages/readmodel-models/package.json /app/packages/readmodel-models/package.json
+COPY ./packages/tenant-kind-history-db-models/package.json /app/packages/tenant-kind-history-db-models/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
@@ -32,6 +33,7 @@ COPY ./packages/application-audit /app/packages/application-audit
 COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
 COPY ./packages/readmodel /app/packages/readmodel
 COPY ./packages/readmodel-models /app/packages/readmodel-models
+COPY ./packages/tenant-kind-history-db-models /app/packages/tenant-kind-history-db-models
 
 
 ARG NODE_HEAP_SIZE=4096
@@ -49,6 +51,7 @@ RUN NODE_OPTIONS="--max-old-space-size=${NODE_HEAP_SIZE}" pnpm build && \
   packages/kafka-iam-auth \
   packages/readmodel/ \
   packages/readmodel-models/ \
+  packages/tenant-kind-history-db-models \
   packages/catalog-process/dist && \
   find /out -exec touch -h --date=@0 {} \;
 

@@ -63,19 +63,64 @@ export type FeatureFlagClientAssertionStrictClaimsValidationConfig = z.infer<
   typeof FeatureFlagClientAssertionStrictClaimsValidationConfig
 >;
 
-export const FeatureFlagPurposeTemplateConfig = z
+export const FeatureFlagDpopClientAssertionDebuggerConfig = z
+  .discriminatedUnion("FEATURE_FLAG_DPOP_CLIENT_ASSERTION_DEBUGGER", [
+    z.object({
+      FEATURE_FLAG_DPOP_CLIENT_ASSERTION_DEBUGGER: z.literal("true"),
+      DPOP_HTU_BASE: z.string(),
+      DPOP_IAT_TOLERANCE_SECONDS: z.coerce.number(),
+      DPOP_DURATION_SECONDS: z.coerce.number(),
+    }),
+    z.object({
+      FEATURE_FLAG_DPOP_CLIENT_ASSERTION_DEBUGGER: z
+        .literal("false")
+        .optional()
+        .default("false"),
+    }),
+  ])
+  .transform((c) =>
+    c.FEATURE_FLAG_DPOP_CLIENT_ASSERTION_DEBUGGER === "true"
+      ? {
+          featureFlagDpopClientAssertionDebugger: true as const,
+          dpopHtuBase: c.DPOP_HTU_BASE,
+          dpopIatToleranceSeconds: c.DPOP_IAT_TOLERANCE_SECONDS,
+          dpopDurationSeconds: c.DPOP_DURATION_SECONDS,
+        }
+      : { featureFlagDpopClientAssertionDebugger: false as const }
+  );
+export type FeatureFlagDpopClientAssertionDebuggerConfig = z.infer<
+  typeof FeatureFlagDpopClientAssertionDebuggerConfig
+>;
+
+export const FeatureFlagAsyncExchangeConfig = z
   .object({
-    FEATURE_FLAG_PURPOSE_TEMPLATE: z
+    FEATURE_FLAG_ASYNC_EXCHANGE: z
       .enum(["true", "false"])
       .default("false")
       .transform((value) => value === "true")
       .optional(),
   })
   .transform((c) => ({
-    featureFlagPurposeTemplate: c.FEATURE_FLAG_PURPOSE_TEMPLATE ?? false,
+    featureFlagAsyncExchange: c.FEATURE_FLAG_ASYNC_EXCHANGE ?? false,
   }));
-export type FeatureFlagPurposeTemplateConfig = z.infer<
-  typeof FeatureFlagPurposeTemplateConfig
+export type FeatureFlagAsyncExchangeConfig = z.infer<
+  typeof FeatureFlagAsyncExchangeConfig
+>;
+
+export const FeatureFlagTenantKindInRiskAnalysisConfig = z
+  .object({
+    FEATURE_FLAG_TENANT_KIND_IN_RISK_ANALYSIS: z
+      .enum(["true", "false"])
+      .default("true")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagTenantKindInRiskAnalysis:
+      c.FEATURE_FLAG_TENANT_KIND_IN_RISK_ANALYSIS ?? false,
+  }));
+export type FeatureFlagTenantKindInRiskAnalysisConfig = z.infer<
+  typeof FeatureFlagTenantKindInRiskAnalysisConfig
 >;
 
 export const FeatureFlagDelegationsProcessContractBuilderConfig = z
@@ -157,16 +202,51 @@ export type FeatureFlagUseSignedDocumentConfig = z.infer<
   typeof FeatureFlagUseSignedDocumentConfig
 >;
 
+export const FeatureFlagAttributeCertifiedDiscreteConfig = z
+  .object({
+    FEATURE_FLAG_ATTRIBUTE_CERTIFIED_DISCRETE: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagAttributeCertifiedDiscrete:
+      c.FEATURE_FLAG_ATTRIBUTE_CERTIFIED_DISCRETE ?? false,
+  }));
+export type FeatureFlagAttributeCertifiedDiscreteConfig = z.infer<
+  typeof FeatureFlagAttributeCertifiedDiscreteConfig
+>;
+
+export const FeatureFlagNewOperatorsConfig = z
+  .object({
+    FEATURE_FLAG_NEW_OPERATORS: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagNewOperators: c.FEATURE_FLAG_NEW_OPERATORS ?? false,
+  }));
+export type FeatureFlagNewOperatorsConfig = z.infer<
+  typeof FeatureFlagNewOperatorsConfig
+>;
+
 type FeatureFlags = FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagApplicationAuditStrictConfig &
   FeatureFlagImprovedProducerVerificationClaimsConfig &
   FeatureFlagClientAssertionStrictClaimsValidationConfig &
-  FeatureFlagPurposeTemplateConfig &
+  FeatureFlagAsyncExchangeConfig &
+  FeatureFlagDpopClientAssertionDebuggerConfig &
   FeatureFlagDelegationsProcessContractBuilderConfig &
   FeatureFlagAgreementsProcessContractBuilderConfig &
   FeatureFlagPurposesProcessContractBuilderConfig &
   FeatureFlagUseSignedDocumentConfig &
-  FeatureFlagDelegationConstraintSkipConfig;
+  FeatureFlagDelegationConstraintSkipConfig &
+  FeatureFlagAttributeCertifiedDiscreteConfig &
+  FeatureFlagTenantKindInRiskAnalysisConfig &
+  FeatureFlagNewOperatorsConfig;
 
 export type FeatureFlagKeys = keyof FeatureFlags & `featureFlag${string}`;
 

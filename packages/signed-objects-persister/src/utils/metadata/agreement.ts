@@ -9,6 +9,7 @@ import {
   AgreementDocument,
   generateId,
 } from "pagopa-interop-models";
+
 import { getInteropBeClients } from "../../clients/clientProvider.js";
 
 export const addAgreementSignedContract = async (

@@ -1,19 +1,20 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   NewNotification,
   EServiceV2,
   missingKafkaMessageDataError,
   fromEServiceV2,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
-import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
+  inAppTemplates,
   getNotificationRecipients,
   retrieveTenant,
-} from "../handlerCommons.js";
-import { activeProducerDelegationNotFound } from "../../models/errors.js";
+  activeProducerDelegationNotFound,
+} from "pagopa-interop-notification-commons";
 
-export type EserviceNewVersionApprovedRejectedToDelegateEventType =
+import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
+
+type EserviceNewVersionApprovedRejectedToDelegateEventType =
   | "EServiceDescriptorApprovedByDelegator"
   | "EServiceDescriptorRejectedByDelegator";
 

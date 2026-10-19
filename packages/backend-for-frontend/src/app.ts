@@ -1,4 +1,11 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import express from "express";
+import { bffApi } from "pagopa-interop-api-clients";
+import {
+  applicationAuditBeginMiddleware,
+  applicationAuditEndSessionTokenExchangeMiddleware,
+  applicationAuditEndMiddleware,
+} from "pagopa-interop-application-audit";
 import {
   authenticationMiddleware,
   contextMiddleware,
@@ -13,36 +20,32 @@ import {
   errorsToApiProblemsMiddleware,
   healthRouter,
 } from "pagopa-interop-commons";
-import express from "express";
-import {
-  applicationAuditBeginMiddleware,
-  applicationAuditEndSessionTokenExchangeMiddleware,
-  applicationAuditEndMiddleware,
-} from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
-import { bffApi } from "pagopa-interop-api-clients";
+
+import { PagoPAInteropBeClients } from "./clients/clientsProvider.js";
+import { appBasePath } from "./config/appBasePath.js";
 import { config } from "./config/config.js";
-import privacyNoticeRouter from "./routers/privacyNoticeRouter.js";
-import swaggerRouter from "./routers/swaggerRouter.js";
 import agreementRouter from "./routers/agreementRouter.js";
 import attributeRouter from "./routers/attributeRouter.js";
 import authorizationRouter from "./routers/authorizationRouter.js";
 import catalogRouter from "./routers/catalogRouter.js";
+import clientRouter from "./routers/clientRouter.js";
+import consumerDelegationRouter from "./routers/consumerDelegationRouter.js";
+import delegationRouter from "./routers/delegationRouter.js";
+import emailDeeplinkRouters from "./routers/emailDeeplinkRouter.js";
+import eserviceTemplateRouter from "./routers/eserviceTemplateRouter.js";
+import inAppNotificationRouter from "./routers/inAppNotificationRouter.js";
+import notificationConfigRouter from "./routers/notificationConfigRouter.js";
+import privacyNoticeRouter from "./routers/privacyNoticeRouter.js";
+import producerDelegationRouter from "./routers/producerDelegationRouter.js";
+import producerKeychainRouter from "./routers/producerKeychainRouter.js";
 import purposeRouter from "./routers/purposeRouter.js";
 import purposeTemplateRouter from "./routers/purposeTemplateRouter.js";
 import selfcareRouter from "./routers/selfcareRouter.js";
 import supportRouter from "./routers/supportRouter.js";
+import swaggerRouter from "./routers/swaggerRouter.js";
 import tenantRouter from "./routers/tenantRouter.js";
 import toolRouter from "./routers/toolRouter.js";
-import { uiAuthDataValidationMiddleware } from "./utilities/middlewares.js";
-import clientRouter from "./routers/clientRouter.js";
-import producerKeychainRouter from "./routers/producerKeychainRouter.js";
-import delegationRouter from "./routers/delegationRouter.js";
-import producerDelegationRouter from "./routers/producerDelegationRouter.js";
-import consumerDelegationRouter from "./routers/consumerDelegationRouter.js";
-import eserviceTemplateRouter from "./routers/eserviceTemplateRouter.js";
-import emailDeeplinkRouters from "./routers/emailDeeplinkRouter.js";
-import { appBasePath } from "./config/appBasePath.js";
 import {
   AgreementService,
   agreementServiceBuilder,
@@ -72,6 +75,19 @@ import {
   eserviceTemplateServiceBuilder,
 } from "./services/eserviceTemplateService.js";
 import {
+  InAppNotificationService,
+  inAppNotificationServiceBuilder,
+} from "./services/inAppNotificationService.js";
+import {
+  NotificationConfigService,
+  notificationConfigServiceBuilder,
+} from "./services/notificationConfigService.js";
+import {
+  PrivacyNoticeService,
+  privacyNoticeServiceBuilder,
+} from "./services/privacyNoticeService.js";
+import { privacyNoticeStorageServiceBuilder } from "./services/privacyNoticeStorage.js";
+import {
   ProducerKeychainService,
   producerKeychainServiceBuilder,
 } from "./services/producerKeychainService.js";
@@ -91,23 +107,8 @@ import {
   TenantService,
   tenantServiceBuilder,
 } from "./services/tenantService.js";
-import { PagoPAInteropBeClients } from "./clients/clientsProvider.js";
 import { ToolsService, toolsServiceBuilder } from "./services/toolService.js";
-import { privacyNoticeStorageServiceBuilder } from "./services/privacyNoticeStorage.js";
-import {
-  PrivacyNoticeService,
-  privacyNoticeServiceBuilder,
-} from "./services/privacyNoticeService.js";
-import {
-  NotificationConfigService,
-  notificationConfigServiceBuilder,
-} from "./services/notificationConfigService.js";
-import notificationConfigRouter from "./routers/notificationConfigRouter.js";
-import {
-  InAppNotificationService,
-  inAppNotificationServiceBuilder,
-} from "./services/inAppNotificationService.js";
-import inAppNotificationRouter from "./routers/inAppNotificationRouter.js";
+import { uiAuthDataValidationMiddleware } from "./utilities/middlewares.js";
 
 type BFFServices = {
   agreementService: AgreementService;
@@ -145,8 +146,9 @@ export async function createServices(
     [bffApi.ConsentType.Values.PP, config.privacyNoticesPpUuid],
     [bffApi.ConsentType.Values.TOS, config.privacyNoticesTosUuid],
   ]);
+  const dynamoDBClient = new DynamoDBClient();
   const privacyNoticeStorage = privacyNoticeStorageServiceBuilder(
-    new DynamoDBClient(),
+    dynamoDBClient,
     config.privacyNoticesDynamoTableName,
     config.privacyNoticesUsersDynamoTableName
   );
@@ -171,6 +173,7 @@ export async function createServices(
       clients.tenantProcessClient,
       clients.agreementProcessClient,
       clients.attributeProcessClient,
+      clients.authorizationClient,
       clients.delegationProcessClient,
       clients.eserviceTemplateProcessClient,
       clients.inAppNotificationManagerClient,
@@ -209,6 +212,7 @@ export async function createServices(
       clients.purposeTemplateProcessClient,
       clients.tenantProcessClient,
       clients.catalogProcessClient,
+      clients.eserviceTemplateProcessClient,
       fileManager
     ),
     selfcareService: selfcareServiceBuilder(clients),
@@ -217,7 +221,10 @@ export async function createServices(
       clients.attributeProcessClient,
       clients.selfcareV2InstitutionClient
     ),
-    toolsService: toolsServiceBuilder(clients),
+    toolsService: toolsServiceBuilder(clients, {
+      dynamoDBClient,
+      interactionsTable: config.interactionsTable,
+    }),
   };
 }
 

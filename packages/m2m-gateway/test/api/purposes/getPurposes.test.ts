@@ -1,16 +1,17 @@
-import { describe, it, expect, vi } from "vitest";
+import { generateMock } from "@anatine/zod-mock";
+import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockedApiPurpose,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { generateId } from "pagopa-interop-models";
-import { generateMock } from "@anatine/zod-mock";
-import { api, mockPurposeService } from "../../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
+import { testToM2mGatewayApiPurpose as toM2MGatewayApiPurpose } from "../../mockUtils.js";
+import { api, mockPurposeService } from "../../vitest.api.setup.js";
 
 describe("GET /purposes router test", () => {
   const authorizedRoles: AuthRole[] = [

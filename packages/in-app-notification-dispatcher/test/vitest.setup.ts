@@ -2,10 +2,10 @@ import { vi } from "vitest";
 
 // Mock the getNotificationRecipients function from handlerCommons module
 // to use a mocked implementation in tests.
-vi.mock("../src/handlers/handlerCommons.ts", async () => {
+vi.mock("pagopa-interop-notification-commons", async () => {
   const actual = await vi.importActual<
-    typeof import("../src/handlers/handlerCommons.ts")
-  >("../src/handlers/handlerCommons.ts");
+    typeof import("pagopa-interop-notification-commons")
+  >("pagopa-interop-notification-commons");
   return {
     ...actual,
     getNotificationRecipients: vi.fn(),

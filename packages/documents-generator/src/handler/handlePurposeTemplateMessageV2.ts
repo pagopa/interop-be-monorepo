@@ -1,4 +1,11 @@
 /* eslint-disable functional/immutable-data */
+import { purposeTemplateApi } from "pagopa-interop-api-clients";
+import {
+  FileManager,
+  Logger,
+  RefreshableInteropToken,
+  getInteropHeaders,
+} from "pagopa-interop-commons";
 import {
   CorrelationId,
   PurposeTemplate,
@@ -10,19 +17,13 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import {
-  FileManager,
-  Logger,
-  RefreshableInteropToken,
-  getInteropHeaders,
-} from "pagopa-interop-commons";
-import { PDFGenerator, getIpaCode } from "../pdf-generator/pdfGenerator.js";
-import { purposeTemplateApi } from "pagopa-interop-api-clients";
-import { ReadModelServiceSQL } from "../service/readModelSql.js";
+
 import { PagoPAInteropBeClients } from "../clients/clientProvider.js";
-import { riskAnalysisTemplateDocumentBuilder } from "../service/purpose-template/purposeTemplateDocumentBuilder.js";
 import { config } from "../config/config.js";
+import { PDFGenerator, getIpaCode } from "../pdf-generator/pdfGenerator.js";
+import { riskAnalysisTemplateDocumentBuilder } from "../service/purpose-template/purposeTemplateDocumentBuilder.js";
 import { retrieveTenant } from "../service/purpose/purposeService.js";
+import { ReadModelServiceSQL } from "../service/readModelSql.js";
 
 // eslint-disable-next-line max-params
 export async function handlePurposeTemplateMessageV2(
@@ -90,6 +91,8 @@ export async function handlePurposeTemplateMessageV2(
           "PurposeTemplateDraftDeleted",
           "PurposeTemplateDraftUpdated",
           "PurposeTemplateEServiceLinked",
+          "PurposeTemplateEServiceTemplateLinked",
+          "PurposeTemplateEServiceTemplateUnlinked",
           "PurposeTemplateEServiceUnlinked",
           "PurposeTemplateSuspended",
           "PurposeTemplateUnsuspended",

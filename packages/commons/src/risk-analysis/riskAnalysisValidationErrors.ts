@@ -8,8 +8,10 @@ type RiskAnalysisValidationIssueCode =
   | "dependencyNotFoundError"
   | "unexpectedDependencyValueError"
   | "unexpectedFieldFormatError"
+  | "unexpectedFieldHyperlinkError"
   | "missingExpectedFieldError"
-  | "incompatiblePersonalDataError";
+  | "incompatiblePersonalDataError"
+  | "missingTenantKindError";
 
 export class RiskAnalysisValidationIssue extends InternalError<RiskAnalysisValidationIssueCode> {
   constructor({
@@ -94,6 +96,15 @@ export function unexpectedFieldFormatError(
   });
 }
 
+export function unexpectedFieldHyperlinkError(
+  fieldName: string
+): RiskAnalysisValidationIssue {
+  return new RiskAnalysisValidationIssue({
+    code: "unexpectedFieldHyperlinkError",
+    detail: `Field ${fieldName} must not contain hyperlinks or URLs`,
+  });
+}
+
 export function missingExpectedFieldError(
   fieldName: string
 ): RiskAnalysisValidationIssue {
@@ -107,5 +118,12 @@ export function incompatiblePersonalDataError(): RiskAnalysisValidationIssue {
   return new RiskAnalysisValidationIssue({
     code: "incompatiblePersonalDataError",
     detail: `The usesPersonalData answer doesn't match the personalData flag of the eservice`,
+  });
+}
+
+export function missingTenantKindError(): RiskAnalysisValidationIssue {
+  return new RiskAnalysisValidationIssue({
+    code: "missingTenantKindError",
+    detail: `TenantKind is required in RiskAnalysisForm for validation`,
   });
 }

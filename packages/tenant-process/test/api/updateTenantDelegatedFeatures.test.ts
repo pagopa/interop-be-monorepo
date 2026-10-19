@@ -1,19 +1,20 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import request from "supertest";
+import { tenantApi } from "pagopa-interop-api-clients";
+import { authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test";
 import {
   generateId,
   operationForbidden,
   TenantId,
 } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
-import { tenantApi } from "pagopa-interop-api-clients";
-import { api, tenantService } from "../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import {
   tenantNotAllowedForDelegation,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
+import { api, tenantService } from "../vitest.api.setup.js";
 
 describe("API POST /tenants/delegatedFeatures/update test", () => {
   const tenantFeatures: tenantApi.TenantDelegatedFeaturesFlagsUpdateSeed = {
@@ -82,7 +83,7 @@ describe("API POST /tenants/delegatedFeatures/update test", () => {
       title: error.title,
       status: 403,
       detail: error.detail,
-      errors: [{ code: "005-0032", detail: error.detail }],
+      errors: [{ code: "005-0035", detail: error.detail }],
     });
   });
 

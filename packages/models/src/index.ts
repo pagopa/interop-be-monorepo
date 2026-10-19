@@ -38,6 +38,9 @@ export * from "./tenant/protobufConverterFromV1.js";
 export * from "./tenant/protobufConverterFromV2.js";
 export * from "./tenant/protobufConverterToV2.js";
 
+export * from "./tenant-kind-history/tenantKindHistory.js";
+export * from "./tenant-kind-history/tenantKindHistorySQLAdapter.js";
+
 export * from "./purpose/purpose.js";
 export * from "./purpose/purposeEvents.js";
 export * from "./purpose/protobufConverterFromV1.js";
@@ -76,6 +79,7 @@ export * from "./purpose-template/protobufConverterToV2.js";
 // Token generation read model
 export * from "./token-generation-readmodel/platform-states-entry.js";
 export * from "./token-generation-readmodel/token-generation-states-entry.js";
+export * from "./token-generation-readmodel/interactions-entry.js";
 export * from "./token-generation-readmodel/commons.js";
 export * from "./token-generation-audit/audit.js";
 export * from "./client-assertion/clientAssertionValidation.js";

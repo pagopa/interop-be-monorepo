@@ -1,7 +1,7 @@
 import { match } from "ts-pattern";
 import { z } from "zod";
+
 import { EventEnvelope } from "../events/events.js";
-import { protobufDecoder } from "../protobuf/protobuf.js";
 import {
   PurposeTemplateAddedV2,
   PurposeTemplateAnnotationDocumentDeletedV2,
@@ -9,6 +9,8 @@ import {
   PurposeTemplateDraftDeletedV2,
   PurposeTemplateDraftUpdatedV2,
   PurposeTemplateEServiceLinkedV2,
+  PurposeTemplateEServiceTemplateLinkedV2,
+  PurposeTemplateEServiceTemplateUnlinkedV2,
   PurposeTemplateEServiceUnlinkedV2,
   PurposeTemplatePublishedV2,
   PurposeTemplateSuspendedV2,
@@ -18,6 +20,7 @@ import {
   RiskAnalysisTemplateDocumentGeneratedV2,
   RiskAnalysisTemplateSignedDocumentGeneratedV2,
 } from "../gen/v2/purpose-template/events.js";
+import { protobufDecoder } from "../protobuf/protobuf.js";
 
 export const PurposeTemplateEventV2 = z.discriminatedUnion("type", [
   z.object({
@@ -34,6 +37,16 @@ export const PurposeTemplateEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("PurposeTemplateEServiceUnlinked"),
     data: protobufDecoder(PurposeTemplateEServiceUnlinkedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("PurposeTemplateEServiceTemplateLinked"),
+    data: protobufDecoder(PurposeTemplateEServiceTemplateLinkedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("PurposeTemplateEServiceTemplateUnlinked"),
+    data: protobufDecoder(PurposeTemplateEServiceTemplateUnlinkedV2),
   }),
   z.object({
     event_version: z.literal(2),
@@ -105,6 +118,12 @@ export function purposeTemplateEventToBinaryDataV2(
     )
     .with({ type: "PurposeTemplateEServiceUnlinked" }, (e) =>
       PurposeTemplateEServiceUnlinkedV2.toBinary(e.data)
+    )
+    .with({ type: "PurposeTemplateEServiceTemplateLinked" }, (e) =>
+      PurposeTemplateEServiceTemplateLinkedV2.toBinary(e.data)
+    )
+    .with({ type: "PurposeTemplateEServiceTemplateUnlinked" }, (e) =>
+      PurposeTemplateEServiceTemplateUnlinkedV2.toBinary(e.data)
     )
     .with({ type: "PurposeTemplateDraftUpdated" }, (e) =>
       PurposeTemplateDraftUpdatedV2.toBinary(e.data)

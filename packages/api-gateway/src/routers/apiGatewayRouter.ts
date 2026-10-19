@@ -8,16 +8,25 @@ import {
   validateAuthorization,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
+import { emptyErrorMapper } from "pagopa-interop-models";
 import {
   clientJWKKeyReadModelServiceBuilder,
   makeDrizzleConnection,
   producerJWKKeyReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
-import { emptyErrorMapper } from "pagopa-interop-models";
-import { fromApiGatewayAppContext } from "../utilities/context.js";
-import { agreementServiceBuilder } from "../services/agreementService.js";
+
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { config } from "../config/config.js";
 import { makeApiProblem } from "../models/errors.js";
+import { agreementServiceBuilder } from "../services/agreementService.js";
+import { attributeServiceBuilder } from "../services/attributeService.js";
+import { authorizationServiceBuilder } from "../services/authorizationService.js";
+import { catalogServiceBuilder } from "../services/catalogService.js";
+import { notifierEventsServiceBuilder } from "../services/notifierEventsService.js";
+import { purposeServiceBuilder } from "../services/purposeService.js";
+import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
+import { tenantServiceBuilder } from "../services/tenantService.js";
+import { fromApiGatewayAppContext } from "../utilities/context.js";
 import {
   createCertifiedAttributeErrorMapper,
   getAgreementByPurposeErrorMapper,
@@ -34,14 +43,6 @@ import {
   revokeTenantAttributeErrorMapper,
   upsertTenantErrorMapper,
 } from "../utilities/errorMappers.js";
-import { purposeServiceBuilder } from "../services/purposeService.js";
-import { catalogServiceBuilder } from "../services/catalogService.js";
-import { tenantServiceBuilder } from "../services/tenantService.js";
-import { notifierEventsServiceBuilder } from "../services/notifierEventsService.js";
-import { attributeServiceBuilder } from "../services/attributeService.js";
-import { authorizationServiceBuilder } from "../services/authorizationService.js";
-import { config } from "../config/config.js";
-import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
 
 const apiGatewayRouter = (
   ctx: ZodiosContext,

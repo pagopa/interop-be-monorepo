@@ -21,7 +21,6 @@
   "keywords": [],
   "devDependencies": {
     "@anatine/zod-mock": "catalog:",
-    "@types/adm-zip": "catalog:",
     "@types/express": "catalog:",
     "@types/node": "catalog:",
     "@types/supertest": "catalog:",
@@ -50,6 +49,7 @@
     "pagopa-interop-application-audit": "workspace:*",
     "pagopa-interop-client-assertion-validation": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-dpop-validation": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "swagger-ui-express": "catalog:",
     "ts-pattern": "catalog:",

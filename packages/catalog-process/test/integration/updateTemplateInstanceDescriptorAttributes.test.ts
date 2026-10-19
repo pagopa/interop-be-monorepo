@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   decodeProtobufPayload,
   getMockAttribute,
@@ -17,8 +18,8 @@ import {
   EServiceDescriptorAttributesUpdatedByTemplateUpdateV2,
   AttributeId,
 } from "pagopa-interop-models";
-import { catalogApi } from "pagopa-interop-api-clients";
 import { expect, describe, it, beforeEach } from "vitest";
+
 import {
   attributeNotFound,
   eServiceDescriptorNotFound,
@@ -156,7 +157,11 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
         messageType: EServiceDescriptorAttributesUpdatedByTemplateUpdateV2,
         payload: writtenEvent.data,
       });
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+      expect(writtenPayload).toEqual({
+        descriptorId: mockDescriptor.id,
+        attributeIds: [mockCertifiedAttribute3.id, mockVerifiedAttribute3.id],
+        eservice: toEServiceV2(updatedEService),
+      });
     }
   );
 

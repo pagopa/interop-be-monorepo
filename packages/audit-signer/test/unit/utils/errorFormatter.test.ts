@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
 import { formatError } from "pagopa-interop-commons";
+import { describe, it, expect } from "vitest";
 
 describe("formatError", () => {
   it("should format an Error without stack", () => {

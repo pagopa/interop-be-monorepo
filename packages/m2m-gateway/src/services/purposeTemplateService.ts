@@ -15,17 +15,8 @@ import {
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { M2MGatewayAppContext } from "../utils/context.js";
-import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
-import { config } from "../config/config.js";
-import {
-  isPolledVersionAtLeastMetadataTargetVersion,
-  isPolledVersionAtLeastResponseVersion,
-  pollResourceUntilDeletion,
-  pollResourceWithMetadata,
-} from "../utils/polling.js";
 
+import { toM2MGatewayApiEService } from "../api/eserviceApiConverter.js";
 import {
   toGetPurposeTemplatesApiQueryParams,
   toM2MGatewayApiDocument,
@@ -33,13 +24,34 @@ import {
   toM2MGatewayApiRiskAnalysisTemplateAnnotationDocument,
   toPurposeTemplateApiRiskAnalysisFormTemplateSeed,
 } from "../api/purposeTemplateApiConverter.js";
-import { toM2MGatewayApiEService } from "../api/eserviceApiConverter.js";
 import { toM2MGatewayApiRiskAnalysisFormTemplate } from "../api/riskAnalysisFormTemplateApiConverter.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { config } from "../config/config.js";
 import { purposeTemplateRiskAnalysisFormNotFound } from "../model/errors.js";
+import { M2MGatewayAppContext } from "../utils/context.js";
+import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
+import {
+  isPolledVersionAtLeastMetadataTargetVersion,
+  isPolledVersionAtLeastResponseVersion,
+  pollResourceUntilDeletion,
+  pollResourceWithMetadata,
+} from "../utils/polling.js";
 
 export type PurposeTemplateService = ReturnType<
   typeof purposeTemplateServiceBuilder
 >;
+
+const emptyPage = (
+  limit: number,
+  offset: number,
+  totalCount: number
+): {
+  results: never[];
+  pagination: { limit: number; offset: number; totalCount: number };
+} => ({
+  results: [],
+  pagination: { limit, offset, totalCount },
+});
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateServiceBuilder(
@@ -303,6 +315,10 @@ export function purposeTemplateServiceBuilder(
           },
           headers,
         });
+
+      if (processResults.length === 0) {
+        return emptyPage(limit, offset, totalCount);
+      }
 
       const eserviceIds = processResults.map(({ eserviceId }) => eserviceId);
       const eservices = await clients.catalogProcessClient

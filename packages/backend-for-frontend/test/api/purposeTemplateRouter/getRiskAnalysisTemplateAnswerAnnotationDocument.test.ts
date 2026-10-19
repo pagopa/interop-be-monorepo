@@ -10,8 +10,9 @@ import {
 } from "pagopa-interop-models";
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { api, services } from "../../vitest.api.setup.js";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { api, services } from "../../vitest.api.setup.js";
 
 describe("API GET /purposeTemplates/{purposeTemplateId}/riskAnalysis/answers/{answerId}/annotation/documents/{documentId}", () => {
   const mockBuffer = Buffer.from("content");

@@ -1,6 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
-import request from "supertest";
+import { catalogApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockDescriptor,
+  getMockDocument,
+  getMockEService,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   DescriptorId,
@@ -9,20 +16,14 @@ import {
   EServiceId,
   generateId,
   operationForbidden,
+  featureFlagNotEnabled,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockDescriptor,
-  getMockDocument,
-  getMockEService,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import { catalogApi } from "pagopa-interop-api-clients";
-import { api, catalogService } from "../vitest.api.setup.js";
-import { buildInterfaceSeed } from "../mockUtils.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { documentToApiDocument } from "../../src/model/domain/apiConverter.js";
 import {
+  asyncExchangeCallbackInterfaceAlreadyExists,
   checksumDuplicate,
   documentPrettyNameDuplicate,
   eServiceDescriptorNotFound,
@@ -30,7 +31,10 @@ import {
   interfaceAlreadyExists,
   notValidDescriptorState,
   templateInstanceNotAllowed,
+  asyncExchangeBulkNotAllowedForSoap,
 } from "../../src/model/domain/errors.js";
+import { buildInterfaceSeed } from "../mockUtils.js";
+import { api, catalogService } from "../vitest.api.setup.js";
 
 describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents authorization test", () => {
   const document = getMockDocument();
@@ -132,6 +136,18 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents autho
     {
       error: checksumDuplicate(mockEService.id, descriptor.id),
       expectedStatus: 409,
+    },
+    {
+      error: asyncExchangeCallbackInterfaceAlreadyExists(descriptor.id),
+      expectedStatus: 409,
+    },
+    {
+      error: asyncExchangeBulkNotAllowedForSoap(mockEService.id, descriptor.id),
+      expectedStatus: 400,
+    },
+    {
+      error: featureFlagNotEnabled("featureFlagAsyncExchange"),
+      expectedStatus: 501,
     },
   ])(
     "Should return $expectedStatus for $error.code",

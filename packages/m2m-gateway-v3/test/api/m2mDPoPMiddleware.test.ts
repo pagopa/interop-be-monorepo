@@ -1,15 +1,4 @@
 import {
-  describe,
-  it,
-  expect,
-  vi,
-  beforeEach,
-  beforeAll,
-  afterAll,
-} from "vitest";
-import express, { Request, Response } from "express";
-import request, { Response as SupertestResponse } from "supertest";
-import {
   DynamoDBClient,
   PutItemCommand,
   GetItemCommand,
@@ -18,12 +7,24 @@ import {
   AttributeValue,
   ConditionalCheckFailedException,
 } from "@aws-sdk/client-dynamodb";
+import express, { Request, Response } from "express";
 import { APIEndpoint } from "pagopa-interop-commons";
 import {
   generateM2MAdminAccessTokenWithDPoPProof,
   JwksServer,
   startJwksServer,
 } from "pagopa-interop-commons-test";
+import request, { Response as SupertestResponse } from "supertest";
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  beforeAll,
+  afterAll,
+} from "vitest";
+
 import { config } from "../../src/config/config.js";
 import { authenticationDPoPMiddleware } from "../../src/utils/middlewares.js";
 

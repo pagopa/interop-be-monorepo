@@ -1,0 +1,26 @@
+meta {
+  name: Add Purpose Template EService Template
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/purposeTemplates/:purposeTemplateId/eserviceTemplates
+  body: json
+  auth: none
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+}
+
+headers {
+  Authorization: {{DPOP-JWT-M2M}}
+  DPoP: {{DPOP-PROOF}}
+}
+
+body:json {
+  {
+    "eserviceTemplateId": "{{eserviceTemplateId}}"
+  }
+}

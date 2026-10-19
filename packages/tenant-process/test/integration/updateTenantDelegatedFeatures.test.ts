@@ -1,6 +1,13 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
+  getMockAuthData,
+  getMockContext,
+  getMockTenant,
+  readEventByStreamIdAndVersion,
+  readLastEventByStreamId,
+} from "pagopa-interop-commons-test";
+import {
   generateId,
   Tenant,
   protobufDecoder,
@@ -12,18 +19,12 @@ import {
   TenantDelegatedConsumerFeatureAddedV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
-import {
-  getMockAuthData,
-  getMockContext,
-  getMockTenant,
-  readEventByStreamIdAndVersion,
-  readLastEventByStreamId,
-} from "pagopa-interop-commons-test";
+
+import { config } from "../../src/config/config.js";
 import {
   tenantNotAllowedForDelegation,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
 import {
   addOneTenant,
   postgresDB,

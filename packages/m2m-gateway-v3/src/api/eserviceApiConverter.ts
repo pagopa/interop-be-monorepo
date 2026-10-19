@@ -1,4 +1,5 @@
 import { catalogApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+
 import { toM2MGatewayApiRiskAnalysisForm } from "./riskAnalysisFormApiConverter.js";
 
 export function toGetEServicesQueryParams(
@@ -10,6 +11,7 @@ export function toGetEServicesQueryParams(
     name: params.name,
     technology: params.technology,
     eservicesIds: [],
+    consumersIds: [],
     attributesIds: [],
     states: [],
     agreementStates: [],
@@ -38,6 +40,9 @@ export function toM2MGatewayApiEService(
     isClientAccessDelegable: eservice.isClientAccessDelegable,
     templateId: eservice.templateId,
     personalData: eservice.personalData,
+    archivingReason: eservice.archivingReason,
+    asyncExchange: eservice.asyncExchange,
+    delegatedArchivingRequest: eservice.delegatedArchivingRequest,
   };
 }
 
@@ -60,6 +65,16 @@ export function toM2MGatewayApiEServiceDescriptor(
     deprecatedAt: descriptor.deprecatedAt,
     archivedAt: descriptor.archivedAt,
     templateVersionId: descriptor.templateVersionRef?.id,
+    archivingSchedule: descriptor.archivingSchedule
+      ? {
+          archivableOn: descriptor.archivingSchedule.archivableOn,
+          startedAt: descriptor.archivingSchedule.startedAt,
+          scope: descriptor.archivingSchedule.scope,
+          gracePeriodDays: descriptor.archivingSchedule.gracePeriodDays,
+        }
+      : undefined,
+    asyncExchangeProperties: descriptor.asyncExchangeProperties,
+    delegatedArchivingRequest: descriptor.delegatedArchivingRequest,
   };
 }
 
@@ -79,6 +94,7 @@ export function toCatalogApiEServiceDescriptorSeed(
       certified: [],
     },
     docs: [],
+    asyncExchangeProperties: descriptor.asyncExchangeProperties,
   };
 }
 
@@ -93,6 +109,7 @@ export function toCatalogApiPatchUpdateEServiceDescriptorSeed(
     dailyCallsTotal: descriptor.dailyCallsTotal,
     agreementApprovalPolicy: descriptor.agreementApprovalPolicy,
     attributes: undefined, // Attributes are updated with dedicated API calls
+    asyncExchangeProperties: descriptor.asyncExchangeProperties,
   };
 }
 

@@ -1,4 +1,8 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import {
+  getMockAttribute,
+  getMockContext,
+  getMockTenant,
+} from "pagopa-interop-commons-test";
 import {
   Tenant,
   generateId,
@@ -9,11 +13,8 @@ import {
   TenantRevoker,
   attributeKind,
 } from "pagopa-interop-models";
-import {
-  getMockAttribute,
-  getMockContext,
-  getMockTenant,
-} from "pagopa-interop-commons-test";
+import { beforeEach, describe, expect, it } from "vitest";
+
 import {
   addOneAttribute,
   addOneTenant,

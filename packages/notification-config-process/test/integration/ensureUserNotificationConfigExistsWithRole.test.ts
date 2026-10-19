@@ -16,6 +16,7 @@ import {
   UserNotificationConfigRoleAddedV2,
 } from "pagopa-interop-models";
 import { beforeAll, describe, expect, it, vi } from "vitest";
+
 import {
   addOneUserNotificationConfig,
   notificationConfigService,
@@ -33,6 +34,7 @@ describe("createUserNotificationConfig", () => {
     clientAddedRemovedToProducer: false,
     purposeStatusChangedToProducer: false,
     templateStatusChangedToProducer: false,
+    eserviceStateChangedToProducer: false,
     agreementSuspendedUnsuspendedToConsumer: false,
     eserviceStateChangedToConsumer: false,
     agreementActivatedRejectedToConsumer: false,
@@ -51,6 +53,16 @@ describe("createUserNotificationConfig", () => {
     producerKeychainKeyAddedDeletedToClientUsers: false,
     purposeQuotaAdjustmentRequestToProducer: false,
     purposeOverQuotaStateToConsumer: false,
+    purposeRiskAnalysisAssignedForSigningToReviewer: false,
+    purposeRiskAnalysisAssignedForWritingAndSigningToReviewer: false,
+    purposePublishedWithRiskAnalysisToReviewer: false,
+    draftPurposeDeletedWithRiskAnalysisToReviewer: false,
+    purposeRiskAnalysisAssignmentRemovedToReviewer: false,
+    purposeRiskAnalysisSignedToReviewer: false,
+    purposeRiskAnalysisSignedToAdmin: false,
+    purposeRiskAnalysisRejectedToAdmin: false,
+    eserviceArchivingRequestedToDelegator: false,
+    eserviceArchivingApprovedRejectedToDelegate: false,
   };
   const defaultEmailConfig: NotificationConfig = {
     agreementSuspendedUnsuspendedToProducer: false,
@@ -58,6 +70,7 @@ describe("createUserNotificationConfig", () => {
     clientAddedRemovedToProducer: false,
     purposeStatusChangedToProducer: false,
     templateStatusChangedToProducer: false,
+    eserviceStateChangedToProducer: false,
     agreementSuspendedUnsuspendedToConsumer: false,
     eserviceStateChangedToConsumer: false,
     agreementActivatedRejectedToConsumer: false,
@@ -76,6 +89,16 @@ describe("createUserNotificationConfig", () => {
     producerKeychainKeyAddedDeletedToClientUsers: false,
     purposeQuotaAdjustmentRequestToProducer: false,
     purposeOverQuotaStateToConsumer: false,
+    purposeRiskAnalysisAssignedForSigningToReviewer: false,
+    purposeRiskAnalysisAssignedForWritingAndSigningToReviewer: false,
+    purposePublishedWithRiskAnalysisToReviewer: false,
+    draftPurposeDeletedWithRiskAnalysisToReviewer: false,
+    purposeRiskAnalysisAssignmentRemovedToReviewer: false,
+    purposeRiskAnalysisSignedToReviewer: false,
+    purposeRiskAnalysisSignedToAdmin: false,
+    purposeRiskAnalysisRejectedToAdmin: false,
+    eserviceArchivingRequestedToDelegator: false,
+    eserviceArchivingApprovedRejectedToDelegate: false,
   };
   beforeAll(async () => {
     vi.useFakeTimers();

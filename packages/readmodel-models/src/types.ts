@@ -1,5 +1,6 @@
 import { InferSelectModel } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
+
 import {
   agreementAttributeInReadmodelAgreement,
   agreementConsumerDocumentInReadmodelAgreement,
@@ -21,12 +22,15 @@ import {
   eserviceDescriptorInterfaceInReadmodelCatalog,
   eserviceDescriptorRejectionReasonInReadmodelCatalog,
   eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+  eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+  eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
   eserviceTemplateInReadmodelEserviceTemplate,
   eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
   eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
+  eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate,
   eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
   eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
   eserviceTemplateVersionInReadmodelEserviceTemplate,
@@ -39,6 +43,7 @@ import {
   purposeInReadmodelPurpose,
   purposeRiskAnalysisAnswerInReadmodelPurpose,
   purposeRiskAnalysisFormInReadmodelPurpose,
+  eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate,
   purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
   purposeTemplateInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
@@ -48,10 +53,12 @@ import {
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
   tenantCertifiedAttributeInReadmodelTenant,
+  tenantCertifiedDiscreteAttributeInReadmodelTenant,
   tenantDeclaredAttributeInReadmodelTenant,
   tenantFeatureInReadmodelTenant,
   tenantInReadmodelTenant,
   tenantMailInReadmodelTenant,
+  tenantRemoteIdInReadmodelTenant,
   tenantNotificationConfigInReadmodelNotificationConfig,
   tenantVerifiedAttributeInReadmodelTenant,
   tenantVerifiedAttributeRevokerInReadmodelTenant,
@@ -62,9 +69,11 @@ import {
   purposeVersionStampInReadmodelPurpose,
   agreementSignedContractInReadmodelAgreement,
   purposeVersionSignedDocumentInReadmodelPurpose,
+  riskAnalysisReviewerInReadmodelPurpose,
   delegationSignedContractDocumentInReadmodelDelegation,
   purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
+  eserviceDescriptorArchivingRequestInReadmodelCatalog,
 } from "./drizzle/schema.js";
 
 export type DrizzleReturnType = ReturnType<typeof drizzle>;
@@ -76,11 +85,17 @@ export type EServiceSQL = InferSelectModel<typeof eserviceInReadmodelCatalog>;
 export type EServiceDescriptorSQL = InferSelectModel<
   typeof eserviceDescriptorInReadmodelCatalog
 >;
+export type EServiceDescriptorArchivingScheduleSQL = InferSelectModel<
+  typeof eserviceDescriptorArchivingScheduleInReadmodelCatalog
+>;
 export type EServiceDescriptorRejectionReasonSQL = InferSelectModel<
   typeof eserviceDescriptorRejectionReasonInReadmodelCatalog
 >;
 export type EServiceDescriptorInterfaceSQL = InferSelectModel<
   typeof eserviceDescriptorInterfaceInReadmodelCatalog
+>;
+export type EServiceDescriptorArchivingRequestSQL = InferSelectModel<
+  typeof eserviceDescriptorArchivingRequestInReadmodelCatalog
 >;
 export type EServiceDescriptorDocumentSQL = InferSelectModel<
   typeof eserviceDescriptorDocumentInReadmodelCatalog
@@ -97,6 +112,9 @@ export type EServiceDescriptorAttributeSQL = InferSelectModel<
 export type EServiceDescriptorTemplateVersionRefSQL = InferSelectModel<
   typeof eserviceDescriptorTemplateVersionRefInReadmodelCatalog
 >;
+export type EServiceDescriptorAsyncExchangePropertiesSQL = InferSelectModel<
+  typeof eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog
+>;
 export type EServiceItemsSQL = {
   eserviceSQL: EServiceSQL;
   riskAnalysesSQL: EServiceRiskAnalysisSQL[];
@@ -107,6 +125,9 @@ export type EServiceItemsSQL = {
   documentsSQL: EServiceDescriptorDocumentSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
   templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[];
+  archivingSchedulesSQL: EServiceDescriptorArchivingScheduleSQL[];
+  asyncExchangePropertiesSQL: EServiceDescriptorAsyncExchangePropertiesSQL[];
+  archivingRequestsSQL: EServiceDescriptorArchivingRequestSQL[];
 };
 
 export type EServiceTemplateSQL = InferSelectModel<
@@ -130,6 +151,10 @@ export type EServiceTemplateRiskAnalysisAnswerSQL = InferSelectModel<
 export type EServiceTemplateVersionAttributeSQL = InferSelectModel<
   typeof eserviceTemplateVersionAttributeInReadmodelEserviceTemplate
 >;
+export type EServiceTemplateVersionAsyncExchangePropertiesSQL =
+  InferSelectModel<
+    typeof eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate
+  >;
 export type EServiceTemplateItemsSQL = {
   eserviceTemplateSQL: EServiceTemplateSQL;
   riskAnalysesSQL: EServiceTemplateRiskAnalysisSQL[];
@@ -138,6 +163,7 @@ export type EServiceTemplateItemsSQL = {
   attributesSQL: EServiceTemplateVersionAttributeSQL[];
   interfacesSQL: EServiceTemplateVersionInterfaceSQL[];
   documentsSQL: EServiceTemplateVersionDocumentSQL[];
+  asyncExchangePropertiesSQL: EServiceTemplateVersionAsyncExchangePropertiesSQL[];
 };
 
 export type AttributeSQL = InferSelectModel<
@@ -193,6 +219,12 @@ export type TenantVerifiedAttributeRevokerSQL = InferSelectModel<
 export type TenantFeatureSQL = InferSelectModel<
   typeof tenantFeatureInReadmodelTenant
 >;
+export type TenantCertifiedDiscreteAttributeSQL = InferSelectModel<
+  typeof tenantCertifiedDiscreteAttributeInReadmodelTenant
+>;
+export type TenantRemoteIdSQL = InferSelectModel<
+  typeof tenantRemoteIdInReadmodelTenant
+>;
 export type TenantItemsSQL = {
   tenantSQL: TenantSQL;
   mailsSQL: TenantMailSQL[];
@@ -202,6 +234,8 @@ export type TenantItemsSQL = {
   verifiedAttributeVerifiersSQL: TenantVerifiedAttributeVerifierSQL[];
   verifiedAttributeRevokersSQL: TenantVerifiedAttributeRevokerSQL[];
   featuresSQL: TenantFeatureSQL[];
+  certifiedDiscreteAttributesSQL: TenantCertifiedDiscreteAttributeSQL[];
+  remoteIdsSQL: TenantRemoteIdSQL[];
 };
 
 export type PurposeSQL = InferSelectModel<typeof purposeInReadmodelPurpose>;
@@ -224,6 +258,9 @@ export type PurposeRiskAnalysisAnswerSQL = InferSelectModel<
 export type PurposeVersionStampSQL = InferSelectModel<
   typeof purposeVersionStampInReadmodelPurpose
 >;
+export type RiskAnalysisReviewerSQL = InferSelectModel<
+  typeof riskAnalysisReviewerInReadmodelPurpose
+>;
 export type PurposeItemsSQL = {
   purposeSQL: PurposeSQL;
   riskAnalysisFormSQL: PurposeRiskAnalysisFormSQL | undefined;
@@ -232,6 +269,7 @@ export type PurposeItemsSQL = {
   versionDocumentsSQL: PurposeVersionDocumentSQL[];
   versionStampsSQL: PurposeVersionStampSQL[];
   versionSignedDocumentsSQL: PurposeVersionSignedDocumentSQL[];
+  reviewersSQL: RiskAnalysisReviewerSQL[];
 };
 
 export type ClientSQL = InferSelectModel<typeof clientInReadmodelClient>;
@@ -321,6 +359,9 @@ export type PurposeTemplateSQL = InferSelectModel<
 export type PurposeTemplateEServiceDescriptorSQL = InferSelectModel<
   typeof purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate
 >;
+export type EServiceTemplateVersionPurposeTemplateSQL = InferSelectModel<
+  typeof eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate
+>;
 export type PurposeTemplateRiskAnalysisFormSQL = InferSelectModel<
   typeof purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate
 >;
@@ -355,6 +396,7 @@ export type PurposeTemplateItemsSQL = {
 };
 export const purposeTemplateChildTables = [
   purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
+  eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,

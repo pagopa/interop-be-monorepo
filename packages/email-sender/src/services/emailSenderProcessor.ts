@@ -1,17 +1,18 @@
 /* eslint-disable functional/no-let */
+import { TooManyRequestsException } from "@aws-sdk/client-sesv2";
+import { EachMessagePayload } from "kafkajs";
+import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
+import { delay, EmailManagerSES, logger, Logger } from "pagopa-interop-commons";
+import { HtmlTemplateService } from "pagopa-interop-commons";
 import {
   genericInternalError,
   EmailNotificationMessagePayload,
   UserId,
   TenantId,
 } from "pagopa-interop-models";
-import { EachMessagePayload } from "kafkajs";
-import { delay, EmailManagerSES, logger, Logger } from "pagopa-interop-commons";
-import { TooManyRequestsException } from "@aws-sdk/client-sesv2";
-import { match } from "ts-pattern";
-import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
 import { TenantReadModelService } from "pagopa-interop-readmodel";
-import { HtmlTemplateService } from "pagopa-interop-commons";
+import { match } from "ts-pattern";
+
 import { config } from "../config/config.js";
 
 export async function getUserFromSelfcare(

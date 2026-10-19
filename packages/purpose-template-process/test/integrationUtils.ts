@@ -11,6 +11,8 @@ import {
 import {
   EService,
   EServiceDescriptorPurposeTemplate,
+  EServiceTemplate,
+  EServiceTemplateVersionPurposeTemplate,
   ListResult,
   PurposeTemplate,
   PurposeTemplateEvent,
@@ -21,18 +23,22 @@ import {
 } from "pagopa-interop-models";
 import {
   catalogReadModelServiceBuilder,
+  eserviceTemplateReadModelServiceBuilder,
   purposeTemplateReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import {
   upsertEService,
+  upsertEServiceTemplate,
+  upsertEServiceTemplateVersionPurposeTemplate,
   upsertPurposeTemplate,
   upsertPurposeTemplateEServiceDescriptor,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
 import { afterEach, expect, inject } from "vitest";
+
 import { config } from "../src/config/config.js";
-import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 import { purposeTemplateServiceBuilder } from "../src/services/purposeTemplateService.js";
+import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
 export const { cleanup, postgresDB, fileManager, readModelDB } =
   await setupTestContainersVitest(
@@ -48,12 +54,16 @@ afterEach(cleanup);
 
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
 
+const eserviceTemplateReadModelServiceSQL =
+  eserviceTemplateReadModelServiceBuilder(readModelDB);
+
 const purposeTemplateReadModelServiceSQL =
   purposeTemplateReadModelServiceBuilder(readModelDB);
 
 export const readModelService = readModelServiceBuilderSQL({
   readModelDB,
   catalogReadModelServiceSQL,
+  eserviceTemplateReadModelServiceSQL,
   purposeTemplateReadModelServiceSQL,
 });
 
@@ -125,6 +135,22 @@ export const addOnePurposeTemplateEServiceDescriptor = async (
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
   await upsertEService(readModelDB, eservice, 0);
+};
+
+export const addOneEServiceTemplate = async (
+  eserviceTemplate: EServiceTemplate
+): Promise<void> => {
+  await upsertEServiceTemplate(readModelDB, eserviceTemplate, 0);
+};
+
+export const addOneEServiceTemplateVersionPurposeTemplate = async (
+  eserviceTemplateVersionPurposeTemplate: EServiceTemplateVersionPurposeTemplate
+): Promise<void> => {
+  await upsertEServiceTemplateVersionPurposeTemplate(
+    readModelDB,
+    eserviceTemplateVersionPurposeTemplate,
+    0
+  );
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {

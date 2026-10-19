@@ -1,6 +1,6 @@
-import { constants } from "http2";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { constants } from "http2";
 import { bffApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
@@ -13,9 +13,10 @@ import {
   genericError,
   tooManyRequestsError,
 } from "pagopa-interop-models";
+
+import { config } from "../config/config.js";
 import { makeApiProblem } from "../model/errors.js";
 import { AuthorizationService } from "../services/authorizationService.js";
-import { config } from "../config/config.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import { getSessionTokenErrorMapper } from "../utilities/errorMappers.js";
 

@@ -6,6 +6,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import { PurposeTemplateWriterService } from "./purposeTemplateWriterService.js";
 
 export async function handleMessageV2(
@@ -79,6 +80,45 @@ export async function handleMessageV2(
           purposeTemplateId: unsafeBrandId(msg.data.purposeTemplate.id),
           eserviceId: unsafeBrandId(msg.data.eservice.id),
           descriptorId: unsafeBrandId(msg.data.descriptorId),
+          metadataVersion: msg.version,
+        }
+      );
+    })
+    .with({ type: "PurposeTemplateEServiceTemplateLinked" }, async (msg) => {
+      if (!msg.data.purposeTemplate) {
+        throw missingKafkaMessageDataError("purposeTemplate", msg.type);
+      }
+      if (!msg.data.eserviceTemplate) {
+        throw missingKafkaMessageDataError("eserviceTemplate", msg.type);
+      }
+
+      await purposeTemplateWriterService.upsertPurposeTemplateEServiceTemplateVersion(
+        {
+          purposeTemplateId: unsafeBrandId(msg.data.purposeTemplate.id),
+          eserviceTemplateId: unsafeBrandId(msg.data.eserviceTemplate.id),
+          eserviceTemplateVersionId: unsafeBrandId(
+            msg.data.eserviceTemplateVersionId
+          ),
+          createdAt: bigIntToDate(msg.data.createdAt),
+        },
+        msg.version
+      );
+    })
+    .with({ type: "PurposeTemplateEServiceTemplateUnlinked" }, async (msg) => {
+      if (!msg.data.purposeTemplate) {
+        throw missingKafkaMessageDataError("purposeTemplate", msg.type);
+      }
+      if (!msg.data.eserviceTemplate) {
+        throw missingKafkaMessageDataError("eserviceTemplate", msg.type);
+      }
+
+      await purposeTemplateWriterService.deletePurposeTemplateEServiceTemplateVersion(
+        {
+          purposeTemplateId: unsafeBrandId(msg.data.purposeTemplate.id),
+          eserviceTemplateId: unsafeBrandId(msg.data.eserviceTemplate.id),
+          eserviceTemplateVersionId: unsafeBrandId(
+            msg.data.eserviceTemplateVersionId
+          ),
           metadataVersion: msg.version,
         }
       );

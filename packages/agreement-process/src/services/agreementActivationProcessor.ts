@@ -1,6 +1,8 @@
 /* eslint-disable max-params */
+import { evaluateCertifiedAttributesSuspension } from "pagopa-interop-agreement-lifecycle";
 import {
   CreateEvent,
+  isFeatureFlagEnabled,
   M2MAdminAuthData,
   ownership,
   Ownership,
@@ -19,9 +21,12 @@ import {
   genericError,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
+
+import { config } from "../config/config.js";
 import {
   agreementArchivableStates,
   matchingCertifiedAttributes,
+  matchingCertifiedDiscreteAttributes,
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
 } from "../model/domain/agreement-validators.js";
@@ -82,6 +87,10 @@ export function createActivationUpdateAgreementSeed({
     ? {
         state: newState,
         certifiedAttributes: matchingCertifiedAttributes(descriptor, consumer),
+        certifiedDiscreteAttributes: matchingCertifiedDiscreteAttributes(
+          descriptor,
+          consumer
+        ),
         declaredAttributes: matchingDeclaredAttributes(descriptor, consumer),
         verifiedAttributes: matchingVerifiedAttributes(
           eservice,
@@ -120,6 +129,8 @@ export async function createActivationEvent(
   suspendedByPlatformChanged: boolean,
   agreementEventStoreVersion: number,
   agreementOwnership: Ownership,
+  descriptor: Descriptor,
+  consumer: Tenant,
   correlationId: CorrelationId
 ): Promise<Array<CreateEvent<AgreementEventV2>>> {
   if (isFirstActivation) {
@@ -187,6 +198,8 @@ export async function createActivationEvent(
           ),
           ...maybeCreateSuspensionByPlatformEvents(
             updatedAgreement,
+            descriptor,
+            consumer,
             suspendedByPlatformChanged,
             agreementEventStoreVersion + 1,
             correlationId
@@ -211,6 +224,8 @@ export async function createActivationEvent(
         ),
         ...maybeCreateSuspensionByPlatformEvents(
           updatedAgreement,
+          descriptor,
+          consumer,
           suspendedByPlatformChanged,
           agreementEventStoreVersion + 1,
           correlationId
@@ -271,6 +286,8 @@ export const archiveRelatedToAgreements = async (
 
 function maybeCreateSuspensionByPlatformEvents(
   updatedAgreement: Agreement,
+  descriptor: Descriptor,
+  consumer: Tenant,
   suspendedByPlatformChanged: boolean,
   agreementEventStoreVersion: number,
   correlationId: CorrelationId
@@ -279,21 +296,35 @@ function maybeCreateSuspensionByPlatformEvents(
     suspendedByPlatformChanged &&
     updatedAgreement.state === agreementState.suspended
   ) {
-    return updatedAgreement.suspendedByPlatform
-      ? [
-          toCreateEventAgreementSuspendedByPlatform(
-            updatedAgreement,
-            agreementEventStoreVersion,
-            correlationId
-          ),
-        ]
-      : [
-          toCreateEventAgreementUnsuspendedByPlatform(
-            updatedAgreement,
-            agreementEventStoreVersion,
-            correlationId
-          ),
-        ];
+    if (updatedAgreement.suspendedByPlatform) {
+      const { suspensionReason, discreteAttributeFailure } =
+        evaluateCertifiedAttributesSuspension(
+          descriptor.attributes,
+          consumer.attributes,
+          {
+            certifiedDiscreteEnabled: isFeatureFlagEnabled(
+              config,
+              "featureFlagAttributeCertifiedDiscrete"
+            ),
+          }
+        );
+      return [
+        toCreateEventAgreementSuspendedByPlatform(
+          updatedAgreement,
+          agreementEventStoreVersion,
+          correlationId,
+          suspensionReason,
+          discreteAttributeFailure
+        ),
+      ];
+    }
+    return [
+      toCreateEventAgreementUnsuspendedByPlatform(
+        updatedAgreement,
+        agreementEventStoreVersion,
+        correlationId
+      ),
+    ];
   }
   return [];
 }

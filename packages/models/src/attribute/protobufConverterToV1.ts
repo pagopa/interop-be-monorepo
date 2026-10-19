@@ -1,4 +1,5 @@
 import { match } from "ts-pattern";
+
 import { AttributeKindV1, AttributeV1 } from "../gen/v1/attribute/attribute.js";
 import { Attribute, AttributeKind, attributeKind } from "./attribute.js";
 
@@ -13,4 +14,8 @@ export const toAttributeKindV1 = (input: AttributeKind): AttributeKindV1 =>
     .with(attributeKind.declared, () => AttributeKindV1.DECLARED)
     .with(attributeKind.verified, () => AttributeKindV1.VERIFIED)
     .with(attributeKind.certified, () => AttributeKindV1.CERTIFIED)
+    .with(
+      attributeKind.certifiedDiscrete,
+      () => AttributeKindV1.CERTIFIED_DISCRETE
+    )
     .exhaustive();

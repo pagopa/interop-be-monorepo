@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { ConditionalCheckFailedException } from "@aws-sdk/client-dynamodb";
+import { genericLogger } from "pagopa-interop-commons";
 import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+  getMockTokenGenStatesConsumerClient,
+  buildDynamoDBTables,
+  deleteDynamoDBTables,
+  readAllTokenGenStatesItems,
+  writeTokenGenStatesConsumerClient,
+  writePlatformCatalogEntry,
+} from "pagopa-interop-commons-test";
 import {
   PlatformStatesCatalogEntry,
   TokenGenerationStatesConsumerClient,
@@ -19,16 +19,17 @@ import {
   makePlatformStatesEServiceDescriptorPK,
   makeTokenGenerationStatesClientKidPurposePK,
 } from "pagopa-interop-models";
-import { ConditionalCheckFailedException } from "@aws-sdk/client-dynamodb";
 import {
-  getMockTokenGenStatesConsumerClient,
-  buildDynamoDBTables,
-  deleteDynamoDBTables,
-  readAllTokenGenStatesItems,
-  writeTokenGenStatesConsumerClient,
-  writePlatformCatalogEntry,
-} from "pagopa-interop-commons-test";
-import { genericLogger } from "pagopa-interop-commons";
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+
 import {
   deleteCatalogEntry,
   descriptorStateToItemState,
@@ -183,6 +184,42 @@ describe("utils tests", async () => {
 
       expect(retrievedCatalogEntry).toEqual(catalogStateEntry);
     });
+
+    it("should persist async exchange as a nested object", async () => {
+      const primaryKey = makePlatformStatesEServiceDescriptorPK({
+        eserviceId: generateId(),
+        descriptorId: generateId(),
+      });
+      const catalogStateEntry: PlatformStatesCatalogEntry = {
+        PK: primaryKey,
+        state: itemState.inactive,
+        descriptorVoucherLifespan: 100,
+        descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+        asyncExchange: true,
+        asyncExchangeProperties: {
+          responseTime: 120,
+          resourceAvailableTime: 600,
+          confirmation: true,
+          bulk: false,
+          maxResultSet: 100,
+        },
+        version: 1,
+        updatedAt: new Date().toISOString(),
+      };
+
+      await upsertPlatformStatesCatalogEntry(
+        catalogStateEntry,
+        dynamoDBClient,
+        genericLogger
+      );
+
+      const retrievedCatalogEntry = await readCatalogEntry(
+        primaryKey,
+        dynamoDBClient
+      );
+
+      expect(retrievedCatalogEntry).toEqual(catalogStateEntry);
+    });
   });
 
   describe("readCatalogEntry", async () => {
@@ -258,18 +295,21 @@ describe("utils tests", async () => {
     });
   });
 
-  describe("descriptorStateToClientState", async () => {
-    it.each([descriptorState.published, descriptorState.deprecated])(
-      "should convert %s state to active",
-      async (s) => {
-        expect(descriptorStateToItemState(s)).toBe(itemState.active);
-      }
-    );
+  describe("should convert descriptor states to token-generation-readmodel states", async () => {
+    it.each([
+      descriptorState.published,
+      descriptorState.deprecated,
+      descriptorState.archiving,
+    ])("should convert %s state to active", async (s) => {
+      expect(descriptorStateToItemState(s)).toBe(itemState.active);
+    });
 
     it.each([
       descriptorState.archived,
       descriptorState.draft,
       descriptorState.suspended,
+      descriptorState.archivingSuspended,
+      descriptorState.waitingForApproval,
     ])("should convert %s state to inactive", async (s) => {
       expect(descriptorStateToItemState(s)).toBe(itemState.inactive);
     });

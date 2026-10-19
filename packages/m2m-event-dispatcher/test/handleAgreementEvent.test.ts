@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockDelegation,
   getMockAgreement,
@@ -18,8 +18,9 @@ import {
   AgreementEventEnvelopeV1,
   AgreementEventV1,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { handleAgreementEvent } from "../src/handlers/handleAgreementEvent.js";
 import {
   addOneDelegationToReadModel,

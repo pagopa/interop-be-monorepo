@@ -1,3 +1,4 @@
+import { drizzle } from "drizzle-orm/node-postgres";
 import { initDB, initFileManager, startServer } from "pagopa-interop-commons";
 import {
   makeDrizzleConnection,
@@ -5,8 +6,10 @@ import {
   tenantReadModelServiceBuilder,
   eserviceTemplateReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
-import { config } from "./config/config.js";
+import pg from "pg";
+
 import { createApp } from "./app.js";
+import { config } from "./config/config.js";
 import { catalogServiceBuilder } from "./services/catalogService.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 
@@ -16,11 +19,25 @@ const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(db);
 const eserviceTemplateReadModelServiceSQL =
   eserviceTemplateReadModelServiceBuilder(db);
 
+const tenantKindHistoryDB = drizzle({
+  client: new pg.Pool({
+    host: config.tenantKindHistoryDBHost,
+    port: config.tenantKindHistoryDBPort,
+    database: config.tenantKindHistoryDBName,
+    user: config.tenantKindHistoryDBUsername,
+    password: config.tenantKindHistoryDBPassword,
+    ssl: config.tenantKindHistoryDBUseSSL
+      ? { rejectUnauthorized: false }
+      : undefined,
+  }),
+});
+
 const readModelServiceSQL = readModelServiceBuilderSQL(
   db,
   catalogReadModelServiceSQL,
   tenantReadModelServiceSQL,
-  eserviceTemplateReadModelServiceSQL
+  eserviceTemplateReadModelServiceSQL,
+  tenantKindHistoryDB
 );
 
 const catalogService = catalogServiceBuilder(

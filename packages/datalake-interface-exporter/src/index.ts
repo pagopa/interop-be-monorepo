@@ -13,6 +13,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import { config } from "./config/config.js";
 import { exportInterfaceV1 } from "./interfaceExporterV1.js";
 import { exportInterfaceV2 } from "./interfaceExporterV2.js";

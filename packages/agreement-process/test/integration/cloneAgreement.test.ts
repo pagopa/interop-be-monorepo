@@ -14,6 +14,7 @@ import {
   getMockAuthData,
   randomArrayItem,
   getMockDescriptorPublished,
+  sortAgreementV2,
 } from "pagopa-interop-commons-test";
 import {
   AgreementAddedV2,
@@ -31,6 +32,8 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+
+import { config } from "../../src/config/config.js";
 import {
   agreementClonableStates,
   agreementCloningConflictingStates,
@@ -46,7 +49,6 @@ import {
   tenantIsNotTheDelegateConsumer,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
 import {
   addOneAgreement,
   addOneDelegation,
@@ -200,12 +202,12 @@ describe("clone agreement", () => {
       clonedConsumerDocuments: agreementClonedAgreement?.consumerDocuments,
     });
 
-    expect(agreementClonedEventPayload).toEqual({
-      agreement: expectedAgreementCloned,
-    });
-    expect(agreementClonedEventPayload).toEqual({
-      agreement: toAgreementV2(returnedAgreement),
-    });
+    expect(sortAgreementV2(agreementClonedEventPayload.agreement)).toEqual(
+      sortAgreementV2(expectedAgreementCloned)
+    );
+    expect(sortAgreementV2(agreementClonedEventPayload.agreement)).toEqual(
+      sortAgreementV2(toAgreementV2(returnedAgreement))
+    );
 
     for (const agreementDoc of expectedAgreementCloned.consumerDocuments) {
       const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;
@@ -327,12 +329,12 @@ describe("clone agreement", () => {
       clonedConsumerDocuments: agreementClonedAgreement?.consumerDocuments,
     });
 
-    expect(agreementClonedEventPayload).toEqual({
-      agreement: expectedAgreementCloned,
-    });
-    expect(agreementClonedEventPayload).toEqual({
-      agreement: toAgreementV2(returnedAgreement),
-    });
+    expect(sortAgreementV2(agreementClonedEventPayload.agreement)).toEqual(
+      sortAgreementV2(expectedAgreementCloned)
+    );
+    expect(sortAgreementV2(agreementClonedEventPayload.agreement)).toEqual(
+      sortAgreementV2(toAgreementV2(returnedAgreement))
+    );
 
     for (const agreementDoc of expectedAgreementCloned.consumerDocuments) {
       const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;

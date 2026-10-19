@@ -2,9 +2,10 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable @typescript-eslint/array-type */
 import axios from "axios";
-import { z } from "zod";
-import { match } from "ts-pattern";
 import { PUBLIC_ADMINISTRATIONS_IDENTIFIER } from "pagopa-interop-models";
+import { match } from "ts-pattern";
+import { z } from "zod";
+
 import type { OpenDataConfig } from "../config/openDataConfig.js";
 
 type Classification = "Agency" | "AOO" | "UO";
@@ -19,6 +20,7 @@ export type Institution = {
   origin: string;
   kind: string;
   classification: Classification;
+  istatCode?: string;
 };
 
 export type Category = {
@@ -41,6 +43,7 @@ const institutionsFields = [
   "Tipologia",
   "Codice_uni_aoo",
   "Codice_uni_uo",
+  "Codice_comune_ISTAT",
 ] as const;
 type InstitutionsFields = (typeof institutionsFields)[number];
 
@@ -188,7 +191,6 @@ export async function getAllInstitutions(
       .with("AOO", () => {
         const aoo = extractor("Denominazione_aoo", z.string());
         const agency = extractor("Denominazione_ente", z.string());
-
         if (!aoo || !agency) {
           return undefined;
         }
@@ -223,6 +225,8 @@ export async function getAllInstitutions(
       return accumulator;
     }
 
+    const istatCode = extractor("Codice_comune_ISTAT", z.string());
+
     // eslint-disable-next-line functional/immutable-data
     accumulator.push({
       id: taxCode,
@@ -231,6 +235,7 @@ export async function getAllInstitutions(
       description,
       origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
       kind,
+      istatCode,
       classification: match<InstitutionKind, Classification>(institutionKind)
         .with("Agency", () => "Agency")
         .with("AOO", () => "AOO")

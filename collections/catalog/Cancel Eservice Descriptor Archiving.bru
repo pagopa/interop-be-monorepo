@@ -1,0 +1,21 @@
+meta {
+  name: Cancel Eservice Descriptor Archiving
+  type: http
+  seq: 38
+}
+
+delete {
+  url: {{host-catalog}}/eservices/:eserviceId/descriptors/:descriptorId/scheduleArchive
+  body: none
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

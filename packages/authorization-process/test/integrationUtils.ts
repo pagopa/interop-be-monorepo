@@ -1,3 +1,4 @@
+import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
 import {
   ReadEvent,
   StoredEvent,
@@ -5,7 +6,6 @@ import {
   writeInEventstore,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
-import { afterEach, inject } from "vitest";
 import {
   Agreement,
   AuthorizationEvent,
@@ -21,7 +21,6 @@ import {
   toClientV2,
   toProducerKeychainV2,
 } from "pagopa-interop-models";
-import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
@@ -43,6 +42,8 @@ import {
   upsertProducerKeychain,
   upsertPurpose,
 } from "pagopa-interop-readmodel/testUtils";
+import { afterEach, inject } from "vitest";
+
 import { authorizationServiceBuilder } from "../src/services/authorizationService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 

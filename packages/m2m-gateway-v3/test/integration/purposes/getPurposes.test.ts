@@ -1,17 +1,18 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApiV3, purposeApi } from "pagopa-interop-api-clients";
 import { getMockedApiPurpose } from "pagopa-interop-commons-test";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
   purposeService,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
   getMockM2MAdminAppContext,
   testToM2mGatewayApiPurposeVersion,
 } from "../../mockUtils.js";
-import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 
 describe("getPurposes", () => {
   const mockParams: m2mGatewayApiV3.GetPurposesQueryParams = {
@@ -66,6 +67,7 @@ describe("getPurposes", () => {
       updatedAt: mockApiPurpose1.updatedAt,
       waitingForApprovalVersion: undefined,
       purposeTemplateId: mockApiPurpose1.purposeTemplateId,
+      riskAnalysisReviewMode: mockApiPurpose1.riskAnalysisReviewMode,
     };
 
     const purposeVersion2 = mockApiPurpose2.versions.at(0);
@@ -88,6 +90,7 @@ describe("getPurposes", () => {
       updatedAt: mockApiPurpose2.updatedAt,
       waitingForApprovalVersion: undefined,
       purposeTemplateId: mockApiPurpose2.purposeTemplateId,
+      riskAnalysisReviewMode: mockApiPurpose2.riskAnalysisReviewMode,
     };
 
     const m2mPurposeResponse: m2mGatewayApiV3.Purposes = {
@@ -115,6 +118,7 @@ describe("getPurposes", () => {
         producersIds: [],
         clientId: undefined,
         states: [],
+        signingStates: [],
         excludeDraft: false,
         name: undefined,
       },

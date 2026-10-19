@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import {
   UserId,
   TenantId,
@@ -14,6 +15,7 @@ export const NotificationType = z.enum([
   "clientAddedRemovedToProducer", // 05: Associazione di un client da parte del fruitore
   "purposeStatusChangedToProducer", // 07: Variazione stato di una finalità
   "templateStatusChangedToProducer", // 09: Variazione stato template
+  "eserviceStateChangedToProducer", // 10: Processo di archiviazione e-service (lato Erogazione)
   "agreementSuspendedUnsuspendedToConsumer", // 13: Sospensione o riattivazione richiesta di fruizione
   "eserviceStateChangedToConsumer", // 11: Variazione di stato e-service
   "agreementActivatedRejectedToConsumer", // 12: Attivazione o rifiuto richiesta di fruizione
@@ -32,6 +34,16 @@ export const NotificationType = z.enum([
   "producerKeychainKeyAddedDeletedToClientUsers", // 25: Variazioni sullo stato delle chiavi collegate ad un client (ProducerKeychain)
   "purposeQuotaAdjustmentRequestToProducer", // 06: Richiesta adeguamento piano di carico finalità
   "purposeOverQuotaStateToConsumer", // 14: Superamento soglia piano di carico finalità
+  "purposeRiskAnalysisAssignedForSigningToReviewer", // Assegnazione analisi del rischio da approvare a valutatore
+  "purposeRiskAnalysisAssignedForWritingAndSigningToReviewer", // Assegnazione analisi del rischio da compilare e approvare a valutatore
+  "purposePublishedWithRiskAnalysisToReviewer", // Finalità pubblicata con analisi del rischio assegnata al valutatore
+  "draftPurposeDeletedWithRiskAnalysisToReviewer", // Bozza di finalità eliminata con analisi del rischio assegnata a valutatore
+  "purposeRiskAnalysisAssignmentRemovedToReviewer", // Assegnazione analisi del rischio rimossa
+  "purposeRiskAnalysisSignedToReviewer", // Analisi del rischio approvata da un altro valutatore
+  "purposeRiskAnalysisSignedToAdmin", // Approvazione analisi del rischio
+  "purposeRiskAnalysisRejectedToAdmin", // Rifiuto analisi del rischio
+  "eserviceArchivingRequestedToDelegator", // 26: Richiesta archiviazione e-service o versione al delegante
+  "eserviceArchivingApprovedRejectedToDelegate", // 27: Approvazione o rifiuto richiesta archiviazione al delegato
 ]);
 export type NotificationType = z.infer<typeof NotificationType>;
 

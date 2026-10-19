@@ -16,16 +16,17 @@ import {
   operationForbidden,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
-import {
-  addOneEService,
-  catalogService,
-  readLastEserviceEvent,
-} from "../integrationUtils.js";
+
 import {
   eServiceNotFound,
   eservicePersonalDataFlagCanOnlyBeSetOnce,
   eserviceWithoutValidDescriptors,
 } from "../../src/model/domain/errors.js";
+import {
+  addOneEService,
+  catalogService,
+  readLastEserviceEvent,
+} from "../integrationUtils.js";
 
 describe("update E-service personalData flag for an already created E-service", async () => {
   it("should write on event-store for the update of the E-service personalData flag (undefined -> true)", async () => {
@@ -67,10 +68,12 @@ describe("update E-service personalData flag for an already created E-service", 
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-    expect(writtenPayload.eservice).toEqual(
-      toEServiceV2(returnedEService.data)
-    );
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(updatedEService),
+    });
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(returnedEService.data),
+    });
   });
 
   it.each([

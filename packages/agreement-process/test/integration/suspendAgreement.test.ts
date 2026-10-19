@@ -39,8 +39,9 @@ import {
   generateId,
   toAgreementV2,
 } from "pagopa-interop-models";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { match } from "ts-pattern";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { agreementSuspendableStates } from "../../src/model/domain/agreement-validators.js";
 import {
   agreementNotFound,
@@ -194,8 +195,8 @@ describe("suspend agreement", () => {
         ...expectedStamps,
       },
     };
-    expect(actualAgreementSuspended).toEqual(
-      toAgreementV2(expectedAgreementSuspended)
+    expect(sortAgreementV2(actualAgreementSuspended)).toEqual(
+      sortAgreementV2(toAgreementV2(expectedAgreementSuspended))
     );
     expect(sortAgreement(suspendAgreementResponse)).toEqual({
       data: sortAgreement(expectedAgreementSuspended),
@@ -311,8 +312,8 @@ describe("suspend agreement", () => {
         },
       },
     };
-    expect(actualAgreementSuspended).toEqual(
-      toAgreementV2(expectedAgreementSuspended)
+    expect(sortAgreementV2(actualAgreementSuspended)).toEqual(
+      sortAgreementV2(toAgreementV2(expectedAgreementSuspended))
     );
     expect(sortAgreement(suspendAgreementResponse)).toEqual({
       data: sortAgreement(expectedAgreementSuspended),

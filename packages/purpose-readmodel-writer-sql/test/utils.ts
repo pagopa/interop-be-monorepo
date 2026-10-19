@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { inject, afterEach, expect } from "vitest";
-import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-import { purposeReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import { eq } from "drizzle-orm";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { Purpose, PurposeId } from "pagopa-interop-models";
+import { purposeReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import {
   PurposeItemsSQL,
   DrizzleReturnType,
@@ -21,7 +20,11 @@ import {
   purposeVersionStampInReadmodelPurpose,
   PurposeVersionSignedDocumentSQL,
   purposeVersionSignedDocumentInReadmodelPurpose,
+  RiskAnalysisReviewerSQL,
+  riskAnalysisReviewerInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
+import { inject, afterEach, expect } from "vitest";
+
 import { purposeWriterServiceBuilder } from "../src/purposeWriterService.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(
@@ -60,6 +63,10 @@ export const checkCompletePurpose = async (
     await retrievePurposeVersionStampsSQLById(purpose.id, readModelDB);
   const retrievedPurposeVersionSignedDocumentsSQL =
     await retrievePurposeVersionSignedDocumentsSQLById(purpose.id, readModelDB);
+  const retrievedReviewersSQL = await retrieveRiskAnalysisReviewersSQLById(
+    purpose.id,
+    readModelDB
+  );
 
   expect(retrievedPurposeSQL).toBeDefined();
   expect(retrievedRiskAnalysisFormSQL).toBeDefined();
@@ -81,6 +88,7 @@ export const checkCompletePurpose = async (
     versionDocumentsSQL: retrievedPurposeVersionDocumentsSQL,
     versionStampsSQL: retrievedPurposeVersionStampsSQL,
     versionSignedDocumentsSQL: retrievedPurposeVersionSignedDocumentsSQL,
+    reviewersSQL: retrievedReviewersSQL,
   };
 };
 
@@ -156,3 +164,12 @@ export const retrievePurposeVersionSignedDocumentsSQLById = async (
     .where(
       eq(purposeVersionSignedDocumentInReadmodelPurpose.purposeId, purposeId)
     );
+
+export const retrieveRiskAnalysisReviewersSQLById = async (
+  purposeId: PurposeId,
+  db: DrizzleReturnType
+): Promise<RiskAnalysisReviewerSQL[]> =>
+  await db
+    .select()
+    .from(riskAnalysisReviewerInReadmodelPurpose)
+    .where(eq(riskAnalysisReviewerInReadmodelPurpose.purposeId, purposeId));

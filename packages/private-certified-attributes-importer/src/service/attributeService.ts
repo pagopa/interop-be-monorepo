@@ -1,9 +1,10 @@
 import crypto from "crypto";
 import { InteropHeaders, Logger, delay } from "pagopa-interop-commons";
 import { Attribute, attributeKind } from "pagopa-interop-models";
+
+import { InteropClients } from "../client/client.js";
 import { config } from "../config/config.js";
 import { ReadModelServiceSQL } from "./readModelService.js";
-import { InteropClients } from "../client/client.js";
 
 export const REGISTRY_ATTRIBUTES_SEEDS = {
   adesione: {

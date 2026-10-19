@@ -12,6 +12,7 @@ import {
 } from "pagopa-interop-commons";
 import { generateId, technology } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import {
   CatalogProcessClientWithMetadata,
   EServiceTemplateProcessClientWithMetadata,
@@ -81,6 +82,10 @@ export async function uploadEServiceDocument({
           },
         }
       ),
+    {
+      maxFileSizeBytes: config.maxFileSizeBytes,
+      maxInterfaceFileSizeBytes: config.maxInterfaceFileSizeBytes,
+    },
     logger
   );
 }
@@ -147,6 +152,10 @@ export async function uploadEServiceTemplateDocument({
           },
         }
       ),
+    {
+      maxFileSizeBytes: config.maxFileSizeBytes,
+      maxInterfaceFileSizeBytes: config.maxInterfaceFileSizeBytes,
+    },
     logger
   );
 }

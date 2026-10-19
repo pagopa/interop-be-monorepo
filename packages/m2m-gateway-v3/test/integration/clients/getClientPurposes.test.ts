@@ -1,4 +1,3 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   getMockWithMetadata,
@@ -7,13 +6,15 @@ import {
   getMockedApiPurposeVersion,
 } from "pagopa-interop-commons-test";
 import { unsafeBrandId } from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
   clientService,
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientGetToHaveBeenNthCalledWith,
   mockInteropBeClients,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
   getMockM2MAdminAppContext,
   testToM2mGatewayApiPurposeVersion,
@@ -95,6 +96,7 @@ describe("getClientPurposes", () => {
     updatedAt: mockApiPurpose1.updatedAt,
     waitingForApprovalVersion: undefined,
     purposeTemplateId: mockApiPurpose1.purposeTemplateId,
+    riskAnalysisReviewMode: mockApiPurpose1.riskAnalysisReviewMode,
   };
 
   const purposeVersion2 = mockApiPurpose2.versions.at(0);
@@ -117,6 +119,7 @@ describe("getClientPurposes", () => {
     updatedAt: mockApiPurpose2.updatedAt,
     waitingForApprovalVersion: undefined,
     purposeTemplateId: mockApiPurpose2.purposeTemplateId,
+    riskAnalysisReviewMode: mockApiPurpose2.riskAnalysisReviewMode,
   };
 
   const purposeVersion3 = mockApiPurpose3.versions.at(0);
@@ -139,6 +142,7 @@ describe("getClientPurposes", () => {
     updatedAt: mockApiPurpose3.updatedAt,
     waitingForApprovalVersion: undefined,
     purposeTemplateId: mockApiPurpose3.purposeTemplateId,
+    riskAnalysisReviewMode: mockApiPurpose3.riskAnalysisReviewMode,
   };
 
   beforeEach(() => {
@@ -183,6 +187,7 @@ describe("getClientPurposes", () => {
         producersIds: [],
         clientId: mockApiConsumerClient.id,
         states: [],
+        signingStates: [],
         excludeDraft: false,
         name: "",
       },

@@ -1,0 +1,20 @@
+meta {
+  name: Cancel EService Archiving
+  type: http
+  seq: 39
+}
+
+delete {
+  url: {{host-catalog}}/eservices/:eserviceId/scheduleArchive
+  body: none
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

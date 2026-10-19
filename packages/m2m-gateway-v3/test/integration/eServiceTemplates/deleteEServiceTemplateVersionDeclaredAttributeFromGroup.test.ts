@@ -1,9 +1,3 @@
-import { describe, it, vi, beforeEach, expect } from "vitest";
-import {
-  generateId,
-  pollingMaxRetriesExceeded,
-  unsafeBrandId,
-} from "pagopa-interop-models";
 import {
   getMockWithMetadata,
   getMockedApiEServiceAttribute,
@@ -11,21 +5,28 @@ import {
   getMockedApiEserviceTemplateVersion,
 } from "pagopa-interop-commons-test";
 import {
-  expectApiClientPostToHaveBeenCalledWith,
-  expectApiClientGetToHaveBeenCalledWith,
-  mockInteropBeClients,
-  mockPollingResponse,
-  eserviceTemplateService,
-} from "../../integrationUtils.js";
+  generateId,
+  pollingMaxRetriesExceeded,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import { describe, it, vi, beforeEach, expect } from "vitest";
+
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import { config } from "../../../src/config/config.js";
 import {
   eserviceTemplateVersionAttributeGroupNotFound,
   eserviceTemplateVersionAttributeNotFound,
   eserviceTemplateVersionNotFound,
   missingMetadata,
 } from "../../../src/model/errors.js";
-import { config } from "../../../src/config/config.js";
+import {
+  expectApiClientPostToHaveBeenCalledWith,
+  expectApiClientGetToHaveBeenCalledWith,
+  mockInteropBeClients,
+  mockPollingResponse,
+  eserviceTemplateService,
+} from "../../integrationUtils.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("deleteEServiceTemplateVersionDeclaredAttributeFromGroup", () => {
   const mockAttribute = getMockedApiEServiceAttribute();
