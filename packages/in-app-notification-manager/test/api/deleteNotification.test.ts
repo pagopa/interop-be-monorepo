@@ -33,6 +33,7 @@ describe("API DELETE /notifications/:notificationId", () => {
     authRole.ADMIN_ROLE,
     authRole.API_ROLE,
     authRole.SECURITY_ROLE,
+    authRole.REVIEWER_ROLE,
   ];
   it.each(authorizedRoles)(
     "Should return 204 when deleting notification with role %s",

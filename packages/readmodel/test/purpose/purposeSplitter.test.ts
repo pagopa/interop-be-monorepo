@@ -19,6 +19,7 @@ import {
   PurposeVersionStampKind,
   PurposeVersionStamps,
   purposeVersionState,
+  purposeWaitingForApprovalReason,
   riskAnalysisAnswerKind,
   riskAnalysisReviewMode,
   riskAnalysisSigningState,
@@ -60,6 +61,7 @@ describe("Purpose splitter", () => {
       signedBy: generateId<UserId>(),
       signedAt: new Date(),
       rejectedBy: generateId<UserId>(),
+      rejectedAt: new Date(),
       rejectionReason: "Reviewer workflow rejection reason",
       sentToReviewerAt: new Date(),
     };
@@ -73,6 +75,8 @@ describe("Purpose splitter", () => {
     const purposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(purposeVersionState.draft, purposeVersionStamps),
       rejectionReason,
+      waitingForApprovalReason:
+        purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
       suspendedAt,
       updatedAt,
       firstActivationAt,
@@ -130,6 +134,7 @@ describe("Purpose splitter", () => {
       reviewerWorkflowSignedBy: reviewerWorkflow.signedBy!,
       reviewerWorkflowSignedAt: reviewerWorkflow.signedAt!.toISOString(),
       reviewerWorkflowRejectedBy: reviewerWorkflow.rejectedBy!,
+      reviewerWorkflowRejectedAt: reviewerWorkflow.rejectedAt!.toISOString(),
       reviewerWorkflowRejectionReason: reviewerWorkflow.rejectionReason!,
       reviewerWorkflowSentToReviewerAt: null,
     };
@@ -178,6 +183,8 @@ describe("Purpose splitter", () => {
       updatedAt: updatedAt.toISOString(),
       firstActivationAt: firstActivationAt.toISOString(),
       rejectionReason,
+      waitingForApprovalReason:
+        purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
       id: purposeVersion.id,
       state: purposeVersion.state,
       dailyCalls: purposeVersion.dailyCalls,
@@ -284,6 +291,10 @@ describe("Purpose splitter", () => {
       freeOfChargeReason: undefined,
       riskAnalysisForm: purposeRiskAnalysisForm,
       versions: [purposeVersion],
+      reviewerWorkflow: {
+        reviewers: [{ id: generateId<UserId>() }],
+        signingState: riskAnalysisSigningState.signed,
+      },
     };
 
     const {
@@ -314,10 +325,11 @@ describe("Purpose splitter", () => {
       purposeTemplateId: null,
       riskAnalysisReviewMode: null,
       reviewerWorkflowReviewMode: null,
-      reviewerWorkflowSigningState: null,
+      reviewerWorkflowSigningState: riskAnalysisSigningState.signed,
       reviewerWorkflowSignedBy: null,
       reviewerWorkflowSignedAt: null,
       reviewerWorkflowRejectedBy: null,
+      reviewerWorkflowRejectedAt: null,
       reviewerWorkflowRejectionReason: null,
       reviewerWorkflowSentToReviewerAt: null,
     };
@@ -366,6 +378,7 @@ describe("Purpose splitter", () => {
       updatedAt: null,
       firstActivationAt: null,
       rejectionReason: null,
+      waitingForApprovalReason: null,
       id: purposeVersion.id,
       state: purposeVersion.state,
       dailyCalls: purposeVersion.dailyCalls,
@@ -410,6 +423,13 @@ describe("Purpose splitter", () => {
     expect(versionSignedDocumentsSQL).toStrictEqual([
       expectedPurposeVersionSignedDocumentSQL,
     ]);
-    expect(reviewersSQL).toStrictEqual([]);
+    expect(reviewersSQL).toStrictEqual([
+      {
+        purposeId: purpose.id,
+        metadataVersion: 1,
+        reviewerId: purpose.reviewerWorkflow!.reviewers[0].id,
+        sentToReviewerAt: null,
+      },
+    ]);
   });
 });
