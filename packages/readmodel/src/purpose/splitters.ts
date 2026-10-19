@@ -74,6 +74,7 @@ export const splitPurposeIntoObjectsSQL = (
     reviewerWorkflowSignedBy: reviewerWorkflow?.signedBy ?? null,
     reviewerWorkflowSignedAt: dateToString(reviewerWorkflow?.signedAt),
     reviewerWorkflowRejectedBy: reviewerWorkflow?.rejectedBy ?? null,
+    reviewerWorkflowRejectedAt: dateToString(reviewerWorkflow?.rejectedAt),
     reviewerWorkflowRejectionReason: reviewerWorkflow?.rejectionReason ?? null,
     reviewerWorkflowSentToReviewerAt: null,
   };
@@ -238,6 +239,7 @@ export const splitPurposeVersionIntoObjectsSQL = (
     id,
     state,
     dailyCalls,
+    waitingForApprovalReason,
     rejectionReason,
     createdAt,
     updatedAt,
@@ -263,6 +265,7 @@ export const splitPurposeVersionIntoObjectsSQL = (
     metadataVersion,
     state,
     dailyCalls,
+    waitingForApprovalReason: waitingForApprovalReason ?? null,
     rejectionReason: rejectionReason || null,
     createdAt: dateToString(createdAt),
     updatedAt: dateToString(updatedAt),
