@@ -1,4 +1,5 @@
 /* eslint-disable functional/immutable-data */
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { runBatchConsumer } from "kafka-iam-auth";
 import { EachBatchPayload, KafkaMessage } from "kafkajs";
 import {
@@ -7,13 +8,12 @@ import {
   createSafeStorageApiClient,
   signatureServiceBuilder,
 } from "pagopa-interop-commons";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+
 import {
   baseConsumerConfig,
   batchConsumerConfig,
   config,
 } from "./config/config.js";
-
 import { executeTopicHandler } from "./handlers/batchMessageHandler.js";
 
 const fileManager = initFileManager(config);

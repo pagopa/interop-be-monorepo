@@ -26,6 +26,8 @@ import {
   technology,
 } from "pagopa-interop-models";
 import { expect, describe, it, beforeEach } from "vitest";
+
+import { config } from "../../src/config/config.js";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
@@ -35,7 +37,6 @@ import {
   templateInstanceNotAllowed,
   asyncExchangeBulkNotAllowedForSoap,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
 import {
   addOneEService,
   addOneAttribute,

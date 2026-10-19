@@ -1,19 +1,19 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  DelegationId,
-  descriptorState,
-  generateId,
-} from "pagopa-interop-models";
+import { agreementApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockAgreement,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  DelegationId,
+  descriptorState,
+  generateId,
+} from "pagopa-interop-models";
 import request from "supertest";
-import { agreementApi } from "pagopa-interop-api-clients";
-import { api, agreementService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { agreementToApiAgreement } from "../../src/model/domain/apiConverter.js";
 import {
   agreementAlreadyExists,
@@ -25,6 +25,7 @@ import {
   tenantIsNotTheDelegateConsumer,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
+import { api, agreementService } from "../vitest.api.setup.js";
 
 describe("API POST /agreements test", () => {
   const mockAgreement = getMockAgreement();

@@ -20,10 +20,11 @@ import {
   UserId,
   unsafeBrandId,
 } from "pagopa-interop-models";
+
 import {
   apiPurposeSignedRiskAnalisysToPurposeSignedRiskAnalisys,
   apiPurposeVersionStateToPurposeVersionState,
-  apiReviewModeToReviewMode,
+  apiRiskAnalysisReviewModeToRiskAnalysisReviewMode,
   purposeToApiPurpose,
   purposeVersionDocumentToApiPurposeVersionDocument,
   purposeVersionSignedDocumentToApiPurposeVersionSignedDocument,
@@ -63,6 +64,7 @@ import {
   updatePurposeErrorMapper,
   updateReversePurposeErrorMapper,
   maintenanceFixRiskAnalysisErrorMapper,
+  maintenanceFixReviewerWorkflowErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const purposeRouter = (
@@ -244,7 +246,7 @@ const purposeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE, REVIEWER_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
         const result = await purposeService.getRemainingDailyCalls({
           purposeId: unsafeBrandId(req.params.purposeId),
@@ -495,6 +497,33 @@ const purposeRouter = (
       }
     )
     .post(
+      "/maintenance/purposes/:purposeId/riskAnalysis/reviewerWorkflow/fix",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+          const { data, metadata } = await purposeService.fixReviewerWorkflow(
+            unsafeBrandId(req.params.purposeId),
+            ctx
+          );
+
+          setMetadataVersionHeader(res, metadata);
+          return res
+            .status(200)
+            .send(purposeApi.Purpose.parse(purposeToApiPurpose(data)));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            maintenanceFixReviewerWorkflowErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
       "/purposes/:purposeId/versions/:versionId/reject",
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
@@ -525,14 +554,16 @@ const purposeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
         const { data: purpose, metadata } =
           await purposeService.assignRiskAnalysisReviewer(
             unsafeBrandId(req.params.purposeId),
             {
-              reviewMode: apiReviewModeToReviewMode(req.body.reviewMode),
-              reviewerIds: req.body.reviewerIds,
+              reviewMode: apiRiskAnalysisReviewModeToRiskAnalysisReviewMode(
+                req.body.reviewMode
+              ),
+              reviewerIds: req.body.reviewerIds ?? [],
             },
             ctx
           );
@@ -589,6 +620,7 @@ const purposeRouter = (
         const { data: purpose, metadata } =
           await purposeService.signRiskAnalysis(
             unsafeBrandId(req.params.purposeId),
+            req.body,
             ctx
           );
 

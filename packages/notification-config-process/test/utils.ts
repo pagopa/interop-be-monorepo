@@ -1,5 +1,5 @@
-import { expect } from "vitest";
 import { TenantId, UserId } from "pagopa-interop-models";
+import { expect } from "vitest";
 
 export const expectedOrganizationId = (organizationId: TenantId) =>
   expect.objectContaining({

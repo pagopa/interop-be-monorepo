@@ -3,14 +3,15 @@ import {
   eserviceTemplateApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
-import { genericError } from "pagopa-interop-models";
 import { getRulesetExpiration } from "pagopa-interop-commons";
+import { genericError } from "pagopa-interop-models";
+
 import { catalogEServiceTemplatePublishedVersionNotFound } from "../model/errors.js";
+import { toBffCompactOrganization } from "./agreementApiConverter.js";
 import {
   toBffCatalogApiEserviceRiskAnalysis,
   toBffCatalogTenant,
 } from "./catalogApiConverter.js";
-import { toBffCompactOrganization } from "./agreementApiConverter.js";
 
 export function toBffCompactEServiceTemplateVersion(
   eserviceTemplateVersion: eserviceTemplateApi.EServiceTemplateVersion
@@ -71,7 +72,7 @@ export function toBffCatalogEServiceTemplate(
   return {
     id: eserviceTemplate.id,
     name: eserviceTemplate.name,
-    description: eserviceTemplate.intendedTarget,
+    description: eserviceTemplate.description,
     creator: toBffCatalogTenant(creator),
     publishedVersion: toBffCompactEServiceTemplateVersion(publishedVersion),
   };
@@ -131,6 +132,8 @@ export function toCatalogCreateEServiceTemplateSeed(
     version: {
       ...eServiceTemplateSeed.version,
       voucherLifespan: eServiceTemplateSeed.version?.voucherLifespan ?? 60,
+      description:
+        eServiceTemplateSeed.version?.description ?? "Prima versione",
     },
   };
 }

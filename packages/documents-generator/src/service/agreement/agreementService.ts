@@ -7,6 +7,7 @@ import {
   Agreement,
   EServiceId,
 } from "pagopa-interop-models";
+
 import { ActiveDelegations } from "../../model/agreementModels.js";
 import {
   descriptorNotFound,

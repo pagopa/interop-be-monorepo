@@ -1,12 +1,16 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { agreementApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { generateMock } from "@anatine/zod-mock";
-import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
+import { agreementApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   getMockedApiAgreement,
   getMockedApiDelegation,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
+import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { config } from "../../../src/config/config.js";
+import { missingMetadata } from "../../../src/model/errors.js";
 import {
   agreementService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -14,9 +18,6 @@ import {
   mockInteropBeClients,
   mockPollingResponse,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { config } from "../../../src/config/config.js";
-import { missingMetadata } from "../../../src/model/errors.js";
 import {
   getMockM2MAdminAppContext,
   testToM2mGatewayApiAgreement,

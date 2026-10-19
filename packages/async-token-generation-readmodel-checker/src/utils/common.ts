@@ -1,3 +1,4 @@
+import { diff } from "json-diff";
 import { Logger } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -16,7 +17,6 @@ import {
   PurposeVersion,
   purposeVersionState,
 } from "pagopa-interop-models";
-import { diff } from "json-diff";
 
 type DescriptorWithAsyncExchangeProperties = Descriptor & {
   asyncExchangeProperties: AsyncExchangeProperties;
@@ -31,6 +31,8 @@ const validDescriptorStates = [
   descriptorState.published,
   descriptorState.suspended,
   descriptorState.deprecated,
+  descriptorState.archiving,
+  descriptorState.archivingSuspended,
 ] as string[];
 
 const activeOrInactive = (isActive: boolean): ItemState =>
@@ -42,7 +44,11 @@ const hasAsyncExchangeProperties = (
   descriptor.asyncExchangeProperties !== undefined;
 
 export const descriptorItemState = (descriptor: Descriptor): ItemState =>
-  activeOrInactive(descriptor.state === descriptorState.published);
+  activeOrInactive(
+    descriptor.state === descriptorState.published ||
+      descriptor.state === descriptorState.deprecated ||
+      descriptor.state === descriptorState.archiving
+  );
 
 export const purposeVersionItemState = (
   purposeVersion: PurposeVersion

@@ -1,3 +1,5 @@
+import { ZodiosRouterContextRequestHandler } from "@zodios/express";
+import { Request } from "express";
 import { constants } from "http2";
 import {
   AppContext,
@@ -8,11 +10,10 @@ import {
   systemRole,
 } from "pagopa-interop-commons";
 import { unauthorizedError } from "pagopa-interop-models";
-import { ZodiosRouterContextRequestHandler } from "@zodios/express";
 import { P, match } from "ts-pattern";
-import { Request } from "express";
-import { makeApiProblem } from "../model/errors.js";
+
 import { M2MGatewayServices } from "../app.js";
+import { makeApiProblem } from "../model/errors.js";
 import { M2MGatewayAppContext, getInteropHeaders } from "./context.js";
 
 async function validateM2MAdminUserId(

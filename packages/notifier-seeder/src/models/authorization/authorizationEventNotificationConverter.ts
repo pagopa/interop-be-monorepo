@@ -4,6 +4,7 @@ import {
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
+
 import {
   AuthorizationEventNotification,
   KeyDeletedNotification,

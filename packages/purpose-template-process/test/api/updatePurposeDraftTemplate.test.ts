@@ -15,14 +15,15 @@ import {
 } from "pagopa-interop-models";
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { purposeTemplateToApiPurposeTemplate } from "../../src/model/domain/apiConverter.js";
-import { api, purposeTemplateService } from "../vitest.api.setup.js";
 import {
   missingFreeOfChargeReason,
   purposeTemplateTitleConflict,
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
 } from "../../src/model/domain/errors.js";
+import { api, purposeTemplateService } from "../vitest.api.setup.js";
 
 describe("API PUT /purposeTemplates/{purposeTemplateId}", () => {
   const OVER_251_CHAR = "O".repeat(251);

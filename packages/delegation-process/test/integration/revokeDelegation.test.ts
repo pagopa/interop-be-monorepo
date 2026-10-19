@@ -20,6 +20,7 @@ import {
   ProducerDelegationRevokedV2,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+
 import {
   delegationNotFound,
   incorrectState,

@@ -1,5 +1,6 @@
-import { describe, test, expect, beforeEach } from "vitest";
 import { Tenant, TenantId, generateId } from "pagopa-interop-models";
+import { describe, test, expect, beforeEach } from "vitest";
+
 import {
   readModelService,
   addOneTenant,
