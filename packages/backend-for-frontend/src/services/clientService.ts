@@ -16,12 +16,14 @@ import {
 } from "../api/authorizationApiConverter.js";
 import { AuthorizationProcessClient } from "../clients/clientsProvider.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { AUTHORIZATION_EVENT_CONFLICT_CODE } from "../config/constants.js";
 import {
   clientNotFound,
   eServiceNotFound,
   purposeNotFound,
 } from "../model/errors.js";
 import { BffAppContext } from "../utilities/context.js";
+import { retryOnEventConflict } from "../utilities/eventConflict.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { getSelfcareCompactUserById } from "./selfcareService.js";
 import { assertClientVisibilityIsFull } from "./validators.js";
@@ -276,10 +278,12 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
     ): Promise<void> {
       logger.info(`Adding purpose ${purpose.purposeId} to client ${clientId}`);
 
-      await authorizationClient.client.addClientPurpose(purpose, {
-        params: { clientId },
-        headers,
-      });
+      await retryOnEventConflict(AUTHORIZATION_EVENT_CONFLICT_CODE, () =>
+        authorizationClient.client.addClientPurpose(purpose, {
+          params: { clientId },
+          headers,
+        })
+      );
     },
 
     async getClientUsers(
