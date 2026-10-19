@@ -96,6 +96,7 @@ describe("getClientPurposes", () => {
     updatedAt: mockApiPurpose1.updatedAt,
     waitingForApprovalVersion: undefined,
     purposeTemplateId: mockApiPurpose1.purposeTemplateId,
+    riskAnalysisReviewMode: mockApiPurpose1.riskAnalysisReviewMode,
   };
 
   const purposeVersion2 = mockApiPurpose2.versions.at(0);
@@ -118,6 +119,7 @@ describe("getClientPurposes", () => {
     updatedAt: mockApiPurpose2.updatedAt,
     waitingForApprovalVersion: undefined,
     purposeTemplateId: mockApiPurpose2.purposeTemplateId,
+    riskAnalysisReviewMode: mockApiPurpose2.riskAnalysisReviewMode,
   };
 
   const purposeVersion3 = mockApiPurpose3.versions.at(0);
@@ -140,6 +142,7 @@ describe("getClientPurposes", () => {
     updatedAt: mockApiPurpose3.updatedAt,
     waitingForApprovalVersion: undefined,
     purposeTemplateId: mockApiPurpose3.purposeTemplateId,
+    riskAnalysisReviewMode: mockApiPurpose3.riskAnalysisReviewMode,
   };
 
   beforeEach(() => {
