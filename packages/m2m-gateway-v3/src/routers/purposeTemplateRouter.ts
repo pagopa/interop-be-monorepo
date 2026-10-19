@@ -1,7 +1,7 @@
 /* eslint-disable sonarjs/no-identical-functions */
+import { KMSClient } from "@aws-sdk/client-kms";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
-import { KMSClient } from "@aws-sdk/client-kms";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   authRole,
@@ -11,11 +11,12 @@ import {
   validateAuthorization,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
+
 import { makeApiProblem } from "../model/errors.js";
-import { fromM2MGatewayAppContext } from "../utils/context.js";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
-import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
+import { fromM2MGatewayAppContext } from "../utils/context.js";
 import { getPurposeTemplateRiskAnalysisErrorMapper } from "../utils/errorMappers.js";
+import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
 const purposeTemplateRouter = (
   ctx: ZodiosContext,

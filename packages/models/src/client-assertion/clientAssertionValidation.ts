@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { ClientId, InteractionId, PurposeId } from "../brandedIds.js";
 import { InteractionState } from "../token-generation-readmodel/interactions-entry.js";
 
@@ -29,6 +30,7 @@ export const ClientAssertionPayload = z.object({
   iss: z.string(),
   aud: z.array(z.string()).or(z.string()),
   exp: z.number(),
+  nbf: z.number().optional(),
   digest: ClientAssertionDigest.nullish(),
   purposeId: PurposeId.optional(),
 });

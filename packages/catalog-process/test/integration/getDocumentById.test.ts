@@ -1,6 +1,14 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { AuthData, userRole } from "pagopa-interop-commons";
 import {
+  getMockAuthData,
+  getMockContext,
+  getMockDelegation,
+  getMockDescriptor,
+  getMockDocument,
+  getMockEService,
+} from "pagopa-interop-commons-test";
+import {
   Descriptor,
   EService,
   generateId,
@@ -9,14 +17,7 @@ import {
   delegationKind,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
-import {
-  getMockAuthData,
-  getMockContext,
-  getMockDelegation,
-  getMockDescriptor,
-  getMockDocument,
-  getMockEService,
-} from "pagopa-interop-commons-test";
+
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,

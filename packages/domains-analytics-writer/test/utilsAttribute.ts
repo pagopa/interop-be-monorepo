@@ -1,4 +1,5 @@
 import { Batch, KafkaMessage } from "kafkajs";
+
 import { config } from "../src/config/config.js";
 
 export const mockAttributeBatch: Batch = {

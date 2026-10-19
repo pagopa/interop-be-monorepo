@@ -23,6 +23,7 @@ import {
   toAgreementV2,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
+
 import { agreementArchivableStates } from "../../src/model/domain/agreement-validators.js";
 import {
   agreementNotFound,

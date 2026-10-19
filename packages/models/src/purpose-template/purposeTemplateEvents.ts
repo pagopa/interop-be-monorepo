@@ -1,7 +1,7 @@
 import { match } from "ts-pattern";
 import { z } from "zod";
+
 import { EventEnvelope } from "../events/events.js";
-import { protobufDecoder } from "../protobuf/protobuf.js";
 import {
   PurposeTemplateAddedV2,
   PurposeTemplateAnnotationDocumentDeletedV2,
@@ -20,6 +20,7 @@ import {
   RiskAnalysisTemplateDocumentGeneratedV2,
   RiskAnalysisTemplateSignedDocumentGeneratedV2,
 } from "../gen/v2/purpose-template/events.js";
+import { protobufDecoder } from "../protobuf/protobuf.js";
 
 export const PurposeTemplateEventV2 = z.discriminatedUnion("type", [
   z.object({

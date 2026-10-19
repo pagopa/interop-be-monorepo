@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import { getMockTenant, toTenantV1 } from "pagopa-interop-commons-test";
 import {
   toTenantV2,
@@ -8,7 +8,8 @@ import {
   TenantM2MEvent,
   TenantM2MEventType,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { handleTenantEvent } from "../src/handlers/handleTenantEvent.js";
 import {
   getMockEventEnvelopeCommons,

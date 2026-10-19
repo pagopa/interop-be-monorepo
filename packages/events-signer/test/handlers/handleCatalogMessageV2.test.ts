@@ -3,17 +3,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable functional/immutable-data */
 
-import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
-import {
-  EServiceEventEnvelopeV2,
-  generateId,
-  EServiceDescriptorActivatedV2,
-  EServiceAddedV2,
-  toEServiceV2,
-  EServiceArchivingScheduledV2,
-  EServiceArchivingCompletedV2,
-  EServiceArchivingCanceledV2,
-} from "pagopa-interop-models";
 import {
   FileManager,
   initFileManager,
@@ -30,9 +19,21 @@ import {
   getMockDescriptorPublished,
   getMockEService,
 } from "pagopa-interop-commons-test";
+import {
+  EServiceEventEnvelopeV2,
+  generateId,
+  EServiceDescriptorActivatedV2,
+  EServiceAddedV2,
+  toEServiceV2,
+  EServiceArchivingScheduledV2,
+  EServiceArchivingCompletedV2,
+  EServiceArchivingCanceledV2,
+} from "pagopa-interop-models";
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+
 import { config } from "../../src/config/config.js";
-import { dynamoDBClient } from "../utils/utils.js";
 import { handleCatalogMessageV2 } from "../../src/handlers/handleCatalogMessageV2.js";
+import { dynamoDBClient } from "../utils/utils.js";
 
 const fileManager: FileManager = initFileManager(config);
 const safeStorageService: SafeStorageService =

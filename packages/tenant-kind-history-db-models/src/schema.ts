@@ -1,5 +1,6 @@
-import { timestamp, uuid, varchar, integer } from "drizzle-orm/pg-core";
 import { InferSelectModel } from "drizzle-orm";
+import { timestamp, uuid, varchar, integer } from "drizzle-orm/pg-core";
+
 import { tenantKindHistorySchema } from "./pgSchema.js";
 
 export const tenantKindHistory = tenantKindHistorySchema.table(

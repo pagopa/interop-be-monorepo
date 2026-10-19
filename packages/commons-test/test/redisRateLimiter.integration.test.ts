@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { describe, expect, it } from "vitest";
-import { generateId, TenantId } from "pagopa-interop-models";
 import { delay, genericLogger } from "pagopa-interop-commons";
+import { generateId, TenantId } from "pagopa-interop-models";
+import { describe, expect, it } from "vitest";
+
 import { redisRateLimiter } from "./utils.js";
 
 const waitCounterReset = async (

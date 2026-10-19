@@ -1,6 +1,7 @@
+import { DOMParser } from "@xmldom/xmldom";
 import { XMLParser } from "fast-xml-parser";
 import { SignedXml } from "xml-crypto";
-import { DOMParser } from "@xmldom/xmldom";
+
 import { config } from "../config/config.js";
 import { samlNotValid } from "../model/errors.js";
 import { SAMLResponse } from "../model/types.js";

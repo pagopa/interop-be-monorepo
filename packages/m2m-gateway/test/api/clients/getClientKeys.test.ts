@@ -1,15 +1,16 @@
-import { describe, it, expect, vi } from "vitest";
+import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockClientJWKKey,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { generateId } from "pagopa-interop-models";
-import { api, mockClientService } from "../../vitest.api.setup.js";
-import { appBasePath } from "../../../src/config/appBasePath.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { toM2MJWK } from "../../../src/api/keysApiConverter.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
+import { api, mockClientService } from "../../vitest.api.setup.js";
 
 describe("GET /clients/:clientId/keys router test", () => {
   const makeRequest = async (

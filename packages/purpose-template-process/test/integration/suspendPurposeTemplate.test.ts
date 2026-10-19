@@ -16,16 +16,17 @@ import {
   toPurposeTemplateV2,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import {
-  addOnePurposeTemplate,
-  purposeTemplateService,
-  readLastPurposeTemplateEvent,
-} from "../integrationUtils.js";
+
 import {
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
   purposeTemplateStateConflict,
 } from "../../src/model/domain/errors.js";
+import {
+  addOnePurposeTemplate,
+  purposeTemplateService,
+  readLastPurposeTemplateEvent,
+} from "../integrationUtils.js";
 
 describe("suspendPurposeTemplate", () => {
   const creatorId = generateId<TenantId>();
