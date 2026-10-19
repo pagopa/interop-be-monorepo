@@ -2,8 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import { DashboardQueries } from "../../api/dashboard/dashboard.queries";
-import { useRuntimeStatus } from "../../hooks/useRuntimeStatus";
+import { DashboardQueries } from "../../src/api/dashboard/dashboard.queries";
+import { useRuntimeStatus } from "../../src/hooks/useRuntimeStatus";
 import { identitiesFixture, statusFixture } from "../fixtures";
 import { createTestWrapper } from "../utils";
 

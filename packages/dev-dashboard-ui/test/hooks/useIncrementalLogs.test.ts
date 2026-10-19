@@ -1,9 +1,9 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import type { LogEntry } from "../../api/dashboard/dashboard.services";
+import type { LogEntry } from "../../src/api/dashboard/dashboard.services";
 
-import { useIncrementalLogs } from "../../hooks/useIncrementalLogs";
+import { useIncrementalLogs } from "../../src/hooks/useIncrementalLogs";
 
 const filters = { source: "", level: "", search: "" };
 

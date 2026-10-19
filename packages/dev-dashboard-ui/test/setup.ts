@@ -2,7 +2,7 @@ import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
 import { afterEach, beforeEach, vi } from "vitest";
 
-import axiosInstance from "../config/axios";
+import axiosInstance from "../src/config/axios";
 
 // Keep HTTP fixtures at the network boundary while production uses Axios's browser adapter.
 axiosInstance.defaults.adapter = "fetch";

@@ -3,8 +3,8 @@ import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-import { ConfirmDialog } from "../../components/ConfirmDialog";
-import { Button } from "../../components/ui/button";
+import { ConfirmDialog } from "../../src/components/ConfirmDialog";
+import { Button } from "../../src/components/ui/button";
 
 describe("destructive confirmation", () => {
   it("prevents duplicate confirmation or dismissal while the request is pending", async () => {

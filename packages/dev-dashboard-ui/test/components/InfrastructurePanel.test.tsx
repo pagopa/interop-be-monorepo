@@ -2,7 +2,7 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
-import { InfrastructurePanel } from "../../components/InfrastructurePanel";
+import { InfrastructurePanel } from "../../src/components/InfrastructurePanel";
 import { statusFixture } from "../fixtures";
 
 describe("infrastructure actions", () => {

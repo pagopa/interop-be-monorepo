@@ -2,8 +2,8 @@ import { waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
-import { request } from "../../api/client";
-import axiosInstance from "../../config/axios";
+import { request } from "../../src/api/client";
+import axiosInstance from "../../src/config/axios";
 
 describe("dashboard transport", () => {
   it("uses the shared Axios client and validates its response", async () => {

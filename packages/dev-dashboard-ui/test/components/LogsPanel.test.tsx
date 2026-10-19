@@ -8,7 +8,7 @@ import userEvent from "@testing-library/user-event";
 import { toast } from "sonner";
 import { describe, expect, it, vi } from "vitest";
 
-import { LogsPanel } from "../../components/LogsPanel";
+import { LogsPanel } from "../../src/components/LogsPanel";
 import { emptyLogs, statusFixture } from "../fixtures";
 import { renderWithProviders as render } from "../utils";
 

@@ -4,7 +4,7 @@ export default [
   ...node,
   { ignores: ["dist/**", "postcss.config.js", "tailwind.config.ts", "vite.config.ts"] },
   {
-    files: ["src/**/*.{ts,tsx}"],
+    files: ["src/**/*.{ts,tsx}", "test/**/*.{ts,tsx}"],
     languageOptions: {
       globals: {
         window: "readonly",

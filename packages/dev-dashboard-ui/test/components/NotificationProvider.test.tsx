@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { toast } from "sonner";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { NotificationProvider } from "../../providers/NotificationProvider";
+import { NotificationProvider } from "../../src/providers/NotificationProvider";
 
 describe("notifications", () => {
   afterEach(() => toast.dismiss());
