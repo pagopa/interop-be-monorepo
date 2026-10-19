@@ -253,7 +253,8 @@ export function agreementServiceBuilder(
 
     const descriptor = validateActivationOnDescriptor(
       eservice,
-      agreement.data.descriptorId
+      agreement.data.descriptorId,
+      isFirstActivation
     );
 
     const consumer = await retrieveTenant(
@@ -1420,7 +1421,11 @@ export function agreementServiceBuilder(
     },
     async archiveAgreement(
       agreementId: AgreementId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Agreement>> {
       logger.info(`Archiving agreement ${agreementId}`);
 
