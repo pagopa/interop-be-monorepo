@@ -63,7 +63,7 @@ describe("sendAgreementRejectedEmail", () => {
 
     const rejectDate = new Date("2021-01-01");
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       stamps: {
         rejection: { when: rejectDate, who: generateId<UserId>() },

@@ -18,6 +18,7 @@ import {
   ProducerKeychainEServiceAddedV2,
   TenantId,
   toProducerKeychainV2,
+  Key,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 
@@ -105,9 +106,8 @@ describe("Events V2", () => {
   it("ProducerKeychainKeyAdded should do nothing for stale event", async () => {
     const producerKeychainId: ProducerKeychainId = generateId();
     const eServiceId: EServiceId = generateId();
-    const mockKey = {
-      ...getMockKey(),
-      producerKeychainId,
+    const mockKey: Key = {
+      ...getMockKey(), // TODO REVIEW THIS CHANGE
       encodedPem: base64Key,
     };
     const mockProducerKeychain: ProducerKeychain = {

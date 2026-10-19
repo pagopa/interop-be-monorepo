@@ -41,6 +41,7 @@ export const mockDbService = {
   readSignatureReferenceById: vi.fn(),
 };
 
+// eslint-disable-next-line interop/require-type-for-object
 export const mockSafeStorageService = {
   createFile: vi.fn(),
   uploadFileContent: vi.fn(),

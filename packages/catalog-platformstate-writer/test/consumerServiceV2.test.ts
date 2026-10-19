@@ -600,6 +600,7 @@ describe("integration tests V2 events", async () => {
       });
 
       // Mocking the query to get the token-generation-states records using the old GSIPK_eserviceId_descriptorId
+      // eslint-disable-next-line interop/require-type-for-object
       const mockDynamoDBClient = {
         send: vi.fn().mockImplementation((command) => {
           if (command instanceof QueryCommand) {

@@ -114,7 +114,7 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
                 },
               };
 
-              const eservice = {
+              const eservice: EService = {
                 ...getMockEService(),
                 producerId,
                 descriptors: [descriptor],
@@ -196,7 +196,7 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
                 version: "1",
               };
 
-              const eservice = {
+              const eservice: EService = {
                 ...getMockEService(),
                 producerId,
                 descriptors: [descriptor],
@@ -271,7 +271,7 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
                 },
               };
 
-              const eservice = {
+              const eservice: EService = {
                 ...getMockEService(),
                 producerId,
                 descriptors: [descriptor],
@@ -339,7 +339,7 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
                 },
               };
 
-              const eservice = {
+              const eservice: EService = {
                 ...getMockEService(),
                 producerId,
                 descriptors: [descriptor],
@@ -383,7 +383,7 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
                 version: "1",
               };
 
-              const eservice = {
+              const eservice: EService = {
                 ...getMockEService(),
                 producerId,
                 descriptors: [descriptor],
@@ -470,7 +470,7 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
                 },
               };
 
-              const eservice = {
+              const eservice: EService = {
                 ...getMockEService(),
                 producerId,
                 descriptors: [descriptor],
@@ -597,7 +597,7 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
                 },
               };
 
-              const eservice = {
+              const eservice: EService = {
                 ...getMockEService(),
                 producerId,
                 descriptors: [descriptor],

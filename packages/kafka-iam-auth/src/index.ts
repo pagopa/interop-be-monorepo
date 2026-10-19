@@ -157,6 +157,7 @@ async function oauthBearerTokenProvider(
 }
 
 const initKafka = (config: InteropKafkaConfig): Kafka => {
+  // eslint-disable-next-line interop/require-type-for-object
   const commonConfigProps = {
     clientId: config.kafkaClientId,
     brokers: config.kafkaBrokers,

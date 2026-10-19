@@ -9,6 +9,7 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
 
+// eslint-disable-next-line interop/require-type-for-object
 const errorCodes = {
   agreementNotFound: "0001",
   producerAndConsumerParamMissing: "0002",

@@ -62,6 +62,7 @@ describe("sqsMessageHandler", () => {
   });
 
   it("should process the message successfully and delete the record", async () => {
+    // eslint-disable-next-line interop/require-type-for-object
     const sqsMessageBody = {
       version: "0",
       id: "6e902b1c-7f55-4074-a036-749e75551f33",
@@ -88,6 +89,7 @@ describe("sqsMessageHandler", () => {
       Body: JSON.stringify(sqsMessageBody),
     };
 
+    // eslint-disable-next-line interop/require-type-for-object
     const mockFileReference = {
       download: { url: "http://mock-download-url.com/file" },
     };
@@ -153,6 +155,7 @@ describe("sqsMessageHandler", () => {
     );
   });
   it("should process the message successfully and delete the record on event journal", async () => {
+    // eslint-disable-next-line interop/require-type-for-object
     const sqsMessageBody = {
       version: "0",
       id: "6e902b1c-7f55-4074-a036-749e75551f33",
@@ -179,6 +182,7 @@ describe("sqsMessageHandler", () => {
       Body: JSON.stringify(sqsMessageBody),
     };
 
+    // eslint-disable-next-line interop/require-type-for-object
     const mockFileReference = {
       download: { url: "http://mock-download-url.com/file" },
     };
@@ -238,6 +242,7 @@ describe("sqsMessageHandler", () => {
     );
   });
   it("should process the message successfully and delete the record on voucher audit", async () => {
+    // eslint-disable-next-line interop/require-type-for-object
     const sqsMessageBody = {
       version: "0",
       id: "6e902b1c-7f55-4074-a036-749e75551f33",
@@ -264,6 +269,7 @@ describe("sqsMessageHandler", () => {
       Body: JSON.stringify(sqsMessageBody),
     };
 
+    // eslint-disable-next-line interop/require-type-for-object
     const mockFileReference = {
       download: { url: "http://mock-download-url.com/file" },
     };
@@ -323,6 +329,7 @@ describe("sqsMessageHandler", () => {
     );
   });
   it("should process the message successfully and delete the record on m2m voucher audit", async () => {
+    // eslint-disable-next-line interop/require-type-for-object
     const sqsMessageBody = {
       version: "0",
       id: "6e902b1c-7f55-4074-a036-749e75551f33",
@@ -349,6 +356,7 @@ describe("sqsMessageHandler", () => {
       Body: JSON.stringify(sqsMessageBody),
     };
 
+    // eslint-disable-next-line interop/require-type-for-object
     const mockFileReference = {
       download: { url: "http://mock-download-url.com/file" },
     };
@@ -429,6 +437,7 @@ describe("sqsMessageHandler", () => {
   });
 
   it("should throw an InternalError (so the message is retried, not dropped, until the reference is written) when the signature reference is missing", async () => {
+    // eslint-disable-next-line interop/require-type-for-object
     const sqsMessageBody = {
       version: "0",
       id: "6e902b1c-7f55-4074-a036-749e75551f33",
@@ -497,6 +506,7 @@ describe("sqsMessageHandler", () => {
   });
 
   it("should throw an InternalError (so the message is retried) when the fileKind is unknown", async () => {
+    // eslint-disable-next-line interop/require-type-for-object
     const sqsMessageBody = {
       version: "0",
       id: "6e902b1c-7f55-4074-a036-749e75551f33",
@@ -554,6 +564,7 @@ describe("sqsMessageHandler", () => {
   });
 
   it("should throw an InternalError (so the message is retried) when the download URL is missing", async () => {
+    // eslint-disable-next-line interop/require-type-for-object
     const sqsMessageBody = {
       version: "0",
       id: "6e902b1c-7f55-4074-a036-749e75551f33",

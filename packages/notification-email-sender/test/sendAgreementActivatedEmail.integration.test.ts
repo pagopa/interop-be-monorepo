@@ -10,6 +10,8 @@ import {
   getMockTenantMail,
 } from "pagopa-interop-commons-test";
 import {
+  Agreement,
+  EService,
   Tenant,
   UserId,
   generateId,
@@ -68,12 +70,12 @@ describe("sendAgreementActivatedEmail", () => {
     await addOneTenant(producer);
 
     const descriptor = getMockDescriptor();
-    const eservice = {
+    const eservice: EService = {
       ...getMockEService(),
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
       producerId: producer.id,
@@ -131,22 +133,22 @@ describe("sendAgreementActivatedEmail", () => {
 
   it("should throw agreementStampDateNotFound for activation date not found", async () => {
     vi.spyOn(sesEmailManager, "send");
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       mails: [getMockTenantMail(tenantMailKind.ContactEmail)],
     };
-    const producer = {
+    const producer: Tenant = {
       ...getMockTenant(),
       mails: [getMockTenantMail(tenantMailKind.ContactEmail)],
     };
 
     const descriptor = getMockDescriptor();
-    const eservice = {
+    const eservice: EService = {
       ...getMockEService(),
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       stamps: {},
       producerId: producer.id,
@@ -171,15 +173,15 @@ describe("sendAgreementActivatedEmail", () => {
 
   it("should throw eServiceNotFound for Eservice not found", async () => {
     vi.spyOn(sesEmailManager, "send");
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       mails: [getMockTenantMail(tenantMailKind.ContactEmail)],
     };
-    const producer = {
+    const producer: Tenant = {
       ...getMockTenant(),
       mails: [getMockTenantMail(tenantMailKind.ContactEmail)],
     };
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
       producerId: producer.id,
@@ -202,16 +204,16 @@ describe("sendAgreementActivatedEmail", () => {
   it("should throw tenantNotFound for Producer not found", async () => {
     vi.spyOn(sesEmailManager, "send");
     const eservice = getMockEService();
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       mails: [getMockTenantMail(tenantMailKind.ContactEmail)],
     };
-    const producer = {
+    const producer: Tenant = {
       ...getMockTenant(),
       mails: [getMockTenantMail(tenantMailKind.ContactEmail)],
     };
     await addOneEService(eservice);
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
       eserviceId: eservice.id,
@@ -233,11 +235,11 @@ describe("sendAgreementActivatedEmail", () => {
 
   it("should throw tenantNotFound for Consumer not found", async () => {
     vi.spyOn(sesEmailManager, "send");
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       mails: [getMockTenantMail(tenantMailKind.ContactEmail)],
     };
-    const producer = {
+    const producer: Tenant = {
       ...getMockTenant(),
       mails: [getMockTenantMail(tenantMailKind.ContactEmail)],
     };
@@ -246,7 +248,7 @@ describe("sendAgreementActivatedEmail", () => {
     const eservice = getMockEService();
     await addOneEService(eservice);
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
       eserviceId: eservice.id,
@@ -267,11 +269,11 @@ describe("sendAgreementActivatedEmail", () => {
 
   it("should throw descriptorNotFound for Descriptor not found", async () => {
     vi.spyOn(sesEmailManager, "send");
-    const producer = {
+    const producer: Tenant = {
       ...getMockTenant(),
       mails: [getMockTenantMail(tenantMailKind.ContactEmail)],
     };
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       mails: [getMockTenantMail(tenantMailKind.ContactEmail)],
     };
@@ -281,7 +283,7 @@ describe("sendAgreementActivatedEmail", () => {
     const eservice = getMockEService();
     await addOneEService(eservice);
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
       eserviceId: eservice.id,
@@ -327,12 +329,12 @@ describe("sendAgreementActivatedEmail", () => {
     await addOneTenant(producer);
 
     const descriptor = getMockDescriptor();
-    const eservice = {
+    const eservice: EService = {
       ...getMockEService(),
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
       producerId: producer.id,
