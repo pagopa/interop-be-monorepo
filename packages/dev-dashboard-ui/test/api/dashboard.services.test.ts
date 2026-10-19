@@ -1,8 +1,8 @@
 import { waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import { DashboardService } from "../../api/dashboard/dashboard.services";
-import axiosInstance from "../../config/axios";
+import { DashboardService } from "../../src/api/dashboard/dashboard.services";
+import axiosInstance from "../../src/config/axios";
 import { identitiesFixture } from "../fixtures";
 
 describe("dashboard services", () => {

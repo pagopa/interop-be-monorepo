@@ -4,7 +4,7 @@ import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
-import { PresetPanel } from "../../components/PresetPanel";
+import { PresetPanel } from "../../src/components/PresetPanel";
 import { statusFixture } from "../fixtures";
 import { renderWithProviders as render } from "../utils";
 

@@ -68,14 +68,12 @@ jobs:
       - name: Find and categorize test packages
         id: get_test_packages
         run: |
-          # Scan packages with test or src/test dirs. For each, detect test:shard* scripts.
+          # Scan all packages with test dirs. For each, detect test:shard* scripts.
           # Packages with test:shard* scripts get dedicated shards (one per script).
           # Packages without go into the weighted bin-packing pool.
-          ALL_TEST_PACKAGES=$(find packages -mindepth 1 -maxdepth 1 -type d \( -exec test -d '{}/test' \; -o -exec test -d '{}/src/test' \; \) -print | while read -r DIR; do
+          ALL_TEST_PACKAGES=$(find packages -mindepth 1 -maxdepth 1 -type d -exec test -d '{}/test' \; -print | while read -r DIR; do
             PACKAGE_NAME=$(jq -r '.name' "$DIR/package.json")
-            TEST_DIR="$DIR/test"
-            if [[ ! -d "$TEST_DIR" ]]; then TEST_DIR="$DIR/src/test"; fi
-            WEIGHT=$(grep -rE '^\s*(it|test|it\.each|test\.each)\(' "$TEST_DIR" --include="*.test.ts" --include="*.test.tsx" | wc -l | tr -d ' ')
+            WEIGHT=$(grep -rE '^\s*(it|test|it\.each|test\.each)\(' "$DIR/test" --include="*.test.ts" --include="*.test.tsx" | wc -l | tr -d ' ')
             WEIGHT=${WEIGHT:-0}
             SHARD_COMMANDS=$(jq -c '[.scripts | keys[] | select(startswith("test:shard"))] | sort' "$DIR/package.json")
             echo "{\"name\":\"$PACKAGE_NAME\",\"weight\":$WEIGHT,\"shardCommands\":$SHARD_COMMANDS}"

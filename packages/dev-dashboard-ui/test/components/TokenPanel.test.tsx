@@ -17,9 +17,9 @@ import userEvent from "@testing-library/user-event";
 import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { TokenPanel } from "../../components/TokenPanel";
-import { useAccessToken } from "../../hooks/useAccessToken";
-import { NotificationProvider } from "../../providers/NotificationProvider";
+import { TokenPanel } from "../../src/components/TokenPanel";
+import { useAccessToken } from "../../src/hooks/useAccessToken";
+import { NotificationProvider } from "../../src/providers/NotificationProvider";
 import { identitiesFixture, statusFixture } from "../fixtures";
 import {
   createTestQueryClient,

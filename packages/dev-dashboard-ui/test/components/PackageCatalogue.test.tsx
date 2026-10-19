@@ -3,9 +3,9 @@ import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-import type { PackageFilter } from "../../router/packageFilter";
+import type { PackageFilter } from "../../src/router/packageFilter";
 
-import { PackageCatalogue } from "../../components/PackageCatalogue";
+import { PackageCatalogue } from "../../src/components/PackageCatalogue";
 import { seedPackagesFixture, statusFixture } from "../fixtures";
 
 const packageName = "pagopa-interop-backend-for-frontend";

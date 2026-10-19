@@ -9,9 +9,9 @@ import type {
   DashboardAction,
   Operation,
   Phase,
-} from "../../api/dashboard/dashboard.services";
+} from "../../src/api/dashboard/dashboard.services";
 
-import { useDashboard } from "../../hooks/useDashboard";
+import { useDashboard } from "../../src/hooks/useDashboard";
 import { statusFixture } from "../fixtures";
 import { createTestWrapper } from "../utils";
 
