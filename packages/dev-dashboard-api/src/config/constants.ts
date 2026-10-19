@@ -87,6 +87,13 @@ export const DASHBOARD_TIMING = Object.freeze({
   readinessRequestTimeoutMs: 2000,
   readinessIntervalMs: 500,
   sourceWatchDebounceMs: 250,
+  frontendRequestTimeoutMs: 1500,
+  frontendCommandTimeoutMs: 20 * 60_000,
+});
+
+export const FRONTEND_AGENT_LIMITS = Object.freeze({
+  errorLength: 2000,
+  responseBytes: 65_536,
 });
 
 export const LOG_LIMITS = Object.freeze({
