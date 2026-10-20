@@ -83,3 +83,78 @@ describe("optional frontend observation", () => {
     await expect(frontend().logs("startup")).rejects.toThrow();
   });
 });
+
+describe("frontend operation phase planning", () => {
+  it.each([
+    {
+      action: { type: "start" },
+      pending: [
+        "install",
+        "dashboard",
+        "infra",
+        "backend",
+        "seed",
+        "identity",
+        "vite",
+        "smoke",
+        "browser",
+      ],
+    },
+    { action: { type: "stop" }, pending: ["backend", "vite"] },
+    { action: { type: "reset" }, pending: ["infra", "vite"] },
+    { action: { type: "use-dev" }, pending: ["vite"] },
+    { action: { type: "use-local" }, pending: ["identity", "vite"] },
+    {
+      action: { type: "identity", tenantKey: "comune", userKey: "admin" },
+      pending: ["identity", "vite"],
+    },
+  ])(
+    "plans $action.type without reordering phases",
+    async ({ action, pending }) => {
+      const runtime = {
+        available: true,
+        running: false,
+        state: "pending",
+        phases: [],
+      };
+      let release = (): void => undefined;
+      const initialStatus = new Promise<Response>((resolve) => {
+        release = () => resolve(Response.json(runtime));
+      });
+      vi.stubGlobal(
+        "fetch",
+        vi
+          .fn()
+          .mockReturnValueOnce(initialStatus)
+          .mockImplementation(async () => Response.json(runtime))
+      );
+      const service = frontend();
+      service.action(action);
+
+      try {
+        const { phases } = await service.status();
+        expect(phases.map(({ id }) => id)).toEqual([
+          "install",
+          "dashboard",
+          "infra",
+          "backend",
+          "seed",
+          "identity",
+          "vite",
+          "smoke",
+          "browser",
+        ]);
+        expect(
+          phases.filter(({ state }) => state === "pending").map(({ id }) => id)
+        ).toEqual(pending);
+        expect(phases.filter(({ state }) => state === "skipped")).toHaveLength(
+          phases.length - pending.length
+        );
+      } finally {
+        const shutdown = service.shutdown();
+        release();
+        await shutdown;
+      }
+    }
+  );
+});
