@@ -58,6 +58,7 @@ import {
   missingFreeOfChargeReason,
   missingSelfcareId,
   purposeFromTemplateCannotBeModified,
+  purposeNotCreatedFromTemplate,
   purposeNotInDraftState,
   riskAnalysisAnswerNotInSuggestValues,
   riskAnalysisContainsNotEditableAnswers,
@@ -227,6 +228,15 @@ export function assertPurposeIsNotFromTemplate(purpose: Purpose): void {
       purpose.id,
       purpose.purposeTemplateId
     );
+  }
+}
+
+export function assertPurposeIsFromTemplate(
+  purpose: Purpose,
+  purposeTemplateId: PurposeTemplateId
+): void {
+  if (purpose.purposeTemplateId !== purposeTemplateId) {
+    throw purposeNotCreatedFromTemplate(purpose.id, purposeTemplateId);
   }
 }
 
