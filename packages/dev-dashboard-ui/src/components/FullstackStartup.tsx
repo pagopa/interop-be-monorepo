@@ -88,7 +88,7 @@ export function FullstackStartup({
             phase.id === "backend"
               ? "preset:frontend-full"
               : phase.id === "seed"
-                ? "group:seed"
+                ? "preset:tenant-seeding"
                 : "orchestration";
           return (
             <li key={phase.id} className="relative flex gap-3 pb-5 last:pb-0">

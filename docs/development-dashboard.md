@@ -177,9 +177,10 @@ seed data or generate a token: use **Seed local data** next.
 `#/packages?group=seed`. The **Group** filter uses the complete seed package
 list, so running members remain visible; refresh and browser history retain it.
 Required packages must be running before seed; both shared presets include them.
-**Logs** opens `#/logs?source=group%3Aseed`, combining the four seed packages and
-orchestration diagnostics. The same group is selectable as **Seed packages**
-in the log source filter; infrastructure and other packages are excluded.
+**Logs** opens `#/logs?source=preset%3Atenant-seeding`, showing only the packages
+in the **Tenant Seeding** preset. The Source filter offers this preset without a
+duplicate Seed packages option. Older `group:seed` links redirect to the preset,
+preserving the selected level.
 When local identities are unavailable, the token card lists the exact seed
 package names. An icon beside the Local access token title always offers Reload identities. Manual reloads
 report whether identities were discovered, nothing was found or the request
