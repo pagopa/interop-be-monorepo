@@ -138,16 +138,17 @@ describe("shared runtime state", () => {
   );
 
   it.each([
-    { scope: "single", outcome: "passed" },
-    { scope: "single", outcome: "failed" },
-    { scope: "bulk", outcome: "passed" },
-    { scope: "bulk", outcome: "failed" },
+    { scope: "single", outcome: "passed", watch: true },
+    { scope: "single", outcome: "failed", watch: false },
+    { scope: "bulk", outcome: "passed", watch: true },
+    { scope: "bulk", outcome: "failed", watch: false },
   ] satisfies Array<{
     scope: "single" | "bulk";
     outcome: "passed" | "failed";
+    watch: boolean;
   }>)(
     "keeps $scope Watch pending separately through POST and accepted operation until $outcome and rejects conflicts",
-    async ({ scope, outcome }) => {
+    async ({ scope, outcome, watch }) => {
       const fixture = statusFixture({ operations: [] });
       const names = fixture.packages
         .slice(0, scope === "single" ? 1 : 2)
@@ -177,8 +178,8 @@ describe("shared runtime state", () => {
       await waitFor(() => expect(result.current.status).toBeDefined());
       const action: DashboardAction =
         scope === "single"
-          ? { type: "package.watch", name: names[0], watch: true }
-          : { type: "packages.watch", names, watch: true };
+          ? { type: "package.watch", name: names[0], watch }
+          : { type: "packages.watch", names, watch };
       let submitted: Promise<boolean> | undefined;
       act(() => {
         submitted = result.current.runAction(
@@ -189,6 +190,11 @@ describe("shared runtime state", () => {
       try {
         expect(result.current.busy).toEqual(
           Object.fromEntries(watchKeys.map((key) => [key, "request"]))
+        );
+        expect(result.current.watchChanges).toEqual(
+          Object.fromEntries(
+            names.map((name) => [name, { watch, state: "pending" }])
+          )
         );
         await act(async () => {
           expect(
@@ -260,9 +266,8 @@ describe("shared runtime state", () => {
           "passed"
         )
       );
-      expect(result.current.busy).toEqual(
-        Object.fromEntries(watchKeys.map((key) => [key, "watch-operation"]))
-      );
+      expect(result.current.busy).toEqual({});
+      expect(result.current.watchChanges).toEqual({});
       currentStatus = {
         ...currentStatus,
         operations: currentStatus.operations.map((operation) => ({
@@ -272,6 +277,60 @@ describe("shared runtime state", () => {
       };
       await act(() => result.current.refresh());
       await waitFor(() => expect(result.current.busy).toEqual({}));
+    }
+  );
+  it.each([true, false])(
+    "restores the requested watch=%s after reload and releases completed bulk rows independently",
+    async (watch) => {
+      const fixture = statusFixture();
+      const names = fixture.packages.map((item) => item.name);
+      let currentStatus = statusFixture({
+        packages: fixture.packages.map((item) => ({ ...item, watch: !watch })),
+        operations: [
+          {
+            id: "watch-batch",
+            kind: "packages.watch",
+            watch,
+            state: "running",
+            startedAt: "2026-10-08T12:00:00Z",
+            phases: names.map((name, index) => ({
+              id: `watch:${name}`,
+              label: "Watch",
+              state:
+                index === 0 ? "passed" : index === 1 ? "running" : "pending",
+            })),
+          },
+        ],
+      });
+      vi.stubGlobal(
+        "fetch",
+        vi
+          .fn<typeof fetch>()
+          .mockImplementation(async () => Response.json(currentStatus))
+      );
+      const { result } = renderHook(() => useDashboard());
+      await waitFor(() => expect(result.current.status).toBeDefined());
+      expect(result.current.watchChanges).toEqual({
+        [names[1]]: { watch, state: "running" },
+        [names[2]]: { watch, state: "pending" },
+      });
+      expect(result.current.busy).toEqual({
+        [`package-watch:${names[1]}`]: "watch-batch",
+        [`package-watch:${names[2]}`]: "watch-batch",
+      });
+      currentStatus = {
+        ...currentStatus,
+        operations: currentStatus.operations.map((operation) => ({
+          ...operation,
+          phases: operation.phases.map((phase) => ({
+            ...phase,
+            state: "failed",
+          })),
+        })),
+      };
+      await act(() => result.current.refresh());
+      await waitFor(() => expect(result.current.watchChanges).toEqual({}));
+      expect(result.current.busy).toEqual({});
     }
   );
   it("blocks Watch while Start/Stop owns the same package during its POST", async () => {
@@ -762,6 +821,7 @@ describe("shared runtime state", () => {
       ).toBe(false);
     });
     expect(result.current.busy).toEqual({ [`package:${otherName}`]: "other" });
+    expect(result.current.watchChanges).toEqual({});
     expect(result.current.actionError).toBe("Package action failed");
   });
 

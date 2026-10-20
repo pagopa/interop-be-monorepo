@@ -24,11 +24,17 @@ export type ActionFailure = {
 };
 type TrackedAction = {
   operationId: string;
+  watch?: boolean;
   kind?: ActionFailure["kind"];
   completed?: boolean;
   failure?: ActionFailure;
 };
 type TrackedActions = Record<string, TrackedAction>;
+
+export type WatchChange = {
+  watch: boolean;
+  state: "pending" | "running";
+};
 
 function packagePhaseKey(id: string) {
   if (id.startsWith("watch:"))
@@ -56,10 +62,6 @@ function deriveBusy(
       continue;
     }
     if (!active(operation)) continue;
-    if (key.startsWith("package-watch:")) {
-      busy[key] = operation.id;
-      continue;
-    }
     const phases = operation.phases.filter(
       (phase) => packagePhaseKey(phase.id) === key
     );
@@ -91,19 +93,37 @@ function deriveBusy(
       busy["seed-prepare"] ??= operation.id;
     for (const phase of operation.phases) {
       const key = packagePhaseKey(phase.id);
-      const watching =
-        operation.kind === "package.watch" ||
-        operation.kind === "packages.watch";
-      if (
-        key &&
-        ((watching && phase.id.startsWith("watch:")) ||
-          phase.state === "running" ||
-          phase.state === "pending")
-      )
+      if (key && (phase.state === "running" || phase.state === "pending"))
         busy[key] ??= operation.id;
     }
   }
   return busy;
+}
+
+function deriveWatchChanges(
+  status: DashboardStatus | undefined,
+  tracked: TrackedActions,
+  busy: Record<string, string>
+): Record<string, WatchChange> {
+  const changes: Record<string, WatchChange> = {};
+  for (const [key, operationId] of Object.entries(busy)) {
+    if (!key.startsWith("package-watch:")) continue;
+    const name = key.slice("package-watch:".length);
+    const operation = status?.operations.find(
+      (item) => item.id === operationId
+    );
+    const record = tracked[key];
+    const watch =
+      operation?.watch ??
+      (record?.operationId === operationId ? record.watch : undefined);
+    if (watch === undefined) continue;
+    const phase = operation?.phases.find((item) => item.id === `watch:${name}`);
+    changes[name] = {
+      watch,
+      state: phase?.state === "running" ? "running" : "pending",
+    };
+  }
+  return changes;
 }
 
 function deriveFailures(
@@ -148,6 +168,7 @@ export function useDashboardActions(
   const trackedRef = useRef<TrackedActions>({});
   const [actionError, setActionError] = useState("");
   const busy = deriveBusy(status, tracked);
+  const watchChanges = deriveWatchChanges(status, tracked, busy);
   const actionFailures = deriveFailures(status, tracked);
 
   // The backend evicts old operations. Retire accepted requests and retain only their
@@ -231,6 +252,10 @@ export function useDashboardActions(
         {
           operationId: "request",
           kind: item === failureKey ? kind : undefined,
+          watch:
+            action.type === "package.watch" || action.type === "packages.watch"
+              ? action.watch
+              : undefined,
         },
       ])
     );
@@ -292,6 +317,7 @@ export function useDashboardActions(
     actionError,
     actionFailures,
     busy,
+    watchChanges,
     runAction,
     savePreset,
     removePreset,

@@ -7,6 +7,7 @@ import type {
 import { useState } from "react";
 
 import type { PackageFilter } from "../router/packageFilter";
+import type { WatchChange } from "./useDashboardActions";
 
 export function usePackageSelection({
   packages,
@@ -14,6 +15,7 @@ export function usePackageSelection({
   presets,
   filter,
   busy,
+  watchChanges = {},
   onAction,
 }: {
   packages: Package[];
@@ -21,6 +23,7 @@ export function usePackageSelection({
   presets: Preset[];
   filter: PackageFilter;
   busy: Record<string, string>;
+  watchChanges?: Record<string, WatchChange>;
   onAction: (
     action: DashboardAction,
     key: string | string[]
@@ -76,8 +79,18 @@ export function usePackageSelection({
   }
   function active(item: Package) {
     return watchPending(item)
-      ? (watchOrigins[item.name] ?? item.state === "running")
+      ? (watchOrigins[item.name] ??
+          (item.state === "running" || item.state === "starting"))
       : item.state === "running";
+  }
+  function watchValue(item: Package) {
+    return watchChanges[item.name]?.watch ?? item.watch;
+  }
+  function watchStatus(item: Package) {
+    const change = watchChanges[item.name];
+    if (!change) return undefined;
+    if (change.state === "pending") return "Queued";
+    return active(item) ? "Restarting" : "Updating watch";
   }
   // A Watch change may restart a running child. Capture the local intent so its
   // Start/Stop label and icon stay stable until the Watch operation completes.
@@ -161,6 +174,8 @@ export function usePackageSelection({
     pending,
     processPending,
     watchPending,
+    watchValue,
+    watchStatus,
     active,
     runWatch,
     clearSelection,

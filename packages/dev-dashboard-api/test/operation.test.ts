@@ -40,6 +40,64 @@ function startSteps(count: number) {
   return { gates, steps };
 }
 
+describe("operation watch target", () => {
+  it.each([
+    { type: "package.watch", name: "a", watch: true },
+    { type: "package.watch", name: "a", watch: false },
+    { type: "packages.watch", names: ["a", "b"], watch: true },
+    { type: "packages.watch", names: ["a", "b"], watch: false },
+  ] satisfies DashboardAction[])(
+    "exposes the requested $watch target for queued $type operations",
+    async (action) => {
+      const { service } = setup();
+      const blocker = deferred();
+      const watchRun = vi.fn(async () => true);
+      service.enqueue({ type: "infra.start" }, () => [
+        { id: "infra:start", label: "Infra", run: () => blocker.promise },
+      ]);
+      const accepted = service.enqueue(action, () => [
+        { id: "watch:a", label: "Watch A", run: watchRun },
+      ]);
+      const operation = service
+        .list()
+        .find((item) => item.id === accepted.operationId);
+
+      try {
+        await vi.waitFor(() => expect(service.list()[0].state).toBe("running"));
+        expect(operation).toMatchObject({
+          kind: action.type,
+          state: "pending",
+          watch: action.watch,
+          phases: [{ id: "watch:a", state: "pending" }],
+        });
+        expect(watchRun).not.toHaveBeenCalled();
+      } finally {
+        blocker.resolve(true);
+        await service.idle();
+      }
+
+      expect(operation).toMatchObject({ state: "passed", watch: action.watch });
+    }
+  );
+
+  it.each([
+    { type: "package.restart", name: "a" },
+    { type: "packages.start", names: ["a"] },
+    { type: "preset.start", id: "all" },
+    { type: "infra.start" },
+  ] satisfies DashboardAction[])(
+    "omits a watch target for $type operations",
+    async (action) => {
+      const { service } = setup();
+      service.enqueue(action, () => []);
+
+      expect(service.list()[0]).not.toHaveProperty("watch");
+      await service.idle();
+      expect(service.list()[0]).not.toHaveProperty("watch");
+    }
+  );
+});
+
 describe("operation start scheduling", () => {
   it("limits concurrent starts to four and waits for every start before seed or the next operation", async () => {
     const { service } = setup();

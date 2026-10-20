@@ -2856,6 +2856,133 @@ describe("development dashboard", () => {
     );
   });
 
+  it("shows the requested bulk watch mode through POST, queued restarts and partial failure", async () => {
+    currentStatus = statusFixture({
+      operations: [],
+      packages: statusFixture().packages.map((item) => ({
+        ...item,
+        watch: false,
+        state: "running",
+      })),
+    });
+    const names = currentStatus.packages.map((item) => item.name);
+    let accept: (response: Response) => void = () => undefined;
+    const acceptance = new Promise<Response>((resolve) => {
+      accept = resolve;
+    });
+    const implementation = fetchMock.getMockImplementation();
+    if (!implementation) throw new Error("Missing dashboard fixture handler");
+    fetchMock.mockImplementation(async (input, init) =>
+      String(input).endsWith("/actions")
+        ? acceptance
+        : implementation(input, init)
+    );
+    const user = userEvent.setup();
+    renderDashboard();
+    await user.click(
+      await screen.findByRole("checkbox", {
+        name: "Select all visible packages",
+      })
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Enable watch for selected packages" })
+    );
+    for (const name of names) {
+      const row = within(screen.getByRole("row", { name: new RegExp(name) }));
+      expect(
+        row.getByRole("checkbox", { name: `Watch ${name}` })
+      ).toBeChecked();
+      expect(
+        row.getByRole("checkbox", { name: `Watch ${name}` })
+      ).toBeDisabled();
+      expect(row.getByRole("status")).toHaveTextContent("Queued");
+    }
+    currentStatus = {
+      ...currentStatus,
+      operations: [
+        {
+          id: "watch-batch",
+          kind: "packages.watch",
+          watch: true,
+          state: "running",
+          startedAt: "2026-10-08T15:00:00Z",
+          phases: names.map((name, index) => ({
+            id: `watch:${name}`,
+            label: "Watch",
+            state: index === 0 ? "running" : "pending",
+          })),
+        },
+      ],
+    };
+    await act(async () => {
+      accept(Response.json({ operationId: "watch-batch" }, { status: 202 }));
+    });
+    await waitFor(() =>
+      expect(
+        within(
+          screen.getByRole("row", { name: new RegExp(names[0]) })
+        ).getByRole("status")
+      ).toHaveTextContent("Restarting")
+    );
+    currentStatus = {
+      ...currentStatus,
+      packages: currentStatus.packages.map((item, index) => ({
+        ...item,
+        watch: index === 0,
+      })),
+      operations: currentStatus.operations.map((operation) => ({
+        ...operation,
+        phases: operation.phases.map((phase, index) => ({
+          ...phase,
+          state: index === 0 ? "passed" : index === 1 ? "running" : "pending",
+        })),
+      })),
+    };
+    await user.click(
+      screen.getByRole("button", { name: "Refresh runtime status" })
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByRole("checkbox", { name: `Watch ${names[0]}` })
+      ).toBeEnabled()
+    );
+    expect(
+      within(
+        screen.getByRole("row", { name: new RegExp(names[0]) })
+      ).queryByRole("status")
+    ).not.toBeInTheDocument();
+    expect(
+      within(screen.getByRole("row", { name: new RegExp(names[1]) })).getByRole(
+        "status"
+      )
+    ).toHaveTextContent("Restarting");
+    currentStatus = {
+      ...currentStatus,
+      operations: currentStatus.operations.map((operation) => ({
+        ...operation,
+        state: "failed",
+      })),
+    };
+    await user.click(
+      screen.getByRole("button", { name: "Refresh runtime status" })
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByRole("checkbox", { name: `Watch ${names[1]}` })
+      ).toBeEnabled()
+    );
+    for (const [index, name] of names.entries()) {
+      expect(
+        screen.getByRole("checkbox", { name: `Watch ${name}` })
+      ).toHaveAttribute("aria-checked", String(index === 0));
+      expect(
+        within(screen.getByRole("row", { name: new RegExp(name) })).queryByRole(
+          "status"
+        )
+      ).not.toBeInTheDocument();
+    }
+  });
+
   it("restores every selected row after a rejected watch batch and shows the error beside the table", async () => {
     failActions = true;
     const user = userEvent.setup();
