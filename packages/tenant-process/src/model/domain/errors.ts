@@ -43,6 +43,7 @@ const errorCodes = {
   tenantNotFoundByRemoteId: "0033",
   certifiedDiscreteAttributeRevoked: "0034",
   tenantNotAllowedForDelegation: "0035",
+  attributeAlreadyVerified: "0036",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -266,6 +267,18 @@ export function attributeAlreadyRevoked(
     detail: `Attribute ${attributeId} has been already revoked for ${tenantId} by ${revokerId}`,
     code: "attributeAlreadyRevoked",
     title: "Attribute is already revoked",
+  });
+}
+
+export function attributeAlreadyVerified(
+  tenantId: TenantId,
+  verifierId: TenantId,
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute ${attributeId} has been already verified for ${tenantId} by ${verifierId}`,
+    code: "attributeAlreadyVerified",
+    title: "Attribute is already verified",
   });
 }
 
