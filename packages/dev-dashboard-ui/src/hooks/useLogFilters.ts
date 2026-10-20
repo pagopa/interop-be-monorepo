@@ -38,11 +38,16 @@ export function useLogFilters({
   const isPreviousData = logs.isPreviousData || search !== debouncedSearch;
   const sourceGroups = [
     {
-      label: "Presets",
-      sources: presets.map((preset) => ({
-        id: `preset:${preset.id}`,
-        label: preset.name,
-      })),
+      label: "Shared presets",
+      sources: presets
+        .filter((preset) => preset.source === "shared")
+        .map((preset) => ({ id: `preset:${preset.id}`, label: preset.name })),
+    },
+    {
+      label: "Local presets",
+      sources: presets
+        .filter((preset) => preset.source === "personal")
+        .map((preset) => ({ id: `preset:${preset.id}`, label: preset.name })),
     },
     {
       label: "Packages",

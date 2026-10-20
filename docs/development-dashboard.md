@@ -118,7 +118,8 @@ with explicit confirmation before deleting local data. Infrastructure rows are c
 The confirmation action is red and includes a delete icon.
 Failed preset operations show a short startup/stop failure beside that preset,
 with a Logs action that selects the preset's error logs. Retrying clears the failure.
-The Source selector groups Presets, Packages, Infrastructure and Runtime.
+The Source selector separates Shared presets and Local presets, followed by
+Packages, Infrastructure and Runtime. Empty groups are omitted.
 All packages (`group:packages`) includes only backend package logs. Infra
 (`group:infra`) includes infrastructure logs, including retained logs from stopped
 containers. Neither aggregate includes orchestration logs.
