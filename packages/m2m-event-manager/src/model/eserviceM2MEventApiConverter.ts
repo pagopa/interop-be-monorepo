@@ -209,8 +209,8 @@ function toApiEServiceM2MEventType(
       () => "MAINTENANCE_ESERVICE_DESCRIPTOR_UNARCHIVED"
     )
     .with(
-      "EServiceDescriptorRestoredToDraftUpdatedRevokedDelegation",
-      () => "ESERVICE_DESCRIPTOR_RESTORED_TO_DRAFT_UPDATED_REVOKED_DELEGATION"
+      "EServiceDescriptorRestoredToDraftByRevokedDelegation",
+      () => "ESERVICE_DESCRIPTOR_RESTORED_TO_DRAFT_BY_REVOKED_DELEGATION"
     )
     .exhaustive();
 }

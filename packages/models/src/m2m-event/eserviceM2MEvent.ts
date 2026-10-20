@@ -81,7 +81,7 @@ export const EServiceM2MEventType = z.enum([
   "EServiceDescriptorArchivingRequestApprovedByDelegator",
   "EServiceDescriptorArchivingRequestCanceledByDelegate",
   "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation",
-  "EServiceDescriptorRestoredToDraftUpdatedRevokedDelegation",
+  "EServiceDescriptorRestoredToDraftByRevokedDelegation",
 ]);
 export type EServiceM2MEventType = z.infer<typeof EServiceM2MEventType>;
 

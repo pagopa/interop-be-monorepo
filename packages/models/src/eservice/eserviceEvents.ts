@@ -378,7 +378,7 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
         EServiceDescriptorArchivingRequestRejectedByDelegatorV2.toBinary(data)
     )
     .with(
-      { type: "EServiceDescriptorRestoredToDraftUpdatedRevokedDelegation" },
+      { type: "EServiceDescriptorRestoredToDraftByRevokedDelegation" },
       ({ data }) =>
         EServiceDescriptorUpdatedByRevokedDelegationV2.toBinary(data)
     )
@@ -807,7 +807,7 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("EServiceDescriptorRestoredToDraftUpdatedRevokedDelegation"),
+    type: z.literal("EServiceDescriptorRestoredToDraftByRevokedDelegation"),
     data: protobufDecoder(EServiceDescriptorUpdatedByRevokedDelegationV2),
   }),
 ]);

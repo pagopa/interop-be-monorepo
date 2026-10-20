@@ -118,7 +118,7 @@ function getEServiceM2MEventVisibility(
         "EServiceArchivingRequestApprovedByDelegator",
         "EServiceArchivingRequestCanceledByDelegate",
         "EServiceArchivingRequestCanceledByRevokedDelegation",
-        "EServiceDescriptorRestoredToDraftUpdatedRevokedDelegation"
+        "EServiceDescriptorRestoredToDraftByRevokedDelegation"
       ),
       () => m2mEventVisibility.owner
     )

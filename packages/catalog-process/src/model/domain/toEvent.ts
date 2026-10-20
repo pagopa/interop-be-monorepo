@@ -1314,7 +1314,7 @@ export const toCreateEventEServiceDescriptorArchivingRequestCanceledByDelegate =
     correlationId,
   });
 
-export const toCreateEventEServiceDescriptorRestoredToDraftUpdatedRevokedDelegation =
+export const toCreateEventEServiceDescriptorRestoredToDraftByRevokedDelegation =
   (
     version: number,
     descriptorId: DescriptorId,
@@ -1324,7 +1324,7 @@ export const toCreateEventEServiceDescriptorRestoredToDraftUpdatedRevokedDelegat
     streamId: eservice.id,
     version,
     event: {
-      type: "EServiceDescriptorRestoredToDraftUpdatedRevokedDelegation",
+      type: "EServiceDescriptorRestoredToDraftByRevokedDelegation",
       event_version: 2,
       data: {
         descriptorId,

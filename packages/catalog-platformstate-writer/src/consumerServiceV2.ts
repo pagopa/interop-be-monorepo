@@ -424,7 +424,7 @@ export async function handleMessageV2(
           "EServiceDescriptorArchivingRequestCanceledByDelegate",
           "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation",
           "MaintenanceEServicePersonalDataFlagReset",
-          "EServiceDescriptorRestoredToDraftUpdatedRevokedDelegation"
+          "EServiceDescriptorRestoredToDraftByRevokedDelegation"
         ),
       },
       () => Promise.resolve()
