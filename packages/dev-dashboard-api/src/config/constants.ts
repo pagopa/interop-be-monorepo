@@ -24,6 +24,15 @@ export const PACKAGE_READINESS_PATHS = Object.freeze({
 });
 
 export const WORKSPACE_BUILD_CONCURRENCY = 2;
+export const APPLICATION_START_CONCURRENCY = 4;
+
+export const KAFKA_CONSUMER_READINESS = Object.freeze({
+  groupState: "Stable",
+  protocolType: "consumer",
+  brokerProtocol: "tcp:",
+  probeClientSuffix: "-readiness",
+  startingOffset: "earliest",
+});
 
 export const OPERATION_PHASE_IDS = Object.freeze({ build: "build" });
 

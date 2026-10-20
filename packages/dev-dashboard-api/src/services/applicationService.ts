@@ -15,6 +15,10 @@ import {
   PACKAGE_READINESS_PATHS,
 } from "../config/constants.js";
 import { errorMessage } from "../utilities/errorUtils.js";
+import {
+  prepareKafkaConsumerEnvironment,
+  waitForKafkaConsumer,
+} from "./consumerReadinessService.js";
 
 type ApplicationServiceOptions = {
   beRoot: string;
@@ -63,13 +67,13 @@ export function applicationServiceBuilder(
   const children = new Map<string, Child>();
   const watchers = new Map<string, () => void>();
   const stopping = new Set<string>();
+  const starting = new Set<string>();
 
-  function assertAvailablePorts(names: string[]): void {
-    const selected = new Set(names);
+  function assertAvailablePorts(): void {
     const ports = new Map<number, string>();
 
     packages
-      .filter((item) => children.has(item.name) || selected.has(item.name))
+      .filter((item) => children.has(item.name) || starting.has(item.name))
       .forEach((item) => {
         if (!item.port) return;
 
@@ -90,9 +94,12 @@ export function applicationServiceBuilder(
     delete item.error;
     const cwd = join(options.beRoot, PACKAGE_LAYOUT.directory, item.label);
     try {
-      const environment = await options.environment?.(name);
+      const environment = prepareKafkaConsumerEnvironment(
+        await options.environment?.(name)
+      );
       applyEffectivePort(item, environment);
-      assertAvailablePorts([name]);
+      starting.add(name);
+      assertAvailablePorts();
       await launch(name, {
         source: name,
         executable: join(cwd, PACKAGE_LAYOUT.runner),
@@ -101,6 +108,10 @@ export function applicationServiceBuilder(
         env: environment,
       });
       if (item.port) await waitFor(name, packageReadinessUrl(item));
+      await waitForKafkaConsumer(
+        environment,
+        () => children.has(name) && !options.isShuttingDown()
+      );
       if (!children.has(name)) {
         if (item.kind === "job" && item.error === undefined) return;
         throw new Error(item.error ?? `Package ${name} exited during startup`);
@@ -125,6 +136,8 @@ export function applicationServiceBuilder(
       await stopChild(name);
       delete item.pid;
       throw error;
+    } finally {
+      starting.delete(name);
     }
   }
 

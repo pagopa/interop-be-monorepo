@@ -2617,6 +2617,9 @@ importers:
       express:
         specifier: 'catalog:'
         version: 4.20.0
+      kafkajs:
+        specifier: 'catalog:'
+        version: 2.2.4
       pagopa-interop-dev-dashboard-contracts:
         specifier: workspace:*
         version: link:../dev-dashboard-contracts

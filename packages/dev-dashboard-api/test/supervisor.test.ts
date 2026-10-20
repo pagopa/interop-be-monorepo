@@ -136,6 +136,74 @@ const setup = (
 };
 
 describe("local dashboard supervisor", () => {
+  it("starts four preset members before readiness and keeps seed queued until every member is ready", async () => {
+    const names = [...seedPackages, "extra-one", "extra-two"];
+    const gates = names.map(() => {
+      let resolve: (value: { ok: boolean }) => void = () => undefined;
+      const promise = new Promise<{ ok: boolean }>((resolvePromise) => {
+        resolve = resolvePromise;
+      });
+      return { promise, resolve };
+    });
+    const fetch = vi.fn((input: string) => {
+      const index = Number(new URL(input).port) - 5000;
+      return gates[index].promise;
+    });
+    vi.stubGlobal("fetch", fetch);
+    const driver = new FakeDriver();
+    const supervisor = supervisorServiceBuilder({
+      beRoot: "/be",
+      driver,
+      packages: names.map((name, index) => ({
+        ...member(name),
+        port: 5000 + index,
+      })),
+      presets: [{ ...preset, packages: names.map((name) => ({ name })) }],
+    });
+    const accepted = supervisor.action({ type: "preset.start", id: "pair" });
+    supervisor.action({ type: "seed" });
+
+    try {
+      await vi.waitFor(() => expect(driver.children.size).toBe(4));
+      expect([...driver.children.keys()]).toEqual(names.slice(0, 4));
+      expect(fetch).toHaveBeenCalledTimes(4);
+      expect(supervisor.action({ type: "preset.start", id: "pair" })).toEqual(
+        accepted
+      );
+      expect(supervisor.status().operations[1].state).toBe("pending");
+      expect(supervisor.status().packages.map((item) => item.state)).toEqual([
+        "starting",
+        "starting",
+        "starting",
+        "starting",
+        "building",
+        "building",
+      ]);
+      gates.slice(0, 4).forEach((gate) => gate.resolve({ ok: true }));
+      await vi.waitFor(() => expect(driver.children.size).toBe(6));
+      expect(supervisor.status().seedPrerequisites).toEqual([]);
+      expect(supervisor.status().operations[1].state).toBe("pending");
+      expect(
+        driver.commands.some((command) => command.args.includes("seed"))
+      ).toBe(false);
+      gates[4].resolve({ ok: true });
+      await vi.waitFor(() =>
+        expect(supervisor.status().packages[4].state).toBe("running")
+      );
+      expect(supervisor.status().operations[1].state).toBe("pending");
+    } finally {
+      gates.forEach((gate) => gate.resolve({ ok: true }));
+      await supervisor.idle();
+    }
+
+    expect(
+      supervisor.status().operations.map((operation) => operation.state)
+    ).toEqual(["passed", "passed"]);
+    expect(
+      driver.commands.filter((command) => command.args.includes("seed"))
+    ).toHaveLength(1);
+  });
+
   it.each([false, true])(
     "completes a successful one-shot job and releases its watcher (exit during startup: %s)",
     async (exitDuringStartup) => {
@@ -720,7 +788,18 @@ describe("local dashboard supervisor", () => {
     expect([...driver.children.keys()]).toEqual(["a"]);
   });
   it("restores unlaunched preset members after a startup failure without changing other running packages", async () => {
-    const { supervisor, driver } = setup();
+    const driver = new FakeDriver();
+    const supervisor = supervisorServiceBuilder({
+      beRoot: "/be",
+      driver,
+      packages: ["a", "b", "c", "d", "e", "outside"].map(member),
+      presets: [
+        {
+          ...preset,
+          packages: ["a", "b", "c", "d", "e"].map((name) => ({ name })),
+        },
+      ],
+    });
     supervisor.action({ type: "package.start", name: "outside" });
     await supervisor.idle();
     driver.failStart = "a";
@@ -728,10 +807,16 @@ describe("local dashboard supervisor", () => {
     await supervisor.idle();
     expect(supervisor.status().packages.map((p) => [p.name, p.state])).toEqual([
       ["a", "failed"],
-      ["b", "stopped"],
+      ["b", "running"],
+      ["c", "running"],
+      ["d", "running"],
+      ["e", "stopped"],
       ["outside", "running"],
-      ["remote", "stopped"],
     ]);
+    expect(supervisor.status().operations.at(-1)?.phases.at(-1)).toMatchObject({
+      id: "start:e",
+      state: "skipped",
+    });
     expect(driver.children.get("outside")?.stopped).toBe(false);
   });
   it("prevents queued start requests from sharing a port without stopping the existing child", async () => {
@@ -945,12 +1030,15 @@ describe("local dashboard supervisor", () => {
         ?.phases.map((phase) => phase.state)
     ).toEqual(["failed", "skipped", "skipped", "skipped", "skipped"]);
   });
-  it("stops preparation after a seed service fails to start", async () => {
+  it("settles already launched seed services after one startup fails", async () => {
     const { supervisor, driver } = setup({ includeSeedPackages: true });
     driver.failStart = seedPackages[1];
     supervisor.action({ type: "seed.prepare" });
     await supervisor.idle();
-    expect([...driver.children.keys()]).toEqual([seedPackages[0]]);
+    expect([...driver.children.keys()]).toEqual([
+      seedPackages[0],
+      ...seedPackages.slice(2),
+    ]);
     expect(supervisor.status().operations.at(-1)).toMatchObject({
       state: "failed",
     });
@@ -960,12 +1048,12 @@ describe("local dashboard supervisor", () => {
         .operations.at(-1)
         ?.phases.slice(1)
         .map((phase) => phase.state)
-    ).toEqual(["passed", "failed", "skipped", "skipped"]);
+    ).toEqual(["passed", "failed", "passed", "passed"]);
     expect(
       supervisor
         .status()
         .packages.filter((item) => seedPackages.slice(2).includes(item.name))
-        .every((item) => item.state === "stopped")
+        .every((item) => item.state === "running")
     ).toBe(true);
   });
   it.each(seedPackages)(
@@ -1382,8 +1470,15 @@ describe("local dashboard supervisor", () => {
       watch: true,
     });
     expect(await readFile(blocker, "utf8")).toBe("Preserve this file");
+
+    await rm(blocker);
+    supervisor.action({ type: "package.watch", name: "b", watch: false });
+    await supervisor.idle();
+
+    expect(supervisor.status().operations.at(-1)?.state).toBe("passed");
+    expect(await readWatchPreferences(watchPath)).toEqual({ b: false });
   });
-  it("reports a preset member as failed when its watch preference cannot be saved before startup", async () => {
+  it("reports launched preset members as failed when their watch preferences cannot be saved and skips unlaunched members", async () => {
     const root = await mkdtemp(
       join(tmpdir(), "dashboard-preset-watch-failure-")
     );
@@ -1406,19 +1501,29 @@ describe("local dashboard supervisor", () => {
     });
     expect(
       supervisor.status().packages.find((item) => item.name === "b")?.state
-    ).toBe("stopped");
+    ).toBe("failed");
     expect(supervisor.status().operations.at(-1)).toMatchObject({
       state: "failed",
       phases: [
         { id: "build", state: "passed" },
         { id: "start:a", state: "failed" },
-        { id: "start:b", state: "skipped" },
-        ...seedPackages.map((name) => ({
+        { id: "start:b", state: "failed" },
+        ...seedPackages.slice(0, 2).map((name) => ({
+          id: `start:${name}`,
+          state: "failed",
+        })),
+        ...seedPackages.slice(2).map((name) => ({
           id: `start:${name}`,
           state: "skipped",
         })),
       ],
     });
+    expect(
+      supervisor
+        .status()
+        .packages.filter((item) => seedPackages.slice(2).includes(item.name))
+        .every((item) => item.state === "stopped")
+    ).toBe(true);
     expect(driver.children.size).toBe(0);
   });
   it("watches sources only while the service runs and never revives a crashed service", async () => {
@@ -1644,5 +1749,27 @@ describe("local dashboard supervisor", () => {
       a: false,
       b: true,
     });
+  });
+  it("persists every watch choice from concurrent preset starts", async () => {
+    const watchPath = temporaryWatchPath();
+    const { supervisor } = setup({ includeSeedPackages: true, watchPath });
+
+    supervisor.action({ type: "preset.start", id: "pair" });
+    await supervisor.idle();
+
+    expect(supervisor.status().operations.at(-1)?.state).toBe("passed");
+    expect(await readWatchPreferences(watchPath)).toEqual(
+      Object.fromEntries(
+        ["a", "b", ...seedPackages].map((name) => [name, false])
+      )
+    );
+    expect(
+      supervisor
+        .status()
+        .packages.filter((item) =>
+          ["a", "b", ...seedPackages].includes(item.name)
+        )
+        .every((item) => !item.watch)
+    ).toBe(true);
   });
 });
