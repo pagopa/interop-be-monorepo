@@ -122,14 +122,29 @@ the URL together with the level filter. Search matches message text or correlati
 case-insensitively and by substring. Package and infrastructure log actions keep all levels.
 Orchestration logs are shared across runtime operations.
 
-The shared Frontend backend preset (`frontend-full`) contains the same 30 backend services, in
-the same startup order, as the previous devcontainer script. All members have
+The shared Frontend backend preset (`frontend-full`) contains the same 30 backend services
+as the previous devcontainer script. All members have
 watch disabled. Starting this preset only starts its backend packages.
 The shared Tenant Seeding preset starts the four packages used by Start seed packages.
 Manual seed remains a separate action in Access token.
 
-A preset starts missing members
-without stopping or restarting other running packages. Stopping a preset stops
+A preset builds shared dependencies first, then starts up to four missing members
+concurrently. Each start slot remains occupied until that package is ready.
+HTTP services must pass their health check. Kafka consumers must join a stable
+group and receive partition assignments under a unique client ID for that launch;
+an older member cannot satisfy this check. The Kafka observer connects only to
+local loopback brokers with AWS authentication disabled.
+
+Dashboard-managed consumers use `earliest` for new local groups, so seed events
+cannot be skipped if the first offset lookup occurs after group assignment.
+Existing committed offsets retain precedence; a new group replays retained local
+history. These overrides do not change package environment files or deployments.
+Fullstack startup waits for every preset member before requesting seed. A failed
+start prevents further preset members from launching, waits for in-flight starts
+to settle and reports unlaunched members as skipped. Bulk package starts continue
+the other selected packages after an individual failure.
+
+Starting a preset leaves existing processes running. Stopping a preset stops
 all its members, including members started separately, and leaves outsiders
 running. Save per-package watch choices in the preset.
 

@@ -61,6 +61,7 @@ export function supervisorServiceBuilder(
 ): Supervisor {
   const logs = logServiceBuilder();
   let watchPreferences = { ...options.watchPreferences };
+  let watchWrites: Promise<void> = Promise.resolve();
   const watchPath =
     options.watchPath ?? join(options.beRoot, DASHBOARD_PATHS.watchPreferences);
   const packages: Package[] = options.packages.map((item) => ({
@@ -368,6 +369,7 @@ export function supervisorServiceBuilder(
       ...members.map((member) => ({
         id: `start:${member.name}`,
         label: `Start ${member.name}`,
+        concurrent: true,
         run: async () => {
           if (applications.has(member.name)) return false;
           if (
@@ -446,14 +448,18 @@ export function supervisorServiceBuilder(
     };
   }
 
-  async function setWatchPreference(
-    name: string,
-    watch: boolean
-  ): Promise<void> {
-    const next = { ...watchPreferences, [name]: watch };
-    await persistWatchPreferences(watchPath, next);
-    watchPreferences = next;
-    getPackage(name).watch = watch;
+  function setWatchPreference(name: string, watch: boolean): Promise<void> {
+    const result = watchWrites.then(async () => {
+      const next = { ...watchPreferences, [name]: watch };
+      await persistWatchPreferences(watchPath, next);
+      watchPreferences = next;
+      getPackage(name).watch = watch;
+    });
+    watchWrites = result.then(
+      () => undefined,
+      () => undefined
+    );
+    return result;
   }
 
   function stopAllStep(): OperationStep {

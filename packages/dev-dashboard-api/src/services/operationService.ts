@@ -11,6 +11,7 @@ import type { OperationStep } from "../model/domain/operation.js";
 import type { logServiceBuilder } from "./logService.js";
 
 import {
+  APPLICATION_START_CONCURRENCY,
   DASHBOARD_ACTION_TYPES,
   LOG_SOURCES,
   OPERATION_PHASE_IDS,
@@ -91,18 +92,60 @@ export function operationServiceBuilder(
     });
   }
 
+  function hasAbortingFailure(
+    operation: Operation,
+    action: DashboardAction
+  ): boolean {
+    return operation.phases.some(
+      (phase) => phase.state === "failed" && shouldAbort(action, phase)
+    );
+  }
+
+  async function runConcurrentPhases(
+    operation: Operation,
+    action: DashboardAction,
+    steps: OperationStep[],
+    first: number,
+    end: number
+  ): Promise<number> {
+    let next = first;
+    const worker = async (): Promise<void> => {
+      while (next < end && !hasAbortingFailure(operation, action)) {
+        const index = next++;
+        await runPhase(operation, operation.phases[index], steps[index]);
+      }
+    };
+    const results = await Promise.allSettled(
+      Array.from(
+        { length: Math.min(APPLICATION_START_CONCURRENCY, end - first) },
+        worker
+      )
+    );
+    for (const result of results) {
+      if (result.status === "rejected") throw result.reason;
+    }
+    return next;
+  }
+
   async function runPhases(
     operation: Operation,
     action: DashboardAction,
     steps: OperationStep[]
   ): Promise<void> {
-    for (const [index, step] of steps.entries()) {
-      const phase = operation.phases[index];
-      await runPhase(operation, phase, step);
+    let index = 0;
+    while (index < steps.length) {
+      if (steps[index].concurrent) {
+        let end = index + 1;
+        while (end < steps.length && steps[end].concurrent) end++;
+        index = await runConcurrentPhases(operation, action, steps, index, end);
+      } else {
+        await runPhase(operation, operation.phases[index], steps[index]);
+        index++;
+      }
 
-      if (phase.state === "failed" && shouldAbort(action, phase)) {
+      if (hasAbortingFailure(operation, action)) {
         operation.state = "failed";
-        skipPhases(operation.phases.slice(index + 1));
+        skipPhases(operation.phases.slice(index));
         return;
       }
     }
