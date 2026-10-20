@@ -1,6 +1,7 @@
 /* eslint-disable fp/no-delete */
 /* eslint-disable functional/immutable-data */
 import { addDays } from "date-fns";
+import { waitForReadModelMetadataVersion } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAgreement,
@@ -39,7 +40,7 @@ import {
   generateId,
   toAgreementV2,
 } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { config } from "../../src/config/config.js";
 import {
@@ -50,9 +51,18 @@ import {
   readLastAgreementEvent,
 } from "../integrationUtils.js";
 
+vi.mock("pagopa-interop-commons", async () => {
+  const actual = await vi.importActual("pagopa-interop-commons");
+  return {
+    ...actual,
+    waitForReadModelMetadataVersion: vi.fn().mockResolvedValue(undefined),
+  };
+});
+
 describe("compute Agreements state by attribute", () => {
   beforeEach(() => {
     config.featureFlagAttributeCertifiedDiscrete = true;
+    vi.mocked(waitForReadModelMetadataVersion).mockClear();
   });
 
   describe("when the given attribute is not satisfied", async () => {
@@ -139,6 +149,57 @@ describe("compute Agreements state by attribute", () => {
       expect(
         agreementStateUpdateEventData.discreteAttributeFailure
       ).toBeUndefined();
+    });
+
+    it("waits for the read model to reach the version of the updated Agreement", async () => {
+      await addOneEService(eservice);
+
+      const updatableActiveAgreement: Agreement = {
+        ...getMockAgreement(eservice.id, consumer.id, agreementState.active),
+        descriptorId: eservice.descriptors[0].id,
+        producerId: eservice.producerId,
+        suspendedByPlatform: false,
+      };
+
+      await addOneAgreement(updatableActiveAgreement);
+
+      await agreementService.internalComputeAgreementsStateByAttribute(
+        invalidCertifiedAttribute.id,
+        consumer,
+        getMockContextInternal({})
+      );
+
+      expect(waitForReadModelMetadataVersion).toHaveBeenCalledTimes(1);
+
+      const [fetchAgreement, targetVersion] = vi.mocked(
+        waitForReadModelMetadataVersion
+      ).mock.calls[0];
+
+      expect(targetVersion).toBe(1);
+      expect(await fetchAgreement()).toMatchObject({
+        data: { id: updatableActiveAgreement.id },
+      });
+    });
+
+    it("does not wait for the read model when no Agreement is updated", async () => {
+      await addOneEService(eservice);
+
+      const agreementSuspendedByPlatform: Agreement = {
+        ...getMockAgreement(eservice.id, consumer.id, agreementState.suspended),
+        descriptorId: eservice.descriptors[0].id,
+        producerId: eservice.producerId,
+        suspendedByPlatform: true,
+      };
+
+      await addOneAgreement(agreementSuspendedByPlatform);
+
+      await agreementService.internalComputeAgreementsStateByAttribute(
+        invalidCertifiedAttribute.id,
+        consumer,
+        getMockContextInternal({})
+      );
+
+      expect(waitForReadModelMetadataVersion).not.toHaveBeenCalled();
     });
 
     it("suspends an active Agreement with certified discrete suspension reason and full failure detail when the threshold is no longer satisfied", async () => {
