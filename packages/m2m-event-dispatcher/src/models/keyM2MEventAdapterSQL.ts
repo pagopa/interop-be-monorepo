@@ -9,5 +9,7 @@ export function toKeyM2MEventSQL(event: KeyM2MEvent): KeyM2MEventSQL {
     resourceVersion: event.resourceVersion,
     kid: event.kid,
     clientId: event.clientId,
+    consumerId: event.consumerId,
+    visibility: event.visibility,
   };
 }
