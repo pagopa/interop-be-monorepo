@@ -1,6 +1,7 @@
 import type {
   LogEntry,
   LogSource,
+  Preset,
 } from "pagopa-interop-dev-dashboard-contracts";
 
 import { act, screen, waitFor, within } from "@testing-library/react";
@@ -480,15 +481,23 @@ describe("aggregate log filters", () => {
     expect(search).toHaveValue("");
     expect(onFiltersChange).toHaveBeenLastCalledWith("", "");
   });
-  it("offers a readable seed packages source and requests it while retaining the controlled level", async () => {
+  it("offers Tenant Seeding without a duplicate seed packages source and retains the controlled level", async () => {
     const fetchMock = vi
       .fn<typeof fetch>()
       .mockImplementation(async () => Response.json(emptyLogs));
     vi.stubGlobal("fetch", fetchMock);
     const onFiltersChange = vi.fn();
+    const presets = [
+      {
+        id: "tenant-seeding",
+        name: "Tenant Seeding",
+        source: "shared",
+        packages: statusFixture().seedPackages.map((name) => ({ name })),
+      },
+    ] satisfies Preset[];
     const { rerender } = render(
       <LogsPanel
-        presets={[]}
+        presets={presets}
         sources={sources}
         selectedSource=""
         selectedLevel="error"
@@ -497,23 +506,32 @@ describe("aggregate log filters", () => {
     );
     const source = screen.getByRole("combobox", { name: "Source" });
     expect(
-      within(source).getByRole("option", { name: "Seed packages" })
-    ).toHaveValue("group:seed");
+      within(source).queryByRole("option", { name: "Seed packages" })
+    ).not.toBeInTheDocument();
+    expect(
+      within(source).queryByRole("option", { name: "group:seed" })
+    ).not.toBeInTheDocument();
+    expect(
+      within(source).getByRole("option", { name: "Tenant Seeding" })
+    ).toHaveValue("preset:tenant-seeding");
     const user = userEvent.setup();
-    await user.selectOptions(source, "group:seed");
-    expect(onFiltersChange).toHaveBeenLastCalledWith("group:seed", "error");
+    await user.selectOptions(source, "preset:tenant-seeding");
+    expect(onFiltersChange).toHaveBeenLastCalledWith(
+      "preset:tenant-seeding",
+      "error"
+    );
     rerender(
       <LogsPanel
-        presets={[]}
+        presets={presets}
         sources={sources}
-        selectedSource="group:seed"
+        selectedSource="preset:tenant-seeding"
         selectedLevel="error"
         onFiltersChange={onFiltersChange}
       />
     );
-    expect(source).toHaveValue("group:seed");
+    expect(source).toHaveValue("preset:tenant-seeding");
     expect(
-      within(source).getAllByRole("option", { name: "Seed packages" })
+      within(source).getAllByRole("option", { name: "Tenant Seeding" })
     ).toHaveLength(1);
     expect(
       within(source).queryByRole("option", { name: "group:seed" })
@@ -523,7 +541,7 @@ describe("aggregate log filters", () => {
         fetchMock.mock.calls.some(([input]) => {
           const query = new URL(String(input), "http://localhost").searchParams;
           return (
-            query.get("source") === "group:seed" &&
+            query.get("source") === "preset:tenant-seeding" &&
             query.get("level") === "error"
           );
         })

@@ -87,7 +87,7 @@ describe("local identities", () => {
     ).toHaveAttribute("href", "/packages?group=seed");
     expect(
       screen.getByRole("link", { name: "Logs for seed packages" })
-    ).toHaveAttribute("href", "/logs?source=group%3Aseed");
+    ).toHaveAttribute("href", "/logs?source=preset%3Atenant-seeding");
   });
 
   it.each([
@@ -307,7 +307,10 @@ describe("local identities", () => {
       );
     });
     expect(controls[1]).toHaveAttribute("href", "/packages?group=seed");
-    expect(controls[2]).toHaveAttribute("href", "/logs?source=group%3Aseed");
+    expect(controls[2]).toHaveAttribute(
+      "href",
+      "/logs?source=preset%3Atenant-seeding"
+    );
   });
   it("revalidates cached identities when reopening the panel and does not issue a token automatically", async () => {
     const fetchMock = vi
@@ -942,7 +945,7 @@ describe("local identities", () => {
     ).toHaveAttribute("href", "/packages?group=seed");
     expect(
       screen.getByRole("link", { name: "Logs for seed packages" })
-    ).toHaveAttribute("href", "/logs?source=group%3Aseed");
+    ).toHaveAttribute("href", "/logs?source=preset%3Atenant-seeding");
     expect(prepare).toBeDisabled();
     expect(generate).toBeDisabled();
     expect(

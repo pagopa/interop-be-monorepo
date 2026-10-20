@@ -124,11 +124,7 @@ export function LogsPanel(props: Props) {
                 All packages
               </NativeSelectOption>
               <NativeSelectOption value="group:infra">Infra</NativeSelectOption>
-              <NativeSelectOption value="group:seed">
-                Seed packages
-              </NativeSelectOption>
               {selectedSource &&
-                selectedSource !== "group:seed" &&
                 selectedSource !== "group:packages" &&
                 selectedSource !== "group:infra" &&
                 !model.sourceGroups.some((group) =>

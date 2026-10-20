@@ -115,7 +115,7 @@ export function TokenPanel({ seedPackages, ...props }: Props) {
           </Button>
           <Button asChild variant="outline" size="sm">
             <Link
-              to={`${paths.logs}?source=group%3Aseed`}
+              to={`${paths.logs}?source=preset%3Atenant-seeding`}
               aria-label="Logs for seed packages"
             >
               <Terminal data-icon="inline-start" aria-hidden="true" />

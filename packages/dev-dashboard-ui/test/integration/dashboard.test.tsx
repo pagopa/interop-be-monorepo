@@ -322,12 +322,13 @@ describe("development dashboard", () => {
       expect(screen.getByRole("combobox", { name: "Level" })).toHaveValue(
         "warn"
       );
+      await screen.findByRole("option", { name: "Backend core" });
       await user.selectOptions(
         screen.getByRole("combobox", { name: "Source" }),
-        "group:seed"
+        "preset:backend"
       );
       await waitFor(() =>
-        expect(window.location.hash).toContain("source=group%3Aseed")
+        expect(window.location.hash).toContain("source=preset%3Abackend")
       );
       window.history.back();
       await waitFor(() =>
@@ -341,6 +342,50 @@ describe("development dashboard", () => {
       expect(postedBodies("/actions")).toEqual([]);
     }
   );
+
+  it("replaces legacy seed log URLs with Tenant Seeding while retaining the level", async () => {
+    currentStatus.presets.push({
+      id: "tenant-seeding",
+      name: "Tenant Seeding",
+      source: "shared",
+      packages: currentStatus.seedPackages.map((name) => ({ name })),
+    });
+    window.history.replaceState(
+      null,
+      "",
+      "#/logs?source=group%3Aseed&level=error"
+    );
+    renderDashboard();
+    expect(await screen.findByRole("combobox", { name: "Source" })).toHaveValue(
+      "preset:tenant-seeding"
+    );
+    expect(screen.getByRole("combobox", { name: "Level" })).toHaveValue(
+      "error"
+    );
+    await waitFor(() =>
+      expect(window.location.hash).toBe(
+        "#/logs?source=preset%3Atenant-seeding&level=error"
+      )
+    );
+    expect(
+      screen.queryByRole("option", { name: "Seed packages" })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("option", { name: "group:seed" })
+    ).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        fetchMock.mock.calls.some(([input]) => {
+          const query = new URL(String(input)).searchParams;
+          return (
+            query.get("source") === "preset:tenant-seeding" &&
+            query.get("level") === "error"
+          );
+        })
+      ).toBe(true)
+    );
+    expect(postedBodies("/actions")).toEqual([]);
+  });
 
   it("keeps preset source and level filters through changes, refresh, reload and browser back", async () => {
     window.history.replaceState(
@@ -576,6 +621,12 @@ describe("development dashboard", () => {
     async (state) => {
       currentStatus = seedPackagesFixture();
       const seedNames = currentStatus.seedPackages;
+      currentStatus.presets.push({
+        id: "tenant-seeding",
+        name: "Tenant Seeding",
+        source: "shared",
+        packages: seedNames.map((name) => ({ name })),
+      });
       const implementation = fetchMock.getMockImplementation();
       if (!implementation) throw new Error("Missing dashboard fixture handler");
       fetchMock.mockImplementation(async (input, init) => {
@@ -615,7 +666,7 @@ describe("development dashboard", () => {
       expect(link).toHaveAttribute("href", "#/packages?group=seed");
       expect(
         screen.getByRole("link", { name: "Logs for seed packages" })
-      ).toHaveAttribute("href", "#/logs?source=group%3Aseed");
+      ).toHaveAttribute("href", "#/logs?source=preset%3Atenant-seeding");
       await user.click(start);
       await waitFor(() =>
         expect(postedBodies("/actions")).toEqual([{ type: "seed.prepare" }])
@@ -663,8 +714,10 @@ describe("development dashboard", () => {
       );
       expect(
         await screen.findByRole("combobox", { name: "Source" })
-      ).toHaveValue("group:seed");
-      expect(window.location.hash).toBe("#/logs?source=group%3Aseed");
+      ).toHaveValue("preset:tenant-seeding");
+      expect(window.location.hash).toBe(
+        "#/logs?source=preset%3Atenant-seeding"
+      );
       expect(postedBodies("/actions")).toEqual([{ type: "seed.prepare" }]);
     }
   );
@@ -2037,7 +2090,7 @@ describe("development dashboard", () => {
     ).toHaveAttribute("href", "#/packages?group=seed");
     expect(
       screen.getByRole("link", { name: "Logs for seed packages" })
-    ).toHaveAttribute("href", "#/logs?source=group%3Aseed");
+    ).toHaveAttribute("href", "#/logs?source=preset%3Atenant-seeding");
     expect(postedBodies("/actions")).toEqual([{ type: "seed" }]);
   });
 

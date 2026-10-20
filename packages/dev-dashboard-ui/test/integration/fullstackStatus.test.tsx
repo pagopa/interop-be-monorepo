@@ -362,6 +362,20 @@ describe("optional fullstack status", () => {
     ).toHaveAttribute("href", "#/logs?source=orchestration");
   });
 
+  it("opens seed startup logs through the Tenant Seeding preset", async () => {
+    if (!currentStatus.frontend)
+      throw new Error("Fullstack fixture is required");
+    currentStatus.frontend.phases.push({
+      id: "seed",
+      label: "Seed local data",
+      state: "passed",
+    });
+    renderDashboard();
+    expect(
+      await screen.findByRole("link", { name: "Seed local data logs" })
+    ).toHaveAttribute("href", "#/logs?source=preset%3Atenant-seeding");
+  });
+
   it("loads only the selected frontend log and keeps failures separate from runtime state", async () => {
     const user = userEvent.setup();
     renderDashboard();
