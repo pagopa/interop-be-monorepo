@@ -14834,7 +14834,7 @@ components:
         - isFreeOfCharge
     RiskAnalysisReviewMode:
       type: string
-      description: Risk analysis review mode. When returned in a Purpose response, visible only to the consumer of the Purpose.
+      description: Risk analysis review mode. Visible only to the consumer of the Purpose.
       enum:
         - ADMIN_WRITES_ADMIN_SIGNS
         - ADMIN_WRITES_REVIEWER_SIGNS
