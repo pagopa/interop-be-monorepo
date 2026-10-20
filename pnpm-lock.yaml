@@ -7934,7 +7934,7 @@ packages:
       eslint: ^9.39.2
 
   '@pagopa/interop-outbound-models@1.8.25':
-    resolution: {integrity: sha512-9k77Rlnt+lxtdob8SUfRIcd6xNOpcpGGVMqm0uUyJjFWcLZpqsgb4JT8EPpB6d8m4c+UQrLGpOquU300vmHkCw==}
+    resolution: {integrity: sha512-snQ+T6OVErZVEPkS6RPc9envWsLmnofHjuGzLPIy9AZo/VhmIljAJG0SPF0Q5OriFYYq/eNg8bOAfcrkquwCDQ==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
