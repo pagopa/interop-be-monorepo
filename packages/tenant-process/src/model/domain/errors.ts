@@ -43,6 +43,7 @@ const errorCodes = {
   tenantNotFoundByRemoteId: "0033",
   certifiedDiscreteAttributeRevoked: "0034",
   tenantNotAllowedForDelegation: "0035",
+  tenantUpdateVersionMismatch: "0036",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -378,5 +379,17 @@ export function invalidTenantFeature(): ApiError<ErrorCodes> {
     detail: "Tenant feature variant could not be determined",
     code: "invalidTenantFeature",
     title: "Invalid tenant feature",
+  });
+}
+
+export function tenantUpdateVersionMismatch(
+  tenantId: TenantId,
+  expectedVersion: number,
+  providedVersion: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} current version is ${expectedVersion}, but ${providedVersion} was provided`,
+    code: "tenantUpdateVersionMismatch",
+    title: "Tenant update version mismatch",
   });
 }
