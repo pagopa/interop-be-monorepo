@@ -10,7 +10,11 @@ import {
   validateAuthorization,
   setMetadataVersionHeader,
 } from "pagopa-interop-commons";
-import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
+import {
+  emptyErrorMapper,
+  TenantId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 
 import {
   apiTenantFeatureTypeToTenantFeatureType,
@@ -159,6 +163,7 @@ const tenantsRouter = (
         const {
           name,
           features,
+          tenantIds,
           externalIdOrigin,
           externalIdValue,
           offset,
@@ -168,6 +173,7 @@ const tenantsRouter = (
           {
             name,
             features: features.map(apiTenantFeatureTypeToTenantFeatureType),
+            tenantIds: tenantIds.map(unsafeBrandId<TenantId>),
             externalIdOrigin,
             externalIdValue,
             offset,
