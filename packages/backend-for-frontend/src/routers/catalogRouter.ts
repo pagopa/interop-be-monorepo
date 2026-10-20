@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { create as createContentDisposition } from "content-disposition";
 import { constants } from "http2";
 import { bffApi } from "pagopa-interop-api-clients";
 import {
   authRole,
   ExpressContext,
-  sanitizeFilenameToAscii,
   validateAuthorization,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
@@ -203,23 +203,12 @@ const catalogRouter = (
           ctx
         );
 
-        // Encode the filename for use in `filename*` (RFC 5987 / UTF-8 support)
-        const encodedFilename = encodeURIComponent(response.filename);
+        const filename = response.filename.replace(/[\\/]/g, "_");
 
-        const safeFilename = sanitizeFilenameToAscii(response.filename);
-
-        return (
-          res
-            // Set the Content-Disposition header so the browser downloads the file
-            // - `filename` is a fallback for older browsers (ASCII only)
-            // - `filename*` allows UTF-8 encoded filenames (modern browsers)
-            .header(
-              "Content-Disposition",
-              `attachment; filename="${safeFilename}"; filename*=utf-8''${encodedFilename}`
-            )
-            .header("Content-Type", "application/octet-stream")
-            .send(response.file)
-        );
+        return res
+          .header("Content-Disposition", createContentDisposition(filename))
+          .header("Content-Type", "application/octet-stream")
+          .send(response.file);
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
