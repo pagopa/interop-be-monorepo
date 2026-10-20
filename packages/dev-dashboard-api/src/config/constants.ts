@@ -1,6 +1,7 @@
 import {
   LogEntry,
   type DashboardAction,
+  type FrontendAction,
 } from "pagopa-interop-dev-dashboard-contracts";
 
 export const DASHBOARD_UI_BASE_PATH = "/__local-dashboard";
@@ -26,18 +27,41 @@ export const WORKSPACE_BUILD_CONCURRENCY = 2;
 
 export const OPERATION_PHASE_IDS = Object.freeze({ build: "build" });
 
-export const FRONTEND_STARTUP_PHASES: ReadonlyArray<readonly [string, string]> =
-  [
-    ["install", "Frontend dependencies and browser"],
-    ["dashboard", "Backend dashboard API"],
-    ["infra", "Infrastructure"],
-    ["backend", "Frontend backend preset"],
-    ["seed", "Local seed"],
-    ["identity", "Local identity"],
-    ["vite", "Vite"],
-    ["smoke", "Smoke checks"],
-    ["browser", "Browser checks"],
-  ];
+export const FRONTEND_STARTUP_PHASES = Object.freeze({
+  install: "Frontend dependencies and browser",
+  dashboard: "Backend dashboard API",
+  infra: "Infrastructure",
+  backend: "Frontend backend preset",
+  seed: "Local seed",
+  identity: "Local identity",
+  vite: "Vite",
+  smoke: "Smoke checks",
+  browser: "Browser checks",
+});
+
+export const FRONTEND_ACTION_PHASES: Readonly<
+  Record<
+    FrontendAction["type"],
+    readonly (keyof typeof FRONTEND_STARTUP_PHASES)[]
+  >
+> = Object.freeze({
+  start: [
+    "install",
+    "dashboard",
+    "infra",
+    "backend",
+    "seed",
+    "identity",
+    "vite",
+    "smoke",
+    "browser",
+  ],
+  stop: ["vite", "backend"],
+  reset: ["vite", "infra"],
+  "use-dev": ["vite"],
+  "use-local": ["identity", "vite"],
+  identity: ["identity", "vite"],
+});
 
 export const ENVIRONMENT_KEYS = Object.freeze({
   ignoreConfiguredEndpoints: "AWS_IGNORE_CONFIGURED_ENDPOINT_URLS",

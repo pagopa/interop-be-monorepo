@@ -1,7 +1,12 @@
 import { FrontendStatus } from "pagopa-interop-dev-dashboard-contracts";
 import { z } from "zod";
 
-import { FRONTEND_AGENT_LIMITS } from "../../config/constants.js";
+import {
+  FRONTEND_AGENT_LIMITS,
+  type FRONTEND_STARTUP_PHASES,
+} from "../../config/constants.js";
+
+export type FrontendPhaseId = keyof typeof FRONTEND_STARTUP_PHASES;
 
 const FrontendIdentitySelection = z
   .object({ tenantKey: z.string(), userKey: z.string() })

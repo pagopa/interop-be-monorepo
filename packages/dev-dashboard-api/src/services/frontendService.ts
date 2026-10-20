@@ -15,6 +15,7 @@ import type { Supervisor } from "./supervisorService.js";
 
 import {
   DASHBOARD_TIMING,
+  FRONTEND_ACTION_PHASES,
   FRONTEND_AGENT_LIMITS,
   FRONTEND_STARTUP_PHASES,
   LOG_SOURCES,
@@ -25,6 +26,7 @@ import {
   type FrontendAgentCommand,
   type FrontendIdentitySelection,
   type FrontendLocalStartCommand,
+  type FrontendPhaseId,
   type FrontendProgress,
 } from "../model/domain/frontend.js";
 import { errorMessage } from "../utilities/errorUtils.js";
@@ -164,7 +166,7 @@ export function frontendServiceBuilder(
 
   async function run(action: FrontendAction, phases: Phase[]): Promise<void> {
     const phase = async (
-      id: string,
+      id: FrontendPhaseId,
       work: (phase: Phase) => Promise<void>
     ): Promise<void> => {
       const item = phases.find((candidate) => candidate.id === id);
@@ -181,7 +183,10 @@ export function frontendServiceBuilder(
         throw error;
       }
     };
-    const backend = (id: string, input: DashboardAction): Promise<void> =>
+    const backend = (
+      id: FrontendPhaseId,
+      input: DashboardAction
+    ): Promise<void> =>
       phase(id, async (item) => {
         item.operationId = supervisor.action(input).operationId;
         await supervisor.idle();
@@ -262,23 +267,15 @@ export function frontendServiceBuilder(
     if (progress?.state === "running")
       throw new Error("A frontend operation is already running");
     const operationId = randomUUID();
-    const selected =
-      action.type === "start"
-        ? FRONTEND_STARTUP_PHASES.map(([id]) => id)
-        : action.type === "stop"
-          ? ["vite", "backend"]
-          : action.type === "reset"
-            ? ["vite", "infra"]
-            : action.type === "use-dev"
-              ? ["vite"]
-              : ["identity", "vite"];
+    const pendingPhaseIds: readonly string[] =
+      FRONTEND_ACTION_PHASES[action.type];
     const current: FrontendProgress = {
       state: "running",
       operationId,
-      phases: FRONTEND_STARTUP_PHASES.map(([id, label]) => ({
+      phases: Object.entries(FRONTEND_STARTUP_PHASES).map(([id, label]) => ({
         id,
         label,
-        state: selected.includes(id) ? "pending" : "skipped",
+        state: pendingPhaseIds.includes(id) ? "pending" : "skipped",
       })),
     };
     progress = current;
