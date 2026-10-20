@@ -55,7 +55,7 @@ export const handleCatalogMessageV2 = async (
             "EServiceDescriptorArchivingRequestCanceledByDelegate",
             "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation",
             "MaintenanceEServiceDescriptorUnarchived",
-            "EServiceDescriptorUpdatedByRevokedDelegation"
+            "EServiceDescriptorRestoredToDraftByRevokedDelegation"
           ),
         },
         (event) => {

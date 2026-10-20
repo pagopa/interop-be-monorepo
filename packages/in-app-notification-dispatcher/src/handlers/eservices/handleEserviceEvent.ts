@@ -220,7 +220,7 @@ export async function handleEServiceEvent(
           "MaintenanceEServiceDescriptorUnarchived",
           "EServiceArchivingRequestCanceledByRevokedDelegation",
           "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation",
-          "EServiceDescriptorUpdatedByRevokedDelegation"
+          "EServiceDescriptorRestoredToDraftByRevokedDelegation"
         ),
       },
       () => {

@@ -70,7 +70,7 @@ const eventV2TypeMapper = (
       "EServiceDescriptorArchivingRequestCanceledByDelegate",
       "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation",
       "MaintenanceEServiceDescriptorUnarchived",
-      "EServiceDescriptorUpdatedByRevokedDelegation",
+      "EServiceDescriptorRestoredToDraftByRevokedDelegation",
       () => "catalog_item_descriptor_updated"
     )
     .with(
