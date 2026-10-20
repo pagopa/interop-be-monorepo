@@ -52,6 +52,7 @@ const errorCodes = {
   tenantNotFound: "0037",
   missingSelfcareId: "0038",
   duplicatedMembersInSeed: "0039",
+  eserviceInArchivedState: "0040",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -454,5 +455,15 @@ export function duplicatedMembersInSeed(): ApiError<ErrorCodes> {
     detail: `The provided members list contains duplicate users`,
     code: "duplicatedMembersInSeed",
     title: "Duplicated members in seed",
+  });
+}
+
+export function eserviceInArchivedState(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} is in archived state and cannot be used for the requested operation`,
+    code: "eserviceInArchivedState",
+    title: "EService in archived state",
   });
 }

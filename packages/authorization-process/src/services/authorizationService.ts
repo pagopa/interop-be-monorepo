@@ -123,6 +123,7 @@ import {
   assertAdminInClient,
   assertTenantHasSelfcareId,
   assertMembersAreUnique,
+  assertEServiceIsNotArchived,
   assertUsersExistInSelfcare,
 } from "./validators.js";
 
@@ -1635,6 +1636,7 @@ export function authorizationServiceBuilder(
       );
       const eservice = await retrieveEService(eserviceId, readModelService);
       assertOrganizationIsEServiceProducer(authData, eservice);
+      assertEServiceIsNotArchived(eservice);
       if (producerKeychain.data.eservices.includes(eserviceId)) {
         throw eserviceAlreadyLinkedToProducerKeychain(
           eserviceId,
