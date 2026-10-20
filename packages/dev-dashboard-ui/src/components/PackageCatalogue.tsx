@@ -265,8 +265,12 @@ export function PackageCatalogue(props: Props) {
               </TableHead>
               <TableHead scope="col">Name</TableHead>
               <TableHead scope="col">Port</TableHead>
-              <TableHead scope="col">State</TableHead>
-              <TableHead scope="col">Watch</TableHead>
+              <TableHead scope="col" className="w-40 min-w-40">
+                State
+              </TableHead>
+              <TableHead scope="col" className="w-20">
+                Watch
+              </TableHead>
               <TableHead scope="col" className="text-right">
                 Actions
               </TableHead>
@@ -302,36 +306,25 @@ export function PackageCatalogue(props: Props) {
                   </TableCell>
                   <TableCell>{item.port ?? "—"}</TableCell>
                   <TableCell>
-                    <StatusBadge state={item.state} />
+                    <StatusBadge
+                      state={watchStatus ?? item.state}
+                      pending={Boolean(watchStatus)}
+                      id={watchStatus ? `watch-status-${item.name}` : undefined}
+                    />
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2 whitespace-nowrap">
-                      <Checkbox
-                        aria-label={`Watch ${item.name}`}
-                        checked={model.watchValue(item)}
-                        disabled={isPending}
-                        aria-busy={watchPending}
-                        aria-describedby={
-                          watchStatus ? `watch-status-${item.name}` : undefined
-                        }
-                        onCheckedChange={(checked) =>
-                          model.runWatch(item.name, checked === true)
-                        }
-                      />
-                      {watchStatus && (
-                        <span
-                          id={`watch-status-${item.name}`}
-                          role="status"
-                          className="inline-flex items-center gap-1.5 text-xs text-primary"
-                        >
-                          <LoaderCircle
-                            aria-hidden="true"
-                            className="size-3.5 animate-spin motion-reduce:animate-none"
-                          />
-                          {watchStatus}
-                        </span>
-                      )}
-                    </div>
+                    <Checkbox
+                      aria-label={`Watch ${item.name}`}
+                      checked={model.watchValue(item)}
+                      disabled={isPending}
+                      aria-busy={watchPending}
+                      aria-describedby={
+                        watchStatus ? `watch-status-${item.name}` : undefined
+                      }
+                      onCheckedChange={(checked) =>
+                        model.runWatch(item.name, checked === true)
+                      }
+                    />
                   </TableCell>
                   <TableCell>
                     <Toolbar className="justify-end">
