@@ -23,7 +23,6 @@ describe("API POST /m2m/tenants test", () => {
       origin: "IPA",
       value: "123456",
     },
-    name: "A tenant",
     certifiedAttributes: [{ code: "CODE" }],
   };
 
@@ -89,8 +88,7 @@ describe("API POST /m2m/tenants test", () => {
     { body: { ...tenantSeed, externalId: { origin: "IPA" } } },
     { body: { ...tenantSeed, externalId: { origin: 1, value: "123456" } } },
     { body: { ...tenantSeed, certifiedAttributes: [{}] } },
-    { body: { ...tenantSeed, name: 1 } },
-    { body: { ...tenantSeed, name: "" } },
+    { body: { ...tenantSeed, name: "A tenant" } },
     { body: { ...tenantSeed, extraField: 1 } },
   ])("Should return 400 if passed invalid data: %s", async ({ body }) => {
     const token = generateToken(authRole.M2M_ROLE);
