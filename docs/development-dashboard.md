@@ -122,7 +122,7 @@ The Source selector groups Presets, Packages, Infrastructure and Runtime.
 All packages (`group:packages`) includes only backend package logs. Infra
 (`group:infra`) includes infrastructure logs, including retained logs from stopped
 containers. Neither aggregate includes orchestration logs.
-Selecting a preset aggregates its package logs and orchestration diagnostics;
+Selecting a preset aggregates only its package logs;
 frontend and browser-check logs belong to the frontend launcher. The selection persists in
 the URL together with the level filter. Search matches message text or correlation ID metadata,
 case-insensitively and by substring. Package and infrastructure log actions keep all levels.

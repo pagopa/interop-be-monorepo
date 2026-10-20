@@ -51,8 +51,8 @@ paths:
           in: query
           description:
             A log source ID, group:packages for backend package logs, group:infra for infrastructure
-            logs, group:seed for seed packages and orchestration, or preset:<id> for that preset's packages
-            and orchestration. Unknown presets return
+            logs, group:seed for seed packages and orchestration, or preset:<id> for only that preset's
+            package logs. Unknown presets return
             400; empty presets return no logs.
           schema:
             type: string
