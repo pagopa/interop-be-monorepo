@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Backend for Frontend Micro Service
   description: Interop BFF implementation
-  version: "1.0.1"
+  version: "1.1.1"
   contact:
     name: API Support
     url: "http://www.example.com/support"
@@ -16,6 +16,11 @@ servers:
 security:
   - bearerAuth: []
 tags:
+  - name: producersDashboard
+    description: Producer dashboard and e-service monitoring
+    externalDocs:
+      description: Find out more
+      url: "http://swagger.io"
   - name: authorization
     description: Implements authorization
     externalDocs:
@@ -11113,6 +11118,551 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /producers/dashboard:
+    get:
+      tags:
+        - producersDashboard
+      summary: Retrieves the producer dashboard
+      description: Retrieves the aggregated producer dashboard data
+      operationId: getProducerDashboard
+      responses:
+        "200":
+          description: Producer dashboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProducerDashboard"
+          headers:
+            "X-Rate-Limit-Limit":
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            "X-Rate-Limit-Remaining":
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            "X-Rate-Limit-Interval":
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /producers/dashboard/archiving:
+    get:
+      tags:
+        - producersDashboard
+      summary: Retrieves the e-services and versions being archived
+      description: Retrieves the producer e-services and descriptors in archiving
+      operationId: getProducerDashboardArchiving
+      responses:
+        "200":
+          description: Array of e-services and descriptors in archiving by version
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonitoringArchiving"
+          headers:
+            "X-Rate-Limit-Limit":
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            "X-Rate-Limit-Remaining":
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            "X-Rate-Limit-Interval":
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /producers/dashboard/saturation:
+    get:
+      tags:
+        - producersDashboard
+      summary: Retrieves the producer e-services saturation
+      description: Retrieves the daily calls saturation of the producer e-services
+      operationId: getProducerDashboardSaturation
+      parameters:
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+        - in: query
+          name: q
+          description: Query to filter consumers by name
+          schema:
+            type: string
+        - in: query
+          name: sortBy
+          schema:
+            $ref: "#/components/schemas/SaturationSortBy"
+      responses:
+        "200":
+          description: Summary and array of e-service and descriptor saturation by version
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProducerDashboardSaturation"
+          headers:
+            "X-Rate-Limit-Limit":
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            "X-Rate-Limit-Remaining":
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            "X-Rate-Limit-Interval":
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /producers/dashboard/consumers:
+    get:
+      tags:
+        - producersDashboard
+      summary: Retrieves the producer consumers
+      description: Retrieves the consumers of the producer e-services
+      operationId: getProducerDashboardConsumers
+      parameters:
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+        - in: query
+          name: q
+          description: Query to filter consumers by name
+          schema:
+            type: string
+        - in: query
+          name: sortBy
+          schema:
+            $ref: "#/components/schemas/ProducerConsumersSortBy"
+      responses:
+        "200":
+          description: Summary and array of consumers of the producer e-services
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProducerDashboardConsumers"
+          headers:
+            "X-Rate-Limit-Limit":
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            "X-Rate-Limit-Remaining":
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            "X-Rate-Limit-Interval":
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /producers/dashboard/consumers/{consumerId}:
+    get:
+      tags:
+        - producersDashboard
+      summary: Retrieves a consumer's e-services of the producer
+      description: Retrieves the producer e-services used by the given consumer
+      operationId: getProducerDashboardConsumer
+      parameters:
+        - name: consumerId
+          in: path
+          description: The identifier of the consumer
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+        - in: query
+          name: q
+          description: Query to filter e-services by name
+          schema:
+            type: string
+        - in: query
+          name: sortBy
+          schema:
+            $ref: "#/components/schemas/ConsumerEServicesSortBy"
+      responses:
+        "200":
+          description: Summary and array of e-services of the consumer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProducerDashboardConsumer"
+          headers:
+            "X-Rate-Limit-Limit":
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            "X-Rate-Limit-Remaining":
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            "X-Rate-Limit-Interval":
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /producers/eservices/{eserviceId}/descriptors/{descriptorId}/monitoring:
+    get:
+      tags:
+        - producersDashboard
+      summary: Retrieves the monitoring data of a descriptor
+      description: Retrieves the monitoring data of the given e-service descriptor
+      operationId: getProducerEServiceMonitoring
+      parameters:
+        - name: eserviceId
+          in: path
+          description: The identifier of the e-service
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: The identifier of the descriptor
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Monitoring data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProducerEServiceMonitoring"
+          headers:
+            "X-Rate-Limit-Limit":
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            "X-Rate-Limit-Remaining":
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            "X-Rate-Limit-Interval":
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /producers/eservices/{eserviceId}/monitoring/archiving:
+    get:
+      tags:
+        - producersDashboard
+      summary: Retrieves the archiving rows of an e-service
+      description: Retrieves one row per descriptor being archived for the given e-service
+      operationId: getProducerEServiceMonitoringArchiving
+      parameters:
+        - name: eserviceId
+          in: path
+          description: The identifier of the e-service
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Array of monitoring archiving e-services and descriptors by version
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonitoringArchiving"
+          headers:
+            "X-Rate-Limit-Limit":
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            "X-Rate-Limit-Remaining":
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            "X-Rate-Limit-Interval":
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /producers/eservices/{eserviceId}/descriptors/{descriptorId}/monitoring/saturation:
+    get:
+      tags:
+        - producersDashboard
+      summary: Retrieves the consumers saturation of a descriptor
+      description: Retrieves the daily calls saturation per consumer of the given descriptor
+      operationId: getProducerEServiceMonitoringSaturation
+      parameters:
+        - name: eserviceId
+          in: path
+          description: The identifier of the e-service
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: The identifier of the descriptor
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+        - in: query
+          name: q
+          description: Query to filter consumers by name
+          schema:
+            type: string
+        - in: query
+          name: sortBy
+          schema:
+            $ref: "#/components/schemas/SaturationSortBy"
+      responses:
+        "200":
+          description: Summary and array of consumers saturation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProducerEServiceMonitoringSaturation"
+          headers:
+            "X-Rate-Limit-Limit":
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            "X-Rate-Limit-Remaining":
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            "X-Rate-Limit-Interval":
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /producers/eservices/{eserviceId}/descriptors/{descriptorId}/monitoring/archivingAgreements:
+    get:
+      tags:
+        - producersDashboard
+      summary: Retrieves the agreements of a descriptor being archived
+      description: Retrieves the agreements impacted by the archiving of the given descriptor
+      operationId: getProducerEServiceMonitoringArchivingAgreements
+      parameters:
+        - name: eserviceId
+          in: path
+          description: The identifier of the e-service
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: The identifier of the descriptor
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+        - in: query
+          name: q
+          description: Query to filter consumers by name
+          schema:
+            type: string
+        - in: query
+          name: sortBy
+          schema:
+            $ref: "#/components/schemas/DateNameSortBy"
+      responses:
+        "200":
+          description: Summary and array of agreements impacted by the archiving of the descriptor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProducerEServiceMonitoringArchivingAgreements"
+          headers:
+            "X-Rate-Limit-Limit":
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            "X-Rate-Limit-Remaining":
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            "X-Rate-Limit-Interval":
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /producers/eservices/{eserviceId}/descriptors/{descriptorId}/monitoring/consumers/{consumerId}/purposes:
+    get:
+      tags:
+        - producersDashboard
+      summary: Retrieves the purposes of a consumer on a descriptor
+      description: Retrieves the purposes of the given consumer on the given descriptor
+      operationId: getProducerEServiceMonitoringConsumerPurposes
+      parameters:
+        - name: eserviceId
+          in: path
+          description: The identifier of the e-service
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: The identifier of the descriptor
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: consumerId
+          in: path
+          description: The identifier of the consumer
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+        - in: query
+          name: q
+          description: Query to filter purposes by title
+          schema:
+            type: string
+        - in: query
+          name: sortBy
+          schema:
+            $ref: "#/components/schemas/DateNameSortBy"
+        - in: query
+          name: states
+          description: comma separated sequence of purpose version states to filter the response with
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/PurposeVersionState"
+            default: []
+          explode: false
+        - in: query
+          name: includeArchived
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Summary and array of consumer purposes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProducerEServiceMonitoringConsumerPurposes"
+          headers:
+            "X-Rate-Limit-Limit":
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            "X-Rate-Limit-Remaining":
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            "X-Rate-Limit-Interval":
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /producers/delegations:
     post:
       tags:
@@ -15745,6 +16295,581 @@ components:
         - offset
         - limit
         - totalCount
+    SaturationSortBy:
+      type: string
+      default: PERCENTAGE_DESC
+      enum:
+        - PERCENTAGE_DESC
+        - PERCENTAGE_ASC
+        - NAME_ASC
+        - NAME_DESC
+    ProducerConsumersSortBy:
+      type: string
+      default: NAME_ASC
+      enum:
+        - NAME_ASC
+        - NAME_DESC
+        - ESERVICES_COUNT_DESC
+        - ESERVICES_COUNT_ASC
+    ConsumerEServicesSortBy:
+      type: string
+      default: NAME_ASC
+      enum:
+        - NAME_ASC
+        - NAME_DESC
+        - DAILY_CALLS_DESC
+        - DAILY_CALLS_ASC
+    DateNameSortBy:
+      type: string
+      default: DATE_DESC
+      enum:
+        - DATE_DESC
+        - DATE_ASC
+        - NAME_ASC
+        - NAME_DESC
+    MonitoringArchivingRow:
+      type: object
+      additionalProperties: false
+      properties:
+        eservice:
+          $ref: "#/components/schemas/CompactEServiceLight"
+        descriptorId:
+          type: string
+          format: uuid
+          description: absent if the whole e-service is being archived
+        version:
+          type: string
+          description: absent if the whole e-service is being archived
+        consumersCount:
+          type: integer
+          format: int32
+        archivableOn:
+          type: string
+          format: date-time
+      required:
+        - eservice
+        - consumersCount
+        - archivableOn
+    MonitoringArchiving:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/MonitoringArchivingRow"
+      required:
+        - results
+    MonitoringSelectableVersion:
+      type: object
+      additionalProperties: false
+      properties:
+        descriptorId:
+          type: string
+          format: uuid
+        version:
+          type: string
+      required:
+        - descriptorId
+        - version
+    MonitoringAgreement:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        state:
+          $ref: "#/components/schemas/AgreementState"
+      required:
+        - id
+        - state
+    ProducerDashboard:
+      type: object
+      additionalProperties: false
+      properties:
+        eservices:
+          type: object
+          additionalProperties: false
+          properties:
+            total:
+              type: integer
+              format: int32
+            published:
+              type: integer
+              format: int32
+            suspended:
+              type: integer
+              format: int32
+            archiving:
+              type: integer
+              format: int32
+            archivingSuspended:
+              type: integer
+              format: int32
+          required:
+            - total
+            - published
+            - suspended
+            - archiving
+            - archivingSuspended
+        pendingAgreements:
+          type: integer
+          format: int32
+        waitingForApprovalPurposes:
+          type: integer
+          format: int32
+        activeAgreements:
+          type: integer
+          format: int32
+        alignment:
+          type: object
+          additionalProperties: false
+          properties:
+            aligned:
+              type: integer
+              format: int32
+            agreementWithoutPurposes:
+              type: integer
+              format: int32
+            purposesWithoutAgreement:
+              type: integer
+              format: int32
+          required:
+            - aligned
+            - agreementWithoutPurposes
+            - purposesWithoutAgreement
+        averageActivePurposesPerEService:
+          type: number
+          format: double
+      required:
+        - eservices
+        - pendingAgreements
+        - waitingForApprovalPurposes
+        - activeAgreements
+        - alignment
+        - averageActivePurposesPerEService
+    ProducerDashboardSaturationItem:
+      type: object
+      additionalProperties: false
+      properties:
+        eservice:
+          $ref: "#/components/schemas/CompactEServiceLight"
+        descriptorId:
+          type: string
+          format: uuid
+        version:
+          type: string
+        activePurposesCount:
+          type: integer
+          format: int32
+        approvedDailyCalls:
+          type: integer
+          format: int64
+        dailyCallsTotal:
+          type: integer
+          format: int64
+        percentage:
+          type: integer
+          format: int32
+        waitingForApprovalDailyCalls:
+          type: integer
+          format: int64
+      required:
+        - eservice
+        - descriptorId
+        - version
+        - activePurposesCount
+        - approvedDailyCalls
+        - dailyCallsTotal
+        - percentage
+        - waitingForApprovalDailyCalls
+    ProducerDashboardSaturation:
+      type: object
+      additionalProperties: false
+      properties:
+        summary:
+          type: object
+          additionalProperties: false
+          properties:
+            overThreshold:
+              type: integer
+              format: int32
+            nearThreshold:
+              type: integer
+              format: int32
+            total:
+              type: integer
+              format: int32
+          required:
+            - overThreshold
+            - nearThreshold
+            - total
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProducerDashboardSaturationItem"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - summary
+        - results
+        - pagination
+    ProducerDashboardConsumerItem:
+      type: object
+      additionalProperties: false
+      properties:
+        consumer:
+          $ref: "#/components/schemas/CompactOrganization"
+        eservicesCount:
+          type: integer
+          format: int32
+        activePurposesCount:
+          type: integer
+          format: int32
+      required:
+        - consumer
+        - eservicesCount
+        - activePurposesCount
+    ProducerDashboardConsumers:
+      type: object
+      additionalProperties: false
+      properties:
+        totalConsumers:
+          type: integer
+          format: int32
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProducerDashboardConsumerItem"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - totalConsumers
+        - results
+        - pagination
+    ProducerDashboardConsumerEService:
+      type: object
+      additionalProperties: false
+      properties:
+        eservice:
+          $ref: "#/components/schemas/CompactEServiceLight"
+        descriptorId:
+          type: string
+          format: uuid
+        version:
+          type: string
+        agreement:
+          $ref: "#/components/schemas/MonitoringAgreement"
+        activePurposesCount:
+          type: integer
+          format: int32
+        approvedDailyCalls:
+          type: integer
+          format: int64
+      required:
+        - eservice
+        - descriptorId
+        - version
+        - agreement
+        - activePurposesCount
+        - approvedDailyCalls
+    ProducerDashboardConsumer:
+      type: object
+      additionalProperties: false
+      properties:
+        consumer:
+          $ref: "#/components/schemas/CompactOrganization"
+          description: absent if the consumer has no relationship with the producer; in that case results is empty
+        eservicesCount:
+          type: integer
+          format: int32
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProducerDashboardConsumerEService"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - eservicesCount
+        - results
+        - pagination
+    ProducerEServiceMonitoring:
+      type: object
+      additionalProperties: false
+      properties:
+        approvedDailyCalls:
+          type: integer
+          format: int64
+        dailyCallsTotal:
+          type: integer
+          format: int64
+        percentage:
+          type: integer
+          format: int32
+        waitingForApprovalNewPurposes:
+          type: integer
+          format: int32
+        dailyCallsPerConsumer:
+          type: integer
+          format: int64
+        waitingForApprovalQuotaChanges:
+          type: integer
+          format: int32
+        consumersByVersion:
+          type: object
+          additionalProperties: false
+          properties:
+            total:
+              type: integer
+              format: int32
+            versions:
+              type: array
+              items:
+                type: object
+                additionalProperties: false
+                properties:
+                  descriptorId:
+                    type: string
+                    format: uuid
+                  version:
+                    type: string
+                  consumersCount:
+                    type: integer
+                    format: int32
+                required:
+                  - descriptorId
+                  - version
+                  - consumersCount
+            olderVersionsConsumersCount:
+              type: integer
+              format: int32
+              description: present only if the e-service has more than 3 versions
+            medianUpgradeDays:
+              type: integer
+              format: int32
+              description: absent if there are no upgrades
+          required:
+            - total
+            - versions
+        consumersByKind:
+          type: object
+          additionalProperties: false
+          properties:
+            total:
+              type: integer
+              format: int32
+            pa:
+              type: integer
+              format: int32
+            gspScp:
+              type: integer
+              format: int32
+            private:
+              type: integer
+              format: int32
+          required:
+            - total
+            - pa
+            - gspScp
+            - private
+        pendingAgreements:
+          type: integer
+          format: int32
+      required:
+        - approvedDailyCalls
+        - dailyCallsTotal
+        - percentage
+        - waitingForApprovalNewPurposes
+        - dailyCallsPerConsumer
+        - waitingForApprovalQuotaChanges
+        - consumersByVersion
+        - consumersByKind
+        - pendingAgreements
+    ProducerEServiceMonitoringSaturationItem:
+      type: object
+      additionalProperties: false
+      properties:
+        consumer:
+          $ref: "#/components/schemas/CompactOrganization"
+        activePurposesCount:
+          type: integer
+          format: int32
+        approvedDailyCalls:
+          type: integer
+          format: int64
+        dailyCallsPerConsumer:
+          type: integer
+          format: int64
+          description: effective limit of the consumer
+        percentage:
+          type: integer
+          format: int32
+        waitingForApprovalDailyCalls:
+          type: integer
+          format: int64
+      required:
+        - consumer
+        - activePurposesCount
+        - approvedDailyCalls
+        - dailyCallsPerConsumer
+        - percentage
+        - waitingForApprovalDailyCalls
+    ProducerEServiceMonitoringSaturation:
+      type: object
+      additionalProperties: false
+      properties:
+        eservice:
+          $ref: "#/components/schemas/CompactEServiceLight"
+        version:
+          type: string
+        otherVersions:
+          type: array
+          items:
+            $ref: "#/components/schemas/MonitoringSelectableVersion"
+        dailyCallsPerConsumer:
+          type: integer
+          format: int64
+        dailyCallsTotal:
+          type: integer
+          format: int64
+        customizedQuotaConsumers:
+          type: integer
+          format: int32
+        activeConsumers:
+          type: integer
+          format: int32
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProducerEServiceMonitoringSaturationItem"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - eservice
+        - version
+        - otherVersions
+        - dailyCallsPerConsumer
+        - dailyCallsTotal
+        - customizedQuotaConsumers
+        - activeConsumers
+        - results
+        - pagination
+    ProducerEServiceMonitoringArchivingAgreementsItem:
+      type: object
+      additionalProperties: false
+      properties:
+        agreement:
+          $ref: "#/components/schemas/MonitoringAgreement"
+        consumer:
+          $ref: "#/components/schemas/CompactOrganization"
+        submittedAt:
+          type: string
+          format: date-time
+          description: stamps.submission of the agreement
+      required:
+        - agreement
+        - consumer
+        - submittedAt
+    ProducerEServiceMonitoringArchivingAgreements:
+      type: object
+      additionalProperties: false
+      properties:
+        eservice:
+          $ref: "#/components/schemas/CompactEServiceLight"
+        version:
+          type: string
+        otherVersions:
+          type: array
+          description: only versions being archived
+          items:
+            $ref: "#/components/schemas/MonitoringSelectableVersion"
+        archivableOn:
+          type: string
+          format: date-time
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProducerEServiceMonitoringArchivingAgreementsItem"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - eservice
+        - version
+        - otherVersions
+        - archivableOn
+        - results
+        - pagination
+    ProducerEServiceMonitoringConsumerPurposesItem:
+      type: object
+      additionalProperties: false
+      properties:
+        purposeId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        dailyCalls:
+          type: integer
+          format: int64
+        state:
+          $ref: "#/components/schemas/PurposeVersionState"
+        suspendedByConsumer:
+          type: boolean
+        suspendedByProducer:
+          type: boolean
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - purposeId
+        - title
+        - dailyCalls
+        - state
+        - updatedAt
+    ProducerEServiceMonitoringConsumerPurposes:
+      type: object
+      additionalProperties: false
+      properties:
+        eservice:
+          $ref: "#/components/schemas/CompactEServiceLight"
+        version:
+          type: string
+        otherVersions:
+          type: array
+          items:
+            $ref: "#/components/schemas/MonitoringSelectableVersion"
+        consumer:
+          $ref: "#/components/schemas/CompactOrganization"
+          description: absent if the consumer has no relationship with the producer; in that case results is empty
+        dailyCallsPerConsumer:
+          type: integer
+          format: int64
+          description: effective limit of the consumer
+        customizedByAttribute:
+          $ref: "#/components/schemas/CompactAttribute"
+          description: present only if the threshold is customized
+        approvedDailyCalls:
+          type: integer
+          format: int64
+        percentage:
+          type: integer
+          format: int32
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProducerEServiceMonitoringConsumerPurposesItem"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - eservice
+        - version
+        - otherVersions
+        - dailyCallsPerConsumer
+        - approvedDailyCalls
+        - percentage
+        - results
+        - pagination
     PresignedUrl:
       type: object
       additionalProperties: false
