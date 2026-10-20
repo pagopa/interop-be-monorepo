@@ -89,11 +89,11 @@ delegates only frontend commands to the agent.
 Each package has start, stop, logs and watch controls. Watch is on
 by default and off for packages in the Frontend backend preset.
 Changing watch immediately displays the requested checkbox value, with controls
-disabled until that package's change finishes. The row shows `Queued` while
-waiting, `Restarting` for a running package or `Updating watch` for a stopped
-package. Bulk rows unlock independently; completed or failed changes show the
-backend's saved preference. The operation's optional `watch` target restores this
-feedback after a page reload.
+disabled until that package's change finishes. The State chip shows `Queued`
+while waiting, `Restarting` for a running package or `Updating watch` for a
+stopped package. The Watch column keeps only its checkbox. Bulk rows unlock
+independently; completed or failed changes show the backend's saved preference.
+The operation's optional `watch` target restores this feedback after a page reload.
 Changing watch for a running package restarts that package. Crashes are isolated
 and remain visible until started again; there is no automatic crash restart.
 

@@ -70,12 +70,20 @@ describe("package catalogue", () => {
       };
       const { rerender } = render(<PackageCatalogue {...props} />);
       for (const item of props.packages) {
+        const row = within(
+          screen.getByRole("row", { name: new RegExp(item.name) })
+        );
+        const cells = row.getAllByRole("cell");
+        const status = item.name === restarting.name ? "Restarting" : "Queued";
+        expect(within(cells[3]).getByRole("status")).toHaveTextContent(status);
+        expect(cells[4].textContent).toBe("");
         const checkbox = screen.getByRole("checkbox", {
           name: `Watch ${item.name}`,
         });
         expect(checkbox).toHaveAttribute("aria-checked", String(watch));
         expect(checkbox).toBeDisabled();
         expect(checkbox).toHaveAttribute("aria-busy", "true");
+        expect(checkbox).toHaveAccessibleDescription(status);
       }
       expect(
         within(
@@ -103,6 +111,10 @@ describe("package catalogue", () => {
       );
       expect(screen.queryByRole("status")).not.toBeInTheDocument();
       for (const item of props.packages) {
+        const row = within(
+          screen.getByRole("row", { name: new RegExp(item.name) })
+        );
+        expect(row.getAllByRole("cell")[3]).toHaveTextContent("failed");
         const checkbox = screen.getByRole("checkbox", {
           name: `Watch ${item.name}`,
         });
@@ -128,7 +140,13 @@ describe("package catalogue", () => {
         watchChanges={{ [item.name]: { watch: true, state: "running" } }}
       />
     );
-    expect(screen.getByRole("status")).toHaveTextContent("Updating watch");
+    const cells = within(
+      screen.getByRole("row", { name: new RegExp(item.name) })
+    ).getAllByRole("cell");
+    expect(within(cells[3]).getByRole("status")).toHaveTextContent(
+      "Updating watch"
+    );
+    expect(cells[4].textContent).toBe("");
     expect(
       screen.getByRole("checkbox", { name: `Watch ${item.name}` })
     ).toBeChecked();
