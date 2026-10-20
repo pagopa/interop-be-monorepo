@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@pagopa/eslint-config": "catalog:",
+    "eslint-plugin-sonarjs": "catalog:",
     "prettier": "catalog:"
   },
   "peerDependencies": {
