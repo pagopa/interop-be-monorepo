@@ -6,6 +6,7 @@ import {
   FeatureFlagAsyncExchangeConfig,
   FeatureFlagAttributeCertifiedDiscreteConfig,
   FeatureFlagTenantKindInRiskAnalysisConfig,
+  FeatureFlagProducerDashboardConfig,
   FileManagerConfig,
   ReadModelSQLDbConfig,
   S3Config,
@@ -53,6 +54,7 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
   )
   .and(EServiceTemplateS3Config)
   .and(FeatureFlagAsyncExchangeConfig)
+  .and(FeatureFlagProducerDashboardConfig)
   .and(ApplicationAuditProducerConfig);
 
 type CatalogProcessConfig = z.infer<typeof CatalogProcessConfig>;
