@@ -599,7 +599,7 @@ describe("aggregate log filters", () => {
     expect(onFiltersChange).toHaveBeenLastCalledWith("", "");
   });
 
-  it("groups preset, package, infrastructure and runtime sources without duplicating the selected preset", async () => {
+  it("separates shared and local presets from package, infrastructure and runtime sources without duplicating the selected preset", async () => {
     const presets = statusFixture().presets;
     vi.stubGlobal(
       "fetch",
@@ -624,13 +624,24 @@ describe("aggregate log filters", () => {
       />
     );
     const source = screen.getByRole("combobox", { name: "Source" });
-    const presetGroup = within(source).getByRole("group", { name: "Presets" });
+    const sharedPresets = within(source).getByRole("group", {
+      name: "Shared presets",
+    });
+    const localPresets = within(source).getByRole("group", {
+      name: "Local presets",
+    });
     expect(
-      within(presetGroup).getByRole("option", { name: "Backend core" })
+      within(sharedPresets).getByRole("option", { name: "Backend core" })
     ).toHaveValue("preset:backend");
     expect(
-      within(presetGroup).getByRole("option", { name: "My core" })
+      within(localPresets).getByRole("option", { name: "My core" })
     ).toHaveValue("preset:personal-core");
+    expect(
+      within(sharedPresets).queryByRole("option", { name: "My core" })
+    ).not.toBeInTheDocument();
+    expect(
+      within(localPresets).queryByRole("option", { name: "Backend core" })
+    ).not.toBeInTheDocument();
     expect(
       within(source).queryByRole("option", { name: "preset:personal-core" })
     ).not.toBeInTheDocument();
@@ -676,10 +687,31 @@ describe("aggregate log filters", () => {
     const source = screen.getByRole("combobox", { name: "Source" });
     expect(within(source).getAllByRole("group")).toHaveLength(1);
     expect(
-      within(source).getByRole("group", { name: "Presets" })
+      within(source).getByRole("group", { name: "Shared presets" })
     ).toBeInTheDocument();
     expect(
+      within(source).queryByRole("group", { name: "Local presets" })
+    ).not.toBeInTheDocument();
+    expect(
       within(source).queryByRole("option", { name: "My core" })
+    ).not.toBeInTheDocument();
+    rerender(
+      <LogsPanel
+        presets={statusFixture().presets.filter(
+          (preset) => preset.source === "personal"
+        )}
+        sources={[]}
+        selectedSource="preset:personal-core"
+        selectedLevel=""
+        onFiltersChange={vi.fn()}
+      />
+    );
+    expect(within(source).getAllByRole("group")).toHaveLength(1);
+    expect(
+      within(source).getByRole("group", { name: "Local presets" })
+    ).toBeInTheDocument();
+    expect(
+      within(source).queryByRole("group", { name: "Shared presets" })
     ).not.toBeInTheDocument();
     rerender(
       <LogsPanel
