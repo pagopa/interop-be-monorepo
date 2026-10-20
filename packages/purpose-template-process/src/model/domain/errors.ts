@@ -10,6 +10,7 @@ import {
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
+  TenantId,
   TargetTenantKind,
 } from "pagopa-interop-models";
 
@@ -84,6 +85,14 @@ export function purposeTemplateNotFound(
     detail: `No Purpose Template found for ID ${purposeTemplateId}`,
     code: "purposeTemplateNotFound",
     title: "Purpose Template Not Found",
+  });
+}
+
+export function tenantNotAllowed(tenantId: TenantId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} is not allowed to perform the operation on the purpose template`,
+    code: "tenantNotAllowed",
+    title: "Tenant not allowed",
   });
 }
 

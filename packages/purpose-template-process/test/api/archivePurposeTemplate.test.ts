@@ -17,6 +17,7 @@ import {
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
   purposeTemplateStateConflict,
+  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
 
@@ -77,6 +78,10 @@ describe("API POST /purposeTemplates/{id}/archive", () => {
     {
       error: purposeTemplateNotFound(generateId()),
       expectedStatus: 404,
+    },
+    {
+      error: tenantNotAllowed(generateId()),
+      expectedStatus: 403,
     },
     {
       error: purposeTemplateStateConflict(
