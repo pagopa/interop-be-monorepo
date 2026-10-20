@@ -402,6 +402,7 @@ describe("dashboard HTTP boundary", () => {
     supervisor.logs.append("a", "ERROR member failure");
     supervisor.logs.append("b", "INFO member ready");
     supervisor.logs.append("orchestration", "ERROR startup failed");
+    supervisor.logs.append("infra:postgres", "ERROR infrastructure failed");
     for (let index = 0; index < 600; index++)
       supervisor.logs.append("outside", `ERROR unrelated ${index}`);
     const read = async (query: Record<string, string | number>) => {
@@ -415,13 +416,12 @@ describe("dashboard HTTP boundary", () => {
     expect(first.entries.map((entry) => entry.message)).toEqual([
       "ERROR member failure",
       "INFO member ready",
-      "ERROR startup failed",
     ]);
-    expect(Object.keys(first.cursors).sort()).toEqual([
-      "a",
-      "b",
-      "orchestration",
-    ]);
+    expect(Object.keys(first.cursors).sort()).toEqual(["a", "b"]);
+    expect(first.resetSources).toEqual([]);
+    expect(
+      (await read({ limit: 1 })).entries.map((entry) => entry.message)
+    ).toEqual(["INFO member ready"]);
     expect(
       (
         await read({ level: "error", service: "a", search: "member" })
@@ -429,12 +429,19 @@ describe("dashboard HTTP boundary", () => {
     ).toEqual(["a"]);
     supervisor.logs.append("b", "INFO new b");
     supervisor.logs.append("outside", "ERROR unrelated new");
+    supervisor.logs.append("orchestration", "ERROR new startup failure");
     supervisor.logs.append("a", "ERROR new a");
     const next = await read({
-      cursors: JSON.stringify(first.cursors),
+      cursors: JSON.stringify({
+        ...first.cursors,
+        orchestration: "obsolete:1",
+        "infra:postgres": "obsolete:1",
+      }),
       limit: 1,
     });
     expect(next.entries.map((entry) => entry.message)).toEqual(["INFO new b"]);
+    expect(Object.keys(next.cursors).sort()).toEqual(["a", "b"]);
+    expect(next.resetSources).toEqual([]);
     const last = await read({
       cursors: JSON.stringify(next.cursors),
       limit: 1,
@@ -442,6 +449,8 @@ describe("dashboard HTTP boundary", () => {
     expect(last.entries.map((entry) => entry.message)).toEqual(["ERROR new a"]);
     supervisor.logs.reset("a");
     supervisor.logs.append("a", "ERROR after restart");
+    supervisor.logs.reset("orchestration");
+    supervisor.logs.append("orchestration", "ERROR unrelated restart");
     const reset = await read({ cursors: JSON.stringify(last.cursors) });
     expect(reset.resetSources).toEqual(["a"]);
     expect(reset.entries.map((entry) => entry.message)).toEqual([
@@ -516,7 +525,7 @@ describe("dashboard HTTP boundary", () => {
       "ERROR restarted seed member",
     ]);
   });
-  it("keeps preset log groups restricted to backend members and orchestration", async () => {
+  it("keeps shared and personal preset log groups restricted to package members", async () => {
     const { app, supervisor } = setup(
       [],
       [
@@ -539,6 +548,7 @@ describe("dashboard HTTP boundary", () => {
       "frontend",
       "checks",
       "orchestration",
+      "infra:postgres",
       "outside",
     ])
       supervisor.logs.append(source, `ERROR ${source}`);
@@ -550,13 +560,30 @@ describe("dashboard HTTP boundary", () => {
             .query({ source: `preset:${id}` })
         ).body
       );
-    expect((await read("be")).entries.map((entry) => entry.source)).toEqual([
+    for (const id of ["be", "full"]) {
+      const result = await read(id);
+      expect(result.entries.map((entry) => entry.source)).toEqual(["a"]);
+      expect(Object.keys(result.cursors)).toEqual(["a"]);
+      expect(result.resetSources).toEqual([]);
+    }
+    const orchestration = await request(app)
+      .get("/__local-dashboard/api/logs")
+      .query({ source: "orchestration" });
+    expect(
+      schemas.LogsResponse.parse(orchestration.body).entries.map(
+        (entry) => entry.source
+      )
+    ).toEqual(["orchestration"]);
+    const all = await request(app).get("/__local-dashboard/api/logs");
+    expect(
+      schemas.LogsResponse.parse(all.body).entries.map((entry) => entry.source)
+    ).toEqual([
       "a",
+      "frontend",
+      "checks",
       "orchestration",
-    ]);
-    expect((await read("full")).entries.map((entry) => entry.source)).toEqual([
-      "a",
-      "orchestration",
+      "infra:postgres",
+      "outside",
     ]);
   });
   it("does not fall back to all logs for unknown or empty presets", async () => {

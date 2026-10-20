@@ -78,10 +78,5 @@ function resolveSources(
 function presetSources(id: string, supervisor: Supervisor): string[] {
   const preset = supervisor.status().presets.find((item) => item.id === id);
   if (!preset) throw unknownLogPreset(id);
-  if (!preset.packages.length) return [];
-
-  return [
-    ...preset.packages.map((member) => member.name),
-    LOG_SOURCES.orchestration,
-  ];
+  return preset.packages.map((member) => member.name);
 }
