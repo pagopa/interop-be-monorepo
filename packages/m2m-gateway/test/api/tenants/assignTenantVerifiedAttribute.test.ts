@@ -30,6 +30,7 @@ describe("POST /tenants/:tenantId/verifiedAttributes router test", () => {
   const mockSeed: m2mGatewayApi.TenantVerifiedAttributeSeed = {
     id: generateId(),
     agreementId: generateId(),
+    delegationId: generateId(),
     expirationDate: new Date().toISOString(),
   };
 
@@ -56,6 +57,9 @@ describe("POST /tenants/:tenantId/verifiedAttributes router test", () => {
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual(mockResponse);
+      expect(
+        mockTenantService.assignTenantVerifiedAttribute
+      ).toHaveBeenCalledWith(expect.any(String), mockSeed, expect.anything());
     }
   );
 
@@ -73,6 +77,7 @@ describe("POST /tenants/:tenantId/verifiedAttributes router test", () => {
     { ...mockSeed, id: "invalidId" },
     { ...mockSeed, agreementId: undefined },
     { ...mockSeed, agreementId: "invalidId" },
+    { ...mockSeed, delegationId: "invalidId" },
     { ...mockSeed, expirationDate: "invalidDate" },
   ] as m2mGatewayApi.TenantVerifiedAttributeSeed[])(
     "Should return 400 if passed an invalid seed",

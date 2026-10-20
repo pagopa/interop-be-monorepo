@@ -14,6 +14,7 @@ import {
   AgreementId,
   AttributeId,
   CorrelationId,
+  DelegationId,
   TenantId,
 } from "pagopa-interop-models";
 
@@ -465,13 +466,14 @@ export function tenantServiceBuilder(
       tenantId: TenantId,
       attributeId: AttributeId,
       agreementId: AgreementId,
+      delegationId: DelegationId | undefined,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
       logger.info(
         `Revoking verified attribute ${attributeId} for tenant ${tenantId}`
       );
       await tenantProcessClient.tenantAttribute.revokeVerifiedAttribute(
-        { agreementId },
+        { agreementId, delegationId },
         {
           params: { tenantId, attributeId },
           headers,
