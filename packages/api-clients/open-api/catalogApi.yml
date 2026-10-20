@@ -4200,7 +4200,6 @@ components:
         - version
         - docs
         - state
-        - creationDate
         - audience
         - voucherLifespan
         - dailyCallsPerConsumer
