@@ -37,9 +37,7 @@ export type NotificationReadModelService = {
     tenantIds: TenantId[],
     notificationType: NotificationType,
     channel: Channel
-  ) => Promise<
-    Array<{ userId: UserId; tenantId: TenantId; userRoles: UserRole[] }>
-  >;
+  ) => Promise<{ userId: UserId; tenantId: TenantId; userRoles: UserRole[] }[]>;
 };
 
 export type EmailNotificationReadModelService = NotificationReadModelService & {

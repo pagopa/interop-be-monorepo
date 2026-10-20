@@ -10,9 +10,9 @@ function getIdentificationKey<T extends { id: string } | { kid: string }>(
 }
 
 function zipDataById<T extends { id: string } | { kid: string }>(
-  dataA: Array<WithMetadata<T>>,
-  dataB: Array<WithMetadata<T>>
-): Array<[WithMetadata<T> | undefined, WithMetadata<T> | undefined]> {
+  dataA: WithMetadata<T>[],
+  dataB: WithMetadata<T>[]
+): [WithMetadata<T> | undefined, WithMetadata<T> | undefined][] {
   const allIds = new Set(
     [...dataA, ...dataB].map((d) => getIdentificationKey(d.data))
   );
@@ -29,8 +29,8 @@ export function compare<T extends { id: string } | { kid: string }>({
   schema,
   loggerInstance,
 }: {
-  kpiItems: Array<WithMetadata<T>>;
-  postgresItems: Array<WithMetadata<T>>;
+  kpiItems: WithMetadata<T>[];
+  postgresItems: WithMetadata<T>[];
   schema: string;
   loggerInstance: Logger;
 }): number {

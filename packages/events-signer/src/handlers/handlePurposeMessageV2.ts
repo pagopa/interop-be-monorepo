@@ -21,7 +21,7 @@ import { match, P } from "ts-pattern";
 import { PurposeEventData } from "../models/eventTypes.js";
 import { processAndArchiveFiles } from "../utils/fileProcessor.js";
 export const handlePurposeMessageV2 = async (
-  eventsWithTimestamp: Array<{ purposeV2: PurposeEventV2; timestamp: Date }>,
+  eventsWithTimestamp: { purposeV2: PurposeEventV2; timestamp: Date }[],
   fileManager: FileManager,
   signatureService: SignatureServiceBuilder,
   safeStorage: SafeStorageService

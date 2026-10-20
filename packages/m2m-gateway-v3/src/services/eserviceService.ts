@@ -97,7 +97,7 @@ export function eserviceServiceBuilder(
   function getIndexedKindAttributeGroups(
     descriptor: catalogApi.EServiceDescriptor,
     attributeKind: AttributeKind
-  ): Array<{ group: catalogApi.Attribute[]; index: number }> {
+  ): { group: catalogApi.Attribute[]; index: number }[] {
     const catalogAttributeKind = mapAttributeKindToCatalogKind(attributeKind);
 
     return descriptor.attributes[catalogAttributeKind]
@@ -166,17 +166,17 @@ export function eserviceServiceBuilder(
     const descriptor = retrieveEServiceDescriptorById(eservice, descriptorId);
     const catalogAttributeKind = mapAttributeKindToCatalogKind(attributeKind);
     const kindAttributeGroups = descriptor.attributes[catalogAttributeKind];
-    const allFlatKindAttributes: Array<{
+    const allFlatKindAttributes: {
       attributeId: string;
       groupIndex: number;
-    }> = kindAttributeGroups.flatMap((group, groupIndex) =>
+    }[] = kindAttributeGroups.flatMap((group, groupIndex) =>
       group.map((attribute) => ({
         attributeId: attribute.id,
         groupIndex,
       }))
     );
 
-    const attributeIdsToResolve: Array<attributeRegistryApi.Attribute["id"]> =
+    const attributeIdsToResolve: attributeRegistryApi.Attribute["id"][] =
       allFlatKindAttributes.map((item) => item.attributeId);
 
     const attributeMap = await getResolvedAttributesMap(

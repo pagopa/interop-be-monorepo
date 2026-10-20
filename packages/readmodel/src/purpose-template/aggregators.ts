@@ -54,7 +54,7 @@ export const aggregatePurposeTemplateArray = ({
   riskAnalysisTemplateAnswersAnnotationsDocumentsSQL: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL[];
   riskAnalysisTemplateDocumentSQL?: PurposeTemplateRiskAnalysisFormDocumentSQL;
   riskAnalysisTemplateSignedDocumentSQL?: PurposeTemplateRiskAnalysisFormSignedDocumentSQL;
-}): Array<WithMetadata<PurposeTemplate>> => {
+}): WithMetadata<PurposeTemplate>[] => {
   const riskAnalysisFormTemplateByPurposeTemplateId =
     createPurposeTemplateSQLPropertyMap(riskAnalysisFormTemplatesSQL);
   const riskAnalysisTemplateAnswersByPurposeTemplateId =
@@ -305,7 +305,7 @@ export const aggregatePurposeTemplateRiskAnalysisForm = ({
 };
 
 export const toPurposeTemplateAggregator = (
-  queryRes: Array<{
+  queryRes: {
     purposeTemplate: PurposeTemplateSQL;
     purposeRiskAnalysisFormTemplate: PurposeTemplateRiskAnalysisFormSQL | null;
     purposeRiskAnalysisTemplateAnswer: PurposeTemplateRiskAnalysisAnswerSQL | null;
@@ -313,7 +313,7 @@ export const toPurposeTemplateAggregator = (
     purposeRiskAnalysisTemplateAnswerAnnotationDocument: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL | null;
     purposeRiskAnalysisTemplateDocument: PurposeTemplateRiskAnalysisFormDocumentSQL | null;
     purposeRiskAnalysisTemplateSignedDocument: PurposeTemplateRiskAnalysisFormSignedDocumentSQL | null;
-  }>
+  }[]
 ): PurposeTemplateItemsSQL => {
   const {
     purposeTemplatesSQL,
@@ -340,7 +340,7 @@ export const toPurposeTemplateAggregator = (
 };
 
 export const toPurposeTemplateAggregatorArray = (
-  queryRes: Array<{
+  queryRes: {
     purposeTemplate: PurposeTemplateSQL;
     purposeRiskAnalysisFormTemplate: PurposeTemplateRiskAnalysisFormSQL | null;
     purposeRiskAnalysisTemplateAnswer: PurposeTemplateRiskAnalysisAnswerSQL | null;
@@ -348,7 +348,7 @@ export const toPurposeTemplateAggregatorArray = (
     purposeRiskAnalysisTemplateAnswerAnnotationDocument: PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL | null;
     purposeRiskAnalysisTemplateDocument: PurposeTemplateRiskAnalysisFormDocumentSQL | null;
     purposeRiskAnalysisTemplateSignedDocument: PurposeTemplateRiskAnalysisFormSignedDocumentSQL | null;
-  }>
+  }[]
 ): {
   purposeTemplatesSQL: PurposeTemplateSQL[];
   riskAnalysisFormTemplatesSQL: PurposeTemplateRiskAnalysisFormSQL[];
@@ -569,7 +569,7 @@ const aggregateRiskAnalysisTemplateMultiAnswer = ({
 
 export const aggregatePurposeTemplateEServiceDescriptorArray = (
   purposeTemplateEServiceDescriptor: PurposeTemplateEServiceDescriptorSQL[]
-): Array<WithMetadata<EServiceDescriptorPurposeTemplate>> =>
+): WithMetadata<EServiceDescriptorPurposeTemplate>[] =>
   purposeTemplateEServiceDescriptor.map(
     aggregatePurposeTemplateEServiceDescriptor
   );
@@ -599,7 +599,7 @@ export const aggregatePurposeTemplateEServiceDescriptor = ({
 
 export const aggregateEServiceTemplateVersionPurposeTemplateArray = (
   rows: EServiceTemplateVersionPurposeTemplateSQL[]
-): Array<WithMetadata<EServiceTemplateVersionPurposeTemplate>> =>
+): WithMetadata<EServiceTemplateVersionPurposeTemplate>[] =>
   rows.map(aggregateEServiceTemplateVersionPurposeTemplate);
 
 export const aggregateEServiceTemplateVersionPurposeTemplate = ({

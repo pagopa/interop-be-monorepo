@@ -371,10 +371,10 @@ describe("tenantServiceBuilder.getCertifiedAttributes", () => {
 });
 
 describe("toBffApiRequesterCertifiedAttributes", () => {
-  const testCases: Array<{
+  const testCases: {
     inputKind: tenantApi.CertifiedAttributeKind;
     expectedKind: bffApi.RequesterCertifiedAttribute["kind"];
-  }> = [
+  }[] = [
     {
       inputKind: "CERTIFIED",
       expectedKind: tenantAttributeKind.certified,
