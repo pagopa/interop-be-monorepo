@@ -203,6 +203,10 @@ export function operationServiceBuilder(
       action.type === DASHBOARD_ACTION_TYPES.presetStop
         ? { presetId: action.id }
         : {}),
+      ...(action.type === DASHBOARD_ACTION_TYPES.packageWatch ||
+      action.type === DASHBOARD_ACTION_TYPES.packagesWatch
+        ? { watch: action.watch }
+        : {}),
       state: "pending",
       startedAt: new Date().toISOString(),
       phases: steps.map((step) => ({

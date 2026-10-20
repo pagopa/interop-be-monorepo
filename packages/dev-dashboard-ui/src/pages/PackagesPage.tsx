@@ -16,6 +16,7 @@ export function PackagesPage() {
       filter={filter}
       onFilterChange={changeFilter}
       busy={dashboard.busy}
+      watchChanges={dashboard.watchChanges}
       actionError={dashboard.actionError}
       onDismissError={dashboard.dismissError}
       onAction={dashboard.runAction}

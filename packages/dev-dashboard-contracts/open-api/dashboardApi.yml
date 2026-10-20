@@ -477,6 +477,9 @@ components:
         presetId:
           type: string
           description: Preset targeted by a preset start or stop operation.
+        watch:
+          type: boolean
+          description: Requested target for a package.watch or packages.watch operation, available while pending.
         state:
           type: string
           enum:

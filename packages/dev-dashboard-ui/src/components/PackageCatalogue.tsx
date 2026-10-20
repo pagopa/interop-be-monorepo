@@ -14,6 +14,7 @@ import {
   Terminal,
 } from "lucide-react";
 
+import type { WatchChange } from "../hooks/useDashboardActions";
 import type { PackageFilter } from "../router/packageFilter";
 
 import { usePackageSelection } from "../hooks/usePackageSelection";
@@ -49,6 +50,7 @@ type Props = {
   filter: PackageFilter;
   onFilterChange: (filter: PackageFilter) => void;
   busy: Record<string, string>;
+  watchChanges?: Record<string, WatchChange>;
   onAction: (
     action: DashboardAction,
     key: string | string[]
@@ -276,6 +278,7 @@ export function PackageCatalogue(props: Props) {
               const isPending = model.pending(item);
               const processPending = model.processPending(item);
               const watchPending = model.watchPending(item);
+              const watchStatus = model.watchStatus(item);
               const active = model.active(item);
               return (
                 <TableRow
@@ -302,15 +305,33 @@ export function PackageCatalogue(props: Props) {
                     <StatusBadge state={item.state} />
                   </TableCell>
                   <TableCell>
-                    <Checkbox
-                      aria-label={`Watch ${item.name}`}
-                      checked={item.watch}
-                      disabled={isPending}
-                      aria-busy={watchPending}
-                      onCheckedChange={(checked) =>
-                        model.runWatch(item.name, checked === true)
-                      }
-                    />
+                    <div className="flex items-center gap-2 whitespace-nowrap">
+                      <Checkbox
+                        aria-label={`Watch ${item.name}`}
+                        checked={model.watchValue(item)}
+                        disabled={isPending}
+                        aria-busy={watchPending}
+                        aria-describedby={
+                          watchStatus ? `watch-status-${item.name}` : undefined
+                        }
+                        onCheckedChange={(checked) =>
+                          model.runWatch(item.name, checked === true)
+                        }
+                      />
+                      {watchStatus && (
+                        <span
+                          id={`watch-status-${item.name}`}
+                          role="status"
+                          className="inline-flex items-center gap-1.5 text-xs text-primary"
+                        >
+                          <LoaderCircle
+                            aria-hidden="true"
+                            className="size-3.5 animate-spin motion-reduce:animate-none"
+                          />
+                          {watchStatus}
+                        </span>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <Toolbar className="justify-end">

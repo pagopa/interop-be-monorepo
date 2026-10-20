@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 
+import type { WatchChange } from "../../src/hooks/useDashboardActions";
 import type { PackageFilter } from "../../src/router/packageFilter";
 
 import { PackageCatalogue } from "../../src/components/PackageCatalogue";
@@ -39,6 +40,100 @@ function renderCatalogue(
 }
 
 describe("package catalogue", () => {
+  it.each([
+    { watch: true, state: "running" },
+    { watch: false, state: "running" },
+    { watch: true, state: "starting" },
+    { watch: false, state: "starting" },
+  ] satisfies Array<{ watch: boolean; state: "running" | "starting" }>)(
+    "shows requested watch=$watch with row-level progress for a $state package while the server still reports the old preference",
+    ({ watch, state }) => {
+      const fixture = statusFixture();
+      const restarting = { ...fixture.packages[1], state, watch: !watch };
+      const queued = { ...fixture.packages[0], watch: !watch };
+      const props = {
+        packages: [restarting, queued],
+        seedPackages: fixture.seedPackages,
+        presets: fixture.presets,
+        filter: { kind: "all" } satisfies PackageFilter,
+        onFilterChange: vi.fn(),
+        onAction: vi.fn(),
+        onLogs: vi.fn(),
+        busy: {
+          [`package-watch:${restarting.name}`]: "watch-operation",
+          [`package-watch:${queued.name}`]: "watch-operation",
+        },
+        watchChanges: {
+          [restarting.name]: { watch, state: "running" },
+          [queued.name]: { watch, state: "pending" },
+        } satisfies Record<string, WatchChange>,
+      };
+      const { rerender } = render(<PackageCatalogue {...props} />);
+      for (const item of props.packages) {
+        const checkbox = screen.getByRole("checkbox", {
+          name: `Watch ${item.name}`,
+        });
+        expect(checkbox).toHaveAttribute("aria-checked", String(watch));
+        expect(checkbox).toBeDisabled();
+        expect(checkbox).toHaveAttribute("aria-busy", "true");
+      }
+      expect(
+        within(
+          screen.getByRole("row", { name: new RegExp(restarting.name) })
+        ).getByRole("status")
+      ).toHaveTextContent("Restarting");
+      expect(
+        screen.getByRole("button", { name: `Stop ${restarting.name}` })
+      ).toBeDisabled();
+      expect(
+        within(
+          screen.getByRole("row", { name: new RegExp(queued.name) })
+        ).getByRole("status")
+      ).toHaveTextContent("Queued");
+      rerender(
+        <PackageCatalogue
+          {...props}
+          packages={props.packages.map((item) => ({
+            ...item,
+            state: "failed",
+          }))}
+          busy={{}}
+          watchChanges={{}}
+        />
+      );
+      expect(screen.queryByRole("status")).not.toBeInTheDocument();
+      for (const item of props.packages) {
+        const checkbox = screen.getByRole("checkbox", {
+          name: `Watch ${item.name}`,
+        });
+        expect(checkbox).toHaveAttribute("aria-checked", String(!watch));
+        expect(checkbox).toBeEnabled();
+      }
+    }
+  );
+
+  it("describes a watch update on a stopped package without claiming a restart", () => {
+    const fixture = statusFixture();
+    const item = fixture.packages[0];
+    render(
+      <PackageCatalogue
+        packages={[item]}
+        seedPackages={fixture.seedPackages}
+        presets={fixture.presets}
+        filter={{ kind: "all" }}
+        onFilterChange={vi.fn()}
+        onAction={vi.fn()}
+        onLogs={vi.fn()}
+        busy={{ [`package-watch:${item.name}`]: "watch-operation" }}
+        watchChanges={{ [item.name]: { watch: true, state: "running" } }}
+      />
+    );
+    expect(screen.getByRole("status")).toHaveTextContent("Updating watch");
+    expect(
+      screen.getByRole("checkbox", { name: `Watch ${item.name}` })
+    ).toBeChecked();
+  });
+
   it.each(["request", "watch-operation"])(
     "keeps Start/Stop stable while Watch is pending at %s and blocks conflicting selections",
     async (operationId) => {

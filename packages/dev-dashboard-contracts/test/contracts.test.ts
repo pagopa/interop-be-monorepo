@@ -17,6 +17,34 @@ function logParameter(name: string): ZodType<unknown> {
 }
 
 describe("generated dashboard contracts", () => {
+  it.each([true, false])(
+    "preserves the requested watch target %s in operation responses",
+    (watch) => {
+      const operation = {
+        id: "operation-id",
+        kind: "packages.watch",
+        watch,
+        state: "pending",
+        startedAt: "2026-10-20T10:00:00.000Z",
+        phases: [{ id: "watch:a", label: "Watch A", state: "pending" }],
+      };
+
+      expect(schemas.Operation.parse(operation)).toEqual(operation);
+    }
+  );
+
+  it("accepts existing operation responses without a watch target", () => {
+    const operation = {
+      id: "operation-id",
+      kind: "package.watch",
+      state: "passed",
+      startedAt: "2026-10-20T10:00:00.000Z",
+      phases: [],
+    };
+
+    expect(schemas.Operation.parse(operation)).toEqual(operation);
+  });
+
   it("describes backend state without frontend runtime availability", () => {
     const status = {
       packages: [],
