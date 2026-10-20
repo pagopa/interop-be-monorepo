@@ -40,6 +40,7 @@ import {
   attributeNotFound,
   eServiceNotFound,
   descriptorNotFoundInEservice,
+  operationRestrictedToDelegate,
   tenantNotAllowedForDelegation,
 } from "../model/domain/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
@@ -154,6 +155,27 @@ export async function assertRequesterAllowed(
   authData: UIAuthData | M2MAuthData
 ): Promise<void> {
   if (tenantId !== authData.organizationId) {
+    throw operationForbidden;
+  }
+}
+
+export function assertRequesterCanManageDeclaredAttribute(
+  targetTenantId: TenantId,
+  requesterId: TenantId,
+  delegation: Delegation | undefined
+): void {
+  if (delegation === undefined) {
+    if (targetTenantId !== requesterId) {
+      throw operationForbidden;
+    }
+    return;
+  }
+
+  if (delegation.delegateId !== requesterId) {
+    throw operationRestrictedToDelegate();
+  }
+
+  if (delegation.delegatorId !== targetTenantId) {
     throw operationForbidden;
   }
 }
