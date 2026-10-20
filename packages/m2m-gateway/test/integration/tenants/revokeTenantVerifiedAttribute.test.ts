@@ -97,9 +97,7 @@ describe("revokeTenantVerifiedAttribute", () => {
         attributeId: mockVerifiedAttribute1.id,
         tenantId: mockTenantProcessResponse.data.id,
       },
-      body: {
-        agreementId: mockAgreementId,
-      },
+      queries: { agreementId: mockAgreementId },
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.tenantProcessClient.tenant.getTenant,
