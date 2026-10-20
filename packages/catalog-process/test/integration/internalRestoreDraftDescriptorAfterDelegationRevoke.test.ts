@@ -51,7 +51,7 @@ describe("Change state to draft of delegated descriptor after delegation revoke"
     expect(writtenEvent).toMatchObject({
       stream_id: eservice.id,
       version: "1",
-      type: "EServiceDescriptorUpdatedByRevokedDelegation",
+      type: "EServiceDescriptorRestoredToDraftUpdatedRevokedDelegation",
       event_version: 2,
     });
 

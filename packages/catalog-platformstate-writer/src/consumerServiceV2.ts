@@ -82,9 +82,9 @@ export async function handleMessageV2(
               descriptorVoucherLifespan: descriptor.voucherLifespan,
               ...(isAsyncExchangeEnabled
                 ? {
-                    asyncExchange: eservice.asyncExchange,
-                    asyncExchangeProperties: descriptor.asyncExchangeProperties,
-                  }
+                  asyncExchange: eservice.asyncExchange,
+                  asyncExchangeProperties: descriptor.asyncExchangeProperties,
+                }
                 : {}),
               version: msg.version,
               updatedAt: new Date().toISOString(),
@@ -121,10 +121,9 @@ export async function handleMessageV2(
           previousDescriptor.state !== descriptorState.archived
         ) {
           logger.info(
-            `Skipping processing of previous descriptor${
-              previousDescriptor
-                ? ` ${previousDescriptor.id}. Reason: state ${previousDescriptor.state} is not archived`
-                : ". Reason: there is only one"
+            `Skipping processing of previous descriptor${previousDescriptor
+              ? ` ${previousDescriptor.id}. Reason: state ${previousDescriptor.state} is not archived`
+              : ". Reason: there is only one"
             }`
           );
           return Promise.resolve();
@@ -168,10 +167,9 @@ export async function handleMessageV2(
 
         if (!catalogEntry || catalogEntry.version > msg.version) {
           logger.info(
-            `Skipping processing of entry ${primaryKey}. Reason: ${
-              !catalogEntry
-                ? "entry not found in platform-states"
-                : "a more recent entry already exists"
+            `Skipping processing of entry ${primaryKey}. Reason: ${!catalogEntry
+              ? "entry not found in platform-states"
+              : "a more recent entry already exists"
             }`
           );
 
@@ -226,9 +224,9 @@ export async function handleMessageV2(
         descriptorVoucherLifespan: descriptor.voucherLifespan,
         ...(isAsyncExchangeEnabled
           ? {
-              asyncExchange: eservice.asyncExchange,
-              asyncExchangeProperties: descriptor.asyncExchangeProperties,
-            }
+            asyncExchange: eservice.asyncExchange,
+            asyncExchangeProperties: descriptor.asyncExchangeProperties,
+          }
           : {}),
         version: msg.version,
         updatedAt: new Date().toISOString(),
@@ -329,10 +327,9 @@ export async function handleMessageV2(
 
         if (!catalogEntry || catalogEntry.version > msg.version) {
           logger.info(
-            `Skipping processing of entry ${primaryKey}. Reason: ${
-              !catalogEntry
-                ? "entry not found in platform-states"
-                : "a more recent entry already exists"
+            `Skipping processing of entry ${primaryKey}. Reason: ${!catalogEntry
+              ? "entry not found in platform-states"
+              : "a more recent entry already exists"
             }`
           );
 
@@ -427,7 +424,7 @@ export async function handleMessageV2(
           "EServiceDescriptorArchivingRequestCanceledByDelegate",
           "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation",
           "MaintenanceEServicePersonalDataFlagReset",
-          "EServiceDescriptorUpdatedByRevokedDelegation"
+          "EServiceDescriptorRestoredToDraftUpdatedRevokedDelegation"
         ),
       },
       () => Promise.resolve()
