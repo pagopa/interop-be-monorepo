@@ -16579,7 +16579,8 @@ components:
       additionalProperties: false
       properties:
         consumer:
-          $ref: "#/components/schemas/CompactOrganization"
+          allOf:
+            - $ref: "#/components/schemas/CompactOrganization"
           description: absent if the consumer has no relationship with the producer; in that case results is empty
         eservicesCount:
           type: integer
@@ -16840,14 +16841,16 @@ components:
           items:
             $ref: "#/components/schemas/MonitoringSelectableVersion"
         consumer:
-          $ref: "#/components/schemas/CompactOrganization"
+          allOf:
+            - $ref: "#/components/schemas/CompactOrganization"
           description: absent if the consumer has no relationship with the producer; in that case results is empty
         dailyCallsPerConsumer:
           type: integer
           format: int64
           description: effective limit of the consumer
         customizedByAttribute:
-          $ref: "#/components/schemas/CompactAttribute"
+          allOf:
+            -  $ref: "#/components/schemas/CompactAttribute"
           description: present only if the threshold is customized
         approvedDailyCalls:
           type: integer
