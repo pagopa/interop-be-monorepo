@@ -13,6 +13,8 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant (
   name VARCHAR NOT NULL,
   onboarded_at TIMESTAMP WITH TIME ZONE,
   sub_unit_type VARCHAR,
+  parent_tenant_id UUID,
+  root_tenant_id UUID,
   search_vector TSVECTOR GENERATED ALWAYS AS (
     setweight(to_tsvector('public.italian_unaccent', public.normalize_text(name)), 'A')
   ) STORED,

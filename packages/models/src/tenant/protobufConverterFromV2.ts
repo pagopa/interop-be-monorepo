@@ -1,7 +1,7 @@
 import { createHash } from "crypto";
 import { match } from "ts-pattern";
 
-import { DelegationId, unsafeBrandId } from "../brandedIds.js";
+import { DelegationId, TenantId, unsafeBrandId } from "../brandedIds.js";
 import { genericError } from "../errors.js";
 import {
   TenantKindV2,
@@ -226,6 +226,14 @@ export const fromTenantV2 = (input: TenantV2): Tenant => {
     subUnitType:
       input.subUnitType != null
         ? fromTenantUnitTypeV2(input.subUnitType)
+        : undefined,
+    parentTenantId:
+      input.parentTenantId != null
+        ? unsafeBrandId<TenantId>(input.parentTenantId)
+        : undefined,
+    rootTenantId:
+      input.rootTenantId != null
+        ? unsafeBrandId<TenantId>(input.rootTenantId)
         : undefined,
     selfcareInstitutionType: input.selfcareInstitutionType,
     remoteIds: input.remoteIds.map(fromRemoteIdsV2),

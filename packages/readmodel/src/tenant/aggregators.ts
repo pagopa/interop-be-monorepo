@@ -120,6 +120,12 @@ export const aggregateTenant = ({
     ...(tenantSQL.subUnitType
       ? { subUnitType: TenantUnitType.parse(tenantSQL.subUnitType) }
       : {}),
+    ...(tenantSQL.parentTenantId
+      ? { parentTenantId: unsafeBrandId<TenantId>(tenantSQL.parentTenantId) }
+      : {}),
+    ...(tenantSQL.rootTenantId
+      ? { rootTenantId: unsafeBrandId<TenantId>(tenantSQL.rootTenantId) }
+      : {}),
     ...(tenantSQL.selfcareInstitutionType
       ? { selfcareInstitutionType: tenantSQL.selfcareInstitutionType }
       : {}),

@@ -191,4 +191,6 @@ export const toTenantV2 = (tenant: Tenant): TenantV2 => ({
     : undefined,
   selfcareInstitutionType: tenant.selfcareInstitutionType,
   remoteIds: (tenant.remoteIds ?? []).map(toRemoteIdsV2),
+  parentTenantId: tenant.parentTenantId,
+  rootTenantId: tenant.rootTenantId,
 });

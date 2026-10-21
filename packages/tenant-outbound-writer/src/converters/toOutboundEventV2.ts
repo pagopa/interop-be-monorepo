@@ -28,8 +28,16 @@ function toOutboundTenantAttributeV1(
 function toOutboundTenantV2(
   tenant: TenantV2
 ): Exact<OutboundTenantV2, TenantV2> {
+  const {
+    parentTenantId: _parentTenantId,
+    rootTenantId: _rootTenantId,
+    ...tenantWithoutHierarchy
+  } = tenant;
+  void _parentTenantId;
+  void _rootTenantId;
+
   return {
-    ...tenant,
+    ...tenantWithoutHierarchy,
     mails: undefined,
     features: tenant.features.map(toOutboundTenantFeaturesV1),
     attributes: tenant.attributes.map(toOutboundTenantAttributeV1),
