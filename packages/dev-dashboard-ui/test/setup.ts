@@ -24,6 +24,7 @@ axiosInstance.defaults.env = {
 
 // jsdom has no layout observer; Radix uses it to measure form controls.
 beforeEach(() => {
+  window.localStorage.clear();
   axiosInstance.defaults.baseURL = new URL(
     "/__local-dashboard/api",
     window.location.origin
