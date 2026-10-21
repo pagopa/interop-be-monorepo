@@ -15144,9 +15144,6 @@ components:
           type: boolean
         activeDescriptor:
           $ref: "#/components/schemas/CompactDescriptor"
-        hasUnreadNotifications:
-          type: boolean
-          description: Indicates if there are unread notifications for this e-service
         personalData:
           type: boolean
         asyncExchange:
