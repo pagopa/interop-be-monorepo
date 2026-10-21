@@ -29,6 +29,7 @@ export function useLogFilters({
   onFiltersChange: (source: string, level: string) => void;
 }) {
   const [search, setSearch] = useState("");
+  const [groupByPackage, setGroupByPackage] = useState(false);
   const debouncedSearch = useDebouncedValue(search);
   const logs = useIncrementalLogs({
     source: selectedSource,
@@ -106,6 +107,8 @@ export function useLogFilters({
   return {
     search,
     setSearch,
+    groupByPackage,
+    setGroupByPackage,
     sourceGroups,
     logs: {
       ...logs,
