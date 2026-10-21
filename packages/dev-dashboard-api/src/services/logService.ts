@@ -84,7 +84,11 @@ function logLevel(
 }
 
 function logEntry(source: string, raw: string, id: string): LogEntry {
-  const structured = structuredLog(raw);
+  const dockerTimestamp = source.startsWith(LOG_SOURCE_PREFIXES.infrastructure)
+    ? /^(\d{4}-\d\d-\d\dT\S+)[ \t]/.exec(raw)
+    : null;
+  const message = dockerTimestamp ? raw.slice(dockerTimestamp[0].length) : raw;
+  const structured = structuredLog(message);
   const cid =
     structured.correlationId ??
     structured.correlation_id ??
@@ -93,7 +97,9 @@ function logEntry(source: string, raw: string, id: string): LogEntry {
   const timestamp =
     typeof structured.timestamp === "string"
       ? structured.timestamp
-      : (/^\d{4}-\d\d-\d\dT\S+/.exec(raw)?.[0] ?? new Date().toISOString());
+      : (dockerTimestamp?.[1] ??
+        /^\d{4}-\d\d-\d\dT\S+/.exec(raw)?.[0] ??
+        new Date().toISOString());
   return {
     id,
     source,
@@ -105,7 +111,7 @@ function logEntry(source: string, raw: string, id: string): LogEntry {
     message:
       typeof structured.message === "string"
         ? structured.message
-        : raw.replace(ansiColor, ""),
+        : message.replace(ansiColor, ""),
     ...(typeof cid === "string" ? { cid } : {}),
   };
 }

@@ -5,6 +5,39 @@ import type { LogQuery } from "../src/model/domain/models.js";
 import { logServiceBuilder } from "../src/services/logService.js";
 
 describe("incremental logs", () => {
+  it.each([
+    [
+      "2026-10-21 10:34:17,852 DEBUG [parallel-9] Metrics updated for cluster: local",
+      "debug",
+    ],
+    ["    at java.base/java.lang.Thread.run(Thread.java:829)", "unknown"],
+  ])(
+    "keeps Docker timestamps as metadata without repeating them in %s",
+    (message, level) => {
+      const logs = logServiceBuilder();
+      const timestamp = "2026-10-21T10:34:17.852709118Z";
+      logs.append("infra:kafka-ui", `${timestamp} ${message}`);
+
+      expect(logs.read({}).entries).toEqual([
+        expect.objectContaining({
+          source: "infra:kafka-ui",
+          service: "kafka-ui",
+          timestamp,
+          message,
+          level,
+        }),
+      ]);
+    }
+  );
+
+  it("preserves application timestamps in package log messages", () => {
+    const logs = logServiceBuilder();
+    const message = "2026-10-21T10:34:17.852Z INFO Request completed";
+    logs.append("tenant-process", message);
+
+    expect(logs.read({}).entries[0]?.message).toBe(message);
+  });
+
   it("retains cursor scope and resets malformed cursors in buffer order", () => {
     const logs = logServiceBuilder();
     logs.append("first", "INFO first");
