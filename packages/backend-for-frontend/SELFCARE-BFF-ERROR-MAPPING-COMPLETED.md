@@ -9,6 +9,8 @@
 
 ## `userNotFound`
 
+**This cannot be replicated without selfcare, but it should be possible.**
+
 User not found.
 
 | Router | BFF endpoint | When it happens | Reachable from the FE? | Steps to reproduce (UI) | Resolution steps |
