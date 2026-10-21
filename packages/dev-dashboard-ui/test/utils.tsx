@@ -1,8 +1,17 @@
 import type { ReactElement, ReactNode } from "react";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, type RenderOptions } from "@testing-library/react";
+import { act, render, type RenderOptions } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
+import { vi } from "vitest";
+
+// Fake only interval timers so user interactions, debounce and query notifications stay real.
+export async function advancePolling() {
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(2000);
+    await new Promise((resolve) => window.setTimeout(resolve, 0));
+  });
+}
 
 export function createTestQueryClient() {
   return new QueryClient({

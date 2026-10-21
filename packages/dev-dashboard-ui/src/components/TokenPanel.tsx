@@ -6,12 +6,10 @@ import type {
 import {
   Boxes,
   Check,
-  CircleAlert,
   Copy,
   Database,
   LoaderCircle,
   Play,
-  RefreshCw,
   Terminal,
 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -48,27 +46,6 @@ export function TokenPanel({ seedPackages, ...props }: Props) {
           <CardTitle asChild>
             <h2 id="token-title">Local access token</h2>
           </CardTitle>
-          <Button
-            variant="outline"
-            size="icon"
-            aria-label="Reload identities"
-            title="Reload identities"
-            aria-busy={model.loading}
-            disabled={
-              model.loading || model.reloadCooling || model.controlsBusy
-            }
-            onClick={() => void model.reloadIdentities()}
-          >
-            {model.loading ? (
-              <LoaderCircle aria-hidden="true" className="animate-spin" />
-            ) : model.reloadCooling && model.reloadResult === "failed" ? (
-              <CircleAlert aria-hidden="true" className="text-destructive" />
-            ) : model.reloadCooling && model.reloadResult ? (
-              <Check aria-hidden="true" />
-            ) : (
-              <RefreshCw aria-hidden="true" />
-            )}
-          </Button>
         </Toolbar>
         <Toolbar>
           <Button
@@ -164,7 +141,7 @@ export function TokenPanel({ seedPackages, ...props }: Props) {
           />
         ))}
         {model.error && <ErrorAlert message={model.error} />}
-        {model.loading && !model.identities && !model.reloadCooling ? (
+        {model.loading && !model.identities ? (
           <FieldGroup>
             <span role="status" className="sr-only">
               Loading local identities…

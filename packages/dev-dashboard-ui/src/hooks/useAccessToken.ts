@@ -5,7 +5,6 @@ import type {
 
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 
 import { DashboardMutations } from "../api/dashboard/dashboard.mutations";
 import { DashboardQueries } from "../api/dashboard/dashboard.queries";
@@ -115,13 +114,6 @@ export function useAccessToken({
     );
   const controlsBusy = seeding || preparing || generation.isPending;
   const loading = identitiesQuery.isFetching;
-  const [reloadCooling, setReloadCooling] = useState(false);
-  const [reloadFeedback, setReloadFeedback] = useState<{
-    revision: string;
-    result: "ready" | "empty" | "failed";
-  }>();
-  const reloadRequest = useRef(false);
-  const reloadTimer = useRef<number>();
   const mounted = useRef(true);
   const terminalFailures = tokenActions.filter((kind) => {
     const tracked = trackedActions[kind];
@@ -164,12 +156,11 @@ export function useAccessToken({
     }
   }, [activeSeedId, activePrepareId, seedFailed, prepareFailed]);
 
-  // Query owns request cancellation; this cleanup prevents cooldown updates after leaving the page.
+  // Query owns request cancellation; ignore action results after leaving the page.
   useEffect(() => {
     mounted.current = true;
     return () => {
       mounted.current = false;
-      window.clearTimeout(reloadTimer.current);
     };
   }, []);
 
@@ -205,32 +196,6 @@ export function useAccessToken({
       actionRequest.current = false;
       if (mounted.current) setSubmitting(undefined);
     }
-  }
-
-  async function reloadIdentities() {
-    if (reloadRequest.current || loading || controlsBusy) return;
-    reloadRequest.current = true;
-    setReloadCooling(true);
-    setReloadFeedback(undefined);
-    setSelection({ revision: completedSeed });
-    const result = await identitiesQuery.refetch();
-    if (!mounted.current) return;
-    if (result.isSuccess) {
-      const ready = result.data.ready && result.data.tenants.length > 0;
-      setReloadFeedback({
-        revision: completedSeed,
-        result: ready ? "ready" : "empty",
-      });
-      if (ready) toast.success("Identities refreshed");
-      else toast.info("No identities found. Run Seed local data.");
-    } else if (result.isError) {
-      setReloadFeedback({ revision: completedSeed, result: "failed" });
-      toast.error(errorMessage(result.error));
-    }
-    reloadTimer.current = window.setTimeout(() => {
-      reloadRequest.current = false;
-      setReloadCooling(false);
-    }, 2000);
   }
 
   function selectTenant(value: string) {
@@ -286,10 +251,6 @@ export function useAccessToken({
     }
   }
 
-  const reloadResult =
-    reloadFeedback?.revision === completedSeed
-      ? reloadFeedback.result
-      : undefined;
   return {
     identities,
     tenantKey,
@@ -300,12 +261,8 @@ export function useAccessToken({
     copied,
     error:
       currentSelection?.error ||
-      (identitiesQuery.isError && !reloadCooling && reloadResult !== "failed"
-        ? errorMessage(identitiesQuery.error)
-        : ""),
+      (identitiesQuery.isError ? errorMessage(identitiesQuery.error) : ""),
     loading,
-    reloadCooling,
-    reloadResult,
     generating: generation.isPending,
     seeding,
     preparing,
@@ -314,7 +271,6 @@ export function useAccessToken({
     controlsBusy,
     failedActions,
     runTokenAction,
-    reloadIdentities,
     selectTenant,
     selectUser,
     generate,

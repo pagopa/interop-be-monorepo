@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { RefreshCw } from "lucide-react";
 import {
   schemas,
   type FrontendLogSource,
@@ -9,7 +8,6 @@ import { useState } from "react";
 import { DashboardQueries } from "../api/dashboard/dashboard.queries";
 import { errorMessage } from "../lib/utils";
 import { ErrorAlert } from "./common/ErrorAlert";
-import { Button } from "./ui/button";
 import { Field, FieldLabel } from "./ui/field";
 import { NativeSelect, NativeSelectOption } from "./ui/native-select";
 import { Skeleton } from "./ui/skeleton";
@@ -47,15 +45,6 @@ export function FrontendLogsPanel({ enabled }: { enabled: boolean }) {
               <NativeSelectOption value="vite">Vite</NativeSelectOption>
             </NativeSelect>
           </Field>
-          <Button
-            size="icon"
-            variant="ghost"
-            aria-label="Refresh frontend logs"
-            disabled={query.isFetching || !enabled}
-            onClick={() => void query.refetch()}
-          >
-            <RefreshCw aria-hidden="true" />
-          </Button>
         </div>
       </div>
       {enabled && query.error && (

@@ -10,6 +10,7 @@ import {
   seedPackagesFixture,
   statusFixture,
 } from "../fixtures";
+import { advancePolling } from "../utils";
 
 const bffName = "pagopa-interop-backend-for-frontend";
 const workerName = "pagopa-interop-catalog-readmodel-writer-sql";
@@ -36,9 +37,11 @@ function renderDashboard() {
 afterEach(() => {
   for (const router of routers) router.dispose();
   routers.clear();
+  vi.useRealTimers();
 });
 
 beforeEach(() => {
+  vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
   vi.spyOn(window, "scrollTo").mockImplementation(() => undefined);
   window.history.replaceState(null, "", "#/packages");
   currentStatus = statusFixture();
@@ -154,9 +157,7 @@ describe("development dashboard", () => {
           state: "passed",
         })),
       };
-      await userEvent
-        .setup()
-        .click(screen.getByRole("button", { name: "Refresh runtime status" }));
+      await advancePolling();
       await waitFor(() =>
         expect(
           row.getByRole("button", { name: `Edit ${preset.name}` })
@@ -387,7 +388,7 @@ describe("development dashboard", () => {
     expect(postedBodies("/actions")).toEqual([]);
   });
 
-  it("keeps preset source and level filters through changes, refresh, reload and browser back", async () => {
+  it("keeps preset source and level filters through changes, polling, reload and browser back", async () => {
     window.history.replaceState(
       null,
       "",
@@ -415,18 +416,21 @@ describe("development dashboard", () => {
     );
     expect(source).toHaveValue("preset:personal-core");
     await waitFor(() =>
-      expect(screen.getByRole("button", { name: "Refresh logs" })).toBeEnabled()
+      expect(screen.getByRole("status")).toHaveAttribute("aria-busy", "false")
     );
-    const requestedBeforeRefresh = fetchMock.mock.calls.filter(([input]) =>
+    expect(
+      screen.queryByRole("button", { name: "Refresh logs" })
+    ).not.toBeInTheDocument();
+    const requestedBeforePoll = fetchMock.mock.calls.filter(([input]) =>
       String(input).includes("/logs?")
     ).length;
-    await user.click(screen.getByRole("button", { name: "Refresh logs" }));
+    await advancePolling();
     await waitFor(() =>
       expect(
         fetchMock.mock.calls.filter(([input]) =>
           String(input).includes("/logs?")
         ).length
-      ).toBeGreaterThan(requestedBeforeRefresh)
+      ).toBeGreaterThan(requestedBeforePoll)
     );
     expect(source).toHaveValue("preset:personal-core");
     view.unmount();
@@ -603,9 +607,7 @@ describe("development dashboard", () => {
     renderDashboard();
     const preset = await screen.findByRole("combobox", { name: "Group" });
     currentStatus = statusFixture({ presets: [] });
-    await user.click(
-      screen.getByRole("button", { name: "Refresh runtime status" })
-    );
+    await advancePolling();
     await screen.findByText("This preset is no longer available.");
     expect(preset).toHaveValue("preset:backend");
     expect(window.location.hash).toBe("#/packages?preset=backend");
@@ -743,9 +745,7 @@ describe("development dashboard", () => {
         state: "running",
       })),
     };
-    await user.click(
-      screen.getByRole("button", { name: "Refresh runtime status" })
-    );
+    await advancePolling();
     await screen.findByRole("button", { name: `Stop ${seedNames[1]}` });
     expect(screen.getAllByRole("row")).toHaveLength(5);
     expect(
@@ -822,9 +822,7 @@ describe("development dashboard", () => {
         state: "passed",
       })),
     };
-    await user.click(
-      screen.getByRole("button", { name: "Refresh runtime status" })
-    );
+    await advancePolling();
     await waitFor(() =>
       expect(
         screen.queryByRole("region", { name: "Active operation" })
@@ -892,9 +890,7 @@ describe("development dashboard", () => {
         state: "passed",
       })),
     };
-    await user.click(
-      screen.getByRole("button", { name: "Refresh runtime status" })
-    );
+    await advancePolling();
     await waitFor(() =>
       expect(
         screen.getByRole("button", { name: `Start ${bffName}` })
@@ -1003,8 +999,10 @@ describe("development dashboard", () => {
       await screen.findByRole("heading", { name: heading });
       const toolbar = screen.getByRole("region", { name: "Runtime status" });
       expect(
-        within(toolbar).getByRole("button", { name: "Refresh runtime status" })
-      ).toBeEnabled();
+        within(toolbar).queryByRole("button", {
+          name: "Refresh runtime status",
+        })
+      ).not.toBeInTheDocument();
       expect(
         screen.queryByRole("button", { name: "Start fullstack" })
       ).not.toBeInTheDocument();
@@ -1209,9 +1207,7 @@ describe("development dashboard", () => {
           state: "passed",
         })),
       };
-      await user.click(
-        screen.getByRole("button", { name: "Refresh runtime status" })
-      );
+      await advancePolling();
       await waitFor(() =>
         expect(pressed).toHaveAttribute("aria-busy", "false")
       );
@@ -1313,9 +1309,7 @@ describe("development dashboard", () => {
           Response.json({ operationId: operation.id }, { status: 202 })
         );
       });
-      await user.click(
-        screen.getByRole("button", { name: "Refresh runtime status" })
-      );
+      await advancePolling();
       expect(pressed).toHaveAttribute("aria-busy", "true");
       expect(within(article).queryByRole("alert")).not.toBeInTheDocument();
       currentStatus = {
@@ -1324,9 +1318,7 @@ describe("development dashboard", () => {
           item.id === operation.id ? { ...item, state: "running" } : item
         ),
       };
-      await user.click(
-        screen.getByRole("button", { name: "Refresh runtime status" })
-      );
+      await advancePolling();
       expect(pressed).toHaveAttribute("aria-busy", "true");
       expect(within(article).queryByRole("alert")).not.toBeInTheDocument();
       currentStatus = {
@@ -1337,9 +1329,7 @@ describe("development dashboard", () => {
             : item
         ),
       };
-      await user.click(
-        screen.getByRole("button", { name: "Refresh runtime status" })
-      );
+      await advancePolling();
       const failure = await within(article).findByRole("alert");
       expect(failure).toHaveTextContent(
         intent === "start" ? "Startup failed" : "Stop failed"
@@ -1632,9 +1622,7 @@ describe("development dashboard", () => {
           item.id === operation.id ? { ...item, state: "running" } : item
         ),
       };
-      await user.click(
-        screen.getByRole("button", { name: "Refresh runtime status" })
-      );
+      await advancePolling();
       expect(pressed).toHaveAttribute("aria-busy", "true");
       expect(within(panel).queryByRole("alert")).not.toBeInTheDocument();
       currentStatus = {
@@ -1649,9 +1637,7 @@ describe("development dashboard", () => {
             : item
         ),
       };
-      await user.click(
-        screen.getByRole("button", { name: "Refresh runtime status" })
-      );
+      await advancePolling();
       const failure = await within(panel).findByRole("alert");
       expect(failure).toHaveTextContent(`Infrastructure ${intent} failed`);
       expect(failure).toHaveTextContent("Docker infrastructure failed");
@@ -1764,9 +1750,7 @@ describe("development dashboard", () => {
           state: terminal === "failed" ? "failed" : "passed",
         })),
       };
-      await user.click(
-        screen.getByRole("button", { name: "Refresh runtime status" })
-      );
+      await advancePolling();
       await waitFor(() =>
         expect(pressed).toHaveAttribute("aria-busy", "false")
       );
@@ -1910,9 +1894,7 @@ describe("development dashboard", () => {
           state: terminal === "failed" ? "failed" : "passed",
         })),
       };
-      await user.click(
-        screen.getByRole("button", { name: "Refresh runtime status" })
-      );
+      await advancePolling();
       await waitFor(() =>
         expect(pressed).toHaveAttribute("aria-busy", "false")
       );
@@ -2047,9 +2029,7 @@ describe("development dashboard", () => {
       seedReady: true,
       packages: fixture.packages.map((item) => ({ ...item, state: "running" })),
     };
-    await user.click(
-      screen.getByRole("button", { name: "Refresh runtime status" })
-    );
+    await advancePolling();
     await waitFor(() =>
       expect(prepare).toHaveAccessibleName("Seed packages running")
     );
@@ -2071,9 +2051,7 @@ describe("development dashboard", () => {
         state: index === 0 ? "stopped" : item.state,
       })),
     };
-    await user.click(
-      screen.getByRole("button", { name: "Refresh runtime status" })
-    );
+    await advancePolling();
     await waitFor(() =>
       expect(prepare).toHaveAccessibleName("Start seed packages")
     );
@@ -2202,8 +2180,8 @@ describe("development dashboard", () => {
       screen.queryByRole("textbox", { name: "Session token" })
     ).not.toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Reload identities" })
-    ).toBeEnabled();
+      screen.queryByRole("button", { name: "Reload identities" })
+    ).not.toBeInTheDocument();
     expect(
       fetchMock.mock.calls.filter(([input]) =>
         String(input).endsWith("/identities")
@@ -2252,8 +2230,8 @@ describe("development dashboard", () => {
         screen.getByRole("button", { name: "Generate token" })
       ).toBeDisabled();
       expect(
-        screen.getByRole("button", { name: "Reload identities" })
-      ).toBeDisabled();
+        screen.queryByRole("button", { name: "Reload identities" })
+      ).not.toBeInTheDocument();
       expect(screen.getByLabelText("Tenant")).toBeDisabled();
       expect(screen.getByLabelText("User")).toBeDisabled();
       await user.click(prepare);
@@ -2288,9 +2266,7 @@ describe("development dashboard", () => {
           },
         ],
       };
-      await user.click(
-        screen.getByRole("button", { name: "Refresh runtime status" })
-      );
+      await advancePolling();
       expect(prepare).toHaveAttribute("aria-busy", "true");
       expect(seed).toHaveAttribute("aria-busy", "false");
       expect(
@@ -2307,9 +2283,7 @@ describe("development dashboard", () => {
           },
         ],
       };
-      await user.click(
-        screen.getByRole("button", { name: "Refresh runtime status" })
-      );
+      await advancePolling();
       await waitFor(() =>
         expect(prepare).toHaveAttribute("aria-busy", "false")
       );
@@ -2319,8 +2293,8 @@ describe("development dashboard", () => {
         screen.getByRole("button", { name: "Generate token" })
       ).toBeEnabled();
       expect(
-        screen.getByRole("button", { name: "Reload identities" })
-      ).toBeEnabled();
+        screen.queryByRole("button", { name: "Reload identities" })
+      ).not.toBeInTheDocument();
       if (terminal === "failed") {
         const failure = await screen.findByRole("alert");
         expect(failure).toHaveTextContent("Seed packages startup failed");
@@ -2329,10 +2303,7 @@ describe("development dashboard", () => {
           within(failure).getByRole("link", { name: "Logs" })
         ).toHaveAttribute("href", "#/logs?source=orchestration&level=error");
       } else expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-      for (let index = 0; index < 2; index++)
-        await user.click(
-          screen.getByRole("button", { name: "Refresh runtime status" })
-        );
+      for (let index = 0; index < 2; index++) await advancePolling();
       expect(
         screen.getByRole("textbox", { name: "Session token" })
       ).toHaveValue("local-session-token");
@@ -2415,8 +2386,8 @@ describe("development dashboard", () => {
       expect(seed).toBeDisabled();
       expect(within(seed).getByRole("status")).toBeInTheDocument();
       expect(
-        screen.getByRole("button", { name: "Reload identities" })
-      ).toBeDisabled();
+        screen.queryByRole("button", { name: "Reload identities" })
+      ).not.toBeInTheDocument();
       await user.click(seed);
       expect(postedBodies("/actions")).toEqual([{ type: "seed" }]);
       const operation = {
@@ -2443,9 +2414,7 @@ describe("development dashboard", () => {
           },
         ],
       };
-      await user.click(
-        screen.getByRole("button", { name: "Refresh runtime status" })
-      );
+      await advancePolling();
       expect(seed).toHaveAttribute("aria-busy", "true");
       expect(
         screen.queryByRole("region", { name: "Active operation" })
@@ -2468,9 +2437,7 @@ describe("development dashboard", () => {
           },
         ],
       };
-      await user.click(
-        screen.getByRole("button", { name: "Refresh runtime status" })
-      );
+      await advancePolling();
       await waitFor(() => expect(seed).toHaveAttribute("aria-busy", "false"));
       expect(seed).toBeEnabled();
       if (terminal === "passed") {
@@ -2492,10 +2459,7 @@ describe("development dashboard", () => {
         String(input).endsWith("/identities")
       ).length;
       expect(identityRequests).toBe(terminal === "passed" ? 2 : 1);
-      for (let index = 0; index < 2; index++)
-        await user.click(
-          screen.getByRole("button", { name: "Refresh runtime status" })
-        );
+      for (let index = 0; index < 2; index++) await advancePolling();
       expect(
         fetchMock.mock.calls.filter(([input]) =>
           String(input).endsWith("/identities")
@@ -2676,7 +2640,6 @@ describe("development dashboard", () => {
         operations: [operation],
       });
       window.history.replaceState(null, "", "#/access-token");
-      const user = userEvent.setup();
       renderDashboard();
       const seed = await screen.findByRole("button", {
         name: kind === "seed" ? "Seed local data" : "Start seed packages",
@@ -2691,9 +2654,7 @@ describe("development dashboard", () => {
           { ...operation, state: terminal === "passed" ? "passed" : "failed" },
         ],
       };
-      await user.click(
-        screen.getByRole("button", { name: "Refresh runtime status" })
-      );
+      await advancePolling();
       await waitFor(() => expect(seed).toHaveAttribute("aria-busy", "false"));
       expect(
         await screen.findByRole("button", { name: "Generate token" })
@@ -2729,7 +2690,6 @@ describe("development dashboard", () => {
         operations: [operation],
       });
       window.history.replaceState(null, "", "#/access-token");
-      const user = userEvent.setup();
       renderDashboard();
       const seed = await screen.findByRole("button", {
         name: "Seed local data",
@@ -2750,9 +2710,7 @@ describe("development dashboard", () => {
           },
         ],
       };
-      await user.click(
-        screen.getByRole("button", { name: "Refresh runtime status" })
-      );
+      await advancePolling();
       expect(seed).toHaveAttribute("aria-busy", "false");
       expect(seed).toBeEnabled();
       currentStatus = {
@@ -2771,9 +2729,7 @@ describe("development dashboard", () => {
           },
         ],
       };
-      await user.click(
-        screen.getByRole("button", { name: "Refresh runtime status" })
-      );
+      await advancePolling();
       await waitFor(() => expect(seed).toHaveAttribute("aria-busy", "false"));
       expect(
         await screen.findByRole("button", { name: "Generate token" })
@@ -2788,9 +2744,7 @@ describe("development dashboard", () => {
           },
         ],
       };
-      await user.click(
-        screen.getByRole("button", { name: "Refresh runtime status" })
-      );
+      await advancePolling();
       expect(
         fetchMock.mock.calls.filter(([input]) =>
           String(input).endsWith("/identities")
@@ -2881,9 +2835,7 @@ describe("development dashboard", () => {
           : operation
       ),
     };
-    await user.click(
-      screen.getByRole("button", { name: "Refresh runtime status" })
-    );
+    await advancePolling();
     await waitFor(() =>
       expect(
         screen.getByRole("button", { name: `Start ${bffName}` })
@@ -2899,9 +2851,7 @@ describe("development dashboard", () => {
         state: "passed",
       })),
     };
-    await user.click(
-      screen.getByRole("button", { name: "Refresh runtime status" })
-    );
+    await advancePolling();
     await waitFor(() =>
       expect(
         screen.getByRole("button", { name: `Start ${tenantName}` })
@@ -2991,9 +2941,7 @@ describe("development dashboard", () => {
         })),
       })),
     };
-    await user.click(
-      screen.getByRole("button", { name: "Refresh runtime status" })
-    );
+    await advancePolling();
     await waitFor(() =>
       expect(
         screen.getByRole("checkbox", { name: `Watch ${names[0]}` })
@@ -3016,9 +2964,7 @@ describe("development dashboard", () => {
         state: "failed",
       })),
     };
-    await user.click(
-      screen.getByRole("button", { name: "Refresh runtime status" })
-    );
+    await advancePolling();
     await waitFor(() =>
       expect(
         screen.getByRole("checkbox", { name: `Watch ${names[1]}` })

@@ -1,12 +1,8 @@
-import { RefreshCw } from "lucide-react";
-
 import { useDashboardContext } from "../../providers/DashboardProvider";
 import { Badge } from "../ui/badge";
-import { Button } from "../ui/button";
 
 export function RuntimeToolbar() {
-  const dashboard = useDashboardContext();
-  const { status } = dashboard;
+  const { status } = useDashboardContext();
   const running =
     status?.packages.filter((item) => item.state === "running").length ?? 0;
   const failed =
@@ -35,17 +31,6 @@ export function RuntimeToolbar() {
             )}
           </p>
         )}
-      </div>
-      <div className="flex flex-wrap gap-2">
-        <Button
-          variant="outline"
-          aria-label="Refresh runtime status"
-          title="Refresh runtime status"
-          onClick={() => void dashboard.refresh()}
-        >
-          <RefreshCw data-icon="inline-start" />
-          <span className="sr-only sm:not-sr-only">Refresh</span>
-        </Button>
       </div>
     </section>
   );
