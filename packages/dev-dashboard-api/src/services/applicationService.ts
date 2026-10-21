@@ -179,7 +179,7 @@ export function applicationServiceBuilder(
           result.signal === null &&
           result.error === undefined
         ) {
-          item.state = "stopped";
+          item.state = "completed";
           delete item.error;
           logs.append(
             command.source,

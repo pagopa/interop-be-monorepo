@@ -601,6 +601,80 @@ describe("development dashboard", () => {
     expect(postedBodies("/actions")).toEqual([]);
   });
 
+  it("shares the Jobs group through its URL, retains it on polling and reload, and restores it with browser navigation", async () => {
+    const jobName = "notification-job";
+    const runningJobName = "cleanup-job";
+    currentStatus.packages.push(
+      { ...currentStatus.packages[0], name: jobName, kind: "job" },
+      { ...currentStatus.packages[1], name: runningJobName, kind: "job" }
+    );
+    currentStatus.presets.push({
+      ...currentStatus.presets[0],
+      id: "jobs",
+      name: "Job preset",
+    });
+    const user = userEvent.setup();
+    const view = renderDashboard();
+    const group = await screen.findByRole("combobox", { name: "Group" });
+    expect(group).toHaveValue("");
+    expect(
+      await screen.findByRole("row", { name: new RegExp(bffName) })
+    ).toBeVisible();
+    await user.selectOptions(group, "jobs");
+    await waitFor(() =>
+      expect(window.location.hash).toBe("#/packages?group=jobs")
+    );
+    expect(group).toHaveValue("jobs");
+    expect(screen.getAllByRole("row")).toHaveLength(3);
+    expect(
+      screen.getByRole("button", { name: `Run ${jobName}` })
+    ).toBeEnabled();
+    expect(
+      screen.queryByRole("row", { name: new RegExp(bffName) })
+    ).not.toBeInTheDocument();
+    await user.click(
+      screen.getByRole("checkbox", { name: `Select ${jobName}` })
+    );
+    currentStatus = {
+      ...currentStatus,
+      packages: currentStatus.packages.map((item) =>
+        item.name === jobName ? { ...item, state: "running" } : item
+      ),
+    };
+    await advancePolling();
+    await screen.findByRole("button", { name: `Stop ${jobName}` });
+    expect(group).toHaveValue("jobs");
+    expect(
+      screen.getByRole("checkbox", { name: `Select ${jobName}` })
+    ).toBeChecked();
+    expect(screen.getAllByRole("row")).toHaveLength(3);
+    await user.selectOptions(group, "preset:jobs");
+    await waitFor(() =>
+      expect(window.location.hash).toBe("#/packages?preset=jobs")
+    );
+    expect(screen.getByText("0 selected")).toBeVisible();
+    expect(screen.getAllByRole("row")).toHaveLength(2);
+    expect(
+      screen.getByRole("row", { name: new RegExp(bffName) })
+    ).toBeVisible();
+    window.history.back();
+    await waitFor(() => expect(group).toHaveValue("jobs"));
+    expect(screen.getAllByRole("row")).toHaveLength(3);
+    expect(screen.getByText("0 selected")).toBeVisible();
+    window.history.forward();
+    await waitFor(() => expect(group).toHaveValue("preset:jobs"));
+    window.history.back();
+    await waitFor(() => expect(group).toHaveValue("jobs"));
+    view.unmount();
+    renderDashboard();
+    expect(await screen.findByRole("combobox", { name: "Group" })).toHaveValue(
+      "jobs"
+    );
+    expect(window.location.hash).toBe("#/packages?group=jobs");
+    expect(screen.getAllByRole("row")).toHaveLength(3);
+    expect(postedBodies("/actions")).toEqual([]);
+  });
+
   it("keeps a removed preset filter empty and allows an explicit reset to all packages", async () => {
     window.history.replaceState(null, "", "#/packages?preset=backend");
     const user = userEvent.setup();

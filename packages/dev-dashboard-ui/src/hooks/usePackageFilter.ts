@@ -6,7 +6,8 @@ export function usePackageFilter() {
   const [parameters, setParameters] = useSearchParams();
   function changeFilter(filter: PackageFilter) {
     const query = new URLSearchParams();
-    if (filter.kind === "seed") query.set("group", "seed");
+    if (filter.kind === "seed" || filter.kind === "jobs")
+      query.set("group", filter.kind);
     if (filter.kind === "preset") query.set("preset", filter.id);
     setParameters(query);
   }

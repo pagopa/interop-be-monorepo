@@ -66,7 +66,7 @@ export function supervisorServiceBuilder(
     options.watchPath ?? join(options.beRoot, DASHBOARD_PATHS.watchPreferences);
   const packages: Package[] = options.packages.map((item) => ({
     ...item,
-    watch: watchPreferences[item.name] ?? true,
+    watch: watchPreferences[item.name] ?? item.kind !== "job",
   }));
   let infrastructure: DashboardStatus["infrastructure"] = [];
   let seeded = false;
