@@ -218,7 +218,11 @@ services:
       - zookeeper-logs:/zookeeper/txns
     image: quay.io/debezium/zookeeper:2.3
     healthcheck:
-      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/2181"]
+      test:
+        - CMD-SHELL
+        - >-
+          curl --fail --silent --show-error --max-time 1 http://localhost:8080/commands/ruok
+          | grep -q '"error"[[:space:]]*:[[:space:]]*null'
       interval: 2s
       timeout: 2s
       retries: 30
