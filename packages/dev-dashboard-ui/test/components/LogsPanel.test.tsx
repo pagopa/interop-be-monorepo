@@ -370,7 +370,7 @@ describe("aggregate log filters", () => {
       expect(screen.getByRole("button", { name: "Copy" })).toBe(copy);
       expect(copy).toBeDisabled();
       expect(download).toBeDisabled();
-      expect(screen.getByRole("status")).toHaveTextContent("updating");
+      expect(screen.getByRole("status")).toHaveAttribute("aria-busy", "true");
       expect(screen.getByRole("status")).toHaveTextContent("previous filter");
       expect(
         screen.queryByText("Loading log entries…")
@@ -440,7 +440,7 @@ describe("aggregate log filters", () => {
       .type(screen.getByRole("searchbox", { name: "Search logs" }), "CID-42");
     expect(copy).toBeDisabled();
     expect(screen.getByRole("button", { name: "Download" })).toBeDisabled();
-    expect(screen.getByRole("status")).toHaveTextContent("updating");
+    expect(screen.getByRole("status")).toHaveAttribute("aria-busy", "true");
   });
 
   it("preserves list focus while updating and prevents copying a previous filter correlation ID", async () => {
@@ -492,7 +492,7 @@ describe("aggregate log filters", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("keeps current-filter exports available during an incremental refresh", async () => {
+  it("keeps the log counter and current-filter exports stable during an incremental refresh", async () => {
     let finish: (response: Response) => void = () => undefined;
     const next = new Promise<Response>((resolve) => {
       finish = resolve;
@@ -521,14 +521,19 @@ describe("aggregate log filters", () => {
     );
     const copy = screen.getByRole("button", { name: "Copy" });
     await waitFor(() => expect(copy).toBeEnabled());
+    const counter = screen.getByRole("status");
+    const count = counter.textContent;
     await userEvent
       .setup()
       .click(screen.getByRole("button", { name: "Refresh logs" }));
-    expect(screen.getByRole("status")).toHaveTextContent("updating");
+    expect(counter.textContent).toBe(count);
+    expect(counter).toHaveAttribute("aria-busy", "true");
     expect(copy).toBeEnabled();
     expect(screen.getByRole("button", { name: "Download" })).toBeEnabled();
     expect(screen.getByRole("status")).not.toHaveTextContent("previous filter");
     await act(async () => finish(Response.json(emptyLogs)));
+    expect(counter.textContent).toBe(count);
+    expect(counter).toHaveAttribute("aria-busy", "false");
   });
 
   it("keeps an already empty viewport mounted without showing an initial skeleton on the next filter", async () => {
