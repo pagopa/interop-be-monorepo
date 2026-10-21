@@ -29,6 +29,14 @@ json_string() {
 prepare() {
   REPOSITORY_ROOT="$(cd "$REPOSITORY_ROOT" && pwd -P)"
   mkdir -p "$STATE_ROOT"
+  local runtime_uid runtime_gid
+  if [[ "$(uname -s)" == Darwin ]]; then
+    runtime_uid=1000
+    runtime_gid=1000
+  else
+    runtime_uid="$(id -u)"
+    runtime_gid="$(id -g)"
+  fi
   local volume_names=(dashboard-be-modules dashboard-pnpm-store)
   {
     printf '{"services":{"dashboard":{"working_dir":'
@@ -40,7 +48,7 @@ prepare() {
       json_string "$STARTUP_PRESET"
     fi
     printf ',"DASHBOARD_AUTOSTART":"%s","INTEROP_DASHBOARD_RUNTIME":"true","LOCAL_UID":"%s","LOCAL_GID":"%s"},' \
-      "${DASHBOARD_AUTOSTART:-true}" "$(id -u)" "$(id -g)"
+      "${DASHBOARD_AUTOSTART:-true}" "$runtime_uid" "$runtime_gid"
     printf '"volumes":[{"type":"bind","source":'
     json_string "$REPOSITORY_ROOT"
     printf ',"target":'

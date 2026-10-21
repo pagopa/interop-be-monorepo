@@ -8,6 +8,39 @@ import { test } from 'node:test';
 const script = new URL('../dashboard.sh', import.meta.url).pathname;
 const entrypoint = new URL('../../../docker/dev-dashboard/entrypoint.sh', import.meta.url).pathname;
 
+for (const { platform, hostUid, hostGid, runtimeUid, runtimeGid } of [
+  { platform: 'Darwin', hostUid: '501', hostGid: '20', runtimeUid: '1000', runtimeGid: '1000' },
+  { platform: 'Linux', hostUid: '1234', hostGid: '2345', runtimeUid: '1234', runtimeGid: '2345' },
+]) {
+  test(`prepare selects the runtime identity for ${platform} hosts`, async () => {
+    const root = await mkdtemp(path.join(tmpdir(), 'interop-runtime-identity-'));
+    try {
+      const commands = path.join(root, 'bin');
+      await mkdir(commands);
+      await writeFile(path.join(commands, 'uname'), `#!/usr/bin/env bash
+printf '%s\\n' '${platform}'
+`, { mode: 0o755 });
+      await writeFile(path.join(commands, 'id'), `#!/usr/bin/env bash
+case "$1" in
+  -u) printf '%s\\n' '${hostUid}' ;;
+  -g) printf '%s\\n' '${hostGid}' ;;
+  *) exit 1 ;;
+esac
+`, { mode: 0o755 });
+      const result = spawnSync('bash', [script, 'prepare'], {
+        env: { ...process.env, INTEROP_BE_ROOT: root, PATH: `${commands}:${process.env.PATH}` },
+        encoding: 'utf8',
+      });
+      assert.equal(result.status, 0, result.stderr);
+      const compose = JSON.parse(await readFile(path.join(root, '.local-development', 'dashboard', 'compose.yml'), 'utf8'));
+      assert.equal(compose.services.dashboard.environment.LOCAL_UID, runtimeUid);
+      assert.equal(compose.services.dashboard.environment.LOCAL_GID, runtimeGid);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+}
+
 for (const existingGroup of ['', 'docker']) {
   test(`bootstrap ${existingGroup ? 'reuses an existing' : 'creates a missing'} Docker socket group`, async () => {
     const root = await mkdtemp(path.join(tmpdir(), 'interop-bootstrap-test-'));
