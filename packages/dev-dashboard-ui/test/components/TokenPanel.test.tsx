@@ -6,20 +6,16 @@ import type {
 
 import {
   act,
-  fireEvent,
-  render as renderToaster,
   renderHook,
   screen,
   waitFor,
   within,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { toast } from "sonner";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { TokenPanel } from "../../src/components/TokenPanel";
 import { useAccessToken } from "../../src/hooks/useAccessToken";
-import { NotificationProvider } from "../../src/providers/NotificationProvider";
 import { identitiesFixture, statusFixture } from "../fixtures";
 import {
   createTestQueryClient,
@@ -41,10 +37,6 @@ const unreadyStatus = {
 };
 
 describe("local identities", () => {
-  beforeEach(() =>
-    renderToaster(<NotificationProvider>{null}</NotificationProvider>)
-  );
-  afterEach(() => toast.dismiss());
   it("disables completed seed actions when packages and local data are ready", async () => {
     vi.stubGlobal(
       "fetch",
@@ -276,7 +268,7 @@ describe("local identities", () => {
     expect(onSeed).toHaveBeenCalledTimes(1);
   });
 
-  it("always exposes refresh beside the token title and keeps seed navigation before Seed local data", async () => {
+  it("omits manual identity reload and keeps seed navigation before Seed local data", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn<typeof fetch>().mockResolvedValue(Response.json(identitiesFixture))
@@ -291,10 +283,9 @@ describe("local identities", () => {
       />
     );
     await screen.findByRole("button", { name: "Generate token" });
-    const title = screen.getByRole("heading", { name: "Local access token" });
-    const refresh = screen.getByRole("button", { name: "Reload identities" });
-    expect(refresh).toBeEnabled();
-    expect(title.parentElement).toContainElement(refresh);
+    expect(
+      screen.queryByRole("button", { name: "Reload identities" })
+    ).not.toBeInTheDocument();
     const controls = [
       screen.getByRole("button", { name: "Start seed packages" }),
       screen.getByRole("link", { name: "View seed packages" }),
@@ -540,9 +531,6 @@ describe("local identities", () => {
     ).toBeEnabled();
     expect(onSeed).not.toHaveBeenCalled();
     expect(
-      screen.getByRole("button", { name: "Reload identities" })
-    ).toBeEnabled();
-    expect(
       fetchMock.mock.calls.some(([input]) => String(input).endsWith("/actions"))
     ).toBe(false);
   });
@@ -644,7 +632,7 @@ describe("local identities", () => {
     }
   );
 
-  it("reloads missing identities without automatically seeding and exposes discovered identities", async () => {
+  it("discovers missing identities when reopening without automatically seeding or generating a token", async () => {
     let ready = false;
     const fetchMock = vi
       .fn<typeof fetch>()
@@ -653,15 +641,15 @@ describe("local identities", () => {
       );
     vi.stubGlobal("fetch", fetchMock);
     const onSeed = vi.fn();
-    render(
-      <TokenPanel
-        {...unreadyStatus}
-        seedPackages={seedPackages}
-        operations={[]}
-        onSeed={onSeed}
-        onPrepare={vi.fn()}
-      />
-    );
+    const props = {
+      ...unreadyStatus,
+      seedPackages,
+      operations: [],
+      onSeed,
+      onPrepare: vi.fn(),
+    };
+    const client = createTestQueryClient();
+    const view = render(<TokenPanel {...props} />, { client });
     const empty = await screen.findByRole("region", {
       name: "Local identities unavailable",
     });
@@ -671,32 +659,24 @@ describe("local identities", () => {
         .map((item) => item.textContent)
     ).toEqual(seedPackages);
     expect(
-      screen.getByRole("button", { name: "Reload identities" })
-    ).toBeEnabled();
-    expect(
       screen.getByRole("button", { name: "Seed local data" })
     ).toBeEnabled();
     expect(fetchMock).toHaveBeenCalledTimes(1);
     ready = true;
-    const user = userEvent.setup();
-    await user.click(screen.getByRole("button", { name: "Reload identities" }));
+    view.unmount();
+    render(<TokenPanel {...props} />, { client });
     expect(
       await screen.findByRole("button", { name: "Generate token" })
     ).toBeEnabled();
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(onSeed).not.toHaveBeenCalled();
-    expect(await screen.findByText("Identities refreshed")).toBeInTheDocument();
+    expect(props.onPrepare).not.toHaveBeenCalled();
     expect(
-      within(
-        screen.getByRole("region", { name: "Local access token" })
-      ).queryByText("Identities refreshed")
+      screen.queryByRole("textbox", { name: "Session token" })
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("region", { name: "Local identities unavailable" })
     ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Reload identities" })
-    ).toBeInTheDocument();
   });
 
   it("keeps generation disabled while a seed request is pending and clears its compact HTTP failure on retry", async () => {
@@ -750,164 +730,6 @@ describe("local identities", () => {
     await waitFor(() => expect(seed).toHaveAttribute("aria-busy", "false"));
   });
 
-  it("keeps missing-identity guidance visible while reloading and disables reload during package startup", async () => {
-    let finish: (response: Response) => void = () => undefined;
-    const reload = new Promise<Response>((resolve) => {
-      finish = resolve;
-    });
-    const fetchMock = vi
-      .fn<typeof fetch>()
-      .mockResolvedValueOnce(Response.json({ ready: false, tenants: [] }))
-      .mockReturnValueOnce(reload);
-    vi.stubGlobal("fetch", fetchMock);
-    const onSeed = vi.fn();
-    const onPrepare = vi.fn();
-    const view = render(
-      <TokenPanel
-        {...unreadyStatus}
-        seedPackages={seedPackages}
-        operations={[]}
-        onSeed={onSeed}
-        onPrepare={onPrepare}
-      />
-    );
-    const empty = await screen.findByRole("region", {
-      name: "Local identities unavailable",
-    });
-    const button = screen.getByRole("button", {
-      name: "Reload identities",
-    });
-    const user = userEvent.setup();
-    await user.click(button);
-    expect(button).toHaveAttribute("aria-busy", "true");
-    expect(button).toBeDisabled();
-    expect(within(empty).getAllByRole("listitem")).toHaveLength(
-      seedPackages.length
-    );
-    await user.click(button);
-    expect(fetchMock).toHaveBeenCalledTimes(2);
-    finish(Response.json({ ready: false, tenants: [] }));
-    await waitFor(() => expect(button).toHaveAttribute("aria-busy", "false"));
-    view.rerender(
-      <TokenPanel
-        {...unreadyStatus}
-        seedPackages={seedPackages}
-        operations={[]}
-        prepareBusy="request"
-        onSeed={onSeed}
-        onPrepare={onPrepare}
-      />
-    );
-    expect(button).toBeDisabled();
-    expect(onSeed).not.toHaveBeenCalled();
-    expect(onPrepare).not.toHaveBeenCalled();
-  });
-
-  it("reports an empty fast reload and prevents repeated requests until its cooldown ends", async () => {
-    const fetchMock = vi
-      .fn<typeof fetch>()
-      .mockImplementation(async () =>
-        Response.json({ ready: false, tenants: [] })
-      );
-    vi.stubGlobal("fetch", fetchMock);
-    render(
-      <TokenPanel
-        {...unreadyStatus}
-        seedPackages={seedPackages}
-        operations={[]}
-        onSeed={vi.fn()}
-        onPrepare={vi.fn()}
-      />
-    );
-    const button = await screen.findByRole("button", {
-      name: "Reload identities",
-    });
-    await waitFor(() => expect(button).toBeEnabled());
-    vi.useFakeTimers();
-    try {
-      await act(async () => {
-        fireEvent.click(button);
-        fireEvent.click(button);
-      });
-      await act(async () => vi.advanceTimersByTimeAsync(0));
-      expect(fetchMock).toHaveBeenCalledTimes(2);
-      expect(button).toHaveAttribute("aria-busy", "false");
-      expect(button).toBeDisabled();
-      expect(
-        screen.getByText("No identities found. Run Seed local data.")
-      ).toBeInTheDocument();
-      expect(
-        within(
-          screen.getByRole("region", { name: "Local access token" })
-        ).queryByText("No identities found. Run Seed local data.")
-      ).not.toBeInTheDocument();
-      fireEvent.click(button);
-      expect(fetchMock).toHaveBeenCalledTimes(2);
-      act(() => vi.advanceTimersByTime(1900));
-      expect(button).toBeDisabled();
-      act(() => vi.advanceTimersByTime(100));
-      expect(button).toBeEnabled();
-      expect(
-        screen.getByText("No identities found. Run Seed local data.")
-      ).toBeInTheDocument();
-    } finally {
-      vi.useRealTimers();
-    }
-  });
-
-  it("reports a failed reload and allows retry after the cooldown", async () => {
-    const fetchMock = vi
-      .fn<typeof fetch>()
-      .mockImplementationOnce(async () =>
-        Response.json({ ready: false, tenants: [] })
-      )
-      .mockRejectedValueOnce(new Error("Identity read failed"))
-      .mockImplementation(async () => Response.json(identitiesFixture));
-    vi.stubGlobal("fetch", fetchMock);
-    render(
-      <TokenPanel
-        {...unreadyStatus}
-        seedPackages={seedPackages}
-        operations={[]}
-        onSeed={vi.fn()}
-        onPrepare={vi.fn()}
-      />
-    );
-    const button = await screen.findByRole("button", {
-      name: "Reload identities",
-    });
-    await waitFor(() => expect(button).toBeEnabled());
-    vi.useFakeTimers();
-    try {
-      await act(async () => fireEvent.click(button));
-      await act(async () => vi.advanceTimersByTimeAsync(0));
-      expect(screen.getByText("Identity read failed")).toBeInTheDocument();
-      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-      expect(
-        within(
-          screen.getByRole("region", { name: "Local access token" })
-        ).queryByText("Identity read failed")
-      ).not.toBeInTheDocument();
-      expect(button).toBeDisabled();
-      act(() => vi.advanceTimersByTime(2000));
-      await act(async () => fireEvent.click(button));
-      await act(async () => vi.advanceTimersByTimeAsync(0));
-      expect(fetchMock).toHaveBeenCalledTimes(3);
-      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-      expect(screen.getByText("Identities refreshed")).toBeInTheDocument();
-      expect(
-        within(
-          screen.getByRole("region", { name: "Local access token" })
-        ).queryByText("Identities refreshed")
-      ).not.toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: "Generate token" })
-      ).toBeEnabled();
-    } finally {
-      vi.useRealTimers();
-    }
-  });
-
   it("guards duplicate startup requests and clears a rejected startup failure on retry", async () => {
     vi.stubGlobal(
       "fetch",
@@ -954,9 +776,6 @@ describe("local identities", () => {
     expect(
       screen.getByRole("button", { name: "Seed local data" })
     ).toHaveAttribute("aria-busy", "false");
-    expect(
-      screen.getByRole("button", { name: "Reload identities" })
-    ).toBeDisabled();
     expect(screen.getByLabelText("Tenant")).toBeDisabled();
     expect(screen.getByLabelText("User")).toBeDisabled();
     await user.click(prepare);

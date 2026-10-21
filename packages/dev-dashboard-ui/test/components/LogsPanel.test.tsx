@@ -7,11 +7,11 @@ import type {
 import { act, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { toast } from "sonner";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { LogsPanel } from "../../src/components/LogsPanel";
 import { emptyLogs, statusFixture } from "../fixtures";
-import { renderWithProviders as render } from "../utils";
+import { advancePolling, renderWithProviders as render } from "../utils";
 
 const sources: LogSource[] = [
   { id: "agreement", label: "Agreement", kind: "backend" },
@@ -24,7 +24,11 @@ function entry(id: string, service: string): LogEntry {
 }
 
 describe("aggregate log filters", () => {
-  it("keeps grouping as view state across refresh, filters and clearing without requesting or clearing the cursor stream on toggle", async () => {
+  beforeEach(() =>
+    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] })
+  );
+  afterEach(() => vi.useRealTimers());
+  it("keeps grouping as view state across polling, filters and clearing without requesting or clearing the cursor stream on toggle", async () => {
     vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockReturnValue(440);
     vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockReturnValue(800);
     const initialEntries = [entry("2", "agreement"), entry("1", "agreement")];
@@ -55,6 +59,9 @@ describe("aggregate log filters", () => {
     await waitFor(() =>
       expect(screen.getByRole("status")).toHaveTextContent("2 lines")
     );
+    expect(
+      screen.queryByRole("button", { name: "Refresh logs" })
+    ).not.toBeInTheDocument();
     const grouping = screen.getByRole("button", { name: "Group by package" });
     expect(grouping).toHaveAttribute("aria-pressed", "false");
     expect(grouping.parentElement).toContainElement(
@@ -75,7 +82,7 @@ describe("aggregate log filters", () => {
     await user.click(screen.getByRole("button", { name: "Copy" }));
     expect(clipboard).toHaveBeenLastCalledWith("Log 2\nLog 1");
     expect(screen.getByRole("button", { name: "Download" })).toBeEnabled();
-    await user.click(screen.getByRole("button", { name: "Refresh logs" }));
+    await advancePolling();
     await waitFor(() =>
       expect(screen.getByRole("status")).toHaveTextContent("3 lines")
     );
@@ -388,9 +395,7 @@ describe("aggregate log filters", () => {
         );
       });
       await waitFor(() =>
-        expect(
-          screen.getByRole("button", { name: "Refresh logs" })
-        ).toBeEnabled()
+        expect(screen.getByRole("status")).toHaveAttribute("aria-busy", "false")
       );
       expect(screen.getByRole("list", { name: "Aggregate log entries" })).toBe(
         viewport
@@ -492,7 +497,7 @@ describe("aggregate log filters", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("keeps the log counter and current-filter exports stable during an incremental refresh", async () => {
+  it("keeps the log counter and current-filter exports stable during an incremental poll", async () => {
     let finish: (response: Response) => void = () => undefined;
     const next = new Promise<Response>((resolve) => {
       finish = resolve;
@@ -523,9 +528,7 @@ describe("aggregate log filters", () => {
     await waitFor(() => expect(copy).toBeEnabled());
     const counter = screen.getByRole("status");
     const count = counter.textContent;
-    await userEvent
-      .setup()
-      .click(screen.getByRole("button", { name: "Refresh logs" }));
+    await advancePolling();
     expect(counter.textContent).toBe(count);
     expect(counter).toHaveAttribute("aria-busy", "true");
     expect(copy).toBeEnabled();

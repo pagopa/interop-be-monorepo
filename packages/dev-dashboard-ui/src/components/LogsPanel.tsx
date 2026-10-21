@@ -1,6 +1,6 @@
 import type { LogSource, Preset } from "pagopa-interop-dev-dashboard-contracts";
 
-import { Copy, Download, FilterX, RefreshCw, Search } from "lucide-react";
+import { Copy, Download, FilterX, Search } from "lucide-react";
 
 import { useLogFilters } from "../hooks/useLogFilters";
 import { ErrorAlert } from "./common/ErrorAlert";
@@ -31,8 +31,7 @@ type Props = {
 export function LogsPanel(props: Props) {
   const { selectedSource, selectedLevel } = props;
   const model = useLogFilters(props);
-  const { entries, loading, hasResolved, isPreviousData, error, refresh } =
-    model.logs;
+  const { entries, loading, hasResolved, isPreviousData, error } = model.logs;
   return (
     <Card
       role="region"
@@ -94,16 +93,6 @@ export function LogsPanel(props: Props) {
           >
             <Download data-icon="inline-start" aria-hidden="true" />
             Download
-          </Button>
-          <Button
-            size="icon"
-            variant="ghost"
-            aria-label="Refresh logs"
-            title="Refresh logs"
-            disabled={loading}
-            onClick={() => void refresh()}
-          >
-            <RefreshCw aria-hidden="true" />
           </Button>
         </Toolbar>
       </CardHeader>

@@ -63,6 +63,8 @@ Logs. Each section has its own URL hash, so browser history and refresh
 retain the selected view. A package's log action opens Logs with that package
 selected. On Packages, Presets, Infrastructure and Access token, action progress
 appears in the button used. Diagnostics are available through Logs.
+Runtime status, aggregate logs and frontend logs update automatically every two
+seconds, without manual refresh controls.
 
 When opened from the frontend devcontainer, the dashboard also offers **Fullstack
 status** at `#/status` and uses it as the initial page. The current startup phases
@@ -195,17 +197,14 @@ in the **Tenant Seeding** preset. The Source filter offers this preset without a
 duplicate Seed packages option. Older `group:seed` links redirect to the preset,
 preserving the selected level.
 When local identities are unavailable, the token card lists the exact seed
-package names. An icon beside the Local access token title always offers Reload identities. Manual reloads
-report whether identities were discovered, nothing was found or the request
-failed through a snackbar at the bottom right. Requests cannot overlap; after completion
-the icon indicates success or failure and remains disabled for two seconds.
+package names.
 The four header actions are Start seed packages,
 Packages, Logs and Seed local data, in that order.
 Seed and startup failures have a **Logs** button filtered to orchestration errors.
 The seed button shows progress until completion; failures offer a link to
 orchestration error logs. Successful seed reloads the available identities.
-Access token also loads identities when opened and offers **Reload identities**,
-so an external seed can be discovered without relying on cached readiness.
+Access token also reloads identities whenever the page is opened, so reopening
+the page discovers an external seed without relying on cached readiness.
 When local identities are available, the UI offers tenant/user selection to
 generate and copy a local API token. Token generation returns the token to its caller;
 the dashboard does not write a token into a frontend checkout.

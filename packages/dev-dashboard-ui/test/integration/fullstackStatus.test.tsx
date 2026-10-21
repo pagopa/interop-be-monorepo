@@ -7,12 +7,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "../../src/App";
 import { createDashboardRouter } from "../../src/router/DashboardRoutes";
 import { emptyLogs, statusFixture } from "../fixtures";
+import { advancePolling } from "../utils";
 
 const bffName = "pagopa-interop-backend-for-frontend";
 let currentStatus: DashboardStatus;
 let failFrontendLogs = false;
 let failStatus = false;
 let holdFrontendLogs = false;
+let frontendOutput = "output";
 const fetchMock = vi.fn<typeof fetch>();
 const routers = new Set<ReturnType<typeof createDashboardRouter>>();
 
@@ -77,11 +79,13 @@ function renderDashboard(path = "/status") {
 }
 
 beforeEach(() => {
+  vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
   vi.spyOn(window, "scrollTo").mockImplementation(() => undefined);
   currentStatus = fullstackStatusFixture();
   failFrontendLogs = false;
   failStatus = false;
   holdFrontendLogs = false;
+  frontendOutput = "output";
   fetchMock.mockReset();
   fetchMock.mockImplementation(async (input, init) => {
     const url = new URL(String(input));
@@ -100,7 +104,7 @@ beforeEach(() => {
             { status: 503 }
           )
         : Response.json({
-            content: `${url.searchParams.get("source")} output`,
+            content: `${url.searchParams.get("source")} ${frontendOutput}`,
           });
     if (url.pathname.endsWith("/status"))
       return failStatus
@@ -118,6 +122,7 @@ beforeEach(() => {
 afterEach(() => {
   for (const router of routers) router.dispose();
   routers.clear();
+  vi.useRealTimers();
 });
 
 function frontendLogRequests() {
@@ -262,19 +267,20 @@ describe("optional fullstack status", () => {
       screen.getByRole("button", { name: "Show frontend logs" })
     );
     expect(await screen.findByText("startup output")).toBeVisible();
+    expect(frontendLogRequests()).toHaveLength(1);
     if (!currentStatus.frontend)
       throw new Error("Fullstack fixture is required");
     currentStatus.frontend.available = false;
-    await user.click(
-      screen.getByRole("button", { name: "Refresh runtime status" })
-    );
+    await advancePolling();
     expect(
       await screen.findByText(
         "Frontend logs are unavailable while the frontend runtime cannot be reached."
       )
     ).toBeVisible();
     expect(screen.queryByText("startup output")).not.toBeInTheDocument();
-    expect(frontendLogRequests()).toHaveLength(1);
+    const requestsWhenUnavailable = frontendLogRequests().length;
+    await advancePolling();
+    expect(frontendLogRequests()).toHaveLength(requestsWhenUnavailable);
   });
 
   it("keeps startup details visible while logs load and cancels the request when leaving status", async () => {
@@ -287,8 +293,8 @@ describe("optional fullstack status", () => {
     );
     await waitFor(() => expect(frontendLogRequests()).toHaveLength(1));
     expect(
-      screen.getByRole("button", { name: "Refresh frontend logs" })
-    ).toBeDisabled();
+      screen.queryByRole("button", { name: "Refresh frontend logs" })
+    ).not.toBeInTheDocument();
     expect(
       screen.getByRole("region", { name: "Current startup" })
     ).toHaveTextContent("Build backend packages");
@@ -296,6 +302,22 @@ describe("optional fullstack status", () => {
     await user.click(screen.getByRole("link", { name: "Packages" }));
     await screen.findByRole("heading", { name: "Package catalogue" });
     expect(signal?.aborted).toBe(true);
+  });
+
+  it("updates frontend output automatically without manual refresh controls", async () => {
+    const user = userEvent.setup();
+    renderDashboard();
+    await user.click(
+      await screen.findByRole("button", { name: "Show frontend logs" })
+    );
+    expect(await screen.findByText("startup output")).toBeVisible();
+    expect(
+      screen.queryByRole("button", { name: /Refresh/ })
+    ).not.toBeInTheDocument();
+    frontendOutput = "new output";
+    await advancePolling();
+    expect(await screen.findByText("startup new output")).toBeVisible();
+    expect(frontendLogRequests()).toHaveLength(2);
   });
 
   it("identifies shared development and omits local-only startup phases", async () => {
@@ -336,9 +358,7 @@ describe("optional fullstack status", () => {
     renderDashboard();
     await screen.findByRole("heading", { name: "Fullstack status" });
     failStatus = true;
-    await userEvent
-      .setup()
-      .click(screen.getByRole("button", { name: "Refresh runtime status" }));
+    await advancePolling();
     expect(
       await screen.findByText("Runtime observer unavailable")
     ).toBeVisible();
