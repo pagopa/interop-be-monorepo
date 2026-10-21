@@ -55,14 +55,18 @@ describe("aggregate log filters", () => {
     await waitFor(() =>
       expect(screen.getByRole("status")).toHaveTextContent("2 lines")
     );
-    const grouping = screen.getByRole("checkbox", { name: "Group by package" });
-    expect(grouping).not.toBeChecked();
+    const grouping = screen.getByRole("button", { name: "Group by package" });
+    expect(grouping).toHaveAttribute("aria-pressed", "false");
+    expect(grouping.parentElement).toContainElement(
+      screen.getByRole("button", { name: "Copy" })
+    );
     expect(
       screen.getByRole("button", { name: "Clear log filters" })
     ).toBeDisabled();
     const requestCount = fetchMock.mock.calls.length;
     await user.click(grouping);
-    expect(grouping).toBeChecked();
+    expect(grouping).toHaveAttribute("aria-pressed", "true");
+    expect(grouping).toHaveFocus();
     expect(fetchMock).toHaveBeenCalledTimes(requestCount);
     expect(screen.getByRole("status")).toHaveTextContent("2 lines");
     expect(
@@ -78,15 +82,82 @@ describe("aggregate log filters", () => {
     expect(
       new URL(String(fetchMock.mock.lastCall?.[0])).searchParams.has("cursors")
     ).toBe(true);
-    expect(grouping).toBeChecked();
+    expect(grouping).toHaveAttribute("aria-pressed", "true");
     rerender(<LogsPanel {...props} selectedSource="agreement" />);
     await waitFor(() =>
       expect(screen.getByRole("button", { name: "Copy" })).toBeEnabled()
     );
-    expect(grouping).toBeChecked();
+    expect(grouping).toHaveAttribute("aria-pressed", "true");
     await user.click(screen.getByRole("button", { name: "Clear log filters" }));
     expect(props.onFiltersChange).toHaveBeenLastCalledWith("", "");
-    expect(grouping).toBeChecked();
+    expect(grouping).toHaveAttribute("aria-pressed", "true");
+    await user.click(grouping);
+    expect(grouping).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it("copies and downloads all entries in package view, including virtualized messages", async () => {
+    vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockReturnValue(240);
+    vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockReturnValue(800);
+    const entries = Array.from({ length: 500 }, (_, index) =>
+      entry(String(500 - index), "agreement")
+    );
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>().mockResolvedValue(
+        Response.json({
+          entries,
+          cursors: { agreement: "500" },
+          resetSources: [],
+        })
+      )
+    );
+    const createObjectURL = vi
+      .fn<(blob: Blob) => string>()
+      .mockReturnValue("blob:logs");
+    vi.stubGlobal(
+      "URL",
+      class extends URL {
+        static createObjectURL = createObjectURL;
+        static revokeObjectURL = vi.fn();
+      }
+    );
+    const click = vi
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(() => undefined);
+    const user = userEvent.setup();
+    const clipboard = vi
+      .spyOn(navigator.clipboard, "writeText")
+      .mockResolvedValue();
+    render(
+      <LogsPanel
+        sources={sources}
+        presets={[]}
+        selectedSource=""
+        selectedLevel=""
+        onFiltersChange={vi.fn()}
+      />
+    );
+    await waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent("500 lines")
+    );
+    await user.click(screen.getByRole("button", { name: "Group by package" }));
+    expect(screen.getAllByRole("listitem").length).toBeLessThan(entries.length);
+    await user.click(screen.getByRole("button", { name: "Copy" }));
+    expect(clipboard).toHaveBeenCalledExactlyOnceWith(
+      entries.map((item) => item.message).join("\n")
+    );
+    await user.click(screen.getByRole("button", { name: "Download" }));
+    expect(click).toHaveBeenCalledOnce();
+    const blob = createObjectURL.mock.calls[0]?.[0];
+    if (!blob) throw new Error("Downloaded logs missing");
+    const downloaded = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.readAsText(blob);
+    });
+    expect(downloaded).toBe(
+      entries.map((item) => ` [info] agreement ${item.message}`).join("\n")
+    );
   });
 
   it.each([undefined, "cid-123"])(
