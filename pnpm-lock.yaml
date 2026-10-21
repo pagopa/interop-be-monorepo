@@ -311,6 +311,9 @@ importers:
 
   .:
     devDependencies:
+      '@aws-sdk/client-kms':
+        specifier: 'catalog:'
+        version: 3.840.0
       '@tsconfig/node-lts':
         specifier: 'catalog:'
         version: 20.1.3
