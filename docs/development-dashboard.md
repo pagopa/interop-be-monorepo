@@ -142,6 +142,8 @@ badges, correlation IDs or individual copy controls. The default ungrouped
 view retains those details and controls. Both views virtualize individual
 entries. This view setting does not change filters, line counts or the full
 contents of copied and downloaded logs.
+The grouping preference is saved in browser local storage and restored after
+navigation and page reloads. Grouping remains usable when storage is unavailable.
 
 The shared Frontend backend preset (`frontend-full`) contains the same 30 backend services
 as the previous devcontainer script. All members have

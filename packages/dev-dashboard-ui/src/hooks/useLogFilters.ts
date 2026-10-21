@@ -5,6 +5,8 @@ import { toast } from "sonner";
 
 import { useIncrementalLogs } from "./useIncrementalLogs";
 
+const groupByPackageStorageKey = "pdnd-dev-dashboard.logs.groupByPackage";
+
 function useDebouncedValue(value: string) {
   const [debounced, setDebounced] = useState(value);
   // Coalesce typing into one request and cancel the pending timer when input changes or unmounts.
@@ -29,7 +31,23 @@ export function useLogFilters({
   onFiltersChange: (source: string, level: string) => void;
 }) {
   const [search, setSearch] = useState("");
-  const [groupByPackage, setGroupByPackage] = useState(false);
+  const [groupByPackage, setGroupByPackage] = useState(() => {
+    try {
+      return window.localStorage.getItem(groupByPackageStorageKey) === "true";
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(
+        groupByPackageStorageKey,
+        String(groupByPackage)
+      );
+    } catch {
+      // Grouping remains available when browser storage is blocked or full.
+    }
+  }, [groupByPackage]);
   const debouncedSearch = useDebouncedValue(search);
   const logs = useIncrementalLogs({
     source: selectedSource,
