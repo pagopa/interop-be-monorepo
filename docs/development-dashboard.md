@@ -14,6 +14,8 @@ installs dependencies and builds the dashboard. Host Node.js and pnpm are not re
 On Windows, use a WSL2 Linux checkout with Docker Desktop integration enabled.
 On macOS, allow Docker Desktop to access the checkout. The runtime supports
 amd64 and arm64.
+On macOS, the runtime keeps the image's `node` UID/GID (`1000:1000`);
+on Linux and WSL2, it uses the host user's UID/GID for bind-mount permissions.
 
 1. From the backend repository root, start the runtime:
 
