@@ -1,377 +1,316 @@
 # Local development dashboard
 
-The backend repository owns the dashboard, its API and the process supervisor.
-It runs in a Docker Compose container independently of Vite, VS Code and the
-frontend checkout. Application sources are bind-mounted from this checkout;
-changes in the editor are the same files used by the running processes.
+The dashboard starts backend packages, manages local infrastructure, collects logs,
+and generates local access tokens. It runs in a Docker Compose container owned by
+this repository. You can use it without the frontend checkout or VS Code.
+The container bind-mounts your checkout, so editor changes are available to its
+managed processes.
 
-## Start with the backend only
+## Start the dashboard
 
-Requirements: Git checkout, Bash and Docker with Compose v2. Host Node.js and
-pnpm are not required. On Windows, run these commands from a WSL2 Linux checkout
-with Docker Desktop integration enabled. macOS includes Bash; Docker Desktop
-must have access to the checkout. The image supports amd64 and arm64.
+You need a backend checkout, Bash, and Docker with Compose v2. The container
+installs dependencies and builds the dashboard. Host Node.js and pnpm are not required.
 
-```bash
-bash scripts/local-development/dashboard.sh start
-```
+On Windows, use a WSL2 Linux checkout with Docker Desktop integration enabled.
+On macOS, allow Docker Desktop to access the checkout. The runtime supports
+amd64 and arm64.
 
-Open **http://localhost:8076**. Initial dependency installation and dashboard
-compilation appear in `bash scripts/local-development/dashboard.sh logs`.
-Dashboard builds use the workspace's Turbo cache: unchanged generation and
-compilation are reused on later starts, including restoring missing build
-outputs. After the shared contracts are built, the API and UI build in parallel.
-The API then prepares infrastructure automatically: Kafka recovery, container
-startup, migrations and RustFS fixtures, topic creation and Debezium registration.
-No application package starts automatically unless a startup preset is selected.
+1. From the backend repository root, start the runtime:
 
-Use the package catalogue to start individual services. Their workspace build
-dependencies are prepared automatically; other application services are not
-started implicitly by **Start**. The table shows the package's actual workspace
-name, port, process state and watch setting, with Start/Stop and Logs actions.
-Workspace names use the same monospace styling as infrastructure container names,
-with compact, vertically aligned rows.
-Use the Preset filter to limit the table to a shared or local preset. Select rows
-for bulk Start, Stop, Watch on or Watch off. The header checkbox selects the
-visible rows; changing the search or preset clears the selection. Bulk actions
-skip rows already in the requested state or currently busy. Start shares the
-workspace dependency build across selected packages. A failure on an individual
-package is reflected in its state while the other selected packages continue;
-failure details are available in Logs.
-The list comes from executable package entrypoints in the checkout; ports come
-from their local environment configuration, including the dashboard's local
-endpoint overrides. Packages without an HTTP port show a dash.
+   ```bash
+   bash scripts/local-development/dashboard.sh start
+   ```
 
-There is no separately maintained catalogue of process, infrastructure or data
-dependencies. Start operates on the selected package; configure service groups
-explicitly through presets. Startup failures appear beside the affected controls
-and in logs.
+2. Follow the first installation and build:
 
-```bash
-bash scripts/local-development/dashboard.sh status
-bash scripts/local-development/dashboard.sh logs
-bash scripts/local-development/dashboard.sh stop
-```
+   ```bash
+   bash scripts/local-development/dashboard.sh logs
+   ```
 
-The last command stops the runtime itself. Use the dashboard infrastructure
-controls to stop infrastructure while keeping the dashboard available.
+3. Open [the dashboard](http://localhost:8076). Infrastructure starts automatically.
+   Wait for its startup operation to finish, then open **Packages** to start the
+   services you need.
 
-## Processes and presets
+Startup prepares Kafka, starts infrastructure containers, waits for initialization,
+creates topics, and registers Debezium. Initialization includes migrations and
+RustFS fixtures. No application package starts unless you select a startup preset.
+Turbo reuses cached dashboard builds on subsequent starts.
 
-Use the navigation to open Packages, Presets, Infrastructure, Access token or
-Logs. Each section has its own URL hash, so browser history and refresh
-retain the selected view. A package's log action opens Logs with that package
-selected. On Packages, Presets, Infrastructure and Access token, action progress
-appears in the button used. Diagnostics are available through Logs.
-Runtime status, aggregate logs and frontend logs update automatically every two
-seconds, without manual refresh controls.
-
-When opened from the frontend devcontainer, the dashboard also offers **Fullstack
-status** at `#/status` and uses it as the initial page. The current startup phases
-include dependency installation, dashboard readiness, infrastructure, backend
-services, seed, local identity, Vite, smoke tests and browser checks. Backend
-operation details appear inside the corresponding startup phase. The card uses
-the page width while its content retains the original single-column layout and
-readable width. The page stays
-focused on this timeline and frontend startup and Vite log tails, loaded only
-when opened. **Open frontend** opens `http://localhost:3000/ui/it/` in a new tab
-as soon as the frontend process is running, including while startup checks are
-still pending. The button remains disabled until then. The timeline identifies
-the local or shared development target; shared development omits local-only
-startup phases. Infrastructure, packages and seeded data remain in their
-existing views, and backend log links use the existing Logs view.
-
-The frontend Compose overlay enables this view with
-`DASHBOARD_FRONTEND_URL=http://frontend:8077`. This is an internal agent
-owned by the frontend container; its port is not published on the host.
-The backend validates the agent response and keeps its own status available
-when the frontend is unreachable. Without this setting, the dashboard retains
-its backend-only navigation and never contacts a frontend agent. With the
-integration enabled, the dashboard API owns fullstack lifecycle progress and
-delegates only frontend commands to the agent.
-
-Each package has start, stop, logs and watch controls. Watch is on
-by default and off for packages in the Frontend backend preset.
-Changing watch immediately displays the requested checkbox value, with controls
-disabled until that package's change finishes. The State chip shows `Queued`
-while waiting, `Restarting` for a running package or `Updating watch` for a
-stopped package. The Watch column keeps only its checkbox. Bulk rows unlock
-independently; completed or failed changes show the backend's saved preference.
-The operation's optional `watch` target restores this feedback after a page reload.
-Changing watch for a running package restarts that package. Crashes are isolated
-and remain visible until started again; there is no automatic crash restart.
-
-Shared presets live in `docker/local-development/presets.json`. Personal presets
-can be created, edited and deleted in the UI; their configuration persists in
-`.local-development/dashboard/presets.json`. The Presets page separates shared
-and local presets with compact section headings and separated rows; the local section and filter group appear only when local
-presets exist. New preset and Edit open a modal editor with a package search.
-Search matches workspace names and labels without changing hidden selections
-or watch choices. The selection count includes packages hidden by the filter.
-Clearing the search restores the complete list without resizing the table.
-The editor uses compact rows and monospace workspace names.
-Packages opens
-`#/packages?preset=<id>` with only that preset's members. The filter persists
-through refresh and browser history, and combines with package search.
-A preset shows Running and disables Start when all its members are running.
-Start and Stop show progress on the pressed button until the operation finishes.
-Infrastructure Start, Stop and Reset likewise show progress on the relevant
-button; other infrastructure actions are disabled until it finishes. Reset
-is the outlined destructive first action in the table header, followed by Stop and Start,
-with explicit confirmation before deleting local data. Infrastructure rows are compact.
-The confirmation action is red and includes a delete icon.
-Failed preset operations show a short startup/stop failure beside that preset,
-with a Logs action that selects the preset's error logs. Retrying clears the failure.
-The Source selector separates Shared presets and Local presets, followed by
-Packages, Infrastructure and Runtime. Empty groups are omitted.
-All packages (`group:packages`) includes only backend package logs. Infra
-(`group:infra`) includes infrastructure logs, including retained logs from stopped
-containers. Neither aggregate includes orchestration logs.
-Selecting a preset aggregates only its package logs;
-frontend and browser-check logs belong to the frontend launcher. The selection persists in
-the URL together with the level filter. Search matches message text or correlation ID metadata,
-case-insensitively and by substring. Package and infrastructure log actions keep all levels.
-Orchestration logs are shared across runtime operations.
-Docker timestamps are stored as entry metadata; the Docker timestamp and
-container prefix are omitted from message text. Timestamps emitted by the
-application remain part of its original message.
-The log header's **By package** toggle switches between individual entries and a
-compact terminal view. When pressed, it collects consecutive entries
-from the same source and service under one header, preserving their order. The
-header shows the group's time range and stays visible while scrolling within
-the group. Grouped entries show only message text, without row borders, severity
-badges, correlation IDs or individual copy controls. The default ungrouped
-view retains those details and controls. Both views virtualize individual
-entries. This view setting does not change filters, line counts or the full
-contents of copied and downloaded logs.
-The grouping preference is saved in browser local storage and restored after
-navigation and page reloads. Grouping remains usable when storage is unavailable.
-
-The shared Frontend backend preset (`frontend-full`) contains the same 30 backend services
-as the previous devcontainer script. All members have
-watch disabled. Starting this preset only starts its backend packages.
-The shared Tenant Seeding preset starts the four packages used by Start seed packages.
-Manual seed remains a separate action in Access token.
-
-A preset builds shared dependencies first, then starts up to four missing members
-concurrently. Each start slot remains occupied until that package is ready.
-HTTP services must pass their health check. Kafka consumers must join a stable
-group and receive partition assignments under a unique client ID for that launch;
-an older member cannot satisfy this check. The Kafka observer connects only to
-local loopback brokers with AWS authentication disabled.
-
-Dashboard-managed consumers use `earliest` for new local groups, so seed events
-cannot be skipped if the first offset lookup occurs after group assignment.
-Existing committed offsets retain precedence; a new group replays retained local
-history. These overrides do not change package environment files or deployments.
-Fullstack startup waits for every preset member before requesting seed. A failed
-start prevents further preset members from launching, waits for in-flight starts
-to settle and reports unlaunched members as skipped. Bulk package starts continue
-the other selected packages after an individual failure.
-
-Starting a preset leaves existing processes running. Stopping a preset stops
-all its members, including members started separately, and leaves outsiders
-running. Save per-package watch choices in the preset.
-
-Access token offers an explicit **Seed local data** action using the existing
-`pnpm local:seed` workflow. Presets do not execute seed, including older definitions
-with `seed: true` or `fullstack: true`. Fullstack startup requests seed explicitly
-after the backend preset is ready.
-It requires the local tenant/catalog services and their readmodel writers and
-uses `docker/local-development/dataset.json` to
-create or reuse four demo tenants and a published Catalogo Demo eservice with
-its OpenAPI interface. The local users and roles in that dataset are used for
-token generation. The seed dataset is independent of presets; identifiers are
-kept in `.local-development/state.json`. **Start seed packages** on Access token
-starts tenant-process, catalog-process and their SQL readmodel writers. It starts
-missing processes and preserves other running packages and watch choices.
-Once all required packages are running, the button displays **Seed packages running**
-with a checkmark and cannot start them again. Missing or stopped members restore
-the startup action. A seeded environment displays **Local data seeded** with a
-checkmark and disables the seed action. The action becomes available again when
-the local data is no longer present, such as after an infrastructure reset.
-Infrastructure is managed separately from its own page. This action does not
-seed data or generate a token: use **Seed local data** next.
-**Packages** remains available during and after startup and opens
-`#/packages?group=seed`. The **Group** filter uses the complete seed package
-list, so running members remain visible; refresh and browser history retain it.
-Required packages must be running before seed; both shared presets include them.
-**Logs** opens `#/logs?source=preset%3Atenant-seeding`, showing only the packages
-in the **Tenant Seeding** preset. The Source filter offers this preset without a
-duplicate Seed packages option. Older `group:seed` links redirect to the preset,
-preserving the selected level.
-When local identities are unavailable, the token card lists the exact seed
-package names.
-The four header actions are Start seed packages,
-Packages, Logs and Seed local data, in that order.
-Seed and startup failures have a **Logs** button filtered to orchestration errors.
-The seed button shows progress until completion; failures offer a link to
-orchestration error logs. Successful seed reloads the available identities.
-Access token also reloads identities whenever the page is opened, so reopening
-the page discovers an external seed without relying on cached readiness.
-When local identities are available, the UI offers tenant/user selection to
-generate and copy a local API token. Token generation returns the token to its caller;
-the dashboard does not write a token into a frontend checkout.
-
-## Fullstack and VS Code
-
-To prepare infrastructure and the backend service group used by the frontend:
+To start a service group with the dashboard, pass its preset ID:
 
 ```bash
 bash scripts/local-development/dashboard.sh start --preset frontend-full
 ```
 
-This starts infrastructure and the selected backend packages. It does not seed data
-or start Vite. Without `--preset`, startup prepares infrastructure without starting
-application packages. `--preset` accepts any shared or personal
-preset ID and can also be configured through `DASHBOARD_AUTOSTART_PRESET`.
-`DASHBOARD_AUTOSTART=false` disables backend-only automatic startup. A frontend
-agent can still explicitly request fullstack startup when its integration is enabled.
+The `frontend-full` preset starts the backend services used by the frontend with
+watch disabled. It does not seed data or start Vite. Any shared or personal preset
+ID can be used with `--preset`.
 
-The frontend `.devcontainer` runs in a separate Compose service. VS Code, frontend
-dependencies, Vite, smoke checks and browser checks belong to that container.
-Its entrypoint starts the frontend agent and submits a startup action to the
-dashboard API. The API coordinates installation, infrastructure, `frontend-full`,
-seed, identity, Vite and checks. The agent executes frontend-only commands,
-retaining ownership of Vite and frontend files. The dashboard does not mount the
-frontend checkout. Use the frontend repository's CLI for lifecycle workflows;
-the dashboard UI continues to offer status and logs. Closing VS Code leaves
-the containers running; rebuilding the frontend container does not rebuild the backend
-dashboard or replace its managed processes.
+## Check and stop the runtime
 
-The CLI submits `POST /__local-dashboard/api/frontend/actions` with `type` set to
-`start`, `stop`, `use-local`, `use-dev`, `reset`, or `identity` with `tenantKey` and
-`userKey`. The endpoint is absent without the integration. Each accepted action
-returns `operationId`; poll `GET /status` and match `frontend.operationId` until
-`frontend.state` becomes `passed`, `stopped` or `failed`. Overlapping lifecycle
-operations are rejected. Each backend phase retains its operation ID for detailed
-progress. A failed startup skips subsequent phases and stops Vite; retry is explicit.
+Check the dashboard container or follow its bootstrap logs:
 
-The agent exposes status/log reads and `POST /commands` for installation,
-Vite start/stop and smoke/browser checks. Tokens travel only in a local-start
-command and remain in the frontend's ignored state. Public status contains no
-token or process ownership data. The existing backend `/actions`, `/identities`
-and `/identity` endpoints remain available for standalone workflows.
+```bash
+bash scripts/local-development/dashboard.sh status
+bash scripts/local-development/dashboard.sh logs
+```
 
-The frontend is published at **http://localhost:3000/ui/it/**. The catalog process
-uses port 3000 inside the backend runtime and is published on **http://localhost:13000**.
-Other backend API ports retain their numbers on host loopback. The frontend keeps
-its existing Docker publication for access through the host gateway; dashboard
-and backend API publications are bound to host loopback.
-The authorization process keeps port 3300; the authorization server uses local
-port 4700 so both can run together without occupying the M2M gateway's port 4600.
-The local authorization-server override also aligns issued M2M token audiences
-with both gateway configurations. Client assertions and domain state must still
-match the configured authorization flow.
+To stop managed backend packages and infrastructure while keeping the dashboard
+available, open **Infrastructure** and select **Stop**. Local data remains intact.
 
-## Logs and infrastructure data
+To stop the dashboard container itself, run:
 
-Logs cover managed application processes, startup steps and every Compose
-infrastructure container, including initialization containers. Filter the
-aggregate stream by Source, Level and Search, which also matches correlation IDs.
-Cursor-based fetches keep the browser log window bounded rather than reloading whole files.
-Changing filters keeps the log viewport mounted, preserving focus and scroll during
-loading. The previous snapshot is marked as updating until the new results arrive;
-Copy, Download and correlation-ID copy remain disabled during this transition.
-Each log row has a vertically centred Copy action that fades in and out on hover;
-focus alone does not keep it visible. Touch devices show it directly. It copies
-the exact message, preserving multiline text, without shifting
-the row. Correlation-ID copy is separate, beside the ID. Copy feedback appears in
-a bottom-right snackbar, keeping the log viewport stable. Its close button sits
-inside the notification, allowing manual dismissal before it closes automatically.
+```bash
+bash scripts/local-development/dashboard.sh stop
+```
 
-## Dashboard frontend architecture
+This command also stops its managed backend processes. It leaves infrastructure
+containers running. Use **Infrastructure > Stop** first when you want to stop both.
 
-The Vite application lives in `packages/dev-dashboard-ui`. `App.tsx` composes
-providers and routes; it contains no page logic or API calls.
+## Work with packages and presets
 
-- `router/` defines the five hash routes, shared paths and addressable package/log filters
-  with React Router's route configuration and RouterProvider, matching the PDND frontend pattern.
-  Hash URLs support both standalone and mounted dashboard access without server rewrite rules.
-- `pages/` composes each dedicated view using the shared dashboard context.
-- `components/layout/` owns the viewport shell, navigation and runtime controls.
-- `components/ui/` contains ShadCN primitives; `components/common/` composes
-  shared alerts, fields and layout elements from them.
-- `api/dashboard/` groups typed services, query options and mutations, following
-  the PDND frontend convention. `config/axios.ts` defines the shared Axios instance;
-  `api/client.ts` centralizes errors and validation against shared dashboard contracts.
-- `hooks/` owns runtime actions, identity/token state, selection, editors and
-  incremental log streams. React Query owns status polling, cancellation and
-  request deduplication. Browser effects are limited to external synchronization
-  such as focus, stream subscriptions and timer cleanup.
-- `test/` separates API, hook, component and integration tests from production
-  code and provides fresh query clients for isolated tests.
+### Start packages
 
-The runtime's internal action identifiers are used to follow accepted commands
-until completion and restore inline loading after navigation or refresh.
+**Packages** lists executable workspace packages with their ports, process states,
+and watch settings. Search by package name or filter by preset. Each package has
+**Start**, **Stop**, and **Logs** actions.
 
-Infrastructure status treats SIGTERM exits (143) as stopped. SIGKILL exits (137)
-are stopped only when Docker inspection confirms no OOM kill or engine error.
-OOM kills, engine errors, dead containers and other nonzero exits remain failed;
-an unavailable inspection keeps exit 137 failed. Exit codes remain visible.
-Local KMS runs under Docker init so SIGTERM produces the expected signal exit
-instead of Go's PID 1 fallback exit 2. This applies when Compose recreates the
-container on the next infrastructure start; existing exit codes are retained.
+**Start** builds the selected package's workspace dependencies before launching it.
+It does not start other application services. Use a preset to define the service
+group required by your task.
 
-Infrastructure **stop** preserves data. **Reset** requires confirmation in the
-UI, stops managed backend processes and removes infrastructure data volumes and generated
-seed state, then initializes clean infrastructure. It preserves the dashboard
-container, dependency/cache volumes and personal presets. Application packages
-remain stopped until explicitly started. It does not control Vite or delete files
-in the frontend container; rerun the frontend launcher to prepare fresh seed data
-and a token after resetting the backend.
+Select rows to start or stop several packages, or to change their watch settings.
+The header checkbox selects the visible rows. Changing the search or preset clears
+the selection. Bulk actions skip packages already in the requested state or busy
+with another action. If one bulk start fails, the other selected packages continue.
+Open **Logs** for failure details.
 
-Runtime state and generated Compose mounts are ignored under `.local-development`.
-Regenerate the mounts and recreate the runtime after adding or removing workspace
-packages, so every workspace dependency directory has its own Docker volume.
+Watch is enabled by default. Changing watch for a running package restarts that
+package. The checkbox shows the requested watch setting while the status reports
+the restart. The dashboard saves watch preferences, and presets can specify their own
+per-package watch settings. A crashed package remains failed until you start it
+again. The supervisor does not restart crashes automatically.
 
-## API and UI development
+### Start service groups
 
-`packages/dev-dashboard-contracts` contains the OpenAPI contract and generated
-browser-safe Zod/Zodios schemas. The contract is `open-api/dashboardApi.yml`;
-`generate-model` produces `src/generated/dashboardApi.ts`, exported through the
-package's public entry point. Edit the YAML and regenerate instead of editing
-generated schemas. Spectral validates the private local API with standard OpenAPI
-rules; the public interoperability API policies are not applied to this developer tool.
+**Presets** lists shared and personal presets. Select **Start** or **Stop** to act
+on a group, or **Packages** to inspect its members. Create, edit, and delete personal
+presets in this page. The editor lets you select packages and their watch settings.
 
-`packages/dev-dashboard-api` follows the backend package structure:
+Starting a preset leaves already running packages unchanged. Stopping a preset
+stops all its members, including packages started separately, and leaves packages
+outside the preset running.
 
-- `config/` owns validated startup configuration, shared constants and local environment defaults.
-- `routers/DashboardRouter.ts` defines the HTTP routes; `app.ts` composes middleware,
-  routes and compiled UI assets.
-- `services/` contains package discovery, environment validation, process supervision,
-  infrastructure monitoring, identities and log handling.
-- `model/domain/` defines internal schemas, driver interfaces and domain errors.
-- `utilities/` contains query parsing, HTTP middleware, watch and shared helpers.
-- `test/` covers local behavior with fake drivers and includes startup configuration checks.
+A preset builds shared dependencies first, then starts up to four missing members
+concurrently. Each slot remains occupied until its package is ready. HTTP services
+must pass their health check. Kafka consumers must join a stable group and receive
+partition assignments under a unique client ID for that launch.
 
-Runtime services use the backend's `...ServiceBuilder` factory pattern. Each
-factory keeps process handles, log buffers, timers and execution queues in its
-own closure and returns the public functions. `index.ts` creates and connects
-the services; public service interfaces declare their return types explicitly.
-The supervisor composes application lifecycle, operation queue and preset
-persistence services. Lifecycle phases remain sequential; independent catalogue
-reads run concurrently. Log filtering and infrastructure inventory use indexed
-lookups to avoid repeatedly scanning the same collections.
+If a preset member fails, the dashboard stops launching further members, waits for
+in-flight starts, and marks the remaining members as skipped. Retry explicitly
+after resolving the failure. Preset log filters contain package output. Select
+the orchestration source to inspect dependency builds and runtime operations.
 
-The API keeps the local tool's strict input validation and compact error responses;
-production authentication and auditing middleware are not needed for the local runtime.
-`packages/dev-dashboard-ui` is an independent React application
-with local shadcn/ui components and Tailwind; it uses the PDND palette, Titillium
-Web for the interface, DM Mono for code/logs and a light theme only. Fonts are
-served locally. The API serves its compiled assets on the same origin.
+## Seed data and generate a token
 
-With local dependencies installed, focused checks are:
+Use **Access token** for a standalone backend session:
+
+1. Select **Start seed packages**. This starts missing tenant and catalog processes
+   and their SQL readmodel writers. Other packages and watch settings remain unchanged.
+2. Wait until the required packages are running, then select **Seed local data**.
+3. Select a tenant and user, generate a local API token, and copy it.
+
+The shared **Tenant Seeding** preset contains the required seed packages. Starting
+a preset does not seed data. The seed action uses the `pnpm local:seed` workflow
+to create or reuse demo tenants and a published Catalogo Demo eservice with its
+OpenAPI interface. Dataset users and roles provide the available token identities.
+
+The page disables seed when local data is already present. An infrastructure reset
+makes seed available again. Reopening **Access token** reloads identities, including
+data seeded outside the dashboard. The **Packages** and **Logs** actions show the
+seed package group. Seed failures link to orchestration error logs.
+
+Token generation returns a token to the caller. It does not write a token into a
+frontend checkout. See [frontend-local-runtime.md](frontend-local-runtime.md)
+for the dataset, seed workflow, and mock services.
+
+## Inspect and reset infrastructure
+
+**Infrastructure** shows Compose containers, their status, exit codes, and logs.
+Use **Start** to prepare infrastructure or **Stop** to stop infrastructure and
+managed backend packages without deleting data.
+
+**Reset** requires confirmation in the dashboard UI. It stops managed backend
+packages, deletes infrastructure data volumes and generated seed state, and
+initializes clean infrastructure. The dashboard container, dependency caches,
+personal presets, and watch preferences remain available. Application packages
+remain stopped.
+
+Reset does not stop Vite or delete files in the frontend container. For an
+integrated frontend session, use the frontend lifecycle scripts to reset and
+prepare a fresh session.
+
+## Read and export logs
+
+**Logs** collects package output, orchestration output, and logs from Compose
+infrastructure containers, including initialization containers. Select a source,
+level, or search term. Search matches message text and correlation IDs without
+case sensitivity. Package and preset log links open this page with a source filter.
+The source and level filters remain in the URL. Runtime status and logs update
+automatically every two seconds.
+
+The **All packages** source includes backend package logs. **Infra** includes
+infrastructure logs, including retained output from stopped containers. A preset
+source includes only its members. These sources exclude orchestration logs.
+Use the orchestration source for builds, infrastructure preparation, and seed errors.
+
+Use **Copy** or **Download** to export the loaded log entries. Individual entries
+also offer message and correlation-ID copy actions. Message copy preserves
+multiline text. Docker timestamps are metadata, while application timestamps
+remain part of the original message.
+
+**By package** groups consecutive entries with the same source and service under
+one header without changing their order. Disable it to see entry-level severity,
+correlation IDs, and copy controls. Grouping does not change filters or exported
+content. The browser saves this preference in local storage.
+
+## Connect the frontend
+
+The frontend devcontainer runs in a separate Compose service. Its scripts manage
+frontend dependencies, Vite, smoke checks, browser checks, and frontend files.
+The dashboard does not mount the frontend checkout.
+
+The frontend Compose overlay sets `DASHBOARD_FRONTEND_URL=http://frontend:8077`.
+This enables **Fullstack status**, which becomes the initial dashboard page.
+The frontend agent uses an internal port that is not published on the host.
+Without this setting, the dashboard provides only backend views and does not
+contact a frontend agent.
+
+**Fullstack status** shows the selected local or shared development target,
+startup phases, backend operation details, and optional frontend startup and Vite
+log tails. **Open frontend** opens `http://localhost:3000/ui/it/` once Vite is running.
+This page reports status and logs. Use the frontend scripts for lifecycle actions.
+
+For local startup, the dashboard API coordinates infrastructure, the backend
+preset, seed, identity, and frontend commands. It waits for all preset members
+before seed. The frontend agent executes frontend commands and keeps the local
+token in ignored frontend state. A failed startup skips subsequent phases and
+stops Vite. Retrying requires an explicit lifecycle action.
+
+See `docs/local-full-stack.md` in the `pdnd-interop-frontend` checkout for frontend
+setup and lifecycle commands.
+
+## Technical reference
+
+### Runtime and networking
+
+`scripts/local-development/dashboard.sh` generates the Compose override at
+`.local-development/dashboard/compose.yml`. It bind-mounts the backend checkout
+and creates separate dependency volumes for the workspace root and each package.
+The entrypoint installs dependencies, builds the dashboard with Turbo, and starts
+the API. Application processes share the runtime container and use local loopback
+proxies to reach infrastructure.
+
+Dashboard and backend API ports bind to host loopback. The catalog process uses
+port `3000` inside the runtime and host port `13000`, leaving host port `3000`
+for the frontend. The authorization process uses `3300`, the authorization server
+uses `4700`, and the M2M gateway uses `4600`.
+
+Package discovery reads workspace manifests and executable `src/index.ts` files.
+Ports come from each package's effective local environment. The runtime applies
+local endpoint overrides and validates outgoing endpoint settings before launch.
+AWS adapters use local endpoints and test credentials. Kafka readiness probes
+require loopback brokers with AWS authentication disabled.
+
+Dashboard-managed Kafka consumers use `earliest` for new local groups so they
+can consume seed events already in the topic. Existing committed offsets take
+precedence. These runtime overrides do not edit package environment files.
+
+### Configuration and local files
+
+The startup configuration lives in `packages/dev-dashboard-api/src/config/config.ts`.
+
+| Setting                      | Purpose                                                                                     |
+| ---------------------------- | ------------------------------------------------------------------------------------------- |
+| `INTEROP_BE_ROOT`            | Backend checkout path. The startup script defaults to its repository root.                  |
+| `DASHBOARD_AUTOSTART_PRESET` | Preset to start after infrastructure. `--preset` overrides this value.                      |
+| `DASHBOARD_AUTOSTART=false`  | Disable automatic infrastructure and preset startup. Explicit actions remain available.     |
+| `DASHBOARD_FRONTEND_URL`     | Optional local HTTP origin of the frontend agent, supplied by the frontend Compose overlay. |
+| `DASHBOARD_PORT`             | API listen port, default `8076`. Compose publication must match any override.               |
+
+The startup script forwards the checkout path and autostart settings into its
+generated Compose override. Other API settings require container configuration.
+
+| Path                                              | Contents                                            |
+| ------------------------------------------------- | --------------------------------------------------- |
+| `docker/local-development/presets.json`           | Shared preset definitions.                          |
+| `docker/local-development/dataset.json`           | Demo tenants, users, roles, and eservice seed data. |
+| `.local-development/dashboard/presets.json`       | Personal presets.                                   |
+| `.local-development/dashboard/watch.json`         | Saved package watch preferences.                    |
+| `.local-development/state.json`                   | Generated seed identifiers.                         |
+| `.local-development/dashboard/logs/bootstrap.log` | Dependency installation and dashboard build output. |
+
+Generated runtime files under `.local-development` are ignored by Git.
+
+### Packages and API contracts
+
+| Package                            | Responsibility                                                                                        |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `packages/dev-dashboard-contracts` | OpenAPI definition and generated browser-safe Zod and Zodios schemas.                                 |
+| `packages/dev-dashboard-api`       | Express API, package discovery, process supervision, infrastructure operations, identities, and logs. |
+| `packages/dev-dashboard-ui`        | React and Vite application, hash routes, typed API services, React Query state, and log views.        |
+
+The API serves compiled UI assets on the same origin. Hash routes preserve
+page and filter navigation without server rewrite rules. Cursor-based log reads
+and entry virtualization keep the browser log window bounded.
+
+The contract is
+`packages/dev-dashboard-contracts/open-api/dashboardApi.yml`. Edit the YAML and run
+`generate-model` instead of editing `src/generated/dashboardApi.ts`.
+The package's `.spectral.yaml` selects the OpenAPI rules used by `lint:openapi`.
+Its `template.hbs` is the Handlebars template used by `openapi-zod-client` to
+generate the TypeScript schemas and endpoint definitions.
+
+API routes use the `/__local-dashboard/api` prefix. Accepted runtime actions
+return an `operationId`, which clients follow through `GET /status`.
+
+When frontend integration is enabled, `POST /frontend/actions` accepts `start`,
+`stop`, `use-local`, `use-dev`, `reset`, and `identity`. Identity actions include
+`tenantKey` and `userKey`. Clients match `frontend.operationId` in status until
+the operation passes, stops, or fails. Overlapping lifecycle operations are
+rejected. Frontend action and log endpoints return `404` when integration is disabled.
+
+The frontend agent provides status and log reads plus `POST /commands`. Tokens
+travel in local-start commands and are absent from public status responses.
+Standalone backend workflows use `/actions`, `/identities`, and `/identity`.
+
+### Development checks
+
+With local dependencies installed, use these focused checks when changing the
+dashboard. Regenerate and build contracts before checking affected consumers.
 
 ```bash
 pnpm --filter pagopa-interop-dev-dashboard-contracts generate-model
 pnpm --filter pagopa-interop-dev-dashboard-contracts build
 pnpm --filter pagopa-interop-dev-dashboard-contracts lint:openapi
 pnpm --filter pagopa-interop-dev-dashboard-contracts test
+pnpm --filter pagopa-interop-dev-dashboard-api check
 pnpm --filter pagopa-interop-dev-dashboard-api test
+pnpm --filter pagopa-interop-dev-dashboard-ui check
 pnpm --filter pagopa-interop-dev-dashboard-ui test
 node --test scripts/local-development/test/dashboard-runtime.test.mjs
 ```
 
-The infrastructure mocks and seed workflow are described in
+## Troubleshoot startup
+
+| Symptom                                             | Check                                                                                                                                              |
+| --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Dashboard does not open                             | Run `dashboard.sh status` and `dashboard.sh logs` to inspect container startup, installation, and build failures.                                  |
+| Package or preset fails                             | Open its logs. For dependency build failures, select orchestration logs. Check that required application services are running.                     |
+| Seed is unavailable or fails                        | Start the seed packages, wait for readiness, and inspect orchestration errors. Check infrastructure status.                                        |
+| Frontend status is unavailable                      | Check the frontend container and its agent through the frontend lifecycle scripts. Backend status remains available independently.                 |
+| Startup reports a missing dependency volume         | Run `bash scripts/local-development/dashboard.sh start` to regenerate mounts and recreate the runtime after adding or removing workspace packages. |
+| Infrastructure remains after stopping the dashboard | Restart the dashboard and use **Infrastructure > Stop**. The runtime stop command leaves infrastructure running.                                   |
+
+For infrastructure mocks and seed-specific configuration, see
 [frontend-local-runtime.md](frontend-local-runtime.md).
