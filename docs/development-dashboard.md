@@ -70,7 +70,9 @@ When opened from the frontend devcontainer, the dashboard also offers **Fullstac
 status** at `#/status` and uses it as the initial page. The current startup phases
 include dependency installation, dashboard readiness, infrastructure, backend
 services, seed, local identity, Vite, smoke tests and browser checks. Backend
-operation details appear inside the corresponding startup phase. The page stays
+operation details appear inside the corresponding startup phase. The card uses
+the page width while its content retains the original single-column layout and
+readable width. The page stays
 focused on this timeline and frontend startup and Vite log tails, loaded only
 when opened. **Open frontend** opens `http://localhost:3000/ui/it/` in a new tab
 as soon as the frontend process is running, including while startup checks are

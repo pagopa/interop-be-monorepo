@@ -28,11 +28,7 @@ export function FullstackStatusPage() {
       !["infra", "backend", "seed", "identity"].includes(phase.id)
   );
   return (
-    <Card
-      role="region"
-      aria-labelledby="fullstack-title"
-      className="w-full max-w-3xl"
-    >
+    <Card role="region" aria-labelledby="fullstack-title" className="w-full">
       <CardHeader className="flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <CardTitle asChild>
           <h2 id="fullstack-title">Fullstack status</h2>
@@ -61,7 +57,7 @@ export function FullstackStatusPage() {
           </span>
         )}
       </CardHeader>
-      <CardContent className="flex min-w-0 flex-col gap-6">
+      <CardContent className="flex min-w-0 max-w-3xl flex-col gap-6">
         {frontend.error && (
           <ErrorAlert title="Frontend startup" message={frontend.error} />
         )}
