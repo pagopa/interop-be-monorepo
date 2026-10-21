@@ -200,6 +200,12 @@ describe("compose inventory and log collection", () => {
     expect(
       commands.every((c) => c.args.includes("/be/docker/docker-compose.yml"))
     ).toBe(true);
+    const tails = commands.filter((command) => command.args.includes("logs"));
+    expect(tails).toHaveLength(2);
+    for (const tail of tails)
+      expect(tail.args).toEqual(
+        expect.arrayContaining(["--no-log-prefix", "--timestamps"])
+      );
     await monitor.shutdown();
   });
 

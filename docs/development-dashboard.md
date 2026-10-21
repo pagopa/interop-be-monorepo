@@ -128,6 +128,9 @@ frontend and browser-check logs belong to the frontend launcher. The selection p
 the URL together with the level filter. Search matches message text or correlation ID metadata,
 case-insensitively and by substring. Package and infrastructure log actions keep all levels.
 Orchestration logs are shared across runtime operations.
+Docker timestamps are stored as entry metadata; the Docker timestamp and
+container prefix are omitted from message text. Timestamps emitted by the
+application remain part of its original message.
 The log header's **By package** toggle switches between individual entries and a
 compact terminal view. When pressed, it collects consecutive entries
 from the same source and service under one header, preserving their order. The

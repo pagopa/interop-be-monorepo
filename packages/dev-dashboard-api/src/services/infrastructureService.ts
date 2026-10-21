@@ -189,6 +189,7 @@ export function infrastructureServiceBuilder(
         ...command([
           "logs",
           "--no-color",
+          "--no-log-prefix",
           "--timestamps",
           "--follow",
           `--tail=${LOG_LIMITS.containerTailLines}`,
