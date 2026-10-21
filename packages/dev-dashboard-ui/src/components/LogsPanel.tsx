@@ -8,7 +8,6 @@ import { Toolbar } from "./common/Toolbar";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Checkbox } from "./ui/checkbox";
 import { Empty, EmptyDescription, EmptyHeader } from "./ui/empty";
 import { Field, FieldGroup, FieldLabel } from "./ui/field";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "./ui/input-group";
@@ -41,10 +40,10 @@ export function LogsPanel(props: Props) {
       className="flex min-h-0 flex-1 flex-col overflow-hidden"
     >
       <CardHeader className="flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <CardTitle asChild>
-          <h2 id="logs-title">Aggregate logs</h2>
-        </CardTitle>
         <Toolbar>
+          <CardTitle asChild>
+            <h2 id="logs-title">Aggregate logs</h2>
+          </CardTitle>
           <Badge
             role="status"
             variant="outline"
@@ -61,6 +60,17 @@ export function LogsPanel(props: Props) {
               <span className="sr-only"> · previous filter</span>
             )}
           </Badge>
+        </Toolbar>
+        <Toolbar>
+          <Button
+            size="sm"
+            variant={model.groupByPackage ? "secondary" : "outline"}
+            aria-label="Group by package"
+            aria-pressed={model.groupByPackage}
+            onClick={() => model.setGroupByPackage(!model.groupByPackage)}
+          >
+            By package
+          </Button>
           <Button
             size="sm"
             variant="outline"
@@ -161,22 +171,7 @@ export function LogsPanel(props: Props) {
               ))}
             </NativeSelect>
           </Field>
-          <Toolbar className="col-span-2 self-end justify-between sm:col-span-1">
-            <Field orientation="horizontal" className="w-auto">
-              <Checkbox
-                id="log-group-by-package"
-                checked={model.groupByPackage}
-                onCheckedChange={(checked) =>
-                  model.setGroupByPackage(checked === true)
-                }
-              />
-              <FieldLabel
-                htmlFor="log-group-by-package"
-                className="whitespace-nowrap"
-              >
-                Group by package
-              </FieldLabel>
-            </Field>
+          <Toolbar className="col-span-2 self-end justify-end sm:col-span-1">
             <Button
               variant="outline"
               disabled={!model.hasFilters}

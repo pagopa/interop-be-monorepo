@@ -128,7 +128,7 @@ frontend and browser-check logs belong to the frontend launcher. The selection p
 the URL together with the level filter. Search matches message text or correlation ID metadata,
 case-insensitively and by substring. Package and infrastructure log actions keep all levels.
 Orchestration logs are shared across runtime operations.
-The **Group by package** checkbox collects consecutive entries from the same
+The log header's **By package** toggle collects consecutive entries from the same
 source and service under one header, preserving their order. The header shows
 the group's time range; levels, correlation IDs and individual line copying
 remain available. This view setting does not change filters, line counts or
