@@ -90,7 +90,8 @@ export const eserviceKeywordFilter = async (
 
 // The producer vector keeps weight A and the e-service vector is lowered to
 // weight B, so a match on the producer name ranks first, as in the public catalog.
-// The tenant columns can be NULL because of the left join.
+// The caller left joins the tenant on eserviceProducerJoin, so the tenant
+// columns can be NULL.
 export const eserviceKeywordRelevance = (keyword: string): SQL => {
   const tsQuery = keywordTsQuery(keyword);
   const normalizedKeyword = normalizeText(sql`${keyword}`);
@@ -106,8 +107,10 @@ export const eserviceKeywordRelevance = (keyword: string): SQL => {
 // Name and description are in the same table, so one OR can use both trigram indexes.
 const eserviceTemplateFuzzyMatch = (keyword: string): SQL => {
   const normalizedKeyword = normalizeText(sql`${keyword}`);
-  return sql`(${eserviceTemplateName} % ${normalizedKeyword}
-    OR ${eserviceTemplateDescription} % ${normalizedKeyword})`;
+  // An empty keyword has no trigrams. The check skips a scan with no result.
+  return sql`(${normalizedKeyword} <> ''
+    AND (${eserviceTemplateName} % ${normalizedKeyword}
+      OR ${eserviceTemplateDescription} % ${normalizedKeyword}))`;
 };
 
 // Same fallback rule as eserviceKeywordFilter. The check runs on the
@@ -132,9 +135,9 @@ export const eserviceTemplateKeywordFilter = async (
 };
 
 // The template vector gets weight B, as the e-service vector in
-// eserviceKeywordRelevance. A template and an e-service with the same name and
-// description then get the same full text rank. The e-service score can be
-// higher, because it also adds the similarity of the producer name.
+// eserviceKeywordRelevance. When the producer name does not match the keyword,
+// a template and an e-service with the same name and description get the same
+// score. A producer name match adds a weight A rank to the e-service score.
 export const eserviceTemplateKeywordRelevance = (keyword: string): SQL => {
   const tsQuery = keywordTsQuery(keyword);
   const normalizedKeyword = normalizeText(sql`${keyword}`);
