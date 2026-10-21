@@ -70,14 +70,14 @@ describe("virtualized log presentation", () => {
     vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockImplementation(
       function (this: HTMLElement) {
         if (this.getAttribute("role") === "listitem")
-          return this.querySelector("time") ? 96 : 40;
+          return this.querySelector("time") ? 56 : 20;
         return 240;
       }
     );
     vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockReturnValue(800);
   });
 
-  it("groups only consecutive matching source and displayed service while retaining line order, severity, CID and copy focus", async () => {
+  it("groups consecutive source and service runs in order, hiding row metadata and controls until returning to lines", async () => {
     const entries = [
       entry("6", { timestamp: "2026-10-21T10:00:03Z", level: "error" }),
       entry("5", { timestamp: "2026-10-21T10:00:01Z", cid: "cid-5" }),
@@ -93,11 +93,12 @@ describe("virtualized log presentation", () => {
     const { rerender } = render(<VirtualizedLogs {...props} />);
     const list = screen.getByRole("list", { name: "Aggregate log entries" });
     expect(within(list).getAllByText("Agreement service")).toHaveLength(4);
-    const copy = within(screen.getAllByRole("listitem")[1]).getByRole(
-      "button",
-      { name: "Copy log line" }
-    );
-    copy.focus();
+    expect(
+      within(list).getAllByRole("button", { name: "Copy log line" })
+    ).toHaveLength(entries.length);
+    expect(within(list).getByText("error")).toBeVisible();
+    expect(within(list).getByText("warn")).toBeVisible();
+    expect(within(list).getByText("CID cid-5")).toBeVisible();
     rerender(<VirtualizedLogs {...props} groupByPackage />);
     const rows = within(list).getAllByRole("listitem");
     expect(
@@ -114,20 +115,52 @@ describe("virtualized log presentation", () => {
     expect(
       Array.from(rows[0].querySelectorAll("time")).map((time) => time.dateTime)
     ).toEqual(["2026-10-21T10:00:01Z", "2026-10-21T10:00:03Z"]);
-    expect(within(rows[0]).getByText("error")).toBeVisible();
-    expect(within(rows[2]).getByText("warn")).toBeVisible();
+    expect(within(list).queryByText("error")).not.toBeInTheDocument();
+    expect(within(list).queryByText("warn")).not.toBeInTheDocument();
     expect(within(list).queryByText("unknown")).not.toBeInTheDocument();
-    expect(copy).toHaveFocus();
+    expect(within(list).queryByText("CID cid-5")).not.toBeInTheDocument();
+    expect(within(list).queryByRole("button")).not.toBeInTheDocument();
+    for (const row of rows) {
+      expect(row).not.toHaveClass("border-b", "group/log-row");
+      expect(row.className).not.toMatch(/\bpy-/);
+    }
+    rerender(<VirtualizedLogs {...props} />);
+    const restoredCopy = within(screen.getAllByRole("listitem")[1]).getByRole(
+      "button",
+      { name: "Copy log line" }
+    );
+    restoredCopy.focus();
     const user = userEvent.setup();
     await user.keyboard("{Enter}");
     expect(onCopyLine).toHaveBeenCalledExactlyOnceWith("Frame 5");
     await user.click(
-      within(rows[1]).getByRole("button", { name: "Copy correlation ID cid-5" })
+      within(list).getByRole("button", { name: "Copy correlation ID cid-5" })
     );
     expect(onCopyCid).toHaveBeenCalledExactlyOnceWith("cid-5");
-    rerender(<VirtualizedLogs {...props} groupByPackage copyDisabled />);
+    rerender(<VirtualizedLogs {...props} copyDisabled />);
     for (const button of within(list).getAllByRole("button"))
       expect(button).toBeDisabled();
+  });
+
+  it("preserves multiline terminal text without row borders or spacing between consecutive entries", () => {
+    const message =
+      "Request failed\n  at processRequest (service.ts:42)\nCaused by: missing tenant";
+    render(
+      <VirtualizedLogs
+        entries={[entry("2", { message }), entry("1")]}
+        groupByPackage
+        onCopyLine={vi.fn().mockResolvedValue(undefined)}
+        onCopyCid={vi.fn().mockResolvedValue(undefined)}
+      />
+    );
+    const rows = screen.getAllByRole("listitem");
+    const text = within(rows[0]).getByText(message, {
+      normalizer: (value) => value,
+    });
+    expect(text).toHaveTextContent(message, { normalizeWhitespace: false });
+    expect(text).toHaveClass("whitespace-pre-wrap", "leading-5");
+    expect(rows[1].children).toHaveLength(1);
+    expect(rows[1].firstElementChild?.tagName).toBe("CODE");
   });
 
   it("shows a shared second once while retaining the precise group time range", () => {
@@ -167,8 +200,8 @@ describe("virtualized log presentation", () => {
     expect(within(list).getAllByRole("listitem").length).toBeLessThan(30);
     const second = list.querySelector('[data-index="1"]');
     const third = list.querySelector('[data-index="2"]');
-    expect(second).toHaveStyle({ transform: "translateY(96px)" });
-    expect(third).toHaveStyle({ transform: "translateY(136px)" });
+    expect(second).toHaveStyle({ transform: "translateY(56px)" });
+    expect(third).toHaveStyle({ transform: "translateY(76px)" });
     expect(list.firstElementChild?.getAttribute("style")).not.toBe(
       initialHeight
     );
@@ -257,7 +290,7 @@ describe("virtualized log presentation", () => {
     );
     notifyResize();
     const list = screen.getByRole("list", { name: "Aggregate log entries" });
-    list.scrollTop = 320;
+    list.scrollTop = 160;
     fireEvent.scroll(list);
     const context = await screen.findByRole("group", {
       name: "Current log group",
@@ -273,10 +306,10 @@ describe("virtualized log presentation", () => {
       Array.from(context.querySelectorAll("time"), (time) => time.dateTime)
     ).toEqual(["2026-10-21T10:00:01Z", "2026-10-21T10:00:21Z"]);
     expect(list.querySelector('[data-index="1"]')).toHaveStyle({
-      transform: "translateY(96px)",
+      transform: "translateY(56px)",
     });
     expect(list.querySelector('[data-index="2"]')).toHaveStyle({
-      transform: "translateY(136px)",
+      transform: "translateY(76px)",
     });
     expect(list.querySelector('[data-index="1"] time')).not.toBeInTheDocument();
     const interleaved = [
@@ -302,14 +335,14 @@ describe("virtualized log presentation", () => {
     );
     expect(rows.length).toBeLessThan(interleaved.length);
     const boundary = list.querySelector<HTMLElement>('[data-index="8"]');
-    expect(boundary).toHaveStyle({ transform: "translateY(376px)" });
+    expect(boundary).toHaveStyle({ transform: "translateY(196px)" });
     if (!boundary) throw new Error("Group boundary missing");
     expect(within(boundary).getByText("Agreement service")).toBeVisible();
     expect(
       Array.from(boundary.querySelectorAll("time"), (time) => time.dateTime)
     ).toEqual(["2026-10-21T10:00:01Z", "2026-10-21T10:00:21Z"]);
     expect(list.querySelector('[data-index="9"]')).toHaveStyle({
-      transform: "translateY(472px)",
+      transform: "translateY(252px)",
     });
     expect(list.querySelector('[data-index="9"] time')).not.toBeInTheDocument();
   });
@@ -319,7 +352,7 @@ describe("virtualized log presentation", () => {
     vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockImplementation(
       function (this: HTMLElement) {
         if (this.getAttribute("role") === "listitem")
-          return this.querySelector("time") ? 120 : 40;
+          return this.querySelector("time") ? 80 : 20;
         return 240;
       }
     );
@@ -336,7 +369,7 @@ describe("virtualized log presentation", () => {
     );
     notifyResize();
     const list = screen.getByRole("list", { name: "Aggregate log entries" });
-    list.scrollTop = 600;
+    list.scrollTop = 320;
     fireEvent.scroll(list);
     await waitFor(() =>
       expect(list.querySelector('[data-index="0"]')).not.toBeInTheDocument()
@@ -345,28 +378,28 @@ describe("virtualized log presentation", () => {
     const spacer = list.firstElementChild;
     if (!(spacer instanceof HTMLElement)) throw new Error("Log spacer missing");
     const initialHeight = Number.parseFloat(spacer.style.height);
-    expect(initialHeight).toBe(880);
+    expect(initialHeight).toBe(460);
     const extended = [entry("21"), ...entries];
     rerender(<VirtualizedLogs {...props} entries={extended} />);
     notifyResize();
     expect(list.querySelector('[data-index="1"]')).not.toBeInTheDocument();
     // The former header is unmounted: use the continuation estimate until it is measured again.
-    expect(spacer).toHaveStyle({ height: `${initialHeight + 24}px` });
+    expect(spacer).toHaveStyle({ height: `${initialHeight - 4}px` });
     rerender(<VirtualizedLogs {...props} entries={[...extended]} />);
     notifyResize();
-    expect(spacer).toHaveStyle({ height: `${initialHeight + 24}px` });
+    expect(spacer).toHaveStyle({ height: `${initialHeight - 4}px` });
     list.scrollTop = 0;
     fireEvent.scroll(list);
     expect(list.querySelector('[data-index="1"]')).toHaveStyle({
-      transform: "translateY(96px)",
+      transform: "translateY(56px)",
     });
     expect(list.querySelector('[data-index="2"]')).toHaveStyle({
-      transform: "translateY(144px)",
+      transform: "translateY(76px)",
     });
     notifyResize();
-    expect(spacer).toHaveStyle({ height: `${initialHeight + 40}px` });
+    expect(spacer).toHaveStyle({ height: `${initialHeight + 20}px` });
     expect(list.querySelector('[data-index="2"]')).toHaveStyle({
-      transform: "translateY(160px)",
+      transform: "translateY(100px)",
     });
   });
 });
