@@ -177,10 +177,11 @@ const existsCatalogVisibleDescriptor = (
   );
 
 // The template state does not count. A template is available when the catalog
-// shows at least one of its instances.
+// shows at least one of its instances. The visibility rule is part of this
+// check, so instancesCondition holds only the other filters on the instances.
 export const existsAvailableTemplateInstance = (
   tx: DrizzleTransactionType,
-  instancesCondition?: SQL
+  instancesCondition: SQL | undefined
 ): SQL =>
   exists(
     tx

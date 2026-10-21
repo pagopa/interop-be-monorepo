@@ -8,7 +8,6 @@ import {
 import {
   DescriptorState,
   EService,
-  EServiceId,
   EServiceTemplate,
   EServiceTemplateId,
   EServiceTemplateVersionState,
@@ -107,13 +106,17 @@ describe("e-service template keyword search", () => {
   );
   const templateSanita = buildEServiceTemplate(
     "Sanità",
-    "Prenotazione delle visite specialistiche"
+    "Prenotazione delle visite specialistiche nel distretto di Cantù"
   );
   const templateCertificati = buildEServiceTemplate(
     "Albo dei certificati",
     "Rilascio dei certificati di stato civile e anagrafe"
   );
   const instancesProducerId: TenantId = generateId();
+  const instancesCondition = eq(
+    eserviceInReadmodelCatalog.producerId,
+    instancesProducerId
+  );
 
   beforeEach(async () => {
     await addTemplateWithInstance(templateAnagrafe, instancesProducerId);
@@ -153,7 +156,7 @@ describe("e-service template keyword search", () => {
     expect(await search("informatco")).toEqual([template.id]);
   });
 
-  it("should not fall back to trigram similarity when the full text search has a result", async () => {
+  it("should not fall back to trigram similarity when the full text search has a result, and order by relevance", async () => {
     await addTemplateWithInstance(
       buildEServiceTemplate("Anagrfe", "Servizio con un nome simile")
     );
@@ -168,7 +171,7 @@ describe("e-service template keyword search", () => {
     expect(await search("dati anagrafici")).toEqual([templateAnagrafe.id]);
   });
 
-  it.each(["sanità", "SANITÀ", "sanita", "Sanita"])(
+  it.each(["cantù", "CANTÙ", "cantu", "Cantu"])(
     "should ignore case and accents (keyword: '%s')",
     async (keyword) => {
       expect(await search(keyword)).toEqual([templateSanita.id]);
@@ -176,13 +179,17 @@ describe("e-service template keyword search", () => {
   );
 
   it("should match the keyword on the Italian stem of the words", async () => {
-    expect(await search("tributo")).toEqual([templateTributi.id]);
+    expect(await search("imposta")).toEqual([templateTributi.id]);
   });
 
-  it.each(['"dati anagrafici"', "-dati anagrafici", "dati, anagrafici!"])(
+  it.each([
+    '"certificati anagrafe"',
+    "-certificati anagrafe",
+    "certificati-anagrafe",
+  ])(
     "should ignore quotes, minus signs and punctuation (keyword: '%s')",
     async (keyword) => {
-      expect(await search(keyword)).toEqual([templateAnagrafe.id]);
+      expect(await search(keyword)).toEqual([templateCertificati.id]);
     }
   );
 
@@ -201,15 +208,11 @@ describe("e-service template keyword search", () => {
     }
   );
 
-  it("should order the e-service templates by relevance before name", async () => {
-    expect(await search("anagrafe")).toEqual([
-      templateAnagrafe.id,
-      templateCertificati.id,
-    ]);
-  });
-
-  it.each(Object.values(eserviceTemplateVersionState))(
-    "should match an e-service template with instances in any state (version state: %s)",
+  it.each([
+    eserviceTemplateVersionState.published,
+    eserviceTemplateVersionState.suspended,
+  ])(
+    "should match an e-service template regardless of its version state (version state: %s)",
     async (versionState) => {
       const template = buildEServiceTemplate(
         "Protocollo",
@@ -235,27 +238,29 @@ describe("e-service template keyword search", () => {
   });
 
   it("should not match an e-service template whose instances do not satisfy the instances condition", async () => {
-    const instancesCondition = eq(
-      eserviceInReadmodelCatalog.producerId,
-      instancesProducerId
-    );
-
     expect(await search("tributi", instancesCondition)).toEqual([]);
     expect(await search("anagrafe", instancesCondition)).toEqual([
       templateAnagrafe.id,
     ]);
   });
 
-  it("should not match an e-service template whose instances are not visible in the catalog", async () => {
-    const template = buildEServiceTemplate(
-      "Protocollo",
-      "Protocollo informatico"
-    );
-    await addTemplateWithInstance(template, undefined, descriptorState.draft);
+  it.each([
+    descriptorState.draft,
+    descriptorState.deprecated,
+    descriptorState.archived,
+  ])(
+    "should not match an e-service template whose instances are not visible in the catalog (descriptor state: %s)",
+    async (state) => {
+      const template = buildEServiceTemplate(
+        "Protocollo",
+        "Protocollo informatico"
+      );
+      await addTemplateWithInstance(template, undefined, state);
 
-    expect(await search("protocollo")).toEqual([]);
-    expect(await search("protocolo")).toEqual([]);
-  });
+      expect(await search("protocollo")).toEqual([]);
+      expect(await search("protocolo")).toEqual([]);
+    }
+  );
 
   it("should match an e-service template when at least one of its instances satisfies the instances condition", async () => {
     const template = buildEServiceTemplate(
@@ -264,10 +269,6 @@ describe("e-service template keyword search", () => {
     );
     await addTemplateWithInstance(template, instancesProducerId);
     await addOneEService(buildInstance(template));
-    const instancesCondition = eq(
-      eserviceInReadmodelCatalog.producerId,
-      instancesProducerId
-    );
 
     expect(await search("protocollo", instancesCondition)).toEqual([
       template.id,
@@ -296,10 +297,6 @@ describe("e-service template keyword search", () => {
     await addTemplateWithInstance(
       buildEServiceTemplate("Anagrfe", "Servizio di un altro erogatore")
     );
-    const instancesCondition = eq(
-      eserviceInReadmodelCatalog.producerId,
-      instancesProducerId
-    );
 
     expect(await search("anagrfe", instancesCondition)).toEqual([
       templateAnagrafe.id,
@@ -309,13 +306,10 @@ describe("e-service template keyword search", () => {
   it.each(["anagrafe", "dati anagrafici", "anagrfe"])(
     "should give an e-service template the same relevance as an e-service with the same name and description (keyword: '%s')",
     async (keyword) => {
-      const eservice: EService = {
-        ...buildInstance(templateAnagrafe),
-        id: generateId<EServiceId>(),
-      };
+      const eservice = buildInstance(templateAnagrafe);
       await addOneEService(eservice);
 
-      const [templateRelevance] = await readModelDB
+      const templateRows = await readModelDB
         .select({
           relevance: eserviceTemplateKeywordRelevance(keyword).mapWith(Number),
         })
@@ -326,7 +320,7 @@ describe("e-service template keyword search", () => {
             templateAnagrafe.id
           )
         );
-      const [eserviceRelevance] = await readModelDB
+      const eserviceRows = await readModelDB
         .select({
           relevance: eserviceKeywordRelevance(keyword).mapWith(Number),
         })
@@ -334,10 +328,10 @@ describe("e-service template keyword search", () => {
         .leftJoin(tenantInReadmodelTenant, eserviceProducerJoin)
         .where(eq(eserviceInReadmodelCatalog.id, eservice.id));
 
-      expect(templateRelevance.relevance).toBeGreaterThan(0);
-      expect(templateRelevance.relevance).toBeCloseTo(
-        eserviceRelevance.relevance
-      );
+      expect(templateRows).toHaveLength(1);
+      expect(eserviceRows).toHaveLength(1);
+      expect(templateRows[0].relevance).toBeGreaterThan(0);
+      expect(templateRows[0].relevance).toBe(eserviceRows[0].relevance);
     }
   );
 });
