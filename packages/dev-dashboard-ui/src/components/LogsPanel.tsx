@@ -46,8 +46,9 @@ export function LogsPanel(props: Props) {
           </CardTitle>
           <Badge
             role="status"
+            aria-busy={loading}
             variant="outline"
-            className="shrink-0 whitespace-nowrap"
+            format="count"
             title={
               isPreviousData
                 ? "Showing lines from the previous filter"
@@ -55,7 +56,6 @@ export function LogsPanel(props: Props) {
             }
           >
             {entries.length} lines
-            {loading ? " · updating" : isPreviousData ? " · update failed" : ""}
             {isPreviousData && (
               <span className="sr-only"> · previous filter</span>
             )}
