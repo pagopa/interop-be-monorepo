@@ -24,6 +24,71 @@ function entry(id: string, service: string): LogEntry {
 }
 
 describe("aggregate log filters", () => {
+  it("keeps grouping as view state across refresh, filters and clearing without requesting or clearing the cursor stream on toggle", async () => {
+    vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockReturnValue(440);
+    vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockReturnValue(800);
+    const initialEntries = [entry("2", "agreement"), entry("1", "agreement")];
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockImplementation(async (input) => {
+        const query = new URL(String(input)).searchParams;
+        return Response.json({
+          entries: query.has("cursors")
+            ? [entry("3", "agreement")]
+            : initialEntries,
+          cursors: { agreement: query.has("cursors") ? "3" : "2" },
+          resetSources: [],
+        });
+      });
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+    const clipboard = vi
+      .spyOn(navigator.clipboard, "writeText")
+      .mockResolvedValue();
+    const props = {
+      sources,
+      presets: [],
+      selectedLevel: "",
+      onFiltersChange: vi.fn(),
+    };
+    const { rerender } = render(<LogsPanel {...props} selectedSource="" />);
+    await waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent("2 lines")
+    );
+    const grouping = screen.getByRole("checkbox", { name: "Group by package" });
+    expect(grouping).not.toBeChecked();
+    expect(
+      screen.getByRole("button", { name: "Clear log filters" })
+    ).toBeDisabled();
+    const requestCount = fetchMock.mock.calls.length;
+    await user.click(grouping);
+    expect(grouping).toBeChecked();
+    expect(fetchMock).toHaveBeenCalledTimes(requestCount);
+    expect(screen.getByRole("status")).toHaveTextContent("2 lines");
+    expect(
+      screen.getByRole("button", { name: "Clear log filters" })
+    ).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "Copy" }));
+    expect(clipboard).toHaveBeenLastCalledWith("Log 2\nLog 1");
+    expect(screen.getByRole("button", { name: "Download" })).toBeEnabled();
+    await user.click(screen.getByRole("button", { name: "Refresh logs" }));
+    await waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent("3 lines")
+    );
+    expect(
+      new URL(String(fetchMock.mock.lastCall?.[0])).searchParams.has("cursors")
+    ).toBe(true);
+    expect(grouping).toBeChecked();
+    rerender(<LogsPanel {...props} selectedSource="agreement" />);
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Copy" })).toBeEnabled()
+    );
+    expect(grouping).toBeChecked();
+    await user.click(screen.getByRole("button", { name: "Clear log filters" }));
+    expect(props.onFiltersChange).toHaveBeenLastCalledWith("", "");
+    expect(grouping).toBeChecked();
+  });
+
   it.each([undefined, "cid-123"])(
     "copies only the selected log message with correlation ID %s and reports success without resizing the viewport",
     async (cid) => {

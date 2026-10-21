@@ -8,6 +8,7 @@ import { Toolbar } from "./common/Toolbar";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Checkbox } from "./ui/checkbox";
 import { Empty, EmptyDescription, EmptyHeader } from "./ui/empty";
 import { Field, FieldGroup, FieldLabel } from "./ui/field";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "./ui/input-group";
@@ -96,8 +97,8 @@ export function LogsPanel(props: Props) {
         </Toolbar>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        <FieldGroup className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(180px,2fr)_minmax(160px,1fr)_120px_auto]">
-          <Field>
+        <FieldGroup className="grid grid-cols-2 gap-3 xl:grid-cols-[minmax(180px,2fr)_minmax(160px,1fr)_120px_auto]">
+          <Field className="col-span-2 sm:col-span-1">
             <FieldLabel htmlFor="log-search">Search logs</FieldLabel>
             <InputGroup>
               <InputGroupInput
@@ -160,17 +161,33 @@ export function LogsPanel(props: Props) {
               ))}
             </NativeSelect>
           </Field>
-          <Button
-            className="self-end"
-            variant="outline"
-            disabled={!model.hasFilters}
-            aria-label="Clear log filters"
-            title="Clear log filters"
-            onClick={model.clearFilters}
-          >
-            <FilterX data-icon="inline-start" aria-hidden="true" />
-            <span className="xl:sr-only">Clear filters</span>
-          </Button>
+          <Toolbar className="col-span-2 self-end justify-between sm:col-span-1">
+            <Field orientation="horizontal" className="w-auto">
+              <Checkbox
+                id="log-group-by-package"
+                checked={model.groupByPackage}
+                onCheckedChange={(checked) =>
+                  model.setGroupByPackage(checked === true)
+                }
+              />
+              <FieldLabel
+                htmlFor="log-group-by-package"
+                className="whitespace-nowrap"
+              >
+                Group by package
+              </FieldLabel>
+            </Field>
+            <Button
+              variant="outline"
+              disabled={!model.hasFilters}
+              aria-label="Clear log filters"
+              title="Clear log filters"
+              onClick={model.clearFilters}
+            >
+              <FilterX data-icon="inline-start" aria-hidden="true" />
+              <span className="xl:sr-only">Clear filters</span>
+            </Button>
+          </Toolbar>
         </FieldGroup>
         {error && <ErrorAlert message={error} />}
       </CardContent>
@@ -178,6 +195,7 @@ export function LogsPanel(props: Props) {
       <CardContent className="relative min-h-0 flex-1 p-0">
         <VirtualizedLogs
           entries={entries}
+          groupByPackage={model.groupByPackage}
           copyDisabled={isPreviousData}
           onCopyLine={(value) => model.copy(value, "Log line copied")}
           onCopyCid={(value) => model.copy(value, "Correlation ID copied")}
