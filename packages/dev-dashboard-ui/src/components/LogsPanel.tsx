@@ -65,6 +65,7 @@ export function LogsPanel(props: Props) {
           <Button
             size="sm"
             variant={model.groupByPackage ? "secondary" : "outline"}
+            className="border"
             aria-label="Group by package"
             aria-pressed={model.groupByPackage}
             onClick={() => model.setGroupByPackage(!model.groupByPackage)}
