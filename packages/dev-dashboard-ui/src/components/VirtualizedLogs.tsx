@@ -122,14 +122,14 @@ export function VirtualizedLogs({
     getScrollElement: () => scrollRef.current,
     getItemKey: getKey,
     estimateSize: (index) =>
-      groupByPackage && groups[index]?.startIndex !== index ? 48 : 96,
+      groupByPackage ? (groups[index]?.startIndex === index ? 56 : 20) : 96,
     overscan: 6,
     initialRect: { width: 800, height: 440 },
     useFlushSync: false,
   });
   useLayoutEffect(() => {
     // A presentation change invalidates cached heights, including offscreen rows.
-    // Refresh mounted rows synchronously so their stable keys keep focus without gaps.
+    // Refresh mounted rows synchronously to avoid gaps between entries.
     virtualizer.measure();
     for (const row of scrollRef.current?.querySelectorAll<HTMLElement>(
       "[data-index]"
@@ -150,7 +150,7 @@ export function VirtualizedLogs({
         );
         virtualizer.resizeItem(
           index,
-          row?.offsetHeight ?? (isHeader ? 96 : 48)
+          row?.offsetHeight ?? (isHeader ? 56 : 20)
         );
       }
     });
@@ -194,19 +194,23 @@ export function VirtualizedLogs({
                 role="listitem"
                 data-index={item.index}
                 className={cn(
-                  "group/log-row absolute left-0 top-0 w-full border-b px-4",
-                  groupByPackage ? "py-1.5" : "py-3"
+                  "absolute left-0 top-0 w-full px-4",
+                  !groupByPackage && "group/log-row border-b py-3"
                 )}
                 style={{ transform: `translateY(${item.start}px)` }}
               >
                 {groupByPackage && group?.startIndex === item.index && (
-                  <div className="mb-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 pt-1.5 text-xs">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pb-1 pt-3 text-xs">
                     <LogContext {...group} />
                   </div>
                 )}
-                <div className="flex items-center gap-3">
-                  <div className="min-w-0 flex-1">
-                    {(!groupByPackage || entry.level !== "unknown") && (
+                {groupByPackage ? (
+                  <code className="block whitespace-pre-wrap break-words font-mono text-xs leading-5 [overflow-wrap:anywhere]">
+                    {entry.message}
+                  </code>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <div className="min-w-0 flex-1">
                       <div className="mb-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
                         {entry.level !== "unknown" && (
                           <Badge
@@ -222,48 +226,46 @@ export function VirtualizedLogs({
                             {entry.level}
                           </Badge>
                         )}
-                        {!groupByPackage && (
-                          <LogContext
-                            source={entry.source}
-                            service={entry.service || entry.source}
-                            timestamp={entry.timestamp}
-                          />
-                        )}
+                        <LogContext
+                          source={entry.source}
+                          service={entry.service || entry.source}
+                          timestamp={entry.timestamp}
+                        />
                       </div>
-                    )}
-                    <code className="block whitespace-pre-wrap break-words font-mono text-xs leading-relaxed [overflow-wrap:anywhere]">
-                      {entry.message}
-                    </code>
-                    {entry.cid && (
-                      <Toolbar className="mt-1 gap-1">
-                        <code className="break-all text-xs text-muted-foreground">
-                          CID {entry.cid}
-                        </code>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          aria-label={`Copy correlation ID ${entry.cid}`}
-                          title="Copy correlation ID"
-                          disabled={copyDisabled}
-                          onClick={() => void onCopyCid(entry.cid ?? "")}
-                        >
-                          <Copy aria-hidden="true" />
-                        </Button>
-                      </Toolbar>
-                    )}
+                      <code className="block whitespace-pre-wrap break-words font-mono text-xs leading-relaxed [overflow-wrap:anywhere]">
+                        {entry.message}
+                      </code>
+                      {entry.cid && (
+                        <Toolbar className="mt-1 gap-1">
+                          <code className="break-all text-xs text-muted-foreground">
+                            CID {entry.cid}
+                          </code>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label={`Copy correlation ID ${entry.cid}`}
+                            title="Copy correlation ID"
+                            disabled={copyDisabled}
+                            onClick={() => void onCopyCid(entry.cid ?? "")}
+                          >
+                            <Copy aria-hidden="true" />
+                          </Button>
+                        </Toolbar>
+                      )}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="shrink-0 opacity-0 transition-opacity duration-150 ease-out group-hover/log-row:opacity-100 motion-reduce:transition-none [@media(hover:none)]:opacity-100"
+                      aria-label="Copy log line"
+                      title="Copy log line"
+                      disabled={copyDisabled}
+                      onClick={() => void onCopyLine(entry.message)}
+                    >
+                      <Copy aria-hidden="true" />
+                    </Button>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="shrink-0 opacity-0 transition-opacity duration-150 ease-out group-hover/log-row:opacity-100 motion-reduce:transition-none [@media(hover:none)]:opacity-100"
-                    aria-label="Copy log line"
-                    title="Copy log line"
-                    disabled={copyDisabled}
-                    onClick={() => void onCopyLine(entry.message)}
-                  >
-                    <Copy aria-hidden="true" />
-                  </Button>
-                </div>
+                )}
               </div>
             );
           })}
