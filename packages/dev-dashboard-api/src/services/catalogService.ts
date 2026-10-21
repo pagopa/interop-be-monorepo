@@ -64,13 +64,14 @@ const discoverPackage = async (
 
   const value = effectiveEnvironment(root, directory, manifest.name);
   const port = value.PORT ? Number(value.PORT) : undefined;
+  const kind = packageKind(directory, port);
   return {
     name: manifest.name,
     label: directory,
-    kind: packageKind(directory, port),
+    kind,
     ...(port && Number.isFinite(port) ? { port } : {}),
     state: "stopped",
-    watch: true,
+    watch: kind !== "job",
   };
 };
 

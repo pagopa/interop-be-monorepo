@@ -72,8 +72,9 @@ containers running. Use **Infrastructure > Stop** first when you want to stop bo
 ### Start packages
 
 **Packages** lists executable workspace packages with their ports, process states,
-and watch settings. Search by package name or filter by preset. Each package has
-**Start**, **Stop**, and **Logs** actions.
+and watch settings. Search by package name or filter by preset or **Jobs**.
+Services have **Start**, **Stop**, and **Logs** actions. Jobs use **Run** for manual
+execution.
 
 **Start** builds the selected package's workspace dependencies before launching it.
 It does not start other application services. Use a preset to define the service
@@ -85,11 +86,28 @@ the selection. Bulk actions skip packages already in the requested state or busy
 with another action. If one bulk start fails, the other selected packages continue.
 Open **Logs** for failure details.
 
-Watch is enabled by default. Changing watch for a running package restarts that
-package. The checkbox shows the requested watch setting while the status reports
-the restart. The dashboard saves watch preferences, and presets can specify their own
+Watch is enabled by default for services and workers. Jobs default to watch off.
+Changing watch for a running package restarts that package. The checkbox shows
+the requested watch setting while the status reports the restart. The dashboard
+saves watch preferences, and presets can specify their own
 per-package watch settings. A crashed package remains failed until you start it
 again. The supervisor does not restart crashes automatically.
+
+### Run jobs
+
+Select **Jobs** in the **Group** filter to show executable jobs. Start the
+infrastructure and application services required by your job, then select **Run**.
+Open **Logs** to follow its output. **Stop** is available while the job is running.
+
+A successful exit sets the job state to **Completed**. An error sets it to
+**Failed**, while an explicit stop sets it to **Stopped**. Select **Run** again
+to repeat a completed or failed job. Select multiple idle jobs to run them together
+with the bulk **Run** action.
+
+Jobs use their package's local environment files for configuration. Saved watch
+preferences and explicit preset settings override the default. The dashboard keeps
+completion state in memory, so browser reloads retain it. Stopping packages or
+restarting the dashboard clears that state.
 
 ### Start service groups
 

@@ -1,3 +1,5 @@
+import type { Package } from "pagopa-interop-dev-dashboard-contracts";
+
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
@@ -40,6 +42,170 @@ function renderCatalogue(
 }
 
 describe("package catalogue", () => {
+  it.each([
+    { state: "stopped", label: "Run" },
+    { state: "completed", label: "Run" },
+    { state: "failed", label: "Run" },
+    { state: "running", label: "Stop" },
+  ] satisfies Array<{ state: Package["state"]; label: "Run" | "Stop" }>)(
+    "offers $label for a $state job using the existing package action",
+    async ({ state, label }) => {
+      const user = userEvent.setup();
+      const job: Package = {
+        ...statusFixture().packages[0],
+        name: "notification-job",
+        kind: "job",
+        state,
+      };
+      const { onAction } = renderCatalogue({}, [job]);
+      const row = within(screen.getByRole("row", { name: /notification-job/ }));
+      const control = row.getByRole("button", { name: `${label} ${job.name}` });
+      expect(control).toBeEnabled();
+      expect(control).toHaveTextContent(label);
+      expect(
+        row.getByRole("checkbox", { name: `Watch ${job.name}` })
+      ).toBeEnabled();
+      if (state === "completed") {
+        expect(row.getByText("Completed")).toHaveClass("bg-success-subtle");
+      }
+      await user.click(control);
+      expect(onAction).toHaveBeenCalledExactlyOnceWith(
+        {
+          type: label === "Stop" ? "package.stop" : "package.start",
+          name: job.name,
+        },
+        `package:${job.name}`
+      );
+    }
+  );
+
+  it("reruns completed jobs in bulk, skips busy and running targets, and keeps Start for mixed eligible packages", async () => {
+    const user = userEvent.setup();
+    const fixture = statusFixture();
+    const jobs: Package[] = [
+      {
+        ...fixture.packages[0],
+        name: "completed-job",
+        kind: "job",
+        state: "completed",
+      },
+      {
+        ...fixture.packages[0],
+        name: "failed-job",
+        kind: "job",
+        state: "failed",
+      },
+      { ...fixture.packages[0], name: "busy-job", kind: "job" },
+      {
+        ...fixture.packages[0],
+        name: "running-job",
+        kind: "job",
+        state: "running",
+      },
+    ];
+    const { onAction } = renderCatalogue({ "package:busy-job": "operation" }, [
+      ...fixture.packages,
+      ...jobs,
+    ]);
+    for (const item of [...jobs, fixture.packages[1]])
+      await user.click(
+        screen.getByRole("checkbox", { name: `Select ${item.name}` })
+      );
+    const run = screen.getByRole("button", { name: "Run selected jobs" });
+    expect(run).toHaveTextContent("Run");
+    await user.click(run);
+    expect(onAction).toHaveBeenCalledExactlyOnceWith(
+      { type: "packages.start", names: ["completed-job", "failed-job"] },
+      ["package:completed-job", "package:failed-job"]
+    );
+    await user.click(
+      screen.getByRole("checkbox", { name: `Select ${packageName}` })
+    );
+    expect(
+      screen.queryByRole("button", { name: "Run selected jobs" })
+    ).not.toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: "Start selected packages" })
+    );
+    expect(onAction).toHaveBeenLastCalledWith(
+      {
+        type: "packages.start",
+        names: ["completed-job", "failed-job", packageName],
+      },
+      ["package:completed-job", "package:failed-job", `package:${packageName}`]
+    );
+  });
+
+  it("filters Jobs independently of a preset named jobs and intersects search with selection", async () => {
+    const user = userEvent.setup();
+    const fixture = statusFixture();
+    const jobs: Package[] = [
+      {
+        ...fixture.packages[0],
+        name: "completed-job",
+        kind: "job",
+        state: "completed",
+      },
+      {
+        ...fixture.packages[0],
+        name: "running-job",
+        kind: "job",
+        state: "running",
+      },
+    ];
+    const { onAction } = renderCatalogue(
+      {},
+      [...fixture.packages, ...jobs],
+      { kind: "all" },
+      [
+        ...fixture.presets,
+        { ...fixture.presets[0], id: "jobs", name: "My job preset" },
+      ]
+    );
+    const group = screen.getByRole("combobox", { name: "Group" });
+    expect(screen.getByRole("option", { name: "Jobs" })).toHaveValue("jobs");
+    expect(screen.getByRole("option", { name: "My job preset" })).toHaveValue(
+      "preset:jobs"
+    );
+    await user.selectOptions(group, "jobs");
+    expect(screen.getAllByRole("row")).toHaveLength(3);
+    expect(
+      screen.queryByRole("row", { name: new RegExp(packageName) })
+    ).not.toBeInTheDocument();
+    await user.click(
+      screen.getByRole("checkbox", { name: "Select all visible packages" })
+    );
+    expect(screen.getByText("2 selected")).toBeVisible();
+    const search = screen.getByRole("searchbox", { name: "Find a package" });
+    await user.type(search, "COMPLETED");
+    expect(screen.getAllByRole("row")).toHaveLength(2);
+    expect(screen.getByText("0 selected")).toBeVisible();
+    await user.click(
+      screen.getByRole("checkbox", { name: "Select all visible packages" })
+    );
+    await user.click(screen.getByRole("button", { name: "Run selected jobs" }));
+    expect(onAction).toHaveBeenCalledExactlyOnceWith(
+      { type: "packages.start", names: ["completed-job"] },
+      ["package:completed-job"]
+    );
+    await user.selectOptions(group, "preset:jobs");
+    expect(group).toHaveValue("preset:jobs");
+    expect(screen.getByText("0 selected")).toBeVisible();
+    expect(screen.getAllByRole("row")).toHaveLength(1);
+    await user.clear(search);
+    expect(screen.getAllByRole("row")).toHaveLength(2);
+    expect(
+      screen.getByRole("row", { name: new RegExp(packageName) })
+    ).toBeVisible();
+    await user.selectOptions(group, "seed");
+    expect(screen.getAllByRole("row")).toHaveLength(3);
+    await user.selectOptions(group, "preset:personal-core");
+    expect(screen.getAllByRole("row")).toHaveLength(2);
+    expect(
+      screen.getByRole("row", { name: new RegExp(fixture.packages[1].name) })
+    ).toBeVisible();
+  });
+
   it.each([
     { watch: true, state: "running" },
     { watch: false, state: "running" },

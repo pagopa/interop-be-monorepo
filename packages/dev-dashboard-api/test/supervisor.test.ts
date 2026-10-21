@@ -204,6 +204,30 @@ describe("local dashboard supervisor", () => {
     ).toHaveLength(1);
   });
 
+  it("defaults job watch to off without overriding saved preferences", () => {
+    const packages: Package[] = [
+      { ...member("job"), kind: "job" },
+      member("worker"),
+      { ...member("service"), kind: "service" },
+    ];
+    const fresh = setup({ packages }).supervisor.status().packages;
+    expect(fresh).toEqual([
+      expect.objectContaining({ name: "job", watch: false }),
+      expect.objectContaining({ name: "worker", watch: true }),
+      expect.objectContaining({ name: "service", watch: true }),
+    ]);
+
+    const saved = setup({
+      packages,
+      watchPreferences: { job: true, worker: false },
+    }).supervisor.status().packages;
+    expect(saved).toEqual([
+      expect.objectContaining({ name: "job", watch: true }),
+      expect.objectContaining({ name: "worker", watch: false }),
+      expect.objectContaining({ name: "service", watch: true }),
+    ]);
+  });
+
   it.each([false, true])(
     "completes a successful one-shot job and releases its watcher (exit during startup: %s)",
     async (exitDuringStartup) => {
@@ -215,6 +239,7 @@ describe("local dashboard supervisor", () => {
       });
       const { supervisor, driver } = setup({
         packages: [{ ...member("job"), kind: "job" }],
+        watchPreferences: { job: true },
         watchSource,
       });
       const result = { code: 0, signal: null } satisfies ProcessExit;
@@ -225,7 +250,7 @@ describe("local dashboard supervisor", () => {
       if (!exitDuringStartup) driver.children.get("job")?.exit(result);
 
       const job = supervisor.status().packages[0];
-      expect(job).toMatchObject({ kind: "job", state: "stopped" });
+      expect(job).toMatchObject({ kind: "job", state: "completed" });
       expect(job).not.toHaveProperty("pid");
       expect(job).not.toHaveProperty("error");
       expect(supervisor.status().operations.at(-1)?.state).toBe("passed");
@@ -298,6 +323,7 @@ describe("local dashboard supervisor", () => {
       const closed = vi.fn();
       const { supervisor, driver } = setup({
         packages: [{ ...member("a"), kind }],
+        watchPreferences: { a: true },
         watchSource: () => closed,
       });
       if (duringStartup) driver.exitOnStart = result;

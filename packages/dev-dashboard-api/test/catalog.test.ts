@@ -53,6 +53,20 @@ const fixture = async (): Promise<string> => {
   return root;
 };
 describe("runnable package catalogue and local boundary", () => {
+  it("disables watch by default for jobs while services keep watch enabled", async () => {
+    const root = await fixture();
+    await writeFile(join(root, "packages/local-job/.env"), "LOG_LEVEL=info\n");
+
+    const packages = await discoverPackages(root);
+
+    expect(
+      packages.find((item) => item.name === "pagopa-interop-local-job")
+    ).toMatchObject({ kind: "job", state: "stopped", watch: false });
+    expect(
+      packages.find((item) => item.name === "pagopa-interop-tenant-process")
+    ).toMatchObject({ kind: "service", watch: true });
+  });
+
   it("loads legacy disk presets as package groups without obsolete orchestration flags", async () => {
     const root = await fixture();
     await mkdir(join(root, "docker/local-development"), { recursive: true });
