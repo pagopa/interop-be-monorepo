@@ -23,6 +23,7 @@ export function datalakeServiceBuilder(
       const purposes = await readModelService.getPurposes();
       const delegations = await readModelService.getDelegations();
       const eserviceTemplates = await readModelService.getEServiceTemplates();
+      const purposeTemplates = await readModelService.getPurposeTemplates();
 
       const exportTimestamp = new Date();
       logger.info("Preparing data for export...");
@@ -33,7 +34,8 @@ export function datalakeServiceBuilder(
         purposes,
         delegations,
         eserviceTemplates,
-        exportTimestamp
+        exportTimestamp,
+        purposeTemplates
       );
 
       logger.info(
