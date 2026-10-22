@@ -2,6 +2,7 @@ import {
   agreementErrorCodes,
   attributeRegistryErrorCodes,
   authorizationErrorCodes,
+  bffErrorCodes,
   catalogErrorCodes,
   delegationErrorCodes,
   eserviceTemplateErrorCodes,
@@ -112,6 +113,12 @@ export function getErrorCode(
     .with("tenantProcess", () => {
       if (errorCode in tenantErrorCodes) {
         return tenantErrorCodes[errorCode as keyof typeof tenantErrorCodes];
+      }
+      return undefined;
+    })
+    .with("bffProcess", () => {
+      if (errorCode in bffErrorCodes) {
+        return bffErrorCodes[errorCode as keyof typeof bffErrorCodes];
       }
       return undefined;
     })
