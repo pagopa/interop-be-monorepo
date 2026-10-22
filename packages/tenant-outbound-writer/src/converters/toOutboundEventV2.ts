@@ -28,16 +28,8 @@ function toOutboundTenantAttributeV1(
 function toOutboundTenantV2(
   tenant: TenantV2
 ): Exact<OutboundTenantV2, TenantV2> {
-  const {
-    parentTenantId: _parentTenantId,
-    rootTenantId: _rootTenantId,
-    ...tenantWithoutHierarchy
-  } = tenant;
-  void _parentTenantId;
-  void _rootTenantId;
-
   return {
-    ...tenantWithoutHierarchy,
+    ...tenant,
     mails: undefined,
     features: tenant.features.map(toOutboundTenantFeaturesV1),
     attributes: tenant.attributes.map(toOutboundTenantAttributeV1),
@@ -60,6 +52,7 @@ export function toOutboundEventV2(
       { type: "TenantDelegatedConsumerFeatureRemoved" },
       { type: "TenantRemoteIdAssigned" },
       { type: "MaintenanceTenantRemoteIdDeleted" },
+      { type: "TenantParentUpdated" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
