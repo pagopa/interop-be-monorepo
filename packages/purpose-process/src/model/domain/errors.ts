@@ -610,14 +610,14 @@ export function riskAnalysisFormCannotBeUpdated(
   });
 }
 
-export function userWithoutReviewerPrivileges(
+export function userNotFoundOrWithoutReviewerPrivileges(
   consumerId: TenantId,
   userId: UserId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `User ${userId} does not have reviewer privileges for tenant ${consumerId}`,
-    code: "userWithoutReviewerPrivileges",
-    title: "User without reviewer privileges",
+    code: "userNotFoundOrWithoutReviewerPrivileges",
+    title: "User not found or without reviewer privileges",
   });
 }
 
@@ -676,5 +676,15 @@ export function purposeMetadataVersionMismatch(
     detail: `Cannot sign risk analysis for purpose ${purposeId}: requested metadata version ${metadataVersionToSign} does not match current metadata version ${currentMetadataVersion}`,
     code: "purposeMetadataVersionMismatch",
     title: "Purpose metadata version mismatch",
+  });
+}
+
+export function riskAnalysisReviewModeNotFound(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} does not contain a risk analysis review mode`,
+    code: "riskAnalysisReviewModeNotFound",
+    title: "Risk analysis review mode not found",
   });
 }

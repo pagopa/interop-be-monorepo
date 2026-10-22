@@ -5,7 +5,7 @@ import { NotificationType } from "pagopa-interop-models";
 import {
   notificationTypeToCategory,
   getNotificationDeepLink,
-  notificationTypeToUiSection,
+  notificationTypeToUiPath,
   UiSection,
 } from "../model/modelMappingUtils.js";
 
@@ -13,9 +13,9 @@ function getNotificationTypesCount(
   results: Partial<Record<NotificationType, number>>,
   sectionPath: UiSection
 ): number {
-  return (Object.keys(notificationTypeToUiSection) as NotificationType[])
+  return (Object.keys(notificationTypeToUiPath) as NotificationType[])
     .filter((notificationType) =>
-      notificationTypeToUiSection[notificationType].startsWith(sectionPath)
+      notificationTypeToUiPath[notificationType].startsWith(sectionPath)
     )
     .reduce((sum, type) => sum + (results[type] ?? 0), 0);
 }

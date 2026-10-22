@@ -44,6 +44,17 @@ export function tenantNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
   });
 }
 
+export function tenantNotAllowedForDelegation(
+  tenantId: TenantId,
+  origin: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} with external origin ${origin} is not allowed for delegation`,
+    code: "tenantNotAllowedForDelegation",
+    title: "Tenant not allowed for delegation",
+  });
+}
+
 export function tenantNotFoundByExternalId(
   origin: string,
   code: string
@@ -330,5 +341,17 @@ export function invalidTenantFeature(): ApiError<ErrorCodes> {
     detail: "Tenant feature variant could not be determined",
     code: "invalidTenantFeature",
     title: "Invalid tenant feature",
+  });
+}
+
+export function tenantUpdateVersionMismatch(
+  tenantId: TenantId,
+  expectedVersion: number,
+  providedVersion: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} current version is ${expectedVersion}, but ${providedVersion} was provided`,
+    code: "tenantUpdateVersionMismatch",
+    title: "Tenant update version mismatch",
   });
 }
