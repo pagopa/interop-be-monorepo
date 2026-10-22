@@ -37,7 +37,6 @@ export const packageEnvironmentOverrides: Readonly<
   Record<string, NodeJS.ProcessEnv>
 > = {
   [PACKAGE_NAMES.authorizationServer]: {
-    PORT: "4700",
     GENERATED_INTEROP_TOKEN_M2M_AUDIENCE: "dev.interop.pagopa.it/m2m",
   },
   "pagopa-interop-certified-email-sender": {

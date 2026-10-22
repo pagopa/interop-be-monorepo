@@ -2605,15 +2605,15 @@ importers:
 
   packages/dev-dashboard-api:
     dependencies:
-      dotenv-flow:
-        specifier: 'catalog:'
-        version: 4.1.0
       express:
         specifier: 'catalog:'
         version: 4.20.0
       kafkajs:
         specifier: 'catalog:'
         version: 2.2.4
+      pagopa-interop-dev-dashboard-bootstrap:
+        specifier: workspace:*
+        version: link:../dev-dashboard-bootstrap
       pagopa-interop-dev-dashboard-contracts:
         specifier: workspace:*
         version: link:../dev-dashboard-contracts
@@ -2663,6 +2663,12 @@ importers:
       vitest:
         specifier: 'catalog:'
         version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(jsdom@22.1.0)(tsx@4.19.1)(yaml@2.8.3)
+
+  packages/dev-dashboard-bootstrap:
+    dependencies:
+      dotenv-flow:
+        specifier: 'catalog:'
+        version: 4.1.0
 
   packages/dev-dashboard-contracts:
     dependencies:

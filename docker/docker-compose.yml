@@ -31,6 +31,7 @@ services:
   # to generate source/dependency mounts for the current checkout.
   dashboard:
     profiles: [dashboard]
+    image: "${INTEROP_DASHBOARD_IMAGE:-pagopa-interop-dashboard:local}"
     build:
       context: ..
       dockerfile: docker/dev-dashboard/Dockerfile
