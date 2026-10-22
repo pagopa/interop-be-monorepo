@@ -4,7 +4,7 @@ info:
   description: PDND Interoperability API for machine-to-machine interaction with
     interoperability features
   x-summary: PDND Interoperability API
-  version: "3.2.1"
+  version: "3.2.2"
   contact:
     name: API Support
     url: "https://github.com/pagopa/pdnd-interop-frontend/issues"
@@ -2301,6 +2301,8 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /producerKeychains/{keychainId}:
@@ -6812,6 +6814,54 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /eserviceTemplates/{templateId}/versions/{versionId}/interface:
+    parameters:
+      - name: templateId
+        in: path
+        description: The E-Service Template ID
+        required: true
+        schema:
+          $ref: "#/components/schemas/TemplateId"
+      - name: versionId
+        in: path
+        description: The ID of the Version for which to download the interface
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - eserviceTemplates
+      summary: Download an E-Service Template Version interface
+      description: Download the interface document of an E-Service Template Version
+      operationId: downloadEServiceTemplateVersionInterface
+      responses:
+        "200":
+          description: E-Service Template Version interface retrieved, a multipart
+            containing the file and its metadata
+          content:
+            multipart/form-data:
+              schema:
+                $ref: "#/components/schemas/FileDownloadMultipart"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /eserviceTemplates/{templateId}/riskAnalyses:
     parameters:
       - name: templateId
@@ -8484,6 +8534,58 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/VoidObject"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /purposes/{purposeId}/riskAnalysis/assign:
+    parameters:
+      - name: purposeId
+        description: The ID of the Purpose whose risk analysis reviewer is being assigned
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/PurposeId"
+    post:
+      tags:
+        - purposes
+      summary: Assign risk analysis reviewer
+      description: |
+        Assign reviewer mode and reviewers to the purpose risk analysis.
+        Assigning ADMIN_WRITES_ADMIN_SIGNS with no reviewers removes any existing assignment.
+      operationId: assignRiskAnalysisReviewer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisAssignmentSeed"
+        required: true
+      responses:
+        "200":
+          description: Risk analysis reviewer assigned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -12259,6 +12361,7 @@ components:
             - ESERVICE_DESCRIPTOR_ARCHIVING_REQUEST_CANCELED_BY_REVOKED_DELEGATION
             - MAINTENANCE_ESERVICE_PERSONAL_DATA_FLAG_RESET
             - MAINTENANCE_ESERVICE_DESCRIPTOR_UNARCHIVED
+            - ESERVICE_DESCRIPTOR_RESTORED_TO_DRAFT_BY_REVOKED_DELEGATION
         eventTimestamp:
           type: string
           format: date-time
@@ -14717,6 +14820,8 @@ components:
           $ref: "#/components/schemas/PurposeVersion"
         purposeTemplateId:
           $ref: "#/components/schemas/PurposeTemplateId"
+        riskAnalysisReviewMode:
+          $ref: "#/components/schemas/RiskAnalysisReviewMode"
       required:
         - id
         - eserviceId
@@ -14725,6 +14830,29 @@ components:
         - description
         - createdAt
         - isFreeOfCharge
+    RiskAnalysisReviewMode:
+      type: string
+      description: Risk analysis review mode
+      enum:
+        - ADMIN_WRITES_ADMIN_SIGNS
+        - ADMIN_WRITES_REVIEWER_SIGNS
+        - REVIEWER_WRITES_REVIEWER_SIGNS
+    RiskAnalysisAssignmentSeed:
+      type: object
+      additionalProperties: false
+      description: Payload to assign reviewer mode and reviewers to a purpose risk analysis
+      properties:
+        reviewMode:
+          $ref: "#/components/schemas/RiskAnalysisReviewMode"
+        reviewerIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 1
+          uniqueItems: true
+      required:
+        - reviewMode
     PurposeSeed:
       type: object
       additionalProperties: false
