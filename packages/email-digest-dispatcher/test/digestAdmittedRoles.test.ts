@@ -146,6 +146,9 @@ describe("hasVisibleDigestContent", () => {
       revokedReceivedDelegations: empty,
       receivedAttributes: empty,
       revokedAttributes: empty,
+      archivingRequests: empty,
+      approvedArchivingRequests: empty,
+      rejectedArchivingRequests: empty,
       // archivingImminentEservices / archivingInProgressEservices still have data
     };
 
@@ -272,6 +275,9 @@ describe("hasVisibleDigestContent", () => {
       archivingInProgressEservices: empty,
       archivingConsumerImminentEservices: empty,
       archivingConsumerInProgressEservices: empty,
+      archivingRequests: empty,
+      approvedArchivingRequests: empty,
+      rejectedArchivingRequests: empty,
     };
 
     // Admin can see everything, but there's no data at all
