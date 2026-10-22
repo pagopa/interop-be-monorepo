@@ -54,7 +54,7 @@ export const purposeErrorCodes = {
   reviewerWorkflowNotEditable: "0054",
   reviewerWorkflowNotInSignedState: "0055",
   riskAnalysisFormCannotBeUpdated: "0056",
-  userWithoutReviewerPrivileges: "0057",
+  userNotFoundOrWithoutReviewerPrivileges: "0057",
   missingSelfcareId: "0058",
   reviewerWorkflowNotAllowedForDelegatedPurpose: "0059",
   reviewerWorkflowNotAllowedForReceiveMode: "0060",
