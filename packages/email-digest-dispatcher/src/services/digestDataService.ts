@@ -112,6 +112,10 @@ export type TenantDigestData = {
   archivingInProgressEservices?: ArchivingProducerDigest;
   archivingEserviceScopeCount?: number;
   archivingDescriptorScopeCount?: number;
+  archivingConsumerImminentEservices?: ArchivingProducerDigest;
+  archivingConsumerInProgressEservices?: ArchivingProducerDigest;
+  archivingConsumerEserviceScopeCount?: number;
+  archivingConsumerDescriptorScopeCount?: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -174,6 +178,9 @@ export function digestDataServiceBuilder(
         archivingInProgressEservices,
         archivingImminentEservices,
         archivingScopeCounts,
+        archivingConsumerInProgressEservices,
+        archivingConsumerImminentEservices,
+        archivingConsumerScopeCounts,
       ] = await Promise.all([
         readModelService.getNewVersionEservices(tenantId),
         readModelService.getNewEserviceTemplates(tenantId),
@@ -190,6 +197,9 @@ export function digestDataServiceBuilder(
         readModelService.getArchivingInProgressEservices(tenantId), // tenantId as producerId
         readModelService.getArchivingImminentEservices(tenantId), // tenantId as producerId
         readModelService.getArchivingScopeCounts(tenantId), // tenantId as producerId
+        readModelService.getConsumerArchivingInProgressEservices(tenantId), // tenantId as consumerId
+        readModelService.getConsumerArchivingImminentEservices(tenantId), // tenantId as consumerId
+        readModelService.getConsumerArchivingScopeCounts(tenantId), // tenantId as consumerId
       ]);
 
       const tenantData = tenantDataMap.get(tenantId);
@@ -317,6 +327,18 @@ export function digestDataServiceBuilder(
         archivingEserviceScopeCount: archivingScopeCounts.eserviceScopeCount,
         archivingDescriptorScopeCount:
           archivingScopeCounts.descriptorScopeCount,
+        archivingConsumerInProgressEservices: archivingEservicesToDigest(
+          archivingConsumerInProgressEservices,
+          selfcareId
+        ),
+        archivingConsumerImminentEservices: archivingEservicesToDigest(
+          archivingConsumerImminentEservices,
+          selfcareId
+        ),
+        archivingConsumerEserviceScopeCount:
+          archivingConsumerScopeCounts.eserviceScopeCount,
+        archivingConsumerDescriptorScopeCount:
+          archivingConsumerScopeCounts.descriptorScopeCount,
       };
     },
 
@@ -339,7 +361,9 @@ export function digestDataServiceBuilder(
         data.receivedAttributes?.totalCount ||
         data.revokedAttributes?.totalCount ||
         data.archivingInProgressEservices?.totalCount ||
-        data.archivingImminentEservices?.totalCount
+        data.archivingImminentEservices?.totalCount ||
+        data.archivingConsumerInProgressEservices?.totalCount ||
+        data.archivingConsumerImminentEservices?.totalCount
       );
     },
   };

@@ -34,7 +34,8 @@ export type DigestSection =
   | "receivedPurposes"
   | "delegations"
   | "attributes"
-  | "archivingProducer";
+  | "archivingProducer"
+  | "archivingConsumer";
 
 /**
  * Which roles can see each digest section.
@@ -121,6 +122,16 @@ export const digestAdmittedRoles = {
     [REVIEWER_ROLE]: false,
     [VIEWER_ROLE]: false,
   },
+  // Same visibility as eserviceStateChangedToConsumer notification: consumer-facing
+  // e-service lifecycle info.
+  archivingConsumer: {
+    [ADMIN_ROLE]: true,
+    [API_ROLE]: false,
+    [SECURITY_ROLE]: true,
+    [SUPPORT_ROLE]: false,
+    [REVIEWER_ROLE]: false,
+    [VIEWER_ROLE]: false,
+  },
 } as const satisfies Record<DigestSection, Record<UserRole, boolean>> &
   Record<DigestSection, Record<typeof SUPPORT_ROLE, false>>;
 
@@ -183,6 +194,10 @@ const digestSectionFields: Record<DigestSection, DigestDataField[]> = {
     "archivingImminentEservices",
     "archivingInProgressEservices",
   ],
+  archivingConsumer: [
+    "archivingConsumerImminentEservices",
+    "archivingConsumerInProgressEservices",
+  ],
 };
 
 /**
@@ -223,6 +238,7 @@ const digestGroups: Record<string, DigestSection[]> = {
   hasDelegationsContent: ["delegations"],
   hasAttributesContent: ["attributes"],
   hasArchivingProducerContent: ["archivingProducer"],
+  hasArchivingConsumerContent: ["archivingConsumer"],
 };
 
 /**
