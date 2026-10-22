@@ -17,6 +17,7 @@ import {
   ApiError,
   attributeKind,
   Tenant,
+  TenantId,
   Attribute,
   tenantAttributeType,
   ProblemSchema,
@@ -74,6 +75,10 @@ function toTenantKey(key: {
   value: string | undefined;
 }): string {
   return JSON.stringify({ origin: key.origin, value: key.value });
+}
+
+export function buildTenantsIndex(tenants: Tenant[]): Map<string, Tenant> {
+  return new Map(tenants.map((t) => [toTenantKey(t.externalId), t]));
 }
 
 function toAttributeKey(key: {
@@ -356,16 +361,12 @@ export function getNewAttributes(
 }
 
 export async function getAttributesToAssign(
-  platformTenants: Tenant[],
+  tenantsIndex: Map<string, Tenant>,
   platformAttributes: Attribute[],
   tenantSeeds: TenantSeed[],
   config: IPACertifiedAttributesImporterConfig,
   loggerInstance: Logger
 ): Promise<tenantApi.InternalTenantSeed[]> {
-  const tenantsIndex = new Map(
-    platformTenants.map((t) => [toTenantKey(t.externalId), t])
-  );
-
   const certifiedAttributes = new Map(
     platformAttributes
       .filter((a) => a.kind === attributeKind.certified && a.origin && a.code)
@@ -609,6 +610,95 @@ export async function revokeAttributes(
 
     if (!succeeded) {
       failures += 1;
+    }
+  }
+
+  return failures;
+}
+
+export type TenantParentUpdate = {
+  tenant: Tenant;
+  parentTenantId: TenantId | null;
+  rootTenantId: TenantId | null;
+};
+
+export function getTenantParentUpdates(
+  registryData: RegistryData,
+  tenantsIndex: Map<string, Tenant>
+): TenantParentUpdate[] {
+  const updates: TenantParentUpdate[] = [];
+
+  for (const institution of registryData.institutions) {
+    if (institution.classification === AGENCY_CLASSIFICATION) {
+      continue;
+    }
+
+    const tenant = tenantsIndex.get(
+      toTenantKey({ origin: institution.origin, value: institution.originId })
+    );
+    if (!tenant) {
+      continue;
+    }
+
+    const parent = tenantsIndex.get(
+      toTenantKey({
+        origin: institution.origin,
+        value: institution.parentOriginId,
+      })
+    );
+    const root = tenantsIndex.get(
+      toTenantKey({
+        origin: institution.origin,
+        value: institution.rootOriginId,
+      })
+    );
+
+    updates.push({
+      tenant,
+      parentTenantId: parent && root ? parent.id : null,
+      rootTenantId: parent && root ? root.id : null,
+    });
+  }
+
+  return updates;
+}
+
+export async function updateTenantsParent(
+  updates: TenantParentUpdate[],
+  readModelServiceSQL: ReadModelServiceSQL,
+  loggerInstance: Logger,
+  pollingConfig: PollingConfig
+): Promise<number> {
+  let failures = 0;
+
+  for (const { tenant, parentTenantId, rootTenantId } of updates) {
+    const { origin: tOrigin, value: tExternalId } = tenant.externalId;
+    const details = `tenant ${tOrigin}/${tExternalId} with parentTenantId ${parentTenantId}, rootTenantId ${rootTenantId}`;
+
+    const succeeded = await runTenantOperation({
+      description: `parent update of ${details}`,
+      startMessage: `Updating parent of ${details}`,
+      // TODO: replace with tenantClient.internalUpdateTenantParent...(
+      //   { parentTenantId, rootTenantId },
+      //   { params: { tOrigin, tExternalId }, headers }
+      command: () =>
+        Promise.reject(
+          new Error("internalUpdateTenantParent is not available yet")
+        ),
+      pollReadModel: (version) =>
+        waitForReadModelMetadataVersion(
+          () =>
+            readModelServiceSQL.getTenantByExternalIdWithMetadata(
+              tenant.externalId
+            ),
+          version,
+          pollingConfig
+        ),
+      loggerInstance,
+    });
+
+    if (!succeeded) {
+      failures++;
     }
   }
 

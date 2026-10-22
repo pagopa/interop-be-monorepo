@@ -14,11 +14,14 @@ import {
 import { parseIPACertifiedAttributesImporterConfig } from "./config/config.js";
 import {
   assignNewAttributes,
+  buildTenantsIndex,
   createTenantProcessClient,
   createNewAttributes,
   getAttributesToAssign,
   getAttributesToRevoke,
   getNewAttributes,
+  getTenantParentUpdates,
+  updateTenantsParent,
   getTenantUpsertData,
   revokeAttributes,
 } from "./services/ipaCertifiedAttributesImporterService.js";
@@ -95,10 +98,12 @@ try {
     config.defaultPollingMaxRetries
   );
 
+  const tenantsIndex = buildTenantsIndex(tenants);
+
   loggerInstance.info("Assigning new attributes");
 
   const attributesToAssign = await getAttributesToAssign(
-    tenants,
+    tenantsIndex,
     attributes,
     tenantUpsertData,
     config,
@@ -137,11 +142,23 @@ try {
     }
   );
 
-  loggerInstance.info(
-    `IPA certified attributes import completed. Failed upserts: ${failedUpserts}, failed revocations: ${failedRevocations}`
+  loggerInstance.info("Updating tenants parent");
+
+  const failedParentUpdates = await updateTenantsParent(
+    getTenantParentUpdates(registryData, tenantsIndex),
+    readModelServiceSQL,
+    loggerInstance,
+    {
+      defaultPollingMaxRetries: config.defaultPollingMaxRetries,
+      defaultPollingRetryDelay: config.defaultPollingRetryDelay,
+    }
   );
 
-  if (failedUpserts > 0 || failedRevocations > 0) {
+  loggerInstance.info(
+    `IPA certified attributes import completed. Failed upserts: ${failedUpserts}, failed revocations: ${failedRevocations}, failed parent updates: ${failedParentUpdates}`
+  );
+
+  if (failedUpserts > 0 || failedRevocations > 0 || failedParentUpdates > 0) {
     process.exitCode = 1;
   }
 } catch (error) {
