@@ -28,6 +28,7 @@ export const ProcessName = z
       .with("purpose", () => "purposeProcess")
       .with("purposetemplate", () => "purposeTemplateProcess")
       .with("tenant", () => "tenantProcess")
+      .with("bff", "backendforfrontend", () => "bffProcess")
       .otherwise((val) => val)
   );
 

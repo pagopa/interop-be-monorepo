@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { create as createContentDisposition } from "content-disposition";
 import { constants } from "http2";
 import { bffApi } from "pagopa-interop-api-clients";
 import {
@@ -71,6 +72,22 @@ const catalogRouter = (
           bffGetCatalogErrorMapper,
           ctx,
           "Error retrieving Catalog EServices"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/catalog", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const response = await catalogService.queryCatalog(ctx, req.body);
+
+        return res.status(200).send(bffApi.CatalogEServices.parse(response));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          bffGetCatalogErrorMapper,
+          ctx,
+          "Error retrieving filtered Catalog EServices"
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -207,11 +224,10 @@ const catalogRouter = (
           ctx
         );
 
+        const filename = response.filename.replace(/[\\/]/g, "_");
+
         return res
-          .header(
-            "Content-Disposition",
-            `attachment; filename=${response.filename}`
-          )
+          .header("Content-Disposition", createContentDisposition(filename))
           .header("Content-Type", "application/octet-stream")
           .send(response.file);
       } catch (error) {

@@ -5,7 +5,6 @@ import {
   getMockPurpose,
   getMockPurposeVersion,
   getMockTenant,
-  getMockDescriptor,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
@@ -15,7 +14,7 @@ import {
   PurposeId,
   toPurposeV2,
   purposeVersionState,
-  descriptorState,
+  purposeWaitingForApprovalReason,
 } from "pagopa-interop-models";
 import {
   getNotificationRecipients,
@@ -56,7 +55,11 @@ describe("handlePurposeOverQuotaToConsumer", () => {
 
   const purpose = {
     ...getMockPurpose([
-      getMockPurposeVersion(purposeVersionState.waitingForApproval),
+      {
+        ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+        waitingForApprovalReason:
+          purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+      },
     ]),
     id: purposeId,
     eserviceId,
@@ -127,13 +130,17 @@ describe("handlePurposeOverQuotaToConsumer", () => {
   it.each<{
     eventType:
       | "NewPurposeVersionWaitingForApproval"
-      | "PurposeWaitingForApproval";
+      | "PurposeWaitingForApproval"
+      | "PurposeVersionOverQuotaUnsuspended";
   }>([
     {
       eventType: "NewPurposeVersionWaitingForApproval",
     },
     {
       eventType: "PurposeWaitingForApproval",
+    },
+    {
+      eventType: "PurposeVersionOverQuotaUnsuspended",
     },
   ])("should handle $eventType event correctly", async ({ eventType }) => {
     const consumerUsers = [
@@ -154,7 +161,8 @@ describe("handlePurposeOverQuotaToConsumer", () => {
 
     const expectedBody = inAppTemplates.purposeOverQuotaToConsumer(
       eservice.name,
-      dailyCallsPerConsumer
+      purpose.title,
+      purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal
     );
 
     const expectedNotifications = consumerUsers.map((user) => ({
@@ -194,59 +202,47 @@ describe("handlePurposeOverQuotaToConsumer", () => {
     expect(userIds).toContain(users[2].userId);
   });
 
-  it("should use dailyCallsPerConsumer from the latest published descriptor", async () => {
-    const olderDescriptor = {
-      ...getMockDescriptor(descriptorState.deprecated),
-      dailyCallsPerConsumer: 500,
-      version: "1",
-      publishedAt: new Date("2023-01-01"),
-    };
-    const newerDescriptor = {
-      ...getMockDescriptorPublished(),
-      dailyCallsPerConsumer: 2000,
-      version: "2",
-      publishedAt: new Date("2024-01-01"),
-    };
+  it.each([
+    [
+      purposeWaitingForApprovalReason.dailyCallsPerConsumer,
+      "è stata superata la soglia per fruitore di chiamate API",
+    ],
+    [
+      purposeWaitingForApprovalReason.dailyCallsTotal,
+      "è stata superata la soglia totale",
+    ],
+    [
+      purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+      "sia la soglia di chiamate API per fruitore sia la soglia totale",
+    ],
+  ] as const)(
+    "uses event reason %s without reading descriptor quotas",
+    async (reason, text) => {
+      await addOneEService({ ...eservice, descriptors: [] });
+      mockGetNotificationRecipients.mockResolvedValue([
+        { userId: generateId(), tenantId: consumerId },
+      ]);
 
-    const eserviceWithMultipleDescriptors = {
-      ...getMockEService(),
-      id: generateId<EServiceId>(),
-      producerId,
-      descriptors: [olderDescriptor, newerDescriptor],
-    };
+      const notifications = await handlePurposeOverQuotaToConsumer(
+        toPurposeV2({
+          ...purpose,
+          versions: [
+            {
+              ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+              waitingForApprovalReason: reason,
+            },
+          ],
+        }),
+        logger,
+        readModelService,
+        "PurposeWaitingForApproval"
+      );
 
-    await addOneEService(eserviceWithMultipleDescriptors);
-
-    const purposeForMultiDescriptor = {
-      ...getMockPurpose([
-        getMockPurposeVersion(purposeVersionState.waitingForApproval),
-      ]),
-      id: generateId<PurposeId>(),
-      eserviceId: eserviceWithMultipleDescriptors.id,
-      consumerId,
-    };
-    await addOnePurpose(purposeForMultiDescriptor);
-
-    const consumerUsers = [{ userId: generateId(), tenantId: consumerId }];
-    mockGetNotificationRecipients.mockResolvedValue(consumerUsers);
-
-    const notifications = await handlePurposeOverQuotaToConsumer(
-      toPurposeV2(purposeForMultiDescriptor),
-      logger,
-      readModelService,
-      "PurposeWaitingForApproval"
-    );
-
-    expect(notifications).toHaveLength(1);
-
-    // Should use the newer descriptor's dailyCallsPerConsumer value
-    const expectedBody = inAppTemplates.purposeOverQuotaToConsumer(
-      eserviceWithMultipleDescriptors.name,
-      2000
-    );
-
-    expect(notifications[0].body).toEqual(expectedBody);
-  });
+      expect(notifications).toHaveLength(1);
+      expect(notifications[0].body).toContain(text);
+      expect(notifications[0].body).toContain(purpose.title);
+    }
+  );
 
   it("should send notifications to consumer tenant users only", async () => {
     const consumerUsers = [

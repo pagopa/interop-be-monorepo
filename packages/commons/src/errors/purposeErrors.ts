@@ -62,4 +62,5 @@ export const purposeErrorCodes = {
   missingReviewers: "0062",
   reviewersNotAllowedForReviewMode: "0063",
   purposeMetadataVersionMismatch: "0064",
+  riskAnalysisReviewModeNotFound: "0065",
 };

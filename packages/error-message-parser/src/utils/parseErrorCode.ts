@@ -25,6 +25,7 @@ function getProcessCode(processName: string): string | undefined {
     .with("purposeProcess", () => "004")
     .with("purposeTemplateProcess", () => "015")
     .with("tenantProcess", () => "005")
+    .with("bffProcess", () => "008")
     .otherwise(() => undefined);
 }
 

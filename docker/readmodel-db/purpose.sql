@@ -67,6 +67,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose.purpose_version (
   metadata_version INTEGER NOT NULL,
   state VARCHAR NOT NULL,
   daily_calls INTEGER NOT NULL,
+  waiting_for_approval_reason VARCHAR,
   rejection_reason VARCHAR,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE,
