@@ -70,6 +70,7 @@ const errorCodes = {
   clientNotFound: "0048",
   missingDiscreteConfig: "0049",
   tenantCertifiedDiscreteAttributeNotFound: "0050",
+  eserviceTemplateVersionInterfaceNotFound: "0051",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -260,6 +261,17 @@ export function eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound(
     detail: `Async exchange callback interface for descriptor ${descriptorId} not found for eservice ${eserviceId}`,
     code: "eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound",
     title: "Eservice descriptor async exchange callback interface not found",
+  });
+}
+
+export function eserviceTemplateVersionInterfaceNotFound(
+  templateId: EServiceTemplateId,
+  versionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Interface for version ${versionId} not found in eservice template ${templateId}`,
+    code: "eserviceTemplateVersionInterfaceNotFound",
+    title: "Eservice template version interface not found",
   });
 }
 
