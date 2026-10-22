@@ -1,6 +1,7 @@
 export * from "./agreementErrors.js";
 export * from "./attributeRegistryErrors.js";
 export * from "./authorizationErrors.js";
+export * from "./bffErrors.js";
 export * from "./catalogErrors.js";
 export * from "./delegationErrors.js";
 export * from "./eserviceTemplateErrors.js";
