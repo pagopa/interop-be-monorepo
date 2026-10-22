@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
 import AdmZip from "adm-zip";
+import { isAxiosError } from "axios";
 import { randomUUID } from "crypto";
 import {
   agreementApi,
@@ -21,6 +22,7 @@ import {
   formatDateyyyyMMddTHHmmss,
   getAllFromPaginated,
   getRulesetExpiration,
+  retry,
   verifyAndCreateDocument,
   verifyAndCreateImportedDocument,
 } from "pagopa-interop-commons";
@@ -30,6 +32,7 @@ import {
   EServiceId,
   EServiceTemplateId,
   genericInternalError,
+  Problem,
   RiskAnalysisId,
   TenantId,
   unsafeBrandId,
@@ -55,7 +58,12 @@ import {
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
 import { BffProcessConfig, config } from "../config/config.js";
-import { ASYNC_EXCHANGE_CALLBACK_INTERFACE_FOLDER } from "../config/constants.js";
+import {
+  ASYNC_EXCHANGE_CALLBACK_INTERFACE_FOLDER,
+  CATALOG_EVENT_CONFLICT_CODE,
+  EVENT_CONFLICT_MAX_ATTEMPTS,
+  EVENT_CONFLICT_RETRY_DELAY_MS,
+} from "../config/constants.js";
 import {
   eserviceDescriptorNotFound,
   eserviceRiskNotFound,
@@ -91,10 +99,16 @@ import {
   isInvalidDescriptor,
 } from "./validators.js";
 
+const isCatalogEventConflict = (error: unknown): boolean =>
+  isAxiosError<Problem>(error) &&
+  error.response?.status === 409 &&
+  error.response.data.errors?.some(
+    ({ code }) => code === CATALOG_EVENT_CONFLICT_CODE
+  ) === true;
+
 const enhanceCatalogEservices = async (
   eservices: catalogApi.EService[],
   tenantProcessClient: TenantProcessClient,
-  inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient,
   ctx: WithLogger<BffAppContext>,
   requesterId: TenantId
 ): Promise<bffApi.CatalogEService[]> => {
@@ -102,12 +116,6 @@ const enhanceCatalogEservices = async (
     ...eservices.map((e) => e.producerId),
     requesterId,
   ] as TenantId[]);
-
-  const notificationsPromise = filterUnreadNotifications(
-    inAppNotificationManagerClient,
-    eservices.map((a) => a.id),
-    ctx
-  );
 
   const cachedTenants = new Map(
     await Promise.all(
@@ -132,31 +140,24 @@ const enhanceCatalogEservices = async (
   };
   const enhanceEService =
     (
-      requesterId: TenantId,
-      notifications: string[]
+      requesterId: TenantId
     ): ((eservice: catalogApi.EService) => Promise<bffApi.CatalogEService>) =>
     async (eservice: catalogApi.EService): Promise<bffApi.CatalogEService> => {
       const producerTenant = getCachedTenant(eservice.producerId as TenantId);
 
       const latestActiveDescriptor = getLatestActiveDescriptor(eservice);
 
-      const hasNotifications = notifications.includes(eservice.id);
       const isRequesterEqProducer = requesterId === eservice.producerId;
 
       return toBffCatalogApiEService(
         eservice,
         producerTenant,
         isRequesterEqProducer,
-        hasNotifications,
         latestActiveDescriptor
       );
     };
 
-  const notifications = await notificationsPromise;
-
-  return await Promise.all(
-    eservices.map(enhanceEService(requesterId, notifications))
-  );
+  return await Promise.all(eservices.map(enhanceEService(requesterId)));
 };
 
 const checkNewTemplateVersionAvailable = (
@@ -364,7 +365,6 @@ export function catalogServiceBuilder(
       const results = await enhanceCatalogEservices(
         eservicesResponse.results,
         tenantProcessClient,
-        inAppNotificationManagerClient,
         ctx,
         requesterId
       );
@@ -377,6 +377,34 @@ export function catalogServiceBuilder(
         },
       };
       return response;
+    },
+    queryCatalog: async (
+      ctx: WithLogger<BffAppContext>,
+      filters: bffApi.CatalogFilterPayload
+    ): Promise<bffApi.CatalogEServices> => {
+      ctx.logger.info(
+        `Querying EServices catalog, offset = ${filters.offset}, limit = ${filters.limit}`
+      );
+      const requesterId = ctx.authData.organizationId;
+      const eservicesResponse: catalogApi.EServices =
+        await catalogProcessClient.queryEServices(filters, {
+          headers: ctx.headers,
+        });
+
+      const results = await enhanceCatalogEservices(
+        eservicesResponse.results,
+        tenantProcessClient,
+        ctx,
+        requesterId
+      );
+      return {
+        results,
+        pagination: {
+          offset: filters.offset,
+          limit: filters.limit,
+          totalCount: eservicesResponse.totalCount,
+        },
+      };
     },
     getProducerEServiceDescriptor: async (
       eserviceId: EServiceId,
@@ -804,23 +832,31 @@ export function catalogServiceBuilder(
           contentType,
           checksum
         ) => {
-          await catalogProcessClient.createEServiceDocument(
+          await retry(
+            () =>
+              catalogProcessClient.createEServiceDocument(
+                {
+                  documentId,
+                  prettyName,
+                  fileName,
+                  filePath,
+                  kind,
+                  contentType,
+                  checksum,
+                  serverUrls,
+                },
+                {
+                  headers: ctx.headers,
+                  params: {
+                    eServiceId: eService.id,
+                    descriptorId,
+                  },
+                }
+              ),
             {
-              documentId,
-              prettyName,
-              fileName,
-              filePath,
-              kind,
-              contentType,
-              checksum,
-              serverUrls,
-            },
-            {
-              headers: ctx.headers,
-              params: {
-                eServiceId: eService.id,
-                descriptorId,
-              },
+              retries: EVENT_CONFLICT_MAX_ATTEMPTS,
+              delay: EVENT_CONFLICT_RETRY_DELAY_MS,
+              shouldRetry: isCatalogEventConflict,
             }
           );
         },
