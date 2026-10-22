@@ -20,6 +20,7 @@ COPY ./packages/client-assertion-validation/package.json /app/packages/client-as
 COPY ./packages/dpop-validation/package.json /app/packages/dpop-validation/package.json
 COPY ./packages/application-audit/package.json /app/packages/application-audit/package.json
 COPY ./packages/kafka-iam-auth/package.json /app/packages/kafka-iam-auth/package.json
+COPY ./packages/error-message-parser/package.json /app/packages/error-message-parser/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
@@ -34,6 +35,7 @@ COPY ./packages/client-assertion-validation /app/packages/client-assertion-valid
 COPY ./packages/dpop-validation /app/packages/dpop-validation
 COPY ./packages/application-audit /app/packages/application-audit
 COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
+COPY ./packages/error-message-parser /app/packages/error-message-parser
 
 ARG NODE_HEAP_SIZE=4096
 RUN NODE_OPTIONS="--max-old-space-size=${NODE_HEAP_SIZE}" pnpm build && \
@@ -51,7 +53,9 @@ RUN NODE_OPTIONS="--max-old-space-size=${NODE_HEAP_SIZE}" pnpm build && \
   packages/dpop-validation \
   packages/application-audit \
   packages/kafka-iam-auth \
-  packages/backend-for-frontend/dist && \
+  packages/error-message-parser \
+  packages/backend-for-frontend/dist \
+  packages/backend-for-frontend/error-mapping.csv && \
   find /out -exec touch -h --date=@0 {} \;
 
 FROM ${NODE_REGISTRY}/node:20.19.4-slim@sha256:6db5e436948af8f0244488a1f658c2c8e55a3ae51ca2e1686ed042be8f25f70a AS final
