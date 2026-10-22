@@ -1,0 +1,21 @@
+# The bootstrap image needs workspace manifests and its own source only.
+*
+!package.json
+!pnpm-workspace.yaml
+!pnpm-lock.yaml
+!.npmrc
+!packages/
+packages/*
+!packages/*/
+packages/*/*
+!packages/*/package.json
+!packages/dev-dashboard-bootstrap/src/
+!packages/dev-dashboard-bootstrap/src/index.mjs
+!packages/dev-dashboard-bootstrap/src/index.d.mts
+!docker/
+docker/*
+!docker/dev-dashboard/
+docker/dev-dashboard/*
+!docker/dev-dashboard/entrypoint.sh
+!docker/dev-dashboard/generate-compose.mjs
+!docker/dev-dashboard/stage-bootstrap.mjs

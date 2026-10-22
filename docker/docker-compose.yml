@@ -27,6 +27,33 @@ volumes:
   rustfs-data:
 
 services:
+  # Optional local development supervisor. Use scripts/local-development/dashboard.sh
+  # to generate source/dependency mounts for the current checkout.
+  dashboard:
+    profiles: [dashboard]
+    image: "${INTEROP_DASHBOARD_IMAGE:-pagopa-interop-dashboard:local}"
+    build:
+      context: ..
+      dockerfile: docker/dev-dashboard/Dockerfile
+    init: true
+    entrypoint: ["/usr/local/bin/dashboard-entrypoint"]
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    ports:
+      - "127.0.0.1:8076:8076"
+    environment:
+      DASHBOARD_PORT: "8076"
+      COMPOSE_PROJECT_NAME: "${COMPOSE_PROJECT_NAME:-pagopa-interop}"
+      INTEROP_DASHBOARD_RUNTIME: "true"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8076/health"]
+      interval: 3s
+      timeout: 2s
+      start_period: 10m
+      retries: 10
+
   # Event Store Postgres DB
   event-store:
     security_opt:
@@ -192,7 +219,11 @@ services:
       - zookeeper-logs:/zookeeper/txns
     image: quay.io/debezium/zookeeper:2.3
     healthcheck:
-      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/2181"]
+      test:
+        - CMD-SHELL
+        - >-
+          curl --fail --silent --show-error --max-time 1 http://localhost:8080/commands/ruok
+          | grep -q '"error"[[:space:]]*:[[:space:]]*null'
       interval: 2s
       timeout: 2s
       retries: 30
@@ -398,6 +429,7 @@ services:
         done;
         echo 'RustFS is ready. Seeding data...';
         aws --endpoint-url http://rustfs:9000 s3 mb s3://interop-local-bucket || true;
+        aws --endpoint-url http://rustfs:9000 s3 mb s3://interop-local-bucket-signed || true;
         aws --endpoint-url http://rustfs:9000 s3 mb s3://interop-datalake-bucket || true;
         aws --endpoint-url http://rustfs:9000 s3 mb s3://interop-application-import-export-local || true;
         aws --endpoint-url http://rustfs:9000 s3 mb s3://interop-data-lake-interfaces-exports-local-es1 || true;
@@ -439,6 +471,7 @@ services:
 
   # local-kms is a local KMS-compatible key management service, to replace AWS KMS in local development
   local-kms:
+    init: true
     security_opt:
       - no-new-privileges:true
     read_only: true

@@ -81,7 +81,8 @@
     "local:infra:stop": "./scripts/local-development/infra-stop.sh",
     "local:seed": "node scripts/local-development/cli.mjs seed",
     "local:token": "node scripts/local-development/cli.mjs token",
-    "local:start:frontend-full": "./scripts/local-development/process-start-frontend-full.sh",
+    "local:dashboard": "bash scripts/local-development/dashboard.sh start",
+    "local:dashboard:logs": "bash scripts/local-development/dashboard.sh logs",
     "prune-dist": "find . -name 'dist' -type d -exec rm -rf {} +",
     "prune-modules": "find . -name 'node_modules' -type d -exec rm -rf {} +",
     "madge": "madge --circular --extensions ts,tsx,js,jsx --ts-config ./tsconfig.json packages"
