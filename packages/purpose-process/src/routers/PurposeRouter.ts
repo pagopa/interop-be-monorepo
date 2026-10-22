@@ -13,6 +13,7 @@ import {
 import {
   ClientId,
   DelegationId,
+  DescriptorId,
   EServiceId,
   PurposeTemplateId,
   PurposeVersionDocument,
@@ -56,6 +57,7 @@ import {
   getPurposesErrorMapper,
   getRiskAnalysisDocumentErrorMapper,
   getRemainingDailyCallsErrorMapper,
+  getProducerEServiceMonitoringPurposesErrorMapper,
   rejectPurposeVersionErrorMapper,
   retrieveLatestRiskAnalysisConfigurationErrorMapper,
   retrieveRiskAnalysisConfigurationByVersionErrorMapper,
@@ -242,6 +244,34 @@ const purposeRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .get(
+      "/producers/eservices/:eserviceId/descriptors/:descriptorId/monitoring/purposes",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE]);
+
+          const result =
+            await purposeService.getProducerEServiceMonitoringPurposes(
+              unsafeBrandId<EServiceId>(req.params.eserviceId),
+              unsafeBrandId<DescriptorId>(req.params.descriptorId),
+              ctx
+            );
+
+          return res
+            .status(200)
+            .send(purposeApi.ProducerEServiceMonitoringPurposes.parse(result));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getProducerEServiceMonitoringPurposesErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .get("/purposes/:purposeId/remainingDailyCalls", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
