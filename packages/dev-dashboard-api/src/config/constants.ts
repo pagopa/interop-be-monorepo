@@ -1,3 +1,4 @@
+import { nodeEnvironment } from "pagopa-interop-dev-dashboard-bootstrap";
 import {
   LogEntry,
   type DashboardAction,
@@ -11,8 +12,6 @@ export const MAX_PORT = 65_535;
 export const PACKAGE_LAYOUT = Object.freeze({
   directory: "packages",
   manifest: "package.json",
-  entrypoint: "src/index.ts",
-  dashboardPrefix: "dev-dashboard-",
   source: "src",
   runtimeEntrypoint: "./src/index.ts",
   runner: "node_modules/.bin/tsx",
@@ -77,7 +76,7 @@ export const ENVIRONMENT_KEYS = Object.freeze({
 });
 
 export const ENVIRONMENT_RULES = Object.freeze({
-  nodeEnvironment: "development",
+  nodeEnvironment,
   hostSuffixes: ["_HOST", "_HOSTNAME", "_ADDRESS"],
   serverHostSuffix: "SERVER_HOST",
   kafkaBrokersSuffix: "KAFKA_BROKERS",

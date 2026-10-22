@@ -12,9 +12,9 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "dotenv-flow": "catalog:",
     "express": "catalog:",
     "kafkajs": "catalog:",
+    "pagopa-interop-dev-dashboard-bootstrap": "workspace:*",
     "pagopa-interop-dev-dashboard-contracts": "workspace:*",
     "zod": "catalog:"
   },
