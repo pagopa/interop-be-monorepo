@@ -336,7 +336,7 @@ describe("ReadModelService - getNewEserviceTemplates", () => {
   });
 
   describe("Limit and pagination", () => {
-    test("should respect the 5-item limit when more templates are available", async () => {
+    test("should respect the 6-item limit when more templates are available", async () => {
       // Create 7 templates with new versions
       const templatePromises = Array.from({ length: 7 }, () =>
         createTemplateScenario(consumer.id, {
@@ -357,7 +357,7 @@ describe("ReadModelService - getNewEserviceTemplates", () => {
         consumer.id
       );
 
-      expect(result).toHaveLength(TEST_LIMITS.MAX_RESULTS);
+      expect(result).toHaveLength(TEST_LIMITS.MAX_CARD_RESULTS);
     });
   });
 
@@ -873,7 +873,7 @@ describe("ReadModelService - getPopularEserviceTemplates", () => {
       expect(result[1].instances).toBe(2);
     });
 
-    test("should respect the 5-item limit", async () => {
+    test("should respect the 6-item limit", async () => {
       // Create 7 templates with instances
       // eslint-disable-next-line functional/no-let
       for (let i = 0; i < 7; i++) {
@@ -903,7 +903,7 @@ describe("ReadModelService - getPopularEserviceTemplates", () => {
         creator.id
       );
 
-      expect(result).toHaveLength(TEST_LIMITS.MAX_RESULTS);
+      expect(result).toHaveLength(TEST_LIMITS.MAX_CARD_RESULTS);
     });
   });
 
