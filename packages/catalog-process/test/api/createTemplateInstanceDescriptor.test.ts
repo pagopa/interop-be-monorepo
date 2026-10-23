@@ -29,6 +29,7 @@ import {
   eServiceNotFound,
   eserviceWithoutValidDescriptors,
   inconsistentDailyCalls,
+  invalidAudience,
 } from "../../src/model/domain/errors.js";
 import { api, catalogService } from "../vitest.api.setup.js";
 
@@ -125,6 +126,10 @@ describe("API /templates/eservices/{eServiceId}/descriptors authorization test",
     },
     {
       error: inconsistentDailyCalls(),
+      expectedStatus: 400,
+    },
+    {
+      error: invalidAudience(":::"),
       expectedStatus: 400,
     },
   ])(

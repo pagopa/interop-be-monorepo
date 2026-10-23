@@ -31,6 +31,7 @@ import {
   eServiceDescriptorNotFound,
   notValidDescriptorState,
   inconsistentDailyCalls,
+  invalidAudience,
   attributeNotFound,
   templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
@@ -143,6 +144,7 @@ describe("patchUpdateDraftDescriptor", () => {
       description: "new description",
     },
     { description: "new description", audience: ["new audience"] },
+    { audience: ["https://api.example.it/v1", "urn:example:audience"] },
     {
       description: "new description",
       audience: ["new audience"],
@@ -473,6 +475,30 @@ describe("patchUpdateDraftDescriptor", () => {
           getMockContextM2MAdmin({ organizationId: eservice.producerId })
         )
       ).rejects.toThrowError(inconsistentDailyCalls());
+    }
+  );
+
+  it.each([":::", "1abc:def", "abc:de f"])(
+    "should throw invalidAudience if audience %s contains ':' but is not a valid URI",
+    async (audience) => {
+      const descriptor: Descriptor = {
+        ...mockDescriptor,
+        state: descriptorState.draft,
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor],
+      };
+      await addOneEService(eservice);
+
+      await expect(
+        catalogService.patchUpdateDraftDescriptor(
+          eservice.id,
+          descriptor.id,
+          { audience: [audience] },
+          getMockContextM2MAdmin({ organizationId: eservice.producerId })
+        )
+      ).rejects.toThrowError(invalidAudience(audience));
     }
   );
 

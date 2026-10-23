@@ -26,6 +26,7 @@ import {
   eServiceNotAnInstance,
   eServiceNotFound,
   inconsistentDailyCalls,
+  invalidAudience,
   notValidDescriptorState,
   templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
@@ -114,6 +115,10 @@ describe("API /templates/eservices/{eServiceId}/descriptors/{descriptorId} autho
     },
     {
       error: inconsistentDailyCalls(),
+      expectedStatus: 400,
+    },
+    {
+      error: invalidAudience(":::"),
       expectedStatus: 400,
     },
     {

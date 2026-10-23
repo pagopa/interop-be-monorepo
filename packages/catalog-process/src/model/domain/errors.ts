@@ -96,6 +96,7 @@ const errorCodes = {
   noActiveDelegationFound: "0075",
   delegatedArchiveRequestForIncorrectDelegateProducer: "0076",
   interfaceDocumentNotUpdatable: "0077",
+  invalidAudience: "0079",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -250,6 +251,14 @@ export function inconsistentDailyCalls(): ApiError<ErrorCodes> {
     detail: `dailyCallsPerConsumer can't be greater than dailyCallsTotal`,
     code: "inconsistentDailyCalls",
     title: "Inconsistent daily calls",
+  });
+}
+
+export function invalidAudience(audience: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Audience ${audience} contains ":" but is not a valid URI`,
+    code: "invalidAudience",
+    title: "Invalid audience",
   });
 }
 

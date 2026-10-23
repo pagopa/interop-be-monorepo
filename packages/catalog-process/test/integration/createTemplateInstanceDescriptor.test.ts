@@ -36,6 +36,7 @@ import {
   draftDescriptorAlreadyExists,
   eServiceNotFound,
   inconsistentDailyCalls,
+  invalidAudience,
 } from "../../src/model/domain/errors.js";
 import {
   addOneDelegation,
@@ -570,4 +571,48 @@ describe("create descriptor", async () => {
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
   });
+  it.each([":::", "1abc:def", "abc:de f"])(
+    "should throw invalidAudience if audience %s contains ':' but is not a valid URI",
+    async (audience) => {
+      const templateVersion: EServiceTemplateVersion = {
+        ...getMockEServiceTemplateVersion(),
+        state: eserviceTemplateVersionState.published,
+        interface: getMockDocument(),
+      };
+      const template: EServiceTemplate = {
+        ...getMockEServiceTemplate(),
+        versions: [templateVersion],
+      };
+
+      const prevDescriptor: Descriptor = {
+        ...getMockDescriptor(),
+        version: "1",
+        state: descriptorState.published,
+        interface: getMockDocument(),
+        templateVersionRef: {
+          id: templateVersion.id,
+        },
+      };
+      const eservice: EService = {
+        ...getMockEService(),
+        descriptors: [prevDescriptor],
+        templateId: template.id,
+      };
+
+      await addOneEService(eservice);
+      await addOneEServiceTemplate(template);
+
+      await expect(
+        catalogService.createTemplateInstanceDescriptor(
+          eservice.id,
+          {
+            audience: [audience],
+            dailyCallsPerConsumer: 60,
+            dailyCallsTotal: 60,
+          },
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        )
+      ).rejects.toThrowError(invalidAudience(audience));
+    }
+  );
 });

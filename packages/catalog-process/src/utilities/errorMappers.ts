@@ -29,6 +29,7 @@ export const createEServiceErrorMapper = (
       "invalidDelegationFlags",
       "asyncExchangeNotAllowedForReceiveMode",
       "inconsistentDailyCalls",
+      "invalidAudience",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
@@ -200,6 +201,7 @@ export const createDescriptorErrorMapper = (
       "draftDescriptorAlreadyExists",
       "attributeNotFound",
       "inconsistentDailyCalls",
+      "invalidAudience",
       "attributeDuplicatedInGroup",
       "attributeDailyCallsNotAllowed",
       "attributeDiscreteConfigNotAllowed",
@@ -238,6 +240,7 @@ export const updateDraftDescriptorErrorMapper = (
     .with(
       "notValidDescriptor",
       "inconsistentDailyCalls",
+      "invalidAudience",
       "templateInstanceNotAllowed",
       "attributeDuplicatedInGroup",
       "attributeDailyCallsNotAllowed",
@@ -260,6 +263,7 @@ export const updateDraftDescriptorTemplateInstanceErrorMapper = (
     .with(
       "notValidDescriptor",
       "inconsistentDailyCalls",
+      "invalidAudience",
       "attributeNotFound",
       "eServiceNotAnInstance",
       "attributeDiscreteConfigNotAllowed",
@@ -725,6 +729,7 @@ export const createTemplateInstanceDescriptorErrorMapper = (
     .with(
       "draftDescriptorAlreadyExists",
       "inconsistentDailyCalls",
+      "invalidAudience",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)

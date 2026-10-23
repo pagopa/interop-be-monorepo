@@ -238,6 +238,7 @@ import {
   validateRiskAnalysisSchemaOrThrow,
   assertEServiceIsTemplateInstance,
   assertConsistentDailyCalls,
+  assertValidAudience,
   assertIsDraftDescriptor,
   assertDescriptorUpdatableAfterPublish,
   assertEServiceUpdatableAfterPublish,
@@ -729,6 +730,7 @@ async function innerCreateEService(
   );
 
   assertConsistentDailyCalls(seed.descriptor);
+  assertValidAudience(seed.descriptor.audience);
 
   const templateVersionId = template?.versionId;
 
@@ -1857,6 +1859,7 @@ export function catalogServiceBuilder(
       assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
       assertDiscreteConfigForCertifiedAttributesOnly(parsedAttributes);
       assertConsistentDailyCalls(eserviceDescriptorSeed);
+      assertValidAudience(eserviceDescriptorSeed.audience);
       assertAttributeDailyCallsConsistentWithTotal(
         parsedAttributes,
         eserviceDescriptorSeed.dailyCallsTotal
@@ -2111,6 +2114,7 @@ export function catalogServiceBuilder(
       }
 
       assertConsistentDailyCalls(seed);
+      assertValidAudience(seed.audience);
 
       const parsedSeedAttributes = seed.attributes
         ? await parseAndCheckAttributes(seed.attributes, readModelService)
@@ -5037,6 +5041,7 @@ export function catalogServiceBuilder(
           : undefined;
 
       assertConsistentDailyCalls(eserviceInstanceDescriptorSeed);
+      assertValidAudience(eserviceInstanceDescriptorSeed.audience);
 
       const asyncExchangeEnabled =
         isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
@@ -6269,6 +6274,10 @@ async function updateDraftDescriptor(
     dailyCallsPerConsumer: updatedDailyCallsPerConsuemer,
     dailyCallsTotal: updatedDailyCallsTotal,
   });
+
+  if (audience) {
+    assertValidAudience(audience);
+  }
 
   const updatedAttributes = attributes
     ? await parseAndCheckAttributes(
