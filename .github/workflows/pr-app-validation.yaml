@@ -27,6 +27,15 @@ jobs:
           node-version-file: ./package.json
       - name: Run OpenAPI lint
         run: bash -O extglob -c "pnpm --filter pagopa-interop-api-clients lint:openapi"
+      - name: Fetch PR base commit
+        env:
+          OPENAPI_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: git fetch --no-tags --depth=1 origin "$OPENAPI_BASE_SHA"
+      - name: Check additive BFF OpenAPI changes
+        run: pnpm --filter pagopa-interop-api-clients check:openapi-additive
+        env:
+          OPENAPI_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          OPENAPI_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
 
   knip:
     name: Knip codebase audit
