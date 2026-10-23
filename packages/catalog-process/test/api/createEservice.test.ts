@@ -16,6 +16,7 @@ import {
   eServiceNameDuplicateForProducer,
   eserviceTemplateNameConflict,
   inconsistentDailyCalls,
+  invalidAudience,
   invalidDelegationFlags,
   originNotCompliant,
 } from "../../src/model/domain/errors.js";
@@ -110,6 +111,10 @@ describe("API /eservices authorization test", () => {
     },
     {
       error: inconsistentDailyCalls(),
+      expectedStatus: 400,
+    },
+    {
+      error: invalidAudience(":::"),
       expectedStatus: 400,
     },
   ])(
