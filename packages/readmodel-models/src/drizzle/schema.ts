@@ -1290,6 +1290,8 @@ export const tenantInReadmodelTenant = readmodelTenant.table(
       mode: "string",
     }),
     subUnitType: varchar("sub_unit_type"),
+    parentTenantId: uuid("parent_tenant_id"),
+    rootTenantId: uuid("root_tenant_id"),
   },
   (table) => [
     unique("tenant_id_metadata_version_unique").on(

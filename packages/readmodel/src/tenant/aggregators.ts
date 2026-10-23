@@ -123,6 +123,12 @@ export const aggregateTenant = ({
     ...(tenantSQL.selfcareInstitutionType
       ? { selfcareInstitutionType: tenantSQL.selfcareInstitutionType }
       : {}),
+    ...(tenantSQL.parentTenantId
+      ? { parentTenantId: unsafeBrandId<TenantId>(tenantSQL.parentTenantId) }
+      : {}),
+    ...(tenantSQL.rootTenantId
+      ? { rootTenantId: unsafeBrandId<TenantId>(tenantSQL.rootTenantId) }
+      : {}),
 
     attributes,
     externalId: {
