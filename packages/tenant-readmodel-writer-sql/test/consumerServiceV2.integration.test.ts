@@ -8,6 +8,7 @@ import {
   Tenant,
   TenantOnboardedV2,
   TenantOnboardDetailsUpdatedV2,
+  TenantParentUpdatedV2,
   TenantCertifiedAttributeAssignedV2,
   TenantCertifiedAttributeRevokedV2,
   TenantCertifiedDiscreteAttributeAssignedV2,
@@ -933,5 +934,30 @@ describe("Tenant Events V2", async () => {
     expect(retrievedTenant?.metadata).toStrictEqual({
       version: 2,
     });
+  });
+  it("TenantParentUpdated", async () => {
+    await tenantWriterService.upsertTenant(mockTenant, 1);
+
+    const updatedTenant: Tenant = {
+      ...mockTenant,
+      parentTenantId: generateId(),
+      rootTenantId: generateId(),
+    };
+    const message: TenantEventEnvelopeV2 = {
+      ...mockMessage,
+      type: "TenantParentUpdated",
+      data: {
+        tenant: toTenantV2(updatedTenant),
+      } satisfies TenantParentUpdatedV2,
+      version: 2,
+    };
+
+    await handleMessageV2(message, tenantWriterService);
+
+    const retrievedTenant = await tenantReadModelService.getTenantById(
+      mockTenant.id
+    );
+    expect(retrievedTenant?.data).toStrictEqual(updatedTenant);
+    expect(retrievedTenant?.metadata).toStrictEqual({ version: 2 });
   });
 });
