@@ -52,6 +52,7 @@ import {
   internalRevokeCertifiedDiscreteAttributeErrorMapper,
   internalUpdateCertifiedDiscreteAttributeErrorMapper,
   updateCertifiedDiscreteAttributeErrorMapper,
+  internalUpdateTenantParentErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const tenantsRouter = (
@@ -705,6 +706,40 @@ const tenantsRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post(
+      "/internal/origin/:tOrigin/externalId/:tExternalId/parent",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+          const { tOrigin, tExternalId } = req.params;
+          const { data: tenant, metadata } =
+            await tenantService.internalUpdateTenantParent(
+              {
+                tenantOrigin: tOrigin,
+                tenantExternalId: tExternalId,
+                parentTenantId: req.body.parentTenantId,
+                rootTenantId: req.body.rootTenantId,
+              },
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+          return res
+            .status(200)
+            .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            internalUpdateTenantParentErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .post(
       "/internal/origin/:tOrigin/externalId/:tExternalId/attributes/origin/:aOrigin/externalId/:aExternalId",
       async (req, res) => {
