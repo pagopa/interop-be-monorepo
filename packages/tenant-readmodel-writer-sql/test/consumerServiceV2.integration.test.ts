@@ -6,6 +6,7 @@ import {
 import {
   TenantEventEnvelopeV2,
   Tenant,
+  TenantId,
   TenantOnboardedV2,
   TenantOnboardDetailsUpdatedV2,
   TenantParentUpdatedV2,
@@ -940,8 +941,8 @@ describe("Tenant Events V2", async () => {
 
     const updatedTenant: Tenant = {
       ...mockTenant,
-      parentTenantId: generateId(),
-      rootTenantId: generateId(),
+      parentTenantId: generateId<TenantId>(),
+      rootTenantId: generateId<TenantId>(),
     };
     const message: TenantEventEnvelopeV2 = {
       ...mockMessage,
