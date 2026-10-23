@@ -82,7 +82,6 @@ import {
   tenantCannotBeItsOwnParent,
   tenantRootMustBeMainInstitution,
   aooParentMustBeRootInstitution,
-  uoParentAooMustBelongToRoot,
   uoParentMustBeRootOrAoo,
 } from "../model/domain/errors.js";
 import { ApiGetTenantsFilters } from "../model/domain/models.js";
@@ -2897,10 +2896,10 @@ export function tenantServiceBuilder(
           })
           .with(tenantUnitType.UO, () => {
             if (parent.subUnitType === tenantUnitType.AOO) {
-              if (parent.rootTenantId !== rootTenantId) {
-                throw uoParentAooMustBelongToRoot(tenant.id);
-              }
-            } else if (parent.subUnitType || parentTenantId !== rootTenantId) {
+              return;
+            }
+
+            if (parent.subUnitType || parentTenantId !== rootTenantId) {
               throw uoParentMustBeRootOrAoo(tenant.id);
             }
           })

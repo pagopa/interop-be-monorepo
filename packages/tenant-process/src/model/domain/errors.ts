@@ -49,8 +49,7 @@ const errorCodes = {
   tenantCannotBeItsOwnParent: "0039",
   tenantRootMustBeMainInstitution: "0040",
   aooParentMustBeRootInstitution: "0041",
-  uoParentAooMustBelongToRoot: "0042",
-  uoParentMustBeRootOrAoo: "0043",
+  uoParentMustBeRootOrAoo: "0042",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -447,16 +446,6 @@ export function aooParentMustBeRootInstitution(
     detail: `An AOO parent must be the root institution for tenant ${tenantId}`,
     code: "aooParentMustBeRootInstitution",
     title: "AOO parent must be the root institution",
-  });
-}
-
-export function uoParentAooMustBelongToRoot(
-  tenantId: TenantId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `The parent AOO must belong to the specified root institution for tenant ${tenantId}`,
-    code: "uoParentAooMustBelongToRoot",
-    title: "Parent AOO must belong to the specified root institution",
   });
 }
 
