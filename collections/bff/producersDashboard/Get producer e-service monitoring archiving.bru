@@ -1,0 +1,23 @@
+meta {
+  name: Get producer e-service monitoring archiving
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{host-bff}}/producers/eservices/:eserviceId/monitoring/archiving
+  body: none
+  auth: none
+}
+
+params:path {
+  eserviceId: 3a6f0b1e-7c2d-4a39-9f55-1f5d2e6c8a10
+}
+
+headers {
+  Authorization: {{JWT}}
+}
+
+docs {
+  Retrieves one row per descriptor being archived for the given e-service
+}

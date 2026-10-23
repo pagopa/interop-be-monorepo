@@ -1,0 +1,30 @@
+meta {
+  name: Get producer dashboard consumer
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{host-bff}}/producers/dashboard/consumers/:consumerId
+  body: none
+  auth: none
+}
+
+params:path {
+  consumerId: c7d8e9f0-1a2b-4c3d-8e4f-5a6b7c8d9e01
+}
+
+params:query {
+  offset: 0
+  limit: 10
+  ~q: 
+  ~sortBy: NAME_ASC
+}
+
+headers {
+  Authorization: {{JWT}}
+}
+
+docs {
+  Retrieves the producer e-services used by the given consumer
+}
