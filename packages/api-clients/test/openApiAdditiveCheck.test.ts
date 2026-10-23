@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   compareOpenApiSpecs,
+  formatReport,
   hasNonAdditiveChanges,
 } from "../scripts/openApiAdditiveCheck.js";
 
@@ -39,6 +40,26 @@ const baseSpec = {
 };
 
 describe("compareOpenApiSpecs", () => {
+  it("reports modified existing endpoints and components even when their count is zero", () => {
+    const report = formatReport({
+      addedOperations: ["GET /new"],
+      removedOperations: [],
+      modifiedOperations: [],
+      addedComponents: ["schemas/New"],
+      removedComponents: [],
+      modifiedComponents: [],
+      changedGlobals: [],
+      addedTags: [],
+      removedTags: [],
+      modifiedTags: [],
+      baseVersion: "1.0.0",
+      headVersion: "1.1.0",
+    });
+
+    expect(report).toContain("- Existing endpoints modified: **0**");
+    expect(report).toContain("- Existing components modified: **0**");
+  });
+
   it("allows new operations and components while preserving existing definitions", () => {
     const headSpec = {
       ...baseSpec,
