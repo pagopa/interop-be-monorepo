@@ -1,7 +1,6 @@
 import SwaggerParser from "@apidevtools/swagger-parser";
 import { execFileSync } from "node:child_process";
 import {
-  appendFileSync,
   mkdtempSync,
   rmSync,
   writeFileSync,
@@ -184,35 +183,38 @@ export function compareOpenApiSpecs(
 
 export function formatReport(diff: OpenApiAdditiveDiff): string {
   const lines = [
-    "## OpenAPI additive comparison",
+    "BFF OpenAPI additive comparison",
+    `Status: ${hasNonAdditiveChanges(diff) ? "FAIL" : "PASS"}`,
     "",
-    `- Spec version: ${diff.baseVersion ?? "unknown"} → ${diff.headVersion ?? "unknown"}`,
-    `- New endpoints: **${diff.addedOperations.length}**`,
-    `- Existing endpoints modified: **${diff.modifiedOperations.length}**`,
-    `- Existing endpoints removed: **${diff.removedOperations.length}**`,
-    `- New components: **${diff.addedComponents.length}**`,
-    `- Existing components modified: **${diff.modifiedComponents.length}**`,
-    `- Existing components removed: **${diff.removedComponents.length}**`,
-    `- Tags: **+${diff.addedTags.length} added**, **${diff.modifiedTags.length} modified**, **${diff.removedTags.length} removed**`,
-    `- Changed global settings: **${diff.changedGlobals.length}**`,
+    `Spec version: ${diff.baseVersion ?? "unknown"} -> ${diff.headVersion ?? "unknown"}`,
+    `New endpoints: ${diff.addedOperations.length}`,
+    `Existing endpoints modified: ${diff.modifiedOperations.length}`,
+    `Existing endpoints removed: ${diff.removedOperations.length}`,
+    `New components: ${diff.addedComponents.length}`,
+    `Existing components modified: ${diff.modifiedComponents.length}`,
+    `Existing components removed: ${diff.removedComponents.length}`,
+    `Tags added: ${diff.addedTags.length}`,
+    `Existing tags modified: ${diff.modifiedTags.length}`,
+    `Existing tags removed: ${diff.removedTags.length}`,
+    `Changed global settings: ${diff.changedGlobals.length}`,
   ];
 
   const sections: Array<[string, string[]]> = [
-    ["Added operations", diff.addedOperations],
+    ["New endpoints", diff.addedOperations],
     ["Modified existing operations", diff.modifiedOperations],
-    ["Removed operations", diff.removedOperations],
-    ["Added components", diff.addedComponents],
+    ["Removed existing endpoints", diff.removedOperations],
+    ["New components", diff.addedComponents],
     ["Modified existing components", diff.modifiedComponents],
-    ["Removed components", diff.removedComponents],
-    ["Added tags", diff.addedTags],
+    ["Removed existing components", diff.removedComponents],
+    ["New tags", diff.addedTags],
     ["Modified existing tags", diff.modifiedTags],
-    ["Removed tags", diff.removedTags],
+    ["Removed existing tags", diff.removedTags],
     ["Changed global settings", diff.changedGlobals],
   ];
 
   for (const [title, entries] of sections) {
     if (entries.length > 0) {
-      lines.push("", `### ${title}`, ...entries.map((entry) => `- \`${entry}\``));
+      lines.push("", `${title}:`, ...entries.map((entry) => `  ${entry}`));
     }
   }
 
@@ -262,9 +264,6 @@ async function main(): Promise<void> {
   const report = formatReport(diff);
 
   console.log(report);
-  if (process.env.GITHUB_STEP_SUMMARY) {
-    appendFileSync(process.env.GITHUB_STEP_SUMMARY, report);
-  }
 
   if (hasNonAdditiveChanges(diff)) {
     throw new Error(

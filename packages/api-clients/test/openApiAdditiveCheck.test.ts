@@ -40,7 +40,7 @@ const baseSpec = {
 };
 
 describe("compareOpenApiSpecs", () => {
-  it("reports modified existing endpoints and components even when their count is zero", () => {
+  it("reports modified existing endpoints and components as plain text, including zero", () => {
     const report = formatReport({
       addedOperations: ["GET /new"],
       removedOperations: [],
@@ -56,8 +56,10 @@ describe("compareOpenApiSpecs", () => {
       headVersion: "1.1.0",
     });
 
-    expect(report).toContain("- Existing endpoints modified: **0**");
-    expect(report).toContain("- Existing components modified: **0**");
+    expect(report).toContain("Existing endpoints modified: 0");
+    expect(report).toContain("Existing components modified: 0");
+    expect(report).not.toContain("**");
+    expect(report).not.toContain("`");
   });
 
   it("allows new operations and components while preserving existing definitions", () => {
