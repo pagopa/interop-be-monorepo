@@ -44,6 +44,13 @@ const errorCodes = {
   certifiedDiscreteAttributeRevoked: "0034",
   tenantNotAllowedForDelegation: "0035",
   tenantUpdateVersionMismatch: "0036",
+  tenantIsNotAooOrUo: "0037",
+  tenantParentRootReferencesMustBeBothSetOrNull: "0038",
+  tenantCannotBeItsOwnParent: "0039",
+  tenantRootMustBeMainInstitution: "0040",
+  aooParentMustBeRootInstitution: "0041",
+  uoParentAooMustBelongToRoot: "0042",
+  uoParentMustBeRootOrAoo: "0043",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -103,6 +110,7 @@ export function tenantNotFoundByExternalId(
     title: "Tenant not found by externalId",
   });
 }
+
 export function tenantNotFoundByRemoteId(
   origin: string,
   remoteId: string
@@ -391,5 +399,73 @@ export function tenantUpdateVersionMismatch(
     detail: `Tenant ${tenantId} current version is ${expectedVersion}, but ${providedVersion} was provided`,
     code: "tenantUpdateVersionMismatch",
     title: "Tenant update version mismatch",
+  });
+}
+
+export function tenantIsNotAooOrUo(tenantId: TenantId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Only AOO/UO tenants can have parent/root references: ${tenantId}`,
+    code: "tenantIsNotAooOrUo",
+    title: "Tenant is not an AOO or UO",
+  });
+}
+
+export function tenantParentRootReferencesMustBeBothSetOrNull(
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Parent and root tenant references must both be set or both be null for tenant ${tenantId}`,
+    code: "tenantParentRootReferencesMustBeBothSetOrNull",
+    title: "Parent and root references must be set together",
+  });
+}
+
+export function tenantCannotBeItsOwnParent(
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} cannot be its own parent`,
+    code: "tenantCannotBeItsOwnParent",
+    title: "Tenant cannot be its own parent",
+  });
+}
+
+export function tenantRootMustBeMainInstitution(
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Root tenant reference must identify a main institution for tenant ${tenantId}`,
+    code: "tenantRootMustBeMainInstitution",
+    title: "Root tenant must be a main institution",
+  });
+}
+
+export function aooParentMustBeRootInstitution(
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `An AOO parent must be the root institution for tenant ${tenantId}`,
+    code: "aooParentMustBeRootInstitution",
+    title: "AOO parent must be the root institution",
+  });
+}
+
+export function uoParentAooMustBelongToRoot(
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The parent AOO must belong to the specified root institution for tenant ${tenantId}`,
+    code: "uoParentAooMustBelongToRoot",
+    title: "Parent AOO must belong to the specified root institution",
+  });
+}
+
+export function uoParentMustBeRootOrAoo(
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `A UO parent must be the root institution or an AOO for tenant ${tenantId}`,
+    code: "uoParentMustBeRootOrAoo",
+    title: "UO parent must be the root institution or an AOO",
   });
 }

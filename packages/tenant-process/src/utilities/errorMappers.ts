@@ -359,3 +359,25 @@ export const internalRevokeCertifiedDiscreteAttributeErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const internalUpdateTenantParentErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "tenantNotFound",
+      "tenantNotFoundByExternalId",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with("eventConflictError", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "tenantIsNotAooOrUo",
+      "tenantParentRootReferencesMustBeBothSetOrNull",
+      "tenantCannotBeItsOwnParent",
+      "tenantRootMustBeMainInstitution",
+      "aooParentMustBeRootInstitution",
+      "uoParentAooMustBelongToRoot",
+      "uoParentMustBeRootOrAoo",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
