@@ -196,10 +196,10 @@ export const Tenant = z.object({
   name: z.string(),
   onboardedAt: z.coerce.date().optional(),
   subUnitType: TenantUnitType.optional(),
-  parentTenantId: TenantId.optional(),
-  rootTenantId: TenantId.optional(),
   selfcareInstitutionType: z.string().optional(),
   remoteIds: z.array(TenantRemoteId).optional(),
+  parentTenantId: TenantId.optional(),
+  rootTenantId: TenantId.optional(),
 });
 
 export type Tenant = z.infer<typeof Tenant>;

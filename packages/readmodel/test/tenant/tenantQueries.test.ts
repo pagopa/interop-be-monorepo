@@ -57,9 +57,9 @@ describe("Tenant Queries", () => {
           updatedAt: new Date(),
           onboardedAt: new Date(),
           subUnitType: tenantUnitType.AOO,
+          selfcareInstitutionType: "SCP",
           parentTenantId: generateId<TenantId>(),
           rootTenantId: generateId<TenantId>(),
-          selfcareInstitutionType: "SCP",
           mails: [getMockTenantMail(), getMockTenantMail()],
           features: [
             {

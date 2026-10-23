@@ -346,9 +346,7 @@ export const getMockEServiceTemplateAttributeCertifiedDiscrete = (
 
 export const getMockTenant = (
   tenantId: TenantId = generateId<TenantId>(),
-  attributes: TenantAttribute[] = [],
-  parentTenantId?: TenantId,
-  rootTenantId?: TenantId
+  attributes: TenantAttribute[] = []
 ): Tenant => ({
   name: "A tenant",
   id: tenantId,
@@ -362,8 +360,6 @@ export const getMockTenant = (
   },
   features: [],
   mails: [],
-  ...(parentTenantId ? { parentTenantId } : {}),
-  ...(rootTenantId ? { rootTenantId } : {}),
 });
 
 export const getMockTenantMail = (

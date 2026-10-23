@@ -115,8 +115,6 @@ describe("Tenant aggregators", () => {
       selfcareId,
       kind: tenantKind.PA,
       subUnitType: tenantUnitType.AOO,
-      parentTenantId: generateId<TenantId>(),
-      rootTenantId: generateId<TenantId>(),
       selfcareInstitutionType: "SCP",
       externalId,
       updatedAt: new Date(),
@@ -133,6 +131,8 @@ describe("Tenant aggregators", () => {
         TenantFeatureDelegatedProducer,
       ],
       remoteIds: [tenantRemoteId],
+      parentTenantId: generateId<TenantId>(),
+      rootTenantId: generateId<TenantId>(),
     };
 
     const {

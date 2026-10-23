@@ -127,8 +127,6 @@ describe("Tenant splitters", () => {
         selfcareId,
         kind: tenantKind.PA,
         subUnitType: tenantUnitType.AOO,
-        parentTenantId: generateId<TenantId>(),
-        rootTenantId: generateId<TenantId>(),
         externalId,
         updatedAt: new Date(),
         mails: [tenantMail],
@@ -144,6 +142,8 @@ describe("Tenant splitters", () => {
           tenantFeatureDelegatedProducer,
         ],
         remoteIds: [tenantRemoteId],
+        parentTenantId: generateId<TenantId>(),
+        rootTenantId: generateId<TenantId>(),
       };
 
       const {
