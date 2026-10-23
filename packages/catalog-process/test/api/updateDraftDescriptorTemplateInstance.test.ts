@@ -27,7 +27,7 @@ import {
   eServiceNotFound,
   inconsistentDailyCalls,
   notValidDescriptorState,
-  templateInstanceNotAllowed,
+  templateInstanceAttributesCannotBeChanged,
 } from "../../src/model/domain/errors.js";
 import { api, catalogService } from "../vitest.api.setup.js";
 
@@ -121,7 +121,7 @@ describe("API /templates/eservices/{eServiceId}/descriptors/{descriptorId} autho
       expectedStatus: 400,
     },
     {
-      error: templateInstanceNotAllowed(
+      error: templateInstanceAttributesCannotBeChanged(
         mockEService.id,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         mockEService.templateId!
