@@ -1,0 +1,21 @@
+meta {
+  name: Retrieves featured EServices catalog
+  type: http
+  seq: 53
+}
+
+get {
+  url: {{host-bff}}/catalog/featured
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT}}
+}
+
+docs {
+  Retrieves at most 12 EServices of the catalog. The most recent EService is first.
+  
+  The requester has the certified attributes that each EService requires. The requester has no active or suspended agreement for these EServices.
+}
