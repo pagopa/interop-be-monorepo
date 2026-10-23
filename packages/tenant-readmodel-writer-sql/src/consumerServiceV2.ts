@@ -45,7 +45,8 @@ export async function handleMessageV2(
           "TenantVerifiedAttributeAssigned",
           "TenantVerifiedAttributeExpirationUpdated",
           "TenantVerifiedAttributeExtensionUpdated",
-          "TenantVerifiedAttributeRevoked"
+          "TenantVerifiedAttributeRevoked",
+          "TenantParentUpdated"
         ),
       },
       async (message) => {
