@@ -25,7 +25,6 @@ describe("API GET /tenants/selfcare/{selfcareId} test", () => {
     authRole.SECURITY_ROLE,
     authRole.SUPPORT_ROLE,
     authRole.INTERNAL_ROLE,
-    authRole.M2M_ROLE,
     authRole.VIEWER_ROLE,
   ];
 

@@ -1,0 +1,238 @@
+import {
+  attributeRegistryApi,
+  catalogApi,
+  m2mGatewayApiV3,
+} from "pagopa-interop-api-clients";
+import { AuthRole, authRole, genericLogger } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockedApiEservice,
+  getMockedApiAttribute,
+  getMockDPoPProof,
+} from "pagopa-interop-commons-test";
+import { generateId, unsafeBrandId } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
+import { toM2MGatewayApiCertifiedDiscreteAttribute } from "../../../src/api/attributeApiConverter.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
+import {
+  eserviceDescriptorAttributeGroupNotFound,
+  eserviceDescriptorNotFound,
+} from "../../../src/model/errors.js";
+import { api, mockEserviceService } from "../../vitest.api.setup.js";
+
+describe("POST /eservices/{eServiceId}/descriptors/{descriptorId}/certifiedDiscreteAttributes/groups/{groupIndex}/attributes router test", () => {
+  const mockEService: catalogApi.EService = getMockedApiEservice();
+  const mockDescriptor = mockEService.descriptors[0]!;
+
+  const mockAttributeSeed: m2mGatewayApiV3.EServiceDescriptorCertifiedDiscreteAttributesGroupSeed =
+    {
+      attributes: [generateId(), generateId(), generateId()].map((id) => ({
+        id,
+        discreteConfig: { threshold: 1, comparator: "EQ" },
+      })),
+    };
+
+  const mockAttribute1 = getMockedApiAttribute({
+    kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED_DISCRETE,
+    code: "CODE1",
+  });
+  const mockAttribute2 = getMockedApiAttribute({
+    kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED_DISCRETE,
+    code: "CODE2",
+  });
+
+  const mockResponse: m2mGatewayApiV3.EServiceDescriptorCertifiedDiscreteAttributesGroup =
+    {
+      attributes: [
+        {
+          groupIndex: 0,
+          attribute: toM2MGatewayApiCertifiedDiscreteAttribute({
+            attribute: mockAttribute1,
+            logger: genericLogger,
+          }),
+        },
+        {
+          groupIndex: 0,
+          attribute: toM2MGatewayApiCertifiedDiscreteAttribute({
+            attribute: mockAttribute2,
+            logger: genericLogger,
+          }),
+        },
+      ],
+    };
+
+  const makeRequest = async (
+    token: string,
+    eserviceId: string,
+    descriptorId: string,
+    groupIndex: number,
+    body:
+      | m2mGatewayApiV3.EServiceDescriptorAttributesGroupSeed
+      | m2mGatewayApiV3.EServiceDescriptorCertifiedDiscreteAttributesGroupSeed
+  ) =>
+    request(api)
+      .post(
+        `${appBasePath}/eservices/${eserviceId}/descriptors/${descriptorId}/certifiedDiscreteAttributes/groups/${groupIndex}/attributes`
+      )
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
+      .send(body);
+
+  const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
+  it.each(authorizedRoles)(
+    "Should return 200 and assign certified discrete attributes group for user with role %s",
+    async (role) => {
+      mockEserviceService.assignEServiceDescriptorCertifiedDiscreteAttributesToGroup =
+        vi.fn().mockResolvedValue(mockResponse);
+
+      const token = generateToken(role);
+      const res = await makeRequest(
+        token,
+        mockEService.id,
+        mockDescriptor.id,
+        0,
+        mockAttributeSeed
+      );
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({});
+      expect(
+        mockEserviceService.assignEServiceDescriptorCertifiedDiscreteAttributesToGroup
+      ).toHaveBeenCalledWith(
+        unsafeBrandId(mockEService.id),
+        unsafeBrandId(mockDescriptor.id),
+        0,
+        mockAttributeSeed,
+        expect.anything()
+      );
+    }
+  );
+
+  it.each(
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
+  )("Should return 403 for user with role %s", async (role) => {
+    const token = generateToken(role);
+    const res = await makeRequest(
+      token,
+      mockEService.id,
+      mockDescriptor.id,
+      0,
+      mockAttributeSeed
+    );
+    expect(res.status).toBe(403);
+  });
+
+  it("Should return 400 if passed invalid attribute IDs", async () => {
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const invalidBody = { attributeIds: ["not-a-uuid", "also-invalid"] };
+    const res = await makeRequest(
+      token,
+      mockEService.id,
+      mockDescriptor.id,
+      0,
+      invalidBody
+    );
+
+    expect(res.status).toBe(400);
+  });
+
+  it("Should return 400 for incorrect value for eservice id", async () => {
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(
+      token,
+      "INVALID ID",
+      mockDescriptor.id,
+      0,
+      mockAttributeSeed
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it("Should return 400 for incorrect value for descriptor id", async () => {
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(
+      token,
+      mockEService.id,
+      "INVALID ID",
+      0,
+      mockAttributeSeed
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it("Should return 400 for incorrect value for group index", async () => {
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(
+      token,
+      mockEService.id,
+      mockDescriptor.id,
+      -1,
+      mockAttributeSeed
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it("Should return 400 if body is not an array", async () => {
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await request(api)
+      .post(
+        `${appBasePath}/eservices/${mockEService.id}/descriptors/${mockDescriptor.id}/certifiedDiscreteAttributes/groups/0/attributes`
+      )
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
+      .send({ invalid: "body" });
+
+    expect(res.status).toBe(400);
+  });
+
+  it("Should return 404 if descriptor not found", async () => {
+    const nonExistentDescriptorId = generateId();
+    mockEserviceService.assignEServiceDescriptorCertifiedDiscreteAttributesToGroup =
+      vi
+        .fn()
+        .mockRejectedValue(
+          eserviceDescriptorNotFound(
+            unsafeBrandId(mockEService.id),
+            unsafeBrandId(nonExistentDescriptorId)
+          )
+        );
+
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(
+      token,
+      mockEService.id,
+      nonExistentDescriptorId,
+      0,
+      mockAttributeSeed
+    );
+
+    expect(res.status).toBe(404);
+  });
+  it("Should return 404 if group not found", async () => {
+    const nonExistentGroupId = 1;
+    mockEserviceService.assignEServiceDescriptorCertifiedDiscreteAttributesToGroup =
+      vi
+        .fn()
+        .mockRejectedValue(
+          eserviceDescriptorAttributeGroupNotFound(
+            "certified",
+            unsafeBrandId(mockEService.id),
+            unsafeBrandId(mockDescriptor.id),
+            nonExistentGroupId
+          )
+        );
+
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(
+      token,
+      mockEService.id,
+      mockDescriptor.id,
+      nonExistentGroupId,
+      mockAttributeSeed
+    );
+
+    expect(res.status).toBe(404);
+  });
+});

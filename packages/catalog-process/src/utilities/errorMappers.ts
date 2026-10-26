@@ -349,7 +349,7 @@ export const activateDescriptorErrorMapper = (
       "eServiceDescriptorNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("notValidDescriptor", () => HTTP_STATUS_BAD_REQUEST)
+    .with("notValidDescriptor", () => HTTP_STATUS_CONFLICT)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -868,5 +868,158 @@ export const unarchiveDescriptorErrorMapper = (
       "notValidDescriptor",
       "eserviceWithoutValidDescriptors",
       () => HTTP_STATUS_CONFLICT
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const submitDelegatedArchivingErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "noDelegationForArchivingRequest",
+      "notValidEServiceState", // EService only
+      "notValidDescriptor", // Descriptor only
+      "eserviceWithoutValidDescriptors",
+      "gracePeriodDaysLowerThanDescriptor",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with(
+      "delegatedArchivingRequestAlreadyInProgress",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+export const approveDelegatedEServiceArchivingErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound", // Descriptor only
+      "noActiveDelegationFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
+      "operationForbidden",
+      "delegatedArchiveRequestForIncorrectDelegateProducer",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with(
+      "noDelegatedArchivingRequestFound",
+      "notValidEServiceState", // EService only
+      "notValidDescriptor", // Descriptor only
+      "eserviceWithoutValidDescriptors",
+      "gracePeriodDaysLowerThanDescriptor",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("delegatedArchivingRequestNotActive", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const rejectDelegatedEServiceArchivingErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound", // Descriptor only
+      "noActiveDelegationFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
+      "operationForbidden",
+      "delegatedArchiveRequestForIncorrectDelegateProducer",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with("noDelegatedArchivingRequestFound", () => HTTP_STATUS_BAD_REQUEST)
+    .with("delegatedArchivingRequestNotActive", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const rejectDelegatedDescriptorArchivingErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      "noActiveDelegationFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
+      "operationForbidden",
+      "delegatedArchiveRequestForIncorrectDelegateProducer",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with("noDelegatedArchivingRequestFound", () => HTTP_STATUS_BAD_REQUEST)
+    .with("delegatedArchivingRequestNotActive", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const internalDeleteDelegatedArchivingRequestErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const approveDelegatedDescriptorArchivingErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      "noActiveDelegationFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
+      "operationForbidden",
+      "delegatedArchiveRequestForIncorrectDelegateProducer",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with(
+      "noDelegatedArchivingRequestFound",
+      "notValidDescriptor",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("delegatedArchivingRequestNotActive", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const cancelDelegatedEServiceArchivingErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      "noActiveDelegationFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "noDelegationForArchivingRequest",
+      "noDelegatedArchivingRequestFound",
+      "delegatedArchivingRequestNotActive",
+      "delegatedArchiveRequestForIncorrectDelegateProducer",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const internalRestoreDraftDescriptorAfterDelegationRevokeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

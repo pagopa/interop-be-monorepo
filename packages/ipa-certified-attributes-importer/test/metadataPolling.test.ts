@@ -1,4 +1,5 @@
 import { InteropHeaders, Logger } from "pagopa-interop-commons";
+import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const internalUpsertTenantMock = vi.fn();
@@ -106,31 +107,30 @@ describe("IPA metadata polling", () => {
     expect(logger.warn).toHaveBeenCalledTimes(1);
   });
 
-  it("should fail assign when polling reaches max retries", async () => {
+  it("should not fail assign when polling reaches max retries", async () => {
     internalUpsertTenantMock.mockResolvedValue({ metadata: { version: 5 } });
 
-    const pollingError = new Error("pollingMaxRetriesExceeded");
+    const pollingError = pollingMaxRetriesExceeded(1, 1);
     waitForReadModelMetadataVersionMock.mockRejectedValueOnce(pollingError);
 
-    await expect(
-      assignNewAttributes(
-        [
-          {
-            externalId: { origin: "IPA", value: "123" },
-            name: "tenant",
-            certifiedAttributes: [{ origin: "IPA", code: "A1" }],
-          },
-        ],
-        tenantProcessClient as never,
-        readModelServiceSQL as never,
-        headers,
-        logger,
-        pollingConfig
-      )
-    ).rejects.toThrowError(pollingError);
+    const failures = await assignNewAttributes(
+      [
+        {
+          externalId: { origin: "IPA", value: "123" },
+          name: "tenant",
+          certifiedAttributes: [{ origin: "IPA", code: "A1" }],
+        },
+      ],
+      tenantProcessClient as never,
+      readModelServiceSQL as never,
+      headers,
+      logger,
+      pollingConfig
+    );
 
     expect(internalUpsertTenantMock).toHaveBeenCalledTimes(1);
     expect(waitForReadModelMetadataVersionMock).toHaveBeenCalledTimes(1);
+    expect(failures).toBe(0);
   });
 
   it("should poll read model after revoke when metadata version is returned", async () => {
@@ -184,33 +184,32 @@ describe("IPA metadata polling", () => {
     expect(logger.warn).toHaveBeenCalledTimes(1);
   });
 
-  it("should fail revoke when polling reaches max retries", async () => {
+  it("should not fail revoke when polling reaches max retries", async () => {
     internalRevokeCertifiedAttributeMock.mockResolvedValue({
       metadata: { version: 5 },
     });
 
-    const pollingError = new Error("pollingMaxRetriesExceeded");
+    const pollingError = pollingMaxRetriesExceeded(1, 1);
     waitForReadModelMetadataVersionMock.mockRejectedValueOnce(pollingError);
 
-    await expect(
-      revokeAttributes(
-        [
-          {
-            tOrigin: "IPA",
-            tExternalId: "123",
-            aOrigin: "IPA",
-            aCode: "A1",
-          },
-        ],
-        tenantProcessClient as never,
-        readModelServiceSQL as never,
-        headers,
-        logger,
-        pollingConfig
-      )
-    ).rejects.toThrowError(pollingError);
+    const failures = await revokeAttributes(
+      [
+        {
+          tOrigin: "IPA",
+          tExternalId: "123",
+          aOrigin: "IPA",
+          aCode: "A1",
+        },
+      ],
+      tenantProcessClient as never,
+      readModelServiceSQL as never,
+      headers,
+      logger,
+      pollingConfig
+    );
 
     expect(internalRevokeCertifiedAttributeMock).toHaveBeenCalledTimes(1);
     expect(waitForReadModelMetadataVersionMock).toHaveBeenCalledTimes(1);
+    expect(failures).toBe(0);
   });
 });

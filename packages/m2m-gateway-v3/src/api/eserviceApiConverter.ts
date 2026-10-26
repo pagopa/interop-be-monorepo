@@ -42,6 +42,7 @@ export function toM2MGatewayApiEService(
     personalData: eservice.personalData,
     archivingReason: eservice.archivingReason,
     asyncExchange: eservice.asyncExchange,
+    delegatedArchivingRequest: eservice.delegatedArchivingRequest,
   };
 }
 
@@ -73,6 +74,7 @@ export function toM2MGatewayApiEServiceDescriptor(
         }
       : undefined,
     asyncExchangeProperties: descriptor.asyncExchangeProperties,
+    delegatedArchivingRequest: descriptor.delegatedArchivingRequest,
   };
 }
 

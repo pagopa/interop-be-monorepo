@@ -12,6 +12,7 @@ import {
 } from "pagopa-interop-models";
 import path from "path";
 
+import { ASYNC_EXCHANGE_CALLBACK_INTERFACE_FOLDER } from "../config/constants.js";
 import { missingInterface } from "../model/errors.js";
 import { ConfigurationEservice } from "../model/types.js";
 import { retrieveEserviceDescriptor } from "../services/catalogService.js";
@@ -84,6 +85,7 @@ function buildJsonConfig(
     description: eservice.description,
     technology: eservice.technology,
     mode: eservice.mode,
+    asyncExchange: eservice.asyncExchange,
     isSignalHubEnabled: eservice.isSignalHubEnabled,
     isConsumerDelegable: eservice.isConsumerDelegable,
     isClientAccessDelegable: eservice.isClientAccessDelegable,
@@ -92,6 +94,12 @@ function buildJsonConfig(
         prettyName: descriptor.interface.prettyName,
         path: descriptor.interface.name,
       },
+      asyncExchangeCallbackInterface:
+        descriptor.asyncExchangeCallbackInterface && {
+          prettyName: descriptor.asyncExchangeCallbackInterface.prettyName,
+          path: `${ASYNC_EXCHANGE_CALLBACK_INTERFACE_FOLDER}/${descriptor.asyncExchangeCallbackInterface.name}`,
+        },
+      asyncExchangeProperties: descriptor.asyncExchangeProperties,
       docs: descriptor.docs.map((doc) => {
         const uniqueName = getUniqueNameByDocumentId(
           fileDocumentRegistry,
@@ -185,6 +193,20 @@ export async function createDescriptorDocumentZipFile(
     `${zipFolderName}/${interfaceDocument.name}`,
     Buffer.from(interfaceFileContent.file)
   );
+
+  const asyncExchangeCallbackInterface =
+    descriptor.asyncExchangeCallbackInterface;
+  if (asyncExchangeCallbackInterface) {
+    const callbackInterfaceFile = await fileManager.get(
+      s3BucketName,
+      asyncExchangeCallbackInterface.path,
+      logger
+    );
+    zip.addFile(
+      `${zipFolderName}/${ASYNC_EXCHANGE_CALLBACK_INTERFACE_FOLDER}/${asyncExchangeCallbackInterface.name}`,
+      Buffer.from(callbackInterfaceFile)
+    );
+  }
 
   // Add descriptor's document files to the zip
   const documentFilesContent: FileData[] = await Promise.all(

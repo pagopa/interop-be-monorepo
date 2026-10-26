@@ -427,6 +427,8 @@ export function readModelServiceBuilderSQL(
                 THEN ${certifiedAttributeKind.standard}
               ELSE ${certifiedAttributeKind.discrete}
             END`.as("kind"),
+            discreteValue:
+              tenantCertifiedDiscreteAttributeInReadmodelTenant.discreteValue,
           })
         )
         .from(attributeInReadmodelAttribute)
@@ -495,6 +497,7 @@ export function readModelServiceBuilderSQL(
           attributeId: row.attributeId,
           attributeName: row.attributeName,
           kind: row.kind,
+          discreteValue: row.discreteValue ?? undefined,
         })),
         res[0]?.totalCount
       );

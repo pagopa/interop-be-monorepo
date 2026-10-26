@@ -19,6 +19,7 @@ import { match } from "ts-pattern";
 
 import { attributeNotExists } from "../model/errors.js";
 import {
+  getLastArchivingRequest,
   getLatestActiveDescriptor,
   getLatestTenantContactEmail,
   getValidDescriptor,
@@ -325,6 +326,10 @@ export async function enhanceEServiceToBffCatalogApiProducerDescriptorEService(
     personalData: eservice.personalData,
     instanceLabel: eservice.instanceLabel,
     asyncExchange: eservice.asyncExchange,
+    delegatedArchivingRequest: getLastArchivingRequest(
+      eservice,
+      eservice.descriptors
+    ),
   };
 }
 
