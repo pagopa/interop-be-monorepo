@@ -373,6 +373,10 @@ export function digestDataServiceBuilder(
             rejectedArchivingRequests,
             readModelService
           ),
+        waitingForApprovalRiskAnalysis: await receivedRiskAnalysisToDigest(
+          waitingForApprovalRiskAnalysis,
+          readModelService
+        ),
       };
     },
 
@@ -400,7 +404,8 @@ export function digestDataServiceBuilder(
         data.archivingConsumerImminentEservices?.totalCount ||
         data.archivingRequests?.totalCount ||
         data.approvedArchivingRequests?.totalCount ||
-        data.rejectedArchivingRequests?.totalCount
+        data.rejectedArchivingRequests?.totalCount ||
+        data.waitingForApprovalRiskAnalysis?.totalCount
       );
     },
   };
