@@ -75,6 +75,7 @@ import {
   verifiedAttributeSelfVerificationNotAllowed,
   certifiedDiscreteAttributeAlreadyAssigned,
   tenantNotFoundByRemoteId,
+  tenantUpdateVersionMismatch,
 } from "../model/domain/errors.js";
 import { ApiGetTenantsFilters } from "../model/domain/models.js";
 import {
@@ -2044,6 +2045,14 @@ export function tenantServiceBuilder(
       logger.info(`Maintenance update Tenant ${tenantId}`);
 
       const tenant = await retrieveTenant(tenantId, readModelService);
+
+      if (version !== tenant.metadata.version) {
+        throw tenantUpdateVersionMismatch(
+          tenantId,
+          tenant.metadata.version,
+          version
+        );
+      }
 
       const { features: apiFeatures, ...restTenantUpdate } = tenantUpdate;
 
