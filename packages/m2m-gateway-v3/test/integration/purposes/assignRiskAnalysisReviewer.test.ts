@@ -70,9 +70,7 @@ describe("assignRiskAnalysisReviewer", () => {
       unsafeBrandId(mockApiPurpose.data.id),
       assignmentSeed,
       getMockM2MAdminAppContext({
-        organizationId: unsafeBrandId<TenantId>(
-          mockApiPurpose.data.consumerId
-        ),
+        organizationId: unsafeBrandId<TenantId>(mockApiPurpose.data.consumerId),
       })
     );
 
