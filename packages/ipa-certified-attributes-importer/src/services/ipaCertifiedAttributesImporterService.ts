@@ -665,7 +665,9 @@ export function getTenantParentUpdates(
 
 export async function updateTenantsParent(
   updates: TenantParentUpdate[],
+  tenantClient: TenantProcessClient,
   readModelServiceSQL: ReadModelServiceSQL,
+  headers: InteropHeaders,
   loggerInstance: Logger,
   pollingConfig: PollingConfig
 ): Promise<number> {
@@ -678,12 +680,10 @@ export async function updateTenantsParent(
     const succeeded = await runTenantOperation({
       description: `parent update of ${details}`,
       startMessage: `Updating parent of ${details}`,
-      // TODO: replace with tenantClient.internalUpdateTenantParent...(
-      //   { parentTenantId, rootTenantId },
-      //   { params: { tOrigin, tExternalId }, headers }
       command: () =>
-        Promise.reject(
-          new Error("internalUpdateTenantParent is not available yet")
+        tenantClient.internalUpdateTenantParent(
+          { parentTenantId, rootTenantId },
+          { params: { tOrigin, tExternalId }, headers }
         ),
       pollReadModel: (version) =>
         waitForReadModelMetadataVersion(

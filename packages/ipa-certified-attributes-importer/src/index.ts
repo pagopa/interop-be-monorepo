@@ -146,7 +146,9 @@ try {
 
   const failedParentUpdates = await updateTenantsParent(
     getTenantParentUpdates(registryData, tenantsIndex),
+    tenantProcessClient,
     readModelServiceSQL,
+    headers,
     loggerInstance,
     {
       defaultPollingMaxRetries: config.defaultPollingMaxRetries,
