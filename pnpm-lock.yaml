@@ -2675,6 +2675,13 @@ importers:
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
+    devDependencies:
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
 
   packages/dev-dashboard-contracts:
     dependencies:

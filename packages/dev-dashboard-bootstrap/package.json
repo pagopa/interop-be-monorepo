@@ -13,9 +13,14 @@
     }
   },
   "scripts": {
+    "lint": "eslint src/*.mjs test/*.mjs",
     "test": "node --test test/*.test.mjs"
   },
   "dependencies": {
     "dotenv-flow": "catalog:"
+  },
+  "devDependencies": {
+    "eslint": "catalog:",
+    "pagopa-interop-eslint-config": "workspace:*"
   }
 }
