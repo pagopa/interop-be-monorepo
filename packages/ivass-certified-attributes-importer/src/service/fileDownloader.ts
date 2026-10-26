@@ -54,9 +54,20 @@ async function downloadFile(
     responseType: "arraybuffer",
   });
 
-  const filename = dataRes.headers["content-disposition"]
-    .split("filename=")[1]
-    .replace(/"/g, "");
+  const contentDisposition: string | undefined =
+    dataRes.headers["content-disposition"];
+
+  const filename = contentDisposition
+    ?.split("filename=")[1]
+    ?.replace(/"/g, "")
+    .trim();
+
+  if (!filename) {
+    throw new Error(
+      `Unexpected response from IVASS while downloading the file: missing or invalid "content-disposition" header (status ${dataRes.status})`
+    );
+  }
+
   const blob = new Blob([dataRes.data], { type: "application/zip" });
 
   return {
