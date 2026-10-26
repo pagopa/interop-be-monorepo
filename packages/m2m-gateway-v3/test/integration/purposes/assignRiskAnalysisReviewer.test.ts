@@ -6,6 +6,7 @@ import {
 import {
   generateId,
   pollingMaxRetriesExceeded,
+  TenantId,
   unsafeBrandId,
   WithMetadata,
 } from "pagopa-interop-models";
@@ -69,7 +70,9 @@ describe("assignRiskAnalysisReviewer", () => {
       unsafeBrandId(mockApiPurpose.data.id),
       assignmentSeed,
       getMockM2MAdminAppContext({
-        organizationId: mockApiPurpose.data.consumerId,
+        organizationId: unsafeBrandId<TenantId>(
+          mockApiPurpose.data.consumerId
+        ),
       })
     );
 
