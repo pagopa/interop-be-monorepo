@@ -160,8 +160,7 @@ export const notificationTypeToUiPath: Record<
     "/analisi-del-rischio/:entityId",
   purposeRiskAnalysisAssignedForWritingAndSigningToReviewer:
     "/analisi-del-rischio/:entityId",
-  purposePublishedWithRiskAnalysisToReviewer:
-    "/analisi-del-rischio/:entityId/dettaglio",
+  purposePublishedWithRiskAnalysisToReviewer: "/analisi-del-rischio/:entityId",
   draftPurposeDeletedWithRiskAnalysisToReviewer: "/analisi-del-rischio",
   purposeRiskAnalysisAssignmentRemovedToReviewer: "/analisi-del-rischio",
   purposeRiskAnalysisSignedToReviewer:

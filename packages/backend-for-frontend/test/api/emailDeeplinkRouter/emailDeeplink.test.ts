@@ -30,7 +30,7 @@ describe("API GET /emailDeepLink/:notificationType/:entityId", () => {
     ],
     [
       "purposePublishedWithRiskAnalysisToReviewer",
-      `/analisi-del-rischio/${entityId}/dettaglio`,
+      `/analisi-del-rischio/${entityId}`,
     ],
     [
       "purposeRiskAnalysisSignedToReviewer",

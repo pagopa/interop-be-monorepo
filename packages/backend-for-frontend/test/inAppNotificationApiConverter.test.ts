@@ -284,7 +284,7 @@ describe("toBffApiNotification", () => {
     ],
     [
       "purposePublishedWithRiskAnalysisToReviewer",
-      "/analisi-del-rischio/entity-uuid/dettaglio",
+      "/analisi-del-rischio/entity-uuid",
     ],
     [
       "purposeRiskAnalysisSignedToReviewer",
