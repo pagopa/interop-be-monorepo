@@ -5,7 +5,7 @@ import { z } from "zod";
 import { PACKAGE_LAYOUT } from "../config/constants.js";
 import { PackageManifest } from "../model/domain/models.js";
 
-export const readPackageManifest = async (
+const readPackageManifest = async (
   root: string,
   directory: string
 ): Promise<z.infer<typeof PackageManifest>> =>

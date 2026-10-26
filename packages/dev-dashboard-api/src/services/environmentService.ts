@@ -82,7 +82,7 @@ export const localEnvironment = async (
   return value;
 };
 
-export const effectiveEnvironment = (
+const effectiveEnvironment = (
   root: string,
   directory: string,
   name: string
