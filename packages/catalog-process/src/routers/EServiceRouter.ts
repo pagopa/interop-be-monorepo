@@ -95,6 +95,7 @@ import {
   approveDelegatedDescriptorArchivingErrorMapper,
   rejectDelegatedDescriptorArchivingErrorMapper,
   internalDeleteDelegatedArchivingRequestErrorMapper,
+  internalRestoreDraftDescriptorAfterDelegationRevokeErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const eservicesRouter = (
@@ -192,7 +193,7 @@ const eservicesRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .query("/catalog", async (req, res) => {
+    .post("/catalog", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {
@@ -1174,6 +1175,30 @@ const eservicesRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .put(
+      "/internal/eservices/:eServiceId/descriptors/:descriptorId/restoreDraft",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+          await catalogService.internalRestoreDraftDescriptorAfterDelegationRevoke(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            internalRestoreDraftDescriptorAfterDelegationRevokeErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .post(
       "/maintenance/eservices/:eServiceId/descriptors/:descriptorId/unarchive",
       async (req, res) => {
