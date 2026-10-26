@@ -1,6 +1,12 @@
 import { dateAtRomeZone } from "pagopa-interop-commons";
-import { EService, EServiceTemplate } from "pagopa-interop-models";
+import {
+  EService,
+  EServiceTemplate,
+  PurposeWaitingForApprovalReason,
+} from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
+import { purposeOverQuotaTemplate } from "../purposeOverQuota.js";
 
 export type DelegationApprovedRejectedToDelegatorEventType =
   | "ProducerDelegationApproved"
@@ -430,9 +436,9 @@ export const inAppTemplates = {
     `L'ente ${consumerName} ha inviato la finalità "${purposeName}", che prevede un piano di carico superiore alla tua soglia, associata al tuo e-service ${eserviceName}.`,
   purposeOverQuotaToConsumer: (
     eserviceName: string,
-    dailyCalls: number
-  ): string =>
-    `La stima di carico complessiva per le finalità associate all'e-service "${eserviceName}" ha superato la soglia massima consentita dall'erogatore pari a ${dailyCalls} chiamate API giornaliere.`,
+    purposeName: string,
+    reason: PurposeWaitingForApprovalReason
+  ): string => purposeOverQuotaTemplate(purposeName, eserviceName, reason).body,
   purposeQuotaAdjustmentResponseToConsumer: (
     producerName: string,
     purposeName: string,

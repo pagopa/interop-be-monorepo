@@ -113,6 +113,17 @@ export const maintenanceFixRiskAnalysisErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const maintenanceFixReviewerWorkflowErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "purposeNotFound",
+      "riskAnalysisReviewModeNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const deletePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
@@ -372,7 +383,7 @@ export const assignRiskAnalysisReviewerErrorMapper = (
     .with("tenantIsNotTheConsumer", () => HTTP_STATUS_FORBIDDEN)
     .with("reviewerWorkflowConflict", () => HTTP_STATUS_CONFLICT)
     .with(
-      "userWithoutReviewerPrivileges",
+      "userNotFoundOrWithoutReviewerPrivileges",
       "duplicatedReviewersInSeed",
       "purposeFromTemplateCannotBeModified",
       "purposeNotInDraftState",
