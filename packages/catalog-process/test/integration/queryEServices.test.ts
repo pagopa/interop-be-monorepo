@@ -2118,7 +2118,10 @@ describe("query eservices", () => {
         description: string;
         filters: Partial<catalogApi.EServicesFilterPayload>;
       }>([
-        { description: "producersIds", filters: { producersIds: [producerId] } },
+        {
+          description: "producersIds",
+          filters: { producersIds: [producerId] },
+        },
         {
           description: "onlyActiveEservices",
           filters: { onlyActiveEservices: true },
