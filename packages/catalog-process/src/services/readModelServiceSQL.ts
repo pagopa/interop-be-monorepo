@@ -212,7 +212,11 @@ const getEServicesOrderBy = (
     name,
     createdAt,
     id,
-  }: { name: Column; createdAt: Column; id: Column } = eserviceInReadmodelCatalog
+  }: {
+    name: Column;
+    createdAt: Column;
+    id: Column;
+  } = eserviceInReadmodelCatalog
 ): SQL[] => [
   match(sortBy)
     .with("NAME_ASC", () => ascLower(name))
@@ -1051,9 +1055,9 @@ export function readModelServiceBuilderSQL(
           // the template data on the collections.
           const singleEServices = tx
             .select({
-              resultType: sql<
-                EServiceQueryResult["resultType"]
-              >`'eservice'`.as("resultType"),
+              resultType: sql<EServiceQueryResult["resultType"]>`'eservice'`.as(
+                "resultType"
+              ),
               id: eserviceInReadmodelCatalog.id,
               name: eserviceInReadmodelCatalog.name,
               createdAt: eserviceInReadmodelCatalog.createdAt,
@@ -1078,9 +1082,9 @@ export function readModelServiceBuilderSQL(
             );
           const templateGroups = tx
             .select({
-              resultType: sql<
-                EServiceQueryResult["resultType"]
-              >`'template'`.as("resultType"),
+              resultType: sql<EServiceQueryResult["resultType"]>`'template'`.as(
+                "resultType"
+              ),
               id: eserviceTemplateInReadmodelEserviceTemplate.id,
               name: eserviceTemplateInReadmodelEserviceTemplate.name,
               createdAt: eserviceTemplateInReadmodelEserviceTemplate.createdAt,
@@ -1185,10 +1189,7 @@ export function readModelServiceBuilderSQL(
             )
             .filter((r): r is EServiceQueryResult => r !== undefined);
 
-          return createListResult(
-            orderedResults,
-            groupedTotalCount[0]?.count
-          );
+          return createListResult(orderedResults, groupedTotalCount[0]?.count);
         }
 
         const condition = and(
