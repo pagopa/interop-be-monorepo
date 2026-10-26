@@ -126,6 +126,9 @@ catalogs:
     connection-string:
       specifier: 4.4.0
       version: 4.4.0
+    content-disposition:
+      specifier: 2.0.1
+      version: 2.0.1
     cpx2:
       specifier: 7.0.2
       version: 7.0.2
@@ -304,23 +307,6 @@ catalogs:
       specifier: 3.3.0
       version: 3.3.0
 
-patchedDependencies:
-  '@apidevtools/swagger-parser@10.1.1':
-    hash: 0206d4002892391ffad56abde603d750b86e5a5aae064a388fe35df381727655
-    path: patches/@apidevtools__swagger-parser@10.1.1.patch
-  '@stoplight/spectral-rulesets@1.22.0':
-    hash: e3a835b277e2b9c06d4dddf1e7242d4482f2c0b1ad5fae685d22c648d102a1ef
-    path: patches/@stoplight__spectral-rulesets@1.22.0.patch
-  '@zodios/core@10.9.6':
-    hash: 672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919
-    path: patches/@zodios__core@10.9.6.patch
-  '@zodios/express@10.6.1':
-    hash: 80ecee33e5230287f155d05e549b572785cd00e2af74a9b60529d7a291b82d02
-    path: patches/@zodios__express@10.6.1.patch
-  openapi-zod-client@1.18.3:
-    hash: a490e20ae5ba48e7d914db052a47be6d0e8fe974fa3b665116f52cbddaf27418
-    path: patches/openapi-zod-client@1.18.3.patch
-
 importers:
 
   .:
@@ -366,8 +352,8 @@ importers:
   packages/agreement-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.23
-        version: 1.8.23
+        specifier: 1.8.25
+        version: 1.8.25
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -462,10 +448,10 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8)
+        version: 10.9.6(axios@1.18.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(patch_hash=80ecee33e5230287f155d05e549b572785cd00e2af74a9b60529d7a291b82d02)(@zodios/core@10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
         version: 1.18.0
@@ -672,7 +658,7 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8)
+        version: 10.9.6(axios@1.18.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
         version: 1.18.0
@@ -688,7 +674,7 @@ importers:
     devDependencies:
       '@apidevtools/swagger-parser':
         specifier: 'catalog:'
-        version: 10.1.1(patch_hash=0206d4002892391ffad56abde603d750b86e5a5aae064a388fe35df381727655)(openapi-types@12.1.3)
+        version: 10.1.1(openapi-types@12.1.3)
       '@stoplight/spectral-cli':
         specifier: 'catalog:'
         version: 6.15.0
@@ -712,7 +698,7 @@ importers:
         version: 12.1.3
       openapi-zod-client:
         specifier: 'catalog:'
-        version: 1.18.3(patch_hash=a490e20ae5ba48e7d914db052a47be6d0e8fe974fa3b665116f52cbddaf27418)
+        version: 1.18.3
       openapi3-ts:
         specifier: 'catalog:'
         version: 3.1.0
@@ -733,10 +719,10 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8)
+        version: 10.9.6(axios@1.18.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(patch_hash=80ecee33e5230287f155d05e549b572785cd00e2af74a9b60529d7a291b82d02)(@zodios/core@10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
         version: 1.18.0
@@ -944,10 +930,10 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8)
+        version: 10.9.6(axios@1.18.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(patch_hash=80ecee33e5230287f155d05e549b572785cd00e2af74a9b60529d7a291b82d02)(@zodios/core@10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
         version: 1.18.0
@@ -1182,10 +1168,10 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8)
+        version: 10.9.6(axios@1.18.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(patch_hash=80ecee33e5230287f155d05e549b572785cd00e2af74a9b60529d7a291b82d02)(@zodios/core@10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
         version: 1.18.0
@@ -1267,10 +1253,10 @@ importers:
         version: 3.840.0(@aws-sdk/client-dynamodb@3.840.0)
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8)
+        version: 10.9.6(axios@1.18.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(patch_hash=80ecee33e5230287f155d05e549b572785cd00e2af74a9b60529d7a291b82d02)(@zodios/core@10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
         version: 1.18.0
@@ -1352,16 +1338,19 @@ importers:
         version: 0.9.10
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8)
+        version: 10.9.6(axios@1.18.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(patch_hash=80ecee33e5230287f155d05e549b572785cd00e2af74a9b60529d7a291b82d02)(@zodios/core@10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       adm-zip:
         specifier: 'catalog:'
         version: 0.6.0
       axios:
         specifier: 'catalog:'
         version: 1.18.0
+      content-disposition:
+        specifier: 'catalog:'
+        version: 2.0.1
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -1448,8 +1437,8 @@ importers:
   packages/catalog-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.23
-        version: 1.8.23
+        specifier: 1.8.25
+        version: 1.8.25
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -1544,10 +1533,10 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8)
+        version: 10.9.6(axios@1.18.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(patch_hash=80ecee33e5230287f155d05e549b572785cd00e2af74a9b60529d7a291b82d02)(@zodios/core@10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
         version: 1.18.0
@@ -1938,7 +1927,7 @@ importers:
     dependencies:
       '@apidevtools/swagger-parser':
         specifier: 'catalog:'
-        version: 10.1.1(patch_hash=0206d4002892391ffad56abde603d750b86e5a5aae064a388fe35df381727655)(openapi-types@12.1.3)
+        version: 10.1.1(openapi-types@12.1.3)
       '@aws-sdk/client-dynamodb':
         specifier: 'catalog:'
         version: 3.840.0
@@ -1965,10 +1954,10 @@ importers:
         version: 1.4.13
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8)
+        version: 10.9.6(axios@1.18.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(patch_hash=80ecee33e5230287f155d05e549b572785cd00e2af74a9b60529d7a291b82d02)(@zodios/core@10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       adm-zip:
         specifier: 'catalog:'
         version: 0.6.0
@@ -2365,8 +2354,8 @@ importers:
   packages/delegation-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.23
-        version: 1.8.23
+        specifier: 1.8.25
+        version: 1.8.25
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -2409,10 +2398,10 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8)
+        version: 10.9.6(axios@1.18.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(patch_hash=80ecee33e5230287f155d05e549b572785cd00e2af74a9b60529d7a291b82d02)(@zodios/core@10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -3059,7 +3048,7 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8)
+        version: 10.9.6(axios@1.18.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
         version: 1.18.0
@@ -3123,7 +3112,7 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8)
+        version: 10.9.6(axios@1.18.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
         version: 1.18.0
@@ -3241,8 +3230,8 @@ importers:
   packages/eservice-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.23
-        version: 1.8.23
+        specifier: 1.8.25
+        version: 1.8.25
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -3285,10 +3274,10 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8)
+        version: 10.9.6(axios@1.18.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(patch_hash=80ecee33e5230287f155d05e549b572785cd00e2af74a9b60529d7a291b82d02)(@zodios/core@10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
         version: 1.18.0
@@ -3636,10 +3625,10 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8)
+        version: 10.9.6(axios@1.18.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(patch_hash=80ecee33e5230287f155d05e549b572785cd00e2af74a9b60529d7a291b82d02)(@zodios/core@10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
         version: 1.18.0
@@ -4287,10 +4276,10 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8)
+        version: 10.9.6(axios@1.18.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(patch_hash=80ecee33e5230287f155d05e549b572785cd00e2af74a9b60529d7a291b82d02)(@zodios/core@10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
         version: 1.18.0
@@ -4369,10 +4358,10 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8)
+        version: 10.9.6(axios@1.18.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(patch_hash=80ecee33e5230287f155d05e549b572785cd00e2af74a9b60529d7a291b82d02)(@zodios/core@10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
         version: 1.18.0
@@ -4448,10 +4437,10 @@ importers:
         version: 3.840.0
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8)
+        version: 10.9.6(axios@1.18.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(patch_hash=80ecee33e5230287f155d05e549b572785cd00e2af74a9b60529d7a291b82d02)(@zodios/core@10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
         version: 1.18.0
@@ -4619,10 +4608,10 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8)
+        version: 10.9.6(axios@1.18.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(patch_hash=80ecee33e5230287f155d05e549b572785cd00e2af74a9b60529d7a291b82d02)(@zodios/core@10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
         version: 1.18.0
@@ -5339,8 +5328,8 @@ importers:
   packages/purpose-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.23
-        version: 1.8.23
+        specifier: 1.8.25
+        version: 1.8.25
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -5435,10 +5424,10 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8)
+        version: 10.9.6(axios@1.18.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(patch_hash=80ecee33e5230287f155d05e549b572785cd00e2af74a9b60529d7a291b82d02)(@zodios/core@10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
         version: 1.18.0
@@ -5580,8 +5569,8 @@ importers:
   packages/purpose-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.23
-        version: 1.8.23
+        specifier: 1.8.25
+        version: 1.8.25
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -5624,10 +5613,10 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8)
+        version: 10.9.6(axios@1.18.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(patch_hash=80ecee33e5230287f155d05e549b572785cd00e2af74a9b60529d7a291b82d02)(@zodios/core@10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
         version: 1.18.0
@@ -6278,8 +6267,8 @@ importers:
   packages/tenant-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.23
-        version: 1.8.23
+        specifier: 1.8.25
+        version: 1.8.25
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -6322,10 +6311,10 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8)
+        version: 10.9.6(axios@1.18.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(patch_hash=80ecee33e5230287f155d05e549b572785cd00e2af74a9b60529d7a291b82d02)(@zodios/core@10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
         version: 1.18.0
@@ -7941,8 +7930,8 @@ packages:
     peerDependencies:
       eslint: ^9.39.2
 
-  '@pagopa/interop-outbound-models@1.8.23':
-    resolution: {integrity: sha512-PkU54huG3giPE/x+4JtrAMNxEFzX0CUD5V24uRiuzuTA3S5KLBsGd/nWqE0AG4NpTOiTwkQkB7toMZTzKnplCg==}
+  '@pagopa/interop-outbound-models@1.8.25':
+    resolution: {integrity: sha512-snQ+T6OVErZVEPkS6RPc9envWsLmnofHjuGzLPIy9AZo/VhmIljAJG0SPF0Q5OriFYYq/eNg8bOAfcrkquwCDQ==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -9441,6 +9430,10 @@ packages:
   content-disposition@0.5.4:
     resolution: {integrity: sha512-FveZTNuGw04cxlAiWbzi6zTAL/lhehaWbTtgluJh4/E95DqMwTmha3KZN1aAWA8cFIhHzMZUvLevkw5Rqk+tSQ==}
     engines: {node: '>= 0.6'}
+
+  content-disposition@2.0.1:
+    resolution: {integrity: sha512-e+H0ZXHSWYrENhQzw1LPuP4oF5MzVKmDU6d3hxlvaPEYLLg62MxtQNPRx4SYSuYJSBUgnQIG4HIN2tEtNv7Dog==}
+    engines: {node: '>=18'}
 
   content-type@1.0.5:
     resolution: {integrity: sha512-nTjqfcBFEipKdXCv4YDQWCfmcLZKm81ldF0pAopTvyrFGVbcR6P/VAAd5G7N+0tTr8QqiU0tFadD6FK4NtJwOA==}
@@ -12406,7 +12399,7 @@ snapshots:
 
   '@apidevtools/swagger-methods@3.0.2': {}
 
-  '@apidevtools/swagger-parser@10.1.1(patch_hash=0206d4002892391ffad56abde603d750b86e5a5aae064a388fe35df381727655)(openapi-types@12.1.3)':
+  '@apidevtools/swagger-parser@10.1.1(openapi-types@12.1.3)':
     dependencies:
       '@apidevtools/json-schema-ref-parser': 11.7.2
       '@apidevtools/openapi-schemas': 2.1.0
@@ -14459,7 +14452,7 @@ snapshots:
       - supports-color
       - vitest
 
-  '@pagopa/interop-outbound-models@1.8.23':
+  '@pagopa/interop-outbound-models@1.8.25':
     dependencies:
       '@protobuf-ts/runtime': 2.9.4
       ts-pattern: 5.2.0
@@ -15316,7 +15309,7 @@ snapshots:
       '@stoplight/spectral-ref-resolver': 1.0.5
       '@stoplight/spectral-ruleset-bundler': 1.6.3
       '@stoplight/spectral-ruleset-migrator': 1.11.2
-      '@stoplight/spectral-rulesets': 1.22.0(patch_hash=e3a835b277e2b9c06d4dddf1e7242d4482f2c0b1ad5fae685d22c648d102a1ef)
+      '@stoplight/spectral-rulesets': 1.22.0
       '@stoplight/spectral-runtime': 1.1.4
       '@stoplight/types': 13.20.0
       chalk: 4.1.2
@@ -15426,7 +15419,7 @@ snapshots:
       '@stoplight/spectral-parsers': 1.0.5
       '@stoplight/spectral-ref-resolver': 1.0.5
       '@stoplight/spectral-ruleset-migrator': 1.11.2
-      '@stoplight/spectral-rulesets': 1.22.0(patch_hash=e3a835b277e2b9c06d4dddf1e7242d4482f2c0b1ad5fae685d22c648d102a1ef)
+      '@stoplight/spectral-rulesets': 1.22.0
       '@stoplight/spectral-runtime': 1.1.4
       '@stoplight/types': 13.20.0
       '@types/node': 20.19.9
@@ -15456,7 +15449,7 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
-  '@stoplight/spectral-rulesets@1.22.0(patch_hash=e3a835b277e2b9c06d4dddf1e7242d4482f2c0b1ad5fae685d22c648d102a1ef)':
+  '@stoplight/spectral-rulesets@1.22.0':
     dependencies:
       '@asyncapi/specs': 6.8.1
       '@stoplight/better-ajv-errors': 1.0.3(ajv@8.17.1)
@@ -15960,14 +15953,14 @@ snapshots:
 
   '@xmldom/xmldom@0.9.10': {}
 
-  '@zodios/core@10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8)':
+  '@zodios/core@10.9.6(axios@1.18.0)(zod@3.23.8)':
     dependencies:
       axios: 1.18.0
       zod: 3.23.8
 
-  '@zodios/express@10.6.1(patch_hash=80ecee33e5230287f155d05e549b572785cd00e2af74a9b60529d7a291b82d02)(@zodios/core@10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)':
+  '@zodios/express@10.6.1(@zodios/core@10.9.6(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)':
     dependencies:
-      '@zodios/core': 10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8)
+      '@zodios/core': 10.9.6(axios@1.18.0)(zod@3.23.8)
       express: 4.20.0
       zod: 3.23.8
 
@@ -16458,6 +16451,8 @@ snapshots:
   content-disposition@0.5.4:
     dependencies:
       safe-buffer: 5.2.1
+
+  content-disposition@2.0.1: {}
 
   content-type@1.0.5: {}
 
@@ -18200,11 +18195,11 @@ snapshots:
 
   openapi-types@12.1.3: {}
 
-  openapi-zod-client@1.18.3(patch_hash=a490e20ae5ba48e7d914db052a47be6d0e8fe974fa3b665116f52cbddaf27418):
+  openapi-zod-client@1.18.3:
     dependencies:
-      '@apidevtools/swagger-parser': 10.1.1(patch_hash=0206d4002892391ffad56abde603d750b86e5a5aae064a388fe35df381727655)(openapi-types@12.1.3)
+      '@apidevtools/swagger-parser': 10.1.1(openapi-types@12.1.3)
       '@liuli-util/fs-extra': 0.1.0
-      '@zodios/core': 10.9.6(patch_hash=672e171d9f8cce7c206b14347173782fd936d245872095c9c6d97b342fdcd919)(axios@1.18.0)(zod@3.23.8)
+      '@zodios/core': 10.9.6(axios@1.18.0)(zod@3.23.8)
       axios: 1.18.0
       cac: 6.7.14
       handlebars: 4.7.9

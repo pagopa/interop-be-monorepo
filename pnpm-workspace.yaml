@@ -51,6 +51,7 @@ catalog:
   axios: 1.18.0
   camelcase-keys: 9.1.3
   connection-string: 4.4.0
+  content-disposition: 2.0.1
   cpx2: 7.0.2
   csv: 6.3.11
   csv-stringify: 6.5.2
@@ -112,10 +113,3 @@ catalog:
   zod-validation-error: 3.3.0
 
 catalogMode: strict
-
-patchedDependencies:
-  "@zodios/core@10.9.6": patches/@zodios__core@10.9.6.patch
-  "@zodios/express@10.6.1": patches/@zodios__express@10.6.1.patch
-  "openapi-zod-client@1.18.3": patches/openapi-zod-client@1.18.3.patch
-  "@apidevtools/swagger-parser@10.1.1": patches/@apidevtools__swagger-parser@10.1.1.patch
-  "@stoplight/spectral-rulesets@1.22.0": patches/@stoplight__spectral-rulesets@1.22.0.patch
