@@ -66,7 +66,7 @@ const catalogRouter = (
       try {
         const response = await catalogService.queryCatalog(ctx, req.body);
 
-        return res.status(200).send(bffApi.CatalogEServices.parse(response));
+        return res.status(200).send(bffApi.CatalogQueryResults.parse(response));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

@@ -225,11 +225,11 @@ paths:
               $ref: "#/components/schemas/EServicesFilterPayload"
       responses:
         "200":
-          description: A list of E-Service
+          description: A list of E-Services and template instances groups
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EServices"
+                $ref: "#/components/schemas/CatalogQueryResults"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -4071,6 +4071,120 @@ components:
           items:
             type: string
             format: uuid
+        groupByTemplate:
+          type: boolean
+          description: If true, groups the instances of the same template into a single result, when the other filters allow it
+    CatalogQueryResults:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/CatalogQueryResult"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
+    CatalogQueryResult:
+      oneOf:
+        - $ref: "#/components/schemas/CatalogQueryEService"
+        - $ref: "#/components/schemas/CatalogQueryTemplateInstancesGroup"
+      discriminator:
+        propertyName: resultType
+        mapping:
+          eservice: "#/components/schemas/CatalogQueryEService"
+          template: "#/components/schemas/CatalogQueryTemplateInstancesGroup"
+    CatalogQueryEService:
+      type: object
+      additionalProperties: false
+      required:
+        - resultType
+        - id
+        - producerId
+        - name
+        - description
+        - technology
+        - descriptors
+        - riskAnalysis
+        - mode
+      properties:
+        resultType:
+          type: string
+          enum:
+            - eservice
+        id:
+          type: string
+          format: uuid
+        producerId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        instanceLabel:
+          type: string
+        description:
+          type: string
+        technology:
+          $ref: "#/components/schemas/EServiceTechnology"
+        descriptors:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceDescriptor"
+        riskAnalysis:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceRiskAnalysis"
+        mode:
+          $ref: "#/components/schemas/EServiceMode"
+        isSignalHubEnabled:
+          type: boolean
+        isConsumerDelegable:
+          type: boolean
+        isClientAccessDelegable:
+          type: boolean
+        templateId:
+          type: string
+          format: uuid
+        personalData:
+          type: boolean
+        archivingReason:
+          type: string
+        delegatedArchivingRequest:
+          type: array
+          items:
+            $ref: "#/components/schemas/DelegatedEServiceArchivingRequest"
+        asyncExchange:
+          type: boolean
+    CatalogQueryTemplateInstancesGroup:
+      type: object
+      additionalProperties: false
+      description: The catalog instances of an e-service template, shown as a single result
+      required:
+        - resultType
+        - id
+        - name
+        - description
+        - numInstances
+      properties:
+        resultType:
+          type: string
+          enum:
+            - template
+        id:
+          type: string
+          format: uuid
+          description: The e-service template id
+        name:
+          type: string
+        description:
+          type: string
+        numInstances:
+          type: integer
+          format: int32
+          description: Number of template instances available in the catalog that match the filters
     EServiceSortBy:
       type: string
       description: Sort criteria for the e-service query

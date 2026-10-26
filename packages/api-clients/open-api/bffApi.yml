@@ -1400,11 +1400,11 @@ paths:
               $ref: "#/components/schemas/CatalogFilterPayload"
       responses:
         "200":
-          description: A list of EServices
+          description: A list of EServices and template instances groups
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CatalogEServices"
+                $ref: "#/components/schemas/CatalogQueryResults"
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -15216,6 +15216,93 @@ components:
           items:
             type: string
             format: uuid
+        groupByTemplate:
+          type: boolean
+          description: If true, groups the instances of the same template into a single result, when the other filters allow it
+    CatalogQueryResults:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/CatalogQueryResult"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
+    CatalogQueryResult:
+      oneOf:
+        - $ref: "#/components/schemas/CatalogQueryEService"
+        - $ref: "#/components/schemas/CatalogQueryTemplateInstancesGroup"
+      discriminator:
+        propertyName: resultType
+        mapping:
+          eservice: "#/components/schemas/CatalogQueryEService"
+          template: "#/components/schemas/CatalogQueryTemplateInstancesGroup"
+    CatalogQueryEService:
+      type: object
+      additionalProperties: false
+      required:
+        - resultType
+        - id
+        - name
+        - description
+        - producer
+        - isMine
+      properties:
+        resultType:
+          type: string
+          enum:
+            - eservice
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        producer:
+          $ref: "#/components/schemas/CatalogTenant"
+        isMine:
+          type: boolean
+        activeDescriptor:
+          $ref: "#/components/schemas/CompactDescriptor"
+        hasUnreadNotifications:
+          type: boolean
+          description: Indicates if there are unread notifications for this e-service
+        personalData:
+          type: boolean
+        asyncExchange:
+          type: boolean
+    CatalogQueryTemplateInstancesGroup:
+      type: object
+      additionalProperties: false
+      description: The catalog instances of an e-service template, shown as a single result
+      required:
+        - resultType
+        - id
+        - name
+        - description
+        - numInstances
+      properties:
+        resultType:
+          type: string
+          enum:
+            - template
+        id:
+          type: string
+          format: uuid
+          description: The e-service template id
+        name:
+          type: string
+        description:
+          type: string
+        numInstances:
+          type: integer
+          format: int32
+          description: Number of template instances available in the catalog that match the filters
     EServiceSortBy:
       type: string
       description: Sort criteria for the catalog query

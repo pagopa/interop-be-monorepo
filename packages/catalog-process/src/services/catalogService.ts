@@ -132,6 +132,7 @@ import {
 } from "../model/domain/errors.js";
 import {
   ApiGetEServicesFilters,
+  CatalogQueryResult,
   Consumer,
   defaultEServiceSortBy,
 } from "../model/domain/models.js";
@@ -1054,7 +1055,7 @@ export function catalogServiceBuilder(
         authData,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
-    ): Promise<ListResult<EService>> {
+    ): Promise<ListResult<CatalogQueryResult>> {
       const sortBy = filters.sortBy ?? defaultEServiceSortBy;
       const trimmedKeyword = filters.keyword?.trim();
       const keyword = trimmedKeyword === "" ? undefined : trimmedKeyword;
@@ -1065,14 +1066,14 @@ export function catalogServiceBuilder(
       const requesterDelegationRoles = filters.requesterDelegationRoles ?? [];
       const producerCategories = filters.producerCategories ?? [];
       logger.info(
-        `Querying EServices, limit = ${filters.limit}, offset = ${filters.offset}, sortBy = ${sortBy}, keyword = ${keyword}, producersIds = ${producersIds}, onlyActiveEservices = ${filters.onlyActiveEservices}, subscribedByRequester = ${filters.subscribedByRequester}, requesterDelegationRoles = ${requesterDelegationRoles}, onlyTemplateInstances = ${filters.onlyTemplateInstances}, templateId = ${filters.templateId}, hasLinkedPurposeTemplates = ${filters.hasLinkedPurposeTemplates}, producerCategories = ${producerCategories}, availableForRequester = ${availableForRequester}`
+        `Querying EServices, limit = ${filters.limit}, offset = ${filters.offset}, sortBy = ${sortBy}, keyword = ${keyword}, producersIds = ${producersIds}, onlyActiveEservices = ${filters.onlyActiveEservices}, subscribedByRequester = ${filters.subscribedByRequester}, requesterDelegationRoles = ${requesterDelegationRoles}, onlyTemplateInstances = ${filters.onlyTemplateInstances}, templateId = ${filters.templateId}, hasLinkedPurposeTemplates = ${filters.hasLinkedPurposeTemplates}, producerCategories = ${producerCategories}, availableForRequester = ${availableForRequester}, groupByTemplate = ${filters.groupByTemplate}`
       );
       const certifiedDiscreteEnabled = isFeatureFlagEnabled(
         config,
         "featureFlagAttributeCertifiedDiscrete"
       );
 
-      const eservicesList = await readModelService.queryEServices(
+      const queryResults = await readModelService.queryEServices(
         authData,
         {
           offset: filters.offset,
@@ -1095,19 +1096,37 @@ export function catalogServiceBuilder(
             : undefined,
           onlySignalHubEnabled: filters.onlySignalHubEnabled,
           asyncExchange: filters.asyncExchange,
+          groupByTemplate: filters.groupByTemplate,
         },
         certifiedDiscreteEnabled
       );
 
-      const eservicesToReturn = await Promise.all(
-        eservicesList.results.map((eservice) =>
-          applyVisibilityToEService(eservice, authData, readModelService)
+      const results = await Promise.all(
+        queryResults.results.map(
+          async (result): Promise<CatalogQueryResult> =>
+            match(result)
+              .with({ resultType: "eservice" }, async (eservice) => ({
+                ...(await applyVisibilityToEService(
+                  eservice,
+                  authData,
+                  readModelService
+                )),
+                resultType: "eservice" as const,
+              }))
+              .with({ resultType: "template" }, (eserviceTemplate) => ({
+                id: eserviceTemplate.id,
+                name: eserviceTemplate.name,
+                description: eserviceTemplate.description,
+                numInstances: eserviceTemplate.numInstances,
+                resultType: "template" as const,
+              }))
+              .exhaustive()
         )
       );
 
       return {
-        results: eservicesToReturn,
-        totalCount: eservicesList.totalCount,
+        results,
+        totalCount: queryResults.totalCount,
       };
     },
 
