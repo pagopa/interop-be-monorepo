@@ -123,7 +123,7 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/assign test", () => {
     },
     {
       error: purposeNotInDraftState(mockPurpose.id),
-      expectedStatus: 400,
+      expectedStatus: 409,
     },
     {
       error: reviewerWorkflowNotAllowedForDelegatedPurpose(mockPurpose.id),
