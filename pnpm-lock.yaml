@@ -2676,6 +2676,9 @@ importers:
         specifier: 'catalog:'
         version: 4.1.0
     devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 20.19.9
       eslint:
         specifier: 'catalog:'
         version: 9.39.2(jiti@2.6.1)

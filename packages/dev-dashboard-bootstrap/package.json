@@ -13,13 +13,14 @@
     }
   },
   "scripts": {
-    "lint": "eslint src/*.mjs test/*.mjs",
+    "lint": "eslint .",
     "test": "node --test test/*.test.mjs"
   },
   "dependencies": {
     "dotenv-flow": "catalog:"
   },
   "devDependencies": {
+    "@types/node": "catalog:",
     "eslint": "catalog:",
     "pagopa-interop-eslint-config": "workspace:*"
   }
