@@ -54,7 +54,8 @@ export async function handlePurposeMessageV2(
             "PurposeRiskAnalysisSubmitted",
             "PurposeRiskAnalysisSigned",
             "PurposeRiskAnalysisRejected",
-            "PurposeRiskAnalysisFormEdited"
+            "PurposeRiskAnalysisFormEdited",
+            "MaintenancePurposeRiskAnalysisFixReviewerWorkflow"
           ),
         },
         (msg) => {
