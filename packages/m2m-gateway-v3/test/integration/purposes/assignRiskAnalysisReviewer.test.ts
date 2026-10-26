@@ -68,7 +68,9 @@ describe("assignRiskAnalysisReviewer", () => {
     const purpose = await purposeService.assignRiskAnalysisReviewer(
       unsafeBrandId(mockApiPurpose.data.id),
       assignmentSeed,
-      getMockM2MAdminAppContext()
+      getMockM2MAdminAppContext({
+        organizationId: mockApiPurpose.data.consumerId,
+      })
     );
 
     expect(purpose).toStrictEqual(expectedPurpose);
