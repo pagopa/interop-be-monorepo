@@ -14130,8 +14130,6 @@ components:
           type: boolean
         personalData:
           type: boolean
-        asyncExchange:
-          type: boolean
     UpdateEServiceDescriptorQuotas:
       required:
         - voucherLifespan
