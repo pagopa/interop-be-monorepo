@@ -7,6 +7,7 @@ volumes:
   event-store-data:
   readmodel-sql-data:
   in-app-notification-manager-sql-data:
+  personal-data-manager-sql-data:
   domains-analytics-sql-data:
   m2m-event-sql-data:
   digest-tracking-sql-data:
@@ -78,6 +79,24 @@ services:
     image: postgres:14
     ports:
       - 6004:5433
+    environment:
+      PGPORT: 5433
+      POSTGRES_DB: root
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+
+  # Personal data manager database
+  personal-data-manager-sql:
+    read_only: true
+    tmpfs:
+      - /var/run/postgresql
+      - /tmp
+    volumes:
+      - ../packages/personal-data-db-models/migrations/0000_initial.sql:/docker-entrypoint-initdb.d/0000_initial.sql:ro
+      - personal-data-manager-sql-data:/var/lib/postgresql/data
+    image: postgres:14
+    ports:
+      - 6010:5433
     environment:
       PGPORT: 5433
       POSTGRES_DB: root

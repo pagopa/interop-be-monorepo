@@ -1,0 +1,41 @@
+{
+  "name": "pagopa-interop-personal-data-manager",
+  "version": "1.0.0",
+  "license": "MPL-2.0",
+  "description": "PagoPA Interoperability personal data manager",
+  "main": "dist",
+  "type": "module",
+  "scripts": {
+    "test:api": "vitest --config vitest.api.config.ts",
+    "test": "pnpm test:api",
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
+    "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json"
+  },
+  "keywords": [],
+  "devDependencies": {
+    "@types/express": "catalog:",
+    "@types/node": "catalog:",
+    "@types/pg": "catalog:",
+    "@types/supertest": "catalog:",
+    "eslint": "catalog:",
+    "pagopa-interop-eslint-config": "workspace:*",
+    "supertest": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "dependencies": {
+    "@zodios/core": "catalog:",
+    "dotenv-flow": "catalog:",
+    "express": "catalog:",
+    "pagopa-interop-application-audit": "workspace:*",
+    "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-models": "workspace:*",
+    "pg": "catalog:",
+    "zod": "catalog:",
+    "drizzle-orm": "catalog:"
+  }
+}

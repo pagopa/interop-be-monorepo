@@ -78,7 +78,8 @@
     "infra:destroy": "./scripts/infra-destroy.sh",
     "prune-dist": "find . -name 'dist' -type d -exec rm -rf {} +",
     "prune-modules": "find . -name 'node_modules' -type d -exec rm -rf {} +",
-    "madge": "madge --circular --extensions ts,tsx,js,jsx --ts-config ./tsconfig.json packages"
+    "madge": "madge --circular --extensions ts,tsx,js,jsx --ts-config ./tsconfig.json packages",
+    "start:personal-data-manager": "turbo start --filter pagopa-interop-personal-data-manager"
   },
   "devDependencies": {
     "@tsconfig/node-lts": "catalog:",
