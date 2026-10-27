@@ -249,9 +249,9 @@ function requiredDeclarations(
   return [...new Set(declarations)];
 }
 
-// "<edited|deleted> <kind> <name>", optionally bulleted and wrapped in backticks.
+// "<edited|deleted> <kind> <name>", optionally bulleted; markdown ` and * are stripped first.
 const declarationLine =
-  /^\s*(?:[-*]\s+)?`?(edited|deleted)\s+(endpoint|component|tag|global)\s+([\w.-]+)`?\s*$/i;
+  /^\s*(?:-\s+)?(edited|deleted)\s+(endpoint|component|tag|global)\s+([\w.-]+)\s*$/i;
 
 // Only lines after the marker count; other lines are ignored.
 function parseDeclaredChanges(description: string | undefined): Set<string> {
@@ -265,7 +265,7 @@ function parseDeclaredChanges(description: string | undefined): Set<string> {
   for (const line of text
     .slice(markerIndex + declarationMarker.length)
     .split(/\r?\n/)) {
-    const match = declarationLine.exec(line);
+    const match = declarationLine.exec(line.replace(/[`*]/g, ""));
     if (match) {
       declared.add(
         `${match[1].toLowerCase()} ${match[2].toLowerCase()} ${match[3]}`

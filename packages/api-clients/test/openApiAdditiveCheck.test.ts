@@ -243,6 +243,14 @@ describe("findUnreferencedChanges", () => {
     ).toEqual([]);
   });
 
+  it("accepts a bold marker and backticks around the name or the whole line", () => {
+    const description =
+      "**BFF_API_CHANGES_TO_EXISTING**\n\n- edited endpoint `getItem`\n- `edited component Item`\n- **deleted component Ok**";
+    expect(
+      findUnreferencedChanges(diff, baseSpec, headSpec, description)
+    ).toEqual([]);
+  });
+
   it("requires the matching action and kind", () => {
     const description =
       "BFF_API_CHANGES_TO_EXISTING\ndeleted endpoint getItem\nedited endpoint Item\nedited component Ok";
