@@ -1,8 +1,11 @@
 import {
   ApiError,
   AttributeId,
+  commonErrorCodes,
   makeApiProblemBuilder,
   parseErrorMessage,
+  serviceErrorCode,
+  serviceName,
 } from "pagopa-interop-models";
 
 const errorCodes = {
@@ -68,6 +71,15 @@ export const makeApiProblem = makeApiProblemBuilder(errorCodes, {
   problemErrorsPassthrough: true,
   forceGenericProblemOn500: true,
 });
+
+const purposeProcessErrorCode = serviceErrorCode[serviceName.PURPOSE_PROCESS];
+
+export const purposeProcessErrorCodes = {
+  reviewerWorkflowNotInSignableState: `${purposeProcessErrorCode}-0049`,
+  reviewerWorkflowNotEditable: `${purposeProcessErrorCode}-0054`,
+  purposeMetadataVersionMismatch: `${purposeProcessErrorCode}-0064`,
+  eventConflictError: `${purposeProcessErrorCode}-${commonErrorCodes.eventConflictError}`,
+};
 
 export function selfcareEntityNotFilled(
   className: string,

@@ -41,15 +41,11 @@ import {
 } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import {
-  PURPOSE_RISK_ANALYSIS_FORM_CONFLICT_CODES,
-  PURPOSE_RISK_ANALYSIS_SIGN_CONFLICT_CODES,
-  PURPOSE_RISK_ANALYSIS_VERSION_MISMATCH_CODE,
-} from "../config/constants.js";
-import {
   agreementNotFound,
   eserviceDescriptorNotFound,
   eServiceNotFound,
   purposeNotFound,
+  purposeProcessErrorCodes,
   riskAnalysisAlreadyApproved,
   riskAnalysisAlreadyRejected,
   riskAnalysisVersionChanged,
@@ -240,8 +236,15 @@ export function purposeServiceBuilder(
     const conflictCodes = getRiskAnalysisConflictCodes(
       error,
       signingSeed
-        ? PURPOSE_RISK_ANALYSIS_SIGN_CONFLICT_CODES
-        : PURPOSE_RISK_ANALYSIS_FORM_CONFLICT_CODES
+        ? [
+            purposeProcessErrorCodes.reviewerWorkflowNotInSignableState,
+            purposeProcessErrorCodes.purposeMetadataVersionMismatch,
+            purposeProcessErrorCodes.eventConflictError,
+          ]
+        : [
+            purposeProcessErrorCodes.reviewerWorkflowNotEditable,
+            purposeProcessErrorCodes.eventConflictError,
+          ]
     );
     if (conflictCodes.length === 0) {
       throw error;
@@ -275,7 +278,9 @@ export function purposeServiceBuilder(
     }
 
     // A failed or lagging diagnostic read cannot prove a different cause.
-    throw conflictCodes.includes(PURPOSE_RISK_ANALYSIS_VERSION_MISMATCH_CODE)
+    throw conflictCodes.includes(
+      purposeProcessErrorCodes.purposeMetadataVersionMismatch
+    )
       ? riskAnalysisVersionChanged(purposeId)
       : error;
   };
