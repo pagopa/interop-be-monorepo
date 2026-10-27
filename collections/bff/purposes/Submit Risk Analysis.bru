@@ -50,3 +50,19 @@ body:json {
     }
   }
 }
+
+docs {
+  HTTP 409 with code 008-0052 means that the risk analysis has already been approved.
+  Rejected risk analyses can still be submitted. Other conflicts retain their
+  original process codes; the mutation is not retried.
+
+  Example HTTP 409:
+  {
+    "type": "about:blank",
+    "status": 409,
+    "title": "Risk analysis already approved",
+    "detail": "The risk analysis for purpose <purposeId> has already been approved",
+    "correlationId": "<correlationId>",
+    "errors": [{ "code": "008-0052", "detail": "The risk analysis for purpose <purposeId> has already been approved" }]
+  }
+}

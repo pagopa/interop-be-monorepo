@@ -1,0 +1,46 @@
+meta {
+  name: Edit Risk Analysis Form
+  type: http
+  seq: 1
+}
+
+put {
+  url: {{host-bff}}/purposes/:purposeId/riskAnalysis/form
+  body: json
+  auth: none
+}
+
+params:path {
+  purposeId: {{purposeId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+}
+
+body:json {
+  {
+    "version": "3.1",
+    "answers": {
+      "purpose": ["INSTITUTIONAL"],
+      "institutionalPurpose": ["MyPurpose"]
+    }
+  }
+}
+
+docs {
+  Save a draft form as a reviewer in REVIEWER_WRITES_REVIEWER_SIGNS mode.
+  HTTP 409 codes: 008-0052 already approved, 008-0053 already rejected.
+  Other conflicts (including incompatible review modes) retain their original
+  process codes. The mutation is not retried.
+
+  Example HTTP 409:
+  {
+    "type": "about:blank",
+    "status": 409,
+    "title": "Risk analysis already approved",
+    "detail": "The risk analysis for purpose <purposeId> has already been approved",
+    "correlationId": "<correlationId>",
+    "errors": [{ "code": "008-0052", "detail": "The risk analysis for purpose <purposeId> has already been approved" }]
+  }
+}

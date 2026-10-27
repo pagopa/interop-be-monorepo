@@ -52,6 +52,7 @@ import { BffAppContext, Headers } from "../utilities/context.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { getLatestAgreement } from "./agreementService.js";
 import { getAllClients } from "./clientService.js";
+import { riskAnalysisConflictHandlerBuilder } from "./riskAnalysisConflict.js";
 import { getSelfcareCompactUserById } from "./selfcareService.js";
 import { isAgreementUpgradable } from "./validators.js";
 
@@ -220,6 +221,9 @@ export function purposeServiceBuilder(
   }: PagoPAInteropBeClients,
   fileManager: FileManager
 ) {
+  const handleRiskAnalysisConflict = riskAnalysisConflictHandlerBuilder(
+    purposeProcessClientWithMetadata
+  );
   // eslint-disable-next-line complexity
   const enhancePurpose = async (
     authData: UIAuthData,
@@ -557,10 +561,14 @@ export function purposeServiceBuilder(
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
       logger.info(`Assigning risk analysis reviewer to purpose ${purposeId}`);
-      await purposeProcessClient.assignRiskAnalysisReviewer(seed, {
-        params: { purposeId },
-        headers,
-      });
+      await handleRiskAnalysisConflict(
+        () =>
+          purposeProcessClient.assignRiskAnalysisReviewer(seed, {
+            params: { purposeId },
+            headers,
+          }),
+        { purposeId, headers, operation: { type: "assign" } }
+      );
     },
     async submitRiskAnalysis(
       purposeId: PurposeId,
@@ -568,10 +576,14 @@ export function purposeServiceBuilder(
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
       logger.info(`Submitting risk analysis for purpose ${purposeId}`);
-      await purposeProcessClient.submitRiskAnalysis(seed, {
-        params: { purposeId },
-        headers,
-      });
+      await handleRiskAnalysisConflict(
+        () =>
+          purposeProcessClient.submitRiskAnalysis(seed, {
+            params: { purposeId },
+            headers,
+          }),
+        { purposeId, headers, operation: { type: "submit" } }
+      );
     },
     async signRiskAnalysis(
       purposeId: PurposeId,
@@ -579,10 +591,21 @@ export function purposeServiceBuilder(
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
       logger.info(`Signing risk analysis for purpose ${purposeId}`);
-      await purposeProcessClient.signRiskAnalysis(seed, {
-        params: { purposeId },
-        headers,
-      });
+      await handleRiskAnalysisConflict(
+        () =>
+          purposeProcessClient.signRiskAnalysis(seed, {
+            params: { purposeId },
+            headers,
+          }),
+        {
+          purposeId,
+          headers,
+          operation: {
+            type: "sign",
+            metadataVersionToSign: seed.metadataVersionToSign,
+          },
+        }
+      );
     },
     async rejectRiskAnalysis(
       purposeId: PurposeId,
@@ -590,10 +613,14 @@ export function purposeServiceBuilder(
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
       logger.info(`Rejecting risk analysis for purpose ${purposeId}`);
-      await purposeProcessClient.rejectRiskAnalysis(seed, {
-        params: { purposeId },
-        headers,
-      });
+      await handleRiskAnalysisConflict(
+        () =>
+          purposeProcessClient.rejectRiskAnalysis(seed, {
+            params: { purposeId },
+            headers,
+          }),
+        { purposeId, headers, operation: { type: "reject" } }
+      );
     },
     async editRiskAnalysisForm(
       purposeId: PurposeId,
@@ -603,10 +630,14 @@ export function purposeServiceBuilder(
       logger.info(
         `Editing risk analysis form for purpose ${purposeId} by reviewer`
       );
-      await purposeProcessClient.editRiskAnalysisForm(seed, {
-        params: { purposeId },
-        headers,
-      });
+      await handleRiskAnalysisConflict(
+        () =>
+          purposeProcessClient.editRiskAnalysisForm(seed, {
+            params: { purposeId },
+            headers,
+          }),
+        { purposeId, headers, operation: { type: "edit" } }
+      );
     },
     async createPurposeForReceiveEservice(
       createSeed: bffApi.PurposeEServiceSeed,
@@ -971,12 +1002,21 @@ export function purposeServiceBuilder(
     ): Promise<bffApi.PurposeVersionResource> {
       logger.info(`Updating Purpose ${id}`);
 
-      const updatedPurpose = await purposeProcessClient.updatePurpose(seed, {
-        params: {
-          id,
-        },
-        headers,
-      });
+      const updatedPurpose = await handleRiskAnalysisConflict(
+        () =>
+          purposeProcessClient.updatePurpose(seed, {
+            params: { id },
+            headers,
+          }),
+        {
+          purposeId: id,
+          headers,
+          operation: {
+            type: "update",
+            riskAnalysisForm: seed.riskAnalysisForm,
+          },
+        }
+      );
 
       return {
         purposeId: id,
@@ -993,14 +1033,21 @@ export function purposeServiceBuilder(
         `Partially update a Purpose ${purposeId} created by Purpose Template ${purposeTemplateId}`
       );
 
-      const updatedPurpose =
-        await purposeProcessClient.patchUpdatePurposeFromTemplate(body, {
+      const updatedPurpose = await handleRiskAnalysisConflict(
+        () =>
+          purposeProcessClient.patchUpdatePurposeFromTemplate(body, {
+            headers,
+            params: { purposeTemplateId, purposeId },
+          }),
+        {
+          purposeId,
           headers,
-          params: {
-            purposeTemplateId,
-            purposeId,
+          operation: {
+            type: "update",
+            riskAnalysisForm: body.riskAnalysisForm,
           },
-        });
+        }
+      );
 
       const versionId = getCurrentVersion(updatedPurpose.versions)?.id;
 

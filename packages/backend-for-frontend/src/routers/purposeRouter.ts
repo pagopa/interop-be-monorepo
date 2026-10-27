@@ -23,6 +23,7 @@ import {
   getPurposesErrorMapper,
   reversePurposeUpdateErrorMapper,
   getPurposeErrorMapper,
+  riskAnalysisConflictErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const purposeRouter = (
@@ -307,7 +308,7 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          riskAnalysisConflictErrorMapper,
           ctx,
           `Error assigning risk analysis reviewer to purpose ${req.params.purposeId}`
         );
@@ -328,7 +329,7 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          riskAnalysisConflictErrorMapper,
           ctx,
           `Error submitting risk analysis for purpose ${req.params.purposeId}`
         );
@@ -349,7 +350,7 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          riskAnalysisConflictErrorMapper,
           ctx,
           `Error signing risk analysis for purpose ${req.params.purposeId}`
         );
@@ -370,7 +371,7 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          riskAnalysisConflictErrorMapper,
           ctx,
           `Error rejecting risk analysis for purpose ${req.params.purposeId}`
         );
@@ -391,7 +392,7 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          riskAnalysisConflictErrorMapper,
           ctx,
           `Error editing risk analysis form for purpose ${req.params.purposeId}`
         );
@@ -518,7 +519,7 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          riskAnalysisConflictErrorMapper,
           ctx,
           `Error updating Purpose ${req.params.purposeId}`
         );
@@ -658,7 +659,7 @@ const purposeRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            emptyErrorMapper,
+            riskAnalysisConflictErrorMapper,
             ctx,
             `Error updating Purpose with id ${req.params.purposeId} created from template ${req.params.purposeTemplateId}`
           );

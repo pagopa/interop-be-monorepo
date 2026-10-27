@@ -57,6 +57,9 @@ const errorCodes = {
   noVersionInEServiceTemplate: "0049",
   delegationContractNotFound: "0050",
   clientNotFound: "0051",
+  riskAnalysisAlreadyApproved: "0052",
+  riskAnalysisAlreadyRejected: "0053",
+  riskAnalysisVersionChanged: "0054",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -93,6 +96,36 @@ export function purposeNotFound(purposeId: string): ApiError<ErrorCodes> {
     detail: `Purpose ${purposeId} not found`,
     code: "purposeNotFound",
     title: "Purpose not found",
+  });
+}
+
+export function riskAnalysisAlreadyApproved(
+  purposeId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    code: "riskAnalysisAlreadyApproved",
+    title: "Risk analysis already approved",
+    detail: `The risk analysis for purpose ${purposeId} has already been approved`,
+  });
+}
+
+export function riskAnalysisAlreadyRejected(
+  purposeId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    code: "riskAnalysisAlreadyRejected",
+    title: "Risk analysis already rejected",
+    detail: `The risk analysis for purpose ${purposeId} has already been rejected`,
+  });
+}
+
+export function riskAnalysisVersionChanged(
+  purposeId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    code: "riskAnalysisVersionChanged",
+    title: "Risk analysis version changed",
+    detail: `The purpose ${purposeId} has changed since the risk analysis was reviewed`,
   });
 }
 
