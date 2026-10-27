@@ -15,8 +15,7 @@
   },
   "keywords": [],
   "dependencies": {
-    "drizzle-orm": "catalog:",
-    "pagopa-interop-commons": "workspace:*"
+    "drizzle-orm": "catalog:"
   },
   "files": [
     "dist"

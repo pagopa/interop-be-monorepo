@@ -92,7 +92,7 @@ services:
       - /var/run/postgresql
       - /tmp
     volumes:
-      - ../packages/personal-data-db-models/migrations/0000_initial.sql:/docker-entrypoint-initdb.d/0000_initial.sql:ro
+      - ./personal-data-db:/docker-entrypoint-initdb.d
       - personal-data-manager-sql-data:/var/lib/postgresql/data
     image: postgres:14
     ports:
