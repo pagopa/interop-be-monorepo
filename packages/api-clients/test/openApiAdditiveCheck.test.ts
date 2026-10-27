@@ -229,7 +229,7 @@ describe("findUnreferencedChanges", () => {
   });
 
   it("ignores declarations written before the marker", () => {
-    const description = `${required.join("\n")}\nBFF_API_CHANGES`;
+    const description = `${required.join("\n")}\nBFF_API_CHANGES_TO_EXISTING`;
     expect(
       findUnreferencedChanges(diff, baseSpec, headSpec, description)
     ).toEqual(required);
@@ -237,7 +237,7 @@ describe("findUnreferencedChanges", () => {
 
   it("accepts declarations after the marker, with bullets and backticks", () => {
     const description =
-      "Notes\nBFF_API_CHANGES\n- `edited endpoint getItem`\n* Edited Component Item\ndeleted component Ok";
+      "Notes\nBFF_API_CHANGES_TO_EXISTING\n- `edited endpoint getItem`\n* Edited Component Item\ndeleted component Ok";
     expect(
       findUnreferencedChanges(diff, baseSpec, headSpec, description)
     ).toEqual([]);
@@ -245,7 +245,7 @@ describe("findUnreferencedChanges", () => {
 
   it("requires the matching action and kind", () => {
     const description =
-      "BFF_API_CHANGES\ndeleted endpoint getItem\nedited endpoint Item\nedited component Ok";
+      "BFF_API_CHANGES_TO_EXISTING\ndeleted endpoint getItem\nedited endpoint Item\nedited component Ok";
     expect(
       findUnreferencedChanges(diff, baseSpec, headSpec, description)
     ).toEqual([
@@ -257,7 +257,7 @@ describe("findUnreferencedChanges", () => {
 
   it("does not accept a name that is only a prefix", () => {
     const description =
-      "BFF_API_CHANGES\nedited endpoint getItems\nedited component ItemList\ndeleted component Ok";
+      "BFF_API_CHANGES_TO_EXISTING\nedited endpoint getItems\nedited component ItemList\ndeleted component Ok";
     expect(
       findUnreferencedChanges(diff, baseSpec, headSpec, description)
     ).toEqual(["edited endpoint getItem", "edited component Item"]);

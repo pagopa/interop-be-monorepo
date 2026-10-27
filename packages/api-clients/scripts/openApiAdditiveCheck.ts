@@ -1,16 +1,14 @@
 import SwaggerParser from "@apidevtools/swagger-parser";
 import { execFileSync } from "node:child_process";
-import {
-  mkdtempSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import { pathToFileURL } from "node:url";
 
 const specPath = "packages/api-clients/open-api/bffApi.yml";
+// Declarations in the PR description are read only after this marker.
+const declarationMarker = "BFF_API_CHANGES_TO_EXISTING";
 const operationMethods = new Set([
   "get",
   "put",
@@ -46,10 +44,37 @@ export type OpenApiAdditiveDiff = {
   headVersion?: string;
 };
 
+type KeyedDiff = { added: string[]; removed: string[]; modified: string[] };
+
+function diffByKey(
+  base: Map<string, unknown>,
+  head: Map<string, unknown>
+): KeyedDiff {
+  const diff: KeyedDiff = { added: [], removed: [], modified: [] };
+
+  for (const key of new Set([...base.keys(), ...head.keys()])) {
+    if (!base.has(key)) {
+      diff.added.push(key);
+    } else if (!head.has(key)) {
+      diff.removed.push(key);
+    } else if (!isDeepStrictEqual(base.get(key), head.get(key))) {
+      diff.modified.push(key);
+    }
+  }
+
+  return {
+    added: diff.added.sort(),
+    removed: diff.removed.sort(),
+    modified: diff.modified.sort(),
+  };
+}
+
+// Keyed by "METHOD /path".
 function collectOperations(spec: OpenApiSpec): Map<string, unknown> {
   const operations = new Map<string, unknown>();
 
   for (const [path, pathItem] of Object.entries(spec.paths ?? {})) {
+    // Path-level fields (e.g. shared parameters) count as part of every operation.
     const pathProperties = Object.fromEntries(
       Object.entries(pathItem).filter(
         ([key]) => !operationMethods.has(key.toLowerCase())
@@ -67,115 +92,49 @@ function collectOperations(spec: OpenApiSpec): Map<string, unknown> {
   return operations;
 }
 
-function compareNamedDefinitions(
-  base: Record<string, unknown>,
-  head: Record<string, unknown>,
-  prefix: string
-): Pick<
-  OpenApiAdditiveDiff,
-  "addedComponents" | "removedComponents" | "modifiedComponents"
-> {
-  const addedComponents: string[] = [];
-  const removedComponents: string[] = [];
-  const modifiedComponents: string[] = [];
-
-  for (const name of new Set([...Object.keys(base), ...Object.keys(head)])) {
-    const key = `${prefix}/${name}`;
-    if (!(name in base)) {
-      addedComponents.push(key);
-    } else if (!(name in head)) {
-      removedComponents.push(key);
-    } else if (!isDeepStrictEqual(base[name], head[name])) {
-      modifiedComponents.push(key);
-    }
-  }
-
-  return { addedComponents, removedComponents, modifiedComponents };
+// Keyed by "<componentType>/<name>", e.g. "schemas/EService".
+function collectComponents(spec: OpenApiSpec): Map<string, unknown> {
+  return new Map(
+    Object.entries(spec.components ?? {}).flatMap(([type, definitions]) =>
+      Object.entries(definitions).map(
+        ([name, definition]) => [`${type}/${name}`, definition] as const
+      )
+    )
+  );
 }
 
-function compareTags(
-  baseTags: OpenApiSpec["tags"] = [],
-  headTags: OpenApiSpec["tags"] = []
-): Pick<OpenApiAdditiveDiff, "addedTags" | "removedTags" | "modifiedTags"> {
-  const base = new Map(baseTags.map((tag) => [tag.name, tag]));
-  const head = new Map(headTags.map((tag) => [tag.name, tag]));
-  const addedTags: string[] = [];
-  const removedTags: string[] = [];
-  const modifiedTags: string[] = [];
-
-  for (const name of new Set([...base.keys(), ...head.keys()])) {
-    if (!base.has(name)) {
-      addedTags.push(name);
-    } else if (!head.has(name)) {
-      removedTags.push(name);
-    } else if (!isDeepStrictEqual(base.get(name), head.get(name))) {
-      modifiedTags.push(name);
-    }
-  }
-
-  return { addedTags, removedTags, modifiedTags };
+function collectTags(spec: OpenApiSpec): Map<string, unknown> {
+  return new Map((spec.tags ?? []).map((tag) => [tag.name, tag] as const));
 }
 
 export function compareOpenApiSpecs(
   baseSpec: OpenApiSpec,
   headSpec: OpenApiSpec
 ): OpenApiAdditiveDiff {
-  const baseOperations = collectOperations(baseSpec);
-  const headOperations = collectOperations(headSpec);
-  const addedOperations: string[] = [];
-  const removedOperations: string[] = [];
-  const modifiedOperations: string[] = [];
-
-  for (const key of new Set([
-    ...baseOperations.keys(),
-    ...headOperations.keys(),
-  ])) {
-    if (!baseOperations.has(key)) {
-      addedOperations.push(key);
-    } else if (!headOperations.has(key)) {
-      removedOperations.push(key);
-    } else if (
-      !isDeepStrictEqual(baseOperations.get(key), headOperations.get(key))
-    ) {
-      modifiedOperations.push(key);
-    }
-  }
-
-  const baseComponents = baseSpec.components ?? {};
-  const headComponents = headSpec.components ?? {};
-  const componentDiffs = {
-    addedComponents: [] as string[],
-    removedComponents: [] as string[],
-    modifiedComponents: [] as string[],
-  };
-
-  for (const componentType of new Set([
-    ...Object.keys(baseComponents),
-    ...Object.keys(headComponents),
-  ])) {
-    const diff = compareNamedDefinitions(
-      baseComponents[componentType] ?? {},
-      headComponents[componentType] ?? {},
-      componentType
-    );
-    componentDiffs.addedComponents.push(...diff.addedComponents);
-    componentDiffs.removedComponents.push(...diff.removedComponents);
-    componentDiffs.modifiedComponents.push(...diff.modifiedComponents);
-  }
-
+  const operations = diffByKey(
+    collectOperations(baseSpec),
+    collectOperations(headSpec)
+  );
+  const components = diffByKey(
+    collectComponents(baseSpec),
+    collectComponents(headSpec)
+  );
+  const tags = diffByKey(collectTags(baseSpec), collectTags(headSpec));
   const changedGlobals = (["servers", "security"] as const).filter(
     (key) => !isDeepStrictEqual(baseSpec[key], headSpec[key])
   );
 
   return {
-    addedOperations: addedOperations.sort(),
-    removedOperations: removedOperations.sort(),
-    modifiedOperations: modifiedOperations.sort(),
-    addedComponents: componentDiffs.addedComponents.sort(),
-    removedComponents: componentDiffs.removedComponents.sort(),
-    modifiedComponents: componentDiffs.modifiedComponents.sort(),
-    changedGlobals: [...changedGlobals],
-    ...compareTags(baseSpec.tags, headSpec.tags),
+    addedOperations: operations.added,
+    removedOperations: operations.removed,
+    modifiedOperations: operations.modified,
+    addedComponents: components.added,
+    removedComponents: components.removed,
+    modifiedComponents: components.modified,
+    addedTags: tags.added,
+    removedTags: tags.removed,
+    modifiedTags: tags.modified,
+    changedGlobals,
     baseVersion: baseSpec.info?.version,
     headVersion: headSpec.info?.version,
   };
@@ -250,8 +209,6 @@ export function hasNonAdditiveChanges(diff: OpenApiAdditiveDiff): boolean {
   );
 }
 
-const declarationMarker = "BFF_API_CHANGES";
-
 function operationIdOf(spec: OpenApiSpec, operationKey: string): string {
   const separator = operationKey.indexOf(" ");
   const method = operationKey.slice(0, separator).toLowerCase();
@@ -268,21 +225,32 @@ function requiredDeclarations(
   baseSpec: OpenApiSpec,
   headSpec: OpenApiSpec
 ): string[] {
-  const componentName = (key: string): string => key.slice(key.indexOf("/") + 1);
-  return [
+  const componentName = (key: string): string =>
+    key.slice(key.indexOf("/") + 1);
+  const declarations = [
     ...diff.modifiedOperations.map(
       (k) => `edited endpoint ${operationIdOf(headSpec, k)}`
     ),
     ...diff.removedOperations.map(
       (k) => `deleted endpoint ${operationIdOf(baseSpec, k)}`
     ),
-    ...diff.modifiedComponents.map((k) => `edited component ${componentName(k)}`),
-    ...diff.removedComponents.map((k) => `deleted component ${componentName(k)}`),
+    ...diff.modifiedComponents.map(
+      (k) => `edited component ${componentName(k)}`
+    ),
+    ...diff.removedComponents.map(
+      (k) => `deleted component ${componentName(k)}`
+    ),
     ...diff.modifiedTags.map((name) => `edited tag ${name}`),
     ...diff.removedTags.map((name) => `deleted tag ${name}`),
     ...diff.changedGlobals.map((name) => `edited global ${name}`),
   ];
+  // schemas/Foo and responses/Foo yield the same declaration.
+  return [...new Set(declarations)];
 }
+
+// "<edited|deleted> <kind> <name>", optionally bulleted and wrapped in backticks.
+const declarationLine =
+  /^\s*(?:[-*]\s+)?`?(edited|deleted)\s+(endpoint|component|tag|global)\s+([\w.-]+)`?\s*$/i;
 
 // Only lines after the marker count; other lines are ignored.
 function parseDeclaredChanges(description: string | undefined): Set<string> {
@@ -296,10 +264,7 @@ function parseDeclaredChanges(description: string | undefined): Set<string> {
   for (const line of text
     .slice(markerIndex + declarationMarker.length)
     .split(/\r?\n/)) {
-    const match =
-      /^\s*(?:[-*]\s+)?`?(edited|deleted)\s+(endpoint|component|tag|global)\s+([\w.-]+)`?\s*$/i.exec(
-        line
-      );
+    const match = declarationLine.exec(line);
     if (match) {
       declared.add(
         `${match[1].toLowerCase()} ${match[2].toLowerCase()} ${match[3]}`
