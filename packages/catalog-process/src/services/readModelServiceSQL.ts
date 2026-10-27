@@ -107,6 +107,7 @@ import {
   eserviceDescriptorArchivingScheduleInReadmodelCatalog,
   eserviceDescriptorArchivingRequestInReadmodelCatalog,
   purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
+  eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate,
   purposeTemplateInReadmodelPurposeTemplate,
   tenantCertifiedDiscreteAttributeInReadmodelTenant,
   tenantCertifiedAttributeInReadmodelTenant,
@@ -411,29 +412,57 @@ const hasLinkedPurposeTemplatesFilter = (
   hasLinkedPurposeTemplates: boolean | undefined
 ): SQL | undefined =>
   hasLinkedPurposeTemplates
-    ? exists(
-        tx
-          .select()
-          .from(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
-          .innerJoin(
-            purposeTemplateInReadmodelPurposeTemplate,
-            eq(
-              purposeTemplateInReadmodelPurposeTemplate.id,
-              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId
-            )
-          )
-          .where(
-            and(
+    ? or(
+        exists(
+          tx
+            .select()
+            .from(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
+            .innerJoin(
+              purposeTemplateInReadmodelPurposeTemplate,
               eq(
-                purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
-                eserviceInReadmodelCatalog.id
-              ),
-              eq(
-                purposeTemplateInReadmodelPurposeTemplate.state,
-                purposeTemplateState.published
+                purposeTemplateInReadmodelPurposeTemplate.id,
+                purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId
               )
             )
-          )
+            .where(
+              and(
+                eq(
+                  purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
+                  eserviceInReadmodelCatalog.id
+                ),
+                eq(
+                  purposeTemplateInReadmodelPurposeTemplate.state,
+                  purposeTemplateState.published
+                )
+              )
+            )
+        ),
+        exists(
+          tx
+            .select()
+            .from(
+              eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate
+            )
+            .innerJoin(
+              purposeTemplateInReadmodelPurposeTemplate,
+              eq(
+                purposeTemplateInReadmodelPurposeTemplate.id,
+                eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.purposeTemplateId
+              )
+            )
+            .where(
+              and(
+                eq(
+                  eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.eserviceTemplateId,
+                  eserviceInReadmodelCatalog.templateId
+                ),
+                eq(
+                  purposeTemplateInReadmodelPurposeTemplate.state,
+                  purposeTemplateState.published
+                )
+              )
+            )
+        )
       )
     : undefined;
 
