@@ -6041,7 +6041,7 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
         "409":
-          $ref: "#/components/responses/RiskAnalysisAlreadyApprovedConflict"
+          $ref: "#/components/responses/Conflict"
   /purposes/{purposeId}/riskAnalysis/submit:
     parameters:
       - name: purposeId
@@ -6088,7 +6088,7 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
         "409":
-          $ref: "#/components/responses/RiskAnalysisAlreadyApprovedConflict"
+          $ref: "#/components/responses/Conflict"
   /purposes/{purposeId}/riskAnalysis/sign:
     parameters:
       - name: purposeId
@@ -6180,7 +6180,7 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
         "409":
-          $ref: "#/components/responses/RiskAnalysisReviewConflict"
+          $ref: "#/components/responses/Conflict"
   /purposes/{purposeId}/riskAnalysis/form:
     parameters:
       - name: purposeId
@@ -6576,7 +6576,7 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
         "409":
-          $ref: "#/components/responses/RiskAnalysisAlreadyApprovedConflict"
+          $ref: "#/components/responses/Conflict"
   /purposes/{purposeId}/versions/{versionId}:
     parameters:
       - name: purposeId
@@ -7010,8 +7010,6 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-        "409":
-          $ref: "#/components/responses/RiskAnalysisAlreadyApprovedConflict"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /creators/purposeTemplates:
@@ -13805,26 +13803,6 @@ components:
         application/problem+json:
           schema:
             $ref: "#/components/schemas/Problem"
-      headers:
-        "X-Rate-Limit-Limit":
-          $ref: "#/components/headers/RateLimitLimitHeader"
-        "X-Rate-Limit-Remaining":
-          $ref: "#/components/headers/RateLimitRemainingHeader"
-        "X-Rate-Limit-Interval":
-          $ref: "#/components/headers/RateLimitIntervalHeader"
-    RiskAnalysisAlreadyApprovedConflict:
-      description: >-
-        Conflict. Error 008-0052 means that the risk analysis has already been
-        approved and the requested risk analysis change is no longer allowed.
-        Other conflicts retain their original process error codes. Rejected risk
-        analyses can still be assigned, submitted or updated by an admin.
-      content:
-        application/problem+json:
-          schema:
-            $ref: "#/components/schemas/Problem"
-          examples:
-            alreadyApproved:
-              $ref: "#/components/examples/RiskAnalysisAlreadyApproved"
       headers:
         "X-Rate-Limit-Limit":
           $ref: "#/components/headers/RateLimitLimitHeader"

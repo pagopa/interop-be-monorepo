@@ -1,3 +1,4 @@
+import { isAxiosError } from "axios";
 import { certifiedAttributesSatisfied } from "pagopa-interop-agreement-lifecycle";
 import {
   agreementApi,
@@ -11,6 +12,7 @@ import {
   delegationState,
   EServiceId,
   EServiceTemplateId,
+  ProblemSchema,
   TenantId,
   unauthorizedError,
 } from "pagopa-interop-models";
@@ -36,6 +38,23 @@ import {
 } from "../model/types.js";
 import { BffAppContext } from "../utilities/context.js";
 import { getAllDelegations } from "./delegationService.js";
+
+export function getRiskAnalysisConflictCodes(
+  error: unknown,
+  allowedCodes: readonly string[]
+): string[] {
+  if (!isAxiosError<unknown>(error) || error.response?.status !== 409) {
+    return [];
+  }
+
+  const problem = ProblemSchema.safeParse(error.response.data);
+  if (!problem.success || !problem.data.errors?.length) {
+    return [];
+  }
+
+  const codes = problem.data.errors.map(({ code }) => code);
+  return codes.every((code) => allowedCodes.includes(code)) ? codes : [];
+}
 
 export function isValidDescriptor(
   descriptor: catalogApi.EServiceDescriptor

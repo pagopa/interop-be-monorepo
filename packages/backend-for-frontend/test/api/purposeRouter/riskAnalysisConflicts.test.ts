@@ -28,7 +28,6 @@ const operations = [
     },
     role: authRole.ADMIN_ROLE,
     conflictCode: "004-0044",
-    rejectedBlocks: false,
   },
   {
     name: "submitRiskAnalysis",
@@ -37,7 +36,6 @@ const operations = [
     body: { riskAnalysisForm },
     role: authRole.ADMIN_ROLE,
     conflictCode: "004-0047",
-    rejectedBlocks: false,
   },
   {
     name: "signRiskAnalysis",
@@ -46,7 +44,6 @@ const operations = [
     body: { metadataVersionToSign: 1 },
     role: authRole.REVIEWER_ROLE,
     conflictCode: "004-0049",
-    rejectedBlocks: true,
   },
   {
     name: "rejectRiskAnalysis",
@@ -55,7 +52,6 @@ const operations = [
     body: { rejectionReason: "The risk analysis needs revision" },
     role: authRole.REVIEWER_ROLE,
     conflictCode: "004-0052",
-    rejectedBlocks: true,
   },
   {
     name: "editRiskAnalysisForm",
@@ -64,7 +60,6 @@ const operations = [
     body: riskAnalysisForm,
     role: authRole.REVIEWER_ROLE,
     conflictCode: "004-0054",
-    rejectedBlocks: true,
   },
   {
     name: "updatePurpose",
@@ -79,7 +74,6 @@ const operations = [
     },
     role: authRole.ADMIN_ROLE,
     conflictCode: "004-0056",
-    rejectedBlocks: false,
   },
   {
     name: "patchUpdatePurposeFromTemplate",
@@ -88,9 +82,16 @@ const operations = [
     body: { riskAnalysisForm },
     role: authRole.ADMIN_ROLE,
     conflictCode: "004-0056",
-    rejectedBlocks: false,
   },
 ] as const;
+const lockOperations = [operations[2], operations[4]];
+const passthroughOperations = [
+  operations[0],
+  operations[1],
+  operations[3],
+  operations[5],
+  operations[6],
+];
 
 const upstreamError = (
   code: string,
@@ -134,13 +135,13 @@ const setPurpose = (
 
 const makeRequest = (
   operation: (typeof operations)[number],
-  body: object = operation.body
+  token = generateToken(operation.role)
 ) =>
   request(api)
     [operation.method](`${appBasePath}${operation.path}`)
-    .set("Authorization", `Bearer ${generateToken(operation.role)}`)
+    .set("Authorization", `Bearer ${token}`)
     .set("X-Correlation-Id", correlationId)
-    .send(body);
+    .send(operation.body);
 
 describe("risk analysis mutation conflicts", () => {
   beforeEach(() => {
@@ -154,10 +155,46 @@ describe("risk analysis mutation conflicts", () => {
     setPurpose("SIGNED");
   });
 
-  it.each(operations)(
+  describe.each(passthroughOperations)(
+    "$name stays outside lock handling",
+    (operation) => {
+      it.each([
+        { state: "SIGNED", eventConflict: false },
+        { state: "REJECTED", eventConflict: false },
+        { state: "SIGNED", eventConflict: true },
+        { state: "REJECTED", eventConflict: true },
+      ] as const)(
+        "preserves process conflicts outside lock flows ($state, event conflict: $eventConflict)",
+        async ({ state, eventConflict }) => {
+          const error = upstreamError(
+            eventConflict ? "004-10034" : operation.conflictCode
+          );
+          vi.mocked(
+            clients.purposeProcessClient[operation.name]
+          ).mockRejectedValue(error);
+          setPurpose(state, 2);
+
+          const res = await makeRequest(operation);
+
+          expect(res.status).toBe(409);
+          expect(res.body).toEqual(error.response?.data);
+          expect(res.body.correlationId).toBe(correlationId);
+          expect(
+            clients.purposeProcessClient[operation.name]
+          ).toHaveBeenCalledTimes(1);
+          expect(
+            clients.purposeProcessClientWithMetadata.getPurpose
+          ).not.toHaveBeenCalled();
+        }
+      );
+    }
+  );
+
+  it.each(lockOperations)(
     "returns already approved for $name and preserves correlation id",
     async (operation) => {
-      const res = await makeRequest(operation);
+      const token = generateToken(operation.role);
+      const res = await makeRequest(operation, token);
       expect(res.status).toBe(409);
       expect(res.body).toMatchObject({
         status: 409,
@@ -166,31 +203,36 @@ describe("risk analysis mutation conflicts", () => {
       });
       expect(
         clients.purposeProcessClient[operation.name]
-      ).toHaveBeenCalledTimes(1);
+      ).toHaveBeenCalledExactlyOnceWith(operation.body, {
+        params: { purposeId: purpose.id },
+        headers: expect.objectContaining({
+          Authorization: `Bearer ${token}`,
+          "X-Correlation-Id": res.headers["x-correlation-id"],
+        }),
+      });
       expect(
         clients.purposeProcessClientWithMetadata.getPurpose
-      ).toHaveBeenCalledWith({
+      ).toHaveBeenCalledExactlyOnceWith({
         params: { id: purpose.id },
         headers: expect.objectContaining({
+          Authorization: `Bearer ${token}`,
           "X-Correlation-Id": res.headers["x-correlation-id"],
         }),
       });
     }
   );
 
-  it.each(operations)(
-    "classifies rejected only when it blocks $name",
+  it.each(lockOperations)(
+    "returns already rejected for $name",
     async (operation) => {
       setPurpose("REJECTED");
       const res = await makeRequest(operation);
       expect(res.status).toBe(409);
-      expect(res.body.errors[0].code).toBe(
-        operation.rejectedBlocks ? "008-0053" : operation.conflictCode
-      );
+      expect(res.body.errors[0].code).toBe("008-0053");
     }
   );
 
-  it.each(operations)(
+  it.each(lockOperations)(
     "classifies event-store conflicts for $name without retry",
     async (operation) => {
       vi.mocked(clients.purposeProcessClient[operation.name]).mockRejectedValue(
@@ -205,7 +247,7 @@ describe("risk analysis mutation conflicts", () => {
     }
   );
 
-  it.each(operations)(
+  it.each(lockOperations)(
     "preserves the original $name conflict when diagnostic read fails",
     async (operation) => {
       vi.mocked(
@@ -222,7 +264,7 @@ describe("risk analysis mutation conflicts", () => {
     }
   );
 
-  it.each(operations)(
+  it.each(lockOperations)(
     "preserves unrelated conflicts for $name without reading purpose",
     async (operation) => {
       const error = upstreamError("004-0016");
@@ -238,7 +280,7 @@ describe("risk analysis mutation conflicts", () => {
     }
   );
 
-  it.each(operations)(
+  it.each(lockOperations)(
     "preserves an unconfirmed event conflict for $name when the readmodel is unchanged",
     async (operation) => {
       vi.mocked(clients.purposeProcessClient[operation.name]).mockRejectedValue(
@@ -256,17 +298,28 @@ describe("risk analysis mutation conflicts", () => {
 
   const sign = operations[2];
 
-  it("preserves mixed risk analysis and unrelated errors without diagnostic reads", async () => {
-    const error = upstreamError("004-0049", 409, ["004-0016"]);
-    vi.mocked(clients.purposeProcessClient.signRiskAnalysis).mockRejectedValue(
-      error
-    );
-    const res = await makeRequest(sign);
+  it.each(lockOperations)(
+    "preserves mixed risk analysis and unrelated errors for $name without diagnostic reads",
+    async (operation) => {
+      const error = upstreamError(operation.conflictCode, 409, ["004-0016"]);
+      vi.mocked(clients.purposeProcessClient[operation.name]).mockRejectedValue(
+        error
+      );
+      const res = await makeRequest(operation);
+      expect(res.status).toBe(409);
+      expect(res.body).toEqual(error.response?.data);
+      expect(
+        clients.purposeProcessClientWithMetadata.getPurpose
+      ).not.toHaveBeenCalled();
+    }
+  );
+
+  it("does not classify a form conflict as a signing version change", async () => {
+    const form = operations[4];
+    setPurpose("ASSIGNED", 2);
+    const res = await makeRequest(form);
     expect(res.status).toBe(409);
-    expect(res.body).toEqual(error.response?.data);
-    expect(
-      clients.purposeProcessClientWithMetadata.getPurpose
-    ).not.toHaveBeenCalled();
+    expect(res.body).toEqual(upstreamError(form.conflictCode).response?.data);
   });
 
   it("prioritizes a rejected state when multiple relevant conflicts include a version mismatch", async () => {
@@ -388,72 +441,40 @@ describe("risk analysis mutation conflicts", () => {
     }
   );
 
-  it("does not retry or diagnose a network error", async () => {
-    vi.mocked(clients.purposeProcessClient.signRiskAnalysis).mockRejectedValue(
-      new AxiosError("network failure")
-    );
-    const res = await makeRequest(sign);
-    expect(res.status).toBe(500);
-    expect(clients.purposeProcessClient.signRiskAnalysis).toHaveBeenCalledTimes(
-      1
-    );
-    expect(
-      clients.purposeProcessClientWithMetadata.getPurpose
-    ).not.toHaveBeenCalled();
-  });
-
-  it("does not read purpose or change the signing seed on success", async () => {
-    vi.mocked(clients.purposeProcessClient.signRiskAnalysis).mockResolvedValue(
-      purpose
-    );
-    const res = await makeRequest(sign);
-    expect(res.status).toBe(204);
-    expect(
-      clients.purposeProcessClient.signRiskAnalysis
-    ).toHaveBeenCalledExactlyOnceWith(
-      sign.body,
-      expect.objectContaining({ params: { purposeId: purpose.id } })
-    );
-    expect(
-      clients.purposeProcessClientWithMetadata.getPurpose
-    ).not.toHaveBeenCalled();
-  });
-
-  it.each([operations[5], operations[6]])(
-    "preserves event conflicts in $name when no form was edited",
+  it.each(lockOperations)(
+    "does not retry or diagnose a network error for $name",
     async (operation) => {
       vi.mocked(clients.purposeProcessClient[operation.name]).mockRejectedValue(
-        upstreamError("004-10034")
+        new AxiosError("network failure")
       );
-      const body = { ...operation.body, riskAnalysisForm: undefined };
-      const res = await makeRequest(operation, body);
-      expect(res.status).toBe(409);
-      expect(res.body.errors[0].code).toBe("004-10034");
+      const res = await makeRequest(operation);
+      expect(res.status).toBe(500);
+      expect(
+        clients.purposeProcessClient[operation.name]
+      ).toHaveBeenCalledTimes(1);
       expect(
         clients.purposeProcessClientWithMetadata.getPurpose
       ).not.toHaveBeenCalled();
     }
   );
 
-  it.each([operations[5], operations[6]])(
-    "preserves event conflicts in $name when the supplied form is unchanged",
+  it.each(lockOperations)(
+    "does not read purpose or change the seed on success for $name",
     async (operation) => {
-      vi.mocked(clients.purposeProcessClient[operation.name]).mockRejectedValue(
-        upstreamError("004-10034")
+      vi.mocked(clients.purposeProcessClient[operation.name]).mockResolvedValue(
+        purpose
       );
-      vi.mocked(
-        clients.purposeProcessClientWithMetadata.getPurpose
-      ).mockResolvedValue({
-        data: {
-          ...purpose,
-          riskAnalysisForm,
-          reviewerWorkflow: { signingState: "SIGNED", reviewers: [] },
-        },
-        metadata: { version: 2 },
-      });
       const res = await makeRequest(operation);
-      expect(res.status).toBe(409);
-      expect(res.body.errors[0].code).toBe("004-10034");
+      expect(res.status).toBe(204);
+      expect(
+        clients.purposeProcessClient[operation.name]
+      ).toHaveBeenCalledExactlyOnceWith(
+        operation.body,
+        expect.objectContaining({ params: { purposeId: purpose.id } })
+      );
+      expect(
+        clients.purposeProcessClientWithMetadata.getPurpose
+      ).not.toHaveBeenCalled();
     }
   );
 });

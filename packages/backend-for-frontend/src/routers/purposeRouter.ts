@@ -308,7 +308,7 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          riskAnalysisConflictErrorMapper,
+          emptyErrorMapper,
           ctx,
           `Error assigning risk analysis reviewer to purpose ${req.params.purposeId}`
         );
@@ -329,7 +329,7 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          riskAnalysisConflictErrorMapper,
+          emptyErrorMapper,
           ctx,
           `Error submitting risk analysis for purpose ${req.params.purposeId}`
         );
@@ -371,7 +371,7 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          riskAnalysisConflictErrorMapper,
+          emptyErrorMapper,
           ctx,
           `Error rejecting risk analysis for purpose ${req.params.purposeId}`
         );
@@ -519,7 +519,7 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          riskAnalysisConflictErrorMapper,
+          emptyErrorMapper,
           ctx,
           `Error updating Purpose ${req.params.purposeId}`
         );
@@ -659,7 +659,7 @@ const purposeRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            riskAnalysisConflictErrorMapper,
+            emptyErrorMapper,
             ctx,
             `Error updating Purpose with id ${req.params.purposeId} created from template ${req.params.purposeTemplateId}`
           );

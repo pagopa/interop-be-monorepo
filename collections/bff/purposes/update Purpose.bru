@@ -77,10 +77,4 @@ script:pre-request {
 
 docs {
   Updates a Purpose if not yet activated
-
-  When changing the risk analysis form, HTTP 409 with code 008-0052 means that
-  the risk analysis has already been approved. Rejected forms can still be
-  updated by an admin. Other conflicts retain their original process codes.
-
-  Example HTTP 409 error: { "code": "008-0052", "detail": "The risk analysis for purpose <purposeId> has already been approved" }
 }
