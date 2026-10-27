@@ -231,21 +231,15 @@ export function purposeServiceBuilder(
     error: unknown,
     purposeId: PurposeId,
     { headers, logger }: WithLogger<BffAppContext>,
-    signingSeed?: purposeApi.RiskAnalysisSignSeed
+    {
+      allowedCodes,
+      signingSeed,
+    }: {
+      allowedCodes: readonly string[];
+      signingSeed?: purposeApi.RiskAnalysisSignSeed;
+    }
   ): Promise<never> => {
-    const conflictCodes = getRiskAnalysisConflictCodes(
-      error,
-      signingSeed
-        ? [
-            purposeProcessErrorCodes.reviewerWorkflowNotInSignableState,
-            purposeProcessErrorCodes.purposeMetadataVersionMismatch,
-            purposeProcessErrorCodes.eventConflictError,
-          ]
-        : [
-            purposeProcessErrorCodes.reviewerWorkflowNotEditable,
-            purposeProcessErrorCodes.eventConflictError,
-          ]
-    );
+    const conflictCodes = getRiskAnalysisConflictCodes(error, allowedCodes);
     if (conflictCodes.length === 0) {
       throw error;
     }
@@ -646,19 +640,33 @@ export function purposeServiceBuilder(
       await purposeProcessClient
         .signRiskAnalysis(seed, { params: { purposeId }, headers })
         .catch((error) =>
-          handleRiskAnalysisConflict(error, purposeId, ctx, seed)
+          handleRiskAnalysisConflict(error, purposeId, ctx, {
+            allowedCodes: [
+              purposeProcessErrorCodes.reviewerWorkflowNotInSignableState,
+              purposeProcessErrorCodes.purposeMetadataVersionMismatch,
+              purposeProcessErrorCodes.eventConflictError,
+            ],
+            signingSeed: seed,
+          })
         );
     },
     async rejectRiskAnalysis(
       purposeId: PurposeId,
       seed: bffApi.RiskAnalysisRejectionSeed,
-      { logger, headers }: WithLogger<BffAppContext>
+      ctx: WithLogger<BffAppContext>
     ): Promise<void> {
+      const { logger, headers } = ctx;
       logger.info(`Rejecting risk analysis for purpose ${purposeId}`);
-      await purposeProcessClient.rejectRiskAnalysis(seed, {
-        params: { purposeId },
-        headers,
-      });
+      await purposeProcessClient
+        .rejectRiskAnalysis(seed, { params: { purposeId }, headers })
+        .catch((error) =>
+          handleRiskAnalysisConflict(error, purposeId, ctx, {
+            allowedCodes: [
+              purposeProcessErrorCodes.reviewerWorkflowNotInSubmittedState,
+              purposeProcessErrorCodes.eventConflictError,
+            ],
+          })
+        );
     },
     async editRiskAnalysisForm(
       purposeId: PurposeId,
@@ -671,7 +679,14 @@ export function purposeServiceBuilder(
       );
       await purposeProcessClient
         .editRiskAnalysisForm(seed, { params: { purposeId }, headers })
-        .catch((error) => handleRiskAnalysisConflict(error, purposeId, ctx));
+        .catch((error) =>
+          handleRiskAnalysisConflict(error, purposeId, ctx, {
+            allowedCodes: [
+              purposeProcessErrorCodes.reviewerWorkflowNotEditable,
+              purposeProcessErrorCodes.eventConflictError,
+            ],
+          })
+        );
     },
     async createPurposeForReceiveEservice(
       createSeed: bffApi.PurposeEServiceSeed,

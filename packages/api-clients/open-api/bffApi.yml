@@ -6180,7 +6180,7 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
         "409":
-          $ref: "#/components/responses/Conflict"
+          $ref: "#/components/responses/RiskAnalysisReviewConflict"
   /purposes/{purposeId}/riskAnalysis/form:
     parameters:
       - name: purposeId

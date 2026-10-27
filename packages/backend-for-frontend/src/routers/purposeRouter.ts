@@ -371,7 +371,7 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          riskAnalysisConflictErrorMapper,
           ctx,
           `Error rejecting risk analysis for purpose ${req.params.purposeId}`
         );

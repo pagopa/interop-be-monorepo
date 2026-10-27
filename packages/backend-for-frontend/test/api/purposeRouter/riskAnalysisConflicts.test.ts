@@ -84,11 +84,10 @@ const operations = [
     conflictCode: "004-0056",
   },
 ] as const;
-const lockOperations = [operations[2], operations[4]];
+const lockOperations = [operations[2], operations[3], operations[4]];
 const passthroughOperations = [
   operations[0],
   operations[1],
-  operations[3],
   operations[5],
   operations[6],
 ];
@@ -320,6 +319,39 @@ describe("risk analysis mutation conflicts", () => {
     const res = await makeRequest(form);
     expect(res.status).toBe(409);
     expect(res.body).toEqual(upstreamError(form.conflictCode).response?.data);
+  });
+
+  it.each(["ASSIGNED", "SUBMITTED"] as const)(
+    "preserves the rejection conflict when the current state is %s",
+    async (state) => {
+      const reject = operations[3];
+      setPurpose(state, 2);
+      const res = await makeRequest(reject);
+      expect(res.status).toBe(409);
+      expect(res.body).toEqual(
+        upstreamError(reject.conflictCode).response?.data
+      );
+      expect(
+        clients.purposeProcessClientWithMetadata.getPurpose
+      ).toHaveBeenCalledTimes(1);
+      expect(
+        clients.purposeProcessClient.rejectRiskAnalysis
+      ).toHaveBeenCalledTimes(1);
+    }
+  );
+
+  it("does not classify a rejection conflict as a signing version change", async () => {
+    const error = upstreamError("004-0064");
+    vi.mocked(
+      clients.purposeProcessClient.rejectRiskAnalysis
+    ).mockRejectedValue(error);
+    setPurpose("SIGNED", 2);
+    const res = await makeRequest(operations[3]);
+    expect(res.status).toBe(409);
+    expect(res.body).toEqual(error.response?.data);
+    expect(
+      clients.purposeProcessClientWithMetadata.getPurpose
+    ).not.toHaveBeenCalled();
   });
 
   it("prioritizes a rejected state when multiple relevant conflicts include a version mismatch", async () => {

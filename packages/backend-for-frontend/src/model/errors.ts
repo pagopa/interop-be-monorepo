@@ -76,6 +76,7 @@ const purposeProcessErrorCode = serviceErrorCode[serviceName.PURPOSE_PROCESS];
 
 export const purposeProcessErrorCodes = {
   reviewerWorkflowNotInSignableState: `${purposeProcessErrorCode}-0049`,
+  reviewerWorkflowNotInSubmittedState: `${purposeProcessErrorCode}-0052`,
   reviewerWorkflowNotEditable: `${purposeProcessErrorCode}-0054`,
   purposeMetadataVersionMismatch: `${purposeProcessErrorCode}-0064`,
   eventConflictError: `${purposeProcessErrorCode}-${commonErrorCodes.eventConflictError}`,
