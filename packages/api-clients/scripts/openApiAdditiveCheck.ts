@@ -189,7 +189,7 @@ export function formatReport(
   if (unreferencedChanges && unreferencedChanges.length > 0) {
     lines.push(
       separator,
-      "Add this block to the PR description (one line per change, after the marker):",
+      "Add this block to the PR description if the changes are intentional (one line per change, after the marker):",
       declarationMarker,
       ...unreferencedChanges
     );
