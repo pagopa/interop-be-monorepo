@@ -9,7 +9,11 @@
   "exports": {
     ".": "./dist/index.js"
   },
+  "bin": {
+    "error-message-parser": "./dist/cli.js"
+  },
   "scripts": {
+    "cli": "tsx src/cli.ts",
     "lint": "eslint .",
     "lint:autofix": "eslint . --fix",
     "build": "tsc",
@@ -23,10 +27,14 @@
     "csv-stringify": "catalog:",
     "eslint": "catalog:",
     "pagopa-interop-eslint-config": "workspace:*",
+    "tsx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   },
   "dependencies": {
+    "@commander-js/extra-typings": "catalog:",
+    "ajv": "catalog:",
+    "commander": "catalog:",
     "csv-parse": "catalog:",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",

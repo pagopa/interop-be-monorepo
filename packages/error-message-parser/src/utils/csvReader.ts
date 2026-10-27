@@ -1,12 +1,12 @@
 import { parse } from "csv-parse/sync";
 import { readFileSync } from "node:fs";
-
 import {
   ErrorCopy,
   MethodUrl,
   ProcessName,
   ErrorMessage,
-} from "../models/index.js";
+} from "pagopa-interop-models";
+
 import { getErrorCode } from "./parseErrorCode.js";
 
 const columns = {
@@ -15,10 +15,16 @@ const columns = {
   methodUrl: 2,
 } as const;
 
+type ErrorCopyWithDetails = {
+  errors: ErrorCopy;
+  skipped: number;
+  skippedLines: string[];
+};
+
 export function readCsvErrorFile(
   filePath: string,
   languages: string[]
-): ErrorCopy {
+): ErrorCopyWithDetails {
   const content = readFileSync(filePath, "utf8");
 
   const rows = parse(content, {
@@ -26,6 +32,8 @@ export function readCsvErrorFile(
   });
 
   const headers = rows[0];
+  let skipped = 0;
+  const skippedLines: string[] = [];
 
   // Find all the columns that have "{language}" or "Copy {language}" in the header, in the exact order of the languages array
   const languageColumnsIndexes = languages
@@ -60,6 +68,8 @@ export function readCsvErrorFile(
     const processParse = ProcessName.safeParse(row.at(columns.process));
     const errorCode = row.at(columns.errorCode);
     if (!urlParse.success || !processParse.success || !errorCode) {
+      skipped += 1;
+      skippedLines.push(row.join(","));
       continue;
     }
 
@@ -67,6 +77,8 @@ export function readCsvErrorFile(
     const process = processParse.data;
     const parsedErrorCode = getErrorCode(process, errorCode);
     if (!parsedErrorCode) {
+      skipped += 1;
+      skippedLines.push(row.join(","));
       continue;
     }
 
@@ -76,6 +88,8 @@ export function readCsvErrorFile(
       )
     );
     if (!messages.success) {
+      skipped += 1;
+      skippedLines.push(row.join(","));
       continue;
     }
 
@@ -89,5 +103,5 @@ export function readCsvErrorFile(
       };
     }
   }
-  return parsed;
+  return { errors: parsed, skipped, skippedLines };
 }

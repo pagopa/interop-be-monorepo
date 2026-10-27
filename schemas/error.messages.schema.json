@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ErrorCopy",
+  "description": "Error messages grouped by endpoint (\"METHOD /url\") and then by error code",
+  "type": "object",
+  "propertyNames": {
+    "pattern": "^(GET|POST|PUT|DELETE|PATCH) /[\\w/:-]+$"
+  },
+  "additionalProperties": { "$ref": "#/definitions/EndpointErrorCopy" },
+  "definitions": {
+    "EndpointErrorCopy": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/definitions/MessageObject" },
+      "propertyNames": {
+        "pattern": "^\\d{3}-\\d{3,5}$"
+      }
+    },
+    "MessageObject": {
+      "type": "object",
+      "required": ["key", "messages"],
+      "additionalProperties": false,
+      "properties": {
+        "key": { "$ref": "#/definitions/Key" },
+        "messages": { "$ref": "#/definitions/ErrorMessage" }
+      }
+    },
+    "Key": {
+      "type": "string",
+      "pattern": "^\\d{3}-\\d{3,5}$"
+    },
+    "ErrorMessage": {
+      "type": "object",
+      "required": ["it"],
+      "additionalProperties": false,
+      "properties": {
+        "it": { "type": "string", "minLength": 1 },
+        "en": { "type": "string" }
+      }
+    }
+  }
+}
