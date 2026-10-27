@@ -9,6 +9,8 @@ import { pathToFileURL } from "node:url";
 const specPath = "packages/api-clients/open-api/bffApi.yml";
 // Declarations in the PR description are read only after this marker.
 const declarationMarker = "BFF_API_CHANGES_TO_EXISTING";
+// GitHub Actions logs drop empty lines, so the report uses a visible separator.
+const separator = "-".repeat(40);
 const operationMethods = new Set([
   "get",
   "put",
@@ -150,7 +152,7 @@ export function formatReport(
   const lines = [
     "BFF OpenAPI additive comparison",
     `Status: ${failed ? "FAIL" : "PASS"}`,
-    "",
+    separator,
     `Spec version: ${diff.baseVersion ?? "unknown"} -> ${diff.headVersion ?? "unknown"}`,
     `New endpoints: ${diff.addedOperations.length}`,
     `Existing endpoints modified: ${diff.modifiedOperations.length}`,
@@ -180,15 +182,14 @@ export function formatReport(
 
   for (const [title, entries] of sections) {
     if (entries.length > 0) {
-      lines.push("", `${title}:`, ...entries.map((entry) => `  ${entry}`));
+      lines.push(separator, `${title}:`, ...entries.map((entry) => `  ${entry}`));
     }
   }
 
   if (unreferencedChanges && unreferencedChanges.length > 0) {
     lines.push(
-      "",
+      separator,
       "Add this block to the PR description (one line per change, after the marker):",
-      "",
       declarationMarker,
       ...unreferencedChanges
     );
@@ -325,6 +326,7 @@ async function main(): Promise<void> {
   console.log(report);
 
   if (unreferencedChanges.length > 0) {
+    console.log(separator);
     throw new Error(
       `OpenAPI additive check failed: existing operations or shared definitions changed without being declared in the PR description. Add a ${declarationMarker} line followed by one line per change, e.g. "edited endpoint <operationId>" or "deleted component <name>" (see the report above)`
     );
