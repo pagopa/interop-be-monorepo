@@ -4,7 +4,7 @@ info:
   description: PDND Interoperability API for machine-to-machine interaction with
     interoperability features
   x-summary: PDND Interoperability API
-  version: "3.2.2"
+  version: "3.3.0"
   contact:
     name: API Support
     url: "https://github.com/pagopa/pdnd-interop-frontend/issues"
@@ -14822,6 +14822,8 @@ components:
           $ref: "#/components/schemas/PurposeTemplateId"
         riskAnalysisReviewMode:
           $ref: "#/components/schemas/RiskAnalysisReviewMode"
+        reviewerWorkflow:
+          $ref: "#/components/schemas/ReviewerWorkflow"
       required:
         - id
         - eserviceId
@@ -14832,11 +14834,60 @@ components:
         - isFreeOfCharge
     RiskAnalysisReviewMode:
       type: string
-      description: Risk analysis review mode
+      description: Risk analysis review mode. Visible only to the consumer of the Purpose.
       enum:
         - ADMIN_WRITES_ADMIN_SIGNS
         - ADMIN_WRITES_REVIEWER_SIGNS
         - REVIEWER_WRITES_REVIEWER_SIGNS
+    RiskAnalysisSigningState:
+      type: string
+      description: Risk analysis signing state
+      enum:
+        - DRAFT
+        - ASSIGNED
+        - SUBMITTED
+        - SIGNED
+        - REJECTED
+    RiskAnalysisReviewer:
+      type: object
+      additionalProperties: false
+      description: A reviewer designated for a purpose risk analysis
+      properties:
+        userId:
+          type: string
+          format: uuid
+        sentToReviewerAt:
+          type: string
+          format: date-time
+      required:
+        - userId
+    ReviewerWorkflow:
+      type: object
+      additionalProperties: false
+      description: Reviewer workflow state for a purpose risk analysis. Returned only to the consumer of the Purpose.
+      properties:
+        reviewers:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskAnalysisReviewer"
+        signingState:
+          $ref: "#/components/schemas/RiskAnalysisSigningState"
+        signedBy:
+          type: string
+          format: uuid
+        signedAt:
+          type: string
+          format: date-time
+        rejectedBy:
+          type: string
+          format: uuid
+        rejectedAt:
+          type: string
+          format: date-time
+        rejectionReason:
+          type: string
+      required:
+        - signingState
     RiskAnalysisAssignmentSeed:
       type: object
       additionalProperties: false
