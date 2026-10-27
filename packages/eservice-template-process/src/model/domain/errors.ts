@@ -1,4 +1,7 @@
-import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
+import {
+  RiskAnalysisValidationIssue,
+  eserviceTemplateErrorCodes,
+} from "pagopa-interop-commons";
 import {
   ApiError,
   AttributeId,
@@ -9,51 +12,9 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 
-const errorCodes = {
-  eserviceTemplateNotFound: "0001",
-  eserviceTemplateVersionNotFound: "0002",
-  notValidEServiceTemplateVersionState: "0003",
-  eserviceTemplateDuplicate: "0004",
-  eserviceTemplateWithoutPublishedVersion: "0005",
-  riskAnalysisNameDuplicate: "0006",
-  riskAnalysisValidationFailed: "0007",
-  eserviceTemplateNotInDraftState: "0010",
-  eserviceTemplateNotInReceiveMode: "0011",
-  inconsistentDailyCalls: "0012",
-  inconsistentAttributesSeedGroupsCount: "0013",
-  versionAttributeGroupSupersetMissingInAttributesSeed: "0014",
-  unchangedAttributes: "0015",
-  attributeNotFound: "0016",
-  originNotCompliant: "0017",
-  missingTemplateVersionInterface: "0018",
-  missingRiskAnalysis: "0019",
-  instanceNameConflict: "0020",
-  interfaceAlreadyExists: "0021",
-  documentPrettyNameDuplicate: "0022",
-  checksumDuplicate: "0023",
-  draftEServiceTemplateVersionAlreadyExists: "0024",
-  eserviceTemplateDocumentNotFound: "0025",
-  riskAnalysisNotFound: "0026",
-  attributeDuplicatedInGroup: "0027",
-  tenantNotFound: "0028",
-  missingPersonalDataFlag: "0029",
-  eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce: "0030",
-  eServiceTemplateUpdateSameNameConflict: "0031",
-  eServiceTemplateUpdateSameDescriptionConflict: "0032",
-  eserviceTemplateAsyncExchangeNotEnabled: "0033",
-  asyncExchangeCallbackInterfaceAlreadyExists: "0034",
-  missingAsyncExchangeProperties: "0035",
-  asyncExchangeBulkNotAllowedForSoap: "0036",
-  tenantKindNotFound: "0037",
-  asyncExchangeReceiveTemplateNotAllowed: "0038",
-  missingAsyncExchangeCallbackInterface: "0039",
-  attributeDiscreteConfigNotAllowed: "0040",
-  interfaceDocumentNotUpdatable: "0041",
-};
+export type ErrorCodes = keyof typeof eserviceTemplateErrorCodes;
 
-export type ErrorCodes = keyof typeof errorCodes;
-
-export const makeApiProblem = makeApiProblemBuilder(errorCodes);
+export const makeApiProblem = makeApiProblemBuilder(eserviceTemplateErrorCodes);
 
 export function eserviceTemplateNotFound(
   eserviceTemplateId: EServiceTemplateId
