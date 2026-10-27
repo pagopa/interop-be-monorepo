@@ -1,3 +1,4 @@
+import { notificationConfigErrorCodes } from "pagopa-interop-commons";
 import {
   ApiError,
   TenantId,
@@ -6,17 +7,11 @@ import {
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
-const errorCodes = {
-  tenantNotificationConfigNotFound: "0001",
-  userNotificationConfigNotFound: "0002",
-  tenantNotificationConfigAlreadyExists: "0003",
-  userRoleNotInUserNotificationConfig: "0004",
-  notificationConfigNotAllowedForUserRoles: "0005",
-};
+export type ErrorCodes = keyof typeof notificationConfigErrorCodes;
 
-export type ErrorCodes = keyof typeof errorCodes;
-
-export const makeApiProblem = makeApiProblemBuilder(errorCodes);
+export const makeApiProblem = makeApiProblemBuilder(
+  notificationConfigErrorCodes
+);
 
 export function tenantNotificationConfigNotFound(
   tenantId: TenantId
