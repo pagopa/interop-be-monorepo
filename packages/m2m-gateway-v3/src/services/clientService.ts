@@ -146,7 +146,7 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
         eserviceIds,
         states,
       }: m2mGatewayApiV3.GetClientPurposesQueryParams,
-      { headers, logger }: WithLogger<M2MGatewayAppContext>
+      { headers, logger, authData }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.Purposes> {
       logger.info(`Retrieving purposes for client with id ${clientId}`);
 
@@ -188,7 +188,9 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
           offset,
           totalCount,
         },
-        results: paginatedPurposes.map(toM2MGatewayApiPurpose),
+        results: paginatedPurposes.map((purpose) =>
+          toM2MGatewayApiPurpose(purpose, authData.organizationId)
+        ),
       };
     },
     async removeClientPurpose(

@@ -173,7 +173,7 @@ export function agreementServiceBuilder(
     async getAgreementPurposes(
       agreementId: AgreementId,
       { limit, offset }: m2mGatewayApiV3.GetAgreementPurposesQueryParams,
-      { logger, headers }: WithLogger<M2MGatewayAppContext>
+      { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.Purposes> {
       logger.info(`Retrieving purposes for agreement ${agreementId}`);
 
@@ -193,7 +193,9 @@ export function agreementServiceBuilder(
       });
 
       return {
-        results: results.map(toM2MGatewayApiPurpose),
+        results: results.map((purpose) =>
+          toM2MGatewayApiPurpose(purpose, authData.organizationId)
+        ),
         pagination: {
           limit,
           offset,
