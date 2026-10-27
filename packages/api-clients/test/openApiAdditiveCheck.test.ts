@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   compareOpenApiSpecs,
+  findUnreferencedChanges,
   formatReport,
   hasNonAdditiveChanges,
 } from "../scripts/openApiAdditiveCheck.js";
@@ -195,5 +196,70 @@ describe("compareOpenApiSpecs", () => {
       modifiedTags: ["items"],
     });
     expect(hasNonAdditiveChanges(diff)).toBe(true);
+  });
+});
+
+describe("findUnreferencedChanges", () => {
+  const headSpec = {
+    ...baseSpec,
+    paths: {
+      "/items/{itemId}": {
+        parameters: baseSpec.paths["/items/{itemId}"].parameters,
+        get: {
+          operationId: "getItem",
+          responses: { "404": { description: "Not found" } },
+        },
+      },
+    },
+    components: {
+      schemas: { Item: { type: "array" } },
+    },
+  };
+  const diff = compareOpenApiSpecs(baseSpec, headSpec);
+  const required = [
+    "edited endpoint getItem",
+    "edited component Item",
+    "deleted component Ok",
+  ];
+
+  it("reports every change when the description is empty", () => {
+    expect(
+      findUnreferencedChanges(diff, baseSpec, headSpec, undefined)
+    ).toEqual(required);
+  });
+
+  it("ignores declarations written before the marker", () => {
+    const description = `${required.join("\n")}\nBFF_API_CHANGES`;
+    expect(
+      findUnreferencedChanges(diff, baseSpec, headSpec, description)
+    ).toEqual(required);
+  });
+
+  it("accepts declarations after the marker, with bullets and backticks", () => {
+    const description =
+      "Notes\nBFF_API_CHANGES\n- `edited endpoint getItem`\n* Edited Component Item\ndeleted component Ok";
+    expect(
+      findUnreferencedChanges(diff, baseSpec, headSpec, description)
+    ).toEqual([]);
+  });
+
+  it("requires the matching action and kind", () => {
+    const description =
+      "BFF_API_CHANGES\ndeleted endpoint getItem\nedited endpoint Item\nedited component Ok";
+    expect(
+      findUnreferencedChanges(diff, baseSpec, headSpec, description)
+    ).toEqual([
+      "edited endpoint getItem",
+      "edited component Item",
+      "deleted component Ok",
+    ]);
+  });
+
+  it("does not accept a name that is only a prefix", () => {
+    const description =
+      "BFF_API_CHANGES\nedited endpoint getItems\nedited component ItemList\ndeleted component Ok";
+    expect(
+      findUnreferencedChanges(diff, baseSpec, headSpec, description)
+    ).toEqual(["edited endpoint getItem", "edited component Item"]);
   });
 });

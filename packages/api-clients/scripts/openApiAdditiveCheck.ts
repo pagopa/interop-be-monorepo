@@ -181,10 +181,16 @@ export function compareOpenApiSpecs(
   };
 }
 
-export function formatReport(diff: OpenApiAdditiveDiff): string {
+export function formatReport(
+  diff: OpenApiAdditiveDiff,
+  unreferencedChanges?: string[]
+): string {
+  const failed = unreferencedChanges
+    ? unreferencedChanges.length > 0
+    : hasNonAdditiveChanges(diff);
   const lines = [
     "BFF OpenAPI additive comparison",
-    `Status: ${hasNonAdditiveChanges(diff) ? "FAIL" : "PASS"}`,
+    `Status: ${failed ? "FAIL" : "PASS"}`,
     "",
     `Spec version: ${diff.baseVersion ?? "unknown"} -> ${diff.headVersion ?? "unknown"}`,
     `New endpoints: ${diff.addedOperations.length}`,
@@ -210,12 +216,23 @@ export function formatReport(diff: OpenApiAdditiveDiff): string {
     ["Modified existing tags", diff.modifiedTags],
     ["Removed existing tags", diff.removedTags],
     ["Changed global settings", diff.changedGlobals],
+    ["Missing in the PR description", unreferencedChanges ?? []],
   ];
 
   for (const [title, entries] of sections) {
     if (entries.length > 0) {
       lines.push("", `${title}:`, ...entries.map((entry) => `  ${entry}`));
     }
+  }
+
+  if (unreferencedChanges && unreferencedChanges.length > 0) {
+    lines.push(
+      "",
+      "Add this block to the PR description (one line per change, after the marker):",
+      "",
+      declarationMarker,
+      ...unreferencedChanges
+    );
   }
 
   return `${lines.join("\n")}\n`;
@@ -230,6 +247,77 @@ export function hasNonAdditiveChanges(diff: OpenApiAdditiveDiff): boolean {
     diff.changedGlobals.length > 0 ||
     diff.modifiedTags.length > 0 ||
     diff.removedTags.length > 0
+  );
+}
+
+const declarationMarker = "BFF_API_CHANGES";
+
+function operationIdOf(spec: OpenApiSpec, operationKey: string): string {
+  const separator = operationKey.indexOf(" ");
+  const method = operationKey.slice(0, separator).toLowerCase();
+  const path = operationKey.slice(separator + 1);
+  const operation = spec.paths?.[path]?.[method] as
+    | { operationId?: string }
+    | undefined;
+  return operation?.operationId ?? operationKey;
+}
+
+// e.g. "edited endpoint getEServiceById", "deleted component EService".
+function requiredDeclarations(
+  diff: OpenApiAdditiveDiff,
+  baseSpec: OpenApiSpec,
+  headSpec: OpenApiSpec
+): string[] {
+  const componentName = (key: string): string => key.slice(key.indexOf("/") + 1);
+  return [
+    ...diff.modifiedOperations.map(
+      (k) => `edited endpoint ${operationIdOf(headSpec, k)}`
+    ),
+    ...diff.removedOperations.map(
+      (k) => `deleted endpoint ${operationIdOf(baseSpec, k)}`
+    ),
+    ...diff.modifiedComponents.map((k) => `edited component ${componentName(k)}`),
+    ...diff.removedComponents.map((k) => `deleted component ${componentName(k)}`),
+    ...diff.modifiedTags.map((name) => `edited tag ${name}`),
+    ...diff.removedTags.map((name) => `deleted tag ${name}`),
+    ...diff.changedGlobals.map((name) => `edited global ${name}`),
+  ];
+}
+
+// Only lines after the marker count; other lines are ignored.
+function parseDeclaredChanges(description: string | undefined): Set<string> {
+  const text = description ?? "";
+  const markerIndex = text.indexOf(declarationMarker);
+  const declared = new Set<string>();
+  if (markerIndex === -1) {
+    return declared;
+  }
+
+  for (const line of text
+    .slice(markerIndex + declarationMarker.length)
+    .split(/\r?\n/)) {
+    const match =
+      /^\s*(?:[-*]\s+)?`?(edited|deleted)\s+(endpoint|component|tag|global)\s+([\w.-]+)`?\s*$/i.exec(
+        line
+      );
+    if (match) {
+      declared.add(
+        `${match[1].toLowerCase()} ${match[2].toLowerCase()} ${match[3]}`
+      );
+    }
+  }
+  return declared;
+}
+
+export function findUnreferencedChanges(
+  diff: OpenApiAdditiveDiff,
+  baseSpec: OpenApiSpec,
+  headSpec: OpenApiSpec,
+  prDescription: string | undefined
+): string[] {
+  const declared = parseDeclaredChanges(prDescription);
+  return requiredDeclarations(diff, baseSpec, headSpec).filter(
+    (declaration) => !declared.has(declaration)
   );
 }
 
@@ -261,13 +349,19 @@ async function main(): Promise<void> {
     parseSpecAtCommit(headSha),
   ]);
   const diff = compareOpenApiSpecs(baseSpec, headSpec);
-  const report = formatReport(diff);
+  const unreferencedChanges = findUnreferencedChanges(
+    diff,
+    baseSpec,
+    headSpec,
+    process.env.OPENAPI_PR_DESCRIPTION
+  );
+  const report = formatReport(diff, unreferencedChanges);
 
   console.log(report);
 
-  if (hasNonAdditiveChanges(diff)) {
+  if (unreferencedChanges.length > 0) {
     throw new Error(
-      "OpenAPI additive check failed: existing operations or shared definitions changed"
+      `OpenAPI additive check failed: existing operations or shared definitions changed without being declared in the PR description. Add a ${declarationMarker} line followed by one line per change, e.g. "edited endpoint <operationId>" or "deleted component <name>" (see the report above)`
     );
   }
 }
