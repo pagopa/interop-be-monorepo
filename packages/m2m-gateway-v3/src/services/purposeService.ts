@@ -191,7 +191,7 @@ export function purposeServiceBuilder(
   return {
     async getPurposes(
       queryParams: m2mGatewayApiV3.GetPurposesQueryParams,
-      { logger, headers }: WithLogger<M2MGatewayAppContext>
+      { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.Purposes> {
       const { eserviceIds, title, consumerIds, states, limit, offset } =
         queryParams;
@@ -207,7 +207,9 @@ export function purposeServiceBuilder(
       } = await clients.purposeProcessClient.getPurposes({ queries, headers });
 
       return {
-        results: results.map(toM2MGatewayApiPurpose),
+        results: results.map((purpose) =>
+          toM2MGatewayApiPurpose(purpose, authData.organizationId)
+        ),
         pagination: {
           limit,
           offset,
@@ -217,13 +219,13 @@ export function purposeServiceBuilder(
     },
     async getPurpose(
       purposeId: PurposeId,
-      { logger, headers }: WithLogger<M2MGatewayAppContext>
+      { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.Purpose> {
       logger.info(`Retrieving purpose with id ${purposeId}`);
 
       const { data } = await retrievePurposeById(purposeId, headers);
 
-      return toM2MGatewayApiPurpose(data);
+      return toM2MGatewayApiPurpose(data, authData.organizationId);
     },
     async createPurpose(
       purposeSeed: m2mGatewayApiV3.PurposeSeed,
@@ -253,7 +255,10 @@ export function purposeServiceBuilder(
 
       const polledResource = await pollPurpose(purposeResponse, headers);
 
-      return toM2MGatewayApiPurpose(polledResource.data);
+      return toM2MGatewayApiPurpose(
+        polledResource.data,
+        authData.organizationId
+      );
     },
     async getPurposeVersions(
       purposeId: PurposeId,
@@ -336,7 +341,7 @@ export function purposeServiceBuilder(
     async activateDraftPurpose(
       purposeId: PurposeId,
       { delegationId }: m2mGatewayApiV3.DelegationRef,
-      { logger, headers }: WithLogger<M2MGatewayAppContext>
+      { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.Purpose> {
       logger.info(
         `Retrieving latest draft version for purpose ${purposeId} activation`
@@ -362,11 +367,14 @@ export function purposeServiceBuilder(
         );
 
       const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
-      return toM2MGatewayApiPurpose(polledPurpose.data);
+      return toM2MGatewayApiPurpose(
+        polledPurpose.data,
+        authData.organizationId
+      );
     },
     async archivePurpose(
       purposeId: PurposeId,
-      { logger, headers }: WithLogger<M2MGatewayAppContext>
+      { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.Purpose> {
       logger.info(
         `Retrieving current version for purpose ${purposeId} archiving`
@@ -386,12 +394,15 @@ export function purposeServiceBuilder(
         });
 
       const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
-      return toM2MGatewayApiPurpose(polledPurpose.data);
+      return toM2MGatewayApiPurpose(
+        polledPurpose.data,
+        authData.organizationId
+      );
     },
     async suspendPurpose(
       purposeId: PurposeId,
       { delegationId }: m2mGatewayApiV3.DelegationRef,
-      { logger, headers }: WithLogger<M2MGatewayAppContext>
+      { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.Purpose> {
       logger.info(
         `Retrieving current version for purpose ${purposeId} suspension`
@@ -414,12 +425,15 @@ export function purposeServiceBuilder(
         );
 
       const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
-      return toM2MGatewayApiPurpose(polledPurpose.data);
+      return toM2MGatewayApiPurpose(
+        polledPurpose.data,
+        authData.organizationId
+      );
     },
     async approvePurpose(
       purposeId: PurposeId,
       { delegationId }: m2mGatewayApiV3.DelegationRef,
-      { logger, headers }: WithLogger<M2MGatewayAppContext>
+      { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.Purpose> {
       logger.info(
         `Retrieving latest waiting for approval version for purpose ${purposeId} approval`
@@ -445,12 +459,15 @@ export function purposeServiceBuilder(
         );
 
       const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
-      return toM2MGatewayApiPurpose(polledPurpose.data);
+      return toM2MGatewayApiPurpose(
+        polledPurpose.data,
+        authData.organizationId
+      );
     },
     async unsuspendPurpose(
       purposeId: PurposeId,
       { delegationId }: m2mGatewayApiV3.DelegationRef,
-      { logger, headers }: WithLogger<M2MGatewayAppContext>
+      { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.Purpose> {
       logger.info(
         `Retrieving latest suspended version for purpose ${purposeId} unsuspension`
@@ -476,7 +493,10 @@ export function purposeServiceBuilder(
         );
 
       const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
-      return toM2MGatewayApiPurpose(polledPurpose.data);
+      return toM2MGatewayApiPurpose(
+        polledPurpose.data,
+        authData.organizationId
+      );
     },
     async deletePurpose(
       purposeId: PurposeId,
@@ -537,7 +557,10 @@ export function purposeServiceBuilder(
 
       const polledResource = await pollPurpose(purposeResponse, headers);
 
-      return toM2MGatewayApiPurpose(polledResource.data);
+      return toM2MGatewayApiPurpose(
+        polledResource.data,
+        authData.organizationId
+      );
     },
     async downloadPurposeVersionRiskAnalysisDocument(
       purposeId: PurposeId,
@@ -620,7 +643,7 @@ export function purposeServiceBuilder(
       updateSeed:
         | m2mGatewayApiV3.PurposeDraftUpdateSeed
         | m2mGatewayApiV3.PurposeDraftFromTemplateUpdateSeed,
-      { logger, headers }: WithLogger<M2MGatewayAppContext>
+      { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.Purpose> {
       logger.info(`Updating draft purpose with id ${purposeId}`);
 
@@ -634,12 +657,15 @@ export function purposeServiceBuilder(
 
       const polledResource = await pollPurpose(updatedPurpose, headers);
 
-      return toM2MGatewayApiPurpose(polledResource.data);
+      return toM2MGatewayApiPurpose(
+        polledResource.data,
+        authData.organizationId
+      );
     },
     async updateDraftReversePurpose(
       purposeId: PurposeId,
       updateSeed: m2mGatewayApiV3.ReversePurposeDraftUpdateSeed,
-      { logger, headers }: WithLogger<M2MGatewayAppContext>
+      { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.Purpose> {
       logger.info(`Updating draft reverse purpose with id ${purposeId}`);
 
@@ -654,7 +680,10 @@ export function purposeServiceBuilder(
 
       const polledResource = await pollPurpose(updatedPurpose, headers);
 
-      return toM2MGatewayApiPurpose(polledResource.data);
+      return toM2MGatewayApiPurpose(
+        polledResource.data,
+        authData.organizationId
+      );
     },
     async createPurposeFromTemplate(
       purposeTemplateId: PurposeTemplateId,
@@ -683,7 +712,29 @@ export function purposeServiceBuilder(
 
       const polledResource = await pollPurpose(purposeResponse, headers);
 
-      return toM2MGatewayApiPurpose(polledResource.data);
+      return toM2MGatewayApiPurpose(
+        polledResource.data,
+        authData.organizationId
+      );
+    },
+    async assignRiskAnalysisReviewer(
+      purposeId: PurposeId,
+      seed: m2mGatewayApiV3.RiskAnalysisAssignmentSeed,
+      { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.Purpose> {
+      logger.info(`Assigning risk analysis reviewer for purpose ${purposeId}`);
+
+      const { metadata } =
+        await clients.purposeProcessClient.assignRiskAnalysisReviewer(seed, {
+          params: { purposeId },
+          headers,
+        });
+
+      const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
+      return toM2MGatewayApiPurpose(
+        polledPurpose.data,
+        authData.organizationId
+      );
     },
   };
 }

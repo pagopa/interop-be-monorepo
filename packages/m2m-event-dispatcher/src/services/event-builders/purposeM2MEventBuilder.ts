@@ -107,6 +107,7 @@ function getPurposeM2MEventVisibility(
         "PurposeCloned",
         "PurposeRiskAnalysisWorkflowCreated",
         "PurposeRiskAnalysisAssigned",
+        "PurposeRiskAnalysisSelfAssigned",
         "PurposeRiskAnalysisSubmitted",
         "PurposeRiskAnalysisSigned",
         "PurposeRiskAnalysisRejected",
