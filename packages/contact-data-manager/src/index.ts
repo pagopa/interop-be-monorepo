@@ -6,12 +6,12 @@ import { createApp } from "./app.js";
 import { config } from "./config/config.js";
 
 const pool = new pg.Pool({
-  host: config.personalDataDBHost,
-  database: config.personalDataDBName,
-  user: config.personalDataDBUsername,
-  password: config.personalDataDBPassword,
-  port: config.personalDataDBPort,
-  ssl: config.personalDataDBUseSSL ? { rejectUnauthorized: false } : undefined,
+  host: config.contactDataDBHost,
+  database: config.contactDataDBName,
+  user: config.contactDataDBUsername,
+  password: config.contactDataDBPassword,
+  port: config.contactDataDBPort,
+  ssl: config.contactDataDBUseSSL ? { rejectUnauthorized: false } : undefined,
 });
 
 // The contact service will use this client when its operations are implemented.

@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import { api } from "../vitest.api.setup.js";
 
-describe("personal data manager HTTP setup", () => {
+describe("contact data manager HTTP setup", () => {
   it("exposes the health check without authentication", async () => {
     const response = await request(api).get("/status");
     expect(response.status).toBe(constants.HTTP_STATUS_OK);

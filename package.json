@@ -53,7 +53,7 @@
     "start:email-sender": "turbo start --filter pagopa-interop-email-sender",
     "start:m2m-gateway": "turbo start --filter pagopa-interop-m2m-gateway",
     "start:m2m-gateway-v3": "turbo start --filter pagopa-interop-m2m-gateway-v3",
-    "start:personal-data-manager": "turbo start --filter pagopa-interop-personal-data-manager",
+    "start:contact-data-manager": "turbo start --filter pagopa-interop-contact-data-manager",
     "start:in-app-notification": "turbo start --filter pagopa-interop-in-app-notification-manager",
     "start:notification-config": "turbo start --filter pagopa-interop-notification-config-process",
     "start:notification-config-readmodel-writer-sql": "turbo start --filter pagopa-interop-notification-config-readmodel-writer-sql",

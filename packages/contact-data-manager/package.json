@@ -1,8 +1,8 @@
 {
-  "name": "pagopa-interop-personal-data-manager",
+  "name": "pagopa-interop-contact-data-manager",
   "version": "1.0.0",
   "license": "MPL-2.0",
-  "description": "PagoPA Interoperability personal data manager",
+  "description": "PagoPA Interoperability contact data manager",
   "main": "dist",
   "type": "module",
   "scripts": {
