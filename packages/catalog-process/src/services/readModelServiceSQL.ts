@@ -122,7 +122,6 @@ import {
   EServicesQueryFilters,
   EServiceSortBy,
   producerCategoryAttributeCodes,
-  RequesterDelegationRole,
 } from "../model/domain/models.js";
 import {
   activeDescriptorStates,
@@ -355,47 +354,6 @@ const subscribedByRequesterFilter = (
   return subscribedByRequester
     ? exists(subscriptionQuery)
     : notExists(subscriptionQuery);
-};
-
-const requesterDelegationRolesFilter = (
-  tx: DrizzleTransactionType,
-  requesterId: TenantId,
-  requesterDelegationRoles: RequesterDelegationRole[]
-): SQL | undefined => {
-  if (requesterDelegationRoles.length === 0) {
-    return undefined;
-  }
-  const roleFilter = or(
-    ...requesterDelegationRoles.map((role) =>
-      match(role)
-        .with("DELEGATE", () =>
-          eq(delegationInReadmodelDelegation.delegateId, requesterId)
-        )
-        .with("DELEGATOR", () =>
-          eq(delegationInReadmodelDelegation.delegatorId, requesterId)
-        )
-        .exhaustive()
-    )
-  );
-  return exists(
-    tx
-      .select()
-      .from(delegationInReadmodelDelegation)
-      .where(
-        and(
-          eq(
-            delegationInReadmodelDelegation.eserviceId,
-            eserviceInReadmodelCatalog.id
-          ),
-          eq(
-            delegationInReadmodelDelegation.kind,
-            delegationKind.delegatedProducer
-          ),
-          eq(delegationInReadmodelDelegation.state, delegationState.active),
-          roleFilter
-        )
-      )
-  );
 };
 
 const onlyTemplateInstancesFilter = (
@@ -965,7 +923,6 @@ export function readModelServiceBuilderSQL(
         producersIds,
         onlyActiveEservices,
         subscribedByRequester,
-        requesterDelegationRoles,
         onlyTemplateInstances,
         templateId,
         hasLinkedPurposeTemplates,
@@ -987,11 +944,6 @@ export function readModelServiceBuilderSQL(
             tx,
             authData.organizationId,
             subscribedByRequester
-          ),
-          requesterDelegationRolesFilter(
-            tx,
-            authData.organizationId,
-            requesterDelegationRoles
           ),
           onlyTemplateInstancesFilter(onlyTemplateInstances),
           templateId
