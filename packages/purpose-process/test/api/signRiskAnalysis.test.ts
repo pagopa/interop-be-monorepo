@@ -17,7 +17,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { purposeToApiPurpose } from "../../src/model/domain/apiConverter.js";
 import {
   missingRiskAnalysis,
-  purposeMetadataVersionChanged,
+  purposeMetadataVersionMismatch,
   riskAnalysisAlreadyApproved,
   riskAnalysisAlreadyRejected,
   purposeNotFound,
@@ -94,7 +94,7 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/sign test", () => {
       expectedStatus: 409,
     },
     {
-      error: purposeMetadataVersionChanged(mockPurpose.id, 0, 1),
+      error: purposeMetadataVersionMismatch(mockPurpose.id, 0, 1),
       expectedStatus: 409,
       expectedCode: "004-0064",
     },

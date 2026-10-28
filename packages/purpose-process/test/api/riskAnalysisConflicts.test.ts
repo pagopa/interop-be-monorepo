@@ -368,8 +368,8 @@ describe.each(operations)("Risk analysis conflicts: $name", (operation) => {
       });
 
       await expect(operation.execute(purpose)).rejects.toMatchObject({
-        code: "purposeMetadataVersionChanged",
-        title: "Purpose metadata version changed",
+        code: "purposeMetadataVersionMismatch",
+        title: "Purpose metadata version mismatch",
       });
       expect(repository.createEvent).not.toHaveBeenCalled();
       expect(readModelService.getPurposeById).toHaveBeenCalledOnce();
@@ -388,7 +388,7 @@ describe.each(operations)("Risk analysis conflicts: $name", (operation) => {
         });
 
       await expect(operation.execute(purpose)).rejects.toMatchObject({
-        code: "purposeMetadataVersionChanged",
+        code: "purposeMetadataVersionMismatch",
         detail: expect.stringContaining(
           `requested metadata version ${metadataVersion}`
         ),

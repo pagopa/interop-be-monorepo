@@ -438,7 +438,7 @@ export const signRiskAnalysisErrorMapper = (
     )
     .with(
       "reviewerWorkflowNotInSignableState",
-      "purposeMetadataVersionChanged",
+      "purposeMetadataVersionMismatch",
       "riskAnalysisAlreadyApproved",
       "riskAnalysisAlreadyRejected",
       () => HTTP_STATUS_CONFLICT

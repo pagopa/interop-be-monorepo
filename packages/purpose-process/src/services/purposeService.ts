@@ -111,7 +111,7 @@ import {
   reviewerWorkflowConflict,
   missingReviewers,
   reviewersNotAllowedForReviewMode,
-  purposeMetadataVersionChanged,
+  purposeMetadataVersionMismatch,
   riskAnalysisReviewModeNotFound,
   riskAnalysisAlreadyApproved,
   riskAnalysisAlreadyRejected,
@@ -394,7 +394,7 @@ export function purposeServiceBuilder(
           metadataVersionToSign !== undefined &&
           latestPurpose.metadata.version > metadataVersionToSign
         ) {
-          throw purposeMetadataVersionChanged(
+          throw purposeMetadataVersionMismatch(
             purpose.data.id,
             metadataVersionToSign,
             latestPurpose.metadata.version
@@ -820,7 +820,7 @@ export function purposeServiceBuilder(
       assertRiskAnalysisNotFinalized(purpose.data);
 
       if (metadataVersionToSign !== purpose.metadata.version) {
-        throw purposeMetadataVersionChanged(
+        throw purposeMetadataVersionMismatch(
           purposeId,
           metadataVersionToSign,
           purpose.metadata.version

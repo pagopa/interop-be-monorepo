@@ -81,7 +81,7 @@ const errorCodes = {
   duplicatedReviewersInSeed: "0061",
   missingReviewers: "0062",
   reviewersNotAllowedForReviewMode: "0063",
-  purposeMetadataVersionChanged: "0064",
+  purposeMetadataVersionMismatch: "0064",
   riskAnalysisReviewModeNotFound: "0065",
   riskAnalysisAlreadyApproved: "0066",
   riskAnalysisAlreadyRejected: "0067",
@@ -733,15 +733,15 @@ export function reviewersNotAllowedForReviewMode(
   });
 }
 
-export function purposeMetadataVersionChanged(
+export function purposeMetadataVersionMismatch(
   purposeId: PurposeId,
   metadataVersionToSign: number,
   currentMetadataVersion: number
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Cannot sign risk analysis for purpose ${purposeId}: requested metadata version ${metadataVersionToSign} does not match current metadata version ${currentMetadataVersion}`,
-    code: "purposeMetadataVersionChanged",
-    title: "Purpose metadata version changed",
+    code: "purposeMetadataVersionMismatch",
+    title: "Purpose metadata version mismatch",
   });
 }
 

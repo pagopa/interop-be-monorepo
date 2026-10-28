@@ -1357,7 +1357,7 @@ components:
             alreadyRejected:
               $ref: "#/components/examples/RiskAnalysisAlreadyRejected"
             versionChanged:
-              $ref: "#/components/examples/PurposeMetadataVersionChanged"
+              $ref: "#/components/examples/PurposeMetadataVersionMismatch"
   examples:
     RiskAnalysisAlreadyApproved:
       summary: The risk analysis was approved by another request
@@ -1381,12 +1381,12 @@ components:
         errors:
           - code: 004-0067
             detail: The risk analysis for purpose 1d1a0213-b708-4ea0-a567-33dfe1eea2c8 has already been rejected
-    PurposeMetadataVersionChanged:
+    PurposeMetadataVersionMismatch:
       summary: The purpose metadata version reviewed for signing is no longer current
       value:
         type: about:blank
         status: 409
-        title: Purpose metadata version changed
+        title: Purpose metadata version mismatch
         detail: "Cannot sign risk analysis for purpose 1d1a0213-b708-4ea0-a567-33dfe1eea2c8: requested metadata version 1 does not match current metadata version 2"
         correlationId: 6c84273b-285a-4b1f-8af2-4858a7e7d07a
         errors:
