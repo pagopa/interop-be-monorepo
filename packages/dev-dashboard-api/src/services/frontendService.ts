@@ -295,7 +295,12 @@ export function frontendServiceBuilder(
           LOG_SOURCES.orchestration,
           `ERROR Frontend ${action.type}: ${current.error}`
         );
-        if (action.type === "start" && !cancellation.signal.aborted) {
+        // A ready frontend remains usable when its post-start checks fail.
+        if (
+          action.type === "start" &&
+          !cancellation.signal.aborted &&
+          current.phases.find((item) => item.id === "vite")?.state !== "passed"
+        ) {
           try {
             await command(baseUrl, cancellation.signal, { type: "stop" });
           } catch {
