@@ -263,99 +263,17 @@ describe.each(operations)("Risk analysis conflicts: $name", (operation) => {
     expect(repository.createEvent).not.toHaveBeenCalled();
   });
 
-  it.each(terminalStates)(
-    "diagnoses $code after an event conflict without retrying the write",
-    async ({ state, code }) => {
-      repository.createEvent.mockRejectedValue(eventConflictError());
-      readModelService.getPurposeById
-        .mockResolvedValueOnce({
-          data: purpose,
-          metadata: { version: metadataVersion },
-        })
-        .mockResolvedValueOnce({
-          data: withState(state),
-          metadata: { version: metadataVersion + 1 },
-        });
-
-      await expect(operation.execute(purpose)).rejects.toMatchObject({ code });
-      expect(readModelService.getPurposeById).toHaveBeenCalledTimes(2);
-      expect(repository.createEvent).toHaveBeenCalledOnce();
-    }
-  );
-
   it.each([
     new Error("repository unavailable"),
     { code: "eventConflictError" },
-  ])("preserves unrelated errors without rereading: %s", async (error) => {
-    repository.createEvent.mockRejectedValue(error);
-
-    await expect(operation.execute(purpose)).rejects.toBe(error);
-    expect(readModelService.getPurposeById).toHaveBeenCalledOnce();
-    expect(repository.createEvent).toHaveBeenCalledOnce();
-  });
-
-  it("preserves the event conflict if the diagnostic read fails", async () => {
-    const error = eventConflictError();
-    repository.createEvent.mockRejectedValue(error);
-    readModelService.getPurposeById
-      .mockResolvedValueOnce({
-        data: purpose,
-        metadata: { version: metadataVersion },
-      })
-      .mockRejectedValueOnce(new Error("read model unavailable"));
-
-    await expect(operation.execute(purpose)).rejects.toBe(error);
-    expect(readModelService.getPurposeById).toHaveBeenCalledTimes(2);
-    expect(repository.createEvent).toHaveBeenCalledOnce();
-  });
-
-  it("preserves the event conflict if the purpose disappears", async () => {
-    const error = eventConflictError();
-    repository.createEvent.mockRejectedValue(error);
-    readModelService.getPurposeById
-      .mockResolvedValueOnce({
-        data: purpose,
-        metadata: { version: metadataVersion },
-      })
-      .mockResolvedValueOnce(undefined);
-
-    await expect(operation.execute(purpose)).rejects.toBe(error);
-    expect(repository.createEvent).toHaveBeenCalledOnce();
-  });
-
-  it.each([metadataVersion - 1, metadataVersion])(
-    "preserves the event conflict when the read model lags at version %s",
-    async (version) => {
-      const error = eventConflictError();
+    eventConflictError(),
+  ])(
+    "propagates write errors unchanged without rereading: %s",
+    async (error) => {
       repository.createEvent.mockRejectedValue(error);
-      readModelService.getPurposeById
-        .mockResolvedValueOnce({
-          data: purpose,
-          metadata: { version: metadataVersion },
-        })
-        .mockResolvedValueOnce({ data: purpose, metadata: { version } });
 
       await expect(operation.execute(purpose)).rejects.toBe(error);
-      expect(repository.createEvent).toHaveBeenCalledOnce();
-    }
-  );
-
-  it.each(terminalStates)(
-    "preserves the event conflict for an unproven same-version terminal state $state",
-    async ({ state }) => {
-      const error = eventConflictError();
-      repository.createEvent.mockRejectedValue(error);
-      readModelService.getPurposeById
-        .mockResolvedValueOnce({
-          data: purpose,
-          metadata: { version: metadataVersion },
-        })
-        .mockResolvedValueOnce({
-          data: withState(state),
-          metadata: { version: metadataVersion },
-        });
-
-      await expect(operation.execute(purpose)).rejects.toBe(error);
+      expect(readModelService.getPurposeById).toHaveBeenCalledOnce();
       expect(repository.createEvent).toHaveBeenCalledOnce();
     }
   );
@@ -373,47 +291,6 @@ describe.each(operations)("Risk analysis conflicts: $name", (operation) => {
       });
       expect(repository.createEvent).not.toHaveBeenCalled();
       expect(readModelService.getPurposeById).toHaveBeenCalledOnce();
-    });
-
-    it("diagnoses an advanced metadata revision without replacing the signing seed", async () => {
-      repository.createEvent.mockRejectedValue(eventConflictError());
-      readModelService.getPurposeById
-        .mockResolvedValueOnce({
-          data: purpose,
-          metadata: { version: metadataVersion },
-        })
-        .mockResolvedValueOnce({
-          data: purpose,
-          metadata: { version: metadataVersion + 1 },
-        });
-
-      await expect(operation.execute(purpose)).rejects.toMatchObject({
-        code: "purposeMetadataVersionMismatch",
-        detail: expect.stringContaining(
-          `requested metadata version ${metadataVersion}`
-        ),
-      });
-      expect(repository.createEvent).toHaveBeenCalledOnce();
-      expect(repository.createEvent).toHaveBeenCalledWith(
-        expect.objectContaining({ version: metadataVersion })
-      );
-    });
-  } else {
-    it("preserves the event conflict on a newer nonterminal revision", async () => {
-      const error = eventConflictError();
-      repository.createEvent.mockRejectedValue(error);
-      readModelService.getPurposeById
-        .mockResolvedValueOnce({
-          data: purpose,
-          metadata: { version: metadataVersion },
-        })
-        .mockResolvedValueOnce({
-          data: purpose,
-          metadata: { version: metadataVersion + 1 },
-        });
-
-      await expect(operation.execute(purpose)).rejects.toBe(error);
-      expect(repository.createEvent).toHaveBeenCalledOnce();
     });
   }
 });
