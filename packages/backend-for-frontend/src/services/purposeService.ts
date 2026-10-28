@@ -283,7 +283,8 @@ export function purposeServiceBuilder(
     const normalizedCurrentVersion =
       purpose.suspendedByConsumer &&
       currentVersion &&
-      currentVersion.dailyCalls === waitingForApprovalVersion?.dailyCalls
+      waitingForApprovalVersion &&
+      currentVersion.dailyCalls === waitingForApprovalVersion.dailyCalls
         ? undefined
         : currentVersion;
     const latestVersion = [...purpose.versions]
