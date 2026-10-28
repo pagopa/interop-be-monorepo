@@ -15,7 +15,7 @@ import { ProblemSchema, serviceName } from "pagopa-interop-models";
 
 import { config } from "./config/config.js";
 
-const pdmServiceName = serviceName.PERSONAL_DATA_MANAGER;
+const cdmServiceName = serviceName.CONTACT_DATA_MANAGER;
 const healthApi = makeApi([
   { method: "get", path: "/status", response: ProblemSchema },
 ]);
@@ -25,11 +25,11 @@ export async function createApp() {
   const app = zodiosCtx.app();
   app.disable("x-powered-by");
   app.use(healthRouter(healthApi));
-  app.use(contextMiddleware(pdmServiceName));
-  app.use(await applicationAuditBeginMiddleware(pdmServiceName, config));
-  app.use(await applicationAuditEndMiddleware(pdmServiceName, config));
+  app.use(contextMiddleware(cdmServiceName));
+  app.use(await applicationAuditBeginMiddleware(cdmServiceName, config));
+  app.use(await applicationAuditEndMiddleware(cdmServiceName, config));
   app.use(authenticationMiddleware(config));
-  app.use(loggerMiddleware(pdmServiceName));
+  app.use(loggerMiddleware(cdmServiceName));
   app.use(errorsToApiProblemsMiddleware);
   return app;
 }
