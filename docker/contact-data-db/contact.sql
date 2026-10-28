@@ -1,0 +1,7 @@
+CREATE SCHEMA IF NOT EXISTS contact_data;
+
+CREATE TABLE IF NOT EXISTS contact_data.contact (
+  id UUID PRIMARY KEY,
+  email VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL
+);

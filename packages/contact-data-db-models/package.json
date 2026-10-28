@@ -1,0 +1,31 @@
+{
+  "name": "pagopa-interop-contact-data-db-models",
+  "version": "1.0.0",
+  "license": "MPL-2.0",
+  "private": true,
+  "description": "PagoPA Interoperability contact data DB models",
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "dependencies": {
+    "drizzle-orm": "catalog:"
+  },
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@types/pg": "catalog:",
+    "drizzle-kit": "catalog:",
+    "eslint": "catalog:",
+    "pagopa-interop-eslint-config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}
