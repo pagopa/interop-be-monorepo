@@ -45,6 +45,7 @@ import {
   AgreementState,
   DelegationId,
   TenantRevoker,
+  tenantUnitType,
 } from "pagopa-interop-models";
 import { ExternalId } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
@@ -76,6 +77,12 @@ import {
   certifiedDiscreteAttributeAlreadyAssigned,
   tenantNotFoundByRemoteId,
   tenantUpdateVersionMismatch,
+  tenantIsNotAooOrUo,
+  tenantParentRootReferencesMustBeBothSetOrNull,
+  tenantCannotBeItsOwnParent,
+  tenantRootMustBeMainInstitution,
+  aooParentMustBeRootInstitution,
+  uoParentMustBeRootOrAoo,
 } from "../model/domain/errors.js";
 import { ApiGetTenantsFilters } from "../model/domain/models.js";
 import {
@@ -104,6 +111,7 @@ import {
   toCreateEventTenantRemoteIdAssigned,
   toCreateEventMaintenanceTenantRemoteIdDeleted,
   toCreateEventTenantCertifiedDiscreteAttributeAssigned,
+  toCreateEventTenantParentUpdated,
 } from "../model/domain/toEvent.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import {
@@ -2819,6 +2827,113 @@ export function tenantServiceBuilder(
         attributeId,
         { offset, limit }
       );
+    },
+    async internalUpdateTenantParent(
+      {
+        tenantOrigin,
+        tenantExternalId,
+        parentTenantId: parentTenantIdInput,
+        rootTenantId: rootTenantIdInput,
+      }: {
+        tenantOrigin: string;
+        tenantExternalId: string;
+        parentTenantId: string | null;
+        rootTenantId: string | null;
+      },
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<WithMetadata<Tenant>> {
+      const target = await retrieveTenantByExternalId({
+        tenantOrigin,
+        tenantExternalId,
+        readModelService,
+      });
+
+      const tenant = target.data;
+      if (!tenant.subUnitType) {
+        throw tenantIsNotAooOrUo(tenant.id);
+      }
+
+      const noParent = parentTenantIdInput === null;
+      const noRoot = rootTenantIdInput === null;
+      if (noParent !== noRoot) {
+        throw tenantParentRootReferencesMustBeBothSetOrNull(tenant.id);
+      }
+
+      const parentTenantId = parentTenantIdInput
+        ? unsafeBrandId<TenantId>(parentTenantIdInput)
+        : undefined;
+      const rootTenantId = rootTenantIdInput
+        ? unsafeBrandId<TenantId>(rootTenantIdInput)
+        : undefined;
+
+      if (parentTenantId && rootTenantId) {
+        if (parentTenantId === tenant.id) {
+          throw tenantCannotBeItsOwnParent(tenant.id);
+        }
+
+        const [parentResult, rootResult] = await Promise.all([
+          readModelService.getTenantById(parentTenantId),
+          readModelService.getTenantById(rootTenantId),
+        ]);
+        if (!parentResult) {
+          throw tenantNotFound(parentTenantId);
+        }
+        if (!rootResult) {
+          throw tenantNotFound(rootTenantId);
+        }
+
+        const parent = parentResult.data;
+        const root = rootResult.data;
+        if (root.subUnitType) {
+          throw tenantRootMustBeMainInstitution(tenant.id);
+        }
+
+        match(tenant.subUnitType)
+          .with(tenantUnitType.AOO, () => {
+            if (parent.subUnitType || parentTenantId !== rootTenantId) {
+              throw aooParentMustBeRootInstitution(tenant.id);
+            }
+          })
+          .with(tenantUnitType.UO, () => {
+            if (parent.subUnitType === tenantUnitType.AOO) {
+              return;
+            }
+
+            if (parent.subUnitType || parentTenantId !== rootTenantId) {
+              throw uoParentMustBeRootOrAoo(tenant.id);
+            }
+          })
+          .exhaustive();
+      }
+
+      if (
+        tenant.parentTenantId === parentTenantId &&
+        tenant.rootTenantId === rootTenantId
+      ) {
+        logger.info(
+          `Tenant ${tenant.id} parent/root references already aligned`
+        );
+        return target;
+      }
+
+      const updatedTenant: Tenant = {
+        ...tenant,
+        parentTenantId,
+        rootTenantId,
+        updatedAt: new Date(),
+      };
+      const event = await repository.createEvent(
+        toCreateEventTenantParentUpdated(
+          target.metadata.version,
+          updatedTenant,
+          correlationId
+        )
+      );
+
+      return {
+        data: updatedTenant,
+        metadata: { version: event.newVersion },
+      };
     },
   };
 }

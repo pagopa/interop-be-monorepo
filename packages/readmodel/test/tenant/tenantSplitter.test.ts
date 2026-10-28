@@ -17,6 +17,7 @@ import {
   ExternalId,
   generateId,
   Tenant,
+  TenantId,
   TenantFeatureCertifier,
   TenantFeatureDelegatedConsumer,
   TenantFeatureDelegatedProducer,
@@ -141,6 +142,8 @@ describe("Tenant splitters", () => {
           tenantFeatureDelegatedProducer,
         ],
         remoteIds: [tenantRemoteId],
+        parentTenantId: generateId<TenantId>(),
+        rootTenantId: generateId<TenantId>(),
       };
 
       const {
@@ -166,6 +169,8 @@ describe("Tenant splitters", () => {
         name: tenant.name,
         onboardedAt: tenant.onboardedAt!.toISOString(),
         subUnitType: tenantUnitType.AOO,
+        parentTenantId: tenant.parentTenantId!,
+        rootTenantId: tenant.rootTenantId!,
         externalIdOrigin: externalId.origin,
         externalIdValue: externalId.value,
         selfcareInstitutionType: tenant.selfcareInstitutionType || null,
@@ -407,6 +412,8 @@ describe("Tenant splitters", () => {
         name: tenant.name,
         onboardedAt: tenant.onboardedAt!.toISOString(),
         subUnitType: null,
+        parentTenantId: null,
+        rootTenantId: null,
         externalIdOrigin: externalId.origin,
         externalIdValue: externalId.value,
         selfcareInstitutionType: tenant.selfcareInstitutionType || null,

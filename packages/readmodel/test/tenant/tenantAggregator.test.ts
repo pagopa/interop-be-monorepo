@@ -16,6 +16,7 @@ import {
   ExternalId,
   generateId,
   Tenant,
+  TenantId,
   TenantFeatureCertifier,
   TenantFeatureDelegatedConsumer,
   TenantFeatureDelegatedProducer,
@@ -130,6 +131,8 @@ describe("Tenant aggregators", () => {
         TenantFeatureDelegatedProducer,
       ],
       remoteIds: [tenantRemoteId],
+      parentTenantId: generateId<TenantId>(),
+      rootTenantId: generateId<TenantId>(),
     };
 
     const {
