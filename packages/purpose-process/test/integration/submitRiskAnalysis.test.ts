@@ -136,6 +136,7 @@ describe("submitRiskAnalysis", () => {
       signingState: riskAnalysisSigningState.rejected,
       rejectedBy: generateId<UserId>(),
       rejectionReason: "some reason",
+      rejectedAt: new Date("2026-09-03T00:00:00.000Z"),
     };
 
     const mockPurpose: Purpose = {
@@ -162,6 +163,7 @@ describe("submitRiskAnalysis", () => {
         sentToReviewerAt: now,
       }))
     );
+    expect(updatedPurpose.reviewerWorkflow?.rejectedAt).toBeUndefined();
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 

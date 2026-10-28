@@ -365,7 +365,7 @@ export const activateDescriptorErrorMapper = (
       "eServiceDescriptorNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("notValidDescriptor", () => HTTP_STATUS_BAD_REQUEST)
+    .with("notValidDescriptor", () => HTTP_STATUS_CONFLICT)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -384,11 +384,7 @@ export const cloneEServiceByDescriptorErrorMapper = (
       () => HTTP_STATUS_CONFLICT
     )
     .with("templateInstanceNotAllowed", () => HTTP_STATUS_BAD_REQUEST)
-    .with(
-      "operationForbidden",
-      "eserviceWithActiveOrPendingDelegation",
-      () => HTTP_STATUS_FORBIDDEN
-    )
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const archiveDescriptorErrorMapper = (
@@ -1030,5 +1026,16 @@ export const cancelDelegatedEServiceArchivingErrorMapper = (
       "delegatedArchivingRequestNotActive",
       "delegatedArchiveRequestForIncorrectDelegateProducer",
       () => HTTP_STATUS_BAD_REQUEST
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const internalRestoreDraftDescriptorAfterDelegationRevokeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

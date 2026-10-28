@@ -1,12 +1,17 @@
 /* eslint-disable no-console */
 import axios, { AxiosInstance, toFormData } from "axios";
+import { retry } from "pagopa-interop-commons";
 
 import { config } from "../config/config.js";
 import {
   GetNoticeContentResponseData,
   OneTrustNoticeVersion,
 } from "../models/index.js";
-import { ONE_TRUST_API_ENDPOINT } from "../utils/consts.js";
+import {
+  ONE_TRUST_API_ENDPOINT,
+  ONE_TRUST_CONNECT_RETRIES,
+  ONE_TRUST_CONNECT_RETRY_DELAY_MS,
+} from "../utils/consts.js";
 
 export class OneTrustClient {
   private otAxiosInstance: AxiosInstance;
@@ -32,14 +37,17 @@ export class OneTrustClient {
       grant_type: "client_credentials",
     });
     try {
-      const response = await axios.post(
-        `${ONE_TRUST_API_ENDPOINT}/access/v1/oauth/token`,
-        form,
+      const response = await retry(
+        () =>
+          axios.post(`${ONE_TRUST_API_ENDPOINT}/access/v1/oauth/token`, form, {
+            headers: {
+              "Content-Type": "multipart/form-data",
+              accept: "application/json",
+            },
+          }),
         {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            accept: "application/json",
-          },
+          retries: ONE_TRUST_CONNECT_RETRIES,
+          delay: ONE_TRUST_CONNECT_RETRY_DELAY_MS,
         }
       );
       return new OneTrustClient(response.data.access_token);

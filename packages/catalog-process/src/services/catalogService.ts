@@ -26,6 +26,7 @@ import {
   isFeatureFlagEnabled,
   RiskAnalysisFormToValidate,
   MaintenanceAuthData,
+  explicitPropertiesChecker,
 } from "pagopa-interop-commons";
 import {
   agreementApprovalPolicy,
@@ -130,7 +131,11 @@ import {
   certifiedAttributeGroupNotFoundInSeed,
   noDelegationForArchivingRequest,
 } from "../model/domain/errors.js";
-import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
+import {
+  ApiGetEServicesFilters,
+  Consumer,
+  defaultEServiceSortBy,
+} from "../model/domain/models.js";
 import {
   toCreateEventClonedEServiceAdded,
   toCreateEventEServiceAdded,
@@ -197,6 +202,7 @@ import {
   toCreateEventEServiceDescriptorArchivingRequestApprovedByDelegator,
   toCreateEventEServiceArchivingRequestCanceledByDelegate,
   toCreateEventEServiceDescriptorArchivingRequestCanceledByDelegate,
+  toCreateEventEServiceDescriptorRestoredToDraftByRevokedDelegation,
 } from "../model/domain/toEvent.js";
 import {
   appendArchivingRequest,
@@ -1076,6 +1082,69 @@ export function catalogServiceBuilder(
         filters,
         offset,
         limit
+      );
+
+      const eservicesToReturn = await Promise.all(
+        eservicesList.results.map((eservice) =>
+          applyVisibilityToEService(eservice, authData, readModelService)
+        )
+      );
+
+      return {
+        results: eservicesToReturn,
+        totalCount: eservicesList.totalCount,
+      };
+    },
+
+    async queryEServices(
+      filters: catalogApi.EServicesFilterPayload,
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<ListResult<EService>> {
+      const sortBy = filters.sortBy ?? defaultEServiceSortBy;
+      const trimmedKeyword = filters.keyword?.trim();
+      const keyword = trimmedKeyword === "" ? undefined : trimmedKeyword;
+      const producersIds = (filters.producersIds ?? []).map<TenantId>(
+        unsafeBrandId
+      );
+      const availableForRequester = filters.availableForRequester;
+      const requesterDelegationRoles = filters.requesterDelegationRoles ?? [];
+      const producerCategories = filters.producerCategories ?? [];
+      logger.info(
+        `Querying EServices, limit = ${filters.limit}, offset = ${filters.offset}, sortBy = ${sortBy}, keyword = ${keyword}, producersIds = ${producersIds}, onlyActiveEservices = ${filters.onlyActiveEservices}, subscribedByRequester = ${filters.subscribedByRequester}, requesterDelegationRoles = ${requesterDelegationRoles}, onlyTemplateInstances = ${filters.onlyTemplateInstances}, templateId = ${filters.templateId}, hasLinkedPurposeTemplates = ${filters.hasLinkedPurposeTemplates}, producerCategories = ${producerCategories}, availableForRequester = ${availableForRequester}`
+      );
+      const certifiedDiscreteEnabled = isFeatureFlagEnabled(
+        config,
+        "featureFlagAttributeCertifiedDiscrete"
+      );
+
+      const eservicesList = await readModelService.queryEServices(
+        authData,
+        {
+          offset: filters.offset,
+          limit: filters.limit,
+          sortBy,
+          keyword,
+          producersIds,
+          onlyActiveEservices: filters.onlyActiveEservices,
+          subscribedByRequester: filters.subscribedByRequester,
+          requesterDelegationRoles,
+          onlyTemplateInstances: filters.onlyTemplateInstances,
+          templateId: filters.templateId
+            ? unsafeBrandId<EServiceTemplateId>(filters.templateId)
+            : undefined,
+          hasLinkedPurposeTemplates: filters.hasLinkedPurposeTemplates,
+          producerCategories,
+          availableForRequester,
+          mode: filters.mode
+            ? apiEServiceModeToEServiceMode(filters.mode)
+            : undefined,
+          onlySignalHubEnabled: filters.onlySignalHubEnabled,
+          asyncExchange: filters.asyncExchange,
+        },
+        certifiedDiscreteEnabled
       );
 
       const eservicesToReturn = await Promise.all(
@@ -2484,10 +2553,6 @@ export function catalogServiceBuilder(
       );
 
       assertRequesterIsProducer(eservice.data.producerId, authData);
-      await assertNoExistingProducerDelegationInActiveOrPendingState(
-        eservice.data.id,
-        readModelService
-      );
 
       const currentDate = new Date();
       const suffix = ` - clone - ${dateAtRomeZone(currentDate)} ${timeAtRomeZone(currentDate)}`;
@@ -2535,6 +2600,35 @@ export function catalogServiceBuilder(
         )
       );
 
+      const newDescriptor = explicitPropertiesChecker<Descriptor>({
+        id: generateId(),
+        version: "1",
+        interface: clonedInterfaceDocument,
+        asyncExchangeCallbackInterface:
+          clonedAsyncExchangeCallbackInterfaceDocument,
+        docs: clonedDocuments,
+        state: descriptorState.draft,
+        createdAt: new Date(),
+        publishedAt: undefined,
+        suspendedAt: undefined,
+        deprecatedAt: undefined,
+        archivedAt: undefined,
+        archivingSchedule: undefined,
+        attributes: descriptor.attributes,
+        dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+        audience: descriptor.audience,
+        voucherLifespan: descriptor.voucherLifespan,
+        dailyCallsTotal: descriptor.dailyCallsTotal,
+        serverUrls: descriptor.serverUrls,
+        description: descriptor.description,
+        serverUrlsDescriptions: descriptor.serverUrlsDescriptions,
+        agreementApprovalPolicy: descriptor.agreementApprovalPolicy,
+        asyncExchangeProperties: descriptor.asyncExchangeProperties,
+        rejectionReasons: undefined,
+        templateVersionRef: descriptor.templateVersionRef,
+        delegatedArchivingRequest: undefined,
+      });
+
       const clonedEservice: EService = {
         id: generateId(),
         producerId: eservice.data.producerId,
@@ -2544,26 +2638,7 @@ export function catalogServiceBuilder(
         createdAt: new Date(),
         riskAnalysis: eservice.data.riskAnalysis,
         mode: eservice.data.mode,
-        descriptors: [
-          {
-            ...descriptor,
-            id: generateId(),
-            version: "1",
-            interface: clonedInterfaceDocument,
-            asyncExchangeCallbackInterface:
-              clonedAsyncExchangeCallbackInterfaceDocument,
-            docs: clonedDocuments,
-            state: descriptorState.draft,
-            createdAt: new Date(),
-            publishedAt: undefined,
-            suspendedAt: undefined,
-            deprecatedAt: undefined,
-            archivedAt: undefined,
-            archivingSchedule: undefined,
-            rejectionReasons: undefined,
-            delegatedArchivingRequest: undefined,
-          },
-        ],
+        descriptors: [newDescriptor],
         personalData: eservice.data.personalData,
         asyncExchange: eservice.data.asyncExchange,
         delegatedArchivingRequest: undefined,
@@ -2622,6 +2697,45 @@ export function catalogServiceBuilder(
             );
 
       await repository.createEvent(event);
+    },
+    async internalRestoreDraftDescriptorAfterDelegationRevoke(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<void> {
+      logger.info(
+        `Internal restoring delegated waitingForApproval descriptor ${descriptorId} for EService ${eserviceId} to draft state`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      if (descriptor.state !== descriptorState.waitingForApproval) {
+        logger.info(
+          `Skipping delegated descriptor draft restore for EService ${eserviceId}, descriptor ${descriptorId}: state is ${descriptor.state}, expected ${descriptorState.waitingForApproval}`
+        );
+        return;
+      }
+
+      const updatedDescriptor = updateDescriptorState(
+        descriptor,
+        descriptorState.draft
+      );
+
+      const updatedEService = replaceDescriptor(
+        eservice.data,
+        updatedDescriptor
+      );
+
+      const delegatedDescriptorRevokedEvent =
+        toCreateEventEServiceDescriptorRestoredToDraftByRevokedDelegation(
+          eservice.metadata.version,
+          descriptorId,
+          updatedEService,
+          correlationId
+        );
+
+      await repository.createEvent(delegatedDescriptorRevokedEvent);
     },
     async internalDeleteDelegatedArchivingRequest(
       eserviceId: EServiceId,

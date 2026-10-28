@@ -87,13 +87,18 @@ describe("API POST /userNotificationConfigs test", () => {
       error: notificationConfigNotAllowedForUserRoles(userId, tenantId),
       expectedStatus: 403,
     },
+    {
+      error: notificationConfigNotAllowedForUserRoles(userId, tenantId),
+      expectedStatus: 403,
+      role: authRole.REVIEWER_ROLE,
+    },
   ])(
-    "Should return $expectedStatus for $error.code",
-    async ({ error, expectedStatus }) => {
+    "Should return $expectedStatus for $error.code with role $role",
+    async ({ error, expectedStatus, role = authRole.ADMIN_ROLE }) => {
       notificationConfigService.updateUserNotificationConfig = vi
         .fn()
         .mockRejectedValue(error);
-      const token = generateToken(authRole.ADMIN_ROLE);
+      const token = generateToken(role);
       const res = await makeRequest(token);
       expect(res.status).toBe(expectedStatus);
       expect(
