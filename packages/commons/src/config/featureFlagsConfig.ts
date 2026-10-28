@@ -233,6 +233,21 @@ export type FeatureFlagNewOperatorsConfig = z.infer<
   typeof FeatureFlagNewOperatorsConfig
 >;
 
+export const FeatureFlagAooUoAttributesConfig = z
+  .object({
+    FEATURE_FLAG_AOO_UO_ATTRIBUTES: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagAooUoAttributes: c.FEATURE_FLAG_AOO_UO_ATTRIBUTES ?? false,
+  }));
+export type FeatureFlagAooUoAttributesConfig = z.infer<
+  typeof FeatureFlagAooUoAttributesConfig
+>;
+
 type FeatureFlags = FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagApplicationAuditStrictConfig &
   FeatureFlagImprovedProducerVerificationClaimsConfig &
@@ -246,7 +261,8 @@ type FeatureFlags = FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagDelegationConstraintSkipConfig &
   FeatureFlagAttributeCertifiedDiscreteConfig &
   FeatureFlagTenantKindInRiskAnalysisConfig &
-  FeatureFlagNewOperatorsConfig;
+  FeatureFlagNewOperatorsConfig &
+  FeatureFlagAooUoAttributesConfig;
 
 export type FeatureFlagKeys = keyof FeatureFlags & `featureFlag${string}`;
 
