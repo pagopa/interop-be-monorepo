@@ -16611,9 +16611,6 @@ components:
         waitingForApprovalNewPurposes:
           type: integer
           format: int32
-        dailyCallsPerConsumer:
-          type: integer
-          format: int64
         waitingForApprovalQuotaChanges:
           type: integer
           format: int32
