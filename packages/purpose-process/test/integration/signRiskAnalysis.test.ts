@@ -28,7 +28,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   missingRiskAnalysis,
-  purposeMetadataVersionMismatch,
+  purposeMetadataVersionChanged,
   purposeNotFound,
   requesterIsNotDesignatedReviewer,
   reviewerWorkflowNotFound,
@@ -307,9 +307,7 @@ describe("signRiskAnalysis", () => {
           authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
         })
       )
-    ).rejects.toThrowError(
-      purposeMetadataVersionMismatch(mockPurpose.id, 1, 0)
-    );
+    ).rejects.toThrowError(purposeMetadataVersionChanged(mockPurpose.id, 1, 0));
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
     expect(writtenEvent).toMatchObject({

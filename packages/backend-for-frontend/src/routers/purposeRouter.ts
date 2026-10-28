@@ -23,7 +23,6 @@ import {
   getPurposesErrorMapper,
   reversePurposeUpdateErrorMapper,
   getPurposeErrorMapper,
-  riskAnalysisConflictErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const purposeRouter = (
@@ -350,7 +349,7 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          riskAnalysisConflictErrorMapper,
+          emptyErrorMapper,
           ctx,
           `Error signing risk analysis for purpose ${req.params.purposeId}`
         );
@@ -371,7 +370,7 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          riskAnalysisConflictErrorMapper,
+          emptyErrorMapper,
           ctx,
           `Error rejecting risk analysis for purpose ${req.params.purposeId}`
         );
@@ -392,7 +391,7 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          riskAnalysisConflictErrorMapper,
+          emptyErrorMapper,
           ctx,
           `Error editing risk analysis form for purpose ${req.params.purposeId}`
         );

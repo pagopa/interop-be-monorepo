@@ -29,6 +29,7 @@ import {
   validateNoHyperlinksSafe,
 } from "pagopa-interop-commons";
 import {
+  ApiError,
   Agreement,
   CorrelationId,
   Delegation,
@@ -110,8 +111,10 @@ import {
   reviewerWorkflowConflict,
   missingReviewers,
   reviewersNotAllowedForReviewMode,
-  purposeMetadataVersionMismatch,
+  purposeMetadataVersionChanged,
   riskAnalysisReviewModeNotFound,
+  riskAnalysisAlreadyApproved,
+  riskAnalysisAlreadyRejected,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -195,6 +198,19 @@ const retrievePurpose = async (
     throw purposeNotFound(purposeId);
   }
   return purpose;
+};
+
+const assertRiskAnalysisNotFinalized = (purpose: Purpose): void => {
+  if (
+    purpose.reviewerWorkflow?.signingState === riskAnalysisSigningState.signed
+  ) {
+    throw riskAnalysisAlreadyApproved(purpose.id);
+  }
+  if (
+    purpose.reviewerWorkflow?.signingState === riskAnalysisSigningState.rejected
+  ) {
+    throw riskAnalysisAlreadyRejected(purpose.id);
+  }
 };
 
 const retrievePurposeVersion = (
@@ -357,6 +373,38 @@ export function purposeServiceBuilder(
   selfcareV2InstitutionClient: SelfcareV2InstitutionClient
 ) {
   const repository = eventRepository(dbInstance, purposeEventToBinaryData);
+
+  const diagnoseRiskAnalysisEventConflict = async (
+    error: unknown,
+    purpose: WithMetadata<Purpose>,
+    metadataVersionToSign?: number
+  ): Promise<never> => {
+    if (error instanceof ApiError && error.code === "eventConflictError") {
+      const latestPurpose = await readModelService
+        .getPurposeById(purpose.data.id)
+        .catch(() => undefined);
+
+      if (
+        latestPurpose &&
+        latestPurpose.metadata.version > purpose.metadata.version
+      ) {
+        assertRiskAnalysisNotFinalized(latestPurpose.data);
+
+        if (
+          metadataVersionToSign !== undefined &&
+          latestPurpose.metadata.version > metadataVersionToSign
+        ) {
+          throw purposeMetadataVersionChanged(
+            purpose.data.id,
+            metadataVersionToSign,
+            latestPurpose.metadata.version
+          );
+        }
+      }
+    }
+
+    throw error;
+  };
 
   return {
     async getPurposeById(
@@ -769,8 +817,10 @@ export function purposeServiceBuilder(
 
       assertRequesterIsConsumer(purpose.data, authData);
 
+      assertRiskAnalysisNotFinalized(purpose.data);
+
       if (metadataVersionToSign !== purpose.metadata.version) {
-        throw purposeMetadataVersionMismatch(
+        throw purposeMetadataVersionChanged(
           purposeId,
           metadataVersionToSign,
           purpose.metadata.version
@@ -848,13 +898,21 @@ export function purposeServiceBuilder(
         updatedAt: now,
       };
 
-      const event = await repository.createEvent(
-        toCreateEventPurposeRiskAnalysisSigned({
-          purpose: updatedPurpose,
-          version: purpose.metadata.version,
-          correlationId,
-        })
-      );
+      const event = await repository
+        .createEvent(
+          toCreateEventPurposeRiskAnalysisSigned({
+            purpose: updatedPurpose,
+            version: purpose.metadata.version,
+            correlationId,
+          })
+        )
+        .catch((error: unknown) =>
+          diagnoseRiskAnalysisEventConflict(
+            error,
+            purpose,
+            metadataVersionToSign
+          )
+        );
 
       return {
         data: updatedPurpose,
@@ -875,6 +933,8 @@ export function purposeServiceBuilder(
       const purpose = await retrievePurpose(purposeId, readModelService);
 
       assertRequesterIsConsumer(purpose.data, authData);
+
+      assertRiskAnalysisNotFinalized(purpose.data);
 
       const workflow = purpose.data.reviewerWorkflow;
 
@@ -912,13 +972,17 @@ export function purposeServiceBuilder(
         updatedAt: currentDate,
       };
 
-      const event = await repository.createEvent(
-        toCreateEventPurposeRiskAnalysisRejected({
-          purpose: updatedPurpose,
-          version: purpose.metadata.version,
-          correlationId,
-        })
-      );
+      const event = await repository
+        .createEvent(
+          toCreateEventPurposeRiskAnalysisRejected({
+            purpose: updatedPurpose,
+            version: purpose.metadata.version,
+            correlationId,
+          })
+        )
+        .catch((error: unknown) =>
+          diagnoseRiskAnalysisEventConflict(error, purpose)
+        );
 
       return {
         data: updatedPurpose,
@@ -939,6 +1003,8 @@ export function purposeServiceBuilder(
       const purpose = await retrievePurpose(purposeId, readModelService);
 
       assertRequesterIsConsumer(purpose.data, authData);
+
+      assertRiskAnalysisNotFinalized(purpose.data);
 
       const workflow = purpose.data.reviewerWorkflow;
 
@@ -991,13 +1057,17 @@ export function purposeServiceBuilder(
         updatedAt: new Date(),
       };
 
-      const event = await repository.createEvent(
-        toCreateEventPurposeRiskAnalysisFormEdited({
-          purpose: updatedPurpose,
-          version: purpose.metadata.version,
-          correlationId,
-        })
-      );
+      const event = await repository
+        .createEvent(
+          toCreateEventPurposeRiskAnalysisFormEdited({
+            purpose: updatedPurpose,
+            version: purpose.metadata.version,
+            correlationId,
+          })
+        )
+        .catch((error: unknown) =>
+          diagnoseRiskAnalysisEventConflict(error, purpose)
+        );
 
       return {
         data: updatedPurpose,

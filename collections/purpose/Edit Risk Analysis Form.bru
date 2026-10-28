@@ -1,0 +1,36 @@
+meta {
+  name: Edit Risk Analysis Form
+  type: http
+  seq: 17
+}
+
+put {
+  url: {{host-purpose}}/purposes/:purposeId/riskAnalysis/form
+  body: json
+  auth: none
+}
+
+params:path {
+  purposeId: {{purposeId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "version": "3.1",
+    "answers": {
+      "purpose": ["INSTITUTIONAL"],
+      "institutionalPurpose": ["MyPurpose"]
+    }
+  }
+}
+
+docs {
+  Save a reviewer draft in ReviewerWritesReviewerSigns mode.
+  HTTP 409 codes: 004-0066 already approved, 004-0067 already rejected.
+  Other conflicts retain their original codes. The mutation is never retried.
+}

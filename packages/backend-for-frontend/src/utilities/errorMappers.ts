@@ -72,18 +72,6 @@ export const getPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const riskAnalysisConflictErrorMapper = (
-  error: ApiError<ErrorCodes>
-): number =>
-  match(error.code)
-    .with(
-      "riskAnalysisAlreadyApproved",
-      "riskAnalysisAlreadyRejected",
-      "purposeMetadataVersionChanged",
-      () => HTTP_STATUS_CONFLICT
-    )
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
 export const getSelfcareErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("selfcareEntityNotFilled", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)

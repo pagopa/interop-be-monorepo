@@ -1,11 +1,8 @@
 import {
   ApiError,
   AttributeId,
-  commonErrorCodes,
   makeApiProblemBuilder,
   parseErrorMessage,
-  serviceErrorCode,
-  serviceName,
 } from "pagopa-interop-models";
 
 const errorCodes = {
@@ -60,9 +57,6 @@ const errorCodes = {
   noVersionInEServiceTemplate: "0049",
   delegationContractNotFound: "0050",
   clientNotFound: "0051",
-  riskAnalysisAlreadyApproved: "0052",
-  riskAnalysisAlreadyRejected: "0053",
-  purposeMetadataVersionChanged: "0054",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -71,16 +65,6 @@ export const makeApiProblem = makeApiProblemBuilder(errorCodes, {
   problemErrorsPassthrough: true,
   forceGenericProblemOn500: true,
 });
-
-const purposeProcessErrorCode = serviceErrorCode[serviceName.PURPOSE_PROCESS];
-
-export const purposeProcessErrorCodes = {
-  reviewerWorkflowNotInSignableState: `${purposeProcessErrorCode}-0049`,
-  reviewerWorkflowNotInSubmittedState: `${purposeProcessErrorCode}-0052`,
-  reviewerWorkflowNotEditable: `${purposeProcessErrorCode}-0054`,
-  purposeMetadataVersionMismatch: `${purposeProcessErrorCode}-0064`,
-  eventConflictError: `${purposeProcessErrorCode}-${commonErrorCodes.eventConflictError}`,
-};
 
 export function selfcareEntityNotFilled(
   className: string,
@@ -109,36 +93,6 @@ export function purposeNotFound(purposeId: string): ApiError<ErrorCodes> {
     detail: `Purpose ${purposeId} not found`,
     code: "purposeNotFound",
     title: "Purpose not found",
-  });
-}
-
-export function riskAnalysisAlreadyApproved(
-  purposeId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    code: "riskAnalysisAlreadyApproved",
-    title: "Risk analysis already approved",
-    detail: `The risk analysis for purpose ${purposeId} has already been approved`,
-  });
-}
-
-export function riskAnalysisAlreadyRejected(
-  purposeId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    code: "riskAnalysisAlreadyRejected",
-    title: "Risk analysis already rejected",
-    detail: `The risk analysis for purpose ${purposeId} has already been rejected`,
-  });
-}
-
-export function purposeMetadataVersionChanged(
-  purposeId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    code: "purposeMetadataVersionChanged",
-    title: "Purpose metadata version changed",
-    detail: `The purpose ${purposeId} has changed since the risk analysis was reviewed`,
   });
 }
 

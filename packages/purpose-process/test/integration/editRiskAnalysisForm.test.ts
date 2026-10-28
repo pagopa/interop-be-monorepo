@@ -34,6 +34,8 @@ import {
   reviewerWorkflowNotEditable,
   reviewerWorkflowNotFound,
   riskAnalysisValidationFailed,
+  riskAnalysisAlreadyApproved,
+  riskAnalysisAlreadyRejected,
   tenantIsNotTheConsumer,
 } from "../../src/model/domain/errors.js";
 import {
@@ -182,11 +184,21 @@ describe("editRiskAnalysisForm", () => {
   });
 
   it.each([
-    riskAnalysisSigningState.submitted,
-    riskAnalysisSigningState.signed,
+    {
+      signingState: riskAnalysisSigningState.submitted,
+      expectedError: reviewerWorkflowNotEditable,
+    },
+    {
+      signingState: riskAnalysisSigningState.signed,
+      expectedError: riskAnalysisAlreadyApproved,
+    },
+    {
+      signingState: riskAnalysisSigningState.rejected,
+      expectedError: riskAnalysisAlreadyRejected,
+    },
   ])(
-    "should throw reviewerWorkflowNotEditable if the workflow is not in Assigned state (%s)",
-    async (signingState) => {
+    "should report the corresponding conflict when the workflow is $signingState",
+    async ({ signingState, expectedError }) => {
       const reviewerId: UserId = generateId();
       const mockPurpose: Purpose = {
         ...getMockPurpose([getMockPurposeVersion()]),
@@ -217,7 +229,7 @@ describe("editRiskAnalysisForm", () => {
             authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
           })
         )
-      ).rejects.toThrowError(reviewerWorkflowNotEditable(mockPurpose.id));
+      ).rejects.toThrowError(expectedError(mockPurpose.id));
     }
   );
 

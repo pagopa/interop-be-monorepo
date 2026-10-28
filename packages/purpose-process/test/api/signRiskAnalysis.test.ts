@@ -17,7 +17,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { purposeToApiPurpose } from "../../src/model/domain/apiConverter.js";
 import {
   missingRiskAnalysis,
-  purposeMetadataVersionMismatch,
+  purposeMetadataVersionChanged,
+  riskAnalysisAlreadyApproved,
+  riskAnalysisAlreadyRejected,
   purposeNotFound,
   riskAnalysisValidationFailed,
   reviewerWorkflowNotFound,
@@ -92,8 +94,19 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/sign test", () => {
       expectedStatus: 409,
     },
     {
-      error: purposeMetadataVersionMismatch(mockPurpose.id, 0, 1),
+      error: purposeMetadataVersionChanged(mockPurpose.id, 0, 1),
       expectedStatus: 409,
+      expectedCode: "004-0064",
+    },
+    {
+      error: riskAnalysisAlreadyApproved(mockPurpose.id),
+      expectedStatus: 409,
+      expectedCode: "004-0066",
+    },
+    {
+      error: riskAnalysisAlreadyRejected(mockPurpose.id),
+      expectedStatus: 409,
+      expectedCode: "004-0067",
     },
     {
       error: requesterIsNotDesignatedReviewer(mockPurpose.id),
@@ -111,11 +124,16 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/sign test", () => {
     },
   ])(
     "Should return $expectedStatus for $error.code",
-    async ({ error, expectedStatus }) => {
+    async ({ error, expectedStatus, expectedCode }) => {
       purposeService.signRiskAnalysis = vi.fn().mockRejectedValue(error);
       const token = generateToken(authRole.REVIEWER_ROLE);
       const res = await makeRequest(token);
       expect(res.status).toBe(expectedStatus);
+      if (expectedCode) {
+        expect(res.body.errors).toEqual([
+          expect.objectContaining({ code: expectedCode }),
+        ]);
+      }
     }
   );
 

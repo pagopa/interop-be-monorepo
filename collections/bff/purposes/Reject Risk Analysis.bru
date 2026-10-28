@@ -28,7 +28,7 @@ docs {
   Reject a submitted risk analysis as an assigned reviewer in
   AdminWritesReviewerSigns mode.
 
-  HTTP 409 codes: 008-0052 already approved, 008-0053 already rejected.
+  HTTP 409 codes: 004-0066 already approved, 004-0067 already rejected.
   Other conflicts retain their original process codes. The mutation is not retried.
 
   Example HTTP 409 (already rejected):
@@ -38,6 +38,6 @@ docs {
     "title": "Risk analysis already rejected",
     "detail": "The risk analysis for purpose <purposeId> has already been rejected",
     "correlationId": "<correlationId>",
-    "errors": [{ "code": "008-0053", "detail": "The risk analysis for purpose <purposeId> has already been rejected" }]
+    "errors": [{ "code": "004-0067", "detail": "The risk analysis for purpose <purposeId> has already been rejected" }]
   }
 }

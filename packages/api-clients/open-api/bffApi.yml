@@ -13812,8 +13812,8 @@ components:
           $ref: "#/components/headers/RateLimitIntervalHeader"
     RiskAnalysisReviewConflict:
       description: >-
-        Conflict. Error 008-0052 means that the risk analysis has already been
-        approved; 008-0053 means that it has already been rejected. Either state
+        Conflict. Error 004-0066 means that the risk analysis has already been
+        approved; 004-0067 means that it has already been rejected. Either state
         blocks this reviewer operation. Other conflicts retain their original
         process error codes.
       content:
@@ -13834,12 +13834,13 @@ components:
           $ref: "#/components/headers/RateLimitIntervalHeader"
     RiskAnalysisSigningConflict:
       description: >-
-        Conflict. Error 008-0052 means that the risk analysis has already been
-        approved; 008-0053 means that it has already been rejected; 008-0054 means
+        Conflict. Error 004-0066 means that the risk analysis has already been
+        approved; 004-0067 means that it has already been rejected; 004-0064 means
         that the purpose changed after the version reviewed for signing.
         Approved/rejected states take precedence over a version mismatch when
         verifiable. A changed version requires a new review before signing.
-        The BFF never replaces metadataVersionToSign or retries the mutation.
+        The process never replaces metadataVersionToSign or retries the mutation.
+        The BFF forwards process errors without diagnostic reads.
         Other conflicts retain their original process error codes.
       content:
         application/problem+json:
@@ -13882,7 +13883,7 @@ components:
         detail: The risk analysis for purpose 1d1a0213-b708-4ea0-a567-33dfe1eea2c8 has already been approved
         correlationId: 6c84273b-285a-4b1f-8af2-4858a7e7d07a
         errors:
-          - code: 008-0052
+          - code: 004-0066
             detail: The risk analysis for purpose 1d1a0213-b708-4ea0-a567-33dfe1eea2c8 has already been approved
     RiskAnalysisAlreadyRejected:
       summary: The risk analysis was rejected by another request
@@ -13893,7 +13894,7 @@ components:
         detail: The risk analysis for purpose 1d1a0213-b708-4ea0-a567-33dfe1eea2c8 has already been rejected
         correlationId: 6c84273b-285a-4b1f-8af2-4858a7e7d07a
         errors:
-          - code: 008-0053
+          - code: 004-0067
             detail: The risk analysis for purpose 1d1a0213-b708-4ea0-a567-33dfe1eea2c8 has already been rejected
     PurposeMetadataVersionChanged:
       summary: The version reviewed for signing is no longer current
@@ -13901,11 +13902,11 @@ components:
         type: about:blank
         status: 409
         title: Purpose metadata version changed
-        detail: The purpose 1d1a0213-b708-4ea0-a567-33dfe1eea2c8 has changed since the risk analysis was reviewed
+        detail: "Cannot sign risk analysis for purpose 1d1a0213-b708-4ea0-a567-33dfe1eea2c8: requested metadata version 1 does not match current metadata version 2"
         correlationId: 6c84273b-285a-4b1f-8af2-4858a7e7d07a
         errors:
-          - code: 008-0054
-            detail: The purpose 1d1a0213-b708-4ea0-a567-33dfe1eea2c8 has changed since the risk analysis was reviewed
+          - code: 004-0064
+            detail: "Cannot sign risk analysis for purpose 1d1a0213-b708-4ea0-a567-33dfe1eea2c8: requested metadata version 1 does not match current metadata version 2"
   schemas:
     RejectPurposeVersionPayload:
       type: object

@@ -30,7 +30,7 @@ body:json {
 
 docs {
   Save a draft form as a reviewer in REVIEWER_WRITES_REVIEWER_SIGNS mode.
-  HTTP 409 codes: 008-0052 already approved, 008-0053 already rejected.
+  HTTP 409 codes: 004-0066 already approved, 004-0067 already rejected.
   Other conflicts (including incompatible review modes) retain their original
   process codes. The mutation is not retried.
 
@@ -41,6 +41,6 @@ docs {
     "title": "Risk analysis already approved",
     "detail": "The risk analysis for purpose <purposeId> has already been approved",
     "correlationId": "<correlationId>",
-    "errors": [{ "code": "008-0052", "detail": "The risk analysis for purpose <purposeId> has already been approved" }]
+    "errors": [{ "code": "004-0066", "detail": "The risk analysis for purpose <purposeId> has already been approved" }]
   }
 }

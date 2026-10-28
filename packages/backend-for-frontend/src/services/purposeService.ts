@@ -45,10 +45,6 @@ import {
   eserviceDescriptorNotFound,
   eServiceNotFound,
   purposeNotFound,
-  purposeProcessErrorCodes,
-  riskAnalysisAlreadyApproved,
-  riskAnalysisAlreadyRejected,
-  purposeMetadataVersionChanged,
   tenantNotFound,
 } from "../model/errors.js";
 import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
@@ -57,10 +53,7 @@ import { filterUnreadNotifications } from "../utilities/filterUnreadNotification
 import { getLatestAgreement } from "./agreementService.js";
 import { getAllClients } from "./clientService.js";
 import { getSelfcareCompactUserById } from "./selfcareService.js";
-import {
-  getRiskAnalysisConflictCodes,
-  isAgreementUpgradable,
-} from "./validators.js";
+import { isAgreementUpgradable } from "./validators.js";
 
 const enrichPurposeDelegation = async (
   delegationId: string,
@@ -227,57 +220,6 @@ export function purposeServiceBuilder(
   }: PagoPAInteropBeClients,
   fileManager: FileManager
 ) {
-  const handleRiskAnalysisConflict = async (
-    error: unknown,
-    purposeId: PurposeId,
-    { headers, logger }: WithLogger<BffAppContext>,
-    {
-      allowedCodes,
-      signingSeed,
-    }: {
-      allowedCodes: readonly string[];
-      signingSeed?: purposeApi.RiskAnalysisSignSeed;
-    }
-  ): Promise<never> => {
-    const conflictCodes = getRiskAnalysisConflictCodes(error, allowedCodes);
-    if (conflictCodes.length === 0) {
-      throw error;
-    }
-
-    // Diagnose directly from the process: enrichment can fail on unrelated
-    // resources. Never retry the mutation or replace its signing seed.
-    const purpose = await purposeProcessClientWithMetadata
-      .getPurpose({ params: { id: purposeId }, headers })
-      .catch(() => {
-        logger.warn(
-          `Cannot diagnose risk analysis conflict for purpose ${purposeId}`
-        );
-        return undefined;
-      });
-
-    if (purpose) {
-      if (purpose.data.reviewerWorkflow?.signingState === "SIGNED") {
-        throw riskAnalysisAlreadyApproved(purposeId);
-      }
-      if (purpose.data.reviewerWorkflow?.signingState === "REJECTED") {
-        throw riskAnalysisAlreadyRejected(purposeId);
-      }
-      if (
-        signingSeed &&
-        purpose.metadata &&
-        purpose.metadata.version > signingSeed.metadataVersionToSign
-      ) {
-        throw purposeMetadataVersionChanged(purposeId);
-      }
-    }
-
-    // A failed or lagging diagnostic read cannot prove a different cause.
-    throw conflictCodes.includes(
-      purposeProcessErrorCodes.purposeMetadataVersionMismatch
-    )
-      ? purposeMetadataVersionChanged(purposeId)
-      : error;
-  };
   // eslint-disable-next-line complexity
   const enhancePurpose = async (
     authData: UIAuthData,
@@ -633,60 +575,37 @@ export function purposeServiceBuilder(
     async signRiskAnalysis(
       purposeId: PurposeId,
       seed: bffApi.RiskAnalysisSignSeed,
-      ctx: WithLogger<BffAppContext>
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
-      const { logger, headers } = ctx;
       logger.info(`Signing risk analysis for purpose ${purposeId}`);
-      await purposeProcessClient
-        .signRiskAnalysis(seed, { params: { purposeId }, headers })
-        .catch((error) =>
-          handleRiskAnalysisConflict(error, purposeId, ctx, {
-            allowedCodes: [
-              purposeProcessErrorCodes.reviewerWorkflowNotInSignableState,
-              purposeProcessErrorCodes.purposeMetadataVersionMismatch,
-              purposeProcessErrorCodes.eventConflictError,
-            ],
-            signingSeed: seed,
-          })
-        );
+      await purposeProcessClient.signRiskAnalysis(seed, {
+        params: { purposeId },
+        headers,
+      });
     },
     async rejectRiskAnalysis(
       purposeId: PurposeId,
       seed: bffApi.RiskAnalysisRejectionSeed,
-      ctx: WithLogger<BffAppContext>
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
-      const { logger, headers } = ctx;
       logger.info(`Rejecting risk analysis for purpose ${purposeId}`);
-      await purposeProcessClient
-        .rejectRiskAnalysis(seed, { params: { purposeId }, headers })
-        .catch((error) =>
-          handleRiskAnalysisConflict(error, purposeId, ctx, {
-            allowedCodes: [
-              purposeProcessErrorCodes.reviewerWorkflowNotInSubmittedState,
-              purposeProcessErrorCodes.eventConflictError,
-            ],
-          })
-        );
+      await purposeProcessClient.rejectRiskAnalysis(seed, {
+        params: { purposeId },
+        headers,
+      });
     },
     async editRiskAnalysisForm(
       purposeId: PurposeId,
       seed: bffApi.RiskAnalysisFormSeed,
-      ctx: WithLogger<BffAppContext>
+      { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
-      const { logger, headers } = ctx;
       logger.info(
         `Editing risk analysis form for purpose ${purposeId} by reviewer`
       );
-      await purposeProcessClient
-        .editRiskAnalysisForm(seed, { params: { purposeId }, headers })
-        .catch((error) =>
-          handleRiskAnalysisConflict(error, purposeId, ctx, {
-            allowedCodes: [
-              purposeProcessErrorCodes.reviewerWorkflowNotEditable,
-              purposeProcessErrorCodes.eventConflictError,
-            ],
-          })
-        );
+      await purposeProcessClient.editRiskAnalysisForm(seed, {
+        params: { purposeId },
+        headers,
+      });
     },
     async createPurposeForReceiveEservice(
       createSeed: bffApi.PurposeEServiceSeed,
