@@ -28,6 +28,7 @@ async function setup(
 ) {
   const commands: Array<Record<string, unknown>> = [];
   const events: string[] = [];
+  let failingCommand = failCommand;
   let available = true;
   let running = false;
   let mode = "local";
@@ -46,7 +47,7 @@ async function setup(
       commands.push(command);
       events.push(`frontend:${command.type}`);
       await beforeCommand?.(command.type);
-      if (command.type === failCommand)
+      if (command.type === failingCommand)
         return Response.json({ error: "Check failed" }, { status: 409 });
       if (command.type === "start") {
         running = true;
@@ -143,6 +144,9 @@ async function setup(
     disconnect: () => {
       available = false;
     },
+    clearFailure: () => {
+      failingCommand = undefined;
+    },
   };
 }
 
@@ -194,37 +198,67 @@ describe("backend-owned fullstack lifecycle", () => {
     expect(status.frontend).not.toHaveProperty("identity");
   });
 
-  it("skips remaining phases on failure, stops Vite and supports retry without reinstalling an active frontend", async () => {
-    const { frontend, commands } = await setup("smoke");
-    frontend.action({ type: "start" });
-    await frontend.idle();
-    expect(await frontend.status()).toMatchObject({
-      state: "failed",
-      error: "Check failed",
-      phases: expect.arrayContaining([
-        expect.objectContaining({ id: "smoke", state: "failed" }),
-        expect.objectContaining({ id: "browser", state: "skipped" }),
-      ]),
-    });
-    expect(commands.map((command) => command.type)).toEqual([
-      "install",
-      "start",
-      "smoke",
-      "stop",
-    ]);
-    frontend.action({ type: "use-dev" });
-    await frontend.idle();
-    expect(await frontend.status()).toMatchObject({
-      state: "passed",
-      mode: "dev",
-      running: true,
-    });
-    frontend.action({ type: "start" });
-    await frontend.idle();
-    expect(
-      commands.filter((command) => command.type === "install")
-    ).toHaveLength(1);
-  });
+  it.each(["smoke", "browser"])(
+    "keeps Vite and backend running after a %s failure and retries all checks without reinstalling",
+    async (check) => {
+      const { frontend, commands, supervisor, clearFailure } =
+        await setup(check);
+      frontend.action({ type: "start" });
+      await frontend.idle();
+      expect(await frontend.status()).toMatchObject({
+        state: "failed",
+        running: true,
+        error: "Check failed",
+        phases: expect.arrayContaining([
+          expect.objectContaining({ id: "vite", state: "passed" }),
+          expect.objectContaining({
+            id: check,
+            state: "failed",
+            error: "Check failed",
+          }),
+          ...(check === "smoke"
+            ? [expect.objectContaining({ id: "browser", state: "skipped" })]
+            : []),
+        ]),
+      });
+      expect(commands.map((command) => command.type)).toEqual([
+        "install",
+        "start",
+        "smoke",
+        ...(check === "browser" ? ["browser"] : []),
+      ]);
+      expect(
+        supervisor.status().packages.every(({ state }) => state === "running")
+      ).toBe(true);
+      expect(
+        supervisor.logs.read({ source: "orchestration", limit: 200 }).entries
+      ).toContainEqual(
+        expect.objectContaining({
+          message: "ERROR Frontend start: Check failed",
+        })
+      );
+      clearFailure();
+      frontend.action({ type: "start" });
+      await frontend.idle();
+      expect(await frontend.status()).toMatchObject({
+        state: "passed",
+        running: true,
+        phases: expect.arrayContaining([
+          expect.objectContaining({ id: "install", state: "skipped" }),
+          expect.objectContaining({ id: "smoke", state: "passed" }),
+          expect.objectContaining({ id: "browser", state: "passed" }),
+        ]),
+      });
+      expect(
+        commands.filter((command) => command.type === "install")
+      ).toHaveLength(1);
+      expect(commands.slice(-3).map((command) => command.type)).toEqual([
+        "start",
+        "smoke",
+        "browser",
+      ]);
+    }
+  );
 
   it("keeps frontend controls optional and rejects invalid and overlapping actions", async () => {
     const { app, frontend } = await setup();
@@ -271,6 +305,27 @@ describe("backend-owned fullstack lifecycle", () => {
     });
     expect(commands.map((command) => command.type)).toEqual([
       "install",
+      "stop",
+    ]);
+  });
+
+  it("cleans up a failed Vite start before scheduling post-start checks", async () => {
+    const { frontend, commands } = await setup("start");
+    frontend.action({ type: "start" });
+    await frontend.idle();
+    expect(await frontend.status()).toMatchObject({
+      state: "failed",
+      running: false,
+      error: "Check failed",
+      phases: expect.arrayContaining([
+        expect.objectContaining({ id: "vite", state: "failed" }),
+        expect.objectContaining({ id: "smoke", state: "skipped" }),
+        expect.objectContaining({ id: "browser", state: "skipped" }),
+      ]),
+    });
+    expect(commands.map((command) => command.type)).toEqual([
+      "install",
+      "start",
       "stop",
     ]);
   });
