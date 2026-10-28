@@ -62,7 +62,7 @@ const errorCodes = {
   clientNotFound: "0051",
   riskAnalysisAlreadyApproved: "0052",
   riskAnalysisAlreadyRejected: "0053",
-  riskAnalysisVersionChanged: "0054",
+  purposeMetadataVersionChanged: "0054",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -132,12 +132,12 @@ export function riskAnalysisAlreadyRejected(
   });
 }
 
-export function riskAnalysisVersionChanged(
+export function purposeMetadataVersionChanged(
   purposeId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    code: "riskAnalysisVersionChanged",
-    title: "Risk analysis version changed",
+    code: "purposeMetadataVersionChanged",
+    title: "Purpose metadata version changed",
     detail: `The purpose ${purposeId} has changed since the risk analysis was reviewed`,
   });
 }

@@ -79,7 +79,7 @@ export const riskAnalysisConflictErrorMapper = (
     .with(
       "riskAnalysisAlreadyApproved",
       "riskAnalysisAlreadyRejected",
-      "riskAnalysisVersionChanged",
+      "purposeMetadataVersionChanged",
       () => HTTP_STATUS_CONFLICT
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

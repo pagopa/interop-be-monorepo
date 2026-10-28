@@ -13851,7 +13851,7 @@ components:
             alreadyRejected:
               $ref: "#/components/examples/RiskAnalysisAlreadyRejected"
             versionChanged:
-              $ref: "#/components/examples/RiskAnalysisVersionChanged"
+              $ref: "#/components/examples/PurposeMetadataVersionChanged"
       headers:
         "X-Rate-Limit-Limit":
           $ref: "#/components/headers/RateLimitLimitHeader"
@@ -13895,12 +13895,12 @@ components:
         errors:
           - code: 008-0053
             detail: The risk analysis for purpose 1d1a0213-b708-4ea0-a567-33dfe1eea2c8 has already been rejected
-    RiskAnalysisVersionChanged:
+    PurposeMetadataVersionChanged:
       summary: The version reviewed for signing is no longer current
       value:
         type: about:blank
         status: 409
-        title: Risk analysis version changed
+        title: Purpose metadata version changed
         detail: The purpose 1d1a0213-b708-4ea0-a567-33dfe1eea2c8 has changed since the risk analysis was reviewed
         correlationId: 6c84273b-285a-4b1f-8af2-4858a7e7d07a
         errors:

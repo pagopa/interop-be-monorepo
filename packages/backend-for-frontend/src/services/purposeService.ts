@@ -48,7 +48,7 @@ import {
   purposeProcessErrorCodes,
   riskAnalysisAlreadyApproved,
   riskAnalysisAlreadyRejected,
-  riskAnalysisVersionChanged,
+  purposeMetadataVersionChanged,
   tenantNotFound,
 } from "../model/errors.js";
 import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
@@ -267,7 +267,7 @@ export function purposeServiceBuilder(
         purpose.metadata &&
         purpose.metadata.version > signingSeed.metadataVersionToSign
       ) {
-        throw riskAnalysisVersionChanged(purposeId);
+        throw purposeMetadataVersionChanged(purposeId);
       }
     }
 
@@ -275,7 +275,7 @@ export function purposeServiceBuilder(
     throw conflictCodes.includes(
       purposeProcessErrorCodes.purposeMetadataVersionMismatch
     )
-      ? riskAnalysisVersionChanged(purposeId)
+      ? purposeMetadataVersionChanged(purposeId)
       : error;
   };
   // eslint-disable-next-line complexity

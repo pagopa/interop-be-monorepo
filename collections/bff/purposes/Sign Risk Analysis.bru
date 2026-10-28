@@ -30,7 +30,7 @@ docs {
   signing never retries or silently switches to the latest version.
 
   HTTP 409 codes: 008-0052 already approved, 008-0053 already rejected,
-  008-0054 purpose version changed since review. Approved/rejected states take
+  008-0054 purpose metadata version changed since review. Approved/rejected states take
   precedence over a version mismatch when verifiable. Other process conflicts
   retain their original codes.
 
@@ -38,7 +38,7 @@ docs {
   {
     "type": "about:blank",
     "status": 409,
-    "title": "Risk analysis version changed",
+    "title": "Purpose metadata version changed",
     "detail": "The purpose <purposeId> has changed since the risk analysis was reviewed",
     "correlationId": "<correlationId>",
     "errors": [{ "code": "008-0054", "detail": "The purpose <purposeId> has changed since the risk analysis was reviewed" }]
