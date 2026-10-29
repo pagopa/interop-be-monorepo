@@ -74,6 +74,12 @@ export function selfcareOnboardingProcessorBuilder(
             ? institution.subUnitCode || institution.originId
             : institution.taxCode || institution.originId;
 
+        const parentExternalId =
+          origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER &&
+          institution.subUnitType === "AOO"
+            ? { origin, value: institution.originId }
+            : undefined;
+
         const seed: tenantApi.SelfcareTenantSeed = {
           externalId: {
             origin,
@@ -89,6 +95,7 @@ export function selfcareOnboardingProcessorBuilder(
           },
           subUnitType: institution.subUnitType || undefined,
           selfcareInstitutionType: institution.institutionType,
+          parentExternalId,
         };
 
         const token = (await refreshableToken.get()).serialized;
