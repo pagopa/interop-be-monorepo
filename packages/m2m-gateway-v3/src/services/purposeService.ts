@@ -447,6 +447,37 @@ export function purposeServiceBuilder(
       const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
       return toM2MGatewayApiPurpose(polledPurpose.data);
     },
+    async rejectPurpose(
+      purposeId: PurposeId,
+      { rejectionReason }: m2mGatewayApiV3.PurposeRejection,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.Purpose> {
+      logger.info(
+        `Retrieving latest waiting for approval version for purpose ${purposeId} rejection`
+      );
+      const { data: purpose } = await retrievePurposeById(purposeId, headers);
+
+      const versionToReject = retrieveLatestPurposeVersionByState(
+        purpose,
+        purposeApi.PurposeVersionState.Values.WAITING_FOR_APPROVAL
+      );
+
+      logger.info(
+        `Rejecting version ${versionToReject.id} of purpose ${purposeId}`
+      );
+
+      const { metadata } =
+        await clients.purposeProcessClient.rejectPurposeVersion(
+          { rejectionReason },
+          {
+            params: { purposeId, versionId: versionToReject.id },
+            headers,
+          }
+        );
+
+      const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
+      return toM2MGatewayApiPurpose(polledPurpose.data);
+    },
     async unsuspendPurpose(
       purposeId: PurposeId,
       { delegationId }: m2mGatewayApiV3.DelegationRef,

@@ -529,9 +529,9 @@ const purposeRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-          await purposeService.rejectPurposeVersion(
+          const { data, metadata } = await purposeService.rejectPurposeVersion(
             {
               purposeId: unsafeBrandId(req.params.purposeId),
               versionId: unsafeBrandId(req.params.versionId),
@@ -539,7 +539,14 @@ const purposeRouter = (
             },
             ctx
           );
-          return res.status(204).send();
+          setMetadataVersionHeader(res, metadata);
+          return res
+            .status(200)
+            .send(
+              purposeApi.PurposeVersion.parse(
+                purposeVersionToApiPurposeVersion(data)
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

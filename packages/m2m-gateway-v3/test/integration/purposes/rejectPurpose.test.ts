@@ -1,0 +1,195 @@
+import { m2mGatewayApiV3, purposeApi } from "pagopa-interop-api-clients";
+import {
+  getMockedApiPurpose,
+  getMockedApiPurposeVersion,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import {
+  pollingMaxRetriesExceeded,
+  unsafeBrandId,
+  WithMetadata,
+} from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { config } from "../../../src/config/config.js";
+import {
+  missingPurposeVersionWithState,
+  missingMetadata,
+} from "../../../src/model/errors.js";
+import {
+  expectApiClientGetToHaveBeenCalledWith,
+  expectApiClientPostToHaveBeenCalledWith,
+  mockInteropBeClients,
+  mockPollingResponse,
+  purposeService,
+} from "../../integrationUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2mGatewayApiPurpose,
+  testToM2mGatewayApiPurposeVersion,
+} from "../../mockUtils.js";
+
+describe("rejectPurpose", () => {
+  const mockApiPurposeVersion1 = getMockedApiPurposeVersion({
+    state: purposeApi.PurposeVersionState.Enum.WAITING_FOR_APPROVAL,
+  });
+  const mockApiPurposeVersion2 = getMockedApiPurposeVersion({
+    state: purposeApi.PurposeVersionState.Enum.REJECTED,
+  });
+  const mockApiPurpose = getMockWithMetadata(
+    getMockedApiPurpose({
+      versions: [mockApiPurposeVersion1, mockApiPurposeVersion2],
+    })
+  );
+  const mockPurposeRejection: m2mGatewayApiV3.PurposeRejection = {
+    rejectionReason: "Mock rejection reason",
+  };
+
+  const rejectPurposeVersionApiResponse: WithMetadata<purposeApi.PurposeVersion> =
+    {
+      data: mockApiPurposeVersion1,
+      metadata: { version: 0 },
+    };
+
+  const pollingTentatives = 2;
+  const mockRejectPurposeVersion = vi
+    .fn()
+    .mockResolvedValue(rejectPurposeVersionApiResponse);
+  const mockGetPurpose = vi.fn(
+    mockPollingResponse(mockApiPurpose, pollingTentatives)
+  );
+
+  mockInteropBeClients.purposeProcessClient = {
+    getPurpose: mockGetPurpose,
+    rejectPurposeVersion: mockRejectPurposeVersion,
+  } as unknown as PagoPAInteropBeClients["purposeProcessClient"];
+
+  beforeEach(() => {
+    mockRejectPurposeVersion.mockClear();
+    mockGetPurpose.mockClear();
+  });
+
+  it("Should succeed and perform API clients calls", async () => {
+    // The reject will first get the purpose, then perform the polling
+    mockGetPurpose.mockResolvedValueOnce(mockApiPurpose);
+
+    const purposeVersion1 = testToM2mGatewayApiPurposeVersion(
+      mockApiPurposeVersion1
+    );
+    const purposeVersion2 = testToM2mGatewayApiPurposeVersion(
+      mockApiPurposeVersion2
+    );
+    const expectedM2MPurpose = testToM2mGatewayApiPurpose(mockApiPurpose.data, {
+      currentVersion: undefined,
+      waitingForApprovalVersion: purposeVersion1,
+      rejectedVersion: purposeVersion2,
+    });
+
+    const purpose = await purposeService.rejectPurpose(
+      unsafeBrandId(mockApiPurpose.data.id),
+      mockPurposeRejection,
+      getMockM2MAdminAppContext()
+    );
+
+    expect(purpose).toStrictEqual(expectedM2MPurpose);
+    expectApiClientPostToHaveBeenCalledWith({
+      mockPost: mockInteropBeClients.purposeProcessClient.rejectPurposeVersion,
+      params: {
+        purposeId: mockApiPurpose.data.id,
+        versionId: mockApiPurposeVersion1.id,
+      },
+      body: mockPurposeRejection,
+    });
+    expectApiClientGetToHaveBeenCalledWith({
+      mockGet: mockInteropBeClients.purposeProcessClient.getPurpose,
+      params: { id: mockApiPurpose.data.id },
+    });
+    expect(
+      mockInteropBeClients.purposeProcessClient.getPurpose
+    ).toHaveBeenCalledTimes(pollingTentatives + 1);
+  });
+
+  it("Should throw missingPurposeVersionWithState in case of missing waiting for approval version to reject", async () => {
+    const invalidPurpose = getMockWithMetadata(
+      getMockedApiPurpose({
+        versions: [
+          getMockedApiPurposeVersion({
+            state: purposeApi.PurposeVersionState.Enum.REJECTED,
+          }),
+        ],
+      })
+    );
+    // The reject will first get the purpose, then perform the polling
+    mockGetPurpose.mockResolvedValueOnce(invalidPurpose);
+
+    await expect(
+      purposeService.rejectPurpose(
+        unsafeBrandId(mockApiPurpose.data.id),
+        mockPurposeRejection,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(
+      missingPurposeVersionWithState(
+        invalidPurpose.data.id,
+        purposeApi.PurposeVersionState.Values.WAITING_FOR_APPROVAL
+      )
+    );
+  });
+
+  it("Should throw missingMetadata in case the purpose version returned by the rejection POST call has no metadata", async () => {
+    mockRejectPurposeVersion.mockResolvedValueOnce({
+      data: mockApiPurposeVersion1,
+      metadata: undefined,
+    });
+
+    await expect(
+      purposeService.rejectPurpose(
+        unsafeBrandId(mockApiPurpose.data.id),
+        mockPurposeRejection,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(missingMetadata());
+  });
+
+  it("Should throw missingMetadata in case the purpose returned by the polling GET call has no metadata", async () => {
+    // The reject will first get the purpose, then perform the polling
+    mockGetPurpose.mockResolvedValueOnce(mockApiPurpose).mockResolvedValue({
+      data: mockApiPurpose.data,
+      metadata: undefined,
+    });
+
+    await expect(
+      purposeService.rejectPurpose(
+        unsafeBrandId(mockApiPurpose.data.id),
+        mockPurposeRejection,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(missingMetadata());
+  });
+
+  it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
+    // The reject will first get the purpose, then perform the polling
+    mockGetPurpose
+      .mockResolvedValueOnce(mockApiPurpose)
+      .mockImplementation(
+        mockPollingResponse(mockApiPurpose, config.defaultPollingMaxRetries + 1)
+      );
+
+    await expect(
+      purposeService.rejectPurpose(
+        unsafeBrandId(mockApiPurpose.data.id),
+        mockPurposeRejection,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(
+      pollingMaxRetriesExceeded(
+        config.defaultPollingMaxRetries,
+        config.defaultPollingRetryDelay
+      )
+    );
+    expect(mockGetPurpose).toHaveBeenCalledTimes(
+      config.defaultPollingMaxRetries + 1
+    );
+  });
+});
