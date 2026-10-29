@@ -20,11 +20,17 @@ export function createTestCsvFile(
   return filePath;
 }
 
+export function createTestJsonFile(content: unknown): string {
+  const filePath = join(dataFolder, `test-${randomUUID()}.json`);
+  writeFileSync(filePath, JSON.stringify(content), "utf8");
+  return filePath;
+}
+
 export function deleteCsvFiles(): void {
   const dataFolder = join(__dirname, "data");
   const files = readdirSync(dataFolder);
   for (const file of files) {
-    if (file.endsWith(".csv") && file.startsWith("test-")) {
+    if ((file.endsWith(".csv") || file.endsWith(".json")) && file.startsWith("test-")) {
       unlinkSync(join(dataFolder, file));
     }
   }

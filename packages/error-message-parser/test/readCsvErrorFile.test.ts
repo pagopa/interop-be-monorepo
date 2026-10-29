@@ -19,7 +19,10 @@ describe("readCsvErrorFile", () => {
           it: "Un messaggio di errore",
         },
       ]);
-      const parsedErrors = readCsvErrorFile(csvPath, ["it", "en"]);
+      const { errors: parsedErrors, skipped } = readCsvErrorFile(csvPath, [
+        "it",
+        "en",
+      ]);
       expect(parsedErrors).toEqual({
         "GET /tenant/:tenantId": {
           "005-0014": {
@@ -31,6 +34,7 @@ describe("readCsvErrorFile", () => {
           },
         },
       });
+      expect(skipped).toBe(0);
     });
 
     it("and should skip rows with errors", () => {
@@ -64,7 +68,10 @@ describe("readCsvErrorFile", () => {
           it: "Un messaggio di errore",
         },
       ]);
-      const parsedErrors = readCsvErrorFile(csvPath, ["it", "en"]);
+      const { errors: parsedErrors, skipped } = readCsvErrorFile(csvPath, [
+        "it",
+        "en",
+      ]);
       expect(parsedErrors).toEqual({
         "GET /tenant/:tenantId": {
           "005-0014": {
@@ -76,6 +83,7 @@ describe("readCsvErrorFile", () => {
           },
         },
       });
+      expect(skipped).toBe(3);
     });
 
     it("with extra columns", () => {
@@ -90,7 +98,10 @@ describe("readCsvErrorFile", () => {
           "Some extra column": "Some extra value",
         },
       ]);
-      const parsedErrors = readCsvErrorFile(csvPath, ["it", "en"]);
+      const { errors: parsedErrors, skipped } = readCsvErrorFile(csvPath, [
+        "it",
+        "en",
+      ]);
       expect(parsedErrors).toEqual({
         "GET /tenant/:tenantId": {
           "005-0014": {
@@ -102,6 +113,7 @@ describe("readCsvErrorFile", () => {
           },
         },
       });
+      expect(skipped).toBe(0);
     });
 
     it("with different language column names", () => {
@@ -115,7 +127,10 @@ describe("readCsvErrorFile", () => {
           "Copy it": "Un messaggio di errore",
         },
       ]);
-      const parsedErrors = readCsvErrorFile(csvPath, ["it", "en"]);
+      const { errors: parsedErrors, skipped } = readCsvErrorFile(csvPath, [
+        "it",
+        "en",
+      ]);
       expect(parsedErrors).toEqual({
         "GET /tenant/:tenantId": {
           "005-0014": {
@@ -127,6 +142,7 @@ describe("readCsvErrorFile", () => {
           },
         },
       });
+      expect(skipped).toBe(0);
     });
 
     it("and should skip unknown languages", () => {
@@ -140,7 +156,10 @@ describe("readCsvErrorFile", () => {
           fr: "Un message d'erreur en français",
         },
       ]);
-      const parsedErrors = readCsvErrorFile(csvPath, ["it", "en"]);
+      const { errors: parsedErrors, skipped } = readCsvErrorFile(csvPath, [
+        "it",
+        "en",
+      ]);
       expect(parsedErrors).toEqual({
         "GET /tenant/:tenantId": {
           "005-0014": {
@@ -152,6 +171,7 @@ describe("readCsvErrorFile", () => {
           },
         },
       });
+      expect(skipped).toBe(0);
     });
 
     it("even if an optional language column is empty", () => {
@@ -164,7 +184,10 @@ describe("readCsvErrorFile", () => {
           it: "Un messaggio di errore",
         },
       ]);
-      const parsedErrors = readCsvErrorFile(csvPath, ["it", "en"]);
+      const { errors: parsedErrors, skipped } = readCsvErrorFile(csvPath, [
+        "it",
+        "en",
+      ]);
       expect(parsedErrors).toEqual({
         "GET /tenant/:tenantId": {
           "005-0014": {
@@ -175,6 +198,7 @@ describe("readCsvErrorFile", () => {
           },
         },
       });
+      expect(skipped).toBe(0);
     });
 
     it("and skip rows where Italian message is missing", () => {
@@ -194,7 +218,10 @@ describe("readCsvErrorFile", () => {
           it: "Un messaggio di errore",
         },
       ]);
-      const parsedErrors = readCsvErrorFile(csvPath, ["it", "en"]);
+      const { errors: parsedErrors, skipped } = readCsvErrorFile(csvPath, [
+        "it",
+        "en",
+      ]);
       expect(parsedErrors).toEqual({
         "GET /tenant/:tenantId": {
           "005-0014": {
@@ -206,6 +233,7 @@ describe("readCsvErrorFile", () => {
           },
         },
       });
+      expect(skipped).toBe(1);
     });
 
     it.each([
@@ -296,7 +324,10 @@ describe("readCsvErrorFile", () => {
             it: "Un messaggio di errore",
           },
         ]);
-        const parsedErrors = readCsvErrorFile(csvPath, ["it", "en"]);
+        const { errors: parsedErrors, skipped } = readCsvErrorFile(csvPath, [
+          "it",
+          "en",
+        ]);
         const expectedErrors = {
           "GET /tenant/:tenantId": {
             [expected]: {
@@ -309,6 +340,7 @@ describe("readCsvErrorFile", () => {
           },
         };
         expect(parsedErrors).toEqual(expectedErrors);
+        expect(skipped).toBe(0);
       }
     );
 
@@ -375,7 +407,10 @@ describe("readCsvErrorFile", () => {
             it: "Un messaggio di errore",
           },
         ]);
-        const parsedErrors = readCsvErrorFile(csvPath, ["it", "en"]);
+        const { errors: parsedErrors, skipped } = readCsvErrorFile(csvPath, [
+          "it",
+          "en",
+        ]);
         const expectedErrors = {
           "GET /tenant/:tenantId": {
             [expected]: {
@@ -388,6 +423,7 @@ describe("readCsvErrorFile", () => {
           },
         };
         expect(parsedErrors).toEqual(expectedErrors);
+        expect(skipped).toBe(0);
       }
     );
   });
