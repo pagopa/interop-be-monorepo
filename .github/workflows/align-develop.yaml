@@ -1,0 +1,112 @@
+name: Align develop with main
+
+on:
+  push:
+    branches:
+      - "main"
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  align-develop:
+    name: Open align PR towards develop
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
+      MAIN_SHA: ${{ github.sha }}
+    steps:
+      - name: Check if develop is already aligned with main
+        id: check
+        run: |
+          AHEAD_BY=$(gh api "repos/$GH_REPO/compare/develop...$MAIN_SHA" --jq '.ahead_by')
+          echo "Commits on main not yet in develop: $AHEAD_BY"
+          if [ "$AHEAD_BY" -eq 0 ]; then
+            echo "needs_align=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "needs_align=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Resolve align branch name
+        id: version
+        if: steps.check.outputs.needs_align == 'true'
+        run: |
+          # Release/hotfix PRs are named release/x.y.z or hotfix/x.y.z: reuse that version
+          HEAD_REF=$(gh api "repos/$GH_REPO/commits/$MAIN_SHA/pulls" --jq '.[0].head.ref // empty')
+          if [[ "$HEAD_REF" =~ ^(release|hotfix)/([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+            NAME="${BASH_REMATCH[2]}"
+          else
+            NAME="main-${MAIN_SHA:0:7}"
+          fi
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          echo "Align branch: align/$NAME"
+
+      - name: Create align branch and open PR
+        if: steps.check.outputs.needs_align == 'true'
+        env:
+          NAME: ${{ steps.version.outputs.name }}
+        run: |
+          BRANCH="align/$NAME"
+
+          EXISTING_PR=$(gh pr list --base develop --head "$BRANCH" --state open --json number --jq '.[0].number // empty')
+          if [ -n "$EXISTING_PR" ]; then
+            echo "Align PR #$EXISTING_PR already open. Nothing to do."
+            exit 0
+          fi
+
+          # Current release version allowed towards develop, as defined by the validation workflow on develop
+          RELEASE=$(gh api "repos/$GH_REPO/contents/.github/workflows/release-version-validation.yaml?ref=develop" --jq '.content' \
+            | base64 -d \
+            | sed -nE 's/^[[:space:]]*ALLOWED_RELEASE_TOWARDS_DEVELOP_BRANCH:[[:space:]]*"?([0-9]+\.[0-9]+\.[0-9]+)"?.*/\1/p' \
+            | head -n 1) || true
+
+          LABEL_ARGS=()
+          LABEL_NOTE=""
+          if [ -z "$RELEASE" ]; then
+            echo "::warning::Unable to determine the current release version from release-version-validation.yaml"
+            LABEL_NOTE="⚠️ Unable to determine the current release version, so no release label was added. Please add it manually."
+          elif gh label list --limit 1000 --json name --jq '.[].name' | grep -xF "$RELEASE" >/dev/null; then
+            echo "Release label: $RELEASE"
+            LABEL_ARGS=(--label "$RELEASE")
+          else
+            echo "::warning::Label '$RELEASE' does not exist in the repository"
+            LABEL_NOTE="⚠️ The release label \`$RELEASE\` does not exist in the repository, so it was not added to this PR. Please create it and add it manually."
+          fi
+
+          if gh api "repos/$GH_REPO/git/ref/heads/$BRANCH" >/dev/null 2>&1; then
+            echo "Branch $BRANCH already exists. Updating it to $MAIN_SHA."
+            gh api -X PATCH "repos/$GH_REPO/git/refs/heads/$BRANCH" -f sha="$MAIN_SHA" -F force=true
+          else
+            gh api -X POST "repos/$GH_REPO/git/refs" -f ref="refs/heads/$BRANCH" -f sha="$MAIN_SHA"
+          fi
+
+          BODY=$(cat <<EOF
+          ## 🔀 Back-merge: align \`develop\` with \`main\`
+
+          ### Description
+          This PR brings all commits merged on \`main\` (up to ${MAIN_SHA}) back into \`develop\`.
+
+          ### Merge Strategy Requirements
+          ⚠️ CRITICAL: Perform a Standard Merge Commit
+          DO NOT SQUASH OR REBASE.
+
+          If there are conflicts, resolve them by merging \`develop\` into \`$BRANCH\`.
+          EOF
+          )
+
+          if [ -n "$LABEL_NOTE" ]; then
+            BODY="$BODY"$'\n\n'"$LABEL_NOTE"
+          fi
+
+          gh pr create \
+            --base develop \
+            --head "$BRANCH" \
+            --title "$BRANCH" \
+            "${LABEL_ARGS[@]}" \
+            --body "$BODY"
