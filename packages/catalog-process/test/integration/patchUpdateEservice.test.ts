@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { catalogApi } from "pagopa-interop-api-clients";
-import { genericLogger } from "pagopa-interop-commons";
+import { genericLogger, userRole } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockDelegation,
@@ -10,6 +10,8 @@ import {
   getMockEService,
   getMockEServiceTemplate,
   getMockContextM2MAdmin,
+  getMockContext,
+  getMockAuthData,
   ReadEvent,
 } from "pagopa-interop-commons-test";
 import {
@@ -107,6 +109,41 @@ describe("patch update eService", () => {
     isSignalHubEnabled: false,
   };
   const mockDocument = getMockDocument();
+
+  it.each([userRole.ADMIN_ROLE, userRole.API_ROLE])(
+    "should atomically update metadata with UI role %s",
+    async (role) => {
+      await addOneEService(mockEService);
+      const ctx = getMockContext({
+        authData: getMockAuthData(mockEService.producerId, undefined, [role]),
+      });
+      const result = await catalogService.patchUpdateEService(
+        mockEService.id,
+        { name: "Updated name", description: "Updated description" },
+        ctx
+      );
+      expect(result).toEqual({
+        data: {
+          ...mockEService,
+          name: "Updated name",
+          description: "Updated description",
+        },
+        metadata: { version: 2 },
+      });
+      expect(await readPatchEvents(mockEService.id)).toMatchObject([
+        {
+          type: "EServiceDescriptionUpdated",
+          version: "1",
+          correlation_id: ctx.correlationId,
+        },
+        {
+          type: "EServiceNameUpdated",
+          version: "2",
+          correlation_id: ctx.correlationId,
+        },
+      ]);
+    }
+  );
 
   it.each(["unauthorized", "template"] as const)(
     "should enforce ownership and template exclusion before a metadata no-op (%s)",
@@ -207,6 +244,8 @@ describe("patch update eService", () => {
         mode: "Receive",
       };
       await addOneEService(eservice);
+      const before = await readModelService.getEServiceById(eservice.id);
+      expect(before).toBeDefined();
 
       const result = await catalogService.patchUpdateEService(
         eservice.id,
@@ -215,10 +254,10 @@ describe("patch update eService", () => {
       );
 
       const expectedEService: EService = {
-        ...eservice,
+        ...before!.data,
         technology: "Soap",
         isSignalHubEnabled: true,
-        descriptors: eservice.descriptors.map((descriptor) => ({
+        descriptors: before!.data.descriptors.map((descriptor) => ({
           ...descriptor,
           interface: undefined,
           asyncExchangeCallbackInterface: undefined,

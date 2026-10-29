@@ -301,9 +301,15 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Partially updates Draft E-Service general information
+      summary: Partially updates E-Service general information
       operationId: patchUpdateDraftEServiceById
-      description: Partially updates the general information of the specified Draft E-Service
+      description: |
+        Updates name and description of a non-template E-Service regardless of descriptor states.
+        Operational fields retain the existing Draft-only rules. If any supplied operational
+        field is not allowed, the whole request fails atomically with 409.
+        At least one field is required; an empty object returns 400.
+        Omitted fields remain unchanged. Unchanged values succeed without new events or
+        a metadata version increment. The response header contains the resulting metadata version.
       requestBody:
         required: true
         content:
@@ -3221,6 +3227,7 @@ components:
     PatchUpdateEServiceSeed:
       type: object
       additionalProperties: false
+      minProperties: 1
       properties:
         name:
           type: string
