@@ -22,17 +22,11 @@ headers {
 body:json {
   {
       "title": "{{randomName}}",
-      "description": "a purpose long description updated"
+      "description": "a purpose long description updated",
+      "isFreeOfCharge": false,
+      "dailyCalls": 200,
+      "freeOfChargeReason": null
   }
-}
-
-docs {
-  Updates title and description without changing purpose versions or risk analysis.
-  Purposes created from a template cannot be updated through this endpoint.
-  Operational fields (dailyCalls, isFreeOfCharge and freeOfChargeReason)
-  may be included only for Draft purposes. Otherwise the entire request is rejected with 409.
-  riskAnalysisForm is not accepted on the reverse purpose route.
-  Repeating current values succeeds without events or a metadata version increment.
 }
 
 script:pre-request {
