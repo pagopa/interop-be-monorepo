@@ -16679,7 +16679,6 @@ components:
         - dailyCallsTotal
         - percentage
         - waitingForApprovalNewPurposes
-        - dailyCallsPerConsumer
         - waitingForApprovalQuotaChanges
         - consumersByVersion
         - consumersByKind
