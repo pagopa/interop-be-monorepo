@@ -324,10 +324,87 @@ export async function createNewAttributes(
   );
 }
 
+export function getAooUoAttributeSeeds(
+  registryData: RegistryData,
+  tenantUpsertData: TenantSeed[],
+  platformAttributes: Attribute[]
+): InternalCertifiedAttribute[] {
+  const platformTenantSeeds = new Set(
+    tenantUpsertData.map((t) =>
+      toTenantKey({ origin: t.origin, value: t.originId })
+    )
+  );
+
+  const aooNames = new Map(
+    registryData.institutions.flatMap((i) =>
+      i.classification === "AOO" && i.subUnit
+        ? [[i.originId, i.subUnit.name] as const]
+        : []
+    )
+  );
+
+  const composed = new Map<string, InternalCertifiedAttribute>();
+  for (const i of registryData.institutions) {
+    if (
+      i.classification === AGENCY_CLASSIFICATION ||
+      !i.subUnit ||
+      i.category === ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER ||
+      !platformTenantSeeds.has(
+        toTenantKey({ origin: i.origin, value: i.originId })
+      )
+    ) {
+      continue;
+    }
+
+    const { name, entityName, aooCode } = i.subUnit;
+    const aooName = aooCode ? aooNames.get(aooCode) : undefined;
+    if (aooCode && !aooName) {
+      continue;
+    }
+
+    const baseName = aooName
+      ? `${name} di ${aooName} di ${entityName}`
+      : `${name} di ${entityName}`;
+
+    composed.set(toAttributeKey({ origin: i.origin, code: i.originId }), {
+      origin: i.origin,
+      code: i.originId,
+      name: baseName,
+      description: baseName,
+    });
+  }
+
+  const sorted = [...composed.values()].sort((a, b) =>
+    a.code < b.code ? -1 : a.code > b.code ? 1 : 0
+  );
+
+  // TODO: verificare vincoli di dominio
+  const occurrences = new Map<string, number>();
+  for (const a of sorted) {
+    occurrences.set(a.name, (occurrences.get(a.name) ?? 0) + 1);
+  }
+
+  const takenNames = new Set([
+    ...platformAttributes.map((a) => a.name),
+    ...registryData.attributes.map((a) => a.name),
+  ]);
+
+  return sorted.map((a) =>
+    (occurrences.get(a.name) ?? 0) > 1 || takenNames.has(a.name)
+      ? {
+          ...a,
+          name: `${a.name} (${a.code})`,
+          description: `${a.description} (${a.code})`,
+        }
+      : a
+  );
+}
+
 export function getNewAttributes(
   registryData: RegistryData,
   tenantUpsertData: TenantSeed[],
-  attributes: Attribute[]
+  attributes: Attribute[],
+  aooUoAttributesEnabled: boolean = false
 ): InternalCertifiedAttribute[] {
   // get a set with all the certified attributes in the platform
   const platformAttributesIndex = new Set(
@@ -344,15 +421,24 @@ export function getNewAttributes(
     )
   );
 
-  return registryData.attributes.filter(
-    (a) =>
-      newAttributesIndex.has(
-        toAttributeKey({ origin: a.origin, code: a.code })
-      ) &&
-      !platformAttributesIndex.has(
-        toAttributeKey({ origin: a.origin, code: a.code })
-      )
-  );
+  const aooUoSeeds = aooUoAttributesEnabled
+    ? getAooUoAttributeSeeds(registryData, tenantUpsertData, attributes)
+    : [];
+
+  const seen = new Set<string>();
+  return [
+    ...registryData.attributes.filter((a) =>
+      newAttributesIndex.has(toAttributeKey({ origin: a.origin, code: a.code }))
+    ),
+    ...aooUoSeeds,
+  ].filter((a) => {
+    const key = toAttributeKey({ origin: a.origin, code: a.code });
+    if (platformAttributesIndex.has(key) || seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
 }
 
 export async function getAttributesToAssign(

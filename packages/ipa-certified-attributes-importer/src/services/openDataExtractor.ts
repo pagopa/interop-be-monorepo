@@ -21,6 +21,13 @@ export type Institution = {
   kind: string;
   classification: Classification;
   istatCode?: string;
+  subUnit?: SubUnit;
+};
+
+export type SubUnit = {
+  name: string;
+  entityName: string;
+  aooCode?: string;
 };
 
 export type Category = {
@@ -227,6 +234,23 @@ export async function getAllInstitutions(
 
     const istatCode = extractor("Codice_comune_ISTAT", z.string());
 
+    const subUnit = match(institutionKind)
+      .with("Agency", () => undefined)
+      .with("AOO", (): SubUnit | undefined => {
+        const name = extractor("Denominazione_aoo", z.string());
+        const entityName = extractor("Denominazione_ente", z.string());
+        return name && entityName ? { name, entityName } : undefined;
+      })
+      .with("UO", (): SubUnit | undefined => {
+        const name = extractor("Descrizione_uo", z.string());
+        const entityName = extractor("Denominazione_ente", z.string());
+        const aooCode = extractor("Codice_uni_aoo", z.string())?.trim();
+        return name && entityName
+          ? { name, entityName, aooCode: aooCode || undefined }
+          : undefined;
+      })
+      .exhaustive();
+
     // eslint-disable-next-line functional/immutable-data
     accumulator.push({
       id: taxCode,
@@ -236,6 +260,7 @@ export async function getAllInstitutions(
       origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
       kind,
       istatCode,
+      ...(subUnit ? { subUnit } : {}),
       classification: match<InstitutionKind, Classification>(institutionKind)
         .with("Agency", () => "Agency")
         .with("AOO", () => "AOO")
