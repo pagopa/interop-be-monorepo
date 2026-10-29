@@ -74,6 +74,7 @@ import {
   GracePeriodDays,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
+import { isDeepStrictEqual } from "util";
 
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 
@@ -224,7 +225,6 @@ import {
   assertHasNoDraftOrWaitingForApprovalDescriptor,
   assertInterfaceDeletableDescriptorState,
   assertIsDraftEservice,
-  assertEServiceOperationalFieldsUpdatable,
   assertIsReceiveEservice,
   assertNoExistingProducerDelegationInActiveOrPendingState,
   assertNoExistingProducerDelegationForDescriptorArchiving,
@@ -1243,7 +1243,9 @@ export function catalogServiceBuilder(
       ctx: WithLogger<AppContext<M2MAdminAuthData>>
     ): Promise<WithMetadata<EService>> {
       ctx.logger.info(`Partially updating EService ${eserviceId}`);
+
       const eservice = await retrieveEService(eserviceId, readModelService);
+
       await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
         eservice.data.id,
@@ -1256,41 +1258,118 @@ export function catalogServiceBuilder(
       const hasOperationalFields = Object.values(operationalSeed).some(
         (value) => value !== undefined
       );
-      if (hasOperationalFields) {
-        assertEServiceOperationalFieldsUpdatable(eservice.data);
+
+      const isDraftEservice = (() => {
+        try {
+          assertIsDraftEservice(eservice.data);
+          return true;
+        } catch {
+          return false;
+        }
+      })();
+
+      /**
+       * Ensure that operational fields (mode, technology, ...)
+       * can only be updated if the EService is in draft state.
+       */
+      if (hasOperationalFields && !isDraftEservice) {
+        assertIsDraftEservice(eservice.data);
       }
 
-      const metadataUpdatedEService = await prepareEServiceMetadataUpdate(
+      await validateNewEserviceDescriptionAndName(
         eservice.data,
         { name, description },
         readModelService
       );
-      const updatedEService = hasOperationalFields
-        ? prepareDraftEServiceUpdate(metadataUpdatedEService, {
-            type: "patch",
-            seed: operationalSeed,
-          })
-        : metadataUpdatedEService;
 
-      const events = createEServicePatchEvents(
-        eservice,
-        metadataUpdatedEService,
-        updatedEService,
-        ctx.correlationId
-      );
+      if (isDraftEservice) {
+        const updatedEservice = prepareDraftEServiceUpdate(eservice.data, {
+          type: "patch",
+          seed: eserviceSeed,
+        });
+
+        /**
+         * If no changes were made to the draft EService, no-op.
+         */
+        const removeUndefinedProperties = (obj: object) =>
+          Object.fromEntries(
+            Object.entries(obj).filter(([, value]) => value !== undefined)
+          );
+
+        if (
+          isDeepStrictEqual(
+            removeUndefinedProperties(eservice.data),
+            removeUndefinedProperties(updatedEservice)
+          )
+        ) {
+          return eservice;
+        }
+
+        await deleteEServiceInterfacesOnTechnologyChange(
+          eservice.data,
+          updatedEservice,
+          fileManager,
+          ctx.logger
+        );
+
+        const event = await repository.createEvent(
+          toCreateEventEServiceUpdated(
+            eserviceId,
+            eservice.metadata.version,
+            updatedEservice,
+            ctx.correlationId
+          )
+        );
+
+        return {
+          data: updatedEservice,
+          metadata: { version: event.newVersion },
+        };
+      }
+
+      const updatedEservice: EService = {
+        ...eservice.data,
+        description: description ?? eservice.data.description,
+        name: name ?? eservice.data.name,
+      };
+
+      const hasDescriptionChanged =
+        updatedEservice.description !== eservice.data.description;
+      const hasNameChanged = updatedEservice.name !== eservice.data.name;
+
+      const events = [
+        ...(hasDescriptionChanged
+          ? [
+              toCreateEventEServiceDescriptionUpdated(
+                eservice.metadata.version,
+                updatedEservice,
+                ctx.correlationId
+              ),
+            ]
+          : []),
+        ...(hasNameChanged
+          ? [
+              toCreateEventEServiceNameUpdated(
+                eservice.metadata.version,
+                updatedEservice,
+                eservice.data.name,
+                ctx.correlationId
+              ),
+            ]
+          : []),
+      ].map((event, index) => ({
+        ...event,
+        version: eservice.metadata.version + index,
+      }));
+
       if (events.length === 0) {
         return eservice;
       }
 
-      await deleteEServiceInterfacesOnTechnologyChange(
-        eservice.data,
-        updatedEService,
-        fileManager,
-        ctx.logger
-      );
       const createdEvents = await repository.createEvents(events);
+
       return {
-        data: updatedEService,
+        data: updatedEservice,
         metadata: {
           version: createdEvents.latestNewVersions.get(eservice.data.id) ?? 0,
         },
@@ -6076,14 +6155,14 @@ async function extractEServiceRiskAnalysisFromTemplate(
   return riskAnalysis;
 }
 
-async function prepareEServiceMetadataUpdate(
+async function validateNewEserviceDescriptionAndName(
   eservice: EService,
   {
     name,
     description,
   }: Pick<catalogApi.PatchUpdateEServiceSeed, "name" | "description">,
   readModelService: ReadModelServiceSQL
-): Promise<EService> {
+) {
   validateNoHyperlinksSafe(name);
   validateNoHyperlinksSafe(description);
 
@@ -6095,12 +6174,6 @@ async function prepareEServiceMetadataUpdate(
     );
     await assertEServiceNameNotConflictingWithTemplate(name, readModelService);
   }
-
-  return {
-    ...eservice,
-    name: name ?? eservice.name,
-    description: description ?? eservice.description,
-  };
 }
 
 async function deleteEServiceInterfacesOnTechnologyChange(
@@ -6132,69 +6205,6 @@ async function deleteEServiceInterfacesOnTechnologyChange(
   );
 }
 
-function hasEServiceOperationalChanges(
-  eservice: EService,
-  updatedEService: EService
-): boolean {
-  const operationalFields = [
-    "technology",
-    "mode",
-    "isSignalHubEnabled",
-    "isConsumerDelegable",
-    "isClientAccessDelegable",
-    "personalData",
-    "asyncExchange",
-  ] as const;
-  return operationalFields.some(
-    (field) => eservice[field] !== updatedEService[field]
-  );
-}
-
-function createEServicePatchEvents(
-  eservice: WithMetadata<EService>,
-  metadataUpdatedEService: EService,
-  updatedEService: EService,
-  correlationId: AppContext<M2MAdminAuthData>["correlationId"]
-): Array<CreateEvent<EServiceEvent>> {
-  const nameUpdatedEService = {
-    ...eservice.data,
-    name: metadataUpdatedEService.name,
-  };
-  const nameEvent =
-    eservice.data.name === nameUpdatedEService.name
-      ? undefined
-      : toCreateEventEServiceNameUpdated(
-          eservice.metadata.version,
-          nameUpdatedEService,
-          eservice.data.name,
-          correlationId
-        );
-  const descriptionEvent =
-    eservice.data.description === metadataUpdatedEService.description
-      ? undefined
-      : toCreateEventEServiceDescriptionUpdated(
-          eservice.metadata.version + (nameEvent ? 1 : 0),
-          metadataUpdatedEService,
-          correlationId
-        );
-  const operationalEvent = hasEServiceOperationalChanges(
-    metadataUpdatedEService,
-    updatedEService
-  )
-    ? toCreateEventEServiceUpdated(
-        eservice.data.id,
-        eservice.metadata.version +
-          (nameEvent ? 1 : 0) +
-          (descriptionEvent ? 1 : 0),
-        updatedEService,
-        correlationId
-      )
-    : undefined;
-  return [nameEvent, descriptionEvent, operationalEvent].filter(
-    (event): event is CreateEvent<EServiceEvent> => event !== undefined
-  );
-}
-
 async function updateDraftEService(
   eserviceId: EServiceId,
   typeAndSeed: { type: "put"; seed: catalogApi.UpdateEServiceSeed },
@@ -6213,21 +6223,24 @@ async function updateDraftEService(
   assertEServiceNotTemplateInstance(eservice.data.id, eservice.data.templateId);
   assertIsDraftEservice(eservice.data);
 
-  const metadataUpdatedEService = await prepareEServiceMetadataUpdate(
+  await validateNewEserviceDescriptionAndName(
     eservice.data,
     typeAndSeed.seed,
     readModelService
   );
+
   const updatedEService = prepareDraftEServiceUpdate(
-    metadataUpdatedEService,
+    eservice.data,
     typeAndSeed
   );
+
   await deleteEServiceInterfacesOnTechnologyChange(
     eservice.data,
     updatedEService,
     fileManager,
     logger
   );
+
   const event = await repository.createEvent(
     toCreateEventEServiceUpdated(
       eserviceId,
@@ -6245,16 +6258,19 @@ function prepareDraftEServiceUpdate(
     | { type: "put"; seed: catalogApi.UpdateEServiceSeed }
     | {
         type: "patch";
-        seed: Omit<catalogApi.PatchUpdateEServiceSeed, "name" | "description">;
+        seed: catalogApi.PatchUpdateEServiceSeed;
       }
 ): EService {
   const {
+    name,
+    description,
     technology,
     mode,
     isSignalHubEnabled,
     isConsumerDelegable,
     isClientAccessDelegable,
   } = typeAndSeed.seed;
+
   const updatedTechnology = technology
     ? apiTechnologyToTechnology(technology)
     : eservice.technology;
@@ -6321,6 +6337,8 @@ function prepareDraftEServiceUpdate(
 
   const updatedEService: EService = {
     ...eservice,
+    description: description ?? eservice.description,
+    name: name ?? eservice.name,
     technology: updatedTechnology,
     mode: updatedMode,
     riskAnalysis: checkedRiskAnalysis,
@@ -6354,14 +6372,7 @@ function prepareDraftEServiceUpdate(
     throw asyncExchangeNotAllowedForReceiveMode(eservice.id);
   }
 
-  return match(typeAndSeed.type)
-    .with("put", () => updatedEService)
-    .with("patch", () =>
-      hasEServiceOperationalChanges(eservice, updatedEService)
-        ? updatedEService
-        : eservice
-    )
-    .exhaustive();
+  return updatedEService;
 }
 
 async function updateDraftDescriptor(

@@ -103,6 +103,7 @@ async function readPatchEvents(
 describe("patch update eService", () => {
   const mockEService: EService = {
     ...getMockEService(),
+    descriptors: [{ ...getMockDescriptor(), state: descriptorState.published }],
     isSignalHubEnabled: false,
   };
   const mockDocument = getMockDocument();
@@ -193,38 +194,51 @@ describe("patch update eService", () => {
     }
   );
 
-  it("should update operational fields without descriptors", async () => {
-    const eservice: EService = {
-      ...mockEService,
-      descriptors: [],
-      technology: "Rest",
-      mode: "Receive",
-    };
-    await addOneEService(eservice);
+  it.each([0, 1, 2, 3])(
+    "should update operational fields with %i Draft descriptors",
+    async (descriptorCount) => {
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: Array.from({ length: descriptorCount }, () => ({
+          ...getMockDescriptor(),
+          state: descriptorState.draft,
+        })),
+        technology: "Rest",
+        mode: "Receive",
+      };
+      await addOneEService(eservice);
 
-    const result = await catalogService.patchUpdateEService(
-      eservice.id,
-      { technology: "SOAP", isSignalHubEnabled: true },
-      getMockContextM2MAdmin({ organizationId: eservice.producerId })
-    );
+      const result = await catalogService.patchUpdateEService(
+        eservice.id,
+        { technology: "SOAP", isSignalHubEnabled: true },
+        getMockContextM2MAdmin({ organizationId: eservice.producerId })
+      );
 
-    const expectedEService: EService = {
-      ...eservice,
-      technology: "Soap",
-      isSignalHubEnabled: true,
-    };
-    expect(result).toEqual({
-      data: expectedEService,
-      metadata: { version: 1 },
-    });
-    const events = await readPatchEvents(eservice.id);
-    expect(events).toMatchObject([
-      { type: "DraftEServiceUpdated", version: "1", event_version: 2 },
-    ]);
-    expect(decodeEServicePatchEvent(events[0]!)).toEqual(
-      toEServiceV2(expectedEService)
-    );
-  });
+      const expectedEService: EService = {
+        ...eservice,
+        technology: "Soap",
+        isSignalHubEnabled: true,
+        descriptors: eservice.descriptors.map((descriptor) => ({
+          ...descriptor,
+          interface: undefined,
+          asyncExchangeCallbackInterface: undefined,
+          serverUrls: [],
+          serverUrlsDescriptions: [],
+        })),
+      };
+      expect(result).toEqual({
+        data: expectedEService,
+        metadata: { version: 1 },
+      });
+      const events = await readPatchEvents(eservice.id);
+      expect(events).toMatchObject([
+        { type: "DraftEServiceUpdated", version: "1", event_version: 2 },
+      ]);
+      expect(decodeEServicePatchEvent(events[0]!)).toEqual(
+        toEServiceV2(expectedEService)
+      );
+    }
+  );
 
   it.each([
     [],
@@ -236,7 +250,7 @@ describe("patch update eService", () => {
       { ...getMockDescriptor(), state: descriptorState.draft },
     ],
   ])(
-    "should update metadata without changing descriptors or operational data (case #%#)",
+    "should update metadata preserving non-Draft data and legacy Draft semantics (case #%#)",
     async (...descriptors) => {
       const eservice: EService = {
         ...mockEService,
@@ -256,55 +270,78 @@ describe("patch update eService", () => {
         { name: "Updated name", description: "Updated description" },
         ctx
       );
+      const isDraft = descriptors.every(
+        (descriptor) => descriptor.state === descriptorState.draft
+      );
       const expectedEService = {
         ...before!.data,
         name: "Updated name",
         description: "Updated description",
+        riskAnalysis: isDraft ? [] : before!.data.riskAnalysis,
       };
       expect(result).toEqual({
         data: expectedEService,
-        metadata: { version: 2 },
+        metadata: { version: isDraft ? 1 : 2 },
       });
       const events = await readPatchEvents(eservice.id);
-      expect(events).toMatchObject([
-        {
-          version: "1",
-          type: "EServiceNameUpdated",
-          event_version: 2,
-          correlation_id: ctx.correlationId,
-        },
-        {
-          version: "2",
-          type: "EServiceDescriptionUpdated",
-          event_version: 2,
-          correlation_id: ctx.correlationId,
-        },
-      ]);
-      expect(decodeEServicePatchEvent(events[0]!)).toEqual(
-        toEServiceV2({ ...before!.data, name: expectedEService.name })
+      expect(events).toMatchObject(
+        isDraft
+          ? [
+              {
+                version: "1",
+                type: "DraftEServiceUpdated",
+                event_version: 2,
+                correlation_id: ctx.correlationId,
+              },
+            ]
+          : [
+              {
+                version: "1",
+                type: "EServiceDescriptionUpdated",
+                event_version: 2,
+                correlation_id: ctx.correlationId,
+              },
+              {
+                version: "2",
+                type: "EServiceNameUpdated",
+                event_version: 2,
+                correlation_id: ctx.correlationId,
+              },
+            ]
       );
-      expect(
-        decodeProtobufPayload({
-          messageType: EServiceNameUpdatedV2,
-          payload: events[0]!.data,
-        }).oldName
-      ).toBe(eservice.name);
-      expect(decodeEServicePatchEvent(events[1]!)).toEqual(
-        toEServiceV2(expectedEService)
-      );
+      for (const event of events) {
+        expect(decodeEServicePatchEvent(event)).toEqual(
+          toEServiceV2(expectedEService)
+        );
+      }
+      if (!isDraft) {
+        expect(
+          decodeProtobufPayload({
+            messageType: EServiceNameUpdatedV2,
+            payload: events[1]!.data,
+          }).oldName
+        ).toBe(eservice.name);
+      }
     }
   );
 
-  it.each(["name", "description", "both"] as const)(
-    "should not create events or advance the version for unchanged metadata (%s)",
-    async (field) => {
+  it.each(
+    (["name", "description", "both"] as const).flatMap((field) =>
+      [undefined, descriptorState.draft, descriptorState.archived].map(
+        (state) => ({ field, state })
+      )
+    )
+  )(
+    "should not create events or advance the version for unchanged metadata ($field, $state)",
+    async ({ field, state }) => {
       const eservice: EService = {
         ...mockEService,
-        descriptors: [
-          { ...getMockDescriptor(), state: descriptorState.archived },
-        ],
+        descriptors: state ? [{ ...getMockDescriptor(), state }] : [],
+        mode: "Receive",
+        riskAnalysis: [getMockValidRiskAnalysis("PA")],
       };
       await addOneEService(eservice);
+      const deleteSpy = vi.spyOn(fileManager, "delete");
       const seed = match(field)
         .with("name", () => ({ name: eservice.name }))
         .with("description", () => ({ description: eservice.description }))
@@ -321,6 +358,7 @@ describe("patch update eService", () => {
         )
       ).toEqual({ data: eservice, metadata: { version: 0 } });
       expect(await readPatchEvents(eservice.id)).toEqual([]);
+      expect(deleteSpy).not.toHaveBeenCalled();
     }
   );
 
@@ -373,7 +411,11 @@ describe("patch update eService", () => {
       expect(
         await catalogService.patchUpdateEService(
           eservice.id,
-          seed,
+          {
+            name: eservice.name,
+            description: eservice.description,
+            ...seed,
+          },
           getMockContextM2MAdmin({ organizationId: eservice.producerId })
         )
       ).toEqual({ data: eservice, metadata: { version: 0 } });
@@ -381,30 +423,87 @@ describe("patch update eService", () => {
     }
   );
 
-  it("should preserve a nonzero metadata version when repeating a successful update", async () => {
-    await addOneEService(mockEService);
-    const seed = {
-      name: "Updated name",
-      description: "Updated description",
-    };
-    const ctx = getMockContextM2MAdmin({
-      organizationId: mockEService.producerId,
-    });
-    const firstResult = await catalogService.patchUpdateEService(
-      mockEService.id,
-      seed,
-      ctx
-    );
-    await upsertEService(
-      readModelDB,
-      firstResult.data,
-      firstResult.metadata.version
-    );
-    expect(
-      await catalogService.patchUpdateEService(mockEService.id, seed, ctx)
-    ).toEqual(firstResult);
-    expect(await readPatchEvents(mockEService.id)).toHaveLength(2);
-  });
+  it.each([
+    {
+      seed: { personalData: null },
+      expected: { personalData: undefined, asyncExchange: true },
+    },
+    {
+      seed: { asyncExchange: null },
+      expected: { personalData: true, asyncExchange: undefined },
+    },
+    {
+      seed: { personalData: false, asyncExchange: false },
+      expected: { personalData: false, asyncExchange: false },
+    },
+  ] satisfies Array<{
+    seed: catalogApi.PatchUpdateEServiceSeed;
+    expected: Pick<EService, "personalData" | "asyncExchange">;
+  }>)(
+    "should persist clearing or disabling optional Draft fields (case #%#)",
+    async ({ seed, expected }) => {
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [{ ...getMockDescriptor(), state: descriptorState.draft }],
+        mode: "Deliver",
+        personalData: true,
+        asyncExchange: true,
+      };
+      await addOneEService(eservice);
+
+      const result = await catalogService.patchUpdateEService(
+        eservice.id,
+        seed,
+        getMockContextM2MAdmin({ organizationId: eservice.producerId })
+      );
+
+      expect(result).toEqual({
+        data: { ...eservice, ...expected },
+        metadata: { version: 1 },
+      });
+      const events = await readPatchEvents(eservice.id);
+      expect(events).toMatchObject([
+        { type: "DraftEServiceUpdated", version: "1", event_version: 2 },
+      ]);
+      expect(decodeEServicePatchEvent(events[0]!)).toEqual(
+        toEServiceV2(result.data)
+      );
+    }
+  );
+
+  it.each([descriptorState.draft, descriptorState.published])(
+    "should preserve a nonzero metadata version when repeating a successful update (%s)",
+    async (state) => {
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [{ ...getMockDescriptor(), state }],
+      };
+      await addOneEService(eservice);
+      const seed = {
+        name: "Updated name",
+        description: "Updated description",
+      };
+      const ctx = getMockContextM2MAdmin({
+        organizationId: eservice.producerId,
+      });
+      const firstResult = await catalogService.patchUpdateEService(
+        eservice.id,
+        seed,
+        ctx
+      );
+      await upsertEService(
+        readModelDB,
+        firstResult.data,
+        firstResult.metadata.version
+      );
+      expect(
+        await catalogService.patchUpdateEService(eservice.id, seed, ctx)
+      ).toEqual(firstResult);
+      expect(await readPatchEvents(eservice.id)).toHaveLength(
+        state === descriptorState.draft ? 1 : 2
+      );
+    }
+  );
 
   it("should reject concurrent metadata updates without partial batches or retry", async () => {
     await addOneEService(mockEService);
@@ -440,15 +539,10 @@ describe("patch update eService", () => {
       .map((state) => [{ ...getMockDescriptor(), state }]),
     [
       { ...getMockDescriptor(), state: descriptorState.draft },
-      { ...getMockDescriptor(), state: descriptorState.draft },
-    ],
-    [
-      { ...getMockDescriptor(), state: descriptorState.draft },
-      { ...getMockDescriptor(), state: descriptorState.draft },
-      { ...getMockDescriptor(), state: descriptorState.draft },
+      { ...getMockDescriptor(), state: descriptorState.published },
     ],
   ])(
-    "should reject mixed operational updates atomically with non-Draft or multiple descriptors (case #%#)",
+    "should reject mixed operational updates atomically with any non-Draft descriptor (case #%#)",
     async (...descriptors) => {
       const eservice = { ...mockEService, descriptors };
       await addOneEService(eservice);
@@ -509,7 +603,7 @@ describe("patch update eService", () => {
     }
   );
 
-  it("should persist metadata and operational events in order with the same correlation", async () => {
+  it("should persist mixed Draft updates in a single event", async () => {
     const eservice: EService = {
       ...mockEService,
       technology: "Rest",
@@ -530,17 +624,30 @@ describe("patch update eService", () => {
     );
     const events = await readPatchEvents(eservice.id);
     expect(events).toMatchObject([
-      { type: "EServiceNameUpdated", version: "1" },
-      { type: "EServiceDescriptionUpdated", version: "2" },
-      { type: "DraftEServiceUpdated", version: "3" },
+      {
+        type: "DraftEServiceUpdated",
+        version: "1",
+        event_version: 2,
+        correlation_id: ctx.correlationId,
+      },
     ]);
-    expect(events.every((e) => e.correlation_id === ctx.correlationId)).toBe(
-      true
-    );
-    expect(decodeEServicePatchEvent(events[2]!)).toEqual(
+    expect(decodeEServicePatchEvent(events[0]!)).toEqual(
       toEServiceV2(result.data)
     );
-    expect(result.metadata.version).toBe(3);
+    expect(result.data).toEqual({
+      ...eservice,
+      name: "Updated name",
+      description: "Updated description",
+      technology: "Soap",
+      descriptors: eservice.descriptors.map((descriptor) => ({
+        ...descriptor,
+        interface: undefined,
+        asyncExchangeCallbackInterface: undefined,
+        serverUrls: [],
+        serverUrlsDescriptions: [],
+      })),
+    });
+    expect(result.metadata.version).toBe(1);
   });
 
   it("should roll back the whole event batch if a later event conflicts", async () => {
@@ -673,19 +780,10 @@ describe("patch update eService", () => {
       };
 
       const writtenEvent = await readLastEserviceEvent(mockEService.id);
-      const expectedVersion =
-        (seed.name ? 1 : 0) +
-        (seed.description ? 1 : 0) +
-        (seed.technology ? 1 : 0);
-
       expect(writtenEvent).toMatchObject({
         stream_id: mockEService.id,
-        version: expectedVersion.toString(),
-        type: seed.technology
-          ? "DraftEServiceUpdated"
-          : seed.description
-            ? "EServiceDescriptionUpdated"
-            : "EServiceNameUpdated",
+        version: "1",
+        type: "DraftEServiceUpdated",
         event_version: 2,
       });
 
@@ -694,7 +792,7 @@ describe("patch update eService", () => {
       );
       expect(updateEServiceReturn).toEqual({
         data: expectedEService,
-        metadata: { version: expectedVersion },
+        metadata: { version: 1 },
       });
     }
   );
@@ -882,6 +980,36 @@ describe("patch update eService", () => {
     });
   });
 
+  it("should not persist an update when interface deletion fails", async () => {
+    const eservice: EService = {
+      ...mockEService,
+      technology: "Rest",
+      descriptors: [
+        {
+          ...getMockDescriptor(),
+          state: descriptorState.draft,
+          interface: mockDocument,
+        },
+      ],
+    };
+    await addOneEService(eservice);
+    const deletionError = new Error("Interface deletion failed");
+    const deleteSpy = vi
+      .spyOn(fileManager, "delete")
+      .mockRejectedValueOnce(deletionError);
+
+    await expect(
+      catalogService.patchUpdateEService(
+        eservice.id,
+        { name: "Updated name", technology: "SOAP" },
+        getMockContextM2MAdmin({ organizationId: eservice.producerId })
+      )
+    ).rejects.toThrow(deletionError);
+
+    expect(await readPatchEvents(eservice.id)).toEqual([]);
+    deleteSpy.mockRestore();
+  });
+
   it("should write on event-store for the update of an e-service (delegate)", async () => {
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedProducer,
@@ -910,17 +1038,18 @@ describe("patch update eService", () => {
     expect(writtenEvent).toMatchObject({
       stream_id: mockEService.id,
       version: "2",
-      type: "EServiceDescriptionUpdated",
+      type: "EServiceNameUpdated",
       event_version: 2,
     });
 
     const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceDescriptionUpdatedV2,
+      messageType: EServiceNameUpdatedV2,
       payload: writtenEvent.data,
     });
 
     expect(writtenPayload).toEqual({
       eservice: toEServiceV2(expectedEService),
+      oldName: mockEService.name,
     });
     expect(updateEServiceReturn).toEqual({
       data: expectedEService,
