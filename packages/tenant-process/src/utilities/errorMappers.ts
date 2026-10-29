@@ -375,8 +375,8 @@ export const internalUpdateTenantParentErrorMapper = (
       "tenantParentRootReferencesMustBeBothSetOrNull",
       "tenantCannotBeItsOwnParent",
       "tenantRootMustBeMainInstitution",
-      "aooParentMustBeRootInstitution",
-      "uoParentMustBeRootOrAoo",
+      "aooTenantParentMustBeRootTenant",
+      "uoTenantParentMustBeRootTenantOrAooTenant",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

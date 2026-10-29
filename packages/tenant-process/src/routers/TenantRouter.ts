@@ -715,21 +715,18 @@ const tenantsRouter = (
           validateAuthorization(ctx, [INTERNAL_ROLE]);
 
           const { tOrigin, tExternalId } = req.params;
-          const { data: tenant, metadata } =
-            await tenantService.internalUpdateTenantParent(
-              {
-                tenantOrigin: tOrigin,
-                tenantExternalId: tExternalId,
-                parentTenantId: req.body.parentTenantId,
-                rootTenantId: req.body.rootTenantId,
-              },
-              ctx
-            );
+          const { metadata } = await tenantService.internalUpdateTenantParent(
+            {
+              tenantOrigin: tOrigin,
+              tenantExternalId: tExternalId,
+              parentTenantId: req.body.parentTenantId,
+              rootTenantId: req.body.rootTenantId,
+            },
+            ctx
+          );
 
           setMetadataVersionHeader(res, metadata);
-          return res
-            .status(200)
-            .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
