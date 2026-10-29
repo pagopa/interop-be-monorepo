@@ -27,6 +27,34 @@ tags:
       description: Find out more
       url: http://swagger.io
 paths:
+  /producers/dashboard/eservices:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    get:
+      tags:
+        - process
+      summary: Retrieve producer dashboard counters
+      description: Retrieve dashboard counters for the requester own e-services and active producer delegations.
+      operationId: getProducerDashboardEServices
+      responses:
+        "200":
+          description: Producer dashboard counters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProducerDashboardEServices"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /eservices:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -3153,6 +3181,71 @@ components:
       schema:
         type: string
   schemas:
+    ProducerDashboardEServices:
+      type: object
+      additionalProperties: false
+      properties:
+        eservices:
+          type: object
+          additionalProperties: false
+          properties:
+            total:
+              type: integer
+              format: int32
+            published:
+              type: integer
+              format: int32
+            suspended:
+              type: integer
+              format: int32
+            archiving:
+              type: integer
+              format: int32
+            archivingSuspended:
+              type: integer
+              format: int32
+          required:
+            - total
+            - published
+            - suspended
+            - archiving
+            - archivingSuspended
+        pendingAgreements:
+          type: integer
+          format: int32
+        waitingForApprovalPurposes:
+          type: integer
+          format: int32
+        activeAgreements:
+          type: integer
+          format: int32
+        alignment:
+          type: object
+          additionalProperties: false
+          properties:
+            aligned:
+              type: integer
+              format: int32
+            agreementWithoutPurposes:
+              type: integer
+              format: int32
+            purposesWithoutAgreement:
+              type: integer
+              format: int32
+          required:
+            - aligned
+            - agreementWithoutPurposes
+            - purposesWithoutAgreement
+        averageActivePurposesPerEService:
+          type: number
+          format: double
+      required:
+        - eservices
+        - pendingAgreements
+        - waitingForApprovalPurposes
+        - activeAgreements
+        - alignment
+        - averageActivePurposesPerEService
     EServiceSeed:
       type: object
       additionalProperties: false

@@ -16,6 +16,7 @@ import {
   tenantApi,
 } from "pagopa-interop-api-clients";
 import {
+  assertFeatureFlagEnabled,
   FileManager,
   WithLogger,
   createPollingByCondition,
@@ -51,6 +52,7 @@ import {
   toCompactProducerDescriptor,
   enhanceEServiceToBffCatalogApiProducerDescriptorEService,
   enhanceEServiceRiskAnalysisArray,
+  toBffProducerDashboard,
 } from "../api/catalogApiConverter.js";
 import {
   AuthorizationProcessClient,
@@ -350,6 +352,20 @@ export function catalogServiceBuilder(
   bffConfig: BffProcessConfig
 ) {
   return {
+    getProducerDashboard: async (
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.ProducerDashboard> => {
+      assertFeatureFlagEnabled(bffConfig, "featureFlagProducerDashboard");
+      ctx.logger.info(
+        `Retrieving producer dashboard for ${ctx.authData.organizationId}`
+      );
+      const dashboard =
+        await catalogProcessClient.getProducerDashboardEServices({
+          headers: ctx.headers,
+        });
+      return toBffProducerDashboard(dashboard);
+    },
+
     getCatalog: async (
       ctx: WithLogger<BffAppContext>,
       queries: catalogApi.GetEServicesQueryParams

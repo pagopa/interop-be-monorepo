@@ -11147,6 +11147,12 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+        "501":
+          description: Producer dashboard feature flag is disabled
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /producers/dashboard/archiving:
     get:
       tags:
