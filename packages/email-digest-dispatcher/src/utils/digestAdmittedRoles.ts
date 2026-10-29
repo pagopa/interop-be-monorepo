@@ -27,7 +27,6 @@ export type DigestSection =
   | "newEservices"
   | "updatedEservices"
   | "updatedEserviceTemplates"
-  | "popularEserviceTemplates"
   | "sentAgreements"
   | "receivedAgreements"
   | "sentPurposes"
@@ -56,14 +55,6 @@ export const digestAdmittedRoles = {
     [VIEWER_ROLE]: false,
   },
   updatedEserviceTemplates: {
-    [ADMIN_ROLE]: true,
-    [API_ROLE]: true,
-    [SECURITY_ROLE]: false,
-    [SUPPORT_ROLE]: false,
-    [REVIEWER_ROLE]: false,
-    [VIEWER_ROLE]: false,
-  },
-  popularEserviceTemplates: {
     [ADMIN_ROLE]: true,
     [API_ROLE]: true,
     [SECURITY_ROLE]: false,
@@ -157,7 +148,6 @@ const digestSectionFields: Record<DigestSection, DigestDataField[]> = {
   newEservices: ["newEservices"],
   updatedEservices: ["updatedEservices"],
   updatedEserviceTemplates: ["updatedEserviceTemplates"],
-  popularEserviceTemplates: ["popularEserviceTemplates"],
   sentAgreements: [
     "acceptedSentAgreements",
     "rejectedSentAgreements",
@@ -174,8 +164,6 @@ const digestSectionFields: Record<DigestSection, DigestDataField[]> = {
     "waitingForApprovalReceivedPurposes",
   ],
   delegations: [
-    "activeSentDelegations",
-    "rejectedSentDelegations",
     "waitingForApprovalReceivedDelegations",
     "revokedReceivedDelegations",
   ],
@@ -214,7 +202,6 @@ const digestGroups: Record<string, DigestSection[]> = {
     "newEservices",
     "updatedEservices",
     "updatedEserviceTemplates",
-    "popularEserviceTemplates",
   ],
   hasSentItemsContent: ["sentAgreements", "sentPurposes"],
   hasReceivedItemsContent: ["receivedAgreements", "receivedPurposes"],

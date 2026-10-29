@@ -58,6 +58,7 @@ import {
 import { config } from "../config/config.js";
 
 const SECTION_LIST_LIMIT = 5;
+const SECTION_CARDS_LIMIT = 6;
 
 export type DigestUser = {
   userId: UserId;
@@ -137,7 +138,7 @@ type BaseDelegation = {
   totalCount: number;
 };
 
-export type SentDelegation = BaseDelegation & {
+type SentDelegation = BaseDelegation & {
   state: DelegationState;
   delegateId: TenantId;
 };
@@ -422,7 +423,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           desc(count(agreementInReadmodelAgreement.id)),
           asc(eserviceDescriptorInReadmodelCatalog.publishedAt)
         )
-        .limit(SECTION_LIST_LIMIT);
+        .limit(SECTION_CARDS_LIMIT);
 
       logger.info(`Retrieved ${results.length} new e-services`);
 
@@ -498,24 +499,23 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           eserviceInReadmodelCatalog.producerId
         );
 
-      // Filter results where newVersion > agreementVersion (as integers) and limit to 5
-      const filteredResults = results
-        .filter((row) => {
-          const newVersionInt = parseInt(row.newVersion, 10);
-          const agreementVersionInt = parseInt(row.agreementVersion, 10);
-          return (
-            !isNaN(newVersionInt) &&
-            !isNaN(agreementVersionInt) &&
-            newVersionInt > agreementVersionInt
-          );
-        })
-        .slice(0, SECTION_LIST_LIMIT);
+      // Filter results where newVersion > agreementVersion (as integers)
+      const filteredResults = results.filter((row) => {
+        const newVersionInt = parseInt(row.newVersion, 10);
+        const agreementVersionInt = parseInt(row.agreementVersion, 10);
+        return (
+          !isNaN(newVersionInt) &&
+          !isNaN(agreementVersionInt) &&
+          newVersionInt > agreementVersionInt
+        );
+      });
 
       logger.info(
         `Retrieved ${filteredResults.length} new e-service versions for consumer ${consumerId}`
       );
 
-      return filteredResults.map((row) => ({
+      // Limited results before sending to digest section
+      return filteredResults.slice(0, SECTION_CARDS_LIMIT).map((row) => ({
         eserviceId: unsafeBrandId<EServiceId>(row.eserviceId),
         eserviceDescriptorId: unsafeBrandId<DescriptorId>(
           row.eserviceDescriptorId
@@ -554,18 +554,16 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         .as("template_usage");
 
       const results = await db
-        .select(
-          withTotalCount({
-            eserviceTemplateId: eserviceTemplateInReadmodelEserviceTemplate.id,
-            templateVersionId: templateVersionNew.id,
-            templateVersionCreatedAt: templateVersionNew.createdAt,
-            eserviceTemplateName:
-              eserviceTemplateInReadmodelEserviceTemplate.name,
-            eserviceTemplateProducerId:
-              eserviceTemplateInReadmodelEserviceTemplate.creatorId,
-            templateUsageCount: templateUsage.templateUsageCount,
-          })
-        )
+        .select({
+          eserviceTemplateId: eserviceTemplateInReadmodelEserviceTemplate.id,
+          templateVersionId: templateVersionNew.id,
+          templateVersionCreatedAt: templateVersionNew.createdAt,
+          eserviceTemplateName:
+            eserviceTemplateInReadmodelEserviceTemplate.name,
+          eserviceTemplateProducerId:
+            eserviceTemplateInReadmodelEserviceTemplate.creatorId,
+          templateUsageCount: templateUsage.templateUsageCount,
+        })
         .from(eserviceInReadmodelCatalog)
         .innerJoin(
           eserviceDescriptorInReadmodelCatalog,
@@ -637,20 +635,22 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           asc(templateVersionNew.createdAt)
         );
 
-      // Apply logic to select earliest version per template and limit to 5 templates
+      // Apply logic to select earliest version per template
       const templateMap = new Map<string, (typeof results)[0]>();
       for (const row of results) {
         if (!templateMap.has(row.eserviceTemplateId)) {
           templateMap.set(row.eserviceTemplateId, row);
         }
       }
-      const filteredResults = Array.from(templateMap.values()).slice(
-        0,
-        SECTION_LIST_LIMIT
-      );
 
       logger.info(
-        `Retrieved ${filteredResults.length} new e-service templates for consumer ${consumerId}`
+        `Retrieved ${templateMap.size} new e-service templates for consumer ${consumerId}`
+      );
+
+      // limited to 6 templates
+      const filteredResults = Array.from(templateMap.values()).slice(
+        0,
+        SECTION_CARDS_LIMIT
       );
 
       return filteredResults.map((row) => ({
@@ -660,7 +660,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         eserviceTemplateProducerId: unsafeBrandId<TenantId>(
           row.eserviceTemplateProducerId
         ),
-        totalCount: row.totalCount,
+        totalCount: templateMap.size,
       }));
     },
 
@@ -761,7 +761,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           eserviceTemplateInReadmodelEserviceTemplate.creatorId
         )
         .orderBy(desc(countDistinct(eserviceInReadmodelCatalog.id)))
-        .limit(5);
+        .limit(SECTION_CARDS_LIMIT);
 
       logger.info(
         `Retrieved ${results.length} popular eservice templates for creator ${creatorId}`
