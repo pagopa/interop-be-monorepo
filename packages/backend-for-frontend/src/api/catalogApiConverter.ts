@@ -34,6 +34,20 @@ import {
 } from "../services/validators.js";
 import { toBffCompactAgreement } from "./agreementApiConverter.js";
 
+export function toBffProducerDashboard(
+  dashboard: catalogApi.ProducerDashboardEServices
+): bffApi.ProducerDashboard {
+  return {
+    eservices: dashboard.eservices,
+    pendingAgreements: dashboard.pendingAgreements,
+    waitingForApprovalPurposes: dashboard.waitingForApprovalPurposes,
+    activeAgreements: dashboard.activeAgreements,
+    alignment: dashboard.alignment,
+    averageActivePurposesPerEService:
+      dashboard.averageActivePurposesPerEService,
+  };
+}
+
 export function toEserviceCatalogProcessQueryParams(
   queryParams: bffApi.BffGetCatalogQueryParam
 ): catalogApi.GetEServicesQueryParams {
