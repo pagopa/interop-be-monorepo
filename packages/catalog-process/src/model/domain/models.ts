@@ -19,6 +19,8 @@ import { z } from "zod";
 
 export type PersonalDataFilter = bffApi.PersonalDataFilter | undefined;
 
+export type ProducerDashboardEServices = catalogApi.ProducerDashboardEServices;
+
 export type EServiceSortBy = catalogApi.EServiceSortBy;
 
 export const defaultEServiceSortBy: EServiceSortBy = "CREATED_AT_DESC";
