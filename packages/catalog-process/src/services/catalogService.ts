@@ -49,7 +49,6 @@ import {
   getEServiceAttributeDiscreteConfig,
   EServiceDocumentId,
   EServiceEvent,
-  EServiceV2,
   EServiceId,
   eserviceMode,
   EServiceTemplate,
@@ -64,7 +63,6 @@ import {
   Tenant,
   TenantId,
   unsafeBrandId,
-  toEServiceV2,
   tenantKind,
   WithMetadata,
   AttributeKind,
@@ -6134,6 +6132,24 @@ async function deleteEServiceInterfacesOnTechnologyChange(
   );
 }
 
+function hasEServiceOperationalChanges(
+  eservice: EService,
+  updatedEService: EService
+): boolean {
+  const operationalFields = [
+    "technology",
+    "mode",
+    "isSignalHubEnabled",
+    "isConsumerDelegable",
+    "isClientAccessDelegable",
+    "personalData",
+    "asyncExchange",
+  ] as const;
+  return operationalFields.some(
+    (field) => eservice[field] !== updatedEService[field]
+  );
+}
+
 function createEServicePatchEvents(
   eservice: WithMetadata<EService>,
   metadataUpdatedEService: EService,
@@ -6161,17 +6177,19 @@ function createEServicePatchEvents(
           metadataUpdatedEService,
           correlationId
         );
-  const operationalEvent =
-    metadataUpdatedEService === updatedEService
-      ? undefined
-      : toCreateEventEServiceUpdated(
-          eservice.data.id,
-          eservice.metadata.version +
-            (nameEvent ? 1 : 0) +
-            (descriptionEvent ? 1 : 0),
-          updatedEService,
-          correlationId
-        );
+  const operationalEvent = hasEServiceOperationalChanges(
+    metadataUpdatedEService,
+    updatedEService
+  )
+    ? toCreateEventEServiceUpdated(
+        eservice.data.id,
+        eservice.metadata.version +
+          (nameEvent ? 1 : 0) +
+          (descriptionEvent ? 1 : 0),
+        updatedEService,
+        correlationId
+      )
+    : undefined;
   return [nameEvent, descriptionEvent, operationalEvent].filter(
     (event): event is CreateEvent<EServiceEvent> => event !== undefined
   );
@@ -6305,6 +6323,7 @@ function prepareDraftEServiceUpdate(
     ...eservice,
     technology: updatedTechnology,
     mode: updatedMode,
+    riskAnalysis: checkedRiskAnalysis,
     descriptors: interfaceHasToBeDeleted
       ? eservice.descriptors.map((d) => ({
           ...d,
@@ -6335,14 +6354,14 @@ function prepareDraftEServiceUpdate(
     throw asyncExchangeNotAllowedForReceiveMode(eservice.id);
   }
 
-  if (
-    typeAndSeed.type === "patch" &&
-    EServiceV2.equals(toEServiceV2(eservice), toEServiceV2(updatedEService))
-  ) {
-    return eservice;
-  }
-
-  return { ...updatedEService, riskAnalysis: checkedRiskAnalysis };
+  return match(typeAndSeed.type)
+    .with("put", () => updatedEService)
+    .with("patch", () =>
+      hasEServiceOperationalChanges(eservice, updatedEService)
+        ? updatedEService
+        : eservice
+    )
+    .exhaustive();
 }
 
 async function updateDraftDescriptor(
