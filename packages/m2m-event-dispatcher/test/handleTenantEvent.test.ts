@@ -40,7 +40,7 @@ describe("handleTenantEvent test", async () => {
 
       const eventTimestamp = new Date();
 
-      const expectedM2MEvent = {
+      const expectedM2MEvent: TenantM2MEvent = {
         id: expect.any(String),
         eventType,
         eventTimestamp,

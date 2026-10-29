@@ -42,7 +42,8 @@ describe("Events V2", () => {
 
   it("ProducerKeychainKeyAdded", async () => {
     const producerKeychainId: ProducerKeychainId = generateId();
-    const mockKey = {
+    // TODO REVIEW THIS CHANGE
+    const mockKey: Key & { producerKeychainId: ProducerKeychainId } = {
       ...getMockKey(),
       producerKeychainId,
       encodedPem: base64Key,
@@ -121,7 +122,7 @@ describe("Events V2", () => {
       1
     );
 
-    const updatedProducerKeychain = {
+    const updatedProducerKeychain: ProducerKeychain = {
       ...mockProducerKeychain,
       producerKeys: [],
     };

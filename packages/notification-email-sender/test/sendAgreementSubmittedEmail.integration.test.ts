@@ -79,7 +79,7 @@ describe("sendAgreementSubmittedEmail", () => {
 
     const submissionDate = new Date("2021-01-01");
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       stamps: {
         submission: { when: submissionDate, who: generateId<UserId>() },

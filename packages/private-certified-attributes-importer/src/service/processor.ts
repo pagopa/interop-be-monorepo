@@ -23,6 +23,12 @@ import { ReadModelServiceSQL } from "./readModelService.js";
 
 const INFOCAMERE_ORIGIN_PREFIX = "PDND_INFOCAMERE";
 
+// TODO REVIEW THIS CHANGE
+type PollingConfig = {
+  defaultPollingMaxRetries: number;
+  defaultPollingRetryDelay: number;
+};
+
 type SyncAttributeParams = {
   tenant: Tenant;
   attribute: Attribute;
@@ -32,10 +38,7 @@ type SyncAttributeParams = {
   logger: Logger;
   correlationId: CorrelationId;
   readModel: ReadModelServiceSQL;
-  pollingConfig: {
-    defaultPollingMaxRetries: number;
-    defaultPollingRetryDelay: number;
-  };
+  pollingConfig: PollingConfig;
 };
 
 export async function importAttributes(
@@ -79,7 +82,7 @@ export async function importAttributes(
     `Found ${infocamereTenants.length} InfoCamere tenants and ${alreadyAssignedTenants.length} tenants with existing attributes. Total unique tenants to process: ${tenantsToProcess.length}`
   );
 
-  const pollingConfig = {
+  const pollingConfig: PollingConfig = {
     defaultPollingMaxRetries: config.defaultPollingMaxRetries,
     defaultPollingRetryDelay: config.defaultPollingRetryDelay,
   };
@@ -146,7 +149,8 @@ async function syncAttribute({
   }
 
   const token = await refreshableToken.get();
-  const context = {
+  // TODO REVIEW THIS CHANGE
+  const context: { correlationId: CorrelationId; bearerToken: string } = {
     correlationId,
     bearerToken: token.serialized,
   };

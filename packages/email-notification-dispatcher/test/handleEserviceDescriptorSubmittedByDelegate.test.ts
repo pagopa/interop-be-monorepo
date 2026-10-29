@@ -52,7 +52,7 @@ describe("handleEServiceDescriptorSubmittedByDelegate", async () => {
     getMockUser(delegatorTenant.id),
     getMockUser(delegatorTenant.id),
   ];
-  const eservice = {
+  const eservice: EService = {
     ...getMockEService(),
     id: generateId<EServiceId>(),
     producerId: delegatorId,

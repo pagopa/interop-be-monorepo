@@ -1,6 +1,7 @@
 import { getMockAgreement, sortAgreement } from "pagopa-interop-commons-test";
 import {
   AgreementEventEnvelopeV2,
+  AgreementV2,
   generateId,
   toAgreementV2,
 } from "pagopa-interop-models";
@@ -38,7 +39,8 @@ describe("events V2", async () => {
       "AgreementArchivedByUpgrade",
     ] as const;
 
-    const event = {
+    // TODO REVIEW THIS CHANGE
+    const event: { agreement: AgreementV2 } = {
       agreement: toAgreementV2(agreement),
     };
 
@@ -80,7 +82,8 @@ describe("events V2", async () => {
     ] as const;
 
     for (const eventType of eventTypesConsumerDocument) {
-      const event = {
+      // TODO REVIEW THIS CHANGE
+      const event: { agreement: AgreementV2; documentId: string } = {
         agreement: toAgreementV2(agreement),
         documentId: generateId(),
       };
@@ -117,7 +120,8 @@ describe("events V2", async () => {
     await agreementWriterService.upsertAgreement(agreement, 1);
 
     const eventType = "AgreementDeleted";
-    const event = {
+    // TODO REVIEW THIS CHANGE
+    const event: { agreement: AgreementV2 } = {
       agreement: toAgreementV2(agreement),
     };
 

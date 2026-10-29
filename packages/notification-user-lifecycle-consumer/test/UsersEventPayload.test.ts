@@ -1,4 +1,5 @@
 import {
+  BaseUsersEventPayload,
   selfcareUserEventType,
   relationshipStatus,
 } from "pagopa-interop-models";
@@ -9,7 +10,7 @@ import { UsersEventPayload } from "../src/model/UsersEventPayload.js";
 describe("UsersEventPayload", () => {
   describe("ADD event", () => {
     it("should transform ADD event to add type", () => {
-      const rawEvent = {
+      const rawEvent: BaseUsersEventPayload = {
         id: "event-125",
         institutionId: "inst-123",
         productId: "prod-123",
@@ -41,7 +42,10 @@ describe("UsersEventPayload", () => {
     });
 
     it("should throw if required fields are missing", () => {
-      const invalidEvent = {
+      // TODO REVIEW THIS CHANGE
+      const invalidEvent: Pick<BaseUsersEventPayload, "eventType"> & {
+        user: Partial<BaseUsersEventPayload["user"]>;
+      } = {
         // Missing required fields
         eventType: selfcareUserEventType.add,
         user: {
@@ -56,7 +60,7 @@ describe("UsersEventPayload", () => {
 
   describe("UPDATE event", () => {
     it("should transform UPDATE event to update type", () => {
-      const rawEvent = {
+      const rawEvent: BaseUsersEventPayload = {
         id: "event-126",
         institutionId: "inst-123",
         productId: "prod-123",
@@ -90,7 +94,7 @@ describe("UsersEventPayload", () => {
 
   describe("DELETE event", () => {
     it("should transform DELETE event to delete type", () => {
-      const rawEvent = {
+      const rawEvent: BaseUsersEventPayload = {
         id: "event-125",
         institutionId: "inst-123",
         productId: "prod-123",

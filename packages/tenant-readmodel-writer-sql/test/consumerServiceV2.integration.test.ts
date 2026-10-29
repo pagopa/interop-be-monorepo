@@ -35,6 +35,10 @@ import {
   CertifiedTenantAttribute,
   TenantRemoteIdAssignedV2,
   CertifiedDiscreteTenantAttribute,
+  DeclaredTenantAttribute,
+  TenantMail,
+  TenantRemoteId,
+  MaintenanceTenantRemoteIdDeletedV2,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 
@@ -391,7 +395,7 @@ describe("Tenant Events V2", async () => {
     });
   });
   it("TenantDeclaredAttributeRevoked", async () => {
-    const declaredAttribute = {
+    const declaredAttribute: DeclaredTenantAttribute = {
       ...getMockDeclaredTenantAttribute(),
       revocationTimestamp: new Date(),
     };
@@ -670,7 +674,7 @@ describe("Tenant Events V2", async () => {
   it("TenantMailAdded", async () => {
     await tenantWriterService.upsertTenant(mockTenant, 1);
 
-    const mail = { ...getMockTenantMail() };
+    const mail: TenantMail = { ...getMockTenantMail() };
 
     const updatedTenant: Tenant = {
       ...mockTenant,
@@ -891,12 +895,12 @@ describe("Tenant Events V2", async () => {
     });
   });
   it("MaintenanceTenantRemoteIdDeleted", async () => {
-    const deletedRemoteId = {
+    const deletedRemoteId: TenantRemoteId = {
       origin: "ISTAT",
       value: "12345",
       assignmentTimestamp: new Date(),
     };
-    const notDeletedRemoteId = {
+    const notDeletedRemoteId: TenantRemoteId = {
       origin: "OTHER",
       value: "67890",
       assignmentTimestamp: new Date(),
@@ -912,7 +916,7 @@ describe("Tenant Events V2", async () => {
       remoteIds: [notDeletedRemoteId],
     };
 
-    const payload = {
+    const payload: MaintenanceTenantRemoteIdDeletedV2 = {
       tenant: toTenantV2(updatedTenant),
     };
 

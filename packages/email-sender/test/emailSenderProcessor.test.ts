@@ -28,7 +28,8 @@ describe("emailSenderProcessor", () => {
     kind: "SES",
     send: vi.fn().mockResolvedValue(undefined),
   } as EmailManagerSES;
-  const mockSESSender = {
+  // TODO REVIEW THIS CHANGE
+  const mockSESSender: { label: string; mail: string } = {
     label: "mock sender",
     mail: "sender@mock.com",
   };

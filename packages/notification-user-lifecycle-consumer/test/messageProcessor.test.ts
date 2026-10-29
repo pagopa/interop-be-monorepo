@@ -3,6 +3,7 @@ import { notificationConfigApi } from "pagopa-interop-api-clients";
 import { logger } from "pagopa-interop-commons";
 import { RefreshableInteropToken } from "pagopa-interop-commons";
 import {
+  BaseUsersEventPayload,
   genericInternalError,
   TenantId,
   unsafeBrandId,
@@ -94,7 +95,11 @@ describe("processUserEvent", () => {
     ).mockResolvedValue(undefined);
   });
 
-  const baseEvent = {
+  // TODO REVIEW THIS CHANGE
+  const baseEvent: Omit<UsersEventPayload, "eventType" | "user"> & {
+    user: UsersEventPayload["user"] &
+      Pick<BaseUsersEventPayload["user"], "name" | "familyName" | "email">;
+  } = {
     id: "event-125",
     institutionId,
     productId: "prod-123",

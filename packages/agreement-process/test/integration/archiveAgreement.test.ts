@@ -111,7 +111,7 @@ describe("archive agreement", () => {
     const delegateId = generateId<TenantId>();
     const authData = getMockAuthData(delegateId);
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       state: randomArrayItem(agreementArchivableStates),
     };
@@ -184,7 +184,7 @@ describe("archive agreement", () => {
   it("should throw tenantIsNotTheDelegateConsumer when the requester is the consumer but there is a consumer delegation", async () => {
     const authData = getMockAuthData();
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       consumerId: authData.organizationId,
       state: randomArrayItem(agreementArchivableStates),

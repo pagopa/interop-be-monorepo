@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { authorizationApi } from "pagopa-interop-api-clients";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
 import { EServiceId, TenantId, generateId } from "pagopa-interop-models";
@@ -10,7 +11,7 @@ import { api, authorizationService } from "../vitest.api.setup.js";
 describe("API /producerKeychains/eservices/{eserviceId}/flags authorization test", () => {
   const eserviceId = generateId<EServiceId>();
   const producerId = generateId<TenantId>();
-  const response = {
+  const response: authorizationApi.ProducerKeychainEServiceFlags = {
     hasProducerKeychain: true,
     hasProducerKeychainKeys: true,
   };

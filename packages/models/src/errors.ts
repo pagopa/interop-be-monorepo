@@ -130,6 +130,7 @@ export function makeApiProblemBuilder<T extends string>(
 ): MakeApiProblemFn<T> {
   const { problemErrorsPassthrough = true, forceGenericProblemOn500 = false } =
     options;
+  // eslint-disable-next-line interop/require-type-for-object
   const allErrors = { ...commonErrorCodes, ...errors };
 
   function retrieveServiceErrorCode(serviceName: string): string {

@@ -34,7 +34,10 @@ export const dispatchEmailDeliveryBuilder =
       eventType: row.eventType,
       streamId: row.entityId,
     });
-    const handlerDeps = {
+    // TODO REVIEW THIS CHANGE
+    const handlerDeps: Parameters<
+      typeof handleEserviceArchivingScheduledReminderEmail
+    >[1] = {
       readModelService: deps.readModelService,
       templateService: deps.templateService,
       bffUrl: deps.bffUrl,

@@ -1,42 +1,42 @@
 /* eslint-disable functional/no-let */
 import { getMockAttribute } from "pagopa-interop-commons-test";
-import { attributeKind } from "pagopa-interop-models";
+import { Attribute, attributeKind } from "pagopa-interop-models";
 import { describe, beforeEach, it, expect } from "vitest";
 
 import { addOneAttribute, readModelService } from "../integrationUtils.js";
 
 describe("getAttributesByKindsNameOrigin", () => {
-  const attribute1 = {
+  const attribute1: Attribute = {
     ...getMockAttribute(attributeKind.certified),
     name: "attribute 001 test",
     origin: "IPA",
     code: "12345A",
   };
-  const attribute2 = {
+  const attribute2: Attribute = {
     ...getMockAttribute(attributeKind.certified),
     name: "attribute 002 test",
     origin: "IPA",
     code: "12345B",
   };
-  const attribute3 = {
+  const attribute3: Attribute = {
     ...getMockAttribute(attributeKind.certified),
     name: "attribute 003 test",
     origin: "IPA",
     code: "12345C",
   };
-  const attribute4 = {
+  const attribute4: Attribute = {
     ...getMockAttribute(attributeKind.declared),
     name: "attribute 004",
   };
-  const attribute5 = {
+  const attribute5: Attribute = {
     ...getMockAttribute(attributeKind.declared),
     name: "attribute 005",
   };
-  const attribute6 = {
+  const attribute6: Attribute = {
     ...getMockAttribute(attributeKind.verified),
     name: "attribute 006",
   };
-  const attribute7 = {
+  const attribute7: Attribute = {
     ...getMockAttribute(attributeKind.verified),
     name: "attribute 007",
   };

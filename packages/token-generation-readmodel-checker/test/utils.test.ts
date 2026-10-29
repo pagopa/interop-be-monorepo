@@ -209,11 +209,11 @@ describe("Token Generation Read Model Checker utils tests", () => {
         state: descriptorState.published,
         audience: ["pagopa.it"],
       };
-      const eservice1 = {
+      const eservice1: EService = {
         ...getMockEService(),
         descriptors: [descriptor1],
       };
-      const eservice2 = {
+      const eservice2: EService = {
         ...getMockEService(),
         descriptors: [descriptor2],
       };

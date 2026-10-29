@@ -8,6 +8,7 @@ import {
 import {
   Client,
   generateId,
+  ListResult,
   PurposeId,
   TenantId,
   UserId,
@@ -42,14 +43,23 @@ describe("API /clients authorization test", () => {
     kind: "Consumer",
   };
 
-  const clientsResponse = {
+  const clientsResponse: ListResult<Client> = {
     results: [client1, client2],
     totalCount: 2,
   };
 
   authorizationService.getClients = vi.fn().mockResolvedValue(clientsResponse);
 
-  const queryParams = {
+  // TODO REVIEW THIS CHANGE
+  const queryParams: {
+    name: string;
+    userIds: UserId[];
+    purposes: PurposeId[];
+    consumerId: TenantId;
+    kind: string;
+    offset: number;
+    limit: number;
+  } = {
     name: "client",
     userIds: [userId1, userId2],
     purposes: [purposeId],

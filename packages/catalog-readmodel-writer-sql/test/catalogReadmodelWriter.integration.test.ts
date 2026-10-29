@@ -215,7 +215,10 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [descriptor],
       };
-      const legacyEServiceWithAttributes = {
+      // TODO REVIEW THIS CHANGE
+      const legacyEServiceWithAttributes: EService & {
+        attributes: EserviceAttributes;
+      } = {
         ...eservice,
         attributes,
       };
@@ -239,7 +242,7 @@ describe("database test", async () => {
       expect(retrievedEserviceBeforeMove?.data).toEqual(eservice);
       expect(retrievedEserviceBeforeMove?.metadata).toEqual({ version: 1 });
 
-      const expectedDescriptor = {
+      const expectedDescriptor: Descriptor = {
         ...descriptor,
         attributes,
       };

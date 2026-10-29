@@ -9,6 +9,7 @@ import { SignatureServiceBuilder } from "pagopa-interop-commons";
 import { describe, it, expect, vi, Mock, beforeEach } from "vitest";
 
 import { sqsMessageHandler } from "../src/handlers/sqsMessageHandler.js";
+import { SqsSafeStorageBody } from "../src/models/sqsSafeStorageBody.js";
 
 const mockFileManager: Partial<FileManager> = {
   resumeOrStoreBytes: vi.fn(),
@@ -41,7 +42,7 @@ describe("sqsMessageHandler - S3 409 Conflict", () => {
   });
 
   it("should handle S3 409 Conflict gracefully for RISK_ANALYSIS_DOCUMENT", async () => {
-    const sqsMessageBody = {
+    const sqsMessageBody: SqsSafeStorageBody = {
       version: "0",
       id: "6e902b1c-7f55-4074-a036-749e75551f33",
       "detail-type": "Object Created",
@@ -67,6 +68,7 @@ describe("sqsMessageHandler - S3 409 Conflict", () => {
       Body: JSON.stringify(sqsMessageBody),
     };
 
+    // eslint-disable-next-line interop/require-type-for-object
     const mockFileReference = { download: { url: "http://mock-url.com/file" } };
     const mockFileContent = Buffer.from("test content");
 
