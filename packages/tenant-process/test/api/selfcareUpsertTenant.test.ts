@@ -97,6 +97,10 @@ describe("API POST /selfcare/tenants test", () => {
     { body: { ...tenantSeed, name: "" } },
     { body: { ...tenantSeed, subUnitType: "invalid" } },
     { body: { ...tenantSeed, extraField: 1 } },
+    { body: { ...tenantSeed, parentExternalId: { origin: "IPA" } } },
+    {
+      body: { ...tenantSeed, parentExternalId: { origin: "IPA", value: 123 } },
+    },
   ])("Should return 400 if passed invalid data: %s", async ({ body }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, body as tenantApi.SelfcareTenantSeed);
