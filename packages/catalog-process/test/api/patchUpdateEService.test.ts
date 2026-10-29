@@ -14,6 +14,7 @@ import {
   EServiceId,
   generateId,
   operationForbidden,
+  eventConflictError,
 } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi } from "vitest";
@@ -128,7 +129,12 @@ describe("PATCH /eservices/{eServiceId} router test", () => {
 
   it.each([
     [{ name: 123 }, mockEService.id],
+    [{ name: null }, mockEService.id],
+    [{ name: "abcd" }, mockEService.id],
+    [{ name: "a".repeat(61) }, mockEService.id],
     [{ description: null }, mockEService.id],
+    [{ description: "too short" }, mockEService.id],
+    [{ description: "a".repeat(401) }, mockEService.id],
     [{ technology: "invalidTechnology" }, mockEService.id],
     [{ mode: "invalidMode" }, mockEService.id],
     [{ isConsumerDelegable: "stringInsteadOfBool" }, mockEService.id],
@@ -178,7 +184,11 @@ describe("PATCH /eservices/{eServiceId} router test", () => {
     },
     {
       error: eserviceNotInDraftState(mockEService.id),
-      expectedStatus: 400,
+      expectedStatus: 409,
+    },
+    {
+      error: eventConflictError(generateId(), mockEService.id, 0),
+      expectedStatus: 409,
     },
     {
       error: templateInstanceNotAllowed(
