@@ -1,0 +1,26 @@
+meta {
+  name: Reject purpose
+  type: http
+  seq: 16
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/purposes/:purposeId/reject
+  body: json
+  auth: none
+}
+
+params:path {
+  purposeId: {{purposeId}}
+}
+
+headers {
+  Authorization: {{DPOP-JWT-M2M-ADMIN}}
+  DPoP: {{DPOP-PROOF}}
+}
+
+body:json {
+  {
+    "rejectionReason": "Testing rejection reason"
+  }
+}
