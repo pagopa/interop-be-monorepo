@@ -2870,13 +2870,7 @@ paths:
       tags:
         - eservices
       summary: Partially update an E-Service
-      description: |
-        Updates name and description of a non-template E-Service regardless of descriptor states.
-        Operational fields retain the existing Draft-only rules. If any supplied operational
-        field is not allowed, the whole request fails atomically with 409.
-        At least one field is required; an empty object returns 400.
-        Omitted fields remain unchanged. Unchanged values succeed without new events or
-        a metadata version increment. Returns the updated resource after read-model polling.
+      description: Partially update an E-Service
       operationId: updateDraftEService
       requestBody:
         content:
