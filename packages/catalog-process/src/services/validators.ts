@@ -305,6 +305,9 @@ export async function assertNoExistingProducerDelegationForEServiceArchiving(
 }
 
 export function isDraftEservice(eservice: EService): boolean {
+  /**
+   * NB. Empty array still returns true.
+   */
   return eservice.descriptors.every((d) => d.state === descriptorState.draft);
 }
 
