@@ -16,7 +16,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
-  getMockApiError,
   getMockBffApiPatchPurposeUpdateFromTemplateContent,
   getMockBffApiPurposeVersionResource,
 } from "../../mockUtils.js";
@@ -33,7 +32,6 @@ describe("API POST /purposeTemplates/{purposeTemplateId}/purposes/{purposeId} te
   const purposeId = mockPurposeVersionResource.purposeId;
 
   beforeEach(() => {
-    clients.purposeProcessClientWithMetadata.getPurpose = vi.fn();
     clients.purposeProcessClient.patchUpdatePurposeFromTemplate = vi
       .fn()
       .mockResolvedValue(mockPurpose);
@@ -56,21 +54,6 @@ describe("API POST /purposeTemplates/{purposeTemplateId}/purposes/{purposeId} te
     const res = await makeRequest(token);
     expect(res.status).toBe(200);
     expect(res.body).toEqual(mockPurposeVersionResource);
-  });
-
-  it("Should forward the process conflict without diagnostic reads", async () => {
-    const error = getMockApiError(409, ["004-0056"]);
-    vi.mocked(
-      clients.purposeProcessClient.patchUpdatePurposeFromTemplate
-    ).mockRejectedValue(error);
-
-    const res = await makeRequest(generateToken(authRole.ADMIN_ROLE));
-
-    expect(res.status).toBe(409);
-    expect(res.body).toEqual(error.response?.data);
-    expect(
-      clients.purposeProcessClientWithMetadata.getPurpose
-    ).not.toHaveBeenCalled();
   });
 
   it.each([

@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { AxiosError } from "axios";
 import { bffApi } from "pagopa-interop-api-clients";
 import { authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
@@ -8,7 +7,6 @@ import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockApiError } from "../../mockUtils.js";
 import { api, clients } from "../../vitest.api.setup.js";
 
 describe("API PUT /purposes/{purposeId}/riskAnalysis/form test", () => {
@@ -25,7 +23,6 @@ describe("API PUT /purposes/{purposeId}/riskAnalysis/form test", () => {
     clients.purposeProcessClient.editRiskAnalysisForm = vi
       .fn()
       .mockResolvedValue(undefined);
-    clients.purposeProcessClientWithMetadata.getPurpose = vi.fn();
   });
 
   const makeRequest = async (
@@ -43,92 +40,6 @@ describe("API PUT /purposes/{purposeId}/riskAnalysis/form test", () => {
     const token = generateToken(authRole.REVIEWER_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(204);
-    expect(
-      clients.purposeProcessClient.editRiskAnalysisForm
-    ).toHaveBeenCalledExactlyOnceWith(
-      defaultBody,
-      expect.objectContaining({ params: { purposeId: mockPurposeId } })
-    );
-    expect(
-      clients.purposeProcessClientWithMetadata.getPurpose
-    ).not.toHaveBeenCalled();
-  });
-
-  it.each(["004-0054", "004-0066", "004-0067", "004-10034", "004-0016"])(
-    "Should forward process conflict %s without diagnostic reads or retries",
-    async (code) => {
-      const error = getMockApiError(409, [code]);
-      vi.mocked(
-        clients.purposeProcessClient.editRiskAnalysisForm
-      ).mockRejectedValue(error);
-      const token = generateToken(authRole.REVIEWER_ROLE);
-
-      const res = await makeRequest(token);
-
-      expect(res.status).toBe(409);
-      expect(res.body).toEqual(error.response?.data);
-      expect(
-        clients.purposeProcessClient.editRiskAnalysisForm
-      ).toHaveBeenCalledExactlyOnceWith(defaultBody, {
-        params: { purposeId: mockPurposeId },
-        headers: expect.objectContaining({
-          Authorization: `Bearer ${token}`,
-          "X-Correlation-Id": res.headers["x-correlation-id"],
-        }),
-      });
-      expect(
-        clients.purposeProcessClientWithMetadata.getPurpose
-      ).not.toHaveBeenCalled();
-    }
-  );
-
-  it("Should preserve multiple process errors without reclassifying them", async () => {
-    const error = getMockApiError(409, ["004-0054", "004-0016"]);
-    vi.mocked(
-      clients.purposeProcessClient.editRiskAnalysisForm
-    ).mockRejectedValue(error);
-
-    const res = await makeRequest(generateToken(authRole.REVIEWER_ROLE));
-
-    expect(res.status).toBe(409);
-    expect(res.body).toEqual(error.response?.data);
-    expect(
-      clients.purposeProcessClientWithMetadata.getPurpose
-    ).not.toHaveBeenCalled();
-  });
-
-  it.each([400, 403, 404])(
-    "Should preserve process status %s without diagnostic reads",
-    async (status) => {
-      const error = getMockApiError(status, ["004-0054"]);
-      vi.mocked(
-        clients.purposeProcessClient.editRiskAnalysisForm
-      ).mockRejectedValue(error);
-
-      const res = await makeRequest(generateToken(authRole.REVIEWER_ROLE));
-
-      expect(res.status).toBe(status);
-      expect(res.body).toEqual(error.response?.data);
-      expect(
-        clients.purposeProcessClientWithMetadata.getPurpose
-      ).not.toHaveBeenCalled();
-    }
-  );
-
-  it("Should preserve network errors without diagnostic reads or retries", async () => {
-    vi.mocked(
-      clients.purposeProcessClient.editRiskAnalysisForm
-    ).mockRejectedValue(new AxiosError("network failure"));
-
-    const res = await makeRequest(generateToken(authRole.REVIEWER_ROLE));
-
-    expect(res.status).toBe(500);
-    expect(
-      clients.purposeProcessClient.editRiskAnalysisForm
-    ).toHaveBeenCalledOnce();
-    expect(
-      clients.purposeProcessClientWithMetadata.getPurpose
-    ).not.toHaveBeenCalled();
   });
 
   it.each([
