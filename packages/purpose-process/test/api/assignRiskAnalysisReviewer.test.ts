@@ -20,7 +20,7 @@ import {
   purposeNotFound,
   tenantIsNotTheConsumer,
   reviewerWorkflowConflict,
-  userWithoutReviewerPrivileges,
+  userNotFoundOrWithoutReviewerPrivileges,
   purposeFromTemplateCannotBeModified,
   purposeNotInDraftState,
   reviewerWorkflowNotAllowedForDelegatedPurpose,
@@ -61,23 +61,29 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/assign test", () => {
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
 
-  it.each([
+  const successfulRequests = authorizedRoles.flatMap((role) => [
     {
+      role,
       description: "with reviewers",
       body: defaultBody,
     },
     {
+      role,
       description: "without reviewers for AdminWritesAdminSigns",
       body: {
         reviewMode: "ADMIN_WRITES_ADMIN_SIGNS" as const,
       },
     },
-  ])(
-    "Should return 200 for an authorized user $description",
-    async ({ body }) => {
-      const role = authRole.ADMIN_ROLE;
+  ]);
+
+  it.each(successfulRequests)(
+    "Should return 200 for an authorized user with role $role $description",
+    async ({ role, body }) => {
       const token = generateToken(role);
       const res = await makeRequest(token, mockPurpose.id, body);
       expect(res.status).toBe(200);
@@ -102,7 +108,10 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/assign test", () => {
     { error: reviewerWorkflowConflict(mockPurpose.id), expectedStatus: 409 },
     { error: duplicatedReviewersInSeed(), expectedStatus: 400 },
     {
-      error: userWithoutReviewerPrivileges(generateId(), generateId()),
+      error: userNotFoundOrWithoutReviewerPrivileges(
+        generateId(),
+        generateId()
+      ),
       expectedStatus: 400,
     },
     {
