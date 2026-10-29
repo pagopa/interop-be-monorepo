@@ -1,0 +1,28 @@
+meta {
+  name: Patch Update Purpose Template
+  type: http
+  seq: 1
+}
+
+patch {
+  url: {{host-purpose-template}}/purposeTemplates/:id
+  body: json
+  auth: none
+}
+
+params:path {
+  id: {{purposeTemplateId}}
+}
+
+headers {
+  X-Correlation-Id: {{correlation-id}}
+  Authorization: {{JWT}}
+}
+
+body:json {
+  {
+    "purposeTitle": "Purpose Title Updated!",
+    "purposeDescription": "{{randomPurposeDescription}}",
+    "targetDescription": "{{randomTargetDescription}}"
+  }
+}

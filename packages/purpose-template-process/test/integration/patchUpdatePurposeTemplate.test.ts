@@ -6,13 +6,19 @@ import {
   getMockContextM2MAdmin,
   getMockPurposeTemplate,
   getMockValidRiskAnalysisFormTemplate,
+  writeInEventstore,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
   tenantKind,
+  eventConflictError,
   PurposeTemplate,
   toPurposeTemplateV2,
   PurposeTemplateDraftUpdatedV2,
+  PurposeTemplateEvent,
+  PurposeTemplatePurposeTitleUpdatedV2,
+  PurposeTemplatePurposeDescriptionUpdatedV2,
+  PurposeTemplateTargetDescriptionUpdatedV2,
   purposeTemplateState,
   TenantId,
 } from "pagopa-interop-models";
@@ -29,6 +35,7 @@ import {
   addOnePurposeTemplate,
   purposeTemplateService,
   readLastPurposeTemplateEvent,
+  postgresDB,
 } from "../integrationUtils.js";
 
 describe("patch update purpose template", () => {
@@ -149,7 +156,10 @@ describe("patch update purpose template", () => {
       expect(writtenEvent).toMatchObject({
         stream_id: mockPurposeTemplate.id,
         version: "1",
-        type: "PurposeTemplateDraftUpdated",
+        type:
+          Object.keys(seed).length === 0 || "targetTenantKind" in seed
+            ? "PurposeTemplateDraftUpdated"
+            : "PurposeTemplateTargetDescriptionUpdated",
         event_version: 2,
       });
 
@@ -448,9 +458,15 @@ describe("patch update purpose template", () => {
         updatedAt: new Date(),
       };
 
+      const hasChanges =
+        Object.keys(cleanedSeed).length === 0 ||
+        purposeTemplate.purposeIsFreeOfCharge !==
+          expectedPurposeTemplate.purposeIsFreeOfCharge ||
+        purposeTemplate.purposeFreeOfChargeReason !==
+          expectedPurposeTemplate.purposeFreeOfChargeReason;
       expect(patchPurposeTemplateResult).toEqual({
-        data: expectedPurposeTemplate,
-        metadata: { version: 1 },
+        data: hasChanges ? expectedPurposeTemplate : purposeTemplate,
+        metadata: { version: hasChanges ? 1 : 0 },
       });
     }
   );
@@ -644,4 +660,350 @@ describe("patch update purpose template", () => {
       ).rejects.toThrowError(missingFreeOfChargeReason());
     }
   );
+
+  describe.each(Object.values(purposeTemplateState))(
+    "metadata updates in %s",
+    (state) => {
+      const metadataUpdates = [
+        {
+          seed: { purposeTitle: "Updated purpose title" },
+          type: "PurposeTemplatePurposeTitleUpdated",
+          messageType: PurposeTemplatePurposeTitleUpdatedV2,
+        },
+        {
+          seed: { purposeDescription: "Updated purpose description" },
+          type: "PurposeTemplatePurposeDescriptionUpdated",
+          messageType: PurposeTemplatePurposeDescriptionUpdatedV2,
+        },
+        {
+          seed: { targetDescription: "Updated target description" },
+          type: "PurposeTemplateTargetDescriptionUpdated",
+          messageType: PurposeTemplateTargetDescriptionUpdatedV2,
+        },
+      ] as const;
+
+      it.each(metadataUpdates)(
+        "should emit $type without changing operational fields or documents",
+        async ({ seed, type, messageType }) => {
+          const purposeTemplate = {
+            ...mockPurposeTemplate,
+            state,
+            updatedAt: new Date("2025-01-01"),
+          };
+          await addOnePurposeTemplate(purposeTemplate, 5);
+          const ctx = getMockContextM2MAdmin({
+            organizationId: purposeTemplate.creatorId,
+          });
+          const result =
+            await purposeTemplateService.patchUpdatePurposeTemplate(
+              purposeTemplate.id,
+              seed,
+              ctx
+            );
+          const expected = {
+            ...purposeTemplate,
+            ...seed,
+            updatedAt: new Date(),
+          };
+          expect(result).toEqual({
+            data: expected,
+            metadata: { version: 6 },
+          });
+          const event = await readLastPurposeTemplateEvent(purposeTemplate.id);
+          expect(event).toMatchObject({
+            type,
+            version: "6",
+            event_version: 2,
+          });
+          expect(
+            decodeProtobufPayload({ messageType, payload: event.data })
+          ).toEqual({ purposeTemplate: toPurposeTemplateV2(expected) });
+        }
+      );
+
+      it("should persist all changed metadata atomically with consecutive versions and the same correlation id", async () => {
+        const purposeTemplate = { ...mockPurposeTemplate, state };
+        await addOnePurposeTemplate(purposeTemplate, 5);
+        const ctx = getMockContextM2MAdmin({
+          organizationId: purposeTemplate.creatorId,
+        });
+        const seed = {
+          purposeTitle: "Updated purpose title",
+          purposeDescription: "Updated purpose description",
+          targetDescription: "Updated target description",
+        };
+        const result = await purposeTemplateService.patchUpdatePurposeTemplate(
+          purposeTemplate.id,
+          seed,
+          ctx
+        );
+        expect(result).toEqual({
+          data: { ...purposeTemplate, ...seed, updatedAt: new Date() },
+          metadata: { version: 8 },
+        });
+        const events = await postgresDB.many<{
+          type: PurposeTemplateEvent["type"];
+          version: string;
+          correlation_id: string;
+          data: Uint8Array;
+        }>(
+          "SELECT type, version, correlation_id, data FROM purpose_template.events WHERE stream_id = $1 AND version > 5 ORDER BY version",
+          [purposeTemplate.id]
+        );
+        expect(events).toHaveLength(3);
+        for (const [index, update] of metadataUpdates.entries()) {
+          expect(events[index]).toMatchObject({
+            type: update.type,
+            version: (6 + index).toString(),
+            correlation_id: ctx.correlationId,
+          });
+          expect(
+            decodeProtobufPayload({
+              messageType: update.messageType,
+              payload: events[index].data,
+            })
+          ).toEqual({ purposeTemplate: toPurposeTemplateV2(result.data) });
+        }
+      });
+
+      it("should return the original entity and version when the supplied metadata is unchanged", async () => {
+        const purposeTemplate = {
+          ...mockPurposeTemplate,
+          state,
+          updatedAt: new Date("2025-01-01"),
+        };
+        await addOnePurposeTemplate(purposeTemplate, 5);
+        const result = await purposeTemplateService.patchUpdatePurposeTemplate(
+          purposeTemplate.id,
+          {
+            purposeTitle: purposeTemplate.purposeTitle,
+            purposeDescription: purposeTemplate.purposeDescription,
+            targetDescription: purposeTemplate.targetDescription,
+          },
+          getMockContextM2MAdmin({
+            organizationId: purposeTemplate.creatorId,
+          })
+        );
+        expect(result).toEqual({
+          data: purposeTemplate,
+          metadata: { version: 5 },
+        });
+        expect(
+          await readLastPurposeTemplateEvent(purposeTemplate.id)
+        ).toMatchObject({ type: "PurposeTemplateAdded", version: "5" });
+      });
+
+      it("should reject a metadata update from another creator without writing events", async () => {
+        const purposeTemplate = { ...mockPurposeTemplate, state };
+        await addOnePurposeTemplate(purposeTemplate);
+        await expect(
+          purposeTemplateService.patchUpdatePurposeTemplate(
+            purposeTemplate.id,
+            { purposeTitle: purposeTemplate.purposeTitle },
+            getMockContextM2MAdmin({ organizationId: generateId<TenantId>() })
+          )
+        ).rejects.toThrowError(purposeTemplateNotFound(purposeTemplate.id));
+        expect(
+          await readLastPurposeTemplateEvent(purposeTemplate.id)
+        ).toMatchObject({ type: "PurposeTemplateAdded", version: "0" });
+      });
+
+      if (state !== purposeTemplateState.draft) {
+        it.each([
+          { targetTenantKind: tenantKind.PRIVATE },
+          { purposeDailyCalls: null },
+          { purposeIsFreeOfCharge: false },
+          { purposeFreeOfChargeReason: null },
+          { handlesPersonalData: false },
+        ] satisfies purposeTemplateApi.PatchUpdatePurposeTemplateSeed[])(
+          "should reject mixed updates atomically even if the operational value is unchanged (seed %#)",
+          async (operationalSeed) => {
+            const purposeTemplate = { ...mockPurposeTemplate, state };
+            await addOnePurposeTemplate(purposeTemplate);
+            await expect(
+              purposeTemplateService.patchUpdatePurposeTemplate(
+                purposeTemplate.id,
+                {
+                  purposeTitle: "Updated purpose title",
+                  ...operationalSeed,
+                },
+                getMockContextM2MAdmin({
+                  organizationId: purposeTemplate.creatorId,
+                })
+              )
+            ).rejects.toThrowError(
+              purposeTemplateNotInExpectedStates(purposeTemplate.id, state, [
+                purposeTemplateState.draft,
+              ])
+            );
+            expect(
+              await readLastPurposeTemplateEvent(purposeTemplate.id)
+            ).toMatchObject({ type: "PurposeTemplateAdded", version: "0" });
+          }
+        );
+      }
+    }
+  );
+
+  it("should emit only changed metadata and no draft event for unchanged operational values", async () => {
+    await addOnePurposeTemplate({
+      ...mockPurposeTemplate,
+      updatedAt: new Date("2025-01-01"),
+    });
+    const result = await purposeTemplateService.patchUpdatePurposeTemplate(
+      mockPurposeTemplate.id,
+      {
+        purposeTitle: "Updated purpose title",
+        purposeDescription: mockPurposeTemplate.purposeDescription,
+        handlesPersonalData: mockPurposeTemplate.handlesPersonalData,
+      },
+      getMockContextM2MAdmin({
+        organizationId: mockPurposeTemplate.creatorId,
+      })
+    );
+    expect(result.metadata.version).toBe(1);
+    expect(
+      await readLastPurposeTemplateEvent(mockPurposeTemplate.id)
+    ).toMatchObject({
+      type: "PurposeTemplatePurposeTitleUpdated",
+      version: "1",
+    });
+  });
+
+  it.each([undefined, new Date("2025-01-01")])(
+    "should ignore undefined properties and preserve updatedAt %s for a normalized operational no-op",
+    async (updatedAt) => {
+      const purposeTemplate = {
+        ...mockPurposeTemplate,
+        purposeIsFreeOfCharge: false,
+        purposeFreeOfChargeReason: undefined,
+        purposeDailyCalls: undefined,
+        updatedAt,
+      };
+      await addOnePurposeTemplate(purposeTemplate, 5);
+      const result = await purposeTemplateService.patchUpdatePurposeTemplate(
+        purposeTemplate.id,
+        {
+          purposeTitle: purposeTemplate.purposeTitle,
+          purposeIsFreeOfCharge: false,
+          purposeFreeOfChargeReason: null,
+          purposeDailyCalls: null,
+        },
+        getMockContextM2MAdmin({
+          organizationId: purposeTemplate.creatorId,
+        })
+      );
+      expect(result).toEqual({
+        data: purposeTemplate,
+        metadata: { version: 5 },
+      });
+      expect(
+        await readLastPurposeTemplateEvent(purposeTemplate.id)
+      ).toMatchObject({ type: "PurposeTemplateAdded", version: "5" });
+    }
+  );
+
+  it("should preserve the metadata-only path when no risk analysis form exists", async () => {
+    const purposeTemplate = {
+      ...mockPurposeTemplate,
+      purposeRiskAnalysisForm: undefined,
+    };
+    await addOnePurposeTemplate(purposeTemplate);
+    const result = await purposeTemplateService.patchUpdatePurposeTemplate(
+      purposeTemplate.id,
+      { purposeTitle: "Updated purpose title" },
+      getMockContextM2MAdmin({
+        organizationId: purposeTemplate.creatorId,
+      })
+    );
+    expect(result.data).toEqual({
+      ...purposeTemplate,
+      purposeTitle: "Updated purpose title",
+      updatedAt: new Date(),
+    });
+  });
+
+  it("should roll back all events if a later event conflicts, without retrying", async () => {
+    await addOnePurposeTemplate(mockPurposeTemplate);
+    await writeInEventstore(
+      {
+        stream_id: mockPurposeTemplate.id,
+        version: 2,
+        event: {
+          type: "PurposeTemplateDraftUpdated",
+          event_version: 2,
+          data: { purposeTemplate: toPurposeTemplateV2(mockPurposeTemplate) },
+        },
+      },
+      "purpose_template",
+      postgresDB
+    );
+    const ctx = getMockContextM2MAdmin({
+      organizationId: mockPurposeTemplate.creatorId,
+    });
+    await expect(
+      purposeTemplateService.patchUpdatePurposeTemplate(
+        mockPurposeTemplate.id,
+        {
+          purposeTitle: "Updated purpose title",
+          purposeDescription: "Updated purpose description",
+          targetDescription: "Updated target description",
+        },
+        ctx
+      )
+    ).rejects.toThrowError(
+      eventConflictError(ctx.correlationId, mockPurposeTemplate.id, 1)
+    );
+    const events = await postgresDB.many<{ version: string }>(
+      "SELECT version FROM purpose_template.events WHERE stream_id = $1 ORDER BY version",
+      [mockPurposeTemplate.id]
+    );
+    expect(events).toEqual([{ version: "0" }, { version: "2" }]);
+  });
+
+  it("should emit only one draft event with the complete snapshot for a mixed Draft update", async () => {
+    await addOnePurposeTemplate(mockPurposeTemplate);
+    const ctx = getMockContextM2MAdmin({
+      organizationId: mockPurposeTemplate.creatorId,
+    });
+    const seed = {
+      purposeTitle: "Updated purpose title",
+      purposeDescription: "Updated purpose description",
+      targetDescription: "Updated target description",
+      handlesPersonalData: !mockPurposeTemplate.handlesPersonalData,
+    };
+    const result = await purposeTemplateService.patchUpdatePurposeTemplate(
+      mockPurposeTemplate.id,
+      seed,
+      ctx
+    );
+    expect(result).toEqual({
+      data: { ...mockPurposeTemplate, ...seed, updatedAt: new Date() },
+      metadata: { version: 1 },
+    });
+    const events = await postgresDB.many<{
+      type: PurposeTemplateEvent["type"];
+      version: string;
+      correlation_id: string;
+      data: Uint8Array;
+    }>(
+      "SELECT type, version, correlation_id, data FROM purpose_template.events WHERE stream_id = $1 AND version > 0 ORDER BY version",
+      [mockPurposeTemplate.id]
+    );
+    expect(events.map(({ type }) => type)).toEqual([
+      "PurposeTemplateDraftUpdated",
+    ]);
+    for (const [index, event] of events.entries()) {
+      expect(event).toMatchObject({
+        version: (index + 1).toString(),
+        correlation_id: ctx.correlationId,
+      });
+      expect(
+        decodeProtobufPayload({
+          messageType: PurposeTemplateDraftUpdatedV2,
+          payload: event.data,
+        })
+      ).toEqual({ purposeTemplate: toPurposeTemplateV2(result.data) });
+    }
+  });
 });
