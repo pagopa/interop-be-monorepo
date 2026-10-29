@@ -130,6 +130,7 @@ import {
   templateVersionMissingAsyncExchangeProperties,
   certifiedAttributeGroupNotFoundInSeed,
   noDelegationForArchivingRequest,
+  eserviceNotInDraftState,
 } from "../model/domain/errors.js";
 import {
   ApiGetEServicesFilters,
@@ -1273,7 +1274,7 @@ export function catalogServiceBuilder(
        * can only be updated if the EService is in draft state.
        */
       if (hasOperationalFields && !isDraftEservice) {
-        assertIsDraftEservice(eservice.data);
+        throw eserviceNotInDraftState(eservice.data.id);
       }
 
       await validateNewEserviceDescriptionAndName(
