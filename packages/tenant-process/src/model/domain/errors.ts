@@ -48,8 +48,8 @@ const errorCodes = {
   tenantParentRootReferencesMustBeBothSetOrNull: "0038",
   tenantCannotBeItsOwnParent: "0039",
   tenantRootMustBeMainInstitution: "0040",
-  aooParentMustBeRootInstitution: "0041",
-  uoParentMustBeRootOrAoo: "0042",
+  aooTenantParentMustBeRootTenant: "0041",
+  uoTenantParentMustBeRootTenantOrAooTenant: "0042",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -439,22 +439,22 @@ export function tenantRootMustBeMainInstitution(
   });
 }
 
-export function aooParentMustBeRootInstitution(
+export function aooTenantParentMustBeRootTenant(
   tenantId: TenantId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `An AOO parent must be the root institution for tenant ${tenantId}`,
-    code: "aooParentMustBeRootInstitution",
-    title: "AOO parent must be the root institution",
+    detail: `The parent of AOO tenant ${tenantId} must be the tenant representing the root institution`,
+    code: "aooTenantParentMustBeRootTenant",
+    title: "AOO tenant parent must be the root institution tenant",
   });
 }
 
-export function uoParentMustBeRootOrAoo(
+export function uoTenantParentMustBeRootTenantOrAooTenant(
   tenantId: TenantId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `A UO parent must be the root institution or an AOO for tenant ${tenantId}`,
-    code: "uoParentMustBeRootOrAoo",
-    title: "UO parent must be the root institution or an AOO",
+    detail: `The parent of UO tenant ${tenantId} must be either the root tenant or an AOO tenant`,
+    code: "uoTenantParentMustBeRootTenantOrAooTenant",
+    title: "UO tenant parent must be the root tenant or an AOO",
   });
 }

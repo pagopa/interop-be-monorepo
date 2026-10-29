@@ -6,10 +6,9 @@ import { eventConflictError, generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { toApiTenant } from "../../src/model/domain/apiConverter.js";
 import {
   tenantNotFoundByExternalId,
-  uoParentMustBeRootOrAoo,
+  uoTenantParentMustBeRootTenantOrAooTenant,
 } from "../../src/model/domain/errors.js";
 import { api, tenantService } from "../vitest.api.setup.js";
 
@@ -36,12 +35,11 @@ describe("POST /internal/origin/:tOrigin/externalId/:tExternalId/parent", () => 
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  it("returns the updated tenant and metadata version to internal callers", async () => {
+  it("returns no content and the metadata version to internal callers", async () => {
     const response = await makeRequest(generateToken(authRole.INTERNAL_ROLE));
 
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(204);
     expect(response.headers["x-metadata-version"]).toBe("2");
-    expect(response.body).toEqual(tenantApi.Tenant.parse(toApiTenant(tenant)));
     expect(tenantService.internalUpdateTenantParent).toHaveBeenCalledWith(
       {
         tenantOrigin: tenant.externalId.origin,
@@ -59,7 +57,8 @@ describe("POST /internal/origin/:tOrigin/externalId/:tExternalId/parent", () => 
       body
     );
 
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(204);
+    expect(response.headers["x-metadata-version"]).toBe("2");
     expect(tenantService.internalUpdateTenantParent).toHaveBeenCalledWith(
       {
         tenantOrigin: tenant.externalId.origin,
@@ -101,7 +100,7 @@ describe("POST /internal/origin/:tOrigin/externalId/:tExternalId/parent", () => 
       expectedStatus: 404,
     },
     {
-      error: uoParentMustBeRootOrAoo(tenant.id),
+      error: uoTenantParentMustBeRootTenantOrAooTenant(tenant.id),
       expectedStatus: 400,
     },
     { error: eventConflictError(), expectedStatus: 409 },

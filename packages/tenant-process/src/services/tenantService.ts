@@ -81,8 +81,8 @@ import {
   tenantParentRootReferencesMustBeBothSetOrNull,
   tenantCannotBeItsOwnParent,
   tenantRootMustBeMainInstitution,
-  aooParentMustBeRootInstitution,
-  uoParentMustBeRootOrAoo,
+  aooTenantParentMustBeRootTenant,
+  uoTenantParentMustBeRootTenantOrAooTenant,
 } from "../model/domain/errors.js";
 import { ApiGetTenantsFilters } from "../model/domain/models.js";
 import {
@@ -2842,13 +2842,13 @@ export function tenantServiceBuilder(
       },
       { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<WithMetadata<Tenant>> {
-      const target = await retrieveTenantByExternalId({
+      const tenantToModify = await retrieveTenantByExternalId({
         tenantOrigin,
         tenantExternalId,
         readModelService,
       });
 
-      const tenant = target.data;
+      const tenant = tenantToModify.data;
       if (!tenant.subUnitType) {
         throw tenantIsNotAooOrUo(tenant.id);
       }
@@ -2891,7 +2891,7 @@ export function tenantServiceBuilder(
         match(tenant.subUnitType)
           .with(tenantUnitType.AOO, () => {
             if (parent.subUnitType || parentTenantId !== rootTenantId) {
-              throw aooParentMustBeRootInstitution(tenant.id);
+              throw aooTenantParentMustBeRootTenant(tenant.id);
             }
           })
           .with(tenantUnitType.UO, () => {
@@ -2900,7 +2900,7 @@ export function tenantServiceBuilder(
             }
 
             if (parent.subUnitType || parentTenantId !== rootTenantId) {
-              throw uoParentMustBeRootOrAoo(tenant.id);
+              throw uoTenantParentMustBeRootTenantOrAooTenant(tenant.id);
             }
           })
           .exhaustive();
@@ -2910,10 +2910,10 @@ export function tenantServiceBuilder(
         tenant.parentTenantId === parentTenantId &&
         tenant.rootTenantId === rootTenantId
       ) {
-        logger.info(
+        logger.debug(
           `Tenant ${tenant.id} parent/root references already aligned`
         );
-        return target;
+        return tenantToModify;
       }
 
       const updatedTenant: Tenant = {
@@ -2924,7 +2924,7 @@ export function tenantServiceBuilder(
       };
       const event = await repository.createEvent(
         toCreateEventTenantParentUpdated(
-          target.metadata.version,
+          tenantToModify.metadata.version,
           updatedTenant,
           correlationId
         )

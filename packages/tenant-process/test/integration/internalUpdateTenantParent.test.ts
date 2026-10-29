@@ -16,12 +16,12 @@ import { describe, it, expect } from "vitest";
 
 import { tenantNotFound } from "../../src/model/domain/errors.js";
 import {
-  aooParentMustBeRootInstitution,
+  aooTenantParentMustBeRootTenant,
   tenantCannotBeItsOwnParent,
   tenantIsNotAooOrUo,
   tenantParentRootReferencesMustBeBothSetOrNull,
   tenantRootMustBeMainInstitution,
-  uoParentMustBeRootOrAoo,
+  uoTenantParentMustBeRootTenantOrAooTenant,
 } from "../../src/model/domain/errors.js";
 import {
   addOneTenant,
@@ -174,7 +174,7 @@ describe("internalUpdateTenantParent", () => {
       parent: { ...getMockTenant(), subUnitType: tenantUnitType.AOO },
       root: getMockTenant(),
       parentRef: "parent" as const,
-      expectedError: aooParentMustBeRootInstitution,
+      expectedError: aooTenantParentMustBeRootTenant,
     },
     {
       name: "UO parent is another UO",
@@ -182,7 +182,7 @@ describe("internalUpdateTenantParent", () => {
       parent: { ...getMockTenant(), subUnitType: tenantUnitType.UO },
       root: getMockTenant(),
       parentRef: "parent" as const,
-      expectedError: uoParentMustBeRootOrAoo,
+      expectedError: uoTenantParentMustBeRootTenantOrAooTenant,
     },
     {
       name: "UO parent is root but parent and root references differ",
@@ -190,7 +190,7 @@ describe("internalUpdateTenantParent", () => {
       parent: getMockTenant(),
       root: getMockTenant(),
       parentRef: "parent" as const,
-      expectedError: uoParentMustBeRootOrAoo,
+      expectedError: uoTenantParentMustBeRootTenantOrAooTenant,
     },
   ])(
     "rejects invalid relation: $name",
