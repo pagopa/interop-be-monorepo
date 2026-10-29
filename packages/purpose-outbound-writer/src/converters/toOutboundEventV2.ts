@@ -113,6 +113,8 @@ export function toOutboundEventV2(
     )
     .with(
       { type: "MaintenancePurposeRiskAnalysisSetTenantKind" },
+      { type: "PurposeTitleUpdated" },
+      { type: "PurposeDescriptionUpdated" },
       { type: "PurposeRiskAnalysisWorkflowCreated" },
       { type: "PurposeRiskAnalysisAssigned" },
       { type: "PurposeRiskAnalysisSelfAssigned" },
