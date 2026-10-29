@@ -131,4 +131,29 @@ describe("Template Service", () => {
     expect(compiledText).toContain("inizia a gestire");
     expect(compiledText).toContain("interrompe l'accesso");
   });
+
+  it("Should render the producer archiving section", () => {
+    expect(compiledText).toContain("In fase di archiviazione - erogazione");
+    expect(compiledText).toContain("1 archiviazioni previste a breve");
+    expect(compiledText).toContain("1 e-service in fase di archiviazione");
+    expect(compiledText).toContain("1 versioni in fase di archiviazione");
+
+    expect(compiledText).toContain("C'è 1 archiviazione prevista a breve");
+    expect(compiledText).toContain(
+      "L'archiviazione della versione 3 dell'e-service Servizio Anagrafica Nazionale avverrà il giorno 05/10/2026"
+    );
+
+    expect(compiledText).toContain(
+      "Ci sono 2 versioni di e-service o e-service in fase di archiviazione"
+    );
+    expect(compiledText).toContain(
+      "L'e-service Servizio Catasto è in fase di archiviazione. L'archiviazione avverrà il giorno 20/10/2026"
+    );
+    expect(compiledText).toContain(
+      "La versione 1 dell'e-service API Fatturazione Elettronica è in fase di archiviazione. L'archiviazione avverrà il giorno 25/10/2026"
+    );
+
+    expect(compiledHtml).toContain("https://example.com/archiving");
+    expect(compiledHtml).toContain("https://example.com/eservice/6");
+  });
 });
