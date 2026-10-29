@@ -22,16 +22,13 @@ headers {
 body:json {
   {
     "name": "Updated name",
-    "description": "test eservice updated"
+    "description": "test eservice updated",
+    "technology": "REST",
+    "mode": "DELIVER",
+    "isSignalHubEnabled": false,
+    "isConsumerDelegable": false,
+    "isClientAccessDelegable": false,
+    "personalData": false,
+    "asyncExchange": false
   }
-}
-
-docs {
-  Update name and description independently of descriptor count or state.
-  Template instances cannot be updated directly.
-  Operational fields can be included with no descriptors or when all descriptors are Draft;
-  otherwise the whole request fails with 409.
-  Draft updates emit a single DraftEServiceUpdated event.
-  Outside Draft, each changed metadata field emits its specific event in one atomic batch.
-  Unchanged values do not create events or increment X-Metadata-Version.
 }
