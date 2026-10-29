@@ -83,7 +83,7 @@ import {
   requesterIs,
 } from "../mockUtils.js";
 
-const draftAgreementSubmissionSeed = {
+const draftAgreementSubmissionSeed: Partial<Agreement> = {
   state: agreementState.draft,
 
   // The agreement is draft, so it doens't have a contract or attributes
@@ -105,19 +105,19 @@ const draftAgreementSubmissionSeed = {
 };
 
 // Seeds for suspended draft agreements with different suspension flag combinations
-const suspendedByConsumerOnlySeed = {
+const suspendedByConsumerOnlySeed: Partial<Agreement> = {
   ...draftAgreementSubmissionSeed,
   suspendedByConsumer: true,
   suspendedByProducer: false,
 };
 
-const suspendedByProducerOnlySeed = {
+const suspendedByProducerOnlySeed: Partial<Agreement> = {
   ...draftAgreementSubmissionSeed,
   suspendedByConsumer: false,
   suspendedByProducer: true,
 };
 
-const suspendedByBothSeed = {
+const suspendedByBothSeed: Partial<Agreement> = {
   ...draftAgreementSubmissionSeed,
   suspendedByConsumer: true,
   suspendedByProducer: true,
@@ -220,7 +220,7 @@ describe("submit agreement", () => {
   });
 
   it("should throw an tenantIsNotTheDelegateConsumer error when requester is not Consumer or Delegate Consumer", async () => {
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       state: agreementState.draft,
     };
@@ -253,7 +253,7 @@ describe("submit agreement", () => {
   });
 
   it("should throw tenantIsNotTheDelegateConsumer when the requester is the Consumer but there is a Consumer Delegation", async () => {
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       state: agreementState.draft,
     };
@@ -289,7 +289,7 @@ describe("submit agreement", () => {
     const consumer = getMockTenant();
     const producer = getMockTenant();
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(
         generateId<EServiceId>(),
         consumer.id,
@@ -320,13 +320,13 @@ describe("submit agreement", () => {
     const consumer = getMockTenant();
     const producer = getMockTenant();
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(generateId<EServiceId>(), consumer.id),
       state: agreementState.draft,
       producerId: producer.id,
     };
 
-    const pendingAgreement = {
+    const pendingAgreement: Agreement = {
       ...getMockAgreement(),
       state: randomArrayItem(agreementSubmissionConflictingStates),
       consumerId: agreement.consumerId,
@@ -351,13 +351,13 @@ describe("submit agreement", () => {
   });
 
   it("should throw a consumerWithNotValidEmail error when consumer doesn't have a contact email", async () => {
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       mails: [],
     };
     const producer = getMockTenant();
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(
         generateId<EServiceId>(),
         consumer.id,
@@ -382,7 +382,7 @@ describe("submit agreement", () => {
   });
 
   it("should throw a consumerWithNotValidEmail error when the consumer has only a different mail kind", async () => {
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       mails: [
         {
@@ -395,7 +395,7 @@ describe("submit agreement", () => {
     };
     const producer = getMockTenant();
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(
         generateId<EServiceId>(),
         consumer.id,
@@ -420,7 +420,7 @@ describe("submit agreement", () => {
   });
 
   it("should throw an eServiceNotFound error when eservice does not exist", async () => {
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       mails: [
         {
@@ -433,7 +433,7 @@ describe("submit agreement", () => {
     };
     const producer = getMockTenant();
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       consumerId: consumer.id,
       producerId: producer.id,
@@ -455,7 +455,7 @@ describe("submit agreement", () => {
 
   it("should throw a notLatestEServiceDescriptor error when eservice has only draft descriptors (no active descriptors)", async () => {
     const producer = getMockTenant();
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       mails: [
         {
@@ -467,7 +467,7 @@ describe("submit agreement", () => {
       ],
     };
 
-    const descriptor = {
+    const descriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.draft,
     };
@@ -475,7 +475,7 @@ describe("submit agreement", () => {
       descriptor,
     ]);
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(eservice.id, consumer.id),
       producerId: producer.id,
       descriptorId: eservice.descriptors[0].id,
@@ -499,7 +499,7 @@ describe("submit agreement", () => {
 
   it("should throw a notLatestEServiceDescriptor error when eservice has only a waiting for approval descriptor (no active descriptors)", async () => {
     const producer = getMockTenant();
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       mails: [
         {
@@ -511,7 +511,7 @@ describe("submit agreement", () => {
       ],
     };
 
-    const descriptor = {
+    const descriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.waitingForApproval,
     };
@@ -519,7 +519,7 @@ describe("submit agreement", () => {
       descriptor,
     ]);
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(eservice.id, consumer.id),
       producerId: producer.id,
       descriptorId: eservice.descriptors[0].id,
@@ -543,7 +543,7 @@ describe("submit agreement", () => {
 
   it("should throw a notLatestEServiceDescriptor error when the agreement descriptor does not exist in the eservice descriptors", async () => {
     const producer = getMockTenant();
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       mails: [
         {
@@ -555,7 +555,7 @@ describe("submit agreement", () => {
       ],
     };
 
-    const descriptor = {
+    const descriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
     };
@@ -563,7 +563,7 @@ describe("submit agreement", () => {
       descriptor,
     ]);
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(eservice.id, consumer.id),
       producerId: producer.id,
       descriptorId: generateId<DescriptorId>(),
@@ -588,7 +588,7 @@ describe("submit agreement", () => {
   it("should throw a notLatestEServiceDescriptor error when the agreement descriptor is not the latest published", async () => {
     const producer = getMockTenant();
     const descriptorId = generateId<DescriptorId>();
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       mails: [
         {
@@ -600,7 +600,7 @@ describe("submit agreement", () => {
       ],
     };
 
-    const oldDescriptor = {
+    const oldDescriptor: Descriptor = {
       ...getMockDescriptor(),
       id: descriptorId,
       state: randomArrayItem(
@@ -613,7 +613,7 @@ describe("submit agreement", () => {
       version: "1",
     };
 
-    const newDescriptor = {
+    const newDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: randomArrayItem(
         Object.values(descriptorState).filter(
@@ -629,7 +629,7 @@ describe("submit agreement", () => {
       newDescriptor,
     ]);
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(eservice.id, consumer.id),
       producerId: producer.id,
       descriptorId,
@@ -653,7 +653,7 @@ describe("submit agreement", () => {
 
   it("should throw a descriptorNotInExpectedState error when eservice latest descriptor has invalid state", async () => {
     const producer = getMockTenant();
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       mails: [
         {
@@ -666,7 +666,7 @@ describe("submit agreement", () => {
     };
 
     const allowedState: DescriptorState[] = [descriptorState.published];
-    const descriptor = {
+    const descriptor: Descriptor = {
       ...getMockDescriptor(),
       state: randomArrayItem(
         Object.values(descriptorState).filter(
@@ -681,7 +681,7 @@ describe("submit agreement", () => {
       descriptor,
     ]);
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(eservice.id, consumer.id),
       producerId: producer.id,
       descriptorId: eservice.descriptors[0].id,
@@ -706,7 +706,7 @@ describe("submit agreement", () => {
 
   it("should throw a tenantNotFound error when consumer does not exist in tenant collection", async () => {
     const producer = getMockTenant();
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       mails: [
         {
@@ -718,7 +718,7 @@ describe("submit agreement", () => {
       ],
     };
 
-    const descriptor = {
+    const descriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
     };
@@ -726,7 +726,7 @@ describe("submit agreement", () => {
       descriptor,
     ]);
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(eservice.id, consumer.id),
       producerId: producer.id,
       descriptorId: eservice.descriptors[0].id,
@@ -749,7 +749,7 @@ describe("submit agreement", () => {
 
   it("should throw an agreementSubmissionFailed error when new agreement state is not ACTIVE or PENDING", async () => {
     const producer = getMockTenant();
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       mails: [
         {
@@ -761,7 +761,7 @@ describe("submit agreement", () => {
       ],
     };
 
-    const descriptor = {
+    const descriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
       attributes: {
@@ -774,7 +774,7 @@ describe("submit agreement", () => {
       descriptor,
     ]);
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(eservice.id, consumer.id),
       producerId: producer.id,
       descriptorId: eservice.descriptors[0].id,
@@ -815,7 +815,7 @@ describe("submit agreement", () => {
       revokedBy: [],
     };
 
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(consumerId, [validVerifiedTenantAttribute]),
       mails: [
         {
@@ -827,7 +827,7 @@ describe("submit agreement", () => {
       ],
     };
 
-    const descriptor = {
+    const descriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
       attributes: {
@@ -1271,7 +1271,7 @@ describe("submit agreement", () => {
       };
       const consumerNotesText = "This is a test";
 
-      const consumer = {
+      const consumer: Tenant = {
         ...getMockTenant(consumerId),
         mails: [
           {
@@ -1283,7 +1283,7 @@ describe("submit agreement", () => {
         ],
       };
 
-      const descriptor = {
+      const descriptor: Descriptor = {
         ...getMockDescriptor(),
         state: descriptorState.published,
         agreementApprovalPolicy: agreementApprovalPolicy.automatic,
@@ -1416,7 +1416,7 @@ describe("submit agreement", () => {
           const declaredAttribute = getMockAttribute(attributeKind.declared);
           const verifiedAttribute = getMockAttribute(attributeKind.verified);
 
-          const descriptor = {
+          const descriptor: Descriptor = {
             ...getMockDescriptor(),
             state: descriptorState.published,
             agreementApprovalPolicy: agreementApprovalPolicy.automatic,
@@ -1480,7 +1480,7 @@ describe("submit agreement", () => {
             delegationId: consumerDelegation?.id,
           };
 
-          const consumer = {
+          const consumer: Tenant = {
             ...getMockTenant(consumerId, [
               validVerifiedTenantAttribute,
               validCertifiedTenantAttribute,
@@ -1537,7 +1537,7 @@ describe("submit agreement", () => {
               payload: actualAgreementData.data,
             }).agreement!;
 
-          const expectedAgreement = {
+          const expectedAgreement: Agreement = {
             ...agreement,
             state: agreementState.active,
             consumerNotes: consumerNotesText,
@@ -1646,7 +1646,7 @@ describe("submit agreement", () => {
         delegationId: consumerDelegation?.id,
       };
 
-      const consumer = {
+      const consumer: Tenant = {
         ...getMockTenant(consumerId, [
           validCertifiedTenantAttribute,
           validDeclaredTenantAttribute,
@@ -1746,7 +1746,7 @@ describe("submit agreement", () => {
       const declaredAttribute = getMockAttribute(attributeKind.declared);
       const verifiedAttribute = getMockAttribute(attributeKind.verified);
 
-      const descriptor = {
+      const descriptor: Descriptor = {
         ...getMockDescriptor(),
         state: descriptorState.published,
         agreementApprovalPolicy: agreementApprovalPolicy.automatic,
@@ -1791,7 +1791,7 @@ describe("submit agreement", () => {
         ],
         revokedBy: [],
       };
-      const consumer = {
+      const consumer: Tenant = {
         ...getMockTenant(consumerId, [
           certifiedTenantAttribute,
           declareTenantAttribute,

@@ -90,13 +90,13 @@ describe("getAgreementConsumerDocuments", () => {
     const producer = getMockTenant();
     const consumer = getMockTenant();
     const delegate = getMockTenant();
-    const eservice: EService  = {
+    const eservice: EService = {
       ...getMockEService(),
       producerId: producer.id,
       consumerId: consumer.id,
       descriptors: [getMockDescriptorPublished()],
     };
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(eservice.id),
       descriptorId: eservice.descriptors[0].id,
       producerId: producer.id,
@@ -138,13 +138,13 @@ describe("getAgreementConsumerDocuments", () => {
     const producer = getMockTenant();
     const consumer = getMockTenant();
     const delegate = getMockTenant();
-    const eservice: EService  = {
+    const eservice: EService = {
       ...getMockEService(),
       producerId: producer.id,
       consumerId: consumer.id,
       descriptors: [getMockDescriptorPublished()],
     };
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(eservice.id),
       descriptorId: eservice.descriptors[0].id,
       producerId: producer.id,
@@ -182,7 +182,7 @@ describe("getAgreementConsumerDocuments", () => {
   });
 
   it("should succeed when the requester is the consumer, even if there is an active consumer delegation", async () => {
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       consumerDocuments: [generateMock(AgreementDocument)],
     };
@@ -263,7 +263,7 @@ describe("getAgreementConsumerDocuments", () => {
   });
 
   it("should succeed when the requester is the producer, even if there is an active producer delegation", async () => {
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       consumerDocuments: [generateMock(AgreementDocument)],
     };

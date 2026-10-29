@@ -27,6 +27,7 @@ import {
   AgreementId,
   AgreementSuspendedByConsumerV2,
   AgreementSuspendedByProducerV2,
+  AgreementStamps,
   Descriptor,
   EService,
   EServiceId,
@@ -98,7 +99,7 @@ describe("suspend agreement", () => {
       ],
     };
 
-    const descriptor = {
+    const descriptor: Descriptor = {
       ...getMockDescriptorPublished(),
       attributes: {
         certified: [[getMockEServiceAttribute(consumer.attributes[0].id)]],
@@ -166,7 +167,7 @@ describe("suspend agreement", () => {
 
     /* The agreement will be suspended with suspendedByConsumer or suspendedByProducer flag set
     to true depending on the requester (consumer or producer) */
-    const expectedStamps = {
+    const expectedStamps: AgreementStamps = {
       suspensionByConsumer: isConsumer
         ? {
             who: authData.userId,
@@ -180,7 +181,10 @@ describe("suspend agreement", () => {
           }
         : agreement.stamps.suspensionByProducer,
     };
-    const expectedSuspensionFlags = {
+    const expectedSuspensionFlags: Pick<
+      Agreement,
+      "suspendedByConsumer" | "suspendedByProducer"
+    > = {
       ...(isConsumer ? { suspendedByConsumer: true } : {}),
       ...(!isConsumer ? { suspendedByProducer: true } : {}),
     };
@@ -387,7 +391,7 @@ describe("suspend agreement", () => {
       payload: agreementEvent.data,
     }).agreement;
 
-    const expectedStamps = {
+    const expectedStamps: AgreementStamps = {
       suspensionByConsumer: isConsumer
         ? {
             who: authData.userId,
@@ -401,7 +405,10 @@ describe("suspend agreement", () => {
           }
         : agreement.stamps.suspensionByProducer,
     };
-    const expectedSuspensionFlags = {
+    const expectedSuspensionFlags: Pick<
+      Agreement,
+      "suspendedByConsumer" | "suspendedByProducer"
+    > = {
       suspendedByConsumer: isConsumer
         ? true
         : (agreement.suspendedByConsumer ?? false),
@@ -458,7 +465,7 @@ describe("suspend agreement", () => {
           ],
         };
 
-        const descriptor = {
+        const descriptor: Descriptor = {
           ...getMockDescriptorPublished(),
           attributes: {
             certified: [[getMockEServiceAttribute(consumer.attributes[0].id)]],
@@ -470,7 +477,7 @@ describe("suspend agreement", () => {
           ...getMockEService(),
           descriptors: [descriptor],
         };
-        const agreement = {
+        const agreement: Agreement = {
           ...getMockAgreement(),
           state,
           eserviceId: eservice.id,
@@ -499,7 +506,7 @@ describe("suspend agreement", () => {
         await addOneTenant(consumer);
         await addOneDelegation(delegation);
 
-        const expectedAgreement = {
+        const expectedAgreement: Agreement = {
           ...agreement,
           state: agreementState.suspended,
           suspendedByProducer: match(kind)
@@ -576,7 +583,7 @@ describe("suspend agreement", () => {
   });
 
   it("should throw agreementNotInExpectedState when the agreement is not in a rejectable state", async () => {
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       state: randomArrayItem(
         Object.values(agreementState).filter(
@@ -598,7 +605,7 @@ describe("suspend agreement", () => {
 
   it("should throw an eServiceNotFound error when the eService does not exist", async () => {
     await addOneEService(getMockEService());
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       state: randomArrayItem(agreementSuspendableStates),
     };
@@ -622,7 +629,7 @@ describe("suspend agreement", () => {
       [descriptor]
     );
     const consumer = getMockTenant();
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       state: randomArrayItem(agreementSuspendableStates),
       eserviceId: eservice.id,
@@ -648,7 +655,7 @@ describe("suspend agreement", () => {
       descriptors: [getMockDescriptorPublished()],
     };
     const consumer = getMockTenant();
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       state: randomArrayItem(agreementSuspendableStates),
       eserviceId: eservice.id,
@@ -682,7 +689,7 @@ describe("suspend agreement", () => {
       };
       const consumer = getMockTenant();
       const delegate = getMockTenant();
-      const agreement = {
+      const agreement: Agreement = {
         ...getMockAgreement(),
         state: randomArrayItem(agreementSuspendableStates),
         eserviceId: eservice.id,
@@ -730,7 +737,7 @@ describe("suspend agreement", () => {
         descriptors: [getMockDescriptorPublished()],
       };
       const consumer = getMockTenant();
-      const agreement = {
+      const agreement: Agreement = {
         ...getMockAgreement(),
         state: randomArrayItem(agreementSuspendableStates),
         eserviceId: eservice.id,

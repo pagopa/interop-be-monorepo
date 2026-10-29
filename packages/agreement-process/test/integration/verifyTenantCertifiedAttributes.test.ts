@@ -10,6 +10,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   CertifiedTenantAttribute,
+  Delegation,
   delegationState,
   DescriptorId,
   EServiceId,
@@ -76,7 +77,7 @@ describe("Verify Tenant Certified Attributes", () => {
     });
 
     it("should verify attributes when orgnizationId is the delegate", async () => {
-      const delegation = {
+      const delegation: Delegation = {
         ...mockDelegation,
         state: delegationState.active,
         delegatorId: mockTenant.id,
@@ -99,7 +100,7 @@ describe("Verify Tenant Certified Attributes", () => {
     });
     it("should throw tenantIsNotTheDelegateConsumer when organizationId is not the delegate", async () => {
       const authData = getMockAuthData();
-      const delegation = {
+      const delegation: Delegation = {
         ...mockDelegation,
         state: delegationState.active,
         delegatorId: mockTenant.id,

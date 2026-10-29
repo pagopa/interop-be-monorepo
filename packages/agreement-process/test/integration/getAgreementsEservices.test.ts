@@ -8,6 +8,7 @@ import {
   getMockContext,
 } from "pagopa-interop-commons-test";
 import {
+  Agreement,
   EService,
   Tenant,
   generateId,
@@ -81,41 +82,41 @@ describe("get agreements eservices", () => {
     await addOneEService(eservice3);
     await addOneEService(eservice4);
 
-    const agreement1 = {
+    const agreement1: Agreement = {
       ...getMockAgreement(eservice1.id),
       producerId: eservice1.producerId,
       consumerId: tenant2.id,
     };
-    const agreement2 = {
+    const agreement2: Agreement = {
       ...getMockAgreement(eservice2.id),
       producerId: eservice2.producerId,
       consumerId: tenant3.id,
     };
 
-    const agreement3 = {
+    const agreement3: Agreement = {
       ...getMockAgreement(eservice3.id),
       producerId: eservice3.producerId,
       consumerId: tenant1.id,
     };
-    const agreement4 = {
+    const agreement4: Agreement = {
       ...getMockAgreement(eservice4.id),
       producerId: eservice4.producerId,
       consumerId: tenant3.id,
     };
 
-    const agreement5 = {
+    const agreement5: Agreement = {
       ...getMockAgreement(eservice4.id),
       consumerId: delegateProducer1.id,
       producerId: eservice4.producerId,
     };
 
-    const agreement6 = {
+    const agreement6: Agreement = {
       ...getMockAgreement(eservice4.id),
       producerId: eservice4.producerId,
       consumerId: delegateConsumer1.id,
     };
 
-    const agreement7 = {
+    const agreement7: Agreement = {
       ...getMockAgreement(eservice2.id),
       producerId: eservice2.producerId,
       consumerId: delegateConsumer2.id,

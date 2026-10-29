@@ -32,8 +32,11 @@ import {
   AgreementDocument,
   AgreementId,
   AgreementUpgradedV2,
+  CertifiedTenantAttribute,
+  DeclaredTenantAttribute,
   Descriptor,
   EService,
+  EServiceAttributeCertifiedDiscreteConfig,
   EServiceId,
   Tenant,
   TenantId,
@@ -129,7 +132,7 @@ describe("upgrade Agreement", () => {
 
       // Certified attributes are not verified when producer and consumer are the same,
       // so the test shall pass even with this invalid attribute
-      const invalidCertifiedTenantAttribute = {
+      const invalidCertifiedTenantAttribute: CertifiedTenantAttribute = {
         ...getMockCertifiedTenantAttribute(certifiedAttribute.id),
         revocationTimestamp: new Date(),
       };
@@ -202,7 +205,7 @@ describe("upgrade Agreement", () => {
         delegateConsumer,
       });
 
-      const validVerifiedTenantAttribute = {
+      const validVerifiedTenantAttribute: VerifiedTenantAttribute = {
         ...getMockVerifiedTenantAttribute(verifiedAttribute.id),
         verifiedBy: [
           {
@@ -215,7 +218,7 @@ describe("upgrade Agreement", () => {
         revokedBy: [],
       };
 
-      const validDeclaredTenantAttribute = {
+      const validDeclaredTenantAttribute: DeclaredTenantAttribute = {
         ...getMockDeclaredTenantAttribute(declaredAttribute.id),
         revocationTimestamp: undefined,
         delegationId: consumerDelegation?.id,
@@ -300,7 +303,7 @@ describe("upgrade Agreement", () => {
         }).agreement!
       );
 
-      const expectedUpgradedAgreement = {
+      const expectedUpgradedAgreement: Agreement = {
         ...agreement,
         id: newAgreementId,
         descriptorId: newPublishedDescriptor.id,
@@ -371,13 +374,13 @@ describe("upgrade Agreement", () => {
       };
 
       const declaredAttribute = getMockAttribute(attributeKind.declared);
-      const invalidDeclaredTenantAttribute = {
+      const invalidDeclaredTenantAttribute: DeclaredTenantAttribute = {
         ...getMockDeclaredTenantAttribute(declaredAttribute.id),
         revocationTimestamp: new Date(),
       };
 
       const certifiedAttribute = getMockAttribute(attributeKind.certified);
-      const validCertifiedTenantAttribute = {
+      const validCertifiedTenantAttribute: CertifiedTenantAttribute = {
         ...getMockCertifiedTenantAttribute(certifiedAttribute.id),
         revocationTimestamp: undefined,
       };
@@ -508,7 +511,7 @@ describe("upgrade Agreement", () => {
         }).agreement!
       );
 
-      const expectedUpgradedAgreement = {
+      const expectedUpgradedAgreement: Agreement = {
         ...agreement,
         id: newAgreementId,
         descriptorId: newPublishedDescriptor.id,
@@ -650,7 +653,7 @@ describe("upgrade Agreement", () => {
             delegateConsumer,
           });
 
-          const validVerifiedTenantAttribute = {
+          const validVerifiedTenantAttribute: VerifiedTenantAttribute = {
             ...getMockVerifiedTenantAttribute(verifiedAttribute.id),
             verifiedBy: [
               {
@@ -664,13 +667,13 @@ describe("upgrade Agreement", () => {
             revokedBy: [],
           };
 
-          const validDeclaredTenantAttribute = {
+          const validDeclaredTenantAttribute: DeclaredTenantAttribute = {
             ...getMockDeclaredTenantAttribute(declaredAttribute.id),
             revocationTimestamp: undefined,
             delegationId: consumerDelegation?.id,
           };
 
-          const validCertifiedTenantAttribute = {
+          const validCertifiedTenantAttribute: CertifiedTenantAttribute = {
             ...getMockCertifiedTenantAttribute(certifiedAttribute.id),
             revocationTimestamp: undefined,
           };
@@ -749,7 +752,7 @@ describe("upgrade Agreement", () => {
             }).agreement!
           );
 
-          const expectedUpgradedAgreement = {
+          const expectedUpgradedAgreement: Agreement = {
             ...agreement,
             id: newAgreementId,
             descriptorId: newPublishedDescriptor.id,
@@ -801,7 +804,7 @@ describe("upgrade Agreement", () => {
       const producer = getMockTenant();
 
       const verifiedAttribute = getMockAttribute(attributeKind.verified);
-      const invalidVerifiedTenantAttribute = {
+      const invalidVerifiedTenantAttribute: VerifiedTenantAttribute = {
         ...getMockVerifiedTenantAttribute(verifiedAttribute.id),
         verifiedBy: [
           {
@@ -815,13 +818,13 @@ describe("upgrade Agreement", () => {
       };
 
       const declaredAttribute = getMockAttribute(attributeKind.declared);
-      const invalidDeclaredTenantAttribute = {
+      const invalidDeclaredTenantAttribute: DeclaredTenantAttribute = {
         ...getMockDeclaredTenantAttribute(declaredAttribute.id),
         revocationTimestamp: new Date(),
       };
 
       const certifiedAttribute = getMockAttribute(attributeKind.certified);
-      const validCertifiedTenantAttribute = {
+      const validCertifiedTenantAttribute: CertifiedTenantAttribute = {
         ...getMockCertifiedTenantAttribute(certifiedAttribute.id),
         revocationTimestamp: undefined,
       };
@@ -946,7 +949,7 @@ describe("upgrade Agreement", () => {
         }).agreement!
       );
 
-      const expectedCreatedAgreement = {
+      const expectedCreatedAgreement: Agreement = {
         ...agreement,
         id: newAgreementId,
         descriptorId: newPublishedDescriptor.id,
@@ -1024,7 +1027,7 @@ describe("upgrade Agreement", () => {
 
   it("should throw an tenantIsNotTheDelegateConsumer error when the requester is the consumer but there is an active consumer delegation", async () => {
     const authData = getMockAuthData();
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       consumerId: authData.organizationId,
       state: randomArrayItem(agreementUpgradableStates),
@@ -1320,7 +1323,7 @@ describe("upgrade Agreement", () => {
   });
 
   it("should throw a missingCertifiedAttributesError error when consumer and producer are different and published descriptor has invalid certified attributes", async () => {
-    const invalidCertifiedTenantAttribute = {
+    const invalidCertifiedTenantAttribute: CertifiedTenantAttribute = {
       ...getMockCertifiedTenantAttribute(),
       revocationTimestamp: new Date(),
     };
@@ -1434,7 +1437,7 @@ describe("upgrade Agreement", () => {
   });
 
   it("should throw an agreementAlreadyExists error when creating a new draft agreement and there exists a draft conflicting agreement for the same consumer and eservice", async () => {
-    const invalidDeclaredTenantAttribute = {
+    const invalidDeclaredTenantAttribute: DeclaredTenantAttribute = {
       ...getMockDeclaredTenantAttribute(),
       revocationTimestamp: new Date(),
     };
@@ -1549,7 +1552,7 @@ describe("upgrade Agreement", () => {
     };
     await addOneEService(eservice);
 
-    const oldVerifiedTenantAttribute = {
+    const oldVerifiedTenantAttribute: VerifiedTenantAttribute = {
       ...getMockVerifiedTenantAttribute(oldVerifiedAttribute.id),
       verifiedBy: [
         {
@@ -1562,7 +1565,7 @@ describe("upgrade Agreement", () => {
       revokedBy: [],
     };
 
-    const newVerifiedTenantAttribute = {
+    const newVerifiedTenantAttribute: VerifiedTenantAttribute = {
       ...getMockVerifiedTenantAttribute(newVerifiedAttribute.id),
       verifiedBy: [
         {
@@ -1576,22 +1579,22 @@ describe("upgrade Agreement", () => {
       revokedBy: [],
     };
 
-    const oldDeclaredTenantAttribute = {
+    const oldDeclaredTenantAttribute: DeclaredTenantAttribute = {
       ...getMockDeclaredTenantAttribute(oldDeclaredAttribute.id),
       revocationTimestamp: undefined,
     };
 
-    const newDeclaredTenantAttribute = {
+    const newDeclaredTenantAttribute: DeclaredTenantAttribute = {
       ...getMockDeclaredTenantAttribute(newDeclaredAttribute.id),
       revocationTimestamp: undefined,
     };
 
-    const oldCertifiedTenantAttribute = {
+    const oldCertifiedTenantAttribute: CertifiedTenantAttribute = {
       ...getMockCertifiedTenantAttribute(oldCertifiedAttribute.id),
       revocationTimestamp: undefined,
     };
 
-    const newCertifiedTenantAttribute = {
+    const newCertifiedTenantAttribute: CertifiedTenantAttribute = {
       ...getMockCertifiedTenantAttribute(newCertifiedAttribute.id),
       revocationTimestamp: undefined,
     };
@@ -1698,7 +1701,7 @@ describe("upgrade Agreement", () => {
     await addOneAttribute(oldDiscreteAttribute);
     await addOneAttribute(newDiscreteAttribute);
 
-    const discreteConfig = {
+    const discreteConfig: EServiceAttributeCertifiedDiscreteConfig = {
       threshold: 40,
       comparator: attributeCertifiedDiscreteComparator.GTE,
     };
