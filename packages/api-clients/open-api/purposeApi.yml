@@ -830,7 +830,7 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
         "409":
-          $ref: "#/components/responses/RiskAnalysisSigningConflict"
+          $ref: "#/components/responses/Conflict"
       description: Sign/approve the risk analysis as a reviewer
       tags:
         - purpose
@@ -867,7 +867,7 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
         "409":
-          $ref: "#/components/responses/RiskAnalysisReviewConflict"
+          $ref: "#/components/responses/Conflict"
       description: Reject the risk analysis as a reviewer (AdminWritesReviewerSigns mode only)
       tags:
         - purpose
@@ -904,7 +904,7 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
         "409":
-          $ref: "#/components/responses/RiskAnalysisReviewConflict"
+          $ref: "#/components/responses/Conflict"
       description: Edit the risk analysis form as a reviewer (ReviewerWritesReviewerSigns mode only)
       tags:
         - purpose
@@ -1325,73 +1325,6 @@ components:
         application/problem+json:
           schema:
             $ref: "#/components/schemas/Problem"
-    RiskAnalysisReviewConflict:
-      description: >-
-        Conflict. Error 004-0066 means that the risk analysis has already been
-        approved; 004-0067 means that it has already been rejected. Other conflicts
-        retain their original error codes. The mutation is never retried.
-      content:
-        application/problem+json:
-          schema:
-            $ref: "#/components/schemas/Problem"
-          examples:
-            alreadyApproved:
-              $ref: "#/components/examples/RiskAnalysisAlreadyApproved"
-            alreadyRejected:
-              $ref: "#/components/examples/RiskAnalysisAlreadyRejected"
-    RiskAnalysisSigningConflict:
-      description: >-
-        Conflict. Error 004-0066 means that the risk analysis has already been
-        approved; 004-0067 means that it has already been rejected; 004-0064 means
-        that the purpose metadata version changed after review. Approved/rejected
-        states take precedence over a version mismatch when verifiable. The process
-        never replaces metadataVersionToSign or retries the mutation. Other
-        conflicts retain their original error codes.
-      content:
-        application/problem+json:
-          schema:
-            $ref: "#/components/schemas/Problem"
-          examples:
-            alreadyApproved:
-              $ref: "#/components/examples/RiskAnalysisAlreadyApproved"
-            alreadyRejected:
-              $ref: "#/components/examples/RiskAnalysisAlreadyRejected"
-            versionChanged:
-              $ref: "#/components/examples/PurposeMetadataVersionMismatch"
-  examples:
-    RiskAnalysisAlreadyApproved:
-      summary: The risk analysis was approved by another request
-      value:
-        type: about:blank
-        status: 409
-        title: Risk analysis already approved
-        detail: The risk analysis for purpose 1d1a0213-b708-4ea0-a567-33dfe1eea2c8 has already been approved
-        correlationId: 6c84273b-285a-4b1f-8af2-4858a7e7d07a
-        errors:
-          - code: 004-0066
-            detail: The risk analysis for purpose 1d1a0213-b708-4ea0-a567-33dfe1eea2c8 has already been approved
-    RiskAnalysisAlreadyRejected:
-      summary: The risk analysis was rejected by another request
-      value:
-        type: about:blank
-        status: 409
-        title: Risk analysis already rejected
-        detail: The risk analysis for purpose 1d1a0213-b708-4ea0-a567-33dfe1eea2c8 has already been rejected
-        correlationId: 6c84273b-285a-4b1f-8af2-4858a7e7d07a
-        errors:
-          - code: 004-0067
-            detail: The risk analysis for purpose 1d1a0213-b708-4ea0-a567-33dfe1eea2c8 has already been rejected
-    PurposeMetadataVersionMismatch:
-      summary: The purpose metadata version reviewed for signing is no longer current
-      value:
-        type: about:blank
-        status: 409
-        title: Purpose metadata version mismatch
-        detail: "Cannot sign risk analysis for purpose 1d1a0213-b708-4ea0-a567-33dfe1eea2c8: requested metadata version 1 does not match current metadata version 2"
-        correlationId: 6c84273b-285a-4b1f-8af2-4858a7e7d07a
-        errors:
-          - code: 004-0064
-            detail: "Cannot sign risk analysis for purpose 1d1a0213-b708-4ea0-a567-33dfe1eea2c8: requested metadata version 1 does not match current metadata version 2"
   headers:
     MetadataVersionHeader:
       description: The version number of the resource in the read model
