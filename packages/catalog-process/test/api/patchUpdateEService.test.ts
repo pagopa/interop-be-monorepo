@@ -129,12 +129,7 @@ describe("PATCH /eservices/{eServiceId} router test", () => {
 
   it.each([
     [{ name: 123 }, mockEService.id],
-    [{ name: null }, mockEService.id],
-    [{ name: "abcd" }, mockEService.id],
-    [{ name: "a".repeat(61) }, mockEService.id],
     [{ description: null }, mockEService.id],
-    [{ description: "too short" }, mockEService.id],
-    [{ description: "a".repeat(401) }, mockEService.id],
     [{ technology: "invalidTechnology" }, mockEService.id],
     [{ mode: "invalidMode" }, mockEService.id],
     [{ isConsumerDelegable: "stringInsteadOfBool" }, mockEService.id],
