@@ -10,6 +10,7 @@ import {
   CorrelationId,
   genericInternalError,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
+  tenantUnitType,
 } from "pagopa-interop-models";
 
 import { InstitutionEventPayload } from "../model/institutionEvent.js";
@@ -69,14 +70,14 @@ export function selfcareOnboardingProcessorBuilder(
           return;
         }
 
-        const externalIdValue =
-          institution.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER
-            ? institution.subUnitCode || institution.originId
-            : institution.taxCode || institution.originId;
+        const isIpaInstitution = origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER;
+
+        const externalIdValue = isIpaInstitution
+          ? institution.subUnitCode || institution.originId
+          : institution.taxCode || institution.originId;
 
         const parentExternalId =
-          origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER &&
-          institution.subUnitType === "AOO"
+          isIpaInstitution && institution.subUnitType === tenantUnitType.AOO
             ? { origin, value: institution.originId }
             : undefined;
 
