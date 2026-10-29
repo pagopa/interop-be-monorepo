@@ -238,6 +238,60 @@ describe("runnable package catalogue and local boundary", () => {
       "pagopa-interop-unreviewed-aws-job",
     ]);
   });
+  it.each(["invalid", "0", "65536", "-1", "1.5"])(
+    "rejects invalid effective PORT %s instead of exposing it in the catalogue",
+    async (port) => {
+      const root = await fixture();
+      await writeFile(
+        join(root, "packages/tenant-process/.env.development.local"),
+        `PORT=${port}\n`
+      );
+
+      await expect(discoverPackages(root)).rejects.toThrow(
+        /pagopa-interop-tenant-process.*PORT/
+      );
+      await expect(
+        localEnvironment(root, "pagopa-interop-tenant-process")
+      ).rejects.toThrow(/pagopa-interop-tenant-process.*PORT/);
+    }
+  );
+  it("maps shared dotenv ports and portless packages to catalogue metadata", async () => {
+    const root = await fixture();
+    await writeFile(
+      join(root, "packages/tenant-process/.env.development.local"),
+      'PORT="4567" # local override\n'
+    );
+    await writeFile(join(root, "packages/local-job/.env"), "PORT=\n");
+
+    const packages = await discoverPackages(root);
+
+    expect(
+      packages.find((item) => item.name === "pagopa-interop-tenant-process")
+    ).toEqual({
+      name: "pagopa-interop-tenant-process",
+      label: "tenant-process",
+      kind: "service",
+      port: 4567,
+      state: "stopped",
+      watch: true,
+    });
+    expect(
+      packages.find((item) => item.name === "pagopa-interop-local-job")
+    ).toEqual({
+      name: "pagopa-interop-local-job",
+      label: "local-job",
+      kind: "job",
+      state: "stopped",
+      watch: false,
+    });
+    await expect(
+      localEnvironment(root, "pagopa-interop-authorization-server")
+    ).resolves.toMatchObject({
+      PORT: "4700",
+      GENERATED_INTEROP_TOKEN_M2M_AUDIENCE: "dev.interop.pagopa.it/m2m",
+      AWS_ACCESS_KEY_ID: "testawskey",
+    });
+  });
   it("forces local Selfcare/DynamoDB/AWS endpoint defaults and refuses remote overrides", async () => {
     const root = await fixture();
     const name = "pagopa-interop-tenant-process";

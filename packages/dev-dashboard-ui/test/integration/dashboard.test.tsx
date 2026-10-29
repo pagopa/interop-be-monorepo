@@ -613,10 +613,17 @@ describe("development dashboard", () => {
       id: "jobs",
       name: "Job preset",
     });
-    window.history.replaceState(null, "", "#/packages?group=jobs");
     const user = userEvent.setup();
     const view = renderDashboard();
     const group = await screen.findByRole("combobox", { name: "Group" });
+    expect(group).toHaveValue("");
+    expect(
+      await screen.findByRole("row", { name: new RegExp(bffName) })
+    ).toBeVisible();
+    await user.selectOptions(group, "jobs");
+    await waitFor(() =>
+      expect(window.location.hash).toBe("#/packages?group=jobs")
+    );
     expect(group).toHaveValue("jobs");
     expect(screen.getAllByRole("row")).toHaveLength(3);
     expect(

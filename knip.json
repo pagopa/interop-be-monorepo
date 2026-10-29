@@ -6,8 +6,12 @@
   "workspaces": {
     ".": {
       "entry": [
+        "docker/dev-dashboard/generate-compose.mjs",
+        "docker/dev-dashboard/stage-bootstrap.mjs",
         "docker/selfcare-mock/selfcare-mock.mjs",
-        "scripts/local-development/test/dashboard-runtime.test.mjs"
+        "scripts/local-development/test/dashboard-compose.test.mjs",
+        "scripts/local-development/test/dashboard-runtime.test.mjs",
+        "scripts/local-development/test/local-seed.test.mjs"
       ]
     },
     "packages/dev-dashboard-api": {

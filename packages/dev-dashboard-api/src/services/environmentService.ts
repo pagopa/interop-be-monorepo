@@ -1,5 +1,5 @@
-import dotenvFlow from "dotenv-flow";
 import { join } from "node:path";
+import { readPackageEnvironment } from "pagopa-interop-dev-dashboard-bootstrap";
 
 import {
   ENVIRONMENT_KEYS,
@@ -15,12 +15,6 @@ import { directoryForName } from "../utilities/packageUtils.js";
 
 const localHost = (value: string): boolean =>
   LOCAL_LOOPBACK_HOSTS.includes(value);
-
-const envFiles = (path: string): string[] =>
-  dotenvFlow.listFiles({ path, node_env: ENVIRONMENT_RULES.nodeEnvironment });
-
-const env = (path: string): Record<string, string> =>
-  dotenvFlow.parse(envFiles(path));
 
 const isHostSetting = (key: string): boolean =>
   ENVIRONMENT_RULES.hostSuffixes.some((suffix) => key.endsWith(suffix)) &&
@@ -88,12 +82,15 @@ export const localEnvironment = async (
   return value;
 };
 
-export const effectiveEnvironment = (
+const effectiveEnvironment = (
   root: string,
   directory: string,
   name: string
 ): NodeJS.ProcessEnv => ({
-  ...env(join(root, PACKAGE_LAYOUT.directory, directory)),
+  ...readPackageEnvironment(
+    join(root, PACKAGE_LAYOUT.directory, directory),
+    name
+  ),
   ...packageEnvironmentOverrides[name],
   ...localEnvironmentOverrides,
 });

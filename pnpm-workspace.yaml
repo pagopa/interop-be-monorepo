@@ -68,6 +68,7 @@ catalog:
   class-variance-authority: 0.7.1
   clsx: 2.1.1
   connection-string: 4.4.0
+  content-disposition: 2.0.1
   cpx2: 7.0.2
   csv: 6.3.11
   csv-stringify: 6.5.2

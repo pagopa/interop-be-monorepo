@@ -23,4 +23,12 @@ RUN npm uninstall -g pnpm \
     && corepack enable \
     && corepack prepare pnpm@10.29.3 --activate
 
+# Bootstrap has only dotenv-flow as a runtime dependency. It can inspect a fresh
+# checkout before the main container installs or builds the application workspace.
+RUN --mount=type=bind,target=/build-context,readonly \
+    --mount=type=cache,target=/home/node/.local/share/pnpm/store \
+    node /build-context/docker/dev-dashboard/stage-bootstrap.mjs /build-context /opt/dashboard-bootstrap \
+    && cd /opt/dashboard-bootstrap \
+    && CI=true pnpm install --filter=pagopa-interop-dev-dashboard-bootstrap --prod --frozen-lockfile --ignore-scripts
+
 EXPOSE 8076

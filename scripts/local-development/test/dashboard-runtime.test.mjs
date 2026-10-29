@@ -4,9 +4,9 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { test } from 'node:test';
+import { fileURLToPath } from 'node:url';
 
-const script = new URL('../dashboard.sh', import.meta.url).pathname;
-const entrypoint = new URL('../../../docker/dev-dashboard/entrypoint.sh', import.meta.url).pathname;
+const entrypoint = fileURLToPath(new URL('../../../docker/dev-dashboard/entrypoint.sh', import.meta.url));
 
 for (const existingGroup of ['', 'docker']) {
   test(`bootstrap ${existingGroup ? 'reuses an existing' : 'creates a missing'} Docker socket group`, async () => {
@@ -51,67 +51,8 @@ esac
   });
 }
 
-test('prepare mounts the source checkout and isolates every workspace dependency directory', async () => {
-  const root = await mkdtemp(path.join(tmpdir(), 'interop dashboard '));
-  try {
-    const backend = path.join(root, 'backend');
-    const frontend = path.join(root, 'frontend');
-    await mkdir(path.join(backend, 'packages', 'a-worker'), { recursive: true });
-    await mkdir(path.join(backend, 'packages', 'b-api'), { recursive: true });
-    await mkdir(frontend);
-    await writeFile(path.join(backend, 'packages', 'a-worker', 'package.json'), '{}');
-    await writeFile(path.join(backend, 'packages', 'b-api', 'package.json'), '{}');
-    const prepare = (args = [], environment = {}) => spawnSync('bash', [script, 'prepare', ...args], {
-      env: { ...process.env, INTEROP_BE_ROOT: backend, DASHBOARD_AUTOSTART_PRESET: '', ...environment }, encoding: 'utf8',
-    });
-    const first = prepare();
-    assert.equal(first.status, 0, first.stderr);
-    const file = path.join(backend, '.local-development', 'dashboard', 'compose.yml');
-    const backendOnly = JSON.parse(await readFile(file, 'utf8'));
-    const runtime = backendOnly.services.dashboard;
-    assert.equal(runtime.working_dir, backend);
-    assert.ok(!('DASHBOARD_MODE' in runtime.environment));
-    assert.ok(!('DASHBOARD_AUTOSTART_PRESET' in runtime.environment));
-    assert.equal(runtime.volumes.find((v) => v.type === 'bind').source, backend);
-    for (const directory of ['node_modules', 'packages/a-worker/node_modules', 'packages/b-api/node_modules']) {
-      const mount = runtime.volumes.find((v) => v.target === path.join(backend, directory));
-      assert.equal(mount.type, 'volume');
-      assert.equal(mount.volume.nocopy, true);
-    }
-    const second = prepare(['--frontend', frontend]);
-    assert.notEqual(second.status, 0);
-    assert.match(second.stderr, /Unknown argument: --frontend/);
-    assert.deepEqual(JSON.parse(await readFile(file, 'utf8')), backendOnly);
-    assert.ok(!('INTEROP_FE_ROOT' in runtime.environment));
-    assert.ok(!('INTEROP_DEVCONTAINER' in runtime.environment));
-    assert.ok(!runtime.volumes.some((v) => v.source === frontend || v.source === 'dashboard-browser-cache'));
-    assert.ok(!runtime.ports.some((p) => p.target === 5173 || p.published === '3000'));
-    assert.ok(runtime.ports.some((p) => p.target === 3000 && p.published === '13000'));
-    assert.ok(runtime.ports.some((p) => p.target === 4700 && p.published === '4700' && p.host_ip === '127.0.0.1'));
-    const repeated = prepare();
-    assert.equal(repeated.status, 0, repeated.stderr);
-    assert.deepEqual(JSON.parse(await readFile(file, 'utf8')), backendOnly);
-    const selected = prepare(['--preset', 'frontend-full']);
-    assert.equal(selected.status, 0, selected.stderr);
-    const startup = JSON.parse(await readFile(file, 'utf8'));
-    assert.equal(startup.services.dashboard.environment.DASHBOARD_AUTOSTART_PRESET, 'frontend-full');
-    assert.ok(!('DASHBOARD_MODE' in startup.services.dashboard.environment));
-    const fromEnvironment = prepare([], {
-      DASHBOARD_AUTOSTART_PRESET: 'tenant-seeding',
-      DASHBOARD_AUTOSTART: 'false',
-    });
-    assert.equal(fromEnvironment.status, 0, fromEnvironment.stderr);
-    const configured = JSON.parse(await readFile(file, 'utf8')).services.dashboard;
-    assert.equal(configured.environment.DASHBOARD_AUTOSTART_PRESET, 'tenant-seeding');
-    assert.equal(configured.environment.DASHBOARD_AUTOSTART, 'false');
-    assert.ok(!('INTEROP_FE_ROOT' in configured.environment));
-  } finally {
-    await rm(root, { recursive: true, force: true });
-  }
-});
-
 test('infra operations target infrastructure and preserve the dashboard during reset', async () => {
-  const scriptPath = new URL('../dashboard-infra.sh', import.meta.url).pathname;
+  const scriptPath = fileURLToPath(new URL('../dashboard-infra.sh', import.meta.url));
   const root = await mkdtemp(path.join(tmpdir(), 'interop-infra-test-'));
   try {
     await mkdir(path.join(root, '.local-development'));
@@ -125,7 +66,7 @@ test('infra operations target infrastructure and preserve the dashboard during r
 printf '%s\\n' "$*" >> "$TEST_CALLS"
 case "$*" in
   *'config --services'*) printf 'event-store\\nselfcare-mock\\ndashboard\\n' ;;
-  *'config --format json'*) printf '%s' '{"name":"pagopa-interop","volumes":{"event-store-data":{"name":"pagopa-interop_event-store-data"}},"services":{"event-store":{"volumes":[{"type":"volume","source":"event-store-data"}]},"dashboard":{"volumes":[{"type":"volume","source":"modules"}]}}}' ;;
+  *'config --format json'*) printf '%s' '{"name":"pagopa-interop","volumes":{"event-store-data":{"name":"pagopa-interop_event-store-data"},"dashboard-be-modules":{"name":"pagopa-interop_dashboard-be-modules"},"dashboard-pnpm-store":{"name":"pagopa-interop_dashboard-pnpm-store"}},"services":{"event-store":{"volumes":[{"type":"volume","source":"event-store-data"}]},"dashboard":{"volumes":[{"type":"volume","source":"dashboard-be-modules"},{"type":"volume","source":"dashboard-pnpm-store"}]}}}' ;;
 esac
 `, { mode: 0o755 });
     for (const action of ['start', 'stop', 'reset']) {

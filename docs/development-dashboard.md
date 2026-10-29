@@ -14,6 +14,8 @@ installs dependencies and builds the dashboard. Host Node.js and pnpm are not re
 On Windows, use a WSL2 Linux checkout with Docker Desktop integration enabled.
 On macOS, allow Docker Desktop to access the checkout. The runtime supports
 amd64 and arm64.
+On macOS, the runtime keeps the image's `node` UID/GID (`1000:1000`);
+on Linux and WSL2, it uses the host user's UID/GID for bind-mount permissions.
 
 1. From the backend repository root, start the runtime:
 
@@ -35,6 +37,23 @@ Startup prepares Kafka, starts infrastructure containers, waits for initializati
 creates topics, and registers Debezium. Initialization includes migrations and
 RustFS fixtures. No application package starts unless you select a startup preset.
 Turbo reuses cached dashboard builds on subsequent starts.
+
+The launcher generates `.local-development/dashboard/compose.yml` on every start.
+It discovers workspace packages, isolates their `node_modules` in Docker volumes,
+and publishes service ports on loopback. The generator runs in the dashboard image
+and reads the same development dotenv files and local port overrides as the API.
+It does not require dependencies to be installed in the checkout.
+
+Port `3000` is published as `13000` to leave the frontend public origin available;
+other service ports keep their configured value. Duplicate ports and conflicts
+with dashboard or infrastructure ports stop preparation before the container is
+recreated, preserving the last valid configuration. Docker reports ports occupied
+by unrelated host processes when starting the container.
+
+After adding a workspace package or changing its `PORT`, run the start command
+again to update mounts and published ports. Restarting only the package in the UI
+cannot change Docker port mappings. Service integration URLs still need to match
+the ports you configure.
 
 To start a service group with the dashboard, pass its preset ID:
 
@@ -317,6 +336,7 @@ pnpm --filter pagopa-interop-dev-dashboard-api test
 pnpm --filter pagopa-interop-dev-dashboard-ui check
 pnpm --filter pagopa-interop-dev-dashboard-ui test
 node --test scripts/local-development/test/dashboard-runtime.test.mjs
+node --test scripts/local-development/test/local-seed.test.mjs
 ```
 
 ## Troubleshoot startup
