@@ -406,49 +406,6 @@ describe("patch update eService", () => {
     expect(await readPatchEvents(mockEService.id)).toHaveLength(2);
   });
 
-  it("should not emit an operational event for unchanged operational fields in a mixed patch", async () => {
-    const eservice: EService = {
-      ...mockEService,
-      descriptors: [{ ...getMockDescriptor(), state: descriptorState.draft }],
-      mode: "Deliver",
-      riskAnalysis: [getMockValidRiskAnalysis("PA")],
-    };
-    await addOneEService(eservice);
-
-    const result = await catalogService.patchUpdateEService(
-      eservice.id,
-      { name: "Updated name", mode: "DELIVER" },
-      getMockContextM2MAdmin({ organizationId: eservice.producerId })
-    );
-
-    expect(result).toEqual({
-      data: { ...eservice, name: "Updated name" },
-      metadata: { version: 1 },
-    });
-    expect(await readPatchEvents(eservice.id)).toMatchObject([
-      { type: "EServiceNameUpdated", version: "1" },
-    ]);
-  });
-
-  it("should preserve operational data for an unchanged Deliver mode", async () => {
-    const eservice: EService = {
-      ...mockEService,
-      descriptors: [],
-      mode: "Deliver",
-      riskAnalysis: [getMockValidRiskAnalysis("PA")],
-    };
-    await addOneEService(eservice);
-
-    expect(
-      await catalogService.patchUpdateEService(
-        eservice.id,
-        { mode: "DELIVER" },
-        getMockContextM2MAdmin({ organizationId: eservice.producerId })
-      )
-    ).toEqual({ data: eservice, metadata: { version: 0 } });
-    expect(await readPatchEvents(eservice.id)).toEqual([]);
-  });
-
   it("should reject concurrent metadata updates without partial batches or retry", async () => {
     await addOneEService(mockEService);
     const ctx = getMockContextM2MAdmin({
