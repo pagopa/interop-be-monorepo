@@ -17,12 +17,14 @@ import {
   buildDelegationLink,
 } from "../services/deeplinkBuilder.js";
 import {
+  ApprovedRiskAnalysisDigest,
   ArchivingProducerDigest,
   AttributeDigest,
   BaseDigest,
   DelegationArchivingRequestDigest,
   DelegationDigest,
   ReceivedPurposeDigest,
+  RejectedRiskAnalysisDigest,
 } from "../services/digestDataService.js";
 import {
   NewEservice,
@@ -42,6 +44,8 @@ import {
   ReceivedDelegation,
   ArchivingEservice,
   DelegatedArchivingRequest,
+  ApprovedRiskAnalysisQueryResult,
+  RejectedRiskAnalysisQueryResult,
 } from "../services/readModelService.js";
 
 // Module-level cache for descriptor IDs to avoid repeated readModelService calls
@@ -658,6 +662,60 @@ export async function receivedDelegationArchivingRequestsToDigest(
         request.descriptorId ?? "",
         null // No selfcareId needed for archiving requests
       ),
+    })),
+    totalCount: data[0].totalCount,
+  };
+}
+
+/**
+ * Purpose of approved Risk Analysis to digest data structure.
+ * Each ordered by signedAt DESC, contains purpose name, purposeId, link and total count.
+ *
+ * @param data - The list of received puposes to transform into a digest, ordered by signedAt DESC.
+ * @param selfcareId - The tenant's selfcare ID for deeplink authentication
+ */
+export async function approvedRiskAnalysisToDigest(
+  data: ApprovedRiskAnalysisQueryResult[],
+  selfcareId: string | null
+): Promise<ApprovedRiskAnalysisDigest> {
+  if (data.length === 0) {
+    return { items: [], totalCount: 0 };
+  }
+
+  return {
+    items: data.map((request) => ({
+      id: request.purposeId,
+      name: request.purposeTitle,
+      producerName: "",
+      signedAt: request.signedAt,
+      link: buildPurposeLink(request.purposeId, false, selfcareId),
+    })),
+    totalCount: data[0].totalCount,
+  };
+}
+
+/**
+ * Purpose of approved Risk Analysis to digest data structure.
+ * Each ordered by rejectedAt DESC, contains purpose name, purposeId, link and total count.
+ *
+ * @param data - The list of received puposes to transform into a digest, ordered by rejectedAt DESC.
+ * @param selfcareId - The tenant's selfcare ID for deeplink authentication
+ */
+export async function rejectedRiskAnalysisToDigest(
+  data: RejectedRiskAnalysisQueryResult[],
+  selfcareId: string | null
+): Promise<RejectedRiskAnalysisDigest> {
+  if (data.length === 0) {
+    return { items: [], totalCount: 0 };
+  }
+
+  return {
+    items: data.map((request) => ({
+      id: request.purposeId,
+      name: request.purposeTitle,
+      producerName: "",
+      rejectedAt: request.rejectedAt,
+      link: buildPurposeLink(request.purposeId, false, selfcareId),
     })),
     totalCount: data[0].totalCount,
   };

@@ -49,6 +49,44 @@ function generateAgreementOrPurposeItems(
   };
 }
 
+function generateApprovedRiskAnalysisPurposes(
+  itemsNumber: number,
+  sectionLabel: string
+): TenantDigestData["approvedRiskAnalysis"] {
+  const items = generateAgreementOrPurposeItems(
+    itemsNumber,
+    "purpose",
+    sectionLabel
+  )!.items.map((item) => ({
+    ...item,
+    id: generateId(),
+    signedAt: new Date().toISOString(),
+  }));
+  return {
+    items,
+    totalCount: itemsNumber,
+  };
+}
+
+function generateRejectedRiskAnalysisPurposes(
+  itemsNumber: number,
+  sectionLabel: string
+): TenantDigestData["rejectedRiskAnalysis"] {
+  const items = generateAgreementOrPurposeItems(
+    itemsNumber,
+    "purpose",
+    sectionLabel
+  )!.items.map((item) => ({
+    ...item,
+    id: generateId(),
+    rejectedAt: new Date().toISOString(),
+  }));
+  return {
+    items,
+    totalCount: itemsNumber,
+  };
+}
+
 /**
  * Returns mock digest data for received purposes with the specified number of items
  */
@@ -167,6 +205,7 @@ export function getMockTenantDigestData(): TenantDigestData {
     viewAllAttributesLink: "https://example.com/attributes",
     viewAllUpdatedEserviceTemplatesLink:
       "https://example.com/eservice-templates/updated",
+    viewAllRiskAnalysisPurposes: "https://example.com/purposes/sent",
     newEservices: generateNewEservices(8, "Nuovo e-service"),
     updatedEservices: generateNewEservices(9, "E-service aggiornato"),
     updatedEserviceTemplates: generateNewEservices(
@@ -351,6 +390,14 @@ export function getMockTenantDigestData(): TenantDigestData {
       8,
       "Richiesta rifiutata"
     ),
+    approvedRiskAnalysis: generateApprovedRiskAnalysisPurposes(
+      10,
+      "Finalità con analisi del rischio approvata"
+    ),
+    rejectedRiskAnalysis: generateRejectedRiskAnalysisPurposes(
+      10,
+      "Finalità con analisi del rischio rifiutata"
+    ),
   };
 }
 
@@ -372,6 +419,7 @@ export function getMockLimitedTenantDigestData(): TenantDigestData {
     viewAllAttributesLink: "https://example.com/attributes",
     viewAllUpdatedEserviceTemplatesLink:
       "https://example.com/eservice-templates/updated",
+    viewAllRiskAnalysisPurposes: "https://example.com/purposes/sent",
     newEservices: generateNewEservices(6, "Nuovo e-service"),
     updatedEservices: generateNewEservices(6, "E-service aggiornato"),
     updatedEserviceTemplates: generateNewEservices(
@@ -442,6 +490,14 @@ export function getMockLimitedTenantDigestData(): TenantDigestData {
       5,
       "Richiesta rifiutata"
     ),
+    approvedRiskAnalysis: generateApprovedRiskAnalysisPurposes(
+      5,
+      "Finalità con analisi del rischio approvata"
+    ),
+    rejectedRiskAnalysis: generateRejectedRiskAnalysisPurposes(
+      5,
+      "Finalità con analisi del rischio rifiutata"
+    ),
   };
 }
 
@@ -463,6 +519,7 @@ export function getMockSingularTenantDigestData(): TenantDigestData {
     viewAllAttributesLink: "https://example.com/attributes",
     viewAllUpdatedEserviceTemplatesLink:
       "https://example.com/eservice-templates/updated",
+    viewAllRiskAnalysisPurposes: "https://example.com/purposes/sent",
     newEservices: generateNewEservices(1, "Nuovo e-service"),
     updatedEservices: generateNewEservices(1, "E-service aggiornato"),
     updatedEserviceTemplates: generateNewEservices(
@@ -593,6 +650,14 @@ export function getMockSingularTenantDigestData(): TenantDigestData {
       1,
       "Richiesta rifiutata"
     ),
+    approvedRiskAnalysis: generateApprovedRiskAnalysisPurposes(
+      1,
+      "Finalità con analisi del rischio approvata"
+    ),
+    rejectedRiskAnalysis: generateRejectedRiskAnalysisPurposes(
+      1,
+      "Finalità con analisi del rischio rifiutata"
+    ),
   };
 }
 
@@ -613,6 +678,7 @@ export function getMockPartialDigestData(): TenantDigestData {
     viewAllReceivedPurposesLink: "https://example.com/purposes/received",
     viewAllReceivedDelegationsLink: "https://example.com/delegations/received",
     viewAllAttributesLink: "https://example.com/attributes",
+    viewAllRiskAnalysisPurposes: "https://example.com/purposes/sent",
     viewAllUpdatedEserviceTemplatesLink:
       "https://example.com/eservice-templates/updated",
     viewAllArchivingProducerLink: "https://example.com/archiving",

@@ -1191,8 +1191,125 @@
                                           {{/if}}
                                         </ul>
                                       </div>
-                                    </div>
-                                    {{/if}}
+                                      </div>
+                                      {{/if}}
+                                        {{#if approvedRiskAnalysis.totalCount}}
+                                          <div class="section-divider">
+                                            <table
+                                              class="section-header-table" role="presentation"
+                                              width="100%"
+                                              cellpadding="0"
+                                              cellspacing="0"
+                                              border="0"
+                                            >
+                                              <tr>
+                                                <td valign="middle">
+                                                  <h2 class="h2-title">
+                                                    Analisi del rischio assegnate
+                                                  </h2>
+                                                </td>
+                                                {{#if viewAllRiskAnalysisPurposes}}
+                                                <td valign="middle" align="right" style="white-space: nowrap;">
+                                                  <a
+                                                    href="{{viewAllRiskAnalysisPurposes}}"
+                                                    class="link-primary" style="color: #0073e6;"
+                                                    aria-label="Visualizza tutte le finalità per le analisi del rischio elencate"
+                                                    >Visualizza tutte</a
+                                                  >
+                                                </td>
+                                                {{/if}}
+                                              </tr>
+                                            </table>
+                                            <p class="body-text-no-margin">
+                                              {{#if approvedRiskAnalysisSingular}}
+                                                <strong>
+                                                  È approvata un'analisi del rischio:
+                                                </strong>
+                                                {{else}}
+                                                <strong>
+                                                  Sono state approvate {{ 
+                                                  approvedRiskAnalysis.totalCount }} analisi del rischio
+                                                </strong>
+                                                {{#if approvedRiskAnalysisExceededItemsCount }}
+                                                , tra cui:
+                                                {{else}}
+                                                  :
+                                                {{/if}}
+                                              {{/if}}
+                                            </p>
+                                            <div class="section-cell">
+                                              <ul class="list-items">
+                                                {{#each approvedRiskAnalysis.items}}
+                                                <ul class="list-item">
+                                                  <a
+                                                    href="{{ link }}"
+                                                    class="link-primary" style="color: #0073e6;"
+                                                    >{{ name }}</a
+                                                  >
+                                                </ul>
+                                                {{/each}}
+                                              </ul>
+                                              {{#if approvedRiskAnalysisExceededItemsCount }}
+                                              <ul class="list-item">
+                                                E altre
+                                                <strong>{{ approvedRiskAnalysisExceededItemsCount }}</strong>.
+                                              </ul>
+                                              {{/if}}
+
+                                              <!-- Warning Alert -->
+                                              <div class="alert-warning" role="note">
+                                                <p class="alert-text">
+                                                  Adesso puoi pubblicarne la finalità.
+                                                </p>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        {{/if}} {{#if
+                                        rejectedRiskAnalysis.totalCount}}
+                                        <p class="body-text-no-margin">
+                                          {{#if rejectedRiskAnalysisSingular}}
+                                            <strong>
+                                              È stata rifiutata una finalità:
+                                            </strong>
+                                            {{else}}
+                                            <strong>
+                                              Sono state rifiutate {{ 
+                                              rejectedRiskAnalysis.totalCount }} analisi del rischio
+                                            </strong>
+                                            {{#if rejectedRiskAnalysisExceededItemsCount }}
+                                            , tra cui:
+                                            {{else}}
+                                              :
+                                            {{/if}}
+                                          {{/if}}
+                                        </p>
+                                        <div class="section-cell">
+                                          <ul class="list-items">
+                                            {{#each rejectedRiskAnalysis.items}}
+                                            <ul class="list-item">
+                                              <a
+                                                href="{{ link }}"
+                                                class="link-primary" style="color: #0073e6;"
+                                                >{{ name }}</a
+                                              >
+                                            </ul>
+                                            {{/each}}
+                                          </ul>
+                                          {{#if rejectedRiskAnalysisExceededItemsCount }}
+                                          <ul class="list-item">
+                                            E altre
+                                            <strong>{{ rejectedRiskAnalysisExceededItemsCount }}</strong>.
+                                          </ul>
+                                          {{/if}}
+                                          <!-- Warning Alert -->
+                                          <div class="alert-warning" role="note">
+                                            <p class="alert-text">
+                                              Leggi la motivazione condivisa
+                                              dal valutatore.
+                                            </p>
+                                          </div>
+                                        </div>
+                                      {{/if}}
                                     {{/if}}
                                   </td>
                                 </tr>
