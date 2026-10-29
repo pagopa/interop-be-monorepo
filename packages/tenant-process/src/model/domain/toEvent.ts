@@ -468,3 +468,18 @@ export function toCreateEventMaintenanceTenantRemoteIdDeleted(
     correlationId,
   };
 }
+
+export const toCreateEventTenantParentUpdated = (
+  version: number,
+  updatedTenant: Tenant,
+  correlationId: CorrelationId
+): CreateEvent<TenantEvent> => ({
+  streamId: updatedTenant.id,
+  version,
+  event: {
+    event_version: 2,
+    type: "TenantParentUpdated",
+    data: { tenant: toTenantV2(updatedTenant) },
+  },
+  correlationId,
+});
