@@ -318,6 +318,7 @@ pnpm --filter pagopa-interop-dev-dashboard-api test
 pnpm --filter pagopa-interop-dev-dashboard-ui check
 pnpm --filter pagopa-interop-dev-dashboard-ui test
 node --test scripts/local-development/test/dashboard-runtime.test.mjs
+node --test scripts/local-development/test/local-seed.test.mjs
 ```
 
 ## Troubleshoot startup

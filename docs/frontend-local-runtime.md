@@ -41,6 +41,13 @@ The Selfcare mock implements the institution, product, institution-user, and
 user lookups used by the BFF. Its source dataset is
 `docker/local-development/dataset.json`.
 
+The local seed also initializes missing Interop tenant kinds through the Selfcare
+upsert API and waits for readmodel propagation. IPA onboarding initially leaves
+the kind unset; an update evaluates it from the institution type and certified
+attributes. If an older environment returns `Tenant kind not found` when working
+with purposes, rerun `pnpm local:seed` in the backend runtime. This repairs existing
+tenants without resetting data and preserves kinds that are already set.
+
 Docker data is persistent. Use the dashboard reset confirmation when a clean
 rebuild is intended. It removes infrastructure volumes; personal presets and
 dependency volumes are preserved.
