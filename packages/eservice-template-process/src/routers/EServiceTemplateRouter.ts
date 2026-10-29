@@ -41,6 +41,7 @@ import {
   deleteEServiceTemplateVersionErrorMapper,
   createEServiceTemplateErrorMapper,
   updateEServiceTemplateErrorMapper,
+  patchUpdateEServiceTemplateErrorMapper,
   updateDraftTemplateVersionErrorMapper,
   publishEServiceTemplateVersionErrorMapper,
   createEServiceTemplateDocumentErrorMapper,
@@ -299,7 +300,7 @@ const eserviceTemplatesRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          updateEServiceTemplateErrorMapper,
+          patchUpdateEServiceTemplateErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);
