@@ -193,6 +193,39 @@ describe("patch update eService", () => {
     }
   );
 
+  it("should update operational fields without descriptors", async () => {
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [],
+      technology: "Rest",
+      mode: "Receive",
+    };
+    await addOneEService(eservice);
+
+    const result = await catalogService.patchUpdateEService(
+      eservice.id,
+      { technology: "SOAP", isSignalHubEnabled: true },
+      getMockContextM2MAdmin({ organizationId: eservice.producerId })
+    );
+
+    const expectedEService: EService = {
+      ...eservice,
+      technology: "Soap",
+      isSignalHubEnabled: true,
+    };
+    expect(result).toEqual({
+      data: expectedEService,
+      metadata: { version: 1 },
+    });
+    const events = await readPatchEvents(eservice.id);
+    expect(events).toMatchObject([
+      { type: "DraftEServiceUpdated", version: "1", event_version: 2 },
+    ]);
+    expect(decodeEServicePatchEvent(events[0]!)).toEqual(
+      toEServiceV2(expectedEService)
+    );
+  });
+
   it.each([
     [],
     ...Object.values(descriptorState).map((state) => [
@@ -402,7 +435,6 @@ describe("patch update eService", () => {
   });
 
   it.each([
-    [],
     ...Object.values(descriptorState)
       .filter((state) => state !== descriptorState.draft)
       .map((state) => [{ ...getMockDescriptor(), state }]),
@@ -410,8 +442,13 @@ describe("patch update eService", () => {
       { ...getMockDescriptor(), state: descriptorState.draft },
       { ...getMockDescriptor(), state: descriptorState.draft },
     ],
+    [
+      { ...getMockDescriptor(), state: descriptorState.draft },
+      { ...getMockDescriptor(), state: descriptorState.draft },
+      { ...getMockDescriptor(), state: descriptorState.draft },
+    ],
   ])(
-    "should reject mixed operational updates atomically outside a single Draft descriptor (case #%#)",
+    "should reject mixed operational updates atomically with non-Draft or multiple descriptors (case #%#)",
     async (...descriptors) => {
       const eservice = { ...mockEService, descriptors };
       await addOneEService(eservice);

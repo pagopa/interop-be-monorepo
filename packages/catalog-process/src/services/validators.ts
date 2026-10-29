@@ -313,7 +313,7 @@ export function assertIsDraftEservice(eservice: EService): void {
 export function assertEServiceOperationalFieldsUpdatable(
   eservice: EService
 ): void {
-  if (eservice.descriptors.length !== 1) {
+  if (eservice.descriptors.length > 1) {
     throw eserviceNotInDraftState(eservice.id);
   }
   assertIsDraftEservice(eservice);

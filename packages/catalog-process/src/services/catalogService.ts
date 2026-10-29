@@ -1292,7 +1292,7 @@ export function catalogServiceBuilder(
       return {
         data: updatedEService,
         metadata: {
-          version: eservice.metadata.version + createdEvents.events.length,
+          version: createdEvents.latestNewVersions.get(eservice.data.id) ?? 0,
         },
       };
     },

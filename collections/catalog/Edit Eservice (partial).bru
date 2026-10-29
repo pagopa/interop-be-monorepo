@@ -29,7 +29,7 @@ body:json {
 docs {
   Update name and description independently of descriptor count or state.
   Template instances cannot be updated directly.
-  Operational fields can be included only with a single Draft descriptor;
+  Operational fields can be included with no descriptors or a single Draft descriptor;
   otherwise the whole request fails with 409.
   Unchanged values do not create events or increment X-Metadata-Version.
 }
