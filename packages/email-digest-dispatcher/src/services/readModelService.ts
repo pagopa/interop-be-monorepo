@@ -499,24 +499,23 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           eserviceInReadmodelCatalog.producerId
         );
 
-      // Filter results where newVersion > agreementVersion (as integers) and limit to 5
-      const filteredResults = results
-        .filter((row) => {
-          const newVersionInt = parseInt(row.newVersion, 10);
-          const agreementVersionInt = parseInt(row.agreementVersion, 10);
-          return (
-            !isNaN(newVersionInt) &&
-            !isNaN(agreementVersionInt) &&
-            newVersionInt > agreementVersionInt
-          );
-        })
-        .slice(0, SECTION_CARDS_LIMIT);
+      // Filter results where newVersion > agreementVersion (as integers)
+      const filteredResults = results.filter((row) => {
+        const newVersionInt = parseInt(row.newVersion, 10);
+        const agreementVersionInt = parseInt(row.agreementVersion, 10);
+        return (
+          !isNaN(newVersionInt) &&
+          !isNaN(agreementVersionInt) &&
+          newVersionInt > agreementVersionInt
+        );
+      });
 
       logger.info(
         `Retrieved ${filteredResults.length} new e-service versions for consumer ${consumerId}`
       );
 
-      return filteredResults.map((row) => ({
+      // Limited results before sending to digest section
+      return filteredResults.slice(0, SECTION_CARDS_LIMIT).map((row) => ({
         eserviceId: unsafeBrandId<EServiceId>(row.eserviceId),
         eserviceDescriptorId: unsafeBrandId<DescriptorId>(
           row.eserviceDescriptorId
