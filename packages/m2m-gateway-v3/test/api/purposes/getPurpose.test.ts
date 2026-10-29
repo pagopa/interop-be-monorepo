@@ -1,3 +1,4 @@
+import { purposeApi } from "pagopa-interop-api-clients";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
@@ -25,8 +26,31 @@ describe("GET /purpose/:purposeId router test", () => {
       .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send();
 
-  const mockApiPurpose = getMockedApiPurpose();
-  const mockM2MPurposeResponse = toM2MGatewayApiPurpose(mockApiPurpose);
+  const reviewerWorkflow: purposeApi.ReviewerWorkflow = {
+    reviewers: [
+      {
+        id: generateId(),
+        sentToReviewerAt: "2026-10-19T12:00:00.000Z",
+      },
+    ],
+    signingState: purposeApi.RiskAnalysisSigningState.Values.ASSIGNED,
+  };
+  const expectedReviewerWorkflow = {
+    ...reviewerWorkflow,
+    reviewers: reviewerWorkflow.reviewers.map(({ id, ...reviewer }) => ({
+      ...reviewer,
+      userId: id,
+    })),
+  };
+
+  const mockApiPurpose = {
+    ...getMockedApiPurpose(),
+    reviewerWorkflow,
+  };
+  const mockM2MPurposeResponse = toM2MGatewayApiPurpose(
+    mockApiPurpose,
+    mockApiPurpose.consumerId
+  );
 
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",
@@ -40,8 +64,29 @@ describe("GET /purpose/:purposeId router test", () => {
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual(mockM2MPurposeResponse);
+      expect(res.body.reviewerWorkflow).toEqual(expectedReviewerWorkflow);
     }
   );
+
+  it("Should accept a reviewer workflow without reviewer details", async () => {
+    const purposeWithoutReviewers = {
+      ...mockM2MPurposeResponse,
+      reviewerWorkflow: {
+        signingState: reviewerWorkflow.signingState,
+      },
+    };
+    mockPurposeService.getPurpose = vi
+      .fn()
+      .mockResolvedValue(purposeWithoutReviewers);
+
+    const token = generateToken(authRole.M2M_ROLE);
+    const res = await makeRequest(token, purposeWithoutReviewers.id);
+
+    expect(res.status).toBe(200);
+    expect(res.body.reviewerWorkflow).toEqual(
+      purposeWithoutReviewers.reviewerWorkflow
+    );
+  });
 
   it("Should return 400 for incorrect value for purpose id", async () => {
     mockPurposeService.getPurpose = vi

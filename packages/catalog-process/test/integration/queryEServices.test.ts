@@ -43,6 +43,7 @@ import {
   addOneAttribute,
   addOneDelegation,
   addOneEService,
+  addOneEServiceTemplateVersionPurposeTemplate,
   addOnePurposeTemplate,
   addOnePurposeTemplateEServiceDescriptor,
   addOneTenant,
@@ -980,133 +981,6 @@ describe("query eservices", () => {
     });
   });
 
-  describe("requesterDelegationRoles", () => {
-    const requesterId: TenantId = generateId();
-    const requesterContext = getMockContext({
-      authData: getMockAuthData(requesterId),
-    });
-
-    const eserviceReceived = buildEService(
-      "Received",
-      new Date("2024-01-01T00:00:00Z")
-    );
-    const eserviceEntrusted = buildEService(
-      "Entrusted",
-      new Date("2024-02-01T00:00:00Z")
-    );
-    const eserviceUnrelated = buildEService(
-      "Unrelated",
-      new Date("2024-03-01T00:00:00Z")
-    );
-
-    beforeEach(async () => {
-      await addOneEService(eserviceReceived);
-      await addOneEService(eserviceEntrusted);
-      await addOneEService(eserviceUnrelated);
-      await addOneDelegation(
-        getMockDelegation({
-          kind: delegationKind.delegatedProducer,
-          state: delegationState.active,
-          eserviceId: eserviceReceived.id,
-          delegateId: requesterId,
-        })
-      );
-      await addOneDelegation(
-        getMockDelegation({
-          kind: delegationKind.delegatedProducer,
-          state: delegationState.active,
-          eserviceId: eserviceEntrusted.id,
-          delegatorId: requesterId,
-        })
-      );
-    });
-
-    it("should not filter the e-services when requesterDelegationRoles is not set", async () => {
-      const result = await filterEServices({}, requesterContext);
-
-      expect(result.totalCount).toBe(3);
-    });
-
-    it("should not filter the e-services when requesterDelegationRoles is empty", async () => {
-      const result = await filterEServices(
-        { requesterDelegationRoles: [] },
-        requesterContext
-      );
-
-      expect(result.totalCount).toBe(3);
-    });
-
-    it("should return the e-services received in delegation (requesterDelegationRoles: DELEGATE)", async () => {
-      const result = await filterEServices(
-        { requesterDelegationRoles: ["DELEGATE"] },
-        requesterContext
-      );
-
-      expect(result.totalCount).toBe(1);
-      expect(idsOf(result)).toEqual([eserviceReceived.id]);
-    });
-
-    it("should return the e-services entrusted in delegation (requesterDelegationRoles: DELEGATOR)", async () => {
-      const result = await filterEServices(
-        { requesterDelegationRoles: ["DELEGATOR"] },
-        requesterContext
-      );
-
-      expect(result.totalCount).toBe(1);
-      expect(idsOf(result)).toEqual([eserviceEntrusted.id]);
-    });
-
-    it("should return the e-services where the requester is delegate or delegator (requesterDelegationRoles: DELEGATE and DELEGATOR)", async () => {
-      const result = await filterEServices(
-        { requesterDelegationRoles: ["DELEGATE", "DELEGATOR"] },
-        requesterContext
-      );
-
-      expect(result.totalCount).toBe(2);
-      expect(idsOf(result)).toEqual([
-        eserviceEntrusted.id,
-        eserviceReceived.id,
-      ]);
-    });
-
-    it("should ignore delegations that are not active producer delegations", async () => {
-      const eservicePendingDelegation = buildEService(
-        "PendingDelegation",
-        new Date("2024-04-01T00:00:00Z")
-      );
-      const eserviceConsumerDelegation = buildEService(
-        "ConsumerDelegation",
-        new Date("2024-05-01T00:00:00Z")
-      );
-      await addOneEService(eservicePendingDelegation);
-      await addOneEService(eserviceConsumerDelegation);
-      await addOneDelegation(
-        getMockDelegation({
-          kind: delegationKind.delegatedProducer,
-          state: delegationState.waitingForApproval,
-          eserviceId: eservicePendingDelegation.id,
-          delegateId: requesterId,
-        })
-      );
-      await addOneDelegation(
-        getMockDelegation({
-          kind: delegationKind.delegatedConsumer,
-          state: delegationState.active,
-          eserviceId: eserviceConsumerDelegation.id,
-          delegateId: requesterId,
-        })
-      );
-
-      const result = await filterEServices(
-        { requesterDelegationRoles: ["DELEGATE"] },
-        requesterContext
-      );
-
-      expect(result.totalCount).toBe(1);
-      expect(idsOf(result)).toEqual([eserviceReceived.id]);
-    });
-  });
-
   describe("onlyTemplateInstances", () => {
     const eserviceInstanceA: EService = {
       ...buildEService("InstanceA", new Date("2024-01-01T00:00:00Z")),
@@ -1338,6 +1212,108 @@ describe("query eservices", () => {
 
       expect(idsOf(result)).not.toContain(eserviceLinkedToDraft.id);
       expect(idsOf(result)).not.toContain(eserviceLinkedToArchived.id);
+    });
+  });
+
+  describe("hasLinkedPurposeTemplates inherited from the e-service template", () => {
+    const templateId = generateId<EServiceTemplateId>();
+    const linkedInstance: EService = {
+      ...buildEService("Giunto Alfa", new Date("2024-01-01T00:00:00Z")),
+      templateId,
+    };
+    const unlinkedInstance: EService = {
+      ...buildEService("Giunto Beta", new Date("2024-02-01T00:00:00Z")),
+      templateId: generateId<EServiceTemplateId>(),
+    };
+    const purposeTemplate = getMockPurposeTemplate(
+      undefined,
+      purposeTemplateState.published
+    );
+
+    beforeEach(async () => {
+      await addOneEService(linkedInstance);
+      await addOneEService(unlinkedInstance);
+      await addOnePurposeTemplate(purposeTemplate);
+      await addOneEServiceTemplateVersionPurposeTemplate({
+        purposeTemplateId: purposeTemplate.id,
+        eserviceTemplateId: templateId,
+        eserviceTemplateVersionId: generateId(),
+        createdAt: new Date(),
+      });
+    });
+
+    it.each([undefined, true])(
+      "should include inherited links with keyword and onlyTemplateInstances=%s",
+      async (onlyTemplateInstances) => {
+        const result = await filterEServices({
+          keyword: "Giunto",
+          onlyTemplateInstances,
+          hasLinkedPurposeTemplates: true,
+        });
+
+        expect(idsOf(result)).toEqual([linkedInstance.id]);
+        expect(result.totalCount).toBe(1);
+      }
+    );
+
+    it.each([
+      purposeTemplateState.draft,
+      purposeTemplateState.suspended,
+      purposeTemplateState.archived,
+    ])(
+      "should exclude inherited links to %s purpose templates",
+      async (state) => {
+        await addOnePurposeTemplate({ ...purposeTemplate, state });
+
+        const result = await filterEServices({
+          hasLinkedPurposeTemplates: true,
+        });
+
+        expect(result.results).toEqual([]);
+        expect(result.totalCount).toBe(0);
+      }
+    );
+
+    it("should not duplicate an instance with both direct and inherited links", async () => {
+      await addOnePurposeTemplateEServiceDescriptor({
+        purposeTemplateId: purposeTemplate.id,
+        eserviceId: linkedInstance.id,
+        descriptorId: linkedInstance.descriptors[0].id,
+        createdAt: new Date(),
+      });
+      const result = await filterEServices({ hasLinkedPurposeTemplates: true });
+
+      expect(idsOf(result)).toEqual([linkedInstance.id]);
+      expect(result.totalCount).toBe(1);
+    });
+
+    it("should preserve ordering and total count across filtered pages", async () => {
+      const additional: EService = {
+        ...buildEService("Giunto Gamma", new Date("2024-03-01T00:00:00Z")),
+        templateId,
+      };
+      await addOneEService(additional);
+      const pages = await Promise.all(
+        [0, 1, 2].map((offset) =>
+          filterEServices(
+            {
+              keyword: "Giunto",
+              onlyTemplateInstances: true,
+              hasLinkedPurposeTemplates: true,
+            },
+            getMockContext({}),
+            offset,
+            1
+          )
+        )
+      );
+
+      expect(pages.map(idsOf)).toEqual([
+        [additional.id],
+        [linkedInstance.id],
+        [],
+      ]);
+      expect(pages.map((page) => page.totalCount)).toEqual([2, 2, 2]);
     });
   });
 

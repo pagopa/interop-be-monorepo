@@ -15144,9 +15144,6 @@ components:
           type: boolean
         activeDescriptor:
           $ref: "#/components/schemas/CompactDescriptor"
-        hasUnreadNotifications:
-          type: boolean
-          description: Indicates if there are unread notifications for this e-service
         personalData:
           type: boolean
         asyncExchange:
@@ -15201,11 +15198,6 @@ components:
         onlySignalHubEnabled:
           type: boolean
           description: If true, returns only e-services with Signal Hub enabled
-        requesterDelegationRoles:
-          type: array
-          description: Filter by the requester role in producer delegations
-          items:
-            $ref: "#/components/schemas/RequesterDelegationRole"
         templateId:
           type: string
           format: uuid
@@ -15224,12 +15216,6 @@ components:
         - NAME_DESC
         - CREATED_AT_ASC
         - CREATED_AT_DESC
-    RequesterDelegationRole:
-      type: string
-      description: Role of the requester in a producer delegation
-      enum:
-        - DELEGATE
-        - DELEGATOR
     EServiceProducerCategory:
       type: string
       description: Producer entity macro-category, resolved backend-side to certified attribute codes

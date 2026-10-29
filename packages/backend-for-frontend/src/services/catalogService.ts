@@ -109,7 +109,6 @@ const isCatalogEventConflict = (error: unknown): boolean =>
 const enhanceCatalogEservices = async (
   eservices: catalogApi.EService[],
   tenantProcessClient: TenantProcessClient,
-  inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient,
   ctx: WithLogger<BffAppContext>,
   requesterId: TenantId
 ): Promise<bffApi.CatalogEService[]> => {
@@ -117,12 +116,6 @@ const enhanceCatalogEservices = async (
     ...eservices.map((e) => e.producerId),
     requesterId,
   ] as TenantId[]);
-
-  const notificationsPromise = filterUnreadNotifications(
-    inAppNotificationManagerClient,
-    eservices.map((a) => a.id),
-    ctx
-  );
 
   const cachedTenants = new Map(
     await Promise.all(
@@ -147,31 +140,24 @@ const enhanceCatalogEservices = async (
   };
   const enhanceEService =
     (
-      requesterId: TenantId,
-      notifications: string[]
+      requesterId: TenantId
     ): ((eservice: catalogApi.EService) => Promise<bffApi.CatalogEService>) =>
     async (eservice: catalogApi.EService): Promise<bffApi.CatalogEService> => {
       const producerTenant = getCachedTenant(eservice.producerId as TenantId);
 
       const latestActiveDescriptor = getLatestActiveDescriptor(eservice);
 
-      const hasNotifications = notifications.includes(eservice.id);
       const isRequesterEqProducer = requesterId === eservice.producerId;
 
       return toBffCatalogApiEService(
         eservice,
         producerTenant,
         isRequesterEqProducer,
-        hasNotifications,
         latestActiveDescriptor
       );
     };
 
-  const notifications = await notificationsPromise;
-
-  return await Promise.all(
-    eservices.map(enhanceEService(requesterId, notifications))
-  );
+  return await Promise.all(eservices.map(enhanceEService(requesterId)));
 };
 
 const checkNewTemplateVersionAvailable = (
@@ -379,7 +365,6 @@ export function catalogServiceBuilder(
       const results = await enhanceCatalogEservices(
         eservicesResponse.results,
         tenantProcessClient,
-        inAppNotificationManagerClient,
         ctx,
         requesterId
       );
@@ -409,7 +394,6 @@ export function catalogServiceBuilder(
       const results = await enhanceCatalogEservices(
         eservicesResponse.results,
         tenantProcessClient,
-        inAppNotificationManagerClient,
         ctx,
         requesterId
       );
