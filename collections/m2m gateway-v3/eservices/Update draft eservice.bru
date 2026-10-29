@@ -1,5 +1,5 @@
 meta {
-  name: Update draft eservice
+  name: Partially update eservice
   type: http
   seq: 19
 }
@@ -22,12 +22,16 @@ headers {
 
 body:json {
   {
-    "name": "Updated name"
-    "description": "test eservice updated",
-    "technology": "SOAP",
-    "mode": "RECEIVE",
-    "isSignalHubEnabled": false,
-    "isConsumerDelegable": false,
-    "isClientAccessDelegable": true
+    "name": "Updated name",
+    "description": "test eservice updated"
   }
+
+}
+
+docs {
+  Update metadata of a non-template E-Service regardless of descriptor states.
+  At least one field is required; an empty object returns 400.
+  Omitted fields remain unchanged; unchanged values create no events or new version.
+  Operational fields retain the existing Draft rules; violations return 409 atomically.
+  Returns the updated E-Service after read-model polling. Dedicated PATCH routes remain available.
 }

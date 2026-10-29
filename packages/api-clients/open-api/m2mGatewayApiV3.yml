@@ -2869,8 +2869,14 @@ paths:
     patch:
       tags:
         - eservices
-      summary: Update a Draft E-Service
-      description: Update an E-Service in Draft state
+      summary: Partially update an E-Service
+      description: |
+        Updates name and description of a non-template E-Service regardless of descriptor states.
+        Operational fields retain the existing Draft-only rules. If any supplied operational
+        field is not allowed, the whole request fails atomically with 409.
+        At least one field is required; an empty object returns 400.
+        Omitted fields remain unchanged. Unchanged values succeed without new events or
+        a metadata version increment. Returns the updated resource after read-model polling.
       operationId: updateDraftEService
       requestBody:
         content:
@@ -2880,7 +2886,7 @@ paths:
         required: true
       responses:
         "200":
-          description: Draft E-Service updated
+          description: E-Service updated
           content:
             application/json:
               schema:
@@ -13802,6 +13808,7 @@ components:
     EServiceDraftUpdateSeed:
       type: object
       additionalProperties: false
+      minProperties: 1
       properties:
         name:
           type: string

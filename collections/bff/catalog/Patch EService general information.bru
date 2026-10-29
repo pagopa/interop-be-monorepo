@@ -1,0 +1,34 @@
+meta {
+  name: Patch EService general information
+  type: http
+  seq: 47
+}
+
+patch {
+  url: {{host-bff}}/eservices/:eServiceId
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+}
+
+body:json {
+  {
+    "name": "Updated name",
+    "description": "test eservice updated from BFF"
+  }
+}
+
+docs {
+  Update metadata of a non-template E-Service regardless of descriptor states.
+  At least one field is required; an empty object returns 400.
+  Omitted fields remain unchanged; unchanged values create no events or new version.
+  Operational fields retain the existing Draft rules; violations return 409 atomically.
+  Returns the E-Service id. Legacy PUT and dedicated POST routes remain available.
+}
