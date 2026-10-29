@@ -664,7 +664,7 @@ describe("patchUpdateReversePurpose", () => {
       };
       await addOnePurpose(purposeFromTemplate);
 
-      expect(
+      await expect(
         purposeService.patchUpdateReversePurpose(
           purposeFromTemplate.id,
           {
