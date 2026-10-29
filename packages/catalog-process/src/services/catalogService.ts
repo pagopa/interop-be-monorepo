@@ -274,6 +274,7 @@ import {
   assertDelegatedDescriptorHasAtLeastOneArchivingRequests,
   assertDelegatedDescriptorHasActiveArchivingRequests,
   assertDelegatedArchivingRequestDelegationIsStillValid,
+  isDraftEservice,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -1260,20 +1261,13 @@ export function catalogServiceBuilder(
         (value) => value !== undefined
       );
 
-      const isDraftEservice = (() => {
-        try {
-          assertIsDraftEservice(eservice.data);
-          return true;
-        } catch {
-          return false;
-        }
-      })();
+      const isDraft = isDraftEservice(eservice.data);
 
       /**
        * Ensure that operational fields (mode, technology, ...)
        * can only be updated if the EService is in draft state.
        */
-      if (hasOperationalFields && !isDraftEservice) {
+      if (hasOperationalFields && !isDraft) {
         throw eserviceNotInDraftState(eservice.data.id);
       }
 
@@ -1283,7 +1277,7 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      if (isDraftEservice) {
+      if (isDraft) {
         const updatedEservice = prepareDraftEServiceUpdate(eservice.data, {
           type: "patch",
           seed: eserviceSeed,

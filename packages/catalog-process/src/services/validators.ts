@@ -304,8 +304,12 @@ export async function assertNoExistingProducerDelegationForEServiceArchiving(
   }
 }
 
+export function isDraftEservice(eservice: EService): boolean {
+  return eservice.descriptors.every((d) => d.state === descriptorState.draft);
+}
+
 export function assertIsDraftEservice(eservice: EService): void {
-  if (eservice.descriptors.some((d) => d.state !== descriptorState.draft)) {
+  if (isDraftEservice(eservice)) {
     throw eserviceNotInDraftState(eservice.id);
   }
 }
