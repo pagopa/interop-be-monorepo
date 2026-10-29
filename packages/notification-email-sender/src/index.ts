@@ -252,6 +252,8 @@ export async function handlePurposeMessage(
           "WaitingForApprovalPurposeDeleted",
           "PurposeAdded",
           "DraftPurposeUpdated",
+          "PurposeTitleUpdated",
+          "PurposeDescriptionUpdated",
           "PurposeActivated",
           "PurposeArchived",
           "PurposeVersionOverQuotaUnsuspended",

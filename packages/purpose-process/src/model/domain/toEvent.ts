@@ -77,6 +77,44 @@ export const toCreateEventDraftPurposeUpdated = ({
   correlationId,
 });
 
+export const toCreateEventPurposeTitleUpdated = ({
+  purpose,
+  version,
+  correlationId,
+}: {
+  purpose: Purpose;
+  version: number;
+  correlationId: CorrelationId;
+}): CreateEvent<PurposeEventV2> => ({
+  streamId: purpose.id,
+  version,
+  event: {
+    type: "PurposeTitleUpdated",
+    event_version: 2,
+    data: { purpose: toPurposeV2(purpose) },
+  },
+  correlationId,
+});
+
+export const toCreateEventPurposeDescriptionUpdated = ({
+  purpose,
+  version,
+  correlationId,
+}: {
+  purpose: Purpose;
+  version: number;
+  correlationId: CorrelationId;
+}): CreateEvent<PurposeEventV2> => ({
+  streamId: purpose.id,
+  version,
+  event: {
+    type: "PurposeDescriptionUpdated",
+    event_version: 2,
+    data: { purpose: toPurposeV2(purpose) },
+  },
+  correlationId,
+});
+
 export const toCreateEventMaintenancePurposeRiskAnalysisSetTenantKind = ({
   purpose,
   version,
