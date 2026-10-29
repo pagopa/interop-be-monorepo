@@ -83,6 +83,8 @@ const errorCodes = {
   reviewersNotAllowedForReviewMode: "0063",
   purposeMetadataVersionMismatch: "0064",
   riskAnalysisReviewModeNotFound: "0065",
+  riskAnalysisAlreadyApproved: "0066",
+  riskAnalysisAlreadyRejected: "0067",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -740,6 +742,26 @@ export function purposeMetadataVersionMismatch(
     detail: `Cannot sign risk analysis for purpose ${purposeId}: requested metadata version ${metadataVersionToSign} does not match current metadata version ${currentMetadataVersion}`,
     code: "purposeMetadataVersionMismatch",
     title: "Purpose metadata version mismatch",
+  });
+}
+
+export function riskAnalysisAlreadyApproved(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The risk analysis for purpose ${purposeId} has already been approved`,
+    code: "riskAnalysisAlreadyApproved",
+    title: "Risk analysis already approved",
+  });
+}
+
+export function riskAnalysisAlreadyRejected(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The risk analysis for purpose ${purposeId} has already been rejected`,
+    code: "riskAnalysisAlreadyRejected",
+    title: "Risk analysis already rejected",
   });
 }
 

@@ -19,6 +19,7 @@ import {
   Tenant,
   TenantId,
   UserId,
+  eventConflictError,
   fromPurposeV2,
   generateId,
   riskAnalysisReviewMode,
@@ -34,6 +35,8 @@ import {
   reviewerWorkflowNotEditable,
   reviewerWorkflowNotFound,
   riskAnalysisValidationFailed,
+  riskAnalysisAlreadyApproved,
+  riskAnalysisAlreadyRejected,
   tenantIsNotTheConsumer,
 } from "../../src/model/domain/errors.js";
 import {
@@ -41,6 +44,7 @@ import {
   addOnePurpose,
   addOneTenant,
   purposeService,
+  postgresDB,
   readLastPurposeEvent,
 } from "../integrationUtils.js";
 import { buildRiskAnalysisFormSeed } from "../mockUtils.js";
@@ -182,18 +186,40 @@ describe("editRiskAnalysisForm", () => {
   });
 
   it.each([
-    riskAnalysisSigningState.submitted,
-    riskAnalysisSigningState.signed,
+    {
+      signingState: riskAnalysisSigningState.submitted,
+      expectedError: reviewerWorkflowNotEditable,
+      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+    },
+    {
+      signingState: riskAnalysisSigningState.signed,
+      expectedError: riskAnalysisAlreadyApproved,
+      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+    },
+    {
+      signingState: riskAnalysisSigningState.rejected,
+      expectedError: riskAnalysisAlreadyRejected,
+      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+    },
+    {
+      signingState: riskAnalysisSigningState.signed,
+      expectedError: riskAnalysisAlreadyApproved,
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+    },
+    {
+      signingState: riskAnalysisSigningState.rejected,
+      expectedError: riskAnalysisAlreadyRejected,
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+    },
   ])(
-    "should throw reviewerWorkflowNotEditable if the workflow is not in Assigned state (%s)",
-    async (signingState) => {
+    "should report the corresponding conflict for state $signingState in $reviewMode mode",
+    async ({ signingState, expectedError, reviewMode }) => {
       const reviewerId: UserId = generateId();
       const mockPurpose: Purpose = {
         ...getMockPurpose([getMockPurposeVersion()]),
         consumerId: mockTenant.id,
         eserviceId: mockEService.id,
-        riskAnalysisReviewMode:
-          riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+        riskAnalysisReviewMode: reviewMode,
         reviewerWorkflow: {
           reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
           signingState,
@@ -217,44 +243,61 @@ describe("editRiskAnalysisForm", () => {
             authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
           })
         )
-      ).rejects.toThrowError(reviewerWorkflowNotEditable(mockPurpose.id));
+      ).rejects.toThrowError(expectedError(mockPurpose.id));
+
+      expect(await readLastPurposeEvent(mockPurpose.id)).toMatchObject({
+        version: "0",
+        type: "PurposeAdded",
+      });
     }
   );
 
-  it("should throw tenantIsNotTheConsumer if the requester is not the consumer", async () => {
-    const reviewerId: UserId = generateId();
-    const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
-      consumerId: mockTenant.id,
-      eserviceId: mockEService.id,
-      riskAnalysisReviewMode:
-        riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-      reviewerWorkflow: {
-        reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
-        signingState: riskAnalysisSigningState.assigned,
-      },
-    };
+  it.each([
+    riskAnalysisSigningState.assigned,
+    riskAnalysisSigningState.signed,
+    riskAnalysisSigningState.rejected,
+  ])(
+    "should check the consumer before workflow state %s",
+    async (signingState) => {
+      const reviewerId: UserId = generateId();
+      const mockPurpose: Purpose = {
+        ...getMockPurpose([getMockPurposeVersion()]),
+        consumerId: mockTenant.id,
+        eserviceId: mockEService.id,
+        riskAnalysisReviewMode:
+          riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+        reviewerWorkflow: {
+          reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
+          signingState,
+        },
+      };
 
-    await addOneTenant(mockTenant);
-    await addOneEService(mockEService);
-    await addOnePurpose(mockPurpose);
+      await addOneTenant(mockTenant);
+      await addOneEService(mockEService);
+      await addOnePurpose(mockPurpose);
 
-    const riskAnalysisFormSeed = buildRiskAnalysisFormSeed(
-      getMockValidRiskAnalysisForm(tenantKind.PA)
-    );
+      const riskAnalysisFormSeed = buildRiskAnalysisFormSeed(
+        getMockValidRiskAnalysisForm(tenantKind.PA)
+      );
 
-    const otherOrganizationId = generateId<TenantId>();
+      const otherOrganizationId = generateId<TenantId>();
 
-    await expect(
-      purposeService.editRiskAnalysisForm(
-        mockPurpose.id,
-        riskAnalysisFormSeed,
-        getMockContext({
-          authData: getMockAuthData(otherOrganizationId, reviewerId),
-        })
-      )
-    ).rejects.toThrowError(tenantIsNotTheConsumer(otherOrganizationId));
-  });
+      await expect(
+        purposeService.editRiskAnalysisForm(
+          mockPurpose.id,
+          riskAnalysisFormSeed,
+          getMockContext({
+            authData: getMockAuthData(otherOrganizationId, reviewerId),
+          })
+        )
+      ).rejects.toThrowError(tenantIsNotTheConsumer(otherOrganizationId));
+
+      expect(await readLastPurposeEvent(mockPurpose.id)).toMatchObject({
+        version: "0",
+        type: "PurposeAdded",
+      });
+    }
+  );
 
   it("should throw requesterIsNotDesignatedReviewer if the requester is not in reviewerIds", async () => {
     const mockPurpose: Purpose = {
@@ -331,5 +374,55 @@ describe("editRiskAnalysisForm", () => {
         rulesVersionNotFoundError(mockTenant.kind!, "0"),
       ])
     );
+  });
+
+  it("should propagate an event-store conflict without writing another event", async () => {
+    const reviewerId: UserId = generateId();
+    const mockPurpose: Purpose = {
+      ...getMockPurpose([getMockPurposeVersion()]),
+      consumerId: mockTenant.id,
+      eserviceId: mockEService.id,
+      riskAnalysisReviewMode:
+        riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      reviewerWorkflow: {
+        reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
+        signingState: riskAnalysisSigningState.assigned,
+      },
+    };
+    const context = getMockContext({
+      authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
+    });
+    const riskAnalysisFormSeed = buildRiskAnalysisFormSeed(
+      getMockValidRiskAnalysisForm(tenantKind.PA)
+    );
+
+    await addOneTenant(mockTenant);
+    await addOneEService(mockEService);
+    await addOnePurpose(mockPurpose);
+    await purposeService.editRiskAnalysisForm(
+      mockPurpose.id,
+      riskAnalysisFormSeed,
+      context
+    );
+    const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
+
+    // The readmodel still has version 0 after the first event-store write.
+    const writeTransaction = vi.spyOn(postgresDB, "tx");
+    try {
+      await expect(
+        purposeService.editRiskAnalysisForm(
+          mockPurpose.id,
+          riskAnalysisFormSeed,
+          context
+        )
+      ).rejects.toThrowError(
+        eventConflictError(context.correlationId, mockPurpose.id, 0)
+      );
+      expect(writeTransaction).toHaveBeenCalledOnce();
+    } finally {
+      writeTransaction.mockRestore();
+    }
+
+    expect(await readLastPurposeEvent(mockPurpose.id)).toEqual(writtenEvent);
   });
 });

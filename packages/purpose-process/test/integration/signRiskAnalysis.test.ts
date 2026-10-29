@@ -17,7 +17,9 @@ import {
   PurposeId,
   PurposeRiskAnalysisSignedV2,
   Tenant,
+  TenantId,
   UserId,
+  eventConflictError,
   fromPurposeV2,
   generateId,
   riskAnalysisReviewMode,
@@ -33,12 +35,16 @@ import {
   requesterIsNotDesignatedReviewer,
   reviewerWorkflowNotFound,
   reviewerWorkflowNotInSignableState,
+  riskAnalysisAlreadyApproved,
+  riskAnalysisAlreadyRejected,
+  tenantIsNotTheConsumer,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
   addOnePurpose,
   addOneTenant,
   purposeService,
+  postgresDB,
   readLastPurposeEvent,
 } from "../integrationUtils.js";
 
@@ -51,6 +57,17 @@ describe("signRiskAnalysis", () => {
   const mockEService: EService = {
     ...getMockEService(),
   };
+
+  const signableWorkflows = [
+    {
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      signingState: riskAnalysisSigningState.submitted,
+    },
+    {
+      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      signingState: riskAnalysisSigningState.assigned,
+    },
+  ];
 
   it("should write PurposeRiskAnalysisSigned on event-store for ReviewerWritesReviewerSigns mode", async () => {
     vi.useFakeTimers();
@@ -180,55 +197,75 @@ describe("signRiskAnalysis", () => {
     ).rejects.toThrowError(reviewerWorkflowNotFound(mockPurpose.id));
   });
 
-  it("should throw reviewerWorkflowNotInSignableState if the workflow is not signable", async () => {
-    const reviewerId: UserId = generateId();
-    const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
-      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-      reviewerWorkflow: {
-        reviewers: [{ id: reviewerId, sentToReviewerAt: undefined }],
-        signingState: riskAnalysisSigningState.draft,
-      },
-    };
+  it.each(signableWorkflows)(
+    "should throw reviewerWorkflowNotInSignableState for a draft in $reviewMode mode",
+    async ({ reviewMode }) => {
+      const reviewerId: UserId = generateId();
+      const mockPurpose: Purpose = {
+        ...getMockPurpose([getMockPurposeVersion()]),
+        riskAnalysisReviewMode: reviewMode,
+        reviewerWorkflow: {
+          reviewers: [{ id: reviewerId, sentToReviewerAt: undefined }],
+          signingState: riskAnalysisSigningState.draft,
+        },
+      };
 
-    await addOnePurpose(mockPurpose);
+      await addOnePurpose(mockPurpose);
 
-    expect(
-      purposeService.signRiskAnalysis(
-        mockPurpose.id,
-        { metadataVersionToSign: 0 },
-        getMockContext({
-          authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
-        })
-      )
-    ).rejects.toThrowError(reviewerWorkflowNotInSignableState(mockPurpose.id));
-  });
+      await expect(
+        purposeService.signRiskAnalysis(
+          mockPurpose.id,
+          { metadataVersionToSign: 0 },
+          getMockContext({
+            authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
+          })
+        )
+      ).rejects.toThrowError(
+        reviewerWorkflowNotInSignableState(mockPurpose.id)
+      );
 
-  it("should throw requesterIsNotDesignatedReviewer if the requester is not in reviewerIds", async () => {
-    const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
-      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-      reviewerWorkflow: {
-        reviewers: [{ id: generateId<UserId>(), sentToReviewerAt: new Date() }],
-        signingState: riskAnalysisSigningState.submitted,
-      },
-    };
+      expect(await readLastPurposeEvent(mockPurpose.id)).toMatchObject({
+        version: "0",
+        type: "PurposeAdded",
+      });
+    }
+  );
 
-    await addOnePurpose(mockPurpose);
+  it.each(signableWorkflows)(
+    "should throw requesterIsNotDesignatedReviewer in $reviewMode mode",
+    async ({ reviewMode, signingState }) => {
+      const mockPurpose: Purpose = {
+        ...getMockPurpose([getMockPurposeVersion()]),
+        riskAnalysisReviewMode: reviewMode,
+        reviewerWorkflow: {
+          reviewers: [
+            { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+          ],
+          signingState,
+        },
+      };
 
-    expect(
-      purposeService.signRiskAnalysis(
-        mockPurpose.id,
-        { metadataVersionToSign: 0 },
-        getMockContext({
-          authData: getMockAuthData(
-            mockPurpose.consumerId,
-            generateId<UserId>()
-          ),
-        })
-      )
-    ).rejects.toThrowError(requesterIsNotDesignatedReviewer(mockPurpose.id));
-  });
+      await addOnePurpose(mockPurpose);
+
+      await expect(
+        purposeService.signRiskAnalysis(
+          mockPurpose.id,
+          { metadataVersionToSign: 0 },
+          getMockContext({
+            authData: getMockAuthData(
+              mockPurpose.consumerId,
+              generateId<UserId>()
+            ),
+          })
+        )
+      ).rejects.toThrowError(requesterIsNotDesignatedReviewer(mockPurpose.id));
+
+      expect(await readLastPurposeEvent(mockPurpose.id)).toMatchObject({
+        version: "0",
+        type: "PurposeAdded",
+      });
+    }
+  );
 
   it("should throw missingRiskAnalysis for ReviewerWritesReviewerSigns if the form is missing", async () => {
     const reviewerId: UserId = generateId();
@@ -286,7 +323,118 @@ describe("signRiskAnalysis", () => {
     ).rejects.toMatchObject({ code: "riskAnalysisValidationFailed" });
   });
 
-  it("should block signing if the requested metadata version does not match the latest", async () => {
+  it.each(signableWorkflows)(
+    "should block signing if metadata changed in $reviewMode mode",
+    async ({ reviewMode, signingState }) => {
+      const reviewerId: UserId = generateId();
+      const mockPurpose: Purpose = {
+        ...getMockPurpose([getMockPurposeVersion()]),
+        riskAnalysisReviewMode: reviewMode,
+        reviewerWorkflow: {
+          reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
+          signingState,
+        },
+      };
+
+      await addOnePurpose(mockPurpose);
+
+      await expect(
+        purposeService.signRiskAnalysis(
+          mockPurpose.id,
+          { metadataVersionToSign: 1 },
+          getMockContext({
+            authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
+          })
+        )
+      ).rejects.toThrowError(
+        purposeMetadataVersionMismatch(mockPurpose.id, 1, 0)
+      );
+
+      const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
+      expect(writtenEvent).toMatchObject({
+        version: "0",
+        type: "PurposeAdded",
+      });
+    }
+  );
+
+  describe.each(signableWorkflows)(
+    "terminal conflicts in $reviewMode mode",
+    ({ reviewMode }) => {
+      it.each([
+        {
+          signingState: riskAnalysisSigningState.signed,
+          expectedError: riskAnalysisAlreadyApproved,
+        },
+        {
+          signingState: riskAnalysisSigningState.rejected,
+          expectedError: riskAnalysisAlreadyRejected,
+        },
+      ])(
+        "should report $signingState before checking a stale metadata version",
+        async ({ signingState, expectedError }) => {
+          const reviewerId: UserId = generateId();
+          const mockPurpose: Purpose = {
+            ...getMockPurpose([getMockPurposeVersion()]),
+            riskAnalysisReviewMode: reviewMode,
+            reviewerWorkflow: {
+              reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
+              signingState,
+            },
+          };
+
+          await addOnePurpose(mockPurpose);
+
+          await expect(
+            purposeService.signRiskAnalysis(
+              mockPurpose.id,
+              { metadataVersionToSign: 1 },
+              getMockContext({
+                authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
+              })
+            )
+          ).rejects.toThrowError(expectedError(mockPurpose.id));
+
+          expect(await readLastPurposeEvent(mockPurpose.id)).toMatchObject({
+            version: "0",
+            type: "PurposeAdded",
+          });
+        }
+      );
+
+      it("should check the consumer before reporting a terminal conflict", async () => {
+        const reviewerId: UserId = generateId();
+        const mockPurpose: Purpose = {
+          ...getMockPurpose([getMockPurposeVersion()]),
+          riskAnalysisReviewMode: reviewMode,
+          reviewerWorkflow: {
+            reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
+            signingState: riskAnalysisSigningState.signed,
+          },
+        };
+        const otherOrganizationId = generateId<TenantId>();
+
+        await addOnePurpose(mockPurpose);
+
+        await expect(
+          purposeService.signRiskAnalysis(
+            mockPurpose.id,
+            { metadataVersionToSign: 0 },
+            getMockContext({
+              authData: getMockAuthData(otherOrganizationId, reviewerId),
+            })
+          )
+        ).rejects.toThrowError(tenantIsNotTheConsumer(otherOrganizationId));
+
+        expect(await readLastPurposeEvent(mockPurpose.id)).toMatchObject({
+          version: "0",
+          type: "PurposeAdded",
+        });
+      });
+    }
+  );
+
+  it("should propagate an event-store conflict without writing another event", async () => {
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
@@ -296,25 +444,35 @@ describe("signRiskAnalysis", () => {
         signingState: riskAnalysisSigningState.submitted,
       },
     };
+    const context = getMockContext({
+      authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
+    });
 
     await addOnePurpose(mockPurpose);
-
-    await expect(
-      purposeService.signRiskAnalysis(
-        mockPurpose.id,
-        { metadataVersionToSign: 1 },
-        getMockContext({
-          authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
-        })
-      )
-    ).rejects.toThrowError(
-      purposeMetadataVersionMismatch(mockPurpose.id, 1, 0)
+    await purposeService.signRiskAnalysis(
+      mockPurpose.id,
+      { metadataVersionToSign: 0 },
+      context
     );
-
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
-    expect(writtenEvent).toMatchObject({
-      version: "0",
-      type: "PurposeAdded",
-    });
+
+    // The readmodel still has version 0 after the first event-store write.
+    const writeTransaction = vi.spyOn(postgresDB, "tx");
+    try {
+      await expect(
+        purposeService.signRiskAnalysis(
+          mockPurpose.id,
+          { metadataVersionToSign: 0 },
+          context
+        )
+      ).rejects.toThrowError(
+        eventConflictError(context.correlationId, mockPurpose.id, 0)
+      );
+      expect(writeTransaction).toHaveBeenCalledOnce();
+    } finally {
+      writeTransaction.mockRestore();
+    }
+
+    expect(await readLastPurposeEvent(mockPurpose.id)).toEqual(writtenEvent);
   });
 });
