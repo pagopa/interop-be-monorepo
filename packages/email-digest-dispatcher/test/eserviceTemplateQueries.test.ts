@@ -551,6 +551,67 @@ describe("ReadModelService - getNewEserviceTemplates", () => {
       expect(result).toHaveLength(1);
       expect(result[0].totalCount).toBe(1);
     });
+
+    test("should not count more versions for the same template", async () => {
+      await createTemplateScenario(consumer.id, {
+        usedVersion: "1",
+        newVersions: [
+          {
+            version: "2",
+            state: eserviceTemplateVersionState.published,
+            daysAgo: TEST_TIME_WINDOWS.WITHIN_RANGE,
+          },
+          {
+            version: "3",
+            state: eserviceTemplateVersionState.published,
+            daysAgo: TEST_TIME_WINDOWS.WITHIN_RANGE,
+          },
+        ],
+      });
+
+      const result = await readModelService.getNewEserviceTemplates(
+        consumer.id
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result[0].totalCount).toBe(1);
+    });
+  });
+
+  test("should count distinct templates before applying the card limit", async () => {
+    await Promise.all(
+      Array.from({ length: 7 }, (_, index) =>
+        createTemplateScenario(consumer.id, {
+          usedVersion: "1",
+          newVersions:
+            index === 0
+              ? [
+                  {
+                    version: "2",
+                    state: eserviceTemplateVersionState.published,
+                    daysAgo: TEST_TIME_WINDOWS.WITHIN_RANGE,
+                  },
+                  {
+                    version: "3",
+                    state: eserviceTemplateVersionState.published,
+                    daysAgo: TEST_TIME_WINDOWS.WITHIN_RANGE,
+                  },
+                ]
+              : [
+                  {
+                    version: "2",
+                    state: eserviceTemplateVersionState.published,
+                    daysAgo: TEST_TIME_WINDOWS.WITHIN_RANGE,
+                  },
+                ],
+        })
+      )
+    );
+
+    const result = await readModelService.getNewEserviceTemplates(consumer.id);
+
+    expect(result).toHaveLength(TEST_LIMITS.MAX_CARD_RESULTS);
+    expect(result.every((item) => item.totalCount === 7)).toBe(true);
   });
 });
 
