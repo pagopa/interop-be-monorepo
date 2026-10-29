@@ -309,13 +309,13 @@ export function isDraftEservice(eservice: EService): boolean {
 }
 
 export function assertIsDraftEservice(eservice: EService): void {
-  if (isDraftEservice(eservice)) {
+  if (!isDraftEservice(eservice)) {
     throw eserviceNotInDraftState(eservice.id);
   }
 }
 
 export function assertIsNotDraftEservice(eservice: EService): void {
-  if (eservice.descriptors.every((d) => d.state === descriptorState.draft)) {
+  if (isDraftEservice(eservice)) {
     throw eserviceInDraftState(eservice.id);
   }
 }
