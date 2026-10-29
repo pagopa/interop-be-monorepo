@@ -16,7 +16,13 @@ export const UsersEventPayload = BaseUsersEventPayload.transform((data) => {
     throw new Error("UserId is required and cannot be null or undefined.");
   }
 
-  const baseEvent = {
+  // TODO REVIEW THIS CHANGE
+  const baseEvent: Pick<BaseUsersEventPayload, "id" | "productId"> & {
+    institutionId: SelfcareId;
+    user: Pick<BaseUsersEventPayload["user"], "productRole"> & {
+      userId: UserId;
+    };
+  } = {
     id: data.id,
     institutionId: unsafeBrandId<SelfcareId>(data.institutionId),
     productId: data.productId,

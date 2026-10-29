@@ -20,6 +20,7 @@ import {
   Client,
   clientKind,
   clientKindTokenGenStates,
+  Descriptor,
   DescriptorState,
   descriptorState,
   EService,
@@ -98,24 +99,24 @@ type Fixture = {
 const buildFixture = (
   state: DescriptorState = descriptorState.published
 ): Fixture => {
-  const descriptor = {
+  const descriptor: Descriptor = {
     ...getMockDescriptor(descriptorState.published),
     state: state,
     audience: ["pagopa.it"],
     voucherLifespan: 600,
     asyncExchangeProperties,
   };
-  const eservice: EService  = {
+  const eservice: EService = {
     ...getMockEService(),
     asyncExchange: true,
     descriptors: [descriptor],
   };
   const purposeVersion = getMockPurposeVersion(purposeVersionState.active);
-  const purpose: Purpose  = {
+  const purpose: Purpose = {
     ...getMockPurpose([purposeVersion]),
     eserviceId: eservice.id,
   };
-  const agreement = {
+  const agreement: Agreement = {
     ...getMockAgreement(),
     state: agreementState.active,
     consumerId: purpose.consumerId,
@@ -137,7 +138,7 @@ const buildFixture = (
     keys: [clientKey],
   });
   const producerKeychainKey = getMockKey();
-  const producerKeychain = {
+  const producerKeychain: ProducerKeychain = {
     ...getMockProducerKeychain({ producerId: eservice.producerId }),
     eservices: [eservice.id],
     keys: [producerKeychainKey],

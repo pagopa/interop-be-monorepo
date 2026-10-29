@@ -18,6 +18,7 @@ describe("API GET /agreements/filter/eservices test", () => {
     name: "eService 2",
   };
 
+  // TODO REVIEW THIS CHANGE
   const defaultQuery: {
     offset: number;
     limit: number;

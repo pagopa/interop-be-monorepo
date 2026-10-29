@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { genericLogger } from "pagopa-interop-commons";
+import { genericLogger, InteropHeaders } from "pagopa-interop-commons";
 import {
   getMockTenant,
   getMockAttribute,
@@ -36,12 +36,14 @@ vi.mock("pagopa-interop-commons", async () => {
   };
 });
 
+// TODO REVIEW THIS CHANGE
+// eslint-disable-next-line interop/require-type-for-object
 const mockRefreshableToken = {
   get: vi.fn().mockResolvedValue({ serialized: "mocked-token" }),
 };
 
 const mockCorrelationId = generateId<CorrelationId>();
-const mockHeaders = {
+const mockHeaders: InteropHeaders = {
   "X-Correlation-Id": mockCorrelationId,
   Authorization: "Bearer mocked-token",
 };
@@ -74,6 +76,8 @@ afterEach(async () => {
 
 describe("private-certified-attributes-importer", () => {
   it("should create attributes via API if they are not present in the ReadModel", async () => {
+    // TODO REVIEW THIS CHANGE
+    // eslint-disable-next-line interop/require-type-for-object
     const attributeRegistryClientMock = {
       createInternalCertifiedAttribute: vi.fn().mockResolvedValue(undefined),
     };
@@ -119,6 +123,8 @@ describe("private-certified-attributes-importer", () => {
     };
     await addOneTenant(tenant);
 
+    // TODO REVIEW THIS CHANGE
+    // eslint-disable-next-line interop/require-type-for-object
     const tenantProcessClientMock = {
       internalAssignCertifiedAttribute: vi.fn().mockResolvedValue(undefined),
       internalRevokeCertifiedAttribute: vi.fn(),
@@ -163,6 +169,8 @@ describe("private-certified-attributes-importer", () => {
     };
     await addOneTenant(tenant);
 
+    // TODO REVIEW THIS CHANGE
+    // eslint-disable-next-line interop/require-type-for-object
     const tenantProcessClientMock = {
       internalAssignCertifiedAttribute: vi.fn().mockResolvedValue(undefined),
       internalRevokeCertifiedAttribute: vi.fn(),
@@ -207,6 +215,8 @@ describe("private-certified-attributes-importer", () => {
     };
     await addOneTenant(tenant);
 
+    // TODO REVIEW THIS CHANGE
+    // eslint-disable-next-line interop/require-type-for-object
     const tenantProcessClientMock = {
       internalAssignCertifiedAttribute: vi.fn(),
       internalRevokeCertifiedAttribute: vi.fn().mockResolvedValue(undefined),
@@ -252,6 +262,8 @@ describe("private-certified-attributes-importer", () => {
     };
     await addOneTenant(tenant);
 
+    // TODO REVIEW THIS CHANGE
+    // eslint-disable-next-line interop/require-type-for-object
     const tenantProcessClientMock = {
       internalAssignCertifiedAttribute: vi.fn(),
       internalRevokeCertifiedAttribute: vi.fn(),

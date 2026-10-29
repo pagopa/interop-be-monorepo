@@ -27,6 +27,7 @@ import {
   makeGSIPKClientIdKid,
   makePlatformStatesEServiceDescriptorPK,
   makeTokenGenerationStatesClientKidPurposePK,
+  ClientAssertionDigest,
   PlatformStatesCatalogEntry,
   Purpose,
   purposeVersionState,
@@ -251,7 +252,10 @@ describe("async token service - start_interaction", () => {
       { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
-    const digest = { alg: "SHA256", value: "a".repeat(64) };
+    const digest: ClientAssertionDigest = {
+      alg: "SHA256",
+      value: "a".repeat(64),
+    };
     const { jws, clientId } = await setupConsumerClient({ digest });
     const result = await callAsyncTokenService(jws, clientId);
 

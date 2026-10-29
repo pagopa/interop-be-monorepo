@@ -5,6 +5,10 @@ import {
   getMockTenantNotificationConfig,
   getMockUserNotificationConfig,
 } from "pagopa-interop-commons-test";
+import {
+  TenantNotificationConfig,
+  UserNotificationConfig,
+} from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
@@ -20,7 +24,7 @@ import {
 describe("Notification config aggregators", () => {
   describe("aggregateTenantNotificationConfig", () => {
     it("should convert a complete TenantNotificationConfig SQL object into a TenantNotificationConfig", () => {
-      const tenantNotificationConfig = {
+      const tenantNotificationConfig: TenantNotificationConfig = {
         ...getMockTenantNotificationConfig(),
         updatedAt: generateMock(z.coerce.date()), // Ensure updatedAt is not undefined
       };
@@ -60,7 +64,7 @@ describe("Notification config aggregators", () => {
 
   describe("aggregateUserNotificationConfig", () => {
     it("should convert a complete UserNotificationConfig SQL object into a UserNotificationConfig", () => {
-      const userNotificationConfig = {
+      const userNotificationConfig: UserNotificationConfig = {
         ...getMockUserNotificationConfig(),
         updatedAt: generateMock(z.coerce.date()), // Ensure updatedAt is not undefined
       };

@@ -16,11 +16,16 @@ import {
   toAgreementV1,
 } from "pagopa-interop-commons-test";
 import {
+  Agreement,
   AgreementV1,
   AgreementV2,
   AttributeV1,
+  CertifiedDiscreteTenantAttribute,
+  Descriptor,
   EServiceTemplateV2,
+  EServiceTemplateVersion,
   EServiceV2,
+  Tenant,
   TenantV2,
   attributeKind,
   fromAgreementV1,
@@ -40,7 +45,7 @@ import { describe, expect, it } from "vitest";
 describe("Protobuf converters", () => {
   it("should drop certified discrete agreement attributes when round-tripping through V1 protobuf (V1 is legacy and does not carry the field)", () => {
     const certifiedDiscreteAttribute = getMockAgreementAttribute();
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       certifiedDiscreteAttributes: [certifiedDiscreteAttribute],
       signedContract: undefined,
@@ -57,7 +62,7 @@ describe("Protobuf converters", () => {
 
   it("should preserve certified discrete agreement attributes through V2 protobuf", () => {
     const certifiedDiscreteAttribute = getMockAgreementAttribute();
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       certifiedDiscreteAttributes: [certifiedDiscreteAttribute],
     };
@@ -85,7 +90,7 @@ describe("Protobuf converters", () => {
     const certifiedAttribute = getMockEServiceAttribute();
     const certifiedDiscreteAttribute =
       getMockEServiceAttributeCertifiedDiscrete();
-    const descriptor = {
+    const descriptor: Descriptor = {
       ...getMockDescriptor(),
       attributes: {
         certified: [[certifiedAttribute, certifiedDiscreteAttribute]],
@@ -116,7 +121,7 @@ describe("Protobuf converters", () => {
     const certifiedAttribute = getMockEServiceTemplateAttribute();
     const certifiedDiscreteAttribute =
       getMockEServiceTemplateAttributeCertifiedDiscrete();
-    const version = {
+    const version: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       attributes: {
         certified: [[certifiedAttribute, certifiedDiscreteAttribute]],
@@ -138,13 +143,13 @@ describe("Protobuf converters", () => {
   });
 
   it("should preserve certified discrete tenant attributes and remote ids through V2 protobuf", () => {
-    const certifiedDiscreteAttribute = {
+    const certifiedDiscreteAttribute: CertifiedDiscreteTenantAttribute = {
       ...getMockCertifiedDiscreteTenantAttribute(),
       revocationTimestamp: new Date(),
       discreteValue: 1234,
     };
     const remoteId = getMockTenantRemoteId();
-    const tenant = {
+    const tenant: Tenant = {
       ...getMockTenant(undefined, [certifiedDiscreteAttribute]),
       remoteIds: [remoteId],
     };

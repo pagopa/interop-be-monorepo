@@ -100,7 +100,7 @@ describe("createProducerKeychain", () => {
 
   it("Should fail if duplicate users are passed in the seed", async () => {
     const userId = generateId();
-    const seed = {
+    const seed: authorizationApi.ProducerKeychainSeed = {
       ...producerKeychainSeed,
       members: [userId, userId, generateId()],
     };

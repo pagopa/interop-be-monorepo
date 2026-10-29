@@ -7,6 +7,7 @@ import {
   mockTokenOrganizationId,
 } from "pagopa-interop-commons-test";
 import {
+  ListResult,
   ProducerKeychain,
   generateId,
   TenantId,
@@ -44,7 +45,7 @@ describe("API /producerKeychains authorization test", () => {
     users: [userId2],
   };
 
-  const producerKeychainsResponse = {
+  const producerKeychainsResponse: ListResult<ProducerKeychain> = {
     results: [producerKeychain1, producerKeychain2],
     totalCount: 2,
   };

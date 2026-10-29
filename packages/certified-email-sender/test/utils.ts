@@ -37,7 +37,8 @@ const readModelService = readModelServiceBuilderSQL({
 
 export const templateService = buildHTMLTemplateService();
 
-export const pecEmailSenderData = {
+// TODO REVIEW THIS CHANGE
+export const pecEmailSenderData: { label: string; mail: string } = {
   label: "pec_sender",
   mail: "pec_sender@test.com",
 };

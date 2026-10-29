@@ -66,7 +66,12 @@ describe("API /producerKeychains/{producerKeychainId}/keys authorization test", 
     totalCount: 3,
   });
 
-  const queryParams = {
+  // TODO REVIEW THIS CHANGE
+  const queryParams: {
+    offset: number;
+    limit: number;
+    userIds: UserId[];
+  } = {
     offset: 0,
     limit: 50,
     userIds: [keyUserId1, keyUserId2, keyUserId3],

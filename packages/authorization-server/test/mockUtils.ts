@@ -28,12 +28,18 @@ if (!dpopConfig) {
   throw genericInternalError("Invalid DPoP config");
 }
 
+// TODO REVIEW THIS CHANGE
+// eslint-disable-next-line interop/require-type-for-object
 export const mockProducer = {
   send: vi.fn(),
 };
+// TODO REVIEW THIS CHANGE
+// eslint-disable-next-line interop/require-type-for-object
 export const mockApiProducer = {
   send: vi.fn(),
 };
+// TODO REVIEW THIS CHANGE
+// eslint-disable-next-line interop/require-type-for-object
 export const mockKMSClient = {
   send: vi.fn(),
 };

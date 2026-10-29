@@ -18,7 +18,8 @@ import { computeSendAt } from "./sendAtCalculator.js";
 
 const SEND_AT_MARGIN_MINUTES = 5;
 
-type ScheduleRemindersParams = {
+// TODO REVIEW THIS CHANGE
+export type ScheduleRemindersParams = {
   eserviceId: EServiceId;
   descriptorId?: DescriptorId;
   archivableOn: Date;

@@ -18,6 +18,7 @@ describe("API GET /producers test", () => {
     name: "Producer 2",
   };
 
+  // TODO REVIEW THIS CHANGE
   const defaultQuery: {
     offset: number;
     limit: number;

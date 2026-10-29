@@ -16,6 +16,7 @@ import {
 import {
   DrizzleReturnType,
   DrizzleTransactionType,
+  EServiceDescriptorInterfaceSQL,
   eserviceDescriptorArchivingScheduleInReadmodelCatalog,
   eserviceDescriptorAttributeInReadmodelCatalog,
   eserviceDescriptorDocumentInReadmodelCatalog,
@@ -306,7 +307,7 @@ export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
             )
           );
 
-        const interfaceSQL = {
+        const interfaceSQL: EServiceDescriptorInterfaceSQL = {
           ...documentToDocumentSQL(
             descriptorInterface,
             descriptorId,

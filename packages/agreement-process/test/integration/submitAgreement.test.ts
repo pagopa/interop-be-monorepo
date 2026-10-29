@@ -83,6 +83,7 @@ import {
   requesterIs,
 } from "../mockUtils.js";
 
+// TODO REVIEW THIS CHANGE
 const draftAgreementSubmissionSeed: Partial<Agreement> = {
   state: agreementState.draft,
 
@@ -105,18 +106,21 @@ const draftAgreementSubmissionSeed: Partial<Agreement> = {
 };
 
 // Seeds for suspended draft agreements with different suspension flag combinations
+// TODO REVIEW THIS CHANGE
 const suspendedByConsumerOnlySeed: Partial<Agreement> = {
   ...draftAgreementSubmissionSeed,
   suspendedByConsumer: true,
   suspendedByProducer: false,
 };
 
+// TODO REVIEW THIS CHANGE
 const suspendedByProducerOnlySeed: Partial<Agreement> = {
   ...draftAgreementSubmissionSeed,
   suspendedByConsumer: false,
   suspendedByProducer: true,
 };
 
+// TODO REVIEW THIS CHANGE
 const suspendedByBothSeed: Partial<Agreement> = {
   ...draftAgreementSubmissionSeed,
   suspendedByConsumer: true,

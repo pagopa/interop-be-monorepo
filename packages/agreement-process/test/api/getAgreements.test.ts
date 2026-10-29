@@ -14,6 +14,7 @@ describe("API GET /agreements test", () => {
   const mockAgreement2 = getMockAgreement();
   const mockAgreement3 = getMockAgreement();
 
+  // TODO REVIEW THIS CHANGE
   const defaultQuery: {
     offset: number;
     limit: number;

@@ -19,6 +19,7 @@ import {
   agreementState,
   ConsumerDelegationRevokedV2,
   CorrelationId,
+  DelegatedDescriptorArchivingRequest,
   DelegationEventEnvelopeV2,
   delegationKind,
   delegationState,
@@ -55,7 +56,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
   describe("ConsumerDelegationRevoked", () => {
     const correlationId: CorrelationId = generateId();
     const testToken = "mockToken";
-    const testHeaders = {
+    const testHeaders: Record<string, string> = {
       "X-Correlation-Id": correlationId,
       Authorization: `Bearer ${testToken}`,
     };
@@ -508,7 +509,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
   describe("ProducerDelegationRevoked", () => {
     const correlationId: CorrelationId = generateId();
     const testToken = "mockToken";
-    const testHeaders = {
+    const testHeaders: Record<string, string> = {
       "X-Correlation-Id": correlationId,
       Authorization: `Bearer ${testToken}`,
     };
@@ -531,7 +532,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
       correlation_id: correlationId,
     };
 
-    const pendingRequest = {
+    const pendingRequest: DelegatedDescriptorArchivingRequest = {
       requestedAt: new Date(),
       requesterId: delegation.delegateId,
       gracePeriodDays: 60 as const,

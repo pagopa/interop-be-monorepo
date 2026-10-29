@@ -187,7 +187,8 @@ export function emailSenderProcessorBuilder(
         return;
       }
 
-      const mailOptions = {
+      // TODO REVIEW THIS CHANGE
+      const mailOptions: Parameters<EmailManagerSES["send"]>[0] = {
         from: { name: sesSenderData.label, address: sesSenderData.mail },
         subject: jsonPayload.email.subject,
         to: [emailMessage.to],

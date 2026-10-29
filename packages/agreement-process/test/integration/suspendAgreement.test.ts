@@ -181,6 +181,7 @@ describe("suspend agreement", () => {
           }
         : agreement.stamps.suspensionByProducer,
     };
+    // TODO REVIEW THIS CHANGE
     const expectedSuspensionFlags: Pick<
       Agreement,
       "suspendedByConsumer" | "suspendedByProducer"
@@ -405,6 +406,7 @@ describe("suspend agreement", () => {
           }
         : agreement.stamps.suspensionByProducer,
     };
+    // TODO REVIEW THIS CHANGE
     const expectedSuspensionFlags: Pick<
       Agreement,
       "suspendedByConsumer" | "suspendedByProducer"

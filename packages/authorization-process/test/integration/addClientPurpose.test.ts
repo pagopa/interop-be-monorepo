@@ -17,6 +17,7 @@ import {
   Client,
   ClientPurposeAddedV2,
   Descriptor,
+  EService,
   Purpose,
   TenantId,
   agreementState,
@@ -62,7 +63,7 @@ describe("addClientPurpose", async () => {
       publishedAt: new Date(),
     };
 
-    const mockEservice = {
+    const mockEservice: EService = {
       ...getMockEService(),
       descriptors: [mockDescriptor],
     };
@@ -140,7 +141,7 @@ describe("addClientPurpose", async () => {
       publishedAt: new Date(),
     };
 
-    const mockEservice = {
+    const mockEservice: EService = {
       ...getMockEService(),
       descriptors: [mockDescriptor],
     };
@@ -230,7 +231,7 @@ describe("addClientPurpose", async () => {
       publishedAt: new Date(),
     };
 
-    const mockEservice = {
+    const mockEservice: EService = {
       ...getMockEService(),
       descriptors: [mockDescriptor],
     };
@@ -320,7 +321,7 @@ describe("addClientPurpose", async () => {
       publishedAt: new Date(),
     };
 
-    const mockEservice = {
+    const mockEservice: EService = {
       ...getMockEService(),
       descriptors: [mockDescriptor],
     };
@@ -368,7 +369,7 @@ describe("addClientPurpose", async () => {
       publishedAt: new Date(),
     };
 
-    const mockEservice = {
+    const mockEservice: EService = {
       ...getMockEService(),
       descriptors: [mockDescriptor],
     };
@@ -445,7 +446,7 @@ describe("addClientPurpose", async () => {
       publishedAt: new Date(),
     };
 
-    const mockEservice = {
+    const mockEservice: EService = {
       ...getMockEService(),
       descriptors: [mockDescriptor],
     };
@@ -493,7 +494,7 @@ describe("addClientPurpose", async () => {
       publishedAt: new Date(),
     };
 
-    const mockEservice = {
+    const mockEservice: EService = {
       ...getMockEService(),
       descriptors: [mockDescriptor],
     };
@@ -544,7 +545,7 @@ describe("addClientPurpose", async () => {
       publishedAt: new Date(),
     };
 
-    const mockEservice = {
+    const mockEservice: EService = {
       ...getMockEService(),
       descriptors: [mockDescriptor],
     };
@@ -592,7 +593,7 @@ describe("addClientPurpose", async () => {
       publishedAt: new Date(),
     };
 
-    const mockEservice = {
+    const mockEservice: EService = {
       ...getMockEService(),
       descriptors: [mockDescriptor],
     };
@@ -640,7 +641,7 @@ describe("addClientPurpose", async () => {
         publishedAt: new Date(),
       };
 
-      const mockEservice = {
+      const mockEservice: EService = {
         ...getMockEService(),
         descriptors: [mockDescriptor],
       };
@@ -690,7 +691,7 @@ describe("addClientPurpose", async () => {
       publishedAt: new Date(),
     };
 
-    const mockEservice = {
+    const mockEservice: EService = {
       ...getMockEService(),
       descriptors: [],
     };
@@ -740,7 +741,7 @@ describe("addClientPurpose", async () => {
       publishedAt: new Date(),
     };
 
-    const mockEservice = {
+    const mockEservice: EService = {
       ...getMockEService(),
       descriptors: [mockDescriptor],
     };
@@ -800,7 +801,7 @@ describe("addClientPurpose", async () => {
         publishedAt: new Date(),
       };
 
-      const mockEservice = {
+      const mockEservice: EService = {
         ...getMockEService(),
         descriptors: [mockDescriptor],
       };
@@ -853,7 +854,7 @@ describe("addClientPurpose", async () => {
       publishedAt: new Date(),
     };
 
-    const mockEservice = {
+    const mockEservice: EService = {
       ...getMockEService(),
       descriptors: [mockDescriptor],
     };
@@ -905,7 +906,7 @@ describe("addClientPurpose", async () => {
       publishedAt: new Date(),
     };
 
-    const mockEservice = {
+    const mockEservice: EService = {
       ...getMockEService(),
       descriptors: [mockDescriptor],
       isClientAccessDelegable: true,
@@ -971,7 +972,7 @@ describe("addClientPurpose", async () => {
       payload: writtenEvent.data,
     });
 
-    const expectedClient = {
+    const expectedClient: Client = {
       ...mockClient,
       purposes: [...mockClient.purposes, mockPurpose.id],
     };
@@ -994,7 +995,7 @@ describe("addClientPurpose", async () => {
       publishedAt: new Date(),
     };
 
-    const mockEservice = {
+    const mockEservice: EService = {
       ...getMockEService(),
       descriptors: [mockDescriptor],
     };
@@ -1059,7 +1060,7 @@ describe("addClientPurpose", async () => {
       payload: writtenEvent.data,
     });
 
-    const expectedClient = {
+    const expectedClient: Client = {
       ...mockClient,
       purposes: [...mockClient.purposes, mockPurpose.id],
     };
@@ -1083,7 +1084,7 @@ describe("addClientPurpose", async () => {
       publishedAt: new Date(),
     };
 
-    const mockEservice = {
+    const mockEservice: EService = {
       ...getMockEService(),
       descriptors: [mockDescriptor],
       isClientAccessDelegable: true,
@@ -1144,7 +1145,7 @@ describe("addClientPurpose", async () => {
       publishedAt: new Date(),
     };
 
-    const mockEservice = {
+    const mockEservice: EService = {
       ...getMockEService(),
       descriptors: [mockDescriptor],
       isClientAccessDelegable: true,
@@ -1207,7 +1208,7 @@ describe("addClientPurpose", async () => {
       publishedAt: new Date(),
     };
 
-    const mockEservice = {
+    const mockEservice: EService = {
       ...getMockEService(),
       descriptors: [mockDescriptor],
       isClientAccessDelegable: false,
@@ -1268,7 +1269,7 @@ describe("addClientPurpose", async () => {
       publishedAt: new Date(),
     };
 
-    const mockEservice = {
+    const mockEservice: EService = {
       ...getMockEService(),
       descriptors: [mockDescriptor],
       isClientAccessDelegable: true,

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { generateToken, getMockClient } from "pagopa-interop-commons-test";
-import { ClientId, generateId, UserId } from "pagopa-interop-models";
+import { Client, ClientId, generateId, UserId } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi } from "vitest";
 
@@ -14,7 +14,10 @@ import {
 import { api, authorizationService } from "../vitest.api.setup.js";
 
 describe("API /clients/{clientId}/admin/{adminId} authorization test", () => {
-  const mockClient = { ...getMockClient(), adminId: generateId<UserId>() };
+  const mockClient: Client = {
+    ...getMockClient(),
+    adminId: generateId<UserId>(),
+  };
 
   authorizationService.removeClientAdmin = vi.fn().mockResolvedValue({});
 

@@ -32,6 +32,8 @@ export const mockFileManager: FileManager = {
   resumeOrStoreBytes: vi.fn(),
 };
 
+// TODO REVIEW THIS CHANGE
+// eslint-disable-next-line interop/require-type-for-object
 export const mockDbService = {
   saveSignatureReference: vi.fn(),
   saveDocumentSignatureReference: vi.fn(),

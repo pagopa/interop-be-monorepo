@@ -45,7 +45,19 @@ import {
   toCreateEventUserNotificationConfigUpdated,
 } from "../model/domain/toEvent.js";
 
-const defaultNotificationConfigs = {
+// TODO REVIEW THIS CHANGE
+const defaultNotificationConfigs: {
+  tenant: Pick<TenantNotificationConfig, "enabled">;
+  user: Pick<
+    UserNotificationConfig,
+    | "inAppNotificationPreference"
+    | "emailNotificationPreference"
+    | "emailDigestPreference"
+  > & {
+    inApp: NotificationConfig;
+    email: NotificationConfig;
+  };
+} = {
   tenant: {
     enabled: true,
   },

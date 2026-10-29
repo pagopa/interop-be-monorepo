@@ -3,7 +3,12 @@ import {
   Logger,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
-import { AttributeId, CorrelationId, generateId } from "pagopa-interop-models";
+import {
+  AttributeId,
+  CorrelationId,
+  Tenant,
+  generateId,
+} from "pagopa-interop-models";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const internalAssignCertifiedAttributeMock = vi.fn();
@@ -72,6 +77,8 @@ describe("private-certified-attributes-importer polling", () => {
     get: vi.fn().mockResolvedValue({ serialized: "token" }),
   } as unknown as RefreshableInteropToken;
 
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const clients = {
     tenantProcessClient: {
       internalAssignCertifiedAttribute: internalAssignCertifiedAttributeMock,
@@ -80,6 +87,8 @@ describe("private-certified-attributes-importer polling", () => {
     attributeRegistryClient: {},
   };
 
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const readModelServiceSQL = {
     getTenantsByOriginPrefix: vi.fn(),
     getTenantsWithAttributes: vi.fn(),
@@ -93,7 +102,7 @@ describe("private-certified-attributes-importer polling", () => {
     vi.clearAllMocks();
   });
 
-  const assignTenant = {
+  const assignTenant: Tenant = {
     ...getMockTenant(),
     externalId: { origin: "PDND_INFOCAMERE", value: "123" },
     selfcareInstitutionType: "PA",
@@ -145,7 +154,7 @@ describe("private-certified-attributes-importer polling", () => {
     expect(waitForReadModelMetadataVersionMock).toHaveBeenCalledTimes(1);
   });
 
-  const revokeTenant = {
+  const revokeTenant: Tenant = {
     ...getMockTenant(),
     externalId: { origin: "IPA", value: "123" },
     selfcareInstitutionType: "PA",

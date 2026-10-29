@@ -1,12 +1,21 @@
 import { describe, it, expect } from "vitest";
 
 import {
+  AttributeDigest,
+  DelegationDigest,
+  ReceivedPurposeDigest,
+  TenantDigestData,
+} from "../src/services/digestDataService.js";
+import {
   getVisibleSections,
   hasVisibleDigestContent,
   digestAdmittedRoles,
   DigestSection,
 } from "../src/utils/digestAdmittedRoles.js";
 import { getMockTenantDigestData } from "./mockUtils.js";
+
+// TODO REVIEW THIS CHANGE
+type EmptyDigest = ReceivedPurposeDigest & DelegationDigest & AttributeDigest;
 
 describe("digestAdmittedRoles", () => {
   it("should have all sections deny support role", () => {
@@ -120,8 +129,8 @@ describe("hasVisibleDigestContent", () => {
   });
 
   it("should return false when all visible sections have no data", () => {
-    const empty = { items: [], totalCount: 0 };
-    const emptyData = {
+    const empty: EmptyDigest = { items: [], totalCount: 0 };
+    const emptyData: TenantDigestData = {
       ...getMockTenantDigestData(),
       newEservices: empty,
       updatedEservices: empty,
@@ -136,9 +145,9 @@ describe("hasVisibleDigestContent", () => {
   });
 
   it("should return false when data exists only in non-visible sections", () => {
-    const empty = { items: [], totalCount: 0 };
+    const empty: EmptyDigest = { items: [], totalCount: 0 };
     // Zero out everything except delegations
-    const delegationsOnlyData = {
+    const delegationsOnlyData: TenantDigestData = {
       ...getMockTenantDigestData(),
       newEservices: empty,
       updatedEservices: empty,
@@ -166,8 +175,8 @@ describe("hasVisibleDigestContent", () => {
   });
 
   it("should return false when all sections are empty even if role allows them", () => {
-    const empty = { items: [], totalCount: 0 };
-    const allEmptyData = {
+    const empty: EmptyDigest = { items: [], totalCount: 0 };
+    const allEmptyData: TenantDigestData = {
       ...getMockTenantDigestData(),
       newEservices: empty,
       updatedEservices: empty,
