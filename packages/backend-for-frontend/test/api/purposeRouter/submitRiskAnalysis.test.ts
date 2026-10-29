@@ -7,6 +7,7 @@ import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { getMockApiError } from "../../mockUtils.js";
 import { api, clients } from "../../vitest.api.setup.js";
 
 describe("API POST /purposes/{purposeId}/riskAnalysis/submit test", () => {
@@ -43,6 +44,7 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/submit test", () => {
   };
 
   beforeEach(() => {
+    clients.purposeProcessClientWithMetadata.getPurpose = vi.fn();
     clients.purposeProcessClient.submitRiskAnalysis = vi
       .fn()
       .mockResolvedValue(undefined);
@@ -63,6 +65,21 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/submit test", () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(204);
+  });
+
+  it("Should forward the process conflict without diagnostic reads", async () => {
+    const error = getMockApiError(409, ["004-0047"]);
+    vi.mocked(
+      clients.purposeProcessClient.submitRiskAnalysis
+    ).mockRejectedValue(error);
+
+    const res = await makeRequest(generateToken(authRole.ADMIN_ROLE));
+
+    expect(res.status).toBe(409);
+    expect(res.body).toEqual(error.response?.data);
+    expect(
+      clients.purposeProcessClientWithMetadata.getPurpose
+    ).not.toHaveBeenCalled();
   });
 
   it.each([

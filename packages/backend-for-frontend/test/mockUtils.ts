@@ -1,4 +1,5 @@
 import { generateMock } from "@anatine/zod-mock";
+import { AxiosError, AxiosHeaders } from "axios";
 import {
   attributeRegistryApi,
   authorizationApi,
@@ -22,11 +23,31 @@ import {
   PurposeId,
   PurposeVersionId,
   PurposeTemplateId,
+  Problem,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
 import { tenantAttributeKind } from "../src/api/tenantApiConverter.js";
 import { GetSessionTokenReturnType } from "../src/services/authorizationService.js";
+
+export const getMockApiError = (
+  status: number,
+  codes: string[]
+): AxiosError<Problem> =>
+  new AxiosError("Process error", undefined, undefined, undefined, {
+    status,
+    statusText: "Process error",
+    data: {
+      type: "about:blank",
+      title: "Process error",
+      status,
+      detail: "Original process error",
+      correlationId: generateId(),
+      errors: codes.map((code) => ({ code, detail: "Original process error" })),
+    },
+    headers: {},
+    config: { headers: new AxiosHeaders() },
+  });
 
 export const getMockBffApiDelegation = (): bffApi.Delegation & {
   id: DelegationId;
