@@ -30,6 +30,7 @@ describe("getVisibleSections", () => {
     expect(visibility.delegations).toBe(true);
     expect(visibility.attributes).toBe(true);
     expect(visibility.archivingProducer).toBe(true);
+    expect(visibility.archivingConsumer).toBe(true);
   });
 
   it("should enable only eservices and received purposes for api role", () => {
@@ -46,6 +47,7 @@ describe("getVisibleSections", () => {
     expect(visibility.sentPurposes).toBe(false);
     expect(visibility.delegations).toBe(false);
     expect(visibility.attributes).toBe(false);
+    expect(visibility.archivingConsumer).toBe(false);
   });
 
   it("should enable eservices (no templates), sent agreements, and sent purposes for security role", () => {
@@ -56,6 +58,7 @@ describe("getVisibleSections", () => {
     expect(visibility.sentAgreements).toBe(true);
     expect(visibility.sentPurposes).toBe(true);
     expect(visibility.archivingProducer).toBe(true);
+    expect(visibility.archivingConsumer).toBe(true);
 
     expect(visibility.updatedEserviceTemplates).toBe(false);
     expect(visibility.receivedAgreements).toBe(false);
@@ -85,6 +88,7 @@ describe("getVisibleSections", () => {
     expect(visibility.sentPurposes).toBe(true);
     expect(visibility.receivedPurposes).toBe(true);
     expect(visibility.archivingProducer).toBe(true);
+    expect(visibility.archivingConsumer).toBe(true);
 
     // Still denied: receivedAgreements (admin only), delegations (admin only), attributes (admin only)
     expect(visibility.receivedAgreements).toBe(false);
@@ -149,6 +153,49 @@ describe("hasVisibleDigestContent", () => {
     expect(hasVisibleDigestContent(archivingOnlyData, visibility)).toBe(true);
   });
 
+  it("should return true when consumer archiving data is the only content visible to the role", () => {
+    const empty = { items: [], totalCount: 0 };
+    const consumerArchivingOnlyData = {
+      ...getMockTenantDigestData(),
+      newEservices: empty,
+      updatedEservices: empty,
+      acceptedSentAgreements: empty,
+      rejectedSentAgreements: empty,
+      suspendedSentAgreements: empty,
+      publishedSentPurposes: empty,
+      rejectedSentPurposes: empty,
+      waitingForApprovalSentPurposes: empty,
+      archivingImminentEservices: empty,
+      archivingInProgressEservices: empty,
+      // archivingConsumerImminentEservices / archivingConsumerInProgressEservices still have data
+    };
+
+    const visibility = getVisibleSections(["security"]);
+    expect(hasVisibleDigestContent(consumerArchivingOnlyData, visibility)).toBe(
+      true
+    );
+  });
+
+  it("should return false when consumer archiving data is the only content and the role cannot see it", () => {
+    const empty = { items: [], totalCount: 0 };
+    const consumerArchivingOnlyData = {
+      ...getMockTenantDigestData(),
+      newEservices: empty,
+      updatedEservices: empty,
+      updatedEserviceTemplates: empty,
+      publishedReceivedPurposes: empty,
+      waitingForApprovalReceivedPurposes: empty,
+      archivingImminentEservices: empty,
+      archivingInProgressEservices: empty,
+    };
+
+    // api role cannot see consumer archiving
+    const visibility = getVisibleSections(["api"]);
+    expect(hasVisibleDigestContent(consumerArchivingOnlyData, visibility)).toBe(
+      false
+    );
+  });
+
   it("should return false when all visible sections have no data", () => {
     const empty = { items: [], totalCount: 0 };
     const emptyData = {
@@ -160,6 +207,8 @@ describe("hasVisibleDigestContent", () => {
       waitingForApprovalReceivedPurposes: empty,
       archivingImminentEservices: empty,
       archivingInProgressEservices: empty,
+      archivingConsumerImminentEservices: empty,
+      archivingConsumerInProgressEservices: empty,
     };
 
     const visibility = getVisibleSections(["api"]);
@@ -187,6 +236,8 @@ describe("hasVisibleDigestContent", () => {
       revokedAttributes: empty,
       archivingImminentEservices: empty,
       archivingInProgressEservices: empty,
+      archivingConsumerImminentEservices: empty,
+      archivingConsumerInProgressEservices: empty,
       // delegations still have data from getMockTenantDigestData
     };
 
@@ -219,6 +270,8 @@ describe("hasVisibleDigestContent", () => {
       revokedAttributes: empty,
       archivingImminentEservices: empty,
       archivingInProgressEservices: empty,
+      archivingConsumerImminentEservices: empty,
+      archivingConsumerInProgressEservices: empty,
     };
 
     // Admin can see everything, but there's no data at all
