@@ -21,12 +21,15 @@ headers {
 
 body:json {
   {
-    "name": "Updated name"
-      "description": "test eservice updated",
-      "technology": "SOAP",
-      "mode": "RECEIVE",
-      "isSignalHubEnabled": false,
-      "isConsumerDelegable": false,
-      "isClientAccessDelegable": true
+    "name": "Updated name",
+    "description": "test eservice updated"
   }
+}
+
+docs {
+  Update name and description independently of descriptor count or state.
+  Template instances cannot be updated directly.
+  Operational fields can be included only with a single Draft descriptor;
+  otherwise the whole request fails with 409.
+  Unchanged values do not create events or increment X-Metadata-Version.
 }
