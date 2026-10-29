@@ -21,14 +21,13 @@ headers {
 body:json {
   {
     "name": "Updated name",
-    "description": "test eservice updated from BFF"
+    "description": "test eservice updated from BFF",
+    "technology": "REST",
+    "mode": "DELIVER",
+    "isSignalHubEnabled": false,
+    "isConsumerDelegable": false,
+    "isClientAccessDelegable": false,
+    "personalData": false,
+    "asyncExchange": false
   }
-}
-
-docs {
-  Update metadata of a non-template E-Service regardless of descriptor states.
-  At least one field is required; an empty object returns 400.
-  Omitted fields remain unchanged; unchanged values create no events or new version.
-  Operational fields retain the existing Draft rules; violations return 409 atomically.
-  Returns the E-Service id. Legacy PUT and dedicated POST routes remain available.
 }
