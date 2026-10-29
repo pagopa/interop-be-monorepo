@@ -30,7 +30,10 @@ export function deleteCsvFiles(): void {
   const dataFolder = join(__dirname, "data");
   const files = readdirSync(dataFolder);
   for (const file of files) {
-    if ((file.endsWith(".csv") || file.endsWith(".json")) && file.startsWith("test-")) {
+    if (
+      (file.endsWith(".csv") || file.endsWith(".json")) &&
+      file.startsWith("test-")
+    ) {
       unlinkSync(join(dataFolder, file));
     }
   }
