@@ -79,7 +79,12 @@ describe("Integration tests", async () => {
       });
     });
 
-    it("PurposeTemplateDraftUpdated", async () => {
+    it.each([
+      "PurposeTemplateDraftUpdated",
+      "PurposeTemplatePurposeTitleUpdated",
+      "PurposeTemplatePurposeDescriptionUpdated",
+      "PurposeTemplateTargetDescriptionUpdated",
+    ] as const)("%s", async (type) => {
       const metadataVersion = 2;
 
       const purposeTemplateEServiceDescriptor: EServiceDescriptorPurposeTemplate =
@@ -110,7 +115,7 @@ describe("Integration tests", async () => {
         sequence_num: 1,
         stream_id: purposeTemplate.id,
         version: metadataVersion,
-        type: "PurposeTemplateDraftUpdated",
+        type,
         event_version: 2,
         data: payload,
         log_date: new Date(),

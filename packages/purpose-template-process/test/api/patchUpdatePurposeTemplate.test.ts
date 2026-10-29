@@ -86,6 +86,13 @@ describe("PATCH /purposeTemplates/{id} router test", () => {
 
   it.each([
     {},
+    { purposeTitle: "updated purpose title" },
+    { purposeDescription: "updated purpose description" },
+    {
+      purposeTitle: "updated purpose title",
+      purposeDescription: "updated purpose description",
+      targetDescription: "updated target description",
+    },
     { targetDescription: "updated target description" },
     {
       targetDescription: "updated target description",
@@ -169,6 +176,23 @@ describe("PATCH /purposeTemplates/{id} router test", () => {
     const res = await makeRequest(token, mockPurposeTemplate.id);
 
     expect(res.status).toBe(HTTP_STATUS_FORBIDDEN);
+  });
+
+  it("Should return the unchanged metadata version for a no-op", async () => {
+    purposeTemplateService.patchUpdatePurposeTemplate = vi
+      .fn()
+      .mockResolvedValueOnce({
+        data: mockPurposeTemplate,
+        metadata: { version: 5 },
+      });
+    const res = await makeRequest(
+      generateToken(authRole.M2M_ADMIN_ROLE),
+      mockPurposeTemplate.id,
+      { purposeTitle: mockPurposeTemplate.purposeTitle }
+    );
+    expect(res.status).toBe(HTTP_STATUS_OK);
+    expect(res.body).toEqual(apiPurposeTemplate);
+    expect(res.headers["x-metadata-version"]).toBe("5");
   });
 
   it.each([
