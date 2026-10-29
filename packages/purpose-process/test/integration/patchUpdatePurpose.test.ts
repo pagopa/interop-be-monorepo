@@ -741,7 +741,7 @@ describe("patchUpdatePurpose", () => {
       };
       await addOnePurpose(purposeFromTemplate);
 
-      expect(
+      await expect(
         purposeService.patchUpdatePurpose(
           purposeFromTemplate.id,
           {
