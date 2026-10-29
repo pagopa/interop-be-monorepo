@@ -22,37 +22,16 @@ headers {
 body:json {
   {
       "title": "{{randomName}}",
-      "description": "a purpose long description updated",
-      "isFreeOfCharge": false,
-      "dailyCalls": 200,
-      "freeOfChargeReason": null,
-      "riskAnalysisForm": {
-          "version": "3.0",
-          "answers": {
-              "purpose": ["INSTITUTIONAL"],
-              "institutionalPurpose": ["Another updated purpose"],
-              "personalDataTypes": ["OTHER"],
-              "otherPersonalDataTypes": ["some other data types"],
-              "legalBasis": ["LEGAL_OBLIGATION", "PUBLIC_INTEREST"],
-              "legalObligationReference": ["somethingLegal"],
-              "legalBasisPublicInterest": ["RULE_OF_LAW"],
-              "ruleOfLawText": ["TheLaw"],
-              "knowsDataQuantity": ["YES"],
-              "dataQuantity": ["QUANTITY_500_TO_1000"],
-              "deliveryMethod": ["ANONYMOUS"],
-              "policyProvided": ["NO"],
-              "confirmPricipleIntegrityAndDiscretion": ["true"],
-              "reasonPolicyNotProvided": ["Because"],
-              "doneDpia": ["NO"],
-              "dataDownload": ["YES"],
-              "confirmDataRetentionPeriod": ["true"],
-              "purposePursuit": ["MERE_CORRECTNESS"],
-              "checkedExistenceMereCorrectnessInteropCatalogue": ["true"],
-              "usesThirdPartyData": ["NO"],
-              "declarationConfirmGDPR": ["true"]
-          }
-      }
+      "description": "a purpose long description updated"
   }
+}
+
+docs {
+  Updates title and description without changing purpose versions or risk analysis.
+  Purposes created from a template cannot be updated through this endpoint.
+  Operational fields (dailyCalls, isFreeOfCharge, freeOfChargeReason and riskAnalysisForm)
+  may be included only for Draft purposes. Otherwise the entire request is rejected with 409.
+  Repeating current values succeeds without events or a metadata version increment.
 }
 
 script:pre-request {

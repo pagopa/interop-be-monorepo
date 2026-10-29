@@ -12,6 +12,7 @@ import {
   getMockContextM2MAdmin,
   getMockDelegation,
   getMockValidRiskAnalysis,
+  readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test";
 import {
   tenantKind,
@@ -20,6 +21,9 @@ import {
   Purpose,
   purposeVersionState,
   DraftPurposeUpdatedV2,
+  PurposeTitleUpdatedV2,
+  PurposeDescriptionUpdatedV2,
+  PurposeEventV2,
   toPurposeV2,
   eserviceMode,
   delegationKind,
@@ -58,6 +62,7 @@ import {
   addOneEService,
   addOneDelegation,
   sortUpdatePurposeReturn,
+  postgresDB,
 } from "../integrationUtils.js";
 
 describe("patchUpdateReversePurpose", () => {
@@ -86,17 +91,45 @@ describe("patchUpdateReversePurpose", () => {
   });
 
   async function expectWrittenEventAndGetPayload(
-    purposeId: PurposeId
+    purposeId: PurposeId,
+    eventTypes: PurposeEventV2["type"][] = ["DraftPurposeUpdated"]
   ): Promise<DraftPurposeUpdatedV2> {
     const writtenEvent = await readLastPurposeEvent(purposeId);
     expect(writtenEvent).toMatchObject({
       stream_id: purposeId,
-      version: "1",
-      type: "DraftPurposeUpdated",
+      version: eventTypes.length.toString(),
+      type: eventTypes.at(-1) ?? "PurposeAdded",
       event_version: 2,
     });
+    for (const [index, type] of eventTypes.entries()) {
+      const event = await readEventByStreamIdAndVersion(
+        purposeId,
+        index + 1,
+        "purpose",
+        postgresDB
+      );
+      expect(event).toMatchObject({
+        type,
+        version: (index + 1).toString(),
+        event_version: 2,
+        data: writtenEvent.data,
+      });
+    }
+    if (eventTypes.length > 0) {
+      const correlations = await postgresDB.many<{ correlation_id: string }>(
+        "SELECT DISTINCT correlation_id FROM purpose.events WHERE stream_id = $1 AND version > 0",
+        [purposeId]
+      );
+      expect(correlations).toHaveLength(1);
+      expect(correlations[0].correlation_id).toEqual(expect.any(String));
+    }
     return decodeProtobufPayload({
-      messageType: DraftPurposeUpdatedV2,
+      messageType:
+        writtenEvent.type === "PurposeTitleUpdated"
+          ? PurposeTitleUpdatedV2
+          : writtenEvent.type === "PurposeDescriptionUpdated"
+            ? PurposeDescriptionUpdatedV2
+            : DraftPurposeUpdatedV2,
       payload: writtenEvent.data,
     });
   }
@@ -104,7 +137,8 @@ describe("patchUpdateReversePurpose", () => {
   async function expectUpdatedPurpose(
     updatePurposeReturn: UpdatePurposeReturn,
     writtenPayload: DraftPurposeUpdatedV2,
-    expectedPurpose: Purpose
+    expectedPurpose: Purpose,
+    expectedVersion = 1
   ): Promise<void> {
     const sortedExpectedPurpose = sortPurpose(expectedPurpose);
     const sortedUpdatePurposeReturn =
@@ -119,7 +153,7 @@ describe("patchUpdateReversePurpose", () => {
       data: {
         purpose: sortedExpectedPurpose,
       },
-      metadata: { version: 1 },
+      metadata: { version: expectedVersion },
     });
   }
 
@@ -139,6 +173,205 @@ describe("patchUpdateReversePurpose", () => {
   };
 
   const validRiskAnalysis = getMockValidRiskAnalysis(producer.kind!);
+
+  it.each(Object.values(purposeVersionState))(
+    "should update metadata in %s without modifying versions or risk analysis",
+    async (state) => {
+      const purpose: Purpose = {
+        ...draftPurpose,
+        updatedAt: new Date(0),
+        versions: [
+          getMockPurposeVersion(state),
+          getMockPurposeVersion(purposeVersionState.archived),
+        ],
+      };
+      await addOnePurpose(purpose);
+      await addOneEService(eservice);
+      await addOneTenant(consumer);
+      await addOneTenant(producer);
+
+      const result = await purposeService.patchUpdateReversePurpose(
+        purpose.id,
+        { title: "updated title", description: "updated description" },
+        getMockContextM2MAdmin({ organizationId: consumer.id })
+      );
+      const payload = await expectWrittenEventAndGetPayload(purpose.id, [
+        "PurposeTitleUpdated",
+        "PurposeDescriptionUpdated",
+      ]);
+      await expectUpdatedPurpose(
+        result,
+        payload,
+        {
+          ...purpose,
+          title: "updated title",
+          description: "updated description",
+          updatedAt: new Date(),
+        },
+        2
+      );
+    }
+  );
+
+  it.each(Object.values(purposeVersionState))(
+    "should preserve the event version and timestamps for unchanged metadata in %s",
+    async (state) => {
+      const purpose: Purpose = {
+        ...draftPurpose,
+        updatedAt: new Date(0),
+        versions: [getMockPurposeVersion(state)],
+      };
+      await addOnePurpose(purpose);
+      await addOneEService(eservice);
+      await addOneTenant(consumer);
+      await addOneTenant(producer);
+      const result = await purposeService.patchUpdateReversePurpose(
+        purpose.id,
+        { title: purpose.title, description: purpose.description },
+        getMockContextM2MAdmin({ organizationId: consumer.id })
+      );
+      expect(sortUpdatePurposeReturn(result)).toEqual({
+        data: { purpose: sortPurpose(purpose) },
+        metadata: { version: 0 },
+      });
+      expect(await readLastPurposeEvent(purpose.id)).toMatchObject({
+        type: "PurposeAdded",
+        version: "0",
+      });
+    }
+  );
+
+  it("should preserve timestamps for an unchanged operational seed", async () => {
+    const purpose: Purpose = {
+      ...draftPurpose,
+      updatedAt: new Date(0),
+      versions: [{ ...draftPurpose.versions[0], updatedAt: new Date(0) }],
+    };
+    await addOnePurpose(purpose);
+    await addOneEService(eservice);
+    await addOneTenant(consumer);
+    await addOneTenant(producer);
+    const result = await purposeService.patchUpdateReversePurpose(
+      purpose.id,
+      {
+        dailyCalls: purpose.versions[0].dailyCalls,
+        isFreeOfCharge: purpose.isFreeOfCharge,
+        freeOfChargeReason: purpose.freeOfChargeReason,
+      },
+      getMockContextM2MAdmin({ organizationId: consumer.id })
+    );
+    expect(sortUpdatePurposeReturn(result)).toEqual({
+      data: { purpose: sortPurpose(purpose) },
+      metadata: { version: 0 },
+    });
+    expect(await readLastPurposeEvent(purpose.id)).toMatchObject({
+      type: "PurposeAdded",
+      version: "0",
+    });
+  });
+
+  it("should emit only metadata events when supplied operational values are unchanged", async () => {
+    await addOnePurpose(draftPurpose);
+    await addOneEService(eservice);
+    await addOneTenant(consumer);
+    await addOneTenant(producer);
+    const result = await purposeService.patchUpdateReversePurpose(
+      draftPurpose.id,
+      {
+        title: "updated title",
+        description: "updated description",
+        dailyCalls: draftPurpose.versions[0].dailyCalls,
+      },
+      getMockContextM2MAdmin({ organizationId: consumer.id })
+    );
+    const payload = await expectWrittenEventAndGetPayload(draftPurpose.id, [
+      "PurposeTitleUpdated",
+      "PurposeDescriptionUpdated",
+    ]);
+    await expectUpdatedPurpose(
+      result,
+      payload,
+      {
+        ...draftPurpose,
+        title: "updated title",
+        description: "updated description",
+        updatedAt: new Date(),
+      },
+      2
+    );
+  });
+
+  it("should allow a consumer delegate to update archived metadata", async () => {
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: eservice.id,
+      delegatorId: consumer.id,
+      state: delegationState.active,
+    });
+    const purpose: Purpose = {
+      ...draftPurpose,
+      delegationId: delegation.id,
+      versions: [getMockPurposeVersion(purposeVersionState.archived)],
+    };
+    await addOnePurpose(purpose);
+    await addOneEService(eservice);
+    await addOneTenant(consumer);
+    await addOneTenant(producer);
+    await addOneDelegation(delegation);
+    const result = await purposeService.patchUpdateReversePurpose(
+      purpose.id,
+      { title: "updated title", description: "updated description" },
+      getMockContextM2MAdmin({ organizationId: delegation.delegateId })
+    );
+    const payload = await expectWrittenEventAndGetPayload(purpose.id, [
+      "PurposeTitleUpdated",
+      "PurposeDescriptionUpdated",
+    ]);
+    await expectUpdatedPurpose(
+      result,
+      payload,
+      {
+        ...purpose,
+        title: "updated title",
+        description: "updated description",
+        updatedAt: new Date(),
+      },
+      2
+    );
+  });
+
+  it.each(
+    Object.values(purposeVersionState).filter(
+      (state) => state !== purposeVersionState.draft
+    )
+  )(
+    "should reject a mixed operational update atomically in %s",
+    async (state) => {
+      const purpose: Purpose = {
+        ...draftPurpose,
+        versions: [getMockPurposeVersion(state)],
+      };
+      await addOnePurpose(purpose);
+      await addOneEService(eservice);
+      await addOneTenant(consumer);
+      await addOneTenant(producer);
+      await expect(
+        purposeService.patchUpdateReversePurpose(
+          purpose.id,
+          {
+            title: "updated title",
+            description: "updated description",
+            dailyCalls: purpose.versions[0].dailyCalls,
+          },
+          getMockContextM2MAdmin({ organizationId: consumer.id })
+        )
+      ).rejects.toThrowError(purposeNotInDraftState(purpose.id));
+      expect(await readLastPurposeEvent(purpose.id)).toMatchObject({
+        type: "PurposeAdded",
+        version: "0",
+      });
+    }
+  );
 
   it("Should write on event store for the patch update of a reverse purpose updating all fields", async () => {
     await addOnePurpose(draftPurpose);
@@ -250,29 +483,59 @@ describe("patchUpdateReversePurpose", () => {
   });
 
   it.each([
-    {}, // This should not throw an error and leave all fields unchanged
-    { title: "updated title" },
-    { description: "updated description" },
     {
-      title: "updated title",
-      description: undefined, // This keeps the existing description, same as not setting it
-      dailyCalls: undefined, // This keeps the existing dailyCalls, same as not setting it
-    },
-    { dailyCalls: 99 },
-    { freeOfChargeReason: "updated freeOfChargeReason" },
-    { isFreeOfCharge: true, freeOfChargeReason: "updated freeOfChargeReason" },
-    {
-      isFreeOfCharge: true,
-      freeOfChargeReason: undefined, // This keeps the existing reason, same as not setting it
+      seed: { title: "updated title" },
+      eventTypes: ["PurposeTitleUpdated"],
+      operationalChanges: false,
     },
     {
-      title: "updated title",
-      description: "updated description",
-      dailyCalls: 99,
+      seed: { description: "updated description" },
+      eventTypes: ["PurposeDescriptionUpdated"],
+      operationalChanges: false,
     },
-  ] as purposeApi.PatchReversePurposeUpdateContent[])(
+    {
+      seed: {
+        title: "updated title",
+        description: undefined,
+        dailyCalls: undefined,
+      },
+      eventTypes: ["PurposeTitleUpdated"],
+      operationalChanges: false,
+    },
+    {
+      seed: { dailyCalls: 99 },
+      eventTypes: ["DraftPurposeUpdated"],
+      operationalChanges: true,
+    },
+    {
+      seed: { freeOfChargeReason: "updated freeOfChargeReason" },
+      eventTypes: ["DraftPurposeUpdated"],
+      operationalChanges: true,
+    },
+    {
+      seed: {
+        isFreeOfCharge: true,
+        freeOfChargeReason: "updated freeOfChargeReason",
+      },
+      eventTypes: ["DraftPurposeUpdated"],
+      operationalChanges: true,
+    },
+    {
+      seed: {
+        title: "updated title",
+        description: "updated description",
+        dailyCalls: 99,
+      },
+      eventTypes: ["DraftPurposeUpdated"],
+      operationalChanges: true,
+    },
+  ] satisfies Array<{
+    seed: purposeApi.PatchReversePurposeUpdateContent;
+    eventTypes: PurposeEventV2["type"][];
+    operationalChanges: boolean;
+  }>)(
     "should update only the fields set in the seed, and leave undefined fields unchanged (seed #%#)",
-    async (seed) => {
+    async ({ seed, eventTypes, operationalChanges }) => {
       await addOnePurpose(draftPurpose);
       await addOneEService(eservice);
       await addOneTenant(consumer);
@@ -288,7 +551,8 @@ describe("patchUpdateReversePurpose", () => {
         );
 
       const writtenPayload = await expectWrittenEventAndGetPayload(
-        draftPurpose.id
+        draftPurpose.id,
+        eventTypes
       );
 
       const expectedPurpose: Purpose = {
@@ -302,7 +566,7 @@ describe("patchUpdateReversePurpose", () => {
           {
             ...draftPurpose.versions[0],
             dailyCalls: seed.dailyCalls ?? draftPurpose.versions[0].dailyCalls,
-            updatedAt: new Date(),
+            ...(operationalChanges ? { updatedAt: new Date() } : {}),
           },
         ],
         updatedAt: new Date(),
@@ -311,7 +575,8 @@ describe("patchUpdateReversePurpose", () => {
       await expectUpdatedPurpose(
         updatePurposeReturn,
         writtenPayload,
-        expectedPurpose
+        expectedPurpose,
+        eventTypes.length
       );
     }
   );
@@ -337,7 +602,8 @@ describe("patchUpdateReversePurpose", () => {
     );
 
     const writtenPayload = await expectWrittenEventAndGetPayload(
-      draftPurpose.id
+      draftPurpose.id,
+      ["DraftPurposeUpdated"]
     );
 
     const expectedPurpose: Purpose = {
@@ -357,7 +623,8 @@ describe("patchUpdateReversePurpose", () => {
     await expectUpdatedPurpose(
       updatePurposeReturn,
       writtenPayload,
-      expectedPurpose
+      expectedPurpose,
+      1
     );
   });
 
@@ -386,31 +653,35 @@ describe("patchUpdateReversePurpose", () => {
     );
   });
 
-  it("Should throw purposeFromTemplateCannotBeModified if the purpose was created from a purpose template", async () => {
-    const purposeTemplateId = generateId<PurposeTemplateId>();
-    const purposeFromTemplate: Purpose = {
-      ...draftPurpose,
-      purposeTemplateId,
-    };
-    await addOnePurpose(purposeFromTemplate);
+  it.each(Object.values(purposeVersionState))(
+    "should reject template-derived metadata updates in %s",
+    async (state) => {
+      const purposeTemplateId = generateId<PurposeTemplateId>();
+      const purposeFromTemplate: Purpose = {
+        ...draftPurpose,
+        purposeTemplateId,
+        versions: [getMockPurposeVersion(state)],
+      };
+      await addOnePurpose(purposeFromTemplate);
 
-    expect(
-      purposeService.patchUpdateReversePurpose(
-        purposeFromTemplate.id,
-        {
-          title: "updated title",
-        },
-        getMockContextM2MAdmin({
-          organizationId: consumer.id,
-        })
-      )
-    ).rejects.toThrowError(
-      purposeFromTemplateCannotBeModified(
-        purposeFromTemplate.id,
-        purposeTemplateId
-      )
-    );
-  });
+      expect(
+        purposeService.patchUpdateReversePurpose(
+          purposeFromTemplate.id,
+          {
+            title: "updated title",
+          },
+          getMockContextM2MAdmin({
+            organizationId: consumer.id,
+          })
+        )
+      ).rejects.toThrowError(
+        purposeFromTemplateCannotBeModified(
+          purposeFromTemplate.id,
+          purposeTemplateId
+        )
+      );
+    }
+  );
 
   it.each([
     { freeOfChargeReason: null },
@@ -709,9 +980,12 @@ describe("patchUpdateReversePurpose", () => {
 
       const expectedPurpose: Purpose = {
         ...purpose,
-        isFreeOfCharge: expected.isFreeOfCharge,
-        freeOfChargeReason: expected.freeOfChargeReason,
-        updatedAt: new Date(),
+        ...(Object.keys(cleanedSeed).length > 0 ? expected : {}),
+        ...(Object.keys(cleanedSeed).length > 0 &&
+        (initData.isFreeOfCharge !== expected.isFreeOfCharge ||
+          initData.freeOfChargeReason !== expected.freeOfChargeReason)
+          ? { updatedAt: new Date() }
+          : {}),
       };
 
       expect(sortPurpose(patchPurposeResult.data.purpose)).toEqual(
@@ -919,6 +1193,7 @@ describe("patchUpdateReversePurpose", () => {
         publishedPurpose.id,
         {
           title: "updated title",
+          dailyCalls: 99,
         },
         getMockContextM2MAdmin({
           organizationId: consumer.id,
