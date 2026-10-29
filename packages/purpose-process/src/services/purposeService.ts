@@ -25,6 +25,7 @@ import {
   isFeatureFlagEnabled,
   ownership,
   riskAnalysisFormToRiskAnalysisFormToValidate,
+  explicitPropertiesChecker,
   validateNoHyperlinksSafe,
 } from "pagopa-interop-commons";
 import {
@@ -110,6 +111,7 @@ import {
   missingReviewers,
   reviewersNotAllowedForReviewMode,
   purposeMetadataVersionMismatch,
+  riskAnalysisReviewModeNotFound,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -124,6 +126,7 @@ import {
   toCreateEventPurposeSuspendedByConsumer,
   toCreateEventPurposeSuspendedByProducer,
   toCreateEventMaintenancePurposeRiskAnalysisSetTenantKind,
+  toCreateEventMaintenancePurposeRiskAnalysisFixReviewerWorkflow,
   toCreateEventPurposeVersionActivated,
   toCreateEventPurposeVersionArchivedByRevokedDelegation,
   toCreateEventPurposeVersionOverQuotaUnsuspended,
@@ -457,6 +460,31 @@ export function purposeServiceBuilder(
 
       return {
         data: updatedPurpose,
+        metadata: { version: createdEvent.newVersion },
+      };
+    },
+    async fixReviewerWorkflow(
+      purposeId: PurposeId,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<WithMetadata<Purpose>> {
+      logger.info(`Fixing review mode for Purpose ${purposeId}`);
+
+      const purpose = await retrievePurpose(purposeId, readModelService);
+      if (!purpose.data.riskAnalysisReviewMode) {
+        throw riskAnalysisReviewModeNotFound(purposeId);
+      }
+
+      const event =
+        toCreateEventMaintenancePurposeRiskAnalysisFixReviewerWorkflow({
+          purpose: purpose.data,
+          version: purpose.metadata.version,
+          correlationId,
+        });
+
+      const createdEvent = await repository.createEvent(event);
+
+      return {
+        data: purpose.data,
         metadata: { version: createdEvent.newVersion },
       };
     },
@@ -2056,12 +2084,20 @@ export function purposeServiceBuilder(
 
       const versionToClone = getVersionToClone(purposeToClone.data);
 
-      const newPurposeVersion: PurposeVersion = {
+      const newPurposeVersion = explicitPropertiesChecker<PurposeVersion>({
         id: generateId(),
         createdAt: new Date(),
         state: purposeVersionState.draft,
         dailyCalls: versionToClone.dailyCalls,
-      };
+        updatedAt: undefined,
+        rejectionReason: undefined,
+        suspendedAt: undefined,
+        riskAnalysis: undefined,
+        stamps: undefined,
+        signedContract: undefined,
+        firstActivationAt: undefined,
+        waitingForApprovalReason: undefined,
+      });
 
       const riskAnalysisFormToClone = purposeToClone.data.riskAnalysisForm;
 
@@ -2107,7 +2143,7 @@ export function purposeServiceBuilder(
         title: clonedPurposeTitle,
       });
 
-      const clonedPurpose: Purpose = {
+      const clonedPurpose = explicitPropertiesChecker<Purpose>({
         title: clonedPurposeTitle,
         id: generateId(),
         createdAt: currentDate,
@@ -2119,7 +2155,13 @@ export function purposeServiceBuilder(
         freeOfChargeReason: purposeToClone.data.freeOfChargeReason,
         riskAnalysisForm: clonedRiskAnalysisForm,
         delegationId: purposeToClone.data.delegationId,
-      };
+        updatedAt: undefined,
+        suspendedByConsumer: undefined,
+        suspendedByProducer: undefined,
+        purposeTemplateId: undefined,
+        reviewerWorkflow: undefined,
+        riskAnalysisReviewMode: undefined,
+      });
 
       const event = toCreateEventPurposeCloned({
         purpose: clonedPurpose,
