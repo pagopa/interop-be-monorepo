@@ -156,6 +156,12 @@ async function handlePurposeEventV2(
         },
         () => Promise.resolve(void 0)
       )
+      .with(
+        {
+          type: P.union("PurposeTitleUpdated", "PurposeDescriptionUpdated"),
+        },
+        () => Promise.resolve(void 0)
+      )
       .exhaustive()
   );
 }

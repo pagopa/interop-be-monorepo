@@ -100,6 +100,17 @@ export const updatePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
 /** @alias */
 export const updateReversePurposeErrorMapper = updatePurposeErrorMapper;
 
+export const patchUpdatePurposeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("purposeNotInDraftState", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => updatePurposeErrorMapper(error));
+
+/** @alias */
+export const patchUpdateReversePurposeErrorMapper =
+  patchUpdatePurposeErrorMapper;
+
 export const maintenanceFixRiskAnalysisErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
