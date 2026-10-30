@@ -42,7 +42,7 @@
       ],
       "inputs": [
         "$TURBO_DEFAULT$",
-        "$TURBO_ROOT$/packages/backend-for-frontend/Messaggi-di-errore.csv"
+        "$TURBO_ROOT$/packages/backend-for-frontend/error-message.csv"
       ],
       "outputs": [
         "dist/**",
@@ -56,7 +56,7 @@
       ],
       "inputs": [
         "$TURBO_DEFAULT$",
-        "$TURBO_ROOT$/packages/backend-for-frontend/Messaggi-di-errore.csv"
+        "$TURBO_ROOT$/packages/backend-for-frontend/error-message.csv"
       ],
       "outputs": [
         "../backend-for-frontend/src/generated/**"

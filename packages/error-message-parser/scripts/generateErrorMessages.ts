@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import { generateErrorMessages } from "../src/utils/generateErrorMessages.js";
 
 const input = new URL(
-  "../../backend-for-frontend/Messaggi-di-errore.csv",
+  "../../backend-for-frontend/error-message.csv",
   import.meta.url
 );
 const outputDirectory = new URL(

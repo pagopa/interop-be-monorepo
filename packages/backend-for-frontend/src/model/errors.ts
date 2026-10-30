@@ -1,17 +1,23 @@
 import { bffErrorCodes } from "pagopa-interop-commons";
+import { errorMessages } from "../generated/errorMessages.js";
 import {
   ApiError,
   AttributeId,
-  makeApiProblemBuilder,
   parseErrorMessage,
 } from "pagopa-interop-models";
 
+import { makeUserFacingApiProblemBuilder } from "./applyError.js";
+
 export type ErrorCodes = keyof typeof bffErrorCodes;
 
-export const makeApiProblem = makeApiProblemBuilder(bffErrorCodes, {
-  problemErrorsPassthrough: true,
-  forceGenericProblemOn500: true,
-});
+export const makeApiProblem = makeUserFacingApiProblemBuilder(
+  bffErrorCodes,
+  {
+    problemErrorsPassthrough: true,
+    forceGenericProblemOn500: false,
+  },
+  errorMessages
+);
 
 export function selfcareEntityNotFilled(
   className: string,
