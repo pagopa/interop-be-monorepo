@@ -2,11 +2,41 @@ import type { TemplateContext } from "openapi-zod-client";
 
 import { describe, expect, it } from "vitest";
 
-import { createEndpointChunkHelpers } from "../src/generatorUtils.js";
+import {
+  createEndpointChunkHelpers,
+  createSchemaRenderer,
+} from "../src/generatorUtils.js";
 
 const testMaxEndpointsPerChunk = 2;
 const { endpointChunks, hasChunkedEndpointGroups, shouldChunkEndpoints } =
   createEndpointChunkHelpers(testMaxEndpointsPerChunk);
+
+describe("schema rendering", () => {
+  it("preserves schemas without minProperties and reference schemas", () => {
+    const render = createSchemaRenderer({
+      Seed: { type: "object" },
+      Reference: { $ref: "#/components/schemas/Seed" },
+    });
+    expect(render("Seed", "z.object({})")).toBe("z.object({})");
+    expect(render("Reference", "Seed")).toBe("Seed");
+    expect(render("Unknown", "z.string()")).toBe("z.string()");
+    expect(createSchemaRenderer(undefined)("Seed", "z.object({})")).toBe(
+      "z.object({})"
+    );
+  });
+
+  it.each([0, 1, 2])(
+    "renders minProperties %s without a field list",
+    (minProperties) => {
+      const render = createSchemaRenderer({
+        Seed: { type: "object", minProperties },
+      });
+      expect(render("Seed", "z.object({})")).toBe(
+        `z.object({}).refine(value => Object.keys(value).length >= ${minProperties}, { message: "Expected at least ${minProperties} properties" }).and(z.unknown())`
+      );
+    }
+  );
+});
 
 function createContext(endpointCount: number): TemplateContext {
   const endpoints: TemplateContext["endpoints"] = Array.from(

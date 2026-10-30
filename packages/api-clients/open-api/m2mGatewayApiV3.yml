@@ -2869,8 +2869,8 @@ paths:
     patch:
       tags:
         - eservices
-      summary: Update a Draft E-Service
-      description: Update an E-Service in Draft state
+      summary: Partially update an E-Service
+      description: Partially update an E-Service
       operationId: updateDraftEService
       requestBody:
         content:
@@ -2880,7 +2880,7 @@ paths:
         required: true
       responses:
         "200":
-          description: Draft E-Service updated
+          description: E-Service updated
           content:
             application/json:
               schema:
@@ -13802,6 +13802,7 @@ components:
     EServiceDraftUpdateSeed:
       type: object
       additionalProperties: false
+      minProperties: 1
       properties:
         name:
           type: string

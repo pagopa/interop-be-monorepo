@@ -3417,6 +3417,43 @@ paths:
           $ref: "#/components/responses/NotFound"
         "400":
           $ref: "#/components/responses/BadRequest"
+    patch:
+      security:
+        - bearerAuth: []
+      tags:
+        - eservices
+      summary: Partially updates E-Service general information
+      description: Partially updates the general information of the specified E-Service
+      operationId: patchUpdateEServiceById
+      parameters:
+        - name: eServiceId
+          in: path
+          description: The E-Service id to update
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchUpdateEServiceSeed"
+      responses:
+        "200":
+          description: E-Service updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatedResource"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /templates/eservices/{eServiceId}:
     post:
       security:
@@ -14064,6 +14101,35 @@ components:
       required:
         - id
         - value
+    PatchUpdateEServiceSeed:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        name:
+          type: string
+          minLength: 5
+          maxLength: 60
+        description:
+          type: string
+          minLength: 10
+          maxLength: 400
+        technology:
+          $ref: "#/components/schemas/EServiceTechnology"
+        mode:
+          $ref: "#/components/schemas/EServiceMode"
+        isSignalHubEnabled:
+          type: boolean
+        isConsumerDelegable:
+          type: boolean
+        isClientAccessDelegable:
+          type: boolean
+        personalData:
+          type: boolean
+          nullable: true
+        asyncExchange:
+          type: boolean
+          nullable: true
     UpdateEServiceSeed:
       type: object
       additionalProperties: false
