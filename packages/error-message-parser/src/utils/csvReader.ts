@@ -1,7 +1,7 @@
+import type { ErrorMessage } from "pagopa-interop-models";
+
 import { parse } from "csv-parse/sync";
 import { readFileSync } from "node:fs";
-
-import { ErrorMessage } from "../models/index.js";
 
 const requiredHeaders = [
   "process",
