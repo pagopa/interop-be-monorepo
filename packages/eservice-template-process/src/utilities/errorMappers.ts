@@ -252,6 +252,20 @@ export const updateEServiceTemplateErrorMapper = (
     .with("eserviceTemplateDuplicate", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const patchUpdateEServiceTemplateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eserviceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "eserviceTemplateNotInDraftState",
+      "eserviceTemplateDuplicate",
+      "instanceNameConflict",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const updateDraftTemplateVersionErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>

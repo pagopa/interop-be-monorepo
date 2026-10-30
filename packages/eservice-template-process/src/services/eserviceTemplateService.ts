@@ -49,6 +49,7 @@ import {
   RiskAnalysis,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { isDeepStrictEqual } from "util";
 
 import { config } from "../config/config.js";
 import {
@@ -69,6 +70,7 @@ import {
   tenantKindNotFound,
   missingPersonalDataFlag,
   eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce,
+  eserviceTemplateNotInDraftState,
 } from "../model/domain/errors.js";
 import {
   versionAttributeGroupSupersetMissingInAttributesSeed,
@@ -135,6 +137,7 @@ import {
   versionStatesNotAllowingInterfaceOperations,
   assertAsyncExchangeReceiveTemplateNotAllowed,
   assertDiscreteConfigForCertifiedAttributesOnly,
+  isDraftEServiceTemplate,
 } from "./validators.js";
 
 const retrieveEServiceTemplate = async (
@@ -1490,14 +1493,133 @@ export function eserviceTemplateServiceBuilder(
       ctx: WithLogger<AppContext<M2MAdminAuthData>>
     ): Promise<WithMetadata<EServiceTemplate>> {
       ctx.logger.info(`Partially updating EService Template ${templateId}`);
-      return updateDraftEServiceTemplate(
+      const eserviceTemplate = await retrieveEServiceTemplate(
         templateId,
-        { type: "patch", seed: eserviceTemplateSeed },
-        readModelService,
-        fileManager,
-        repository,
-        ctx
+        readModelService
       );
+      assertRequesterEServiceTemplateCreator(
+        eserviceTemplate.data.creatorId,
+        ctx.authData
+      );
+
+      const { name, description, intendedTarget, ...operationalSeed } =
+        eserviceTemplateSeed;
+
+      const hasOperationalFields = Object.values(operationalSeed).some(
+        (value) => value !== undefined
+      );
+
+      const isDraft = isDraftEServiceTemplate(eserviceTemplate.data);
+
+      if (hasOperationalFields && !isDraft) {
+        throw eserviceTemplateNotInDraftState(eserviceTemplate.data.id);
+      }
+
+      await validateEServiceTemplateMetadataUpdate(
+        eserviceTemplate.data,
+        eserviceTemplateSeed,
+        readModelService
+      );
+
+      if (isDraft) {
+        const updatedEServiceTemplate = prepareDraftEServiceTemplateUpdate(
+          eserviceTemplate.data,
+          { type: "patch", seed: eserviceTemplateSeed }
+        );
+        const removeUndefinedProperties = (
+          obj: object
+        ): Record<string, unknown> =>
+          Object.fromEntries(
+            Object.entries(obj).filter(([, value]) => value !== undefined)
+          );
+        if (
+          isDeepStrictEqual(
+            removeUndefinedProperties(eserviceTemplate.data),
+            removeUndefinedProperties(updatedEServiceTemplate)
+          )
+        ) {
+          return eserviceTemplate;
+        }
+
+        await deleteEServiceTemplateInterfacesOnTechnologyChange(
+          eserviceTemplate.data,
+          updatedEServiceTemplate,
+          fileManager,
+          ctx.logger
+        );
+
+        const event = await repository.createEvent(
+          toCreateEventEServiceTemplateDraftUpdated(
+            templateId,
+            eserviceTemplate.metadata.version,
+            updatedEServiceTemplate,
+            ctx.correlationId
+          )
+        );
+
+        return {
+          data: updatedEServiceTemplate,
+          metadata: { version: event.newVersion },
+        };
+      }
+
+      const updatedEServiceTemplate: EServiceTemplate = {
+        ...eserviceTemplate.data,
+        name: name ?? eserviceTemplate.data.name,
+        description: description ?? eserviceTemplate.data.description,
+        intendedTarget: intendedTarget ?? eserviceTemplate.data.intendedTarget,
+      };
+
+      const events = [
+        ...(updatedEServiceTemplate.name !== eserviceTemplate.data.name
+          ? [
+              toCreateEventEServiceTemplateNameUpdated(
+                templateId,
+                eserviceTemplate.metadata.version,
+                updatedEServiceTemplate,
+                eserviceTemplate.data.name,
+                ctx.correlationId
+              ),
+            ]
+          : []),
+        ...(updatedEServiceTemplate.description !==
+        eserviceTemplate.data.description
+          ? [
+              toCreateEventEServiceTemplateDescriptionUpdated(
+                templateId,
+                eserviceTemplate.metadata.version,
+                updatedEServiceTemplate,
+                ctx.correlationId
+              ),
+            ]
+          : []),
+        ...(updatedEServiceTemplate.intendedTarget !==
+        eserviceTemplate.data.intendedTarget
+          ? [
+              toCreateEventEServiceTemplateIntendedTargetUpdated(
+                templateId,
+                eserviceTemplate.metadata.version,
+                updatedEServiceTemplate,
+                ctx.correlationId
+              ),
+            ]
+          : []),
+      ].map((event, index) => ({
+        ...event,
+        version: eserviceTemplate.metadata.version + index,
+      }));
+
+      if (events.length === 0) {
+        return eserviceTemplate;
+      }
+
+      const createdEvents = await repository.createEvents(events);
+      return {
+        data: updatedEServiceTemplate,
+        metadata: {
+          version: createdEvents.latestNewVersions.get(templateId) ?? 0,
+        },
+      };
     },
     async createEServiceTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,
@@ -2232,18 +2354,20 @@ function applyVisibilityToEServiceTemplate(
   throw eserviceTemplateNotFound(eserviceTemplate.id);
 }
 
+type UpdateEServiceTemplateTypeAndSeed =
+  | {
+      type: "post";
+      seed: eserviceTemplateApi.UpdateEServiceTemplateSeed;
+    }
+  | {
+      type: "patch";
+      seed: eserviceTemplateApi.PatchUpdateEServiceTemplateSeed;
+    };
+
 // eslint-disable-next-line max-params
 async function updateDraftEServiceTemplate(
   eserviceTemplateId: EServiceTemplateId,
-  typeAndSeed:
-    | {
-        type: "post";
-        seed: eserviceTemplateApi.UpdateEServiceTemplateSeed;
-      }
-    | {
-        type: "patch";
-        seed: eserviceTemplateApi.PatchUpdateEServiceTemplateSeed;
-      },
+  typeAndSeed: UpdateEServiceTemplateTypeAndSeed,
   readModelService: ReadModelServiceSQL,
   fileManager: FileManager,
   repository: ReturnType<typeof eventRepository<EServiceTemplateEvent>>,
@@ -2265,110 +2389,23 @@ async function updateDraftEServiceTemplate(
 
   assertIsDraftEServiceTemplate(eserviceTemplate.data);
 
-  const {
-    name,
-    description,
-    technology,
-    mode,
-    isSignalHubEnabled,
-    intendedTarget,
-  } = typeAndSeed.seed;
+  await validateEServiceTemplateMetadataUpdate(
+    eserviceTemplate.data,
+    typeAndSeed.seed,
+    readModelService
+  );
 
-  validateNoHyperlinksSafe(name);
-  validateNoHyperlinksSafe(description);
-  validateNoHyperlinksSafe(intendedTarget);
+  const updatedEServiceTemplate = prepareDraftEServiceTemplateUpdate(
+    eserviceTemplate.data,
+    typeAndSeed
+  );
 
-  if (name && name !== eserviceTemplate.data.name) {
-    await assertEServiceTemplateNameAvailable(name, readModelService);
-  }
-
-  const updatedTechnology = technology
-    ? apiTechnologyToTechnology(technology)
-    : eserviceTemplate.data.technology;
-
-  const interfaceHasToBeDeleted =
-    updatedTechnology !== eserviceTemplate.data.technology;
-
-  if (interfaceHasToBeDeleted) {
-    await Promise.all(
-      eserviceTemplate.data.versions.map(async (d) => {
-        if (d.interface !== undefined) {
-          await fileManager.delete(config.s3Bucket, d.interface.path, logger);
-        }
-
-        if (d.asyncExchangeCallbackInterface !== undefined) {
-          await fileManager.delete(
-            config.s3Bucket,
-            d.asyncExchangeCallbackInterface.path,
-            logger
-          );
-        }
-      })
-    );
-  }
-
-  const updatedMode = mode
-    ? apiEServiceModeToEServiceMode(mode)
-    : eserviceTemplate.data.mode;
-
-  const checkedRiskAnalysis =
-    updatedMode === eserviceMode.receive
-      ? eserviceTemplate.data.riskAnalysis
-      : [];
-
-  const updatedIsSignalHubEnabled = match(typeAndSeed.type)
-    .with("post", () => isSignalHubEnabled)
-    .with(
-      "patch",
-      () => isSignalHubEnabled ?? eserviceTemplate.data.isSignalHubEnabled
-    )
-    .exhaustive();
-
-  const updatedPersonalData = match(typeAndSeed)
-    .with({ type: "post" }, ({ seed }) => seed.personalData)
-    .with(
-      { type: "patch" },
-      ({ seed }) =>
-        seed.personalData ??
-        (seed.personalData === null
-          ? undefined
-          : eserviceTemplate.data.personalData)
-    )
-    .exhaustive();
-
-  const updatedAsyncExchange = match(typeAndSeed)
-    .with({ type: "post" }, ({ seed }) => seed.asyncExchange)
-    .with(
-      { type: "patch" },
-      ({ seed }) =>
-        seed.asyncExchange ??
-        (seed.asyncExchange === null
-          ? undefined
-          : eserviceTemplate.data.asyncExchange)
-    )
-    .exhaustive();
-
-  const updatedEServiceTemplate: EServiceTemplate = {
-    ...eserviceTemplate.data,
-    name: name ?? eserviceTemplate.data.name,
-    intendedTarget: intendedTarget ?? eserviceTemplate.data.intendedTarget,
-    description: description ?? eserviceTemplate.data.description,
-    technology: updatedTechnology,
-    mode: updatedMode,
-    riskAnalysis: checkedRiskAnalysis,
-    versions: interfaceHasToBeDeleted
-      ? eserviceTemplate.data.versions.map((d) => ({
-          ...d,
-          interface: undefined,
-          asyncExchangeCallbackInterface: undefined,
-        }))
-      : eserviceTemplate.data.versions,
-    isSignalHubEnabled: updatedIsSignalHubEnabled,
-    ...(isFeatureFlagEnabled(config, "featureFlagAsyncExchange")
-      ? { asyncExchange: updatedAsyncExchange }
-      : {}),
-    personalData: updatedPersonalData,
-  };
+  await deleteEServiceTemplateInterfacesOnTechnologyChange(
+    eserviceTemplate.data,
+    updatedEServiceTemplate,
+    fileManager,
+    logger
+  );
 
   const event = await repository.createEvent(
     toCreateEventEServiceTemplateDraftUpdated(
@@ -2381,6 +2418,136 @@ async function updateDraftEServiceTemplate(
   return {
     data: updatedEServiceTemplate,
     metadata: { version: event.newVersion },
+  };
+}
+
+async function validateEServiceTemplateMetadataUpdate(
+  eserviceTemplate: EServiceTemplate,
+  {
+    name,
+    description,
+    intendedTarget,
+  }: UpdateEServiceTemplateTypeAndSeed["seed"],
+  readModelService: ReadModelServiceSQL
+): Promise<void> {
+  validateNoHyperlinksSafe(name);
+  validateNoHyperlinksSafe(description);
+  validateNoHyperlinksSafe(intendedTarget);
+
+  if (name !== undefined && name !== eserviceTemplate.name) {
+    await assertEServiceTemplateNameAvailable(name, readModelService);
+    if (
+      await readModelService.hasInstanceNameConflicts(eserviceTemplate, name)
+    ) {
+      throw instanceNameConflict(eserviceTemplate.id);
+    }
+  }
+}
+
+async function deleteEServiceTemplateInterfacesOnTechnologyChange(
+  eserviceTemplate: EServiceTemplate,
+  updatedEServiceTemplate: EServiceTemplate,
+  fileManager: FileManager,
+  logger: Logger
+): Promise<void> {
+  if (updatedEServiceTemplate.technology !== eserviceTemplate.technology) {
+    await Promise.all(
+      eserviceTemplate.versions.map(async (version) => {
+        if (version.interface !== undefined) {
+          await fileManager.delete(
+            config.s3Bucket,
+            version.interface.path,
+            logger
+          );
+        }
+        if (version.asyncExchangeCallbackInterface !== undefined) {
+          await fileManager.delete(
+            config.s3Bucket,
+            version.asyncExchangeCallbackInterface.path,
+            logger
+          );
+        }
+      })
+    );
+  }
+}
+
+function prepareDraftEServiceTemplateUpdate(
+  eserviceTemplate: EServiceTemplate,
+  typeAndSeed: UpdateEServiceTemplateTypeAndSeed
+): EServiceTemplate {
+  const {
+    name,
+    description,
+    technology,
+    mode,
+    isSignalHubEnabled,
+    intendedTarget,
+  } = typeAndSeed.seed;
+  const updatedTechnology = technology
+    ? apiTechnologyToTechnology(technology)
+    : eserviceTemplate.technology;
+
+  const interfaceHasToBeDeleted =
+    updatedTechnology !== eserviceTemplate.technology;
+
+  const updatedMode = mode
+    ? apiEServiceModeToEServiceMode(mode)
+    : eserviceTemplate.mode;
+
+  const checkedRiskAnalysis =
+    updatedMode === eserviceMode.receive ? eserviceTemplate.riskAnalysis : [];
+
+  const updatedIsSignalHubEnabled = match(typeAndSeed.type)
+    .with("post", () => isSignalHubEnabled)
+    .with(
+      "patch",
+      () => isSignalHubEnabled ?? eserviceTemplate.isSignalHubEnabled
+    )
+    .exhaustive();
+
+  const updatedPersonalData = match(typeAndSeed)
+    .with({ type: "post" }, ({ seed }) => seed.personalData)
+    .with(
+      { type: "patch" },
+      ({ seed }) =>
+        seed.personalData ??
+        (seed.personalData === null ? undefined : eserviceTemplate.personalData)
+    )
+    .exhaustive();
+
+  const updatedAsyncExchange = match(typeAndSeed)
+    .with({ type: "post" }, ({ seed }) => seed.asyncExchange)
+    .with(
+      { type: "patch" },
+      ({ seed }) =>
+        seed.asyncExchange ??
+        (seed.asyncExchange === null
+          ? undefined
+          : eserviceTemplate.asyncExchange)
+    )
+    .exhaustive();
+
+  return {
+    ...eserviceTemplate,
+    name: name ?? eserviceTemplate.name,
+    intendedTarget: intendedTarget ?? eserviceTemplate.intendedTarget,
+    description: description ?? eserviceTemplate.description,
+    technology: updatedTechnology,
+    mode: updatedMode,
+    riskAnalysis: checkedRiskAnalysis,
+    versions: interfaceHasToBeDeleted
+      ? eserviceTemplate.versions.map((d) => ({
+          ...d,
+          interface: undefined,
+          asyncExchangeCallbackInterface: undefined,
+        }))
+      : eserviceTemplate.versions,
+    isSignalHubEnabled: updatedIsSignalHubEnabled,
+    ...(isFeatureFlagEnabled(config, "featureFlagAsyncExchange")
+      ? { asyncExchange: updatedAsyncExchange }
+      : {}),
+    personalData: updatedPersonalData,
   };
 }
 
