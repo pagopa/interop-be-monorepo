@@ -11,117 +11,64 @@ import {
   purposeTemplateErrorCodes,
   tenantErrorCodes,
 } from "pagopa-interop-commons";
-import { commonErrorCodes } from "pagopa-interop-models";
-import { match } from "ts-pattern";
+import {
+  commonErrorCodes,
+  serviceErrorCode,
+  serviceName,
+} from "pagopa-interop-models";
 
-function getProcessCode(processName: string): string | undefined {
-  return match(processName)
-    .with("agreementProcess", () => "002")
-    .with("attributeRegistryProcess", () => "003")
-    .with("authorizationProcess", () => "006")
-    .with("catalogProcess", () => "001")
-    .with("delegationProcess", () => "010")
-    .with("eserviceTemplateProcess", () => "011")
-    .with("notificationConfigProcess", () => "014")
-    .with("purposeProcess", () => "004")
-    .with("purposeTemplateProcess", () => "015")
-    .with("tenantProcess", () => "005")
-    .with("bffProcess", () => "008")
-    .otherwise(() => undefined);
+const processErrors = [
+  { service: serviceName.AGREEMENT_PROCESS, errors: agreementErrorCodes },
+  {
+    service: serviceName.ATTRIBUTE_REGISTRY_PROCESS,
+    errors: attributeRegistryErrorCodes,
+  },
+  {
+    service: serviceName.AUTHORIZATION_PROCESS,
+    errors: authorizationErrorCodes,
+  },
+  { service: serviceName.BACKEND_FOR_FRONTEND, errors: bffErrorCodes },
+  { service: serviceName.CATALOG_PROCESS, errors: catalogErrorCodes },
+  { service: serviceName.DELEGATION_PROCESS, errors: delegationErrorCodes },
+  {
+    service: serviceName.ESERVICE_TEMPLATE_PROCESS,
+    errors: eserviceTemplateErrorCodes,
+  },
+  {
+    service: serviceName.NOTIFICATION_CONFIG_PROCESS,
+    errors: notificationConfigErrorCodes,
+  },
+  { service: serviceName.PURPOSE_PROCESS, errors: purposeErrorCodes },
+  {
+    service: serviceName.PURPOSE_TEMPLATE_PROCESS,
+    errors: purposeTemplateErrorCodes,
+  },
+  { service: serviceName.TENANT_PROCESS, errors: tenantErrorCodes },
+];
+
+function normalizeProcess(process: string): string {
+  const normalized = process
+    .toLowerCase()
+    .replaceAll(/[\s-]+/g, "")
+    .replace(/process$/, "");
+  return normalized === "bff" ? "backendforfrontend" : normalized;
 }
 
-export function getErrorCode(
-  processName: string,
-  errorCode: string
-): string | undefined {
-  const processCode = getProcessCode(processName);
-  if (!processCode) {
-    return undefined;
+export function getErrorCode(process: string, error: string): string | null {
+  const normalized = normalizeProcess(process);
+  const configuration = processErrors.find(
+    ({ service }) => normalizeProcess(service) === normalized
+  );
+  if (!configuration) {
+    return null;
   }
-  if (errorCode in commonErrorCodes) {
-    return `${processCode}-${commonErrorCodes[errorCode as keyof typeof commonErrorCodes]}`;
-  }
-  const errorCodeNumber = match(processName)
-    .with("agreementProcess", () => {
-      if (errorCode in agreementErrorCodes) {
-        return agreementErrorCodes[
-          errorCode as keyof typeof agreementErrorCodes
-        ];
-      }
-      return undefined;
-    })
-    .with("attributeRegistryProcess", () => {
-      if (errorCode in attributeRegistryErrorCodes) {
-        return attributeRegistryErrorCodes[
-          errorCode as keyof typeof attributeRegistryErrorCodes
-        ];
-      }
-      return undefined;
-    })
-    .with("authorizationProcess", () => {
-      if (errorCode in authorizationErrorCodes) {
-        return authorizationErrorCodes[
-          errorCode as keyof typeof authorizationErrorCodes
-        ];
-      }
-      return undefined;
-    })
-    .with("catalogProcess", () => {
-      if (errorCode in catalogErrorCodes) {
-        return catalogErrorCodes[errorCode as keyof typeof catalogErrorCodes];
-      }
-      return undefined;
-    })
-    .with("delegationProcess", () => {
-      if (errorCode in delegationErrorCodes) {
-        return delegationErrorCodes[
-          errorCode as keyof typeof delegationErrorCodes
-        ];
-      }
-      return undefined;
-    })
-    .with("eserviceTemplateProcess", () => {
-      if (errorCode in eserviceTemplateErrorCodes) {
-        return eserviceTemplateErrorCodes[
-          errorCode as keyof typeof eserviceTemplateErrorCodes
-        ];
-      }
-      return undefined;
-    })
-    .with("notificationConfigProcess", () => {
-      if (errorCode in notificationConfigErrorCodes) {
-        return notificationConfigErrorCodes[
-          errorCode as keyof typeof notificationConfigErrorCodes
-        ];
-      }
-      return undefined;
-    })
-    .with("purposeProcess", () => {
-      if (errorCode in purposeErrorCodes) {
-        return purposeErrorCodes[errorCode as keyof typeof purposeErrorCodes];
-      }
-      return undefined;
-    })
-    .with("purposeTemplateProcess", () => {
-      if (errorCode in purposeTemplateErrorCodes) {
-        return purposeTemplateErrorCodes[
-          errorCode as keyof typeof purposeTemplateErrorCodes
-        ];
-      }
-      return undefined;
-    })
-    .with("tenantProcess", () => {
-      if (errorCode in tenantErrorCodes) {
-        return tenantErrorCodes[errorCode as keyof typeof tenantErrorCodes];
-      }
-      return undefined;
-    })
-    .with("bffProcess", () => {
-      if (errorCode in bffErrorCodes) {
-        return bffErrorCodes[errorCode as keyof typeof bffErrorCodes];
-      }
-      return undefined;
-    })
-    .otherwise(() => undefined);
-  return errorCodeNumber ? `${processCode}-${errorCodeNumber}` : undefined;
+
+  const entry = [
+    ...Object.entries(commonErrorCodes),
+    ...Object.entries(configuration.errors),
+  ].find(([name]) => name === error);
+
+  return entry
+    ? `${serviceErrorCode[configuration.service]}-${entry[1]}`
+    : null;
 }
