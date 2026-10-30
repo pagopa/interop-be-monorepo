@@ -106,15 +106,18 @@ export function PackageCatalogue(props: Props) {
               onChange={(event) => {
                 const value = event.target.value;
                 onFilterChange(
-                  value === "seed"
-                    ? { kind: "seed" }
-                    : value.startsWith("preset:")
-                      ? { kind: "preset", id: value.slice("preset:".length) }
-                      : { kind: "all" }
+                  value === "jobs"
+                    ? { kind: "jobs" }
+                    : value === "seed"
+                      ? { kind: "seed" }
+                      : value.startsWith("preset:")
+                        ? { kind: "preset", id: value.slice("preset:".length) }
+                        : { kind: "all" }
                 );
               }}
             >
               <NativeSelectOption value="">All packages</NativeSelectOption>
+              <NativeSelectOption value="jobs">Jobs</NativeSelectOption>
               <NativeSelectOption value="seed">
                 Seed packages
               </NativeSelectOption>
@@ -165,7 +168,11 @@ export function PackageCatalogue(props: Props) {
               size="sm"
               variant="outline"
               disabled={!model.startNames.length}
-              aria-label="Start selected packages"
+              aria-label={
+                model.startJobsOnly
+                  ? "Run selected jobs"
+                  : "Start selected packages"
+              }
               onClick={() =>
                 model.runBulk(
                   { type: "packages.start", names: model.startNames },
@@ -174,7 +181,7 @@ export function PackageCatalogue(props: Props) {
               }
             >
               <Play data-icon="inline-start" aria-hidden="true" />
-              Start
+              {model.startJobsOnly ? "Run" : "Start"}
             </Button>
             <Button
               size="sm"
@@ -284,6 +291,11 @@ export function PackageCatalogue(props: Props) {
               const watchPending = model.watchPending(item);
               const watchStatus = model.watchStatus(item);
               const active = model.active(item);
+              const actionLabel = active
+                ? "Stop"
+                : item.kind === "job"
+                  ? "Run"
+                  : "Start";
               return (
                 <TableRow
                   key={item.name}
@@ -337,7 +349,7 @@ export function PackageCatalogue(props: Props) {
                           watchPending && !processPending ? "preserve" : "muted"
                         }
                         aria-busy={processPending}
-                        aria-label={`${active ? "Stop" : "Start"} ${item.name}`}
+                        aria-label={`${actionLabel} ${item.name}`}
                         onClick={() =>
                           void onAction(
                             {
@@ -364,7 +376,7 @@ export function PackageCatalogue(props: Props) {
                         ) : (
                           <Play data-icon="inline-start" aria-hidden="true" />
                         )}
-                        {active ? "Stop" : "Start"}
+                        {actionLabel}
                       </Button>
                       <Button
                         variant="ghost"

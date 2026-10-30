@@ -14,7 +14,7 @@ export function StatusBadge({
 }) {
   const variant = pending
     ? "working"
-    : state === "running" || state === "passed"
+    : state === "running" || state === "passed" || state === "completed"
       ? "success"
       : state === "failed"
         ? "destructive"
@@ -43,7 +43,7 @@ export function StatusBadge({
           aria-hidden="true"
         />
       )}
-      {state}
+      {state === "completed" ? "Completed" : state}
     </Badge>
   );
 }
