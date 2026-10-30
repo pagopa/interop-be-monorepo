@@ -8,6 +8,17 @@ import { fromZodError } from "zod-validation-error";
 import { CorrelationId } from "./brandedIds.js";
 import { serviceErrorCode, ServiceName } from "./services.js";
 
+export type ErrorMessage = {
+  readonly process: string;
+  readonly error: string;
+  readonly errorCode: string | null;
+  readonly bffEndpoint: string;
+  readonly copy: {
+    readonly it: string;
+    readonly en: string;
+  };
+};
+
 const {
   HTTP_STATUS_UNAUTHORIZED,
   HTTP_STATUS_FORBIDDEN,

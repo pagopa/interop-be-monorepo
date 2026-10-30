@@ -36,6 +36,32 @@
         "dist/**"
       ]
     },
+    "pagopa-interop-error-message-parser#build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/packages/backend-for-frontend/Messaggi-di-errore.csv"
+      ],
+      "outputs": [
+        "dist/**",
+        "../backend-for-frontend/src/generated/**"
+      ]
+    },
+    "pagopa-interop-error-message-parser#check": {
+      "dependsOn": [
+        "^build",
+        "^check"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/packages/backend-for-frontend/Messaggi-di-errore.csv"
+      ],
+      "outputs": [
+        "../backend-for-frontend/src/generated/**"
+      ]
+    },
     "check": {
       "dependsOn": [
         "generate-model",
