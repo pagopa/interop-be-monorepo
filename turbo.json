@@ -46,7 +46,7 @@
       ],
       "outputs": [
         "dist/**",
-        "src/generated/**"
+        "../backend-for-frontend/src/generated/**"
       ]
     },
     "pagopa-interop-error-message-parser#check": {
@@ -59,7 +59,7 @@
         "$TURBO_ROOT$/packages/backend-for-frontend/Messaggi-di-errore.csv"
       ],
       "outputs": [
-        "src/generated/**"
+        "../backend-for-frontend/src/generated/**"
       ]
     },
     "check": {

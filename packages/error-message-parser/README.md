@@ -4,13 +4,16 @@ Generates typed error message data from
 `../backend-for-frontend/Messaggi-di-errore.csv`.
 
 Run `pnpm --filter pagopa-interop-error-message-parser build` to generate
-`src/generated/errorMessages.ts` and compile the package. Generation can also be
-run separately with `pnpm --filter pagopa-interop-error-message-parser generate`.
+`../backend-for-frontend/src/generated/errorMessages.ts` and compile the
+package. Generation can also be run separately with
+`pnpm --filter pagopa-interop-error-message-parser generate`.
 From the repository root, use `pnpm generate-error-message` to generate only the
 TypeScript source, without compiling the package.
-The generated `src/generated/errorMessages.ts` is versioned to make data changes
-reviewable. Regenerate it and include the updated file whenever the source CSV or
-the shared error maps change. It is also restored by the Turbo build cache.
+The generated
+`../backend-for-frontend/src/generated/errorMessages.ts` is versioned to make
+data changes reviewable. Regenerate it and include the updated file whenever
+the source CSV or the shared error maps change. It is also restored by the Turbo
+build cache.
 The source CSV must be versioned so clean checkouts and CI can build the package.
 
 The generator locates the header row, including after spreadsheet metadata, and
@@ -18,9 +21,10 @@ selects `Process`, `Error`, `BFF endpoint`, `copy it` and `copy en` by name
 (case-insensitive, ignoring surrounding whitespace). Column order does not
 matter; all other columns are discarded.
 
-The exported `errorMessages` array contains objects with `process`, `error`,
+The generated `errorMessages` array contains objects with `process`, `error`,
 `errorCode`, `bffEndpoint` and `copy: { it, en }`. It uses
-`as const satisfies readonly ErrorMessage[]` to preserve literal types;
+`as const satisfies readonly ErrorMessage[]` from `pagopa-interop-models` to
+preserve literal types;
 `GeneratedErrorMessage` is the union of the generated entries.
 
 Values, row order and duplicates are preserved. Empty or missing cells become

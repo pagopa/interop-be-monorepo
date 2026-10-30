@@ -104,6 +104,9 @@ describe("error message generation", () => {
 
     const source = generateErrorMessages(input);
     expect(generateErrorMessages(input)).toBe(source);
+    expect(source).toContain(
+      'import type { ErrorMessage } from "pagopa-interop-models";'
+    );
     expect(source).toContain("as const satisfies readonly ErrorMessage[]");
     expect(source).toContain(
       "export type GeneratedErrorMessage = (typeof errorMessages)[number]"

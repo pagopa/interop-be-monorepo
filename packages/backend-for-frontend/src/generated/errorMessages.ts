@@ -1,5 +1,5 @@
 // Generated from the error messages CSV. Do not edit manually.
-import type { ErrorMessage } from "../models/index.js";
+import type { ErrorMessage } from "pagopa-interop-models";
 
 export const errorMessages = [
   {
