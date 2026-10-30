@@ -1,4 +1,4 @@
-import type { ErrorMessage } from "pagopa-interop-error-message-parser";
+import type { ErrorMessage } from "pagopa-interop-models";
 import type { Problem } from "pagopa-interop-models";
 
 import { describe, it, expect } from "vitest";

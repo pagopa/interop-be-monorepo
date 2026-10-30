@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import type { ErrorMessage } from "pagopa-interop-error-message-parser";
+import type { ErrorMessage } from "pagopa-interop-models";
 
 import { AxiosError, AxiosHeaders } from "axios";
 import { bffApi } from "pagopa-interop-api-clients";

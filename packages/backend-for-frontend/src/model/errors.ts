@@ -1,5 +1,5 @@
 import { bffErrorCodes } from "pagopa-interop-commons";
-import { errorMessages } from "pagopa-interop-error-message-parser";
+import { errorMessages } from "../generated/errorMessages.js";
 import {
   ApiError,
   AttributeId,

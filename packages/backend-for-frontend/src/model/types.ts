@@ -1,4 +1,4 @@
-import type { ErrorMessage } from "pagopa-interop-error-message-parser";
+import type { ErrorMessage } from "pagopa-interop-models";
 import type { Problem, MakeApiProblemFn } from "pagopa-interop-models";
 
 import { agreementApi, bffApi, catalogApi } from "pagopa-interop-api-clients";
