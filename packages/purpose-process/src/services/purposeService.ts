@@ -115,6 +115,7 @@ import {
   riskAnalysisReviewModeNotFound,
   riskAnalysisAlreadyApproved,
   riskAnalysisAlreadyRejected,
+  purposeNotInDraftState,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -2712,6 +2713,7 @@ const performUpdatePurpose = async (
   // eslint-disable-next-line max-params, sonarjs/cognitive-complexity
 ): Promise<UpdatePurposeReturn> => {
   const purpose = await retrievePurpose(purposeId, readModelService);
+
   assertRequesterCanActAsConsumer(
     purpose.data,
     authData,
@@ -2726,6 +2728,7 @@ const performUpdatePurpose = async (
     modeAndUpdateContent,
     readModelService
   );
+
   const preparedPurpose = prepareDraftPurposeUpdate(
     purpose,
     modeAndUpdateContent,
@@ -2733,6 +2736,7 @@ const performUpdatePurpose = async (
     tenantKind,
     "legacy"
   );
+
   const updatedPurpose = {
     ...preparedPurpose,
     versions: preparedPurpose.versions.map((version) => ({
@@ -2741,6 +2745,7 @@ const performUpdatePurpose = async (
     })),
     updatedAt: new Date(),
   };
+
   const createdEvent = await repository.createEvent(
     toCreateEventDraftPurposeUpdated({
       purpose: updatedPurpose,
@@ -2760,6 +2765,7 @@ const validatePurposeMetadataUpdate = async (
   readModelService: ReadModelServiceSQL
 ): Promise<{ eservice: EService; tenantKind: TenantKind }> => {
   const { title, description } = updateContent;
+
   validateNoHyperlinksSafe(title);
   validateNoHyperlinksSafe(description);
   validateNoHyperlinksSafe(updateContent.freeOfChargeReason ?? undefined);
@@ -2791,73 +2797,74 @@ const performPatchUpdatePurpose = async (
   repository: ReturnType<typeof eventRepository<PurposeEvent>>
 ): Promise<UpdatePurposeReturn> => {
   const purpose = await retrievePurpose(purposeId, readModelService);
+
   assertRequesterCanActAsConsumer(
     purpose.data,
     authData,
     await retrievePurposeDelegation(purpose.data, readModelService)
   );
-  assertPurposeIsNotFromTemplate(purpose.data);
 
   const { title, description, ...operationalSeed } =
     modeAndUpdateContent.updateContent;
+
   const hasOperationalFields = Object.values(operationalSeed).some(
     (value) => value !== undefined
   );
-  if (hasOperationalFields) {
-    assertPurposeIsDraft(purpose.data);
+  const isDraft = purposeIsDraft(purpose.data);
+
+  if (hasOperationalFields && !isDraft) {
+    throw purposeNotInDraftState(purpose.data.id);
   }
+  assertPurposeIsNotFromTemplate(purpose.data);
+
   const { eservice, tenantKind } = await validatePurposeMetadataUpdate(
     purpose.data,
     modeAndUpdateContent,
     readModelService
   );
-  const preparedPurpose = hasOperationalFields
-    ? prepareDraftPurposeUpdate(
-        purpose,
-        modeAndUpdateContent,
-        eservice,
-        tenantKind,
-        "patch"
-      )
-    : {
-        ...purpose.data,
-        title: title ?? purpose.data.title,
-        description: description ?? purpose.data.description,
-      };
-  const removeUndefinedProperties = (value: object): Record<string, unknown> =>
-    Object.fromEntries(
-      Object.entries(value).filter(([, field]) => field !== undefined)
+
+  if (isDraft) {
+    const preparedPurpose = prepareDraftPurposeUpdate(
+      purpose,
+      modeAndUpdateContent,
+      eservice,
+      tenantKind,
+      "patch"
     );
-  const hasOperationalChanges = !isDeepStrictEqual(
-    removeUndefinedProperties({
+
+    /**
+     *
+     */
+    const removeUndefinedProperties = (
+      value: object
+    ): Record<string, unknown> =>
+      Object.fromEntries(
+        Object.entries(value).filter(([, field]) => field !== undefined)
+      );
+
+    if (
+      isDeepStrictEqual(
+        removeUndefinedProperties(preparedPurpose),
+        removeUndefinedProperties(purpose.data)
+      )
+    ) {
+      return {
+        data: { purpose: purpose.data },
+        metadata: purpose.metadata,
+      };
+    }
+
+    const updatedPurpose: Purpose = {
       ...preparedPurpose,
-      title: purpose.data.title,
-      description: purpose.data.description,
-    }),
-    removeUndefinedProperties(purpose.data)
-  );
-  const hasTitleChanged = preparedPurpose.title !== purpose.data.title;
-  const hasDescriptionChanged =
-    preparedPurpose.description !== purpose.data.description;
-  if (!hasTitleChanged && !hasDescriptionChanged && !hasOperationalChanges) {
-    return {
-      data: { purpose: purpose.data },
-      metadata: purpose.metadata,
+      versions: [
+        {
+          ...preparedPurpose.versions[0],
+          updatedAt: new Date(),
+        },
+      ],
+      updatedAt: new Date(),
     };
-  }
-  const updatedPurpose: Purpose = {
-    ...preparedPurpose,
-    ...(hasOperationalChanges
-      ? {
-          versions: preparedPurpose.versions.map((version) => ({
-            ...version,
-            updatedAt: new Date(),
-          })),
-        }
-      : {}),
-    updatedAt: new Date(),
-  };
-  if (hasOperationalChanges) {
+
     const createdEvent = await repository.createEvent(
       toCreateEventDraftPurposeUpdated({
         purpose: updatedPurpose,
@@ -2865,11 +2872,24 @@ const performPatchUpdatePurpose = async (
         correlationId,
       })
     );
+
     return {
       data: { purpose: updatedPurpose },
       metadata: { version: createdEvent.newVersion },
     };
   }
+
+  const updatedPurpose: Purpose = {
+    ...purpose.data,
+    title: title ?? purpose.data.title,
+    description: description ?? purpose.data.description,
+    updatedAt: new Date(),
+  };
+
+  const hasTitleChanged = updatedPurpose.title !== purpose.data.title;
+  const hasDescriptionChanged =
+    updatedPurpose.description !== purpose.data.description;
+
   const events = [
     ...(hasTitleChanged
       ? [
@@ -2893,7 +2913,16 @@ const performPatchUpdatePurpose = async (
     ...event,
     version: purpose.metadata.version + index,
   }));
+
+  if (events.length === 0) {
+    return {
+      data: { purpose: purpose.data },
+      metadata: purpose.metadata,
+    };
+  }
+
   const createdEvents = await repository.createEvents(events);
+
   return {
     data: { purpose: updatedPurpose },
     metadata: {
