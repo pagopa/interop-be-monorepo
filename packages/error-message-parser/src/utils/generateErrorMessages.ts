@@ -12,7 +12,7 @@ export function generateErrorMessages(filePath: string): string {
   );
 
   return `// Generated from the error messages CSV. Do not edit manually.
-import type { ErrorMessage } from "../models/index.js";
+import type { ErrorMessage } from "pagopa-interop-models";
 
 export const errorMessages = ${JSON.stringify(messages, null, 2)} as const satisfies readonly ErrorMessage[];
 
