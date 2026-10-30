@@ -53,6 +53,7 @@ import {
   documentGetErrorMapper,
   documentUpdateErrorMapper,
   getEServiceErrorMapper,
+  patchUpdateEServiceErrorMapper,
   publishDescriptorErrorMapper,
   rejectDelegatedEServiceDescriptorErrorMapper,
   suspendDescriptorErrorMapper,
@@ -333,7 +334,11 @@ const eservicesRouter = (
             catalogApi.EService.parse(eServiceToApiEService(updatedEService))
           );
       } catch (error) {
-        const errorRes = makeApiProblem(error, updateEServiceErrorMapper, ctx);
+        const errorRes = makeApiProblem(
+          error,
+          patchUpdateEServiceErrorMapper,
+          ctx
+        );
         return res.status(errorRes.status).send(errorRes);
       }
     })
