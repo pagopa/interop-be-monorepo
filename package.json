@@ -71,6 +71,7 @@
     "lint:autofix": "turbo lint:autofix",
     "lint:openapi": "turbo lint:openapi",
     "generate-model": "turbo generate-model",
+    "generate-error-message": "pnpm --filter pagopa-interop-error-message-parser generate",
     "generate-protobuf": "turbo generate-protobuf",
     "generate-db-models": "turbo generate-db-models",
     "infra:start": "./scripts/infra-start.sh",
