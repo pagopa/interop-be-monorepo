@@ -38,36 +38,41 @@ const institution = (
   ...rest,
 });
 
-const root = tenantOf("ROOT");
+const rootTenant = tenantOf("ROOT");
 const aooTenant = tenantOf("AOO1");
-const uoTenant = tenantOf("UO1");
+const directUoTenant = tenantOf("UO1");
 const uoNoAooTenant = tenantOf("UO2");
 
-const aooInst = institution("AOO", "AOO1", {
+const aooInstitution = institution("AOO", "AOO1", {
   rootOriginId: "ROOT",
   parentOriginId: "ROOT",
 });
-const uoInst = institution("UO", "UO1", {
+const directUoInstitution = institution("UO", "UO1", {
   rootOriginId: "ROOT",
   aooOriginId: "AOO1",
   parentOriginId: "AOO1",
 });
-const uoNoAooInst = institution("UO", "UO2", {
+const uoNoAooInstitution = institution("UO", "UO2", {
   rootOriginId: "ROOT",
   parentOriginId: "ROOT",
 });
 
 describe("getTenantParentUpdates", () => {
-  const tenants = buildTenantsIndex([root, aooTenant, uoTenant, uoNoAooTenant]);
+  const tenants = buildTenantsIndex([
+    rootTenant,
+    aooTenant,
+    directUoTenant,
+    uoNoAooTenant,
+  ]);
 
   it("computes parent and root ids, AOO before UO, skipping agencies", () => {
     const updates = getTenantParentUpdates(
       {
         institutions: [
           institution("Agency", "ROOT"),
-          aooInst,
-          uoInst,
-          uoNoAooInst,
+          aooInstitution,
+          directUoInstitution,
+          uoNoAooInstitution,
         ],
         attributes: [],
       },
@@ -75,41 +80,49 @@ describe("getTenantParentUpdates", () => {
     );
 
     expect(updates).toEqual([
-      { tenant: aooTenant, parentTenantId: root.id, rootTenantId: root.id },
-      { tenant: uoTenant, parentTenantId: aooTenant.id, rootTenantId: root.id },
+      {
+        tenant: aooTenant,
+        parentTenantId: rootTenant.id,
+        rootTenantId: rootTenant.id,
+      },
+      {
+        tenant: directUoTenant,
+        parentTenantId: aooTenant.id,
+        rootTenantId: rootTenant.id,
+      },
       {
         tenant: uoNoAooTenant,
-        parentTenantId: root.id,
-        rootTenantId: root.id,
+        parentTenantId: rootTenant.id,
+        rootTenantId: rootTenant.id,
       },
     ]);
   });
 
   it("resets both ids when the parent is missing", () => {
     const updates = getTenantParentUpdates(
-      { institutions: [uoInst], attributes: [] },
-      buildTenantsIndex([root, uoTenant])
+      { institutions: [directUoInstitution], attributes: [] },
+      buildTenantsIndex([rootTenant, directUoTenant])
     );
     expect(updates).toEqual([
-      { tenant: uoTenant, parentTenantId: null, rootTenantId: null },
+      { tenant: directUoTenant, parentTenantId: null, rootTenantId: null },
     ]);
   });
 
   it("resets both ids when the root is missing", () => {
     const updates = getTenantParentUpdates(
-      { institutions: [uoInst], attributes: [] },
-      buildTenantsIndex([aooTenant, uoTenant])
+      { institutions: [directUoInstitution], attributes: [] },
+      buildTenantsIndex([aooTenant, directUoTenant])
     );
     expect(updates).toEqual([
-      { tenant: uoTenant, parentTenantId: null, rootTenantId: null },
+      { tenant: directUoTenant, parentTenantId: null, rootTenantId: null },
     ]);
   });
 
   it("excludes AOO/UO not onboarded", () => {
     expect(
       getTenantParentUpdates(
-        { institutions: [aooInst, uoInst], attributes: [] },
-        buildTenantsIndex([root])
+        { institutions: [aooInstitution, directUoInstitution], attributes: [] },
+        buildTenantsIndex([rootTenant])
       )
     ).toEqual([]);
   });
