@@ -31,6 +31,8 @@ export async function handlePurposeMessageV2(
           type: P.union(
             "PurposeAdded",
             "DraftPurposeUpdated",
+            "PurposeTitleUpdated",
+            "PurposeDescriptionUpdated",
             "PurposeWaitingForApproval",
             "PurposeActivated",
             "PurposeArchived",

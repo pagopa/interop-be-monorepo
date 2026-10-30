@@ -30,6 +30,8 @@ export const toPurposeEventNotification = (
     .with(
       { type: "PurposeAdded" },
       { type: "DraftPurposeUpdated" },
+      { type: "PurposeTitleUpdated" },
+      { type: "PurposeDescriptionUpdated" },
       { type: "PurposeWaitingForApproval" },
       { type: "PurposeActivated" },
       { type: "NewPurposeVersionActivated" },

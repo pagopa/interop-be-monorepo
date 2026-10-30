@@ -33,6 +33,8 @@ export async function handleMessageV2(
     .with(
       { type: "PurposeAdded" },
       { type: "DraftPurposeUpdated" },
+      { type: "PurposeTitleUpdated" },
+      { type: "PurposeDescriptionUpdated" },
       { type: "NewPurposeVersionActivated" },
       { type: "NewPurposeVersionWaitingForApproval" },
       { type: "PurposeActivated" },

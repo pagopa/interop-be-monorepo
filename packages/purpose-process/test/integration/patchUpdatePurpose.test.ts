@@ -13,6 +13,7 @@ import {
   sortPurpose,
   getMockContextM2MAdmin,
   getMockDelegation,
+  readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test";
 import {
   tenantKind,
@@ -21,6 +22,9 @@ import {
   Purpose,
   purposeVersionState,
   DraftPurposeUpdatedV2,
+  PurposeTitleUpdatedV2,
+  PurposeDescriptionUpdatedV2,
+  PurposeEventV2,
   toPurposeV2,
   eserviceMode,
   delegationKind,
@@ -61,6 +65,7 @@ import {
   addOneEService,
   addOneDelegation,
   sortUpdatePurposeReturn,
+  postgresDB,
 } from "../integrationUtils.js";
 import {
   buildRiskAnalysisSeed,
@@ -94,17 +99,45 @@ describe("patchUpdatePurpose", () => {
   });
 
   async function expectWrittenEventAndGetPayload(
-    purposeId: PurposeId
+    purposeId: PurposeId,
+    eventTypes: PurposeEventV2["type"][] = ["DraftPurposeUpdated"]
   ): Promise<DraftPurposeUpdatedV2> {
     const writtenEvent = await readLastPurposeEvent(purposeId);
     expect(writtenEvent).toMatchObject({
       stream_id: purposeId,
-      version: "1",
-      type: "DraftPurposeUpdated",
+      version: eventTypes.length.toString(),
+      type: eventTypes.at(-1) ?? "PurposeAdded",
       event_version: 2,
     });
+    for (const [index, type] of eventTypes.entries()) {
+      const event = await readEventByStreamIdAndVersion(
+        purposeId,
+        index + 1,
+        "purpose",
+        postgresDB
+      );
+      expect(event).toMatchObject({
+        type,
+        version: (index + 1).toString(),
+        event_version: 2,
+        data: writtenEvent.data,
+      });
+    }
+    if (eventTypes.length > 0) {
+      const correlations = await postgresDB.many<{ correlation_id: string }>(
+        "SELECT DISTINCT correlation_id FROM purpose.events WHERE stream_id = $1 AND version > 0",
+        [purposeId]
+      );
+      expect(correlations).toHaveLength(1);
+      expect(correlations[0].correlation_id).toEqual(expect.any(String));
+    }
     return decodeProtobufPayload({
-      messageType: DraftPurposeUpdatedV2,
+      messageType:
+        writtenEvent.type === "PurposeTitleUpdated"
+          ? PurposeTitleUpdatedV2
+          : writtenEvent.type === "PurposeDescriptionUpdated"
+            ? PurposeDescriptionUpdatedV2
+            : DraftPurposeUpdatedV2,
       payload: writtenEvent.data,
     });
   }
@@ -112,7 +145,8 @@ describe("patchUpdatePurpose", () => {
   async function expectUpdatedPurpose(
     updatePurposeReturn: UpdatePurposeReturn,
     writtenPayload: DraftPurposeUpdatedV2,
-    expectedPurpose: Purpose
+    expectedPurpose: Purpose,
+    expectedVersion = 1
   ): Promise<void> {
     const sortedExpectedPurpose = sortPurpose(expectedPurpose);
     const sortedUpdatePurposeReturn =
@@ -127,7 +161,7 @@ describe("patchUpdatePurpose", () => {
       data: {
         purpose: sortedExpectedPurpose,
       },
-      metadata: { version: 1 },
+      metadata: { version: expectedVersion },
     });
   }
 
@@ -143,6 +177,235 @@ describe("patchUpdatePurpose", () => {
   };
 
   const validRiskAnalysis = getMockValidRiskAnalysis(testTenantKind);
+
+  it.each(Object.values(purposeVersionState))(
+    "should preserve the event version and timestamps for unchanged metadata in %s",
+    async (state) => {
+      const purpose: Purpose = {
+        ...draftPurpose,
+        updatedAt: new Date(0),
+        versions: [getMockPurposeVersion(state)],
+      };
+      await addOnePurpose(purpose);
+      await addOneEService(eservice);
+      await addOneTenant(consumer);
+
+      const result = await purposeService.patchUpdatePurpose(
+        purpose.id,
+        { title: purpose.title, description: purpose.description },
+        getMockContextM2MAdmin({ organizationId: consumer.id })
+      );
+      expect(sortUpdatePurposeReturn(result)).toEqual({
+        data: { purpose: sortPurpose(purpose) },
+        metadata: { version: 0 },
+      });
+      expect(await readLastPurposeEvent(purpose.id)).toMatchObject({
+        type: "PurposeAdded",
+        version: "0",
+      });
+    }
+  );
+
+  it("should preserve risk analysis IDs and timestamps for an equivalent operational seed", async () => {
+    const purpose: Purpose = {
+      ...draftPurpose,
+      updatedAt: new Date(0),
+      versions: [{ ...draftPurpose.versions[0], updatedAt: new Date(0) }],
+    };
+    await addOnePurpose(purpose);
+    await addOneEService(eservice);
+    await addOneTenant(consumer);
+
+    const result = await purposeService.patchUpdatePurpose(
+      purpose.id,
+      {
+        title: purpose.title,
+        description: purpose.description,
+        dailyCalls: purpose.versions[0].dailyCalls,
+        isFreeOfCharge: purpose.isFreeOfCharge,
+        freeOfChargeReason: purpose.freeOfChargeReason,
+        riskAnalysisForm: buildRiskAnalysisSeed(validRiskAnalysis),
+      },
+      getMockContextM2MAdmin({ organizationId: consumer.id })
+    );
+    expect(sortUpdatePurposeReturn(result)).toEqual({
+      data: { purpose: sortPurpose(purpose) },
+      metadata: { version: 0 },
+    });
+    expect(await readLastPurposeEvent(purpose.id)).toMatchObject({
+      type: "PurposeAdded",
+      version: "0",
+    });
+  });
+
+  it("should emit one Draft event when metadata changes and supplied operational values are unchanged", async () => {
+    await addOnePurpose(draftPurpose);
+    await addOneEService(eservice);
+    await addOneTenant(consumer);
+    const result = await purposeService.patchUpdatePurpose(
+      draftPurpose.id,
+      {
+        title: "updated title",
+        description: "updated description",
+        dailyCalls: draftPurpose.versions[0].dailyCalls,
+        riskAnalysisForm: buildRiskAnalysisSeed(validRiskAnalysis),
+      },
+      getMockContextM2MAdmin({ organizationId: consumer.id })
+    );
+    const payload = await expectWrittenEventAndGetPayload(draftPurpose.id);
+    await expectUpdatedPurpose(
+      result,
+      payload,
+      {
+        ...draftPurpose,
+        title: "updated title",
+        description: "updated description",
+        updatedAt: new Date(),
+      },
+      1
+    );
+  });
+
+  it("should preserve Draft risk analysis editing when answers change", async () => {
+    await addOnePurpose(draftPurpose);
+    await addOneEService(eservice);
+    await addOneTenant(consumer);
+    const seed = buildRiskAnalysisSeed(validRiskAnalysis);
+    const result = await purposeService.patchUpdatePurpose(
+      draftPurpose.id,
+      {
+        riskAnalysisForm: {
+          ...seed,
+          answers: {
+            ...seed.answers,
+            institutionalPurpose: ["Updated institutional purpose"],
+          },
+        },
+      },
+      getMockContextM2MAdmin({ organizationId: consumer.id })
+    );
+    await expectWrittenEventAndGetPayload(draftPurpose.id, [
+      "DraftPurposeUpdated",
+    ]);
+    expect(result.metadata.version).toBe(1);
+    expect(result.data.purpose.riskAnalysisForm?.id).not.toBe(
+      draftPurpose.riskAnalysisForm?.id
+    );
+    expect(result.data.purpose.riskAnalysisForm?.singleAnswers).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          key: "institutionalPurpose",
+          value: "Updated institutional purpose",
+        }),
+      ])
+    );
+    expect(result.data.purpose.title).toBe(draftPurpose.title);
+    expect(result.data.purpose.description).toBe(draftPurpose.description);
+  });
+
+  it("should allow a consumer delegate to update archived metadata", async () => {
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: eservice.id,
+      delegatorId: consumer.id,
+      state: delegationState.active,
+    });
+    const purpose: Purpose = {
+      ...draftPurpose,
+      delegationId: delegation.id,
+      versions: [getMockPurposeVersion(purposeVersionState.archived)],
+    };
+    await addOnePurpose(purpose);
+    await addOneEService(eservice);
+    await addOneTenant(consumer);
+    await addOneDelegation(delegation);
+    const result = await purposeService.patchUpdatePurpose(
+      purpose.id,
+      { title: "updated title", description: "updated description" },
+      getMockContextM2MAdmin({ organizationId: delegation.delegateId })
+    );
+    const payload = await expectWrittenEventAndGetPayload(purpose.id, [
+      "PurposeTitleUpdated",
+      "PurposeDescriptionUpdated",
+    ]);
+    await expectUpdatedPurpose(
+      result,
+      payload,
+      {
+        ...purpose,
+        title: "updated title",
+        description: "updated description",
+        updatedAt: new Date(),
+      },
+      2
+    );
+  });
+
+  it.each(
+    Object.values(purposeVersionState).filter(
+      (state) => state !== purposeVersionState.draft
+    )
+  )(
+    "should reject a mixed operational update atomically in %s",
+    async (state) => {
+      const purpose: Purpose = {
+        ...draftPurpose,
+        versions: [getMockPurposeVersion(state)],
+      };
+      await addOnePurpose(purpose);
+      await addOneEService(eservice);
+      await addOneTenant(consumer);
+      await expect(
+        purposeService.patchUpdatePurpose(
+          purpose.id,
+          {
+            title: "updated title",
+            description: "updated description",
+            dailyCalls: purpose.versions[0].dailyCalls,
+          },
+          getMockContextM2MAdmin({ organizationId: consumer.id })
+        )
+      ).rejects.toThrowError(purposeNotInDraftState(purpose.id));
+      expect(await readLastPurposeEvent(purpose.id)).toMatchObject({
+        type: "PurposeAdded",
+        version: "0",
+      });
+    }
+  );
+
+  it("should reject a concurrent metadata update without partial events", async () => {
+    const purpose: Purpose = {
+      ...draftPurpose,
+      versions: [getMockPurposeVersion(purposeVersionState.active)],
+    };
+    await addOnePurpose(purpose);
+    await addOneEService(eservice);
+    await addOneTenant(consumer);
+    const results = await Promise.allSettled(
+      Array.from({ length: 2 }, () =>
+        purposeService.patchUpdatePurpose(
+          purpose.id,
+          { title: "updated title", description: "updated description" },
+          getMockContextM2MAdmin({ organizationId: consumer.id })
+        )
+      )
+    );
+    expect(
+      results.filter((result) => result.status === "fulfilled")
+    ).toHaveLength(1);
+    expect(results).toEqual(
+      expect.arrayContaining([
+        {
+          status: "rejected",
+          reason: expect.objectContaining({ code: "eventConflictError" }),
+        },
+      ])
+    );
+    await expectWrittenEventAndGetPayload(purpose.id, [
+      "PurposeTitleUpdated",
+      "PurposeDescriptionUpdated",
+    ]);
+  });
 
   it("Should write on event store for the patch update of a purpose updating all fields", async () => {
     await addOnePurpose(draftPurpose);
@@ -261,32 +524,56 @@ describe("patchUpdatePurpose", () => {
   });
 
   it.each([
-    {}, // This should not throw an error and leave all fields unchanged
-    { title: "updated title" },
-    { description: "updated description" },
     {
-      title: "updated title",
-      description: undefined, // This keeps the existing description, same as not setting it
-      dailyCalls: undefined, // This keeps the existing dailyCalls, same as not setting it
-    },
-    { dailyCalls: 99 },
-    { riskAnalysisForm: buildRiskAnalysisSeed(validRiskAnalysis) },
-    { isFreeOfCharge: false, freeOfChargeReason: null },
-    { freeOfChargeReason: "updated freeOfChargeReason" },
-    { isFreeOfCharge: true, freeOfChargeReason: "updated freeOfChargeReason" },
-    {
-      isFreeOfCharge: true,
-      freeOfChargeReason: undefined, // This keeps the existing reason, same as not setting it
+      seed: { title: "updated title" },
+      eventTypes: ["DraftPurposeUpdated"],
+      operationalChanges: false,
     },
     {
-      title: "updated title",
-      description: "updated description",
-      dailyCalls: 99,
-      riskAnalysisForm: buildRiskAnalysisSeed(validRiskAnalysis),
+      seed: { description: "updated description" },
+      eventTypes: ["DraftPurposeUpdated"],
+      operationalChanges: false,
     },
-  ] as purposeApi.PatchPurposeUpdateContent[])(
+    {
+      seed: {
+        title: "updated title",
+        description: undefined,
+        dailyCalls: undefined,
+      },
+      eventTypes: ["DraftPurposeUpdated"],
+      operationalChanges: false,
+    },
+    {
+      seed: { dailyCalls: 99 },
+      eventTypes: ["DraftPurposeUpdated"],
+      operationalChanges: true,
+    },
+    {
+      seed: { isFreeOfCharge: false, freeOfChargeReason: null },
+      eventTypes: ["DraftPurposeUpdated"],
+      operationalChanges: true,
+    },
+    {
+      seed: { freeOfChargeReason: "updated freeOfChargeReason" },
+      eventTypes: ["DraftPurposeUpdated"],
+      operationalChanges: true,
+    },
+    {
+      seed: {
+        title: "updated title",
+        description: "updated description",
+        dailyCalls: 99,
+      },
+      eventTypes: ["DraftPurposeUpdated"],
+      operationalChanges: true,
+    },
+  ] satisfies Array<{
+    seed: purposeApi.PatchPurposeUpdateContent;
+    eventTypes: PurposeEventV2["type"][];
+    operationalChanges: boolean;
+  }>)(
     "should update only the fields set in the seed, and leave undefined fields unchanged (seed #%#)",
-    async (seed) => {
+    async ({ seed, eventTypes }) => {
       await addOnePurpose(draftPurpose);
       await addOneEService(eservice);
       await addOneTenant(consumer);
@@ -300,7 +587,8 @@ describe("patchUpdatePurpose", () => {
       );
 
       const writtenPayload = await expectWrittenEventAndGetPayload(
-        draftPurpose.id
+        draftPurpose.id,
+        eventTypes
       );
 
       const expectedPurpose: Purpose = {
@@ -312,17 +600,14 @@ describe("patchUpdatePurpose", () => {
           seed.freeOfChargeReason === null
             ? undefined
             : (seed.freeOfChargeReason ?? draftPurpose.freeOfChargeReason),
-        riskAnalysisForm: seed.riskAnalysisForm
-          ? createUpdatedRiskAnalysisForm(
-              draftPurpose.riskAnalysisForm!,
-              writtenPayload.purpose!.riskAnalysisForm!
-            )
-          : draftPurpose.riskAnalysisForm,
         versions: [
           {
             ...draftPurpose.versions[0],
             dailyCalls: seed.dailyCalls ?? draftPurpose.versions[0].dailyCalls,
-            updatedAt: new Date(),
+            ...(seed.dailyCalls !== undefined &&
+            seed.dailyCalls !== draftPurpose.versions[0].dailyCalls
+              ? { updatedAt: new Date() }
+              : {}),
           },
         ],
         updatedAt: new Date(),
@@ -331,7 +616,8 @@ describe("patchUpdatePurpose", () => {
       await expectUpdatedPurpose(
         updatePurposeReturn,
         writtenPayload,
-        expectedPurpose
+        expectedPurpose,
+        eventTypes.length
       );
     }
   );
@@ -356,7 +642,8 @@ describe("patchUpdatePurpose", () => {
     );
 
     const writtenPayload = await expectWrittenEventAndGetPayload(
-      draftPurpose.id
+      draftPurpose.id,
+      ["DraftPurposeUpdated"]
     );
 
     const expectedPurpose: Purpose = {
@@ -376,7 +663,8 @@ describe("patchUpdatePurpose", () => {
     await expectUpdatedPurpose(
       updatePurposeReturn,
       writtenPayload,
-      expectedPurpose
+      expectedPurpose,
+      1
     );
   });
 
@@ -405,31 +693,35 @@ describe("patchUpdatePurpose", () => {
     );
   });
 
-  it("Should throw purposeFromTemplateCannotBeModified if the purpose was created from a purpose template", async () => {
-    const purposeTemplateId = generateId<PurposeTemplateId>();
-    const purposeFromTemplate: Purpose = {
-      ...draftPurpose,
-      purposeTemplateId,
-    };
-    await addOnePurpose(purposeFromTemplate);
+  it.each(Object.values(purposeVersionState))(
+    "should reject template-derived metadata updates in %s",
+    async (state) => {
+      const purposeTemplateId = generateId<PurposeTemplateId>();
+      const purposeFromTemplate: Purpose = {
+        ...draftPurpose,
+        purposeTemplateId,
+        versions: [getMockPurposeVersion(state)],
+      };
+      await addOnePurpose(purposeFromTemplate);
 
-    expect(
-      purposeService.patchUpdatePurpose(
-        purposeFromTemplate.id,
-        {
-          title: "updated title",
-        },
-        getMockContextM2MAdmin({
-          organizationId: consumer.id,
-        })
-      )
-    ).rejects.toThrowError(
-      purposeFromTemplateCannotBeModified(
-        purposeFromTemplate.id,
-        purposeTemplateId
-      )
-    );
-  });
+      await expect(
+        purposeService.patchUpdatePurpose(
+          purposeFromTemplate.id,
+          {
+            title: "updated title",
+          },
+          getMockContextM2MAdmin({
+            organizationId: consumer.id,
+          })
+        )
+      ).rejects.toThrowError(
+        purposeFromTemplateCannotBeModified(
+          purposeFromTemplate.id,
+          purposeTemplateId
+        )
+      );
+    }
+  );
 
   it.each([
     { freeOfChargeReason: null },
@@ -726,9 +1018,11 @@ describe("patchUpdatePurpose", () => {
 
       const expectedPurpose: Purpose = {
         ...purpose,
-        isFreeOfCharge: expected.isFreeOfCharge,
-        freeOfChargeReason: expected.freeOfChargeReason,
-        updatedAt: new Date(),
+        ...expected,
+        ...(initData.isFreeOfCharge !== expected.isFreeOfCharge ||
+        initData.freeOfChargeReason !== expected.freeOfChargeReason
+          ? { updatedAt: new Date() }
+          : {}),
       };
 
       expect(sortPurpose(patchPurposeResult.data.purpose)).toEqual(
@@ -931,6 +1225,7 @@ describe("patchUpdatePurpose", () => {
         publishedPurpose.id,
         {
           title: "updated title",
+          dailyCalls: 99,
         },
         getMockContextM2MAdmin({
           organizationId: consumer.id,
