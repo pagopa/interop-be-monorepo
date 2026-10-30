@@ -12,7 +12,8 @@ the agent over the internal Compose network.
 
 | Command | Effect |
 | --- | --- |
-| `bash scripts/local-development/dashboard.sh start` | Starts the dashboard and infrastructure without application packages |
+| `pnpm local:dashboard` | Starts the dashboard and infrastructure without application packages |
+| `pnpm local:dashboard:logs` | Follows dashboard container installation, build, and bootstrap logs |
 | `bash scripts/local-development/dashboard.sh start --preset frontend-full` | Starts infrastructure and the frontend's backend packages, without seed or Vite |
 | `pnpm local:seed` | Idempotently creates local tenants and the base published catalog entry through APIs/events |
 | `pnpm local:token -- --tenant comune --user admin` | Prints a local-KMS signed token |
