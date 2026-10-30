@@ -26,6 +26,7 @@ import {
   apiDescriptorStateToDescriptorState,
   apiEServiceModeToEServiceMode,
   apiTechnologyToTechnology,
+  catalogQueryResultToApiCatalogQueryResult,
   descriptorStateToApiEServiceDescriptorState,
   descriptorToApiDescriptor,
   documentToApiDocument,
@@ -211,8 +212,10 @@ const eservicesRouter = (
         const catalogs = await catalogService.queryEServices(req.body, ctx);
 
         return res.status(200).send(
-          catalogApi.EServices.parse({
-            results: catalogs.results.map(eServiceToApiEService),
+          catalogApi.CatalogQueryResults.parse({
+            results: catalogs.results.map(
+              catalogQueryResultToApiCatalogQueryResult
+            ),
             totalCount: catalogs.totalCount,
           })
         );
