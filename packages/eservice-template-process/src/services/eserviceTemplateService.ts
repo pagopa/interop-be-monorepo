@@ -70,6 +70,7 @@ import {
   tenantKindNotFound,
   missingPersonalDataFlag,
   eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce,
+  eserviceTemplateNotInDraftState,
 } from "../model/domain/errors.js";
 import {
   versionAttributeGroupSupersetMissingInAttributesSeed,
@@ -136,6 +137,7 @@ import {
   versionStatesNotAllowingInterfaceOperations,
   assertAsyncExchangeReceiveTemplateNotAllowed,
   assertDiscreteConfigForCertifiedAttributesOnly,
+  isDraftEServiceTemplate,
 } from "./validators.js";
 
 const retrieveEServiceTemplate = async (
@@ -1502,101 +1504,107 @@ export function eserviceTemplateServiceBuilder(
 
       const { name, description, intendedTarget, ...operationalSeed } =
         eserviceTemplateSeed;
+
       const hasOperationalFields = Object.values(operationalSeed).some(
         (value) => value !== undefined
       );
-      if (hasOperationalFields) {
-        assertIsDraftEServiceTemplate(eserviceTemplate.data);
+
+      const isDraft = isDraftEServiceTemplate(eserviceTemplate.data);
+
+      if (hasOperationalFields && !isDraft) {
+        throw eserviceTemplateNotInDraftState(eserviceTemplate.data.id);
       }
 
-      validateNoHyperlinksSafe(name);
-      validateNoHyperlinksSafe(description);
-      validateNoHyperlinksSafe(intendedTarget);
-
-      if (name !== undefined && name !== eserviceTemplate.data.name) {
-        await assertEServiceTemplateNameAvailable(name, readModelService);
-        if (
-          await readModelService.hasInstanceNameConflicts(
-            eserviceTemplate.data,
-            name
-          )
-        ) {
-          throw instanceNameConflict(templateId);
-        }
-      }
-
-      const updatedOperationalEServiceTemplate = hasOperationalFields
-        ? prepareDraftEServiceTemplateUpdate(eserviceTemplate.data, {
-            type: "patch",
-            seed: operationalSeed,
-          })
-        : eserviceTemplate.data;
-      const removeUndefinedProperties = (
-        obj: object
-      ): Record<string, unknown> =>
-        Object.fromEntries(
-          Object.entries(obj).filter(([, value]) => value !== undefined)
-        );
-      const hasOperationalChanges = !isDeepStrictEqual(
-        removeUndefinedProperties(eserviceTemplate.data),
-        removeUndefinedProperties(updatedOperationalEServiceTemplate)
+      await validateEServiceTemplateMetadataUpdate(
+        eserviceTemplate.data,
+        eserviceTemplateSeed,
+        readModelService
       );
 
+      if (isDraft) {
+        const updatedEServiceTemplate = prepareDraftEServiceTemplateUpdate(
+          eserviceTemplate.data,
+          { type: "patch", seed: eserviceTemplateSeed }
+        );
+        const removeUndefinedProperties = (
+          obj: object
+        ): Record<string, unknown> =>
+          Object.fromEntries(
+            Object.entries(obj).filter(([, value]) => value !== undefined)
+          );
+        if (
+          isDeepStrictEqual(
+            removeUndefinedProperties(eserviceTemplate.data),
+            removeUndefinedProperties(updatedEServiceTemplate)
+          )
+        ) {
+          return eserviceTemplate;
+        }
+
+        await deleteEServiceTemplateInterfacesOnTechnologyChange(
+          eserviceTemplate.data,
+          updatedEServiceTemplate,
+          fileManager,
+          ctx.logger
+        );
+
+        const event = await repository.createEvent(
+          toCreateEventEServiceTemplateDraftUpdated(
+            templateId,
+            eserviceTemplate.metadata.version,
+            updatedEServiceTemplate,
+            ctx.correlationId
+          )
+        );
+
+        return {
+          data: updatedEServiceTemplate,
+          metadata: { version: event.newVersion },
+        };
+      }
+
       const updatedEServiceTemplate: EServiceTemplate = {
-        ...(hasOperationalChanges
-          ? updatedOperationalEServiceTemplate
-          : eserviceTemplate.data),
+        ...eserviceTemplate.data,
         name: name ?? eserviceTemplate.data.name,
         description: description ?? eserviceTemplate.data.description,
         intendedTarget: intendedTarget ?? eserviceTemplate.data.intendedTarget,
       };
 
-      const events = (
-        hasOperationalChanges
+      const events = [
+        ...(updatedEServiceTemplate.name !== eserviceTemplate.data.name
           ? [
-              toCreateEventEServiceTemplateDraftUpdated(
+              toCreateEventEServiceTemplateNameUpdated(
+                templateId,
+                eserviceTemplate.metadata.version,
+                updatedEServiceTemplate,
+                eserviceTemplate.data.name,
+                ctx.correlationId
+              ),
+            ]
+          : []),
+        ...(updatedEServiceTemplate.description !==
+        eserviceTemplate.data.description
+          ? [
+              toCreateEventEServiceTemplateDescriptionUpdated(
                 templateId,
                 eserviceTemplate.metadata.version,
                 updatedEServiceTemplate,
                 ctx.correlationId
               ),
             ]
-          : [
-              ...(updatedEServiceTemplate.name !== eserviceTemplate.data.name
-                ? [
-                    toCreateEventEServiceTemplateNameUpdated(
-                      templateId,
-                      eserviceTemplate.metadata.version,
-                      updatedEServiceTemplate,
-                      eserviceTemplate.data.name,
-                      ctx.correlationId
-                    ),
-                  ]
-                : []),
-              ...(updatedEServiceTemplate.description !==
-              eserviceTemplate.data.description
-                ? [
-                    toCreateEventEServiceTemplateDescriptionUpdated(
-                      templateId,
-                      eserviceTemplate.metadata.version,
-                      updatedEServiceTemplate,
-                      ctx.correlationId
-                    ),
-                  ]
-                : []),
-              ...(updatedEServiceTemplate.intendedTarget !==
-              eserviceTemplate.data.intendedTarget
-                ? [
-                    toCreateEventEServiceTemplateIntendedTargetUpdated(
-                      templateId,
-                      eserviceTemplate.metadata.version,
-                      updatedEServiceTemplate,
-                      ctx.correlationId
-                    ),
-                  ]
-                : []),
+          : []),
+        ...(updatedEServiceTemplate.intendedTarget !==
+        eserviceTemplate.data.intendedTarget
+          ? [
+              toCreateEventEServiceTemplateIntendedTargetUpdated(
+                templateId,
+                eserviceTemplate.metadata.version,
+                updatedEServiceTemplate,
+                ctx.correlationId
+              ),
             ]
-      ).map((event, index) => ({
+          : []),
+      ].map((event, index) => ({
         ...event,
         version: eserviceTemplate.metadata.version + index,
       }));
@@ -1605,12 +1613,6 @@ export function eserviceTemplateServiceBuilder(
         return eserviceTemplate;
       }
 
-      await deleteEServiceTemplateInterfacesOnTechnologyChange(
-        eserviceTemplate.data,
-        updatedEServiceTemplate,
-        fileManager,
-        ctx.logger
-      );
       const createdEvents = await repository.createEvents(events);
       return {
         data: updatedEServiceTemplate,
@@ -2387,26 +2389,24 @@ async function updateDraftEServiceTemplate(
 
   assertIsDraftEServiceTemplate(eserviceTemplate.data);
 
-  const { name, description, intendedTarget } = typeAndSeed.seed;
-
-  validateNoHyperlinksSafe(name);
-  validateNoHyperlinksSafe(description);
-  validateNoHyperlinksSafe(intendedTarget);
-
-  if (name && name !== eserviceTemplate.data.name) {
-    await assertEServiceTemplateNameAvailable(name, readModelService);
-  }
+  await validateEServiceTemplateMetadataUpdate(
+    eserviceTemplate.data,
+    typeAndSeed.seed,
+    readModelService
+  );
 
   const updatedEServiceTemplate = prepareDraftEServiceTemplateUpdate(
     eserviceTemplate.data,
     typeAndSeed
   );
+
   await deleteEServiceTemplateInterfacesOnTechnologyChange(
     eserviceTemplate.data,
     updatedEServiceTemplate,
     fileManager,
     logger
   );
+
   const event = await repository.createEvent(
     toCreateEventEServiceTemplateDraftUpdated(
       eserviceTemplateId,
@@ -2419,6 +2419,29 @@ async function updateDraftEServiceTemplate(
     data: updatedEServiceTemplate,
     metadata: { version: event.newVersion },
   };
+}
+
+async function validateEServiceTemplateMetadataUpdate(
+  eserviceTemplate: EServiceTemplate,
+  {
+    name,
+    description,
+    intendedTarget,
+  }: UpdateEServiceTemplateTypeAndSeed["seed"],
+  readModelService: ReadModelServiceSQL
+): Promise<void> {
+  validateNoHyperlinksSafe(name);
+  validateNoHyperlinksSafe(description);
+  validateNoHyperlinksSafe(intendedTarget);
+
+  if (name !== undefined && name !== eserviceTemplate.name) {
+    await assertEServiceTemplateNameAvailable(name, readModelService);
+    if (
+      await readModelService.hasInstanceNameConflicts(eserviceTemplate, name)
+    ) {
+      throw instanceNameConflict(eserviceTemplate.id);
+    }
+  }
 }
 
 async function deleteEServiceTemplateInterfacesOnTechnologyChange(

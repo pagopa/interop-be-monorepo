@@ -137,15 +137,7 @@ describe("update eserviceTemplate", () => {
           seed.mode === "DELIVER" ? [] : eserviceTemplate.riskAnalysis,
       };
 
-      const expectedEvents = seed.technology
-        ? ["EServiceTemplateDraftUpdated"]
-        : [
-            "EServiceTemplateNameUpdated",
-            ...(seed.description ? ["EServiceTemplateDescriptionUpdated"] : []),
-            ...(seed.intendedTarget
-              ? ["EServiceTemplateIntendedTargetUpdated"]
-              : []),
-          ];
+      const expectedEvents = ["EServiceTemplateDraftUpdated"];
       await Promise.all(
         expectedEvents.map(async (type, index) => {
           const writtenEvent = await readEventByStreamIdAndVersion(
@@ -349,13 +341,19 @@ describe("update eserviceTemplate", () => {
             description: seed.description ?? template.description,
             intendedTarget: seed.intendedTarget ?? template.intendedTarget,
           };
-          const expectedTypes = [
-            ...(seed.name ? ["EServiceTemplateNameUpdated"] : []),
-            ...(seed.description ? ["EServiceTemplateDescriptionUpdated"] : []),
-            ...(seed.intendedTarget
-              ? ["EServiceTemplateIntendedTargetUpdated"]
-              : []),
-          ];
+          const expectedTypes = states.every(
+            (state) => state === eserviceTemplateVersionState.draft
+          )
+            ? ["EServiceTemplateDraftUpdated"]
+            : [
+                ...(seed.name ? ["EServiceTemplateNameUpdated"] : []),
+                ...(seed.description
+                  ? ["EServiceTemplateDescriptionUpdated"]
+                  : []),
+                ...(seed.intendedTarget
+                  ? ["EServiceTemplateIntendedTargetUpdated"]
+                  : []),
+              ];
           expect(result).toEqual({
             data: {
               ...expected,
@@ -588,7 +586,7 @@ describe("update eserviceTemplate", () => {
         }
       );
 
-      it("should emit metadata events when supplied operational values are unchanged", async () => {
+      it("should emit one Draft event when metadata changes and supplied operational values are unchanged", async () => {
         const template: EServiceTemplate = {
           ...getMockEServiceTemplate(),
           technology: "Rest",
@@ -619,13 +617,9 @@ describe("update eserviceTemplate", () => {
             },
             ctx
           );
-        expect(result.metadata.version).toBe(3);
+        expect(result.metadata.version).toBe(1);
         await Promise.all(
-          [
-            "EServiceTemplateNameUpdated",
-            "EServiceTemplateDescriptionUpdated",
-            "EServiceTemplateIntendedTargetUpdated",
-          ].map(async (type, index) => {
+          ["EServiceTemplateDraftUpdated"].map(async (type, index) => {
             const event = await readEventByStreamIdAndVersion(
               template.id,
               index + 1,
@@ -643,7 +637,7 @@ describe("update eserviceTemplate", () => {
           })
         );
         expect((await readLastEserviceTemplateEvent(template.id)).version).toBe(
-          "3"
+          "1"
         );
       });
 
@@ -685,16 +679,16 @@ describe("update eserviceTemplate", () => {
               ...metadataSeed,
               versions: expect.arrayContaining(template.versions),
             },
-            metadata: { version: hasMetadataChanges ? 3 : 0 },
+            metadata: { version: hasMetadataChanges ? 1 : 0 },
           });
           expect(result.data.versions).toHaveLength(template.versions.length);
           expect(
             await readLastEserviceTemplateEvent(template.id)
           ).toMatchObject({
             type: hasMetadataChanges
-              ? "EServiceTemplateIntendedTargetUpdated"
+              ? "EServiceTemplateDraftUpdated"
               : "EServiceTemplateAdded",
-            version: hasMetadataChanges ? "3" : "0",
+            version: hasMetadataChanges ? "1" : "0",
           });
         }
       );
@@ -741,7 +735,15 @@ describe("update eserviceTemplate", () => {
   );
 
   it("should emit only the changed metadata event", async () => {
-    const template = getMockEServiceTemplate();
+    const template: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [
+        {
+          ...getMockEServiceTemplateVersion(),
+          state: eserviceTemplateVersionState.published,
+        },
+      ],
+    };
     await addOneEServiceTemplate(template);
     const result = await eserviceTemplateService.patchUpdateEServiceTemplate(
       template.id,
@@ -864,7 +866,15 @@ describe("update eserviceTemplate", () => {
   });
 
   it("should reject a stale write without persisting any of its events", async () => {
-    const template = getMockEServiceTemplate();
+    const template: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [
+        {
+          ...getMockEServiceTemplateVersion(),
+          state: eserviceTemplateVersionState.published,
+        },
+      ],
+    };
     await addOneEServiceTemplate(template);
     const ctx = getMockContextM2MAdmin({
       organizationId: template.creatorId,
@@ -893,7 +903,15 @@ describe("update eserviceTemplate", () => {
   });
 
   it("should preserve a non-zero version on a no-op and continue with consecutive versions", async () => {
-    const template = getMockEServiceTemplate();
+    const template: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [
+        {
+          ...getMockEServiceTemplateVersion(),
+          state: eserviceTemplateVersionState.published,
+        },
+      ],
+    };
     await addOneEServiceTemplate(template);
     const ctx = getMockContextM2MAdmin({
       organizationId: template.creatorId,
