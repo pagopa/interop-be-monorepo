@@ -18,6 +18,8 @@ import {
   reviewerWorkflowNotInSubmittedState,
   requesterIsNotDesignatedReviewer,
   tenantIsNotTheConsumer,
+  riskAnalysisAlreadyApproved,
+  riskAnalysisAlreadyRejected,
 } from "../../src/model/domain/errors.js";
 import { api, purposeService } from "../vitest.api.setup.js";
 
@@ -74,6 +76,16 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/reject test", () => {
   it.each([
     { error: purposeNotFound(mockPurpose.id), expectedStatus: 404 },
     {
+      error: riskAnalysisAlreadyApproved(mockPurpose.id),
+      expectedStatus: 409,
+      expectedCode: "004-0066",
+    },
+    {
+      error: riskAnalysisAlreadyRejected(mockPurpose.id),
+      expectedStatus: 409,
+      expectedCode: "004-0067",
+    },
+    {
       error: reviewerWorkflowNotFound(mockPurpose.id),
       expectedStatus: 404,
     },
@@ -95,11 +107,16 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/reject test", () => {
     },
   ])(
     "Should return $expectedStatus for $error.code",
-    async ({ error, expectedStatus }) => {
+    async ({ error, expectedStatus, expectedCode }) => {
       purposeService.rejectRiskAnalysis = vi.fn().mockRejectedValue(error);
       const token = generateToken(authRole.REVIEWER_ROLE);
       const res = await makeRequest(token);
       expect(res.status).toBe(expectedStatus);
+      if (expectedCode) {
+        expect(res.body.errors).toEqual([
+          expect.objectContaining({ code: expectedCode }),
+        ]);
+      }
     }
   );
 

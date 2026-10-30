@@ -113,6 +113,17 @@ export const maintenanceFixRiskAnalysisErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const maintenanceFixReviewerWorkflowErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "purposeNotFound",
+      "riskAnalysisReviewModeNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const deletePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
@@ -370,13 +381,19 @@ export const assignRiskAnalysisReviewerErrorMapper = (
   match(error.code)
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("tenantIsNotTheConsumer", () => HTTP_STATUS_FORBIDDEN)
-    .with("reviewerWorkflowConflict", () => HTTP_STATUS_CONFLICT)
-    .with("multipleReviewersNotAllowed", () => HTTP_STATUS_BAD_REQUEST)
     .with(
-      "userWithoutReviewerPrivileges",
+      "reviewerWorkflowConflict",
+      "purposeNotInDraftState",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .with(
+      "userNotFoundOrWithoutReviewerPrivileges",
+      "duplicatedReviewersInSeed",
       "purposeFromTemplateCannotBeModified",
       "reviewerWorkflowNotAllowedForDelegatedPurpose",
       "reviewerWorkflowNotAllowedForReceiveMode",
+      "missingReviewers",
+      "reviewersNotAllowedForReviewMode",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
@@ -422,7 +439,13 @@ export const signRiskAnalysisErrorMapper = (
       "tenantIsNotTheDelegatedConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
-    .with("reviewerWorkflowNotInSignableState", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "reviewerWorkflowNotInSignableState",
+      "purposeMetadataVersionMismatch",
+      "riskAnalysisAlreadyApproved",
+      "riskAnalysisAlreadyRejected",
+      () => HTTP_STATUS_CONFLICT
+    )
     .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -438,7 +461,12 @@ export const rejectRiskAnalysisErrorMapper = (
       "tenantIsNotTheDelegatedConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
-    .with("reviewerWorkflowNotInSubmittedState", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "reviewerWorkflowNotInSubmittedState",
+      "riskAnalysisAlreadyApproved",
+      "riskAnalysisAlreadyRejected",
+      () => HTTP_STATUS_CONFLICT
+    )
     .with("rejectNotAllowedInCurrentMode", () => HTTP_STATUS_CONFLICT)
     .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -457,6 +485,8 @@ export const editRiskAnalysisFormErrorMapper = (
     .with(
       "editNotAllowedForReviewMode",
       "reviewerWorkflowNotEditable",
+      "riskAnalysisAlreadyApproved",
+      "riskAnalysisAlreadyRejected",
       () => HTTP_STATUS_CONFLICT
     )
     .with("riskAnalysisValidationFailed", () => HTTP_STATUS_BAD_REQUEST)
