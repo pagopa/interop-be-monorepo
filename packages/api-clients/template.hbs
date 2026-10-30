@@ -5,8 +5,13 @@ import { configureAxiosLogInterceptors } from "../axiosLogInterceptors.js";
 import { AxiosInstance } from "axios";
 
 {{#each schemas}}
+{{#if (lookup ../circularTypeByName @key)}}
+export {{{lookup ../types @key}}};
+export const {{@key}}: z.ZodType<{{@key}}> = {{{this}}};
+{{else}}
 export const {{@key}} = {{{this}}};
 export type {{@key}} = z.infer<typeof {{@key}}>;
+{{/if}}
 
 {{/each}}
 

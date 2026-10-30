@@ -77,7 +77,10 @@ import {
   tenantNotFoundByRemoteId,
   tenantUpdateVersionMismatch,
 } from "../model/domain/errors.js";
-import { ApiGetTenantsFilters } from "../model/domain/models.js";
+import {
+  ApiGetTenantsFilters,
+  TenantWithHierarchy,
+} from "../model/domain/models.js";
 import {
   toCreateEventTenantVerifiedAttributeExpirationUpdated,
   toCreateEventTenantVerifiedAttributeExtensionUpdated,
@@ -127,6 +130,17 @@ const retrieveTenant = async (
   readModelService: ReadModelServiceSQL
 ): Promise<WithMetadata<Tenant>> => {
   const tenant = await readModelService.getTenantById(tenantId);
+  if (!tenant) {
+    throw tenantNotFound(tenantId);
+  }
+  return tenant;
+};
+
+const retrieveTenantWithHierarchy = async (
+  tenantId: TenantId,
+  readModelService: ReadModelServiceSQL
+): Promise<WithMetadata<TenantWithHierarchy>> => {
+  const tenant = await readModelService.getTenantByIdWithHierarchy(tenantId);
   if (!tenant) {
     throw tenantNotFound(tenantId);
   }
@@ -2190,7 +2204,7 @@ export function tenantServiceBuilder(
         limit: number;
       },
       { logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<ListResult<Tenant>> {
+    ): Promise<ListResult<TenantWithHierarchy>> {
       logger.info(
         `Retrieving Producers with name = ${producerName}, limit = ${limit}, offset = ${offset}`
       );
@@ -2207,7 +2221,7 @@ export function tenantServiceBuilder(
         limit: number;
       },
       { logger, authData }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<ListResult<Tenant>> {
+    ): Promise<ListResult<TenantWithHierarchy>> {
       logger.info(
         `Retrieving Consumers with name = ${consumerName}, limit = ${limit}, offset = ${offset}`
       );
@@ -2223,7 +2237,7 @@ export function tenantServiceBuilder(
       {
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
-    ): Promise<ListResult<Tenant>> {
+    ): Promise<ListResult<TenantWithHierarchy>> {
       logger.info(
         `Retrieving Tenants with name = ${query.name}, features = ${query.features}, externalIdOrigin = ${query.externalIdOrigin}, externalIdValue = ${query.externalIdValue}, limit = ${query.limit}, offset = ${query.offset}`
       );
@@ -2238,9 +2252,9 @@ export function tenantServiceBuilder(
           UIAuthData | M2MAuthData | M2MAdminAuthData | InternalAuthData
         >
       >
-    ): Promise<WithMetadata<Tenant>> {
+    ): Promise<WithMetadata<TenantWithHierarchy>> {
       logger.info(`Retrieving tenant ${id}`);
-      return await retrieveTenant(id, readModelService);
+      return await retrieveTenantWithHierarchy(id, readModelService);
     },
     async getTenantByExternalId(
       externalId: ExternalId,

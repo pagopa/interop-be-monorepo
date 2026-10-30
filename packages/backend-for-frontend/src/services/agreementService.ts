@@ -44,6 +44,7 @@ import {
 } from "../model/modelMappingUtils.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
+import { toBffApiParentTenant } from "../api/tenantApiConverter.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 import { getTenantById } from "./delegationService.js";
 import { enhanceTenantAttributes } from "./tenantService.js";
@@ -802,6 +803,8 @@ async function enrichAgreementListEntry(
         id: consumer.id,
         name: consumer.name,
         kind: consumer.kind,
+        subUnitType: consumer.subUnitType,
+        parentTenant: toBffApiParentTenant(consumer.parentTenant),
       },
       eservice: toCompactEservice(eservice, producer),
       descriptor: toCompactDescriptor(currentDescriptor),
@@ -817,12 +820,16 @@ async function enrichAgreementListEntry(
                 id: delegation.delegateId,
                 name: delegate.name,
                 kind: delegate.kind,
+                subUnitType: delegate.subUnitType,
+                parentTenant: toBffApiParentTenant(delegate.parentTenant),
                 contactMail: getLatestTenantContactEmail(delegate),
               },
               delegator: {
                 id: delegation.delegatorId,
                 name: consumer.name,
                 kind: consumer.kind,
+                subUnitType: consumer.subUnitType,
+                parentTenant: toBffApiParentTenant(consumer.parentTenant),
                 contactMail: getLatestTenantContactEmail(consumer),
               },
             }
@@ -896,6 +903,8 @@ export async function enrichAgreement(
           id: tenant.id,
           name: tenant.name,
           kind: tenant.kind,
+          subUnitType: tenant.subUnitType,
+          parentTenant: toBffApiParentTenant(tenant.parentTenant),
           contactMail: getLatestTenantContactEmail(tenant),
         },
       };
@@ -909,6 +918,8 @@ export async function enrichAgreement(
       id: agreement.producerId,
       name: producer.name,
       kind: producer.kind,
+      subUnitType: producer.subUnitType,
+      parentTenant: toBffApiParentTenant(producer.parentTenant),
       contactMail: getLatestTenantContactEmail(producer),
     },
     consumer: {
@@ -918,6 +929,8 @@ export async function enrichAgreement(
       createdAt: consumer.createdAt,
       updatedAt: consumer.updatedAt,
       name: consumer.name,
+      subUnitType: consumer.subUnitType,
+      parentTenant: toBffApiParentTenant(consumer.parentTenant),
       attributes: tenantAttributes,
       contactMail: getLatestTenantContactEmail(consumer),
       features: consumer.features,

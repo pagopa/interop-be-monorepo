@@ -237,5 +237,11 @@ export const fromTenantV2 = (input: TenantV2): Tenant => {
         : undefined,
     selfcareInstitutionType: input.selfcareInstitutionType,
     remoteIds: input.remoteIds.map(fromRemoteIdsV2),
+    parentTenantId: input.parentTenantId
+      ? unsafeBrandId<TenantId>(input.parentTenantId)
+      : undefined,
+    rootTenantId: input.rootTenantId
+      ? unsafeBrandId<TenantId>(input.rootTenantId)
+      : undefined,
   };
 };

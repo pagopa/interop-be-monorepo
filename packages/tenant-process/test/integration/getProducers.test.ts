@@ -9,15 +9,68 @@ import {
   Tenant,
   descriptorState,
 } from "pagopa-interop-models";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   addOneEService,
   addOneTenant,
+  readModelDB,
   readModelService,
 } from "../integrationUtils.js";
 
 describe("getProducers", () => {
+  it.each(["Unit", "Area", "Institution", "absent"])(
+    "uses joined ancestry for filter %s without an extra query",
+    async (producerName) => {
+      const root: Tenant = { ...getMockTenant(), name: "Institution" };
+      const parent: Tenant = {
+        ...getMockTenant(),
+        name: "Area",
+        subUnitType: "AOO",
+      };
+      const unit: Tenant = {
+        ...getMockTenant(),
+        name: "Unit",
+        subUnitType: "UO",
+        parentTenantId: parent.id,
+        rootTenantId: root.id,
+      };
+      for (const tenant of [root, parent, unit]) {
+        await addOneTenant(tenant);
+      }
+      for (let i = 0; i < 2; i++) {
+        await addOneEService({ ...getMockEService(), producerId: unit.id });
+      }
+      const select = vi.spyOn(readModelDB, "select");
+      try {
+        const result = await readModelService.getProducers({
+          producerName,
+          offset: 0,
+          limit: 1,
+        });
+        expect(result.totalCount).toBe(producerName === "absent" ? 0 : 1);
+        expect(result.results).toEqual(
+          producerName === "absent"
+            ? []
+            : [
+                {
+                  ...unit,
+                  parentTenant: {
+                    id: parent.id,
+                    name: parent.name,
+                    subUnitType: parent.subUnitType,
+                    parentTenant: { id: root.id, name: root.name },
+                  },
+                },
+              ]
+        );
+        expect(select).not.toHaveBeenCalled();
+      } finally {
+        select.mockRestore();
+      }
+    }
+  );
+
   const tenant1: Tenant = {
     ...getMockTenant(),
     name: "Tenant 1",

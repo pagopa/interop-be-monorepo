@@ -25,6 +25,7 @@ import {
   toBffApiRequesterCertifiedAttributes,
   toBffApiCertifiedTenantAttributes,
   toBffApiCertifiedDiscreteTenantAttribute,
+  toBffApiParentTenant,
   toBffApiDeclaredTenantAttributes,
   toBffApiVerifiedTenantAttributes,
 } from "../api/tenantApiConverter.js";
@@ -184,7 +185,12 @@ export function tenantServiceBuilder(
         });
 
       return {
-        results: results.map((t) => ({ id: t.id, name: t.name })),
+        results: results.map((t) => ({
+          id: t.id,
+          name: t.name,
+          subUnitType: t.subUnitType,
+          parentTenant: toBffApiParentTenant(t.parentTenant),
+        })),
         pagination: {
           offset,
           limit,
@@ -212,7 +218,12 @@ export function tenantServiceBuilder(
         });
 
       return {
-        results: results.map((t) => ({ id: t.id, name: t.name })),
+        results: results.map((t) => ({
+          id: t.id,
+          name: t.name,
+          subUnitType: t.subUnitType,
+          parentTenant: toBffApiParentTenant(t.parentTenant),
+        })),
         pagination: {
           offset,
           limit,

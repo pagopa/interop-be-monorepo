@@ -15628,6 +15628,10 @@ components:
           $ref: "#/components/schemas/TenantKind"
         contactMail:
           $ref: "#/components/schemas/Mail"
+        subUnitType:
+          $ref: "#/components/schemas/TenantUnitType"
+        parentTenant:
+          $ref: "#/components/schemas/ParentTenant"
         hasUnreadNotifications:
           type: boolean
           description: Indicates if there are unread notifications for this organization
@@ -15649,6 +15653,10 @@ components:
         selfcareId:
           type: string
           format: uuid
+        subUnitType:
+          $ref: "#/components/schemas/TenantUnitType"
+        parentTenant:
+          $ref: "#/components/schemas/ParentTenant"
     TenantKind:
       type: string
       enum:
@@ -17212,6 +17220,10 @@ components:
           format: uuid
         tenantName:
           type: string
+        tenantSubUnitType:
+          $ref: "#/components/schemas/TenantUnitType"
+        parentTenant:
+          $ref: "#/components/schemas/ParentTenant"
         attributeId:
           type: string
           format: uuid
@@ -17458,6 +17470,10 @@ components:
           type: string
         logoUrl:
           type: string
+        subUnitType:
+          $ref: "#/components/schemas/TenantUnitType"
+        parentTenant:
+          $ref: "#/components/schemas/ParentTenant"
       required:
         - id
         - name
@@ -17494,6 +17510,8 @@ components:
           format: date-time
         subUnitType:
           $ref: "#/components/schemas/TenantUnitType"
+        parentTenant:
+          $ref: "#/components/schemas/ParentTenant"
         selfcareInstitutionType:
           type: string
         remoteIds:
@@ -17507,6 +17525,23 @@ components:
         - name
         - attributes
         - createdAt
+    ParentTenant:
+      type: object
+      additionalProperties: false
+      description: Tenant directly above the current tenant in the organizational hierarchy.
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        subUnitType:
+          $ref: "#/components/schemas/TenantUnitType"
+        parentTenant:
+          $ref: "#/components/schemas/ParentTenant"
+      required:
+        - id
+        - name
     TenantUnitType:
       type: string
       enum:
@@ -17961,6 +17996,10 @@ components:
           format: uuid
         name:
           type: string
+        subUnitType:
+          $ref: "#/components/schemas/TenantUnitType"
+        parentTenant:
+          $ref: "#/components/schemas/ParentTenant"
       required:
         - id
         - name
@@ -17993,6 +18032,10 @@ components:
           format: uuid
         producerName:
           type: string
+        producerSubUnitType:
+          $ref: "#/components/schemas/TenantUnitType"
+        producerParentTenant:
+          $ref: "#/components/schemas/ParentTenant"
         descriptors:
           type: array
           items:
@@ -18472,6 +18515,10 @@ components:
           format: uuid
         producerName:
           type: string
+        producerSubUnitType:
+          $ref: "#/components/schemas/TenantUnitType"
+        producerParentTenant:
+          $ref: "#/components/schemas/ParentTenant"
         latestDescriptor:
           $ref: "#/components/schemas/CompactDescriptor"
         descriptors:

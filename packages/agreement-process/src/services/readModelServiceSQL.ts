@@ -30,6 +30,7 @@ import {
   AgreementDocumentId,
   stringToDate,
   CompactOrganization,
+  TenantUnitType,
 } from "pagopa-interop-models";
 import {
   aggregateAgreementArray,
@@ -39,6 +40,7 @@ import {
   DelegationReadModelService,
   TenantReadModelService,
   toAgreementAggregatorArray,
+  aggregateTenantHierarchy,
 } from "pagopa-interop-readmodel";
 import {
   agreementInReadmodelAgreement,
@@ -314,6 +316,37 @@ const getNameFilter = (
 ): SQL | undefined =>
   comparisonName !== undefined
     ? ilikeEscaped(column, `%${escapeSqlLike(comparisonName)}%`)
+    : undefined;
+
+const agreementProducerParentTenant = alias(
+  tenantInReadmodelTenant,
+  "agreementProducerParentTenant"
+);
+const agreementProducerRootTenant = alias(
+  tenantInReadmodelTenant,
+  "agreementProducerRootTenant"
+);
+const agreementConsumerParentTenant = alias(
+  tenantInReadmodelTenant,
+  "agreementConsumerParentTenant"
+);
+const agreementConsumerRootTenant = alias(
+  tenantInReadmodelTenant,
+  "agreementConsumerRootTenant"
+);
+
+const getHierarchicalTenantNameFilter = (
+  name: string | undefined,
+  parentName: PgColumn,
+  rootName: PgColumn,
+  tenantName: PgColumn = tenantInReadmodelTenant.name
+): SQL | undefined =>
+  name !== undefined
+    ? or(
+        getNameFilter(tenantName, name),
+        getNameFilter(parentName, name),
+        getNameFilter(rootName, name)
+      )
     : undefined;
 
 const getAgreementsFilters = <
@@ -666,9 +699,30 @@ export function readModelServiceBuilderSQL(
             withTotalCount({
               id: tenantInReadmodelTenant.id,
               name: tenantInReadmodelTenant.name,
+              subUnitType: tenantInReadmodelTenant.subUnitType,
+              parentTenantId: tenantInReadmodelTenant.parentTenantId,
+              parentTenantName: agreementConsumerParentTenant.name,
+              parentTenantSubUnitType:
+                agreementConsumerParentTenant.subUnitType,
+              rootTenantId: tenantInReadmodelTenant.rootTenantId,
+              rootTenantName: agreementConsumerRootTenant.name,
             })
           )
           .from(tenantInReadmodelTenant)
+          .leftJoin(
+            agreementConsumerParentTenant,
+            eq(
+              tenantInReadmodelTenant.parentTenantId,
+              agreementConsumerParentTenant.id
+            )
+          )
+          .leftJoin(
+            agreementConsumerRootTenant,
+            eq(
+              tenantInReadmodelTenant.rootTenantId,
+              agreementConsumerRootTenant.id
+            )
+          )
           .leftJoin(
             agreementInReadmodelAgreement,
             eq(
@@ -678,18 +732,34 @@ export function readModelServiceBuilderSQL(
           )
           .where(
             and(
-              getNameFilter(tenantInReadmodelTenant.name, consumerName),
+              getHierarchicalTenantNameFilter(
+                consumerName,
+                agreementConsumerParentTenant.name,
+                agreementConsumerRootTenant.name
+              ),
               getVisibilityFilter(requesterId)
             )
           )
-          .groupBy(tenantInReadmodelTenant.id)
+          .groupBy(
+            tenantInReadmodelTenant.id,
+            agreementConsumerParentTenant.name,
+            agreementConsumerParentTenant.subUnitType,
+            agreementConsumerRootTenant.name
+          )
           .orderBy(ascLower(tenantInReadmodelTenant.name))
           .limit(limit)
           .offset(offset)
           .$dynamic()
       );
       return createListResult(
-        resultSet.map(({ id, name }) => ({ id: unsafeBrandId(id), name })),
+        resultSet.map((row) => ({
+          id: unsafeBrandId<TenantId>(row.id),
+          name: row.name,
+          subUnitType: row.subUnitType
+            ? TenantUnitType.parse(row.subUnitType)
+            : undefined,
+          parentTenant: aggregateTenantHierarchy(row),
+        })),
         resultSet[0]?.totalCount
       );
     },
@@ -706,9 +776,30 @@ export function readModelServiceBuilderSQL(
             withTotalCount({
               id: tenantInReadmodelTenant.id,
               name: tenantInReadmodelTenant.name,
+              subUnitType: tenantInReadmodelTenant.subUnitType,
+              parentTenantId: tenantInReadmodelTenant.parentTenantId,
+              parentTenantName: agreementProducerParentTenant.name,
+              parentTenantSubUnitType:
+                agreementProducerParentTenant.subUnitType,
+              rootTenantId: tenantInReadmodelTenant.rootTenantId,
+              rootTenantName: agreementProducerRootTenant.name,
             })
           )
           .from(tenantInReadmodelTenant)
+          .leftJoin(
+            agreementProducerParentTenant,
+            eq(
+              tenantInReadmodelTenant.parentTenantId,
+              agreementProducerParentTenant.id
+            )
+          )
+          .leftJoin(
+            agreementProducerRootTenant,
+            eq(
+              tenantInReadmodelTenant.rootTenantId,
+              agreementProducerRootTenant.id
+            )
+          )
           .leftJoin(
             agreementInReadmodelAgreement,
             eq(
@@ -718,18 +809,34 @@ export function readModelServiceBuilderSQL(
           )
           .where(
             and(
-              getNameFilter(tenantInReadmodelTenant.name, producerName),
+              getHierarchicalTenantNameFilter(
+                producerName,
+                agreementProducerParentTenant.name,
+                agreementProducerRootTenant.name
+              ),
               getVisibilityFilter(requesterId)
             )
           )
-          .groupBy(tenantInReadmodelTenant.id)
+          .groupBy(
+            tenantInReadmodelTenant.id,
+            agreementProducerParentTenant.name,
+            agreementProducerParentTenant.subUnitType,
+            agreementProducerRootTenant.name
+          )
           .orderBy(ascLower(tenantInReadmodelTenant.name))
           .limit(limit)
           .offset(offset)
           .$dynamic()
       );
       return createListResult(
-        resultSet.map(({ id, name }) => ({ id: unsafeBrandId(id), name })),
+        resultSet.map((row) => ({
+          id: unsafeBrandId<TenantId>(row.id),
+          name: row.name,
+          subUnitType: row.subUnitType
+            ? TenantUnitType.parse(row.subUnitType)
+            : undefined,
+          parentTenant: aggregateTenantHierarchy(row),
+        })),
         resultSet[0]?.totalCount
       );
     },

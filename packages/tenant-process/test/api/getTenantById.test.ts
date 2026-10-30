@@ -12,6 +12,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { toApiTenant } from "../../src/model/domain/apiConverter.js";
 import { tenantNotFound } from "../../src/model/domain/errors.js";
+import { TenantWithHierarchy } from "../../src/model/domain/models.js";
 import { api, tenantService } from "../vitest.api.setup.js";
 
 describe("API GET /tenants/{id} test", () => {
@@ -109,4 +110,63 @@ describe("API GET /tenants/{id} test", () => {
     expect(res.status).toBe(200);
     expect(res.body.selfcareInstitutionType).toBe("SCP");
   });
+
+  it.each([
+    { name: "root", subUnitType: undefined, parentTenant: undefined },
+    {
+      name: "AOO",
+      subUnitType: "AOO" as const,
+      parentTenant: { id: generateId<TenantId>(), name: "Root" },
+    },
+    {
+      name: "direct UO",
+      subUnitType: "UO" as const,
+      parentTenant: { id: generateId<TenantId>(), name: "Root" },
+    },
+    {
+      name: "nested UO",
+      subUnitType: "UO" as const,
+      parentTenant: {
+        id: generateId<TenantId>(),
+        name: "Area",
+        subUnitType: "AOO" as const,
+        parentTenant: { id: generateId<TenantId>(), name: "Root" },
+      },
+    },
+    {
+      name: "unresolved UO",
+      subUnitType: "UO" as const,
+      parentTenant: undefined,
+    },
+    {
+      name: "untyped unit",
+      subUnitType: undefined,
+      parentTenant: { id: generateId<TenantId>(), name: "Root" },
+    },
+  ])(
+    "Should serialize hierarchy for $name",
+    async ({ subUnitType, parentTenant }) => {
+      const result: TenantWithHierarchy = {
+        ...getMockTenant(),
+        subUnitType,
+        parentTenant,
+      };
+      tenantService.getTenantById = vi
+        .fn()
+        .mockResolvedValue(getMockWithMetadata(result));
+      const res = await makeRequest(
+        generateToken(authRole.ADMIN_ROLE),
+        result.id
+      );
+      expect(res.status).toBe(200);
+      expect(res.body.name).toBe(result.name);
+      expect(res.body.subUnitType).toBe(subUnitType);
+      expect(res.body.parentTenant).toEqual(parentTenant);
+      expect(res.body).not.toHaveProperty("parentTenantId");
+      expect(res.body).not.toHaveProperty("rootTenantId");
+      if (!parentTenant) {
+        expect(res.body).not.toHaveProperty("parentTenant");
+      }
+    }
+  );
 });

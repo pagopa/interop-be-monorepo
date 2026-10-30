@@ -33,6 +33,7 @@ import {
   toCompactPurposeTemplateEService,
   toCompactPurposeTemplateEServiceTemplate,
 } from "../api/purposeTemplateApiConverter.js";
+import { toBffApiParentTenant } from "../api/tenantApiConverter.js";
 import { TenantProcessClient } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import {
@@ -897,7 +898,12 @@ export function purposeTemplateServiceBuilder(
         });
 
       return {
-        results: results.map((t) => ({ id: t.id, name: t.name })),
+        results: results.map((t) => ({
+          id: t.id,
+          name: t.name,
+          subUnitType: t.subUnitType,
+          parentTenant: toBffApiParentTenant(t.parentTenant),
+        })),
         pagination: {
           offset,
           limit,

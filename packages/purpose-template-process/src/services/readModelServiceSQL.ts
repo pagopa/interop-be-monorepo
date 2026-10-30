@@ -9,7 +9,7 @@ import {
   or,
   SQL,
 } from "drizzle-orm";
-import { PgSelect } from "drizzle-orm/pg-core";
+import { alias, PgSelect } from "drizzle-orm/pg-core";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
   ascLower,
@@ -41,6 +41,7 @@ import {
   RiskAnalysisTemplateAnswerAnnotationDocument,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   TenantId,
+  TenantUnitType,
   TargetTenantKind,
   unsafeBrandId,
   WithMetadata,
@@ -55,6 +56,7 @@ import {
   PurposeTemplateReadModelService,
   toPurposeTemplateAggregatorArray,
   toRiskAnalysisTemplateAnswerAnnotationDocument,
+  aggregateTenantHierarchy,
 } from "pagopa-interop-readmodel";
 import {
   DrizzleReturnType,
@@ -75,6 +77,12 @@ import {
 import { z } from "zod";
 
 import { hasRoleToAccessDraftPurposeTemplates } from "./validators.js";
+
+const creatorParentTenant = alias(
+  tenantInReadmodelTenant,
+  "creatorParentTenant"
+);
+const creatorRootTenant = alias(tenantInReadmodelTenant, "creatorRootTenant");
 
 export type GetPurposeTemplatesFilters = {
   purposeTitle?: string;
@@ -740,9 +748,23 @@ export function readModelServiceBuilderSQL({
           withTotalCount({
             id: tenantInReadmodelTenant.id,
             name: tenantInReadmodelTenant.name,
+            subUnitType: tenantInReadmodelTenant.subUnitType,
+            parentTenantId: tenantInReadmodelTenant.parentTenantId,
+            parentTenantName: creatorParentTenant.name,
+            parentTenantSubUnitType: creatorParentTenant.subUnitType,
+            rootTenantId: tenantInReadmodelTenant.rootTenantId,
+            rootTenantName: creatorRootTenant.name,
           })
         )
         .from(tenantInReadmodelTenant)
+        .leftJoin(
+          creatorParentTenant,
+          eq(tenantInReadmodelTenant.parentTenantId, creatorParentTenant.id)
+        )
+        .leftJoin(
+          creatorRootTenant,
+          eq(tenantInReadmodelTenant.rootTenantId, creatorRootTenant.id)
+        )
         .innerJoin(
           purposeTemplateInReadmodelPurposeTemplate,
           and(
@@ -759,14 +781,29 @@ export function readModelServiceBuilderSQL({
               purposeTemplateState.published
             ),
             creatorName
-              ? ilikeEscaped(
-                  tenantInReadmodelTenant.name,
-                  `%${escapeSqlLike(creatorName)}%`
+              ? or(
+                  ilikeEscaped(
+                    tenantInReadmodelTenant.name,
+                    `%${escapeSqlLike(creatorName)}%`
+                  ),
+                  ilikeEscaped(
+                    creatorParentTenant.name,
+                    `%${escapeSqlLike(creatorName)}%`
+                  ),
+                  ilikeEscaped(
+                    creatorRootTenant.name,
+                    `%${escapeSqlLike(creatorName)}%`
+                  )
                 )
               : undefined
           )
         )
-        .groupBy(tenantInReadmodelTenant.id)
+        .groupBy(
+          tenantInReadmodelTenant.id,
+          creatorParentTenant.name,
+          creatorParentTenant.subUnitType,
+          creatorRootTenant.name
+        )
         .orderBy(ascLower(tenantInReadmodelTenant.name))
         .limit(limit)
         .offset(offset);
@@ -775,6 +812,11 @@ export function readModelServiceBuilderSQL({
         (d) => ({
           id: d.id,
           name: d.name,
+          subUnitType:
+            d.subUnitType === null
+              ? undefined
+              : TenantUnitType.parse(d.subUnitType),
+          parentTenant: aggregateTenantHierarchy(d),
         })
       );
 

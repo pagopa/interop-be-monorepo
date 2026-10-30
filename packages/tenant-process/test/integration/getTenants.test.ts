@@ -1,8 +1,147 @@
 import { getMockTenant } from "pagopa-interop-commons-test";
-import { Tenant, tenantFeatureType } from "pagopa-interop-models";
-import { describe, expect, it } from "vitest";
+import {
+  generateId,
+  ParentTenant,
+  Tenant,
+  TenantId,
+  tenantFeatureType,
+} from "pagopa-interop-models";
+import { upsertTenant } from "pagopa-interop-readmodel/testUtils";
+import { match } from "ts-pattern";
+import { describe, expect, it, vi } from "vitest";
 
-import { addOneTenant, readModelService } from "../integrationUtils.js";
+import {
+  addOneTenant,
+  readModelDB,
+  readModelService,
+} from "../integrationUtils.js";
+
+describe("tenant hierarchy name filter", () => {
+  it.each([
+    "root",
+    "identical parent and root",
+    "parent and root",
+    "missing parent",
+    "missing root",
+    "empty ancestor name",
+  ])("uses joined ancestors without a separate query: %s", async (scenario) => {
+    const root: Tenant = { ...getMockTenant(), name: "Root" };
+    const parent: Tenant = {
+      ...getMockTenant(),
+      name: scenario === "empty ancestor name" ? "" : "Parent",
+      subUnitType: "AOO",
+    };
+    const unit: Tenant = {
+      ...getMockTenant(),
+      parentTenantId: match(scenario)
+        .with("root", () => undefined)
+        .with("identical parent and root", () => root.id)
+        .with("missing parent", () => generateId<TenantId>())
+        .otherwise(() => parent.id),
+      rootTenantId: match(scenario)
+        .with("root", () => undefined)
+        .with("missing root", () => generateId<TenantId>())
+        .otherwise(() => root.id),
+      externalId: { origin: "HIERARCHY", value: "chosen" },
+    };
+    for (const tenant of [root, parent, unit]) {
+      await upsertTenant(readModelDB, tenant, 0);
+    }
+    const parentSummary: ParentTenant = {
+      id: parent.id,
+      name: parent.name,
+      subUnitType: parent.subUnitType,
+    };
+    const rootSummary: ParentTenant = { id: root.id, name: root.name };
+    const expected = match(scenario)
+      .with("root", "missing parent", () => undefined)
+      .with("identical parent and root", () => rootSummary)
+      .with("missing root", () => parentSummary)
+      .otherwise(() => ({ ...parentSummary, parentTenant: rootSummary }));
+    const select = vi.spyOn(readModelDB, "select");
+    try {
+      const result = await readModelService.getTenants({
+        name: undefined,
+        features: [],
+        externalIdOrigin: "HIERARCHY",
+        externalIdValue: "chosen",
+        offset: 0,
+        limit: 1,
+      });
+      expect(result.totalCount).toBe(1);
+      expect(result.results).toEqual([{ ...unit, parentTenant: expected }]);
+      expect(select).not.toHaveBeenCalled();
+    } finally {
+      select.mockRestore();
+    }
+  });
+
+  it.each([
+    "Hierarchy unit",
+    "Hierarchy area",
+    "Hierarchy institution",
+    "absent",
+  ])(
+    "matches %s while retaining feature, external-ID and onboarding filters",
+    async (name) => {
+      const root = { ...getMockTenant(), name: "Hierarchy institution" };
+      const parent = { ...getMockTenant(), name: "Hierarchy area" };
+      const unit: Tenant = {
+        ...getMockTenant(),
+        name: "Hierarchy unit",
+        parentTenantId: parent.id,
+        rootTenantId: root.id,
+        externalId: { origin: "HIERARCHY", value: "chosen" },
+        features: [
+          {
+            type: tenantFeatureType.delegatedProducer,
+            availabilityTimestamp: new Date(),
+          },
+        ],
+      };
+      const excluded: Tenant[] = [
+        { ...unit, id: getMockTenant().id, features: [] },
+        { ...unit, id: getMockTenant().id, selfcareId: undefined },
+        {
+          ...unit,
+          id: getMockTenant().id,
+          externalId: { origin: "OTHER", value: "chosen" },
+        },
+        {
+          ...unit,
+          id: getMockTenant().id,
+          externalId: { origin: "HIERARCHY", value: "other" },
+        },
+        {
+          ...unit,
+          id: getMockTenant().id,
+          name: "Unrelated",
+          parentTenantId: undefined,
+          rootTenantId: undefined,
+        },
+      ];
+      for (const tenant of [root, parent, unit, ...excluded]) {
+        await upsertTenant(readModelDB, tenant, 0);
+      }
+      const result = await readModelService.getTenants({
+        name,
+        features: [tenantFeatureType.delegatedProducer],
+        externalIdOrigin: "HIERARCHY",
+        externalIdValue: "chosen",
+        offset: 0,
+        limit: 50,
+      });
+      expect(result.totalCount).toBe(name === "absent" ? 0 : 1);
+      expect(result.results.map((tenant) => tenant.id)).toEqual(
+        name === "absent" ? [] : [unit.id]
+      );
+      if (name !== "absent") {
+        expect(result.results[0].parentTenant?.id).toBe(parent.id);
+        expect(result.results[0].parentTenant?.parentTenant?.id).toBe(root.id);
+      }
+    }
+  );
+});
 
 describe("getTenants", () => {
   const tenant1: Tenant = {

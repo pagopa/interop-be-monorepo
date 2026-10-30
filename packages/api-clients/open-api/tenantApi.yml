@@ -1374,6 +1374,22 @@ components:
       enum:
         - AOO
         - UO
+    ParentTenant:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        subUnitType:
+          $ref: "#/components/schemas/TenantUnitType"
+        parentTenant:
+          $ref: "#/components/schemas/ParentTenant"
+      required:
+        - id
+        - name
     Tenant:
       description: Tenant model
       type: object
@@ -1413,6 +1429,8 @@ components:
           format: date-time
         subUnitType:
           $ref: "#/components/schemas/TenantUnitType"
+        parentTenant:
+          $ref: "#/components/schemas/ParentTenant"
         remoteIds:
           type: array
           items:
@@ -1515,6 +1533,10 @@ components:
           format: uuid
         name:
           type: string
+        subUnitType:
+          $ref: "#/components/schemas/TenantUnitType"
+        parentTenant:
+          $ref: "#/components/schemas/ParentTenant"
         attributeId:
           type: string
           format: uuid

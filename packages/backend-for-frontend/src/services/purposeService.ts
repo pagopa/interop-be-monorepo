@@ -48,6 +48,7 @@ import {
   tenantNotFound,
 } from "../model/errors.js";
 import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
+import { toBffApiParentTenant } from "../api/tenantApiConverter.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { getLatestAgreement } from "./agreementService.js";
@@ -89,12 +90,16 @@ const enrichPurposeDelegation = async (
     delegate: {
       id: delegate.id,
       name: delegate.name,
+      subUnitType: delegate.subUnitType,
+      parentTenant: toBffApiParentTenant(delegate.parentTenant),
       contactMail: getLatestTenantContactEmail(delegate),
       kind: delegate.kind,
     },
     delegator: {
       id: delegator.id,
       name: delegator.name,
+      subUnitType: delegator.subUnitType,
+      parentTenant: toBffApiParentTenant(delegator.parentTenant),
       contactMail: getLatestTenantContactEmail(delegator),
       kind: delegator.kind,
     },
@@ -357,6 +362,8 @@ export function purposeServiceBuilder(
         id: consumer.id,
         name: consumer.name,
         kind: consumer.kind,
+        subUnitType: consumer.subUnitType,
+        parentTenant: toBffApiParentTenant(consumer.parentTenant),
         contactMail: getLatestTenantContactEmail(consumer),
       },
       riskAnalysisForm:
@@ -365,7 +372,12 @@ export function purposeServiceBuilder(
       eservice: {
         id: eservice.id,
         name: eservice.name,
-        producer: { id: producer.id, name: producer.name },
+        producer: {
+          id: producer.id,
+          name: producer.name,
+          subUnitType: producer.subUnitType,
+          parentTenant: toBffApiParentTenant(producer.parentTenant),
+        },
         descriptor: {
           id: currentDescriptor.id,
           state: currentDescriptor.state,

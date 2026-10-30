@@ -84,6 +84,7 @@ import {
   createDescriptorDocumentZipFile,
 } from "../utilities/fileUtils.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
+import { toBffApiParentTenant } from "../api/tenantApiConverter.js";
 import { getLatestAgreementsOnDescriptor } from "./agreementService.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 import {
@@ -246,12 +247,16 @@ const enhanceProducerEService = (
               id: delegator.id,
               name: delegator.name,
               kind: delegator.kind,
+              subUnitType: delegator.subUnitType,
+              parentTenant: toBffApiParentTenant(delegator.parentTenant),
               contactMail: getLatestTenantContactEmail(delegator),
             },
             delegate: {
               id: delegate.id,
               name: delegate.name,
               kind: delegate.kind,
+              subUnitType: delegate.subUnitType,
+              parentTenant: toBffApiParentTenant(delegate.parentTenant),
               contactMail: getLatestTenantContactEmail(delegate),
             },
           }
@@ -579,12 +584,18 @@ export function catalogServiceBuilder(
                   id: delegate.id,
                   name: delegate.name,
                   kind: delegate.kind,
+                  subUnitType: delegate.subUnitType,
+                  parentTenant: toBffApiParentTenant(delegate.parentTenant),
                   contactMail: getLatestTenantContactEmail(delegate),
                 },
                 delegator: {
                   id: producerTenant.id,
                   name: producerTenant.name,
                   kind: producerTenant.kind,
+                  subUnitType: producerTenant.subUnitType,
+                  parentTenant: toBffApiParentTenant(
+                    producerTenant.parentTenant
+                  ),
                   contactMail: getLatestTenantContactEmail(producerTenant),
                 },
               }

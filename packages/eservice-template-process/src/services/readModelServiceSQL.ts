@@ -33,6 +33,7 @@ import {
   eserviceTemplateVersionState,
   genericInternalError,
   CompactOrganization,
+  TenantUnitType,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
@@ -41,6 +42,7 @@ import {
   EServiceTemplateReadModelService,
   TenantReadModelService,
   toEServiceTemplateAggregatorArray,
+  aggregateTenantHierarchy,
 } from "pagopa-interop-readmodel";
 import {
   attributeInReadmodelAttribute,
@@ -61,6 +63,12 @@ import { z } from "zod";
 
 import { GetEServiceTemplatesFilters } from "./readModelService.js";
 import { hasRoleToAccessDraftTemplateVersions } from "./validators.js";
+
+const creatorParentTenant = alias(
+  tenantInReadmodelTenant,
+  "creatorParentTenant"
+);
+const creatorRootTenant = alias(tenantInReadmodelTenant, "creatorRootTenant");
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
@@ -366,9 +374,23 @@ export function readModelServiceBuilderSQL({
           withTotalCount({
             id: tenantInReadmodelTenant.id,
             name: tenantInReadmodelTenant.name,
+            subUnitType: tenantInReadmodelTenant.subUnitType,
+            parentTenantId: tenantInReadmodelTenant.parentTenantId,
+            parentTenantName: creatorParentTenant.name,
+            parentTenantSubUnitType: creatorParentTenant.subUnitType,
+            rootTenantId: tenantInReadmodelTenant.rootTenantId,
+            rootTenantName: creatorRootTenant.name,
           })
         )
         .from(tenantInReadmodelTenant)
+        .leftJoin(
+          creatorParentTenant,
+          eq(tenantInReadmodelTenant.parentTenantId, creatorParentTenant.id)
+        )
+        .leftJoin(
+          creatorRootTenant,
+          eq(tenantInReadmodelTenant.rootTenantId, creatorRootTenant.id)
+        )
         .innerJoin(
           eserviceTemplateInReadmodelEserviceTemplate,
           eq(
@@ -392,21 +414,40 @@ export function readModelServiceBuilderSQL({
             ),
             // TENANT FILTER
             name
-              ? ilikeEscaped(
-                  tenantInReadmodelTenant.name,
-                  `%${escapeSqlLike(name)}%`
+              ? or(
+                  ilikeEscaped(
+                    tenantInReadmodelTenant.name,
+                    `%${escapeSqlLike(name)}%`
+                  ),
+                  ilikeEscaped(
+                    creatorParentTenant.name,
+                    `%${escapeSqlLike(name)}%`
+                  ),
+                  ilikeEscaped(
+                    creatorRootTenant.name,
+                    `%${escapeSqlLike(name)}%`
+                  )
                 )
               : undefined
           )
         )
-        .groupBy(tenantInReadmodelTenant.id)
+        .groupBy(
+          tenantInReadmodelTenant.id,
+          creatorParentTenant.name,
+          creatorParentTenant.subUnitType,
+          creatorRootTenant.name
+        )
         .orderBy(ascLower(tenantInReadmodelTenant.name))
         .limit(limit)
         .offset(offset);
 
       const data: CompactOrganization[] = queryResult.map((d) => ({
-        id: unsafeBrandId(d.id),
+        id: unsafeBrandId<TenantId>(d.id),
         name: d.name,
+        subUnitType: d.subUnitType
+          ? TenantUnitType.parse(d.subUnitType)
+          : undefined,
+        parentTenant: aggregateTenantHierarchy(d),
       }));
 
       const result = z.array(CompactOrganization).safeParse(data);

@@ -100,11 +100,26 @@ export const toBffApiRequesterCertifiedAttributes = (
 ): bffApi.RequesterCertifiedAttribute => ({
   tenantId: input.id,
   tenantName: input.name,
+  tenantSubUnitType: input.subUnitType,
+  parentTenant: toBffApiParentTenant(input.parentTenant),
   attributeId: input.attributeId,
   attributeName: input.attributeName,
   kind: input.kind,
   discreteValue: input.discreteValue,
 });
+
+export function toBffApiParentTenant(
+  parentTenant: tenantApi.ParentTenant | undefined
+): bffApi.ParentTenant | undefined {
+  return parentTenant
+    ? {
+        id: parentTenant.id,
+        name: parentTenant.name,
+        subUnitType: parentTenant.subUnitType,
+        parentTenant: toBffApiParentTenant(parentTenant.parentTenant),
+      }
+    : undefined;
+}
 
 export type RegistryAttributesMap = Map<
   attributeRegistryApi.Attribute["id"],
@@ -254,6 +269,7 @@ export function toBffApiTenant(
     features: tenant.features,
     onboardedAt: tenant.onboardedAt,
     subUnitType: tenant.subUnitType,
+    parentTenant: toBffApiParentTenant(tenant.parentTenant),
     remoteIds: tenant.remoteIds,
     selfcareInstitutionType: tenant.selfcareInstitutionType,
     contactMail: getLatestTenantContactEmail(tenant),
@@ -283,6 +299,8 @@ export async function toBffApiCompactTenant(
   return {
     id: tenant.id,
     name: tenant.name,
+    subUnitType: tenant.subUnitType,
+    parentTenant: toBffApiParentTenant(tenant.parentTenant),
     selfcareId: tenant.selfcareId,
     logoUrl: await getLogoUrl(tenant.selfcareId),
   };

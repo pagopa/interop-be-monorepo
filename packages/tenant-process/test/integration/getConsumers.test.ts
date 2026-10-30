@@ -8,18 +8,82 @@ import {
   EService,
   Tenant,
   descriptorState,
+  agreementState,
 } from "pagopa-interop-models";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
+  readModelDB,
   readModelService,
 } from "../integrationUtils.js";
 import { getMockAgreement } from "../mockUtils.js";
 
 describe("getConsumers", () => {
+  it.each(["Unit", "Area", "Institution", "absent"])(
+    "uses joined ancestry for filter %s without an extra query",
+    async (consumerName) => {
+      const producer = getMockTenant();
+      const root: Tenant = { ...getMockTenant(), name: "Institution" };
+      const parent: Tenant = {
+        ...getMockTenant(),
+        name: "Area",
+        subUnitType: "AOO",
+      };
+      const unit: Tenant = {
+        ...getMockTenant(),
+        name: "Unit",
+        subUnitType: "UO",
+        parentTenantId: parent.id,
+        rootTenantId: root.id,
+      };
+      for (const tenant of [producer, root, parent, unit]) {
+        await addOneTenant(tenant);
+      }
+      for (const state of [agreementState.active, agreementState.suspended]) {
+        await addOneAgreement({
+          ...getMockAgreement({
+            eserviceId: getMockEService().id,
+            descriptorId: getMockDescriptor().id,
+            producerId: producer.id,
+            consumerId: unit.id,
+          }),
+          state,
+        });
+      }
+      const select = vi.spyOn(readModelDB, "select");
+      try {
+        const result = await readModelService.getConsumers({
+          producerId: producer.id,
+          consumerName,
+          offset: 0,
+          limit: 1,
+        });
+        expect(result.totalCount).toBe(consumerName === "absent" ? 0 : 1);
+        expect(result.results).toEqual(
+          consumerName === "absent"
+            ? []
+            : [
+                {
+                  ...unit,
+                  parentTenant: {
+                    id: parent.id,
+                    name: parent.name,
+                    subUnitType: parent.subUnitType,
+                    parentTenant: { id: root.id, name: root.name },
+                  },
+                },
+              ]
+        );
+        expect(select).not.toHaveBeenCalled();
+      } finally {
+        select.mockRestore();
+      }
+    }
+  );
+
   const producer = getMockTenant();
   const tenant1: Tenant = {
     ...getMockTenant(),

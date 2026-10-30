@@ -196,6 +196,8 @@ export const Tenant = z.object({
   name: z.string(),
   onboardedAt: z.coerce.date().optional(),
   subUnitType: TenantUnitType.optional(),
+  parentTenantId: TenantId.optional(),
+  rootTenantId: TenantId.optional(),
   selfcareInstitutionType: z.string().optional(),
   remoteIds: z.array(TenantRemoteId).optional(),
   parentTenantId: TenantId.optional(),
@@ -203,6 +205,28 @@ export const Tenant = z.object({
 });
 
 export type Tenant = z.infer<typeof Tenant>;
+
+export const ParentTenantBase = z.object({
+  id: TenantId,
+  name: z.string(),
+  subUnitType: TenantUnitType.optional(),
+});
+
+export type ParentTenant = z.infer<typeof ParentTenantBase> & {
+  parentTenant?: ParentTenant;
+};
+
+export type ParentTenantInput = z.input<typeof ParentTenantBase> & {
+  parentTenant?: ParentTenantInput;
+};
+
+export const ParentTenant: z.ZodType<
+  ParentTenant,
+  z.ZodTypeDef,
+  ParentTenantInput
+> = ParentTenantBase.extend({
+  parentTenant: z.lazy(() => ParentTenant).optional(),
+});
 
 export const CompactTenant = z.object({
   id: TenantId,
@@ -213,5 +237,7 @@ export type CompactTenant = z.infer<typeof CompactTenant>;
 export const CompactOrganization = z.object({
   id: TenantId,
   name: z.string(),
+  subUnitType: TenantUnitType.optional(),
+  parentTenant: ParentTenant.optional(),
 });
 export type CompactOrganization = z.infer<typeof CompactOrganization>;

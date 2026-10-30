@@ -15,6 +15,7 @@ import { match } from "ts-pattern";
 
 import { toCompactEserviceLight } from "./agreementApiConverter.js";
 import { toCompactDescriptor } from "./catalogApiConverter.js";
+import { toBffApiParentTenant } from "./tenantApiConverter.js";
 
 export type DelegationsQueryParams = {
   delegatorIds?: string[];
@@ -103,15 +104,21 @@ export function toBffDelegationApiDelegation(
       description: eservice.description,
       producerId: eservice.producerId,
       producerName: producer.name,
+      producerSubUnitType: producer.subUnitType,
+      producerParentTenant: toBffApiParentTenant(producer.parentTenant),
       descriptors: eservice.descriptors.map(toCompactDescriptor),
     },
     delegate: {
       id: delegate.id,
       name: delegate.name,
+      subUnitType: delegate.subUnitType,
+      parentTenant: toBffApiParentTenant(delegate.parentTenant),
     },
     delegator: {
       id: delegator.id,
       name: delegator.name,
+      subUnitType: delegator.subUnitType,
+      parentTenant: toBffApiParentTenant(delegator.parentTenant),
     },
     activationContract: delegation.activationContract
       ? toBffDelegationApiDelegationDoc(delegation.activationContract)
@@ -151,10 +158,14 @@ export function toBffDelegationApiCompactDelegation(
     delegate: {
       name: delegate.name,
       id: delegate.id,
+      subUnitType: delegate.subUnitType,
+      parentTenant: toBffApiParentTenant(delegate.parentTenant),
     },
     delegator: {
       name: delegator.name,
       id: delegator.id,
+      subUnitType: delegator.subUnitType,
+      parentTenant: toBffApiParentTenant(delegator.parentTenant),
     },
     state: delegation.state,
     kind: delegation.kind,
