@@ -1,7 +1,6 @@
 import {
   and,
   asc,
-  Column,
   count,
   countDistinct,
   desc,
@@ -128,6 +127,11 @@ import {
   catalogRelevantDescriptorStates,
   catalogVisibleDescriptorStates,
 } from "./descriptorStates.js";
+import {
+  eserviceKeywordFilter,
+  eserviceKeywordRelevance,
+  eserviceProducerJoin,
+} from "./keywordSearch.js";
 import { hasRoleToAccessInactiveDescriptors } from "./validators.js";
 
 const existsValidDescriptor = (
@@ -172,6 +176,29 @@ const existsCatalogVisibleDescriptor = (
       )
   );
 
+// The template state does not count. A template is available when the catalog
+// shows at least one of its instances. The visibility rule is part of this
+// check, so instancesCondition holds only the other filters on the instances.
+export const existsAvailableTemplateInstance = (
+  tx: DrizzleTransactionType,
+  instancesCondition: SQL | undefined
+): SQL =>
+  exists(
+    tx
+      .select()
+      .from(eserviceInReadmodelCatalog)
+      .where(
+        and(
+          eq(
+            eserviceInReadmodelCatalog.templateId,
+            eserviceTemplateInReadmodelEserviceTemplate.id
+          ),
+          existsCatalogVisibleDescriptor(tx),
+          instancesCondition
+        )
+      )
+  );
+
 // The id tie-break keeps pagination deterministic on equal names or dates.
 const getEServicesOrderBy = (sortBy: EServiceSortBy): SQL[] => [
   match(sortBy)
@@ -182,95 +209,6 @@ const getEServicesOrderBy = (sortBy: EServiceSortBy): SQL[] => [
     .exhaustive(),
   asc(eserviceInReadmodelCatalog.id),
 ];
-
-// Keyword search, same approach as the public catalog: normalized text,
-// Italian full text search that ignores accents, trigram similarity as fallback.
-// normalize_text, italian_unaccent and the search_vector generated columns are
-// defined in docker/readmodel-db. They are not part of the drizzle schema.
-const normalizeText = (value: Column | SQL): SQL =>
-  sql`public.normalize_text(${value})`;
-
-const eserviceSearchVector = sql`${eserviceInReadmodelCatalog}.search_vector`;
-const tenantSearchVector = sql`${tenantInReadmodelTenant}.search_vector`;
-const eserviceName = normalizeText(eserviceInReadmodelCatalog.name);
-const eserviceDescription = normalizeText(
-  eserviceInReadmodelCatalog.description
-);
-const producerName = normalizeText(tenantInReadmodelTenant.name);
-
-const eserviceProducerJoin = eq(
-  eserviceInReadmodelCatalog.producerId,
-  tenantInReadmodelTenant.id
-);
-
-const keywordTsQuery = (keyword: string): SQL => {
-  const normalizedKeyword = normalizeText(sql`${keyword}`);
-  return sql`websearch_to_tsquery('public.italian_unaccent'::regconfig, ${normalizedKeyword})`;
-};
-
-// The e-service and the producer conditions are two UNION branches instead
-// of one OR: an OR across two tables cannot use the GIN indexes.
-const fullTextMatches = (keyword: string): SQL => {
-  const tsQuery = keywordTsQuery(keyword);
-  return sql`(SELECT ${eserviceInReadmodelCatalog.id} FROM ${eserviceInReadmodelCatalog}
-    WHERE ${eserviceSearchVector} @@ ${tsQuery}
-    UNION
-    SELECT ${eserviceInReadmodelCatalog.id} FROM ${eserviceInReadmodelCatalog}
-    JOIN ${tenantInReadmodelTenant} ON ${eserviceProducerJoin}
-    WHERE ${tenantSearchVector} @@ ${tsQuery})`;
-};
-
-const fuzzyMatches = (keyword: string): SQL => {
-  const normalizedKeyword = normalizeText(sql`${keyword}`);
-  return sql`(SELECT ${eserviceInReadmodelCatalog.id} FROM ${eserviceInReadmodelCatalog}
-    WHERE ${eserviceName} % ${normalizedKeyword}
-      OR ${eserviceDescription} % ${normalizedKeyword}
-    UNION
-    SELECT ${eserviceInReadmodelCatalog.id} FROM ${eserviceInReadmodelCatalog}
-    JOIN ${tenantInReadmodelTenant} ON ${eserviceProducerJoin}
-    WHERE ${producerName} % ${normalizedKeyword})`;
-};
-
-// As in the public catalog, the trigram matches are the fallback when the
-// full text search has no match at all. The check runs on the e-services the
-// query can return: a match excluded by the other conditions must not disable
-// the fallback.
-const keywordFilter = async (
-  tx: DrizzleTransactionType,
-  keyword: string | undefined,
-  condition: SQL | undefined
-): Promise<SQL | undefined> => {
-  if (keyword === undefined) {
-    return undefined;
-  }
-  const fullTextFilter = inArray(
-    eserviceInReadmodelCatalog.id,
-    fullTextMatches(keyword)
-  );
-  const fullTextMatch = await tx
-    .select({ id: eserviceInReadmodelCatalog.id })
-    .from(eserviceInReadmodelCatalog)
-    .where(and(condition, fullTextFilter))
-    .limit(1);
-  return fullTextMatch.length > 0
-    ? fullTextFilter
-    : inArray(eserviceInReadmodelCatalog.id, fuzzyMatches(keyword));
-};
-
-// The producer vector keeps weight A and the e-service vector is lowered to
-// weight B, so a match on the producer name ranks first, as in the public catalog.
-// The tenant columns can be NULL because of the left join.
-const keywordRelevance = (keyword: string): SQL => {
-  const tsQuery = keywordTsQuery(keyword);
-  const normalizedKeyword = normalizeText(sql`${keyword}`);
-  const searchVector = sql`COALESCE(${tenantSearchVector}, ''::tsvector) || setweight(${eserviceSearchVector}, 'B')`;
-  const fullTextRank = sql`COALESCE(ts_rank_cd(${searchVector}, ${tsQuery}), 0)`;
-  const fuzzySimilarity = sql`GREATEST(
-    similarity(${eserviceName}, ${normalizedKeyword}),
-    similarity(${eserviceDescription}, ${normalizedKeyword}),
-    similarity(${producerName}, ${normalizedKeyword}))`;
-  return sql`(${fullTextRank} + 0.5 * ${fuzzySimilarity})`;
-};
 
 const producersFilter = (producersIds: TenantId[]): SQL | undefined =>
   producersIds.length > 0
@@ -984,12 +922,15 @@ export function readModelServiceBuilderSQL(
         const baseCondition = and(visibleEservicesFilter, filtersCondition);
         const condition = and(
           baseCondition,
-          await keywordFilter(tx, keyword, baseCondition)
+          await eserviceKeywordFilter(tx, keyword, baseCondition)
         );
         const orderBy =
           keyword === undefined
             ? getEServicesOrderBy(sortBy)
-            : [desc(keywordRelevance(keyword)), ...getEServicesOrderBy(sortBy)];
+            : [
+                desc(eserviceKeywordRelevance(keyword)),
+                ...getEServicesOrderBy(sortBy),
+              ];
 
         const [pageIds, totalCount] = await Promise.all([
           tx
