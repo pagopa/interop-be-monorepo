@@ -5,8 +5,9 @@ import {
   fromAppContext,
   isUiAuthData,
 } from "pagopa-interop-commons";
-import { ErrorMessage } from "pagopa-interop-error-message-parser";
 import { unauthorizedError } from "pagopa-interop-models";
+
+import type { UserFacingLanguage } from "../model/types.js";
 
 import { makeApiProblem } from "../model/errors.js";
 
@@ -35,7 +36,7 @@ export function uiAuthDataValidationMiddleware(): ZodiosRouterContextRequestHand
 
 function getLocaleFromAcceptLanguageHeader(
   acceptLanguageHeader: string | undefined
-): keyof ErrorMessage | undefined {
+): UserFacingLanguage | undefined {
   if (!acceptLanguageHeader) {
     return undefined;
   }
@@ -51,7 +52,7 @@ function getLocaleFromAcceptLanguageHeader(
 
   for (const lang of acceptedLanguages) {
     if (lang === "it" || lang === "en") {
-      return lang as keyof ErrorMessage;
+      return lang;
     }
   }
 

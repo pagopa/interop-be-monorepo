@@ -1,7 +1,7 @@
+import type { ErrorMessage } from "pagopa-interop-error-message-parser";
 import type { Problem, MakeApiProblemFn } from "pagopa-interop-models";
 
 import { agreementApi, bffApi, catalogApi } from "pagopa-interop-api-clients";
-import { ErrorMessage } from "pagopa-interop-error-message-parser";
 import { z } from "zod";
 
 const Conditions = z.object({
@@ -210,18 +210,25 @@ export const ConfigurationEservice = z.object({
 export type ConfigurationEservice = z.infer<typeof ConfigurationEservice>;
 
 export type UserFacingProblem = Problem & {
-  userMessages?: ErrorMessage;
+  userMessages?: UserFacingMessages;
 };
+
+export type UserFacingMessages = {
+  it: string;
+  en?: string;
+};
+
+export type UserFacingLanguage = keyof ErrorMessage["copy"];
 
 export type MakeUserFacingApiProblemFn<T extends string> = (
   error: Parameters<MakeApiProblemFn<T>>[0],
   httpMapper: Parameters<MakeApiProblemFn<T>>[1],
   context: Parameters<MakeApiProblemFn<T>>[2] & {
     endpoint?: string;
-    locale?: keyof ErrorMessage;
+    locale?: UserFacingLanguage;
   },
   operationalLogMessage?: Parameters<MakeApiProblemFn<T>>[3],
   placeholderMapper?: (
-    problem: UserFacingProblem & { userMessages: ErrorMessage }
+    problem: UserFacingProblem & { userMessages: UserFacingMessages }
   ) => UserFacingProblem
 ) => UserFacingProblem;

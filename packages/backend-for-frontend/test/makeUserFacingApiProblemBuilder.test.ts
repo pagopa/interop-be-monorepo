@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import type { ErrorMessage } from "pagopa-interop-error-message-parser";
+
 import { AxiosError, AxiosHeaders } from "axios";
 import { bffApi } from "pagopa-interop-api-clients";
 import { authRole } from "pagopa-interop-commons";
 import { getMockContext } from "pagopa-interop-commons-test";
 import { generateToken } from "pagopa-interop-commons-test";
-import { ErrorCopy } from "pagopa-interop-error-message-parser";
 import { emptyErrorMapper, Problem } from "pagopa-interop-models";
 import { generateId } from "pagopa-interop-models";
 import request from "supertest";
@@ -33,24 +34,25 @@ describe("makeUserFacingApiProblemBuilder", () => {
       },
     });
 
-  const commonErrorCopy: ErrorCopy = {
-    "GET /tenant/:tenantId": {
-      "005-0014": {
-        key: "005-0014",
-        messages: {
-          it: "Un messaggio di errore",
-          en: "Some error message",
-        },
+  const commonErrorMessages: ErrorMessage[] = [
+    {
+      process: "Tenant Process",
+      error: "expirationDateCannotBeInThePast",
+      errorCode: "005-0014",
+      bffEndpoint: "GET /tenant/:tenantId",
+      copy: {
+        it: "Un messaggio di errore",
+        en: "Some error message",
       },
     },
-  };
+  ];
   const makeApiProblem = makeUserFacingApiProblemBuilder(
     testErrorCodes,
     {
       forceGenericProblemOn500: true,
       problemErrorsPassthrough: true,
     },
-    commonErrorCopy
+    commonErrorMessages
   );
 
   it("should create a Problem with the localised user message from an Axios Error found in the error copy", () => {

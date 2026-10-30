@@ -1,36 +1,51 @@
-import { ErrorCopy, ErrorMessage } from "pagopa-interop-error-message-parser";
+import type { ErrorMessage } from "pagopa-interop-error-message-parser";
+
 import {
   Problem,
   makeApiProblemBuilder,
   ProblemBuilderOptions,
 } from "pagopa-interop-models";
 
-import { MakeUserFacingApiProblemFn, UserFacingProblem } from "./types.js";
+import {
+  MakeUserFacingApiProblemFn,
+  UserFacingMessages,
+  UserFacingProblem,
+} from "./types.js";
 
 export function applyErrorCopy(
   problem: Problem,
   endpoint: string | undefined,
-  errorCopy: ErrorCopy,
-  defaultLanguage?: keyof ErrorMessage
+  errorMessages: readonly ErrorMessage[],
+  defaultLanguage?: keyof ErrorMessage["copy"]
 ): UserFacingProblem {
-  const endpointCopy = endpoint ? errorCopy[endpoint] : undefined;
-  if (!endpointCopy) {
+  if (!endpoint) {
     return problem;
   }
 
-  // When more errors have a copy, the first one drives the user facing message
   const copy = problem.errors
-    ?.map(({ code }) => endpointCopy[code])
+    ?.map(({ code }) =>
+      errorMessages.find(
+        (message) =>
+          message.bffEndpoint === endpoint &&
+          message.errorCode === code &&
+          message.copy.it.trim() !== ""
+      )
+    )
     .find((entry) => entry !== undefined);
 
   if (!copy) {
     return problem;
   }
 
+  const userMessages = {
+    it: copy.copy.it.trim(),
+    en: copy.copy.en.trim() || undefined,
+  };
+
   return {
     ...problem,
-    detail: copy.messages[defaultLanguage ?? "it"],
-    userMessages: copy.messages,
+    detail: userMessages[defaultLanguage ?? "it"],
+    userMessages,
   };
 }
 
@@ -39,7 +54,7 @@ export async function placeholderMapperGenerator<T>(
   replace: (value: T, message: string) => string
 ): Promise<
   | ((
-      prob: UserFacingProblem & { userMessages: ErrorMessage }
+      prob: UserFacingProblem & { userMessages: UserFacingMessages }
     ) => UserFacingProblem)
   | undefined
 > {
@@ -47,7 +62,11 @@ export async function placeholderMapperGenerator<T>(
     const callbackValue = callback();
     const value =
       callbackValue instanceof Promise ? await callbackValue : callbackValue;
-    return (problem: UserFacingProblem & { userMessages: ErrorMessage }) => ({
+    return (
+      problem: UserFacingProblem & {
+        userMessages: UserFacingMessages;
+      }
+    ) => ({
       ...problem,
       detail: problem.detail ? replace(value, problem.detail) : undefined,
       userMessages: {
@@ -65,7 +84,7 @@ export async function placeholderMapperGenerator<T>(
 export function makeUserFacingApiProblemBuilder<T extends string>(
   errors: Record<T, string>,
   options: ProblemBuilderOptions = {},
-  errorCopy: ErrorCopy
+  errorMessages: readonly ErrorMessage[]
 ): MakeUserFacingApiProblemFn<T> {
   const makeApiProblem = makeApiProblemBuilder(errors, options);
 
@@ -86,7 +105,7 @@ export function makeUserFacingApiProblemBuilder<T extends string>(
     const userFacingProblem = applyErrorCopy(
       problem,
       context.endpoint,
-      errorCopy,
+      errorMessages,
       context.locale
     );
 

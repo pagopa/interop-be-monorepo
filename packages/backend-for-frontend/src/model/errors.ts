@@ -1,12 +1,11 @@
 import { bffErrorCodes } from "pagopa-interop-commons";
-import { readCsvErrorFile } from "pagopa-interop-error-message-parser";
+import { errorMessages } from "pagopa-interop-error-message-parser";
 import {
   ApiError,
   AttributeId,
   parseErrorMessage,
 } from "pagopa-interop-models";
 
-import { config } from "../config/config.js";
 import { makeUserFacingApiProblemBuilder } from "./applyError.js";
 
 export type ErrorCodes = keyof typeof bffErrorCodes;
@@ -17,7 +16,7 @@ export const makeApiProblem = makeUserFacingApiProblemBuilder(
     problemErrorsPassthrough: true,
     forceGenericProblemOn500: false,
   },
-  readCsvErrorFile(config.errorCopyPath, config.errorMappingLanguages)
+  errorMessages
 );
 
 export function selfcareEntityNotFilled(

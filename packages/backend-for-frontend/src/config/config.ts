@@ -313,17 +313,6 @@ const SwaggerConfig = z
   }));
 type SwaggerConfig = z.infer<typeof SwaggerConfig>;
 
-const ErrorMappingConfig = z
-  .object({
-    CSV_ERROR_COPY_PATH: z.string().min(1),
-    ERROR_MAPPING_LANGUAGES: z.string().min(1).default("it,en"),
-  })
-  .transform((c) => ({
-    errorCopyPath: c.CSV_ERROR_COPY_PATH,
-    errorMappingLanguages: c.ERROR_MAPPING_LANGUAGES.split(","),
-  }));
-type ErrorMappingConfig = z.infer<typeof ErrorMappingConfig>;
-
 const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AgreementProcessServerConfig)
   .and(CatalogProcessServerConfig)
@@ -362,7 +351,6 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(FeatureFlagDelegationConstraintSkipConfig)
   .and(FeatureFlagAttributeCertifiedDiscreteConfig)
   .and(FeatureFlagNewOperatorsConfig)
-  .and(ErrorMappingConfig)
   .and(
     z
       .object({

@@ -1,7 +1,7 @@
 # pagopa-interop-be-error-message-parser
 
 Generates typed error message data from
-`../backend-for-frontend/Messaggi-di-errore.csv`.
+`../backend-for-frontend/error-message.csv`.
 
 Run `pnpm --filter pagopa-interop-error-message-parser build` to generate
 `src/generated/errorMessages.ts` and compile the package. Generation can also be
