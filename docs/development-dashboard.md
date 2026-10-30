@@ -23,11 +23,15 @@ on Linux and WSL2, it uses the host user's UID/GID for bind-mount permissions.
    bash scripts/local-development/dashboard.sh start
    ```
 
+   If pnpm is installed on the host, you can also run `pnpm local:dashboard`.
+
 2. Follow the first installation and build:
 
    ```bash
    bash scripts/local-development/dashboard.sh logs
    ```
+
+   With pnpm, use `pnpm local:dashboard:logs` to follow the same container logs.
 
 3. Open [the dashboard](http://localhost:8076). Infrastructure starts automatically.
    Wait for its startup operation to finish, then open **Packages** to start the
