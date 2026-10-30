@@ -43,6 +43,9 @@ node_modules/
 packages/models/src/gen
 packages/*/src/model/generated
 packages/*/src/generated
+!packages/error-message-parser/src/generated/
+packages/error-message-parser/src/generated/*
+!packages/error-message-parser/src/generated/errorMessages.ts
 
 # RustFS container data
 docker/rustfs-data
