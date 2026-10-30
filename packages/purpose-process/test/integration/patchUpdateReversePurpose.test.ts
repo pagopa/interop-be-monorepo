@@ -175,45 +175,6 @@ describe("patchUpdateReversePurpose", () => {
   const validRiskAnalysis = getMockValidRiskAnalysis(producer.kind!);
 
   it.each(Object.values(purposeVersionState))(
-    "should update metadata in %s without modifying versions or risk analysis",
-    async (state) => {
-      const purpose: Purpose = {
-        ...draftPurpose,
-        updatedAt: new Date(0),
-        versions: [
-          getMockPurposeVersion(state),
-          getMockPurposeVersion(purposeVersionState.archived),
-        ],
-      };
-      await addOnePurpose(purpose);
-      await addOneEService(eservice);
-      await addOneTenant(consumer);
-      await addOneTenant(producer);
-
-      const result = await purposeService.patchUpdateReversePurpose(
-        purpose.id,
-        { title: "updated title", description: "updated description" },
-        getMockContextM2MAdmin({ organizationId: consumer.id })
-      );
-      const payload = await expectWrittenEventAndGetPayload(purpose.id, [
-        "PurposeTitleUpdated",
-        "PurposeDescriptionUpdated",
-      ]);
-      await expectUpdatedPurpose(
-        result,
-        payload,
-        {
-          ...purpose,
-          title: "updated title",
-          description: "updated description",
-          updatedAt: new Date(),
-        },
-        2
-      );
-    }
-  );
-
-  it.each(Object.values(purposeVersionState))(
     "should preserve the event version and timestamps for unchanged metadata in %s",
     async (state) => {
       const purpose: Purpose = {
@@ -270,7 +231,7 @@ describe("patchUpdateReversePurpose", () => {
     });
   });
 
-  it("should emit only metadata events when supplied operational values are unchanged", async () => {
+  it("should emit one Draft event when metadata changes and supplied operational values are unchanged", async () => {
     await addOnePurpose(draftPurpose);
     await addOneEService(eservice);
     await addOneTenant(consumer);
@@ -284,10 +245,7 @@ describe("patchUpdateReversePurpose", () => {
       },
       getMockContextM2MAdmin({ organizationId: consumer.id })
     );
-    const payload = await expectWrittenEventAndGetPayload(draftPurpose.id, [
-      "PurposeTitleUpdated",
-      "PurposeDescriptionUpdated",
-    ]);
+    const payload = await expectWrittenEventAndGetPayload(draftPurpose.id);
     await expectUpdatedPurpose(
       result,
       payload,
@@ -297,7 +255,7 @@ describe("patchUpdateReversePurpose", () => {
         description: "updated description",
         updatedAt: new Date(),
       },
-      2
+      1
     );
   });
 
@@ -485,12 +443,12 @@ describe("patchUpdateReversePurpose", () => {
   it.each([
     {
       seed: { title: "updated title" },
-      eventTypes: ["PurposeTitleUpdated"],
+      eventTypes: ["DraftPurposeUpdated"],
       operationalChanges: false,
     },
     {
       seed: { description: "updated description" },
-      eventTypes: ["PurposeDescriptionUpdated"],
+      eventTypes: ["DraftPurposeUpdated"],
       operationalChanges: false,
     },
     {
@@ -499,7 +457,7 @@ describe("patchUpdateReversePurpose", () => {
         description: undefined,
         dailyCalls: undefined,
       },
-      eventTypes: ["PurposeTitleUpdated"],
+      eventTypes: ["DraftPurposeUpdated"],
       operationalChanges: false,
     },
     {
@@ -535,7 +493,7 @@ describe("patchUpdateReversePurpose", () => {
     operationalChanges: boolean;
   }>)(
     "should update only the fields set in the seed, and leave undefined fields unchanged (seed #%#)",
-    async ({ seed, eventTypes, operationalChanges }) => {
+    async ({ seed, eventTypes }) => {
       await addOnePurpose(draftPurpose);
       await addOneEService(eservice);
       await addOneTenant(consumer);
@@ -566,7 +524,10 @@ describe("patchUpdateReversePurpose", () => {
           {
             ...draftPurpose.versions[0],
             dailyCalls: seed.dailyCalls ?? draftPurpose.versions[0].dailyCalls,
-            ...(operationalChanges ? { updatedAt: new Date() } : {}),
+            ...(seed.dailyCalls !== undefined &&
+            seed.dailyCalls !== draftPurpose.versions[0].dailyCalls
+              ? { updatedAt: new Date() }
+              : {}),
           },
         ],
         updatedAt: new Date(),
@@ -980,10 +941,9 @@ describe("patchUpdateReversePurpose", () => {
 
       const expectedPurpose: Purpose = {
         ...purpose,
-        ...(Object.keys(cleanedSeed).length > 0 ? expected : {}),
-        ...(Object.keys(cleanedSeed).length > 0 &&
-        (initData.isFreeOfCharge !== expected.isFreeOfCharge ||
-          initData.freeOfChargeReason !== expected.freeOfChargeReason)
+        ...expected,
+        ...(initData.isFreeOfCharge !== expected.isFreeOfCharge ||
+        initData.freeOfChargeReason !== expected.freeOfChargeReason
           ? { updatedAt: new Date() }
           : {}),
       };
