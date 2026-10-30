@@ -157,4 +157,41 @@ describe("applyErrorCopy", () => {
       en: undefined,
     });
   });
+
+  it("should fall back to Italian when the selected English copy is missing", () => {
+    const problem: Problem = {
+      type: "about:blank",
+      status: 400,
+      title: "expirationDateCannotBeInThePast",
+      correlationId: "correlationId",
+      detail: "Detail message",
+      errors: [
+        {
+          code: "005-0014",
+          detail: "Detail message",
+        },
+      ],
+    };
+
+    const result = applyErrorCopy(
+      problem,
+      "GET /tenant/:tenantId",
+      [
+        {
+          ...commonErrorMessages[0],
+          copy: {
+            ...commonErrorMessages[0].copy,
+            en: " ",
+          },
+        },
+      ],
+      "en"
+    );
+
+    expect(result.detail).toBe("Un messaggio di errore");
+    expect(result.userMessages).toEqual({
+      it: "Un messaggio di errore",
+      en: undefined,
+    });
+  });
 });

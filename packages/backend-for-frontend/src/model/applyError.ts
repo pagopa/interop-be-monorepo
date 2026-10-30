@@ -41,10 +41,12 @@ export function applyErrorCopy(
     it: copy.copy.it.trim(),
     en: copy.copy.en.trim() || undefined,
   };
+  const detail =
+    userMessages[defaultLanguage ?? "it"] || userMessages.it;
 
   return {
     ...problem,
-    detail: userMessages[defaultLanguage ?? "it"],
+    detail,
     userMessages,
   };
 }
