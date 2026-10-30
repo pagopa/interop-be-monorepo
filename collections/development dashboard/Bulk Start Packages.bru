@@ -1,0 +1,25 @@
+meta {
+  name: Bulk Start Packages
+  type: http
+  seq: 20
+}
+
+post {
+  url: {{host-dashboard}}/__local-dashboard/api/actions
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "type": "packages.start",
+    "names": ["pagopa-interop-tenant-process", "pagopa-interop-tenant-readmodel-writer-sql"]
+  }
+}
+
+tests {
+  test("Bulk startup operation was accepted", function () {
+    expect(res.getStatus()).to.equal(202);
+    expect(res.getBody().operationId).to.be.a("string");
+  });
+}

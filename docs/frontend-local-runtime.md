@@ -1,24 +1,26 @@
 # Frontend local runtime
 
-This runtime is the backend half of the frontend devcontainer workflow. It
-starts the BFF plus the process, SQL readmodel writer, and DynamoDB
-platform-state writer services needed by the back office.
-
-The frontend repository owns the normal orchestration. From its devcontainer,
-use `pnpm local:start`, `pnpm local:stop`, and `pnpm local:reset` instead of
-starting these commands separately.
+The backend-owned [development dashboard](development-dashboard.md) orchestrates
+the backend environment independently of the frontend and VS Code. Its Frontend backend
+preset starts the BFF, processes, SQL readmodel writers and DynamoDB platform-state
+writers needed by the back office. The frontend runs in a separate container;
+its small agent executes Vite and frontend checks. The dashboard API coordinates
+fullstack startup, seed and identity generation, delegating frontend commands to
+the agent over the internal Compose network.
 
 ## Backend commands
 
 | Command | Effect |
 | --- | --- |
-| `pnpm local:start:frontend-full` | Starts the frontend-oriented backend service set |
+| `pnpm local:dashboard` | Starts the dashboard and infrastructure without application packages |
+| `pnpm local:dashboard:logs` | Follows dashboard container installation, build, and bootstrap logs |
+| `bash scripts/local-development/dashboard.sh start --preset frontend-full` | Starts infrastructure and the frontend's backend packages, without seed or Vite |
 | `pnpm local:seed` | Idempotently creates local tenants and the base published catalog entry through APIs/events |
 | `pnpm local:token -- --tenant comune --user admin` | Prints a local-KMS signed token |
-| `pnpm local:token -- --tenant comune --user admin --output .local-development/frontend-token` | Writes the token used by the frontend |
+| `pnpm local:token -- --tenant comune --user admin --output .local-development/manual-token` | Writes a token for manual local use |
 | `pnpm local:infra:start` | Starts infrastructure and prepares it for the frontend runtime |
 | `pnpm local:infra:stop` | Stops frontend infrastructure while preserving named volumes |
-| `pnpm infra:reset` | Stops containers and removes local named volumes |
+| `pnpm infra:reset` | Removes infrastructure data while preserving the dashboard and its configuration |
 
 Tenants: `comune`, `provider`, `impresa`, `certificatore`.
 Roles: `admin`, `api`, `security`, `reviewer`, `viewer`.
@@ -40,8 +42,16 @@ The Selfcare mock implements the institution, product, institution-user, and
 user lookups used by the BFF. Its source dataset is
 `docker/local-development/dataset.json`.
 
-Docker data is persistent. Use `infra:reset` only when a clean rebuild is
-intended; it deletes this Compose project's local volumes.
+The local seed also initializes missing Interop tenant kinds through the Selfcare
+upsert API and waits for readmodel propagation. IPA onboarding initially leaves
+the kind unset; an update evaluates it from the institution type and certified
+attributes. If an older environment returns `Tenant kind not found` when working
+with purposes, rerun `pnpm local:seed` in the backend runtime. This repairs existing
+tenants without resetting data and preserves kinds that are already set.
+
+Docker data is persistent. Use the dashboard reset confirmation when a clean
+rebuild is intended. It removes infrastructure volumes; personal presets and
+dependency volumes are preserved.
 
 Infrastructure startup copies `docker/rustfs-seed` into RustFS and waits for that
 copy to finish before the catalog seed runs. This includes the demo OpenAPI
@@ -56,10 +66,10 @@ existing published interface keeps its metadata, including the old
 it with the correct checksum; rerunning the catalog seed does not mutate a
 published interface.
 
-The frontend-oriented process set starts backend services without file watching
-to keep the complete stack within typical Docker Desktop memory limits. Set
-`INTEROP_BACKEND_WATCH=true` before startup when working on backend code; this
-uses more memory and may require increasing the Docker VM allocation.
+The Frontend backend preset starts backend services without watching to keep memory
+use manageable. Toggle watch per package in the dashboard when working on backend
+code. Individual packages enable watch by default. Watch choices can be saved in
+personal presets.
 
 ## pgAdmin
 
@@ -73,6 +83,16 @@ not depend on the frontend devcontainer. From the backend repository, start it
 with `docker compose -f docker/docker-compose.yml up -d pg-admin` after starting
 the databases. The shell entrypoint prepares the password file with private
 permissions, then delegates initialization to the image's official entrypoint.
+
+An existing container can still have the old read-only root filesystem even when
+the Compose file has been updated. If its logs report that
+`/pgadmin4/config_distro.py` cannot be created, recreate only pgAdmin:
+
+```bash
+docker compose -f docker/docker-compose.yml up -d --no-deps pg-admin
+```
+
+This keeps the `pg-admin-data` volume and does not restart the databases.
 
 The server definitions are imported only when pgAdmin creates its configuration
 database. Later starts preserve configured servers and preferences.
