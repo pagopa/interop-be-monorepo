@@ -17,6 +17,8 @@ export async function handleMessageV2(
       {
         type: P.union(
           "ProducerKeychainAdded",
+          "ProducerKeychainNameUpdated",
+          "ProducerKeychainDescriptionUpdated",
           "ProducerKeychainKeyAdded",
           "ProducerKeychainKeyDeleted",
           "ProducerKeychainUserAdded",

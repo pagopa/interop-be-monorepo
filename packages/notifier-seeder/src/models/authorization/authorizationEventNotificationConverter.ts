@@ -60,6 +60,8 @@ export const toAuthorizationEventNotification = (
           "ClientPurposeAdded",
           "ClientPurposeRemoved",
           "ProducerKeychainAdded",
+          "ProducerKeychainNameUpdated",
+          "ProducerKeychainDescriptionUpdated",
           "ProducerKeychainDeleted",
           "ProducerKeychainKeyAdded",
           "ProducerKeychainKeyDeleted",

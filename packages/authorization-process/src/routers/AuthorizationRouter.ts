@@ -35,6 +35,7 @@ import {
   addClientUserErrorMapper,
   deleteClientErrorMapper,
   updateClientErrorMapper,
+  updateProducerKeychainErrorMapper,
   getClientsErrorMapper,
   createApiClientErrorMapper,
   createConsumerClientErrorMapper,
@@ -671,6 +672,35 @@ const authorizationRouter = (
     }
   );
   authorizationProducerKeychainRouter
+    .patch("/producerKeychains/:producerKeychainId", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+        const { data, metadata } =
+          await authorizationService.updateProducerKeychain(
+            {
+              producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
+              seed: req.body,
+            },
+            ctx
+          );
+        setMetadataVersionHeader(res, metadata);
+        return res
+          .status(200)
+          .send(
+            authorizationApi.FullProducerKeychain.parse(
+              producerKeychainToApiFullVisibilityProducerKeychain(data)
+            )
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          updateProducerKeychainErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post("/producerKeychains", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
