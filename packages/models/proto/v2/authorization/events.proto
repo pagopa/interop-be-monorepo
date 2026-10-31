@@ -9,6 +9,14 @@ message ClientAddedV2 {
   ClientV2 client = 1;
 }
 
+message ClientNameUpdatedV2 {
+  ClientV2 client = 1;
+}
+
+message ClientDescriptionUpdatedV2 {
+  ClientV2 client = 1;
+}
+
 message ClientDeletedV2 {
   string clientId = 1;
   ClientV2 client = 2;

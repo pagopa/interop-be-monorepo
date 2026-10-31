@@ -5,6 +5,7 @@ import {
 } from "pagopa-interop-api-clients";
 import {
   AppContext,
+  CreateEvent,
   calculateKid,
   createJWK,
   DB,
@@ -21,6 +22,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   authorizationEventToBinaryData,
+  AuthorizationEventV2,
   Client,
   ClientId,
   clientKind,
@@ -86,6 +88,8 @@ import {
   toCreateEventClientAdminRemoved,
   toCreateEventClientAdminRoleRevoked,
   toCreateEventClientDeleted,
+  toCreateEventClientNameUpdated,
+  toCreateEventClientDescriptionUpdated,
   toCreateEventClientKeyDeleted,
   toCreateEventClientPurposeAdded,
   toCreateEventClientPurposeRemoved,
@@ -427,6 +431,68 @@ export function authorizationServiceBuilder(
           limit,
         }
       );
+    },
+    async updateClient(
+      {
+        clientId,
+        seed,
+      }: {
+        clientId: ClientId;
+        seed: authorizationApi.ClientUpdateSeed;
+      },
+      {
+        logger,
+        correlationId,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Client>> {
+      logger.info(`Updating client ${clientId}`);
+      validateNoHyperlinksSafe(seed.name);
+      validateNoHyperlinksSafe(seed.description);
+
+      const client = await retrieveClient(clientId, readModelService);
+      assertOrganizationIsClientConsumer(authData, client.data);
+      if (!isUiAuthData(authData)) {
+        assertClientIsConsumer(client.data);
+      }
+
+      const updatedClient: Client = {
+        ...client.data,
+        name: seed.name ?? client.data.name,
+        description: seed.description ?? client.data.description,
+      };
+      const nameEvents: Array<CreateEvent<AuthorizationEventV2>> =
+        updatedClient.name !== client.data.name
+          ? [
+              toCreateEventClientNameUpdated(
+                updatedClient,
+                client.metadata.version,
+                correlationId
+              ),
+            ]
+          : [];
+      const descriptionEvents: Array<CreateEvent<AuthorizationEventV2>> =
+        updatedClient.description !== client.data.description
+          ? [
+              toCreateEventClientDescriptionUpdated(
+                updatedClient,
+                client.metadata.version + nameEvents.length,
+                correlationId
+              ),
+            ]
+          : [];
+      const events = [...nameEvents, ...descriptionEvents];
+      if (events.length === 0) {
+        return client;
+      }
+
+      const createdEvents = await repository.createEvents(events);
+      return {
+        data: updatedClient,
+        metadata: {
+          version: createdEvents.latestNewVersions.get(updatedClient.id) ?? 0,
+        },
+      };
     },
     async deleteClient(
       {
