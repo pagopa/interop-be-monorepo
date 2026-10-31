@@ -4,6 +4,8 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   AuthorizationEventEnvelopeV2,
+  AuthorizationEventV2,
+  authorizationEventToBinaryDataV2,
   UserId,
   generateId,
   ProducerKeychainAddedV2,
@@ -57,6 +59,121 @@ describe("Events V2", async () => {
     expect(retrievedProducerKeychain).toStrictEqual({
       data: mockProducerKeychain,
       metadata: { version: 1 },
+    });
+  });
+
+  it.each([
+    "ProducerKeychainNameUpdated",
+    "ProducerKeychainDescriptionUpdated",
+  ] as const)(
+    "%s: round-trips and projects the complete final snapshot",
+    async (type) => {
+      const producerKeychain: ProducerKeychain = {
+        ...getMockProducerKeychain(),
+        users: [generateId()],
+        keys: [getMockKey()],
+        eservices: [generateId()],
+      };
+      await producerKeychainWriterService.upsertProducerKeychain(
+        producerKeychain,
+        1
+      );
+      const updatedProducerKeychain = {
+        ...producerKeychain,
+        name: "Updated name",
+        description: "Updated description",
+      };
+      const event: AuthorizationEventV2 = {
+        event_version: 2,
+        type,
+        data: {
+          producerKeychain: toProducerKeychainV2(updatedProducerKeychain),
+        },
+      };
+      const decodedEvent = AuthorizationEventV2.parse({
+        ...event,
+        data: Buffer.from(authorizationEventToBinaryDataV2(event)),
+      });
+      expect(decodedEvent).toStrictEqual(event);
+      await handleMessageV2(
+        {
+          ...mockMessage,
+          ...decodedEvent,
+          stream_id: producerKeychain.id,
+          version: 2,
+        },
+        producerKeychainWriterService
+      );
+      expect(
+        await producerKeychainReadModelService.getProducerKeychainById(
+          producerKeychain.id
+        )
+      ).toStrictEqual({
+        data: updatedProducerKeychain,
+        metadata: { version: 2 },
+      });
+    }
+  );
+
+  it.each([
+    "ProducerKeychainNameUpdated",
+    "ProducerKeychainDescriptionUpdated",
+  ] as const)("%s: rejects an event without the snapshot", async (type) => {
+    await expect(
+      handleMessageV2(
+        { ...mockMessage, type, data: {} },
+        producerKeychainWriterService
+      )
+    ).rejects.toThrow();
+  });
+
+  it("metadata events preserve the final snapshot across consecutive versions and stale replay", async () => {
+    await producerKeychainWriterService.upsertProducerKeychain(
+      mockProducerKeychain,
+      1
+    );
+    const updatedProducerKeychain = {
+      ...mockProducerKeychain,
+      name: "Updated name",
+      description: "Updated description",
+    };
+    const data = {
+      producerKeychain: toProducerKeychainV2(updatedProducerKeychain),
+    };
+    await handleMessageV2(
+      {
+        ...mockMessage,
+        type: "ProducerKeychainNameUpdated",
+        data,
+        version: 2,
+      },
+      producerKeychainWriterService
+    );
+    await handleMessageV2(
+      {
+        ...mockMessage,
+        type: "ProducerKeychainDescriptionUpdated",
+        data,
+        version: 3,
+      },
+      producerKeychainWriterService
+    );
+    await handleMessageV2(
+      {
+        ...mockMessage,
+        type: "ProducerKeychainNameUpdated",
+        data: { producerKeychain: toProducerKeychainV2(mockProducerKeychain) },
+        version: 2,
+      },
+      producerKeychainWriterService
+    );
+    expect(
+      await producerKeychainReadModelService.getProducerKeychainById(
+        mockProducerKeychain.id
+      )
+    ).toStrictEqual({
+      data: updatedProducerKeychain,
+      metadata: { version: 3 },
     });
   });
 

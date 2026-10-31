@@ -16,6 +16,7 @@ import {
   deleteDynamoDBTables,
   getMockClient,
   getMockKey,
+  getMockProducerKeychain,
 } from "pagopa-interop-commons-test";
 import {
   AuthorizationEventEnvelopeV2,
@@ -25,6 +26,7 @@ import {
   PurposeId,
   UserId,
   toClientV2,
+  toProducerKeychainV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 
@@ -238,6 +240,35 @@ describe("handleAuthorizationMessageV2 - Integration Test", () => {
       path: "path/to",
     });
   });
+
+  it.each([
+    "ProducerKeychainNameUpdated",
+    "ProducerKeychainDescriptionUpdated",
+  ] as const)(
+    "%s should not produce files or signature references",
+    async (type) => {
+      const producerKeychain = getMockProducerKeychain();
+      const message: AuthorizationEventEnvelopeV2 = {
+        sequence_num: 1,
+        stream_id: producerKeychain.id,
+        version: 2,
+        type,
+        event_version: 2,
+        log_date: new Date(),
+        data: { producerKeychain: toProducerKeychainV2(producerKeychain) },
+      };
+      const createFile = vi.spyOn(safeStorageService, "createFile");
+      const upload = vi.spyOn(safeStorageService, "uploadFileContent");
+      await handleAuthorizationMessageV2(
+        [{ authV2: message, timestamp: new Date() }],
+        fileManager,
+        signatureService,
+        safeStorageService
+      );
+      expect(createFile).not.toHaveBeenCalled();
+      expect(upload).not.toHaveBeenCalled();
+    }
+  );
 
   it("should not process a ClientAdded event", async () => {
     const mockClient = getMockClient();
