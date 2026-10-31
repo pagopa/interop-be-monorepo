@@ -634,6 +634,8 @@ function buildTestCaseData(
           "ClientUserAdded",
           "ClientNameUpdated",
           "ClientDescriptionUpdated",
+          "ProducerKeychainNameUpdated",
+          "ProducerKeychainDescriptionUpdated",
           "ClientUserDeleted",
           "ProducerKeychainUserAdded",
           "ProducerKeychainUserDeleted",

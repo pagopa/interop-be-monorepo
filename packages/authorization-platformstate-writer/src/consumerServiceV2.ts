@@ -484,6 +484,8 @@ export async function handleMessageV2(
           "ClientUserAdded",
           "ClientUserDeleted",
           "ProducerKeychainAdded",
+          "ProducerKeychainNameUpdated",
+          "ProducerKeychainDescriptionUpdated",
           "ProducerKeychainDeleted",
           "ProducerKeychainEServiceAdded",
           "ProducerKeychainEServiceRemoved",

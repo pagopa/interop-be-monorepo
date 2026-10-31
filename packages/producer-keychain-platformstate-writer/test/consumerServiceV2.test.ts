@@ -1,6 +1,8 @@
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 import crypto from "crypto";
 import {
+  getMockContext,
   getMockKey,
   getMockProducerKeychain,
 } from "pagopa-interop-commons-test";
@@ -17,6 +19,7 @@ import {
   ProducerKeychainDeletedV2,
   ProducerKeychainEServiceAddedV2,
   TenantId,
+  UserId,
   toProducerKeychainV2,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
@@ -40,6 +43,43 @@ describe("Events V2", () => {
   const base64Key = Buffer.from(
     key.export({ type: "pkcs1", format: "pem" })
   ).toString("base64url");
+
+  it.each([
+    "ProducerKeychainNameUpdated",
+    "ProducerKeychainDescriptionUpdated",
+  ] as const)(
+    "%s should not change operational platform state",
+    async (type) => {
+      const producerKeychain = {
+        ...getMockProducerKeychain(),
+        name: "Updated name",
+        description: "Updated description",
+        users: [generateId<UserId>()],
+        keys: [getMockKey()],
+        eservices: [generateId<EServiceId>()],
+      };
+      const client = new DynamoDBClient({ region: "eu-south-1" });
+      const send = vi
+        .spyOn(client, "send")
+        .mockRejectedValue(new Error("Unexpected platform-state write"));
+      await handleMessageV2(
+        {
+          sequence_num: 1,
+          stream_id: producerKeychain.id,
+          version: 2,
+          type,
+          event_version: 2,
+          log_date: new Date(),
+          data: { producerKeychain: toProducerKeychainV2(producerKeychain) },
+        },
+        client,
+        tableName,
+        getMockContext({}).logger
+      );
+      expect(send).not.toHaveBeenCalled();
+      client.destroy();
+    }
+  );
 
   it("ProducerKeychainKeyAdded should upsert platform state entry", async () => {
     const producerKeychainId: ProducerKeychainId = generateId();

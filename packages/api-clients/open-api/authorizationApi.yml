@@ -1058,6 +1058,46 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
   /producerKeychains/{producerKeychainId}:
+    patch:
+      tags:
+        - producerKeychain
+      summary: Update a Producer Keychain
+      description: Updates a Producer Keychain
+      operationId: updateProducerKeychain
+      parameters:
+        - name: producerKeychainId
+          in: path
+          description: The Producer Keychain id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProducerKeychainUpdateSeed"
+      responses:
+        "200":
+          description: Producer Keychain updated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FullProducerKeychain"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
@@ -2100,6 +2140,33 @@ components:
       required:
         - hasProducerKeychain
         - hasProducerKeychainKeys
+    ProducerKeychainUpdateSeed:
+      description: Producer keychain update request body
+      anyOf:
+        - type: object
+          additionalProperties: false
+          properties:
+            name:
+              $ref: "#/components/schemas/ProducerKeychainName"
+            description:
+              $ref: "#/components/schemas/ProducerKeychainDescription"
+          required: [name]
+        - type: object
+          additionalProperties: false
+          properties:
+            name:
+              $ref: "#/components/schemas/ProducerKeychainName"
+            description:
+              $ref: "#/components/schemas/ProducerKeychainDescription"
+          required: [description]
+    ProducerKeychainName:
+      type: string
+      minLength: 5
+      maxLength: 60
+    ProducerKeychainDescription:
+      type: string
+      minLength: 10
+      maxLength: 250
     ProducerKeychainSeed:
       description: Producer keychain creation request body
       type: object

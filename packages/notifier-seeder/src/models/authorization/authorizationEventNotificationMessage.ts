@@ -23,6 +23,8 @@ const eventV2TypeMapper = (
       "ClientDescriptionUpdated",
       "ClientAdminRemoved",
       "ProducerKeychainAdded",
+      "ProducerKeychainNameUpdated",
+      "ProducerKeychainDescriptionUpdated",
       "ProducerKeychainDeleted",
       "ProducerKeychainKeyAdded",
       "ProducerKeychainKeyDeleted",

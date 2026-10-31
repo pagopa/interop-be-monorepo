@@ -232,6 +232,40 @@ export function toCreateEventKeyAdded(
   };
 }
 
+export function toCreateEventProducerKeychainNameUpdated(
+  producerKeychain: ProducerKeychain,
+  version: number,
+  correlationId: CorrelationId
+): CreateEvent<AuthorizationEventV2> {
+  return {
+    streamId: producerKeychain.id,
+    version,
+    event: {
+      type: "ProducerKeychainNameUpdated",
+      event_version: 2,
+      data: { producerKeychain: toProducerKeychainV2(producerKeychain) },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventProducerKeychainDescriptionUpdated(
+  producerKeychain: ProducerKeychain,
+  version: number,
+  correlationId: CorrelationId
+): CreateEvent<AuthorizationEventV2> {
+  return {
+    streamId: producerKeychain.id,
+    version,
+    event: {
+      type: "ProducerKeychainDescriptionUpdated",
+      event_version: 2,
+      data: { producerKeychain: toProducerKeychainV2(producerKeychain) },
+    },
+    correlationId,
+  };
+}
+
 export function toCreateEventProducerKeychainAdded(
   producerKeychain: ProducerKeychain,
   correlationId: CorrelationId
