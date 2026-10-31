@@ -205,6 +205,12 @@ async function handleAuthorizationEventV2(
       )
       .with(
         {
+          type: P.union("ClientNameUpdated", "ClientDescriptionUpdated"),
+        },
+        () => Promise.resolve(void 0)
+      )
+      .with(
+        {
           /**
            * We avoid exposing the User-related events as M2M events because the
            * related apis are not exposed in the M2M API.

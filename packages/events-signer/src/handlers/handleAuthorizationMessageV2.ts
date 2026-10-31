@@ -87,6 +87,8 @@ export const handleAuthorizationMessageV2 = async (
       .with(
         P.union(
           { type: "ClientAdded" },
+          { type: "ClientNameUpdated" },
+          { type: "ClientDescriptionUpdated" },
           { type: "ClientAdminRoleRevoked" },
           { type: "ClientAdminRemoved" },
           { type: "ClientUserAdded" },

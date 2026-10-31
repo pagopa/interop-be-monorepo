@@ -21,6 +21,8 @@ import {
   ClientAdminRoleRevokedV2,
   ClientAdminRemovedV2,
   ClientDeletedV2,
+  ClientNameUpdatedV2,
+  ClientDescriptionUpdatedV2,
   ClientKeyAddedV2,
   ClientKeyDeletedV2,
   ClientPurposeAddedV2,
@@ -82,6 +84,12 @@ export function authorizationEventToBinaryDataV2(
 ): Uint8Array {
   return match(event)
     .with({ type: "ClientAdded" }, ({ data }) => ClientAddedV2.toBinary(data))
+    .with({ type: "ClientNameUpdated" }, ({ data }) =>
+      ClientNameUpdatedV2.toBinary(data)
+    )
+    .with({ type: "ClientDescriptionUpdated" }, ({ data }) =>
+      ClientDescriptionUpdatedV2.toBinary(data)
+    )
     .with({ type: "ClientDeleted" }, ({ data }) =>
       ClientDeletedV2.toBinary(data)
     )
@@ -199,6 +207,16 @@ export const AuthorizationEventV1 = z.discriminatedUnion("type", [
 export type AuthorizationEventV1 = z.infer<typeof AuthorizationEventV1>;
 
 export const AuthorizationEventV2 = z.discriminatedUnion("type", [
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("ClientNameUpdated"),
+    data: protobufDecoder(ClientNameUpdatedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("ClientDescriptionUpdated"),
+    data: protobufDecoder(ClientDescriptionUpdatedV2),
+  }),
   z.object({
     event_version: z.literal(2),
     type: z.literal("ClientAdded"),

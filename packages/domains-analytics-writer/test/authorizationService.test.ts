@@ -563,6 +563,50 @@ describe("Authorization messages consumers - handleAuthorizationMessageV2", () =
     await resetTargetTables(producerKeychainTables);
   });
 
+  it.each(["ClientNameUpdated", "ClientDescriptionUpdated"] as const)(
+    "%s: projects the complete final client snapshot",
+    async (type) => {
+      const userId = generateId<UserId>();
+      const purposeId = generateId<PurposeId>();
+      const key = { ...getMockKey(), userId };
+      const client = toClientV2({
+        ...mockClient,
+        name: "Updated client name",
+        description: "Updated client description",
+        adminId: userId,
+        users: [userId],
+        purposes: [purposeId],
+        keys: [key],
+      });
+      const msg: AuthorizationEventEnvelopeV2 = {
+        ...mockMessageClient,
+        type,
+        version: 2,
+        data: { client },
+      };
+
+      await handleAuthorizationEventMessageV2([msg], dbContext);
+
+      expect(
+        await getOneFromDb(dbContext, ClientDbTable.client, { id: client.id })
+      ).toMatchObject({
+        name: client.name,
+        description: client.description,
+        adminId: userId,
+        metadataVersion: 2,
+      });
+      for (const table of [
+        ClientDbTable.client_user,
+        ClientDbTable.client_purpose,
+        ClientDbTable.client_key,
+      ]) {
+        expect(
+          await getManyFromDb(dbContext, table, { clientId: client.id })
+        ).toEqual([expect.objectContaining({ metadataVersion: 2 })]);
+      }
+    }
+  );
+
   it("ProducerKeychainAdded: inserts producer keychain with users, eServices and keys", async () => {
     const userId: UserId = generateId<UserId>();
     const eserviceId: EServiceId = generateId<EServiceId>();

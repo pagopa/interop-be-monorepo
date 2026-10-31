@@ -34,6 +34,7 @@ import { AuthorizationService } from "../services/authorizationService.js";
 import {
   addClientUserErrorMapper,
   deleteClientErrorMapper,
+  updateClientErrorMapper,
   getClientsErrorMapper,
   createApiClientErrorMapper,
   createConsumerClientErrorMapper,
@@ -267,6 +268,28 @@ const authorizationRouter = (
           );
       } catch (error) {
         const errorRes = makeApiProblem(error, getClientErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .patch("/clients/:clientId", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+        const { data, metadata } = await authorizationService.updateClient(
+          {
+            clientId: unsafeBrandId(req.params.clientId),
+            seed: req.body,
+          },
+          ctx
+        );
+        setMetadataVersionHeader(res, metadata);
+        return res
+          .status(200)
+          .send(
+            authorizationApi.Client.parse(clientToApiClient(data, ctx.authData))
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(error, updateClientErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
     })
