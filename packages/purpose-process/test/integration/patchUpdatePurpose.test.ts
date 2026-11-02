@@ -206,37 +206,54 @@ describe("patchUpdatePurpose", () => {
     }
   );
 
-  it("should preserve risk analysis IDs and timestamps for an equivalent operational seed", async () => {
-    const purpose: Purpose = {
-      ...draftPurpose,
-      updatedAt: new Date(0),
-      versions: [{ ...draftPurpose.versions[0], updatedAt: new Date(0) }],
-    };
-    await addOnePurpose(purpose);
-    await addOneEService(eservice);
-    await addOneTenant(consumer);
+  it.each([false, true])(
+    "should preserve risk analysis IDs and timestamps for an equivalent operational seed with empty answers=%s",
+    async (includeEmptyAnswers) => {
+      const seed = buildRiskAnalysisSeed(validRiskAnalysis);
+      const purpose: Purpose = {
+        ...draftPurpose,
+        riskAnalysisForm: {
+          ...validRiskAnalysis.riskAnalysisForm!,
+          singleAnswers:
+            validRiskAnalysis.riskAnalysisForm!.singleAnswers.filter(
+              ({ key }) =>
+                !includeEmptyAnswers || key !== "institutionalPurpose"
+            ),
+        },
+        updatedAt: new Date(0),
+        versions: [{ ...draftPurpose.versions[0], updatedAt: new Date(0) }],
+      };
+      await addOnePurpose(purpose);
+      await addOneEService(eservice);
+      await addOneTenant(consumer);
 
-    const result = await purposeService.patchUpdatePurpose(
-      purpose.id,
-      {
-        title: purpose.title,
-        description: purpose.description,
-        dailyCalls: purpose.versions[0].dailyCalls,
-        isFreeOfCharge: purpose.isFreeOfCharge,
-        freeOfChargeReason: purpose.freeOfChargeReason,
-        riskAnalysisForm: buildRiskAnalysisSeed(validRiskAnalysis),
-      },
-      getMockContextM2MAdmin({ organizationId: consumer.id })
-    );
-    expect(sortUpdatePurposeReturn(result)).toEqual({
-      data: { purpose: sortPurpose(purpose) },
-      metadata: { version: 0 },
-    });
-    expect(await readLastPurposeEvent(purpose.id)).toMatchObject({
-      type: "PurposeAdded",
-      version: "0",
-    });
-  });
+      const result = await purposeService.patchUpdatePurpose(
+        purpose.id,
+        {
+          title: purpose.title,
+          description: purpose.description,
+          dailyCalls: purpose.versions[0].dailyCalls,
+          isFreeOfCharge: purpose.isFreeOfCharge,
+          freeOfChargeReason: purpose.freeOfChargeReason,
+          riskAnalysisForm: {
+            ...seed,
+            answers: includeEmptyAnswers
+              ? { ...seed.answers, institutionalPurpose: [] }
+              : seed.answers,
+          },
+        },
+        getMockContextM2MAdmin({ organizationId: consumer.id })
+      );
+      expect(sortUpdatePurposeReturn(result)).toEqual({
+        data: { purpose: sortPurpose(purpose) },
+        metadata: { version: 0 },
+      });
+      expect(await readLastPurposeEvent(purpose.id)).toMatchObject({
+        type: "PurposeAdded",
+        version: "0",
+      });
+    }
+  );
 
   it("should emit one Draft event when metadata changes and supplied operational values are unchanged", async () => {
     await addOnePurpose(draftPurpose);
