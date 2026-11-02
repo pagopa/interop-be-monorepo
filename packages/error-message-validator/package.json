@@ -29,6 +29,8 @@
     "vitest": "catalog:"
   },
   "dependencies": {
+    "@cspell/dict-it-it": "catalog:",
+    "cspell-lib": "catalog:",
     "commander": "catalog:",
     "csv-parse": "catalog:",
     "pagopa-interop-commons": "workspace:*",

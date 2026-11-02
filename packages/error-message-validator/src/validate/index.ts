@@ -7,6 +7,7 @@ import {
   loadErrorMessages,
   getErrorCodeAndProcessCode,
   extractRouterEndpointsFromFolder,
+  findMisspelledWords,
 } from "../utils/index.js";
 
 export async function validate({
@@ -36,6 +37,21 @@ export async function validate({
         `${errorMessage.bffEndpoint} was not found among the routers`
       );
     }
+  }
+  const spellingErrors: string[] = [];
+  for (const { errorCode, copy } of errorMessages) {
+    const misspelled = [
+      ...(await findMisspelledWords(copy.it, "it")),
+      ...(copy.en ? await findMisspelledWords(copy.en, "en") : []),
+    ];
+    if (misspelled.length > 0) {
+      spellingErrors.push(`${errorCode}: ${misspelled.join(", ")}`);
+    }
+  }
+  if (spellingErrors.length > 0) {
+    throw new Error(
+      `Possible spelling errors:\n${spellingErrors.join("\n")}\n\nIf you think it's a mistake, add it to packages/error-message-validator/src/utils/spellcheck.ts in allowedWords`
+    );
   }
   const generatedContent = readFileSync(fullGeneratedPath, {
     encoding: "utf8",
