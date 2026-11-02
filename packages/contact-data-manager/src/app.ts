@@ -6,7 +6,6 @@ import {
 import {
   authenticationMiddleware,
   contextMiddleware,
-  errorsToApiProblemsMiddleware,
   healthRouter,
   loggerMiddleware,
   zodiosCtx,
@@ -16,6 +15,7 @@ import { serviceName } from "pagopa-interop-models";
 import { config } from "./config/config.js";
 import { contactRouter } from "./routers/contactRouter.js";
 import { ContactService } from "./services/contactService.js";
+import { contactErrorsToApiProblemsMiddleware } from "./utilities/errorHandlers.js";
 
 const cdmServiceName = serviceName.CONTACT_DATA_MANAGER;
 
@@ -33,6 +33,6 @@ export async function createApp(
   app.use(authenticationMiddleware(appConfig));
   app.use(loggerMiddleware(cdmServiceName));
   app.use(contactRouter(zodiosCtx, service));
-  app.use(errorsToApiProblemsMiddleware);
+  app.use(contactErrorsToApiProblemsMiddleware);
   return app;
 }

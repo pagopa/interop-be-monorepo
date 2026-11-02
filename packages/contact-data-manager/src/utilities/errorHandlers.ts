@@ -1,4 +1,5 @@
 import {
+  errorsToApiProblemsMiddleware,
   fromAppContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
@@ -15,4 +16,17 @@ export const contactValidationErrorToApiProblem: typeof zodiosValidationErrorToA
       fromAppContext(req.ctx)
     );
     return res.status(problem.status).send(problem);
+  };
+
+// JSON parser errors can include fragments of the contact email.
+export const contactErrorsToApiProblemsMiddleware: typeof errorsToApiProblemsMiddleware =
+  (error, req, res, next) => {
+    errorsToApiProblemsMiddleware(
+      error instanceof SyntaxError
+        ? new SyntaxError("Invalid request body")
+        : error,
+      req,
+      res,
+      next
+    );
   };
