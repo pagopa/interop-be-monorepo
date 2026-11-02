@@ -1,11 +1,11 @@
 import { bffErrorCodes } from "pagopa-interop-commons";
-import { errorMessages } from "../generated/errorMessages.js";
 import {
   ApiError,
   AttributeId,
   parseErrorMessage,
 } from "pagopa-interop-models";
 
+import { errorMessages } from "../generated/errorMessages.js";
 import { makeUserFacingApiProblemBuilder } from "./applyError.js";
 
 export type ErrorCodes = keyof typeof bffErrorCodes;
