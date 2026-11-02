@@ -27,7 +27,8 @@ The generated `errorMessages` array contains objects with `process`, `error`,
 preserve literal types;
 `GeneratedErrorMessage` is the union of the generated entries.
 
-Values, row order and duplicates are preserved. Empty or missing cells become
+For rows with a resolved error code, values, row order and duplicates are preserved.
+Empty or missing cells become
 empty strings, and completely blank rows are omitted. No process, error code,
 endpoint or translation validation is performed.
 
@@ -35,8 +36,8 @@ endpoint or translation validation is performed.
 service prefixes in models (for example `005-0014`). Process names are matched
 ignoring case, spaces, hyphens and the `Process` suffix; `BFF` and
 `Backend for frontend` identify the same service. Original CSV values are not
-modified. Unknown processes or error names produce `errorCode: null` without
-discarding the row. Error names are matched exactly, and common error names take
+modified. Rows with unknown processes or error names resolve to `errorCode: null`
+and are excluded from the generated TypeScript. Error names are matched exactly, and common error names take
 precedence over process-specific names.
 
 Generation fails for unreadable files, malformed CSV or missing required headers.
