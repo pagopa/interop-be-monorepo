@@ -13,10 +13,7 @@
     "lint": "eslint . && pnpm validate --csv packages/backend-for-frontend/Messaggi-di-errore.csv --generated packages/backend-for-frontend/src/generated/errorMessages.ts",
     "lint:autofix": "eslint . --fix",
     "build": "tsc",
-    "validate": "tsx src/cli.ts",
-    "check": "tsc --project tsconfig.check.json",
-    "test": "vitest",
-    "test:it": "vitest integration"
+    "validate": "tsx src/cli.ts"
   },
   "keywords": [],
   "devDependencies": {
