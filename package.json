@@ -72,6 +72,7 @@
     "lint:openapi": "turbo lint:openapi",
     "generate-model": "turbo generate-model",
     "generate-error-message": "pnpm --filter pagopa-interop-error-message-parser generate",
+    "validate-error-messages": "pnpm --filter pagopa-interop-error-message-validator validate --csv packages/backend-for-frontend/Messaggi-di-errore.csv --generated packages/backend-for-frontend/src/generated/errorMessages.ts",
     "generate-protobuf": "turbo generate-protobuf",
     "generate-db-models": "turbo generate-db-models",
     "infra:start": "./scripts/infra-start.sh",

@@ -13,6 +13,7 @@
     "lint": "eslint .",
     "lint:autofix": "eslint . --fix",
     "build": "tsc",
+    "validate": "tsx src/cli.ts",
     "check": "tsc --project tsconfig.check.json",
     "test": "vitest",
     "test:it": "vitest integration"
@@ -24,9 +25,11 @@
     "eslint": "catalog:",
     "pagopa-interop-eslint-config": "workspace:*",
     "typescript": "catalog:",
+    "tsx": "catalog:",
     "vitest": "catalog:"
   },
   "dependencies": {
+    "commander": "catalog:",
     "csv-parse": "catalog:",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-error-message-parser": "workspace:*",

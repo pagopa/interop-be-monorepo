@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const MethodUrl = z
   .string()
-  .regex(/^(GET|POST|PUT|DELETE|PATCH) \/[\w/-:]+$/);
+  .regex(/^(GET|POST|PUT|DELETE|PATCH) \/[\w/:-]+$/);
 
 export type MethodUrl = z.infer<typeof MethodUrl>;
 

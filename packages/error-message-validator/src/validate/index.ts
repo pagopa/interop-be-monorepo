@@ -1,10 +1,12 @@
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { generateErrorMessages } from "pagopa-interop-error-message-parser";
 
 import {
   getRootPath,
   loadErrorMessages,
   getErrorCodeAndProcessCode,
+  extractRouterEndpointsFromFolder,
 } from "../utils/index.js";
 
 export async function validate({
@@ -24,10 +26,24 @@ export async function validate({
     throw new Error(`${fullGeneratedPath} not found`);
   }
   const errorMessages = await loadErrorMessages(fullGeneratedPath);
-  // TODO: Get endpoint list
+  const bffEndpoints = extractRouterEndpointsFromFolder(
+    join(root, "packages", "backend-for-frontend", "src", "routers")
+  );
   for (const errorMessage of errorMessages) {
     getErrorCodeAndProcessCode(errorMessage.errorCode, errorMessage.error);
-    // TODO: Check endpoint exists
+    if (!bffEndpoints.includes(errorMessage.bffEndpoint)) {
+      throw new Error(
+        `${errorMessage.bffEndpoint} was not found among the routers`
+      );
+    }
   }
-  // TODO: Check generated is equal to new generated from csv
+  const generatedContent = readFileSync(fullGeneratedPath, {
+    encoding: "utf8",
+  });
+  const regeneratedContent = generateErrorMessages(fullCsvPath);
+  if (generatedContent !== regeneratedContent) {
+    throw new Error(
+      `${fullGeneratedPath} does not match the content from ${fullCsvPath}, please regenerate it`
+    );
+  }
 }
