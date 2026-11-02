@@ -2228,6 +2228,9 @@ importers:
       '@zodios/core':
         specifier: 'catalog:'
         version: 10.9.6(axios@1.18.0)(zod@3.23.8)
+      '@zodios/express':
+        specifier: 'catalog:'
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.18.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -2237,12 +2240,18 @@ importers:
       express:
         specifier: 'catalog:'
         version: 4.20.0
+      pagopa-interop-api-clients:
+        specifier: workspace:*
+        version: link:../api-clients
       pagopa-interop-application-audit:
         specifier: workspace:*
         version: link:../application-audit
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
+      pagopa-interop-contact-data-db-models:
+        specifier: workspace:*
+        version: link:../contact-data-db-models
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
@@ -2268,6 +2277,12 @@ importers:
       eslint:
         specifier: 'catalog:'
         version: 9.39.2(jiti@2.6.1)
+      jose:
+        specifier: 'catalog:'
+        version: 5.9.4
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
       pagopa-interop-eslint-config:
         specifier: workspace:*
         version: link:../eslint-config
@@ -2283,6 +2298,9 @@ importers:
       vitest:
         specifier: 'catalog:'
         version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
+      winston:
+        specifier: 'catalog:'
+        version: 3.16.0
 
   packages/datalake-data-export:
     dependencies:

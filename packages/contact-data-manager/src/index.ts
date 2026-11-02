@@ -4,6 +4,7 @@ import pg from "pg";
 
 import { createApp } from "./app.js";
 import { config } from "./config/config.js";
+import { contactServiceBuilder } from "./services/contactService.js";
 
 const pool = new pg.Pool({
   host: config.contactDataDBHost,
@@ -14,6 +15,6 @@ const pool = new pg.Pool({
   ssl: config.contactDataDBUseSSL ? { rejectUnauthorized: false } : undefined,
 });
 
-// The contact service will use this client when its operations are implemented.
-drizzle({ client: pool });
-startServer(await createApp(), config);
+const db = drizzle({ client: pool });
+const service = contactServiceBuilder(db);
+startServer(await createApp(service), config);
