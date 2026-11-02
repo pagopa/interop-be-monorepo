@@ -104,7 +104,9 @@ describe("create eService from template", () => {
       "catalog",
       postgresDB
     );
-    const descriptorCreationEvent = await readLastEserviceEvent(eService.data.id);
+    const descriptorCreationEvent = await readLastEserviceEvent(
+      eService.data.id
+    );
 
     expect(eServiceCreationEvent).toMatchObject({
       stream_id: eService.data.id,
@@ -258,7 +260,9 @@ describe("create eService from template", () => {
         "catalog",
         postgresDB
       );
-      const descriptorCreationEvent = await readLastEserviceEvent(eService.data.id);
+      const descriptorCreationEvent = await readLastEserviceEvent(
+        eService.data.id
+      );
 
       expect(eServiceCreationEvent).toMatchObject({
         stream_id: eService.data.id,

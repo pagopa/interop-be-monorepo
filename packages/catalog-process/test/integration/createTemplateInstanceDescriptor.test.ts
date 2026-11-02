@@ -228,7 +228,9 @@ describe("create descriptor", async () => {
       bulk: false,
       maxResultSet: 200,
     });
-    expect(returnedDescriptor.data.asyncExchangeCallbackInterface).toMatchObject({
+    expect(
+      returnedDescriptor.data.asyncExchangeCallbackInterface
+    ).toMatchObject({
       name: callbackDocument.name,
       prettyName: callbackDocument.prettyName,
       contentType: callbackDocument.contentType,

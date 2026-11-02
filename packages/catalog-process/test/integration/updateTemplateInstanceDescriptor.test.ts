@@ -480,7 +480,9 @@ describe("update descriptor", () => {
     );
     expect(attr2?.dailyCallsPerConsumer).toBe(300);
 
-    expect(returnedEService.data.descriptors[0].attributes.certified[0]).toEqual(
+    expect(
+      returnedEService.data.descriptors[0].attributes.certified[0]
+    ).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           id: mockCertifiedAttribute1.id,
