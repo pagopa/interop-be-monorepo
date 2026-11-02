@@ -9,8 +9,9 @@ import {
 import { generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { vi, beforeEach, describe, it, expect } from "vitest";
-import { api, clients } from "../../vitest.api.setup.js";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { api, clients } from "../../vitest.api.setup.js";
 
 describe("API PUT /purposeTemplates/{purposeTemplateId}", () => {
   const OVER_251_CHAR = "O".repeat(251);

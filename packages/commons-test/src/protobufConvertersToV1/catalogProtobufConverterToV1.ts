@@ -1,4 +1,3 @@
-import { P, match } from "ts-pattern";
 import {
   AgreementApprovalPolicy,
   AgreementApprovalPolicyV1,
@@ -16,10 +15,12 @@ import {
   EServiceRiskAnalysisV1,
   EServiceTechnologyV1,
   EServiceV1,
+  EserviceAttributes,
   RiskAnalysis,
   Technology,
   dateToBigInt,
 } from "pagopa-interop-models";
+import { P, match } from "ts-pattern";
 
 export const toAgreementApprovalPolicyV1 = (
   input: AgreementApprovalPolicy | undefined
@@ -100,7 +101,13 @@ export const toRiskAnalysisV1 = (
   createdAt: dateToBigInt(input.createdAt),
 });
 
-export const toEServiceV1 = (eservice: EService): EServiceV1 => ({
+type EServiceWithLegacyAttributes = EService & {
+  attributes?: EserviceAttributes;
+};
+
+export const toEServiceV1 = (
+  eservice: EServiceWithLegacyAttributes
+): EServiceV1 => ({
   ...eservice,
   technology: toEServiceTechnologyV1(eservice.technology),
   attributes:

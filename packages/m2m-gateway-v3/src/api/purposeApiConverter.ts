@@ -3,6 +3,7 @@ import {
   m2mGatewayApiV3,
   purposeApi,
 } from "pagopa-interop-api-clients";
+
 import {
   getPurposeCurrentVersion,
   sortPurposeVersionsByDate,
@@ -86,6 +87,7 @@ export function toM2MGatewayApiPurpose(
       ? toM2mGatewayApiPurposeVersion(rejectedVersion)
       : undefined,
     purposeTemplateId: purpose.purposeTemplateId,
+    riskAnalysisReviewMode: purpose.riskAnalysisReviewMode,
   };
 }
 

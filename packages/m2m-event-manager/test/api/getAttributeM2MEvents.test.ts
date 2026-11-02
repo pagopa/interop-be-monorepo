@@ -1,15 +1,16 @@
-import { describe, it, expect, vi } from "vitest";
 import { m2mEventApi } from "pagopa-interop-api-clients";
-import request from "supertest";
-import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test";
 import { AttributeM2MEventType, generateId } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import {
   generateM2MEventId,
   getMockedAttributeM2MEvent,
 } from "../mockUtils.js";
-import { api, m2mEventService } from "../vitest.api.setup.js";
 import { testToUpperSnakeCase } from "../utils.js";
+import { api, m2mEventService } from "../vitest.api.setup.js";
 
 describe("API /events/attributes test", () => {
   const mockAttributeM2MEvents = AttributeM2MEventType.options

@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
-import { AttributeId, generateId } from "pagopa-interop-models";
 import { attributeRegistryApi, catalogApi } from "pagopa-interop-api-clients";
+import { AttributeId, generateId } from "pagopa-interop-models";
+import { describe, expect, it } from "vitest";
+
 import { toBffCatalogApiDescriptorAttributes } from "../src/api/catalogApiConverter.js";
 import { attributeNotExists } from "../src/model/errors.js";
 

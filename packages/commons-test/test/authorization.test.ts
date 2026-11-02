@@ -1,5 +1,4 @@
 /* eslint-disable sonarjs/no-identical-functions */
-import { describe, expect, it } from "vitest";
 import {
   AppContext,
   AuthRole,
@@ -11,6 +10,8 @@ import {
   validateAuthorization,
 } from "pagopa-interop-commons";
 import { generateId, unauthorizedError } from "pagopa-interop-models";
+import { describe, expect, it } from "vitest";
+
 import { getMockContext } from "../src/testUtils.js";
 
 describe("validateAuthorization", () => {

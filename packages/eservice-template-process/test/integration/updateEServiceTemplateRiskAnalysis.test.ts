@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   unexpectedFieldError,
   unexpectedFieldValueError,
@@ -14,6 +15,7 @@ import {
   getMockTenant,
   getMockValidEServiceTemplateRiskAnalysis,
   randomArrayItem,
+  sortEServiceTemplateV2,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
@@ -31,7 +33,7 @@ import {
   operationForbidden,
 } from "pagopa-interop-models";
 import { expect, describe, it, vi, afterAll, beforeAll } from "vitest";
-import { eserviceTemplateApi } from "pagopa-interop-api-clients";
+
 import {
   eserviceTemplateNotFound,
   riskAnalysisValidationFailed,
@@ -117,6 +119,13 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
       payload: writtenEvent.data,
     });
 
+    // The readmodel does not guarantee risk analysis ordering, so locate the
+    // updated risk analysis by id (not by position) to resolve answer ids.
+    const writtenUpdatedRiskAnalysisForm =
+      writtenPayload.eserviceTemplate!.riskAnalysis.find(
+        (ra) => ra.id === riskAnalysisToUpdate.id
+      )!.riskAnalysisForm!;
+
     const updatedEServiceTemplate: EServiceTemplate = {
       ...eserviceTemplate,
       riskAnalysis: [
@@ -130,7 +139,7 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
                 (singleAnswer) => ({
                   ...singleAnswer,
                   id: unsafeBrandId(
-                    writtenPayload.eserviceTemplate!.riskAnalysis[0]!.riskAnalysisForm!.singleAnswers.find(
+                    writtenUpdatedRiskAnalysisForm.singleAnswers.find(
                       (sa) => sa.key === singleAnswer.key
                     )!.id
                   ),
@@ -141,7 +150,7 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
                 (multiAnswer) => ({
                   ...multiAnswer,
                   id: unsafeBrandId(
-                    writtenPayload.eserviceTemplate!.riskAnalysis[0]!.riskAnalysisForm!.multiAnswers.find(
+                    writtenUpdatedRiskAnalysisForm.multiAnswers.find(
                       (ma) => ma.key === multiAnswer.key
                     )!.id
                   ),
@@ -153,9 +162,14 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
       ],
     };
 
-    expect(writtenPayload).toEqual({
+    expect({
+      ...writtenPayload,
+      eserviceTemplate: sortEServiceTemplateV2(writtenPayload.eserviceTemplate),
+    }).toEqual({
       riskAnalysisId: riskAnalysisToUpdate.id,
-      eserviceTemplate: toEServiceTemplateV2(updatedEServiceTemplate),
+      eserviceTemplate: sortEServiceTemplateV2(
+        toEServiceTemplateV2(updatedEServiceTemplate)
+      ),
     });
   });
 

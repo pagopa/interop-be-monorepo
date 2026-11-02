@@ -7,6 +7,7 @@ import {
   catalogApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
+import { getRulesetExpiration } from "pagopa-interop-commons";
 import {
   Descriptor,
   EServiceAttribute,
@@ -15,9 +16,10 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { getRulesetExpiration } from "pagopa-interop-commons";
+
 import { attributeNotExists } from "../model/errors.js";
 import {
+  getLastArchivingRequest,
   getLatestActiveDescriptor,
   getLatestTenantContactEmail,
   getValidDescriptor,
@@ -324,6 +326,10 @@ export async function enhanceEServiceToBffCatalogApiProducerDescriptorEService(
     personalData: eservice.personalData,
     instanceLabel: eservice.instanceLabel,
     asyncExchange: eservice.asyncExchange,
+    delegatedArchivingRequest: getLastArchivingRequest(
+      eservice,
+      eservice.descriptors
+    ),
   };
 }
 
@@ -459,6 +465,7 @@ export function toCompactProducerDescriptor(
       descriptor.state === catalogApi.EServiceDescriptorState.Values.DRAFT &&
       descriptor.rejectionReasons &&
       descriptor.rejectionReasons.length > 0,
+    archivableOn: descriptor.archivingSchedule?.archivableOn,
   };
 }
 

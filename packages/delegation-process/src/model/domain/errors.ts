@@ -28,6 +28,7 @@ const errorCodes = {
   delegationContractNotFound: "0013",
   eserviceNotConsumerDelegable: "0014",
   delegationRelatedAgreementExists: "0015",
+  eserviceAlreadyArchived: "0016",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -185,5 +186,15 @@ export function delegationRelatedAgreementExists(
     detail: `Active agreement ${agreementId} for eservice ${eserviceId} and consumer ${consumerId} exists`,
     code: "delegationRelatedAgreementExists",
     title: "Active agreement for this eservice and consumer exists",
+  });
+}
+
+export function eserviceAlreadyArchived(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Eservice ${eserviceId} is already archived`,
+    code: "eserviceAlreadyArchived",
+    title: "Eservice is already archived",
   });
 }

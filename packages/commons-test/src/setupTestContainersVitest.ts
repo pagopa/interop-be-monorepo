@@ -4,6 +4,8 @@
 /* eslint-disable functional/no-let */
 /* eslint-disable functional/immutable-data */
 
+import axios from "axios";
+import { drizzle } from "drizzle-orm/node-postgres";
 import {
   DB,
   EventStoreConfig,
@@ -28,10 +30,9 @@ import {
   ScheduledNotificationDBConfig,
   TenantKindHistoryDBConfig,
 } from "pagopa-interop-commons";
-import axios from "axios";
-import { drizzle } from "drizzle-orm/node-postgres";
 import { DrizzleReturnType } from "pagopa-interop-readmodel-models";
 import pg from "pg";
+
 import { PecEmailManagerConfigTest } from "./testConfig.js";
 
 /**

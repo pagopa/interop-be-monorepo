@@ -1,4 +1,9 @@
-import { describe, expect, it } from "vitest";
+import {
+  getMockPurpose,
+  getMockPurposeVersion,
+  getMockPurposeVersionDocument,
+  getMockValidRiskAnalysisForm,
+} from "pagopa-interop-commons-test";
 import {
   DelegationId,
   generateId,
@@ -13,12 +18,8 @@ import {
   UserId,
   WithMetadata,
 } from "pagopa-interop-models";
-import {
-  getMockPurpose,
-  getMockPurposeVersion,
-  getMockPurposeVersionDocument,
-  getMockValidRiskAnalysisForm,
-} from "pagopa-interop-commons-test";
+import { describe, expect, it } from "vitest";
+
 import { aggregatePurpose } from "../../src/purpose/aggregators.js";
 import { splitPurposeIntoObjectsSQL } from "../../src/purpose/splitters.js";
 
@@ -49,13 +50,17 @@ describe("Purpose aggregator", () => {
         riskAnalysisForm: purposeRiskAnalysisForm,
         versions: [purposeVersion],
         purposeTemplateId: generateId<PurposeTemplateId>(),
+        riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
         reviewerWorkflow: {
-          reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-          reviewerIds: [generateId<UserId>(), generateId<UserId>()],
+          reviewers: [
+            { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+            { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+          ],
           signingState: riskAnalysisSigningState.signed,
           signedBy: generateId<UserId>(),
+          signedAt: new Date(),
+          rejectedBy: generateId<UserId>(),
           rejectionReason: "Reviewer workflow rejection reason",
-          sentToReviewerAt: new Date(),
         },
       },
       metadata: { version: 1 },

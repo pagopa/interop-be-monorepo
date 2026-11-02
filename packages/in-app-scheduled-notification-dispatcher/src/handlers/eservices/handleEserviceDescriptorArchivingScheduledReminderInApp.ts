@@ -1,11 +1,9 @@
-import { differenceInCalendarDays } from "date-fns";
 import { Logger } from "pagopa-interop-commons";
 import {
   Descriptor,
   EService,
   EServiceIdDescriptorId,
   NewNotification,
-  TenantId,
 } from "pagopa-interop-models";
 import {
   getNotificationRecipients,
@@ -15,6 +13,7 @@ import {
   ScheduledNotificationRow,
   parseEServiceIdDescriptorId,
 } from "pagopa-interop-scheduled-notification-db-models";
+
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 export async function handleEserviceDescriptorArchivingScheduledReminderInApp(
@@ -53,10 +52,6 @@ export async function handleEserviceDescriptorArchivingScheduledReminderInApp(
   }
 
   const archivableOn = descriptor.archivingSchedule.archivableOn;
-  const daysRemaining = Math.max(
-    differenceInCalendarDays(archivableOn, new Date()),
-    0
-  );
 
   const entityId = EServiceIdDescriptorId.parse(
     `${eservice.id}/${descriptor.id}`
@@ -65,30 +60,18 @@ export async function handleEserviceDescriptorArchivingScheduledReminderInApp(
   const producerNotifications = await buildProducerNotifications({
     eservice,
     descriptor,
-    daysRemaining,
     archivableOn,
     entityId,
     readModelService,
     log,
   });
 
-  const consumerNotifications = await buildConsumerNotifications({
-    eservice,
-    descriptor,
-    daysRemaining,
-    archivableOn,
-    entityId,
-    readModelService,
-    log,
-  });
-
-  return [...producerNotifications, ...consumerNotifications];
+  return producerNotifications;
 }
 
 type BuilderParams = {
   eservice: EService;
   descriptor: Descriptor;
-  daysRemaining: number;
   archivableOn: Date;
   entityId: EServiceIdDescriptorId;
   readModelService: ReadModelServiceSQL;
@@ -98,7 +81,6 @@ type BuilderParams = {
 async function buildProducerNotifications({
   eservice,
   descriptor,
-  daysRemaining,
   archivableOn,
   entityId,
   readModelService,
@@ -116,60 +98,9 @@ async function buildProducerNotifications({
     body: inAppTemplates.eserviceDescriptorArchivingScheduledReminderToProducer(
       eservice.name,
       descriptor.version,
-      daysRemaining,
       archivableOn
     ),
     notificationType: "eserviceStateChangedToProducer",
-    entityId,
-  }));
-}
-
-async function buildConsumerNotifications({
-  eservice,
-  descriptor,
-  daysRemaining,
-  archivableOn,
-  entityId,
-  readModelService,
-  log,
-}: BuilderParams): Promise<NewNotification[]> {
-  const agreements = await readModelService.getAgreementsByEserviceId(
-    eservice.id,
-    { includeArchived: false }
-  );
-  const consumerIds = Array.from(
-    new Set(
-      agreements
-        .filter((a) => a.descriptorId === descriptor.id)
-        .map((a) => a.consumerId)
-    )
-  ) as TenantId[];
-  if (consumerIds.length === 0) {
-    return [];
-  }
-
-  const producerTenant = await readModelService.getTenantById(
-    eservice.producerId
-  );
-  const producerName = producerTenant?.name ?? eservice.producerId;
-
-  const recipients = await getNotificationRecipients(
-    consumerIds,
-    "eserviceStateChangedToConsumer",
-    readModelService,
-    log
-  );
-  return recipients.map(({ userId, tenantId }) => ({
-    userId,
-    tenantId,
-    body: inAppTemplates.eserviceDescriptorArchivingScheduledReminderToConsumer(
-      eservice.name,
-      descriptor.version,
-      daysRemaining,
-      archivableOn,
-      producerName
-    ),
-    notificationType: "eserviceStateChangedToConsumer",
     entityId,
   }));
 }

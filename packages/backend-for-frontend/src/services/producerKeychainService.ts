@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { WithLogger } from "pagopa-interop-commons";
 import { authorizationApi, bffApi } from "pagopa-interop-api-clients";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { BffAppContext } from "../utilities/context.js";
+import { WithLogger } from "pagopa-interop-commons";
+
 import {
   toAuthorizationKeySeed,
   toBffApiCompactProducerKeychain,
 } from "../api/authorizationApiConverter.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { BffAppContext } from "../utilities/context.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { decorateKey } from "./clientService.js";
 import { getSelfcareCompactUserById } from "./selfcareService.js";

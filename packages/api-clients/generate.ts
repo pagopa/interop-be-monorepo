@@ -15,7 +15,7 @@ import { generateZodClientFromOpenAPI } from "openapi-zod-client";
 import Handlebars from "handlebars";
 import { createEndpointChunkHelpers } from "./src/generatorUtils.js";
 
-const maxEndpointsPerChunk = 50;
+const maxEndpointsPerChunk = 30;
 
 const main = async () => {
   const handlebars = Handlebars.create();

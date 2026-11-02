@@ -1,3 +1,13 @@
+import { generateMock } from "@anatine/zod-mock";
+import {
+  agreementApi,
+  authorizationApi,
+  catalogApi,
+  m2mEventApi,
+  m2mGatewayApiV3,
+  purposeApi,
+  purposeTemplateApi,
+} from "pagopa-interop-api-clients";
 import {
   WithLogger,
   systemRole,
@@ -12,17 +22,8 @@ import {
   TenantId,
   generateId,
 } from "pagopa-interop-models";
-import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
-import {
-  agreementApi,
-  authorizationApi,
-  catalogApi,
-  m2mEventApi,
-  m2mGatewayApiV3,
-  purposeApi,
-  purposeTemplateApi,
-} from "pagopa-interop-api-clients";
+
 import { M2MGatewayAppContext } from "../src/utils/context.js";
 import { DownloadedDocument } from "../src/utils/fileDownload.js";
 
@@ -185,6 +186,7 @@ export const testToM2mGatewayApiEService = (
   archivingReason: eservice.archivingReason,
   asyncExchange: eservice.asyncExchange,
   instanceLabel: eservice.instanceLabel,
+  delegatedArchivingRequest: eservice.delegatedArchivingRequest,
 });
 
 export const testToM2mGatewayApiEServiceEvent = (
@@ -214,10 +216,12 @@ export const testToM2mGatewayApiPurpose = (
     currentVersion,
     waitingForApprovalVersion,
     rejectedVersion,
+    riskAnalysisReviewMode = purpose.riskAnalysisReviewMode,
   }: {
     currentVersion?: m2mGatewayApiV3.PurposeVersion;
     waitingForApprovalVersion?: m2mGatewayApiV3.PurposeVersion;
     rejectedVersion?: m2mGatewayApiV3.PurposeVersion;
+    riskAnalysisReviewMode?: m2mGatewayApiV3.RiskAnalysisReviewMode;
   }
 ): m2mGatewayApiV3.Purpose => ({
   id: purpose.id,
@@ -236,6 +240,7 @@ export const testToM2mGatewayApiPurpose = (
   waitingForApprovalVersion,
   rejectedVersion,
   purposeTemplateId: purpose.purposeTemplateId,
+  riskAnalysisReviewMode,
 });
 
 const testToM2MJWK = (key: authorizationApi.JWKKey): m2mGatewayApiV3.JWK => ({

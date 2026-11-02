@@ -1,3 +1,4 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   AuthorizationEventEnvelope,
   AuthorizationEventEnvelopeV2,
@@ -6,21 +7,21 @@ import {
   fromProducerKeychainV2,
   ProducerKeychain,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
-import { M2MEventWriterServiceSQL } from "../services/m2mEventWriterServiceSQL.js";
+
 import { toClientM2MEventSQL } from "../models/clientM2MEventAdapterSQL.js";
 import { toKeyM2MEventSQL } from "../models/keyM2MEventAdapterSQL.js";
 import { toProducerKeychainM2MEventSQL } from "../models/producerKeychainM2MEventAdapterSQL.js";
 import { toProducerKeyM2MEventSQL } from "../models/producerKeyM2MEventAdapterSQL.js";
+import { createClientM2MEvent } from "../services/event-builders/clientM2MEventBuilder.js";
+import { createKeyM2MEvent } from "../services/event-builders/keyM2MEventBuilder.js";
+import { createProducerKeychainM2MEvent } from "../services/event-builders/producerKeychainM2MEventBuilder.js";
+import { createProducerKeyM2MEvent } from "../services/event-builders/producerKeyM2MEventBuilder.js";
+import { M2MEventWriterServiceSQL } from "../services/m2mEventWriterServiceSQL.js";
 import {
   assertClientExistsInEvent,
   assertProducerKeychainExistsInEvent,
 } from "../services/validators.js";
-import { createProducerKeyM2MEvent } from "../services/event-builders/producerKeyM2MEventBuilder.js";
-import { createKeyM2MEvent } from "../services/event-builders/keyM2MEventBuilder.js";
-import { createClientM2MEvent } from "../services/event-builders/clientM2MEventBuilder.js";
-import { createProducerKeychainM2MEvent } from "../services/event-builders/producerKeychainM2MEventBuilder.js";
 
 export async function handleAuthorizationEvent(
   authorizationEvent: AuthorizationEventEnvelope,

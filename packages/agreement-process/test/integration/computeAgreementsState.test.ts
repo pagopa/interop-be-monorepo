@@ -1,5 +1,6 @@
 /* eslint-disable fp/no-delete */
 /* eslint-disable functional/immutable-data */
+import { addDays } from "date-fns";
 import {
   decodeProtobufPayload,
   getMockAgreement,
@@ -39,7 +40,8 @@ import {
   toAgreementV2,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it } from "vitest";
-import { addDays } from "date-fns";
+
+import { config } from "../../src/config/config.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -47,7 +49,6 @@ import {
   readAgreementEventByVersion,
   readLastAgreementEvent,
 } from "../integrationUtils.js";
-import { config } from "../../src/config/config.js";
 
 describe("compute Agreements state by attribute", () => {
   beforeEach(() => {

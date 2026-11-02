@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest";
 import AdmZip from "adm-zip";
+import { describe, it, expect } from "vitest";
+
 import { zipBuffer } from "../../../src/utils/compression.js";
 
 describe("compressJson", () => {

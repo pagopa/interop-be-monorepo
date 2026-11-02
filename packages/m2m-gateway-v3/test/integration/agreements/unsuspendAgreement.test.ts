@@ -1,14 +1,21 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import { agreementApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import {
+  getMockedApiAgreement,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   generateId,
   pollingMaxRetriesExceeded,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { config } from "../../../src/config/config.js";
 import {
-  getMockedApiAgreement,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
+  agreementNotInSuspendedState,
+  missingMetadata,
+} from "../../../src/model/errors.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
@@ -16,12 +23,6 @@ import {
   mockPollingResponse,
   agreementService,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { config } from "../../../src/config/config.js";
-import {
-  agreementNotInSuspendedState,
-  missingMetadata,
-} from "../../../src/model/errors.js";
 import {
   getMockM2MAdminAppContext,
   testToM2mGatewayApiAgreement,
@@ -36,7 +37,7 @@ describe("unsuspendAgreement", () => {
   const mockDelegationRef = { delegationId: generateId() };
 
   const pollingTentatives = 2;
-  const mockActivateAgreement = vi
+  const mockUnsuspendAgreement = vi
     .fn()
     .mockResolvedValue(mockAgreementProcessResponse);
   const mockGetAgreement = vi.fn(
@@ -45,11 +46,11 @@ describe("unsuspendAgreement", () => {
 
   mockInteropBeClients.agreementProcessClient = {
     getAgreementById: mockGetAgreement,
-    activateAgreement: mockActivateAgreement,
+    unsuspendAgreement: mockUnsuspendAgreement,
   } as unknown as PagoPAInteropBeClients["agreementProcessClient"];
 
   beforeEach(() => {
-    mockActivateAgreement.mockClear();
+    mockUnsuspendAgreement.mockClear();
     mockGetAgreement.mockClear();
   });
 
@@ -67,7 +68,7 @@ describe("unsuspendAgreement", () => {
 
     expect(result).toStrictEqual(m2mAgreementResponse);
     expectApiClientPostToHaveBeenCalledWith({
-      mockPost: mockInteropBeClients.agreementProcessClient.activateAgreement,
+      mockPost: mockInteropBeClients.agreementProcessClient.unsuspendAgreement,
       params: {
         agreementId: mockAgreementProcessResponse.data.id,
       },
@@ -103,7 +104,7 @@ describe("unsuspendAgreement", () => {
 
   it("Should throw missingMetadata in case the agreement returned by the unsuspend agreement POST call has no metadata", async () => {
     mockGetAgreement.mockResolvedValueOnce(mockAgreementProcessResponse);
-    mockActivateAgreement.mockResolvedValueOnce({
+    mockUnsuspendAgreement.mockResolvedValueOnce({
       ...mockAgreementProcessResponse,
       metadata: undefined,
     });

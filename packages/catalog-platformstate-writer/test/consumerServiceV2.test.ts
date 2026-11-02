@@ -1,14 +1,17 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
+import { genericLogger } from "pagopa-interop-commons";
 import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+  getMockDescriptor,
+  getMockEService,
+  getMockDocument,
+  getMockTokenGenStatesConsumerClient,
+  buildDynamoDBTables,
+  deleteDynamoDBTables,
+  readAllTokenGenStatesItems,
+  writeTokenGenStatesConsumerClient,
+  writePlatformCatalogEntry,
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   EService,
@@ -34,22 +37,20 @@ import {
   toEServiceV2,
 } from "pagopa-interop-models";
 import {
-  getMockDescriptor,
-  getMockEService,
-  getMockDocument,
-  getMockTokenGenStatesConsumerClient,
-  buildDynamoDBTables,
-  deleteDynamoDBTables,
-  readAllTokenGenStatesItems,
-  writeTokenGenStatesConsumerClient,
-  writePlatformCatalogEntry,
-} from "pagopa-interop-commons-test";
-import { genericLogger } from "pagopa-interop-commons";
-import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
-import { readCatalogEntry } from "../src/utils.js";
-import { handleMessageV2 } from "../src/consumerServiceV2.js";
-import { dynamoDBClient } from "./utils.js";
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+
 import { config } from "../src/config/config.js";
+import { handleMessageV2 } from "../src/consumerServiceV2.js";
+import { readCatalogEntry } from "../src/utils.js";
+import { dynamoDBClient } from "./utils.js";
 
 describe("integration tests V2 events", async () => {
   beforeEach(async () => {

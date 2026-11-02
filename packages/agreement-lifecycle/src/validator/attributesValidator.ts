@@ -14,6 +14,7 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import {
   filterDeclaredAttributes,
   filterVerifiedAttributes,

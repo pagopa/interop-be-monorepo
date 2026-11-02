@@ -11,6 +11,7 @@ import {
 import { Purpose, PurposeTemplateId, generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { purposeToApiPurpose } from "../../src/model/domain/apiConverter.js";
 import {
   duplicatedPurposeTitle,

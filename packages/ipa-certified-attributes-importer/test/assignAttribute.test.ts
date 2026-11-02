@@ -1,14 +1,15 @@
 /* eslint-disable sonarjs/no-identical-functions */
 import { randomUUID } from "crypto";
+import { genericLogger } from "pagopa-interop-commons";
 import { Attribute, Tenant, unsafeBrandId } from "pagopa-interop-models";
 import { expect, describe, it, vi, beforeAll, afterAll } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
+
+import { parseIPACertifiedAttributesImporterConfig } from "../src/config/config.js";
 import {
   TenantSeed,
   getAttributesToAssign,
 } from "../src/services/ipaCertifiedAttributesImporterService.js";
 import { attributes } from "./expectation.js";
-import { parseIPACertifiedAttributesImporterConfig } from "../src/config/config.js";
 
 describe("GetAttributesToAssign", async () => {
   const mockedDate = new Date("2024-01-01T00:00:00.000Z");

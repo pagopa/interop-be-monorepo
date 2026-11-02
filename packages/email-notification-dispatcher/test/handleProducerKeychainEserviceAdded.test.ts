@@ -1,5 +1,6 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/no-identical-functions */
+import { authRole } from "pagopa-interop-commons";
 import {
   getMockAgreement,
   getMockContext,
@@ -7,7 +8,6 @@ import {
   getMockEService,
   getMockTenant,
 } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
 import {
   Agreement,
   agreementState,
@@ -17,12 +17,13 @@ import {
   generateId,
   TenantId,
 } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   eserviceWithoutDescriptors,
   eserviceNotFound,
   tenantNotFound,
 } from "pagopa-interop-notification-commons";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { handleProducerKeychainEserviceAdded } from "../src/handlers/authorization/handleProducerKeychainEserviceAdded.js";
 import {
   addOneAgreement,

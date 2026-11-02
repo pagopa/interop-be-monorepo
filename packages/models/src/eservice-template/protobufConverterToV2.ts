@@ -1,11 +1,9 @@
 import { match } from "ts-pattern";
-import { dateToBigInt } from "../utils.js";
+
 import {
-  EServiceTemplateRiskAnalysisV2,
-  EServiceTemplateV2,
-  EServiceTemplateVersionStateV2,
-  EServiceTemplateVersionV2,
-} from "../gen/v2/eservice-template/eservice-template.js";
+  AgreementApprovalPolicy,
+  agreementApprovalPolicy,
+} from "../eservice/eservice.js";
 import {
   toDocumentV2,
   toCertifiedDiscreteConfigV2,
@@ -15,10 +13,14 @@ import {
   toEServiceTechnologyV2,
 } from "../eservice/protobufConverterToV2.js";
 import {
-  AgreementApprovalPolicy,
-  agreementApprovalPolicy,
-} from "../eservice/eservice.js";
+  EServiceTemplateRiskAnalysisV2,
+  EServiceTemplateV2,
+  EServiceTemplateVersionStateV2,
+  EServiceTemplateVersionV2,
+} from "../gen/v2/eservice-template/eservice-template.js";
 import { AgreementApprovalPolicyV2 } from "../gen/v2/eservice/eservice.js";
+import { RiskAnalysis } from "../risk-analysis/riskAnalysis.js";
+import { dateToBigInt } from "../utils.js";
 import {
   EServiceTemplate,
   EServiceTemplateVersion,
@@ -27,7 +29,6 @@ import {
   EServiceTemplateAttribute,
   EServiceTemplateAttributeCertifiedDiscrete,
 } from "./eserviceTemplate.js";
-import { RiskAnalysis } from "../risk-analysis/riskAnalysis.js";
 
 const toEServiceTemplateAttributeValueV2 = (
   attribute:

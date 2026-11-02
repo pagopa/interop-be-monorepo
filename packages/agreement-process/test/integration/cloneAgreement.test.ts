@@ -32,6 +32,8 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+
+import { config } from "../../src/config/config.js";
 import {
   agreementClonableStates,
   agreementCloningConflictingStates,
@@ -47,7 +49,6 @@ import {
   tenantIsNotTheDelegateConsumer,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
 import {
   addOneAgreement,
   addOneDelegation,

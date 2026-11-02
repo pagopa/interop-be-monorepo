@@ -1,5 +1,6 @@
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import { getAllFromPaginated } from "pagopa-interop-commons";
+
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "./context.js";
 

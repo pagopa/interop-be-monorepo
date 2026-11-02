@@ -8,6 +8,13 @@ export const toApiCertifiedAttributeProcessSeed = (
   code: createHash("sha256").update(seed.name).digest("hex"),
 });
 
+export const toApiCertifiedDiscreteAttributeProcessSeed = (
+  seed: bffApi.AttributeSeed
+): attributeRegistryApi.CertifiedAttributeSeed => ({
+  ...seed,
+  code: createHash("sha256").update(seed.name).digest("hex"),
+});
+
 export const toCompactAttribute = (
   attribute: attributeRegistryApi.Attribute
 ): bffApi.CompactAttribute => ({

@@ -5,12 +5,6 @@ import {
   setupTestContainersVitest,
   writeInEventstore,
 } from "pagopa-interop-commons-test";
-import { inject, afterEach } from "vitest";
-import {
-  catalogReadModelServiceBuilder,
-  eserviceTemplateReadModelServiceBuilder,
-  tenantReadModelServiceBuilder,
-} from "pagopa-interop-readmodel";
 import {
   EService,
   EServiceEvent,
@@ -22,21 +16,32 @@ import {
   Tenant,
   Agreement,
   Delegation,
+  EServiceDescriptorPurposeTemplate,
   EServiceId,
+  PurposeTemplate,
   TenantId,
   TenantKind,
 } from "pagopa-interop-models";
+import {
+  catalogReadModelServiceBuilder,
+  eserviceTemplateReadModelServiceBuilder,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import {
   upsertAgreement,
   upsertAttribute,
   upsertDelegation,
   upsertEService,
   upsertEServiceTemplate,
+  upsertPurposeTemplate,
+  upsertPurposeTemplateEServiceDescriptor,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
+import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
+import { inject, afterEach } from "vitest";
+
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
-import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
 
 export const {
   cleanup,
@@ -144,6 +149,18 @@ export const addOneEServiceTemplate = async (
 ): Promise<void> => {
   await writeEServiceTemplateInEventstore(eServiceTemplate);
   await upsertEServiceTemplate(readModelDB, eServiceTemplate, 0);
+};
+
+export const addOnePurposeTemplate = async (
+  purposeTemplate: PurposeTemplate
+): Promise<void> => {
+  await upsertPurposeTemplate(readModelDB, purposeTemplate, 0);
+};
+
+export const addOnePurposeTemplateEServiceDescriptor = async (
+  link: EServiceDescriptorPurposeTemplate
+): Promise<void> => {
+  await upsertPurposeTemplateEServiceDescriptor(readModelDB, link, 0);
 };
 
 export const addOneTenantKindHistory = async ({

@@ -1,8 +1,10 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { bffApi } from "pagopa-interop-api-clients";
 import {
   authRole,
   ExpressContext,
+  setMetadataVersionHeader,
   validateAuthorization,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
@@ -12,16 +14,16 @@ import {
   emptyErrorMapper,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { bffApi } from "pagopa-interop-api-clients";
-import { PurposeService } from "../services/purposeService.js";
+
 import { makeApiProblem } from "../model/errors.js";
+import { PurposeService } from "../services/purposeService.js";
+import { fromBffAppContext } from "../utilities/context.js";
 import {
   getRiskAnalysisAssignmentsErrorMapper,
   getPurposesErrorMapper,
   reversePurposeUpdateErrorMapper,
   getPurposeErrorMapper,
 } from "../utilities/errorMappers.js";
-import { fromBffAppContext } from "../utilities/context.js";
 
 const purposeRouter = (
   ctx: ZodiosContext,
@@ -339,6 +341,7 @@ const purposeRouter = (
       try {
         await purposeService.signRiskAnalysis(
           unsafeBrandId(req.params.purposeId),
+          req.body,
           ctx
         );
 
@@ -547,12 +550,14 @@ const purposeRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
-        const result = await purposeService.getPurpose(
+        const { data: purpose, metadata } = await purposeService.getPurpose(
           unsafeBrandId(req.params.purposeId),
           ctx
         );
 
-        return res.status(200).send(bffApi.Purpose.parse(result));
+        setMetadataVersionHeader(res, metadata);
+
+        return res.status(200).send(bffApi.Purpose.parse(purpose));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

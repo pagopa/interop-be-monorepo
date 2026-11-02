@@ -17,13 +17,14 @@ import {
   toProducerKeychainV2,
   UserId,
 } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it, vi, Mock } from "vitest";
-import { readModelService } from "./utils.js";
 import {
   getNotificationRecipients,
   inAppTemplates,
 } from "pagopa-interop-notification-commons";
+import { beforeEach, describe, expect, it, vi, Mock } from "vitest";
+
 import { handleAuthorizationEvent } from "../src/handlers/authorizations/handleAuthorizationEvent.js";
+import { readModelService } from "./utils.js";
 
 describe("handleAuthorizationEvent", () => {
   const producerId = generateId<TenantId>();

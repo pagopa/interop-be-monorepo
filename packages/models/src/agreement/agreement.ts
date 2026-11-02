@@ -1,4 +1,6 @@
 import z from "zod";
+
+import { AttributeCertifiedDiscreteComparator } from "../eservice/eservice.js";
 import {
   AgreementDocumentId,
   AgreementId,
@@ -9,7 +11,6 @@ import {
   TenantId,
   UserId,
 } from "./../brandedIds.js";
-import { AttributeCertifiedDiscreteComparator } from "../eservice/eservice.js";
 
 export const agreementState = {
   draft: "Draft",

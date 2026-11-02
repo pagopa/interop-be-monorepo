@@ -11,7 +11,6 @@ import {
   riskAnalysisAnswerKind,
   tenantKind,
 } from "pagopa-interop-models";
-import { describe, expect, it } from "vitest";
 import {
   PurposeTemplateEServiceDescriptorSQL,
   PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSQL,
@@ -20,6 +19,8 @@ import {
   PurposeTemplateRiskAnalysisFormSQL,
   PurposeTemplateSQL,
 } from "pagopa-interop-readmodel-models";
+import { describe, expect, it } from "vitest";
+
 import {
   splitPurposeTemplateIntoObjectsSQL,
   toPurposeTemplateEServiceDescriptorSQL,

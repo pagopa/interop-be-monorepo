@@ -1,5 +1,6 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
+
 import { DigestTrackingDbConfig } from "../config/config.js";
 import { DigestTrackingDb } from "../services/digestTrackingService.js";
 

@@ -1,3 +1,4 @@
+import { HtmlTemplateService, Logger } from "pagopa-interop-commons";
 import {
   Attribute,
   AttributeId,
@@ -15,7 +16,6 @@ import {
   UserId,
   UserRole,
 } from "pagopa-interop-models";
-import { HtmlTemplateService, Logger } from "pagopa-interop-commons";
 import { z } from "zod";
 
 export type Channel = "inApp" | "email";

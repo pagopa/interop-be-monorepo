@@ -15,6 +15,7 @@ import {
   producerKeychainKeyInReadmodelProducerKeychain,
 } from "pagopa-interop-readmodel-models";
 import { inject, afterEach, expect } from "vitest";
+
 import { producerKeychainWriterServiceBuilder } from "../src/producerKeychainWriterService.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(

@@ -1,19 +1,20 @@
-import { describe, it, expect, vi } from "vitest";
-import request from "supertest";
-import { generateToken } from "pagopa-interop-commons-test";
+import { m2mEventApi } from "pagopa-interop-api-clients";
 import { AuthRole, authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test";
 import {
   ProducerKeychainM2MEventType,
   generateId,
   m2mEventVisibility,
 } from "pagopa-interop-models";
-import { m2mEventApi } from "pagopa-interop-api-clients";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import {
   generateM2MEventId,
   getMockedProducerKeychainM2MEvent,
 } from "../mockUtils.js";
-import { api, m2mEventService } from "../vitest.api.setup.js";
 import { testToUpperSnakeCase } from "../utils.js";
+import { api, m2mEventService } from "../vitest.api.setup.js";
 
 describe("API /events/producerKeychains test", () => {
   const mockProducerKeychainM2MEvents = ProducerKeychainM2MEventType.options

@@ -1,4 +1,4 @@
-import { match } from "ts-pattern";
+import { notificationConfigApi } from "pagopa-interop-api-clients";
 import {
   AppContext,
   DB,
@@ -21,11 +21,19 @@ import {
   NotificationConfig,
   UserRole,
 } from "pagopa-interop-models";
-import { notificationConfigApi } from "pagopa-interop-api-clients";
 import {
   NotificationConfigReadModelService,
   TenantReadModelService,
 } from "pagopa-interop-readmodel";
+import { match } from "ts-pattern";
+
+import {
+  notificationConfigNotAllowedForUserRoles,
+  tenantNotificationConfigAlreadyExists,
+  tenantNotificationConfigNotFound,
+  userNotificationConfigNotFound,
+  userRoleNotInUserNotificationConfig,
+} from "../model/domain/errors.js";
 import {
   toCreateEventTenantNotificationConfigCreated,
   toCreateEventTenantNotificationConfigDeleted,
@@ -36,13 +44,6 @@ import {
   toCreateEventUserNotificationConfigRoleRemoved,
   toCreateEventUserNotificationConfigUpdated,
 } from "../model/domain/toEvent.js";
-import {
-  notificationConfigNotAllowedForUserRoles,
-  tenantNotificationConfigAlreadyExists,
-  tenantNotificationConfigNotFound,
-  userNotificationConfigNotFound,
-  userRoleNotInUserNotificationConfig,
-} from "../model/domain/errors.js";
 
 const defaultNotificationConfigs = {
   tenant: {
@@ -77,6 +78,16 @@ const defaultNotificationConfigs = {
       producerKeychainKeyAddedDeletedToClientUsers: false,
       purposeQuotaAdjustmentRequestToProducer: false,
       purposeOverQuotaStateToConsumer: false,
+      purposeRiskAnalysisAssignedForSigningToReviewer: false,
+      purposeRiskAnalysisAssignedForWritingAndSigningToReviewer: false,
+      purposePublishedWithRiskAnalysisToReviewer: false,
+      draftPurposeDeletedWithRiskAnalysisToReviewer: false,
+      purposeRiskAnalysisAssignmentRemovedToReviewer: false,
+      purposeRiskAnalysisSignedToReviewer: false,
+      purposeRiskAnalysisSignedToAdmin: false,
+      purposeRiskAnalysisRejectedToAdmin: false,
+      eserviceArchivingRequestedToDelegator: false,
+      eserviceArchivingApprovedRejectedToDelegate: false,
     } satisfies NotificationConfig,
     email: {
       agreementSuspendedUnsuspendedToProducer: false,
@@ -103,6 +114,16 @@ const defaultNotificationConfigs = {
       producerKeychainKeyAddedDeletedToClientUsers: false,
       purposeQuotaAdjustmentRequestToProducer: false,
       purposeOverQuotaStateToConsumer: false,
+      purposeRiskAnalysisAssignedForSigningToReviewer: false,
+      purposeRiskAnalysisAssignedForWritingAndSigningToReviewer: false,
+      purposePublishedWithRiskAnalysisToReviewer: false,
+      draftPurposeDeletedWithRiskAnalysisToReviewer: false,
+      purposeRiskAnalysisAssignmentRemovedToReviewer: false,
+      purposeRiskAnalysisSignedToReviewer: false,
+      purposeRiskAnalysisSignedToAdmin: false,
+      purposeRiskAnalysisRejectedToAdmin: false,
+      eserviceArchivingRequestedToDelegator: false,
+      eserviceArchivingApprovedRejectedToDelegate: false,
     } satisfies NotificationConfig,
   },
 };

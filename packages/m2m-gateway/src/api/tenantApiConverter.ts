@@ -1,5 +1,6 @@
 import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
 import { PUBLIC_ADMINISTRATIONS_IDENTIFIER } from "pagopa-interop-models";
+
 import { taxCodeAndIPACodeConflict } from "../model/errors.js";
 
 export function toM2MGatewayApiTenant(

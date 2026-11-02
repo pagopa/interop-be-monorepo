@@ -1,9 +1,7 @@
-import { describe, it, expect, beforeEach, Mock } from "vitest";
 import {
   getMockAgreement,
   getMockContext,
   getMockDescriptor,
-  getMockDescriptorPublished,
   getMockEService,
   getMockTenant,
 } from "pagopa-interop-commons-test";
@@ -14,7 +12,6 @@ import {
   DescriptorId,
   descriptorState,
   EService,
-  EServiceDescriptorArchivedV2,
   EServiceArchivingScheduledV2,
   EServiceArchivingCompletedV2,
   EServiceDescriptorArchivingScheduledV2,
@@ -22,6 +19,8 @@ import {
   EServiceEventV2,
   EServiceIdDescriptorId,
   generateId,
+  GracePeriodDays,
+  gracePeriodDays,
   missingKafkaMessageDataError,
   toEServiceV2,
   UserId,
@@ -30,6 +29,8 @@ import {
   getNotificationRecipients,
   inAppTemplates,
 } from "pagopa-interop-notification-commons";
+import { describe, it, expect, beforeEach, Mock } from "vitest";
+
 import { handleEserviceArchivingToConsumer } from "../src/handlers/eservices/handleEserviceArchivingToConsumer.js";
 import {
   addOneAgreement,
@@ -44,24 +45,19 @@ describe("handleEserviceArchivingToConsumer", () => {
   const userId = generateId<UserId>();
   const { logger } = getMockContext({});
 
-  const archivingDescriptor: Descriptor = {
+  const archivingDescriptorId = generateId<DescriptorId>();
+  const getArchivingDescriptor = (
+    gracePeriodDaysValue: GracePeriodDays
+  ): Descriptor => ({
     ...getMockDescriptor(descriptorState.archiving),
+    id: archivingDescriptorId,
     archivingSchedule: {
       archivableOn: new Date("2026-12-31T00:00:00.000Z"),
       startedAt: new Date("2026-05-14T00:00:00.000Z"),
       scope: archivingScope.descriptor,
+      gracePeriodDays: gracePeriodDaysValue,
     },
-  };
-
-  const eservice: EService = {
-    ...getMockEService(),
-    producerId: producerTenant.id,
-    descriptors: [archivingDescriptor],
-  };
-
-  const agreement = {
-    ...getMockAgreement(eservice.id, consumerTenant.id, agreementState.active),
-  };
+  });
 
   const mockGetNotificationRecipients = getNotificationRecipients as Mock;
 
@@ -70,10 +66,8 @@ describe("handleEserviceArchivingToConsumer", () => {
     mockGetNotificationRecipients.mockResolvedValue([
       { userId, tenantId: consumerTenant.id },
     ]);
-    await addOneEService(eservice);
     await addOneTenant(producerTenant);
     await addOneTenant(consumerTenant);
-    await addOneAgreement(agreement);
   });
 
   it("throws missingKafkaMessageDataError when eservice is undefined", async () => {
@@ -82,7 +76,7 @@ describe("handleEserviceArchivingToConsumer", () => {
       type: "EServiceDescriptorArchivingScheduled",
       data: {
         eservice: undefined,
-        descriptorId: archivingDescriptor.id,
+        descriptorId: archivingDescriptorId,
       } satisfies EServiceDescriptorArchivingScheduledV2,
     };
     await expect(() =>
@@ -95,171 +89,179 @@ describe("handleEserviceArchivingToConsumer", () => {
     );
   });
 
-  it("emits a notification for EServiceDescriptorArchivingScheduled to active consumers", async () => {
-    const msg: EServiceEventV2 = {
-      event_version: 2,
-      type: "EServiceDescriptorArchivingScheduled",
-      data: {
-        eservice: toEServiceV2(eservice),
-        descriptorId: archivingDescriptor.id,
-      } satisfies EServiceDescriptorArchivingScheduledV2,
-    };
-    const notifications = await handleEserviceArchivingToConsumer(
-      msg,
-      logger,
-      readModelService
-    );
-    expect(notifications).toHaveLength(1);
-    expect(notifications[0]).toEqual({
-      userId,
-      tenantId: consumerTenant.id,
-      notificationType: "eserviceStateChangedToConsumer",
-      entityId: EServiceIdDescriptorId.parse(
-        `${eservice.id}/${archivingDescriptor.id}`
-      ),
-      body: inAppTemplates.eserviceArchivingStartedDescriptorToConsumer(
-        eservice.name,
-        archivingDescriptor.version,
-        producerTenant.name,
-        archivingDescriptor.archivingSchedule!.archivableOn
-      ),
-    });
-  });
+  it.each([...gracePeriodDays])(
+    "emits a notification for EServiceDescriptorArchivingScheduled to active consumers (gracePeriodDays: %d)",
+    async (gracePeriodDaysValue: GracePeriodDays) => {
+      const archivingDescriptor = getArchivingDescriptor(gracePeriodDaysValue);
+      const eservice: EService = {
+        ...getMockEService(),
+        producerId: producerTenant.id,
+        descriptors: [archivingDescriptor],
+      };
+      await addOneEService(eservice);
+      await addOneAgreement({
+        ...getMockAgreement(
+          eservice.id,
+          consumerTenant.id,
+          agreementState.active
+        ),
+      });
 
-  it("emits a notification for EServiceArchivingScheduled (eservice scope)", async () => {
-    const msg: EServiceEventV2 = {
-      event_version: 2,
-      type: "EServiceArchivingScheduled",
-      data: {
-        eservice: toEServiceV2(eservice),
-      } satisfies EServiceArchivingScheduledV2,
-    };
-    const notifications = await handleEserviceArchivingToConsumer(
-      msg,
-      logger,
-      readModelService
-    );
-    expect(notifications).toHaveLength(1);
-    expect(notifications[0].body).toBe(
-      inAppTemplates.eserviceArchivingStartedEserviceToConsumer(
-        eservice.name,
-        producerTenant.name,
-        archivingDescriptor.archivingSchedule!.archivableOn
-      )
-    );
-  });
+      const msg: EServiceEventV2 = {
+        event_version: 2,
+        type: "EServiceDescriptorArchivingScheduled",
+        data: {
+          eservice: toEServiceV2(eservice),
+          descriptorId: archivingDescriptor.id,
+        } satisfies EServiceDescriptorArchivingScheduledV2,
+      };
+      const notifications = await handleEserviceArchivingToConsumer(
+        msg,
+        logger,
+        readModelService
+      );
+      expect(notifications).toHaveLength(1);
+      expect(notifications[0]).toEqual({
+        userId,
+        tenantId: consumerTenant.id,
+        notificationType: "eserviceStateChangedToConsumer",
+        entityId: EServiceIdDescriptorId.parse(
+          `${eservice.id}/${archivingDescriptor.id}`
+        ),
+        body: inAppTemplates.eserviceArchivingStartedDescriptorToConsumer(
+          eservice.name,
+          archivingDescriptor.version,
+          archivingDescriptor.archivingSchedule!.archivableOn
+        ),
+      });
+    }
+  );
 
-  it("emits a notification for EServiceDescriptorArchivingCompleted (descriptor scope)", async () => {
-    const msg: EServiceEventV2 = {
-      event_version: 2,
-      type: "EServiceDescriptorArchivingCompleted",
-      data: {
-        eservice: toEServiceV2(eservice),
-        descriptorId: archivingDescriptor.id,
-      } satisfies EServiceDescriptorArchivingCompletedV2,
-    };
-    const notifications = await handleEserviceArchivingToConsumer(
-      msg,
-      logger,
-      readModelService
-    );
-    expect(notifications).toHaveLength(1);
-    expect(notifications[0].body).toBe(
-      inAppTemplates.eserviceArchivingCompletedDescriptorToConsumer(
-        eservice.name,
-        archivingDescriptor.version,
-        producerTenant.name
-      )
-    );
-  });
+  it.each([...gracePeriodDays])(
+    "emits a notification for EServiceArchivingScheduled (eservice scope, gracePeriodDays: %d)",
+    async (gracePeriodDaysValue: GracePeriodDays) => {
+      const archivingDescriptor = getArchivingDescriptor(gracePeriodDaysValue);
+      const eservice: EService = {
+        ...getMockEService(),
+        producerId: producerTenant.id,
+        descriptors: [archivingDescriptor],
+      };
+      await addOneEService(eservice);
+      await addOneAgreement({
+        ...getMockAgreement(
+          eservice.id,
+          consumerTenant.id,
+          agreementState.active
+        ),
+      });
 
-  it("emits a notification for EServiceArchivingCompleted (eservice scope)", async () => {
-    const msg: EServiceEventV2 = {
-      event_version: 2,
-      type: "EServiceArchivingCompleted",
-      data: {
-        eservice: toEServiceV2(eservice),
-      } satisfies EServiceArchivingCompletedV2,
-    };
-    const notifications = await handleEserviceArchivingToConsumer(
-      msg,
-      logger,
-      readModelService
-    );
-    expect(notifications).toHaveLength(1);
-    expect(notifications[0].body).toBe(
-      inAppTemplates.eserviceArchivingCompletedEserviceToConsumer(
-        eservice.name,
-        producerTenant.name
-      )
-    );
-  });
+      const msg: EServiceEventV2 = {
+        event_version: 2,
+        type: "EServiceArchivingScheduled",
+        data: {
+          eservice: toEServiceV2(eservice),
+        } satisfies EServiceArchivingScheduledV2,
+      };
+      const notifications = await handleEserviceArchivingToConsumer(
+        msg,
+        logger,
+        readModelService
+      );
+      expect(notifications).toHaveLength(1);
+      expect(notifications[0].body).toBe(
+        inAppTemplates.eserviceArchivingStartedEserviceToConsumer(
+          eservice.name,
+          archivingDescriptor.archivingSchedule!.archivableOn
+        )
+      );
+    }
+  );
 
-  it("emits early-archived notification to consumers whose agreements are now archived", async () => {
-    // Same eservice but the consumer's agreement is in 'archived' state — that's
-    // exactly the scenario that triggers an early archive (subscriptions exhausted).
-    const archivedAgreement = getMockAgreement(
-      eservice.id,
-      consumerTenant.id,
-      agreementState.archived
-    );
-    await addOneAgreement(archivedAgreement);
+  it.each([...gracePeriodDays])(
+    "emits a notification for EServiceDescriptorArchivingCompleted (descriptor scope, gracePeriodDays: %d)",
+    async (gracePeriodDaysValue: GracePeriodDays) => {
+      const archivingDescriptor = getArchivingDescriptor(gracePeriodDaysValue);
+      const eservice: EService = {
+        ...getMockEService(),
+        producerId: producerTenant.id,
+        descriptors: [archivingDescriptor],
+      };
+      await addOneEService(eservice);
+      await addOneAgreement({
+        ...getMockAgreement(
+          eservice.id,
+          consumerTenant.id,
+          agreementState.active
+        ),
+      });
 
-    const msg: EServiceEventV2 = {
-      event_version: 2,
-      type: "EServiceDescriptorArchived",
-      data: {
-        eservice: toEServiceV2(eservice),
-        descriptorId: archivingDescriptor.id,
-      } satisfies EServiceDescriptorArchivedV2,
-    };
-    const notifications = await handleEserviceArchivingToConsumer(
-      msg,
-      logger,
-      readModelService
-    );
-    // Includes both the active agreement consumer and the archived one (deduped by tenant in real flow, but here it's the same tenant)
-    expect(notifications.length).toBeGreaterThanOrEqual(1);
-    expect(notifications[0].body).toBe(
-      inAppTemplates.eserviceArchivingEarlyArchivedToConsumer(
-        eservice.name,
-        archivingDescriptor.version,
-        producerTenant.name
-      )
-    );
-  });
+      const msg: EServiceEventV2 = {
+        event_version: 2,
+        type: "EServiceDescriptorArchivingCompleted",
+        data: {
+          eservice: toEServiceV2(eservice),
+          descriptorId: archivingDescriptor.id,
+        } satisfies EServiceDescriptorArchivingCompletedV2,
+      };
+      const notifications = await handleEserviceArchivingToConsumer(
+        msg,
+        logger,
+        readModelService
+      );
+      expect(notifications).toHaveLength(1);
+      expect(notifications[0].body).toBe(
+        inAppTemplates.eserviceArchivingCompletedDescriptorToConsumer(
+          eservice.name,
+          archivingDescriptor.version,
+          archivingDescriptor.archivingSchedule!.archivableOn
+        )
+      );
+    }
+  );
 
-  it("returns empty array (skip routine) when archivingSchedule is absent on EServiceDescriptorArchived", async () => {
-    const routineDescriptor: Descriptor = {
-      ...getMockDescriptorPublished(),
-    };
-    const routineEservice: EService = {
-      ...eservice,
-      id: generateId(),
-      descriptors: [routineDescriptor],
-    };
-    await addOneEService(routineEservice);
+  it.each([...gracePeriodDays])(
+    "emits a notification for EServiceArchivingCompleted (eservice scope, gracePeriodDays: %d)",
+    async (gracePeriodDaysValue: GracePeriodDays) => {
+      const archivingDescriptor = getArchivingDescriptor(gracePeriodDaysValue);
+      const eservice: EService = {
+        ...getMockEService(),
+        producerId: producerTenant.id,
+        descriptors: [archivingDescriptor],
+      };
+      await addOneEService(eservice);
+      await addOneAgreement({
+        ...getMockAgreement(
+          eservice.id,
+          consumerTenant.id,
+          agreementState.active
+        ),
+      });
 
-    const msg: EServiceEventV2 = {
-      event_version: 2,
-      type: "EServiceDescriptorArchived",
-      data: {
-        eservice: toEServiceV2(routineEservice),
-        descriptorId: routineDescriptor.id,
-      } satisfies EServiceDescriptorArchivedV2,
-    };
-    const notifications = await handleEserviceArchivingToConsumer(
-      msg,
-      logger,
-      readModelService
-    );
-    expect(notifications).toEqual([]);
-    expect(mockGetNotificationRecipients).not.toHaveBeenCalled();
-  });
+      const msg: EServiceEventV2 = {
+        event_version: 2,
+        type: "EServiceArchivingCompleted",
+        data: {
+          eservice: toEServiceV2(eservice),
+        } satisfies EServiceArchivingCompletedV2,
+      };
+      const notifications = await handleEserviceArchivingToConsumer(
+        msg,
+        logger,
+        readModelService
+      );
+      expect(notifications).toHaveLength(1);
+      expect(notifications[0].body).toBe(
+        inAppTemplates.eserviceArchivingCompletedEserviceToConsumer(
+          eservice.name,
+          archivingDescriptor.archivingSchedule!.archivableOn
+        )
+      );
+    }
+  );
 
   it("returns empty array when there are no agreements", async () => {
     const otherDescriptor: Descriptor = {
-      ...archivingDescriptor,
+      ...getArchivingDescriptor(30),
       id: generateId<DescriptorId>(),
     };
     const otherEservice: EService = {

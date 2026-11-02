@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { getMockDelegation } from "pagopa-interop-commons-test";
 import {
   DelegationContractDocument,
   DelegationEventEnvelopeV2,
@@ -7,7 +7,8 @@ import {
   ProducerDelegationSubmittedV2,
   toDelegationV2,
 } from "pagopa-interop-models";
-import { getMockDelegation } from "pagopa-interop-commons-test";
+import { describe, it, expect, beforeEach } from "vitest";
+
 import { handleDelegationMessageV2 } from "../src/handlers/delegation/consumerServiceV2.js";
 import { DelegationDbTable } from "../src/model/db/index.js";
 import {

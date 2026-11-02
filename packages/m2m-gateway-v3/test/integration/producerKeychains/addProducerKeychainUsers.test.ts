@@ -1,16 +1,20 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import {
+  getMockedApiFullProducerKeychain,
+  getMockTenant,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   TenantId,
   generateId,
   pollingMaxRetriesExceeded,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  getMockedApiFullProducerKeychain,
-  getMockTenant,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
-import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { config } from "../../../src/config/config.js";
+import { missingMetadata, userNotFound } from "../../../src/model/errors.js";
 import {
   producerKeychainService,
   mockPollingResponse,
@@ -18,10 +22,7 @@ import {
   expectApiClientPostToHaveBeenCalledWith,
   expectApiClientGetToHaveBeenCalledWith,
 } from "../../integrationUtils.js";
-import { config } from "../../../src/config/config.js";
-import { missingMetadata, userNotFound } from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 
 describe("addProducerKeychainUsers", () => {
   const tenantId = generateId<TenantId>();

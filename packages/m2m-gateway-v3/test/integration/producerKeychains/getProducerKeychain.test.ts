@@ -1,17 +1,18 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { unsafeBrandId } from "pagopa-interop-models";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   getMockWithMetadata,
   getMockedApiPartialProducerKeychain,
   getMockedApiFullProducerKeychain,
 } from "pagopa-interop-commons-test";
+import { unsafeBrandId } from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
   producerKeychainService,
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getProducerKeychain", () => {

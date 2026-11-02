@@ -2,6 +2,13 @@
 
 import { isAxiosError } from "axios";
 import {
+  agreementApi,
+  authorizationApi,
+  bffApi,
+  catalogApi,
+  purposeApi,
+} from "pagopa-interop-api-clients";
+import {
   FailedValidation,
   SuccessfulValidation,
   validateClientKindAndPlatformState,
@@ -10,6 +17,7 @@ import {
   verifyClientAssertion,
   verifyClientAssertionSignature,
 } from "pagopa-interop-client-assertion-validation";
+import { isFeatureFlagEnabled, WithLogger } from "pagopa-interop-commons";
 import {
   AgreementId,
   ApiError,
@@ -32,16 +40,10 @@ import {
   TokenGenerationStatesGenericClient,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { isFeatureFlagEnabled, WithLogger } from "pagopa-interop-commons";
-import {
-  agreementApi,
-  authorizationApi,
-  bffApi,
-  catalogApi,
-  purposeApi,
-} from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
-import { BffAppContext } from "../utilities/context.js";
+
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { config } from "../config/config.js";
 import {
   activeAgreementByEserviceAndConsumerNotFound,
   cannotGetKeyWithClient,
@@ -53,8 +55,7 @@ import {
   purposeNotFound,
   tenantNotAllowed,
 } from "../model/errors.js";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { config } from "../config/config.js";
+import { BffAppContext } from "../utilities/context.js";
 import { getAllAgreements } from "./agreementService.js";
 import {
   DPoPValidationSteps,

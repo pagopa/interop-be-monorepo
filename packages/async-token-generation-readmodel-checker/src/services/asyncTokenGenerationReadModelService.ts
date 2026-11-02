@@ -12,6 +12,7 @@ import {
   TokenGenerationStatesGenericClient,
 } from "pagopa-interop-models";
 import { z } from "zod";
+
 import { config } from "../configs/config.js";
 
 async function* scanPages<T>({

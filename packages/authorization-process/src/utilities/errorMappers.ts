@@ -2,6 +2,7 @@
 import { constants } from "http2";
 import { ApiError, CommonErrorCodes } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import { ErrorCodes as LocalErrorCodes } from "../model/domain/errors.js";
 
 type ErrorCodes = LocalErrorCodes | CommonErrorCodes;
@@ -24,6 +25,7 @@ export const createConsumerClientErrorMapper = (
 ): number =>
   match(error.code)
     .with("duplicatedMembersInSeed", () => HTTP_STATUS_BAD_REQUEST)
+    .with("userNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const createApiClientErrorMapper = (
@@ -31,6 +33,7 @@ export const createApiClientErrorMapper = (
 ): number =>
   match(error.code)
     .with("duplicatedMembersInSeed", () => HTTP_STATUS_BAD_REQUEST)
+    .with("userNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getClientsErrorMapper = (error: ApiError<ErrorCodes>): number =>
@@ -212,6 +215,7 @@ export const createProducerKeychainErrorMapper = (
 ): number =>
   match(error.code)
     .with("duplicatedMembersInSeed", () => HTTP_STATUS_BAD_REQUEST)
+    .with("userNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getProducerKeychainsErrorMapper = (

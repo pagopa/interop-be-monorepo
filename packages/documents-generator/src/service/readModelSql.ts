@@ -1,3 +1,4 @@
+import { and, eq, inArray } from "drizzle-orm";
 import {
   EServiceId,
   WithMetadata,
@@ -25,7 +26,6 @@ import {
   agreementInReadmodelAgreement,
   delegationInReadmodelDelegation,
 } from "pagopa-interop-readmodel-models";
-import { and, eq, inArray } from "drizzle-orm";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({

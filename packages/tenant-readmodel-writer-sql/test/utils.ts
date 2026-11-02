@@ -1,11 +1,10 @@
-import { inject, afterEach } from "vitest";
+import { eq } from "drizzle-orm";
 import {
   getMockTenant,
   getMockTenantMail,
   getMockVerifiedTenantAttribute,
   setupTestContainersVitest,
 } from "pagopa-interop-commons-test";
-import { tenantReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import {
   AttributeId,
   CertifiedDiscreteTenantAttribute,
@@ -30,7 +29,7 @@ import {
   VerifiedTenantAttribute,
   WithMetadata,
 } from "pagopa-interop-models";
-import { eq } from "drizzle-orm";
+import { tenantReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import {
   TenantSQL,
   TenantMailSQL,
@@ -50,6 +49,8 @@ import {
   tenantVerifiedAttributeRevokerInReadmodelTenant,
   tenantFeatureInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
+import { inject, afterEach } from "vitest";
+
 import { tenantWriterServiceBuilder } from "../src/tenantWriterService.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(

@@ -1,5 +1,3 @@
-import { describe, it, expect, beforeEach, Mock } from "vitest";
-import { match } from "ts-pattern";
 import {
   getMockContext,
   getMockEService,
@@ -22,14 +20,16 @@ import {
   eserviceNotFound,
   inAppTemplates,
 } from "pagopa-interop-notification-commons";
+import { match } from "ts-pattern";
+import { describe, it, expect, beforeEach, Mock } from "vitest";
 
+import { handleAgreementActivatedRejectedToConsumer } from "../src/handlers/agreements/handleAgreementActivatedRejectedToConsumer.js";
 import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
   readModelService,
 } from "./utils.js";
-import { handleAgreementActivatedRejectedToConsumer } from "../src/handlers/agreements/handleAgreementActivatedRejectedToConsumer.js";
 
 describe("handleAgreementActivatedRejectedToConsumer", () => {
   const consumerId = generateId<TenantId>();

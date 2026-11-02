@@ -1,12 +1,13 @@
 import { Logger } from "pagopa-interop-commons";
 import { CorrelationId } from "pagopa-interop-models";
+
 import { TenantDigestData } from "../services/digestDataService.js";
-import { DigestUser } from "../services/readModelService.js";
 import { DigestTrackingService } from "../services/digestTrackingService.js";
 import {
   createDigestEmailPayload,
   EmailProducerService,
 } from "../services/emailProducerService.js";
+import { DigestUser } from "../services/readModelService.js";
 import { ProcessResult } from "./resultsCollector.js";
 
 export const processUserWithTenantData = async (

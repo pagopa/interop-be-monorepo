@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { APIEndpoint } from "../model/apiEndpoint.js";
 import { LoggerConfig } from "./loggerConfig.js";
 

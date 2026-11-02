@@ -13,6 +13,7 @@ import {
 } from "pagopa-interop-models";
 import { schedulableEventType } from "pagopa-interop-scheduled-notification-db-models";
 import { match } from "ts-pattern";
+
 import { SchedulerService } from "../../services/schedulerService.js";
 
 type ReminderConfig = {

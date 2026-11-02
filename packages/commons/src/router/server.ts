@@ -1,5 +1,6 @@
-import { Server } from "http";
 import { ZodiosApp } from "@zodios/express";
+import { Server } from "http";
+
 import { ExpressContext } from "../context/context.js";
 import { genericLogger } from "../logging/index.js";
 

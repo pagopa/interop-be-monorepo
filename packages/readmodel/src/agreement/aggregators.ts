@@ -1,13 +1,4 @@
 import {
-  AgreementSQL,
-  AgreementStampSQL,
-  AgreementAttributeSQL,
-  AgreementConsumerDocumentSQL,
-  AgreementContractSQL,
-  AgreementItemsSQL,
-  AgreementSignedContractSQL,
-} from "pagopa-interop-readmodel-models";
-import {
   Agreement,
   unsafeBrandId,
   WithMetadata,
@@ -24,7 +15,17 @@ import {
   AgreementId,
   AgreementSignedContract,
 } from "pagopa-interop-models";
+import {
+  AgreementSQL,
+  AgreementStampSQL,
+  AgreementAttributeSQL,
+  AgreementConsumerDocumentSQL,
+  AgreementContractSQL,
+  AgreementItemsSQL,
+  AgreementSignedContractSQL,
+} from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
+
 import { makeUniqueKey, throwIfMultiple } from "../utils.js";
 
 export const aggregateAgreementArray = ({

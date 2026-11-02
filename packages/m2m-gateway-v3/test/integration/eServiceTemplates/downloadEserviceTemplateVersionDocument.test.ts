@@ -1,24 +1,25 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
+import {
+  getMockedApiEserviceDoc,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   EServiceTemplateVersionId,
   EServiceTemplateId,
   generateId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  getMockedApiEserviceDoc,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
-import { genericLogger } from "pagopa-interop-commons";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { config } from "../../../src/config/config.js";
 import {
   eserviceTemplateService,
   expectApiClientGetToHaveBeenCalledWith,
   fileManager,
   mockInteropBeClients,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { config } from "../../../src/config/config.js";
 import { expectDownloadedDocumentToBeEqual } from "../../multipartTestUtils.js";
 
 describe("downloadEServiceTemplateVersionDocument", () => {

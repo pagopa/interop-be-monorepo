@@ -1,11 +1,11 @@
 /* eslint-disable functional/immutable-data */
+import { authRole } from "pagopa-interop-commons";
 import {
   getMockContext,
   getMockKey,
   getMockProducerKeychain,
   getMockTenant,
 } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
 import {
   CorrelationId,
   generateId,
@@ -20,13 +20,14 @@ import {
   unsafeBrandId,
   UserId,
 } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { match } from "ts-pattern";
-import { handleProducerKeychainKeyAdded } from "../src/handlers/authorization/handleProducerKeychainKeyAdded.js";
 import {
   producerKeychainKeyNotFound,
   tenantNotFound,
 } from "pagopa-interop-notification-commons";
+import { match } from "ts-pattern";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { handleProducerKeychainKeyAdded } from "../src/handlers/authorization/handleProducerKeychainKeyAdded.js";
 import {
   addOneTenant,
   getMockUser,

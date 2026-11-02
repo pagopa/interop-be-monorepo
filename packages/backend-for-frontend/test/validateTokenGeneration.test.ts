@@ -1,4 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { authorizationApi, bffApi } from "pagopa-interop-api-clients";
+import * as clientAssertionValidation from "pagopa-interop-client-assertion-validation";
+import { AuthData } from "pagopa-interop-commons";
+import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
+import * as dpopValidation from "pagopa-interop-dpop-validation";
 import {
   ApiError,
   ClientId,
@@ -6,11 +10,8 @@ import {
   generateId,
   PurposeId,
 } from "pagopa-interop-models";
-import { AuthData } from "pagopa-interop-commons";
-import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
-import { authorizationApi, bffApi } from "pagopa-interop-api-clients";
-import * as clientAssertionValidation from "pagopa-interop-client-assertion-validation";
-import * as dpopValidation from "pagopa-interop-dpop-validation";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
 import { config } from "../src/config/config.js";
 import { toolsServiceBuilder } from "../src/services/toolService.js";

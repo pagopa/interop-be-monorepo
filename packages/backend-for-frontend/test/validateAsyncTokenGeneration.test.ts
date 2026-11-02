@@ -1,9 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import { marshall } from "@aws-sdk/util-dynamodb";
-import { AuthData } from "pagopa-interop-commons";
-import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import { bffApi, authorizationApi } from "pagopa-interop-api-clients";
 import * as clientAssertionValidation from "pagopa-interop-client-assertion-validation";
+import { AuthData } from "pagopa-interop-commons";
+import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import * as dpopValidation from "pagopa-interop-dpop-validation";
 import {
   ClientId,
@@ -16,6 +15,8 @@ import {
   PurposeId,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
 import { config } from "../src/config/config.js";
 import { toolsServiceBuilder } from "../src/services/toolService.js";

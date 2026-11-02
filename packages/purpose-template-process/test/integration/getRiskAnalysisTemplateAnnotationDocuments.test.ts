@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable functional/no-let */
+import { AuthData } from "pagopa-interop-commons";
 import {
   getMockAuthData,
   getMockContext,
@@ -17,15 +18,15 @@ import {
   purposeTemplateState,
   userRole,
 } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it } from "vitest";
-import { AuthData } from "pagopa-interop-commons";
 import { upsertPurposeTemplate } from "pagopa-interop-readmodel/testUtils";
+import { beforeEach, describe, expect, it } from "vitest";
+
+import { purposeTemplateNotFound } from "../../src/model/domain/errors.js";
 import {
   addOnePurposeTemplate,
   purposeTemplateService,
   readModelDB,
 } from "../integrationUtils.js";
-import { purposeTemplateNotFound } from "../../src/model/domain/errors.js";
 
 const sortByCreatedAtDate = (
   a: RiskAnalysisTemplateAnswerAnnotationDocument,

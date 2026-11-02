@@ -12,10 +12,10 @@ import {
   mapRecipientToEmailPayload,
   retrieveHTMLTemplate,
   retrieveLatestDescriptor,
-  retrieveTenant,
 } from "pagopa-interop-notification-commons";
-import { EServiceHandlerParams } from "../../models/handlerParams.js";
+
 import { config } from "../../config/config.js";
+import { EServiceHandlerParams } from "../../models/handlerParams.js";
 
 const notificationType: NotificationType = "eserviceStateChangedToConsumer";
 
@@ -37,11 +37,10 @@ export async function handleEserviceArchivingCanceledToConsumer(
   const eservice = fromEServiceV2(eserviceV2Msg);
   const descriptor = retrieveLatestDescriptor(eservice);
 
-  const [htmlTemplate, producer, agreements] = await Promise.all([
+  const [htmlTemplate, agreements] = await Promise.all([
     retrieveHTMLTemplate(
       eventMailTemplateType.eserviceArchivingCanceledEserviceToConsumerMailTemplate
     ),
-    retrieveTenant(eservice.producerId, readModelService),
     readModelService.getAgreementsByEserviceId(eservice.id),
   ]);
 
@@ -88,7 +87,6 @@ export async function handleEserviceArchivingCanceledToConsumer(
             entityId: `${eservice.id}/${descriptor.id}`,
             ...(target.type === "Tenant" ? { recipientName: tenant.name } : {}),
             eserviceName: eservice.name,
-            producerName: producer.name,
             ctaLabel: `Accedi a PDND`,
             selfcareId: target.selfcareId,
             bffUrl: config.bffUrl,

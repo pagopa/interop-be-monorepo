@@ -1,5 +1,6 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/no-identical-functions */
+import { authRole } from "pagopa-interop-commons";
 import {
   getMockAgreement,
   getMockContext,
@@ -8,7 +9,6 @@ import {
   getMockEService,
   getMockTenant,
 } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
 import {
   Agreement,
   AttributeId,
@@ -23,6 +23,7 @@ import {
   toEServiceV2,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { handleEserviceStateChanged } from "../src/handlers/eservices/handleEserviceStateChanged.js";
 import {
   addOneAgreement,

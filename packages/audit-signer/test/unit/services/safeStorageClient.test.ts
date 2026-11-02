@@ -1,12 +1,13 @@
 /* eslint-disable functional/no-let */
 
 import "../setup.js";
-import { describe, it, expect, vi, beforeEach, afterEach, Mock } from "vitest";
 import axios from "axios";
 import {
   genericLogger,
   createSafeStorageApiClient,
 } from "pagopa-interop-commons";
+import { describe, it, expect, vi, beforeEach, afterEach, Mock } from "vitest";
+
 import { config } from "../../../src/config/config.js";
 
 vi.mock("axios");

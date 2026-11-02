@@ -1,4 +1,3 @@
-import { describe, expect, it, vi } from "vitest";
 import {
   authRole,
   genericLogger,
@@ -13,6 +12,8 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { getRecipientsForTenants } from "pagopa-interop-notification-commons";
+import { describe, expect, it, vi } from "vitest";
+
 import { ReadModelServiceSQL } from "../src/services/readModelServiceSQL.js";
 
 describe("getRecipientsForTenants", () => {

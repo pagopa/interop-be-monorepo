@@ -1,3 +1,4 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   EService,
   EServiceIdDescriptorId,
@@ -7,14 +8,14 @@ import {
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
 import { NewNotification } from "pagopa-interop-models";
-import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import {
   inAppTemplates,
   getNotificationRecipients,
   retrieveLatestDescriptor,
 } from "pagopa-interop-notification-commons";
+
+import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 export async function handleEserviceTemplateNameChangedToInstantiator(
   eserviceTemplateV2Msg: EServiceTemplateV2 | undefined,

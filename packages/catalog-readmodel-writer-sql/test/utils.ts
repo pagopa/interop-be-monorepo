@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { inject, afterEach, expect } from "vitest";
-import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-import { catalogReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import { eq } from "drizzle-orm";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { EService, EServiceId } from "pagopa-interop-models";
+import { catalogReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import {
   EServiceItemsSQL,
   DrizzleReturnType,
@@ -29,7 +28,11 @@ import {
   EServiceDescriptorArchivingScheduleSQL,
   EServiceDescriptorAsyncExchangePropertiesSQL,
   eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
+  eserviceDescriptorArchivingRequestInReadmodelCatalog,
+  EServiceDescriptorArchivingRequestSQL,
 } from "pagopa-interop-readmodel-models";
+import { inject, afterEach, expect } from "vitest";
+
 import { catalogWriterServiceBuilder } from "../src/catalogWriterService.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(
@@ -84,6 +87,10 @@ export const checkCompleteEService = async (
     eservice.id,
     readModelDB
   );
+  const archivingRequestsSQL = await retrieveEServiceArchivingRequestsSQLById(
+    eservice.id,
+    readModelDB
+  );
   const asyncExchangePropertiesSQL =
     await retrieveEserviceAsyncExchangePropertiesSQLById(
       eservice.id,
@@ -123,6 +130,7 @@ export const checkCompleteEService = async (
     riskAnalysisAnswersSQL,
     templateVersionRefsSQL,
     archivingSchedulesSQL,
+    archivingRequestsSQL,
     asyncExchangePropertiesSQL,
   };
 };
@@ -239,6 +247,20 @@ export const retrieveEServiceArchivingSchedulesSQLById = async (
     .where(
       eq(
         eserviceDescriptorArchivingScheduleInReadmodelCatalog.eserviceId,
+        eserviceId
+      )
+    );
+
+export const retrieveEServiceArchivingRequestsSQLById = async (
+  eserviceId: EServiceId,
+  db: DrizzleReturnType
+): Promise<EServiceDescriptorArchivingRequestSQL[]> =>
+  await db
+    .select()
+    .from(eserviceDescriptorArchivingRequestInReadmodelCatalog)
+    .where(
+      eq(
+        eserviceDescriptorArchivingRequestInReadmodelCatalog.eserviceId,
         eserviceId
       )
     );

@@ -1,5 +1,13 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
+  decodeProtobufPayload,
+  getMockDocument,
+  getMockEServiceTemplate,
+  getMockEServiceTemplateVersion,
+  getMockContext,
+  getMockAuthData,
+} from "pagopa-interop-commons-test";
+import {
   unsafeBrandId,
   eserviceTemplateVersionState,
   EServiceTemplate,
@@ -16,14 +24,8 @@ import {
   featureFlagNotEnabled,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
-import {
-  decodeProtobufPayload,
-  getMockDocument,
-  getMockEServiceTemplate,
-  getMockEServiceTemplateVersion,
-  getMockContext,
-  getMockAuthData,
-} from "pagopa-interop-commons-test";
+
+import { config } from "../../src/config/config.js";
 import {
   checksumDuplicate,
   eserviceTemplateNotFound,
@@ -34,7 +36,6 @@ import {
   eserviceTemplateAsyncExchangeNotEnabled,
   asyncExchangeCallbackInterfaceAlreadyExists,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
 import {
   addOneEServiceTemplate,
   eserviceTemplateService,

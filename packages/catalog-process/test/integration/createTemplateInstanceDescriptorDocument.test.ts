@@ -1,6 +1,14 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
+  decodeProtobufPayload,
+  getMockContext,
+  getMockAuthData,
+  getMockDescriptor,
+  getMockDocument,
+  getMockEService,
+} from "pagopa-interop-commons-test";
+import {
   Descriptor,
   descriptorState,
   EService,
@@ -9,14 +17,7 @@ import {
   EServiceDescriptorDocumentAddedByTemplateUpdateV2,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
-import {
-  decodeProtobufPayload,
-  getMockContext,
-  getMockAuthData,
-  getMockDescriptor,
-  getMockDocument,
-  getMockEService,
-} from "pagopa-interop-commons-test";
+
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,

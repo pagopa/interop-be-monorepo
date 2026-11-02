@@ -26,8 +26,10 @@ import {
   EServiceTemplateId,
   EServiceTemplate,
 } from "pagopa-interop-models";
-import { vi, expect, describe, it } from "vitest";
 import { match } from "ts-pattern";
+import { vi, expect, describe, it } from "vitest";
+
+import { config } from "../../src/config/config.js";
 import {
   eServiceNotFound,
   eServiceNameDuplicateForProducer,
@@ -37,7 +39,6 @@ import {
   eserviceTemplateNameConflict,
   asyncExchangeNotAllowedForReceiveMode,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
 import {
   fileManager,
   addOneEService,

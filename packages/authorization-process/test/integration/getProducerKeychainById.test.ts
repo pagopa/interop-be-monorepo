@@ -1,4 +1,10 @@
 import {
+  getMockAuthData,
+  getMockContext,
+  getMockProducerKeychain,
+  sortProducerKeychain,
+} from "pagopa-interop-commons-test";
+import {
   ProducerKeychain,
   ProducerKeychainId,
   TenantId,
@@ -6,12 +12,7 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
-import {
-  getMockAuthData,
-  getMockContext,
-  getMockProducerKeychain,
-  sortProducerKeychain,
-} from "pagopa-interop-commons-test";
+
 import { producerKeychainNotFound } from "../../src/model/domain/errors.js";
 import {
   addOneProducerKeychain,

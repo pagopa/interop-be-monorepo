@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { KafkaMessage } from "kafkajs";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { mockAttributeBatch } from "./utilsAttribute.js";
 import { mockCatalogBatch } from "./utilsCatalog.js";
 
