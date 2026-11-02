@@ -130,27 +130,49 @@ describe("error message generation", () => {
     ]);
   });
 
-  it("generates null codes without discarding unknown or incomplete rows", () => {
+  it("discards unresolved codes while preserving resolved rows and duplicates", () => {
     writeFileSync(
       input,
       stringify([
         headers,
         ["Unknown Process", row[1], row[2], "", ""],
+        row,
         [row[0], "unknownError", row[2], "", ""],
+        [
+          "Purpose Process",
+          "riskAnalysisAlreadyRejected",
+          "PUT /purposes/:purposeId/riskAnalysis/form",
+          "",
+          "",
+        ],
         [row[0]],
+        row,
       ])
     );
     const source = generateErrorMessages(input);
     const result = ts.transpileModule(source, {
       compilerOptions: { module: ts.ModuleKind.CommonJS },
     });
-    const exports: { errorMessages?: Array<{ errorCode: string | null }> } = {};
+    const exports: { errorMessages?: unknown } = {};
     runInNewContext(result.outputText, { exports });
-    expect(exports.errorMessages?.map(({ errorCode }) => errorCode)).toEqual([
-      null,
-      null,
-      null,
-    ]);
+    const expected = {
+      process: row[0],
+      error: row[1],
+      errorCode: "005-0014",
+      bffEndpoint: row[2],
+      copy: { it: row[3], en: row[4] },
+    };
+    expect(exports.errorMessages).toEqual([expected, expected]);
+  });
+
+  it("generates an empty array when all codes are unresolved", () => {
+    writeFileSync(
+      input,
+      stringify([headers, ["Unknown Process", row[1], row[2], "", ""]])
+    );
+    expect(generateErrorMessages(input)).toContain(
+      "export const errorMessages = [] as const satisfies readonly ErrorMessage[]"
+    );
   });
 
   it("generates an empty array for a header-only CSV", () => {
