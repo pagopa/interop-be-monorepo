@@ -232,7 +232,10 @@ setup and lifecycle commands.
 and creates separate dependency volumes for the workspace root and each package.
 The entrypoint installs dependencies, builds the dashboard with Turbo, and starts
 the API. Application processes share the runtime container and use local loopback
-proxies to reach infrastructure.
+proxies to reach infrastructure. The generator derives the forwarded TCP ports
+from the infrastructure services' published ports in the rendered Compose
+configuration and passes them to the entrypoint through
+`DASHBOARD_INFRASTRUCTURE_PORTS`.
 
 Dashboard and backend API ports bind to host loopback. The catalog process uses
 port `3000` inside the runtime and host port `13000`, leaving host port `3000`

@@ -96,6 +96,7 @@ if (args[0] === 'compose' && args.includes('config')) {
     root,
     bin,
     calls,
+    config,
     output,
     run,
     addPackage,
@@ -176,6 +177,57 @@ test("one start builds the helper and derives mounts and effective ports without
           mount.target ===
           path.join(added, "node_modules").replaceAll("$", () => "$$"),
       ),
+    );
+  } finally {
+    await f.cleanup();
+  }
+});
+
+test("prepare derives infrastructure forwarding ports from rendered Compose configuration", async () => {
+  const f = await fixture();
+  try {
+    const base = JSON.parse(await readFile(f.config, "utf8"));
+    base.services.postgres.ports[0].published = "16001";
+    base.services.cache = {
+      ports: [
+        {
+          target: 6379,
+          published: "6379",
+          protocol: "tcp",
+          host_ip: "127.0.0.1",
+        },
+        {
+          target: 6379,
+          published: "6379",
+          protocol: "tcp",
+          host_ip: "127.0.0.2",
+        },
+      ],
+    };
+    base.services.dns = {
+      ports: [{ target: 53, published: "5353", protocol: "udp" }],
+    };
+    base.services.internal = { ports: [{ target: 5432 }] };
+    base.services.worker = {};
+    await writeFile(f.config, JSON.stringify(base));
+    await f.addPackage("new-api", 5400);
+
+    const result = f.run();
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(
+      (await f.read()).services.dashboard.environment
+        .DASHBOARD_INFRASTRUCTURE_PORTS,
+      "6379 16001",
+    );
+
+    base.services.postgres.ports[0].published = "16002";
+    delete base.services.cache;
+    await writeFile(f.config, JSON.stringify(base));
+    assert.equal(f.run().status, 0);
+    assert.equal(
+      (await f.read()).services.dashboard.environment
+        .DASHBOARD_INFRASTRUCTURE_PORTS,
+      "16002",
     );
   } finally {
     await f.cleanup();

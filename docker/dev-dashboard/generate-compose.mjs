@@ -23,9 +23,14 @@ try {
     throw new Error("Workspace paths cannot contain control characters");
   const base = JSON.parse(readFileSync(0, "utf8"));
   const reserved = new Map([[3000, "frontend public origin"]]);
+  const infrastructurePorts = new Set();
   for (const [name, service] of Object.entries(base.services)) {
     for (const port of service.ports ?? []) {
-      if (port.published) reserved.set(Number(port.published), name);
+      if (!port.published) continue;
+      const published = Number(port.published);
+      reserved.set(published, name);
+      if (name !== "dashboard" && (port.protocol ?? "tcp") === "tcp")
+        infrastructurePorts.add(published);
     }
   }
   const targets = new Map();
@@ -98,6 +103,9 @@ try {
           LOCAL_UID: uid,
           LOCAL_GID: gid,
           DASHBOARD_AUTOSTART: autostart,
+          DASHBOARD_INFRASTRUCTURE_PORTS: [...infrastructurePorts]
+            .sort((a, b) => a - b)
+            .join(" "),
           ...(preset ? { DASHBOARD_AUTOSTART_PRESET: preset } : {}),
         },
         volumes: mounts,

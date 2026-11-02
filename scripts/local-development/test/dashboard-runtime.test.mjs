@@ -8,6 +8,42 @@ import { fileURLToPath } from 'node:url';
 
 const entrypoint = fileURLToPath(new URL('../../../docker/dev-dashboard/entrypoint.sh', import.meta.url));
 
+for (const ports of ['15432 16379', '']) {
+  test(`runtime uses generated infrastructure forwarding ports: ${ports || 'none'}`, async () => {
+    const root = await mkdtemp(path.join(tmpdir(), 'interop-forwarding-test-'));
+    try {
+      const calls = path.join(root, 'calls');
+      await writeFile(calls, '');
+      await writeFile(path.join(root, 'socat'), `#!/usr/bin/env bash
+printf '%s\\n' "$*" >> "$TEST_CALLS"
+exec "$TEST_NODE" -e 'setInterval(() => {}, 1000)'
+`, { mode: 0o755 });
+      for (const command of ['pnpm', 'node']) {
+        await writeFile(path.join(root, command), '#!/usr/bin/env bash\nexit 0\n', { mode: 0o755 });
+      }
+      const result = spawnSync('bash', [entrypoint, '--user'], {
+        env: {
+          ...process.env,
+          INTEROP_BE_ROOT: root,
+          DASHBOARD_INFRASTRUCTURE_PORTS: ports,
+          PATH: `${root}:${process.env.PATH}`,
+          TEST_CALLS: calls,
+          TEST_NODE: process.execPath,
+        },
+        encoding: 'utf8',
+        timeout: 5000,
+      });
+      assert.equal(result.status, 0, result.stderr);
+      const forwarded = (await readFile(calls, 'utf8')).split('\n').filter(Boolean).sort();
+      assert.deepEqual(forwarded, ports.split(' ').filter(Boolean).map((port) =>
+        `TCP4-LISTEN:${port},bind=127.0.0.1,fork,reuseaddr TCP4:host.docker.internal:${port}`
+      ).sort());
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+}
+
 for (const existingGroup of ['', 'docker']) {
   test(`bootstrap ${existingGroup ? 'reuses an existing' : 'creates a missing'} Docker socket group`, async () => {
     const root = await mkdtemp(path.join(tmpdir(), 'interop-bootstrap-test-'));
