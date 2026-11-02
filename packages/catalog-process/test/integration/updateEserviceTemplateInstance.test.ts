@@ -104,7 +104,7 @@ describe("update eService Instance", () => {
       eservice: toEServiceV2(updatedEService),
     });
     expect(writtenPayload).toEqual({
-      eservice: toEServiceV2(returnedEService),
+      eservice: toEServiceV2(returnedEService.data),
     });
   });
 
@@ -172,7 +172,7 @@ describe("update eService Instance", () => {
       eservice: toEServiceV2(updatedEService),
     });
     expect(writtenPayload).toEqual({
-      eservice: toEServiceV2(returnedEService),
+      eservice: toEServiceV2(returnedEService.data),
     });
   });
 
@@ -260,7 +260,7 @@ describe("update eService Instance", () => {
       eservice: toEServiceV2(updatedEService),
     });
     expect(writtenPayload).toEqual({
-      eservice: toEServiceV2(returnedEService),
+      eservice: toEServiceV2(returnedEService.data),
     });
   });
 

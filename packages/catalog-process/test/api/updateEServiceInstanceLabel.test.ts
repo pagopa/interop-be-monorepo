@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { catalogApi } from "pagopa-interop-api-clients";
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import { generateToken, getMockEService } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockEService,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   EService,
   EServiceId,
@@ -27,9 +31,11 @@ describe("POST /templates/eservices/{eServiceId}/instanceLabel/update test", () 
     eServiceToApiEService(mockEService)
   );
 
+  const serviceResponse = getMockWithMetadata(mockEService);
+
   catalogService.updateEServiceInstanceLabelAfterPublication = vi
     .fn()
-    .mockResolvedValue(mockEService);
+    .mockResolvedValue(serviceResponse);
 
   const mockEServiceInstanceLabelUpdateSeed: catalogApi.EServiceInstanceLabelUpdateSeed =
     {
@@ -47,7 +53,11 @@ describe("POST /templates/eservices/{eServiceId}/instanceLabel/update test", () 
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
@@ -55,6 +65,9 @@ describe("POST /templates/eservices/{eServiceId}/instanceLabel/update test", () 
       const res = await makeRequest(token, mockEService.id);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiEservice);
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
     }
   );
 
