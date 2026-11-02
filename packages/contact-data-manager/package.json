@@ -25,7 +25,8 @@
     "supertest": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "winston": "catalog:"
   },
   "dependencies": {
     "@zodios/core": "catalog:",
