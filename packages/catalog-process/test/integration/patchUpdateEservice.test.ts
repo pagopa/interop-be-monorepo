@@ -207,6 +207,8 @@ describe("patch update eService", () => {
         mode: "Receive",
       };
       await addOneEService(eservice);
+      const before = await readModelService.getEServiceById(eservice.id);
+      expect(before).toBeDefined();
 
       const result = await catalogService.patchUpdateEService(
         eservice.id,
@@ -215,10 +217,10 @@ describe("patch update eService", () => {
       );
 
       const expectedEService: EService = {
-        ...eservice,
+        ...before!.data,
         technology: "Soap",
         isSignalHubEnabled: true,
-        descriptors: eservice.descriptors.map((descriptor) => ({
+        descriptors: before!.data.descriptors.map((descriptor) => ({
           ...descriptor,
           interface: undefined,
           asyncExchangeCallbackInterface: undefined,
