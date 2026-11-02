@@ -1454,16 +1454,6 @@ export const errorMessages = [
   },
   {
     "process": "Agreement Process",
-    "error": "agreementActivationFailed",
-    "errorCode": "002-0008",
-    "bffEndpoint": "POST /agreements/:agreementId/unsuspend",
-    "copy": {
-      "it": "UNKNOWN / TO VERIFY",
-      "en": "UNKNOWN / TO VERIFY"
-    }
-  },
-  {
-    "process": "Agreement Process",
     "error": "descriptorNotInExpectedState",
     "errorCode": "002-0004",
     "bffEndpoint": "POST /agreements/:agreementId/unsuspend",
