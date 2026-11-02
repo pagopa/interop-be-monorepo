@@ -3104,9 +3104,6 @@ importers:
       cspell-lib:
         specifier: 'catalog:'
         version: 10.4.0
-      csv-parse:
-        specifier: 'catalog:'
-        version: 7.0.2
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -3126,9 +3123,6 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
-      csv-stringify:
-        specifier: 'catalog:'
-        version: 6.5.2
       eslint:
         specifier: 'catalog:'
         version: 9.39.2(jiti@2.6.1)
