@@ -9,7 +9,7 @@ import { createRequire } from "node:module";
 const require = createRequire(import.meta.url);
 
 // Words that are valid in the error messages but missing from the dictionaries
-export const allowedWords = [
+const allowedWords = [
   "PDND",
   "callback",
   "quell’ente",

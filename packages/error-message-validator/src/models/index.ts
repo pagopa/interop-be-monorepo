@@ -1,14 +1,12 @@
 import { z } from "zod";
 
-export const MethodUrl = z
-  .string()
-  .regex(/^(GET|POST|PUT|DELETE|PATCH) \/[\w/:-]+$/);
+const MethodUrl = z.string().regex(/^(GET|POST|PUT|DELETE|PATCH) \/[\w/:-]+$/);
 
-export type MethodUrl = z.infer<typeof MethodUrl>;
+type MethodUrl = z.infer<typeof MethodUrl>;
 
-export const ErrorCode = z.string().regex(/^\d{3,4}-\d{3,5}$/);
+const ErrorCode = z.string().regex(/^\d{3,4}-\d{3,5}$/);
 
-export type ErrorCode = z.infer<typeof ErrorCode>;
+type ErrorCode = z.infer<typeof ErrorCode>;
 
 export const ProcessName = z.enum([
   "agreement",
@@ -26,7 +24,7 @@ export const ProcessName = z.enum([
 
 export type ProcessName = z.infer<typeof ProcessName>;
 
-export const ErrorCopy = z.object({
+const ErrorCopy = z.object({
   it: z
     .string()
     .min(1)
@@ -43,9 +41,9 @@ export const ErrorCopy = z.object({
     }),
 });
 
-export type ErrorCopy = z.infer<typeof ErrorCopy>;
+type ErrorCopy = z.infer<typeof ErrorCopy>;
 
-export const FullError = z.object({
+const FullError = z.object({
   process: z.string(),
   error: z.string(),
   errorCode: ErrorCode,
@@ -53,7 +51,7 @@ export const FullError = z.object({
   copy: ErrorCopy,
 });
 
-export type FullError = z.infer<typeof FullError>;
+type FullError = z.infer<typeof FullError>;
 
 export const FullErrors = z.array(FullError);
 

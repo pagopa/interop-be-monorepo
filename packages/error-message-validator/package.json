@@ -21,7 +21,6 @@
   "keywords": [],
   "devDependencies": {
     "@types/node": "catalog:",
-    "csv-stringify": "catalog:",
     "eslint": "catalog:",
     "pagopa-interop-eslint-config": "workspace:*",
     "typescript": "catalog:",
@@ -32,7 +31,6 @@
     "@cspell/dict-it-it": "catalog:",
     "cspell-lib": "catalog:",
     "commander": "catalog:",
-    "csv-parse": "catalog:",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-error-message-parser": "workspace:*",
     "pagopa-interop-models": "workspace:*",

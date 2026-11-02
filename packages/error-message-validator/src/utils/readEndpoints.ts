@@ -6,7 +6,7 @@ type RouterEndpoint = {
   path: string;
 };
 
-export function extractRouterEndpoints(file: string): string[] {
+function extractRouterEndpoints(file: string): string[] {
   const endpointRegex =
     /\.(get|post|put|patch|delete|options|head|trace)\(\s*"([^"]+)"([\s\S]*?)(?=\n\s*\.(?:get|post|put|patch|delete|options|head|trace)\(|$)/g;
   const fileContent = readFileSync(file, "utf-8");
@@ -22,7 +22,7 @@ export function extractRouterEndpoints(file: string): string[] {
   return out.map((ep) => `${ep.method} ${ep.path}`);
 }
 
-export function getRouterFiles(folder: string): string[] {
+function getRouterFiles(folder: string): string[] {
   return readdirSync(folder, { withFileTypes: true })
     .filter((entry) => entry.isFile() && /Router\.ts$/.test(entry.name))
     .map((entry) => join(folder, entry.name));
