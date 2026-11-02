@@ -1,5 +1,5 @@
 import { genericLogger } from "pagopa-interop-commons";
-import { getMockTenant } from "pagopa-interop-commons-test";
+import { getMockTenant, getMockTenantMail } from "pagopa-interop-commons-test";
 import { Tenant, WithMetadata, tenantKind } from "pagopa-interop-models";
 import { upsertTenant } from "pagopa-interop-readmodel/testUtils";
 import { describe, expect, it } from "vitest";
@@ -57,6 +57,32 @@ describe("Check tenant readmodels", () => {
     });
 
     expect(res).toEqual(0);
+  });
+
+  it("should detect no differences ignoring tenant mails", async () => {
+    const tenant: WithMetadata<Tenant> = {
+      data: { ...getMockTenant(), mails: [getMockTenantMail()] },
+      metadata: { version: 1 },
+    };
+
+    await addOneTenant(tenant);
+
+    await upsertTenant(readModelDB, tenant.data, tenant.metadata.version);
+
+    const tenants = await readModelServiceKPI.getAllTenants();
+
+    const postgresTenants = await readModelServiceSQL.getAllTenants();
+
+    const res = compare({
+      kpiItems: tenants,
+      postgresItems: postgresTenants,
+      schema: "tenant",
+      loggerInstance: genericLogger,
+    });
+
+    expect(res).toEqual(0);
+    expect(tenants.map((t) => t.data.mails)).toEqual([[]]);
+    expect(postgresTenants.map((t) => t.data.mails)).toEqual([[]]);
   });
 
   it("should detect differences if the postgres item is not present", async () => {
