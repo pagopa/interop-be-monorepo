@@ -116,6 +116,22 @@
         ".eslintcache"
       ]
     },
+    "pagopa-interop-error-message-validator#lint": {
+      "dependsOn": [
+        "build",
+        "^lint",
+        "pagopa-interop-error-message-parser#build"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/packages/backend-for-frontend/Messaggi-di-errore.csv",
+        "$TURBO_ROOT$/packages/backend-for-frontend/src/generated/errorMessages.ts",
+        "$TURBO_ROOT$/packages/backend-for-frontend/src/routers/**"
+      ],
+      "outputs": [
+        ".eslintcache"
+      ]
+    },
     "lint:autofix": {
       "dependsOn": [
         "build"
