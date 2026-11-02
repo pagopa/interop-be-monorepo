@@ -120,15 +120,25 @@ describe("POST /contacts", () => {
     expect(JSON.stringify(logs.mock.calls)).not.toContain(email);
   });
 
-  it("maps unexpected service errors using the shared error handler", async () => {
-    contactService.createContact.mockRejectedValue(
-      new Error("Unexpected contact service failure")
-    );
-    const response = await makeRequest({ email });
+  it.each([new Error(email), new TypeError(email), new SyntaxError(email)])(
+    "hides the original service error %#",
+    async (error) => {
+      contactService.createContact.mockRejectedValue(error);
+      const logs = spyOnLogs();
+      const response = await makeRequest({ email });
 
-    expect(response.status).toBe(500);
-    expect(contactDataApi.Problem.parse(response.body).errors).toEqual([
-      { code: "018-9991", detail: "Unexpected error" },
-    ]);
-  });
+      expect(response.status).toBe(500);
+      expect(contactDataApi.Problem.parse(response.body).errors).toEqual([
+        { code: "018-9991", detail: "Unexpected error" },
+      ]);
+      expect(JSON.stringify(response.body)).not.toContain(email);
+      expect(logs).toHaveBeenCalledWith(
+        expect.objectContaining({
+          level: "error",
+          message: "Contact request failed",
+        })
+      );
+      expect(JSON.stringify(logs.mock.calls)).not.toContain(email);
+    }
+  );
 });
