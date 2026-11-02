@@ -651,54 +651,63 @@ export function readModelServiceBuilderSQL({
     ): Promise<ListResult<EServiceTemplateVersionPurposeTemplate>> {
       const { purposeTemplateId, creatorIds, eserviceTemplateName } = filters;
 
-      const queryResult = await readModelDB
-        .select(
-          withTotalCount(
+      const buildBaseQuery = () =>
+        readModelDB
+          .select(
             getTableColumns(
               eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate
             )
           )
-        )
-        .from(eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate)
-        .innerJoin(
-          eserviceTemplateInReadmodelEserviceTemplate,
-          eq(
-            eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.eserviceTemplateId,
-            eserviceTemplateInReadmodelEserviceTemplate.id
+          .from(
+            eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate
           )
-        )
-        .where(
-          and(
+          .innerJoin(
+            eserviceTemplateInReadmodelEserviceTemplate,
             eq(
-              eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.purposeTemplateId,
-              purposeTemplateId
-            ),
-            creatorIds.length > 0
-              ? inArray(
-                  eserviceTemplateInReadmodelEserviceTemplate.creatorId,
-                  creatorIds
-                )
-              : undefined,
-            eserviceTemplateName
-              ? ilikeEscaped(
-                  eserviceTemplateInReadmodelEserviceTemplate.name,
-                  `%${escapeSqlLike(eserviceTemplateName)}%`
-                )
-              : undefined
+              eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.eserviceTemplateId,
+              eserviceTemplateInReadmodelEserviceTemplate.id
+            )
           )
-        )
+          .where(
+            and(
+              eq(
+                eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.purposeTemplateId,
+                purposeTemplateId
+              ),
+              creatorIds.length > 0
+                ? inArray(
+                    eserviceTemplateInReadmodelEserviceTemplate.creatorId,
+                    creatorIds
+                  )
+                : undefined,
+              eserviceTemplateName
+                ? ilikeEscaped(
+                    eserviceTemplateInReadmodelEserviceTemplate.name,
+                    `%${escapeSqlLike(eserviceTemplateName)}%`
+                  )
+                : undefined
+            )
+          )
+          .$dynamic();
+
+      const paginatedQuery = buildBaseQuery()
         .orderBy(
           eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.createdAt
         )
         .limit(limit)
         .offset(offset);
 
+      const [totalCount, queryResult] = await Promise.all([
+        getTableTotalCount(readModelDB, buildBaseQuery()),
+        paginatedQuery,
+      ]);
+
       const eserviceTemplateVersionPurposeTemplates =
         aggregateEServiceTemplateVersionPurposeTemplateArray(queryResult);
 
       return createListResult(
         eserviceTemplateVersionPurposeTemplates.map((row) => row.data),
-        queryResult[0]?.totalCount
+        totalCount
       );
     },
     async getPurposeTemplateEServiceWithDescriptorState(

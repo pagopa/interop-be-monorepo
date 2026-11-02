@@ -17,6 +17,10 @@ export const ascLower = (column: Column): SQL => asc(lowerCase(column));
 
 export const descLower = (column: Column): SQL => desc(lowerCase(column));
 
+// Adds a COUNT(*) OVER() column, so the total count is read from the returned rows.
+// Do not use it for paginated queries (limit/offset): when the requested page is
+// empty no rows are returned and the total count is lost (it falls back to 0).
+// For paginated queries use getTableTotalCount with a separate count query.
 export const withTotalCount = <
   P extends Record<string, Table | Column | SQL | SQL.Aliased>,
 >(
