@@ -117,3 +117,6 @@ catalog:
   zod-validation-error: 3.3.0
 
 catalogMode: strict
+
+overrides:
+  "cspell-config-lib>yaml": 2.8.3

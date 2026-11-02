@@ -319,6 +319,9 @@ catalogs:
       specifier: 3.3.0
       version: 3.3.0
 
+overrides:
+  cspell-config-lib>yaml: 2.8.3
+
 importers:
 
   .:
@@ -454,7 +457,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/agreement-process:
     dependencies:
@@ -545,7 +548,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/agreement-readmodel-writer-sql:
     dependencies:
@@ -606,7 +609,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/anac-certified-attributes-importer:
     dependencies:
@@ -664,7 +667,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/api-clients:
     dependencies:
@@ -725,7 +728,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/api-gateway:
     dependencies:
@@ -795,7 +798,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/application-audit:
     dependencies:
@@ -875,7 +878,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/async-token-generation-readmodel-checker:
     dependencies:
@@ -936,7 +939,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/attribute-registry-process:
     dependencies:
@@ -1012,7 +1015,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/attribute-registry-readmodel-writer-sql:
     dependencies:
@@ -1067,7 +1070,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/audit-signer:
     dependencies:
@@ -1122,7 +1125,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/authorization-platformstate-writer:
     dependencies:
@@ -1174,7 +1177,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/authorization-process:
     dependencies:
@@ -1250,7 +1253,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/authorization-server:
     dependencies:
@@ -1335,7 +1338,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/backend-for-frontend:
     dependencies:
@@ -1539,7 +1542,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/catalog-process:
     dependencies:
@@ -1624,7 +1627,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/catalog-readmodel-writer-sql:
     dependencies:
@@ -1682,7 +1685,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/certified-email-sender:
     dependencies:
@@ -1740,7 +1743,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/check-selfcare-diff:
     dependencies:
@@ -1829,7 +1832,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/client-purpose-updater:
     dependencies:
@@ -1878,7 +1881,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/client-readmodel-writer-sql:
     dependencies:
@@ -1933,7 +1936,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/commons:
     dependencies:
@@ -2257,7 +2260,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/datalake-interface-exporter:
     dependencies:
@@ -2303,7 +2306,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/delegation-items-archiver:
     dependencies:
@@ -2361,7 +2364,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/delegation-outbound-writer:
     dependencies:
@@ -2480,7 +2483,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/delegation-readmodel-writer-sql:
     dependencies:
@@ -2535,7 +2538,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/documents-generator:
     dependencies:
@@ -2608,7 +2611,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/documents-signer:
     dependencies:
@@ -2657,7 +2660,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/domains-analytics-writer:
     dependencies:
@@ -2721,7 +2724,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/dpop-validation:
     dependencies:
@@ -2761,7 +2764,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/dtd-catalog-exporter:
     dependencies:
@@ -2816,7 +2819,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/email-digest-dispatcher:
     dependencies:
@@ -2874,7 +2877,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/email-notification-dispatcher:
     dependencies:
@@ -2938,7 +2941,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/email-scheduled-notification-dispatcher:
     dependencies:
@@ -2999,7 +3002,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/email-sender:
     dependencies:
@@ -3054,7 +3057,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/error-message-parser:
     dependencies:
@@ -3088,7 +3091,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/error-message-validator:
     dependencies:
@@ -3140,7 +3143,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/eservice-descriptors-archiver:
     dependencies:
@@ -3204,7 +3207,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/eservice-descriptors-scheduled-archiver:
     dependencies:
@@ -3265,7 +3268,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/eservice-template-instances-updater:
     dependencies:
@@ -3323,7 +3326,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/eservice-template-outbound-writer:
     dependencies:
@@ -3442,7 +3445,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/eservice-template-readmodel-writer-sql:
     dependencies:
@@ -3497,13 +3500,13 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/eslint-config:
     dependencies:
       '@pagopa/eslint-config':
         specifier: 'catalog:'
-        version: 5.1.2(eslint@9.39.2(jiti@2.6.1))(prettier@3.8.1)(vitest@4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1))
+        version: 5.1.2(eslint@9.39.2(jiti@2.6.1))(prettier@3.8.1)(vitest@4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3))
       prettier:
         specifier: 'catalog:'
         version: 3.8.1
@@ -3570,7 +3573,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/in-app-notification-cleaner:
     dependencies:
@@ -3622,7 +3625,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/in-app-notification-db-models:
     dependencies:
@@ -3717,7 +3720,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/in-app-notification-manager:
     dependencies:
@@ -3796,7 +3799,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/in-app-scheduled-notification-dispatcher:
     dependencies:
@@ -3863,7 +3866,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/ipa-certified-attributes-importer:
     dependencies:
@@ -3918,7 +3921,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/istat-certified-attributes-importer:
     dependencies:
@@ -3976,7 +3979,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/ivass-certified-attributes-importer:
     dependencies:
@@ -4037,7 +4040,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/kafka-iam-auth:
     dependencies:
@@ -4120,7 +4123,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/kpi-domains-readmodel-checker:
     dependencies:
@@ -4193,7 +4196,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/kpi-models:
     dependencies:
@@ -4270,7 +4273,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/m2m-event-db-models:
     dependencies:
@@ -4368,7 +4371,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/m2m-event-manager:
     dependencies:
@@ -4450,7 +4453,7 @@ importers:
         version: 14.0.0
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/m2m-gateway:
     dependencies:
@@ -4526,7 +4529,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/m2m-gateway-v3:
     dependencies:
@@ -4614,7 +4617,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/models:
     dependencies:
@@ -4700,7 +4703,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/notification-config-process:
     dependencies:
@@ -4770,7 +4773,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/notification-config-readmodel-writer-sql:
     dependencies:
@@ -4825,7 +4828,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/notification-email-sender:
     dependencies:
@@ -4895,7 +4898,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/notification-tenant-lifecycle-consumer:
     dependencies:
@@ -4947,7 +4950,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/notification-user-lifecycle-consumer:
     dependencies:
@@ -5014,7 +5017,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/notifier-seeder:
     dependencies:
@@ -5069,7 +5072,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/one-trust-notices:
     dependencies:
@@ -5118,7 +5121,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/pn-consumers:
     dependencies:
@@ -5164,7 +5167,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/private-certified-attributes-importer:
     dependencies:
@@ -5213,7 +5216,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/producer-key-events-writer:
     dependencies:
@@ -5259,7 +5262,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/producer-key-readmodel-writer-sql:
     dependencies:
@@ -5314,7 +5317,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/producer-keychain-platformstate-writer:
     dependencies:
@@ -5366,7 +5369,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/producer-keychain-readmodel-writer-sql:
     dependencies:
@@ -5421,7 +5424,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/purpose-outbound-writer:
     dependencies:
@@ -5516,7 +5519,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/purpose-process:
     dependencies:
@@ -5607,7 +5610,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/purpose-readmodel-writer-sql:
     dependencies:
@@ -5662,7 +5665,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/purpose-template-outbound-writer:
     dependencies:
@@ -5784,7 +5787,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/purpose-template-readmodel-writer-sql:
     dependencies:
@@ -5839,7 +5842,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/readmodel:
     dependencies:
@@ -5888,7 +5891,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/readmodel-models:
     dependencies:
@@ -5971,7 +5974,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/scheduled-notification-cleaner:
     dependencies:
@@ -6023,7 +6026,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/scheduled-notification-db-models:
     dependencies:
@@ -6118,7 +6121,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/selfcare-client-users-updater:
     dependencies:
@@ -6176,7 +6179,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/selfcare-onboarding-consumer:
     dependencies:
@@ -6222,7 +6225,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/signed-objects-persister:
     dependencies:
@@ -6277,7 +6280,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/tenant-kind-history-consumer:
     dependencies:
@@ -6335,7 +6338,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/tenant-kind-history-db-models:
     dependencies:
@@ -6482,7 +6485,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/tenant-readmodel-writer-sql:
     dependencies:
@@ -6543,7 +6546,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/token-details-persister:
     dependencies:
@@ -6586,7 +6589,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
   packages/token-generation-readmodel-checker:
     dependencies:
@@ -6644,7 +6647,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 'catalog:'
-        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
 packages:
 
@@ -12276,8 +12279,8 @@ packages:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
 
-  swagger-ui-dist@5.33.0:
-    resolution: {integrity: sha512-wpdK+m6BU5yj6pmUdMskZVTSWYG4DLglAx3sIhylloY37i8O37IrH+YEpqdXNfpaTGxILRBFzUqLF2jKqbfI7A==}
+  swagger-ui-dist@5.25.2:
+    resolution: {integrity: sha512-V4JyoygUe5nCbn7bAD0fVKSC0yNcL3ROIQtGC7M0NATKuyosCSmMU6T0yDZIIuGpSxjsjZh/D2Ejb8lnF2jjxw==}
 
   swagger-ui-express@5.0.1:
     resolution: {integrity: sha512-SrNU3RiBGTLLmFU8GIJdOdanJTl4TOmT27tt3bWWHppqYmAZ6IDuEuBvMU6nZq0zLEe6b/1rACXCgLZqO6ZfrA==}
@@ -12758,11 +12761,6 @@ packages:
 
   yaml@2.8.3:
     resolution: {integrity: sha512-AvbaCLOO2Otw/lW5bmh9d/WEdcDFdQp2Z2ZUH3pX9U2ihyUY0nvLv7J6TrWowklRGPYbB/IuIMfYgxaCPg5Bpg==}
-    engines: {node: '>= 14.6'}
-    hasBin: true
-
-  yaml@2.9.1:
-    resolution: {integrity: sha512-3NxN8+78OdzbT7C/WjGsyfPAtJaN3FNDsWxv7Y7mcDsT/oOmgW8BpyQQFFBnvZE3j9Y2Sdz1ULFLezL7Eb2yFw==}
     engines: {node: '>= 14.6'}
     hasBin: true
 
@@ -15081,10 +15079,10 @@ snapshots:
   '@oxc-resolver/binding-win32-x64-msvc@11.16.0':
     optional: true
 
-  '@pagopa/eslint-config@5.1.2(eslint@9.39.2(jiti@2.6.1))(prettier@3.8.1)(vitest@4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1))':
+  '@pagopa/eslint-config@5.1.2(eslint@9.39.2(jiti@2.6.1))(prettier@3.8.1)(vitest@4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3))':
     dependencies:
       '@eslint/js': 9.39.4
-      '@vitest/eslint-plugin': 1.6.10(eslint@9.39.2(jiti@2.6.1))(typescript@5.8.3)(vitest@4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1))
+      '@vitest/eslint-plugin': 1.6.10(eslint@9.39.2(jiti@2.6.1))(typescript@5.8.3)(vitest@4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3))
       eslint: 9.39.2(jiti@2.6.1)
       eslint-config-prettier: 10.1.8(eslint@9.39.2(jiti@2.6.1))
       eslint-plugin-perfectionist: 4.15.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.8.3)
@@ -16508,14 +16506,14 @@ snapshots:
       '@typescript-eslint/types': 8.57.0
       eslint-visitor-keys: 5.0.1
 
-  '@vitest/eslint-plugin@1.6.10(eslint@9.39.2(jiti@2.6.1))(typescript@5.8.3)(vitest@4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1))':
+  '@vitest/eslint-plugin@1.6.10(eslint@9.39.2(jiti@2.6.1))(typescript@5.8.3)(vitest@4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3))':
     dependencies:
       '@typescript-eslint/scope-manager': 8.57.0
       '@typescript-eslint/utils': 8.57.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.8.3)
       eslint: 9.39.2(jiti@2.6.1)
     optionalDependencies:
       typescript: 5.8.3
-      vitest: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
+      vitest: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
     transitivePeerDependencies:
       - supports-color
 
@@ -16535,14 +16533,6 @@ snapshots:
       magic-string: 0.30.21
     optionalDependencies:
       vite: 7.3.1(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
-
-  '@vitest/mocker@4.1.0(vite@7.3.1(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1))':
-    dependencies:
-      '@vitest/spy': 4.1.0
-      estree-walker: 3.0.3
-      magic-string: 0.30.21
-    optionalDependencies:
-      vite: 7.3.1(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
 
   '@vitest/pretty-format@4.1.0':
     dependencies:
@@ -17182,7 +17172,7 @@ snapshots:
       '@cspell/cspell-types': 10.4.0
       comment-json: 5.0.0
       smol-toml: 1.9.1
-      yaml: 2.9.1
+      yaml: 2.8.3
 
   cspell-dictionary@10.4.0:
     dependencies:
@@ -19891,14 +19881,14 @@ snapshots:
 
   supports-preserve-symlinks-flag@1.0.0: {}
 
-  swagger-ui-dist@5.33.0:
+  swagger-ui-dist@5.25.2:
     dependencies:
       '@scarf/scarf': 1.4.0
 
   swagger-ui-express@5.0.1(express@4.20.0):
     dependencies:
       express: 4.20.0
-      swagger-ui-dist: 5.33.0
+      swagger-ui-dist: 5.25.2
 
   synckit@0.11.12:
     dependencies:
@@ -20211,21 +20201,6 @@ snapshots:
       tsx: 4.19.1
       yaml: 2.8.3
 
-  vite@7.3.1(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1):
-    dependencies:
-      esbuild: 0.27.2
-      fdir: 6.5.0(picomatch@4.0.3)
-      picomatch: 4.0.3
-      postcss: 8.5.8
-      rollup: 4.57.0
-      tinyglobby: 0.2.15
-    optionalDependencies:
-      '@types/node': 20.19.9
-      fsevents: 2.3.3
-      jiti: 2.6.1
-      tsx: 4.19.1
-      yaml: 2.9.1
-
   vitest@4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3):
     dependencies:
       '@vitest/expect': 4.1.0
@@ -20247,43 +20222,6 @@ snapshots:
       tinyglobby: 0.2.15
       tinyrainbow: 3.0.3
       vite: 7.3.1(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
-      why-is-node-running: 2.3.0
-    optionalDependencies:
-      '@types/node': 20.19.9
-    transitivePeerDependencies:
-      - jiti
-      - less
-      - lightningcss
-      - msw
-      - sass
-      - sass-embedded
-      - stylus
-      - sugarss
-      - terser
-      - tsx
-      - yaml
-
-  vitest@4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1):
-    dependencies:
-      '@vitest/expect': 4.1.0
-      '@vitest/mocker': 4.1.0(vite@7.3.1(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1))
-      '@vitest/pretty-format': 4.1.0
-      '@vitest/runner': 4.1.0
-      '@vitest/snapshot': 4.1.0
-      '@vitest/spy': 4.1.0
-      '@vitest/utils': 4.1.0
-      es-module-lexer: 2.1.0
-      expect-type: 1.3.0
-      magic-string: 0.30.21
-      obug: 2.1.1
-      pathe: 2.0.3
-      picomatch: 4.0.3
-      std-env: 4.1.0
-      tinybench: 2.9.0
-      tinyexec: 1.0.2
-      tinyglobby: 0.2.15
-      tinyrainbow: 3.0.3
-      vite: 7.3.1(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.9.1)
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 20.19.9
@@ -20433,8 +20371,6 @@ snapshots:
   yallist@4.0.0: {}
 
   yaml@2.8.3: {}
-
-  yaml@2.9.1: {}
 
   yargs-parser@21.1.1: {}
 
