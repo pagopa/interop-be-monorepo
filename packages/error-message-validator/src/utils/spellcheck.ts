@@ -10,26 +10,12 @@ const require = createRequire(import.meta.url);
 
 // Words that are valid in the error messages but missing from the dictionaries
 export const allowedWords = [
-  "e-service",
-  "eservice",
-  "eservices",
-  "client",
-  "clients",
-  "keychain",
-  "pagopa",
-  "interop",
-  "selfcare",
-  "template",
-  "templates",
   "PDND",
-  "IPA",
-  "SPID",
-  "PEC",
-  "PA",
-  "CSV",
-  "API",
   "callback",
   "quell’ente",
+  "identifying",
+  "recognised",
+  "assertion",
 ];
 
 type Language = "it" | "en";
