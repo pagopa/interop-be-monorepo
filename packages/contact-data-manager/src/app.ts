@@ -1,4 +1,4 @@
-import { makeApi } from "@zodios/core";
+import { contactDataApi } from "pagopa-interop-api-clients";
 import {
   applicationAuditBeginMiddleware,
   applicationAuditEndMiddleware,
@@ -10,26 +10,29 @@ import {
   loggerMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
-import { ProblemSchema, serviceName } from "pagopa-interop-models";
+import { serviceName } from "pagopa-interop-models";
 
 import { config } from "./config/config.js";
+import { contactRouter } from "./routers/contactRouter.js";
+import { ContactService } from "./services/contactService.js";
 import { contactErrorsToApiProblemsMiddleware } from "./utilities/errorHandlers.js";
 
 const cdmServiceName = serviceName.CONTACT_DATA_MANAGER;
-const healthApi = makeApi([
-  { method: "get", path: "/status", response: ProblemSchema },
-]);
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export async function createApp() {
+export async function createApp(
+  service: ContactService,
+  appConfig: typeof config = config
+) {
   const app = zodiosCtx.app();
   app.disable("x-powered-by");
-  app.use(healthRouter(healthApi));
+  app.use(healthRouter(contactDataApi.healthApi.api));
   app.use(contextMiddleware(cdmServiceName));
-  app.use(await applicationAuditBeginMiddleware(cdmServiceName, config));
-  app.use(await applicationAuditEndMiddleware(cdmServiceName, config));
-  app.use(authenticationMiddleware(config));
+  app.use(await applicationAuditBeginMiddleware(cdmServiceName, appConfig));
+  app.use(await applicationAuditEndMiddleware(cdmServiceName, appConfig));
+  app.use(authenticationMiddleware(appConfig));
   app.use(loggerMiddleware(cdmServiceName));
+  app.use(contactRouter(zodiosCtx, service));
   app.use(contactErrorsToApiProblemsMiddleware);
   return app;
 }
