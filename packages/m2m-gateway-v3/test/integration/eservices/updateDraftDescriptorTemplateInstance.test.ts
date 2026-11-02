@@ -74,6 +74,7 @@ describe("updateDraftDescriptorTemplateInstance", () => {
       templateVersionId: mockDescriptor.templateVersionRef?.id,
       archivingSchedule: mockDescriptor.archivingSchedule,
       asyncExchangeProperties: mockDescriptor.asyncExchangeProperties,
+      delegatedArchivingRequest: mockDescriptor.delegatedArchivingRequest,
     };
 
     const result = await eserviceService.updateDraftDescriptorTemplateInstance(
