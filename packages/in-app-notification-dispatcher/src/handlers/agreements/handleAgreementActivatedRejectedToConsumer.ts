@@ -1,18 +1,19 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   AgreementV2,
   fromAgreementV2,
   missingKafkaMessageDataError,
   NewNotification,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
-import { match } from "ts-pattern";
-import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import {
   getNotificationRecipients,
   retrieveTenant,
-} from "../handlerCommons.js";
-import { retrieveEservice } from "../handlerCommons.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
+  retrieveEservice,
+  inAppTemplates,
+} from "pagopa-interop-notification-commons";
+import { match } from "ts-pattern";
+
+import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 export async function handleAgreementActivatedRejectedToConsumer(
   agreementV2Msg: AgreementV2 | undefined,

@@ -24,6 +24,7 @@ message AgreementV2 {
   optional string rejectionReason = 19;
   optional int64 suspendedAt = 20;
   optional AgreementSignedContractV2 signedContract = 21;
+  repeated CertifiedAttributeV2 certifiedDiscreteAttributes = 22;
 }
 
 message VerifiedAttributeV2 {

@@ -1,3 +1,13 @@
+import { and, asc, eq, inArray, isNotNull, isNull, or, sql } from "drizzle-orm";
+import { tenantApi } from "pagopa-interop-api-clients";
+import {
+  ascLower,
+  createListResult,
+  escapeSqlLike,
+  getTableTotalCount,
+  ilikeEscaped,
+  lowerCase,
+} from "pagopa-interop-commons";
 import {
   WithMetadata,
   Tenant,
@@ -34,22 +44,23 @@ import {
   DrizzleReturnType,
   eserviceInReadmodelCatalog,
   tenantCertifiedAttributeInReadmodelTenant,
+  tenantCertifiedDiscreteAttributeInReadmodelTenant,
   tenantFeatureInReadmodelTenant,
   tenantInReadmodelTenant,
   tenantVerifiedAttributeVerifierInReadmodelTenant,
   tenantVerifiedAttributeRevokerInReadmodelTenant,
+  tenantRemoteIdInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
-import { and, asc, eq, inArray, isNotNull, isNull, or } from "drizzle-orm";
-import { tenantApi } from "pagopa-interop-api-clients";
-import {
-  ascLower,
-  createListResult,
-  escapeSqlLike,
-  getTableTotalCount,
-  ilikeEscaped,
-  lowerCase,
-} from "pagopa-interop-commons";
+
 import { ApiGetTenantsFilters } from "../model/domain/models.js";
+
+const certifiedAttributeKind: {
+  standard: tenantApi.CertifiedAttributeKind;
+  discrete: tenantApi.CertifiedAttributeKind;
+} = {
+  standard: "CERTIFIED",
+  discrete: "CERTIFIED_DISCRETE",
+};
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function readModelServiceBuilderSQL(
@@ -170,6 +181,28 @@ export function readModelServiceBuilderSQL(
       }
       return await tenantReadModelService.getTenantById(
         unsafeBrandId(tenantSQL[0].id)
+      );
+    },
+
+    async getTenantByRemoteId(remoteId: {
+      origin: string;
+      value: string;
+    }): Promise<WithMetadata<Tenant> | undefined> {
+      const tenantSQL = await readModelDB
+        .select()
+        .from(tenantRemoteIdInReadmodelTenant)
+        .where(
+          and(
+            eq(tenantRemoteIdInReadmodelTenant.origin, remoteId.origin),
+            eq(tenantRemoteIdInReadmodelTenant.value, remoteId.value)
+          )
+        );
+
+      if (tenantSQL.length === 0) {
+        return undefined;
+      }
+      return await tenantReadModelService.getTenantById(
+        unsafeBrandId(tenantSQL[0].tenantId)
       );
     },
 
@@ -395,7 +428,7 @@ export function readModelServiceBuilderSQL(
       return agreementWithMetadata?.data;
     },
 
-    async getCertifiedAttributes({
+    async getCertifiedAttributesByCertifier({
       certifierId,
       offset,
       limit,
@@ -406,33 +439,69 @@ export function readModelServiceBuilderSQL(
     }): Promise<ListResult<tenantApi.CertifiedAttribute>> {
       const buildBaseQuery = () =>
         readModelDB
-          .selectDistinct({
+          .select({
             id: tenantInReadmodelTenant.id,
             name: tenantInReadmodelTenant.name,
-            nameLowerCase: lowerCase(tenantInReadmodelTenant.name),
-            attributeId: tenantCertifiedAttributeInReadmodelTenant.attributeId,
+            attributeId: attributeInReadmodelAttribute.id,
             attributeName: attributeInReadmodelAttribute.name,
+            kind: sql<tenantApi.CertifiedAttributeKind>`CASE
+              WHEN ${attributeInReadmodelAttribute.kind} = ${attributeKind.certified}
+                THEN ${certifiedAttributeKind.standard}
+              ELSE ${certifiedAttributeKind.discrete}
+            END`.as("kind"),
+            discreteValue:
+              tenantCertifiedDiscreteAttributeInReadmodelTenant.discreteValue,
           })
-          .from(tenantCertifiedAttributeInReadmodelTenant)
-          .innerJoin(
-            attributeInReadmodelAttribute,
+          .from(attributeInReadmodelAttribute)
+          .leftJoin(
+            tenantCertifiedAttributeInReadmodelTenant,
             and(
               eq(
                 tenantCertifiedAttributeInReadmodelTenant.attributeId,
                 attributeInReadmodelAttribute.id
               ),
-              eq(attributeInReadmodelAttribute.origin, certifierId),
               eq(attributeInReadmodelAttribute.kind, attributeKind.certified),
               isNull(
                 tenantCertifiedAttributeInReadmodelTenant.revocationTimestamp
               )
             )
           )
+          .leftJoin(
+            tenantCertifiedDiscreteAttributeInReadmodelTenant,
+            and(
+              eq(
+                tenantCertifiedDiscreteAttributeInReadmodelTenant.attributeId,
+                attributeInReadmodelAttribute.id
+              ),
+              eq(
+                attributeInReadmodelAttribute.kind,
+                attributeKind.certifiedDiscrete
+              ),
+              isNull(
+                tenantCertifiedDiscreteAttributeInReadmodelTenant.revocationTimestamp
+              )
+            )
+          )
           .innerJoin(
             tenantInReadmodelTenant,
-            eq(
-              tenantCertifiedAttributeInReadmodelTenant.tenantId,
-              tenantInReadmodelTenant.id
+            or(
+              eq(
+                tenantInReadmodelTenant.id,
+                tenantCertifiedAttributeInReadmodelTenant.tenantId
+              ),
+              eq(
+                tenantInReadmodelTenant.id,
+                tenantCertifiedDiscreteAttributeInReadmodelTenant.tenantId
+              )
+            )
+          )
+          .where(
+            and(
+              eq(attributeInReadmodelAttribute.origin, certifierId),
+              inArray(attributeInReadmodelAttribute.kind, [
+                attributeKind.certified,
+                attributeKind.certifiedDiscrete,
+              ])
             )
           )
           .$dynamic();
@@ -440,7 +509,7 @@ export function readModelServiceBuilderSQL(
       const paginatedQuery = buildBaseQuery()
         .orderBy(
           ascLower(tenantInReadmodelTenant.name),
-          attributeInReadmodelAttribute.name
+          asc(attributeInReadmodelAttribute.name)
         )
         .limit(limit)
         .offset(offset);
@@ -456,6 +525,8 @@ export function readModelServiceBuilderSQL(
           name: row.name,
           attributeId: row.attributeId,
           attributeName: row.attributeName,
+          kind: row.kind,
+          discreteValue: row.discreteValue ?? undefined,
         })),
         totalCount
       );

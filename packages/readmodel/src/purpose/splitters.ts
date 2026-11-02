@@ -15,6 +15,7 @@ import {
 } from "pagopa-interop-models";
 import {
   PurposeItemsSQL,
+  RiskAnalysisReviewerSQL,
   PurposeRiskAnalysisAnswerSQL,
   PurposeRiskAnalysisFormSQL,
   PurposeSQL,
@@ -41,6 +42,8 @@ export const splitPurposeIntoObjectsSQL = (
     riskAnalysisForm,
     versions,
     purposeTemplateId,
+    riskAnalysisReviewMode,
+    reviewerWorkflow,
     ...rest
   }: Purpose,
   version: number
@@ -64,7 +67,26 @@ export const splitPurposeIntoObjectsSQL = (
     isFreeOfCharge,
     freeOfChargeReason: freeOfChargeReason || null,
     purposeTemplateId: purposeTemplateId || null,
+    riskAnalysisReviewMode: riskAnalysisReviewMode ?? null,
+    // legacy column, the review mode now lives on the purpose
+    reviewerWorkflowReviewMode: null,
+    reviewerWorkflowSigningState: reviewerWorkflow?.signingState ?? null,
+    reviewerWorkflowSignedBy: reviewerWorkflow?.signedBy ?? null,
+    reviewerWorkflowSignedAt: dateToString(reviewerWorkflow?.signedAt),
+    reviewerWorkflowRejectedBy: reviewerWorkflow?.rejectedBy ?? null,
+    reviewerWorkflowRejectedAt: dateToString(reviewerWorkflow?.rejectedAt),
+    reviewerWorkflowRejectionReason: reviewerWorkflow?.rejectionReason ?? null,
+    reviewerWorkflowSentToReviewerAt: null,
   };
+
+  const reviewersSQL: RiskAnalysisReviewerSQL[] = (
+    reviewerWorkflow?.reviewers ?? []
+  ).map((reviewer) => ({
+    purposeId: id,
+    metadataVersion: version,
+    reviewerId: reviewer.id,
+    sentToReviewerAt: dateToString(reviewer.sentToReviewerAt),
+  }));
 
   const splitPurposeRiskAnalysisSQL = splitRiskAnalysisFormIntoObjectsSQL(
     id,
@@ -122,6 +144,7 @@ export const splitPurposeIntoObjectsSQL = (
     versionDocumentsSQL,
     versionStampsSQL,
     versionSignedDocumentsSQL,
+    reviewersSQL,
   };
 };
 
@@ -145,6 +168,7 @@ const splitRiskAnalysisFormIntoObjectsSQL = (
     singleAnswers,
     multiAnswers,
     riskAnalysisId,
+    tenantKind,
     ...rest
   } = riskAnalysisForm;
   void (rest satisfies Record<string, never>);
@@ -155,6 +179,7 @@ const splitRiskAnalysisFormIntoObjectsSQL = (
     purposeId,
     version,
     riskAnalysisId: riskAnalysisId || null,
+    tenantKind: tenantKind ?? null,
   };
 
   const riskAnalysisSingleAnswers: PurposeRiskAnalysisAnswerSQL[] =
@@ -214,6 +239,7 @@ export const splitPurposeVersionIntoObjectsSQL = (
     id,
     state,
     dailyCalls,
+    waitingForApprovalReason,
     rejectionReason,
     createdAt,
     updatedAt,
@@ -239,6 +265,7 @@ export const splitPurposeVersionIntoObjectsSQL = (
     metadataVersion,
     state,
     dailyCalls,
+    waitingForApprovalReason: waitingForApprovalReason ?? null,
     rejectionReason: rejectionReason || null,
     createdAt: dateToString(createdAt),
     updatedAt: dateToString(updatedAt),

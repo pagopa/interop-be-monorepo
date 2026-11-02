@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
-import request from "supertest";
+import { catalogApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockDescriptor,
+  getMockEService,
+  getMockDocument,
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   DescriptorId,
@@ -11,21 +17,16 @@ import {
   EServiceId,
   generateId,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockDescriptor,
-  getMockEService,
-  getMockDocument,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import { catalogApi } from "pagopa-interop-api-clients";
-import { api, catalogService } from "../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { documentToApiDocument } from "../../src/model/domain/apiConverter.js";
 import {
   eServiceDescriptorNotFound,
   eServiceDocumentNotFound,
   eServiceNotFound,
 } from "../../src/model/domain/errors.js";
+import { api, catalogService } from "../vitest.api.setup.js";
 
 describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{documentId} authorization test", () => {
   const document: Document = getMockDocument();
@@ -66,6 +67,8 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{docu
     authRole.SUPPORT_ROLE,
     authRole.M2M_ROLE,
     authRole.M2M_ADMIN_ROLE,
+    authRole.VIEWER_ROLE,
+    authRole.REVIEWER_ROLE,
   ];
   it.each(authorizedRoles)(
     "Should return 204 for user with role %s",

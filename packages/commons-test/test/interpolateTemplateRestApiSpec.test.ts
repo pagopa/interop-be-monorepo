@@ -1,9 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { interpolateTemplateRestApiSpec } from "pagopa-interop-commons";
 import {
   generateId,
   invalidInterfaceFileDetected,
 } from "pagopa-interop-models";
-import { interpolateTemplateRestApiSpec } from "pagopa-interop-commons";
+import { describe, expect, it } from "vitest";
+
 import { getMockEService, readFileContent } from "../src/index.js";
 
 describe("interpolateTemplateRestApiSpec", async () => {
@@ -50,6 +51,13 @@ describe("interpolateTemplateRestApiSpec", async () => {
       eserviceInstanceInterfaceData.serverUrls.length
     );
 
+    const inputJson = JSON.parse(file);
+    expect(parsedJson.components.schemas).toBeDefined();
+    expect(Object.keys(parsedJson.components.schemas)).toEqual(
+      Object.keys(inputJson.components.schemas)
+    );
+    expect(jsonString).toContain('"$ref"');
+
     const yamlFileString: string = await readFileContent(
       "test.openapi.3.0.2.yaml"
     );
@@ -88,6 +96,10 @@ describe("interpolateTemplateRestApiSpec", async () => {
     expect(parsedYaml.servers).toHaveLength(
       eserviceInstanceInterfaceData.serverUrls.length
     );
+
+    expect(yamlString).not.toMatch(/&a\d+/);
+    expect(yamlString).not.toMatch(/\*a\d+/);
+    expect(yamlString).toContain("$ref");
   });
 
   it("should throw invalidInterfaceFileDetected error for unsupported file type", async () => {

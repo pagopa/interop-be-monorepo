@@ -1,20 +1,21 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
-import request from "supertest";
-import { generateId, Client, PurposeId, ClientId } from "pagopa-interop-models";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockClient,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import { api, authorizationService } from "../vitest.api.setup.js";
+import { generateId, Client, PurposeId, ClientId } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import {
   clientKindNotAllowed,
   clientNotFound,
   tenantNotAllowedOnClient,
 } from "../../src/model/domain/errors.js";
 import { testToFullClient } from "../apiUtils.js";
+import { api, authorizationService } from "../vitest.api.setup.js";
 
 describe("API /clients/{clientId}/purposes/{purposeId} authorization test", () => {
   const purposeIdToRemove: PurposeId = generateId();

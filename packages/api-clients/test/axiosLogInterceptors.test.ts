@@ -1,6 +1,7 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
 import axios, { AxiosError, AxiosHeaders } from "axios";
 import { genericLogger } from "pagopa-interop-commons";
+import { describe, it, expect, vi, afterEach } from "vitest";
+
 import { configureAxiosLogInterceptors } from "../src/axiosLogInterceptors.js";
 
 afterEach(() => {

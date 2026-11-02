@@ -16,6 +16,7 @@ import {
   toClientV2,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
+
 import { handleMessageV2 } from "../src/clientConsumerServiceV2.js";
 import { clientReadModelService, clientWriterService } from "./utils.js";
 

@@ -14,6 +14,7 @@ import {
   agreementStampInReadmodelAgreement,
   DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
+
 import {
   aggregateAgreement,
   aggregateAgreementArray,

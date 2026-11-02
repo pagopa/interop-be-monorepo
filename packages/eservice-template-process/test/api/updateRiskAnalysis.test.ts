@@ -1,5 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
+import {
+  AuthRole,
+  RiskAnalysisValidationIssue,
+  authRole,
+} from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockValidEServiceTemplateRiskAnalysis,
+} from "pagopa-interop-commons-test";
 import {
   EServiceTemplateId,
   RiskAnalysisId,
@@ -7,19 +16,9 @@ import {
   operationForbidden,
   tenantKind,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockValidEServiceTemplateRiskAnalysis,
-} from "pagopa-interop-commons-test";
-import {
-  AuthRole,
-  RiskAnalysisValidationIssue,
-  authRole,
-} from "pagopa-interop-commons";
 import request from "supertest";
-import { eserviceTemplateApi } from "pagopa-interop-api-clients";
-import { api, eserviceTemplateService } from "../vitest.api.setup.js";
-import { buildRiskAnalysisSeed } from "../mockUtils.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import {
   eserviceTemplateNotFound,
   eserviceTemplateNotInDraftState,
@@ -27,6 +26,8 @@ import {
   templateNotInReceiveMode,
   riskAnalysisNotFound,
 } from "../../src/model/domain/errors.js";
+import { buildRiskAnalysisSeed } from "../mockUtils.js";
+import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 
 describe("API POST /templates/:templateId/riskAnalysis/:riskAnalysisId", () => {
   const eserviceTemplateId = generateId<EServiceTemplateId>();

@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { describe, expect, it } from "vitest";
 import {
   getMockClient,
   getMockContextInternal,
@@ -11,6 +10,8 @@ import {
   generateId,
   UserId,
 } from "pagopa-interop-models";
+import { describe, expect, it } from "vitest";
+
 import {
   clientAdminIdNotFound,
   clientKindNotAllowed,

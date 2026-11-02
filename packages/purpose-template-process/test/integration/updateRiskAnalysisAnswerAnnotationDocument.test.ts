@@ -24,11 +24,7 @@ import {
   targetTenantKind,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import {
-  addOnePurposeTemplate,
-  purposeTemplateService,
-  readLastPurposeTemplateEvent,
-} from "../integrationUtils.js";
+
 import {
   conflictDocumentPrettyNameDuplicate,
   purposeTemplateNotFound,
@@ -38,6 +34,11 @@ import {
   riskAnalysisTemplateAnswerAnnotationDocumentNotFound,
   riskAnalysisTemplateAnswerNotFound,
 } from "../../src/model/domain/errors.js";
+import {
+  addOnePurposeTemplate,
+  purposeTemplateService,
+  readLastPurposeTemplateEvent,
+} from "../integrationUtils.js";
 
 describe("updateRiskAnalysisAnswerAnnotationDocument", () => {
   const subjectDocumentSingleId =

@@ -1,5 +1,5 @@
-import { AttributeKind, Attribute, attributeKind } from "pagopa-interop-models";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
+import { AttributeKind, Attribute, attributeKind } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
 const toApiAttributeKind = (
@@ -9,6 +9,7 @@ const toApiAttributeKind = (
     .with(attributeKind.certified, () => "CERTIFIED")
     .with(attributeKind.verified, () => "VERIFIED")
     .with(attributeKind.declared, () => "DECLARED")
+    .with(attributeKind.certifiedDiscrete, () => "CERTIFIED_DISCRETE")
     .exhaustive();
 
 export const toAttributeKind = (
@@ -18,6 +19,7 @@ export const toAttributeKind = (
     .with("CERTIFIED", () => attributeKind.certified)
     .with("VERIFIED", () => attributeKind.verified)
     .with("DECLARED", () => attributeKind.declared)
+    .with("CERTIFIED_DISCRETE", () => attributeKind.certifiedDiscrete)
     .exhaustive();
 
 export const toApiAttribute = (

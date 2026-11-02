@@ -4,20 +4,20 @@ import {
   generateId,
   missingKafkaMessageDataError,
   NotificationType,
+  purposeVersionState,
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
-  retrieveEService,
+  retrieveEservice,
   retrieveHTMLTemplate,
-  retrieveLatestDescriptor,
+  purposeOverQuotaTemplate,
   retrieveTenant,
-} from "../../services/utils.js";
-import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-  PurposeHandlerParams,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
+
 import { config } from "../../config/config.js";
+import { PurposeHandlerParams } from "../../models/handlerParams.js";
 
 const notificationType: NotificationType = "purposeOverQuotaStateToConsumer";
 
@@ -36,15 +36,29 @@ export async function handlePurposeWaitingForApprovalToConsumer(
     throw missingKafkaMessageDataError("purpose", "PurposeWaitingForApproval");
   }
   const purpose = fromPurposeV2(purposeV2Msg);
+  const version = purpose.versions.find(
+    (v) => v.state === purposeVersionState.waitingForApproval
+  );
+  const reason = version?.waitingForApprovalReason;
+  if (!reason) {
+    logger.warn(
+      `Expected waitingForApprovalReason was not found; skipping consumer quota notification - purposeId: ${purpose.id}, versionId: ${version?.id ?? "unknown"}, eventType: PurposeWaitingForApproval`
+    );
+    return [];
+  }
 
   const [htmlTemplate, eservice] = await Promise.all([
     retrieveHTMLTemplate(
       eventMailTemplateType.purposeQuotaOverthresholdMailTemplate
     ),
-    retrieveEService(purpose.eserviceId, readModelService),
+    retrieveEservice(purpose.eserviceId, readModelService),
   ]);
 
-  const { dailyCallsPerConsumer } = retrieveLatestDescriptor(eservice);
+  const content = purposeOverQuotaTemplate(
+    purpose.title,
+    eservice.name,
+    reason
+  );
 
   const consumer = await retrieveTenant(purpose.consumerId, readModelService);
 
@@ -53,7 +67,7 @@ export async function handlePurposeWaitingForApprovalToConsumer(
     notificationType,
     readModelService,
     logger,
-    includeTenantContactEmails: false,
+    includeTenantContactEmails: true,
   });
 
   if (targets.length === 0) {
@@ -66,16 +80,14 @@ export async function handlePurposeWaitingForApprovalToConsumer(
   return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
-      subject: `Superamento soglia piano di carico per l'e-service "${eservice.name}"`,
+      subject: content.title,
       body: templateService.compileHtml(htmlTemplate, {
-        title: `Superamento soglia piano di carico per l'e-service "${eservice.name}"`,
+        title: content.title,
+        body: content.body,
         notificationType,
         entityId: purpose.id,
         ...(t.type === "Tenant" ? { recipientName: consumer.name } : {}),
-        eserviceName: eservice.name,
-        dailyCalls: dailyCallsPerConsumer,
-        isNewVersion: false,
-        ctaLabel: `Gestisci finalità`,
+        ctaLabel: "Visualizza finalità",
         selfcareId: consumer.selfcareId,
         bffUrl: config.bffUrl,
       }),

@@ -14,6 +14,7 @@ import {
   JWKKeyES256,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import { JWTConfig } from "../config/index.js";
 
 export const decodeBase64ToPem = (base64String: string): string => {

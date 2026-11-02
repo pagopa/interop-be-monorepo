@@ -1,12 +1,12 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/no-identical-functions */
+import { authRole } from "pagopa-interop-commons";
 import {
   getMockAttribute,
   getMockContext,
   getMockTenant,
   getMockTenantMail,
 } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
 import {
   Attribute,
   AttributeId,
@@ -22,10 +22,11 @@ import {
   unsafeBrandId,
   VerifiedTenantAttribute,
 } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { attributeNotFound } from "pagopa-interop-notification-commons";
 import { match } from "ts-pattern";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { handleTenantVerifiedAttributeAssigned } from "../src/handlers/tenants/handleTenantVerifiedAttributeAssigned.js";
-import { attributeNotFound } from "../src/models/errors.js";
 import {
   addOneAttribute,
   addOneTenant,

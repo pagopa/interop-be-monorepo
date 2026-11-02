@@ -1,16 +1,16 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
-import request from "supertest";
+import { catalogApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import { generateToken, getMockEService } from "pagopa-interop-commons-test";
 import {
   EService,
   EServiceId,
   generateId,
   operationForbidden,
 } from "pagopa-interop-models";
-import { generateToken, getMockEService } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import { catalogApi } from "pagopa-interop-api-clients";
-import { api, catalogService } from "../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   eServiceNameDuplicateForProducer,
@@ -18,6 +18,7 @@ import {
   eServiceNotFound,
   eserviceWithoutValidDescriptors,
 } from "../../src/model/domain/errors.js";
+import { api, catalogService } from "../vitest.api.setup.js";
 
 describe("POST /templates/eservices/{eServiceId}/instanceLabel/update test", () => {
   const mockEService: EService = getMockEService();

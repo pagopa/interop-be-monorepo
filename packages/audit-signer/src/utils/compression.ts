@@ -1,6 +1,6 @@
 /* eslint-disable functional/immutable-data */
-import { Writable } from "stream";
 import archiver from "archiver";
+import { Writable } from "stream";
 
 export async function zipBuffer(
   data: Uint8Array,

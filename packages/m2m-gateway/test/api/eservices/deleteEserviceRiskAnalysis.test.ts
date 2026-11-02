@@ -1,13 +1,14 @@
-import { describe, it, expect, vi } from "vitest";
+import { catalogApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockedApiEservice,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { catalogApi } from "pagopa-interop-api-clients";
-import { api, mockEserviceService } from "../../vitest.api.setup.js";
+import { describe, it, expect, vi } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { api, mockEserviceService } from "../../vitest.api.setup.js";
 
 describe("DELETE /eservices/:eserviceId/riskAnalyses/:riskAnalysisId router test", () => {
   const mockEService: catalogApi.EService = getMockedApiEservice();

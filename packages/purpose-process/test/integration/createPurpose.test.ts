@@ -2,6 +2,25 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { fail } from "assert";
+import { purposeApi } from "pagopa-interop-api-clients";
+import {
+  expiredRulesVersionError,
+  rulesVersionNotFoundError,
+  unexpectedFieldHyperlinkError,
+} from "pagopa-interop-commons";
+import {
+  getMockValidRiskAnalysisForm,
+  decodeProtobufPayload,
+  getMockAgreement,
+  getMockEService,
+  getMockTenant,
+  getMockPurpose,
+  getMockDescriptor,
+  getMockAuthData,
+  getMockDelegation,
+  getMockContext,
+  getMockExpiredRiskAnalysisForm,
+} from "pagopa-interop-commons-test";
 import {
   Agreement,
   Descriptor,
@@ -20,26 +39,10 @@ import {
   TenantId,
   delegationKind,
   delegationState,
+  hyperlinkDetectionError,
 } from "pagopa-interop-models";
-import { purposeApi } from "pagopa-interop-api-clients";
 import { describe, expect, it, vi } from "vitest";
-import {
-  getMockValidRiskAnalysisForm,
-  decodeProtobufPayload,
-  getMockAgreement,
-  getMockEService,
-  getMockTenant,
-  getMockPurpose,
-  getMockDescriptor,
-  getMockAuthData,
-  getMockDelegation,
-  getMockContext,
-  getMockExpiredRiskAnalysisForm,
-} from "pagopa-interop-commons-test";
-import {
-  expiredRulesVersionError,
-  rulesVersionNotFoundError,
-} from "pagopa-interop-commons";
+
 import {
   missingFreeOfChargeReason,
   tenantKindNotFound,
@@ -112,7 +115,7 @@ describe("createPurpose", () => {
     );
 
     const writtenEvent = await readLastPurposeEvent(
-      createPurposeResponse.data.purpose.id
+      createPurposeResponse.data.id
     );
 
     if (!writtenEvent) {
@@ -120,7 +123,7 @@ describe("createPurpose", () => {
     }
 
     expect(writtenEvent).toMatchObject({
-      stream_id: createPurposeResponse.data.purpose.id,
+      stream_id: createPurposeResponse.data.id,
       version: "0",
       type: "PurposeAdded",
       event_version: 2,
@@ -133,26 +136,22 @@ describe("createPurpose", () => {
 
     const expectedRiskAnalysisForm: RiskAnalysisForm = {
       ...mockValidRiskAnalysisForm,
-      id: unsafeBrandId(
-        createPurposeResponse.data.purpose.riskAnalysisForm!.id
-      ),
+      id: unsafeBrandId(createPurposeResponse.data.riskAnalysisForm!.id),
       singleAnswers: mockValidRiskAnalysisForm.singleAnswers.map(
         (answer, i) => ({
           ...answer,
-          id: createPurposeResponse.data.purpose.riskAnalysisForm!
-            .singleAnswers[i].id,
+          id: createPurposeResponse.data.riskAnalysisForm!.singleAnswers[i].id,
         })
       ),
       multiAnswers: mockValidRiskAnalysisForm.multiAnswers.map((answer, i) => ({
         ...answer,
-        id: createPurposeResponse.data.purpose.riskAnalysisForm!.multiAnswers[i]
-          .id,
+        id: createPurposeResponse.data.riskAnalysisForm!.multiAnswers[i].id,
       })),
     };
 
     const expectedPurpose: Purpose = {
       title: purposeSeed.title,
-      id: unsafeBrandId(createPurposeResponse.data.purpose.id),
+      id: unsafeBrandId(createPurposeResponse.data.id),
       createdAt: new Date(),
       eserviceId: unsafeBrandId(purposeSeed.eserviceId),
       consumerId: unsafeBrandId(purposeSeed.consumerId),
@@ -174,10 +173,7 @@ describe("createPurpose", () => {
       purpose: toPurposeV2(expectedPurpose),
     });
     expect(createPurposeResponse).toEqual({
-      data: {
-        purpose: expectedPurpose,
-        isRiskAnalysisValid: true,
-      },
+      data: expectedPurpose,
       metadata: { version: 0 },
     });
 
@@ -207,7 +203,7 @@ describe("createPurpose", () => {
     );
 
     const writtenEvent = await readLastPurposeEvent(
-      createPurposeResponse.data.purpose.id
+      createPurposeResponse.data.id
     );
 
     if (!writtenEvent) {
@@ -215,7 +211,7 @@ describe("createPurpose", () => {
     }
 
     expect(writtenEvent).toMatchObject({
-      stream_id: createPurposeResponse.data.purpose.id,
+      stream_id: createPurposeResponse.data.id,
       version: "0",
       type: "PurposeAdded",
       event_version: 2,
@@ -228,26 +224,22 @@ describe("createPurpose", () => {
 
     const expectedRiskAnalysisForm: RiskAnalysisForm = {
       ...mockValidRiskAnalysisForm,
-      id: unsafeBrandId(
-        createPurposeResponse.data.purpose.riskAnalysisForm!.id
-      ),
+      id: unsafeBrandId(createPurposeResponse.data.riskAnalysisForm!.id),
       singleAnswers: mockValidRiskAnalysisForm.singleAnswers.map(
         (answer, i) => ({
           ...answer,
-          id: createPurposeResponse.data.purpose.riskAnalysisForm!
-            .singleAnswers[i].id,
+          id: createPurposeResponse.data.riskAnalysisForm!.singleAnswers[i].id,
         })
       ),
       multiAnswers: mockValidRiskAnalysisForm.multiAnswers.map((answer, i) => ({
         ...answer,
-        id: createPurposeResponse.data.purpose.riskAnalysisForm!.multiAnswers[i]
-          .id,
+        id: createPurposeResponse.data.riskAnalysisForm!.multiAnswers[i].id,
       })),
     };
 
     const expectedPurpose: Purpose = {
       title: purposeSeedWithFreeOfChargeFalse.title,
-      id: unsafeBrandId(createPurposeResponse.data.purpose.id),
+      id: unsafeBrandId(createPurposeResponse.data.id),
       createdAt: new Date(),
       eserviceId: unsafeBrandId(purposeSeedWithFreeOfChargeFalse.eserviceId),
       consumerId: unsafeBrandId(purposeSeedWithFreeOfChargeFalse.consumerId),
@@ -269,10 +261,7 @@ describe("createPurpose", () => {
       purpose: toPurposeV2(expectedPurpose),
     });
     expect(createPurposeResponse).toEqual({
-      data: {
-        purpose: expectedPurpose,
-        isRiskAnalysisValid: true,
-      },
+      data: expectedPurpose,
       metadata: { version: 0 },
     });
 
@@ -283,16 +272,23 @@ describe("createPurpose", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
+    const delegator: Tenant = {
+      ...getMockTenant(),
+      id: unsafeBrandId<TenantId>(purposeSeed.consumerId),
+      kind: tenantKind.PA,
+    };
+
     const delegateTenant = { ...getMockTenant(), kind: tenantKind.PA };
 
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedConsumer,
       eserviceId: eService1.id,
-      delegatorId: unsafeBrandId<TenantId>(purposeSeed.consumerId),
+      delegatorId: delegator.id,
       delegateId: delegateTenant.id,
       state: delegationState.active,
     });
 
+    await addOneTenant(delegator);
     await addOneTenant(delegateTenant);
     await addOneAgreement(agreementEservice1);
     await addOneEService(eService1);
@@ -304,7 +300,7 @@ describe("createPurpose", () => {
     );
 
     const writtenEvent = await readLastPurposeEvent(
-      createPurposeResponse.data.purpose.id
+      createPurposeResponse.data.id
     );
 
     if (!writtenEvent) {
@@ -312,7 +308,7 @@ describe("createPurpose", () => {
     }
 
     expect(writtenEvent).toMatchObject({
-      stream_id: createPurposeResponse.data.purpose.id,
+      stream_id: createPurposeResponse.data.id,
       version: "0",
       type: "PurposeAdded",
       event_version: 2,
@@ -325,26 +321,22 @@ describe("createPurpose", () => {
 
     const expectedRiskAnalysisForm: RiskAnalysisForm = {
       ...mockValidRiskAnalysisForm,
-      id: unsafeBrandId(
-        createPurposeResponse.data.purpose.riskAnalysisForm!.id
-      ),
+      id: unsafeBrandId(createPurposeResponse.data.riskAnalysisForm!.id),
       singleAnswers: mockValidRiskAnalysisForm.singleAnswers.map(
         (answer, i) => ({
           ...answer,
-          id: createPurposeResponse.data.purpose.riskAnalysisForm!
-            .singleAnswers[i].id,
+          id: createPurposeResponse.data.riskAnalysisForm!.singleAnswers[i].id,
         })
       ),
       multiAnswers: mockValidRiskAnalysisForm.multiAnswers.map((answer, i) => ({
         ...answer,
-        id: createPurposeResponse.data.purpose.riskAnalysisForm!.multiAnswers[i]
-          .id,
+        id: createPurposeResponse.data.riskAnalysisForm!.multiAnswers[i].id,
       })),
     };
 
     const expectedPurpose: Purpose = {
       title: purposeSeed.title,
-      id: unsafeBrandId(createPurposeResponse.data.purpose.id),
+      id: unsafeBrandId(createPurposeResponse.data.id),
       createdAt: new Date(),
       eserviceId: unsafeBrandId(purposeSeed.eserviceId),
       consumerId: unsafeBrandId(purposeSeed.consumerId),
@@ -367,10 +359,7 @@ describe("createPurpose", () => {
       purpose: toPurposeV2(expectedPurpose),
     });
     expect(createPurposeResponse).toEqual({
-      data: {
-        purpose: expectedPurpose,
-        isRiskAnalysisValid: true,
-      },
+      data: expectedPurpose,
       metadata: { version: 0 },
     });
 
@@ -439,6 +428,7 @@ describe("createPurpose", () => {
       consumerId: agreement.consumerId,
     };
 
+    await addOneTenant(consumer);
     await addOneTenant(consumerDelegate);
     await addOneTenant(producerDelegate);
     await addOneAgreement(agreement);
@@ -452,7 +442,7 @@ describe("createPurpose", () => {
     );
 
     const writtenEvent = await readLastPurposeEvent(
-      createPurposeResponse.data.purpose.id
+      createPurposeResponse.data.id
     );
 
     if (!writtenEvent) {
@@ -460,7 +450,7 @@ describe("createPurpose", () => {
     }
 
     expect(writtenEvent).toMatchObject({
-      stream_id: createPurposeResponse.data.purpose.id,
+      stream_id: createPurposeResponse.data.id,
       version: "0",
       type: "PurposeAdded",
       event_version: 2,
@@ -473,26 +463,22 @@ describe("createPurpose", () => {
 
     const expectedRiskAnalysisForm: RiskAnalysisForm = {
       ...mockValidRiskAnalysisForm,
-      id: unsafeBrandId(
-        createPurposeResponse.data.purpose.riskAnalysisForm!.id
-      ),
+      id: unsafeBrandId(createPurposeResponse.data.riskAnalysisForm!.id),
       singleAnswers: mockValidRiskAnalysisForm.singleAnswers.map(
         (answer, i) => ({
           ...answer,
-          id: createPurposeResponse.data.purpose.riskAnalysisForm!
-            .singleAnswers[i].id,
+          id: createPurposeResponse.data.riskAnalysisForm!.singleAnswers[i].id,
         })
       ),
       multiAnswers: mockValidRiskAnalysisForm.multiAnswers.map((answer, i) => ({
         ...answer,
-        id: createPurposeResponse.data.purpose.riskAnalysisForm!.multiAnswers[i]
-          .id,
+        id: createPurposeResponse.data.riskAnalysisForm!.multiAnswers[i].id,
       })),
     };
 
     const expectedPurpose: Purpose = {
       title: delegatePurposeSeed.title,
-      id: unsafeBrandId(createPurposeResponse.data.purpose.id),
+      id: unsafeBrandId(createPurposeResponse.data.id),
       createdAt: new Date(),
       eserviceId: unsafeBrandId(delegatePurposeSeed.eserviceId),
       consumerId: unsafeBrandId(delegatePurposeSeed.consumerId),
@@ -515,10 +501,7 @@ describe("createPurpose", () => {
       purpose: toPurposeV2(expectedPurpose),
     });
     expect(createPurposeResponse).toEqual({
-      data: {
-        purpose: expectedPurpose,
-        isRiskAnalysisValid: true,
-      },
+      data: expectedPurpose,
       metadata: { version: 0 },
     });
 
@@ -756,5 +739,70 @@ describe("createPurpose", () => {
         })
       )
     ).rejects.toThrowError(duplicatedPurposeTitle(purposeSeed.title));
+  });
+  it.each([
+    {
+      label: "title",
+      override: { title: "Purpose https://evil.example.com" },
+      text: "Purpose https://evil.example.com",
+    },
+    {
+      label: "description",
+      override: { description: "see www.evil.example.com" },
+      text: "see www.evil.example.com",
+    },
+    {
+      label: "freeOfChargeReason",
+      override: {
+        isFreeOfCharge: true,
+        freeOfChargeReason: "see https://evil.example.com",
+      },
+      text: "see https://evil.example.com",
+    },
+  ])(
+    "should throw hyperlinkDetectionError when purpose $label contains a hyperlink",
+    async ({ override, text }) => {
+      await expect(
+        purposeService.createPurpose(
+          { ...purposeSeed, ...override },
+          getMockContext({
+            authData: getMockAuthData(
+              unsafeBrandId<TenantId>(purposeSeed.consumerId)
+            ),
+          })
+        )
+      ).rejects.toThrowError(hyperlinkDetectionError(text));
+    }
+  );
+  it("should throw riskAnalysisValidationFailed with unexpectedFieldHyperlinkError when a freeText answer contains a hyperlink", async () => {
+    await addOneTenant(tenant);
+    await addOneAgreement(agreementEservice1);
+    await addOneEService(eService1);
+
+    const baseFormSeed = buildRiskAnalysisFormSeed(mockValidRiskAnalysisForm);
+    const freeTextField = "institutionalPurpose";
+    const seed: purposeApi.PurposeSeed = {
+      ...purposeSeed,
+      riskAnalysisForm: {
+        ...baseFormSeed,
+        answers: {
+          ...baseFormSeed.answers,
+          [freeTextField]: ["see https://evil.example.com for details"],
+        },
+      },
+    };
+
+    await expect(
+      purposeService.createPurpose(
+        seed,
+        getMockContext({
+          authData: getMockAuthData(unsafeBrandId<TenantId>(seed.consumerId)),
+        })
+      )
+    ).rejects.toThrowError(
+      riskAnalysisValidationFailed([
+        unexpectedFieldHyperlinkError(freeTextField),
+      ])
+    );
   });
 });

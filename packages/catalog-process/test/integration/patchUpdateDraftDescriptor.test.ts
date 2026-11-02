@@ -24,6 +24,8 @@ import {
   delegationKind,
 } from "pagopa-interop-models";
 import { expect, describe, it, beforeEach } from "vitest";
+
+import { apiAgreementApprovalPolicyToAgreementApprovalPolicy } from "../../src/model/domain/apiConverter.js";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
@@ -40,7 +42,6 @@ import {
   addOneDelegation,
   addOneEServiceTemplate,
 } from "../integrationUtils.js";
-import { apiAgreementApprovalPolicyToAgreementApprovalPolicy } from "../../src/model/domain/apiConverter.js";
 
 describe("patchUpdateDraftDescriptor", () => {
   const mockDescriptor = getMockDescriptor();
@@ -447,11 +448,10 @@ describe("patchUpdateDraftDescriptor", () => {
 
   it.each([
     { dailyCallsPerConsumer: 300, dailyCallsTotal: 200 },
-    { dailyCallsPerConsumer: 200, dailyCallsTotal: 200 },
     { dailyCallsPerConsumer: 300 },
     { dailyCallsTotal: 50 },
   ])(
-    "should throw inconsistentDailyCalls if dailyCallsPerConsumer is greater than or equal to dailyCallsTotal",
+    "should throw inconsistentDailyCalls if dailyCallsPerConsumer is greater than dailyCallsTotal",
     async (seed) => {
       const descriptor: Descriptor = {
         ...mockDescriptor,

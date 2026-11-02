@@ -1,27 +1,28 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockEServiceTemplate,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   EServiceTemplate,
   EServiceTemplateId,
   generateId,
   operationForbidden,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockEServiceTemplate,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { eserviceTemplateApi } from "pagopa-interop-api-clients";
-import { api, eserviceTemplateService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { eserviceTemplateToApiEServiceTemplate } from "../../src/model/domain/apiConverter.js";
-import { eserviceTemplateToApiUpdateEServiceTemplateSeed } from "../mockUtils.js";
 import {
   eserviceTemplateDuplicate,
   eserviceTemplateNotFound,
   eserviceTemplateNotInDraftState,
 } from "../../src/model/domain/errors.js";
+import { eserviceTemplateToApiUpdateEServiceTemplateSeed } from "../mockUtils.js";
+import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 
 describe("API POST /templates/:templateId", () => {
   const mockEserviceTemplate: EServiceTemplate = getMockEServiceTemplate();

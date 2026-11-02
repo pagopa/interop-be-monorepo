@@ -1,5 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockEServiceTemplate,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   EServiceTemplateId,
   EServiceTemplateVersionId,
@@ -7,19 +12,15 @@ import {
   generateId,
   operationForbidden,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockEServiceTemplate,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { api, eserviceTemplateService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import {
   eserviceTemplateNotFound,
   eserviceTemplateVersionNotFound,
   notValidEServiceTemplateVersionState,
 } from "../../src/model/domain/errors.js";
+import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 
 describe("API DELETE /templates/:templateId/versions/:templateVersionId", () => {
   const mockEserviceTemplate = getMockEServiceTemplate();

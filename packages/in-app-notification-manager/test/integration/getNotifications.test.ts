@@ -1,15 +1,15 @@
-import { describe, it, expect } from "vitest";
-
+import { eq, desc } from "drizzle-orm";
 import { getMockContext } from "pagopa-interop-commons-test";
 import { getMockAuthData } from "pagopa-interop-commons-test";
+import { notification } from "pagopa-interop-in-app-notification-db-models";
 import {
   generateId,
   UserId,
   TenantId,
   fromNotificationSQL,
 } from "pagopa-interop-models";
-import { eq, desc } from "drizzle-orm";
-import { notification } from "pagopa-interop-in-app-notification-db-models";
+import { describe, it, expect } from "vitest";
+
 import {
   addNotifications,
   inAppNotificationService,

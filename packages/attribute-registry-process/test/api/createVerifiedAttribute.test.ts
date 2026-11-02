@@ -1,20 +1,21 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
-import { attributeKind, generateId } from "pagopa-interop-models";
+import { attributeRegistryApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockAttribute,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
+import { attributeKind, generateId } from "pagopa-interop-models";
 import request from "supertest";
-import { attributeRegistryApi } from "pagopa-interop-api-clients";
-import { api, attributeRegistryService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi } from "vitest";
+
 import { toApiAttribute } from "../../src/model/domain/apiConverter.js";
 import {
   attributeDuplicateByName,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
+import { api, attributeRegistryService } from "../vitest.api.setup.js";
 
 describe("API /verifiedAttributes authorization test", () => {
   const mockVerifiedAttributeSeed: attributeRegistryApi.AttributeSeed = {

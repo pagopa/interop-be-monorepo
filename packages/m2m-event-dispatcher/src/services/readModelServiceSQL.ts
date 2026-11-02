@@ -14,6 +14,7 @@ import {
   CatalogReadModelService,
 } from "pagopa-interop-readmodel";
 import { delegationInReadmodelDelegation } from "pagopa-interop-readmodel-models";
+
 import { Delegations } from "../models/delegations.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

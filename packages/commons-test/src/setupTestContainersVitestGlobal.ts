@@ -3,6 +3,9 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
 
+import type {} from "vitest";
+import type { TestProject } from "vitest/node";
+
 import { config as dotenv } from "dotenv-flow";
 import {
   AWSSesConfig,
@@ -17,22 +20,24 @@ import {
   InAppNotificationDBConfig,
   M2MEventSQLDbConfig,
   DynamoDBClientConfig,
+  ScheduledNotificationDBConfig,
+  TenantKindHistoryDBConfig,
 } from "pagopa-interop-commons";
 import { StartedTestContainer } from "testcontainers";
-import type {} from "vitest";
-import type { TestProject } from "vitest/node";
+
 import {
   TEST_AWS_SES_PORT,
   TEST_DYNAMODB_PORT,
   TEST_MAILPIT_HTTP_PORT,
   TEST_MAILPIT_SMTP_PORT,
-  TEST_MINIO_PORT,
+  TEST_RUSTFS_PORT,
   TEST_POSTGRES_DB_PORT,
   TEST_REDIS_PORT,
   awsSESContainer,
+  createS3Buckets,
   dynamoDBContainer,
   mailpitContainer,
-  minioContainer,
+  rustfsContainer,
   postgreSQLReadModelContainer,
   postgreSQLContainer,
   redisContainer,
@@ -41,6 +46,10 @@ import {
   TEST_IN_APP_NOTIFICATION_DB_PORT,
   m2mEventDBContainer,
   TEST_M2M_EVENT_DB_PORT,
+  scheduledNotificationDBContainer,
+  TEST_SCHEDULED_NOTIFICATION_DB_PORT,
+  tenantKindHistoryDBContainer,
+  TEST_TENANT_KIND_HISTORY_DB_PORT,
 } from "./containerTestUtils.js";
 import {
   EnhancedDPoPConfig,
@@ -63,6 +72,8 @@ declare module "vitest" {
     inAppNotificationDbConfig?: InAppNotificationDBConfig;
     m2mEventDbConfig?: M2MEventSQLDbConfig;
     dynamoDBClientConfig?: EnhancedDynamoDBClientConfig;
+    scheduledNotificationDbConfig?: ScheduledNotificationDBConfig;
+    tenantKindHistoryDBConfig?: TenantKindHistoryDBConfig;
   }
 }
 
@@ -91,6 +102,12 @@ export function setupTestContainersVitestGlobal() {
   );
   const dynamoDBClientConfig = DynamoDBClientConfig.safeParse(process.env);
   const m2mEventDbConfig = M2MEventSQLDbConfig.safeParse(process.env);
+  const scheduledNotificationDbConfig = ScheduledNotificationDBConfig.safeParse(
+    process.env
+  );
+  const tenantKindHistoryDBConfig = TenantKindHistoryDBConfig.safeParse(
+    process.env
+  );
 
   return async function ({
     provide,
@@ -98,13 +115,15 @@ export function setupTestContainersVitestGlobal() {
     let startedPostgreSqlContainer: StartedTestContainer | undefined;
     let startedPostgreSqlReadModelContainer: StartedTestContainer | undefined;
     let startedPostgreSqlAnalyticsContainer: StartedTestContainer | undefined;
-    let startedMinioContainer: StartedTestContainer | undefined;
+    let startedRustfsContainer: StartedTestContainer | undefined;
     let startedMailpitContainer: StartedTestContainer | undefined;
     let startedRedisContainer: StartedTestContainer | undefined;
     let startedDynamoDbContainer: StartedTestContainer | undefined;
     let startedAWSSesContainer: StartedTestContainer | undefined;
     let startedInAppNotificationContainer: StartedTestContainer | undefined;
     let startedM2MEventSQLDbContainer: StartedTestContainer | undefined;
+    let startedScheduledNotificationContainer: StartedTestContainer | undefined;
+    let startedTenantKindHistoryDbContainer: StartedTestContainer | undefined;
 
     // Setting up the EventStore PostgreSQL container if the config is provided
     if (eventStoreConfig.success) {
@@ -159,24 +178,33 @@ export function setupTestContainersVitestGlobal() {
       provide("analyticsSQLConfig", analyticsSQLConfig.data);
     }
 
-    // Setting up the Minio container if the config is provided
+    // Setting up the RustFS container if the config is provided
     if (fileManagerConfig.success) {
       const s3Bucket =
         S3Config.safeParse(process.env)?.data?.s3Bucket ??
         "interop-local-bucket";
 
-      startedMinioContainer = await minioContainer({
-        ...fileManagerConfig.data,
-        s3Bucket,
-      }).start();
+      startedRustfsContainer = await rustfsContainer().start();
 
       fileManagerConfig.data.s3ServerPort =
-        startedMinioContainer?.getMappedPort(TEST_MINIO_PORT);
+        startedRustfsContainer?.getMappedPort(TEST_RUSTFS_PORT);
 
-      provide("fileManagerConfig", {
+      const providedFileManagerConfig = {
         ...fileManagerConfig.data,
         s3Bucket,
-      });
+      };
+
+      // RustFS does not create buckets from on-disk folders:
+      // they must be created through the S3 API once the server is running.
+      if (providedFileManagerConfig.s3CustomServer) {
+        await createS3Buckets(providedFileManagerConfig, [
+          s3Bucket,
+          "test-bucket-1",
+          "test-bucket-2",
+        ]);
+      }
+
+      provide("fileManagerConfig", providedFileManagerConfig);
     }
 
     if (emailManagerConfig.success) {
@@ -262,17 +290,46 @@ export function setupTestContainersVitestGlobal() {
       });
     }
 
+    if (scheduledNotificationDbConfig.success) {
+      startedScheduledNotificationContainer =
+        await scheduledNotificationDBContainer(
+          scheduledNotificationDbConfig.data
+        ).start();
+      provide("scheduledNotificationDbConfig", {
+        ...scheduledNotificationDbConfig.data,
+        scheduledNotificationDBPort:
+          startedScheduledNotificationContainer.getMappedPort(
+            TEST_SCHEDULED_NOTIFICATION_DB_PORT
+          ),
+      });
+    }
+
+    if (tenantKindHistoryDBConfig.success) {
+      startedTenantKindHistoryDbContainer = await tenantKindHistoryDBContainer(
+        tenantKindHistoryDBConfig.data
+      ).start();
+      provide("tenantKindHistoryDBConfig", {
+        ...tenantKindHistoryDBConfig.data,
+        tenantKindHistoryDBPort:
+          startedTenantKindHistoryDbContainer.getMappedPort(
+            TEST_TENANT_KIND_HISTORY_DB_PORT
+          ),
+      });
+    }
+
     return async (): Promise<void> => {
       await startedPostgreSqlContainer?.stop();
       await startedPostgreSqlReadModelContainer?.stop();
       await startedPostgreSqlAnalyticsContainer?.stop();
-      await startedMinioContainer?.stop();
+      await startedRustfsContainer?.stop();
       await startedMailpitContainer?.stop();
       await startedDynamoDbContainer?.stop();
       await startedRedisContainer?.stop();
       await startedAWSSesContainer?.stop();
       await startedInAppNotificationContainer?.stop();
       await startedM2MEventSQLDbContainer?.stop();
+      await startedScheduledNotificationContainer?.stop();
+      await startedTenantKindHistoryDbContainer?.stop();
     };
   };
 }

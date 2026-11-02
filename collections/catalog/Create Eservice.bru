@@ -19,6 +19,7 @@ body:json {
   {
       "name": "{{randomName}}",
       "description": "this is a test",
+      "asyncExchange": true,
       "technology": "REST",
       "mode": "DELIVER",
       "descriptor": {
@@ -26,7 +27,14 @@ body:json {
           "voucherLifespan": 86400,
           "dailyCallsPerConsumer": 100,
           "dailyCallsTotal": 100,
-          "agreementApprovalPolicy": "MANUAL"
+          "agreementApprovalPolicy": "MANUAL",
+          "asyncExchangeProperties": {
+            "responseTime": 60,
+            "resourceAvailableTime": 120,
+            "confirmation": false,
+            "bulk": false,
+            "maxResultSet": 100
+          }
       },
       "isConsumerDelegable": true
   }

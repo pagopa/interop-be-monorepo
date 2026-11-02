@@ -1,21 +1,22 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
-import { generateId } from "pagopa-interop-models";
 import {
   getMockedApiPurpose,
   getMockedApiPurposeVersion,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import {
-  getMockM2MAdminAppContext,
-  testToM2mGatewayApiPurpose,
-  testToM2mGatewayApiPurposeVersion,
-} from "../../mockUtils.js";
+import { generateId } from "pagopa-interop-models";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
   mockInteropBeClients,
   purposeService,
 } from "../../integrationUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2mGatewayApiPurpose,
+  testToM2mGatewayApiPurposeVersion,
+} from "../../mockUtils.js";
 
 describe("toM2MGatewayApiPurpose", () => {
   const mockGetPurpose = vi.fn();
@@ -78,6 +79,9 @@ describe("toM2MGatewayApiPurpose", () => {
           currentVersion: purposeVersion2,
           rejectedVersion: purposeVersion4,
           waitingForApprovalVersion: purposeVersion3,
+          isRiskAnalysisValid:
+            state === m2mGatewayApi.PurposeVersionState.Enum.ACTIVE ||
+            state === m2mGatewayApi.PurposeVersionState.Enum.SUSPENDED,
         }
       );
 
@@ -122,6 +126,7 @@ describe("toM2MGatewayApiPurpose", () => {
       currentVersion: purposeVersion2,
       waitingForApprovalVersion: purposeVersion3,
       rejectedVersion: undefined,
+      isRiskAnalysisValid: true,
     });
 
     const result = await purposeService.getPurpose(
@@ -164,6 +169,7 @@ describe("toM2MGatewayApiPurpose", () => {
       currentVersion: purposeVersion2,
       rejectedVersion: purposeVersion3,
       waitingForApprovalVersion: undefined,
+      isRiskAnalysisValid: true,
     });
 
     const result = await purposeService.getPurpose(
@@ -199,6 +205,7 @@ describe("toM2MGatewayApiPurpose", () => {
       waitingForApprovalVersion: purposeVersion1,
       rejectedVersion: purposeVersion2,
       currentVersion: undefined,
+      isRiskAnalysisValid: false,
     });
 
     const result = await purposeService.getPurpose(
@@ -234,6 +241,7 @@ describe("toM2MGatewayApiPurpose", () => {
       currentVersion: purposeVersion1,
       rejectedVersion: purposeVersion2,
       waitingForApprovalVersion: undefined,
+      isRiskAnalysisValid: true,
     });
 
     const result = await purposeService.getPurpose(
@@ -269,6 +277,7 @@ describe("toM2MGatewayApiPurpose", () => {
       currentVersion: purposeVersion1,
       waitingForApprovalVersion: purposeVersion2,
       rejectedVersion: undefined,
+      isRiskAnalysisValid: true,
     });
 
     const result = await purposeService.getPurpose(
@@ -311,6 +320,7 @@ describe("toM2MGatewayApiPurpose", () => {
       currentVersion: purposeVersion1,
       waitingForApprovalVersion: purposeVersion3,
       rejectedVersion: undefined,
+      isRiskAnalysisValid: true,
     });
 
     const result = await purposeService.getPurpose(

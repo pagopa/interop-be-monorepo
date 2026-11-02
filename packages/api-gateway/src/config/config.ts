@@ -1,4 +1,3 @@
-import { z } from "zod";
 import {
   APIEndpoint,
   CommonHTTPServiceConfig,
@@ -6,6 +5,7 @@ import {
   ApplicationAuditProducerConfig,
   ReadModelSQLDbConfig,
 } from "pagopa-interop-commons";
+import { z } from "zod";
 
 const CatalogProcessServerConfig = z
   .object({

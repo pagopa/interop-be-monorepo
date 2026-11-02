@@ -1,6 +1,3 @@
-import fs, { readFileSync } from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
 import {
   CreateTableCommand,
   CreateTableInput,
@@ -9,6 +6,9 @@ import {
   DynamoDBClient,
   UpdateTimeToLiveCommand,
 } from "@aws-sdk/client-dynamodb";
+import fs, { readFileSync } from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
 export const buildDynamoDBTables = async (
   dynamoDBClient: DynamoDBClient
@@ -37,6 +37,26 @@ export const buildDynamoDBTables = async (
   );
   await dynamoDBClient.send(tokenGenStatesCreationCommand);
 
+  const interactionsSchemaPath = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../../../docker/dynamo-db/schema/interactions-dynamo-db.json"
+  );
+  const interactionsTableDefinition: CreateTableInput = JSON.parse(
+    fs.readFileSync(interactionsSchemaPath, "utf8")
+  );
+  const interactionsCreationCommand = new CreateTableCommand(
+    interactionsTableDefinition
+  );
+  await dynamoDBClient.send(interactionsCreationCommand);
+  const interactionsTtlCommand = new UpdateTimeToLiveCommand({
+    TableName: interactionsTableDefinition.TableName,
+    TimeToLiveSpecification: {
+      Enabled: true,
+      AttributeName: "ttl",
+    },
+  });
+  await dynamoDBClient.send(interactionsTtlCommand);
+
   const dpopCacheSchemaPath = path.resolve(
     path.dirname(fileURLToPath(import.meta.url)),
     "../../../docker/dynamo-db/schema/dpop-cache-dynamo-db.json"
@@ -48,6 +68,18 @@ export const buildDynamoDBTables = async (
     dpopCacheTableDefinition
   );
   await dynamoDBClient.send(dpopCacheCreationCommand);
+
+  const producerKeychainSchemaPath = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../../../docker/dynamo-db/schema/producer-keychain-platform-states-dynamo-db.json"
+  );
+  const producerKeychainTableDefinition: CreateTableInput = JSON.parse(
+    fs.readFileSync(producerKeychainSchemaPath, "utf8")
+  );
+  const producerKeychainCreationCommand = new CreateTableCommand(
+    producerKeychainTableDefinition
+  );
+  await dynamoDBClient.send(producerKeychainCreationCommand);
 
   const signatureReferencesSchemaPath = path.resolve(
     path.dirname(fileURLToPath(import.meta.url)),
@@ -80,6 +112,9 @@ export const deleteDynamoDBTables = async (
   const tokenGenStatesDeleteInput: DeleteTableInput = {
     TableName: "token-generation-states",
   };
+  const interactionsDeleteInput: DeleteTableInput = {
+    TableName: "interactions",
+  };
   const dpopCacheDeleteInput: DeleteTableInput = {
     TableName: "dpop-cache",
   };
@@ -92,8 +127,20 @@ export const deleteDynamoDBTables = async (
     tokenGenStatesDeleteInput
   );
   await dynamoDBClient.send(tokenGenStatesDeleteCommand);
+  const interactionsDeleteCommand = new DeleteTableCommand(
+    interactionsDeleteInput
+  );
+  await dynamoDBClient.send(interactionsDeleteCommand);
   const dpopCacheDeleteCommand = new DeleteTableCommand(dpopCacheDeleteInput);
   await dynamoDBClient.send(dpopCacheDeleteCommand);
+
+  const producerKeychainDeleteInput: DeleteTableInput = {
+    TableName: "producer-keychain-platform-states",
+  };
+  const producerKeychainDeleteCommand = new DeleteTableCommand(
+    producerKeychainDeleteInput
+  );
+  await dynamoDBClient.send(producerKeychainDeleteCommand);
 
   const signatureReferencesDeleteInput: DeleteTableInput = {
     TableName: "SignatureReferencesTable",

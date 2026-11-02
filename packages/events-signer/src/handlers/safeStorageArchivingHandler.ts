@@ -10,6 +10,7 @@ import {
   SignatureReference,
 } from "pagopa-interop-commons";
 import { genericInternalError } from "pagopa-interop-models";
+
 import { calculateSha256Base64 } from "../utils/checksum.js";
 
 export const archiveFileToSafeStorage = async (

@@ -1,7 +1,6 @@
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-import { afterAll, afterEach, inject, vi } from "vitest";
 import {
   Agreement,
   EService,
@@ -10,11 +9,6 @@ import {
   Delegation,
   Purpose,
 } from "pagopa-interop-models";
-import {
-  initPDFGenerator,
-  launchPuppeteerBrowser,
-} from "../src/pdf-generator/pdfGenerator.js";
-import puppeteer, { Browser } from "puppeteer";
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
@@ -30,6 +24,13 @@ import {
   upsertPurpose,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
+import puppeteer, { Browser } from "puppeteer";
+import { afterAll, afterEach, inject, vi } from "vitest";
+
+import {
+  initPDFGenerator,
+  launchPuppeteerBrowser,
+} from "../src/pdf-generator/pdfGenerator.js";
 import { readModelServiceBuilderSQL } from "../src/service/readModelSql.js";
 
 const { cleanup, fileManager, readModelDB } = await setupTestContainersVitest(

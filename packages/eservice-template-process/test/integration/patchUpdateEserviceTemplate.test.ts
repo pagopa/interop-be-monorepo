@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   decodeProtobufPayload,
   getMockEServiceTemplate,
@@ -11,12 +12,8 @@ import {
   toEServiceTemplateV2,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
-import { eserviceTemplateApi } from "pagopa-interop-api-clients";
-import {
-  readLastEserviceTemplateEvent,
-  addOneEServiceTemplate,
-  eserviceTemplateService,
-} from "../integrationUtils.js";
+
+import { config } from "../../src/config/config.js";
 import {
   apiEServiceModeToEServiceMode,
   apiTechnologyToTechnology,
@@ -25,6 +22,11 @@ import {
   eserviceTemplateDuplicate,
   eserviceTemplateNotFound,
 } from "../../src/model/domain/errors.js";
+import {
+  readLastEserviceTemplateEvent,
+  addOneEServiceTemplate,
+  eserviceTemplateService,
+} from "../integrationUtils.js";
 
 describe("update eserviceTemplate", () => {
   const mockEServiceTemplate = {
@@ -67,6 +69,15 @@ describe("update eserviceTemplate", () => {
       isSignalHubEnabled: true,
       intendedTarget: "intendedTarget",
     },
+    {
+      name: "New name",
+      description: "New description",
+      technology: "SOAP",
+      mode: "DELIVER",
+      isSignalHubEnabled: true,
+      intendedTarget: "intendedTarget",
+      asyncExchange: true,
+    },
   ] as eserviceTemplateApi.PatchUpdateEServiceTemplateSeed[])(
     "should write on event-store and update only the fields set in the seed, and leave undefined fields unchanged (seed #%#)",
     async (seed) => {
@@ -102,6 +113,7 @@ describe("update eserviceTemplate", () => {
         isSignalHubEnabled:
           seed.isSignalHubEnabled ?? eserviceTemplate.isSignalHubEnabled,
         intendedTarget: seed.intendedTarget ?? eserviceTemplate.intendedTarget,
+        asyncExchange: seed.asyncExchange ?? eserviceTemplate.asyncExchange,
         riskAnalysis:
           seed.mode === "DELIVER" ? [] : eserviceTemplate.riskAnalysis,
       };
@@ -131,6 +143,42 @@ describe("update eserviceTemplate", () => {
       });
     }
   );
+
+  it("should ignore asyncExchange from seed and leave it undefined when featureFlagAsyncExchange is disabled", async () => {
+    config.featureFlagAsyncExchange = false;
+
+    const eserviceTemplate: EServiceTemplate = {
+      ...mockEServiceTemplate,
+      technology: "Rest",
+      mode: "Receive",
+      isSignalHubEnabled: false,
+      intendedTarget: "old intended target",
+    };
+
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    const updateResult =
+      await eserviceTemplateService.patchUpdateEServiceTemplate(
+        mockEServiceTemplate.id,
+        { asyncExchange: true },
+        getMockContextM2MAdmin({
+          organizationId: mockEServiceTemplate.creatorId,
+        })
+      );
+
+    const writtenEvent = await readLastEserviceTemplateEvent(
+      mockEServiceTemplate.id
+    );
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceTemplateDraftUpdatedV2,
+      payload: writtenEvent.data,
+    });
+
+    expect(updateResult.data.asyncExchange).toBeUndefined();
+    expect(writtenPayload.eserviceTemplate?.asyncExchange).toBeUndefined();
+
+    config.featureFlagAsyncExchange = true;
+  });
 
   it("should throw eServiceTemplateNotFound if the eserviceTemplate doesn't exist", async () => {
     expect(

@@ -1,0 +1,26 @@
+meta {
+  name: Schedule archive for the selected descriptor
+  type: http
+  seq: 43
+}
+
+post {
+  url: {{host-bff}}/eservices/:eserviceId/descriptors/:descriptorId/scheduleArchive
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceId: <uuid>
+  descriptorId: <uuid>
+}
+
+headers {
+  Authorization: {{JWT}}
+}
+
+body:json {
+  {
+    "gracePeriodDays": 60
+  }
+}

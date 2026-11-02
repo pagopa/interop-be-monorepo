@@ -8,10 +8,12 @@ import {
   DrizzleReturnType,
   DrizzleTransactionType,
   tenantCertifiedAttributeInReadmodelTenant,
+  tenantCertifiedDiscreteAttributeInReadmodelTenant,
   tenantDeclaredAttributeInReadmodelTenant,
   tenantFeatureInReadmodelTenant,
   tenantInReadmodelTenant,
   tenantMailInReadmodelTenant,
+  tenantRemoteIdInReadmodelTenant,
   tenantVerifiedAttributeInReadmodelTenant,
   tenantVerifiedAttributeRevokerInReadmodelTenant,
   tenantVerifiedAttributeVerifierInReadmodelTenant,
@@ -27,6 +29,7 @@ export function tenantWriterServiceBuilder(db: DrizzleReturnType) {
     const tenantRelatedTables = [
       tenantMailInReadmodelTenant,
       tenantCertifiedAttributeInReadmodelTenant,
+      tenantCertifiedDiscreteAttributeInReadmodelTenant,
       tenantDeclaredAttributeInReadmodelTenant,
       tenantVerifiedAttributeInReadmodelTenant,
       tenantVerifiedAttributeVerifierInReadmodelTenant,
@@ -62,11 +65,13 @@ export function tenantWriterServiceBuilder(db: DrizzleReturnType) {
         tenantSQL,
         mailsSQL,
         certifiedAttributesSQL,
+        certifiedDiscreteAttributesSQL,
         declaredAttributesSQL,
         verifiedAttributesSQL,
         verifiedAttributeVerifiersSQL,
         verifiedAttributeRevokersSQL,
         featuresSQL,
+        remoteIdsSQL,
       } = splitTenantIntoObjectsSQL(tenant, metadataVersion);
 
       await db.transaction(async (tx) => {
@@ -97,6 +102,12 @@ export function tenantWriterServiceBuilder(db: DrizzleReturnType) {
             .values(certifiedAttributeSQL);
         }
 
+        for (const certifiedDiscreteAttributeSQL of certifiedDiscreteAttributesSQL) {
+          await tx
+            .insert(tenantCertifiedDiscreteAttributeInReadmodelTenant)
+            .values(certifiedDiscreteAttributeSQL);
+        }
+
         for (const declaredAttributeSQL of declaredAttributesSQL) {
           await tx
             .insert(tenantDeclaredAttributeInReadmodelTenant)
@@ -123,6 +134,10 @@ export function tenantWriterServiceBuilder(db: DrizzleReturnType) {
 
         for (const featureSQL of featuresSQL) {
           await tx.insert(tenantFeatureInReadmodelTenant).values(featureSQL);
+        }
+
+        for (const remoteIdSQL of remoteIdsSQL) {
+          await tx.insert(tenantRemoteIdInReadmodelTenant).values(remoteIdSQL);
         }
       });
     },

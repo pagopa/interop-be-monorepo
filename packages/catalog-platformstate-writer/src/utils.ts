@@ -1,15 +1,4 @@
 import {
-  descriptorState,
-  DescriptorState,
-  genericInternalError,
-  GSIPKEServiceIdDescriptorId,
-  itemState,
-  ItemState,
-  PlatformStatesCatalogEntry,
-  PlatformStatesEServiceDescriptorPK,
-  TokenGenStatesConsumerClientGSIDescriptor,
-} from "pagopa-interop-models";
-import {
   AttributeValue,
   ConditionalCheckFailedException,
   DeleteItemCommand,
@@ -25,8 +14,21 @@ import {
   UpdateItemInput,
 } from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
-import { z } from "zod";
 import { Logger } from "pagopa-interop-commons";
+import {
+  descriptorState,
+  DescriptorState,
+  genericInternalError,
+  GSIPKEServiceIdDescriptorId,
+  itemState,
+  ItemState,
+  PlatformStatesCatalogEntry,
+  PlatformStatesEServiceDescriptorPK,
+  TokenGenStatesConsumerClientGSIDescriptor,
+} from "pagopa-interop-models";
+import { match } from "ts-pattern";
+import { z } from "zod";
+
 import { config } from "./config/config.js";
 
 export const upsertPlatformStatesCatalogEntry = async (
@@ -34,29 +36,59 @@ export const upsertPlatformStatesCatalogEntry = async (
   dynamoDBClient: DynamoDBClient,
   logger: Logger
 ): Promise<void> => {
-  const input: PutItemInput = {
-    Item: {
-      PK: {
-        S: catalogEntry.PK,
-      },
-      state: {
-        S: catalogEntry.state,
-      },
-      descriptorAudience: {
-        L: catalogEntry.descriptorAudience.map((item) => ({
-          S: item,
-        })),
-      },
-      descriptorVoucherLifespan: {
-        N: catalogEntry.descriptorVoucherLifespan.toString(),
-      },
-      version: {
-        N: catalogEntry.version.toString(),
-      },
-      updatedAt: {
-        S: catalogEntry.updatedAt,
-      },
+  const item: Record<string, AttributeValue> = {
+    PK: {
+      S: catalogEntry.PK,
     },
+    state: {
+      S: catalogEntry.state,
+    },
+    descriptorAudience: {
+      L: catalogEntry.descriptorAudience.map((item) => ({
+        S: item,
+      })),
+    },
+    descriptorVoucherLifespan: {
+      N: catalogEntry.descriptorVoucherLifespan.toString(),
+    },
+    version: {
+      N: catalogEntry.version.toString(),
+    },
+    updatedAt: {
+      S: catalogEntry.updatedAt,
+    },
+  };
+
+  if (catalogEntry.asyncExchangeProperties !== undefined) {
+    item.asyncExchangeProperties = {
+      M: {
+        responseTime: {
+          N: catalogEntry.asyncExchangeProperties.responseTime.toString(),
+        },
+        resourceAvailableTime: {
+          N: catalogEntry.asyncExchangeProperties.resourceAvailableTime.toString(),
+        },
+        confirmation: {
+          BOOL: catalogEntry.asyncExchangeProperties.confirmation,
+        },
+        bulk: {
+          BOOL: catalogEntry.asyncExchangeProperties.bulk,
+        },
+        maxResultSet: {
+          N: catalogEntry.asyncExchangeProperties.maxResultSet.toString(),
+        },
+      },
+    };
+  }
+
+  if (catalogEntry.asyncExchange !== undefined) {
+    item.asyncExchange = {
+      BOOL: catalogEntry.asyncExchange,
+    };
+  }
+
+  const input: PutItemInput = {
+    Item: item,
     TableName: config.tokenGenerationReadModelTableNamePlatform,
   };
   const command = new PutItemCommand(input);
@@ -111,12 +143,24 @@ export const deleteCatalogEntry = async (
   logger.info(`Platform-states. Deleted catalog entry ${primaryKey}`);
 };
 
-export const descriptorStateToItemState = (
-  state: DescriptorState
-): ItemState =>
-  state === descriptorState.published || state === descriptorState.deprecated
-    ? itemState.active
-    : itemState.inactive;
+export const descriptorStateToItemState = (state: DescriptorState): ItemState =>
+  // Used match/exhaustive instead of the ternary so that future states will give an error if not handled
+  match(state)
+    .with(
+      descriptorState.published,
+      descriptorState.deprecated,
+      descriptorState.archiving,
+      () => itemState.active
+    )
+    .with(
+      descriptorState.suspended,
+      descriptorState.archivingSuspended,
+      descriptorState.archived,
+      descriptorState.waitingForApproval,
+      descriptorState.draft,
+      () => itemState.inactive
+    )
+    .exhaustive();
 
 export const updateDescriptorStateInPlatformStatesEntry = async (
   dynamoDBClient: DynamoDBClient,

@@ -1,10 +1,11 @@
-import { match } from "ts-pattern";
 import {
   TenantEventEnvelopeV1,
   fromTenantV1,
   missingKafkaMessageDataError,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
+
 import { TenantWriterService } from "./tenantWriterService.js";
 
 export async function handleMessageV1(

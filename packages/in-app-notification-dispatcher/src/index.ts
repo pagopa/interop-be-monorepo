@@ -1,4 +1,5 @@
 /* eslint-disable sonarjs/no-identical-functions */
+import { drizzle } from "drizzle-orm/node-postgres";
 import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import { decodeKafkaMessage, Logger, logger } from "pagopa-interop-commons";
@@ -11,13 +12,13 @@ import {
   EServiceTemplateEventV2,
   EventEnvelope,
   NewNotification,
+  NotificationType,
   PurposeEvent,
   TenantEvent,
   generateId,
   genericInternalError,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 import {
   agreementReadModelServiceBuilder,
   attributeReadModelServiceBuilder,
@@ -25,25 +26,27 @@ import {
   delegationReadModelServiceBuilder,
   makeDrizzleConnection,
   notificationConfigReadModelServiceBuilder,
+  producerKeychainReadModelServiceBuilder,
   purposeReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
-import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
+import { match } from "ts-pattern";
 import { z } from "zod";
+
 import { config } from "./config/config.js";
+import { handleAgreementEvent } from "./handlers/agreements/handleAgreementEvent.js";
+import { handleAuthorizationEvent } from "./handlers/authorizations/handleAuthorizationEvent.js";
+import { handleDelegationEvent } from "./handlers/delegations/handleDelegationEvent.js";
+import { handleEServiceEvent } from "./handlers/eservices/handleEserviceEvent.js";
+import { handleEServiceTemplateEvent } from "./handlers/eserviceTemplates/handleEserviceTemplatesEvent.js";
+import { handlePurposeEvent } from "./handlers/purposes/handlePurposeEvent.js";
+import { handleTenantEvent } from "./handlers/tenants/handleTenantEvent.js";
+import { inAppNotificationServiceBuilderSQL } from "./services/inAppNotificationServiceSQL.js";
 import {
   readModelServiceBuilderSQL,
   ReadModelServiceSQL,
 } from "./services/readModelServiceSQL.js";
-import { inAppNotificationServiceBuilderSQL } from "./services/inAppNotificationServiceSQL.js";
-import { handleEServiceEvent } from "./handlers/eservices/handleEserviceEvent.js";
-import { handleAgreementEvent } from "./handlers/agreements/handleAgreementEvent.js";
-import { handlePurposeEvent } from "./handlers/purposes/handlePurposeEvent.js";
-import { handleDelegationEvent } from "./handlers/delegations/handleDelegationEvent.js";
-import { handleAuthorizationEvent } from "./handlers/authorizations/handleAuthorizationEvent.js";
-import { handleTenantEvent } from "./handlers/tenants/handleTenantEvent.js";
-import { handleEServiceTemplateEvent } from "./handlers/eserviceTemplates/handleEserviceTemplatesEvent.js";
 
 interface TopicNames {
   catalogTopic: string;
@@ -67,6 +70,8 @@ const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const notificationConfigReadModelServiceSQL =
   notificationConfigReadModelServiceBuilder(readModelDB);
 const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
+const producerKeychainReadModelServiceSQL =
+  producerKeychainReadModelServiceBuilder(readModelDB);
 
 const readModelService = readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
@@ -76,6 +81,9 @@ const readModelService = readModelServiceBuilderSQL({
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
   purposeReadModelServiceSQL,
+  notificationTypeBlocklist:
+    config.notificationTypeBlocklist as NotificationType[],
+  producerKeychainReadModelServiceSQL,
 });
 
 const notificationDB = drizzle(

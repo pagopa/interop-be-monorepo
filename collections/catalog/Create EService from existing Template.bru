@@ -15,3 +15,12 @@ headers {
   X-Correlation-Id: {{correlation-id}}
 }
 
+body:json {
+  {
+      "asyncExchangeProperties": {
+          "responseTime": 60,
+          "resourceAvailableTime": 120,
+          "maxResultSet": 100
+      }
+  }
+}

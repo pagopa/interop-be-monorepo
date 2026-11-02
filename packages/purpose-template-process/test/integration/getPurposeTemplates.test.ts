@@ -4,6 +4,7 @@ import {
   getMockContext,
   getMockDescriptor,
   getMockEService,
+  getMockEServiceTemplate,
   getMockPurposeTemplate,
   getMockValidRiskAnalysisFormTemplate,
   sortPurposeTemplate,
@@ -12,6 +13,10 @@ import {
   descriptorState,
   EService,
   EServiceDescriptorPurposeTemplate,
+  EServiceTemplate,
+  EServiceTemplateId,
+  EServiceTemplateVersionId,
+  EServiceTemplateVersionPurposeTemplate,
   generateId,
   PurposeTemplate,
   purposeTemplateState,
@@ -19,7 +24,11 @@ import {
   targetTenantKind,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it } from "vitest";
+
 import {
+  addOneEService,
+  addOneEServiceTemplate,
+  addOneEServiceTemplateVersionPurposeTemplate,
   addOnePurposeTemplate,
   addOnePurposeTemplateEServiceDescriptor,
   expectSinglePageListResult,
@@ -519,5 +528,206 @@ describe("getPurposeTemplates", async () => {
     );
 
     expectSinglePageListResult(result, [suspendedPurposeTemplateByCreator2]);
+  });
+});
+
+describe("getPurposeTemplates - e-service template instance resolution", async () => {
+  const creatorId = generateId<TenantId>();
+  const otherCreatorId = generateId<TenantId>();
+
+  const linkedEServiceTemplate: EServiceTemplate = {
+    ...getMockEServiceTemplate(generateId<EServiceTemplateId>(), creatorId),
+  };
+  const unlinkedEServiceTemplate: EServiceTemplate = {
+    ...getMockEServiceTemplate(generateId<EServiceTemplateId>(), creatorId),
+  };
+
+  const instanceEService: EService = {
+    ...getMockEService(),
+    name: "instance of linked template",
+    templateId: linkedEServiceTemplate.id,
+    descriptors: [getMockDescriptor(descriptorState.published)],
+  };
+  const standaloneEService: EService = {
+    ...getMockEService(),
+    name: "standalone eservice",
+    descriptors: [getMockDescriptor(descriptorState.published)],
+  };
+  const instanceOfUnlinkedTemplate: EService = {
+    ...getMockEService(),
+    name: "instance of unlinked template",
+    templateId: unlinkedEServiceTemplate.id,
+    descriptors: [getMockDescriptor(descriptorState.published)],
+  };
+
+  const ptViaTemplate: PurposeTemplate = {
+    ...getMockPurposeTemplate(),
+    purposeTitle: "A - linked via template",
+    state: purposeTemplateState.published,
+    creatorId,
+  };
+  const ptViaConcrete: PurposeTemplate = {
+    ...getMockPurposeTemplate(),
+    purposeTitle: "B - linked via concrete eservice",
+    state: purposeTemplateState.published,
+    creatorId,
+  };
+  const ptViaBoth: PurposeTemplate = {
+    ...getMockPurposeTemplate(),
+    purposeTitle: "C - linked via both",
+    state: purposeTemplateState.published,
+    creatorId,
+  };
+  const draftPtViaTemplate: PurposeTemplate = {
+    ...getMockPurposeTemplate(),
+    purposeTitle: "D - draft linked via template",
+    state: purposeTemplateState.draft,
+    creatorId,
+  };
+
+  const concreteLinkViaConcrete: EServiceDescriptorPurposeTemplate = {
+    purposeTemplateId: ptViaConcrete.id,
+    eserviceId: standaloneEService.id,
+    descriptorId: standaloneEService.descriptors[0].id,
+    createdAt: new Date(),
+  };
+  const concreteLinkViaBoth: EServiceDescriptorPurposeTemplate = {
+    purposeTemplateId: ptViaBoth.id,
+    eserviceId: standaloneEService.id,
+    descriptorId: standaloneEService.descriptors[0].id,
+    createdAt: new Date(),
+  };
+
+  const templateLinkViaTemplate: EServiceTemplateVersionPurposeTemplate = {
+    purposeTemplateId: ptViaTemplate.id,
+    eserviceTemplateId: linkedEServiceTemplate.id,
+    eserviceTemplateVersionId: generateId<EServiceTemplateVersionId>(),
+    createdAt: new Date(),
+  };
+  const templateLinkViaBoth: EServiceTemplateVersionPurposeTemplate = {
+    purposeTemplateId: ptViaBoth.id,
+    eserviceTemplateId: linkedEServiceTemplate.id,
+    eserviceTemplateVersionId: linkedEServiceTemplate.versions[0].id,
+    createdAt: new Date(),
+  };
+  const templateLinkViaDraft: EServiceTemplateVersionPurposeTemplate = {
+    purposeTemplateId: draftPtViaTemplate.id,
+    eserviceTemplateId: linkedEServiceTemplate.id,
+    eserviceTemplateVersionId: linkedEServiceTemplate.versions[0].id,
+    createdAt: new Date(),
+  };
+
+  beforeEach(async () => {
+    await addOneEServiceTemplate(linkedEServiceTemplate);
+    await addOneEServiceTemplate(unlinkedEServiceTemplate);
+    await addOneEService(instanceEService);
+    await addOneEService(standaloneEService);
+    await addOneEService(instanceOfUnlinkedTemplate);
+
+    await addOnePurposeTemplate(ptViaTemplate);
+    await addOnePurposeTemplate(ptViaConcrete);
+    await addOnePurposeTemplate(ptViaBoth);
+    await addOnePurposeTemplate(draftPtViaTemplate);
+
+    await addOnePurposeTemplateEServiceDescriptor(concreteLinkViaConcrete);
+    await addOnePurposeTemplateEServiceDescriptor(concreteLinkViaBoth);
+
+    await addOneEServiceTemplateVersionPurposeTemplate(templateLinkViaTemplate);
+    await addOneEServiceTemplateVersionPurposeTemplate(templateLinkViaBoth);
+    await addOneEServiceTemplateVersionPurposeTemplate(templateLinkViaDraft);
+  });
+
+  it("should suggest purpose templates linked to the originating e-service template when the queried e-service is an instance (version-independent)", async () => {
+    const result = await purposeTemplateService.getPurposeTemplates(
+      {
+        eserviceIds: [instanceEService.id],
+        creatorIds: [],
+        states: [],
+      },
+      { offset: 0, limit: 50 },
+      getMockContext({ authData: getMockAuthData(creatorId) })
+    );
+
+    expectSinglePageListResult(result, [
+      ptViaTemplate,
+      ptViaBoth,
+      draftPtViaTemplate,
+    ]);
+  });
+
+  it("should still match concrete links, and match resources linked via either kind (OR)", async () => {
+    const result = await purposeTemplateService.getPurposeTemplates(
+      {
+        eserviceIds: [standaloneEService.id],
+        creatorIds: [],
+        states: [],
+      },
+      { offset: 0, limit: 50 },
+      getMockContext({ authData: getMockAuthData(creatorId) })
+    );
+
+    expectSinglePageListResult(result, [ptViaConcrete, ptViaBoth]);
+  });
+
+  it("should match across multiple e-service ids (template instance + standalone concrete)", async () => {
+    const result = await purposeTemplateService.getPurposeTemplates(
+      {
+        eserviceIds: [instanceEService.id, standaloneEService.id],
+        creatorIds: [],
+        states: [],
+      },
+      { offset: 0, limit: 50 },
+      getMockContext({ authData: getMockAuthData(creatorId) })
+    );
+
+    expect(result.totalCount).toBe(4);
+    expectSinglePageListResult(result, [
+      ptViaTemplate,
+      ptViaConcrete,
+      ptViaBoth,
+      draftPtViaTemplate,
+    ]);
+  });
+
+  it("should not suggest purpose templates for an instance whose template has no linked purpose template", async () => {
+    const result = await purposeTemplateService.getPurposeTemplates(
+      {
+        eserviceIds: [instanceOfUnlinkedTemplate.id],
+        creatorIds: [],
+        states: [],
+      },
+      { offset: 0, limit: 50 },
+      getMockContext({ authData: getMockAuthData(creatorId) })
+    );
+
+    expectSinglePageListResult(result, []);
+  });
+
+  it("should not error and return empty for a non-existent e-service id", async () => {
+    const result = await purposeTemplateService.getPurposeTemplates(
+      {
+        eserviceIds: [generateId()],
+        creatorIds: [],
+        states: [],
+      },
+      { offset: 0, limit: 50 },
+      getMockContext({ authData: getMockAuthData(creatorId) })
+    );
+
+    expectSinglePageListResult(result, []);
+  });
+
+  it("should keep draft template-linked purpose templates hidden from non-creators", async () => {
+    const result = await purposeTemplateService.getPurposeTemplates(
+      {
+        eserviceIds: [instanceEService.id],
+        creatorIds: [],
+        states: [],
+      },
+      { offset: 0, limit: 50 },
+      getMockContext({ authData: getMockAuthData(otherCreatorId) })
+    );
+
+    expectSinglePageListResult(result, [ptViaTemplate, ptViaBoth]);
   });
 });

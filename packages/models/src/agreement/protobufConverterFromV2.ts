@@ -41,9 +41,9 @@ export const fromAgreementStampV2 = (
     ? {
         who: unsafeBrandId(input.who),
         when: bigIntToDate(input.when),
-        delegationId: input.delegationId
-          ? unsafeBrandId<DelegationId>(input.delegationId)
-          : undefined,
+        ...(input.delegationId && {
+          delegationId: unsafeBrandId<DelegationId>(input.delegationId),
+        }),
       }
     : undefined;
 
@@ -88,6 +88,10 @@ export const fromAgreementV2 = (input: AgreementV2): Agreement => ({
   producerId: unsafeBrandId(input.producerId),
   consumerId: unsafeBrandId(input.consumerId),
   certifiedAttributes: input.certifiedAttributes.map((a) => ({
+    ...a,
+    id: unsafeBrandId(a.id),
+  })),
+  certifiedDiscreteAttributes: input.certifiedDiscreteAttributes.map((a) => ({
     ...a,
     id: unsafeBrandId(a.id),
   })),

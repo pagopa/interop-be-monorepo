@@ -1,8 +1,7 @@
-import { inject, afterEach, expect } from "vitest";
-import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-import { eserviceTemplateReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import { eq } from "drizzle-orm";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { EServiceTemplate, EServiceTemplateId } from "pagopa-interop-models";
+import { eserviceTemplateReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import {
   EServiceTemplateRiskAnalysisAnswerSQL,
   EServiceTemplateItemsSQL,
@@ -20,7 +19,11 @@ import {
   EServiceTemplateRiskAnalysisSQL,
   eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
   eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
+  EServiceTemplateVersionAsyncExchangePropertiesSQL,
+  eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate,
 } from "pagopa-interop-readmodel-models";
+import { inject, afterEach, expect } from "vitest";
+
 import { eserviceTemplateWriterServiceBuilder } from "../src/eserviceTemplateWriterService.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(
@@ -71,6 +74,11 @@ export const checkCompleteEServiceTemplate = async (
       eserviceTemplate.id,
       readModelDB
     );
+  const asyncExchangePropertiesSQL =
+    await retrieveEServiceTemplateVersionAsyncExchangePropertiesSQLById(
+      eserviceTemplate.id,
+      readModelDB
+    );
 
   expect(eserviceTemplateSQL).toBeDefined();
   expect(versionsSQL).toHaveLength(eserviceTemplate.versions.length);
@@ -99,6 +107,7 @@ export const checkCompleteEServiceTemplate = async (
     attributesSQL,
     riskAnalysesSQL,
     riskAnalysisAnswersSQL,
+    asyncExchangePropertiesSQL,
   };
 };
 
@@ -196,6 +205,22 @@ export const retrieveEServiceTemplateRiskAnalysisAnswersSQLById = async (
     .where(
       eq(
         eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate.eserviceTemplateId,
+        eserviceTemplateId
+      )
+    );
+
+const retrieveEServiceTemplateVersionAsyncExchangePropertiesSQLById = async (
+  eserviceTemplateId: EServiceTemplateId,
+  db: DrizzleReturnType
+): Promise<EServiceTemplateVersionAsyncExchangePropertiesSQL[]> =>
+  await db
+    .select()
+    .from(
+      eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate
+    )
+    .where(
+      eq(
+        eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate.eserviceTemplateId,
         eserviceTemplateId
       )
     );

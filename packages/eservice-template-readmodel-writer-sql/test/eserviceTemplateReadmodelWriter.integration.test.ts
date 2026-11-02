@@ -1,4 +1,3 @@
-import { describe, expect, it } from "vitest";
 import {
   getMockValidEServiceTemplateRiskAnalysis,
   getMockEServiceTemplate,
@@ -15,7 +14,6 @@ import {
   EServiceTemplateVersionDocumentUpdatedV2,
   EServiceTemplateVersionInterfaceAddedV2,
   EServiceTemplateVersionInterfaceDeletedV2,
-  EServiceTemplateVersionInterfaceUpdatedV2,
   EServiceTemplateVersionPublishedV2,
   EServiceTemplateVersionQuotasUpdatedV2,
   EServiceTemplateVersionSuspendedV2,
@@ -31,9 +29,11 @@ import {
   EServiceTemplateDraftVersionUpdatedV2,
   eserviceTemplateVersionState,
   EServiceTemplateNameUpdatedV2,
-  EServiceTemplateRiskAnalysis,
+  RiskAnalysis,
   tenantKind,
 } from "pagopa-interop-models";
+import { describe, expect, it } from "vitest";
+
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import {
   eserviceTemplateReadModelService,
@@ -555,57 +555,6 @@ describe("database test", async () => {
       expect(retrievedEservice?.metadata).toStrictEqual({ version: 2 });
     });
 
-    it("EServiceTemplateVersionInterfaceUpdated", async () => {
-      const descriptorInterface = getMockDocument();
-      const draftEServiceTemplateVersion: EServiceTemplateVersion = {
-        ...getMockEServiceTemplateVersion(),
-        state: eserviceTemplateVersionState.draft,
-        interface: descriptorInterface,
-      };
-      const eserviceTemplate: EServiceTemplate = {
-        ...mockEServiceTemplate,
-        versions: [draftEServiceTemplateVersion],
-      };
-      await eserviceTemplateWriterService.upsertEServiceTemplate(
-        eserviceTemplate,
-        1
-      );
-
-      const updatedInterface: Document = {
-        ...descriptorInterface,
-        prettyName: "updated pretty name",
-      };
-      const updatedEServiceTemplate: EServiceTemplate = {
-        ...eserviceTemplate,
-        versions: [
-          { ...draftEServiceTemplateVersion, interface: updatedInterface },
-        ],
-      };
-      const payload: EServiceTemplateVersionInterfaceUpdatedV2 = {
-        eserviceTemplate: toEServiceTemplateV2(updatedEServiceTemplate),
-        eserviceTemplateVersionId: draftEServiceTemplateVersion.id,
-        documentId: updatedInterface.id,
-      };
-      const message: EServiceTemplateEventEnvelope = {
-        sequence_num: 1,
-        stream_id: mockEServiceTemplate.id,
-        version: 2,
-        type: "EServiceTemplateVersionInterfaceUpdated",
-        event_version: 2,
-        data: payload,
-        log_date: new Date(),
-      };
-      await handleMessageV2(message, eserviceTemplateWriterService);
-
-      const retrievedEservice =
-        await eserviceTemplateReadModelService.getEServiceTemplateById(
-          mockEServiceTemplate.id
-        );
-
-      expect(retrievedEservice?.data).toStrictEqual(updatedEServiceTemplate);
-      expect(retrievedEservice?.metadata).toStrictEqual({ version: 2 });
-    });
-
     it("EServiceTemplateVersionDocumentUpdated", async () => {
       const document = getMockDocument();
       const draftEServiceTemplateVersion: EServiceTemplateVersion = {
@@ -806,7 +755,7 @@ describe("database test", async () => {
         1
       );
 
-      const updatedRiskAnalysis: EServiceTemplateRiskAnalysis = {
+      const updatedRiskAnalysis: RiskAnalysis = {
         ...mockRiskAnalysis,
         riskAnalysisForm: {
           ...mockRiskAnalysis.riskAnalysisForm,

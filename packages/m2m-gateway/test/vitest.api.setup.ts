@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { beforeEach, vi } from "vitest";
 import { Request, Response, NextFunction } from "express";
+import { beforeEach, vi } from "vitest";
 
 vi.mock("pagopa-interop-application-audit", async () => ({
   applicationAuditBeginMiddleware: vi.fn(
@@ -56,6 +56,7 @@ import {
   RateLimiter,
 } from "pagopa-interop-commons";
 import { mockM2MAdminUserId } from "pagopa-interop-commons-test";
+
 import { createApp } from "../src/app.js";
 import { AgreementService } from "../src/services/agreementService.js";
 import { AttributeService } from "../src/services/attributeService.js";
@@ -63,12 +64,12 @@ import { ClientService } from "../src/services/clientService.js";
 import { DelegationService } from "../src/services/delegationService.js";
 import { EserviceService } from "../src/services/eserviceService.js";
 import { EserviceTemplateService } from "../src/services/eserviceTemplateService.js";
+import { EventService } from "../src/services/eventService.js";
+import { KeyService } from "../src/services/keyService.js";
+import { ProducerKeychainService } from "../src/services/producerKeychainService.js";
 import { PurposeService } from "../src/services/purposeService.js";
 import { PurposeTemplateService } from "../src/services/purposeTemplateService.js";
 import { TenantService } from "../src/services/tenantService.js";
-import { KeyService } from "../src/services/keyService.js";
-import { ProducerKeychainService } from "../src/services/producerKeychainService.js";
-import { EventService } from "../src/services/eventService.js";
 
 export const mockRateLimiter: RateLimiter = {
   rateLimitByOrganization: vi.fn().mockResolvedValue({

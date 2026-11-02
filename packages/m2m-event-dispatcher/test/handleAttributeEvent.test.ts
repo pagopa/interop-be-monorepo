@@ -1,12 +1,13 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import { getMockAttribute } from "pagopa-interop-commons-test";
 import {
   AttributeEventEnvelope,
   toAttributeV1,
   AttributeEvent,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { handleAttributeEvent } from "../src/handlers/handleAttributeEvent.js";
 import {
   getMockEventEnvelopeCommons,

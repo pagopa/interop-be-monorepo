@@ -1,5 +1,15 @@
 import { bffApi, purposeApi } from "pagopa-interop-api-clients";
 
+export function toBffApiRiskAnalysisForm(
+  riskAnalysisForm: purposeApi.RiskAnalysisForm
+): bffApi.RiskAnalysisForm {
+  return {
+    version: riskAnalysisForm.version,
+    answers: riskAnalysisForm.answers,
+    riskAnalysisId: riskAnalysisForm.riskAnalysisId,
+  };
+}
+
 function toBffApiPurposeVersionDocument(
   riskAnalysis: purposeApi.PurposeVersionDocument
 ): bffApi.PurposeVersionDocument {

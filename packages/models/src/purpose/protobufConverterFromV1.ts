@@ -1,12 +1,12 @@
+import { RiskAnalysisId, unsafeBrandId } from "../brandedIds.js";
 import {
   PurposeStateV1,
   PurposeV1,
   PurposeVersionDocumentV1,
   PurposeVersionV1,
 } from "../gen/v1/purpose/purpose.js";
-import { RiskAnalysisId, unsafeBrandId } from "../brandedIds.js";
-import { PurposeRiskAnalysisForm } from "../risk-analysis/riskAnalysis.js";
 import { PurposeRiskAnalysisFormV1 } from "../gen/v1/purpose/riskAnalysis.js";
+import { PurposeRiskAnalysisForm } from "../risk-analysis/riskAnalysis.js";
 import { bigIntToDate } from "../utils.js";
 import {
   Purpose,

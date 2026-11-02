@@ -2,6 +2,7 @@
 import { constants } from "http2";
 import { ApiError, CommonErrorCodes } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import { ErrorCodes as M2MGatewayErrorCodes } from "../model/errors.js";
 
 type ErrorCodes = M2MGatewayErrorCodes | CommonErrorCodes;
@@ -62,6 +63,16 @@ export const downloadEServiceDescriptorInterfaceErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const downloadEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper =
+  (error: ApiError<ErrorCodes>): number =>
+    match(error.code)
+      .with(
+        "eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound",
+        "eserviceDescriptorNotFound",
+        () => HTTP_STATUS_NOT_FOUND
+      )
+      .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getPurposeVersionErrorMapper = (
   error: ApiError<ErrorCodes>
@@ -156,6 +167,7 @@ export const uploadEServiceDescriptorInterfaceErrorMapper = (
       "invalidContentTypeDetected",
       "invalidEserviceInterfaceFileDetected",
       "invalidServerUrl",
+      "openapiVersionNotRecognized",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

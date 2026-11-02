@@ -14,6 +14,7 @@ import {
 } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, expect, it, vi } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { config } from "../../../src/config/config.js";
 import { missingMetadata } from "../../../src/model/errors.js";

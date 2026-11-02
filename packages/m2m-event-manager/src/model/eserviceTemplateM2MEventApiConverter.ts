@@ -84,10 +84,6 @@ function toApiEServiceTemplateM2MEventType(
       () => "ESERVICE_TEMPLATE_VERSION_INTERFACE_DELETED"
     )
     .with(
-      "EServiceTemplateVersionInterfaceUpdated",
-      () => "ESERVICE_TEMPLATE_VERSION_INTERFACE_UPDATED"
-    )
-    .with(
       "EServiceTemplateVersionPublished",
       () => "ESERVICE_TEMPLATE_VERSION_PUBLISHED"
     )
@@ -98,6 +94,15 @@ function toApiEServiceTemplateM2MEventType(
     .with(
       "EServiceTemplatePersonalDataFlagUpdatedAfterPublication",
       () => "ESERVICE_TEMPLATE_PERSONAL_DATA_FLAG_UPDATED_AFTER_PUBLICATION"
+    )
+    .with(
+      "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded",
+      () => "ESERVICE_TEMPLATE_VERSION_ASYNC_EXCHANGE_CALLBACK_INTERFACE_ADDED"
+    )
+    .with(
+      "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted",
+      () =>
+        "ESERVICE_TEMPLATE_VERSION_ASYNC_EXCHANGE_CALLBACK_INTERFACE_DELETED"
     )
     .exhaustive();
 }

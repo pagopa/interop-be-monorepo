@@ -11,14 +11,13 @@ import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
   retrieveTenant,
-} from "../../services/utils.js";
-import {
-  EServiceDescriptorHandlerParams,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-} from "../handlerCommons.js";
+  descriptorNotFound,
+} from "pagopa-interop-notification-commons";
+
 import { config } from "../../config/config.js";
-import { descriptorNotFound } from "../../models/errors.js";
+import { EServiceDescriptorHandlerParams } from "../../models/handlerParams.js";
 
 const notificationType: NotificationType = "eserviceStateChangedToConsumer";
 
@@ -103,7 +102,7 @@ export async function handleEserviceDescriptorPublished(
             eserviceName: eservice.name,
             eserviceVersion: descriptor.version,
             producerName: producer.name,
-            ctaLabel: `Visualizza e-service`,
+            ctaLabel: `Accedi a PDND`,
             selfcareId: t.selfcareId,
             bffUrl: config.bffUrl,
           }),

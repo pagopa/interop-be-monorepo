@@ -5,6 +5,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   EServiceDescriptorPurposeTemplate,
+  EServiceTemplateVersionPurposeTemplate,
   PurposeTemplate,
   purposeTemplateState,
   PurposeTemplateState,
@@ -202,6 +203,14 @@ export const eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemp
   ): purposeTemplateApi.EServiceDescriptorPurposeTemplate => ({
     ...eserviceDescriptorPurposeTemplate,
     createdAt: eserviceDescriptorPurposeTemplate.createdAt.toJSON(),
+  });
+
+export const eserviceTemplateVersionPurposeTemplateToApiEServiceTemplateVersionPurposeTemplate =
+  (
+    eserviceTemplateVersionPurposeTemplate: EServiceTemplateVersionPurposeTemplate
+  ): purposeTemplateApi.EServiceTemplateVersionPurposeTemplate => ({
+    ...eserviceTemplateVersionPurposeTemplate,
+    createdAt: eserviceTemplateVersionPurposeTemplate.createdAt.toJSON(),
   });
 
 export const annotationDocumentToApiAnnotationDocument = (

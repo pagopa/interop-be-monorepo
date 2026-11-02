@@ -1,14 +1,15 @@
-import { CorrelationId, generateId } from "pagopa-interop-models";
-import { initDB, logger } from "pagopa-interop-commons";
 import { drizzle } from "drizzle-orm/node-postgres";
+import { initDB, logger } from "pagopa-interop-commons";
+import { CorrelationId, generateId } from "pagopa-interop-models";
 import pg from "pg";
-import { compare } from "./utils.js";
-import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
+
 import { config } from "./configs/config.js";
 import {
   DBContext,
   readModelServiceBuilderKPI,
 } from "./services/readModelServiceKPI.js";
+import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
+import { compare } from "./utils.js";
 
 const loggerInstance = logger({
   serviceName: "kpi-domains-readmodel-checker",

@@ -13,8 +13,9 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
-import { splitDelegationIntoObjectsSQL } from "../../src/delegation/splitters.js";
+
 import { aggregateDelegation } from "../../src/delegation/aggregators.js";
+import { splitDelegationIntoObjectsSQL } from "../../src/delegation/splitters.js";
 
 describe("Delegation aggregator", () => {
   it("should convert complete delegation SQL objects into a business logic delegation", () => {

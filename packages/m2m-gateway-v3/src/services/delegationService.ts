@@ -1,18 +1,19 @@
 import { delegationApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import {
-  isPolledVersionAtLeastResponseVersion,
-  pollResourceWithMetadata,
-} from "../utils/polling.js";
-import { M2MGatewayAppContext } from "../utils/context.js";
+
 import {
   toGetConsumerDelegationsApiQueryParams,
   toGetProducerDelegationsApiQueryParams,
   toM2MGatewayApiConsumerDelegation,
   toM2MGatewayApiProducerDelegation,
 } from "../api/delegationApiConverter.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
+import { M2MGatewayAppContext } from "../utils/context.js";
+import {
+  isPolledVersionAtLeastResponseVersion,
+  pollResourceWithMetadata,
+} from "../utils/polling.js";
 
 export type DelegationService = ReturnType<typeof delegationServiceBuilder>;
 

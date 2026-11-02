@@ -1,0 +1,198 @@
+import { catalogApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockedApiEservice,
+  getMockDPoPProof,
+  getMockedApiEserviceDescriptor,
+} from "pagopa-interop-commons-test";
+import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
+import { toM2MGatewayApiEServiceDescriptor } from "../../../src/api/eserviceApiConverter.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
+import { config } from "../../../src/config/config.js";
+import { missingMetadata } from "../../../src/model/errors.js";
+import { api, mockEserviceService } from "../../vitest.api.setup.js";
+
+describe("POST /eservices/:eserviceId/descriptors/:descriptorId/submitDelegatedArchiving router test", () => {
+  const mockApiDescriptor: catalogApi.EServiceDescriptor =
+    getMockedApiEserviceDescriptor();
+
+  const mockApiEservice: catalogApi.EService = getMockedApiEservice({
+    descriptors: [mockApiDescriptor],
+  });
+
+  const mockM2MEServiceDescriptor: m2mGatewayApiV3.EServiceDescriptor =
+    toM2MGatewayApiEServiceDescriptor(mockApiDescriptor);
+
+  const mockSeed: m2mGatewayApiV3.DelegateGracePeriodDaysSeed = {
+    gracePeriodDays: 60,
+  };
+
+  const makeRequest = async (
+    token: string,
+    eserviceId: string,
+    descriptorId: string,
+    body: m2mGatewayApiV3.DelegateGracePeriodDaysSeed = mockSeed
+  ) =>
+    request(api)
+      .post(
+        `${appBasePath}/eservices/${eserviceId}/descriptors/${descriptorId}/submitDelegatedArchiving`
+      )
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
+      .send(body);
+
+  const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
+  it.each(authorizedRoles)(
+    "Should return 200 and perform service calls for user with role %s",
+    async (role) => {
+      mockEserviceService.submitDelegatedDescriptorArchiving = vi
+        .fn()
+        .mockResolvedValue(mockM2MEServiceDescriptor);
+
+      const token = generateToken(role);
+      const res = await makeRequest(
+        token,
+        mockApiEservice.id,
+        mockApiDescriptor.id
+      );
+
+      expect(
+        mockEserviceService.submitDelegatedDescriptorArchiving
+      ).toHaveBeenCalledWith(
+        mockApiEservice.id,
+        mockApiDescriptor.id,
+        mockSeed,
+        expect.any(Object) // context
+      );
+      expect(res.status).toBe(200);
+    }
+  );
+
+  it.each(
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
+  )("Should return 403 for user with role %s", async (role) => {
+    const token = generateToken(role);
+    const res = await makeRequest(
+      token,
+      mockApiEservice.id,
+      mockApiDescriptor.id,
+      mockSeed
+    );
+    expect(res.status).toBe(403);
+  });
+
+  it.each([30, 60, 90, 120])(
+    "Should return 200 when gracePeriodDays is %s",
+    async (gracePeriodDays) => {
+      mockEserviceService.submitDelegatedDescriptorArchiving = vi
+        .fn()
+        .mockResolvedValue(mockM2MEServiceDescriptor);
+
+      const seed: m2mGatewayApiV3.DelegateGracePeriodDaysSeed = {
+        gracePeriodDays: gracePeriodDays as m2mGatewayApiV3.GracePeriodDays,
+      };
+
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        mockApiEservice.id,
+        mockApiDescriptor.id,
+        seed
+      );
+
+      expect(
+        mockEserviceService.submitDelegatedDescriptorArchiving
+      ).toHaveBeenCalledWith(
+        mockApiEservice.id,
+        mockApiDescriptor.id,
+        seed,
+        expect.any(Object) // context
+      );
+      expect(res.status).toBe(200);
+    }
+  );
+
+  it("Should return 400 if passed an invalid eservice id", async () => {
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(
+      token,
+      "invalidEServiceId",
+      mockApiDescriptor.id,
+      mockSeed
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it("Should return 400 for invalid descriptor id", async () => {
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(
+      token,
+      mockApiEservice.id,
+      "INVALID_ID",
+      mockSeed
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it.each([-1, 0, 1, 29])(
+    "Should return 400 for invalid gracePeriodDays %s",
+    async (gracePeriodDays) => {
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        mockApiEservice.id,
+        mockApiDescriptor.id,
+        { gracePeriodDays: gracePeriodDays as m2mGatewayApiV3.GracePeriodDays }
+      );
+      expect(res.status).toBe(400);
+    }
+  );
+
+  it.each([
+    missingMetadata(),
+    pollingMaxRetriesExceeded(
+      config.defaultPollingMaxRetries,
+      config.defaultPollingRetryDelay
+    ),
+  ])("Should return 500 in case of $code error", async (error) => {
+    mockEserviceService.submitDelegatedDescriptorArchiving = vi
+      .fn()
+      .mockRejectedValue(error);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(
+      token,
+      mockApiEservice.id,
+      mockApiDescriptor.id,
+      mockSeed
+    );
+
+    expect(res.status).toBe(500);
+  });
+
+  it.each([
+    { ...mockApiDescriptor, createdAt: undefined },
+    { ...mockApiDescriptor, id: "invalidId" },
+    { ...mockApiDescriptor, extraParam: "extraValue" },
+    {},
+  ])(
+    "Should return 500 when API model parsing fails for response (resp #%#)",
+    async (resp) => {
+      mockEserviceService.submitDelegatedDescriptorArchiving = vi
+        .fn()
+        .mockResolvedValue(resp);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        mockApiEservice.id,
+        mockApiDescriptor.id,
+        mockSeed
+      );
+
+      expect(res.status).toBe(500);
+    }
+  );
+});

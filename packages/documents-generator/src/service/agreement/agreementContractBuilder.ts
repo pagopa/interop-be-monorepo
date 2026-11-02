@@ -1,6 +1,8 @@
 /* eslint-disable max-params */
-import path from "path";
-import { fileURLToPath } from "url";
+import {
+  getVerifiedAttributeExpirationDate,
+  getVerifiedAttributeDelegationId,
+} from "pagopa-interop-agreement-lifecycle";
 import {
   FileManager,
   Logger,
@@ -8,7 +10,6 @@ import {
   formatDateyyyyMMddHHmmss,
   timeAtRomeZone,
 } from "pagopa-interop-commons";
-import { PDFGenerator, getIpaCode } from "../../pdf-generator/pdfGenerator.js";
 import {
   Agreement,
   AgreementDocumentId,
@@ -27,21 +28,20 @@ import {
   AgreementStamp,
   AgreementStamps,
 } from "pagopa-interop-models";
+import path from "path";
 import { match } from "ts-pattern";
-import {
-  getVerifiedAttributeExpirationDate,
-  getVerifiedAttributeDelegationId,
-} from "pagopa-interop-agreement-lifecycle";
+import { fileURLToPath } from "url";
 
+import { DocumentsGeneratorConfig } from "../../config/config.js";
 import {
   AgreementContractPDFPayload,
   ActiveDelegations,
 } from "../../model/agreementModels.js";
-import { DocumentsGeneratorConfig } from "../../config/config.js";
 import {
   agreementStampNotFound,
   attributeNotFound,
 } from "../../model/errors.js";
+import { PDFGenerator, getIpaCode } from "../../pdf-generator/pdfGenerator.js";
 import { ReadModelServiceSQL } from "../readModelSql.js";
 import { retrieveDescriptor, retrieveTenant } from "./agreementService.js";
 
@@ -96,6 +96,7 @@ const getAttributesData = async (
     const seedAttributes = match(type)
       .with(
         tenantAttributeType.CERTIFIED,
+        tenantAttributeType.CERTIFIED_DISCRETE,
         () => agreement.certifiedAttributes || []
       )
       .with(
@@ -108,8 +109,13 @@ const getAttributesData = async (
       )
       .exhaustive()
       .map((attribute) => attribute.id);
+
     const tenantAttributes = consumer.attributes.filter(
-      (a) => a.type === type && seedAttributes.includes(a.id)
+      (a) =>
+        (a.type === type ||
+          (type === tenantAttributeType.CERTIFIED &&
+            a.type === tenantAttributeType.CERTIFIED_DISCRETE)) &&
+        seedAttributes.includes(a.id)
     );
 
     return Promise.all(
@@ -128,6 +134,9 @@ const getAttributesData = async (
     );
   };
 
+  // TODO(PIN-9889): include certified discrete attributes in the generated
+  // contract by invoking getAttributesDataByType with CERTIFIED_DISCRETE,
+  // once the agreement verification flow for discrete attributes is in place.
   const certified = await getAttributesDataByType<CertifiedTenantAttribute>(
     tenantAttributeType.CERTIFIED
   );

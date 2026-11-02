@@ -1,3 +1,4 @@
+import { and, eq, ne } from "drizzle-orm";
 import {
   Agreement,
   DescriptorId,
@@ -9,7 +10,6 @@ import {
   AgreementReadModelService,
   CatalogReadModelService,
 } from "pagopa-interop-readmodel";
-import { and, eq, ne } from "drizzle-orm";
 import { agreementInReadmodelAgreement } from "pagopa-interop-readmodel-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

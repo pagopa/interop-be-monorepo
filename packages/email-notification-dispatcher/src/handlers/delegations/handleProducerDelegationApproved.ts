@@ -7,16 +7,15 @@ import {
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
-  retrieveEService,
+  retrieveEservice,
   retrieveHTMLTemplate,
   retrieveTenant,
-} from "../../services/utils.js";
-import {
-  DelegationHandlerParams,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
+
 import { config } from "../../config/config.js";
+import { DelegationHandlerParams } from "../../models/handlerParams.js";
 
 const notificationType: NotificationType =
   "delegationApprovedRejectedToDelegator";
@@ -45,7 +44,7 @@ export async function handleProducerDelegationApproved(
     retrieveHTMLTemplate(
       eventMailTemplateType.producerDelegationApprovedMailTemplate
     ),
-    retrieveEService(delegation.eserviceId, readModelService),
+    retrieveEservice(delegation.eserviceId, readModelService),
     retrieveTenant(delegation.delegatorId, readModelService),
     retrieveTenant(delegation.delegateId, readModelService),
   ]);

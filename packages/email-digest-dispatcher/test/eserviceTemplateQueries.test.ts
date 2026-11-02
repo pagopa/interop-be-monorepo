@@ -1,9 +1,10 @@
-import { describe, test, expect, beforeEach } from "vitest";
 import {
   Tenant,
   eserviceTemplateVersionState,
   descriptorState,
 } from "pagopa-interop-models";
+import { describe, test, expect, beforeEach } from "vitest";
+
 import {
   eserviceTemplateToBaseDigest,
   popularEserviceTemplateToBaseDigest,

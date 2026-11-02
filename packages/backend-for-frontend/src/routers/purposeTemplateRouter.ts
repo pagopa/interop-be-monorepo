@@ -11,13 +11,14 @@ import {
   PurposeTemplateId,
   unsafeBrandId,
 } from "pagopa-interop-models";
+
 import { makeApiProblem } from "../model/errors.js";
 import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
   addPurposeTemplateAnnotationDocumentErrorMapper,
   getPurposeTemplateErrorMapper,
-  getPurposeTemplateEServiceDescriptorsErrorMapper,
+  getPurposeTemplateLinkableResourcesErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const purposeTemplateRouter = (
@@ -156,32 +157,33 @@ const purposeTemplateRouter = (
         }
       }
     )
-    .get("/purposeTemplates/:purposeTemplateId/eservices", async (req, res) => {
-      const ctx = fromBffAppContext(req.ctx, req.headers);
-      try {
-        const { producerIds, eserviceName, offset, limit } = req.query;
-        const response =
-          await purposeTemplateService.getPurposeTemplateEServiceDescriptors({
-            purposeTemplateId: req.params.purposeTemplateId,
-            producerIds,
-            eserviceName,
-            offset,
-            limit,
+    .get(
+      "/purposeTemplates/:purposeTemplateId/linkableResources",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          const { q, publisherIds, offset, limit } = req.query;
+          const response =
+            await purposeTemplateService.getPurposeTemplateLinkableResources({
+              purposeTemplateId: req.params.purposeTemplateId,
+              publisherIds,
+              q,
+              offset,
+              limit,
+              ctx,
+            });
+          return res.status(200).send(bffApi.LinkableResources.parse(response));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getPurposeTemplateLinkableResourcesErrorMapper,
             ctx,
-          });
-        return res
-          .status(200)
-          .send(bffApi.EServiceDescriptorsPurposeTemplate.parse(response));
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          getPurposeTemplateEServiceDescriptorsErrorMapper,
-          ctx,
-          `Error retrieving purpose template e-services for purpose template ${req.params.purposeTemplateId}`
-        );
-        return res.status(errorRes.status).send(errorRes);
+            `Error retrieving linkable resources for purpose template ${req.params.purposeTemplateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
       }
-    })
+    )
     .get("/purposeTemplates/:purposeTemplateId", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
@@ -288,25 +290,45 @@ const purposeTemplateRouter = (
       }
     })
     .post(
-      "/purposeTemplates/:purposeTemplateId/linkEservice",
+      "/purposeTemplates/:purposeTemplateId/linkResource",
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
         try {
           const result =
-            await purposeTemplateService.linkEServiceToPurposeTemplate(
+            await purposeTemplateService.linkResourceToPurposeTemplate(
               unsafeBrandId(req.params.purposeTemplateId),
-              req.body.eserviceId,
+              req.body,
               ctx
             );
-          return res
-            .status(200)
-            .send(bffApi.EServiceDescriptorPurposeTemplate.parse(result));
+          return res.status(200).send(bffApi.LinkedResource.parse(result));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
             ctx,
-            `Error linking e-service ${req.body.eserviceId} to purpose template ${req.params.purposeTemplateId}`
+            `Error linking resource to purpose template ${req.params.purposeTemplateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/purposeTemplates/:purposeTemplateId/unlinkResource",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await purposeTemplateService.unlinkResourceFromPurposeTemplate(
+            unsafeBrandId(req.params.purposeTemplateId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error unlinking resource from purpose template ${req.params.purposeTemplateId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -332,28 +354,6 @@ const purposeTemplateRouter = (
             addPurposeTemplateAnnotationDocumentErrorMapper,
             ctx,
             "Error adding annotation document"
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .post(
-      "/purposeTemplates/:purposeTemplateId/unlinkEservice",
-      async (req, res) => {
-        const ctx = fromBffAppContext(req.ctx, req.headers);
-        try {
-          await purposeTemplateService.unlinkEServicesFromPurposeTemplate(
-            unsafeBrandId(req.params.purposeTemplateId),
-            req.body.eserviceId,
-            ctx
-          );
-          return res.status(204).send();
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            emptyErrorMapper,
-            ctx,
-            `Error unlinking e-service ${req.body.eserviceId} from purpose template ${req.params.purposeTemplateId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }

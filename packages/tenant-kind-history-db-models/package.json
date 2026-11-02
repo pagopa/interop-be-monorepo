@@ -1,0 +1,33 @@
+{
+  "name": "pagopa-interop-tenant-kind-history-db-models",
+  "version": "1.0.0",
+  "license": "MPL-2.0",
+  "private": true,
+  "description": "PagoPA Interoperability Tenant Kind History DB Models",
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json"
+  },
+  "keywords": [],
+  "dependencies": {
+    "drizzle-orm": "catalog:",
+    "pagopa-interop-commons": "workspace:*"
+  },
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@types/pg": "catalog:",
+    "drizzle-kit": "catalog:",
+    "eslint": "catalog:",
+    "pagopa-interop-eslint-config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

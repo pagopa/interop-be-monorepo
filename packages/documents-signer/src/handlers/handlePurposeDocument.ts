@@ -1,9 +1,3 @@
-import path from "path";
-import {
-  genericInternalError,
-  missingKafkaMessageDataError,
-  PurposeEventEnvelopeV2,
-} from "pagopa-interop-models";
 import {
   FileManager,
   Logger,
@@ -11,9 +5,16 @@ import {
   SafeStorageService,
   FileCreationRequest,
 } from "pagopa-interop-commons";
+import {
+  genericInternalError,
+  missingKafkaMessageDataError,
+  PurposeEventEnvelopeV2,
+} from "pagopa-interop-models";
+import path from "path";
 import { match, P } from "ts-pattern";
-import { calculateSha256Base64 } from "../utils/checksum.js";
+
 import { config } from "../config/config.js";
+import { calculateSha256Base64 } from "../utils/checksum.js";
 
 export async function handlePurposeDocument(
   decodedMessage: PurposeEventEnvelopeV2,
@@ -135,7 +136,16 @@ export async function handlePurposeDocument(
           "PurposeVersionUnsuspendedByConsumer",
           "PurposeVersionRejected",
           "PurposeVersionArchivedByRevokedDelegation",
-          "RiskAnalysisSignedDocumentGenerated"
+          "RiskAnalysisSignedDocumentGenerated",
+          "MaintenancePurposeRiskAnalysisSetTenantKind",
+          "PurposeRiskAnalysisWorkflowCreated",
+          "PurposeRiskAnalysisAssigned",
+          "PurposeRiskAnalysisSelfAssigned",
+          "PurposeRiskAnalysisSubmitted",
+          "PurposeRiskAnalysisSigned",
+          "PurposeRiskAnalysisRejected",
+          "PurposeRiskAnalysisFormEdited",
+          "MaintenancePurposeRiskAnalysisFixReviewerWorkflow"
         ),
       },
       () => Promise.resolve()

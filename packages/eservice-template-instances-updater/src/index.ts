@@ -1,3 +1,4 @@
+import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import {
   decodeKafkaMessage,
@@ -5,12 +6,12 @@ import {
   InteropTokenGenerator,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
-import { runConsumer } from "kafka-iam-auth";
 import { EServiceTemplateEvent } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 import { makeDrizzleConnection } from "pagopa-interop-readmodel";
-import { handleMessageV2 } from "./eserviceTemplateInstancesUpdaterConsumerServiceV2.js";
+import { match } from "ts-pattern";
+
 import { config } from "./config/config.js";
+import { handleMessageV2 } from "./eserviceTemplateInstancesUpdaterConsumerServiceV2.js";
 import { readModelServiceBuilderSQL } from "./readModelServiceSQL.js";
 
 const refreshableToken = new RefreshableInteropToken(
