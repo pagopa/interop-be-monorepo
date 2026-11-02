@@ -79,6 +79,8 @@ export function errorsToApiProblemsMiddleware(
     return;
   }
 
+  ctx.logger.error(`Error in request: ${parseErrorMessage(error)}`);
+
   if (error instanceof SyntaxError) {
     res
       .status(constants.HTTP_STATUS_BAD_REQUEST)
@@ -91,8 +93,6 @@ export function errorsToApiProblemsMiddleware(
       );
     return;
   }
-
-  ctx.logger.error(`Error in request: ${parseErrorMessage(error)}`);
 
   res
     .status(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR)
