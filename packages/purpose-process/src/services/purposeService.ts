@@ -2803,9 +2803,6 @@ const performPatchUpdatePurpose = async (
       "patch"
     );
 
-    /**
-     *
-     */
     const removeUndefinedProperties = (
       value: object
     ): Record<string, unknown> =>
@@ -2946,25 +2943,53 @@ const prepareDraftPurposeUpdate = (
     );
   }
 
+  const riskAnalysisFormToValidate: RiskAnalysisFormToValidate | undefined =
+    riskAnalysisForm
+      ? {
+          ...riskAnalysisForm,
+          tenantKind,
+        }
+      : undefined;
+
   const newRiskAnalysis: PurposeRiskAnalysisForm | undefined =
     mode === eserviceMode.deliver && riskAnalysisForm
       ? (() => {
           const validated = validateAndTransformRiskAnalysis(
-            { ...riskAnalysisForm, tenantKind },
+            riskAnalysisFormToValidate,
             true,
             tenantKind,
             new Date(),
             eservice.personalData
           );
-          if (updateType === "patch" && purpose.data.riskAnalysisForm) {
-            const { version, answers } =
-              riskAnalysisFormToRiskAnalysisFormToValidate(
-                purpose.data.riskAnalysisForm
-              );
-            if (isDeepStrictEqual({ version, answers }, riskAnalysisForm)) {
+
+          if (
+            updateType === "patch" &&
+            validated &&
+            purpose.data.riskAnalysisForm
+          ) {
+            const existingForm = riskAnalysisFormToRiskAnalysisFormToValidate(
+              purpose.data.riskAnalysisForm
+            );
+            const updatedForm =
+              riskAnalysisFormToRiskAnalysisFormToValidate(validated);
+
+            /**
+             * Compare normalized content without generated identifiers.
+             * Preserve the stored form when its version and answers are unchanged.
+             */
+            if (
+              isDeepStrictEqual(
+                {
+                  version: existingForm.version,
+                  answers: existingForm.answers,
+                },
+                { version: updatedForm.version, answers: updatedForm.answers }
+              )
+            ) {
               return purpose.data.riskAnalysisForm;
             }
           }
+
           return validated;
         })()
       : purpose.data.riskAnalysisForm;
