@@ -35,7 +35,6 @@ import {
   addOneClient,
   authorizationService,
   postgresDB,
-  readLastAuthorizationEvent,
   readModelDB,
 } from "../integrationUtils.js";
 
@@ -138,7 +137,7 @@ describe("updateClient", () => {
   });
 
   it.each(changes)(
-    "should not write events for unchanged values: %s",
+    "should write events for supplied unchanged values: %s",
     async (seed) => {
       const client = {
         ...getMockClient(),
@@ -150,39 +149,47 @@ describe("updateClient", () => {
         { clientId: client.id, seed },
         getMockContext({ authData: getMockAuthData(client.consumerId) })
       );
-      expect(result).toEqual({ data: client, metadata: { version: 0 } });
-      expect(await readEvents(client)).toHaveLength(1);
+      const count = Object.keys(seed).length;
+      expect(result).toEqual({ data: client, metadata: { version: count } });
+      const events = await readEvents(client);
+      expect(events).toHaveLength(count + 1);
+      expect(events.slice(1).map((event) => event.type)).toEqual([
+        ...(seed.name !== undefined ? ["ClientNameUpdated"] : []),
+        ...(seed.description !== undefined ? ["ClientDescriptionUpdated"] : []),
+      ]);
     }
   );
 
   it.each([
     { name: "Updated name", description: "Original description" },
     { name: "Original name", description: "Updated description" },
-  ])("should emit only the event for the changed field: %s", async (seed) => {
-    const client = {
-      ...getMockClient(),
-      name: "Original name",
-      description: "Original description",
-    };
-    await addOneClient(client);
-    const result = await authorizationService.updateClient(
-      { clientId: client.id, seed },
-      getMockContext({ authData: getMockAuthData(client.consumerId) })
-    );
-    expect(result).toEqual({
-      data: { ...client, ...seed },
-      metadata: { version: 1 },
-    });
-    expect(await readEvents(client)).toHaveLength(2);
-    const event = await readLastAuthorizationEvent(client.id);
-    expect(event.type).toBe(
-      seed.name !== client.name
-        ? "ClientNameUpdated"
-        : "ClientDescriptionUpdated"
-    );
-  });
+  ])(
+    "should emit events for changed and unchanged supplied fields: %s",
+    async (seed) => {
+      const client = {
+        ...getMockClient(),
+        name: "Original name",
+        description: "Original description",
+      };
+      await addOneClient(client);
+      const result = await authorizationService.updateClient(
+        { clientId: client.id, seed },
+        getMockContext({ authData: getMockAuthData(client.consumerId) })
+      );
+      expect(result).toEqual({
+        data: { ...client, ...seed },
+        metadata: { version: 2 },
+      });
+      const events = await readEvents(client);
+      expect(events).toHaveLength(3);
+      expect(events.slice(1).map((event) => event.type)).toEqual([
+        "ClientNameUpdated",
+        "ClientDescriptionUpdated",
+      ]);
+    }
+  );
 
-  it("should preserve the current nonzero version for a M2M no-op", async () => {
+  it("should advance the current nonzero version for a repeated M2M update", async () => {
     const client = { ...getMockClient(), name: "Original name" };
     await addOneClient(client);
     const ctx = getMockContextM2MAdmin({
@@ -203,9 +210,24 @@ describe("updateClient", () => {
       { clientId: client.id, seed },
       ctx
     );
-    expect(result).toEqual(updatedClient);
-    expect(result.metadata.version).toBe(1);
-    expect(await readEvents(client)).toHaveLength(2);
+    expect(result).toEqual({
+      data: updatedClient.data,
+      metadata: { version: 2 },
+    });
+    const events = await readEvents(client);
+    expect(events).toHaveLength(3);
+    expect(events.slice(1)).toMatchObject([
+      {
+        type: "ClientNameUpdated",
+        version: "1",
+        correlation_id: ctx.correlationId,
+      },
+      {
+        type: "ClientNameUpdated",
+        version: "2",
+        correlation_id: ctx.correlationId,
+      },
+    ]);
   });
 
   it("should preserve an absent description for a name-only patch", async () => {
@@ -255,7 +277,7 @@ describe("updateClient", () => {
     }
   );
 
-  it("should reject an API client via M2M even for a no-op", async () => {
+  it("should reject an API client via M2M even for unchanged values", async () => {
     const client = getMockClient({ kind: clientKind.api });
     await addOneClient(client);
     await expect(
