@@ -200,9 +200,12 @@ describe("update eserviceTemplate", () => {
     expect(updateResult.data.asyncExchange).toBeUndefined();
     expect(updateResult).toEqual({
       data: eserviceTemplate,
-      metadata: { version: 0 },
+      metadata: { version: 1 },
     });
-    expect(writtenEvent.version).toBe("0");
+    expect(writtenEvent).toMatchObject({
+      type: "EServiceTemplateDraftUpdated",
+      version: "1",
+    });
 
     config.featureFlagAsyncExchange = true;
   });
@@ -389,7 +392,7 @@ describe("update eserviceTemplate", () => {
         }
       );
 
-      it("should not write events for unchanged metadata or an empty seed", async () => {
+      it("should write events for each supplied unchanged metadata field", async () => {
         const template: EServiceTemplate = {
           ...getMockEServiceTemplate(),
           versions: states.map((state, index) => ({
@@ -402,8 +405,8 @@ describe("update eserviceTemplate", () => {
         const ctx = getMockContextM2MAdmin({
           organizationId: template.creatorId,
         });
+        let version = 0;
         for (const seed of [
-          {},
           { name: template.name },
           { description: template.description },
           { intendedTarget: template.intendedTarget },
@@ -413,22 +416,60 @@ describe("update eserviceTemplate", () => {
             intendedTarget: template.intendedTarget,
           },
         ]) {
-          expect(
+          const result =
             await eserviceTemplateService.patchUpdateEServiceTemplate(
               template.id,
               seed,
               ctx
-            )
-          ).toEqual({
+            );
+          const isDraft = states.every(
+            (state) => state === eserviceTemplateVersionState.draft
+          );
+          const expectedTypes = isDraft
+            ? ["EServiceTemplateDraftUpdated"]
+            : [
+                ...(seed.name !== undefined
+                  ? ["EServiceTemplateNameUpdated"]
+                  : []),
+                ...(seed.description !== undefined
+                  ? ["EServiceTemplateDescriptionUpdated"]
+                  : []),
+                ...(seed.intendedTarget !== undefined
+                  ? ["EServiceTemplateIntendedTargetUpdated"]
+                  : []),
+              ];
+          for (const [index, type] of expectedTypes.entries()) {
+            const event = await readEventByStreamIdAndVersion(
+              template.id,
+              version + index + 1,
+              "eservice_template",
+              postgresDB
+            );
+            expect(event).toMatchObject({
+              type,
+              version: String(version + index + 1),
+              correlation_id: ctx.correlationId,
+            });
+            expect(
+              EServiceTemplateEvent.parse(event).data.eserviceTemplate
+            ).toEqual(toEServiceTemplateV2(result.data));
+          }
+          version += expectedTypes.length;
+          expect(result).toEqual({
             data: {
               ...template,
               versions: expect.arrayContaining(template.versions),
             },
-            metadata: { version: 0 },
+            metadata: { version },
           });
+          await upsertEServiceTemplate(
+            readModelDB,
+            result.data,
+            result.metadata.version
+          );
         }
         expect((await readLastEserviceTemplateEvent(template.id)).version).toBe(
-          "0"
+          String(version)
         );
       });
     }
@@ -642,7 +683,7 @@ describe("update eserviceTemplate", () => {
       });
 
       it.each([false, true])(
-        "should ignore structurally equal operational snapshots with undefined properties (metadata changes: %s)",
+        "should emit a Draft event for operational snapshots with undefined properties (metadata changes: %s)",
         async (hasMetadataChanges) => {
           const template: EServiceTemplate = {
             ...getMockEServiceTemplate(),
@@ -679,21 +720,19 @@ describe("update eserviceTemplate", () => {
               ...metadataSeed,
               versions: expect.arrayContaining(template.versions),
             },
-            metadata: { version: hasMetadataChanges ? 1 : 0 },
+            metadata: { version: 1 },
           });
           expect(result.data.versions).toHaveLength(template.versions.length);
           expect(
             await readLastEserviceTemplateEvent(template.id)
           ).toMatchObject({
-            type: hasMetadataChanges
-              ? "EServiceTemplateDraftUpdated"
-              : "EServiceTemplateAdded",
-            version: hasMetadataChanges ? "1" : "0",
+            type: "EServiceTemplateDraftUpdated",
+            version: "1",
           });
         }
       );
 
-      it("should not write events for unchanged operational values", async () => {
+      it("should write a Draft event for unchanged operational values", async () => {
         const template: EServiceTemplate = {
           ...getMockEServiceTemplate(),
           technology: "Rest",
@@ -724,17 +763,17 @@ describe("update eserviceTemplate", () => {
             ...template,
             versions: expect.arrayContaining(template.versions),
           },
-          metadata: { version: 0 },
+          metadata: { version: 1 },
         });
         expect(result.data.versions).toHaveLength(template.versions.length);
         expect((await readLastEserviceTemplateEvent(template.id)).version).toBe(
-          "0"
+          "1"
         );
       });
     }
   );
 
-  it("should emit only the changed metadata event", async () => {
+  it("should emit events for changed and unchanged supplied metadata", async () => {
     const template: EServiceTemplate = {
       ...getMockEServiceTemplate(),
       versions: [
@@ -754,9 +793,9 @@ describe("update eserviceTemplate", () => {
       },
       getMockContextM2MAdmin({ organizationId: template.creatorId })
     );
-    expect(result.metadata.version).toBe(1);
+    expect(result.metadata.version).toBe(3);
     expect((await readLastEserviceTemplateEvent(template.id)).type).toBe(
-      "EServiceTemplateDescriptionUpdated"
+      "EServiceTemplateIntendedTargetUpdated"
     );
   });
 
@@ -902,7 +941,7 @@ describe("update eserviceTemplate", () => {
     expect(lastEvent.type).toBe("EServiceTemplateDescriptionUpdated");
   });
 
-  it("should preserve a non-zero version on a no-op and continue with consecutive versions", async () => {
+  it("should advance a non-zero version for repeated updates with consecutive versions", async () => {
     const template: EServiceTemplate = {
       ...getMockEServiceTemplate(),
       versions: [
@@ -930,7 +969,7 @@ describe("update eserviceTemplate", () => {
       first.data,
       first.metadata.version
     );
-    const noOp = await eserviceTemplateService.patchUpdateEServiceTemplate(
+    const repeated = await eserviceTemplateService.patchUpdateEServiceTemplate(
       template.id,
       {
         name: first.data.name,
@@ -939,9 +978,17 @@ describe("update eserviceTemplate", () => {
       },
       ctx
     );
-    expect(noOp).toEqual(first);
+    expect(repeated).toEqual({
+      data: first.data,
+      metadata: { version: 6 },
+    });
     expect((await readLastEserviceTemplateEvent(template.id)).version).toBe(
-      "3"
+      "6"
+    );
+    await upsertEServiceTemplate(
+      readModelDB,
+      repeated.data,
+      repeated.metadata.version
     );
     const second = await eserviceTemplateService.patchUpdateEServiceTemplate(
       template.id,
@@ -951,11 +998,11 @@ describe("update eserviceTemplate", () => {
       },
       ctx
     );
-    expect(second.metadata.version).toBe(5);
+    expect(second.metadata.version).toBe(8);
     expect(
       await readEventByStreamIdAndVersion(
         template.id,
-        4,
+        7,
         "eservice_template",
         postgresDB
       )

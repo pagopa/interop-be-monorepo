@@ -49,7 +49,6 @@ import {
   RiskAnalysis,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { isDeepStrictEqual } from "util";
 
 import { config } from "../config/config.js";
 import {
@@ -1526,21 +1525,6 @@ export function eserviceTemplateServiceBuilder(
           eserviceTemplate.data,
           { type: "patch", seed: eserviceTemplateSeed }
         );
-        const removeUndefinedProperties = (
-          obj: object
-        ): Record<string, unknown> =>
-          Object.fromEntries(
-            Object.entries(obj).filter(([, value]) => value !== undefined)
-          );
-        if (
-          isDeepStrictEqual(
-            removeUndefinedProperties(eserviceTemplate.data),
-            removeUndefinedProperties(updatedEServiceTemplate)
-          )
-        ) {
-          return eserviceTemplate;
-        }
-
         await deleteEServiceTemplateInterfacesOnTechnologyChange(
           eserviceTemplate.data,
           updatedEServiceTemplate,
@@ -1571,7 +1555,7 @@ export function eserviceTemplateServiceBuilder(
       };
 
       const events = [
-        ...(updatedEServiceTemplate.name !== eserviceTemplate.data.name
+        ...(name !== undefined
           ? [
               toCreateEventEServiceTemplateNameUpdated(
                 templateId,
@@ -1582,8 +1566,7 @@ export function eserviceTemplateServiceBuilder(
               ),
             ]
           : []),
-        ...(updatedEServiceTemplate.description !==
-        eserviceTemplate.data.description
+        ...(description !== undefined
           ? [
               toCreateEventEServiceTemplateDescriptionUpdated(
                 templateId,
@@ -1593,8 +1576,7 @@ export function eserviceTemplateServiceBuilder(
               ),
             ]
           : []),
-        ...(updatedEServiceTemplate.intendedTarget !==
-        eserviceTemplate.data.intendedTarget
+        ...(intendedTarget !== undefined
           ? [
               toCreateEventEServiceTemplateIntendedTargetUpdated(
                 templateId,
@@ -1608,10 +1590,6 @@ export function eserviceTemplateServiceBuilder(
         ...event,
         version: eserviceTemplate.metadata.version + index,
       }));
-
-      if (events.length === 0) {
-        return eserviceTemplate;
-      }
 
       const createdEvents = await repository.createEvents(events);
       return {
