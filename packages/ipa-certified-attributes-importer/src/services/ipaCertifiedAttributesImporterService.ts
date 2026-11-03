@@ -329,68 +329,73 @@ export function getAooUoAttributeSeeds(
   tenantUpsertData: TenantSeed[],
   platformAttributes: Attribute[]
 ): InternalCertifiedAttribute[] {
-  const platformTenantSeeds = new Set(
+  const platformTenantKeys = new Set(
     tenantUpsertData.map((t) =>
       toTenantKey({ origin: t.origin, value: t.originId })
     )
   );
 
   const aooNames = new Map(
-    registryData.institutions.flatMap((i) =>
-      i.classification === "AOO" && i.subUnit
-        ? [[i.originId, i.subUnit.name] as const]
-        : []
+    registryData.institutions
+      .filter((i) => i.classification === "AOO" && i.subUnit)
+      .map((i) => [i.originId, i.subUnit?.name])
+  );
+
+  const baseSeeds = registryData.institutions
+    .filter(
+      (i) =>
+        i.classification !== AGENCY_CLASSIFICATION &&
+        i.category !== ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER &&
+        platformTenantKeys.has(
+          toTenantKey({ origin: i.origin, value: i.originId })
+        )
     )
+    .flatMap((i) => {
+      if (!i.subUnit) {
+        return [];
+      }
+
+      const { name, entityName, aooCode } = i.subUnit;
+      const aooName = aooCode ? aooNames.get(aooCode) : undefined;
+      if (aooCode && !aooName) {
+        return [];
+      }
+
+      const fullName = aooName
+        ? `${name} di ${aooName} di ${entityName}`
+        : `${name} di ${entityName}`;
+
+      return [
+        {
+          origin: i.origin,
+          code: i.originId,
+          name: fullName,
+          description: fullName,
+        },
+      ];
+    })
+    .sort((a, b) => a.code.localeCompare(b.code));
+
+  const seedKeys = new Set(
+    baseSeeds.map((a) => toAttributeKey({ origin: a.origin, code: a.code }))
   );
-
-  const composed = new Map<string, InternalCertifiedAttribute>();
-  for (const i of registryData.institutions) {
-    if (
-      i.classification === AGENCY_CLASSIFICATION ||
-      !i.subUnit ||
-      i.category === ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER ||
-      !platformTenantSeeds.has(
-        toTenantKey({ origin: i.origin, value: i.originId })
-      )
-    ) {
-      continue;
-    }
-
-    const { name, entityName, aooCode } = i.subUnit;
-    const aooName = aooCode ? aooNames.get(aooCode) : undefined;
-    if (aooCode && !aooName) {
-      continue;
-    }
-
-    const baseName = aooName
-      ? `${name} di ${aooName} di ${entityName}`
-      : `${name} di ${entityName}`;
-
-    composed.set(toAttributeKey({ origin: i.origin, code: i.originId }), {
-      origin: i.origin,
-      code: i.originId,
-      name: baseName,
-      description: baseName,
-    });
-  }
-
-  const sorted = [...composed.values()].sort((a, b) =>
-    a.code < b.code ? -1 : a.code > b.code ? 1 : 0
-  );
-
-  // TODO: verificare vincoli di dominio
-  const occurrences = new Map<string, number>();
-  for (const a of sorted) {
-    occurrences.set(a.name, (occurrences.get(a.name) ?? 0) + 1);
-  }
 
   const takenNames = new Set([
-    ...platformAttributes.map((a) => a.name),
+    ...platformAttributes
+      .filter(
+        (a) => !seedKeys.has(toAttributeKey({ origin: a.origin, code: a.code }))
+      )
+      .map((a) => a.name),
     ...registryData.attributes.map((a) => a.name),
   ]);
 
-  return sorted.map((a) =>
-    (occurrences.get(a.name) ?? 0) > 1 || takenNames.has(a.name)
+  const seedsPerName = baseSeeds.reduce(
+    (acc, a) => acc.set(a.name, (acc.get(a.name) ?? 0) + 1),
+    new Map<string, number>()
+  );
+
+  return baseSeeds.map((a) =>
+    (seedsPerName.get(a.name) ?? 0) > 1 || takenNames.has(a.name)
       ? {
           ...a,
           name: `${a.name} (${a.code})`,
