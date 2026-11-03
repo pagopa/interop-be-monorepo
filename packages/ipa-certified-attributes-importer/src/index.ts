@@ -2,6 +2,7 @@ import {
   InteropTokenGenerator,
   RefreshableInteropToken,
   getInteropHeaders,
+  isFeatureFlagEnabled,
   logger,
 } from "pagopa-interop-commons";
 import { CorrelationId, generateId } from "pagopa-interop-models";
@@ -76,7 +77,8 @@ try {
   const newAttributes = getNewAttributes(
     registryData,
     tenantUpsertData,
-    attributes
+    attributes,
+    isFeatureFlagEnabled(config, "featureFlagAooUoAttributes")
   );
 
   const token = (await refreshableToken.get()).serialized;
