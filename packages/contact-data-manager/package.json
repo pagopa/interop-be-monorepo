@@ -42,6 +42,7 @@
     "pagopa-interop-contact-data-db-models": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "pg": "catalog:",
+    "ts-pattern": "catalog:",
     "zod": "catalog:",
     "drizzle-orm": "catalog:"
   }
