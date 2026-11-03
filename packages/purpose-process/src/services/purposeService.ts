@@ -65,7 +65,6 @@ import {
 } from "pagopa-interop-models";
 import { ClientId } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
-import { isDeepStrictEqual } from "util";
 
 import type { RiskAnalysisReviewAssignment } from "./workflowReviewerProcessor.js";
 
@@ -2733,8 +2732,7 @@ const performUpdatePurpose = async (
     purpose,
     modeAndUpdateContent,
     eservice,
-    tenantKind,
-    "legacy"
+    tenantKind
   );
 
   const updatedPurpose = {
@@ -2828,28 +2826,8 @@ const performPatchUpdatePurpose = async (
       purpose,
       modeAndUpdateContent,
       eservice,
-      tenantKind,
-      "patch"
+      tenantKind
     );
-
-    const removeUndefinedProperties = (
-      value: object
-    ): Record<string, unknown> =>
-      Object.fromEntries(
-        Object.entries(value).filter(([, field]) => field !== undefined)
-      );
-
-    if (
-      isDeepStrictEqual(
-        removeUndefinedProperties(preparedPurpose),
-        removeUndefinedProperties(purpose.data)
-      )
-    ) {
-      return {
-        data: { purpose: purpose.data },
-        metadata: purpose.metadata,
-      };
-    }
 
     const updatedPurpose: Purpose = {
       ...preparedPurpose,
@@ -2883,12 +2861,8 @@ const performPatchUpdatePurpose = async (
     updatedAt: new Date(),
   };
 
-  const hasTitleChanged = updatedPurpose.title !== purpose.data.title;
-  const hasDescriptionChanged =
-    updatedPurpose.description !== purpose.data.description;
-
   const events = [
-    ...(hasTitleChanged
+    ...(title !== undefined
       ? [
           toCreateEventPurposeTitleUpdated({
             purpose: updatedPurpose,
@@ -2897,7 +2871,7 @@ const performPatchUpdatePurpose = async (
           }),
         ]
       : []),
-    ...(hasDescriptionChanged
+    ...(description !== undefined
       ? [
           toCreateEventPurposeDescriptionUpdated({
             purpose: updatedPurpose,
@@ -2910,13 +2884,6 @@ const performPatchUpdatePurpose = async (
     ...event,
     version: purpose.metadata.version + index,
   }));
-
-  if (events.length === 0) {
-    return {
-      data: { purpose: purpose.data },
-      metadata: purpose.metadata,
-    };
-  }
 
   const createdEvents = await repository.createEvents(events);
 
@@ -2932,8 +2899,7 @@ const prepareDraftPurposeUpdate = (
   purpose: WithMetadata<Purpose>,
   modeAndUpdateContent: PurposeModeAndUpdateContent,
   eservice: EService,
-  tenantKind: TenantKind,
-  updateType: "legacy" | "patch"
+  tenantKind: TenantKind
 ): Purpose => {
   const purposeId = purpose.data.id;
   const {
@@ -2982,45 +2948,13 @@ const prepareDraftPurposeUpdate = (
 
   const newRiskAnalysis: PurposeRiskAnalysisForm | undefined =
     mode === eserviceMode.deliver && riskAnalysisForm
-      ? (() => {
-          const validated = validateAndTransformRiskAnalysis(
-            riskAnalysisFormToValidate,
-            true,
-            tenantKind,
-            new Date(),
-            eservice.personalData
-          );
-
-          if (
-            updateType === "patch" &&
-            validated &&
-            purpose.data.riskAnalysisForm
-          ) {
-            const existingForm = riskAnalysisFormToRiskAnalysisFormToValidate(
-              purpose.data.riskAnalysisForm
-            );
-            const updatedForm =
-              riskAnalysisFormToRiskAnalysisFormToValidate(validated);
-
-            /**
-             * Compare normalized content without generated identifiers.
-             * Preserve the stored form when its version and answers are unchanged.
-             */
-            if (
-              isDeepStrictEqual(
-                {
-                  version: existingForm.version,
-                  answers: existingForm.answers,
-                },
-                { version: updatedForm.version, answers: updatedForm.answers }
-              )
-            ) {
-              return purpose.data.riskAnalysisForm;
-            }
-          }
-
-          return validated;
-        })()
+      ? validateAndTransformRiskAnalysis(
+          riskAnalysisFormToValidate,
+          true,
+          tenantKind,
+          new Date(),
+          eservice.personalData
+        )
       : purpose.data.riskAnalysisForm;
 
   const updatedPurposeIsFreeOfCharge =

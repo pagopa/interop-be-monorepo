@@ -175,7 +175,7 @@ describe("patchUpdateReversePurpose", () => {
   const validRiskAnalysis = getMockValidRiskAnalysis(producer.kind!);
 
   it.each(Object.values(purposeVersionState))(
-    "should preserve the event version and timestamps for unchanged metadata in %s",
+    "should create events and advance the version for unchanged metadata in %s",
     async (state) => {
       const purpose: Purpose = {
         ...draftPurpose,
@@ -191,18 +191,26 @@ describe("patchUpdateReversePurpose", () => {
         { title: purpose.title, description: purpose.description },
         getMockContextM2MAdmin({ organizationId: consumer.id })
       );
+      const isDraft = state === purposeVersionState.draft;
+      const expectedPurpose: Purpose = {
+        ...purpose,
+        updatedAt: new Date(),
+        versions: isDraft
+          ? [{ ...purpose.versions[0], updatedAt: new Date() }]
+          : purpose.versions,
+      };
       expect(sortUpdatePurposeReturn(result)).toEqual({
-        data: { purpose: sortPurpose(purpose) },
-        metadata: { version: 0 },
+        data: { purpose: sortPurpose(expectedPurpose) },
+        metadata: { version: isDraft ? 1 : 2 },
       });
       expect(await readLastPurposeEvent(purpose.id)).toMatchObject({
-        type: "PurposeAdded",
-        version: "0",
+        type: isDraft ? "DraftPurposeUpdated" : "PurposeDescriptionUpdated",
+        version: isDraft ? "1" : "2",
       });
     }
   );
 
-  it("should preserve timestamps for an unchanged operational seed", async () => {
+  it("should emit a Draft event and update timestamps for unchanged operational values", async () => {
     const purpose: Purpose = {
       ...draftPurpose,
       updatedAt: new Date(0),
@@ -222,12 +230,18 @@ describe("patchUpdateReversePurpose", () => {
       getMockContextM2MAdmin({ organizationId: consumer.id })
     );
     expect(sortUpdatePurposeReturn(result)).toEqual({
-      data: { purpose: sortPurpose(purpose) },
-      metadata: { version: 0 },
+      data: {
+        purpose: sortPurpose({
+          ...purpose,
+          updatedAt: new Date(),
+          versions: [{ ...purpose.versions[0], updatedAt: new Date() }],
+        }),
+      },
+      metadata: { version: 1 },
     });
     expect(await readLastPurposeEvent(purpose.id)).toMatchObject({
-      type: "PurposeAdded",
-      version: "0",
+      type: "DraftPurposeUpdated",
+      version: "1",
     });
   });
 
@@ -942,10 +956,7 @@ describe("patchUpdateReversePurpose", () => {
       const expectedPurpose: Purpose = {
         ...purpose,
         ...expected,
-        ...(initData.isFreeOfCharge !== expected.isFreeOfCharge ||
-        initData.freeOfChargeReason !== expected.freeOfChargeReason
-          ? { updatedAt: new Date() }
-          : {}),
+        updatedAt: new Date(),
       };
 
       expect(sortPurpose(patchPurposeResult.data.purpose)).toEqual(

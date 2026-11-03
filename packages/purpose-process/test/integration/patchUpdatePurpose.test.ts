@@ -179,7 +179,7 @@ describe("patchUpdatePurpose", () => {
   const validRiskAnalysis = getMockValidRiskAnalysis(testTenantKind);
 
   it.each(Object.values(purposeVersionState))(
-    "should preserve the event version and timestamps for unchanged metadata in %s",
+    "should create events and advance the version for unchanged metadata in %s",
     async (state) => {
       const purpose: Purpose = {
         ...draftPurpose,
@@ -195,19 +195,27 @@ describe("patchUpdatePurpose", () => {
         { title: purpose.title, description: purpose.description },
         getMockContextM2MAdmin({ organizationId: consumer.id })
       );
+      const isDraft = state === purposeVersionState.draft;
+      const expectedPurpose: Purpose = {
+        ...purpose,
+        updatedAt: new Date(),
+        versions: isDraft
+          ? [{ ...purpose.versions[0], updatedAt: new Date() }]
+          : purpose.versions,
+      };
       expect(sortUpdatePurposeReturn(result)).toEqual({
-        data: { purpose: sortPurpose(purpose) },
-        metadata: { version: 0 },
+        data: { purpose: sortPurpose(expectedPurpose) },
+        metadata: { version: isDraft ? 1 : 2 },
       });
       expect(await readLastPurposeEvent(purpose.id)).toMatchObject({
-        type: "PurposeAdded",
-        version: "0",
+        type: isDraft ? "DraftPurposeUpdated" : "PurposeDescriptionUpdated",
+        version: isDraft ? "1" : "2",
       });
     }
   );
 
   it.each([false, true])(
-    "should preserve risk analysis IDs and timestamps for an equivalent operational seed with empty answers=%s",
+    "should emit a Draft event for an equivalent validated operational seed with empty answers=%s",
     async (includeEmptyAnswers) => {
       const seed = buildRiskAnalysisSeed(validRiskAnalysis);
       const purpose: Purpose = {
@@ -244,13 +252,26 @@ describe("patchUpdatePurpose", () => {
         },
         getMockContextM2MAdmin({ organizationId: consumer.id })
       );
-      expect(sortUpdatePurposeReturn(result)).toEqual({
-        data: { purpose: sortPurpose(purpose) },
-        metadata: { version: 0 },
+      const event = await readLastPurposeEvent(purpose.id);
+      expect(event).toMatchObject({
+        type: "DraftPurposeUpdated",
+        version: "1",
       });
-      expect(await readLastPurposeEvent(purpose.id)).toMatchObject({
-        type: "PurposeAdded",
-        version: "0",
+      const payload = decodeProtobufPayload({
+        messageType: DraftPurposeUpdatedV2,
+        payload: event.data,
+      });
+      expect(result.data.purpose.riskAnalysisForm!.id).not.toBe(
+        purpose.riskAnalysisForm!.id
+      );
+      await expectUpdatedPurpose(result, payload, {
+        ...purpose,
+        updatedAt: new Date(),
+        versions: [{ ...purpose.versions[0], updatedAt: new Date() }],
+        riskAnalysisForm: createUpdatedRiskAnalysisForm(
+          purpose.riskAnalysisForm!,
+          payload.purpose!.riskAnalysisForm!
+        ),
       });
     }
   );
@@ -278,6 +299,10 @@ describe("patchUpdatePurpose", () => {
         title: "updated title",
         description: "updated description",
         updatedAt: new Date(),
+        riskAnalysisForm: createUpdatedRiskAnalysisForm(
+          draftPurpose.riskAnalysisForm!,
+          payload.purpose!.riskAnalysisForm!
+        ),
       },
       1
     );
@@ -1036,10 +1061,7 @@ describe("patchUpdatePurpose", () => {
       const expectedPurpose: Purpose = {
         ...purpose,
         ...expected,
-        ...(initData.isFreeOfCharge !== expected.isFreeOfCharge ||
-        initData.freeOfChargeReason !== expected.freeOfChargeReason
-          ? { updatedAt: new Date() }
-          : {}),
+        updatedAt: new Date(),
       };
 
       expect(sortPurpose(patchPurposeResult.data.purpose)).toEqual(
