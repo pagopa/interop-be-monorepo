@@ -32,7 +32,6 @@ import {
   addOneProducerKeychain,
   authorizationService,
   postgresDB,
-  readLastAuthorizationEvent,
   readModelDB,
 } from "../integrationUtils.js";
 
@@ -133,7 +132,7 @@ describe("updateProducerKeychain", () => {
   });
 
   it.each(changes)(
-    "should not write events for unchanged values: %s",
+    "should write events for supplied unchanged values: %s",
     async (seed) => {
       const producerKeychain = {
         ...getMockProducerKeychain(),
@@ -149,43 +148,55 @@ describe("updateProducerKeychain", () => {
           authData: getMockAuthData(producerKeychain.producerId),
         })
       );
-      expect(transactionSpy).not.toHaveBeenCalled();
+      expect(transactionSpy).toHaveBeenCalledTimes(1);
       transactionSpy.mockRestore();
       expect(result).toEqual({
         data: producerKeychain,
-        metadata: { version: 0 },
+        metadata: { version: Object.keys(seed).length },
       });
-      expect(await readEvents(producerKeychain)).toHaveLength(1);
+      const events = await readEvents(producerKeychain);
+      expect(events).toHaveLength(Object.keys(seed).length + 1);
+      expect(events.slice(1).map((event) => event.type)).toEqual([
+        ...(seed.name !== undefined ? ["ProducerKeychainNameUpdated"] : []),
+        ...(seed.description !== undefined
+          ? ["ProducerKeychainDescriptionUpdated"]
+          : []),
+      ]);
     }
   );
 
   it.each([
     { name: "Updated name", description: "Original description" },
     { name: "Original name", description: "Updated description" },
-  ])("should emit only the event for the changed field: %s", async (seed) => {
-    const producerKeychain = {
-      ...getMockProducerKeychain(),
-      name: "Original name",
-      description: "Original description",
-    };
-    await addOneProducerKeychain(producerKeychain);
-    const result = await authorizationService.updateProducerKeychain(
-      { producerKeychainId: producerKeychain.id, seed },
-      getMockContext({ authData: getMockAuthData(producerKeychain.producerId) })
-    );
-    expect(result).toEqual({
-      data: { ...producerKeychain, ...seed },
-      metadata: { version: 1 },
-    });
-    expect(await readEvents(producerKeychain)).toHaveLength(2);
-    expect((await readLastAuthorizationEvent(producerKeychain.id)).type).toBe(
-      seed.name !== producerKeychain.name
-        ? "ProducerKeychainNameUpdated"
-        : "ProducerKeychainDescriptionUpdated"
-    );
-  });
+  ])(
+    "should emit events for changed and unchanged supplied fields: %s",
+    async (seed) => {
+      const producerKeychain = {
+        ...getMockProducerKeychain(),
+        name: "Original name",
+        description: "Original description",
+      };
+      await addOneProducerKeychain(producerKeychain);
+      const result = await authorizationService.updateProducerKeychain(
+        { producerKeychainId: producerKeychain.id, seed },
+        getMockContext({
+          authData: getMockAuthData(producerKeychain.producerId),
+        })
+      );
+      expect(result).toEqual({
+        data: { ...producerKeychain, ...seed },
+        metadata: { version: 2 },
+      });
+      const events = await readEvents(producerKeychain);
+      expect(events).toHaveLength(3);
+      expect(events.slice(1).map((event) => event.type)).toEqual([
+        "ProducerKeychainNameUpdated",
+        "ProducerKeychainDescriptionUpdated",
+      ]);
+    }
+  );
 
-  it("should preserve the current nonzero version for a M2M no-op", async () => {
+  it("should advance the current nonzero version for a repeated M2M update", async () => {
     const producerKeychain = getMockProducerKeychain();
     await addOneProducerKeychain(producerKeychain);
     const ctx = getMockContextM2MAdmin({
@@ -206,9 +217,21 @@ describe("updateProducerKeychain", () => {
         { producerKeychainId: producerKeychain.id, seed },
         ctx
       )
-    ).toEqual(updated);
-    expect(updated.metadata.version).toBe(1);
-    expect(await readEvents(producerKeychain)).toHaveLength(2);
+    ).toEqual({ data: updated.data, metadata: { version: 2 } });
+    const events = await readEvents(producerKeychain);
+    expect(events).toHaveLength(3);
+    expect(events.slice(1)).toMatchObject([
+      {
+        type: "ProducerKeychainNameUpdated",
+        version: "1",
+        correlation_id: ctx.correlationId,
+      },
+      {
+        type: "ProducerKeychainNameUpdated",
+        version: "2",
+        correlation_id: ctx.correlationId,
+      },
+    ]);
   });
 
   it("should not require unique names", async () => {
@@ -227,7 +250,7 @@ describe("updateProducerKeychain", () => {
   });
 
   it.each([false, true])(
-    "should reject a non-owner even for a no-op with m2m=%s",
+    "should reject a non-owner even for unchanged values with m2m=%s",
     async (m2m) => {
       const producerKeychain = getMockProducerKeychain();
       await addOneProducerKeychain(producerKeychain);
