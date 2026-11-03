@@ -1142,7 +1142,7 @@ export function authorizationServiceBuilder(
         description: seed.description ?? producerKeychain.data.description,
       };
       const nameEvents: Array<CreateEvent<AuthorizationEventV2>> =
-        updatedProducerKeychain.name !== producerKeychain.data.name
+        seed.name !== undefined
           ? [
               toCreateEventProducerKeychainNameUpdated(
                 updatedProducerKeychain,
@@ -1152,8 +1152,7 @@ export function authorizationServiceBuilder(
             ]
           : [];
       const descriptionEvents: Array<CreateEvent<AuthorizationEventV2>> =
-        updatedProducerKeychain.description !==
-        producerKeychain.data.description
+        seed.description !== undefined
           ? [
               toCreateEventProducerKeychainDescriptionUpdated(
                 updatedProducerKeychain,
@@ -1163,10 +1162,6 @@ export function authorizationServiceBuilder(
             ]
           : [];
       const events = [...nameEvents, ...descriptionEvents];
-      if (events.length === 0) {
-        return producerKeychain;
-      }
-
       const createdEvents = await repository.createEvents(events);
       return {
         data: updatedProducerKeychain,
