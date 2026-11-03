@@ -20,17 +20,15 @@ export function contactServiceBuilder(db: ReturnType<typeof drizzle>) {
     ): Promise<contactDataApi.Contact> => {
       logger.info(`Retrieving contact ${contactId}`);
 
-      let savedContact: contactDataApi.Contact | undefined;
-      try {
-        [savedContact] = await db
-          .select({ id: contact.id, email: contact.email })
-          .from(contact)
-          .where(eq(contact.id, contactId))
-          .limit(1);
-      } catch {
-        logger.error(`Contact retrieval failed for contact ${contactId}`);
-        throw contactRetrievalFailed();
-      }
+      const [savedContact] = await db
+        .select({ id: contact.id, email: contact.email })
+        .from(contact)
+        .where(eq(contact.id, contactId))
+        .limit(1)
+        .catch(() => {
+          logger.error(`Contact retrieval failed for contact ${contactId}`);
+          throw contactRetrievalFailed();
+        });
 
       if (!savedContact) {
         throw contactNotFound();
