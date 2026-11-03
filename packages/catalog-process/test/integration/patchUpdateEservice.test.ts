@@ -109,7 +109,7 @@ describe("patch update eService", () => {
   const mockDocument = getMockDocument();
 
   it.each(["unauthorized", "template"] as const)(
-    "should enforce ownership and template exclusion before a metadata no-op (%s)",
+    "should enforce ownership and template exclusion with unchanged metadata (%s)",
     async (scenario) => {
       const eservice: EService = {
         ...mockEService,
@@ -334,7 +334,7 @@ describe("patch update eService", () => {
       )
     )
   )(
-    "should not create events or advance the version for unchanged metadata ($field, $state)",
+    "should create events and advance the version for unchanged metadata ($field, $state)",
     async ({ field, state }) => {
       const eservice: EService = {
         ...mockEService,
@@ -352,20 +352,43 @@ describe("patch update eService", () => {
           description: eservice.description,
         }))
         .exhaustive();
-      expect(
-        await catalogService.patchUpdateEService(
-          eservice.id,
-          seed,
-          getMockContextM2MAdmin({ organizationId: eservice.producerId })
-        )
-      ).toEqual({ data: eservice, metadata: { version: 0 } });
-      expect(await readPatchEvents(eservice.id)).toEqual([]);
+      const ctx = getMockContextM2MAdmin({
+        organizationId: eservice.producerId,
+      });
+      const isDraft = state !== descriptorState.archived;
+      const expectedTypes = isDraft
+        ? ["DraftEServiceUpdated"]
+        : field === "both"
+          ? ["EServiceDescriptionUpdated", "EServiceNameUpdated"]
+          : [
+              field === "name"
+                ? "EServiceNameUpdated"
+                : "EServiceDescriptionUpdated",
+            ];
+      const result = await catalogService.patchUpdateEService(
+        eservice.id,
+        seed,
+        ctx
+      );
+      expect(result).toEqual({
+        data: eservice,
+        metadata: { version: expectedTypes.length },
+      });
+      const events = await readPatchEvents(eservice.id);
+      expect(events.map((event) => event.type)).toEqual(expectedTypes);
+      expect(events.map((event) => event.version)).toEqual(
+        expectedTypes.map((_, index) => String(index + 1))
+      );
+      for (const event of events) {
+        expect(event.correlation_id).toBe(ctx.correlationId);
+        expect(decodeEServicePatchEvent(event)).toEqual(toEServiceV2(eservice));
+      }
       expect(deleteSpy).not.toHaveBeenCalled();
     }
   );
 
   it.each([{ name: "Updated name" }, { description: "Updated description" }])(
-    "should create an event only for the changed metadata field (case #%#)",
+    "should create events for both supplied fields even when one is unchanged (case #%#)",
     async (changedSeed) => {
       await addOneEService(mockEService);
       const result = await catalogService.patchUpdateEService(
@@ -377,15 +400,17 @@ describe("patch update eService", () => {
         },
         getMockContextM2MAdmin({ organizationId: mockEService.producerId })
       );
-      expect(result.metadata.version).toBe(1);
+      expect(result.metadata.version).toBe(2);
       const events = await readPatchEvents(mockEService.id);
-      expect(events).toHaveLength(1);
-      expect(events[0]!.type).toBe(
-        changedSeed.name ? "EServiceNameUpdated" : "EServiceDescriptionUpdated"
-      );
-      expect(decodeEServicePatchEvent(events[0]!)).toEqual(
-        toEServiceV2(result.data)
-      );
+      expect(events.map((event) => event.type)).toEqual([
+        "EServiceDescriptionUpdated",
+        "EServiceNameUpdated",
+      ]);
+      for (const event of events) {
+        expect(decodeEServicePatchEvent(event)).toEqual(
+          toEServiceV2(result.data)
+        );
+      }
     }
   );
 
@@ -397,7 +422,7 @@ describe("patch update eService", () => {
     { personalData: null },
     { asyncExchange: null },
   ] satisfies catalogApi.PatchUpdateEServiceSeed[])(
-    "should not create events for unchanged operational fields (case #%#)",
+    "should create a Draft event for unchanged operational fields (case #%#)",
     async (seed) => {
       const eservice: EService = {
         ...mockEService,
@@ -420,8 +445,14 @@ describe("patch update eService", () => {
           },
           getMockContextM2MAdmin({ organizationId: eservice.producerId })
         )
-      ).toEqual({ data: eservice, metadata: { version: 0 } });
-      expect(await readPatchEvents(eservice.id)).toEqual([]);
+      ).toEqual({ data: eservice, metadata: { version: 1 } });
+      const events = await readPatchEvents(eservice.id);
+      expect(events).toMatchObject([
+        { type: "DraftEServiceUpdated", version: "1", event_version: 2 },
+      ]);
+      expect(decodeEServicePatchEvent(events[0]!)).toEqual(
+        toEServiceV2(eservice)
+      );
     }
   );
 
@@ -474,7 +505,7 @@ describe("patch update eService", () => {
   );
 
   it.each([descriptorState.draft, descriptorState.published])(
-    "should preserve a nonzero metadata version when repeating a successful update (%s)",
+    "should create new events and advance a nonzero version when repeating an update (%s)",
     async (state) => {
       const eservice: EService = {
         ...mockEService,
@@ -498,12 +529,26 @@ describe("patch update eService", () => {
         firstResult.data,
         firstResult.metadata.version
       );
-      expect(
-        await catalogService.patchUpdateEService(eservice.id, seed, ctx)
-      ).toEqual(firstResult);
-      expect(await readPatchEvents(eservice.id)).toHaveLength(
-        state === descriptorState.draft ? 1 : 2
+      const secondResult = await catalogService.patchUpdateEService(
+        eservice.id,
+        seed,
+        ctx
       );
+      expect(secondResult).toEqual({
+        data: firstResult.data,
+        metadata: { version: firstResult.metadata.version * 2 },
+      });
+      const events = await readPatchEvents(eservice.id);
+      expect(events).toHaveLength(secondResult.metadata.version);
+      expect(events.map((event) => event.version)).toEqual(
+        Array.from({ length: events.length }, (_, index) => String(index + 1))
+      );
+      for (const event of events) {
+        expect(event.correlation_id).toBe(ctx.correlationId);
+        expect(decodeEServicePatchEvent(event)).toEqual(
+          toEServiceV2(firstResult.data)
+        );
+      }
     }
   );
 

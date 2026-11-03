@@ -74,7 +74,6 @@ import {
   GracePeriodDays,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import { isDeepStrictEqual } from "util";
 
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 
@@ -1283,23 +1282,6 @@ export function catalogServiceBuilder(
           seed: eserviceSeed,
         });
 
-        /**
-         * If no changes were made to the draft EService, no-op.
-         */
-        const removeUndefinedProperties = (obj: object) =>
-          Object.fromEntries(
-            Object.entries(obj).filter(([, value]) => value !== undefined)
-          );
-
-        if (
-          isDeepStrictEqual(
-            removeUndefinedProperties(eservice.data),
-            removeUndefinedProperties(updatedEservice)
-          )
-        ) {
-          return eservice;
-        }
-
         await deleteEServiceInterfacesOnTechnologyChange(
           eservice.data,
           updatedEservice,
@@ -1328,12 +1310,8 @@ export function catalogServiceBuilder(
         name: name ?? eservice.data.name,
       };
 
-      const hasDescriptionChanged =
-        updatedEservice.description !== eservice.data.description;
-      const hasNameChanged = updatedEservice.name !== eservice.data.name;
-
       const events = [
-        ...(hasDescriptionChanged
+        ...(description !== undefined
           ? [
               toCreateEventEServiceDescriptionUpdated(
                 eservice.metadata.version,
@@ -1342,7 +1320,7 @@ export function catalogServiceBuilder(
               ),
             ]
           : []),
-        ...(hasNameChanged
+        ...(name !== undefined
           ? [
               toCreateEventEServiceNameUpdated(
                 eservice.metadata.version,
@@ -1356,10 +1334,6 @@ export function catalogServiceBuilder(
         ...event,
         version: eservice.metadata.version + index,
       }));
-
-      if (events.length === 0) {
-        return eservice;
-      }
 
       const createdEvents = await repository.createEvents(events);
 
