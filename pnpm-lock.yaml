@@ -2258,6 +2258,9 @@ importers:
       pg:
         specifier: 'catalog:'
         version: 8.13.1
+      ts-pattern:
+        specifier: 'catalog:'
+        version: 5.2.0
       zod:
         specifier: 'catalog:'
         version: 3.23.8

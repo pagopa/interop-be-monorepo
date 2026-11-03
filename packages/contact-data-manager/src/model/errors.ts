@@ -2,9 +2,11 @@ import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
 
 const errorCodes = {
   contactCreationFailed: "0001",
+  contactNotFound: "0002",
+  contactRetrievalFailed: "0003",
 };
 
-type ErrorCodes = keyof typeof errorCodes;
+export type ErrorCodes = keyof typeof errorCodes;
 
 const buildApiProblem = makeApiProblemBuilder(errorCodes);
 
@@ -27,5 +29,21 @@ export function contactCreationFailed(): ApiError<ErrorCodes> {
     code: "contactCreationFailed",
     title: "Contact creation failed",
     detail: "Unable to create contact",
+  });
+}
+
+export function contactNotFound(): ApiError<ErrorCodes> {
+  return new ApiError({
+    code: "contactNotFound",
+    title: "Contact not found",
+    detail: "Contact not found",
+  });
+}
+
+export function contactRetrievalFailed(): ApiError<ErrorCodes> {
+  return new ApiError({
+    code: "contactRetrievalFailed",
+    title: "Contact retrieval failed",
+    detail: "Unable to retrieve contact",
   });
 }
