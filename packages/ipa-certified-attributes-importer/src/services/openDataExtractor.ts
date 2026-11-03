@@ -24,7 +24,7 @@ export type Institution = {
   subUnit?: SubUnit;
 };
 
-export type SubUnit = {
+type SubUnit = {
   name: string;
   entityName: string;
   aooCode?: string;
