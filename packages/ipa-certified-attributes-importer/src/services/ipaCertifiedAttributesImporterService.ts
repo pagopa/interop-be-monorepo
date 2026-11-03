@@ -324,7 +324,7 @@ export async function createNewAttributes(
   );
 }
 
-export function getAooUoAttributeSeeds(
+function getAooUoAttributeSeeds(
   registryData: RegistryData,
   tenantUpsertData: TenantSeed[],
   platformAttributes: Attribute[]
