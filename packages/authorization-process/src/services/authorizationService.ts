@@ -463,7 +463,7 @@ export function authorizationServiceBuilder(
         description: seed.description ?? client.data.description,
       };
       const nameEvents: Array<CreateEvent<AuthorizationEventV2>> =
-        updatedClient.name !== client.data.name
+        seed.name !== undefined
           ? [
               toCreateEventClientNameUpdated(
                 updatedClient,
@@ -473,7 +473,7 @@ export function authorizationServiceBuilder(
             ]
           : [];
       const descriptionEvents: Array<CreateEvent<AuthorizationEventV2>> =
-        updatedClient.description !== client.data.description
+        seed.description !== undefined
           ? [
               toCreateEventClientDescriptionUpdated(
                 updatedClient,
@@ -483,10 +483,6 @@ export function authorizationServiceBuilder(
             ]
           : [];
       const events = [...nameEvents, ...descriptionEvents];
-      if (events.length === 0) {
-        return client;
-      }
-
       const createdEvents = await repository.createEvents(events);
       return {
         data: updatedClient,
