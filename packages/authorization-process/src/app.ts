@@ -8,6 +8,7 @@ import {
   contextMiddleware,
   errorsToApiProblemsMiddleware,
   healthRouter,
+  trimMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
@@ -31,6 +32,7 @@ export async function createApp(service: AuthorizationService) {
   app.use(await applicationAuditBeginMiddleware(serviceName, config));
   app.use(await applicationAuditEndMiddleware(serviceName, config));
   app.use(authenticationMiddleware(config));
+  app.use(trimMiddleware());
   app.use(authorizationRouter(zodiosCtx, service));
   app.use(errorsToApiProblemsMiddleware);
 
