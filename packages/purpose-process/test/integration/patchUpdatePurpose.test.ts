@@ -120,7 +120,6 @@ describe("patchUpdatePurpose", () => {
         type,
         version: (index + 1).toString(),
         event_version: 2,
-        data: writtenEvent.data,
       });
     }
     if (eventTypes.length > 0) {
@@ -370,6 +369,27 @@ describe("patchUpdatePurpose", () => {
       "PurposeTitleUpdated",
       "PurposeDescriptionUpdated",
     ]);
+    const titleEvent = await readEventByStreamIdAndVersion(
+      purpose.id,
+      1,
+      "purpose",
+      postgresDB
+    );
+    expect(
+      sortPurpose(
+        decodeProtobufPayload({
+          messageType: PurposeTitleUpdatedV2,
+          payload: titleEvent.data,
+        }).purpose!
+      )
+    ).toEqual(
+      sortPurpose(
+        toPurposeV2({
+          ...result.data.purpose,
+          description: purpose.description,
+        })
+      )
+    );
     await expectUpdatedPurpose(
       result,
       payload,
