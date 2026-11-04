@@ -1,6 +1,8 @@
 import {
   EmailNotificationMessagePayload,
   PurposeEvent,
+  PurposeVersionId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { getRiskAnalysisAssignmentRecipients } from "pagopa-interop-notification-commons";
 import { P, match } from "ts-pattern";
@@ -45,7 +47,7 @@ export async function handlePurposeEvent(
     })
     .with(
       { type: "PurposeVersionActivated" },
-      async ({ data: { purpose } }) => [
+      async ({ data: { purpose, versionId } }) => [
         ...(await handlePurposeVersionActivatedFirstVersion({
           purposeV2Msg: purpose,
           logger,
@@ -55,6 +57,7 @@ export async function handlePurposeEvent(
         })),
         ...(await handlePurposeVersionActivatedOtherVersion({
           purposeV2Msg: purpose,
+          purposeVersionId: unsafeBrandId<PurposeVersionId>(versionId),
           logger,
           readModelService,
           templateService,
