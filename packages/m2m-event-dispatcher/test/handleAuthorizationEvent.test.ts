@@ -561,7 +561,12 @@ function buildTestCaseData(
        * Public Producer Keychain events
        */
       .with(
-        P.union("ProducerKeychainAdded", "ProducerKeychainDeleted"),
+        P.union(
+          "ProducerKeychainAdded",
+          "ProducerKeychainDeleted",
+          "ProducerKeychainNameUpdated",
+          "ProducerKeychainDescriptionUpdated"
+        ),
         (eventType) => ({
           message: {
             ...getMockEventEnvelopeCommons(),
@@ -676,8 +681,6 @@ function buildTestCaseData(
           "ClientUserAdded",
           "ClientNameUpdated",
           "ClientDescriptionUpdated",
-          "ProducerKeychainNameUpdated",
-          "ProducerKeychainDescriptionUpdated",
           "ClientUserDeleted",
           "ProducerKeychainUserAdded",
           "ProducerKeychainUserDeleted",
