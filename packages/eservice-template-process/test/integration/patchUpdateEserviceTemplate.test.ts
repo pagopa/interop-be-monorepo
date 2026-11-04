@@ -381,7 +381,18 @@ describe("update eserviceTemplate", () => {
               });
               const decoded = EServiceTemplateEvent.parse(event);
               expect(decoded.data.eserviceTemplate).toEqual(
-                toEServiceTemplateV2(result.data)
+                toEServiceTemplateV2({
+                  ...result.data,
+                  description:
+                    type === "EServiceTemplateNameUpdated"
+                      ? template.description
+                      : result.data.description,
+                  intendedTarget:
+                    type === "EServiceTemplateNameUpdated" ||
+                    type === "EServiceTemplateDescriptionUpdated"
+                      ? template.intendedTarget
+                      : result.data.intendedTarget,
+                })
               );
               if (decoded.type === "EServiceTemplateNameUpdated") {
                 expect(decoded.data.oldName).toBe(template.name);

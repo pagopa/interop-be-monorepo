@@ -1547,10 +1547,16 @@ export function eserviceTemplateServiceBuilder(
         };
       }
 
-      const updatedEServiceTemplate: EServiceTemplate = {
+      const nameUpdatedEServiceTemplate: EServiceTemplate = {
         ...eserviceTemplate.data,
         name: name ?? eserviceTemplate.data.name,
+      };
+      const descriptionUpdatedEServiceTemplate: EServiceTemplate = {
+        ...nameUpdatedEServiceTemplate,
         description: description ?? eserviceTemplate.data.description,
+      };
+      const updatedEServiceTemplate: EServiceTemplate = {
+        ...descriptionUpdatedEServiceTemplate,
         intendedTarget: intendedTarget ?? eserviceTemplate.data.intendedTarget,
       };
 
@@ -1560,7 +1566,7 @@ export function eserviceTemplateServiceBuilder(
               toCreateEventEServiceTemplateNameUpdated(
                 templateId,
                 eserviceTemplate.metadata.version,
-                updatedEServiceTemplate,
+                nameUpdatedEServiceTemplate,
                 eserviceTemplate.data.name,
                 ctx.correlationId
               ),
@@ -1571,7 +1577,7 @@ export function eserviceTemplateServiceBuilder(
               toCreateEventEServiceTemplateDescriptionUpdated(
                 templateId,
                 eserviceTemplate.metadata.version,
-                updatedEServiceTemplate,
+                descriptionUpdatedEServiceTemplate,
                 ctx.correlationId
               ),
             ]
