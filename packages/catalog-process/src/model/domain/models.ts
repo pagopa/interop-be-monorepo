@@ -96,6 +96,7 @@ export type EServicesQueryFilters = {
   mode?: EServiceMode;
   onlySignalHubEnabled?: boolean;
   asyncExchange?: boolean;
+  isConsumerDelegable?: boolean;
 };
 
 export type ApiGetEServicesFilters = {

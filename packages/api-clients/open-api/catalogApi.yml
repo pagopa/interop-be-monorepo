@@ -4056,6 +4056,9 @@ components:
         onlySignalHubEnabled:
           type: boolean
           description: If true, returns only e-services with Signal Hub enabled
+        isConsumerDelegable:
+          type: boolean
+          description: If true, returns only consumer delegable e-services; if false, only non consumer delegable ones
         requesterDelegationRoles:
           type: array
           description: Filter by the requester role in producer delegations
