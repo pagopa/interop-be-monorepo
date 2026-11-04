@@ -1,3 +1,4 @@
+import { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { authorizationApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   getMockWithMetadata,
@@ -48,6 +49,37 @@ describe("createClient", () => {
 
   beforeEach(() => {
     mockcreateClient.mockClear();
+    mockGetClient.mockClear();
+  });
+
+  it("Should propagate an authorization 404 without polling the client", async () => {
+    const error = new AxiosError(
+      "User not found",
+      "404",
+      undefined,
+      undefined,
+      {
+        status: 404,
+        statusText: "Not Found",
+        data: {
+          type: "about:blank",
+          title: "Not Found",
+          status: 404,
+          errors: [{ code: "005-0016", detail: "User not found" }],
+        },
+        headers: {},
+        config: {} as InternalAxiosRequestConfig,
+      }
+    );
+    mockcreateClient.mockRejectedValueOnce(error);
+    await expect(
+      clientService.createClient(clientSeed, getMockM2MAdminAppContext())
+    ).rejects.toBe(error);
+    expectApiClientPostToHaveBeenCalledWith({
+      mockPost: mockcreateClient,
+      body: clientSeed,
+    });
+    expect(mockGetClient).not.toHaveBeenCalled();
   });
 
   it("Should succeed and perform API clients calls", async () => {

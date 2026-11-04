@@ -210,6 +210,7 @@ export const getMockDescriptorArchiving = (
     scope: archivingScope.descriptor,
     startedAt: new Date(),
     archivableOn: new Date(new Date().setUTCDate(new Date().getUTCDate() + 30)),
+    gracePeriodDays: 30,
   },
 });
 

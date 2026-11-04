@@ -20,6 +20,7 @@ import {
   eventRepository,
   isFeatureFlagEnabled,
   ownership,
+  validateNoHyperlinksSafe,
 } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -252,7 +253,8 @@ export function agreementServiceBuilder(
 
     const descriptor = validateActivationOnDescriptor(
       eservice,
-      agreement.data.descriptorId
+      agreement.data.descriptorId,
+      isFirstActivation
     );
 
     const consumer = await retrieveTenant(
@@ -630,6 +632,8 @@ export function agreementServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Agreement>> {
       logger.info(`Submitting agreement ${agreementId}`);
+
+      validateNoHyperlinksSafe(payload.consumerNotes);
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
 
@@ -1247,6 +1251,8 @@ export function agreementServiceBuilder(
     ): Promise<WithMetadata<Agreement>> {
       logger.info(`Rejecting agreement ${agreementId}`);
 
+      validateNoHyperlinksSafe(rejectionReason);
+
       const agreementToBeRejected = await retrieveAgreement(
         agreementId,
         readModelService
@@ -1415,7 +1421,11 @@ export function agreementServiceBuilder(
     },
     async archiveAgreement(
       agreementId: AgreementId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Agreement>> {
       logger.info(`Archiving agreement ${agreementId}`);
 
