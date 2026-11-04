@@ -71,7 +71,11 @@ describe("PATCH /eservices/{eServiceId} router test", () => {
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
@@ -86,8 +90,10 @@ describe("PATCH /eservices/{eServiceId} router test", () => {
   );
 
   it.each([
-    {},
     { name: "updated name" },
+    { description: "updated description" },
+    { personalData: null },
+    { asyncExchange: null },
     {
       name: "updated name",
       description: "updated description",
@@ -128,6 +134,13 @@ describe("PATCH /eservices/{eServiceId} router test", () => {
   );
 
   it.each([
+    [{}, mockEService.id],
+    [{ name: "a".repeat(4) }, mockEService.id],
+    [{ name: "a".repeat(61) }, mockEService.id],
+    [{ name: null }, mockEService.id],
+    [{ description: "a".repeat(9) }, mockEService.id],
+    [{ description: "a".repeat(401) }, mockEService.id],
+    [{ ...eserviceSeed, unknown: true }, mockEService.id],
     [{ name: 123 }, mockEService.id],
     [{ description: null }, mockEService.id],
     [{ technology: "invalidTechnology" }, mockEService.id],
