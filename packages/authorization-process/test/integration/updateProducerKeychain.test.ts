@@ -103,7 +103,10 @@ describe("updateProducerKeychain", () => {
           payload: events[1].data,
         })
       ).toEqual({
-        producerKeychain: toProducerKeychainV2(updatedProducerKeychain),
+        producerKeychain: toProducerKeychainV2({
+          ...producerKeychain,
+          name: seed.name,
+        }),
       });
       expect(
         decodeProtobufPayload({
