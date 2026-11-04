@@ -165,7 +165,8 @@ export function notificationTenantLifecycleConsumerServiceBuilder(
               "TenantVerifiedAttributeAssigned",
               "TenantVerifiedAttributeExpirationUpdated",
               "TenantVerifiedAttributeExtensionUpdated",
-              "TenantVerifiedAttributeRevoked"
+              "TenantVerifiedAttributeRevoked",
+              "TenantParentUpdated"
             ),
           },
           async (message) => {
