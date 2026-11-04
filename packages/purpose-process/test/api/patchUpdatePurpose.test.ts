@@ -75,7 +75,10 @@ describe("API PATCH /purposes/{purposeId} test", () => {
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
@@ -98,7 +101,6 @@ describe("API PATCH /purposes/{purposeId} test", () => {
   });
 
   it.each([
-    {},
     { title: "updated title" },
     { description: "updated description" },
     {
@@ -174,6 +176,7 @@ describe("API PATCH /purposes/{purposeId} test", () => {
   });
 
   it.each([
+    {},
     { ...mockPurposeUpdateContent, dailyCalls: -1 },
     { ...mockPurposeUpdateContent, extraField: 1 },
   ])(
@@ -182,6 +185,7 @@ describe("API PATCH /purposes/{purposeId} test", () => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token, mockPurpose.id, seed);
       expect(res.status).toBe(400);
+      expect(purposeService.patchUpdatePurpose).not.toHaveBeenCalled();
     }
   );
 });

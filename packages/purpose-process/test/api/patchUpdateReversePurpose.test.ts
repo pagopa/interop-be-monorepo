@@ -62,7 +62,7 @@ describe("API PATCH /reverse/purposes/{purposeId} test", () => {
   const makeRequest = async (
     token: string,
     purposeId: PurposeId = mockPurpose.id,
-    body: purposeApi.PatchReversePurposeUpdateContent = mockReversePurposeUpdateContent
+    body: object = mockReversePurposeUpdateContent
   ) =>
     request(api)
       .patch(`/reverse/purposes/${purposeId}`)
@@ -70,7 +70,10 @@ describe("API PATCH /reverse/purposes/{purposeId} test", () => {
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
@@ -93,7 +96,6 @@ describe("API PATCH /reverse/purposes/{purposeId} test", () => {
   });
 
   it.each([
-    {},
     { title: "updated title" },
     { description: "updated description" },
     {
@@ -111,7 +113,7 @@ describe("API PATCH /reverse/purposes/{purposeId} test", () => {
     { title: "updated title", isFreeOfCharge: false, freeOfChargeReason: null },
   ])(
     "Should return 200 with partial seed and nullable fields (seed #%#)",
-    async (seed: purposeApi.PatchReversePurposeUpdateContent) => {
+    async (seed) => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token, mockPurpose.id, seed);
       expect(res.status).toBe(200);
@@ -171,14 +173,14 @@ describe("API PATCH /reverse/purposes/{purposeId} test", () => {
   });
 
   it.each([
+    {},
+    { riskAnalysisForm: { version: "3.0", answers: {} } },
     { ...mockReversePurposeUpdateContent, dailyCalls: -1 },
     { ...mockReversePurposeUpdateContent, extraField: 1 },
-  ])(
-    "Should return 400 if passed an invalid seed (seed #%#)",
-    async (seed: purposeApi.PatchReversePurposeUpdateContent) => {
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token, mockPurpose.id, seed);
-      expect(res.status).toBe(400);
-    }
-  );
+  ])("Should return 400 if passed an invalid seed (seed #%#)", async (seed) => {
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, mockPurpose.id, seed);
+    expect(res.status).toBe(400);
+    expect(purposeService.patchUpdateReversePurpose).not.toHaveBeenCalled();
+  });
 });
