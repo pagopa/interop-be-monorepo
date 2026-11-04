@@ -1614,14 +1614,20 @@ export function purposeTemplateServiceBuilder(
         );
       }
 
-      let updatedPurposeTemplate: PurposeTemplate = {
+      const purposeTitleUpdatedTemplate: PurposeTemplate = {
         ...purposeTemplate.data,
         purposeTitle: purposeTitle ?? purposeTemplate.data.purposeTitle,
+        updatedAt: new Date(),
+      };
+      const purposeDescriptionUpdatedTemplate: PurposeTemplate = {
+        ...purposeTitleUpdatedTemplate,
         purposeDescription:
           purposeDescription ?? purposeTemplate.data.purposeDescription,
+      };
+      let updatedPurposeTemplate: PurposeTemplate = {
+        ...purposeDescriptionUpdatedTemplate,
         targetDescription:
           targetDescription ?? purposeTemplate.data.targetDescription,
-        updatedAt: new Date(),
       };
 
       if (isDraft && hasOperationalFields) {
@@ -1652,7 +1658,7 @@ export function purposeTemplateServiceBuilder(
         ...(purposeTitle !== undefined
           ? [
               toCreateEventPurposeTemplatePurposeTitleUpdated(
-                updatedPurposeTemplate,
+                purposeTitleUpdatedTemplate,
                 ctx.correlationId,
                 purposeTemplate.metadata.version
               ),
@@ -1661,7 +1667,7 @@ export function purposeTemplateServiceBuilder(
         ...(purposeDescription !== undefined
           ? [
               toCreateEventPurposeTemplatePurposeDescriptionUpdated(
-                updatedPurposeTemplate,
+                purposeDescriptionUpdatedTemplate,
                 ctx.correlationId,
                 purposeTemplate.metadata.version
               ),

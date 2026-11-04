@@ -752,6 +752,22 @@ describe("patch update purpose template", () => {
           data: { ...purposeTemplate, ...seed, updatedAt: new Date() },
           metadata: { version: isDraft ? 6 : 8 },
         });
+        const expectedSnapshots = isDraft
+          ? [result.data]
+          : [
+              {
+                ...purposeTemplate,
+                purposeTitle: seed.purposeTitle,
+                updatedAt: result.data.updatedAt,
+              },
+              {
+                ...purposeTemplate,
+                purposeTitle: seed.purposeTitle,
+                purposeDescription: seed.purposeDescription,
+                updatedAt: result.data.updatedAt,
+              },
+              result.data,
+            ];
         const events = await postgresDB.many<{
           type: PurposeTemplateEvent["type"];
           version: string;
@@ -773,7 +789,9 @@ describe("patch update purpose template", () => {
               messageType: update.messageType,
               payload: events[index].data,
             })
-          ).toEqual({ purposeTemplate: toPurposeTemplateV2(result.data) });
+          ).toEqual({
+            purposeTemplate: toPurposeTemplateV2(expectedSnapshots[index]!),
+          });
         }
       });
 
