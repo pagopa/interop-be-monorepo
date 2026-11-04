@@ -6,12 +6,12 @@
   "description": "Generate and validate typed error messages from CSV",
   "type": "module",
   "scripts": {
-    "lint": "eslint . && pnpm validate",
+    "lint": "eslint . && pnpm validate-error-messages",
     "lint:autofix": "eslint . --fix",
-    "generate": "tsx cli/cli.ts generate",
-    "validate": "tsx cli/cli.ts validate",
-    "build": "pnpm generate && tsc",
-    "check": "pnpm generate && tsc --project tsconfig.check.json",
+    "generate-error-messages": "tsx cli/cli.ts generate",
+    "validate-error-messages": "tsx cli/cli.ts validate",
+    "build": "pnpm generate-error-messages && tsc",
+    "check": "pnpm generate-error-messages && tsc --project tsconfig.check.json",
     "test": "vitest"
   },
   "keywords": [],
