@@ -50,7 +50,6 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { isDeepStrictEqual } from "util";
 
 import { purposeTemplateToApiPurposeTemplateSeed } from "../model/domain/apiConverter.js";
 import {
@@ -1601,27 +1600,11 @@ export function purposeTemplateServiceBuilder(
         (value) => value !== undefined
       );
 
-      if (hasOperationalFields) {
+      const isDraft = isPurposeTemplateDraft(purposeTemplate.data.state);
+
+      if (hasOperationalFields && !isDraft) {
         assertPurposeTemplateIsDraft(purposeTemplate.data);
       }
-
-      const updatedPurposeTemplate = hasOperationalFields
-        ? await prepareDraftPurposeTemplateUpdate(
-            purposeTemplate.data,
-            { type: "patch", seed: purposeTemplateSeed },
-            readModelService,
-            fileManager,
-            ctx.logger
-          )
-        : {
-            ...purposeTemplate.data,
-            purposeTitle: purposeTitle ?? purposeTemplate.data.purposeTitle,
-            purposeDescription:
-              purposeDescription ?? purposeTemplate.data.purposeDescription,
-            targetDescription:
-              targetDescription ?? purposeTemplate.data.targetDescription,
-            updatedAt: new Date(),
-          };
 
       if (!hasOperationalFields) {
         await validatePurposeTemplateMetadata(
@@ -1631,24 +1614,27 @@ export function purposeTemplateServiceBuilder(
         );
       }
 
-      const removeUndefinedProperties = (
-        value: object
-      ): Record<string, unknown> =>
-        Object.fromEntries(
-          Object.entries(value).filter(([, field]) => field !== undefined)
-        );
-      const hasOperationalChanges = !isDeepStrictEqual(
-        removeUndefinedProperties({
-          ...updatedPurposeTemplate,
-          purposeTitle: purposeTemplate.data.purposeTitle,
-          purposeDescription: purposeTemplate.data.purposeDescription,
-          targetDescription: purposeTemplate.data.targetDescription,
-          updatedAt: purposeTemplate.data.updatedAt,
-        }),
-        removeUndefinedProperties(purposeTemplate.data)
-      );
+      let updatedPurposeTemplate: PurposeTemplate = {
+        ...purposeTemplate.data,
+        purposeTitle: purposeTitle ?? purposeTemplate.data.purposeTitle,
+        purposeDescription:
+          purposeDescription ?? purposeTemplate.data.purposeDescription,
+        targetDescription:
+          targetDescription ?? purposeTemplate.data.targetDescription,
+        updatedAt: new Date(),
+      };
 
-      if (hasOperationalChanges) {
+      if (isDraft && hasOperationalFields) {
+        updatedPurposeTemplate = await prepareDraftPurposeTemplateUpdate(
+          purposeTemplate.data,
+          { type: "patch", seed: purposeTemplateSeed },
+          readModelService,
+          fileManager,
+          ctx.logger
+        );
+      }
+
+      if (isDraft) {
         const event = await repository.createEvent(
           toCreateEventPurposeTemplateDraftUpdated(
             updatedPurposeTemplate,
@@ -1663,8 +1649,7 @@ export function purposeTemplateServiceBuilder(
       }
 
       const events = [
-        ...(updatedPurposeTemplate.purposeTitle !==
-        purposeTemplate.data.purposeTitle
+        ...(purposeTitle !== undefined
           ? [
               toCreateEventPurposeTemplatePurposeTitleUpdated(
                 updatedPurposeTemplate,
@@ -1673,8 +1658,7 @@ export function purposeTemplateServiceBuilder(
               ),
             ]
           : []),
-        ...(updatedPurposeTemplate.purposeDescription !==
-        purposeTemplate.data.purposeDescription
+        ...(purposeDescription !== undefined
           ? [
               toCreateEventPurposeTemplatePurposeDescriptionUpdated(
                 updatedPurposeTemplate,
@@ -1683,8 +1667,7 @@ export function purposeTemplateServiceBuilder(
               ),
             ]
           : []),
-        ...(updatedPurposeTemplate.targetDescription !==
-        purposeTemplate.data.targetDescription
+        ...(targetDescription !== undefined
           ? [
               toCreateEventPurposeTemplateTargetDescriptionUpdated(
                 updatedPurposeTemplate,
@@ -1698,15 +1681,13 @@ export function purposeTemplateServiceBuilder(
         version: purposeTemplate.metadata.version + index,
       }));
 
-      if (events.length === 0) {
-        return purposeTemplate;
-      }
-
       const createdEvents = await repository.createEvents(events);
       return {
         data: updatedPurposeTemplate,
         metadata: {
-          version: createdEvents.latestNewVersions.get(purposeTemplateId) ?? 0,
+          version:
+            createdEvents.latestNewVersions.get(purposeTemplateId) ??
+            purposeTemplate.metadata.version,
         },
       };
     },
