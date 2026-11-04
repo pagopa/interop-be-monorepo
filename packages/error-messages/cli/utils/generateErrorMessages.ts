@@ -9,7 +9,17 @@ export function generateErrorMessages(filePath: string): string {
       errorCode: getErrorCode(process, error),
       ...message,
     }))
-    .filter(({ errorCode }) => errorCode !== null);
+    .filter(({ errorCode, process, error }) => {
+      if (errorCode === null) {
+        console.warn("Skipping error message with unresolved error code", {
+          process,
+          error,
+        });
+        return false;
+      }
+
+      return true;
+    });
 
   return `// Generated from the error messages CSV. Do not edit manually.
 import type { ErrorMessage } from "pagopa-interop-models";

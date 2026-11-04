@@ -5,6 +5,10 @@
   "license": "MPL-2.0",
   "description": "Generate and validate typed error messages from CSV",
   "type": "module",
+  "main": "dist",
+  "exports": {
+    ".": "./dist/index.js"
+  },
   "scripts": {
     "lint": "eslint . && pnpm validate-error-messages",
     "lint:autofix": "eslint . --fix",
