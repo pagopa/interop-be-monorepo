@@ -313,7 +313,13 @@ describe("patch update eService", () => {
       );
       for (const event of events) {
         expect(decodeEServicePatchEvent(event)).toEqual(
-          toEServiceV2(expectedEService)
+          toEServiceV2({
+            ...expectedEService,
+            name:
+              event.type === "EServiceDescriptionUpdated"
+                ? eservice.name
+                : expectedEService.name,
+          })
         );
       }
       if (!isDraft) {
@@ -408,7 +414,13 @@ describe("patch update eService", () => {
       ]);
       for (const event of events) {
         expect(decodeEServicePatchEvent(event)).toEqual(
-          toEServiceV2(result.data)
+          toEServiceV2({
+            ...result.data,
+            name:
+              event.type === "EServiceDescriptionUpdated"
+                ? mockEService.name
+                : result.data.name,
+          })
         );
       }
     }
@@ -546,7 +558,14 @@ describe("patch update eService", () => {
       for (const event of events) {
         expect(event.correlation_id).toBe(ctx.correlationId);
         expect(decodeEServicePatchEvent(event)).toEqual(
-          toEServiceV2(firstResult.data)
+          toEServiceV2({
+            ...firstResult.data,
+            name:
+              event.version === "1" &&
+              event.type === "EServiceDescriptionUpdated"
+                ? eservice.name
+                : firstResult.data.name,
+          })
         );
       }
     }

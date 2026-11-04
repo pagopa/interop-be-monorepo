@@ -1304,9 +1304,12 @@ export function catalogServiceBuilder(
         };
       }
 
-      const updatedEservice: EService = {
+      const descriptionUpdatedEservice: EService = {
         ...eservice.data,
         description: description ?? eservice.data.description,
+      };
+      const updatedEservice: EService = {
+        ...descriptionUpdatedEservice,
         name: name ?? eservice.data.name,
       };
 
@@ -1315,7 +1318,7 @@ export function catalogServiceBuilder(
           ? [
               toCreateEventEServiceDescriptionUpdated(
                 eservice.metadata.version,
-                updatedEservice,
+                descriptionUpdatedEservice,
                 ctx.correlationId
               ),
             ]
