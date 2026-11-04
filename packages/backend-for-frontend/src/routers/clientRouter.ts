@@ -150,7 +150,7 @@ const clientRouter = (
               req.params.keyId,
               ctx
             ),
-          (value, message) => message.replace("{{keyName}}", value.name)
+          (value, message) => message.replace("{keyName}", value.name)
         );
         const errorRes = makeApiProblem(
           error,
