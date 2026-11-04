@@ -14,6 +14,7 @@ import {
   EServiceId,
   generateId,
   operationForbidden,
+  eventConflictError,
 } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi } from "vitest";
@@ -178,7 +179,11 @@ describe("PATCH /eservices/{eServiceId} router test", () => {
     },
     {
       error: eserviceNotInDraftState(mockEService.id),
-      expectedStatus: 400,
+      expectedStatus: 409,
+    },
+    {
+      error: eventConflictError(generateId(), mockEService.id, 0),
+      expectedStatus: 409,
     },
     {
       error: templateInstanceNotAllowed(
