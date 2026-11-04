@@ -1504,13 +1504,13 @@ export function eserviceTemplateServiceBuilder(
       const { name, description, intendedTarget, ...operationalSeed } =
         eserviceTemplateSeed;
 
-      const hasOperationalFields = Object.values(operationalSeed).some(
+      const seedIncludesOperationalFields = Object.values(operationalSeed).some(
         (value) => value !== undefined
       );
 
       const isDraft = isDraftEServiceTemplate(eserviceTemplate.data);
 
-      if (hasOperationalFields && !isDraft) {
+      if (seedIncludesOperationalFields && !isDraft) {
         throw eserviceTemplateNotInDraftState(eserviceTemplate.data.id);
       }
 
