@@ -8,8 +8,8 @@
   "scripts": {
     "lint": "eslint . && pnpm validate",
     "lint:autofix": "eslint . --fix",
-    "generate": "tsx scripts/generateErrorMessages.ts",
-    "validate": "tsx src/cli.ts",
+    "generate": "tsx cli/cli.ts generate",
+    "validate": "tsx cli/cli.ts validate",
     "build": "pnpm generate && tsc",
     "check": "pnpm generate && tsc --project tsconfig.check.json",
     "test": "vitest"
@@ -17,21 +17,21 @@
   "keywords": [],
   "devDependencies": {
     "@types/node": "catalog:",
-    "csv-stringify": "catalog:",
-    "eslint": "catalog:",
-    "pagopa-interop-eslint-config": "workspace:*",
-    "tsx": "catalog:",
-    "typescript": "catalog:",
-    "vitest": "catalog:"
-  },
-  "dependencies": {
     "@cspell/dict-it-it": "catalog:",
     "cspell-lib": "catalog:",
     "commander": "catalog:",
-    "csv-parse": "catalog:",
+    "csv": "catalog:",
     "pagopa-interop-commons": "workspace:*",
-    "pagopa-interop-models": "workspace:*",
+    "csv-stringify": "catalog:",
+    "eslint": "catalog:",
+    "pagopa-interop-eslint-config": "workspace:*",
     "ts-pattern": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
     "zod": "catalog:"
+  },
+  "dependencies": {
+    "pagopa-interop-models": "workspace:*"
   }
 }
