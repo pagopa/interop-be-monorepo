@@ -1,4 +1,6 @@
-export const private1 = {
+import { RiskAnalysisFormRules } from "../riskAnalysisFormRules.js";
+
+export const private1: RiskAnalysisFormRules = {
   version: "1.0",
   expiration: new Date("2023-07-26T23:59:59"),
   questions: [

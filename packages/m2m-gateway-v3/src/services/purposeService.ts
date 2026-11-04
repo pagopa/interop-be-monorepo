@@ -685,5 +685,21 @@ export function purposeServiceBuilder(
 
       return toM2MGatewayApiPurpose(polledResource.data);
     },
+    async assignRiskAnalysisReviewer(
+      purposeId: PurposeId,
+      seed: m2mGatewayApiV3.RiskAnalysisAssignmentSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.Purpose> {
+      logger.info(`Assigning risk analysis reviewer for purpose ${purposeId}`);
+
+      const { metadata } =
+        await clients.purposeProcessClient.assignRiskAnalysisReviewer(seed, {
+          params: { purposeId },
+          headers,
+        });
+
+      const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
+      return toM2MGatewayApiPurpose(polledPurpose.data);
+    },
   };
 }
