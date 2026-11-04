@@ -391,17 +391,6 @@ describe("patch update purpose template", () => {
         purposeFreeOfChargeReason: oldFreeOfChargeReason,
       },
       {
-        purposeIsFreeOfCharge: undefined,
-        purposeFreeOfChargeReason: undefined,
-      },
-      { purposeIsFreeOfCharge: false, purposeFreeOfChargeReason: undefined },
-    ],
-    [
-      {
-        purposeIsFreeOfCharge: false,
-        purposeFreeOfChargeReason: oldFreeOfChargeReason,
-      },
-      {
         purposeIsFreeOfCharge: false,
         purposeFreeOfChargeReason: null,
       },
@@ -619,7 +608,7 @@ describe("patch update purpose template", () => {
       expect(
         purposeTemplateService.patchUpdatePurposeTemplate(
           purposeTemplate.id,
-          {},
+          { handlesPersonalData: true },
           getMockContextM2MAdmin({ organizationId: purposeTemplate.creatorId })
         )
       ).rejects.toThrowError(
