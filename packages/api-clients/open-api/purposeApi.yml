@@ -468,7 +468,7 @@ paths:
       tags:
         - purpose
       operationId: patchUpdatePurpose
-      description: Partially update a Purpose if not yet activated
+      description: Partially update a Purpose of an EService with Deliver mode
       requestBody:
         content:
           application/json:
@@ -1699,6 +1699,7 @@ components:
     PatchPurposeUpdateContent:
       type: object
       additionalProperties: false
+      minProperties: 1
       description: Contains the expected payload for purpose update
       properties:
         title:
@@ -1770,6 +1771,7 @@ components:
     PatchReversePurposeUpdateContent:
       type: object
       additionalProperties: false
+      minProperties: 1
       description: Contains the expected payload for reverse purpose update
       properties:
         title:

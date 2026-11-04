@@ -76,7 +76,6 @@ describe("PATCH /purposes/:purposeId router test", () => {
   });
 
   it.each([
-    {},
     { title: "updated title" },
     { description: "updated description" },
     {
@@ -108,6 +107,7 @@ describe("PATCH /purposes/:purposeId router test", () => {
   });
 
   it.each([
+    {},
     { invalidParam: "invalidValue" },
     { ...mockUpdateSeed, extraParam: -1 },
     { ...mockUpdateSeed, description: "short" },

@@ -1,3 +1,4 @@
+import { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { m2mGatewayApiV3, purposeApi } from "pagopa-interop-api-clients";
 import {
   getMockedApiPurpose,
@@ -99,6 +100,64 @@ describe("updateDraftReversePurpose", () => {
     expect(
       mockInteropBeClients.purposeProcessClient.getPurpose
     ).toHaveBeenCalledTimes(2);
+  });
+
+  it.each([
+    { title: "Updated metadata title" },
+    { description: "Updated metadata description" },
+    { title: mockPurpose.title, description: mockPurpose.description },
+  ])(
+    "Should forward metadata seed %# and poll its returned version",
+    async (seed) => {
+      mockGetPurpose.mockImplementation(
+        mockPollingResponse(mockPurposeProcessGetResponse, 1)
+      );
+      const result = await purposeService.updateDraftReversePurpose(
+        unsafeBrandId(mockPurpose.id),
+        seed,
+        getMockM2MAdminAppContext()
+      );
+      expect(result).toEqual(
+        testToM2mGatewayApiPurpose(mockPurposeProcessGetResponse.data, {
+          currentVersion: mockPurpose.versions[0]
+            ? testToM2mGatewayApiPurposeVersion(mockPurpose.versions[0])
+            : undefined,
+        })
+      );
+      expect(mockPatchUpdateReversePurpose).toHaveBeenCalledTimes(1);
+      expectApiClientPostToHaveBeenCalledWith({
+        mockPost: mockPatchUpdateReversePurpose,
+        params: { id: mockPurpose.id },
+        body: seed,
+      });
+      expect(mockGetPurpose).toHaveBeenCalledTimes(1);
+    }
+  );
+
+  it("Should propagate a conflict without polling or retrying", async () => {
+    const error = new AxiosError(
+      "Purpose conflict",
+      undefined,
+      undefined,
+      undefined,
+      {
+        status: 409,
+        statusText: "Conflict",
+        data: {},
+        config: {} as InternalAxiosRequestConfig,
+        headers: {},
+      }
+    );
+    mockPatchUpdateReversePurpose.mockRejectedValueOnce(error);
+    await expect(
+      purposeService.updateDraftReversePurpose(
+        unsafeBrandId(mockPurpose.id),
+        mockPurposeSeed,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toBe(error);
+    expect(mockPatchUpdateReversePurpose).toHaveBeenCalledTimes(1);
+    expect(mockGetPurpose).not.toHaveBeenCalled();
   });
 
   it("Should throw missingMetadata in case the purpose returned by the PATCH call has no metadata", async () => {
