@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { create as createContentDisposition } from "content-disposition";
 import { constants } from "http2";
 import { bffApi } from "pagopa-interop-api-clients";
 import {
@@ -202,11 +203,10 @@ const catalogRouter = (
           ctx
         );
 
+        const filename = response.filename.replace(/[\\/]/g, "_");
+
         return res
-          .header(
-            "Content-Disposition",
-            `attachment; filename=${response.filename}`
-          )
+          .header("Content-Disposition", createContentDisposition(filename))
           .header("Content-Type", "application/octet-stream")
           .send(response.file);
       } catch (error) {
@@ -849,6 +849,27 @@ const catalogRouter = (
           emptyErrorMapper,
           ctx,
           `Error deleting EService ${req.params.eServiceId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .patch("/eservices/:eServiceId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const createdResource = await catalogService.patchUpdateEServiceById(
+          unsafeBrandId(req.params.eServiceId),
+          req.body,
+          ctx
+        );
+        return res
+          .status(200)
+          .send(bffApi.CreatedResource.parse(createdResource));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error updating EService ${req.params.eServiceId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
