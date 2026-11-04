@@ -181,7 +181,7 @@ describe("error message generation", () => {
       input,
       stringify([headers, ["Unknown Process", row[1], row[2], "", ""]])
     );
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
 
     generateErrorMessages(input);
 

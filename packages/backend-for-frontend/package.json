@@ -43,7 +43,6 @@
     "axios": "catalog:",
     "content-disposition": "catalog:",
     "dotenv-flow": "catalog:",
-    "error-messages": "workspace:*",
     "express": "catalog:",
     "fast-xml-parser": "catalog:",
     "pagopa-interop-agreement-lifecycle": "workspace:*",

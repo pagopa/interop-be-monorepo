@@ -3,12 +3,12 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
-import * as publicExports from "../src/index.js";
 import { FullErrors } from "../cli/models/index.js";
 import { loadErrorMessages } from "../cli/utils/dynamicLoader.js";
 import { generateErrorMessages } from "../cli/utils/generateErrorMessages.js";
 import { getRootPath } from "../cli/utils/paths.js";
 import { validate } from "../cli/validate/index.js";
+import * as publicExports from "../src/index.js";
 
 const csvPath = "./error-messages.csv";
 const generatedPath = "./src/generated/errorMessages.ts";
