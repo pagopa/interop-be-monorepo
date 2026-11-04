@@ -74,6 +74,35 @@ describe("updateTemplateInstanceName", () => {
     });
   });
 
+  it("should preserve a 12-character instance label when propagating a 45-character template name", async () => {
+    const instanceLabel = "b".repeat(12);
+    const eservice: EService = {
+      ...getMockEService(),
+      templateId: generateId<EServiceTemplateId>(),
+      instanceLabel,
+    };
+    await addOneEService(eservice);
+
+    const templateName = "a".repeat(45);
+    await catalogService.internalUpdateTemplateInstanceName(
+      eservice.id,
+      templateName,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
+
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceNameUpdatedByTemplateUpdateV2,
+      payload: writtenEvent.data,
+    });
+    const expectedName = `${templateName} - ${instanceLabel}`;
+    expect(expectedName).toHaveLength(60);
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2({ ...eservice, name: expectedName }),
+      oldName: eservice.name,
+    });
+  });
+
   it("should not write on event-store if the e-service already has the new name", async () => {
     const descriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
