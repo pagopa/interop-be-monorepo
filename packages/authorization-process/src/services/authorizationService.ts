@@ -456,16 +456,19 @@ export function authorizationServiceBuilder(
         assertClientIsConsumer(client.data);
       }
 
-      const updatedClient: Client = {
+      const nameUpdatedClient: Client = {
         ...client.data,
         name: seed.name ?? client.data.name,
+      };
+      const updatedClient: Client = {
+        ...nameUpdatedClient,
         description: seed.description ?? client.data.description,
       };
       const nameEvents: Array<CreateEvent<AuthorizationEventV2>> =
         seed.name !== undefined
           ? [
               toCreateEventClientNameUpdated(
-                updatedClient,
+                nameUpdatedClient,
                 client.metadata.version,
                 correlationId
               ),
