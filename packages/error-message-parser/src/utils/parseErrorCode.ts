@@ -63,10 +63,10 @@ export function getErrorCode(process: string, error: string): string | null {
     return null;
   }
 
-  const entry = [
-    ...Object.entries(commonErrorCodes),
-    ...Object.entries(configuration.errors),
-  ].find(([name]) => name === error);
+  const entry = Object.entries({
+    ...commonErrorCodes,
+    ...configuration.errors,
+  }).find(([name]) => name === error);
 
   return entry
     ? `${serviceErrorCode[configuration.service]}-${entry[1]}`

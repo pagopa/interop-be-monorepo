@@ -58,4 +58,17 @@ describe("getErrorCode", () => {
   ])("returns null for unresolved %s / %s", (process, error) => {
     expect(getErrorCode(process, error)).toBeNull();
   });
+
+  it("prefers process-specific error when they overlap with common ones", () => {
+    const purposeTemplateHyperlinkError = getErrorCode(
+      "Purpose Template Process",
+      "hyperlinkDetectionError"
+    ); // 0021 for purpose template
+    const catalogHyperlinkDetectionError = getErrorCode(
+      "Catalog Process",
+      "hyperlinkDetectionError"
+    ); // 10027 from common errors
+    expect(purposeTemplateHyperlinkError).toMatch(/-0021$/);
+    expect(catalogHyperlinkDetectionError).toMatch(/-10027$/);
+  });
 });
