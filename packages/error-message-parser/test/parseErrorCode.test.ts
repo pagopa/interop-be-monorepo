@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getErrorCode } from "../src/utils/parseErrorCode.js";
+import { getErrorCode } from "../scripts/utils/parseErrorCode.js";
 
 describe("getErrorCode", () => {
   it.each([

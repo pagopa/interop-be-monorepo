@@ -1,16 +1,16 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { generateErrorMessages } from "../src/utils/generateErrorMessages.js";
+import { generateErrorMessages } from "./utils/generateErrorMessages.js";
 
 const input = new URL(
   "../../backend-for-frontend/error-messages.csv",
   import.meta.url
 );
 const outputDirectory = new URL(
-  "../../backend-for-frontend/src/generated/",
+  "../src/",
   import.meta.url
 );
-const output = new URL("errorMessages.ts", outputDirectory);
+const output = new URL("index.ts", outputDirectory);
 
 const source = generateErrorMessages(fileURLToPath(input));
 mkdirSync(outputDirectory, { recursive: true });

@@ -16,7 +16,16 @@ export function generateErrorMessages(filePath: string): string {
   );
 
   return `// Generated from the error messages CSV. Do not edit manually.
-import type { ErrorMessage } from "pagopa-interop-models";
+export type ErrorMessage = {
+  readonly process: string;
+  readonly error: string;
+  readonly errorCode: string | null;
+  readonly bffEndpoint: string;
+  readonly copy: {
+    readonly it: string;
+    readonly en: string;
+  };
+};
 
 export const errorMessages = ${JSON.stringify(messages, null, 2)} as const satisfies readonly ErrorMessage[];
 

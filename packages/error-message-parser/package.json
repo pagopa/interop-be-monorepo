@@ -12,7 +12,7 @@
   "scripts": {
     "lint": "eslint .",
     "lint:autofix": "eslint . --fix",
-    "generate-error-message": "tsx scripts/generateErrorMessages.ts",
+    "generate-error-message": "tsx scripts/generateErrorMessages.ts && eslint ./src/index.ts --fix",
     "build": "pnpm generate-error-message && tsc",
     "check": "pnpm generate-error-message && tsc --project tsconfig.check.json",
     "test": "vitest",
@@ -26,11 +26,11 @@
     "pagopa-interop-eslint-config": "workspace:*",
     "tsx": "catalog:",
     "typescript": "catalog:",
-    "vitest": "catalog:"
-  },
-  "dependencies": {
+    "vitest": "catalog:",
     "csv": "catalog:",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*"
+  },
+  "dependencies": {
   }
 }
