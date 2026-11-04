@@ -131,6 +131,8 @@ async function handleAuthorizationEventV2(
           type: P.union(
             "ProducerKeychainAdded",
             "ProducerKeychainDeleted",
+            "ProducerKeychainNameUpdated",
+            "ProducerKeychainDescriptionUpdated",
             "ProducerKeychainEServiceAdded",
             "ProducerKeychainEServiceRemoved"
           ),
@@ -205,12 +207,7 @@ async function handleAuthorizationEventV2(
       )
       .with(
         {
-          type: P.union(
-            "ClientNameUpdated",
-            "ClientDescriptionUpdated",
-            "ProducerKeychainNameUpdated",
-            "ProducerKeychainDescriptionUpdated"
-          ),
+          type: P.union("ClientNameUpdated", "ClientDescriptionUpdated"),
         },
         () => Promise.resolve(void 0)
       )
