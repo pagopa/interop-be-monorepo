@@ -69,6 +69,7 @@ import {
   ruleSetNotFoundError,
   purposeTemplateRiskAnalysisTemplateSignedDocumentNotFound,
   purposeTemplateRiskAnalysisTemplateDocumentNotFound,
+  purposeTemplateNotInExpectedStates,
 } from "../model/domain/errors.js";
 import {
   toCreateEventPurposeTemplateAdded,
@@ -1584,6 +1585,7 @@ export function purposeTemplateServiceBuilder(
         purposeTemplateId,
         readModelService
       );
+
       assertRequesterIsCreator(
         purposeTemplateId,
         purposeTemplate.data.creatorId,
@@ -1596,6 +1598,7 @@ export function purposeTemplateServiceBuilder(
         targetDescription,
         ...operationalSeed
       } = purposeTemplateSeed;
+
       const hasOperationalFields = Object.values(operationalSeed).some(
         (value) => value !== undefined
       );
@@ -1603,7 +1606,11 @@ export function purposeTemplateServiceBuilder(
       const isDraft = isPurposeTemplateDraft(purposeTemplate.data.state);
 
       if (hasOperationalFields && !isDraft) {
-        assertPurposeTemplateIsDraft(purposeTemplate.data);
+        throw purposeTemplateNotInExpectedStates(
+          purposeTemplate.data.id,
+          purposeTemplate.data.state,
+          [purposeTemplateState.draft]
+        );
       }
 
       if (!hasOperationalFields) {
@@ -1630,17 +1637,16 @@ export function purposeTemplateServiceBuilder(
           targetDescription ?? purposeTemplate.data.targetDescription,
       };
 
-      if (isDraft && hasOperationalFields) {
-        updatedPurposeTemplate = await prepareDraftPurposeTemplateUpdate(
-          purposeTemplate.data,
-          { type: "patch", seed: purposeTemplateSeed },
-          readModelService,
-          fileManager,
-          ctx.logger
-        );
-      }
-
       if (isDraft) {
+        if (hasOperationalFields) {
+          updatedPurposeTemplate = await prepareDraftPurposeTemplateUpdate(
+            purposeTemplate.data,
+            { type: "patch", seed: purposeTemplateSeed },
+            readModelService,
+            fileManager,
+            ctx.logger
+          );
+        }
         const event = await repository.createEvent(
           toCreateEventPurposeTemplateDraftUpdated(
             updatedPurposeTemplate,
