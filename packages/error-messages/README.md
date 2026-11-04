@@ -16,11 +16,10 @@ the source CSV or the shared error maps change. It is also restored by the Turbo
 build cache.
 The source CSV must be versioned so clean checkouts and CI can build the package.
 
-The only public entry point is the generated module: consumers import
-`errorMessages` and the `GeneratedErrorMessage` type from `error-messages`.
-Generation and validation helpers are internal and are not exported.
-The BFF depends on this package; using these messages in HTTP responses is
-handled separately.
+`src/index.ts` re-exports `errorMessages` and the `GeneratedErrorMessage` type
+from the generated module. The BFF imports this TypeScript entry point directly;
+this package intentionally does not define `main`, `types` or `exports`.
+Generation and validation helpers are not re-exported.
 
 Run `pnpm validate-error-messages` from the repository root, or
 `pnpm --filter error-messages validate`, to validate the generated data against

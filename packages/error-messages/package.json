@@ -4,15 +4,7 @@
   "version": "1.0.0",
   "license": "MPL-2.0",
   "description": "Generate and validate typed error messages from CSV",
-  "main": "./dist/generated/errorMessages.js",
-  "types": "./dist/generated/errorMessages.d.ts",
   "type": "module",
-  "exports": {
-    ".": {
-      "types": "./dist/generated/errorMessages.d.ts",
-      "import": "./dist/generated/errorMessages.js"
-    }
-  },
   "scripts": {
     "lint": "eslint . && pnpm validate",
     "lint:autofix": "eslint . --fix",

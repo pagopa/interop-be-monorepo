@@ -1,10 +1,9 @@
-import * as publicExports from "error-messages";
 import { readFileSync } from "node:fs";
-import { createRequire } from "node:module";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
+import * as publicExports from "../src/index.js";
 import { FullErrors } from "../src/models/index.js";
 import { loadErrorMessages } from "../src/utils/dynamicLoader.js";
 import { generateErrorMessages } from "../src/utils/generateErrorMessages.js";
@@ -23,19 +22,6 @@ describe("error-messages package", () => {
   it("only exports the generated error messages at runtime", () => {
     expect(Object.keys(publicExports)).toEqual(["errorMessages"]);
     expect(publicExports.errorMessages.length).toBeGreaterThan(0);
-  });
-
-  it("does not expose internal generation or validation modules", () => {
-    const require = createRequire(import.meta.url);
-    for (const module of [
-      "error-messages/dist/utils/generateErrorMessages.js",
-      "error-messages/dist/validate/index.js",
-      "error-messages/error-messages.csv",
-    ]) {
-      expect(() => require.resolve(module)).toThrow(
-        expect.objectContaining({ code: "ERR_PACKAGE_PATH_NOT_EXPORTED" })
-      );
-    }
   });
 
   it("keeps the generated source in sync with the package-local CSV", () => {
