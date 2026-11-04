@@ -1,0 +1,25 @@
+meta {
+  name: Update EService Template Name
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{host-bff}}/eservices/templates/:eServiceTemplateId/name/update
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceTemplateId: {{eserviceTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+}
+
+body:json {
+  {
+    "name": "Updated template name"
+  }
+}
