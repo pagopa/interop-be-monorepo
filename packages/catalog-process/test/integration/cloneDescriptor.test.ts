@@ -96,12 +96,30 @@ describe("clone descriptor", () => {
       interface: interfaceDocument,
       asyncExchangeCallbackInterface: asyncExchangeCallbackInterfaceDoc,
       docs: [document1, document2],
+      rejectionReasons: [
+        { rejectionReason: "Some rejection reason", rejectedAt: new Date() },
+      ],
+      delegatedArchivingRequest: [
+        {
+          requestedAt: new Date(),
+          gracePeriodDays: 30,
+          requesterId: generateId(),
+        },
+      ],
     };
     const eservice: EService = {
       ...mockEService,
       descriptors: [descriptor],
       personalData: true,
       asyncExchange: true,
+      delegatedArchivingRequest: [
+        {
+          requestedAt: new Date(),
+          gracePeriodDays: 30,
+          requesterId: generateId(),
+          archivingReason: "Some reason",
+        },
+      ],
     };
     await addOneEService(eservice);
 
@@ -227,6 +245,8 @@ describe("clone descriptor", () => {
         Number(writtenPayload.eservice?.descriptors[0].createdAt)
       ),
       docs: [expectedDocument1, expectedDocument2],
+      rejectionReasons: undefined,
+      delegatedArchivingRequest: undefined,
     };
 
     const expectedEService: EService = {
@@ -237,6 +257,7 @@ describe("clone descriptor", () => {
       )} ${timeAtRomeZone(cloneTimestamp)}`,
       descriptors: [expectedDescriptor],
       createdAt: new Date(Number(writtenPayload.eservice?.createdAt)),
+      delegatedArchivingRequest: undefined,
     };
     expect(writtenPayload).toEqual({
       sourceEservice: toEServiceV2(eservice),
@@ -581,6 +602,41 @@ describe("clone descriptor", () => {
       )
     ).rejects.toThrowError(operationForbidden);
   });
+  it.each([delegationState.active, delegationState.waitingForApproval])(
+    "should clone the descriptor if the requester is the delegator and the eservice has a producer delegation with state %s",
+    async (delegationState) => {
+      const descriptor: Descriptor = {
+        ...mockDescriptor,
+        state: descriptorState.draft,
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor],
+      };
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        eserviceId: eservice.id,
+        state: delegationState,
+      });
+
+      await addOneEService(eservice);
+      await addOneDelegation(delegation);
+
+      const newEService = await catalogService.cloneDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({
+          authData: getMockAuthData(eservice.producerId),
+        })
+      );
+
+      expect(newEService.producerId).toBe(eservice.producerId);
+
+      const writtenEvent = await readLastEserviceEvent(newEService.id);
+      expect(writtenEvent.stream_id).toBe(newEService.id);
+      expect(writtenEvent.type).toBe("EServiceCloned");
+    }
+  );
   it("should throw eServiceDescriptorNotFound if the descriptor doesn't exist", async () => {
     const eservice: EService = {
       ...mockEService,

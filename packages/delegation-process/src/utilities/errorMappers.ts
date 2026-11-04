@@ -30,6 +30,7 @@ export const createProducerDelegationErrorMapper = (
       "eserviceNotFound",
       "tenantNotFound",
       "invalidDelegatorAndDelegateIds",
+      "eserviceAlreadyArchived",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
@@ -50,6 +51,7 @@ export const createConsumerDelegationErrorMapper = (
       "tenantNotFound",
       "invalidDelegatorAndDelegateIds",
       "eserviceNotConsumerDelegable",
+      "eserviceAlreadyArchived",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
