@@ -21,7 +21,10 @@ describe("getTenants", () => {
     limit: 10,
   };
 
-  const mockApiTenant1 = getMockedApiTenant();
+  const mockApiTenant1 = {
+    ...getMockedApiTenant(),
+    parentTenant: { id: getMockedApiTenant().id, name: "Institution" },
+  };
   const mockApiTenant2 = getMockedApiTenant();
 
   const mockApiTenants = [mockApiTenant1, mockApiTenant2];
@@ -59,6 +62,7 @@ describe("getTenants", () => {
       kind: mockApiTenant1.kind,
       onboardedAt: mockApiTenant1.onboardedAt,
       subUnitType: mockApiTenant1.subUnitType,
+      parentTenant: mockApiTenant1.parentTenant,
       updatedAt: mockApiTenant1.updatedAt,
     };
 

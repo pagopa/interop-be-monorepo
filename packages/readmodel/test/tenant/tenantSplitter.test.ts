@@ -122,11 +122,15 @@ describe("Tenant splitters", () => {
         origin: "IPA",
         value: generateId(),
       };
+      const parentTenantId = generateId<TenantId>();
+      const rootTenantId = generateId<TenantId>();
       const tenant: Tenant = {
         ...getMockTenant(),
         selfcareId,
         kind: tenantKind.PA,
         subUnitType: tenantUnitType.AOO,
+        parentTenantId,
+        rootTenantId,
         externalId,
         updatedAt: new Date(),
         mails: [tenantMail],

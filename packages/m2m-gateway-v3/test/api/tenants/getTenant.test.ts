@@ -14,7 +14,16 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, mockTenantService } from "../../vitest.api.setup.js";
 
 describe("GET /tenants/:tenantId route test", () => {
-  const mockApiResponse = getMockedApiTenant();
+  const mockApiResponse: tenantApi.Tenant = {
+    ...getMockedApiTenant(),
+    subUnitType: "UO",
+    parentTenant: {
+      id: getMockedApiTenant().id,
+      name: "Area",
+      subUnitType: "AOO",
+      parentTenant: { id: getMockedApiTenant().id, name: "Institution" },
+    },
+  };
   const mockResponse: m2mGatewayApiV3.Tenant =
     toM2MGatewayApiTenant(mockApiResponse);
 

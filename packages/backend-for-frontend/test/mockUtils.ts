@@ -1,4 +1,4 @@
-import { generateMock } from "@anatine/zod-mock";
+import { generateMock as generateZodMock } from "@anatine/zod-mock";
 import {
   attributeRegistryApi,
   authorizationApi,
@@ -27,6 +27,38 @@ import { z } from "zod";
 
 import { tenantAttributeKind } from "../src/api/tenantApiConverter.js";
 import { GetSessionTokenReturnType } from "../src/services/authorizationService.js";
+
+const withoutTenantHierarchy = (schema: z.ZodTypeAny): z.ZodTypeAny => {
+  if (schema instanceof z.ZodObject) {
+    const shape = Object.fromEntries(
+      Object.entries(schema.shape)
+        .filter(([key]) => !key.toLowerCase().includes("parenttenant"))
+        .map(([key, value]) => [
+          key,
+          withoutTenantHierarchy(value as z.ZodTypeAny),
+        ])
+    );
+    const objectSchema = z.object(shape);
+    return schema._def.unknownKeys === "strict"
+      ? objectSchema.strict()
+      : schema._def.unknownKeys === "passthrough"
+        ? objectSchema.passthrough()
+        : objectSchema;
+  }
+  if (schema instanceof z.ZodArray) {
+    return z.array(withoutTenantHierarchy(schema.element as z.ZodTypeAny));
+  }
+  if (schema instanceof z.ZodOptional) {
+    return withoutTenantHierarchy(schema.unwrap()).optional();
+  }
+  if (schema instanceof z.ZodNullable) {
+    return withoutTenantHierarchy(schema.unwrap()).nullable();
+  }
+  return schema;
+};
+
+const generateMock = <T extends z.ZodTypeAny>(schema: T): z.infer<T> =>
+  generateZodMock(withoutTenantHierarchy(schema)) as z.infer<T>;
 
 export const getMockBffApiDelegation = (): bffApi.Delegation & {
   id: DelegationId;

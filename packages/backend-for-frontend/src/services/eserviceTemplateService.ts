@@ -772,7 +772,10 @@ async function getTenantsFromEServiceTemplates(
 
   const tenants = await Promise.all(
     creatorsIds.map(async (id) =>
-      tenantClient.tenant.getTenant({ headers, params: { id } })
+      tenantClient.tenant.getTenant({
+        headers,
+        params: { id },
+      })
     )
   );
 

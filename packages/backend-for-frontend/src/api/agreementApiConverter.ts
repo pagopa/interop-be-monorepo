@@ -14,6 +14,8 @@ export function toBffCompactOrganization(
   return {
     id: organization.id,
     name: organization.name,
+    subUnitType: organization.subUnitType,
+    parentTenant: organization.parentTenant,
     hasUnreadNotifications: hasNotifications || false,
   };
 }

@@ -15353,6 +15353,22 @@ components:
       required:
         - archivingReason
         - gracePeriodDays
+    ParentTenant:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        subUnitType:
+          $ref: "#/components/schemas/TenantSubUnitType"
+        parentTenant:
+          $ref: "#/components/schemas/ParentTenant"
+      required:
+        - id
+        - name
     Tenant:
       description: Tenant model
       type: object
@@ -15378,6 +15394,8 @@ components:
           format: date-time
         subUnitType:
           $ref: "#/components/schemas/TenantSubUnitType"
+        parentTenant:
+          $ref: "#/components/schemas/ParentTenant"
         selfcareInstitutionType:
           type: string
       required:

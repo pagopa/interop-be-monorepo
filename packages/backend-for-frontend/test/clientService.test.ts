@@ -3,9 +3,12 @@ import {
   authorizationApi,
   catalogApi,
   purposeApi,
-  tenantApi,
 } from "pagopa-interop-api-clients";
-import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
+import {
+  getMockAuthData,
+  getMockContext,
+  getMockedApiTenant,
+} from "pagopa-interop-commons-test";
 import {
   ClientId,
   EServiceId,
@@ -52,12 +55,12 @@ describe("clientService", () => {
       purposes: purposeIds.toReversed(),
     } satisfies authorizationApi.FullClient;
     const consumer = {
-      ...generateMock(tenantApi.Tenant),
+      ...getMockedApiTenant(),
       id: consumerId,
       name: "Consumer",
     };
     const producer = {
-      ...generateMock(tenantApi.Tenant),
+      ...getMockedApiTenant(),
       id: producerId,
       name: "Producer",
     };
@@ -134,7 +137,7 @@ describe("clientService", () => {
       purposes: [],
     } satisfies authorizationApi.FullClient;
     const consumer = {
-      ...generateMock(tenantApi.Tenant),
+      ...getMockedApiTenant(),
       id: consumerId,
     };
     const getPurposes = vi.fn();

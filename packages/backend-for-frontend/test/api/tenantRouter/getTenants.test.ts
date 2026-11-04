@@ -12,7 +12,19 @@ import { api, services } from "../../vitest.api.setup.js";
 
 describe("API GET /tenants test", () => {
   const mockTenants: bffApi.Tenants = {
-    results: [getMockBffApiCompactTenant(), getMockBffApiCompactTenant()],
+    results: [
+      {
+        ...getMockBffApiCompactTenant(),
+        subUnitType: "UO",
+        parentTenant: {
+          id: generateId(),
+          name: "Area",
+          subUnitType: "AOO",
+          parentTenant: { id: generateId(), name: "Institution" },
+        },
+      },
+      getMockBffApiCompactTenant(),
+    ],
     pagination: { offset: 0, limit: 10, totalCount: 20 },
   };
   const defaultQuery = {

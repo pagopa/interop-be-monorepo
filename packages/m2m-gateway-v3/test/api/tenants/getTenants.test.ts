@@ -16,7 +16,10 @@ import { taxCodeAndIPACodeConflict } from "../../../src/model/errors.js";
 import { api, mockTenantService } from "../../vitest.api.setup.js";
 
 describe("GET /tenants route test", () => {
-  const mockApiTenant1 = getMockedApiTenant();
+  const mockApiTenant1 = {
+    ...getMockedApiTenant(),
+    parentTenant: { id: getMockedApiTenant().id, name: "Institution" },
+  };
   const mockApiTenant2 = getMockedApiTenant();
 
   const mockResponse: m2mGatewayApiV3.Tenants = {

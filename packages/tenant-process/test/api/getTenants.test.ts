@@ -7,12 +7,20 @@ import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { toApiTenant } from "../../src/model/domain/apiConverter.js";
+import { TenantHierarchy } from "../../src/model/domain/models.js";
 import { api, tenantService } from "../vitest.api.setup.js";
 
 describe("API GET /tenants test", () => {
-  const tenant1: Tenant = {
+  const tenant1: Tenant & TenantHierarchy = {
     ...getMockTenant(),
     name: "Tenant 1",
+    subUnitType: "UO",
+    parentTenant: {
+      id: generateId(),
+      name: "Area",
+      subUnitType: "AOO",
+      parentTenant: { id: generateId(), name: "Institution" },
+    },
   };
   const tenant2: Tenant = {
     ...getMockTenant(),
@@ -74,6 +82,14 @@ describe("API GET /tenants test", () => {
       const res = await makeRequest(token);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiResponse);
+      expect(tenantService.getTenants).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: defaultQuery.name,
+          offset: defaultQuery.offset,
+          limit: defaultQuery.limit,
+        }),
+        expect.anything()
+      );
     }
   );
 

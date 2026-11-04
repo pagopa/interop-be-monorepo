@@ -1,6 +1,7 @@
 import { tenantApi } from "pagopa-interop-api-clients";
 import {
   ExternalId,
+  ParentTenant,
   Tenant,
   TenantKind,
   tenantKind,
@@ -18,6 +19,7 @@ import {
 import { match, P } from "ts-pattern";
 
 import { invalidTenantFeature } from "./errors.js";
+import { TenantHierarchy } from "./models.js";
 
 function toApiTenantKind(input: TenantKind): tenantApi.TenantKind {
   return match<TenantKind, tenantApi.TenantKind>(input)
@@ -134,8 +136,20 @@ function toApiMail(mail: TenantMail): tenantApi.Mail {
     description: mail.description ?? undefined,
   };
 }
+function toApiParentTenant(parentTenant: ParentTenant): tenantApi.ParentTenant {
+  return {
+    id: parentTenant.id,
+    name: parentTenant.name,
+    subUnitType: parentTenant.subUnitType,
+    parentTenant: parentTenant.parentTenant
+      ? toApiParentTenant(parentTenant.parentTenant)
+      : undefined,
+  };
+}
 
-export function toApiTenant(tenant: Tenant): tenantApi.Tenant {
+export function toApiTenant(
+  tenant: Tenant & TenantHierarchy
+): tenantApi.Tenant {
   return {
     id: tenant.id,
     kind: tenant.kind ? toApiTenantKind(tenant.kind) : undefined,
@@ -149,6 +163,9 @@ export function toApiTenant(tenant: Tenant): tenantApi.Tenant {
     name: tenant.name,
     onboardedAt: tenant.onboardedAt?.toJSON(),
     subUnitType: tenant.subUnitType,
+    parentTenant: tenant.parentTenant
+      ? toApiParentTenant(tenant.parentTenant)
+      : undefined,
     remoteIds: tenant.remoteIds?.map((remoteId) => ({
       origin: remoteId.origin,
       value: remoteId.value,

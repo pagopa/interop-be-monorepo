@@ -169,6 +169,7 @@ describe("getPurposeTemplateLinkableResources (service)", () => {
     expect(result.results[2].createdAt).toBe(concreteOldest.link.createdAt);
     expect(mocks.getEServices).toHaveBeenCalledTimes(1);
     expect(mocks.getEServiceTemplates).toHaveBeenCalledTimes(1);
+    expect(mocks.getTenant).toHaveBeenCalledTimes(3);
   });
 
   it("performs multi round-trip until each upstream is exhausted", async () => {

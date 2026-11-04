@@ -18,6 +18,41 @@ import {
 import { tenantServiceBuilder } from "../src/services/tenantService.js";
 import { BffAppContext } from "../src/utilities/context.js";
 
+describe("tenantServiceBuilder.getTenants", () => {
+  it("requests the tenant list with the given filters", async () => {
+    const tenantProcessGetTenants = vi.fn().mockResolvedValue({
+      results: [],
+      totalCount: 0,
+    });
+    const service = tenantServiceBuilder(
+      { tenant: { getTenants: tenantProcessGetTenants } } as never,
+      {} as never,
+      {} as never
+    );
+    const ctx = {
+      authData: { organizationId: generateId<TenantId>() },
+      headers: {
+        "X-Correlation-Id": generateId(),
+        Authorization: "authorization",
+        "X-Forwarded-For": "x-forwarded-for",
+      },
+      logger: genericLogger,
+    } as WithLogger<BffAppContext>;
+
+    await service.getTenants(undefined, undefined, 10, ctx);
+
+    expect(tenantProcessGetTenants).toHaveBeenCalledWith({
+      queries: {
+        name: undefined,
+        features: undefined,
+        limit: 10,
+        offset: 0,
+      },
+      headers: ctx.headers,
+    });
+  });
+});
+
 describe("tenantServiceBuilder.getTenant", () => {
   it("should merge certified and certified discrete attributes into the certified attributes", async () => {
     const tenantId = generateId<TenantId>();
@@ -101,6 +136,10 @@ describe("tenantServiceBuilder.getTenant", () => {
 
     const result = await service.getTenant(tenantId, ctx);
 
+    expect(tenantProcessClient.tenant.getTenant).toHaveBeenCalledWith({
+      params: { id: tenantId },
+      headers: ctx.headers,
+    });
     expect(result.attributes.certified).toStrictEqual([
       {
         kind: tenantAttributeKind.certified,
@@ -325,12 +364,9 @@ describe("tenantServiceBuilder.getCertifiedAttributes", () => {
       id: certifiedDiscreteAttributeId,
     };
 
+    const getTenant = vi.fn().mockResolvedValue(tenant);
     const service = tenantServiceBuilder(
-      {
-        tenant: {
-          getTenant: vi.fn().mockResolvedValue(tenant),
-        },
-      } as never,
+      { tenant: { getTenant } } as never,
       {
         getBulkedAttributes: vi.fn().mockResolvedValue({
           results: [
@@ -355,6 +391,10 @@ describe("tenantServiceBuilder.getCertifiedAttributes", () => {
 
     const result = await service.getCertifiedAttributes(tenantId, ctx);
     bffApi.CertifiedAttributesResponse.parse(result);
+    expect(getTenant).toHaveBeenCalledWith({
+      params: { id: tenantId },
+      headers: ctx.headers,
+    });
 
     expect(result.attributes).toStrictEqual([
       expect.objectContaining({
@@ -403,6 +443,8 @@ describe("toBffApiRequesterCertifiedAttributes", () => {
       expect(result).toStrictEqual({
         tenantId: input.id,
         tenantName: input.name,
+        tenantSubUnitType: undefined,
+        parentTenant: undefined,
         attributeId: input.attributeId,
         attributeName: input.attributeName,
         kind: expectedKind,

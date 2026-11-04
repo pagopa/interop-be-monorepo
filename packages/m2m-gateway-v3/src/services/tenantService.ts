@@ -180,7 +180,11 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<m2mGatewayApiV3.Tenant> {
       logger.info(`Retrieving tenant with id ${tenantId}`);
 
-      const { data: tenant } = await retrieveTenantById(tenantId, headers);
+      const { data: tenant } =
+        await clients.tenantProcessClient.tenant.getTenant({
+          params: { id: tenantId },
+          headers,
+        });
 
       return toM2MGatewayApiTenant(tenant);
     },

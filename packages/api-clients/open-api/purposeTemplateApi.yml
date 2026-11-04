@@ -2240,6 +2240,31 @@ components:
           format: uuid
         name:
           type: string
+        subUnitType:
+          $ref: "#/components/schemas/TenantUnitType"
+        parentTenant:
+          $ref: "#/components/schemas/ParentTenant"
+    TenantUnitType:
+      type: string
+      enum:
+        - AOO
+        - UO
+    ParentTenant:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        subUnitType:
+          $ref: "#/components/schemas/TenantUnitType"
+        parentTenant:
+          $ref: "#/components/schemas/ParentTenant"
+      required:
+        - id
+        - name
     CompactOrganizations:
       type: object
       additionalProperties: false

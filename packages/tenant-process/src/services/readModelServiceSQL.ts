@@ -29,6 +29,7 @@ import {
   unsafeBrandId,
   TenantVerifier,
   TenantRevoker,
+  TenantUnitType,
 } from "pagopa-interop-models";
 import {
   AgreementReadModelService,
@@ -36,6 +37,8 @@ import {
   CatalogReadModelService,
   DelegationReadModelService,
   TenantReadModelService,
+  aggregateTenantHierarchy,
+  getTenantHierarchyNameFilter,
 } from "pagopa-interop-readmodel";
 import {
   agreementInReadmodelAgreement,
@@ -52,7 +55,16 @@ import {
   tenantRemoteIdInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
 
-import { ApiGetTenantsFilters } from "../model/domain/models.js";
+import {
+  ApiGetTenantsFilters,
+  TenantHierarchy,
+} from "../model/domain/models.js";
+import {
+  tenantHierarchySelection,
+  getHierarchyByTenantId,
+  parentTenantTable,
+  rootTenantTable,
+} from "./tenantHierarchySQL.js";
 
 const certifiedAttributeKind: {
   standard: tenantApi.CertifiedAttributeKind;
@@ -79,15 +91,16 @@ export function readModelServiceBuilderSQL(
       externalIdValue,
       offset,
       limit,
-    }: ApiGetTenantsFilters): Promise<ListResult<Tenant>> {
+    }: ApiGetTenantsFilters): Promise<ListResult<Tenant & TenantHierarchy>> {
       return await readModelDB.transaction(async (tx) => {
         const queryResult = await tx
-          .selectDistinct(
-            withTotalCount({
+          .selectDistinct({
+            ...withTotalCount({
               tenantId: tenantInReadmodelTenant.id,
               nameLowerCase: lowerCase(tenantInReadmodelTenant.name),
-            })
-          )
+            }),
+            ...tenantHierarchySelection,
+          })
           .from(tenantInReadmodelTenant)
           .leftJoin(
             tenantFeatureInReadmodelTenant,
@@ -98,15 +111,27 @@ export function readModelServiceBuilderSQL(
               )
             )
           )
+          .leftJoin(
+            parentTenantTable,
+            eq(tenantInReadmodelTenant.parentTenantId, parentTenantTable.id)
+          )
+          .leftJoin(
+            rootTenantTable,
+            eq(tenantInReadmodelTenant.rootTenantId, rootTenantTable.id)
+          )
           .where(
             and(
               features.length > 0
                 ? inArray(tenantFeatureInReadmodelTenant.kind, features)
                 : undefined,
               name
-                ? ilikeEscaped(
+                ? getTenantHierarchyNameFilter(
+                    name,
                     tenantInReadmodelTenant.name,
-                    `%${escapeSqlLike(name)}%`
+                    tenantInReadmodelTenant.parentTenantId,
+                    parentTenantTable.name,
+                    tenantInReadmodelTenant.rootTenantId,
+                    rootTenantTable.name
                   )
                 : undefined,
               externalIdOrigin
@@ -127,8 +152,12 @@ export function readModelServiceBuilderSQL(
           tenantIds,
           tx
         );
+        const hierarchyById = getHierarchyByTenantId(queryResult);
         return createListResult(
-          tenants.map((tenantWithMetadata) => tenantWithMetadata.data),
+          tenants.map(({ data }) => ({
+            ...data,
+            parentTenant: hierarchyById.get(data.id),
+          })),
           queryResult[0]?.totalCount
         );
       });
@@ -137,6 +166,41 @@ export function readModelServiceBuilderSQL(
       id: TenantId
     ): Promise<WithMetadata<Tenant> | undefined> {
       return await tenantReadModelService.getTenantById(id);
+    },
+
+    async getTenantByIdWithHierarchy(
+      id: TenantId
+    ): Promise<WithMetadata<Tenant & TenantHierarchy> | undefined> {
+      return await readModelDB.transaction(async (tx) => {
+        const queryResult = await tx
+          .select({
+            tenantId: tenantInReadmodelTenant.id,
+            ...tenantHierarchySelection,
+          })
+          .from(tenantInReadmodelTenant)
+          .leftJoin(
+            parentTenantTable,
+            eq(tenantInReadmodelTenant.parentTenantId, parentTenantTable.id)
+          )
+          .leftJoin(
+            rootTenantTable,
+            eq(tenantInReadmodelTenant.rootTenantId, rootTenantTable.id)
+          )
+          .where(eq(tenantInReadmodelTenant.id, id));
+
+        const result = await tenantReadModelService.getTenantById(id, tx);
+        const hierarchyById = getHierarchyByTenantId(queryResult);
+        const parentTenant = hierarchyById.get(id);
+        return result
+          ? {
+              ...result,
+              data: {
+                ...result.data,
+                ...(parentTenant ? { parentTenant } : {}),
+              },
+            }
+          : undefined;
+      });
     },
 
     async getTenantByName(
@@ -246,14 +310,15 @@ export function readModelServiceBuilderSQL(
       producerId: string;
       offset: number;
       limit: number;
-    }): Promise<ListResult<Tenant>> {
+    }): Promise<ListResult<Tenant & TenantHierarchy>> {
       return await readModelDB.transaction(async (tx) => {
         const queryResult = await tx
-          .select(
-            withTotalCount({
+          .select({
+            ...withTotalCount({
               tenantId: tenantInReadmodelTenant.id,
-            })
-          )
+            }),
+            ...tenantHierarchySelection,
+          })
           .from(tenantInReadmodelTenant)
           .innerJoin(
             agreementInReadmodelAgreement,
@@ -269,18 +334,37 @@ export function readModelServiceBuilderSQL(
               ])
             )
           )
+          .leftJoin(
+            parentTenantTable,
+            eq(tenantInReadmodelTenant.parentTenantId, parentTenantTable.id)
+          )
+          .leftJoin(
+            rootTenantTable,
+            eq(tenantInReadmodelTenant.rootTenantId, rootTenantTable.id)
+          )
           .where(
             and(
               consumerName
-                ? ilikeEscaped(
+                ? getTenantHierarchyNameFilter(
+                    consumerName,
                     tenantInReadmodelTenant.name,
-                    `%${escapeSqlLike(consumerName)}%`
+                    tenantInReadmodelTenant.parentTenantId,
+                    parentTenantTable.name,
+                    tenantInReadmodelTenant.rootTenantId,
+                    rootTenantTable.name
                   )
                 : undefined,
               isNotNull(tenantInReadmodelTenant.selfcareId)
             )
           )
-          .groupBy(tenantInReadmodelTenant.id)
+          .groupBy(
+            tenantInReadmodelTenant.id,
+            parentTenantTable.id,
+            parentTenantTable.name,
+            parentTenantTable.subUnitType,
+            rootTenantTable.id,
+            rootTenantTable.name
+          )
           .orderBy(ascLower(tenantInReadmodelTenant.name))
           .limit(limit)
           .offset(offset);
@@ -290,8 +374,12 @@ export function readModelServiceBuilderSQL(
           tenantIds,
           tx
         );
+        const hierarchyById = getHierarchyByTenantId(queryResult);
         return createListResult(
-          tenants.map((tenantWithMetadata) => tenantWithMetadata.data),
+          tenants.map(({ data }) => ({
+            ...data,
+            parentTenant: hierarchyById.get(data.id),
+          })),
           queryResult[0]?.totalCount
         );
       });
@@ -305,14 +393,15 @@ export function readModelServiceBuilderSQL(
       producerName: string | undefined;
       offset: number;
       limit: number;
-    }): Promise<ListResult<Tenant>> {
+    }): Promise<ListResult<Tenant & TenantHierarchy>> {
       return await readModelDB.transaction(async (tx) => {
         const queryResult = await tx
-          .select(
-            withTotalCount({
+          .select({
+            ...withTotalCount({
               tenantId: tenantInReadmodelTenant.id,
-            })
-          )
+            }),
+            ...tenantHierarchySelection,
+          })
           .from(tenantInReadmodelTenant)
           .innerJoin(
             eserviceInReadmodelCatalog,
@@ -323,18 +412,37 @@ export function readModelServiceBuilderSQL(
               )
             )
           )
+          .leftJoin(
+            parentTenantTable,
+            eq(tenantInReadmodelTenant.parentTenantId, parentTenantTable.id)
+          )
+          .leftJoin(
+            rootTenantTable,
+            eq(tenantInReadmodelTenant.rootTenantId, rootTenantTable.id)
+          )
           .where(
             and(
               producerName
-                ? ilikeEscaped(
+                ? getTenantHierarchyNameFilter(
+                    producerName,
                     tenantInReadmodelTenant.name,
-                    `%${escapeSqlLike(producerName)}%`
+                    tenantInReadmodelTenant.parentTenantId,
+                    parentTenantTable.name,
+                    tenantInReadmodelTenant.rootTenantId,
+                    rootTenantTable.name
                   )
                 : undefined,
               isNotNull(tenantInReadmodelTenant.selfcareId)
             )
           )
-          .groupBy(tenantInReadmodelTenant.id)
+          .groupBy(
+            tenantInReadmodelTenant.id,
+            parentTenantTable.id,
+            parentTenantTable.name,
+            parentTenantTable.subUnitType,
+            rootTenantTable.id,
+            rootTenantTable.name
+          )
           .orderBy(ascLower(tenantInReadmodelTenant.name))
           .limit(limit)
           .offset(offset);
@@ -344,8 +452,12 @@ export function readModelServiceBuilderSQL(
           tenantIds,
           tx
         );
+        const hierarchyById = getHierarchyByTenantId(queryResult);
         return createListResult(
-          tenants.map((tenantWithMetadata) => tenantWithMetadata.data),
+          tenants.map(({ data }) => ({
+            ...data,
+            parentTenant: hierarchyById.get(data.id),
+          })),
           queryResult[0]?.totalCount
         );
       });
@@ -420,6 +532,12 @@ export function readModelServiceBuilderSQL(
           withTotalCount({
             id: tenantInReadmodelTenant.id,
             name: tenantInReadmodelTenant.name,
+            subUnitType: tenantInReadmodelTenant.subUnitType,
+            parentTenantId: tenantInReadmodelTenant.parentTenantId,
+            parentTenantName: parentTenantTable.name,
+            parentTenantSubUnitType: parentTenantTable.subUnitType,
+            rootTenantId: tenantInReadmodelTenant.rootTenantId,
+            rootTenantName: rootTenantTable.name,
             attributeId: attributeInReadmodelAttribute.id,
             attributeName: attributeInReadmodelAttribute.name,
             kind: sql<tenantApi.CertifiedAttributeKind>`CASE
@@ -474,6 +592,14 @@ export function readModelServiceBuilderSQL(
             )
           )
         )
+        .leftJoin(
+          parentTenantTable,
+          eq(tenantInReadmodelTenant.parentTenantId, parentTenantTable.id)
+        )
+        .leftJoin(
+          rootTenantTable,
+          eq(tenantInReadmodelTenant.rootTenantId, rootTenantTable.id)
+        )
         .where(
           and(
             eq(attributeInReadmodelAttribute.origin, certifierId),
@@ -494,6 +620,10 @@ export function readModelServiceBuilderSQL(
         res.map((row) => ({
           id: row.id,
           name: row.name,
+          subUnitType: row.subUnitType
+            ? TenantUnitType.parse(row.subUnitType)
+            : undefined,
+          parentTenant: aggregateTenantHierarchy(row),
           attributeId: row.attributeId,
           attributeName: row.attributeName,
           kind: row.kind,

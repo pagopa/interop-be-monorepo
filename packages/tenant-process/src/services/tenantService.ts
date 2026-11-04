@@ -77,7 +77,10 @@ import {
   tenantNotFoundByRemoteId,
   tenantUpdateVersionMismatch,
 } from "../model/domain/errors.js";
-import { ApiGetTenantsFilters } from "../model/domain/models.js";
+import {
+  ApiGetTenantsFilters,
+  TenantHierarchy,
+} from "../model/domain/models.js";
 import {
   toCreateEventTenantVerifiedAttributeExpirationUpdated,
   toCreateEventTenantVerifiedAttributeExtensionUpdated,
@@ -2190,7 +2193,7 @@ export function tenantServiceBuilder(
         limit: number;
       },
       { logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<ListResult<Tenant>> {
+    ): Promise<ListResult<Tenant & TenantHierarchy>> {
       logger.info(
         `Retrieving Producers with name = ${producerName}, limit = ${limit}, offset = ${offset}`
       );
@@ -2207,7 +2210,7 @@ export function tenantServiceBuilder(
         limit: number;
       },
       { logger, authData }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<ListResult<Tenant>> {
+    ): Promise<ListResult<Tenant & TenantHierarchy>> {
       logger.info(
         `Retrieving Consumers with name = ${consumerName}, limit = ${limit}, offset = ${offset}`
       );
@@ -2223,7 +2226,7 @@ export function tenantServiceBuilder(
       {
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
-    ): Promise<ListResult<Tenant>> {
+    ): Promise<ListResult<Tenant & TenantHierarchy>> {
       logger.info(
         `Retrieving Tenants with name = ${query.name}, features = ${query.features}, externalIdOrigin = ${query.externalIdOrigin}, externalIdValue = ${query.externalIdValue}, limit = ${query.limit}, offset = ${query.offset}`
       );
@@ -2238,9 +2241,13 @@ export function tenantServiceBuilder(
           UIAuthData | M2MAuthData | M2MAdminAuthData | InternalAuthData
         >
       >
-    ): Promise<WithMetadata<Tenant>> {
+    ): Promise<WithMetadata<Tenant & TenantHierarchy>> {
       logger.info(`Retrieving tenant ${id}`);
-      return await retrieveTenant(id, readModelService);
+      const tenant = await readModelService.getTenantByIdWithHierarchy(id);
+      if (!tenant) {
+        throw tenantNotFound(id);
+      }
+      return tenant;
     },
     async getTenantByExternalId(
       externalId: ExternalId,

@@ -5,6 +5,7 @@ import {
   DeclaredTenantAttribute,
   DelegationId,
   genericInternalError,
+  ParentTenant,
   stringToDate,
   Tenant,
   TenantAttribute,
@@ -43,6 +44,39 @@ import {
 import { match } from "ts-pattern";
 
 import { makeUniqueKey, throwIfMultiple } from "../utils.js";
+
+export function aggregateTenantHierarchy({
+  parentTenantId,
+  parentTenantName,
+  parentTenantSubUnitType,
+  rootTenantId,
+  rootTenantName,
+}: {
+  parentTenantId: string | null;
+  parentTenantName: string | null;
+  parentTenantSubUnitType: string | null;
+  rootTenantId: string | null;
+  rootTenantName: string | null;
+}): ParentTenant | undefined {
+  if (parentTenantId === null || parentTenantName === null) {
+    return undefined;
+  }
+
+  return ParentTenant.parse({
+    id: parentTenantId,
+    name: parentTenantName,
+    subUnitType: parentTenantSubUnitType ?? undefined,
+    parentTenant:
+      rootTenantId !== null &&
+      rootTenantId !== parentTenantId &&
+      rootTenantName !== null
+        ? {
+            id: rootTenantId,
+            name: rootTenantName,
+          }
+        : undefined,
+  });
+}
 
 export const aggregateTenant = ({
   tenantSQL,
@@ -119,6 +153,12 @@ export const aggregateTenant = ({
     ...(tenantSQL.selfcareId ? { selfcareId: tenantSQL.selfcareId } : {}),
     ...(tenantSQL.subUnitType
       ? { subUnitType: TenantUnitType.parse(tenantSQL.subUnitType) }
+      : {}),
+    ...(tenantSQL.parentTenantId
+      ? { parentTenantId: unsafeBrandId<TenantId>(tenantSQL.parentTenantId) }
+      : {}),
+    ...(tenantSQL.rootTenantId
+      ? { rootTenantId: unsafeBrandId<TenantId>(tenantSQL.rootTenantId) }
       : {}),
     ...(tenantSQL.selfcareInstitutionType
       ? { selfcareInstitutionType: tenantSQL.selfcareInstitutionType }

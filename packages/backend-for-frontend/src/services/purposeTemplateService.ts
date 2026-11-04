@@ -33,6 +33,7 @@ import {
   toCompactPurposeTemplateEService,
   toCompactPurposeTemplateEServiceTemplate,
 } from "../api/purposeTemplateApiConverter.js";
+import { toBffApiParentTenant } from "../api/tenantApiConverter.js";
 import { TenantProcessClient } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import {
@@ -74,7 +75,10 @@ export function purposeTemplateServiceBuilder(
 
     const tenants = await Promise.all(
       creatorIds.map(async (id) =>
-        tenantClient.tenant.getTenant({ headers, params: { id } })
+        tenantClient.tenant.getTenant({
+          headers,
+          params: { id },
+        })
       )
     );
 
@@ -203,7 +207,10 @@ export function purposeTemplateServiceBuilder(
     );
     const tenants = await Promise.all(
       tenantIds.map((id) =>
-        tenantProcessClient.tenant.getTenant({ headers, params: { id } })
+        tenantProcessClient.tenant.getTenant({
+          headers,
+          params: { id },
+        })
       )
     );
     const tenantById = new Map(tenants.map((t) => [t.id, t]));
@@ -897,7 +904,12 @@ export function purposeTemplateServiceBuilder(
         });
 
       return {
-        results: results.map((t) => ({ id: t.id, name: t.name })),
+        results: results.map((t) => ({
+          id: t.id,
+          name: t.name,
+          subUnitType: t.subUnitType,
+          parentTenant: toBffApiParentTenant(t.parentTenant),
+        })),
         pagination: {
           offset,
           limit,

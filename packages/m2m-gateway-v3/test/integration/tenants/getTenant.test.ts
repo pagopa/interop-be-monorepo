@@ -58,4 +58,25 @@ describe("getTenant", () => {
       },
     });
   });
+
+  it("Should preserve recursive hierarchy in the public Tenant", async () => {
+    const parentTenant = {
+      id: mockApiTenant.data.id,
+      name: "Area",
+      subUnitType: "AOO" as const,
+      parentTenant: { id: mockApiTenant.data.id, name: "Institution" },
+    };
+    mockGetTenant.mockResolvedValueOnce({
+      ...mockApiTenant,
+      data: { ...mockApiTenant.data, subUnitType: "UO", parentTenant },
+    });
+    const result = await tenantService.getTenant(
+      unsafeBrandId(mockApiTenant.data.id),
+      getMockM2MAdminAppContext()
+    );
+    expect(m2mGatewayApiV3.Tenant.parse(result).parentTenant).toEqual(
+      parentTenant
+    );
+    expect(result.subUnitType).toBe("UO");
+  });
 });
