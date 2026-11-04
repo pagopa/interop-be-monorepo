@@ -17,6 +17,18 @@ function logParameter(name: string): ZodType<unknown> {
 }
 
 describe("generated dashboard contracts", () => {
+  it("preserves successful job completion in status responses", () => {
+    const job = {
+      name: "pagopa-interop-example-job",
+      label: "example-job",
+      kind: "job",
+      state: "completed",
+      watch: false,
+    };
+
+    expect(schemas.Package.parse(job)).toEqual(job);
+  });
+
   it.each([true, false])(
     "preserves the requested watch target %s in operation responses",
     (watch) => {

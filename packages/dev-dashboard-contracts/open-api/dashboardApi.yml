@@ -351,11 +351,13 @@ components:
           type: integer
         state:
           type: string
+          description: A job that exits successfully is completed. Stopped indicates an idle or explicitly stopped package.
           enum:
             - stopped
             - building
             - starting
             - running
+            - completed
             - failed
         watch:
           type: boolean

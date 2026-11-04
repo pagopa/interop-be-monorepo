@@ -32,9 +32,9 @@ export function usePackageSelection({
   const filterValue =
     filter.kind === "preset"
       ? `preset:${filter.id}`
-      : filter.kind === "seed"
-        ? "seed"
-        : "";
+      : filter.kind === "all"
+        ? ""
+        : filter.kind;
   const [search, setSearch] = useState("");
   const [watchOrigins, setWatchOrigins] = useState<Record<string, boolean>>({});
   const [selection, setSelection] = useState<{
@@ -58,7 +58,9 @@ export function usePackageSelection({
     .sort((a, b) => a.name.localeCompare(b.name))
     .filter(
       (item) =>
-        (filter.kind === "all" || members?.includes(item.name)) &&
+        (filter.kind === "jobs"
+          ? item.kind === "job"
+          : filter.kind === "all" || members?.includes(item.name)) &&
         item.name.toLowerCase().includes(search.toLowerCase())
     );
   const selectedPackages = visible.filter((item) =>
@@ -112,9 +114,16 @@ export function usePackageSelection({
     );
   }
   const idleSelection = selectedPackages.filter((item) => !pending(item));
-  const startNames = idleSelection
-    .filter((item) => item.state === "stopped" || item.state === "failed")
-    .map((item) => item.name);
+  const startSelection = idleSelection.filter(
+    (item) =>
+      item.state === "stopped" ||
+      item.state === "failed" ||
+      (item.kind === "job" && item.state === "completed")
+  );
+  const startNames = startSelection.map((item) => item.name);
+  const startJobsOnly =
+    startSelection.length > 0 &&
+    startSelection.every((item) => item.kind === "job");
   const stopNames = idleSelection
     .filter((item) => item.state === "running")
     .map((item) => item.name);
@@ -168,6 +177,7 @@ export function usePackageSelection({
     allSelected:
       visible.length > 0 && selectedPackages.length === visible.length,
     startNames,
+    startJobsOnly,
     stopNames,
     watchOnNames,
     watchOffNames,

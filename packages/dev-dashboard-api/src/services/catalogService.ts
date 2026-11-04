@@ -28,14 +28,17 @@ const packageKind = (directory: string, port?: number): Package["kind"] => {
 };
 
 export const discoverPackages = async (root: string): Promise<Package[]> =>
-  (await discoverRunnablePackages(root)).map(({ name, directory, port }) => ({
-    name,
-    label: directory,
-    kind: packageKind(directory, port),
-    ...(port === undefined ? {} : { port }),
-    state: "stopped",
-    watch: true,
-  }));
+  (await discoverRunnablePackages(root)).map(({ name, directory, port }) => {
+    const kind = packageKind(directory, port);
+    return {
+      name,
+      label: directory,
+      kind,
+      ...(port === undefined ? {} : { port }),
+      state: "stopped",
+      watch: kind !== "job",
+    };
+  });
 
 export const readPresets = async (
   root: string,

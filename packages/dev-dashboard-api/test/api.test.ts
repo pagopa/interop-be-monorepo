@@ -64,6 +64,40 @@ const setup = (
   return { app, supervisor, driver };
 };
 describe("dashboard HTTP boundary", () => {
+  it("exposes completed jobs and accepts another manual run", async () => {
+    const job: Package = {
+      name: "example-job",
+      label: "example-job",
+      kind: "job",
+      state: "stopped",
+      watch: false,
+    };
+    const { app, supervisor, driver } = setup([job]);
+    const start = vi
+      .spyOn(driver, "start")
+      .mockImplementation(async (_command, _log, exit) => {
+        exit({ code: 0, signal: null });
+        return { pid: 1, stop: async () => undefined };
+      });
+
+    for (let run = 0; run < 2; run++) {
+      const accepted = await request(app)
+        .post("/__local-dashboard/api/actions")
+        .send({ type: "package.start", name: job.name });
+      expect(accepted.status).toBe(202);
+      await supervisor.idle();
+
+      const response = await request(app).get("/__local-dashboard/api/status");
+      expect(response.status).toBe(200);
+      expect(
+        schemas.DashboardStatus.parse(response.body).packages.find(
+          (item) => item.name === job.name
+        )
+      ).toEqual({ ...job, state: "completed" });
+    }
+    expect(start).toHaveBeenCalledTimes(2);
+  });
+
   it("includes read-only frontend progress only when the integration is configured", async () => {
     const frontend = {
       status: vi.fn(
