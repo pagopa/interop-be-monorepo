@@ -4,14 +4,14 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import * as publicExports from "../src/index.js";
-import { FullErrors } from "../src/models/index.js";
-import { loadErrorMessages } from "../src/utils/dynamicLoader.js";
-import { generateErrorMessages } from "../src/utils/generateErrorMessages.js";
-import { getRootPath } from "../src/utils/paths.js";
-import { validate } from "../src/validate/index.js";
+import { FullErrors } from "../cli/models/index.js";
+import { loadErrorMessages } from "../cli/utils/dynamicLoader.js";
+import { generateErrorMessages } from "../cli/utils/generateErrorMessages.js";
+import { getRootPath } from "../cli/utils/paths.js";
+import { validate } from "../cli/validate/index.js";
 
-const csvPath = "packages/error-messages/error-messages.csv";
-const generatedPath = "packages/error-messages/src/generated/errorMessages.ts";
+const csvPath = "./error-messages.csv";
+const generatedPath = "./src/generated/errorMessages.ts";
 const csvUrl = new URL("../error-messages.csv", import.meta.url);
 const generatedUrl = new URL(
   "../src/generated/errorMessages.ts",

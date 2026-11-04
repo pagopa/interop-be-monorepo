@@ -1,6 +1,6 @@
 import type { ErrorMessage } from "pagopa-interop-models";
 
-import { parse } from "csv-parse/sync";
+import { parse } from "csv/sync";
 import { readFileSync } from "node:fs";
 
 const requiredHeaders = [

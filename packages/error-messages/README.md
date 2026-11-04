@@ -7,7 +7,7 @@ Run `pnpm --filter error-messages build` to generate
 `src/generated/errorMessages.ts` and compile the
 package. Generation can also be run separately with
 `pnpm --filter error-messages generate`.
-From the repository root, use `pnpm generate-error-message` to generate only the
+From the repository root, use `pnpm generate-error-messages` to generate only the
 TypeScript source, without compiling the package.
 The generated
 `src/generated/errorMessages.ts` is versioned to make
