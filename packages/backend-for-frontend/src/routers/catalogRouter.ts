@@ -853,6 +853,27 @@ const catalogRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .patch("/eservices/:eServiceId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const createdResource = await catalogService.patchUpdateEServiceById(
+          unsafeBrandId(req.params.eServiceId),
+          req.body,
+          ctx
+        );
+        return res
+          .status(200)
+          .send(bffApi.CreatedResource.parse(createdResource));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error updating EService ${req.params.eServiceId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .put("/eservices/:eServiceId", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
