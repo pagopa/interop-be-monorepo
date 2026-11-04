@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { runInNewContext } from "node:vm";
 import ts from "typescript";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { readCsvErrorFile } from "../cli/utils/csvReader.js";
 import { generateErrorMessages } from "../cli/utils/generateErrorMessages.js";
@@ -20,6 +20,7 @@ describe("error message generation", () => {
 
   afterEach(() => {
     rmSync(directory, { recursive: true });
+    vi.restoreAllMocks();
   });
 
   const headers = ["Process", "Error", "BFF endpoint", "copy it", "copy en"];
@@ -172,6 +173,21 @@ describe("error message generation", () => {
     );
     expect(generateErrorMessages(input)).toContain(
       "export const errorMessages = [] as const satisfies readonly ErrorMessage[]"
+    );
+  });
+
+  it("warns when discarding a row with an unresolved error code", () => {
+    writeFileSync(
+      input,
+      stringify([headers, ["Unknown Process", row[1], row[2], "", ""]])
+    );
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    generateErrorMessages(input);
+
+    expect(warn).toHaveBeenCalledWith(
+      "Skipping error message with unresolved error code",
+      { process: "Unknown Process", error: row[1] }
     );
   });
 
