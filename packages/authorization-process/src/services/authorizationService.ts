@@ -5,7 +5,6 @@ import {
 } from "pagopa-interop-api-clients";
 import {
   AppContext,
-  CreateEvent,
   calculateKid,
   createJWK,
   DB,
@@ -22,7 +21,6 @@ import {
 } from "pagopa-interop-commons";
 import {
   authorizationEventToBinaryData,
-  AuthorizationEventV2,
   Client,
   ClientId,
   clientKind,
@@ -464,27 +462,33 @@ export function authorizationServiceBuilder(
         ...nameUpdatedClient,
         description: seed.description ?? client.data.description,
       };
-      const nameEvents: Array<CreateEvent<AuthorizationEventV2>> =
-        seed.name !== undefined
+
+
+
+      const events = [
+        ...(seed.name !== undefined
           ? [
-              toCreateEventClientNameUpdated(
-                nameUpdatedClient,
-                client.metadata.version,
-                correlationId
-              ),
-            ]
-          : [];
-      const descriptionEvents: Array<CreateEvent<AuthorizationEventV2>> =
-        seed.description !== undefined
+            toCreateEventClientNameUpdated(
+              nameUpdatedClient,
+              client.metadata.version,
+              correlationId
+            ),
+          ]
+          : []),
+        ...(seed.description !== undefined
           ? [
-              toCreateEventClientDescriptionUpdated(
-                updatedClient,
-                client.metadata.version + nameEvents.length,
-                correlationId
-              ),
-            ]
-          : [];
-      const events = [...nameEvents, ...descriptionEvents];
+            toCreateEventClientDescriptionUpdated(
+              updatedClient,
+              client.metadata.version,
+              correlationId
+            ),
+          ]
+          : []),
+      ].map((event, index) => ({
+        ...event,
+        version: client.metadata.version + index,
+      }));
+
       const createdEvents = await repository.createEvents(events);
       return {
         data: updatedClient,
