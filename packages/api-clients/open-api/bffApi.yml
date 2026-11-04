@@ -18563,6 +18563,18 @@ components:
       required:
         - results
         - pagination
+    ProblemUserMessages:
+      type: object
+      additionalProperties: false
+      properties:
+        it:
+          type: string
+          description: The user-facing message for the problem in Italian.
+        en:
+          type: string
+          description: The user-facing message for the problem in English.
+      required:
+        - it
     Problem:
       type: object
       additionalProperties: false
@@ -18600,6 +18612,8 @@ components:
           minItems: 1
           items:
             $ref: "#/components/schemas/ProblemError"
+        userMessages:
+          $ref: "#/components/schemas/ProblemUserMessages"
       required:
         - type
         - status
