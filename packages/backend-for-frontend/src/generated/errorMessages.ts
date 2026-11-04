@@ -214,82 +214,12 @@ export const errorMessages = [
   },
   {
     "process": "Purpose Process",
-    "error": "riskAnalysisAlreadyApproved",
-    "errorCode": null,
-    "bffEndpoint": "POST /purposes/{purposeId}/riskAnalysis/sign",
-    "copy": {
-      "it": "",
-      "en": ""
-    }
-  },
-  {
-    "process": "Purpose Process",
-    "error": "riskAnalysisAlreadyRejected",
-    "errorCode": null,
-    "bffEndpoint": "POST /purposes/{purposeId}/riskAnalysis/sign",
-    "copy": {
-      "it": "",
-      "en": ""
-    }
-  },
-  {
-    "process": "Purpose Process",
     "error": "purposeMetadataVersionMismatch",
     "errorCode": "004-0064",
-    "bffEndpoint": "POST /purposes/{purposeId}/riskAnalysis/sign",
+    "bffEndpoint": "POST /purposes/:purposeId/riskAnalysis/sign",
     "copy": {
-      "it": "",
-      "en": ""
-    }
-  },
-  {
-    "process": "Purpose Process",
-    "error": "riskAnalysisAlreadyApproved",
-    "errorCode": null,
-    "bffEndpoint": "POST /purposes/{purposeId}/riskAnalysis/reject",
-    "copy": {
-      "it": "",
-      "en": ""
-    }
-  },
-  {
-    "process": "Purpose Process",
-    "error": "riskAnalysisAlreadyRejected",
-    "errorCode": null,
-    "bffEndpoint": "POST /purposes/{purposeId}/riskAnalysis/reject",
-    "copy": {
-      "it": "",
-      "en": ""
-    }
-  },
-  {
-    "process": "Purpose Process",
-    "error": "riskAnalysisAlreadyApproved",
-    "errorCode": null,
-    "bffEndpoint": "PUT /purposes/{purposeId}/riskAnalysis/form",
-    "copy": {
-      "it": "",
-      "en": ""
-    }
-  },
-  {
-    "process": "Purpose Process",
-    "error": "riskAnalysisAlreadyRejected",
-    "errorCode": null,
-    "bffEndpoint": "PUT /purposes/{purposeId}/riskAnalysis/form",
-    "copy": {
-      "it": "",
-      "en": ""
-    }
-  },
-  {
-    "process": "",
-    "error": "",
-    "errorCode": null,
-    "bffEndpoint": "",
-    "copy": {
-      "it": "",
-      "en": ""
+      "it": "Un altro valutatore ha modificato questa analisi del rischio. Ricarica la pagina per vedere la versione aggiornata e decidi se approvarla.",
+      "en": "Another reviewer has modified this risk analysis. Refresh the page to see the updated version and decide whether to approve or reject it."
     }
   },
   {
@@ -440,16 +370,6 @@ export const errorMessages = [
     "copy": {
       "it": "Esiste già un e-service con la parola identificativa {identifyingWord}. Scegli un'altra parola identificativa.",
       "en": "There is already an e-service with the identifying word {identifyingWord}. Choose a different identifying word."
-    }
-  },
-  {
-    "process": "Catalog Process",
-    "error": "gracePeriodDaysLowerThanDescriptor",
-    "errorCode": "001-0070",
-    "bffEndpoint": "POST /eservices/:eServiceId/descriptors/:descriptorId/submitDelegatedArchiving",
-    "copy": {
-      "it": "",
-      "en": ""
     }
   },
   {
@@ -1530,16 +1450,6 @@ export const errorMessages = [
     "copy": {
       "it": "Questa richiesta di fruizione non è più sospesa. Aggiorna la pagina per vedere il suo stato attuale.",
       "en": "This service request is no longer suspended. Refresh the page to see its current status."
-    }
-  },
-  {
-    "process": "Agreement Process",
-    "error": "agreementActivationFailed",
-    "errorCode": "002-0008",
-    "bffEndpoint": "POST /agreements/:agreementId/unsuspend",
-    "copy": {
-      "it": "UNKNOWN / TO VERIFY",
-      "en": "UNKNOWN / TO VERIFY"
     }
   },
   {
