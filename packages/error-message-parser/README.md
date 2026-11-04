@@ -6,7 +6,7 @@ Generates typed error message data from
 Run `pnpm --filter pagopa-interop-error-message-parser build` to generate
 `../backend-for-frontend/src/generated/errorMessages.ts` and compile the
 package. Generation can also be run separately with
-`pnpm --filter pagopa-interop-error-message-parser generate`.
+`pnpm --filter pagopa-interop-error-message-parser generate-error-message`.
 From the repository root, use `pnpm generate-error-message` to generate only the
 TypeScript source, without compiling the package.
 The generated

@@ -62,6 +62,15 @@
         "../backend-for-frontend/src/generated/**"
       ]
     },
+    "generate-error-message": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/packages/backend-for-frontend/error-messages.csv"
+      ],
+      "outputs": [
+        "../backend-for-frontend/src/generated/**"
+      ]
+    },
     "check": {
       "dependsOn": [
         "generate-model",

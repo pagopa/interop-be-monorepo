@@ -12,9 +12,9 @@
   "scripts": {
     "lint": "eslint .",
     "lint:autofix": "eslint . --fix",
-    "generate": "tsx scripts/generateErrorMessages.ts",
-    "build": "pnpm generate && tsc",
-    "check": "pnpm generate && tsc --project tsconfig.check.json",
+    "generate-error-message": "tsx scripts/generateErrorMessages.ts",
+    "build": "pnpm generate-error-message && tsc",
+    "check": "pnpm generate-error-message && tsc --project tsconfig.check.json",
     "test": "vitest",
     "test:it": "vitest integration"
   },
