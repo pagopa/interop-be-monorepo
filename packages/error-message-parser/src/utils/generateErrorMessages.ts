@@ -10,6 +10,10 @@ export function generateErrorMessages(filePath: string): string {
       ...message,
     }))
     .filter(({ errorCode }) => errorCode !== null);
+  console.warn(
+    `Filtered out messages with null errorCode:`,
+    messages.filter(({ errorCode }) => errorCode === null)
+  );
 
   return `// Generated from the error messages CSV. Do not edit manually.
 import type { ErrorMessage } from "pagopa-interop-models";

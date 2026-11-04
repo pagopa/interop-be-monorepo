@@ -29,7 +29,7 @@
     "vitest": "catalog:"
   },
   "dependencies": {
-    "csv-parse": "catalog:",
+    "csv": "catalog:",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*"
   }

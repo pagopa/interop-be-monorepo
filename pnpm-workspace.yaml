@@ -54,7 +54,6 @@ catalog:
   content-disposition: 2.0.1
   cpx2: 7.0.2
   csv: 6.3.11
-  csv-parse: 7.0.2
   csv-stringify: 6.5.2
   date-fns: 4.1.0
   date-fns-tz: 3.2.0
