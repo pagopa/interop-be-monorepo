@@ -168,6 +168,22 @@ const seed = async () => {
           token: tenantToken,
         })
     );
+    if (!seededTenant.kind) {
+      // IPA onboarding defers kind assignment. Re-upserting an existing tenant
+      // evaluates its kind from its institution type and certified attributes.
+      await requestJson(`${tenantUrl}/selfcare/tenants`, {
+        method: "POST",
+        token: internalToken,
+        body: buildSelfcareTenantSeed(tenant),
+      });
+      await waitFor(`${tenant.name} kind propagation`, async () => {
+        const currentTenant = await requestJson(
+          `${tenantUrl}/tenants/${resource.id}`,
+          { token: tenantToken }
+        );
+        return currentTenant.kind;
+      });
+    }
     if (!hasTenantContactEmail(seededTenant, tenant.contactEmail)) {
       await requestJson(`${tenantUrl}/tenants/${resource.id}/mails`, {
         method: "POST",
