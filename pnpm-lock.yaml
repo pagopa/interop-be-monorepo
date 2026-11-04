@@ -1366,9 +1366,6 @@ importers:
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
-      error-messages:
-        specifier: workspace:*
-        version: link:../error-messages
       express:
         specifier: 'catalog:'
         version: 4.20.0
