@@ -1256,7 +1256,7 @@ export function catalogServiceBuilder(
       assertEServiceNotTemplateInstance(eserviceId, eservice.data.templateId);
 
       const { name, description, ...operationalSeed } = eserviceSeed;
-      const hasOperationalFields = Object.values(operationalSeed).some(
+      const seedIncludesOperationalFields = Object.values(operationalSeed).some(
         (value) => value !== undefined
       );
 
@@ -1266,7 +1266,7 @@ export function catalogServiceBuilder(
        * Ensure that operational fields (mode, technology, ...)
        * can only be updated if the EService is in draft state.
        */
-      if (hasOperationalFields && !isDraft) {
+      if (seedIncludesOperationalFields && !isDraft) {
         throw eserviceNotInDraftState(eservice.data.id);
       }
 
