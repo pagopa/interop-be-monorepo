@@ -2,6 +2,7 @@ import { Logger } from "pagopa-interop-commons";
 import {
   agreementState,
   TenantId,
+  UserId,
   purposeVersionState,
   delegationState,
 } from "pagopa-interop-models";
@@ -21,6 +22,7 @@ import {
   receivedDelegationArchivingRequestsToDigest,
   approvedRiskAnalysisToDigest,
   rejectedRiskAnalysisToDigest,
+  reviewerRiskAnalysesToDigest,
 } from "../model/digestDataConverter.js";
 import {
   viewAllNewUpdatedEservicesLink,
@@ -101,6 +103,36 @@ export type RejectedRiskAnalysisDigest = BaseDigest & {
   items: Array<{
     rejectedAt: string;
   }>;
+};
+
+type ReviewerRiskAnalysisItem = {
+  purposeTitle: string;
+  purposeLink: string;
+  eserviceName: string;
+  // When missing, the e-service name is rendered as plain text
+  eserviceLink?: string;
+};
+
+export type ReviewerRiskAnalysisDigest = {
+  items: ReviewerRiskAnalysisItem[];
+  totalCount: number;
+};
+
+/**
+ * Digest data for a single reviewer user. Unlike TenantDigestData, it is
+ * computed per user: each reviewer only sees the risk analyses assigned to them.
+ */
+export type ReviewerDigestData = {
+  tenantId: TenantId;
+  tenantName: string;
+  notificationSettingsLink: string;
+  viewAllReviewerPurposesLink: string;
+  // Snapshot sections (no time window)
+  toApproveRiskAnalyses?: ReviewerRiskAnalysisDigest;
+  toFillRiskAnalyses?: ReviewerRiskAnalysisDigest;
+  // Sections limited to the digest frequency window
+  publishedReviewerPurposes?: ReviewerRiskAnalysisDigest;
+  signedByOtherReviewerRiskAnalyses?: ReviewerRiskAnalysisDigest;
 };
 
 export type TenantDigestData = {
@@ -404,6 +436,71 @@ export function digestDataServiceBuilder(
           selfcareId
         ),
       };
+    },
+
+    /**
+     * Retrieves the reviewer digest data for a single user: only the risk
+     * analyses assigned to that user in the given tenant.
+     */
+    async getReviewerDigestData(
+      tenantId: TenantId,
+      reviewerId: UserId
+    ): Promise<ReviewerDigestData> {
+      logger.info(
+        `Retrieving reviewer digest data for user ${reviewerId} of tenant ${tenantId}`
+      );
+
+      const [
+        tenantDataMap,
+        toApproveRiskAnalyses,
+        toFillRiskAnalyses,
+        publishedReviewerPurposes,
+        signedByOtherReviewerRiskAnalyses,
+      ] = await Promise.all([
+        readModelService.getTenantsByIds([tenantId]),
+        readModelService.getReviewerRiskAnalysesToApprove(tenantId, reviewerId),
+        readModelService.getReviewerRiskAnalysesToFill(tenantId, reviewerId),
+        readModelService.getReviewerPublishedPurposes(tenantId, reviewerId),
+        readModelService.getReviewerRiskAnalysesSignedByOthers(
+          tenantId,
+          reviewerId
+        ),
+      ]);
+
+      const tenantData = tenantDataMap.get(tenantId);
+      const selfcareId = tenantData?.selfcareId ?? null;
+
+      return {
+        tenantId,
+        tenantName: tenantData?.name ?? "Tenant Name Placeholder",
+        notificationSettingsLink: notificationSettingsLink(selfcareId),
+        viewAllReviewerPurposesLink: viewAllSentPurposesLink(selfcareId),
+        toApproveRiskAnalyses: reviewerRiskAnalysesToDigest(
+          toApproveRiskAnalyses,
+          selfcareId
+        ),
+        toFillRiskAnalyses: reviewerRiskAnalysesToDigest(
+          toFillRiskAnalyses,
+          selfcareId
+        ),
+        publishedReviewerPurposes: reviewerRiskAnalysesToDigest(
+          publishedReviewerPurposes,
+          selfcareId
+        ),
+        signedByOtherReviewerRiskAnalyses: reviewerRiskAnalysesToDigest(
+          signedByOtherReviewerRiskAnalyses,
+          selfcareId
+        ),
+      };
+    },
+
+    hasReviewerDigestContent(data: ReviewerDigestData): boolean {
+      return Boolean(
+        data.toApproveRiskAnalyses?.totalCount ||
+        data.toFillRiskAnalyses?.totalCount ||
+        data.publishedReviewerPurposes?.totalCount ||
+        data.signedByOtherReviewerRiskAnalyses?.totalCount
+      );
     },
 
     hasDigestContent(data: TenantDigestData): boolean {

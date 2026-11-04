@@ -19,6 +19,7 @@ import {
 import {
   ApprovedRiskAnalysisDigest,
   ArchivingProducerDigest,
+  ReviewerRiskAnalysisDigest,
   AttributeDigest,
   BaseDigest,
   DelegationArchivingRequestDigest,
@@ -46,6 +47,7 @@ import {
   DelegatedArchivingRequest,
   ApprovedRiskAnalysisQueryResult,
   RejectedRiskAnalysisQueryResult,
+  ReviewerRiskAnalysis,
 } from "../services/readModelService.js";
 
 // Module-level cache for descriptor IDs to avoid repeated readModelService calls
@@ -282,6 +284,29 @@ export function archivingEservicesToDigest(
       isEserviceScope: item.scope === "EService",
       archivableOn: dateAtRomeZone(new Date(item.archivableOn)),
       link: buildEserviceLink(item.eserviceId, item.descriptorId, selfcareId),
+    })),
+    totalCount: data[0].totalCount,
+  };
+}
+
+/**
+ * Transforms the risk analyses assigned to a reviewer into a digest object.
+ * The e-service is shown as plain text: purposes carry no descriptor, so there
+ * is no e-service deeplink to build.
+ */
+export function reviewerRiskAnalysesToDigest(
+  data: ReviewerRiskAnalysis[],
+  selfcareId: string | null
+): ReviewerRiskAnalysisDigest {
+  if (data.length === 0) {
+    return { items: [], totalCount: 0 };
+  }
+
+  return {
+    items: data.map((item) => ({
+      purposeTitle: item.purposeTitle,
+      purposeLink: buildPurposeLink(item.purposeId, false, selfcareId),
+      eserviceName: item.eserviceName,
     })),
     totalCount: data[0].totalCount,
   };

@@ -9,6 +9,8 @@ import {
   getMockPartialDigestData,
   getMockSingularTenantDigestData,
   getMockLimitedTenantDigestData,
+  getMockReviewerDigestData,
+  getMockSingularReviewerDigestData,
 } from "../test/mockUtils.js";
 
 const adminVisibility = getVisibleSections(["admin"]);
@@ -61,6 +63,22 @@ const partialOutputPath = path.join(
 );
 fs.writeFileSync(partialOutputPath, partialHtml);
 
+// Generate reviewer digest emails
+const reviewerHtml = digestTemplateService.compileReviewerDigestEmail(
+  getMockReviewerDigestData()
+);
+const reviewerOutputPath = path.join(outputDir, "mock-digest-email-reviewer.html");
+fs.writeFileSync(reviewerOutputPath, reviewerHtml);
+
+const reviewerSingularHtml = digestTemplateService.compileReviewerDigestEmail(
+  getMockSingularReviewerDigestData()
+);
+const reviewerSingularOutputPath = path.join(
+  outputDir,
+  "mock-digest-email-reviewer-singular.html"
+);
+fs.writeFileSync(reviewerSingularOutputPath, reviewerSingularHtml);
+
 /* eslint-disable no-console */
 console.log(`✅ Mock digest emails generated successfully!`);
 console.log(`\n📧 Output files:`);
@@ -68,5 +86,7 @@ console.log(`   - ${fullOutputPath} (all sections)`);
 console.log(`   - ${singularOutputPath} (one item per section)`);
 console.log(`   - ${limitedOutputPath} (limited to max items per section)`);
 console.log(`   - ${partialOutputPath} (only E-services and Attributes)`);
+console.log(`   - ${reviewerOutputPath} (reviewer digest)`);
+console.log(`   - ${reviewerSingularOutputPath} (reviewer digest, singular texts)`);
 console.log(`\nYou can open them in your browser to preview the emails.`);
 /* eslint-enable no-console */

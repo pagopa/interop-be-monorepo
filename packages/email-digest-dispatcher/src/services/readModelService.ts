@@ -60,6 +60,7 @@ import {
   delegationStampInReadmodelDelegation,
   eserviceDescriptorArchivingScheduleInReadmodelCatalog,
   eserviceDescriptorArchivingRequestInReadmodelCatalog,
+  riskAnalysisReviewerInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
 
 import { config } from "../config/config.js";
@@ -173,6 +174,13 @@ export type ArchivingEservice = {
   version: string;
   scope: ArchivingScope;
   archivableOn: string;
+  totalCount: number;
+};
+
+export type ReviewerRiskAnalysis = {
+  purposeId: PurposeId;
+  purposeTitle: string;
+  eserviceName: string;
   totalCount: number;
 };
 
@@ -449,6 +457,57 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
   dateThreshold.setHours(
     dateThreshold.getHours() - config.digestFrequencyHours
   );
+
+  /**
+   * Shared query for the reviewer digest: purposes of the consumer tenant whose
+   * risk analysis is assigned to the given reviewer user, filtered by the
+   * section-specific condition. Limited to 5 results.
+   */
+  const getReviewerRiskAnalyses = async (
+    consumerId: TenantId,
+    reviewerId: UserId,
+    sectionCondition: SQL | undefined,
+    orderBy: SQL
+  ): Promise<ReviewerRiskAnalysis[]> => {
+    const results = await db
+      .select(
+        withTotalCount({
+          purposeId: purposeInReadmodelPurpose.id,
+          purposeTitle: purposeInReadmodelPurpose.title,
+          eserviceName: eserviceInReadmodelCatalog.name,
+        })
+      )
+      .from(purposeInReadmodelPurpose)
+      .innerJoin(
+        riskAnalysisReviewerInReadmodelPurpose,
+        and(
+          eq(
+            riskAnalysisReviewerInReadmodelPurpose.purposeId,
+            purposeInReadmodelPurpose.id
+          ),
+          eq(riskAnalysisReviewerInReadmodelPurpose.reviewerId, reviewerId)
+        )
+      )
+      .innerJoin(
+        eserviceInReadmodelCatalog,
+        eq(eserviceInReadmodelCatalog.id, purposeInReadmodelPurpose.eserviceId)
+      )
+      .where(
+        and(
+          eq(purposeInReadmodelPurpose.consumerId, consumerId),
+          sectionCondition
+        )
+      )
+      .orderBy(orderBy)
+      .limit(SECTION_LIST_LIMIT);
+
+    return results.map((row) => ({
+      purposeId: unsafeBrandId<PurposeId>(row.purposeId),
+      purposeTitle: row.purposeTitle,
+      eserviceName: row.eserviceName,
+      totalCount: row.totalCount,
+    }));
+  };
 
   // Request-scoped caches to avoid duplicate DB lookups for the same IDs
   // These caches live for the lifetime of the service instance (job duration)
@@ -2072,6 +2131,109 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
     /**
      * Returns all users who have email notification preference set to "Digest"
      */
+    /**
+     * Returns the purposes whose risk analysis, written by the admin, is waiting
+     * for the reviewer's signature (signing state Submitted). Snapshot, no time
+     * window. Ordered from most to least recently sent to the reviewer.
+     */
+    async getReviewerRiskAnalysesToApprove(
+      consumerId: TenantId,
+      reviewerId: UserId
+    ): Promise<ReviewerRiskAnalysis[]> {
+      logger.info(
+        `Retrieving risk analyses to approve for reviewer ${reviewerId} of tenant ${consumerId}`
+      );
+      return getReviewerRiskAnalyses(
+        consumerId,
+        reviewerId,
+        eq(
+          purposeInReadmodelPurpose.reviewerWorkflowSigningState,
+          riskAnalysisSigningState.submitted
+        ),
+        sql`${riskAnalysisReviewerInReadmodelPurpose.sentToReviewerAt} DESC NULLS LAST`
+      );
+    },
+
+    /**
+     * Returns the purposes whose risk analysis must be written and signed by the
+     * reviewer (signing state Assigned). Snapshot, no time window. Ordered from
+     * most to least recently assigned.
+     */
+    async getReviewerRiskAnalysesToFill(
+      consumerId: TenantId,
+      reviewerId: UserId
+    ): Promise<ReviewerRiskAnalysis[]> {
+      logger.info(
+        `Retrieving risk analyses to fill for reviewer ${reviewerId} of tenant ${consumerId}`
+      );
+      return getReviewerRiskAnalyses(
+        consumerId,
+        reviewerId,
+        eq(
+          purposeInReadmodelPurpose.reviewerWorkflowSigningState,
+          riskAnalysisSigningState.assigned
+        ),
+        sql`${riskAnalysisReviewerInReadmodelPurpose.sentToReviewerAt} DESC NULLS LAST`
+      );
+    },
+
+    /**
+     * Returns the purposes with a risk analysis assigned to the reviewer that were
+     * published (first activation of a version) in the last configured frequency
+     * hours. Ordered from most to least recently published.
+     */
+    async getReviewerPublishedPurposes(
+      consumerId: TenantId,
+      reviewerId: UserId
+    ): Promise<ReviewerRiskAnalysis[]> {
+      logger.info(
+        `Retrieving published purposes for reviewer ${reviewerId} of tenant ${consumerId} since ${dateThreshold.toISOString()}`
+      );
+      const lastActivation = sql`(
+        SELECT MAX(${purposeVersionInReadmodelPurpose.firstActivationAt})
+        FROM ${purposeVersionInReadmodelPurpose}
+        WHERE ${purposeVersionInReadmodelPurpose.purposeId} = ${purposeInReadmodelPurpose.id}
+          AND ${purposeVersionInReadmodelPurpose.state} = ${purposeVersionState.active}
+      )`;
+      return getReviewerRiskAnalyses(
+        consumerId,
+        reviewerId,
+        sql`${lastActivation} >= ${dateThreshold.toISOString()}`,
+        sql`${lastActivation} DESC`
+      );
+    },
+
+    /**
+     * Returns the purposes with a risk analysis assigned to the reviewer that were
+     * signed by another reviewer in the last configured frequency hours.
+     * Ordered from most to least recently signed.
+     */
+    async getReviewerRiskAnalysesSignedByOthers(
+      consumerId: TenantId,
+      reviewerId: UserId
+    ): Promise<ReviewerRiskAnalysis[]> {
+      logger.info(
+        `Retrieving risk analyses signed by other reviewers for reviewer ${reviewerId} of tenant ${consumerId} since ${dateThreshold.toISOString()}`
+      );
+      return getReviewerRiskAnalyses(
+        consumerId,
+        reviewerId,
+        and(
+          eq(
+            purposeInReadmodelPurpose.reviewerWorkflowSigningState,
+            riskAnalysisSigningState.signed
+          ),
+          isNotNull(purposeInReadmodelPurpose.reviewerWorkflowSignedBy),
+          sql`${purposeInReadmodelPurpose.reviewerWorkflowSignedBy} <> ${reviewerId}`,
+          gte(
+            purposeInReadmodelPurpose.reviewerWorkflowSignedAt,
+            dateThreshold.toISOString()
+          )
+        ),
+        desc(purposeInReadmodelPurpose.reviewerWorkflowSignedAt)
+      );
+    },
+
     async getUsersWithDigestPreference(): Promise<DigestUser[]> {
       const queryResult = await db
         .select({

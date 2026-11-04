@@ -264,3 +264,21 @@ export function computeGroupFlags(
     ])
   );
 }
+
+/**
+ * Roles that receive the reviewer digest (risk analyses assigned to the user).
+ * Kept separate from digestAdmittedRoles: it is a different email, built per
+ * user instead of per tenant.
+ */
+export const reviewerDigestAdmittedRoles = {
+  [ADMIN_ROLE]: false,
+  [API_ROLE]: false,
+  [SECURITY_ROLE]: false,
+  [SUPPORT_ROLE]: false,
+  [REVIEWER_ROLE]: true,
+  [VIEWER_ROLE]: false,
+} as const satisfies Record<UserRole, boolean> &
+  Record<typeof SUPPORT_ROLE, false>;
+
+export const canReceiveReviewerDigest = (roles: UserRole[]): boolean =>
+  roles.some((role) => reviewerDigestAdmittedRoles[role]);
