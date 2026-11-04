@@ -105,6 +105,10 @@ export function makeUserFacingApiProblemBuilder<T extends string>(
       operationalLogMessage
     );
 
+    if (problem.status >= 500) {
+      return problem;
+    }
+
     const userFacingProblem = applyErrorCopy(
       problem,
       context.endpoint,
