@@ -1136,16 +1136,19 @@ export function authorizationServiceBuilder(
         producerKeychain.data
       );
 
-      const updatedProducerKeychain: ProducerKeychain = {
+      const nameUpdatedProducerKeychain: ProducerKeychain = {
         ...producerKeychain.data,
         name: seed.name ?? producerKeychain.data.name,
+      };
+      const updatedProducerKeychain: ProducerKeychain = {
+        ...nameUpdatedProducerKeychain,
         description: seed.description ?? producerKeychain.data.description,
       };
       const nameEvents: Array<CreateEvent<AuthorizationEventV2>> =
         seed.name !== undefined
           ? [
               toCreateEventProducerKeychainNameUpdated(
-                updatedProducerKeychain,
+                nameUpdatedProducerKeychain,
                 producerKeychain.metadata.version,
                 correlationId
               ),
