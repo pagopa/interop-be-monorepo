@@ -72,6 +72,42 @@ describe("PATCH /eserviceTemplates/:templateId/name router test", () => {
     expect(res.status).toBe(403);
   });
 
+  it.each([5, 45])("Should accept a name of %s characters", async (length) => {
+    mockEServiceTemplateService.updatePublishedEServiceTemplateName = vi
+      .fn()
+      .mockResolvedValue(mockM2MEServiceTemplate);
+    const seed = { name: "a".repeat(length) };
+    const res = await makeRequest(
+      generateToken(authRole.M2M_ADMIN_ROLE),
+      mockEServiceTemplate.id,
+      seed
+    );
+    expect(res.status).toBe(200);
+    expect(
+      mockEServiceTemplateService.updatePublishedEServiceTemplateName
+    ).toHaveBeenCalledExactlyOnceWith(
+      mockEServiceTemplate.id,
+      seed,
+      expect.any(Object)
+    );
+  });
+
+  it.each([4, 46, 60])(
+    "Should reject a name of %s characters",
+    async (length) => {
+      mockEServiceTemplateService.updatePublishedEServiceTemplateName = vi.fn();
+      const res = await makeRequest(
+        generateToken(authRole.M2M_ADMIN_ROLE),
+        mockEServiceTemplate.id,
+        { name: "a".repeat(length) }
+      );
+      expect(res.status).toBe(400);
+      expect(
+        mockEServiceTemplateService.updatePublishedEServiceTemplateName
+      ).not.toHaveBeenCalled();
+    }
+  );
+
   it("Should return 400 if passed an invalid eservice template id", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, "invalidEServiceTemplateId");
