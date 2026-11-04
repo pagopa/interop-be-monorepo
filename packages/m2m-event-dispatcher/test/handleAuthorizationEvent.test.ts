@@ -54,7 +54,7 @@ describe("handleAuthorizationEvent test", async () => {
     "metadata events for %s clients",
     (kind) => {
       it.each(["ClientNameUpdated", "ClientDescriptionUpdated"] as const)(
-        "%s is not exposed before the dedicated M2M feed implementation",
+        "%s is exposed with public visibility",
         async (type) => {
           const client = getMockClient({ kind });
           const eventTimestamp = new Date();
@@ -76,7 +76,16 @@ describe("handleAuthorizationEvent test", async () => {
 
           expect(
             testM2mEventWriterService.insertClientM2MEvent
-          ).not.toHaveBeenCalled();
+          ).toHaveBeenCalledTimes(1);
+          expect(await retrieveLastClientM2MEvent()).toEqual({
+            id: expect.any(String),
+            eventType: type,
+            eventTimestamp,
+            resourceVersion: 1,
+            clientId: client.id,
+            consumerId: client.consumerId,
+            visibility: m2mEventVisibility.public,
+          });
           expect(
             testM2mEventWriterService.insertKeyM2MEvent
           ).not.toHaveBeenCalled();
@@ -508,27 +517,35 @@ function buildTestCaseData(
       /**
        * Public Client events
        */
-      .with(P.union("ClientAdded", "ClientDeleted"), (eventType) => ({
-        message: {
-          ...getMockEventEnvelopeCommons(),
-          stream_id: client.id,
-          type: eventType,
-          version: 1,
-          data: {
-            client: toClientV2(client),
+      .with(
+        P.union(
+          "ClientAdded",
+          "ClientDeleted",
+          "ClientNameUpdated",
+          "ClientDescriptionUpdated"
+        ),
+        (eventType) => ({
+          message: {
+            ...getMockEventEnvelopeCommons(),
+            stream_id: client.id,
+            type: eventType,
+            version: 1,
+            data: {
+              client: toClientV2(client),
+            },
+          } as AuthorizationEventEnvelopeV2,
+          expectedM2MEvent: {
+            id: expect.any(String),
+            eventType,
+            eventTimestamp,
+            resourceVersion: 1,
+            clientId: client.id,
+            consumerId: client.consumerId,
+            visibility: m2mEventVisibility.public,
           },
-        } as AuthorizationEventEnvelopeV2,
-        expectedM2MEvent: {
-          id: expect.any(String),
-          eventType,
-          eventTimestamp,
-          resourceVersion: 1,
-          clientId: client.id,
-          consumerId: client.consumerId,
-          visibility: m2mEventVisibility.public,
-        },
-        type: "client",
-      }))
+          type: "client",
+        })
+      )
       /**
        * Owner Client events
        */
@@ -674,8 +691,6 @@ function buildTestCaseData(
       .with(
         P.union(
           "ClientUserAdded",
-          "ClientNameUpdated",
-          "ClientDescriptionUpdated",
           "ClientUserDeleted",
           "ProducerKeychainUserAdded",
           "ProducerKeychainUserDeleted",

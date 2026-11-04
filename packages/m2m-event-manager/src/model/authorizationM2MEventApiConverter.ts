@@ -46,6 +46,8 @@ function toApiClientM2MEventType(
   )
     .with("ClientAdded", () => "CLIENT_ADDED")
     .with("ClientDeleted", () => "CLIENT_DELETED")
+    .with("ClientNameUpdated", () => "CLIENT_NAME_UPDATED")
+    .with("ClientDescriptionUpdated", () => "CLIENT_DESCRIPTION_UPDATED")
     .with("ClientPurposeAdded", () => "CLIENT_PURPOSE_ADDED")
     .with("ClientPurposeRemoved", () => "CLIENT_PURPOSE_REMOVED")
     .exhaustive();
