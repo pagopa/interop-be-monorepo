@@ -36,6 +36,24 @@
         "dist/**"
       ]
     },
+    "error-messages#build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**",
+        "src/generated/**"
+      ]
+    },
+    "error-messages#check": {
+      "dependsOn": [
+        "^build",
+        "^check"
+      ],
+      "outputs": [
+        "src/generated/**"
+      ]
+    },
     "check": {
       "dependsOn": [
         "generate-model",
@@ -85,6 +103,19 @@
       "dependsOn": [
         "build",
         "^lint"
+      ],
+      "outputs": [
+        ".eslintcache"
+      ]
+    },
+    "error-messages#lint": {
+      "dependsOn": [
+        "build",
+        "^lint"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/packages/backend-for-frontend/src/routers/**"
       ],
       "outputs": [
         ".eslintcache"

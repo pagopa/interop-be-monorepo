@@ -1,0 +1,45 @@
+{
+  "name": "error-messages",
+  "private": true,
+  "version": "1.0.0",
+  "license": "MPL-2.0",
+  "description": "Generate and validate typed error messages from CSV",
+  "main": "./dist/generated/errorMessages.js",
+  "types": "./dist/generated/errorMessages.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/generated/errorMessages.d.ts",
+      "import": "./dist/generated/errorMessages.js"
+    }
+  },
+  "scripts": {
+    "lint": "eslint . && pnpm validate",
+    "lint:autofix": "eslint . --fix",
+    "generate": "tsx scripts/generateErrorMessages.ts",
+    "validate": "tsx src/cli.ts",
+    "build": "pnpm generate && tsc",
+    "check": "pnpm generate && tsc --project tsconfig.check.json",
+    "test": "vitest"
+  },
+  "keywords": [],
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "csv-stringify": "catalog:",
+    "eslint": "catalog:",
+    "pagopa-interop-eslint-config": "workspace:*",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "dependencies": {
+    "@cspell/dict-it-it": "catalog:",
+    "cspell-lib": "catalog:",
+    "commander": "catalog:",
+    "csv-parse": "catalog:",
+    "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-models": "workspace:*",
+    "ts-pattern": "catalog:",
+    "zod": "catalog:"
+  }
+}
