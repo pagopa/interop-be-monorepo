@@ -463,26 +463,24 @@ export function authorizationServiceBuilder(
         description: seed.description ?? client.data.description,
       };
 
-
-
       const events = [
         ...(seed.name !== undefined
           ? [
-            toCreateEventClientNameUpdated(
-              nameUpdatedClient,
-              client.metadata.version,
-              correlationId
-            ),
-          ]
+              toCreateEventClientNameUpdated(
+                nameUpdatedClient,
+                client.metadata.version,
+                correlationId
+              ),
+            ]
           : []),
         ...(seed.description !== undefined
           ? [
-            toCreateEventClientDescriptionUpdated(
-              updatedClient,
-              client.metadata.version,
-              correlationId
-            ),
-          ]
+              toCreateEventClientDescriptionUpdated(
+                updatedClient,
+                client.metadata.version,
+                correlationId
+              ),
+            ]
           : []),
       ].map((event, index) => ({
         ...event,
