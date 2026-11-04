@@ -3061,9 +3061,16 @@ importers:
 
   packages/error-messages:
     dependencies:
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+    devDependencies:
       '@cspell/dict-it-it':
         specifier: 'catalog:'
         version: 3.1.7
+      '@types/node':
+        specifier: 'catalog:'
+        version: 20.19.9
       commander:
         specifier: 'catalog:'
         version: 12.1.0
@@ -3073,31 +3080,21 @@ importers:
       csv:
         specifier: 'catalog:'
         version: 6.3.11
-      pagopa-interop-commons:
-        specifier: workspace:*
-        version: link:../commons
-      pagopa-interop-models:
-        specifier: workspace:*
-        version: link:../models
-      ts-pattern:
-        specifier: 'catalog:'
-        version: 5.2.0
-      zod:
-        specifier: 'catalog:'
-        version: 3.23.8
-    devDependencies:
-      '@types/node':
-        specifier: 'catalog:'
-        version: 20.19.9
       csv-stringify:
         specifier: 'catalog:'
         version: 6.5.2
       eslint:
         specifier: 'catalog:'
         version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
       pagopa-interop-eslint-config:
         specifier: workspace:*
         version: link:../eslint-config
+      ts-pattern:
+        specifier: 'catalog:'
+        version: 5.2.0
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -3107,6 +3104,9 @@ importers:
       vitest:
         specifier: 'catalog:'
         version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
+      zod:
+        specifier: 'catalog:'
+        version: 3.23.8
 
   packages/eservice-descriptors-archiver:
     dependencies:
