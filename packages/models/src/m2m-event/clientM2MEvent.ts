@@ -10,6 +10,8 @@ import {
 export const ClientM2MEventType = z.enum([
   "ClientAdded",
   "ClientDeleted",
+  "ClientNameUpdated",
+  "ClientDescriptionUpdated",
   "ClientPurposeAdded",
   "ClientPurposeRemoved",
 ]);
