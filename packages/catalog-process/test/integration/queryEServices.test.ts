@@ -1150,6 +1150,75 @@ describe("query eservices", () => {
     });
   });
 
+  describe("templateId", () => {
+    const templateId = generateId<EServiceTemplateId>();
+    const eserviceInstance: EService = {
+      ...buildEService("Instance", new Date("2024-01-01T00:00:00Z")),
+      templateId,
+    };
+    const eserviceOtherTemplate: EService = {
+      ...buildEService("OtherTemplate", new Date("2024-02-01T00:00:00Z")),
+      templateId: generateId<EServiceTemplateId>(),
+    };
+    const eserviceNoTemplate = buildEService(
+      "NoTemplate",
+      new Date("2024-03-01T00:00:00Z")
+    );
+
+    beforeEach(async () => {
+      await addOneEService(eserviceInstance);
+      await addOneEService(eserviceOtherTemplate);
+      await addOneEService(eserviceNoTemplate);
+    });
+
+    it.each([undefined, false, true])(
+      "should return only instances of the requested template with onlyTemplateInstances=%s",
+      async (onlyTemplateInstances) => {
+        const result = await filterEServices({
+          templateId,
+          onlyTemplateInstances,
+        });
+
+        expect(result.totalCount).toBe(1);
+        expect(idsOf(result)).toEqual([eserviceInstance.id]);
+      }
+    );
+
+    it("should return no e-services when the template has no instances", async () => {
+      const result = await filterEServices({
+        templateId: generateId<EServiceTemplateId>(),
+      });
+
+      expect(result.totalCount).toBe(0);
+      expect(result.results).toEqual([]);
+    });
+
+    it("should preserve filtered counts and ordering across pages", async () => {
+      const additional: EService = {
+        ...buildEService("Additional", new Date("2024-04-01T00:00:00Z")),
+        templateId,
+      };
+      await addOneEService(additional);
+      const pages = await Promise.all(
+        [0, 1, 2].map((offset) =>
+          filterEServices(
+            { templateId, onlyTemplateInstances: true },
+            getMockContext({}),
+            offset,
+            1
+          )
+        )
+      );
+
+      expect(pages.map((page) => page.totalCount)).toEqual([2, 2, 2]);
+      expect(pages.map(idsOf)).toEqual([
+        [additional.id],
+        [eserviceInstance.id],
+        [],
+      ]);
+    });
+  });
+
   describe("hasLinkedPurposeTemplates", () => {
     const publishedPurposeTemplate = (): PurposeTemplate =>
       getMockPurposeTemplate(undefined, purposeTemplateState.published);
