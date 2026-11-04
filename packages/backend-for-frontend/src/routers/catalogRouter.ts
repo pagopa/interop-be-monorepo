@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { create as createContentDisposition } from "content-disposition";
 import { constants } from "http2";
 import { bffApi } from "pagopa-interop-api-clients";
 import {
@@ -202,11 +203,10 @@ const catalogRouter = (
           ctx
         );
 
+        const filename = response.filename.replace(/[\\/]/g, "_");
+
         return res
-          .header(
-            "Content-Disposition",
-            `attachment; filename=${response.filename}`
-          )
+          .header("Content-Disposition", createContentDisposition(filename))
           .header("Content-Type", "application/octet-stream")
           .send(response.file);
       } catch (error) {

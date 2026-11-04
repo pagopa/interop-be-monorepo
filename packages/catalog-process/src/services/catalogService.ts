@@ -201,6 +201,7 @@ import {
   toCreateEventEServiceDescriptorArchivingRequestApprovedByDelegator,
   toCreateEventEServiceArchivingRequestCanceledByDelegate,
   toCreateEventEServiceDescriptorArchivingRequestCanceledByDelegate,
+  toCreateEventEServiceDescriptorRestoredToDraftByRevokedDelegation,
 } from "../model/domain/toEvent.js";
 import {
   appendArchivingRequest,
@@ -1064,7 +1065,7 @@ export function catalogServiceBuilder(
       const requesterDelegationRoles = filters.requesterDelegationRoles ?? [];
       const producerCategories = filters.producerCategories ?? [];
       logger.info(
-        `Querying EServices, limit = ${filters.limit}, offset = ${filters.offset}, sortBy = ${sortBy}, keyword = ${keyword}, producersIds = ${producersIds}, onlyActiveEservices = ${filters.onlyActiveEservices}, subscribedByRequester = ${filters.subscribedByRequester}, requesterDelegationRoles = ${requesterDelegationRoles}, onlyTemplateInstances = ${filters.onlyTemplateInstances}, hasLinkedPurposeTemplates = ${filters.hasLinkedPurposeTemplates}, producerCategories = ${producerCategories}, availableForRequester = ${availableForRequester}`
+        `Querying EServices, limit = ${filters.limit}, offset = ${filters.offset}, sortBy = ${sortBy}, keyword = ${keyword}, producersIds = ${producersIds}, onlyActiveEservices = ${filters.onlyActiveEservices}, subscribedByRequester = ${filters.subscribedByRequester}, requesterDelegationRoles = ${requesterDelegationRoles}, onlyTemplateInstances = ${filters.onlyTemplateInstances}, templateId = ${filters.templateId}, hasLinkedPurposeTemplates = ${filters.hasLinkedPurposeTemplates}, producerCategories = ${producerCategories}, availableForRequester = ${availableForRequester}`
       );
       const certifiedDiscreteEnabled = isFeatureFlagEnabled(
         config,
@@ -1083,6 +1084,9 @@ export function catalogServiceBuilder(
           subscribedByRequester: filters.subscribedByRequester,
           requesterDelegationRoles,
           onlyTemplateInstances: filters.onlyTemplateInstances,
+          templateId: filters.templateId
+            ? unsafeBrandId<EServiceTemplateId>(filters.templateId)
+            : undefined,
           hasLinkedPurposeTemplates: filters.hasLinkedPurposeTemplates,
           producerCategories,
           availableForRequester,
@@ -2564,6 +2568,45 @@ export function catalogServiceBuilder(
             );
 
       await repository.createEvent(event);
+    },
+    async internalRestoreDraftDescriptorAfterDelegationRevoke(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<void> {
+      logger.info(
+        `Internal restoring delegated waitingForApproval descriptor ${descriptorId} for EService ${eserviceId} to draft state`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      if (descriptor.state !== descriptorState.waitingForApproval) {
+        logger.info(
+          `Skipping delegated descriptor draft restore for EService ${eserviceId}, descriptor ${descriptorId}: state is ${descriptor.state}, expected ${descriptorState.waitingForApproval}`
+        );
+        return;
+      }
+
+      const updatedDescriptor = updateDescriptorState(
+        descriptor,
+        descriptorState.draft
+      );
+
+      const updatedEService = replaceDescriptor(
+        eservice.data,
+        updatedDescriptor
+      );
+
+      const delegatedDescriptorRevokedEvent =
+        toCreateEventEServiceDescriptorRestoredToDraftByRevokedDelegation(
+          eservice.metadata.version,
+          descriptorId,
+          updatedEService,
+          correlationId
+        );
+
+      await repository.createEvent(delegatedDescriptorRevokedEvent);
     },
     async internalDeleteDelegatedArchivingRequest(
       eserviceId: EServiceId,
