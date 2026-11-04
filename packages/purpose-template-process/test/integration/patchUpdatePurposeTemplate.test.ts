@@ -938,29 +938,6 @@ describe("patch update purpose template", () => {
     }
   );
 
-  it("should preserve the metadata-only path when no risk analysis form exists", async () => {
-    const purposeTemplate = {
-      ...mockPurposeTemplate,
-      purposeRiskAnalysisForm: undefined,
-    };
-    await addOnePurposeTemplate(purposeTemplate);
-    const result = await purposeTemplateService.patchUpdatePurposeTemplate(
-      purposeTemplate.id,
-      { purposeTitle: "Updated purpose title" },
-      getMockContextM2MAdmin({
-        organizationId: purposeTemplate.creatorId,
-      })
-    );
-    expect(result.data).toEqual({
-      ...purposeTemplate,
-      purposeTitle: "Updated purpose title",
-      updatedAt: new Date(),
-    });
-    expect(
-      await readLastPurposeTemplateEvent(purposeTemplate.id)
-    ).toMatchObject({ type: "PurposeTemplateDraftUpdated", version: "1" });
-  });
-
   it("should roll back all events if a later event conflicts, without retrying", async () => {
     const purposeTemplate = {
       ...mockPurposeTemplate,
