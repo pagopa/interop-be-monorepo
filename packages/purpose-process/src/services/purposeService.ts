@@ -2825,18 +2825,21 @@ const performPatchUpdatePurpose = async (
     };
   }
 
-  const updatedPurpose: Purpose = {
+  const titleUpdatedPurpose: Purpose = {
     ...purpose.data,
     title: title ?? purpose.data.title,
-    description: description ?? purpose.data.description,
     updatedAt: new Date(),
+  };
+  const updatedPurpose: Purpose = {
+    ...titleUpdatedPurpose,
+    description: description ?? purpose.data.description,
   };
 
   const events = [
     ...(title !== undefined
       ? [
           toCreateEventPurposeTitleUpdated({
-            purpose: updatedPurpose,
+            purpose: titleUpdatedPurpose,
             version: purpose.metadata.version,
             correlationId,
           }),
