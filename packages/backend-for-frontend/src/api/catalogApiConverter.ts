@@ -62,6 +62,7 @@ export function toBffCatalogApiEService(
   eservice: catalogApi.EService,
   producerTenant: tenantApi.Tenant,
   isRequesterEqProducer: boolean,
+  hasNotifications: boolean,
   activeDescriptor?: catalogApi.EServiceDescriptor
 ): bffApi.CatalogEService {
   const partialEnhancedEservice = {
@@ -89,6 +90,7 @@ export function toBffCatalogApiEService(
           },
         }
       : {}),
+    hasUnreadNotifications: hasNotifications,
     personalData: eservice.personalData,
     asyncExchange: eservice.asyncExchange,
   };
