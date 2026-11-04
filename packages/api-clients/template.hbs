@@ -5,7 +5,7 @@ import { configureAxiosLogInterceptors } from "../axiosLogInterceptors.js";
 import { AxiosInstance } from "axios";
 
 {{#each schemas}}
-export const {{@key}} = {{{this}}};
+export const {{@key}} = {{{renderSchema @key this}}};
 export type {{@key}} = z.infer<typeof {{@key}}>;
 
 {{/each}}
