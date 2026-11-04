@@ -107,7 +107,9 @@ describe("updateClient", () => {
           messageType: ClientNameUpdatedV2,
           payload: events[1].data,
         })
-      ).toEqual({ client: toClientV2(updatedClient) });
+      ).toEqual({
+        client: toClientV2({ ...client, name: seed.name }),
+      });
       expect(
         decodeProtobufPayload({
           messageType: ClientDescriptionUpdatedV2,
