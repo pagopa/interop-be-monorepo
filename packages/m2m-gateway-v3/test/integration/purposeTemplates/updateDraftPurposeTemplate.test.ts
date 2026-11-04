@@ -1,3 +1,4 @@
+import { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   getMockedApiPurposeTemplate,
@@ -111,6 +112,58 @@ describe("updateDraftPurposeTemplate", () => {
     expect(
       mockInteropBeClients.purposeTemplateProcessClient.getPurposeTemplate
     ).toHaveBeenCalledTimes(2);
+  });
+
+  it.each([
+    { purposeTitle: "updated purpose title" },
+    { purposeDescription: "updated purpose description" },
+    { targetDescription: "updated target description" },
+    { purposeTitle: mockPurposeTemplate.purposeTitle },
+  ])(
+    "Should forward metadata-only seed %# and poll its returned version",
+    async (seed) => {
+      mockGetPurposeTemplate.mockImplementation(
+        mockPollingResponse(mockPurposeTemplateProcessGetResponse, 1)
+      );
+      await purposeTemplateService.updateDraftPurposeTemplate(
+        unsafeBrandId(mockPurposeTemplate.id),
+        seed,
+        getMockM2MAdminAppContext()
+      );
+      expect(mockPatchUpdatePurposeTemplate).toHaveBeenCalledTimes(1);
+      expectApiClientPostToHaveBeenCalledWith({
+        mockPost: mockPatchUpdatePurposeTemplate,
+        params: { id: mockPurposeTemplate.id },
+        body: seed,
+      });
+      expect(mockGetPurposeTemplate).toHaveBeenCalledTimes(1);
+    }
+  );
+
+  it("Should propagate a conflict without polling or retrying", async () => {
+    const error = new AxiosError(
+      "Purpose Template conflict",
+      undefined,
+      undefined,
+      undefined,
+      {
+        status: 409,
+        statusText: "Conflict",
+        data: {},
+        config: {} as InternalAxiosRequestConfig,
+        headers: {},
+      }
+    );
+    mockPatchUpdatePurposeTemplate.mockRejectedValueOnce(error);
+    await expect(
+      purposeTemplateService.updateDraftPurposeTemplate(
+        unsafeBrandId(mockPurposeTemplate.id),
+        mockPurposeTemplateSeed,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toBe(error);
+    expect(mockPatchUpdatePurposeTemplate).toHaveBeenCalledTimes(1);
+    expect(mockGetPurposeTemplate).not.toHaveBeenCalled();
   });
 
   it("Should throw missingMetadata in case the purpose template returned by the PATCH call has no metadata", async () => {
