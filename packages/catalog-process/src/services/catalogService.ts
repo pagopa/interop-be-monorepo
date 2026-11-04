@@ -130,6 +130,7 @@ import {
   certifiedAttributeGroupNotFoundInSeed,
   noDelegationForArchivingRequest,
   templateInstanceInterfaceDataMissing,
+  eserviceNotInDraftState,
 } from "../model/domain/errors.js";
 import {
   ApiGetEServicesFilters,
@@ -202,6 +203,7 @@ import {
   toCreateEventEServiceDescriptorArchivingRequestApprovedByDelegator,
   toCreateEventEServiceArchivingRequestCanceledByDelegate,
   toCreateEventEServiceDescriptorArchivingRequestCanceledByDelegate,
+  toCreateEventEServiceDescriptorRestoredToDraftByRevokedDelegation,
 } from "../model/domain/toEvent.js";
 import {
   appendArchivingRequest,
@@ -272,6 +274,7 @@ import {
   assertDelegatedDescriptorHasAtLeastOneArchivingRequests,
   assertDelegatedDescriptorHasActiveArchivingRequests,
   assertDelegatedArchivingRequestDelegationIsStillValid,
+  isDraftEservice,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -1065,7 +1068,7 @@ export function catalogServiceBuilder(
       const requesterDelegationRoles = filters.requesterDelegationRoles ?? [];
       const producerCategories = filters.producerCategories ?? [];
       logger.info(
-        `Querying EServices, limit = ${filters.limit}, offset = ${filters.offset}, sortBy = ${sortBy}, keyword = ${keyword}, producersIds = ${producersIds}, onlyActiveEservices = ${filters.onlyActiveEservices}, subscribedByRequester = ${filters.subscribedByRequester}, requesterDelegationRoles = ${requesterDelegationRoles}, onlyTemplateInstances = ${filters.onlyTemplateInstances}, hasLinkedPurposeTemplates = ${filters.hasLinkedPurposeTemplates}, producerCategories = ${producerCategories}, availableForRequester = ${availableForRequester}`
+        `Querying EServices, limit = ${filters.limit}, offset = ${filters.offset}, sortBy = ${sortBy}, keyword = ${keyword}, producersIds = ${producersIds}, onlyActiveEservices = ${filters.onlyActiveEservices}, subscribedByRequester = ${filters.subscribedByRequester}, requesterDelegationRoles = ${requesterDelegationRoles}, onlyTemplateInstances = ${filters.onlyTemplateInstances}, templateId = ${filters.templateId}, hasLinkedPurposeTemplates = ${filters.hasLinkedPurposeTemplates}, producerCategories = ${producerCategories}, availableForRequester = ${availableForRequester}`
       );
       const certifiedDiscreteEnabled = isFeatureFlagEnabled(
         config,
@@ -1084,6 +1087,9 @@ export function catalogServiceBuilder(
           subscribedByRequester: filters.subscribedByRequester,
           requesterDelegationRoles,
           onlyTemplateInstances: filters.onlyTemplateInstances,
+          templateId: filters.templateId
+            ? unsafeBrandId<EServiceTemplateId>(filters.templateId)
+            : undefined,
           hasLinkedPurposeTemplates: filters.hasLinkedPurposeTemplates,
           producerCategories,
           availableForRequester,
@@ -1236,17 +1242,111 @@ export function catalogServiceBuilder(
     async patchUpdateEService(
       eserviceId: EServiceId,
       eserviceSeed: catalogApi.PatchUpdateEServiceSeed,
-      ctx: WithLogger<AppContext<M2MAdminAuthData>>
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<EService>> {
       ctx.logger.info(`Partially updating EService ${eserviceId}`);
-      return updateDraftEService(
-        eserviceId,
-        { type: "patch", seed: eserviceSeed },
-        readModelService,
-        fileManager,
-        repository,
-        ctx
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        ctx.authData,
+        readModelService
       );
+      assertEServiceNotTemplateInstance(eserviceId, eservice.data.templateId);
+
+      const { name, description, ...operationalSeed } = eserviceSeed;
+      const seedIncludesOperationalFields = Object.values(operationalSeed).some(
+        (value) => value !== undefined
+      );
+
+      const isDraft = isDraftEservice(eservice.data);
+
+      /**
+       * Ensure that operational fields (mode, technology, ...)
+       * can only be updated if the EService is in draft state.
+       */
+      if (seedIncludesOperationalFields && !isDraft) {
+        throw eserviceNotInDraftState(eservice.data.id);
+      }
+
+      await validateNewEserviceDescriptionAndName(
+        eservice.data,
+        { name, description },
+        readModelService
+      );
+
+      if (isDraft) {
+        const updatedEservice = prepareDraftEServiceUpdate(eservice.data, {
+          type: "patch",
+          seed: eserviceSeed,
+        });
+
+        await deleteEServiceInterfacesOnTechnologyChange(
+          eservice.data,
+          updatedEservice,
+          fileManager,
+          ctx.logger
+        );
+
+        const event = await repository.createEvent(
+          toCreateEventEServiceUpdated(
+            eserviceId,
+            eservice.metadata.version,
+            updatedEservice,
+            ctx.correlationId
+          )
+        );
+
+        return {
+          data: updatedEservice,
+          metadata: { version: event.newVersion },
+        };
+      }
+
+      const descriptionUpdatedEservice: EService = {
+        ...eservice.data,
+        description: description ?? eservice.data.description,
+      };
+      const updatedEservice: EService = {
+        ...descriptionUpdatedEservice,
+        name: name ?? eservice.data.name,
+      };
+
+      const events = [
+        ...(description !== undefined
+          ? [
+              toCreateEventEServiceDescriptionUpdated(
+                eservice.metadata.version,
+                descriptionUpdatedEservice,
+                ctx.correlationId
+              ),
+            ]
+          : []),
+        ...(name !== undefined
+          ? [
+              toCreateEventEServiceNameUpdated(
+                eservice.metadata.version,
+                updatedEservice,
+                eservice.data.name,
+                ctx.correlationId
+              ),
+            ]
+          : []),
+      ].map((event, index) => ({
+        ...event,
+        version: eservice.metadata.version + index,
+      }));
+
+      const createdEvents = await repository.createEvents(events);
+
+      return {
+        data: updatedEservice,
+        metadata: {
+          version: createdEvents.latestNewVersions.get(eservice.data.id) ?? 0,
+        },
+      };
     },
 
     async updateEServiceTemplateInstance(
@@ -2568,6 +2668,45 @@ export function catalogServiceBuilder(
             );
 
       await repository.createEvent(event);
+    },
+    async internalRestoreDraftDescriptorAfterDelegationRevoke(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<void> {
+      logger.info(
+        `Internal restoring delegated waitingForApproval descriptor ${descriptorId} for EService ${eserviceId} to draft state`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      if (descriptor.state !== descriptorState.waitingForApproval) {
+        logger.info(
+          `Skipping delegated descriptor draft restore for EService ${eserviceId}, descriptor ${descriptorId}: state is ${descriptor.state}, expected ${descriptorState.waitingForApproval}`
+        );
+        return;
+      }
+
+      const updatedDescriptor = updateDescriptorState(
+        descriptor,
+        descriptorState.draft
+      );
+
+      const updatedEService = replaceDescriptor(
+        eservice.data,
+        updatedDescriptor
+      );
+
+      const delegatedDescriptorRevokedEvent =
+        toCreateEventEServiceDescriptorRestoredToDraftByRevokedDelegation(
+          eservice.metadata.version,
+          descriptorId,
+          updatedEService,
+          correlationId
+        );
+
+      await repository.createEvent(delegatedDescriptorRevokedEvent);
     },
     async internalDeleteDelegatedArchivingRequest(
       eserviceId: EServiceId,
@@ -5992,26 +6131,63 @@ async function extractEServiceRiskAnalysisFromTemplate(
   return riskAnalysis;
 }
 
-// eslint-disable-next-line sonarjs/cognitive-complexity
+async function validateNewEserviceDescriptionAndName(
+  eservice: EService,
+  {
+    name,
+    description,
+  }: Pick<catalogApi.PatchUpdateEServiceSeed, "name" | "description">,
+  readModelService: ReadModelServiceSQL
+) {
+  validateNoHyperlinksSafe(name);
+  validateNoHyperlinksSafe(description);
+
+  if (name !== undefined && name !== eservice.name) {
+    await assertEServiceNameAvailableForProducer(
+      name,
+      eservice.producerId,
+      readModelService
+    );
+    await assertEServiceNameNotConflictingWithTemplate(name, readModelService);
+  }
+}
+
+async function deleteEServiceInterfacesOnTechnologyChange(
+  eservice: EService,
+  updatedEService: EService,
+  fileManager: FileManager,
+  logger: Logger
+): Promise<void> {
+  if (updatedEService.technology === eservice.technology) {
+    return;
+  }
+  await Promise.all(
+    eservice.descriptors.map(async (descriptor) => {
+      if (descriptor.interface !== undefined) {
+        await fileManager.delete(
+          config.s3Bucket,
+          descriptor.interface.path,
+          logger
+        );
+      }
+      if (descriptor.asyncExchangeCallbackInterface !== undefined) {
+        await fileManager.delete(
+          config.s3Bucket,
+          descriptor.asyncExchangeCallbackInterface.path,
+          logger
+        );
+      }
+    })
+  );
+}
+
 async function updateDraftEService(
   eserviceId: EServiceId,
-  typeAndSeed:
-    | {
-        type: "put";
-        seed: catalogApi.UpdateEServiceSeed;
-      }
-    | {
-        type: "patch";
-        seed: catalogApi.PatchUpdateEServiceSeed;
-      },
+  typeAndSeed: { type: "put"; seed: catalogApi.UpdateEServiceSeed },
   readModelService: ReadModelServiceSQL,
   fileManager: FileManager,
   repository: ReturnType<typeof eventRepository<EServiceEvent>>,
-  {
-    authData,
-    logger,
-    correlationId,
-  }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+  { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
 ): Promise<WithMetadata<EService>> {
   const eservice = await retrieveEService(eserviceId, readModelService);
   await assertRequesterIsDelegateProducerOrProducer(
@@ -6021,9 +6197,46 @@ async function updateDraftEService(
     readModelService
   );
   assertEServiceNotTemplateInstance(eservice.data.id, eservice.data.templateId);
-
   assertIsDraftEservice(eservice.data);
 
+  await validateNewEserviceDescriptionAndName(
+    eservice.data,
+    typeAndSeed.seed,
+    readModelService
+  );
+
+  const updatedEService = prepareDraftEServiceUpdate(
+    eservice.data,
+    typeAndSeed
+  );
+
+  await deleteEServiceInterfacesOnTechnologyChange(
+    eservice.data,
+    updatedEService,
+    fileManager,
+    logger
+  );
+
+  const event = await repository.createEvent(
+    toCreateEventEServiceUpdated(
+      eserviceId,
+      eservice.metadata.version,
+      updatedEService,
+      correlationId
+    )
+  );
+  return { data: updatedEService, metadata: { version: event.newVersion } };
+}
+
+function prepareDraftEServiceUpdate(
+  eservice: EService,
+  typeAndSeed:
+    | { type: "put"; seed: catalogApi.UpdateEServiceSeed }
+    | {
+        type: "patch";
+        seed: catalogApi.PatchUpdateEServiceSeed;
+      }
+): EService {
   const {
     name,
     description,
@@ -6034,46 +6247,15 @@ async function updateDraftEService(
     isClientAccessDelegable,
   } = typeAndSeed.seed;
 
-  validateNoHyperlinksSafe(name);
-  validateNoHyperlinksSafe(description);
-
-  if (name && name !== eservice.data.name) {
-    await assertEServiceNameAvailableForProducer(
-      name,
-      eservice.data.producerId,
-      readModelService
-    );
-    await assertEServiceNameNotConflictingWithTemplate(name, readModelService);
-  }
-
   const updatedTechnology = technology
     ? apiTechnologyToTechnology(technology)
-    : eservice.data.technology;
+    : eservice.technology;
 
-  const interfaceHasToBeDeleted =
-    updatedTechnology !== eservice.data.technology;
-
-  if (interfaceHasToBeDeleted) {
-    await Promise.all(
-      eservice.data.descriptors.map(async (d) => {
-        if (d.interface !== undefined) {
-          await fileManager.delete(config.s3Bucket, d.interface.path, logger);
-        }
-
-        if (d.asyncExchangeCallbackInterface !== undefined) {
-          await fileManager.delete(
-            config.s3Bucket,
-            d.asyncExchangeCallbackInterface.path,
-            logger
-          );
-        }
-      })
-    );
-  }
+  const interfaceHasToBeDeleted = updatedTechnology !== eservice.technology;
 
   const updatedMode = mode
     ? apiEServiceModeToEServiceMode(mode)
-    : eservice.data.mode;
+    : eservice.mode;
 
   // delete risk analysis in one of these cases:
   // - mode is changed to "Deliver"
@@ -6081,29 +6263,26 @@ async function updateDraftEService(
   const checkedRiskAnalysis =
     updatedMode === eserviceMode.deliver ||
     (typeAndSeed.seed.personalData != null &&
-      eservice.data.personalData != null &&
-      typeAndSeed.seed.personalData !== eservice.data.personalData)
+      eservice.personalData != null &&
+      typeAndSeed.seed.personalData !== eservice.personalData)
       ? []
-      : eservice.data.riskAnalysis;
+      : eservice.riskAnalysis;
 
   const updatedIsSignalHubEnabled = match(typeAndSeed.type)
     .with("put", () => isSignalHubEnabled)
-    .with("patch", () => isSignalHubEnabled ?? eservice.data.isSignalHubEnabled)
+    .with("patch", () => isSignalHubEnabled ?? eservice.isSignalHubEnabled)
     .exhaustive();
 
   const updatedIsConsumerDelegable = match(typeAndSeed.type)
     .with("put", () => isConsumerDelegable)
-    .with(
-      "patch",
-      () => isConsumerDelegable ?? eservice.data.isConsumerDelegable
-    )
+    .with("patch", () => isConsumerDelegable ?? eservice.isConsumerDelegable)
     .exhaustive();
 
   const updatedIsClientAccessDelegable = match(typeAndSeed.type)
     .with("put", () => isClientAccessDelegable)
     .with(
       "patch",
-      () => isClientAccessDelegable ?? eservice.data.isClientAccessDelegable
+      () => isClientAccessDelegable ?? eservice.isClientAccessDelegable
     )
     .exhaustive();
 
@@ -6118,7 +6297,7 @@ async function updateDraftEService(
       { type: "patch" },
       ({ seed }) =>
         seed.personalData ??
-        (seed.personalData === null ? undefined : eservice.data.personalData)
+        (seed.personalData === null ? undefined : eservice.personalData)
     )
     .exhaustive();
 
@@ -6128,26 +6307,26 @@ async function updateDraftEService(
       { type: "patch" },
       ({ seed }) =>
         seed.asyncExchange ??
-        (seed.asyncExchange === null ? undefined : eservice.data.asyncExchange)
+        (seed.asyncExchange === null ? undefined : eservice.asyncExchange)
     )
     .exhaustive();
 
   const updatedEService: EService = {
-    ...eservice.data,
-    description: description ?? eservice.data.description,
-    name: name ?? eservice.data.name,
+    ...eservice,
+    description: description ?? eservice.description,
+    name: name ?? eservice.name,
     technology: updatedTechnology,
     mode: updatedMode,
     riskAnalysis: checkedRiskAnalysis,
     descriptors: interfaceHasToBeDeleted
-      ? eservice.data.descriptors.map((d) => ({
+      ? eservice.descriptors.map((d) => ({
           ...d,
           interface: undefined,
           asyncExchangeCallbackInterface: undefined,
           serverUrls: [],
           serverUrlsDescriptions: [],
         }))
-      : eservice.data.descriptors,
+      : eservice.descriptors,
     isSignalHubEnabled: updatedIsSignalHubEnabled,
     isConsumerDelegable: updatedIsConsumerDelegable,
     isClientAccessDelegable: match(updatedIsConsumerDelegable)
@@ -6166,19 +6345,10 @@ async function updateDraftEService(
     updatedEService.asyncExchange === true &&
     updatedEService.mode === eserviceMode.receive
   ) {
-    throw asyncExchangeNotAllowedForReceiveMode(eserviceId);
+    throw asyncExchangeNotAllowedForReceiveMode(eservice.id);
   }
 
-  const event = await repository.createEvent(
-    toCreateEventEServiceUpdated(
-      eserviceId,
-      eservice.metadata.version,
-      updatedEService,
-      correlationId
-    )
-  );
-
-  return { data: updatedEService, metadata: { version: event.newVersion } };
+  return updatedEService;
 }
 
 async function updateDraftDescriptor(

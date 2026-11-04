@@ -272,39 +272,9 @@ const keywordRelevance = (keyword: string): SQL => {
   return sql`(${fullTextRank} + 0.5 * ${fuzzySimilarity})`;
 };
 
-const producersFilter = (
-  tx: DrizzleTransactionType,
-  producersIds: TenantId[]
-): SQL | undefined =>
+const producersFilter = (producersIds: TenantId[]): SQL | undefined =>
   producersIds.length > 0
-    ? or(
-        inArray(eserviceInReadmodelCatalog.producerId, producersIds),
-        exists(
-          tx
-            .select()
-            .from(delegationInReadmodelDelegation)
-            .where(
-              and(
-                eq(
-                  delegationInReadmodelDelegation.eserviceId,
-                  eserviceInReadmodelCatalog.id
-                ),
-                inArray(
-                  delegationInReadmodelDelegation.delegateId,
-                  producersIds
-                ),
-                eq(
-                  delegationInReadmodelDelegation.state,
-                  delegationState.active
-                ),
-                eq(
-                  delegationInReadmodelDelegation.kind,
-                  delegationKind.delegatedProducer
-                )
-              )
-            )
-        )
-      )
+    ? inArray(eserviceInReadmodelCatalog.producerId, producersIds)
     : undefined;
 
 const newerActiveDescriptor = alias(
@@ -968,6 +938,7 @@ export function readModelServiceBuilderSQL(
         subscribedByRequester,
         requesterDelegationRoles,
         onlyTemplateInstances,
+        templateId,
         hasLinkedPurposeTemplates,
         producerCategories,
         availableForRequester,
@@ -981,7 +952,7 @@ export function readModelServiceBuilderSQL(
         const visibleEservicesFilter = existsCatalogVisibleDescriptor(tx);
 
         const filtersCondition = and(
-          producersFilter(tx, producersIds),
+          producersFilter(producersIds),
           onlyActiveEservicesFilter(tx, onlyActiveEservices),
           subscribedByRequesterFilter(
             tx,
@@ -994,6 +965,9 @@ export function readModelServiceBuilderSQL(
             requesterDelegationRoles
           ),
           onlyTemplateInstancesFilter(onlyTemplateInstances),
+          templateId
+            ? eq(eserviceInReadmodelCatalog.templateId, templateId)
+            : undefined,
           hasLinkedPurposeTemplatesFilter(tx, hasLinkedPurposeTemplates),
           producerCategoriesFilter(tx, producerCategories),
           availableForRequesterFilter(
