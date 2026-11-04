@@ -58,6 +58,8 @@ async function handleAuthorizationEventV2(
           type: P.union(
             "ClientAdded",
             "ClientDeleted",
+            "ClientNameUpdated",
+            "ClientDescriptionUpdated",
             "ClientPurposeAdded",
             "ClientPurposeRemoved"
           ),
@@ -204,12 +206,6 @@ async function handleAuthorizationEventV2(
             toProducerKeyM2MEventSQL(m2mEvent)
           );
         }
-      )
-      .with(
-        {
-          type: P.union("ClientNameUpdated", "ClientDescriptionUpdated"),
-        },
-        () => Promise.resolve(void 0)
       )
       .with(
         {
