@@ -6,32 +6,32 @@
   "description": "Generate and validate typed error messages from CSV",
   "type": "module",
   "scripts": {
-    "lint": "eslint . && pnpm validate",
+    "lint": "eslint . && pnpm validate-error-messages",
     "lint:autofix": "eslint . --fix",
-    "generate": "tsx scripts/generateErrorMessages.ts",
-    "validate": "tsx src/cli.ts",
-    "build": "pnpm generate && tsc",
-    "check": "pnpm generate && tsc --project tsconfig.check.json",
+    "generate-error-messages": "tsx cli/cli.ts generate",
+    "validate-error-messages": "tsx cli/cli.ts validate",
+    "build": "pnpm generate-error-messages && tsc",
+    "check": "pnpm generate-error-messages && tsc --project tsconfig.check.json",
     "test": "vitest"
   },
   "keywords": [],
   "devDependencies": {
     "@types/node": "catalog:",
-    "csv-stringify": "catalog:",
-    "eslint": "catalog:",
-    "pagopa-interop-eslint-config": "workspace:*",
-    "tsx": "catalog:",
-    "typescript": "catalog:",
-    "vitest": "catalog:"
-  },
-  "dependencies": {
     "@cspell/dict-it-it": "catalog:",
     "cspell-lib": "catalog:",
     "commander": "catalog:",
-    "csv-parse": "catalog:",
+    "csv": "catalog:",
     "pagopa-interop-commons": "workspace:*",
-    "pagopa-interop-models": "workspace:*",
+    "csv-stringify": "catalog:",
+    "eslint": "catalog:",
+    "pagopa-interop-eslint-config": "workspace:*",
     "ts-pattern": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
     "zod": "catalog:"
+  },
+  "dependencies": {
+    "pagopa-interop-models": "workspace:*"
   }
 }

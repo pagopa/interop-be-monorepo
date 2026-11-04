@@ -3,5 +3,5 @@
   "compilerOptions": {
     "noEmit": true,
   },
-  "include": ["src", "scripts", "test"]
+  "include": ["src", "cli", "test"]
 }

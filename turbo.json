@@ -54,6 +54,21 @@
         "src/generated/**"
       ]
     },
+    "generate-error-messages": {
+      "outputs": [
+        "src/generated/**"
+      ]
+    },
+    "validate-error-messages": {
+      "dependsOn": [
+        "generate-error-messages"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/packages/backend-for-frontend/src/routers/**"
+      ],
+      "outputs": []
+    },
     "check": {
       "dependsOn": [
         "generate-model",

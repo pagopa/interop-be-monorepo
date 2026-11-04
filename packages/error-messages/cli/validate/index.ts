@@ -17,16 +17,14 @@ export async function validate({
   csvPath: string;
   generatedPath: string;
 }) {
+  if (!existsSync(csvPath)) {
+    throw new Error(`${csvPath} not found`);
+  }
+  if (!existsSync(generatedPath)) {
+    throw new Error(`${generatedPath} not found`);
+  }
+  const errorMessages = await loadErrorMessages(generatedPath);
   const root = getRootPath();
-  const fullCsvPath = join(root, csvPath);
-  if (!existsSync(fullCsvPath)) {
-    throw new Error(`${fullCsvPath} not found`);
-  }
-  const fullGeneratedPath = join(root, generatedPath);
-  if (!existsSync(fullGeneratedPath)) {
-    throw new Error(`${fullGeneratedPath} not found`);
-  }
-  const errorMessages = await loadErrorMessages(fullGeneratedPath);
   const bffEndpoints = extractRouterEndpointsFromFolder(
     join(root, "packages", "backend-for-frontend", "src", "routers")
   );
@@ -53,13 +51,13 @@ export async function validate({
       `Possible spelling errors:\n${spellingErrors.join("\n")}\n\nIf you think it's a mistake, add it to packages/error-messages/src/utils/spellcheck.ts in allowedWords`
     );
   }
-  const generatedContent = readFileSync(fullGeneratedPath, {
+  const generatedContent = readFileSync(generatedPath, {
     encoding: "utf8",
   });
-  const regeneratedContent = generateErrorMessages(fullCsvPath);
+  const regeneratedContent = generateErrorMessages(csvPath);
   if (generatedContent !== regeneratedContent) {
     throw new Error(
-      `${fullGeneratedPath} does not match the content from ${fullCsvPath}, please regenerate it`
+      `${generatedPath} does not match the content from ${csvPath}, please regenerate it`
     );
   }
 }

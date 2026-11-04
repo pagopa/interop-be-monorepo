@@ -6,8 +6,8 @@ import { runInNewContext } from "node:vm";
 import ts from "typescript";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { readCsvErrorFile } from "../src/utils/csvReader.js";
-import { generateErrorMessages } from "../src/utils/generateErrorMessages.js";
+import { readCsvErrorFile } from "../cli/utils/csvReader.js";
+import { generateErrorMessages } from "../cli/utils/generateErrorMessages.js";
 
 describe("error message generation", () => {
   let directory: string;
