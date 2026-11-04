@@ -188,6 +188,7 @@ export const toCatalogItemEventNotification = (
       { type: "EServiceDescriptorArchivingRequestCanceledByDelegate" },
       { type: "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation" },
       { type: "MaintenanceEServiceDescriptorUnarchived" },
+      { type: "EServiceDescriptorRestoredToDraftByRevokedDelegation" },
       (e): CatalogDescriptorNotification => {
         const catalogItem = getCatalogItem(e);
         const catalogItemDescriptor = getCatalogItemDescriptor(
