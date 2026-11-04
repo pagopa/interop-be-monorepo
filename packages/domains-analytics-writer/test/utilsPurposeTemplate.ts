@@ -1,7 +1,7 @@
 import {
   getMockPurposeTemplate,
   getMockCompleteRiskAnalysisFormTemplate,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import { PurposeTemplate } from "pagopa-interop-models";
 
 export const getCompleteMockPurposeTemplate = (): PurposeTemplate => ({

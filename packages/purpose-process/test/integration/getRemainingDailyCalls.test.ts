@@ -79,6 +79,12 @@ describe("getRemainingDailyCalls", () => {
       consumerId,
       id: generateId(),
     };
+    const otherConsumerId: TenantId = generateId();
+    const otherConsumerAgreement: Agreement = {
+      ...getMockAgreement(eservice.id, otherConsumerId, agreementState.active),
+      descriptorId: descriptor.id,
+      producerId,
+    };
     const otherConsumerPurpose: Purpose = {
       ...getMockPurpose([
         {
@@ -87,13 +93,14 @@ describe("getRemainingDailyCalls", () => {
         },
       ]),
       eserviceId: eservice.id,
-      consumerId: generateId(),
+      consumerId: otherConsumerId,
       id: generateId(),
     };
 
     await addOneTenant({ ...getMockTenant(consumerId) });
     await addOneEService(eservice);
     await addOneAgreement(agreement);
+    await addOneAgreement(otherConsumerAgreement);
     await addOnePurpose(consumerPurpose);
     await addOnePurpose(anotherConsumerPurpose);
     await addOnePurpose(otherConsumerPurpose);
@@ -106,6 +113,79 @@ describe("getRemainingDailyCalls", () => {
     expect(result).toEqual({
       remainingDailyCallsPerConsumer: 50,
       remainingDailyCallsTotal: 850,
+    });
+  });
+
+  it("should not count the daily calls of consumers with an agreement on another descriptor", async () => {
+    const consumerId: TenantId = generateId();
+    const producerId: TenantId = generateId();
+    const eserviceId: EServiceId = generateId();
+
+    const descriptorV1 = {
+      ...getMockDescriptor(descriptorState.deprecated),
+      version: "1",
+      dailyCallsPerConsumer: 100,
+      dailyCallsTotal: 1000,
+    };
+    const descriptorV2 = {
+      ...getMockDescriptor(descriptorState.published),
+      version: "2",
+      dailyCallsPerConsumer: 500,
+      dailyCallsTotal: 5000,
+    };
+    const eservice: EService = getMockEService(eserviceId, producerId, [
+      descriptorV1,
+      descriptorV2,
+    ]);
+    const agreement: Agreement = {
+      ...getMockAgreement(eservice.id, consumerId, agreementState.active),
+      descriptorId: descriptorV1.id,
+      producerId,
+    };
+
+    const consumerPurpose: Purpose = {
+      ...getMockPurpose([
+        {
+          ...getMockPurposeVersion(purposeVersionState.active),
+          dailyCalls: 40,
+        },
+      ]),
+      eserviceId: eservice.id,
+      consumerId,
+    };
+    const otherConsumerId: TenantId = generateId();
+    const otherConsumerAgreement: Agreement = {
+      ...getMockAgreement(eservice.id, otherConsumerId, agreementState.active),
+      descriptorId: descriptorV2.id,
+      producerId,
+    };
+    const otherConsumerPurpose: Purpose = {
+      ...getMockPurpose([
+        {
+          ...getMockPurposeVersion(purposeVersionState.active),
+          dailyCalls: 300,
+        },
+      ]),
+      eserviceId: eservice.id,
+      consumerId: otherConsumerId,
+      id: generateId(),
+    };
+
+    await addOneTenant({ ...getMockTenant(consumerId) });
+    await addOneEService(eservice);
+    await addOneAgreement(agreement);
+    await addOneAgreement(otherConsumerAgreement);
+    await addOnePurpose(consumerPurpose);
+    await addOnePurpose(otherConsumerPurpose);
+
+    const result = await purposeService.getRemainingDailyCalls({
+      purposeId: consumerPurpose.id,
+      ctx: getMockContext({ authData: getMockAuthData(consumerId) }),
+    });
+
+    expect(result).toEqual({
+      remainingDailyCallsPerConsumer: 60,
+      remainingDailyCallsTotal: 960,
     });
   });
 

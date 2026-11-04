@@ -2,7 +2,7 @@ import {
   authorizationApi,
   WithMaybeMetadata,
 } from "pagopa-interop-api-clients";
-import { getMockProducerJWKKey } from "pagopa-interop-commons-test/index.js";
+import { getMockProducerJWKKey } from "pagopa-interop-commons-test";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 

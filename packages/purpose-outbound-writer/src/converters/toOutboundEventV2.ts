@@ -43,6 +43,7 @@ function toOutboundPurposeVersionV2(
       purposeVersion.stamps &&
       toOutboundPurposeVersionStampsV2(purposeVersion.stamps),
     signedContract: undefined,
+    waitingForApprovalReason: undefined,
   };
 }
 
@@ -54,7 +55,8 @@ function toOutboundPurposeV2(
     versions: purpose.versions.map(toOutboundPurposeVersionV2),
     riskAnalysisForm: undefined,
     purposeTemplateId: purpose.purposeTemplateId,
-    reviewerWorkflow: undefined, // TODO
+    riskAnalysisReviewMode: undefined,
+    reviewerWorkflow: undefined,
   };
 }
 
@@ -113,10 +115,12 @@ export function toOutboundEventV2(
       { type: "MaintenancePurposeRiskAnalysisSetTenantKind" },
       { type: "PurposeRiskAnalysisWorkflowCreated" },
       { type: "PurposeRiskAnalysisAssigned" },
+      { type: "PurposeRiskAnalysisSelfAssigned" },
       { type: "PurposeRiskAnalysisSubmitted" },
       { type: "PurposeRiskAnalysisSigned" },
       { type: "PurposeRiskAnalysisRejected" },
       { type: "PurposeRiskAnalysisFormEdited" },
+      { type: "MaintenancePurposeRiskAnalysisFixReviewerWorkflow" },
       () => undefined
     )
     .with({ type: "PurposeCloned" }, (msg) => ({
