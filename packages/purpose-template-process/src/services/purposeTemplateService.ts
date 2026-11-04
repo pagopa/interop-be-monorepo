@@ -1568,18 +1568,6 @@ export function purposeTemplateServiceBuilder(
       ctx.logger.info(
         `Partially updating PurposeTemplate ${purposeTemplateId}`
       );
-      if (
-        Object.values(purposeTemplateSeed).every((value) => value === undefined)
-      ) {
-        return await updateDraftPurposeTemplate(
-          purposeTemplateId,
-          { type: "patch", seed: purposeTemplateSeed },
-          readModelService,
-          fileManager,
-          repository,
-          ctx
-        );
-      }
 
       const purposeTemplate = await retrievePurposeTemplate(
         purposeTemplateId,
