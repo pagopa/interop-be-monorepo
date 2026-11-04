@@ -2776,12 +2776,12 @@ const performPatchUpdatePurpose = async (
   const { title, description, ...operationalSeed } =
     modeAndUpdateContent.updateContent;
 
-  const hasOperationalFields = Object.values(operationalSeed).some(
+  const seedIncludesOperationalFields = Object.values(operationalSeed).some(
     (value) => value !== undefined
   );
   const isDraft = purposeIsDraft(purpose.data);
 
-  if (hasOperationalFields && !isDraft) {
+  if (seedIncludesOperationalFields && !isDraft) {
     throw purposeNotInDraftState(purpose.data.id);
   }
   assertPurposeIsNotFromTemplate(purpose.data);
