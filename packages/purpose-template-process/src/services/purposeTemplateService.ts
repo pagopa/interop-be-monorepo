@@ -1599,13 +1599,13 @@ export function purposeTemplateServiceBuilder(
         ...operationalSeed
       } = purposeTemplateSeed;
 
-      const hasOperationalFields = Object.values(operationalSeed).some(
+      const seedIncludesOperationalFields = Object.values(operationalSeed).some(
         (value) => value !== undefined
       );
 
       const isDraft = isPurposeTemplateDraft(purposeTemplate.data.state);
 
-      if (hasOperationalFields && !isDraft) {
+      if (seedIncludesOperationalFields && !isDraft) {
         throw purposeTemplateNotInExpectedStates(
           purposeTemplate.data.id,
           purposeTemplate.data.state,
@@ -1613,7 +1613,7 @@ export function purposeTemplateServiceBuilder(
         );
       }
 
-      if (!hasOperationalFields) {
+      if (!seedIncludesOperationalFields) {
         await validatePurposeTemplateMetadata(
           purposeTemplate.data,
           purposeTemplateSeed,
@@ -1638,7 +1638,7 @@ export function purposeTemplateServiceBuilder(
       };
 
       if (isDraft) {
-        if (hasOperationalFields) {
+        if (seedIncludesOperationalFields) {
           updatedPurposeTemplate = await prepareDraftPurposeTemplateUpdate(
             purposeTemplate.data,
             { type: "patch", seed: purposeTemplateSeed },
