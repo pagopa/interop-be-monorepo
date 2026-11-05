@@ -6,7 +6,7 @@ import {
   scanContactIdsPastProtectionPeriod,
 } from "./contactScanner.js";
 
-export interface ContactDataCleanerResult {
+interface ContactDataCleanerResult {
   cutoff: Date;
   scannedContacts: number;
   scannedPages: number;
