@@ -7,12 +7,18 @@ import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockBffApiCompactTenant } from "../../mockUtils.js";
+import {
+  getMockBffApiCompactTenant,
+  getMockBffApiCompactTenantWithHierarchy,
+} from "../../mockUtils.js";
 import { api, services } from "../../vitest.api.setup.js";
 
 describe("API GET /tenants test", () => {
   const mockTenants: bffApi.Tenants = {
-    results: [getMockBffApiCompactTenant(), getMockBffApiCompactTenant()],
+    results: [
+      getMockBffApiCompactTenant(),
+      getMockBffApiCompactTenantWithHierarchy(),
+    ],
     pagination: { offset: 0, limit: 10, totalCount: 20 },
   };
   const defaultQuery = {

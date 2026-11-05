@@ -909,6 +909,16 @@ export const getMockBffApiCompactTenant = (): bffApi.CompactTenant => ({
   logoUrl: generateMock(z.string().optional()),
 });
 
+export const getMockBffApiCompactTenantWithHierarchy =
+  (): bffApi.CompactTenant => ({
+    ...getMockBffApiCompactTenant(),
+    subUnitType: "UO",
+    parentTenants: [
+      { id: generateId(), name: "Tenant AOO", subUnitType: "AOO" },
+      { id: generateId(), name: "Tenant root" },
+    ],
+  });
+
 export const getMockBffApiVerifiedAttributesResponse =
   (): bffApi.VerifiedAttributesResponse => ({
     attributes: generateMock(

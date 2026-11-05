@@ -274,6 +274,16 @@ export function toBffApiTenant(
   };
 }
 
+function toBffApiParentTenants(
+  parentTenants: tenantApi.ParentTenant[] | undefined
+): bffApi.ParentTenant[] | undefined {
+  return parentTenants?.map(({ id, name, subUnitType }) => ({
+    id,
+    name,
+    subUnitType,
+  }));
+}
+
 export async function toBffApiCompactTenant(
   tenant: tenantApi.Tenant,
   getLogoUrl: (
@@ -283,6 +293,8 @@ export async function toBffApiCompactTenant(
   return {
     id: tenant.id,
     name: tenant.name,
+    subUnitType: tenant.subUnitType,
+    parentTenants: toBffApiParentTenants(tenant.parentTenants),
     selfcareId: tenant.selfcareId,
     logoUrl: await getLogoUrl(tenant.selfcareId),
   };
