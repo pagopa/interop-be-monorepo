@@ -14,7 +14,14 @@ describe("API GET /producers test", () => {
   const mockProducers: bffApi.CompactOrganizations = {
     results: [
       getMockBffApiCompactOrganization(),
-      getMockBffApiCompactOrganization(),
+      {
+        ...getMockBffApiCompactOrganization(),
+        subUnitType: "UO",
+        parentTenants: [
+          { id: generateId(), name: "Tenant AOO", subUnitType: "AOO" },
+          { id: generateId(), name: "Tenant root" },
+        ],
+      },
     ],
     pagination: { offset: 0, limit: 10, totalCount: 20 },
   };

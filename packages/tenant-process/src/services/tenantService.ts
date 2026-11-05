@@ -2193,7 +2193,7 @@ export function tenantServiceBuilder(
         limit: number;
       },
       { logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<ListResult<Tenant>> {
+    ): Promise<ListResult<Tenant & TenantHierarchy>> {
       logger.info(
         `Retrieving Producers with name = ${producerName}, limit = ${limit}, offset = ${offset}`
       );
