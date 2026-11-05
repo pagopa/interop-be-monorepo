@@ -13815,7 +13815,7 @@ paths:
             maximum: 50
         - in: query
           name: q
-          description: Query to filter consumers by name
+          description: Query to filter e-services by name
           schema:
             type: string
         - in: query
