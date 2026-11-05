@@ -30,6 +30,18 @@ const PurposeProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
         riskAnalysisDocumentsPath: c.RISK_ANALYSIS_DOCUMENTS_PATH,
       }))
   )
+  .and(
+    z
+      .object({
+        PRODUCER_DASHBOARD_NEAR_THRESHOLD_PERCENTAGE: z.coerce
+          .number()
+          .default(80),
+      })
+      .transform((c) => ({
+        producerDashboardNearThresholdPercentage:
+          c.PRODUCER_DASHBOARD_NEAR_THRESHOLD_PERCENTAGE,
+      }))
+  )
   .and(ApplicationAuditProducerConfig)
   .and(FeatureFlagNewOperatorsConfig)
   .and(FeatureFlagAttributeCertifiedDiscreteConfig)
