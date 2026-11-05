@@ -55,6 +55,7 @@ import {
   TenantId,
   TenantKind,
   WithMetadata,
+  DescriptorId,
   eserviceMode,
   generateId,
   purposeEventToBinaryData,
@@ -71,6 +72,7 @@ import type { RiskAnalysisReviewAssignment } from "./workflowReviewerProcessor.j
 import { config } from "../config/config.js";
 import {
   agreementNotFound,
+  descriptorNotFound,
   eserviceNotFound,
   eserviceRiskAnalysisNotFound,
   missingRiskAnalysis,
@@ -2605,6 +2607,58 @@ export function purposeServiceBuilder(
       return {
         remainingDailyCallsPerConsumer,
         remainingDailyCallsTotal,
+      };
+    },
+    async getProducerEServiceMonitoringPurposes(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { authData, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<purposeApi.ProducerEServiceMonitoringPurposes> {
+      logger.info(
+        `Retrieving purposes monitoring for e-service ${eserviceId} and descriptor ${descriptorId}`
+      );
+
+      assertFeatureFlagEnabled(config, "featureFlagProducerDashboard");
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertRequesterCanActAsProducer(
+        eservice,
+        authData,
+        await readModelService.getActiveProducerDelegationByEserviceId(
+          eserviceId
+        )
+      );
+
+      const descriptor = eservice.descriptors.find(
+        (d) => d.id === descriptorId
+      );
+      if (!descriptor) {
+        throw descriptorNotFound(eserviceId, descriptorId);
+      }
+
+      const [approvedDailyCalls, waitingCounts] = await Promise.all([
+        readModelService.getDescriptorActiveDailyCalls(
+          eserviceId,
+          descriptorId
+        ),
+        readModelService.getWaitingForApprovalPurposesCounts(
+          eserviceId,
+          descriptorId
+        ),
+      ]);
+
+      return {
+        approvedDailyCalls,
+        dailyCallsTotal: descriptor.dailyCallsTotal,
+        percentage:
+          descriptor.dailyCallsTotal > 0
+            ? Math.round(
+                (approvedDailyCalls / descriptor.dailyCallsTotal) * 100
+              )
+            : 0,
+        waitingForApprovalNewPurposes: waitingCounts.newPurposes,
+        waitingForApprovalQuotaChanges: waitingCounts.quotaChanges,
       };
     },
   };
