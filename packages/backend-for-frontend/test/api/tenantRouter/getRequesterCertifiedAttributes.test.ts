@@ -7,14 +7,17 @@ import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockBffApiRequesterCertifiedAttribute } from "../../mockUtils.js";
+import {
+  getMockBffApiRequesterCertifiedAttribute,
+  getMockBffApiRequesterCertifiedAttributeWithHierarchy,
+} from "../../mockUtils.js";
 import { api, services } from "../../vitest.api.setup.js";
 
 describe("API GET /tenants/attributes/certified test", () => {
   const mockAttributes: bffApi.RequesterCertifiedAttributes = {
     results: [
       getMockBffApiRequesterCertifiedAttribute(),
-      getMockBffApiRequesterCertifiedAttribute(),
+      getMockBffApiRequesterCertifiedAttributeWithHierarchy(),
     ],
     pagination: { offset: 0, limit: 10, totalCount: 20 },
   };

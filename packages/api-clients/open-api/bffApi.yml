@@ -17220,6 +17220,14 @@ components:
           format: uuid
         tenantName:
           type: string
+        tenantSubUnitType:
+          $ref: "#/components/schemas/TenantUnitType"
+        parentTenants:
+          type: array
+          maxItems: 2
+          description: Parent tenants, from the immediate parent up to the root, when available. Omitted when none are resolved.
+          items:
+            $ref: "#/components/schemas/ParentTenant"
         attributeId:
           type: string
           format: uuid

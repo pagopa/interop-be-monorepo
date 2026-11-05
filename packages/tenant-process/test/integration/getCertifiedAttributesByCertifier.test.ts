@@ -32,7 +32,23 @@ describe("getCertifiedAttributesByCertifier", () => {
       ...getMockTenant(),
       features: [{ type: "PersistentCertifier" as const, certifierId }],
     };
-    const tenant: Tenant = getMockTenant();
+    const rootTenant: Tenant = {
+      ...getMockTenant(),
+      name: "Tenant root",
+    };
+    const parentTenant: Tenant = {
+      ...getMockTenant(),
+      name: "Tenant AOO",
+      subUnitType: "AOO",
+      rootTenantId: rootTenant.id,
+    };
+    const tenant: Tenant = {
+      ...getMockTenant(),
+      name: "Tenant UO",
+      subUnitType: "UO",
+      parentTenantId: parentTenant.id,
+      rootTenantId: rootTenant.id,
+    };
 
     const tenantCertifiedAttribute: TenantAttribute = {
       ...getMockCertifiedTenantAttribute(),
@@ -56,6 +72,8 @@ describe("getCertifiedAttributesByCertifier", () => {
     await addOneAttribute(certifiedAttribute);
     await addOneAttribute(certifiedDiscreteAttribute);
     await addOneTenant(tenantCertifier);
+    await addOneTenant(rootTenant);
+    await addOneTenant(parentTenant);
     await addOneTenant({
       ...tenant,
       attributes: [tenantCertifiedAttribute, tenantCertifiedDiscreteAttribute],
@@ -74,6 +92,15 @@ describe("getCertifiedAttributesByCertifier", () => {
           id: tenant.id,
           kind: "CERTIFIED",
           name: tenant.name,
+          subUnitType: "UO",
+          parentTenants: [
+            {
+              id: parentTenant.id,
+              name: parentTenant.name,
+              subUnitType: "AOO",
+            },
+            { id: rootTenant.id, name: rootTenant.name },
+          ],
         },
         {
           attributeId: certifiedDiscreteAttribute.id,
@@ -82,6 +109,15 @@ describe("getCertifiedAttributesByCertifier", () => {
           kind: "CERTIFIED_DISCRETE",
           name: tenant.name,
           discreteValue: tenantCertifiedDiscreteAttribute.discreteValue,
+          subUnitType: "UO",
+          parentTenants: [
+            {
+              id: parentTenant.id,
+              name: parentTenant.name,
+              subUnitType: "AOO",
+            },
+            { id: rootTenant.id, name: rootTenant.name },
+          ],
         },
       ]),
       totalCount: 2,
