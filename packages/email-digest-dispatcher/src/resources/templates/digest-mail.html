@@ -1408,22 +1408,27 @@
                                           </div>
                                         {{/if}} 
                                         {{#if
-                                        revokedReceivedDelegations.totalCount}}
+                                        waitingForApprovalReceivedDelegations.totalCount}}
                                           <p class="body-text-no-margin">
                                             <strong>
-                                              {{#if revokedReceivedDelegationsSingular}}
+                                              {{#if waitingForApprovalReceivedDelegationsSingular}}
                                               Hai ricevuto una richiesta
                                               {{else}}
-                                              Hai ricevuto {{ revokedReceivedDelegations.totalCount
+                                              Hai ricevuto {{ waitingForApprovalReceivedDelegations.totalCount
                                               }} richieste
                                               {{/if}}
-                                              di delega:
+                                              di delega
                                             </strong>
+                                            {{#if waitingForApprovalReceivedDelegationsExceededItemsCount }}
+                                            , tra cui:
+                                            {{else}}
+                                              :
+                                            {{/if}}
                                           </p>
                                           <div class="section-cell">
                                             <ul class="list-items">
                                               {{#each
-                                              revokedReceivedDelegations.items}}
+                                              waitingForApprovalReceivedDelegations.items}}
                                               <ul class="list-item">
                                                 <a
                                                   href="{{ link }}"
@@ -1431,14 +1436,14 @@
                                                   >{{ name }}</a
                                                 >
                                                 <span class="list-item-secondary"
-                                                  >delegato all'erogazione da {{ producerName }}</span
+                                                  >delegato all'{{delegationKind}} da {{producerName}}</span
                                                 >
                                               </ul>
                                               {{/each}}
-                                              {{#if revokedReceivedDelegationsExceededItemsCount }}
+                                              {{#if waitingForApprovalReceivedDelegationsExceededItemsCount }}
                                               <ul class="list-item">
                                                 E altre
-                                                <strong>{{ revokedReceivedDelegationsExceededItemsCount }}</strong>.
+                                                <strong>{{ waitingForApprovalReceivedDelegationsExceededItemsCount }}</strong>.
                                               </ul>
                                               {{/if}}
                                             </ul>

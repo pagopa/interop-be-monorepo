@@ -82,7 +82,7 @@ function generateReceivedDelegations(
     { length: itemsNumber > LISTS_LIMIT ? LISTS_LIMIT : itemsNumber },
     (_, index) => ({
       name: `${sectionLabel} ${index + 1}`,
-      producerName: `${sectionLabel} - Ente Richiedente ${index + 1}`,
+      producerName: `Ente Richiedente ${index + 1}`,
       link: `https://example.com/delegation/${index + 1}`,
       delegationKind: (index % 2 === 0 ? "erogazione" : "fruizione") as
         | "erogazione"
