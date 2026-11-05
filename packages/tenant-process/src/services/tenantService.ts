@@ -2230,7 +2230,7 @@ export function tenantServiceBuilder(
       logger.info(
         `Retrieving Tenants with name = ${query.name}, features = ${query.features}, externalIdOrigin = ${query.externalIdOrigin}, externalIdValue = ${query.externalIdValue}, limit = ${query.limit}, offset = ${query.offset}`
       );
-      return readModelService.getTenants({ ...query, includeHierarchy: true });
+      return readModelService.getTenants(query);
     },
     async getTenantById(
       id: TenantId,
