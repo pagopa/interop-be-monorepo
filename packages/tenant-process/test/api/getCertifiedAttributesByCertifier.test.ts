@@ -55,6 +55,15 @@ describe("API GET /tenants/attributes/certified test", () => {
         id: tenant.id,
         name: tenant.name,
         kind: "CERTIFIED" as const,
+        subUnitType: "UO" as const,
+        parentTenants: [
+          {
+            id: generateId(),
+            name: "Tenant AOO",
+            subUnitType: "AOO" as const,
+          },
+          { id: generateId(), name: "Tenant root" },
+        ],
       },
       {
         attributeId: certifiedAttribute2.id,

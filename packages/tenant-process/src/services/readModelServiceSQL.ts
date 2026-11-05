@@ -534,10 +534,12 @@ export function readModelServiceBuilderSQL(
       limit: number;
     }): Promise<ListResult<tenantApi.CertifiedAttribute>> {
       const res = await readModelDB
-        .select(
-          withTotalCount({
+        .select({
+          ...withTotalCount({
+            tenantId: tenantInReadmodelTenant.id,
             id: tenantInReadmodelTenant.id,
             name: tenantInReadmodelTenant.name,
+            subUnitType: tenantInReadmodelTenant.subUnitType,
             attributeId: attributeInReadmodelAttribute.id,
             attributeName: attributeInReadmodelAttribute.name,
             kind: sql<tenantApi.CertifiedAttributeKind>`CASE
@@ -547,8 +549,9 @@ export function readModelServiceBuilderSQL(
             END`.as("kind"),
             discreteValue:
               tenantCertifiedDiscreteAttributeInReadmodelTenant.discreteValue,
-          })
-        )
+          }),
+          ...tenantHierarchySelection,
+        })
         .from(attributeInReadmodelAttribute)
         .leftJoin(
           tenantCertifiedAttributeInReadmodelTenant,
@@ -592,6 +595,14 @@ export function readModelServiceBuilderSQL(
             )
           )
         )
+        .leftJoin(
+          parentTenantTable,
+          eq(tenantInReadmodelTenant.parentTenantId, parentTenantTable.id)
+        )
+        .leftJoin(
+          rootTenantTable,
+          eq(tenantInReadmodelTenant.rootTenantId, rootTenantTable.id)
+        )
         .where(
           and(
             eq(attributeInReadmodelAttribute.origin, certifierId),
@@ -608,10 +619,15 @@ export function readModelServiceBuilderSQL(
         .limit(limit)
         .offset(offset);
 
+      const hierarchyByTenantId = getHierarchyByTenantId(res);
       return createListResult(
         res.map((row) => ({
           id: row.id,
           name: row.name,
+          subUnitType: row.subUnitType
+            ? tenantApi.TenantUnitType.parse(row.subUnitType)
+            : undefined,
+          parentTenants: hierarchyByTenantId.get(row.tenantId),
           attributeId: row.attributeId,
           attributeName: row.attributeName,
           kind: row.kind,
