@@ -116,7 +116,7 @@ describe("applyErrorCopy", () => {
       {
         process: "Tenant Process",
         error: "expirationDateCannotBeInThePast",
-        errorCode: null,
+        errorCode: "",
         bffEndpoint: "GET /tenant/:tenantId",
         copy: {
           it: "",
