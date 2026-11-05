@@ -1,0 +1,26 @@
+meta {
+  name: Get producer dashboard saturation
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{host-bff}}/producers/dashboard/saturation
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+  ~q: 
+  ~sortBy: PERCENTAGE_DESC
+}
+
+headers {
+  Authorization: {{JWT}}
+}
+
+docs {
+  Retrieves the list of daily calls saturation of the producer e-services and the overall summary
+}

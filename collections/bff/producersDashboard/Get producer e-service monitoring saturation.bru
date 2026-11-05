@@ -1,0 +1,31 @@
+meta {
+  name: Get producer e-service monitoring saturation
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{host-bff}}/producers/eservices/:eserviceId/descriptors/:descriptorId/monitoring/saturation
+  body: none
+  auth: none
+}
+
+params:path {
+  eserviceId: 3a6f0b1e-7c2d-4a39-9f55-1f5d2e6c8a10
+  descriptorId: 9b1c4d2e-5a7f-4c63-8e21-0d4b7a9c3f52
+}
+
+params:query {
+  offset: 0
+  limit: 10
+  ~q: 
+  ~sortBy: PERCENTAGE_DESC
+}
+
+headers {
+  Authorization: {{JWT}}
+}
+
+docs {
+  Retrieves summary and details of the daily calls saturation per consumer of the given descriptor
+}

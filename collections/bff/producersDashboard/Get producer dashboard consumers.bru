@@ -1,0 +1,26 @@
+meta {
+  name: Get producer dashboard consumers
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{host-bff}}/producers/dashboard/consumers
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+  ~q: 
+  ~sortBy: NAME_ASC
+}
+
+headers {
+  Authorization: {{JWT}}
+}
+
+docs {
+  Retrieves the overall total of consumers and the detailed list by comsumer.
+}

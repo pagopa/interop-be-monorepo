@@ -1,0 +1,19 @@
+meta {
+  name: Get producer dashboard
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/producers/dashboard
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT}}
+}
+
+docs {
+  Retrieves the aggregated producer dashboard data
+}
