@@ -1374,6 +1374,21 @@ components:
       enum:
         - AOO
         - UO
+    ParentTenant:
+      type: object
+      additionalProperties: false
+      description: Parent tenant in the organizational hierarchy.
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        subUnitType:
+          $ref: "#/components/schemas/TenantUnitType"
+      required:
+        - id
+        - name
     Tenant:
       description: Tenant model
       type: object
@@ -1413,6 +1428,12 @@ components:
           format: date-time
         subUnitType:
           $ref: "#/components/schemas/TenantUnitType"
+        parentTenants:
+          type: array
+          maxItems: 2
+          description: Optional. Parent tenants are ordered from the immediate parent up to the root. Omitted when none are resolved.
+          items:
+            $ref: "#/components/schemas/ParentTenant"
         remoteIds:
           type: array
           items:

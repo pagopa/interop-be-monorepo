@@ -17458,6 +17458,14 @@ components:
           type: string
         logoUrl:
           type: string
+        subUnitType:
+          $ref: "#/components/schemas/TenantUnitType"
+        parentTenants:
+          type: array
+          maxItems: 2
+          description: Parent tenants, from the immediate parent up to the root, when available. Omitted when none are resolved.
+          items:
+            $ref: "#/components/schemas/ParentTenant"
       required:
         - id
         - name
@@ -17512,6 +17520,21 @@ components:
       enum:
         - AOO
         - UO
+    ParentTenant:
+      type: object
+      additionalProperties: false
+      description: Parent tenant in the organizational hierarchy.
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        subUnitType:
+          $ref: "#/components/schemas/TenantUnitType"
+      required:
+        - id
+        - name
     TenantAttributes:
       type: object
       additionalProperties: false
