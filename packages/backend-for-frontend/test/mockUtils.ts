@@ -1003,6 +1003,16 @@ export const getMockBffApiCompactOrganization =
     contactMail: generateMock(bffApi.Mail.optional()),
   });
 
+export const getMockBffApiCompactOrganizationWithHierarchy =
+  (): bffApi.CompactOrganization => ({
+    ...getMockBffApiCompactOrganization(),
+    subUnitType: "UO",
+    parentTenants: [
+      { id: generateId(), name: "Tenant AOO", subUnitType: "AOO" },
+      { id: generateId(), name: "Tenant root" },
+    ],
+  });
+
 export const getMockBffApiUpdateEServiceTemplateVersionDocumentSeed =
   (): bffApi.UpdateEServiceTemplateVersionDocumentSeed => ({
     prettyName: generateMock(z.string().min(5).max(60)),

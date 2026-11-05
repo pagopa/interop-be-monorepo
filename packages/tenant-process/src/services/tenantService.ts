@@ -2210,7 +2210,7 @@ export function tenantServiceBuilder(
         limit: number;
       },
       { logger, authData }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<ListResult<Tenant>> {
+    ): Promise<ListResult<Tenant & TenantHierarchy>> {
       logger.info(
         `Retrieving Consumers with name = ${consumerName}, limit = ${limit}, offset = ${offset}`
       );

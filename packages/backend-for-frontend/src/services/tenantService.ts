@@ -185,7 +185,12 @@ export function tenantServiceBuilder(
         });
 
       return {
-        results: results.map((t) => ({ id: t.id, name: t.name })),
+        results: results.map((t) => ({
+          id: t.id,
+          name: t.name,
+          subUnitType: t.subUnitType,
+          parentTenants: toBffApiParentTenants(t.parentTenants),
+        })),
         pagination: {
           offset,
           limit,
