@@ -48,7 +48,7 @@ export async function validate({
   }
   if (spellingErrors.length > 0) {
     throw new Error(
-      `Possible spelling errors:\n${spellingErrors.join("\n")}\n\nIf you think it's a mistake, add it to packages/error-messages/src/utils/spellcheck.ts in allowedWords`
+      `Possible spelling errors:\n${spellingErrors.join("\n")}\n\nIf you think it's a mistake, add it to packages/error-messages/cli/utils/spellcheck.ts in allowedWords`
     );
   }
   const generatedContent = readFileSync(generatedPath, {
