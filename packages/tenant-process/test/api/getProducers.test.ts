@@ -7,12 +7,18 @@ import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { toApiTenant } from "../../src/model/domain/apiConverter.js";
+import { TenantHierarchy } from "../../src/model/domain/models.js";
 import { api, tenantService } from "../vitest.api.setup.js";
 
 describe("API GET /producers test", () => {
-  const tenant1: Tenant = {
+  const tenant1: Tenant & TenantHierarchy = {
     ...getMockTenant(),
     name: "Tenant 1",
+    subUnitType: "UO",
+    parentTenants: [
+      { id: generateId(), name: "Tenant AOO", subUnitType: "AOO" },
+      { id: generateId(), name: "Tenant root" },
+    ],
   };
   const tenant2: Tenant = {
     ...getMockTenant(),
