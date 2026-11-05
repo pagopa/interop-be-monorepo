@@ -37,6 +37,7 @@ import eserviceTemplateRouter from "./routers/eserviceTemplateRouter.js";
 import inAppNotificationRouter from "./routers/inAppNotificationRouter.js";
 import notificationConfigRouter from "./routers/notificationConfigRouter.js";
 import privacyNoticeRouter from "./routers/privacyNoticeRouter.js";
+import producerDashboardRouter from "./routers/producerDashboardRouter.js";
 import producerDelegationRouter from "./routers/producerDelegationRouter.js";
 import producerKeychainRouter from "./routers/producerKeychainRouter.js";
 import purposeRouter from "./routers/purposeRouter.js";
@@ -277,6 +278,7 @@ export async function createApp(
     notificationConfigRouter(zodiosCtx, services.notificationConfigService),
     inAppNotificationRouter(zodiosCtx, services.inAppNotificationService),
     privacyNoticeRouter(zodiosCtx, services.privacyNoticeService),
+    producerDashboardRouter(zodiosCtx, services.catalogService),
     producerDelegationRouter(zodiosCtx, services.delegationService),
     producerKeychainRouter(zodiosCtx, services.producerKeychainService),
     purposeRouter(zodiosCtx, services.purposeService),
