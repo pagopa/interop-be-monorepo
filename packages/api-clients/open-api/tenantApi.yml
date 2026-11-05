@@ -1431,7 +1431,7 @@ components:
         parentTenants:
           type: array
           maxItems: 2
-          description: Optional. Parent tenants are ordered from the immediate parent up to the root. Omitted when none are resolved.
+          description: Parent tenants, from the immediate parent up to the root, when available. Omitted when none are resolved.
           items:
             $ref: "#/components/schemas/ParentTenant"
         remoteIds:
