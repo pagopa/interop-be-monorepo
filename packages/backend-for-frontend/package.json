@@ -53,6 +53,7 @@
     "pagopa-interop-dpop-validation": "workspace:*",
     "pagopa-interop-error-messages": "workspace:*",
     "pagopa-interop-models": "workspace:*",
+    "pagopa-interop-error-messages": "workspace:*",
     "swagger-ui-express": "catalog:",
     "ts-pattern": "catalog:",
     "xml-crypto": "catalog:",

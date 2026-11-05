@@ -907,7 +907,7 @@ export function invalidDocumentDetected(
 export type ErrorMessage = {
   readonly process: string;
   readonly error: string;
-  readonly errorCode: string | null;
+  readonly errorCode: string;
   readonly bffEndpoint: string;
   readonly copy: {
     readonly it: string;

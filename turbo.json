@@ -36,7 +36,7 @@
         "dist/**"
       ]
     },
-    "error-messages#build": {
+    "pagopa-interop-error-messages#build": {
       "dependsOn": [
         "^build"
       ],
@@ -45,7 +45,7 @@
         "src/generated/**"
       ]
     },
-    "error-messages#check": {
+    "pagopa-interop-error-messages#check": {
       "dependsOn": [
         "^build",
         "^check"
@@ -55,6 +55,9 @@
       ]
     },
     "generate-error-messages": {
+      "dependsOn": [
+        "^build"
+      ],
       "outputs": [
         "src/generated/**"
       ]
@@ -123,7 +126,7 @@
         ".eslintcache"
       ]
     },
-    "error-messages#lint": {
+    "pagopa-interop-error-messages#lint": {
       "dependsOn": [
         "build",
         "^lint"
