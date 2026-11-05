@@ -167,6 +167,42 @@ export function readModelServiceBuilderSQL(
       return await tenantReadModelService.getTenantById(id);
     },
 
+    async getTenantByIdWithHierarchy(
+      id: TenantId
+    ): Promise<WithMetadata<Tenant & TenantHierarchy> | undefined> {
+      return await readModelDB.transaction(async (tx) => {
+        const tenant = await tenantReadModelService.getTenantById(id, tx);
+        if (!tenant) {
+          return undefined;
+        }
+
+        const hierarchyRows = await tx
+          .select({
+            tenantId: tenantInReadmodelTenant.id,
+            ...tenantHierarchySelection,
+          })
+          .from(tenantInReadmodelTenant)
+          .leftJoin(
+            parentTenantTable,
+            eq(tenantInReadmodelTenant.parentTenantId, parentTenantTable.id)
+          )
+          .leftJoin(
+            rootTenantTable,
+            eq(tenantInReadmodelTenant.rootTenantId, rootTenantTable.id)
+          )
+          .where(eq(tenantInReadmodelTenant.id, id));
+        const parentTenants = getHierarchyByTenantId(hierarchyRows).get(id);
+
+        return {
+          ...tenant,
+          data: {
+            ...tenant.data,
+            ...(parentTenants ? { parentTenants } : {}),
+          },
+        };
+      });
+    },
+
     async getTenantByName(
       name: string
     ): Promise<WithMetadata<Tenant> | undefined> {

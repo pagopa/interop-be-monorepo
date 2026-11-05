@@ -2241,9 +2241,13 @@ export function tenantServiceBuilder(
           UIAuthData | M2MAuthData | M2MAdminAuthData | InternalAuthData
         >
       >
-    ): Promise<WithMetadata<Tenant>> {
+    ): Promise<WithMetadata<Tenant & TenantHierarchy>> {
       logger.info(`Retrieving tenant ${id}`);
-      return await retrieveTenant(id, readModelService);
+      const tenant = await readModelService.getTenantByIdWithHierarchy(id);
+      if (!tenant) {
+        throw tenantNotFound(id);
+      }
+      return tenant;
     },
     async getTenantByExternalId(
       externalId: ExternalId,
