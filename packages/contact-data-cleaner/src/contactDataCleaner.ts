@@ -10,7 +10,7 @@ import {
 } from "./contactScanner.js";
 import { describeError } from "./utilities/errors.js";
 
-interface ContactDataCleanerResult {
+export interface ContactDataCleanerResult {
   cutoff: Date;
   scannedContacts: number;
   verifiedContacts: number;
