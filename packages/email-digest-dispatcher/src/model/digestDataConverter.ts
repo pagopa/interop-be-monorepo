@@ -20,6 +20,7 @@ import {
   ArchivingProducerDigest,
   AttributeDigest,
   BaseDigest,
+  DelegationArchivingRequestDigest,
   DelegatedEserviceDigest,
   DelegationDigest,
   ReceivedPurposeDigest,
@@ -42,6 +43,7 @@ import {
   ReceivedDelegation,
   WaitingForApprovalDelegatedDescriptor,
   ArchivingEservice,
+  DelegatedArchivingRequest,
 } from "../services/readModelService.js";
 
 // Module-level cache for descriptor IDs to avoid repeated readModelService calls
@@ -642,6 +644,49 @@ export async function waitingForApprovalDelegatedEservicesToDigest(
       link: buildEserviceLink(item.eserviceId, item.descriptorId, selfcareId),
       id: item.eserviceId,
       producerName: item.delegatedTenantName,
+    })),
+    totalCount: data[0].totalCount,
+  };
+}
+
+/**
+ * Archiving delegation request digest data structure.
+ * Contains the eservice name, descriptor version, request date, and total count.
+ * Used for both eservice and descriptor received delegation archiving requests.
+ *
+ * @param data - The list of received delegation archiving requests to transform into a digest.
+ * @param readModelService - Service for fetching tenant names and descriptor IDs
+ */
+export async function receivedDelegationArchivingRequestsToDigest(
+  data: DelegatedArchivingRequest[],
+  readModelService: ReadModelService
+): Promise<DelegationArchivingRequestDigest> {
+  if (data.length === 0) {
+    return { items: [], totalCount: 0 };
+  }
+
+  const enrichedItems = await enrichWithProducerNames(
+    data.map((item) => ({
+      ...item,
+      entityProducerId: item.tenantId,
+    })),
+    readModelService
+  );
+
+  return {
+    items: enrichedItems.map((request) => ({
+      eserviceId: request.eserviceId,
+      descriptorId: request.descriptorId,
+      descriptorVersion: request.descriptorVersion,
+      id: request.eserviceId, // Using eserviceId as the unique identifier for the digest item
+      name: request.eserviceName,
+      producerName: request.entityProducerName,
+      eserviceName: request.eserviceName,
+      link: buildEserviceLink(
+        request.eserviceId,
+        request.descriptorId ?? "",
+        null // No selfcareId needed for archiving requests
+      ),
     })),
     totalCount: data[0].totalCount,
   };

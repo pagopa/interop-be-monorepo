@@ -19,6 +19,7 @@ import {
   receivedDelegationsToDigest,
   waitingForApprovalDelegatedEservicesToDigest,
   archivingEservicesToDigest,
+  receivedDelegationArchivingRequestsToDigest,
 } from "../model/digestDataConverter.js";
 import {
   viewAllNewUpdatedEservicesLink,
@@ -85,6 +86,16 @@ export type ArchivingProducerDigest = {
   totalCount: number;
 };
 
+export type DelegationArchivingRequestDigest = BaseDigest & {
+  items: Array<{
+    eserviceName: string;
+    descriptorVersion: string | null;
+    eserviceId: string;
+    descriptorId: string | null;
+  }>;
+  totalCount: number;
+};
+
 export type TenantDigestData = {
   tenantId: TenantId;
   tenantName: string;
@@ -123,6 +134,9 @@ export type TenantDigestData = {
   archivingConsumerInProgressEservices?: ArchivingProducerDigest;
   archivingConsumerEserviceScopeCount?: number;
   archivingConsumerDescriptorScopeCount?: number;
+  archivingRequests?: DelegationArchivingRequestDigest;
+  approvedArchivingRequests?: DelegationArchivingRequestDigest;
+  rejectedArchivingRequests?: DelegationArchivingRequestDigest;
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -189,6 +203,9 @@ export function digestDataServiceBuilder(
         archivingConsumerInProgressEservices,
         archivingConsumerImminentEservices,
         archivingConsumerScopeCounts,
+        archivingRequests,
+        approvedArchivingRequests,
+        rejectedArchivingRequests,
       ] = await Promise.all([
         readModelService.getNewVersionEservices(tenantId),
         readModelService.getNewEserviceTemplates(tenantId),
@@ -209,6 +226,9 @@ export function digestDataServiceBuilder(
         readModelService.getConsumerArchivingInProgressEservices(tenantId), // tenantId as consumerId
         readModelService.getConsumerArchivingImminentEservices(tenantId), // tenantId as consumerId
         readModelService.getConsumerArchivingScopeCounts(tenantId), // tenantId as consumerId
+        readModelService.getReceivedDelegationArchivingRequests(tenantId),
+        readModelService.getApprovedDelegationArchivingRequests(tenantId),
+        readModelService.getRejectedDelegationArchivingRequests(tenantId),
       ]);
 
       const tenantData = tenantDataMap.get(tenantId);
@@ -347,6 +367,20 @@ export function digestDataServiceBuilder(
           archivingConsumerScopeCounts.eserviceScopeCount,
         archivingConsumerDescriptorScopeCount:
           archivingConsumerScopeCounts.descriptorScopeCount,
+        archivingRequests: await receivedDelegationArchivingRequestsToDigest(
+          archivingRequests,
+          readModelService
+        ),
+        approvedArchivingRequests:
+          await receivedDelegationArchivingRequestsToDigest(
+            approvedArchivingRequests,
+            readModelService
+          ),
+        rejectedArchivingRequests:
+          await receivedDelegationArchivingRequestsToDigest(
+            rejectedArchivingRequests,
+            readModelService
+          ),
       };
     },
 
@@ -371,7 +405,10 @@ export function digestDataServiceBuilder(
         data.archivingInProgressEservices?.totalCount ||
         data.archivingImminentEservices?.totalCount ||
         data.archivingConsumerInProgressEservices?.totalCount ||
-        data.archivingConsumerImminentEservices?.totalCount
+        data.archivingConsumerImminentEservices?.totalCount ||
+        data.archivingRequests?.totalCount ||
+        data.approvedArchivingRequests?.totalCount ||
+        data.rejectedArchivingRequests?.totalCount
       );
     },
   };
