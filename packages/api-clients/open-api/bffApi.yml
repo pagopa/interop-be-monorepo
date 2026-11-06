@@ -1427,6 +1427,45 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  "/catalog/featured":
+    get:
+      tags:
+        - eservices
+      summary: Retrieves the featured EServices of the catalog
+      description: Retrieves at most 12 EServices of the catalog. The most recent EService is first. The requester has the certified attributes that each EService requires. The requester has no active or suspended agreement for these EServices.
+      operationId: getFeaturedEServicesCatalog
+      responses:
+        "200":
+          description: A list of featured EServices
+          content:
+            application/json:
+              schema:
+                type: array
+                maxItems: 12
+                items:
+                  $ref: "#/components/schemas/CatalogEService"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   "/consumers/delegations/delegators":
     parameters:
       - in: query
