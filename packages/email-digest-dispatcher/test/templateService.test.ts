@@ -124,10 +124,7 @@ describe("Template Service", () => {
       ...getVisibleSections(["security"]),
       sentPurposes: false,
     };
-    const html = service.compileDigestEmail(
-      data,
-      visibility
-    );
+    const html = service.compileDigestEmail(data, visibility);
 
     expect(html).toContain("Analisi del rischio assegnate");
     expect(html).toContain("Sono state approvate 10 analisi del rischio");
