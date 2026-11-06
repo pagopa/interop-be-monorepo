@@ -1,0 +1,28 @@
+meta {
+  name: Update EService template instance
+  type: http
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/eserviceTemplates/eservices/:eserviceId
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{DPOP-JWT-M2M-ADMIN}}
+  DPoP: {{DPOP-PROOF}}
+}
+
+body:json {
+  {
+    "isSignalHubEnabled": true,
+    "isConsumerDelegable": true,
+    "isClientAccessDelegable": false,
+    "instanceLabel": "instance-01"
+  }
+}

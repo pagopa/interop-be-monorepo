@@ -1,0 +1,32 @@
+meta {
+  name: Create EService instance from template
+  type: http
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/eserviceTemplates/:templateId/eservices
+  body: json
+  auth: none
+}
+
+params:path {
+  templateId: {{eserviceTemplateId}}
+}
+
+headers {
+  Authorization: {{DPOP-JWT-M2M-ADMIN}}
+  DPoP: {{DPOP-PROOF}}
+}
+
+body:json {
+  {
+    "isSignalHubEnabled": false,
+    "isConsumerDelegable": false,
+    "isClientAccessDelegable": false,
+    "instanceLabel": "instance-01"
+  }
+}
+
+vars:post-response {
+  eserviceId: res.body.id
+}

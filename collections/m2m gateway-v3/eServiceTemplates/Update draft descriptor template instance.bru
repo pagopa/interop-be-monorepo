@@ -1,0 +1,31 @@
+meta {
+  name: Update draft descriptor template instance
+  type: http
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/eserviceTemplates/eservices/:eserviceId/descriptors/:descriptorId
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Authorization: {{DPOP-JWT-M2M-ADMIN}}
+  DPoP: {{DPOP-PROOF}}
+}
+
+body:json {
+  {
+    "audience": [
+      "string"
+    ],
+    "dailyCallsPerConsumer": 100,
+    "dailyCallsTotal": 1000,
+    "agreementApprovalPolicy": "AUTOMATIC"
+  }
+}

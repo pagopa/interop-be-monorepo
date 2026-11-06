@@ -5,6 +5,7 @@ import {
   generateToken,
   getMockDescriptor,
   getMockEService,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
@@ -46,9 +47,11 @@ describe("API /templates/eservices/{eServiceId}/descriptors/{descriptorId}/updat
       dailyCallsTotal: descriptor.dailyCallsTotal + 10,
     };
 
+  const serviceResponse = getMockWithMetadata(mockEService);
+
   catalogService.updateTemplateInstanceDescriptor = vi
     .fn()
-    .mockResolvedValue(mockEService);
+    .mockResolvedValue(serviceResponse);
 
   const makeRequest = async (
     token: string,
@@ -64,7 +67,11 @@ describe("API /templates/eservices/{eServiceId}/descriptors/{descriptorId}/updat
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
@@ -72,6 +79,9 @@ describe("API /templates/eservices/{eServiceId}/descriptors/{descriptorId}/updat
       const res = await makeRequest(token, mockEService.id, descriptor.id);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiEservice);
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
     }
   );
 
