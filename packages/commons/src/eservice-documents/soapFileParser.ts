@@ -1,137 +1,181 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { XMLBuilder, XMLParser } from "fast-xml-parser";
+import { Attr, Document, DOMParser, Element, Node } from "@xmldom/xmldom";
 import {
   buildingSoapFileError,
-  interfaceExtractingInfoError,
   interfaceExtractingSoapFiledError,
   parsingSoapFileError,
 } from "pagopa-interop-models";
-import { match, P } from "ts-pattern";
 
-import {
-  eserviceInterfaceAllowedFileType,
-  EserviceSoapInterfaceType,
-} from "./eserviceDocumentUtils.js";
+const wsdlNamespace = "http://schemas.xmlsoap.org/wsdl/";
+const soapNamespaces = new Set([
+  "http://schemas.xmlsoap.org/wsdl/soap/",
+  "http://schemas.xmlsoap.org/wsdl/soap12/",
+]);
 
-const extractAddress = (parsedXml: any): string[] => {
+const childElements = (node: Node): Element[] =>
+  Array.from(node.childNodes).filter(
+    (child): child is Element => child.nodeType === 1
+  );
+
+const wsdlChildren = (node: Node, name: string): Element[] =>
+  childElements(node).filter(
+    (child) => child.namespaceURI === wsdlNamespace && child.localName === name
+  );
+
+const isSoapElement = (element: Element, name: string): boolean =>
+  element.localName === name &&
+  element.namespaceURI !== null &&
+  soapNamespaces.has(element.namespaceURI);
+
+export const soapParse = (file: string): Document => {
   try {
-    const port = parsedXml["wsdl:definitions"]["wsdl:service"]["wsdl:port"];
-    return match(port)
-      .with(P.shape({ "soap:address": { location: P.string } }), (port) => [
-        port["soap:address"].location,
-      ])
-      .with(P.shape({ "soap12:address": { location: P.string } }), (port) => [
-        port["soap12:address"].location,
-      ])
-      .with(
-        P.array(
-          P.union(
-            P.shape({ "soap:address": { location: P.string } }),
-            P.shape({ "soap12:address": { location: P.string } })
-          )
-        ),
-        (port) =>
-          port.map((add) =>
-            "soap12:address" in add
-              ? add["soap12:address"].location
-              : add["soap:address"].location
-          )
-      )
-      .otherwise(() => {
-        throw interfaceExtractingSoapFiledError("soap:address");
-      });
-  } catch (e) {
-    throw interfaceExtractingSoapFiledError("soap:address");
-  }
-};
-
-const extractEndpoints = (parsedXml: any): string[] => {
-  try {
-    const binding = parsedXml["wsdl:definitions"]["wsdl:binding"];
-    const operation = Array.isArray(binding)
-      ? binding.flatMap((b) => b["wsdl:operation"])
-      : binding["wsdl:operation"];
-
-    return match(operation)
-      .with(
-        P.shape({ "soap:operation": { soapAction: P.string } }),
-        (operation) => [operation["soap:operation"].soapAction]
-      )
-      .with(
-        P.shape({ "soap12:operation": { soapAction: P.string } }),
-        (operation) => [operation["soap12:operation"].soapAction]
-      )
-      .with(
-        P.array(
-          P.union(
-            P.shape({ "soap:operation": { soapAction: P.string } }),
-            P.shape({ "soap12:operation": { soapAction: P.string } })
-          )
-        ),
-        (operations) =>
-          operations.map((o) =>
-            "soap12:operation" in o
-              ? o["soap12:operation"].soapAction
-              : o["soap:operation"].soapAction
-          )
-      )
-      .otherwise(() => {
-        throw interfaceExtractingSoapFiledError("soap:operation");
-      });
-  } catch (e) {
-    throw interfaceExtractingSoapFiledError("soap:operation");
-  }
-};
-
-export const soapParse = (file: string) => {
-  try {
-    return new XMLParser({
-      ignoreDeclaration: false,
-      removeNSPrefix: false,
-      attributeNamePrefix: "",
-      ignoreAttributes: false,
-      isArray: (name: string) =>
-        ["operation", "port", "binding"].indexOf(name) !== -1,
-    }).parse(file);
-  } catch (e) {
+    return new DOMParser({
+      locator: true,
+      onError: () => {
+        // Warnings can indicate parser recovery, which must not alter the selection.
+        throw parsingSoapFileError();
+      },
+    }).parseFromString(file.replace(/^\uFEFF/, ""), "application/xml");
+  } catch {
     throw parsingSoapFileError();
   }
 };
 
-export const retrieveServerUrlsSoapAPI = (file: string): string[] => {
-  const parsedXml = soapParse(file);
-  const address = extractAddress(parsedXml);
-  if (address.length === 0) {
-    throw interfaceExtractingInfoError();
-  }
-  const endpoints = extractEndpoints(parsedXml);
-  if (endpoints.length === 0) {
-    throw interfaceExtractingInfoError();
-  }
+const soapLocationAttributes = (document: Document): Attr[] => {
+  const locations = wsdlChildren(document, "definitions")
+    .flatMap((definitions) => wsdlChildren(definitions, "service"))
+    .flatMap((service) => wsdlChildren(service, "port"))
+    .flatMap((port) =>
+      childElements(port).filter((element) => isSoapElement(element, "address"))
+    )
+    .map((address) => {
+      const location = address.getAttributeNodeNS(null, "location");
+      if (!location) {
+        throw interfaceExtractingSoapFiledError("soap:address");
+      }
+      return location;
+    });
 
-  return address;
+  if (locations.length === 0) {
+    throw interfaceExtractingSoapFiledError("soap:address");
+  }
+  return locations;
 };
 
-export const soapApiFileToBuffer: (
-  fileType: EserviceSoapInterfaceType,
-  jsonApi: object
-) => Buffer = (fileType, file) =>
-  match(fileType)
-    .with(
-      eserviceInterfaceAllowedFileType.xml,
-      eserviceInterfaceAllowedFileType.wsdl,
-      () => {
-        try {
-          const xmlDataStr: string = new XMLBuilder({
-            ignoreAttributes: false,
-            attributeNamePrefix: "",
-            format: true,
-          }).build(file);
-          return Buffer.from(xmlDataStr);
-        } catch (e) {
-          throw buildingSoapFileError();
-        }
-      }
+export const retrieveServerUrlsSoapAPI = (file: string): string[] => {
+  const document = soapParse(file);
+  const locations = soapLocationAttributes(document);
+  const operations = wsdlChildren(document, "definitions")
+    .flatMap((definitions) => wsdlChildren(definitions, "binding"))
+    .flatMap((binding) => wsdlChildren(binding, "operation"));
+
+  if (
+    operations.length === 0 ||
+    operations.some(
+      (operation) =>
+        !childElements(operation).some(
+          (element) =>
+            isSoapElement(element, "operation") &&
+            element.hasAttributeNS(null, "soapAction")
+        )
     )
-    .exhaustive();
+  ) {
+    throw interfaceExtractingSoapFiledError("soap:operation");
+  }
+
+  return locations.map((location) => location.value);
+};
+
+const originalLineStarts = (file: string): number[] => [
+  file.startsWith("\uFEFF") ? 1 : 0,
+  // Match xmldom's line-ending normalization, retaining offsets in the original text.
+  ...Array.from(file.matchAll(/\r[\n\u0085]?|[\n\u0085\u2028\u2029]/g)).map(
+    (newline) => newline.index + newline[0].length
+  ),
+];
+
+const originalOffset = (node: Node, lineStarts: number[]): number => {
+  const { lineNumber, columnNumber } = node;
+  if (
+    lineNumber === undefined ||
+    columnNumber === undefined ||
+    !Number.isInteger(lineNumber) ||
+    !Number.isInteger(columnNumber) ||
+    lineNumber < 1 ||
+    lineNumber > lineStarts.length ||
+    columnNumber < 1
+  ) {
+    throw buildingSoapFileError();
+  }
+  return lineStarts[lineNumber - 1] + columnNumber - 1;
+};
+
+const locationValueRange = (
+  file: string,
+  location: Attr,
+  lineStarts: number[]
+): { start: number; end: number } => {
+  const quoteOffset = originalOffset(location, lineStarts);
+  const quote = file[quoteOffset];
+  const address = location.ownerElement;
+  if (!address || (quote !== '"' && quote !== "'")) {
+    throw buildingSoapFileError();
+  }
+  const addressOffset = originalOffset(address, lineStarts);
+  if (
+    addressOffset >= quoteOffset ||
+    !file.startsWith(`<${address.tagName}`, addressOffset) ||
+    !/[\t\n\r \u0085\u2028\u2029]location[\t\n\r \u0085\u2028\u2029]*=[\t\n\r \u0085\u2028\u2029]*$/.test(
+      file.slice(addressOffset, quoteOffset)
+    )
+  ) {
+    throw buildingSoapFileError();
+  }
+
+  // The DOM locator identifies this attribute's opening quote. Search only its value.
+  const end = file.indexOf(quote, quoteOffset + 1);
+  if (end === -1) {
+    throw buildingSoapFileError();
+  }
+  return { start: quoteOffset + 1, end };
+};
+
+const escapeAttributeValue = (value: string): string => {
+  if (/[^\t\n\r\u0020-\uD7FF\uE000-\uFFFD\u{10000}-\u{10FFFF}]/u.test(value)) {
+    throw buildingSoapFileError();
+  }
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;")
+    .replace(/\t/g, "&#9;")
+    .replace(/\n/g, "&#10;")
+    .replace(/\r/g, "&#13;")
+    .replace(/\u0085/g, "&#133;")
+    .replace(/\u2028/g, "&#8232;")
+    .replace(/\u2029/g, "&#8233;");
+};
+
+export const updateSoapApiFileServerUrls = (
+  file: string,
+  serverUrls: string[]
+): Buffer => {
+  const locations = soapLocationAttributes(soapParse(file));
+  if (locations.length !== serverUrls.length) {
+    throw buildingSoapFileError();
+  }
+  const lineStarts = originalLineStarts(file);
+  let offset = 0;
+  const parts = locations.flatMap((location, index) => {
+    const range = locationValueRange(file, location, lineStarts);
+    if (range.start < offset) {
+      throw buildingSoapFileError();
+    }
+    const prefix = file.slice(offset, range.start);
+    offset = range.end;
+    return [prefix, escapeAttributeValue(serverUrls[index])];
+  });
+
+  return Buffer.from(parts.join("") + file.slice(offset));
+};
