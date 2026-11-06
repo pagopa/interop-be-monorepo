@@ -1433,7 +1433,56 @@
                                         </tr>
                                       </table>
                                       <div class="section-divider">
-                                        {{#if waitingForApprovalReceivedDelegations.totalCount}}
+                                        {{#if waitingForApprovalDelegatedEservices.totalCount}}
+                                          <p class="body-text-no-margin">
+                                            <strong>
+                                              {{#if waitingForApprovalDelegatedEservicesSingular}}
+                                              Hai ricevuto una richiesta
+                                              {{else}}
+                                              Hai ricevuto {{ waitingForApprovalDelegatedEservices.totalCount }}
+                                              richieste
+                                              {{/if}}
+                                              per pubblicare un e-service o una nuova versione:
+                                            </strong>
+                                            {{#if waitingForApprovalDelegatedEservicesExceededItemsCount }}
+                                            , tra cui:
+                                            {{else}}
+                                              :
+                                            {{/if}}
+                                          </p>
+                                          <div class="section-cell">
+                                            <ul class="list-items">
+                                              {{#each
+                                              waitingForApprovalDelegatedEservices.items}}
+                                              <ul class="list-item">
+                                                <a
+                                                  href="{{ link }}"
+                                                  class="link-primary" style="color: #0073e6;"
+                                                  >{{ name }}</a
+                                                >
+                                                <span class="list-item-secondary"
+                                                  >delegato a {{delegatedName}}</span
+                                                >
+                                              </ul>
+                                              {{/each}}
+                                              {{#if waitingForApprovalDelegatedEservicesExceededItemsCount }}
+                                              <ul class="list-item">
+                                                E altre
+                                                <strong>{{ waitingForApprovalDelegatedEservicesExceededItemsCount }}</strong>.
+                                              </ul>
+                                              {{/if}}
+                                            </ul>
+                                            <!-- Yellow Alert -->
+                                            <div class="alert-warning" role="note">
+                                              <p class="alert-text">
+                                                Approva le richieste e permetti
+                                                agli enti di continuare a scambiare dati.
+                                              </p>
+                                            </div>
+                                          </div>
+                                        {{/if}} 
+                                        {{#if
+                                        waitingForApprovalReceivedDelegations.totalCount}}
                                           <p class="body-text-no-margin">
                                             <strong>
                                               {{#if waitingForApprovalReceivedDelegationsSingular}}
@@ -1442,8 +1491,13 @@
                                               Hai ricevuto {{ waitingForApprovalReceivedDelegations.totalCount
                                               }} richieste
                                               {{/if}}
-                                              per pubblicare un e-service o una nuova versione:
+                                              di delega
                                             </strong>
+                                            {{#if waitingForApprovalReceivedDelegationsExceededItemsCount }}
+                                            , tra cui:
+                                            {{else}}
+                                              :
+                                            {{/if}}
                                           </p>
                                           <div class="section-cell">
                                             <ul class="list-items">
@@ -1456,7 +1510,7 @@
                                                   >{{ name }}</a
                                                 >
                                                 <span class="list-item-secondary"
-                                                  >delegato a {{ producerName }}</span
+                                                  >delegato all'{{delegationKind}} da {{producerName}}</span
                                                 >
                                               </ul>
                                               {{/each}}
@@ -1464,50 +1518,6 @@
                                               <ul class="list-item">
                                                 E altre
                                                 <strong>{{ waitingForApprovalReceivedDelegationsExceededItemsCount }}</strong>.
-                                              </ul>
-                                              {{/if}}
-                                            </ul>
-                                            <!-- Yellow Alert -->
-                                            <div class="alert-warning" role="note">
-                                              <p class="alert-text">
-                                                Approva le richieste e permetti
-                                                agli utenti di continuare a scambiare dati.
-                                              </p>
-                                            </div>
-                                          </div>
-                                        {{/if}} 
-                                        {{#if
-                                        revokedReceivedDelegations.totalCount}}
-                                          <p class="body-text-no-margin">
-                                            <strong>
-                                              {{#if revokedReceivedDelegationsSingular}}
-                                              Hai ricevuto una richiesta
-                                              {{else}}
-                                              Hai ricevuto {{ revokedReceivedDelegations.totalCount
-                                              }} richieste
-                                              {{/if}}
-                                              di delega:
-                                            </strong>
-                                          </p>
-                                          <div class="section-cell">
-                                            <ul class="list-items">
-                                              {{#each
-                                              revokedReceivedDelegations.items}}
-                                              <ul class="list-item">
-                                                <a
-                                                  href="{{ link }}"
-                                                  class="link-primary" style="color: #0073e6;"
-                                                  >{{ name }}</a
-                                                >
-                                                <span class="list-item-secondary"
-                                                  >delegato all'erogazione da {{ producerName }}</span
-                                                >
-                                              </ul>
-                                              {{/each}}
-                                              {{#if revokedReceivedDelegationsExceededItemsCount }}
-                                              <ul class="list-item">
-                                                E altre
-                                                <strong>{{ revokedReceivedDelegationsExceededItemsCount }}</strong>.
                                               </ul>
                                               {{/if}}
                                             </ul>

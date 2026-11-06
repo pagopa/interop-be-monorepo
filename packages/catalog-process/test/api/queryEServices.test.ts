@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { createServer } from "http";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
@@ -20,7 +19,7 @@ import { describe, it, expect, vi } from "vitest";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import { api, catalogService } from "../vitest.api.setup.js";
 
-describe("API QUERY /catalog authorization test", () => {
+describe("API POST /catalog authorization test", () => {
   const producerId: TenantId = generateId();
   const descriptor1: Descriptor = {
     ...getMockDescriptor(),
@@ -69,10 +68,242 @@ describe("API QUERY /catalog authorization test", () => {
     token: string,
     payload: catalogApi.EServicesFilterPayload = body
   ) =>
-    new request.Test(createServer(api), "query", "/catalog")
+    request(api)
+      .post("/catalog")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(payload);
+
+  describe("templateId validation", () => {
+    it.each([undefined, false, true])(
+      "should accept and forward templateId with onlyTemplateInstances=%s",
+      async (onlyTemplateInstances) => {
+        const payload = {
+          ...body,
+          templateId: generateId(),
+          onlyTemplateInstances,
+        };
+        vi.mocked(catalogService.queryEServices).mockClear();
+        const res = await makeRequest(
+          generateToken(authRole.ADMIN_ROLE),
+          payload
+        );
+
+        expect(res.status).toBe(200);
+        expect(catalogService.queryEServices).toHaveBeenCalledExactlyOnceWith(
+          payload,
+          expect.anything()
+        );
+      }
+    );
+
+    it("should return 400 for an invalid templateId", async () => {
+      vi.mocked(catalogService.queryEServices).mockClear();
+      const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), {
+        ...body,
+        templateId: "not-a-uuid",
+      });
+
+      expect(res.status).toBe(400);
+      expect(catalogService.queryEServices).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("availableForRequester validation", () => {
+    it("should accept availableForRequester when it is true", async () => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, {
+        ...body,
+        availableForRequester: true,
+      });
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(apiResponse);
+    });
+
+    it("should accept availableForRequester when it is false", async () => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, {
+        ...body,
+        availableForRequester: false,
+      });
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(apiResponse);
+    });
+
+    it.each(["true", "false", 0, 1, null, [], {}].map((value) => [value]))(
+      "should return 400 when availableForRequester is not a boolean (%j)",
+      async (availableForRequester) => {
+        const token = generateToken(authRole.ADMIN_ROLE);
+        vi.mocked(catalogService.queryEServices).mockClear();
+
+        const res = await makeRequest(token, {
+          ...body,
+          availableForRequester,
+        } as catalogApi.EServicesFilterPayload);
+
+        expect(res.status).toBe(400);
+        expect(catalogService.queryEServices).not.toHaveBeenCalled();
+      }
+    );
+
+    it.each([true, false])(
+      "should forward availableForRequester to the catalog service (%s)",
+      async (availableForRequester) => {
+        const token = generateToken(authRole.ADMIN_ROLE);
+        const payload = { ...body, availableForRequester };
+        vi.mocked(catalogService.queryEServices).mockClear();
+
+        const res = await makeRequest(token, payload);
+
+        expect(res.status).toBe(200);
+        expect(catalogService.queryEServices).toHaveBeenCalledExactlyOnceWith(
+          payload,
+          expect.anything()
+        );
+      }
+    );
+  });
+
+  describe("mode validation", () => {
+    it.each(["DELIVER", "RECEIVE"] as const)(
+      "should accept and forward mode: %s",
+      async (mode) => {
+        const payload = { ...body, mode };
+        vi.mocked(catalogService.queryEServices).mockClear();
+        const res = await makeRequest(
+          generateToken(authRole.ADMIN_ROLE),
+          payload
+        );
+
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual(apiResponse);
+        expect(catalogService.queryEServices).toHaveBeenCalledExactlyOnceWith(
+          payload,
+          expect.anything()
+        );
+      }
+    );
+
+    it("should accept an omitted mode", async () => {
+      vi.mocked(catalogService.queryEServices).mockClear();
+      const res = await makeRequest(generateToken(authRole.ADMIN_ROLE));
+
+      expect(res.status).toBe(200);
+      expect(catalogService.queryEServices).toHaveBeenCalledExactlyOnceWith(
+        body,
+        expect.anything()
+      );
+    });
+
+    it.each(
+      ["invalid-mode", "deliver", "receive", true, 0, null, [], {}].map(
+        (value) => [value]
+      )
+    )("should return 400 for invalid mode: %j", async (mode) => {
+      vi.mocked(catalogService.queryEServices).mockClear();
+      const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), {
+        ...body,
+        mode,
+      } as catalogApi.EServicesFilterPayload);
+
+      expect(res.status).toBe(400);
+      expect(catalogService.queryEServices).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("onlySignalHubEnabled validation", () => {
+    it.each([true, false])(
+      "should accept and forward onlySignalHubEnabled: %s",
+      async (onlySignalHubEnabled) => {
+        const payload = { ...body, onlySignalHubEnabled };
+        vi.mocked(catalogService.queryEServices).mockClear();
+        const res = await makeRequest(
+          generateToken(authRole.ADMIN_ROLE),
+          payload
+        );
+
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual(apiResponse);
+        expect(catalogService.queryEServices).toHaveBeenCalledExactlyOnceWith(
+          payload,
+          expect.anything()
+        );
+      }
+    );
+
+    it("should accept an omitted onlySignalHubEnabled", async () => {
+      vi.mocked(catalogService.queryEServices).mockClear();
+      const res = await makeRequest(generateToken(authRole.ADMIN_ROLE));
+
+      expect(res.status).toBe(200);
+      expect(catalogService.queryEServices).toHaveBeenCalledExactlyOnceWith(
+        body,
+        expect.anything()
+      );
+    });
+
+    it.each(["true", "false", 0, 1, null, [], {}].map((value) => [value]))(
+      "should return 400 for invalid onlySignalHubEnabled: %j",
+      async (onlySignalHubEnabled) => {
+        vi.mocked(catalogService.queryEServices).mockClear();
+        const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), {
+          ...body,
+          onlySignalHubEnabled,
+        } as catalogApi.EServicesFilterPayload);
+
+        expect(res.status).toBe(400);
+        expect(catalogService.queryEServices).not.toHaveBeenCalled();
+      }
+    );
+  });
+
+  describe("asyncExchange validation", () => {
+    it.each([true, false])(
+      "should accept and forward asyncExchange: %s",
+      async (asyncExchange) => {
+        const payload = { ...body, asyncExchange };
+        vi.mocked(catalogService.queryEServices).mockClear();
+        const res = await makeRequest(
+          generateToken(authRole.ADMIN_ROLE),
+          payload
+        );
+
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual(apiResponse);
+        expect(catalogService.queryEServices).toHaveBeenCalledExactlyOnceWith(
+          payload,
+          expect.anything()
+        );
+      }
+    );
+
+    it("should accept an omitted asyncExchange", async () => {
+      vi.mocked(catalogService.queryEServices).mockClear();
+      const res = await makeRequest(generateToken(authRole.ADMIN_ROLE));
+
+      expect(res.status).toBe(200);
+      expect(catalogService.queryEServices).toHaveBeenCalledExactlyOnceWith(
+        body,
+        expect.anything()
+      );
+    });
+
+    it.each(["true", "false", 0, 1, null, [], {}].map((value) => [value]))(
+      "should return 400 for invalid asyncExchange: %j",
+      async (asyncExchange) => {
+        vi.mocked(catalogService.queryEServices).mockClear();
+        const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), {
+          ...body,
+          asyncExchange,
+        } as catalogApi.EServicesFilterPayload);
+
+        expect(res.status).toBe(400);
+        expect(catalogService.queryEServices).not.toHaveBeenCalled();
+      }
+    );
+  });
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,

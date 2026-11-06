@@ -7,6 +7,7 @@ import {
   getMockDescriptorPublished,
   getMockEService,
   getMockPurpose,
+  getMockPurposeVersion,
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
@@ -18,6 +19,8 @@ import {
   missingKafkaMessageDataError,
   NotificationType,
   Purpose,
+  purposeVersionState,
+  purposeWaitingForApprovalReason,
   Tenant,
   TenantId,
   TenantNotificationConfigId,
@@ -104,6 +107,7 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
     await expect(() =>
       handleNewPurposeVersionWaitingForApprovalToConsumer({
         purposeV2Msg: undefined,
+        versionId: generateId(),
         logger,
         templateService,
         readModelService,
@@ -121,7 +125,13 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
     const unknownConsumerId = generateId<TenantId>();
 
     const purpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([
+        {
+          ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+          waitingForApprovalReason:
+            purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+        },
+      ]),
       eserviceId: eservice.id,
       consumerId: unknownConsumerId,
     };
@@ -130,6 +140,7 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
     await expect(() =>
       handleNewPurposeVersionWaitingForApprovalToConsumer({
         purposeV2Msg: toPurposeV2(purpose),
+        versionId: purpose.versions[0].id,
         logger,
         templateService,
         readModelService,
@@ -142,7 +153,13 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
     const unknownEServiceId = generateId<EServiceId>();
 
     const purpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([
+        {
+          ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+          waitingForApprovalReason:
+            purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+        },
+      ]),
       eserviceId: unknownEServiceId,
       consumerId: consumerTenant.id,
     };
@@ -151,6 +168,7 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
     await expect(() =>
       handleNewPurposeVersionWaitingForApprovalToConsumer({
         purposeV2Msg: toPurposeV2(purpose),
+        versionId: purpose.versions[0].id,
         logger,
         templateService,
         readModelService,
@@ -161,7 +179,13 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
 
   it("should generate one message per user of the consumer", async () => {
     const purpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([
+        {
+          ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+          waitingForApprovalReason:
+            purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+        },
+      ]),
       eserviceId: eservice.id,
       consumerId: consumerTenant.id,
     };
@@ -169,6 +193,7 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
 
     const messages = await handleNewPurposeVersionWaitingForApprovalToConsumer({
       purposeV2Msg: toPurposeV2(purpose),
+      versionId: purpose.versions[0].id,
       logger,
       templateService,
       readModelService,
@@ -200,7 +225,13 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
       ]);
 
     const purpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([
+        {
+          ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+          waitingForApprovalReason:
+            purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+        },
+      ]),
       eserviceId: eservice.id,
       consumerId: consumerTenant.id,
     };
@@ -208,6 +239,7 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
 
     const messages = await handleNewPurposeVersionWaitingForApprovalToConsumer({
       purposeV2Msg: toPurposeV2(purpose),
+      versionId: purpose.versions[0].id,
       logger,
       templateService,
       readModelService,
@@ -238,7 +270,13 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
       });
 
     const purpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([
+        {
+          ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+          waitingForApprovalReason:
+            purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+        },
+      ]),
       eserviceId: eservice.id,
       consumerId: consumerTenant.id,
     };
@@ -246,6 +284,7 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
 
     const messages = await handleNewPurposeVersionWaitingForApprovalToConsumer({
       purposeV2Msg: toPurposeV2(purpose),
+      versionId: purpose.versions[0].id,
       logger,
       templateService,
       readModelService,
@@ -257,9 +296,75 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
     expect(messages.length).toEqual(2);
   });
 
+  it.each([
+    [
+      purposeWaitingForApprovalReason.dailyCallsPerConsumer,
+      "Hai superato la soglia di chiamate API per fruitore",
+      "è stata superata la soglia per fruitore di chiamate API",
+    ],
+    [
+      purposeWaitingForApprovalReason.dailyCallsTotal,
+      "Superamento soglie totali di chiamate API",
+      "è stata superata la soglia totale",
+    ],
+    [
+      purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+      "Superamento soglie per fruitore e soglie totali",
+      "sia la soglia di chiamate API per fruitore sia la soglia totale",
+    ],
+  ] as const)(
+    "renders reason %s",
+    async (waitingForApprovalReason, title, text) => {
+      const purpose = {
+        ...getMockPurpose([
+          {
+            ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+            waitingForApprovalReason:
+              purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+          },
+        ]),
+        eserviceId: eservice.id,
+        consumerId,
+      };
+      const messages =
+        await handleNewPurposeVersionWaitingForApprovalToConsumer({
+          versionId: purpose.versions[0].id,
+          purposeV2Msg: toPurposeV2({
+            ...purpose,
+            versions: [
+              {
+                ...getMockPurposeVersion(
+                  purposeVersionState.waitingForApproval
+                ),
+                id: purpose.versions[0].id,
+                waitingForApprovalReason,
+              },
+            ],
+          }),
+          logger,
+          templateService,
+          readModelService,
+          correlationId: generateId<CorrelationId>(),
+        });
+      expect(messages).toHaveLength(2);
+      for (const message of messages) {
+        expect(message.email.subject).toBe(title);
+        expect(message.email.body).toContain(text);
+        expect(message.email.body).toContain(purpose.title);
+        expect(message.email.body).toContain("Visualizza finalità");
+      }
+    }
+  );
+
   it("should generate a complete and correct message", async () => {
     const purpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([
+        {
+          ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+          waitingForApprovalReason:
+            purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+        },
+      ]),
       eserviceId: eservice.id,
       consumerId: consumerTenant.id,
     };
@@ -267,6 +372,7 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
 
     const messages = await handleNewPurposeVersionWaitingForApprovalToConsumer({
       purposeV2Msg: toPurposeV2(purpose),
+      versionId: purpose.versions[0].id,
       logger,
       templateService,
       readModelService,
@@ -277,14 +383,17 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain(eservice.name);
-      expect(message.email.body).toContain(dailyCallsPerConsumer.toString());
+      expect(message.email.body).toContain(purpose.title);
+      expect(message.email.body).toContain(
+        "sia la soglia di chiamate API per fruitore sia la soglia totale"
+      );
       if (message.type === "User") {
         expect(message.email.body).toContain("{{ recipientName }}");
       }
     });
   });
 
-  it("should use dailyCallsPerConsumer from the latest published descriptor", async () => {
+  it("should use the event reason rather than the latest descriptor quota", async () => {
     const olderDescriptor = {
       ...getMockDescriptor(descriptorState.deprecated),
       dailyCallsPerConsumer: 500,
@@ -308,7 +417,13 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
     await addOneEService(eserviceWithMultipleDescriptors);
 
     const purpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([
+        {
+          ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+          waitingForApprovalReason:
+            purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+        },
+      ]),
       eserviceId: eserviceWithMultipleDescriptors.id,
       consumerId: consumerTenant.id,
     };
@@ -316,6 +431,7 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
 
     const messages = await handleNewPurposeVersionWaitingForApprovalToConsumer({
       purposeV2Msg: toPurposeV2(purpose),
+      versionId: purpose.versions[0].id,
       logger,
       templateService,
       readModelService,
@@ -324,7 +440,10 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
 
     expect(messages.length).toBe(2);
     messages.forEach((message) => {
-      expect(message.email.body).toContain("<strong>2000</strong>");
+      expect(message.email.body).toContain(
+        "sia la soglia di chiamate API per fruitore sia la soglia totale"
+      );
+      expect(message.email.body).not.toContain("<strong>2000</strong>");
       expect(message.email.body).not.toContain("<strong>500</strong>");
     });
   });
