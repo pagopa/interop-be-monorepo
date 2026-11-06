@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 
 import {
+  canReceiveReviewerDigest,
   getVisibleSections,
   hasVisibleDigestContent,
   digestAdmittedRoles,
@@ -288,5 +289,29 @@ describe("hasVisibleDigestContent", () => {
   it("should return false for empty roles array", () => {
     const visibility = getVisibleSections([]);
     expect(hasVisibleDigestContent(fullData, visibility)).toBe(false);
+  });
+});
+
+describe("canReceiveReviewerDigest", () => {
+  it("should allow only the reviewer role", () => {
+    expect(canReceiveReviewerDigest(["reviewer"])).toBe(true);
+    expect(canReceiveReviewerDigest(["admin"])).toBe(false);
+    expect(canReceiveReviewerDigest(["api"])).toBe(false);
+    expect(canReceiveReviewerDigest(["security"])).toBe(false);
+    expect(canReceiveReviewerDigest(["support"])).toBe(false);
+    expect(canReceiveReviewerDigest(["viewer"])).toBe(false);
+  });
+
+  it("should allow multi-role users that include the reviewer role", () => {
+    expect(canReceiveReviewerDigest(["admin", "reviewer"])).toBe(true);
+  });
+
+  it("should deny an empty roles array", () => {
+    expect(canReceiveReviewerDigest([])).toBe(false);
+  });
+
+  it("should keep the reviewer role out of every tenant digest section", () => {
+    const visibility = getVisibleSections(["reviewer"]);
+    expect(Object.values(visibility).every((visible) => !visible)).toBe(true);
   });
 });
