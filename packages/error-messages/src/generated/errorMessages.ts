@@ -89,7 +89,7 @@ export const errorMessages = [
     "bffEndpoint": "POST /tenants/:tenantId/attributes/verified/:attributeId",
     "copy": {
       "it": "La data di scadenza deve essere successiva a oggi. Seleziona una data futura.",
-      "en": "The expiration date must be later than today. Select a future date.\n"
+      "en": "The expiration date must be later than today. Select a future date.\r\n"
     }
   },
   {
@@ -230,6 +230,46 @@ export const errorMessages = [
     "copy": {
       "it": "Non puoi inserire un link nella motivazione del rifiuto dell’analisi del rischio. Rimuovi il link e riprova.",
       "en": "You can't include a link in the risk analysis rejection reason. Remove the link and try again."
+    }
+  },
+  {
+    "process": "Purpose Process",
+    "error": "duplicatedPurposeTitle",
+    "errorCode": "004-0016",
+    "bffEndpoint": "PATCH /purposes/:purposeId",
+    "copy": {
+      "it": "Esiste già una finalità con lo stesso nome per questo e-service. Scegli un altro nome.",
+      "en": "There is already a purpose with the same name for this e-service. Choose a different name."
+    }
+  },
+  {
+    "process": "Purpose Process",
+    "error": "hyperlinkDetectionError",
+    "errorCode": "004-10027",
+    "bffEndpoint": "PATCH /purposes/:purposeId",
+    "copy": {
+      "it": "Non puoi inserire un link nel nome o nella descrizione della finalità. Rimuovi il link e riprova.",
+      "en": "You can't include a link in the purpose name or description. Remove the link and try again."
+    }
+  },
+  {
+    "process": "Purpose Process",
+    "error": "duplicatedPurposeTitle",
+    "errorCode": "004-0016",
+    "bffEndpoint": "PATCH /reverse/purposes/:purposeId",
+    "copy": {
+      "it": "Esiste già una finalità con lo stesso nome per questo e-service. Scegli un altro nome.",
+      "en": "There is already a purpose with the same name for this e-service. Choose a different name."
+    }
+  },
+  {
+    "process": "Purpose Process",
+    "error": "hyperlinkDetectionError",
+    "errorCode": "004-10027",
+    "bffEndpoint": "PATCH /reverse/purposes/:purposeId",
+    "copy": {
+      "it": "Non puoi inserire un link nel nome o nella descrizione della finalità. Rimuovi il link e riprova.",
+      "en": "You can't include a link in the purpose name or description. Remove the link and try again."
     }
   },
   {
@@ -654,62 +694,12 @@ export const errorMessages = [
   },
   {
     "process": "Catalog Process",
-    "error": "invalidEserviceInterfaceFileDetected",
-    "errorCode": "001-10010",
-    "bffEndpoint": "POST /eservices/:eServiceId/descriptors/:descriptorId/documents",
-    "copy": {
-      "it": "Il file dell’interfaccia non è valido per questo e-service. Controlla il formato e il contenuto del file, poi prova di nuovo.",
-      "en": "The interface file is not valid for this e-service. Check the file format and content, then try again."
-    }
-  },
-  {
-    "process": "Catalog Process",
-    "error": "openapiVersionNotRecognized",
-    "errorCode": "001-10011",
-    "bffEndpoint": "POST /eservices/:eServiceId/descriptors/:descriptorId/documents",
-    "copy": {
-      "it": "La versione OpenAPI del file non è supportata. Usa OpenAPI 2.0 o 3.x per l’interfaccia del template e-service, oppure 3.x per l’interfaccia di callback, e carica di nuovo il file.",
-      "en": "The OpenAPI version in the file is not supported. Use OpenAPI 2.0 or 3.x for the e-service template interface, or 3.x for the callback interface, and upload the file again."
-    }
-  },
-  {
-    "process": "Catalog Process",
     "error": "openapiVersionNotRecognized",
     "errorCode": "001-10011",
     "bffEndpoint": "POST /templates/eservices/:eServiceId/descriptors/:descriptorId/interface/rest",
     "copy": {
       "it": "Non puoi salvare i dati dell’interfaccia: la versione OpenAPI del template e-service non è riconosciuta.",
       "en": "You can’t save the interface details: the OpenAPI version in the e-service template isn’t recognised."
-    }
-  },
-  {
-    "process": "Catalog Process",
-    "error": "invalidContentTypeDetected",
-    "errorCode": "001-10013",
-    "bffEndpoint": "POST /eservices/:eServiceId/descriptors/:descriptorId/documents",
-    "copy": {
-      "it": "Non puoi caricare il file perché non è stato possibile verificarne il formato. Scegli un file valido in uno dei formati indicati e riprova.",
-      "en": "You can't upload the file because its format could not be verified. Choose a valid file in one of the listed formats and try again."
-    }
-  },
-  {
-    "process": "Catalog Process",
-    "error": "interfaceExtractingSoapFieldValueError",
-    "errorCode": "001-10017",
-    "bffEndpoint": "POST /eservices/:eServiceId/descriptors/:descriptorId/documents",
-    "copy": {
-      "it": "Il file WSDL è incompleto: manca l’indirizzo del servizio o la definizione delle operazioni. Completa il file e caricalo di nuovo.",
-      "en": "The WSDL file is incomplete: the service address or operation definitions are missing. Complete the file and upload it again."
-    }
-  },
-  {
-    "process": "Catalog Process",
-    "error": "invalidServerUrl",
-    "errorCode": "001-10026",
-    "bffEndpoint": "POST /eservices/:eServiceId/descriptors/:descriptorId/documents",
-    "copy": {
-      "it": "Il file OpenAPI o WSDL contiene un URL del server non valido. Correggi l’URL nel file e caricalo di nuovo.",
-      "en": "The OpenAPI or WSDL file contains an invalid server URL. Correct the URL in the file and upload it again."
     }
   },
   {
@@ -814,22 +804,32 @@ export const errorMessages = [
   },
   {
     "process": "Catalog Process",
-    "error": "contentTooLargeError",
-    "errorCode": "001-10031",
-    "bffEndpoint": "POST /eservices/:eServiceId/descriptors/:descriptorId/documents",
+    "error": "eServiceNameDuplicateForProducer",
+    "errorCode": "001-007",
+    "bffEndpoint": "PATCH /eservices/:eServiceId",
     "copy": {
-      "it": "Il file selezionato è troppo grande. Scegli un file di massimo 3 MB per un’interfaccia o di massimo 10 MB per un documento.",
-      "en": "The selected file is too large. Choose a file up to 3 MB for an interface or up to 10 MB for a document."
+      "it": "Esiste già un e-service con lo stesso nome. Scegli un altro nome.",
+      "en": "There is already an e-service with the same name. Choose a different name."
     }
   },
   {
     "process": "Catalog Process",
-    "error": "invalidFileUploadError",
-    "errorCode": "001-10033",
-    "bffEndpoint": "POST /eservices/:eServiceId/descriptors/:descriptorId/documents",
+    "error": "eserviceTemplateNameConflict",
+    "errorCode": "001-0039",
+    "bffEndpoint": "PATCH /eservices/:eServiceId",
     "copy": {
-      "it": "Il formato del file non è supportato o il contenuto non è valido. Controlla e riprova usando uno dei formati indicati.",
-      "en": "The file format is not supported or the content is invalid. Check the file and try again using one of the supported formats."
+      "it": "Esiste già un template e-service con lo stesso nome. Scegli un altro nome.",
+      "en": "There is already a template with the same name. Choose a different name."
+    }
+  },
+  {
+    "process": "Catalog Process",
+    "error": "hyperlinkDetectionError",
+    "errorCode": "001-10027",
+    "bffEndpoint": "PATCH /eservices/:eServiceId",
+    "copy": {
+      "it": "Non puoi inserire un link nel nome o nella descrizione dell’e-service. Rimuovi il link e riprova.",
+      "en": "You can't include a link in the e-service name or description. Remove the link and try again."
     }
   },
   {
@@ -1093,6 +1093,26 @@ export const errorMessages = [
     }
   },
   {
+    "process": "Authorization Process",
+    "error": "hyperlinkDetectionError",
+    "errorCode": "006-10027",
+    "bffEndpoint": "PATCH /clients/:clientId",
+    "copy": {
+      "it": "Non puoi inserire un link nel nome o nella descrizione del client. Rimuovi il link e riprova.",
+      "en": "You can't include a link in the client name or description. Remove the link and try again."
+    }
+  },
+  {
+    "process": "Authorization Process",
+    "error": "hyperlinkDetectionError",
+    "errorCode": "006-10027",
+    "bffEndpoint": "PATCH /producerKeychains/:producerKeychainId",
+    "copy": {
+      "it": "Non puoi inserire un link nel nome o nella descrizione del portachiavi. Rimuovi il link e riprova.",
+      "en": "You can't include a link in the keychain name or description. Remove the link and try again."
+    }
+  },
+  {
     "process": "EService Template Process",
     "error": "eserviceTemplateDuplicate",
     "errorCode": "011-0004",
@@ -1160,56 +1180,6 @@ export const errorMessages = [
     "copy": {
       "it": "Non puoi scaricare il documento perché non è più disponibile. Aggiorna la pagina per vedere i documenti disponibili.",
       "en": "You can't download the document because it is no longer available. Refresh the page to see the available documents."
-    }
-  },
-  {
-    "process": "EService Template Process",
-    "error": "invalidEserviceInterfaceFileDetected",
-    "errorCode": "011-10010",
-    "bffEndpoint": "POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents",
-    "copy": {
-      "it": "Il file dell’interfaccia non è valido per questo template e-service. Controlla il formato e il contenuto del file, poi prova di nuovo.",
-      "en": "The interface file isn’t valid for this e-service template. Check its OpenAPI or WSDL structure and upload it again."
-    }
-  },
-  {
-    "process": "EService Template Process",
-    "error": "openapiVersionNotRecognized",
-    "errorCode": "011-10011",
-    "bffEndpoint": "POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents",
-    "copy": {
-      "it": "La versione OpenAPI del file non è supportata. Usa OpenAPI 2.0 o 3.x per l’interfaccia del template e-service, oppure 3.x per l’interfaccia di callback, e carica di nuovo il file.",
-      "en": "The OpenAPI version in the file is not supported. Use OpenAPI 2.0 or 3.x for the e-service template interface, or 3.x for the callback interface, and upload the file again."
-    }
-  },
-  {
-    "process": "EService Template Process",
-    "error": "invalidContentTypeDetected",
-    "errorCode": "011-10013",
-    "bffEndpoint": "POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents",
-    "copy": {
-      "it": "Non puoi caricare questo file perché non è stato possibile verificarne il formato.",
-      "en": "You can't upload this file because its format could not be verified."
-    }
-  },
-  {
-    "process": "EService Template Process",
-    "error": "interfaceExtractingSoapFieldValueError",
-    "errorCode": "011-10017",
-    "bffEndpoint": "POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents",
-    "copy": {
-      "it": "Il file WSDL è incompleto: manca l’indirizzo del servizio o la definizione delle operazioni. Completa il file e caricalo di nuovo.",
-      "en": "The WSDL file is incomplete: the service address or operation definitions are missing. Complete the file and upload it again."
-    }
-  },
-  {
-    "process": "EService Template Process",
-    "error": "invalidServerUrl",
-    "errorCode": "011-10026",
-    "bffEndpoint": "POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents",
-    "copy": {
-      "it": "Il file OpenAPI o WSDL contiene un URL del server non valido. Correggi l’URL nel file e caricalo di nuovo.",
-      "en": "The OpenAPI or WSDL file contains an invalid server URL. Correct the URL in the file and upload it again."
     }
   },
   {
@@ -1284,22 +1254,32 @@ export const errorMessages = [
   },
   {
     "process": "EService Template Process",
-    "error": "contentTooLargeError",
-    "errorCode": "011-10031",
-    "bffEndpoint": "POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents",
+    "error": "eserviceTemplateDuplicate",
+    "errorCode": "011-0004",
+    "bffEndpoint": "PATCH /eservices/templates/:eServiceTemplateId",
     "copy": {
-      "it": "Il file selezionato supera la dimensione massima consentita. Scegli un file di massimo 3 MB se stai caricando un’interfaccia, o di massimo 10 MB se stai caricando un documento.",
-      "en": "The selected file exceeds the maximum allowed size. Choose a file up to 3 MB if you're uploading an interface, or up to 10 MB if you're uploading a document."
+      "it": "Esiste già un template e-service con lo stesso nome. Scegli un altro nome.",
+      "en": "There is already an e-service template with the same name. Choose a different name."
     }
   },
   {
     "process": "EService Template Process",
-    "error": "invalidFileUploadError",
-    "errorCode": "011-10033",
-    "bffEndpoint": "POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents",
+    "error": "instanceNameConflict",
+    "errorCode": "011-0020",
+    "bffEndpoint": "PATCH /eservices/templates/:eServiceTemplateId",
     "copy": {
-      "it": "Il formato del file non è supportato o il contenuto non è valido. Controlla e riprova usando uno dei formati indicati.",
-      "en": "The file format is not supported or the content is invalid. Check the file and try again using one of the supported formats."
+      "it": "Non puoi usare questo nome perché almeno uno degli e-service creati dal template avrebbe lo stesso nome di un e-service già esistente. Scegli un altro nome.",
+      "en": "You can't use this name because at least one of the e-services created from the template would have the same name as an existing e-service. Choose a different name."
+    }
+  },
+  {
+    "process": "EService Template Process",
+    "error": "hyperlinkDetectionError",
+    "errorCode": "011-10027",
+    "bffEndpoint": "PATCH /eservices/templates/:eServiceTemplateId",
+    "copy": {
+      "it": "Non puoi inserire un link nel nome, nella descrizione o nel campo “A chi è rivolto il template”. Rimuovi il link e riprova.",
+      "en": "You can't include a link in the name, description, or “Who is the template intended for?” field. Remove the link and try again."
     }
   },
   {
@@ -1384,22 +1364,22 @@ export const errorMessages = [
   },
   {
     "process": "Purpose Template Process",
-    "error": "invalidContentTypeDetected",
-    "errorCode": "015-10013",
-    "bffEndpoint": "POST /purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation/documents",
+    "error": "purposeTemplateTitleConflict",
+    "errorCode": "015-0002",
+    "bffEndpoint": "PATCH /purposeTemplates/:purposeTemplateId",
     "copy": {
-      "it": "Non è stato possibile caricare il file. Puoi caricare solo file in formato PDF.",
-      "en": "The file could not be uploaded. You can only upload PDF files."
+      "it": "Esiste già un template finalità con lo stesso nome. Scegli un altro nome.",
+      "en": "There is already a purpose template with the same name. Choose a different name."
     }
   },
   {
     "process": "Purpose Template Process",
-    "error": "invalidPdfSignatureError",
-    "errorCode": "015-10032",
-    "bffEndpoint": "POST /purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation/documents",
+    "error": "hyperlinkDetectionError",
+    "errorCode": "015-0021",
+    "bffEndpoint": "PATCH /purposeTemplates/:purposeTemplateId",
     "copy": {
-      "it": "Non è stato possibile caricare il file. Puoi caricare solo file in formato PDF.",
-      "en": "The file could not be uploaded. You can only upload PDF files."
+      "it": "Non puoi inserire un link nei campi di testo del template finalità. Rimuovi il link e riprova.",
+      "en": "You can't include a link in the purpose template text fields. Remove the link and try again."
     }
   },
   {
@@ -1603,16 +1583,6 @@ export const errorMessages = [
     }
   },
   {
-    "process": "Agreement Process",
-    "error": "invalidFileUploadError",
-    "errorCode": "002-10033",
-    "bffEndpoint": "POST /agreements/:agreementId/consumer-documents",
-    "copy": {
-      "it": "Non puoi caricare il documento perché il file selezionato non è valido o è in un formato non supportato. Scegli un file valido in formato PDF, JSON, Markdown, YAML, TXT, XSD, WSDL o XML e riprova.",
-      "en": "You can't upload the document because the selected file is invalid or its format is not supported. Choose a valid PDF, JSON, Markdown, YAML, TXT, XSD, WSDL, or XML file and try again."
-    }
-  },
-  {
     "process": "BFF Process",
     "error": "contractException",
     "errorCode": "008-0023",
@@ -1740,6 +1710,176 @@ export const errorMessages = [
     "copy": {
       "it": "Non puoi verificare questa client assertion: il client a cui si riferisce appartiene a un altro ente. Se hai accesso a quell’ente, cambia profilo. Altrimenti usa una client assertion di un client del tuo ente.",
       "en": "You can't verify this client assertion because the client it refers to belongs to another party. If you have access to that party, switch to that profile; otherwise, use a client assertion from a client belonging to your party."
+    }
+  },
+  {
+    "process": "BFF Process",
+    "error": "invalidEserviceInterfaceFileDetected",
+    "errorCode": "008-0047",
+    "bffEndpoint": "POST /eservices/:eServiceId/descriptors/:descriptorId/documents",
+    "copy": {
+      "it": "Il file dell’interfaccia non è valido per questo e-service. Controlla il formato e il contenuto del file, poi prova di nuovo.",
+      "en": "The interface file is not valid for this e-service. Check the file format and content, then try again."
+    }
+  },
+  {
+    "process": "BFF Process",
+    "error": "openapiVersionNotRecognized",
+    "errorCode": "008-10011",
+    "bffEndpoint": "POST /eservices/:eServiceId/descriptors/:descriptorId/documents",
+    "copy": {
+      "it": "La versione OpenAPI del file non è supportata. Usa OpenAPI 2.0 o 3.x per l’interfaccia del template e-service, oppure 3.x per l’interfaccia di callback, e carica di nuovo il file.",
+      "en": "The OpenAPI version in the file is not supported. Use OpenAPI 2.0 or 3.x for the e-service template interface, or 3.x for the callback interface, and upload the file again."
+    }
+  },
+  {
+    "process": "BFF Process",
+    "error": "invalidContentTypeDetected",
+    "errorCode": "008-10013",
+    "bffEndpoint": "POST /eservices/:eServiceId/descriptors/:descriptorId/documents",
+    "copy": {
+      "it": "Non puoi caricare il file perché non è stato possibile verificarne il formato. Scegli un file valido in uno dei formati indicati e riprova.",
+      "en": "You can't upload the file because its format could not be verified. Choose a valid file in one of the listed formats and try again."
+    }
+  },
+  {
+    "process": "BFF Process",
+    "error": "interfaceExtractingSoapFieldValueError",
+    "errorCode": "008-10017",
+    "bffEndpoint": "POST /eservices/:eServiceId/descriptors/:descriptorId/documents",
+    "copy": {
+      "it": "Il file WSDL è incompleto: manca l’indirizzo del servizio o la definizione delle operazioni. Completa il file e caricalo di nuovo.",
+      "en": "The WSDL file is incomplete: the service address or operation definitions are missing. Complete the file and upload it again."
+    }
+  },
+  {
+    "process": "BFF Process",
+    "error": "invalidServerUrl",
+    "errorCode": "008-10026",
+    "bffEndpoint": "POST /eservices/:eServiceId/descriptors/:descriptorId/documents",
+    "copy": {
+      "it": "Il file OpenAPI o WSDL contiene un URL del server non valido. Correggi l’URL nel file e caricalo di nuovo.",
+      "en": "The OpenAPI or WSDL file contains an invalid server URL. Correct the URL in the file and upload it again."
+    }
+  },
+  {
+    "process": "BFF Process",
+    "error": "contentTooLargeError",
+    "errorCode": "008-10031",
+    "bffEndpoint": "POST /eservices/:eServiceId/descriptors/:descriptorId/documents",
+    "copy": {
+      "it": "Il file selezionato è troppo grande. Scegli un file di massimo 3 MB per un’interfaccia o di massimo 10 MB per un documento.",
+      "en": "The selected file is too large. Choose a file up to 3 MB for an interface or up to 10 MB for a document."
+    }
+  },
+  {
+    "process": "BFF Process",
+    "error": "invalidFileUploadError",
+    "errorCode": "008-10033",
+    "bffEndpoint": "POST /eservices/:eServiceId/descriptors/:descriptorId/documents",
+    "copy": {
+      "it": "Il formato del file non è supportato o il contenuto non è valido. Controlla e riprova usando uno dei formati indicati.",
+      "en": "The file format is not supported or the content is invalid. Check the file and try again using one of the supported formats."
+    }
+  },
+  {
+    "process": "BFF Process",
+    "error": "invalidEserviceInterfaceFileDetected",
+    "errorCode": "008-0047",
+    "bffEndpoint": "POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents",
+    "copy": {
+      "it": "Il file dell’interfaccia non è valido per questo template e-service. Controlla il formato e il contenuto del file, poi prova di nuovo.",
+      "en": "The interface file isn’t valid for this e-service template. Check its OpenAPI or WSDL structure and upload it again."
+    }
+  },
+  {
+    "process": "BFF Process",
+    "error": "openapiVersionNotRecognized",
+    "errorCode": "008-10011",
+    "bffEndpoint": "POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents",
+    "copy": {
+      "it": "La versione OpenAPI del file non è supportata. Usa OpenAPI 2.0 o 3.x per l’interfaccia del template e-service, oppure 3.x per l’interfaccia di callback, e carica di nuovo il file.",
+      "en": "The OpenAPI version in the file is not supported. Use OpenAPI 2.0 or 3.x for the e-service template interface, or 3.x for the callback interface, and upload the file again."
+    }
+  },
+  {
+    "process": "BFF Process",
+    "error": "invalidContentTypeDetected",
+    "errorCode": "008-10013",
+    "bffEndpoint": "POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents",
+    "copy": {
+      "it": "Non puoi caricare questo file perché non è stato possibile verificarne il formato.",
+      "en": "You can't upload this file because its format could not be verified."
+    }
+  },
+  {
+    "process": "BFF Process",
+    "error": "interfaceExtractingSoapFieldValueError",
+    "errorCode": "008-10017",
+    "bffEndpoint": "POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents",
+    "copy": {
+      "it": "Il file WSDL è incompleto: manca l’indirizzo del servizio o la definizione delle operazioni. Completa il file e caricalo di nuovo.",
+      "en": "The WSDL file is incomplete: the service address or operation definitions are missing. Complete the file and upload it again."
+    }
+  },
+  {
+    "process": "BFF Process",
+    "error": "invalidServerUrl",
+    "errorCode": "008-10026",
+    "bffEndpoint": "POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents",
+    "copy": {
+      "it": "Il file OpenAPI o WSDL contiene un URL del server non valido. Correggi l’URL nel file e caricalo di nuovo.",
+      "en": "The OpenAPI or WSDL file contains an invalid server URL. Correct the URL in the file and upload it again."
+    }
+  },
+  {
+    "process": "BFF Process",
+    "error": "contentTooLargeError",
+    "errorCode": "008-10031",
+    "bffEndpoint": "POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents",
+    "copy": {
+      "it": "Il file selezionato supera la dimensione massima consentita. Scegli un file di massimo 3 MB se stai caricando un’interfaccia, o di massimo 10 MB se stai caricando un documento.",
+      "en": "The selected file exceeds the maximum allowed size. Choose a file up to 3 MB if you're uploading an interface, or up to 10 MB if you're uploading a document."
+    }
+  },
+  {
+    "process": "BFF Process",
+    "error": "invalidFileUploadError",
+    "errorCode": "008-10033",
+    "bffEndpoint": "POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents",
+    "copy": {
+      "it": "Il formato del file non è supportato o il contenuto non è valido. Controlla e riprova usando uno dei formati indicati.",
+      "en": "The file format is not supported or the content is invalid. Check the file and try again using one of the supported formats."
+    }
+  },
+  {
+    "process": "BFF Process",
+    "error": "invalidContentTypeDetected",
+    "errorCode": "008-10013",
+    "bffEndpoint": "POST /purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation/documents",
+    "copy": {
+      "it": "Non è stato possibile caricare il file. Puoi caricare solo file in formato PDF.",
+      "en": "The file could not be uploaded. You can only upload PDF files."
+    }
+  },
+  {
+    "process": "BFF Process",
+    "error": "invalidPdfSignatureError",
+    "errorCode": "008-10032",
+    "bffEndpoint": "POST /purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation/documents",
+    "copy": {
+      "it": "Non è stato possibile caricare il file. Puoi caricare solo file in formato PDF.",
+      "en": "The file could not be uploaded. You can only upload PDF files."
+    }
+  },
+  {
+    "process": "BFF Process",
+    "error": "invalidFileUploadError",
+    "errorCode": "008-10033",
+    "bffEndpoint": "POST /agreements/:agreementId/consumer-documents",
+    "copy": {
+      "it": "Non puoi caricare il documento perché il file selezionato non è valido o è in un formato non supportato. Scegli un file valido in formato PDF, JSON, Markdown, YAML, TXT, XSD, WSDL o XML e riprova.",
+      "en": "You can't upload the document because the selected file is invalid or its format is not supported. Choose a valid PDF, JSON, Markdown, YAML, TXT, XSD, WSDL, or XML file and try again."
     }
   }
 ] as const satisfies readonly ErrorMessage[];
