@@ -41,6 +41,7 @@
     "@zodios/express": "catalog:",
     "adm-zip": "catalog:",
     "axios": "catalog:",
+    "content-disposition": "catalog:",
     "dotenv-flow": "catalog:",
     "express": "catalog:",
     "fast-xml-parser": "catalog:",
