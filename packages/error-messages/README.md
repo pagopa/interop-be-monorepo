@@ -17,9 +17,11 @@ build cache.
 The source CSV must be versioned so clean checkouts and CI can build the package.
 
 `src/index.ts` re-exports `errorMessages` and the `GeneratedErrorMessage` type
-from the generated module. The BFF imports this TypeScript entry point directly;
-this package intentionally does not define `main`, `types` or `exports`.
-Generation and validation helpers are not re-exported.
+from the generated module. The package is compiled to `dist`, and `package.json`
+sets `main` to `dist` and `exports` to `./dist/index.js`. The BFF imports it by
+package name (`pagopa-interop-error-messages`), so it consumes the compiled
+output; run `pnpm --filter error-messages build` before using the package
+outside of a full build. Generation and validation helpers are not re-exported.
 
 Run `pnpm validate-error-messages` from the repository root, or
 `pnpm --filter error-messages validate`, to validate the generated data against

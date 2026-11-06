@@ -10,7 +10,7 @@
     ".": "./dist/index.js"
   },
   "scripts": {
-    "lint": "eslint . && pnpm validate-error-messages",
+    "lint": "pnpm validate-error-messages && eslint . ",
     "lint:autofix": "eslint . --fix",
     "generate-error-messages": "tsx cli/cli.ts generate",
     "validate-error-messages": "tsx cli/cli.ts validate",
