@@ -45,7 +45,6 @@ export async function handleAgreementUnsuspendedByPlatformToConsumer(
       eventMailTemplateType.agreementUnsuspendedByPlatformToConsumerMailTemplate
     ),
     retrieveAgreementEservice(agreement, readModelService),
-    retrieveTenant(agreement.producerId, readModelService),
     retrieveTenant(agreement.consumerId, readModelService),
   ]);
 
