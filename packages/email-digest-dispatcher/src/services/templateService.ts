@@ -78,8 +78,8 @@ export function digestTemplateServiceBuilder(
         data.waitingForApprovalReceivedAgreements?.totalCount === 1;
       const waitingForApprovalReceivedDelegationsSingular =
         data.waitingForApprovalReceivedDelegations?.totalCount === 1;
-      const revokedReceivedDelegationsSingular =
-        data.revokedReceivedDelegations?.totalCount === 1;
+      const waitingForApprovalDelegatedEservicesSingular =
+        data.waitingForApprovalDelegatedEservices?.totalCount === 1;
       const receivedAttributesSingular =
         data.receivedAttributes?.totalCount === 1;
       const revokedAttributesSingular =
@@ -155,10 +155,12 @@ export function digestTemplateServiceBuilder(
           ? data.waitingForApprovalReceivedDelegations.totalCount -
             SECTION_ITEMS_LIMIT
           : 0;
-      const revokedReceivedDelegationsExceededItemsCount =
-        data.revokedReceivedDelegations &&
-        data.revokedReceivedDelegations.totalCount > SECTION_ITEMS_LIMIT
-          ? data.revokedReceivedDelegations.totalCount - SECTION_ITEMS_LIMIT
+      const waitingForApprovalDelegatedEservicesExceededItemsCount =
+        data.waitingForApprovalDelegatedEservices &&
+        data.waitingForApprovalDelegatedEservices.totalCount >
+          SECTION_ITEMS_LIMIT
+          ? data.waitingForApprovalDelegatedEservices.totalCount -
+            SECTION_ITEMS_LIMIT
           : 0;
       const receivedAttributesExceededItemsCount =
         data.receivedAttributes &&
@@ -197,7 +199,7 @@ export function digestTemplateServiceBuilder(
         waitingForApprovalSentPurposesSingular,
         waitingForApprovalReceivedAgreementsSingular,
         waitingForApprovalReceivedDelegationsSingular,
-        revokedReceivedDelegationsSingular,
+        waitingForApprovalDelegatedEservicesSingular,
         receivedAttributesSingular,
         revokedAttributesSingular,
         newEservicesExceededItemsCount,
@@ -213,7 +215,7 @@ export function digestTemplateServiceBuilder(
         publishedReceivedPurposesExceededItemsCount,
         waitingForApprovalReceivedPurposesExceededItemsCount,
         waitingForApprovalReceivedDelegationsExceededItemsCount,
-        revokedReceivedDelegationsExceededItemsCount,
+        waitingForApprovalDelegatedEservicesExceededItemsCount,
         receivedAttributesExceededItemsCount,
         revokedAttributesExceededItemsCount,
       });

@@ -18,6 +18,7 @@ import {
 import {
   AttributeDigest,
   BaseDigest,
+  DelegatedEserviceDigest,
   DelegationDigest,
   ReceivedPurposeDigest,
 } from "../services/digestDataService.js";
@@ -37,6 +38,7 @@ import {
   ReceivedPurpose,
   ReceivedPurposeState,
   ReceivedDelegation,
+  WaitingForApprovalDelegatedDescriptor,
 } from "../services/readModelService.js";
 
 // Module-level cache for descriptor IDs to avoid repeated readModelService calls
@@ -587,4 +589,31 @@ export async function receivedDelegationsToDigest(
     readModelService,
     selfcareId
   );
+}
+
+/**
+ * Filters waiting for approval delegated descriptors and transforms to DelegatedEserviceDigest.
+ * Shows e-service name with link, and delegated tenant name as delegatedName.
+ *
+ * @param data - Waiting for approval delegated descriptor data to filter and transform
+ * @param selfcareId - The tenant's selfcare ID for deeplink authentication
+ */
+export async function waitingForApprovalDelegatedEservicesToDigest(
+  data: WaitingForApprovalDelegatedDescriptor[],
+  selfcareId: string | null
+): Promise<DelegatedEserviceDigest> {
+  if (data.length === 0) {
+    return { items: [], totalCount: 0 };
+  }
+
+  return {
+    items: data.map((item) => ({
+      name: item.eserviceName,
+      delegatedName: item.delegatedTenantName,
+      link: buildEserviceLink(item.eserviceId, item.descriptorId, selfcareId),
+      id: item.eserviceId,
+      producerName: item.delegatedTenantName,
+    })),
+    totalCount: data[0].totalCount,
+  };
 }

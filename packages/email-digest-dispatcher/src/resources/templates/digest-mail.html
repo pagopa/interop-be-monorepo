@@ -1364,22 +1364,27 @@
                                         </tr>
                                       </table>
                                       <div class="section-divider">
-                                        {{#if waitingForApprovalReceivedDelegations.totalCount}}
+                                        {{#if waitingForApprovalDelegatedEservices.totalCount}}
                                           <p class="body-text-no-margin">
                                             <strong>
-                                              {{#if waitingForApprovalReceivedDelegationsSingular}}
+                                              {{#if waitingForApprovalDelegatedEservicesSingular}}
                                               Hai ricevuto una richiesta
                                               {{else}}
-                                              Hai ricevuto {{ waitingForApprovalReceivedDelegations.totalCount
-                                              }} richieste
+                                              Hai ricevuto {{ waitingForApprovalDelegatedEservices.totalCount }}
+                                              richieste
                                               {{/if}}
                                               per pubblicare un e-service o una nuova versione:
                                             </strong>
+                                            {{#if waitingForApprovalDelegatedEservicesExceededItemsCount }}
+                                            , tra cui:
+                                            {{else}}
+                                              :
+                                            {{/if}}
                                           </p>
                                           <div class="section-cell">
                                             <ul class="list-items">
                                               {{#each
-                                              waitingForApprovalReceivedDelegations.items}}
+                                              waitingForApprovalDelegatedEservices.items}}
                                               <ul class="list-item">
                                                 <a
                                                   href="{{ link }}"
@@ -1387,14 +1392,14 @@
                                                   >{{ name }}</a
                                                 >
                                                 <span class="list-item-secondary"
-                                                  >delegato a {{ producerName }}</span
+                                                  >delegato a {{delegatedName}}</span
                                                 >
                                               </ul>
                                               {{/each}}
-                                              {{#if waitingForApprovalReceivedDelegationsExceededItemsCount }}
+                                              {{#if waitingForApprovalDelegatedEservicesExceededItemsCount }}
                                               <ul class="list-item">
                                                 E altre
-                                                <strong>{{ waitingForApprovalReceivedDelegationsExceededItemsCount }}</strong>.
+                                                <strong>{{ waitingForApprovalDelegatedEservicesExceededItemsCount }}</strong>.
                                               </ul>
                                               {{/if}}
                                             </ul>
@@ -1402,7 +1407,7 @@
                                             <div class="alert-warning" role="note">
                                               <p class="alert-text">
                                                 Approva le richieste e permetti
-                                                agli utenti di continuare a scambiare dati.
+                                                agli enti di continuare a scambiare dati.
                                               </p>
                                             </div>
                                           </div>

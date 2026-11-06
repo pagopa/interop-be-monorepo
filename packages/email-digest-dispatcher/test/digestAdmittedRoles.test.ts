@@ -110,6 +110,47 @@ describe("hasVisibleDigestContent", () => {
     expect(hasVisibleDigestContent(fullData, visibility)).toBe(true);
   });
 
+  it("should count delegated e-services awaiting approval as delegation content", () => {
+    const empty = { items: [], totalCount: 0 };
+    const data = {
+      ...getMockTenantDigestData(),
+      newEservices: empty,
+      updatedEservices: empty,
+      updatedEserviceTemplates: empty,
+      acceptedSentAgreements: empty,
+      rejectedSentAgreements: empty,
+      suspendedSentAgreements: empty,
+      publishedSentPurposes: empty,
+      rejectedSentPurposes: empty,
+      waitingForApprovalSentPurposes: empty,
+      waitingForApprovalReceivedAgreements: empty,
+      publishedReceivedPurposes: empty,
+      waitingForApprovalReceivedPurposes: empty,
+      waitingForApprovalReceivedDelegations: empty,
+      waitingForApprovalDelegatedEservices: {
+        items: [
+          {
+            name: "Delegated e-service",
+            delegatedName: "Delegate tenant",
+            link: "https://example.com/eservice/1",
+            id: "eservice-id",
+            producerName: "",
+          },
+        ],
+        totalCount: 1,
+      },
+      receivedAttributes: empty,
+      revokedAttributes: empty,
+    };
+
+    expect(hasVisibleDigestContent(data, getVisibleSections(["admin"]))).toBe(
+      true
+    );
+    expect(hasVisibleDigestContent(data, getVisibleSections(["api"]))).toBe(
+      false
+    );
+  });
+
   it("should return false when support role has no visible sections", () => {
     const visibility = getVisibleSections(["support"]);
     expect(hasVisibleDigestContent(fullData, visibility)).toBe(false);
@@ -176,7 +217,7 @@ describe("hasVisibleDigestContent", () => {
       publishedReceivedPurposes: empty,
       waitingForApprovalReceivedPurposes: empty,
       waitingForApprovalReceivedDelegations: empty,
-      revokedReceivedDelegations: empty,
+      waitingForApprovalDelegatedEservices: empty,
       receivedAttributes: empty,
       revokedAttributes: empty,
     };

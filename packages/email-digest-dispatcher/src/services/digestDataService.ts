@@ -17,6 +17,7 @@ import {
   sentPurposesToBaseDigest,
   receivedPurposesToBaseDigest,
   receivedDelegationsToDigest,
+  waitingForApprovalDelegatedEservicesToDigest,
 } from "../model/digestDataConverter.js";
 import {
   viewAllNewUpdatedEservicesLink,
@@ -61,6 +62,12 @@ export type AttributeDigest = BaseDigest & {
   }>;
 };
 
+export type DelegatedEserviceDigest = BaseDigest & {
+  items: Array<{
+    delegatedName: string;
+  }>;
+};
+
 export type TenantDigestData = {
   tenantId: TenantId;
   tenantName: string;
@@ -87,7 +94,7 @@ export type TenantDigestData = {
   publishedReceivedPurposes?: ReceivedPurposeDigest;
   waitingForApprovalReceivedPurposes?: ReceivedPurposeDigest;
   waitingForApprovalReceivedDelegations?: DelegationDigest;
-  revokedReceivedDelegations?: DelegationDigest;
+  waitingForApprovalDelegatedEservices?: DelegatedEserviceDigest;
   receivedAttributes?: AttributeDigest;
   revokedAttributes?: AttributeDigest;
 };
@@ -149,6 +156,7 @@ export function digestDataServiceBuilder(
         verifiedRevokedAttributes,
         certifiedAssignedAttributes,
         certifiedRevokedAttributes,
+        waitingForApprovalDelegatedDescriptors,
       ] = await Promise.all([
         readModelService.getNewVersionEservices(tenantId),
         readModelService.getNewEserviceTemplates(tenantId),
@@ -162,6 +170,7 @@ export function digestDataServiceBuilder(
         readModelService.getVerifiedRevokedAttributes(tenantId),
         readModelService.getCertifiedAssignedAttributes(tenantId),
         readModelService.getCertifiedRevokedAttributes(tenantId),
+        readModelService.getWaitingForApprovalDelegatedDescriptors(tenantId), // tenantId as delegatorId
       ]);
 
       const tenantData = tenantDataMap.get(tenantId);
@@ -257,12 +266,11 @@ export function digestDataServiceBuilder(
             readModelService,
             selfcareId
           ),
-        revokedReceivedDelegations: await receivedDelegationsToDigest(
-          receivedDelegations,
-          delegationState.revoked,
-          readModelService,
-          selfcareId
-        ),
+        waitingForApprovalDelegatedEservices:
+          await waitingForApprovalDelegatedEservicesToDigest(
+            waitingForApprovalDelegatedDescriptors,
+            selfcareId
+          ),
         receivedAttributes: combineAttributeDigests(
           await verifiedAttributeToDigest(
             verifiedAssignedAttributes,
@@ -295,7 +303,7 @@ export function digestDataServiceBuilder(
         data.publishedReceivedPurposes?.totalCount ||
         data.waitingForApprovalReceivedPurposes?.totalCount ||
         data.waitingForApprovalReceivedDelegations?.totalCount ||
-        data.revokedReceivedDelegations?.totalCount ||
+        data.waitingForApprovalDelegatedEservices?.totalCount ||
         data.receivedAttributes?.totalCount ||
         data.revokedAttributes?.totalCount
       );

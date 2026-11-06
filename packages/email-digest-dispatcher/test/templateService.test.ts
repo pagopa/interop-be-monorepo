@@ -102,13 +102,13 @@ describe("Template Service", () => {
     expect(compiledHtml).toContain("https://example.com/purposes/received");
   });
 
-  it("Should render received delegations", () => {
+  it("Should render received delegations awaiting approval", () => {
     expect(compiledText).toContain("Deleghe");
     expect(compiledText).toContain("Hai ricevuto 10 richieste");
     expect(compiledText).toContain("Delega in attesa 1");
-    expect(compiledText).toContain("Delega in attesa - Ente Richiedente 1");
-    expect(compiledText).toContain("Hai ricevuto 11 richieste di delega:");
-    expect(compiledText).toContain("Delega revocata 1");
+    expect(compiledText).toContain(
+      "delegato all'erogazione da Ente Richiedente 1"
+    );
   });
 
   it("Should render assigned and revoked attributes", () => {
@@ -206,7 +206,7 @@ describe("Template Service", () => {
     // All the other sections are empty, except for waitingForApprovalReceivedDelegations
     const data = {
       ...getMockTenantDigestData(),
-      revokedReceivedDelegations: empty,
+      waitingForApprovalDelegatedEservices: empty,
     };
 
     const service = digestTemplateServiceBuilder(buildHTMLTemplateService());
@@ -218,6 +218,39 @@ describe("Template Service", () => {
 
     expect(text).toContain("Deleghe");
     expect(text).toContain("Delega in attesa");
+  });
+
+  it("renders delegated e-services awaiting approval with the delegated tenant name", () => {
+    const empty = { items: [], totalCount: 0 };
+    const data = {
+      ...getMockTenantDigestData(),
+      waitingForApprovalReceivedDelegations: empty,
+      waitingForApprovalDelegatedEservices: {
+        items: [
+          {
+            id: "eservice-id",
+            name: "E-service in attesa",
+            producerName: "",
+            delegatedName: "Ente delegato",
+            link: "https://example.com/eservice/1",
+          },
+        ],
+        totalCount: 1,
+      },
+    };
+
+    const service = digestTemplateServiceBuilder(buildHTMLTemplateService());
+    const html = service.compileDigestEmail(
+      data,
+      getVisibleSections(["admin"])
+    );
+    const text = html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ");
+
+    expect(text).toContain("Deleghe");
+    expect(text).toContain("Hai ricevuto una richiesta");
+    expect(text).toContain("E-service in attesa");
+    expect(text).toContain("delegato a Ente delegato");
+    expect(html).toContain('href="https://example.com/eservice/1"');
   });
 
   it("renders attributes heading and link when only receivedAttributes items exist", () => {
