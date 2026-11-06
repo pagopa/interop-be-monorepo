@@ -154,7 +154,8 @@ export const handlePurposeMessageV2 = async (
             "PurposeRiskAnalysisSubmitted",
             "PurposeRiskAnalysisSigned",
             "PurposeRiskAnalysisRejected",
-            "PurposeRiskAnalysisFormEdited"
+            "PurposeRiskAnalysisFormEdited",
+            "MaintenancePurposeRiskAnalysisFixReviewerWorkflow"
           ),
         },
         (event) => {

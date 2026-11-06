@@ -26,14 +26,30 @@ jobs:
         with:
           script: |
             const { owner, repo } = context.repo;
+            const startedAt = Date.now();
+            const log = (message, details = {}) => {
+              console.log(JSON.stringify({
+                message,
+                elapsedMs: Date.now() - startedAt,
+                ...details,
+              }));
+            };
 
             let prsToCheck = [];
+            log('Starting conflict check', {
+              event: context.eventName,
+              ref: context.ref,
+            });
 
             if (context.eventName === 'pull_request_target') {
               const pr = context.payload.pull_request;
               if (!pr.draft) {
                 prsToCheck.push(pr);
               }
+              log('Collected pull request from event', {
+                pullRequest: pr.number,
+                draft: pr.draft,
+              });
             } else {
               const pushedBranch = context.ref.replace('refs/heads/', '');
               let page = 1;
@@ -47,27 +63,57 @@ jobs:
                   page,
                 });
                 prsToCheck.push(...data.filter(pr => !pr.draft));
+                log('Listed pull requests', {
+                  base: pushedBranch,
+                  page,
+                  returned: data.length,
+                  nonDraft: data.filter(pr => !pr.draft).length,
+                });
                 if (data.length < 100) break;
                 page++;
               }
             }
 
+            log('Collected pull requests to check', {
+              count: prsToCheck.length,
+            });
+
             for (const pr of prsToCheck) {
-              // Retry until GitHub computes mergeability (up to 30s)
+              log('Checking pull request', { pullRequest: pr.number });
+              // Query immediately, then back off while GitHub computes mergeability.
+              const retryDelaysMs = [1000, 2000, 4000, 8000, 15000];
               let detail;
               for (let attempt = 0; attempt < 6; attempt++) {
-                await new Promise(resolve => setTimeout(resolve, 5000));
                 const { data } = await github.rest.pulls.get({
                   owner,
                   repo,
                   pull_number: pr.number,
                 });
                 detail = data;
+                log('Received mergeability status', {
+                  pullRequest: pr.number,
+                  attempt: attempt + 1,
+                  mergeableState: detail.mergeable_state,
+                });
                 if (detail.mergeable_state !== 'unknown') break;
+
+                const retryDelayMs = retryDelaysMs[attempt];
+                if (retryDelayMs !== undefined) {
+                  log('Mergeability is unknown; waiting before retry', {
+                    pullRequest: pr.number,
+                    retryDelayMs,
+                  });
+                  await new Promise(resolve => setTimeout(resolve, retryDelayMs));
+                }
               }
 
               // Skip if GitHub still hasn't determined mergeability
-              if (detail.mergeable_state === 'unknown') continue;
+              if (detail.mergeable_state === 'unknown') {
+                log('Skipping pull request because mergeability is still unknown', {
+                  pullRequest: pr.number,
+                });
+                continue;
+              }
 
               const marker = '<!-- conflict-bot -->';
               const comments = await github.paginate(github.rest.issues.listComments, {
@@ -76,6 +122,12 @@ jobs:
                 issue_number: pr.number,
               });
               const existing = comments.find(c => c.body.includes(marker));
+              log('Loaded pull request comments', {
+                pullRequest: pr.number,
+                commentCount: comments.length,
+                hasConflictComment: Boolean(existing),
+                mergeableState: detail.mergeable_state,
+              });
 
               if (detail.mergeable_state === 'dirty') {
                 if (!existing) {
@@ -85,6 +137,7 @@ jobs:
                     issue_number: pr.number,
                     body: `${marker}\n⚠️ @${pr.user.login} This PR now has merge conflicts with \`${detail.base.ref}\`. Please merge the target branch to resolve them.`,
                   });
+                  log('Created conflict comment', { pullRequest: pr.number });
                 }
               } else if (existing) {
                 await github.rest.issues.deleteComment({
@@ -92,5 +145,8 @@ jobs:
                   repo,
                   comment_id: existing.id,
                 });
+                log('Deleted resolved conflict comment', { pullRequest: pr.number });
               }
             }
+
+            log('Completed conflict check', { checked: prsToCheck.length });

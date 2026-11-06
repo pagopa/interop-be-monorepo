@@ -17,6 +17,7 @@ import {
   sentPurposesToBaseDigest,
   receivedPurposesToBaseDigest,
   receivedDelegationsToDigest,
+  waitingForApprovalDelegatedEservicesToDigest,
   archivingEservicesToDigest,
   receivedDelegationArchivingRequestsToDigest,
 } from "../model/digestDataConverter.js";
@@ -61,6 +62,12 @@ export type AttributeDigest = BaseDigest & {
   items: Array<{
     attributeKind: "certified" | "verified";
     attributeKindLabel: string;
+  }>;
+};
+
+export type DelegatedEserviceDigest = BaseDigest & {
+  items: Array<{
+    delegatedName: string;
   }>;
 };
 
@@ -116,7 +123,7 @@ export type TenantDigestData = {
   publishedReceivedPurposes?: ReceivedPurposeDigest;
   waitingForApprovalReceivedPurposes?: ReceivedPurposeDigest;
   waitingForApprovalReceivedDelegations?: DelegationDigest;
-  revokedReceivedDelegations?: DelegationDigest;
+  waitingForApprovalDelegatedEservices?: DelegatedEserviceDigest;
   receivedAttributes?: AttributeDigest;
   revokedAttributes?: AttributeDigest;
   archivingImminentEservices?: ArchivingProducerDigest;
@@ -189,6 +196,7 @@ export function digestDataServiceBuilder(
         verifiedRevokedAttributes,
         certifiedAssignedAttributes,
         certifiedRevokedAttributes,
+        waitingForApprovalDelegatedDescriptors,
         archivingInProgressEservices,
         archivingImminentEservices,
         archivingScopeCounts,
@@ -211,6 +219,7 @@ export function digestDataServiceBuilder(
         readModelService.getVerifiedRevokedAttributes(tenantId),
         readModelService.getCertifiedAssignedAttributes(tenantId),
         readModelService.getCertifiedRevokedAttributes(tenantId),
+        readModelService.getWaitingForApprovalDelegatedDescriptors(tenantId), // tenantId as delegatorId
         readModelService.getArchivingInProgressEservices(tenantId), // tenantId as producerId
         readModelService.getArchivingImminentEservices(tenantId), // tenantId as producerId
         readModelService.getArchivingScopeCounts(tenantId), // tenantId as producerId
@@ -316,12 +325,11 @@ export function digestDataServiceBuilder(
             readModelService,
             selfcareId
           ),
-        revokedReceivedDelegations: await receivedDelegationsToDigest(
-          receivedDelegations,
-          delegationState.revoked,
-          readModelService,
-          selfcareId
-        ),
+        waitingForApprovalDelegatedEservices:
+          await waitingForApprovalDelegatedEservicesToDigest(
+            waitingForApprovalDelegatedDescriptors,
+            selfcareId
+          ),
         receivedAttributes: combineAttributeDigests(
           await verifiedAttributeToDigest(
             verifiedAssignedAttributes,
@@ -391,7 +399,7 @@ export function digestDataServiceBuilder(
         data.publishedReceivedPurposes?.totalCount ||
         data.waitingForApprovalReceivedPurposes?.totalCount ||
         data.waitingForApprovalReceivedDelegations?.totalCount ||
-        data.revokedReceivedDelegations?.totalCount ||
+        data.waitingForApprovalDelegatedEservices?.totalCount ||
         data.receivedAttributes?.totalCount ||
         data.revokedAttributes?.totalCount ||
         data.archivingInProgressEservices?.totalCount ||

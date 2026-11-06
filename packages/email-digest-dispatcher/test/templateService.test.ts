@@ -105,13 +105,13 @@ describe("Template Service", () => {
     expect(compiledHtml).toContain("https://example.com/purposes/received");
   });
 
-  it("Should render received delegations", () => {
+  it("Should render received delegations awaiting approval", () => {
     expect(compiledText).toContain("Deleghe");
     expect(compiledText).toContain("Hai ricevuto 10 richieste");
     expect(compiledText).toContain("Delega in attesa 1");
-    expect(compiledText).toContain("Delega in attesa - Ente Richiedente 1");
-    expect(compiledText).toContain("Hai ricevuto 11 richieste di delega:");
-    expect(compiledText).toContain("Delega revocata 1");
+    expect(compiledText).toContain(
+      "delegato all'erogazione da Ente Richiedente 1"
+    );
   });
 
   it("Should render assigned and revoked attributes", () => {
@@ -220,6 +220,146 @@ describe("Template Service", () => {
     expect(compiledHtml).not.toContain("In fase di archiviazione - fruizione");
   });
 
+  it("renders sent-agreements heading and link when only rejected items exist", () => {
+    const empty = { items: [], totalCount: 0 };
+
+    // All the other sections are empty, except for rejectedSentAgreements
+    const data = {
+      ...getMockTenantDigestData(),
+      acceptedSentAgreements: empty,
+      suspendedSentAgreements: empty,
+      publishedSentPurposes: empty,
+      rejectedSentPurposes: empty,
+      waitingForApprovalSentPurposes: empty,
+    };
+
+    const service = digestTemplateServiceBuilder(buildHTMLTemplateService());
+    const html = service.compileDigestEmail(
+      data,
+      getVisibleSections(["admin"])
+    );
+    const text = html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ");
+
+    expect(text).toContain("Richieste di fruizione inoltrate");
+    expect(text).toContain("Richiesta rifiutata");
+  });
+
+  it("renders sent-purposes heading and link when only rejected items exist", () => {
+    const empty = { items: [], totalCount: 0 };
+
+    // All the other sections are empty, except for rejectedSentPurposes
+    const data = {
+      ...getMockTenantDigestData(),
+      acceptedSentAgreements: empty,
+      suspendedSentAgreements: empty,
+      rejectedSentAgreements: empty,
+      publishedSentPurposes: empty,
+      waitingForApprovalSentPurposes: empty,
+    };
+
+    const service = digestTemplateServiceBuilder(buildHTMLTemplateService());
+    const html = service.compileDigestEmail(
+      data,
+      getVisibleSections(["admin"])
+    );
+    const text = html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ");
+
+    expect(text).toContain("Finalità inoltrate");
+    expect(text).toContain("Finalità rifiutata");
+  });
+
+  it("renders received-purposes heading and link when only published received purposes items exist", () => {
+    const empty = { items: [], totalCount: 0 };
+
+    // All the other sections are empty, except for waitingForApprovalReceivedPurposes
+    const data = {
+      ...getMockTenantDigestData(),
+      publishedReceivedPurposes: empty,
+    };
+
+    const service = digestTemplateServiceBuilder(buildHTMLTemplateService());
+    const html = service.compileDigestEmail(
+      data,
+      getVisibleSections(["admin"])
+    );
+    const text = html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ");
+
+    expect(text).toContain("Finalità ricevute");
+    expect(text).toContain("Finalità ricevuta in attesa");
+  });
+
+  it("renders delegations heading and link when only waitingForApprovalReceivedDelegations items exist", () => {
+    const empty = { items: [], totalCount: 0 };
+
+    // All the other sections are empty, except for waitingForApprovalReceivedDelegations
+    const data = {
+      ...getMockTenantDigestData(),
+      waitingForApprovalDelegatedEservices: empty,
+    };
+
+    const service = digestTemplateServiceBuilder(buildHTMLTemplateService());
+    const html = service.compileDigestEmail(
+      data,
+      getVisibleSections(["admin"])
+    );
+    const text = html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ");
+
+    expect(text).toContain("Deleghe");
+    expect(text).toContain("Delega in attesa");
+  });
+
+  it("renders delegated e-services awaiting approval with the delegated tenant name", () => {
+    const empty = { items: [], totalCount: 0 };
+    const data = {
+      ...getMockTenantDigestData(),
+      waitingForApprovalReceivedDelegations: empty,
+      waitingForApprovalDelegatedEservices: {
+        items: [
+          {
+            id: "eservice-id",
+            name: "E-service in attesa",
+            producerName: "",
+            delegatedName: "Ente delegato",
+            link: "https://example.com/eservice/1",
+          },
+        ],
+        totalCount: 1,
+      },
+    };
+
+    const service = digestTemplateServiceBuilder(buildHTMLTemplateService());
+    const html = service.compileDigestEmail(
+      data,
+      getVisibleSections(["admin"])
+    );
+    const text = html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ");
+
+    expect(text).toContain("Deleghe");
+    expect(text).toContain("Hai ricevuto una richiesta");
+    expect(text).toContain("E-service in attesa");
+    expect(text).toContain("delegato a Ente delegato");
+    expect(html).toContain('href="https://example.com/eservice/1"');
+  });
+
+  it("renders attributes heading and link when only receivedAttributes items exist", () => {
+    const empty = { items: [], totalCount: 0 };
+
+    // All the other sections are empty, except for receivedAttributes
+    const data = {
+      ...getMockTenantDigestData(),
+      revokedAttributes: empty,
+    };
+
+    const service = digestTemplateServiceBuilder(buildHTMLTemplateService());
+    const html = service.compileDigestEmail(
+      data,
+      getVisibleSections(["admin"])
+    );
+    const text = html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ");
+
+    expect(text).toContain("Attributi");
+    expect(text).toContain("Attributo assegnato");
+  });
   it("Should render the delegated archiving section for the admin role", () => {
     const htmlTemplateService = buildHTMLTemplateService();
     const digestTemplateService =

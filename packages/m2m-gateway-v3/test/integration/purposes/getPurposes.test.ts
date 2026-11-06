@@ -67,6 +67,7 @@ describe("getPurposes", () => {
       updatedAt: mockApiPurpose1.updatedAt,
       waitingForApprovalVersion: undefined,
       purposeTemplateId: mockApiPurpose1.purposeTemplateId,
+      riskAnalysisReviewMode: mockApiPurpose1.riskAnalysisReviewMode,
     };
 
     const purposeVersion2 = mockApiPurpose2.versions.at(0);
@@ -89,6 +90,7 @@ describe("getPurposes", () => {
       updatedAt: mockApiPurpose2.updatedAt,
       waitingForApprovalVersion: undefined,
       purposeTemplateId: mockApiPurpose2.purposeTemplateId,
+      riskAnalysisReviewMode: mockApiPurpose2.riskAnalysisReviewMode,
     };
 
     const m2mPurposeResponse: m2mGatewayApiV3.Purposes = {
