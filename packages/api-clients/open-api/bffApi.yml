@@ -15109,7 +15109,6 @@ components:
         - consumer
         - descriptorId
         - eservice
-        - attributes
         - state
         - verifiedAttributes
         - certifiedAttributes
