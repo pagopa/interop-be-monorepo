@@ -302,9 +302,9 @@ paths:
     patch:
       tags:
         - purposeTemplate
-      summary: Partially updates Draft Purpose Template general information
+      summary: Partially updates Purpose Template general information
       operationId: patchUpdateDraftPurposeTemplateById
-      description: Partially updates the general information of the specified Draft Purpose Template
+      description: Partially updates the general information of the specified Purpose Template
       requestBody:
         required: true
         content:
@@ -340,7 +340,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
-          description: Name Conflict
+          description: Name or state conflict
           content:
             application/problem+json:
               schema:
@@ -1854,6 +1854,7 @@ components:
     PatchUpdatePurposeTemplateSeed:
       type: object
       additionalProperties: false
+      minProperties: 1
       properties:
         targetDescription:
           type: string

@@ -359,6 +359,25 @@ const purposeTemplateRouter = (
         }
       }
     )
+    .patch("/purposeTemplates/:purposeTemplateId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const result = await purposeTemplateService.patchUpdatePurposeTemplate(
+          unsafeBrandId(req.params.purposeTemplateId),
+          req.body,
+          ctx
+        );
+        return res.status(200).send(bffApi.PurposeTemplate.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error updating purpose template ${req.params.purposeTemplateId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .put("/purposeTemplates/:purposeTemplateId", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       const purposeTemplateId = unsafeBrandId<PurposeTemplateId>(
