@@ -18,10 +18,10 @@ import { DelegationEventData } from "../models/eventTypes.js";
 import { processAndArchiveFiles } from "../utils/fileProcessor.js";
 
 export const handleDelegationMessageV2 = async (
-  eventsWithTimestamp: Array<{
+  eventsWithTimestamp: {
     delegationV2: DelegationEventV2;
     timestamp: Date;
-  }>,
+  }[],
   fileManager: FileManager,
   signatureService: SignatureServiceBuilder,
   safeStorage: SafeStorageService

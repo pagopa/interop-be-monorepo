@@ -157,11 +157,10 @@ const templateAttributeToTemplateAttributeSQL = ({
 
 const templateAttributesNestedArrayToTemplateAttributeSQLarray = (
   eserviceTemplateVersionId: EServiceTemplateVersionId,
-  attributes: Array<
-    Array<
-      EServiceTemplateAttribute | EServiceTemplateAttributeCertifiedDiscrete
-    >
-  >,
+  attributes: (
+    | EServiceTemplateAttribute
+    | EServiceTemplateAttributeCertifiedDiscrete
+  )[][],
   kind: AttributeKind,
   eserviceTemplateId: EServiceTemplateId,
   metadataVersion: number

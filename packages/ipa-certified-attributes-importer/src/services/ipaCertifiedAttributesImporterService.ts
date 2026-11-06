@@ -65,7 +65,7 @@ export type TenantSeed = {
   origin: string;
   originId: string;
   description: string;
-  attributes: Array<{ origin: string; code: string }>;
+  attributes: { origin: string; code: string }[];
   istatCode?: string;
 };
 
@@ -488,12 +488,12 @@ export async function getAttributesToRevoke(
   platformTenants: Tenant[],
   platformAttributes: Attribute[]
 ): Promise<
-  Array<{
+  {
     tOrigin: string;
     tExternalId: string;
     aOrigin: string;
     aCode: string;
-  }>
+  }[]
 > {
   const tenantSeedsIndex = new Map(
     tenantSeeds.map((t) => [
@@ -566,12 +566,12 @@ export async function getAttributesToRevoke(
 }
 
 export async function revokeAttributes(
-  attributesToRevoke: Array<{
+  attributesToRevoke: {
     tOrigin: string;
     tExternalId: string;
     aOrigin: string;
     aCode: string;
-  }>,
+  }[],
   tenantClient: TenantProcessClient,
   readModelServiceSQL: ReadModelServiceSQL,
   headers: InteropHeaders,

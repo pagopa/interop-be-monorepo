@@ -100,7 +100,7 @@ export function eserviceTemplateServiceBuilder(
   function getIndexedKindAttributeGroups(
     version: eserviceTemplateApi.EServiceTemplateVersion,
     attributeKind: AttributeKind
-  ): Array<{ group: eserviceTemplateApi.Attribute[]; index: number }> {
+  ): { group: eserviceTemplateApi.Attribute[]; index: number }[] {
     const templateAttributeKind =
       mapAttributeKindToEServiceTemplateKind(attributeKind);
 
@@ -179,17 +179,17 @@ export function eserviceTemplateServiceBuilder(
     const templateAttributeKind =
       mapAttributeKindToEServiceTemplateKind(attributeKind);
     const kindAttributeGroups = version.attributes[templateAttributeKind];
-    const allFlatKindAttributes: Array<{
+    const allFlatKindAttributes: {
       attributeId: string;
       groupIndex: number;
-    }> = kindAttributeGroups.flatMap((group, groupIndex) =>
+    }[] = kindAttributeGroups.flatMap((group, groupIndex) =>
       group.map((attribute) => ({
         attributeId: attribute.id,
         groupIndex,
       }))
     );
 
-    const attributeIdsToResolve: Array<attributeRegistryApi.Attribute["id"]> =
+    const attributeIdsToResolve: attributeRegistryApi.Attribute["id"][] =
       allFlatKindAttributes.map((item) => item.attributeId);
 
     const attributeMap = await getResolvedAttributesMap(

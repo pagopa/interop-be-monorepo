@@ -34,10 +34,10 @@ interface DeletingConfig<
   deletingTableName: DeletingDbTable;
   deletingSchema: z.ZodObject<TDeletingSchema>;
   /** Key columns for the mergeDeleting query. Defaults to the main keyColumns if omitted. */
-  deletingKeyColumns?: Array<RepositoryKey<TTable, TSchema>>;
+  deletingKeyColumns?: RepositoryKey<TTable, TSchema>[];
   useIdAsSourceDeleteKey?: boolean;
   physicalDelete?: boolean;
-  additionalKeysToUpdate?: Array<RepositoryKey<TTable, TSchema>>;
+  additionalKeysToUpdate?: RepositoryKey<TTable, TSchema>[];
 }
 
 interface RepositoryConfig<
@@ -46,7 +46,7 @@ interface RepositoryConfig<
 > {
   tableName: TTable;
   schema: z.ZodObject<TSchema>;
-  keyColumns: Array<RepositoryKey<TTable, TSchema>>;
+  keyColumns: RepositoryKey<TTable, TSchema>[];
 }
 
 interface BaseRepository<TSchema> {
