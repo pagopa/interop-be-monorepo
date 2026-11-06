@@ -10,7 +10,7 @@ import { api } from "../../vitest.api.setup.js";
 describe("API GET /emailDeepLink/:digestNotificationType (with optional entityId and selfcareId query params)", () => {
   const makeRequest = async (
     digestNotificationType: string,
-    options?: { entityId?: string; selfcareId?: string }
+    options?: { entityId?: string; selfcareId?: string; states?: string }
   ) => {
     const url = `${appBasePath}/emailDeepLink/${digestNotificationType}`;
     const req = request(api).get(url).set("X-Correlation-Id", generateId());
@@ -21,6 +21,9 @@ describe("API GET /emailDeepLink/:digestNotificationType (with optional entityId
     }
     if (options?.selfcareId) {
       query.selfcareId = options.selfcareId;
+    }
+    if (options?.states) {
+      query.states = options.states;
     }
 
     return req.query(query).send();
@@ -120,6 +123,21 @@ describe("API GET /emailDeepLink/:digestNotificationType (with optional entityId
       expect(location.pathname).toBe("/token-exchange");
       expect(location.searchParams.get("redirectUrl")).toBe(
         `/fruizione/finalita/${entityId}`
+      );
+    });
+
+    it("Should preserve the purpose state filter in the token-exchange redirect", async () => {
+      const res = await makeRequest("purposeToConsumer", {
+        selfcareId,
+        states: "DRAFT",
+      });
+      expect(res.status).toBe(302);
+
+      const location = new URL(res.headers.location);
+      expect(location.pathname).toBe("/token-exchange");
+      expect(location.searchParams.get("institutionId")).toBe(selfcareId);
+      expect(location.searchParams.get("redirectUrl")).toBe(
+        "/fruizione/finalita?states=DRAFT"
       );
     });
 

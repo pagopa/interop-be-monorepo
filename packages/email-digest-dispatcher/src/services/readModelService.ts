@@ -35,6 +35,7 @@ import {
   DelegationState,
   delegationState,
   descriptorState,
+  riskAnalysisSigningState,
   delegationKind,
   archivingScope,
 } from "pagopa-interop-models";
@@ -212,6 +213,21 @@ export type ReceivedPurposeState =
 export type ReceivedPurpose = BasePurpose & {
   state: ReceivedPurposeState;
   consumerName: string;
+};
+
+type BaseRiskAnalysisQueryResult = {
+  purposeId: PurposeId;
+  purposeTitle: string;
+  consumerId: TenantId;
+  totalCount: number;
+};
+
+export type ApprovedRiskAnalysisQueryResult = BaseRiskAnalysisQueryResult & {
+  signedAt: string;
+};
+
+export type RejectedRiskAnalysisQueryResult = BaseRiskAnalysisQueryResult & {
+  rejectedAt: string;
 };
 
 export type DelegatedArchivingRequest = {
@@ -2456,6 +2472,102 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         tenantId: delegateId,
         totalCount: row.totalCount,
       }));
+    },
+
+    /**
+     * Returns all risk analysis that have been approved
+     * in the last configured frequency hours.
+     * Limited to 5 results.
+     */
+    async getApprovedRiskAnalysis(
+      consumerId: TenantId
+    ): Promise<ApprovedRiskAnalysisQueryResult[]> {
+      const results = await db
+        .select(
+          withTotalCount({
+            purposeId: purposeInReadmodelPurpose.id,
+            purposeTitle: purposeInReadmodelPurpose.title,
+            signedAt: purposeInReadmodelPurpose.reviewerWorkflowSignedAt,
+          })
+        )
+        .from(purposeInReadmodelPurpose)
+        .where(
+          and(
+            eq(purposeInReadmodelPurpose.consumerId, consumerId),
+            eq(
+              purposeInReadmodelPurpose.reviewerWorkflowSigningState,
+              riskAnalysisSigningState.signed
+            ),
+            isNotNull(purposeInReadmodelPurpose.reviewerWorkflowSignedAt),
+            gte(
+              purposeInReadmodelPurpose.reviewerWorkflowSignedAt,
+              dateThreshold.toISOString()
+            )
+          )
+        )
+        .orderBy(desc(purposeInReadmodelPurpose.reviewerWorkflowSignedAt))
+        .limit(SECTION_LIST_LIMIT);
+
+      return results
+        .filter(
+          (row): row is typeof row & { signedAt: string } =>
+            row.signedAt !== null
+        )
+        .map((row) => ({
+          purposeId: unsafeBrandId<PurposeId>(row.purposeId),
+          purposeTitle: row.purposeTitle,
+          consumerId: consumerId,
+          signedAt: row.signedAt,
+          totalCount: row.totalCount,
+        }));
+    },
+
+    /**
+     * Returns all risk analysis that have been rejected
+     * in the last configured frequency hours.
+     * Limited to 5 results.
+     */
+    async getRejectedRiskAnalysis(
+      consumerId: TenantId
+    ): Promise<RejectedRiskAnalysisQueryResult[]> {
+      const results = await db
+        .select(
+          withTotalCount({
+            purposeId: purposeInReadmodelPurpose.id,
+            purposeTitle: purposeInReadmodelPurpose.title,
+            rejectedAt: purposeInReadmodelPurpose.reviewerWorkflowRejectedAt,
+          })
+        )
+        .from(purposeInReadmodelPurpose)
+        .where(
+          and(
+            eq(purposeInReadmodelPurpose.consumerId, consumerId),
+            isNotNull(purposeInReadmodelPurpose.reviewerWorkflowRejectedAt),
+            eq(
+              purposeInReadmodelPurpose.reviewerWorkflowSigningState,
+              riskAnalysisSigningState.rejected
+            ),
+            gte(
+              purposeInReadmodelPurpose.reviewerWorkflowRejectedAt,
+              dateThreshold.toISOString()
+            )
+          )
+        )
+        .orderBy(desc(purposeInReadmodelPurpose.reviewerWorkflowRejectedAt))
+        .limit(SECTION_LIST_LIMIT);
+
+      return results
+        .filter(
+          (row): row is typeof row & { rejectedAt: string } =>
+            row.rejectedAt !== null
+        )
+        .map((row) => ({
+          purposeId: unsafeBrandId<PurposeId>(row.purposeId),
+          purposeTitle: row.purposeTitle,
+          consumerId: consumerId,
+          rejectedAt: row.rejectedAt,
+          totalCount: row.totalCount,
+        }));
     },
   };
 }

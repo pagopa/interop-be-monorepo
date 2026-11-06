@@ -35,7 +35,9 @@ export type DigestSection =
   | "delegations"
   | "attributes"
   | "archivingProducer"
-  | "archivingConsumer";
+  | "archivingConsumer"
+  | "approvedRiskAnalysis"
+  | "rejectedRiskAnalysis";
 
 /**
  * Which roles can see each digest section.
@@ -132,6 +134,23 @@ export const digestAdmittedRoles = {
     [REVIEWER_ROLE]: false,
     [VIEWER_ROLE]: false,
   },
+  // Same visibility as sentPurposes: producer-facing risk analysis info.
+  approvedRiskAnalysis: {
+    [ADMIN_ROLE]: true,
+    [API_ROLE]: false,
+    [SECURITY_ROLE]: true,
+    [SUPPORT_ROLE]: false,
+    [REVIEWER_ROLE]: false,
+    [VIEWER_ROLE]: false,
+  },
+  rejectedRiskAnalysis: {
+    [ADMIN_ROLE]: true,
+    [API_ROLE]: false,
+    [SECURITY_ROLE]: true,
+    [SUPPORT_ROLE]: false,
+    [REVIEWER_ROLE]: false,
+    [VIEWER_ROLE]: false,
+  },
 } as const satisfies Record<DigestSection, Record<UserRole, boolean>> &
   Record<DigestSection, Record<typeof SUPPORT_ROLE, false>>;
 
@@ -204,6 +223,8 @@ const digestSectionFields: Record<DigestSection, DigestDataField[]> = {
     "archivingConsumerImminentEservices",
     "archivingConsumerInProgressEservices",
   ],
+  approvedRiskAnalysis: ["approvedRiskAnalysis"],
+  rejectedRiskAnalysis: ["rejectedRiskAnalysis"],
 };
 
 /**
@@ -239,7 +260,12 @@ const digestGroups: Record<string, DigestSection[]> = {
     "updatedEservices",
     "updatedEserviceTemplates",
   ],
-  hasSentItemsContent: ["sentAgreements", "sentPurposes"],
+  hasSentItemsContent: [
+    "sentAgreements",
+    "sentPurposes",
+    "approvedRiskAnalysis",
+    "rejectedRiskAnalysis",
+  ],
   hasSentAgreementsContent: ["sentAgreements"],
   hasSentPurposesContent: ["sentPurposes"],
   hasReceivedPurposesContent: ["receivedPurposes"],
@@ -248,6 +274,7 @@ const digestGroups: Record<string, DigestSection[]> = {
   hasAttributesContent: ["attributes"],
   hasArchivingProducerContent: ["archivingProducer"],
   hasArchivingConsumerContent: ["archivingConsumer"],
+  hasRiskAnalysisContent: ["approvedRiskAnalysis", "rejectedRiskAnalysis"],
 };
 
 /**
