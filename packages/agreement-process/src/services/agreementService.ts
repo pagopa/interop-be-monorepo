@@ -21,6 +21,7 @@ import {
   isFeatureFlagEnabled,
   ownership,
   validateNoHyperlinksSafe,
+  waitForReadModelMetadataVersion,
 } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -47,6 +48,7 @@ import {
   CorrelationId,
   DelegationId,
   AgreementSignedContract,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -1522,8 +1524,20 @@ export function agreementServiceBuilder(
         logger
       );
 
+      const createdEvents = [];
       for (const event of events) {
-        await repository.createEvent(event);
+        // eslint-disable-next-line functional/immutable-data
+        createdEvents.push(await repository.createEvent(event));
+      }
+
+      for (const { streamId, newVersion } of createdEvents) {
+        await waitForReadModelMetadataVersion(
+          () =>
+            readModelService.getAgreementById(
+              unsafeBrandId<AgreementId>(streamId)
+            ),
+          newVersion
+        );
       }
     },
     async verifyTenantCertifiedAttributes(
