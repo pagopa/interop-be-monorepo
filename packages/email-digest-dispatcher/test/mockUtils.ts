@@ -217,6 +217,46 @@ export function getMockTenantDigestData(): TenantDigestData {
     ),
     receivedAttributes: generateAttributes(12, "Attributo assegnato"),
     revokedAttributes: generateAttributes(13, "Attributo revocato"),
+    viewAllArchivingProducerLink: "https://example.com/archiving",
+    archivingImminentEservices: {
+      items: [
+        {
+          id: "eservice-1",
+          eserviceName: "Servizio Anagrafica Nazionale",
+          version: "3",
+          scope: "Descriptor",
+          isEserviceScope: false,
+          archivableOn: "05/10/2026",
+          link: "https://example.com/eservice/1",
+        },
+      ],
+      totalCount: 1,
+    },
+    archivingInProgressEservices: {
+      items: [
+        {
+          id: "eservice-6",
+          eserviceName: "Servizio Catasto",
+          version: "1",
+          scope: "EService",
+          isEserviceScope: true,
+          archivableOn: "20/10/2026",
+          link: "https://example.com/eservice/6",
+        },
+        {
+          id: "eservice-2",
+          eserviceName: "API Fatturazione Elettronica",
+          version: "1",
+          scope: "Descriptor",
+          isEserviceScope: false,
+          archivableOn: "25/10/2026",
+          link: "https://example.com/eservice/2",
+        },
+      ],
+      totalCount: 2,
+    },
+    archivingEserviceScopeCount: 1,
+    archivingDescriptorScopeCount: 1,
   };
 }
 
@@ -295,6 +335,7 @@ export function getMockLimitedTenantDigestData(): TenantDigestData {
     ),
     receivedAttributes: generateAttributes(5, "Attributo assegnato"),
     revokedAttributes: generateAttributes(5, "Attributo revocato"),
+    viewAllArchivingProducerLink: "https://example.com/archiving",
   };
 }
 
@@ -373,6 +414,37 @@ export function getMockSingularTenantDigestData(): TenantDigestData {
     ),
     receivedAttributes: generateAttributes(1, "Attributo assegnato"),
     revokedAttributes: generateAttributes(1, "Attributo revocato"),
+    viewAllArchivingProducerLink: "https://example.com/archiving",
+    archivingImminentEservices: {
+      items: [
+        {
+          id: "eservice-1",
+          eserviceName: "Servizio Anagrafica Nazionale",
+          version: "3",
+          scope: "Descriptor",
+          isEserviceScope: false,
+          archivableOn: "05/10/2026",
+          link: "https://example.com/eservice/1",
+        },
+      ],
+      totalCount: 1,
+    },
+    archivingInProgressEservices: {
+      items: [
+        {
+          id: "eservice-6",
+          eserviceName: "Servizio Catasto",
+          version: "1",
+          scope: "EService",
+          isEserviceScope: true,
+          archivableOn: "20/10/2026",
+          link: "https://example.com/eservice/6",
+        },
+      ],
+      totalCount: 1,
+    },
+    archivingEserviceScopeCount: 1,
+    archivingDescriptorScopeCount: 1,
   };
 }
 
@@ -395,6 +467,7 @@ export function getMockPartialDigestData(): TenantDigestData {
     viewAllAttributesLink: "https://example.com/attributes",
     viewAllUpdatedEserviceTemplatesLink:
       "https://example.com/eservice-templates/updated",
+    viewAllArchivingProducerLink: "https://example.com/archiving",
     // E-services section - populated
     newEservices: generateNewEservices(2, "Nuovo e-service"),
     updatedEservices: generateNewEservices(2, "E-service aggiornato"),
