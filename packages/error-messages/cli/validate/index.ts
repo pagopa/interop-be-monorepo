@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -58,6 +59,16 @@ export async function validate({
   if (generatedContent !== regeneratedContent) {
     throw new Error(
       `${generatedPath} does not match the content from ${csvPath}, please regenerate it`
+    );
+  }
+
+  try {
+    execFileSync("git", ["diff", "--quiet", "HEAD", "--", generatedPath], {
+      cwd: getRootPath(),
+    });
+  } catch {
+    throw new Error(
+      `${generatedPath} has uncommitted changes compared to HEAD: regenerate it from ${csvPath} and commit it`
     );
   }
 }
