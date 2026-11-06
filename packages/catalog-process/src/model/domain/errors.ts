@@ -96,6 +96,7 @@ const errorCodes = {
   noActiveDelegationFound: "0075",
   delegatedArchiveRequestForIncorrectDelegateProducer: "0076",
   interfaceDocumentNotUpdatable: "0077",
+  templateInstanceAttributesCannotBeChanged: "0078",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -483,6 +484,17 @@ export function templateInstanceNotAllowed(
     detail: `Operation not allowed on EService ${eserviceId} instance of template ${eServiceTemplateId}`,
     code: "templateInstanceNotAllowed",
     title: "TemplateId must be undefined",
+  });
+}
+
+export function templateInstanceAttributesCannotBeChanged(
+  eserviceId: EServiceId,
+  eServiceTemplateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attributes of EService ${eserviceId} cannot differ from those inherited from template ${eServiceTemplateId}`,
+    code: "templateInstanceAttributesCannotBeChanged",
+    title: "Template instance attributes cannot be changed",
   });
 }
 
