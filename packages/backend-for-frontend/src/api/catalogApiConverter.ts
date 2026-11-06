@@ -58,6 +58,16 @@ export function toBffCatalogTenant(
   };
 }
 
+export const toBffCatalogQueryTemplateInstancesGroup = (
+  group: catalogApi.CatalogQueryTemplateInstancesGroup
+): bffApi.CatalogQueryTemplateInstancesGroup => ({
+  id: group.id,
+  name: group.name,
+  description: group.description,
+  numInstances: group.numInstances,
+  resultType: "template",
+});
+
 export function toBffCatalogApiEService(
   eservice: catalogApi.EService,
   producerTenant: tenantApi.Tenant,

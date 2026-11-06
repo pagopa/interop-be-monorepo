@@ -18,6 +18,8 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
+import { CatalogQueryResult } from "./models.js";
+
 export function technologyToApiTechnology(
   input: Technology
 ): catalogApi.EServiceTechnology {
@@ -276,3 +278,26 @@ export const eServiceToApiEService = (
         }))
       : undefined,
 });
+
+export const catalogQueryResultToApiCatalogQueryResult = (
+  result: CatalogQueryResult
+): catalogApi.CatalogQueryResult =>
+  match(result)
+    .with(
+      { resultType: "eservice" },
+      (eservice): catalogApi.CatalogQueryEService => ({
+        ...eServiceToApiEService(eservice),
+        resultType: "eservice",
+      })
+    )
+    .with(
+      { resultType: "template" },
+      (group): catalogApi.CatalogQueryTemplateInstancesGroup => ({
+        id: group.id,
+        name: group.name,
+        description: group.description,
+        numInstances: group.numInstances,
+        resultType: "template",
+      })
+    )
+    .exhaustive();
