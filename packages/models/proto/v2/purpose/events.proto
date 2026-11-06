@@ -12,6 +12,14 @@ message DraftPurposeUpdatedV2 {
   PurposeV2 purpose = 1;
 }
 
+message PurposeTitleUpdatedV2 {
+  PurposeV2 purpose = 1;
+}
+
+message PurposeDescriptionUpdatedV2 {
+  PurposeV2 purpose = 1;
+}
+
 message PurposeWaitingForApprovalV2 {
   PurposeV2 purpose = 1;
 }
