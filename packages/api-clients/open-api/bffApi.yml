@@ -15651,6 +15651,14 @@ components:
           format: uuid
         name:
           type: string
+        subUnitType:
+          $ref: "#/components/schemas/TenantUnitType"
+        parentTenants:
+          type: array
+          maxItems: 2
+          description: Parent tenants, from the immediate parent up to the root, when available. Omitted when none are resolved.
+          items:
+            $ref: "#/components/schemas/ParentTenant"
         hasUnreadNotifications:
           type: boolean
           description: Indicates if there are unread notifications for this organization
