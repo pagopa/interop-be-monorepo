@@ -9,6 +9,7 @@ import {
   getLatestVersionFormRules,
   M2MAdminAuthData,
   M2MAuthData,
+  Logger,
   riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate,
   riskAnalysisValidatedAnswerToRiskAnalysisAnswer,
   UIAuthData,
@@ -68,6 +69,7 @@ import {
   ruleSetNotFoundError,
   purposeTemplateRiskAnalysisTemplateSignedDocumentNotFound,
   purposeTemplateRiskAnalysisTemplateDocumentNotFound,
+  purposeTemplateNotInExpectedStates,
 } from "../model/domain/errors.js";
 import {
   toCreateEventPurposeTemplateAdded,
@@ -82,6 +84,9 @@ import {
   toCreateEventPurposeTemplateEServiceTemplateUnlinked,
   toCreateEventPurposeTemplateEServiceUnlinked,
   toCreateEventPurposeTemplatePublished,
+  toCreateEventPurposeTemplatePurposeTitleUpdated,
+  toCreateEventPurposeTemplatePurposeDescriptionUpdated,
+  toCreateEventPurposeTemplateTargetDescriptionUpdated,
   toCreateEventPurposeTemplateSuspended,
   toCreateEventPurposeTemplateUnsuspended,
   toCreateEventRiskAnalysisTemplateDocumentGenerated,
@@ -686,7 +691,6 @@ function applyVisibilityToPurposeTemplate(
   throw purposeTemplateNotFound(purposeTemplate.data.id);
 }
 
-// eslint-disable-next-line sonarjs/cognitive-complexity
 async function updateDraftPurposeTemplate(
   purposeTemplateId: PurposeTemplateId,
   typeAndSeed:
@@ -718,52 +722,103 @@ async function updateDraftPurposeTemplate(
     purposeTemplate.data.creatorId,
     authData
   );
-  assertPurposeTemplateHasRiskAnalysisForm(purposeTemplate.data);
+  const updatedPurposeTemplate = await prepareDraftPurposeTemplateUpdate(
+    purposeTemplate.data,
+    typeAndSeed,
+    readModelService,
+    fileManager,
+    logger
+  );
 
-  const purposeTemplateWithRiskAnalysisForm = purposeTemplate.data;
+  const event = await repository.createEvent(
+    toCreateEventPurposeTemplateDraftUpdated(
+      updatedPurposeTemplate,
+      correlationId,
+      purposeTemplate.metadata.version
+    )
+  );
+
+  return {
+    data: updatedPurposeTemplate,
+    metadata: {
+      version: event.newVersion,
+    },
+  };
+}
+
+async function validatePurposeTemplateMetadata(
+  purposeTemplate: PurposeTemplate,
+  seed: purposeTemplateApi.PatchUpdatePurposeTemplateSeed,
+  readModelService: ReadModelServiceSQL
+): Promise<void> {
+  validatePurposeTemplateFreeTextFields(seed);
+
+  if (
+    seed.purposeTitle !== undefined &&
+    seed.purposeTitle.toLowerCase() !==
+      purposeTemplate.purposeTitle.toLowerCase()
+  ) {
+    await assertPurposeTemplateTitleIsNotDuplicated({
+      readModelService,
+      title: seed.purposeTitle,
+    });
+  }
+}
+
+// eslint-disable-next-line sonarjs/cognitive-complexity
+async function prepareDraftPurposeTemplateUpdate(
+  purposeTemplate: PurposeTemplate,
+  typeAndSeed:
+    | {
+        type: "put";
+        seed: purposeTemplateApi.PurposeTemplateSeed;
+      }
+    | {
+        type: "patch";
+        seed: purposeTemplateApi.PatchUpdatePurposeTemplateSeed;
+      },
+  readModelService: ReadModelServiceSQL,
+  fileManager: FileManager,
+  logger: Logger
+): Promise<PurposeTemplate> {
+  assertPurposeTemplateHasRiskAnalysisForm(purposeTemplate);
+
+  const purposeTemplateWithRiskAnalysisForm = purposeTemplate;
 
   const {
     targetTenantKind,
-    purposeTitle,
     purposeFreeOfChargeReason,
     purposeIsFreeOfCharge,
     purposeDailyCalls,
     handlesPersonalData,
   } = typeAndSeed.seed;
 
-  validatePurposeTemplateFreeTextFields(typeAndSeed.seed);
-
-  if (
-    purposeTitle &&
-    purposeTitle.toLowerCase() !==
-      purposeTemplate.data.purposeTitle.toLowerCase()
-  ) {
-    await assertPurposeTemplateTitleIsNotDuplicated({
-      readModelService,
-      title: purposeTitle,
-    });
-  }
+  await validatePurposeTemplateMetadata(
+    purposeTemplate,
+    typeAndSeed.seed,
+    readModelService
+  );
 
   const updatedTargetTenantKind =
-    targetTenantKind ?? purposeTemplate.data.targetTenantKind;
+    targetTenantKind ?? purposeTemplate.targetTenantKind;
 
   const updatedHandlesPersonalData =
     handlesPersonalData !== undefined
       ? handlesPersonalData
-      : purposeTemplate.data.handlesPersonalData;
+      : purposeTemplate.handlesPersonalData;
 
   const updatedPurposeRiskAnalysisForm = await match(typeAndSeed)
     .with({ type: "put" }, async ({ seed }) => {
       const riskAnalysisTemplate = validateAndTransformRiskAnalysisTemplate(
         seed.purposeRiskAnalysisForm,
-        purposeTemplate.data.targetTenantKind,
+        purposeTemplate.targetTenantKind,
         updatedHandlesPersonalData
       );
 
       if (riskAnalysisTemplate) {
         await cleanupAnnotationDocsForRemovedAnswers(
           seed,
-          purposeTemplate.data,
+          purposeTemplate,
           fileManager,
           logger
         );
@@ -780,11 +835,11 @@ async function updateDraftPurposeTemplate(
         purposeTemplateWithRiskAnalysisForm.purposeRiskAnalysisForm.id
       );
     })
-    .with({ type: "patch" }, () => purposeTemplate.data.purposeRiskAnalysisForm)
+    .with({ type: "patch" }, () => purposeTemplate.purposeRiskAnalysisForm)
     .exhaustive();
 
   const updatedPurposeIsFreeOfCharge =
-    purposeIsFreeOfCharge ?? purposeTemplate.data.purposeIsFreeOfCharge;
+    purposeIsFreeOfCharge ?? purposeTemplate.purposeIsFreeOfCharge;
 
   // Context: https://github.com/pagopa/interop-be-monorepo/pull/2954
   function updatePurposeFreeOfChargeReason(): string | undefined {
@@ -823,11 +878,11 @@ async function updateDraftPurposeTemplate(
     }
 
     // Fallback to the existing purposeFreeOfChargeReason in the purpose template
-    return purposeTemplate.data.purposeFreeOfChargeReason;
+    return purposeTemplate.purposeFreeOfChargeReason;
   }
 
   const updatedPurposeTemplate: PurposeTemplate = {
-    ...purposeTemplate.data,
+    ...purposeTemplate,
     ...typeAndSeed.seed,
     purposeIsFreeOfCharge: updatedPurposeIsFreeOfCharge,
     purposeFreeOfChargeReason: updatePurposeFreeOfChargeReason(),
@@ -835,7 +890,7 @@ async function updateDraftPurposeTemplate(
     purposeDailyCalls:
       purposeDailyCalls === null
         ? undefined
-        : (purposeDailyCalls ?? purposeTemplate.data.purposeDailyCalls),
+        : (purposeDailyCalls ?? purposeTemplate.purposeDailyCalls),
     updatedAt: new Date(),
   };
 
@@ -844,20 +899,7 @@ async function updateDraftPurposeTemplate(
     updatedPurposeTemplate.purposeFreeOfChargeReason
   );
 
-  const event = await repository.createEvent(
-    toCreateEventPurposeTemplateDraftUpdated(
-      updatedPurposeTemplate,
-      correlationId,
-      purposeTemplate.metadata.version
-    )
-  );
-
-  return {
-    data: updatedPurposeTemplate,
-    metadata: {
-      version: event.newVersion,
-    },
-  };
+  return updatedPurposeTemplate;
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -1526,14 +1568,128 @@ export function purposeTemplateServiceBuilder(
       ctx.logger.info(
         `Partially updating PurposeTemplate ${purposeTemplateId}`
       );
-      return await updateDraftPurposeTemplate(
+
+      const purposeTemplate = await retrievePurposeTemplate(
         purposeTemplateId,
-        { type: "patch", seed: purposeTemplateSeed },
-        readModelService,
-        fileManager,
-        repository,
-        ctx
+        readModelService
       );
+
+      assertRequesterIsCreator(
+        purposeTemplateId,
+        purposeTemplate.data.creatorId,
+        ctx.authData
+      );
+
+      const {
+        purposeTitle,
+        purposeDescription,
+        targetDescription,
+        ...operationalSeed
+      } = purposeTemplateSeed;
+
+      const seedIncludesOperationalFields = Object.values(operationalSeed).some(
+        (value) => value !== undefined
+      );
+
+      const isDraft = isPurposeTemplateDraft(purposeTemplate.data.state);
+
+      if (seedIncludesOperationalFields && !isDraft) {
+        throw purposeTemplateNotInExpectedStates(
+          purposeTemplate.data.id,
+          purposeTemplate.data.state,
+          [purposeTemplateState.draft]
+        );
+      }
+
+      if (!seedIncludesOperationalFields) {
+        await validatePurposeTemplateMetadata(
+          purposeTemplate.data,
+          purposeTemplateSeed,
+          readModelService
+        );
+      }
+
+      const purposeTitleUpdatedTemplate: PurposeTemplate = {
+        ...purposeTemplate.data,
+        purposeTitle: purposeTitle ?? purposeTemplate.data.purposeTitle,
+        updatedAt: new Date(),
+      };
+      const purposeDescriptionUpdatedTemplate: PurposeTemplate = {
+        ...purposeTitleUpdatedTemplate,
+        purposeDescription:
+          purposeDescription ?? purposeTemplate.data.purposeDescription,
+      };
+      let updatedPurposeTemplate: PurposeTemplate = {
+        ...purposeDescriptionUpdatedTemplate,
+        targetDescription:
+          targetDescription ?? purposeTemplate.data.targetDescription,
+      };
+
+      if (isDraft) {
+        if (seedIncludesOperationalFields) {
+          updatedPurposeTemplate = await prepareDraftPurposeTemplateUpdate(
+            purposeTemplate.data,
+            { type: "patch", seed: purposeTemplateSeed },
+            readModelService,
+            fileManager,
+            ctx.logger
+          );
+        }
+        const event = await repository.createEvent(
+          toCreateEventPurposeTemplateDraftUpdated(
+            updatedPurposeTemplate,
+            ctx.correlationId,
+            purposeTemplate.metadata.version
+          )
+        );
+        return {
+          data: updatedPurposeTemplate,
+          metadata: { version: event.newVersion },
+        };
+      }
+
+      const events = [
+        ...(purposeTitle !== undefined
+          ? [
+              toCreateEventPurposeTemplatePurposeTitleUpdated(
+                purposeTitleUpdatedTemplate,
+                ctx.correlationId,
+                purposeTemplate.metadata.version
+              ),
+            ]
+          : []),
+        ...(purposeDescription !== undefined
+          ? [
+              toCreateEventPurposeTemplatePurposeDescriptionUpdated(
+                purposeDescriptionUpdatedTemplate,
+                ctx.correlationId,
+                purposeTemplate.metadata.version
+              ),
+            ]
+          : []),
+        ...(targetDescription !== undefined
+          ? [
+              toCreateEventPurposeTemplateTargetDescriptionUpdated(
+                updatedPurposeTemplate,
+                ctx.correlationId,
+                purposeTemplate.metadata.version
+              ),
+            ]
+          : []),
+      ].map((event, index) => ({
+        ...event,
+        version: purposeTemplate.metadata.version + index,
+      }));
+
+      const createdEvents = await repository.createEvents(events);
+      return {
+        data: updatedPurposeTemplate,
+        metadata: {
+          version:
+            createdEvents.latestNewVersions.get(purposeTemplateId) ??
+            purposeTemplate.metadata.version,
+        },
+      };
     },
     async getRiskAnalysisTemplateDocument(
       purposeTemplateId: PurposeTemplateId,

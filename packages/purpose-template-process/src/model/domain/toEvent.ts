@@ -143,6 +143,57 @@ export function toCreateEventPurposeTemplateDraftUpdated(
   };
 }
 
+export function toCreateEventPurposeTemplatePurposeTitleUpdated(
+  purposeTemplate: PurposeTemplate,
+  correlationId: CorrelationId,
+  version: number
+): CreateEvent<PurposeTemplateEventV2> {
+  return {
+    streamId: purposeTemplate.id,
+    version,
+    correlationId,
+    event: {
+      type: "PurposeTemplatePurposeTitleUpdated",
+      event_version: 2,
+      data: { purposeTemplate: toPurposeTemplateV2(purposeTemplate) },
+    },
+  };
+}
+
+export function toCreateEventPurposeTemplatePurposeDescriptionUpdated(
+  purposeTemplate: PurposeTemplate,
+  correlationId: CorrelationId,
+  version: number
+): CreateEvent<PurposeTemplateEventV2> {
+  return {
+    streamId: purposeTemplate.id,
+    version,
+    correlationId,
+    event: {
+      type: "PurposeTemplatePurposeDescriptionUpdated",
+      event_version: 2,
+      data: { purposeTemplate: toPurposeTemplateV2(purposeTemplate) },
+    },
+  };
+}
+
+export function toCreateEventPurposeTemplateTargetDescriptionUpdated(
+  purposeTemplate: PurposeTemplate,
+  correlationId: CorrelationId,
+  version: number
+): CreateEvent<PurposeTemplateEventV2> {
+  return {
+    streamId: purposeTemplate.id,
+    version,
+    correlationId,
+    event: {
+      type: "PurposeTemplateTargetDescriptionUpdated",
+      event_version: 2,
+      data: { purposeTemplate: toPurposeTemplateV2(purposeTemplate) },
+    },
+  };
+}
+
 export function toCreateEventPurposeTemplateAnswerAnnotationDocumentAdded(
   purposeTemplate: PurposeTemplate,
   documentId: RiskAnalysisTemplateAnswerAnnotationDocumentId,
