@@ -1,8 +1,9 @@
+import type { ErrorMessage } from "pagopa-interop-models";
+
 import {
   errorMessages,
   GeneratedErrorMessage,
 } from "pagopa-interop-error-messages";
-import { ErrorMessage } from "pagopa-interop-models";
 import { describe, expect, expectTypeOf, it } from "vitest";
 
 describe("shared error messages", () => {
