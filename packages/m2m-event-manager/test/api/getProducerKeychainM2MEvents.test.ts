@@ -64,6 +64,37 @@ describe("API /events/producerKeychains test", () => {
     authRole.M2M_ADMIN_ROLE,
   ];
 
+  it.each([
+    ["ProducerKeychainNameUpdated", "PRODUCER_KEYCHAIN_NAME_UPDATED"],
+    [
+      "ProducerKeychainDescriptionUpdated",
+      "PRODUCER_KEYCHAIN_DESCRIPTION_UPDATED",
+    ],
+  ] as const)(
+    "should expose %s without opt-in",
+    async (eventType, apiEventType) => {
+      const event = getMockedProducerKeychainM2MEvent({
+        eventType,
+        visibility: m2mEventVisibility.public,
+      });
+      m2mEventService.getProducerKeychainM2MEvents = vi
+        .fn()
+        .mockResolvedValue([event]);
+
+      const res = await makeRequest(generateToken(authRole.M2M_ROLE));
+
+      expect(res.status).toBe(200);
+      expect(res.body.events).toEqual([
+        {
+          id: event.id,
+          eventTimestamp: event.eventTimestamp.toJSON(),
+          eventType: apiEventType,
+          producerKeychainId: event.producerKeychainId,
+        },
+      ]);
+    }
+  );
+
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",
     async (role) => {

@@ -61,6 +61,27 @@ describe("getProducerKeychainM2MEvents", () => {
     expect(events.length).toEqual(publicEventsCount);
   });
 
+  it.each([
+    "ProducerKeychainNameUpdated",
+    "ProducerKeychainDescriptionUpdated",
+  ] as const)(
+    "should include public %s events for a non-owner without opt-in",
+    async (eventType) => {
+      const events = await m2mEventService.getProducerKeychainM2MEvents(
+        undefined,
+        publicEventsCount,
+        getMockContextM2M({})
+      );
+      expect(events).toContainEqual(
+        mockProducerKeychainM2MEvents.find(
+          (event) =>
+            event.eventType === eventType &&
+            event.visibility === m2mEventVisibility.public
+        )
+      );
+    }
+  );
+
   it("should list public & owner producerKeychain M2M events (requester = producer)", async () => {
     const ownerEvents = mockProducerKeychainM2MEvents.filter(
       (e) =>
