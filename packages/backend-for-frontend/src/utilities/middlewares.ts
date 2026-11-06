@@ -34,26 +34,45 @@ export function uiAuthDataValidationMiddleware(): ZodiosRouterContextRequestHand
   };
 }
 
-function getLocaleFromAcceptLanguageHeader(
+export function getLocaleFromAcceptLanguageHeader(
   acceptLanguageHeader: string | undefined
 ): UserFacingLanguage | undefined {
   if (!acceptLanguageHeader) {
     return undefined;
   }
 
-  const acceptedLanguages = acceptLanguageHeader.split(",").map((lang) => {
-    const [fullLanguage] = lang.split(";");
-    if (fullLanguage.includes("-")) {
-      const [language] = fullLanguage.toLocaleLowerCase().split("-");
-      return language.trim();
-    }
-    return fullLanguage.trim();
-  });
+  const acceptedLanguages = acceptLanguageHeader
+    .split(",")
+    .map((entry, index) => {
+      const [languageRange, ...parameters] = entry.split(";");
+      const qualityParameter = parameters.find((parameter) =>
+        parameter.trim().toLowerCase().startsWith("q=")
+      );
+      const qualityValue = qualityParameter?.trim().slice(2);
+      const quality =
+        qualityValue === undefined
+          ? 1
+          : /^(?:0(?:\.\d{0,3})?|1(?:\.0{0,3})?)$/.test(qualityValue)
+            ? Number(qualityValue)
+            : 0;
+      const language = languageRange.trim().split("-")[0].toLowerCase();
 
-  for (const lang of acceptedLanguages) {
-    if (lang === "it" || lang === "en") {
-      return lang;
-    }
+      return { language, quality, index };
+    })
+    .filter(
+      ({ language, quality }) =>
+        quality > 0 && language !== "" && language !== "*"
+    )
+    .sort((a, b) => b.quality - a.quality || a.index - b.index);
+
+  const preferredLanguage = acceptedLanguages[0]?.language;
+
+  if (preferredLanguage === "it") {
+    return "it";
+  }
+
+  if (preferredLanguage) {
+    return "en";
   }
 
   return undefined;
