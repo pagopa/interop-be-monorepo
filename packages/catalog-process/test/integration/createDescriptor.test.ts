@@ -1092,4 +1092,26 @@ describe("create descriptor", async () => {
       )
     ).rejects.toThrowError(hyperlinkDetectionError(descriptionWithHyperlink));
   });
+  it("should throw hyperlinkDetectionError when a document prettyName contains a hyperlink", async () => {
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [],
+    };
+    await addOneEService(eservice);
+
+    const prettyNameWithHyperlink = "see https://evil.example.com";
+    const descriptorSeed: catalogApi.EServiceDescriptorSeed =
+      buildCreateDescriptorSeed({
+        ...getMockDescriptor(),
+        docs: [{ ...getMockDocument(), prettyName: prettyNameWithHyperlink }],
+      });
+
+    await expect(
+      catalogService.createDescriptor(
+        eservice.id,
+        descriptorSeed,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(hyperlinkDetectionError(prettyNameWithHyperlink));
+  });
 });
