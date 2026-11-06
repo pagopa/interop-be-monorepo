@@ -1,4 +1,5 @@
 import { generateMock } from "@anatine/zod-mock";
+import { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   getMockedApiPurpose,
@@ -26,6 +27,7 @@ import {
 } from "../../integrationUtils.js";
 import {
   getMockM2MAdminAppContext,
+  testToM2mGatewayApiPurpose,
   testToM2mGatewayApiPurposeVersion,
 } from "../../mockUtils.js";
 
@@ -135,6 +137,68 @@ describe("updateDraftPurpose", () => {
     expect(
       mockInteropBeClients.purposeProcessClient.getPurpose
     ).toHaveBeenCalledTimes(3);
+  });
+
+  it.each([
+    { title: "Updated metadata title" },
+    { description: "Updated metadata description" },
+    { title: mockPurpose.title, description: mockPurpose.description },
+  ])(
+    "Should forward metadata seed %# and poll its returned version",
+    async (seed) => {
+      mockGetPurpose
+        .mockResolvedValueOnce(mockPurposeProcessGetResponse)
+        .mockImplementation(
+          mockPollingResponse(mockPurposeProcessGetResponse, 1)
+        );
+      const result = await purposeService.updateDraftPurpose(
+        unsafeBrandId(mockPurpose.id),
+        seed,
+        getMockM2MAdminAppContext()
+      );
+      expect(result).toEqual(
+        testToM2mGatewayApiPurpose(mockPurposeProcessGetResponse.data, {
+          currentVersion: mockPurpose.versions[0]
+            ? testToM2mGatewayApiPurposeVersion(mockPurpose.versions[0])
+            : undefined,
+        })
+      );
+      expect(mockPatchUpdatePurpose).toHaveBeenCalledTimes(1);
+      expectApiClientPostToHaveBeenCalledWith({
+        mockPost: mockPatchUpdatePurpose,
+        params: { id: mockPurpose.id },
+        body: seed,
+      });
+      expect(mockPatchUpdatePurposeFromTemplate).not.toHaveBeenCalled();
+      expect(mockGetPurpose).toHaveBeenCalledTimes(2);
+    }
+  );
+
+  it("Should propagate a conflict without polling or retrying", async () => {
+    mockGetPurpose.mockResolvedValueOnce(mockPurposeProcessGetResponse);
+    const error = new AxiosError(
+      "Purpose conflict",
+      undefined,
+      undefined,
+      undefined,
+      {
+        status: 409,
+        statusText: "Conflict",
+        data: {},
+        config: {} as InternalAxiosRequestConfig,
+        headers: {},
+      }
+    );
+    mockPatchUpdatePurpose.mockRejectedValueOnce(error);
+    await expect(
+      purposeService.updateDraftPurpose(
+        unsafeBrandId(mockPurpose.id),
+        mockPurposeSeed,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toBe(error);
+    expect(mockPatchUpdatePurpose).toHaveBeenCalledTimes(1);
+    expect(mockGetPurpose).toHaveBeenCalledTimes(1);
   });
 
   it("Should succeed and perform service calls for purpose created from template", async () => {
