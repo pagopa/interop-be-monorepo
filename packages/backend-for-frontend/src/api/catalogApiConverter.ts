@@ -33,6 +33,7 @@ import {
   isValidDescriptor,
 } from "../services/validators.js";
 import { toBffCompactAgreement } from "./agreementApiConverter.js";
+import { toBffApiParentTenants } from "./tenantApiConverter.js";
 
 export function toEserviceCatalogProcessQueryParams(
   queryParams: bffApi.BffGetCatalogQueryParam
@@ -55,6 +56,8 @@ export function toBffCatalogTenant(
     name: organization.name,
     hasUnreadNotifications: hasNotifications || false,
     selfcareId: organization.selfcareId,
+    subUnitType: organization.subUnitType,
+    parentTenants: toBffApiParentTenants(organization.parentTenants),
   };
 }
 
@@ -73,6 +76,8 @@ export function toBffCatalogApiEService(
       id: eservice.producerId,
       name: producerTenant.name,
       selfcareId: producerTenant.selfcareId,
+      subUnitType: producerTenant.subUnitType,
+      parentTenants: toBffApiParentTenants(producerTenant.parentTenants),
     },
     isMine: isRequesterEqProducer,
   };
