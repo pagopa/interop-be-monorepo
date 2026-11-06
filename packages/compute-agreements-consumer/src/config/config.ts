@@ -3,6 +3,7 @@ import {
   TenantTopicConfig,
   TokenGenerationConfig,
   FeatureFlagAttributeCertifiedDiscreteConfig,
+  AgreementProcessServerConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -11,15 +12,7 @@ const ComputeAgreementsConsumerConfig = KafkaConsumerConfig.and(
 )
   .and(TenantTopicConfig)
   .and(FeatureFlagAttributeCertifiedDiscreteConfig)
-  .and(
-    z
-      .object({
-        AGREEMENT_PROCESS_URL: z.string(),
-      })
-      .transform((c) => ({
-        agreementProcessUrl: c.AGREEMENT_PROCESS_URL,
-      }))
-  );
+  .and(AgreementProcessServerConfig);
 
 type ComputeAgreementsConsumerConfig = z.infer<
   typeof ComputeAgreementsConsumerConfig
