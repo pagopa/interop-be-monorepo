@@ -158,7 +158,7 @@ const purposeRouter = (
         setMetadataVersionHeader(res, metadata);
 
         return res
-          .status(200)
+          .status(201)
           .send(purposeApi.Purpose.parse(purposeToApiPurpose(purpose)));
       } catch (error) {
         const errorRes = makeApiProblem(error, createPurposeErrorMapper, ctx);
@@ -177,7 +177,7 @@ const purposeRouter = (
         setMetadataVersionHeader(res, metadata);
 
         return res
-          .status(200)
+          .status(201)
           .send(purposeApi.Purpose.parse(purposeToApiPurpose(purpose)));
       } catch (error) {
         const errorRes = makeApiProblem(
@@ -396,7 +396,7 @@ const purposeRouter = (
 
         setMetadataVersionHeader(res, metadata);
 
-        return res.status(200).send(
+        return res.status(201).send(
           purposeApi.CreatedPurposeVersion.parse({
             purpose: purposeToApiPurpose(purpose),
             createdVersionId,
@@ -937,7 +937,7 @@ const purposeRouter = (
         setMetadataVersionHeader(res, metadata);
 
         return res
-          .status(200)
+          .status(201)
           .send(purposeApi.Purpose.parse(purposeToApiPurpose(purpose)));
       } catch (error) {
         const errorRes = makeApiProblem(
