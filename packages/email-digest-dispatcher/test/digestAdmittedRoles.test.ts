@@ -145,7 +145,7 @@ describe("hasVisibleDigestContent", () => {
     expect(hasVisibleDigestContent(fullData, visibility)).toBe(true);
   });
 
-  it("should count approved or rejected risk analyses as sent-purpose content", () => {
+  it("should count visible risk analyses as digest content", () => {
     const data = getRiskAnalysisOnlyDigestData();
 
     expect(

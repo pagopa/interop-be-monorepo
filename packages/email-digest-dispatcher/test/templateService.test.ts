@@ -120,9 +120,13 @@ describe("Template Service", () => {
   it("renders approved and rejected risk analyses and their links", () => {
     const service = digestTemplateServiceBuilder(buildHTMLTemplateService());
     const data = getRiskAnalysisOnlyDigestData(getMockTenantDigestData());
+    const visibility = {
+      ...getVisibleSections(["security"]),
+      sentPurposes: false,
+    };
     const html = service.compileDigestEmail(
       data,
-      getVisibleSections(["security"])
+      visibility
     );
 
     expect(html).toContain("Analisi del rischio assegnate");
@@ -162,7 +166,8 @@ describe("Template Service", () => {
     expect(rejectedHtml).toContain(
       "Sono state rifiutate 10 analisi del rischio"
     );
-    expect(rejectedHtml).not.toContain("Analisi del rischio assegnate");
+    expect(rejectedHtml).not.toContain("Sono state approvate");
+    expect(rejectedHtml).toContain("Analisi del rischio assegnate");
   });
 
   it("renders singular copy for one approved and one rejected risk analysis", () => {
