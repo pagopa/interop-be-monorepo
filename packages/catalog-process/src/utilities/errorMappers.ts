@@ -320,6 +320,7 @@ export const publishDescriptorErrorMapper = (
     )
     .with(
       "eServiceDescriptorWithoutInterface",
+      "templateInstanceInterfaceDataMissing",
       "eServiceRiskAnalysisIsRequired",
       "riskAnalysisNotValid",
       "riskAnalysisTenantKindMismatch",
