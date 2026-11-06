@@ -30,6 +30,7 @@ import {
   eServiceDescriptorNotFound,
   eServiceNotFound,
   inconsistentDailyCalls,
+  invalidAudience,
   notValidDescriptorState,
   templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
@@ -120,6 +121,10 @@ describe("PUT /eservices/{eServiceId}/descriptors/{descriptorId} router test", (
     },
     {
       error: inconsistentDailyCalls(),
+      expectedStatus: 400,
+    },
+    {
+      error: invalidAudience(":::"),
       expectedStatus: 400,
     },
     {

@@ -39,6 +39,7 @@ import {
   eServiceDescriptorNotFound,
   notValidDescriptorState,
   inconsistentDailyCalls,
+  invalidAudience,
   eServiceNotAnInstance,
   attributeDailyCallsNotAllowed,
   attributeDiscreteConfigNotAllowed,
@@ -369,6 +370,36 @@ describe("update draft descriptor instance", () => {
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
   });
+
+  it.each([":::", "1abc:def", "abc:de f"])(
+    "should throw invalidAudience if audience %s contains ':' but is not a valid URI",
+    async (audience) => {
+      const template = getMockEServiceTemplate();
+
+      const descriptor: Descriptor = {
+        ...mockDescriptor,
+        interface: mockDocument,
+        state: descriptorState.draft,
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor],
+        name: `${template.name} test`,
+        templateId: template.id,
+      };
+      await addOneEServiceTemplate(template);
+      await addOneEService(eservice);
+
+      await expect(
+        catalogService.updateDraftDescriptorTemplateInstance(
+          eservice.id,
+          descriptor.id,
+          buildUpdateDescriptorSeed({ ...descriptor, audience: [audience] }),
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        )
+      ).rejects.toThrowError(invalidAudience(audience));
+    }
+  );
 
   it("should throw eServiceNotAnInstance if the eservice is not a template instance", async () => {
     const descriptor: Descriptor = {

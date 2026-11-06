@@ -38,6 +38,7 @@ import {
   eServiceNotFound,
   attributeNotFound,
   inconsistentDailyCalls,
+  invalidAudience,
   templateInstanceNotAllowed,
   attributeDailyCallsNotAllowed,
   attributeDiscreteConfigNotAllowed,
@@ -535,6 +536,28 @@ describe("create descriptor", async () => {
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
   });
+  it.each([":::", "1abc:def", "abc:de f"])(
+    "should throw invalidAudience if audience %s contains ':' but is not a valid URI",
+    async (audience) => {
+      const descriptorSeed: catalogApi.EServiceDescriptorSeed = {
+        ...buildCreateDescriptorSeed(getMockDescriptor()),
+        audience: [audience],
+      };
+      const eservice: EService = {
+        ...getMockEService(),
+        descriptors: [],
+      };
+
+      await addOneEService(eservice);
+      await expect(
+        catalogService.createDescriptor(
+          eservice.id,
+          descriptorSeed,
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        )
+      ).rejects.toThrowError(invalidAudience(audience));
+    }
+  );
 
   it("should create a new descriptor when dailyCallsPerConsumer equals dailyCallsTotal", async () => {
     const existingDescriptor: Descriptor = {
