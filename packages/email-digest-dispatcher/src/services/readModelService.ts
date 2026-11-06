@@ -2408,7 +2408,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
     },
 
     /**
-     * Returns all risk analysis that have been approved
+     * Returns all risk analysis that have been rejected
      * in the last configured frequency hours.
      * Limited to 5 results.
      */
@@ -2420,10 +2420,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           withTotalCount({
             purposeId: purposeInReadmodelPurpose.id,
             purposeTitle: purposeInReadmodelPurpose.title,
-            signedAt: purposeInReadmodelPurpose.reviewerWorkflowSignedAt,
             rejectedAt: purposeInReadmodelPurpose.reviewerWorkflowRejectedAt,
-            rejectionReason:
-              purposeInReadmodelPurpose.reviewerWorkflowRejectionReason,
           })
         )
         .from(purposeInReadmodelPurpose)
@@ -2441,7 +2438,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
             )
           )
         )
-        .orderBy(desc(purposeInReadmodelPurpose.reviewerWorkflowSignedAt))
+        .orderBy(desc(purposeInReadmodelPurpose.reviewerWorkflowRejectedAt))
         .limit(SECTION_LIST_LIMIT);
 
       return results
@@ -2453,7 +2450,6 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           purposeId: unsafeBrandId<PurposeId>(row.purposeId),
           purposeTitle: row.purposeTitle,
           consumerId: consumerId,
-          signedAt: row.signedAt,
           rejectedAt: row.rejectedAt,
           totalCount: row.totalCount,
         }));

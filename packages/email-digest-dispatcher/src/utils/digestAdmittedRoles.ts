@@ -180,6 +180,8 @@ const digestSectionFields: Record<DigestSection, DigestDataField[]> = {
     "publishedSentPurposes",
     "rejectedSentPurposes",
     "waitingForApprovalSentPurposes",
+    "approvedRiskAnalysis",
+    "rejectedRiskAnalysis",
   ],
   receivedPurposes: [
     "publishedReceivedPurposes",
