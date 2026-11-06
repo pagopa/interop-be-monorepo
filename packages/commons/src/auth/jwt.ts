@@ -12,12 +12,17 @@ import {
   AuthTokenPayload,
 } from "../interop-token/models.js";
 import { Logger } from "../logging/index.js";
+import { retry } from "../utils/delay.js";
 import {
   AuthData,
   AuthDataUserInfo,
   getAuthDataFromToken,
   getUserInfoFromAuthData,
 } from "./authData.js";
+import {
+  JWKS_READ_ATTEMPTS,
+  JWKS_READ_RETRY_DELAY_MILLIS,
+} from "./constants.js";
 import { buildJwksClients } from "./jwk.js";
 
 export const decodeJwtToken = (
@@ -112,11 +117,27 @@ export const verifyJwtToken = async (
       (async (): Promise<void> => {
         for (const [index, client] of jwksClients.entries()) {
           try {
-            const signingKeys = await client.getSigningKeys();
+            const jwksUrl = config.wellKnownUrls[index];
+            const signingKeys = await retry(
+              async () => {
+                try {
+                  return await client.getSigningKeys();
+                } catch (error) {
+                  logger.warn(
+                    `Failed to read JWKS from ${jwksUrl} for kid ${header.kid}: ${error}`
+                  );
+                  throw error;
+                }
+              },
+              {
+                retries: JWKS_READ_ATTEMPTS,
+                delay: JWKS_READ_RETRY_DELAY_MILLIS,
+              }
+            );
             logger.info(
-              `JWKS read from ${
-                config.wellKnownUrls[index]
-              } - kids: [${signingKeys.map((k) => k.kid).join(", ")}]`
+              `JWKS read from ${jwksUrl} - kids: [${signingKeys
+                .map((k) => k.kid)
+                .join(", ")}]`
             );
             const signingKey = signingKeys.find((k) => k.kid === header.kid);
             if (signingKey) {
@@ -127,7 +148,9 @@ export const verifyJwtToken = async (
             logger.debug(`Skip Jwks client: ${error}`);
           }
         }
-        logger.error(`Error getting public key`);
+        logger.error(
+          `Error getting public key for kid ${header.kid} from configured JWKS URLs`
+        );
         return callback(jwksSigningKeyError());
       })().catch(callback);
     };
