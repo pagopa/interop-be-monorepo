@@ -87,7 +87,8 @@ export const TEST_TIME_WINDOWS = {
 } as const;
 
 export const TEST_LIMITS = {
-  MAX_RESULTS: 5,
+  MAX_CARD_RESULTS: 6,
+  MAX_LIST_RESULTS: 5,
 } as const;
 
 /**
