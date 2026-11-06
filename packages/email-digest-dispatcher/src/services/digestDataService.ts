@@ -26,6 +26,7 @@ import {
   viewAllNewUpdatedEservicesLink,
   viewAllSentAgreementsLink,
   viewAllSentPurposesLink,
+  viewAllRiskAnalysisPurposesLink,
   viewAllReceivedAgreementsLink,
   viewAllReceivedPurposesLink,
   viewAllReceivedDelegationsLink,
@@ -271,7 +272,8 @@ export function digestDataServiceBuilder(
           viewAllUpdatedEserviceTemplatesLink(selfcareId),
         viewAllArchivingProducerLink: viewAllArchivingProducerLink(selfcareId),
         newEservices,
-        viewAllRiskAnalysisPurposes: viewAllSentPurposesLink(selfcareId), //WIP
+        viewAllRiskAnalysisPurposes:
+          viewAllRiskAnalysisPurposesLink(selfcareId),
         updatedEservices: await eserviceToBaseDigest(
           updatedEservices,
           readModelService,
