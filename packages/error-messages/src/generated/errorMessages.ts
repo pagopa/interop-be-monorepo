@@ -1345,7 +1345,7 @@ export const errorMessages = [
   {
     "process": "Purpose Template Process",
     "error": "hyperlinkDetectionError",
-    "errorCode": "015-10027",
+    "errorCode": "015-0021",
     "bffEndpoint": "POST /purposeTemplates/:purposeTemplateId/riskAnalysis/answers",
     "copy": {
       "it": "Non puoi inserire un link nelle annotazioni. Rimuovi il link e riprova.",
@@ -1355,7 +1355,7 @@ export const errorMessages = [
   {
     "process": "Purpose Template Process",
     "error": "hyperlinkDetectionError",
-    "errorCode": "015-10027",
+    "errorCode": "015-0021",
     "bffEndpoint": "PUT /purposeTemplates/:purposeTemplateId/riskAnalysis/answers/:answerId/annotation",
     "copy": {
       "it": "Non puoi inserire un link nelle annotazioni. Rimuovi il link e riprova.",
