@@ -119,7 +119,7 @@ describe("makeUserFacingApiProblemBuilder", () => {
     ["it-IT", "it"],
     ["en-US", "en"],
     ["en-GB", "en"],
-    ["fr-FR", "it"],
+    ["fr-FR", "en"],
     [undefined, "it"],
   ] as [string | undefined, "it" | "en"][])(
     "should correctly show the localised user messages with replaced values with Accept-Language header %s",

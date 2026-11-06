@@ -15,7 +15,10 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 
-import { placeholderMapperGenerator } from "../model/applyError.js";
+import {
+  placeholderMapperGenerator,
+  applyPlaceholderToError,
+} from "../model/applyError.js";
 import { makeApiProblem } from "../model/errors.js";
 import { TenantService } from "../services/tenantService.js";
 import { BffAppContext, fromBffAppContext } from "../utilities/context.js";
@@ -148,17 +151,16 @@ const tenantRouter = (
 
         return res.status(204).send();
       } catch (error) {
-        const placeholderMapper = await commonTenantPlaceholderMapper(
-          req.params.tenantId,
-          req.body.id,
-          ctx
-        );
-        const errorRes = makeApiProblem(
-          error,
-          emptyErrorMapper,
-          ctx,
-          `Error adding certified attribute ${req.body.id} to tenant ${req.params.tenantId}`,
-          placeholderMapper
+        const errorRes = await applyPlaceholderToError(
+          makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error adding certified attribute ${req.body.id} to tenant ${req.params.tenantId}`
+          ),
+          ["{attributeName}"],
+          () =>
+            commonTenantPlaceholderMapper(req.params.tenantId, req.body.id, ctx)
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -178,17 +180,20 @@ const tenantRouter = (
 
           return res.status(204).send();
         } catch (error) {
-          const placeholderMapper = await commonTenantPlaceholderMapper(
-            req.params.tenantId,
-            req.body.id,
-            ctx
-          );
-          const errorRes = makeApiProblem(
-            error,
-            emptyErrorMapper,
-            ctx,
-            `Error adding certified discrete attribute ${req.body.id} to tenant ${req.params.tenantId}`,
-            placeholderMapper
+          const errorRes = await applyPlaceholderToError(
+            makeApiProblem(
+              error,
+              emptyErrorMapper,
+              ctx,
+              `Error adding certified discrete attribute ${req.body.id} to tenant ${req.params.tenantId}`
+            ),
+            ["{attributeName}"],
+            () =>
+              commonTenantPlaceholderMapper(
+                req.params.tenantId,
+                req.body.id,
+                ctx
+              )
           );
           return res.status(errorRes.status).send(errorRes);
         }

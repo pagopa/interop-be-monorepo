@@ -220,6 +220,21 @@ export type UserFacingMessages = {
 
 export type UserFacingLanguage = keyof ErrorMessage["copy"];
 
+export type UserFacingProblemWithMessages = UserFacingProblem & {
+  userMessages: UserFacingMessages;
+};
+
+type PlaceholderMapperFn = (
+  problem: UserFacingProblemWithMessages
+) => UserFacingProblem;
+
+export type PlaceholderMapperGeneratorReturn = Promise<
+  | ((
+      prob: UserFacingProblem & { userMessages: UserFacingMessages }
+    ) => UserFacingProblem)
+  | undefined
+>;
+
 export type MakeUserFacingApiProblemFn<T extends string> = (
   error: Parameters<MakeApiProblemFn<T>>[0],
   httpMapper: Parameters<MakeApiProblemFn<T>>[1],
@@ -228,7 +243,5 @@ export type MakeUserFacingApiProblemFn<T extends string> = (
     locale?: UserFacingLanguage;
   },
   operationalLogMessage?: Parameters<MakeApiProblemFn<T>>[3],
-  placeholderMapper?: (
-    problem: UserFacingProblem & { userMessages: UserFacingMessages }
-  ) => UserFacingProblem
+  placeholderMapper?: PlaceholderMapperFn
 ) => UserFacingProblem;

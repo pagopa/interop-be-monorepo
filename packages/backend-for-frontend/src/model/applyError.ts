@@ -10,6 +10,8 @@ import {
   MakeUserFacingApiProblemFn,
   UserFacingMessages,
   UserFacingProblem,
+  UserFacingProblemWithMessages,
+  PlaceholderMapperGeneratorReturn,
 } from "./types.js";
 
 export function applyErrorCopy(
@@ -54,12 +56,7 @@ export async function placeholderMapperGenerator<T>(
   callback: (() => Promise<T>) | (() => T),
   replace: (value: T, message: string) => string,
   onError: (error: unknown) => void
-): Promise<
-  | ((
-      prob: UserFacingProblem & { userMessages: UserFacingMessages }
-    ) => UserFacingProblem)
-  | undefined
-> {
+): PlaceholderMapperGeneratorReturn {
   try {
     const callbackValue = callback();
     const value =
@@ -84,6 +81,32 @@ export async function placeholderMapperGenerator<T>(
   }
 }
 
+function errorHasUserMessages(
+  error: UserFacingProblem
+): error is UserFacingProblemWithMessages {
+  return error.userMessages !== undefined;
+}
+
+export async function applyPlaceholderToError(
+  error: UserFacingProblem,
+  placeholders: string[],
+  placeholderGenerator: () => PlaceholderMapperGeneratorReturn
+): Promise<UserFacingProblem> {
+  if (
+    errorHasUserMessages(error) &&
+    placeholders &&
+    placeholders.some((placeholder) =>
+      error.userMessages.it.includes(placeholder)
+    )
+  ) {
+    const placeholderMapper = await placeholderGenerator();
+    if (placeholderMapper) {
+      return placeholderMapper(error);
+    }
+  }
+  return error;
+}
+
 export function makeUserFacingApiProblemBuilder<T extends string>(
   errors: Record<T, string>,
   options: ProblemBuilderOptions = {},
@@ -105,10 +128,6 @@ export function makeUserFacingApiProblemBuilder<T extends string>(
       operationalLogMessage
     );
 
-    if (problem.status >= 500) {
-      return problem;
-    }
-
     const userFacingProblem = applyErrorCopy(
       problem,
       context.endpoint,
@@ -116,15 +135,8 @@ export function makeUserFacingApiProblemBuilder<T extends string>(
       context.locale
     );
 
-    if (placeholderMapper) {
-      const { userMessages } = userFacingProblem;
-
-      if (userMessages) {
-        return placeholderMapper({
-          ...userFacingProblem,
-          userMessages,
-        });
-      }
+    if (placeholderMapper && errorHasUserMessages(userFacingProblem)) {
+      return placeholderMapper(userFacingProblem);
     }
 
     return userFacingProblem;
