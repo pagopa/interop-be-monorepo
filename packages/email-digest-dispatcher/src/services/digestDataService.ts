@@ -23,6 +23,7 @@ import {
   approvedRiskAnalysisToDigest,
   rejectedRiskAnalysisToDigest,
   reviewerRiskAnalysesToDigest,
+  reviewerRiskAnalysesWithEserviceLinkToDigest,
 } from "../model/digestDataConverter.js";
 import {
   viewAllNewUpdatedEservicesLink,
@@ -109,7 +110,6 @@ type ReviewerRiskAnalysisItem = {
   purposeTitle: string;
   purposeLink: string;
   eserviceName: string;
-  // When missing, the e-service name is rendered as plain text
   eserviceLink?: string;
 };
 
@@ -118,19 +118,14 @@ export type ReviewerRiskAnalysisDigest = {
   totalCount: number;
 };
 
-/**
- * Digest data for a single reviewer user. Unlike TenantDigestData, it is
- * computed per user: each reviewer only sees the risk analyses assigned to them.
- */
+// Built per user, unlike TenantDigestData
 export type ReviewerDigestData = {
   tenantId: TenantId;
   tenantName: string;
   notificationSettingsLink: string;
   viewAllReviewerPurposesLink: string;
-  // Snapshot sections (no time window)
   toApproveRiskAnalyses?: ReviewerRiskAnalysisDigest;
   toFillRiskAnalyses?: ReviewerRiskAnalysisDigest;
-  // Sections limited to the digest frequency window
   publishedReviewerPurposes?: ReviewerRiskAnalysisDigest;
   signedByOtherReviewerRiskAnalyses?: ReviewerRiskAnalysisDigest;
 };
@@ -438,10 +433,6 @@ export function digestDataServiceBuilder(
       };
     },
 
-    /**
-     * Retrieves the reviewer digest data for a single user: only the risk
-     * analyses assigned to that user in the given tenant.
-     */
     async getReviewerDigestData(
       tenantId: TenantId,
       reviewerId: UserId
@@ -475,10 +466,12 @@ export function digestDataServiceBuilder(
         tenantName: tenantData?.name ?? "Tenant Name Placeholder",
         notificationSettingsLink: notificationSettingsLink(selfcareId),
         viewAllReviewerPurposesLink: viewAllSentPurposesLink(selfcareId),
-        toApproveRiskAnalyses: reviewerRiskAnalysesToDigest(
-          toApproveRiskAnalyses,
-          selfcareId
-        ),
+        toApproveRiskAnalyses:
+          await reviewerRiskAnalysesWithEserviceLinkToDigest(
+            toApproveRiskAnalyses,
+            selfcareId,
+            readModelService
+          ),
         toFillRiskAnalyses: reviewerRiskAnalysesToDigest(
           toFillRiskAnalyses,
           selfcareId

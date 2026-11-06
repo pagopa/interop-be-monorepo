@@ -4,6 +4,7 @@ import {
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
+  DescriptorId,
   descriptorState,
   EService,
   generateId,
@@ -18,6 +19,11 @@ import {
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 
+import { reviewerRiskAnalysesToDigest } from "../src/model/digestDataConverter.js";
+import {
+  buildEserviceLink,
+  buildPurposeLink,
+} from "../src/services/deeplinkBuilder.js";
 import {
   addOneEService,
   addOnePurpose,
@@ -115,10 +121,34 @@ describe("ReadModelService - getReviewerRiskAnalysesToApprove", () => {
       {
         purposeId: purpose.id,
         purposeTitle: purpose.title,
+        eserviceId: eservice.id,
         eserviceName: eservice.name,
         totalCount: 1,
       },
     ]);
+  });
+
+  it("should not return risk analyses of purposes of another consumer", async () => {
+    const { consumerId, eservice } = await setupConsumerWithEService();
+    const otherConsumer = getMockTenant();
+    await addOneTenant(otherConsumer);
+    const reviewerId = generateId<UserId>();
+
+    await addOnePurpose(
+      createReviewerPurpose({
+        consumerId: otherConsumer.id,
+        eserviceId: eservice.id,
+        reviewerIds: [reviewerId],
+        signingState: riskAnalysisSigningState.submitted,
+      })
+    );
+
+    const results = await readModelService.getReviewerRiskAnalysesToApprove(
+      consumerId,
+      reviewerId
+    );
+
+    expect(results).toEqual([]);
   });
 
   it("should not return risk analyses in other signing states", async () => {
@@ -332,5 +362,48 @@ describe("ReadModelService - getReviewerRiskAnalysesSignedByOthers", () => {
       );
 
     expect(results.map((r) => r.purposeId)).toEqual([signedByOther.id]);
+  });
+});
+
+describe("reviewerRiskAnalysesToDigest", () => {
+  const eserviceId = generateId<EService["id"]>();
+  const item = {
+    purposeId: generateId<Purpose["id"]>(),
+    purposeTitle: "Finalità",
+    eserviceId,
+    eserviceName: "E-service",
+    totalCount: 7,
+  };
+
+  it("should build the e-service link when the descriptor is known", () => {
+    const descriptorId = generateId<DescriptorId>();
+
+    expect(
+      reviewerRiskAnalysesToDigest(
+        [item],
+        "selfcare-id",
+        new Map([[eserviceId, descriptorId]])
+      )
+    ).toEqual({
+      items: [
+        {
+          purposeTitle: "Finalità",
+          purposeLink: buildPurposeLink(item.purposeId, false, "selfcare-id"),
+          eserviceName: "E-service",
+          eserviceLink: buildEserviceLink(
+            eserviceId,
+            descriptorId,
+            "selfcare-id"
+          ),
+        },
+      ],
+      totalCount: 7,
+    });
+  });
+
+  it("should leave the e-service without link when the descriptor is unknown", () => {
+    const digest = reviewerRiskAnalysesToDigest([item], "selfcare-id");
+
+    expect(digest.items[0].eserviceLink).toBeUndefined();
   });
 });

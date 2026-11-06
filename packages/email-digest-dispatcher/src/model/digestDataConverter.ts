@@ -289,27 +289,41 @@ export function archivingEservicesToDigest(
   };
 }
 
-/**
- * Transforms the risk analyses assigned to a reviewer into a digest object.
- * The e-service is shown as plain text: purposes carry no descriptor, so there
- * is no e-service deeplink to build.
- */
 export function reviewerRiskAnalysesToDigest(
   data: ReviewerRiskAnalysis[],
-  selfcareId: string | null
+  selfcareId: string | null,
+  descriptorIds: Map<EServiceId, DescriptorId> = new Map()
 ): ReviewerRiskAnalysisDigest {
   if (data.length === 0) {
     return { items: [], totalCount: 0 };
   }
 
   return {
-    items: data.map((item) => ({
-      purposeTitle: item.purposeTitle,
-      purposeLink: buildPurposeLink(item.purposeId, false, selfcareId),
-      eserviceName: item.eserviceName,
-    })),
+    items: data.map((item) => {
+      const descriptorId = descriptorIds.get(item.eserviceId);
+      return {
+        purposeTitle: item.purposeTitle,
+        purposeLink: buildPurposeLink(item.purposeId, false, selfcareId),
+        eserviceName: item.eserviceName,
+        eserviceLink: descriptorId
+          ? buildEserviceLink(item.eserviceId, descriptorId, selfcareId)
+          : undefined,
+      };
+    }),
     totalCount: data[0].totalCount,
   };
+}
+
+export async function reviewerRiskAnalysesWithEserviceLinkToDigest(
+  data: ReviewerRiskAnalysis[],
+  selfcareId: string | null,
+  readModelService: ReadModelService
+): Promise<ReviewerRiskAnalysisDigest> {
+  const descriptorIds = await getCachedDescriptorIds(
+    [...new Set(data.map((item) => item.eserviceId))],
+    readModelService
+  );
+  return reviewerRiskAnalysesToDigest(data, selfcareId, descriptorIds);
 }
 
 /**

@@ -54,11 +54,6 @@ const emailProducerService = emailProducerServiceBuilder(producer);
 const trackingDb = makeDigestTrackingDbConnection(config);
 const trackingService = digestTrackingServiceBuilder(trackingDb);
 
-/**
- * Builds and sends the reviewer digest for a single user. Data is fetched per
- * user, so a failure is handled here as a per-user error instead of crashing
- * the job.
- */
 const processReviewerUser = async (
   user: DigestUser
 ): Promise<ProcessResult> => {
@@ -134,9 +129,7 @@ try {
     for (const user of users) {
       const visibility = getVisibleSections(user.userRoles);
 
-      // Tenant digest first. The tracking table allows one digest per user and
-      // tenant per period, so the reviewer digest is only sent to users that
-      // have no visible tenant digest content.
+      // Only one digest per user and tenant per period: the tenant digest wins
       if (tenantHasContent && hasVisibleDigestContent(tenantData, visibility)) {
         const emailBody = templateService.compileDigestEmail(
           tenantData,

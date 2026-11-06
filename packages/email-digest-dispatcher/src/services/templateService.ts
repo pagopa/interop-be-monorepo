@@ -56,7 +56,6 @@ export function digestTemplateServiceBuilder(
   const digestTemplatePath = `${dirname}/../resources/templates/digest-mail.html`;
   const digestTemplate = fs.readFileSync(digestTemplatePath).toString();
 
-  // Load reviewer digest template and its item partial
   templateService.registerPartial(
     "reviewer-item",
     fs

@@ -12,6 +12,7 @@ import {
   countDistinct,
   inArray,
   gt,
+  ne,
   sql,
   SQL,
 } from "drizzle-orm";
@@ -180,6 +181,7 @@ export type ArchivingEservice = {
 export type ReviewerRiskAnalysis = {
   purposeId: PurposeId;
   purposeTitle: string;
+  eserviceId: EServiceId;
   eserviceName: string;
   totalCount: number;
 };
@@ -458,11 +460,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
     dateThreshold.getHours() - config.digestFrequencyHours
   );
 
-  /**
-   * Shared query for the reviewer digest: purposes of the consumer tenant whose
-   * risk analysis is assigned to the given reviewer user, filtered by the
-   * section-specific condition. Limited to 5 results.
-   */
+  // Purposes of the consumer whose risk analysis is assigned to the reviewer
   const getReviewerRiskAnalyses = async (
     consumerId: TenantId,
     reviewerId: UserId,
@@ -474,6 +472,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         withTotalCount({
           purposeId: purposeInReadmodelPurpose.id,
           purposeTitle: purposeInReadmodelPurpose.title,
+          eserviceId: eserviceInReadmodelCatalog.id,
           eserviceName: eserviceInReadmodelCatalog.name,
         })
       )
@@ -504,6 +503,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
     return results.map((row) => ({
       purposeId: unsafeBrandId<PurposeId>(row.purposeId),
       purposeTitle: row.purposeTitle,
+      eserviceId: unsafeBrandId<EServiceId>(row.eserviceId),
       eserviceName: row.eserviceName,
       totalCount: row.totalCount,
     }));
@@ -2129,12 +2129,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
     },
 
     /**
-     * Returns all users who have email notification preference set to "Digest"
-     */
-    /**
-     * Returns the purposes whose risk analysis, written by the admin, is waiting
-     * for the reviewer's signature (signing state Submitted). Snapshot, no time
-     * window. Ordered from most to least recently sent to the reviewer.
+     * Risk analyses written by the admin, waiting for the reviewer's signature.
      */
     async getReviewerRiskAnalysesToApprove(
       consumerId: TenantId,
@@ -2155,9 +2150,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
     },
 
     /**
-     * Returns the purposes whose risk analysis must be written and signed by the
-     * reviewer (signing state Assigned). Snapshot, no time window. Ordered from
-     * most to least recently assigned.
+     * Risk analyses the reviewer has to write and sign.
      */
     async getReviewerRiskAnalysesToFill(
       consumerId: TenantId,
@@ -2178,9 +2171,8 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
     },
 
     /**
-     * Returns the purposes with a risk analysis assigned to the reviewer that were
-     * published (first activation of a version) in the last configured frequency
-     * hours. Ordered from most to least recently published.
+     * Purposes with a risk analysis assigned to the reviewer, published in the
+     * last configured frequency hours.
      */
     async getReviewerPublishedPurposes(
       consumerId: TenantId,
@@ -2204,9 +2196,8 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
     },
 
     /**
-     * Returns the purposes with a risk analysis assigned to the reviewer that were
-     * signed by another reviewer in the last configured frequency hours.
-     * Ordered from most to least recently signed.
+     * Risk analyses assigned to the reviewer, signed by another reviewer in the
+     * last configured frequency hours.
      */
     async getReviewerRiskAnalysesSignedByOthers(
       consumerId: TenantId,
@@ -2223,8 +2214,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
             purposeInReadmodelPurpose.reviewerWorkflowSigningState,
             riskAnalysisSigningState.signed
           ),
-          isNotNull(purposeInReadmodelPurpose.reviewerWorkflowSignedBy),
-          sql`${purposeInReadmodelPurpose.reviewerWorkflowSignedBy} <> ${reviewerId}`,
+          ne(purposeInReadmodelPurpose.reviewerWorkflowSignedBy, reviewerId),
           gte(
             purposeInReadmodelPurpose.reviewerWorkflowSignedAt,
             dateThreshold.toISOString()
@@ -2234,6 +2224,9 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
       );
     },
 
+    /**
+     * Returns all users who have email notification preference set to "Digest"
+     */
     async getUsersWithDigestPreference(): Promise<DigestUser[]> {
       const queryResult = await db
         .select({

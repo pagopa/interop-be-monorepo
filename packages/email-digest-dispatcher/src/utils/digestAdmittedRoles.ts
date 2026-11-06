@@ -265,12 +265,7 @@ export function computeGroupFlags(
   );
 }
 
-/**
- * Roles that receive the reviewer digest (risk analyses assigned to the user).
- * Kept separate from digestAdmittedRoles: it is a different email, built per
- * user instead of per tenant.
- */
-export const reviewerDigestAdmittedRoles = {
+const reviewerDigestAdmittedRoles = {
   [ADMIN_ROLE]: false,
   [API_ROLE]: false,
   [SECURITY_ROLE]: false,
