@@ -34,8 +34,9 @@ import {
   DelegationKind,
   DelegationState,
   delegationState,
-  archivingScope,
   descriptorState,
+  delegationKind,
+  archivingScope,
 } from "pagopa-interop-models";
 import {
   DrizzleReturnType,
@@ -183,6 +184,15 @@ type BasePurpose = {
   totalCount: number;
 };
 
+export type WaitingForApprovalDelegatedDescriptor = {
+  eserviceId: EServiceId;
+  eserviceName: string;
+  descriptorId: DescriptorId;
+  descriptorVersion: string;
+  delegatedTenantName: string;
+  totalCount: number;
+};
+
 // Sent purposes: Active, Rejected, WaitingForApproval states
 export type SentPurposeState =
   | typeof purposeVersionState.active
@@ -266,6 +276,35 @@ function processDelegationResults<T extends string>(
     }
   );
 }
+
+type DelegatedDescriptorQueryResult = {
+  eserviceId: string;
+  eserviceName: string;
+  descriptorId: string;
+  descriptorVersion: string;
+  delegatedTenantName: string;
+};
+
+const processDelegatedDescriptorResults = (
+  results: Array<DelegatedDescriptorQueryResult>,
+  limit: number
+): WaitingForApprovalDelegatedDescriptor[] => {
+  const uniqueResults = Array.from(
+    new Map(results.map((row) => [row.eserviceId, row])).values()
+  );
+
+  const totalCount = uniqueResults.length;
+  const limitedResults = uniqueResults.slice(0, limit);
+
+  return limitedResults.map((row) => ({
+    eserviceId: unsafeBrandId<EServiceId>(row.eserviceId),
+    eserviceName: row.eserviceName,
+    descriptorId: unsafeBrandId<DescriptorId>(row.descriptorId),
+    descriptorVersion: row.descriptorVersion,
+    delegatedTenantName: row.delegatedTenantName,
+    totalCount,
+  }));
+};
 
 /**
  * Generic helper to retrieve entities with request-scoped caching.
@@ -1498,6 +1537,83 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         totalCount: r.totalCount,
         delegatorId: r.counterpartyId,
       }));
+    },
+
+    /**
+     * Returns the list of delegated descriptors that are waiting for approval for a given delegator.
+     * Limited to 5 results.
+     */
+    async getWaitingForApprovalDelegatedDescriptors(
+      delegatorId: TenantId
+    ): Promise<WaitingForApprovalDelegatedDescriptor[]> {
+      logger.info(
+        `Retrieving waiting for approval delegated descriptors for delegator ${delegatorId} since ${dateThreshold.toISOString()}`
+      );
+
+      const delegatedTenant = alias(
+        tenantInReadmodelTenant,
+        "delegated_tenant"
+      );
+
+      const results = await db
+        .select({
+          eserviceId: eserviceInReadmodelCatalog.id,
+          eserviceName: eserviceInReadmodelCatalog.name,
+          descriptorId: eserviceDescriptorInReadmodelCatalog.id,
+          descriptorVersion: eserviceDescriptorInReadmodelCatalog.version,
+          delegatedTenantName: delegatedTenant.name,
+        })
+        .from(eserviceDescriptorInReadmodelCatalog)
+        .innerJoin(
+          eserviceInReadmodelCatalog,
+          eq(
+            eserviceInReadmodelCatalog.id,
+            eserviceDescriptorInReadmodelCatalog.eserviceId
+          )
+        )
+        .innerJoin(
+          delegationInReadmodelDelegation,
+          and(
+            eq(
+              delegationInReadmodelDelegation.eserviceId,
+              eserviceInReadmodelCatalog.id
+            ),
+            eq(
+              delegationInReadmodelDelegation.delegatorId,
+              eserviceInReadmodelCatalog.producerId
+            ),
+            eq(
+              delegationInReadmodelDelegation.kind,
+              delegationKind.delegatedProducer
+            ),
+            eq(delegationInReadmodelDelegation.state, delegationState.active)
+          )
+        )
+        .innerJoin(
+          delegatedTenant,
+          eq(delegatedTenant.id, delegationInReadmodelDelegation.delegateId)
+        )
+        .where(
+          and(
+            eq(
+              eserviceDescriptorInReadmodelCatalog.state,
+              descriptorState.waitingForApproval
+            ),
+            eq(eserviceInReadmodelCatalog.producerId, delegatorId)
+          )
+        )
+        .orderBy(asc(eserviceDescriptorInReadmodelCatalog.createdAt));
+
+      logger.info(
+        `Retrieved ${results.length} waiting for approval delegated descriptors for delegator ${delegatorId}`
+      );
+
+      const processedResults = processDelegatedDescriptorResults(
+        results,
+        SECTION_LIST_LIMIT
+      );
+
+      return processedResults;
     },
 
     /**

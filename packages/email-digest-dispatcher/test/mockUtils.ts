@@ -82,11 +82,32 @@ function generateReceivedDelegations(
     { length: itemsNumber > LISTS_LIMIT ? LISTS_LIMIT : itemsNumber },
     (_, index) => ({
       name: `${sectionLabel} ${index + 1}`,
-      producerName: `${sectionLabel} - Ente Richiedente ${index + 1}`,
+      producerName: `Ente Richiedente ${index + 1}`,
       link: `https://example.com/delegation/${index + 1}`,
       delegationKind: (index % 2 === 0 ? "erogazione" : "fruizione") as
         | "erogazione"
         | "fruizione",
+    })
+  );
+  return {
+    items,
+    totalCount: itemsNumber,
+  };
+}
+
+function generateDelegatedEservices(
+  itemsNumber: number,
+  sectionLabel: string
+): TenantDigestData["waitingForApprovalDelegatedEservices"] {
+  const items = Array.from(
+    { length: itemsNumber > LISTS_LIMIT ? LISTS_LIMIT : itemsNumber },
+    (_, index) => ({
+      name: `${sectionLabel} ${index + 1}`,
+      delegatedName: `Ente Delegato ${index + 1}`,
+      link: `https://example.com/delegated-eservice/${index + 1}`,
+      eserviceId: generateId(),
+      descriptorId: generateId(),
+      producerName: `Ente Erogatore ${index + 1}`,
     })
   );
   return {
@@ -190,9 +211,9 @@ export function getMockTenantDigestData(): TenantDigestData {
       10,
       "Delega in attesa"
     ),
-    revokedReceivedDelegations: generateReceivedDelegations(
+    waitingForApprovalDelegatedEservices: generateDelegatedEservices(
       11,
-      "Delega revocata"
+      "Versione o E-service in attesa di approvazione"
     ),
     receivedAttributes: generateAttributes(12, "Attributo assegnato"),
     revokedAttributes: generateAttributes(13, "Attributo revocato"),
@@ -383,9 +404,9 @@ export function getMockLimitedTenantDigestData(): TenantDigestData {
       5,
       "Delega in attesa"
     ),
-    revokedReceivedDelegations: generateReceivedDelegations(
+    waitingForApprovalDelegatedEservices: generateDelegatedEservices(
       5,
-      "Delega revocata"
+      "Versione o E-service in attesa di approvazione"
     ),
     receivedAttributes: generateAttributes(5, "Attributo assegnato"),
     revokedAttributes: generateAttributes(5, "Attributo revocato"),
@@ -462,9 +483,9 @@ export function getMockSingularTenantDigestData(): TenantDigestData {
       1,
       "Delega in attesa"
     ),
-    revokedReceivedDelegations: generateReceivedDelegations(
+    waitingForApprovalDelegatedEservices: generateDelegatedEservices(
       1,
-      "Delega revocata"
+      "Versione o E-service in attesa di approvazione"
     ),
     receivedAttributes: generateAttributes(1, "Attributo assegnato"),
     revokedAttributes: generateAttributes(1, "Attributo revocato"),
@@ -581,7 +602,7 @@ export function getMockPartialDigestData(): TenantDigestData {
       items: [],
       totalCount: 0,
     },
-    revokedReceivedDelegations: { items: [], totalCount: 0 },
+    waitingForApprovalDelegatedEservices: { items: [], totalCount: 0 },
     // Attributes section - populated
     receivedAttributes: generateAttributes(1, "Attributo assegnato"),
     revokedAttributes: generateAttributes(1, "Attributo revocato"),
