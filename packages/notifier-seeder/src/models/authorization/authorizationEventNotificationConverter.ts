@@ -49,6 +49,8 @@ export const toAuthorizationEventNotification = (
       {
         type: P.union(
           "ClientAdded",
+          "ClientNameUpdated",
+          "ClientDescriptionUpdated",
           "ClientDeleted",
           "ClientAdminSet",
           "ClientUserAdded",
