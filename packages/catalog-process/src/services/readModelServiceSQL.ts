@@ -580,18 +580,7 @@ export function readModelServiceBuilderSQL(
                   .with(undefined, () => undefined)
                   .exhaustive(),
                 // isConsumerDelegable filter
-                match(isConsumerDelegable)
-                  .with(true, () =>
-                    eq(eserviceInReadmodelCatalog.isConsumerDelegable, true)
-                  )
-                  .with(false, () =>
-                    or(
-                      isNull(eserviceInReadmodelCatalog.isConsumerDelegable),
-                      eq(eserviceInReadmodelCatalog.isConsumerDelegable, false)
-                    )
-                  )
-                  .with(undefined, () => undefined)
-                  .exhaustive(),
+                eserviceConsumerDelegableFilter(isConsumerDelegable),
                 // templateIds filter
                 templatesIds.length > 0
                   ? inArray(eserviceInReadmodelCatalog.templateId, templatesIds)
@@ -945,6 +934,7 @@ export function readModelServiceBuilderSQL(
         mode,
         onlySignalHubEnabled,
         asyncExchange,
+        isConsumerDelegable,
       }: EServicesQueryFilters,
       certifiedDiscreteEnabled: boolean
     ): Promise<ListResult<EService>> {
@@ -978,7 +968,8 @@ export function readModelServiceBuilderSQL(
           ),
           eserviceModeFilter(mode),
           eserviceSignalHubEnabledFilter(onlySignalHubEnabled),
-          eserviceAsyncExchangeFilter(asyncExchange)
+          eserviceAsyncExchangeFilter(asyncExchange),
+          eserviceConsumerDelegableFilter(isConsumerDelegable)
         );
 
         const baseCondition = and(visibleEservicesFilter, filtersCondition);
@@ -1403,6 +1394,21 @@ function eserviceAsyncExchangeFilter(asyncExchange: boolean | undefined) {
       or(
         isNull(eserviceInReadmodelCatalog.asyncExchange),
         eq(eserviceInReadmodelCatalog.asyncExchange, false)
+      )
+    )
+    .with(undefined, () => undefined)
+    .exhaustive();
+}
+
+function eserviceConsumerDelegableFilter(
+  isConsumerDelegable: boolean | undefined
+) {
+  return match(isConsumerDelegable)
+    .with(true, () => eq(eserviceInReadmodelCatalog.isConsumerDelegable, true))
+    .with(false, () =>
+      or(
+        isNull(eserviceInReadmodelCatalog.isConsumerDelegable),
+        eq(eserviceInReadmodelCatalog.isConsumerDelegable, false)
       )
     )
     .with(undefined, () => undefined)

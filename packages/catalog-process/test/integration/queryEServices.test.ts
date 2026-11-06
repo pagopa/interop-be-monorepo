@@ -283,6 +283,72 @@ describe("query eservices", () => {
     });
   });
 
+  describe("isConsumerDelegable", () => {
+    const eservice0: EService = {
+      ...buildEService("Service 0", new Date("2024-01-01T00:00:00Z")),
+      isConsumerDelegable: true,
+    };
+    const eservice1: EService = {
+      ...buildEService("Service 1", new Date("2024-02-01T00:00:00Z")),
+      isConsumerDelegable: false,
+    };
+    const eservice2: EService = {
+      ...buildEService("Service 2", new Date("2024-03-01T00:00:00Z")),
+      isConsumerDelegable: undefined,
+    };
+
+    beforeEach(async () => {
+      await addOneEService(eservice0);
+      await addOneEService(eservice1);
+      await addOneEService(eservice2);
+    });
+
+    it("should return the expected e-services when isConsumerDelegable is not set", async () => {
+      const result = await filterEServices({});
+
+      expect(result.totalCount).toBe(3);
+      expect(idsOf(result)).toEqual([eservice2.id, eservice1.id, eservice0.id]);
+    });
+
+    it("should return the expected e-services when isConsumerDelegable is true", async () => {
+      const result = await filterEServices({ isConsumerDelegable: true });
+
+      expect(result.totalCount).toBe(1);
+      expect(idsOf(result)).toEqual([eservice0.id]);
+    });
+
+    it("should return the expected e-services when isConsumerDelegable is false", async () => {
+      const result = await filterEServices({ isConsumerDelegable: false });
+
+      expect(result.totalCount).toBe(2);
+      expect(idsOf(result)).toEqual([eservice2.id, eservice1.id]);
+    });
+
+    it("should preserve filtered counts and ordering across pages", async () => {
+      const additional: EService = {
+        ...eservice0,
+        descriptors: [getPublishedDescriptor()],
+        id: generateId(),
+        name: "Additional",
+        createdAt: new Date("2024-04-01T00:00:00Z"),
+      };
+      await addOneEService(additional);
+      const pages = await Promise.all(
+        [0, 1, 2].map((offset) =>
+          filterEServices(
+            { isConsumerDelegable: true },
+            getMockContext({}),
+            offset,
+            1
+          )
+        )
+      );
+
+      expect(pages.map((page) => page.totalCount)).toEqual([2, 2, 2]);
+      expect(pages.map(idsOf)).toEqual([[additional.id], [eservice0.id], []]);
+    });
+  });
+
   describe("combined mode, Signal Hub and async exchange filters", () => {
     it("should require all three filters to match", async () => {
       const matching: EService = {

@@ -305,6 +305,52 @@ describe("API POST /catalog authorization test", () => {
     );
   });
 
+  describe("isConsumerDelegable validation", () => {
+    it.each([true, false])(
+      "should accept and forward isConsumerDelegable: %s",
+      async (isConsumerDelegable) => {
+        const payload = { ...body, isConsumerDelegable };
+        vi.mocked(catalogService.queryEServices).mockClear();
+        const res = await makeRequest(
+          generateToken(authRole.ADMIN_ROLE),
+          payload
+        );
+
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual(apiResponse);
+        expect(catalogService.queryEServices).toHaveBeenCalledExactlyOnceWith(
+          payload,
+          expect.anything()
+        );
+      }
+    );
+
+    it("should accept an omitted isConsumerDelegable", async () => {
+      vi.mocked(catalogService.queryEServices).mockClear();
+      const res = await makeRequest(generateToken(authRole.ADMIN_ROLE));
+
+      expect(res.status).toBe(200);
+      expect(catalogService.queryEServices).toHaveBeenCalledExactlyOnceWith(
+        body,
+        expect.anything()
+      );
+    });
+
+    it.each(["true", "false", 0, 1, null, [], {}].map((value) => [value]))(
+      "should return 400 for invalid isConsumerDelegable: %j",
+      async (isConsumerDelegable) => {
+        vi.mocked(catalogService.queryEServices).mockClear();
+        const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), {
+          ...body,
+          isConsumerDelegable,
+        } as catalogApi.EServicesFilterPayload);
+
+        expect(res.status).toBe(400);
+        expect(catalogService.queryEServices).not.toHaveBeenCalled();
+      }
+    );
+  });
+
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
     authRole.API_ROLE,
