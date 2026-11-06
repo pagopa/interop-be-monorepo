@@ -6,7 +6,6 @@ import {
   eserviceTemplateInReadmodelEserviceTemplate,
   purposeInReadmodelPurpose,
   tenantInReadmodelTenant,
-  tenantMailInReadmodelTenant,
   clientInReadmodelClient,
   clientUserInReadmodelClient,
   clientPurposeInReadmodelClient,
@@ -31,7 +30,6 @@ import { PurposeDeletingSchema } from "../purpose/purpose.js";
 import { PurposeTemplateDeletingSchema } from "../purposeTemplate/purposeTemplate.js";
 import { PurposeTemplateEServiceDescriptorDeletingSchema } from "../purposeTemplate/purposeTemplateEserviceDescriptor.js";
 import { TenantDeletingSchema } from "../tenant/tenant.js";
-import { TenantMailDeletingSchema } from "../tenant/tenantMail.js";
 
 export const DeletingDbTableConfig = {
   attribute_deleting_table: AttributeDeletingSchema,
@@ -41,7 +39,6 @@ export const DeletingDbTableConfig = {
   agreement_deleting_table: AgreementDeletingSchema,
   purpose_deleting_table: PurposeDeletingSchema,
   tenant_deleting_table: TenantDeletingSchema,
-  tenant_mail_deleting_table: TenantMailDeletingSchema,
   client_deleting_table: ClientDeletingSchema,
   client_user_deleting_table: ClientUserDeletingSchema,
   client_purpose_deleting_table: ClientPurposeDeletingSchema,
@@ -62,7 +59,6 @@ export const DeletingDbTableReadModel = {
   agreement_deleting_table: agreementInReadmodelAgreement,
   purpose_deleting_table: purposeInReadmodelPurpose,
   tenant_deleting_table: tenantInReadmodelTenant,
-  tenant_mail_deleting_table: tenantMailInReadmodelTenant,
   client_deleting_table: clientInReadmodelClient,
   client_user_deleting_table: clientUserInReadmodelClient,
   client_purpose_deleting_table: clientPurposeInReadmodelClient,

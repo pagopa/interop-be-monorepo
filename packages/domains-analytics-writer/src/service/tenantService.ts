@@ -10,13 +10,11 @@ import {
   TenantSelfcareIdSchema,
   TenantDeletingSchema,
 } from "../model/tenant/tenant.js";
-import { TenantMailDeletingSchema } from "../model/tenant/tenantMail.js";
 import { tenantRepository } from "../repository/tenant/tenant.repository.js";
 import { tenantCertifiedAttributeRepository } from "../repository/tenant/tenantCertifiedAttribute.repository.js";
 import { tenantCertifiedDiscreteAttributeRepository } from "../repository/tenant/tenantCertifiedDiscreteAttribute.repository.js";
 import { tenantDeclaredAttributeRepository } from "../repository/tenant/tenantDeclaredAttribute.repository.js";
 import { tenantFeatureRepository } from "../repository/tenant/tenantFeature.repository.js";
-import { tenantMailRepository } from "../repository/tenant/tenantMail.repository.js";
 import { tenantRemoteIdRepository } from "../repository/tenant/tenantRemoteId.repository.js";
 import { tenantVerifiedAttributeRepository } from "../repository/tenant/tenantVerifiedAttribute.repository.js";
 import { tenantVerifiedAttributeRevokerRepository } from "../repository/tenant/tenantVerifiedAttributeRevoker.repository.js";
@@ -29,7 +27,6 @@ import {
 
 export function tenantServiceBuilder(db: DBContext) {
   const tenantRepo = tenantRepository(db.conn);
-  const tenantMailRepo = tenantMailRepository(db.conn);
   const tenantCertifiedAttributeRepo = tenantCertifiedAttributeRepository(
     db.conn
   );
@@ -60,7 +57,6 @@ export function tenantServiceBuilder(db: DBContext) {
         )) {
           const batchItems = {
             tenantSQL: batch.map((item) => item.tenantSQL),
-            mailsSQL: batch.flatMap((item) => item.mailsSQL),
             certifiedAttributesSQL: batch.flatMap(
               (item) => item.certifiedAttributesSQL
             ),
@@ -85,9 +81,6 @@ export function tenantServiceBuilder(db: DBContext) {
 
           if (batchItems.tenantSQL.length) {
             await tenantRepo.insert(t, dbContext.pgp, batchItems.tenantSQL);
-          }
-          if (batchItems.mailsSQL.length) {
-            await tenantMailRepo.insert(t, dbContext.pgp, batchItems.mailsSQL);
           }
           if (batchItems.certifiedAttributesSQL.length) {
             await tenantCertifiedAttributeRepo.insert(
@@ -154,7 +147,6 @@ export function tenantServiceBuilder(db: DBContext) {
         }
 
         await tenantRepo.merge(t);
-        await tenantMailRepo.merge(t);
         await tenantCertifiedAttributeRepo.merge(t);
         await tenantDeclaredAttributeRepo.merge(t);
         await tenantVerifiedAttributeRepo.merge(t);
@@ -170,7 +162,6 @@ export function tenantServiceBuilder(db: DBContext) {
           t,
           "tenantId",
           [
-            TenantDbTable.tenant_mail,
             TenantDbTable.tenant_certified_attribute,
             TenantDbTable.tenant_declared_attribute,
             TenantDbTable.tenant_verified_attribute,
@@ -187,7 +178,6 @@ export function tenantServiceBuilder(db: DBContext) {
       genericLogger.info(`Staging data merged into target tables for Tenant`);
 
       await tenantRepo.clean();
-      await tenantMailRepo.clean();
       await tenantCertifiedAttributeRepo.clean();
       await tenantDeclaredAttributeRepo.clean();
       await tenantVerifiedAttributeRepo.clean();
@@ -250,7 +240,6 @@ export function tenantServiceBuilder(db: DBContext) {
           t,
           "tenantId",
           [
-            TenantDbTable.tenant_mail,
             TenantDbTable.tenant_certified_attribute,
             TenantDbTable.tenant_declared_attribute,
             TenantDbTable.tenant_verified_attribute,
@@ -266,34 +255,6 @@ export function tenantServiceBuilder(db: DBContext) {
 
       await tenantRepo.cleanDeleting();
       genericLogger.info(`Staging deletion table cleaned for Tenant`);
-    },
-
-    async deleteBatchTenantMails(
-      mailIds: TenantMailDeletingSchema[],
-      dbContext: DBContext
-    ) {
-      await dbContext.conn.tx(async (t) => {
-        for (const batch of batchMessages(
-          mailIds,
-          config.dbMessagesToInsertPerBatch
-        )) {
-          await tenantMailRepo.insertDeleting(t, dbContext.pgp, batch);
-          genericLogger.info(
-            `Staging deletion inserted for TenantMail batch: ${batch
-              .map((r) => r.id)
-              .join(", ")}`
-          );
-        }
-
-        await tenantMailRepo.mergeDeleting(t);
-      });
-
-      genericLogger.info(
-        `Staging deletion merged into target tables for TenantMail`
-      );
-
-      await tenantRepo.cleanDeleting();
-      genericLogger.info(`Staging deletion table cleaned for TenantMail`);
     },
   };
 }

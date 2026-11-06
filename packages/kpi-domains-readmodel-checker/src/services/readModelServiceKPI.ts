@@ -193,10 +193,6 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
 
     async getAllTenants(): Promise<Array<WithMetadata<Tenant>>> {
       const tenantsSQL = await getManyFromDb(dbContext, TenantDbTable.tenant);
-      const mailsSQL = await getManyFromDb(
-        dbContext,
-        TenantDbTable.tenant_mail
-      );
       const certifiedAttributesSQL = await getManyFromDb(
         dbContext,
         TenantDbTable.tenant_certified_attribute
@@ -231,7 +227,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
       );
       return aggregateTenantArray({
         tenantsSQL,
-        mailsSQL,
+        mailsSQL: [],
         certifiedAttributesSQL,
         certifiedDiscreteAttributesSQL,
         declaredAttributesSQL,

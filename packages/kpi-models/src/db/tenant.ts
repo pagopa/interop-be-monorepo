@@ -1,6 +1,5 @@
 import {
   tenantInReadmodelTenant,
-  tenantMailInReadmodelTenant,
   tenantCertifiedAttributeInReadmodelTenant,
   tenantCertifiedDiscreteAttributeInReadmodelTenant,
   tenantDeclaredAttributeInReadmodelTenant,
@@ -16,7 +15,6 @@ import { TenantCertifiedAttributeSchema } from "../tenant/tenantCertifiedAttribu
 import { TenantCertifiedDiscreteAttributeSchema } from "../tenant/tenantCertifiedDiscreteAttribute.js";
 import { TenantDeclaredAttributeSchema } from "../tenant/tenantDeclaredAttribute.js";
 import { TenantFeatureSchema } from "../tenant/tenantFeature.js";
-import { TenantMailSchema } from "../tenant/tenantMail.js";
 import { TenantRemoteIdSchema } from "../tenant/tenantRemoteId.js";
 import { TenantVerifiedAttributeSchema } from "../tenant/tenantVerifiedAttribute.js";
 import { TenantVerifiedAttributeRevokerSchema } from "../tenant/tenantVerifiedAttributeRevoker.js";
@@ -24,7 +22,6 @@ import { TenantVerifiedAttributeVerifierSchema } from "../tenant/tenantVerifiedA
 
 export const TenantDbTableConfig = {
   tenant: TenantSchema,
-  tenant_mail: TenantMailSchema,
   tenant_certified_attribute: TenantCertifiedAttributeSchema,
   tenant_certified_discrete_attribute: TenantCertifiedDiscreteAttributeSchema,
   tenant_declared_attribute: TenantDeclaredAttributeSchema,
@@ -38,7 +35,6 @@ export type TenantDbTableConfig = typeof TenantDbTableConfig;
 
 export const TenantDbTableReadModel = {
   tenant: tenantInReadmodelTenant,
-  tenant_mail: tenantMailInReadmodelTenant,
   tenant_certified_attribute: tenantCertifiedAttributeInReadmodelTenant,
   tenant_certified_discrete_attribute:
     tenantCertifiedDiscreteAttributeInReadmodelTenant,
