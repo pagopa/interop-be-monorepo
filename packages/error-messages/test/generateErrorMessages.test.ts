@@ -27,7 +27,7 @@ describe("error message generation", () => {
   const row = [
     "Tenant Process",
     "certifiedAttributeAlreadyAssigned",
-    "GET /tenant/:tenantId",
+    "GET /tenants/:tenantId",
     "Messaggio italiano",
     "English message",
   ];
