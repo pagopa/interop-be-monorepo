@@ -742,6 +742,18 @@ export function catalogServiceBuilder(
       );
       return { id, descriptorId: descriptors[0].id };
     },
+    patchUpdateEServiceById: async (
+      eServiceId: EServiceId,
+      seed: bffApi.PatchUpdateEServiceSeed,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> => {
+      logger.info(`Partially updating EService ${eServiceId}`);
+      const { id } = await catalogProcessClient.patchUpdateDraftEServiceById(
+        seed,
+        { headers, params: { eServiceId } }
+      );
+      return { id };
+    },
     updateEServiceById: async (
       eServiceId: EServiceId,
       updateEServiceSeed: bffApi.UpdateEServiceSeed,
