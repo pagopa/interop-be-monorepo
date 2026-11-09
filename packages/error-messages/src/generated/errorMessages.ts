@@ -89,7 +89,7 @@ export const errorMessages = [
     "bffEndpoint": "POST /tenants/:tenantId/attributes/verified/:attributeId",
     "copy": {
       "it": "La data di scadenza deve essere successiva a oggi. Seleziona una data futura.",
-      "en": "The expiration date must be later than today. Select a future date.\r\n"
+      "en": "The expiration date must be later than today. Select a future date.\n"
     }
   },
   {
@@ -230,46 +230,6 @@ export const errorMessages = [
     "copy": {
       "it": "Non puoi inserire un link nella motivazione del rifiuto dell’analisi del rischio. Rimuovi il link e riprova.",
       "en": "You can't include a link in the risk analysis rejection reason. Remove the link and try again."
-    }
-  },
-  {
-    "process": "Purpose Process",
-    "error": "duplicatedPurposeTitle",
-    "errorCode": "004-0016",
-    "bffEndpoint": "PATCH /purposes/:purposeId",
-    "copy": {
-      "it": "Esiste già una finalità con lo stesso nome per questo e-service. Scegli un altro nome.",
-      "en": "There is already a purpose with the same name for this e-service. Choose a different name."
-    }
-  },
-  {
-    "process": "Purpose Process",
-    "error": "hyperlinkDetectionError",
-    "errorCode": "004-10027",
-    "bffEndpoint": "PATCH /purposes/:purposeId",
-    "copy": {
-      "it": "Non puoi inserire un link nel nome o nella descrizione della finalità. Rimuovi il link e riprova.",
-      "en": "You can't include a link in the purpose name or description. Remove the link and try again."
-    }
-  },
-  {
-    "process": "Purpose Process",
-    "error": "duplicatedPurposeTitle",
-    "errorCode": "004-0016",
-    "bffEndpoint": "PATCH /reverse/purposes/:purposeId",
-    "copy": {
-      "it": "Esiste già una finalità con lo stesso nome per questo e-service. Scegli un altro nome.",
-      "en": "There is already a purpose with the same name for this e-service. Choose a different name."
-    }
-  },
-  {
-    "process": "Purpose Process",
-    "error": "hyperlinkDetectionError",
-    "errorCode": "004-10027",
-    "bffEndpoint": "PATCH /reverse/purposes/:purposeId",
-    "copy": {
-      "it": "Non puoi inserire un link nel nome o nella descrizione della finalità. Rimuovi il link e riprova.",
-      "en": "You can't include a link in the purpose name or description. Remove the link and try again."
     }
   },
   {
@@ -1093,26 +1053,6 @@ export const errorMessages = [
     }
   },
   {
-    "process": "Authorization Process",
-    "error": "hyperlinkDetectionError",
-    "errorCode": "006-10027",
-    "bffEndpoint": "PATCH /clients/:clientId",
-    "copy": {
-      "it": "Non puoi inserire un link nel nome o nella descrizione del client. Rimuovi il link e riprova.",
-      "en": "You can't include a link in the client name or description. Remove the link and try again."
-    }
-  },
-  {
-    "process": "Authorization Process",
-    "error": "hyperlinkDetectionError",
-    "errorCode": "006-10027",
-    "bffEndpoint": "PATCH /producerKeychains/:producerKeychainId",
-    "copy": {
-      "it": "Non puoi inserire un link nel nome o nella descrizione del portachiavi. Rimuovi il link e riprova.",
-      "en": "You can't include a link in the keychain name or description. Remove the link and try again."
-    }
-  },
-  {
     "process": "EService Template Process",
     "error": "eserviceTemplateDuplicate",
     "errorCode": "011-0004",
@@ -1253,36 +1193,6 @@ export const errorMessages = [
     }
   },
   {
-    "process": "EService Template Process",
-    "error": "eserviceTemplateDuplicate",
-    "errorCode": "011-0004",
-    "bffEndpoint": "PATCH /eservices/templates/:eServiceTemplateId",
-    "copy": {
-      "it": "Esiste già un template e-service con lo stesso nome. Scegli un altro nome.",
-      "en": "There is already an e-service template with the same name. Choose a different name."
-    }
-  },
-  {
-    "process": "EService Template Process",
-    "error": "instanceNameConflict",
-    "errorCode": "011-0020",
-    "bffEndpoint": "PATCH /eservices/templates/:eServiceTemplateId",
-    "copy": {
-      "it": "Non puoi usare questo nome perché almeno uno degli e-service creati dal template avrebbe lo stesso nome di un e-service già esistente. Scegli un altro nome.",
-      "en": "You can't use this name because at least one of the e-services created from the template would have the same name as an existing e-service. Choose a different name."
-    }
-  },
-  {
-    "process": "EService Template Process",
-    "error": "hyperlinkDetectionError",
-    "errorCode": "011-10027",
-    "bffEndpoint": "PATCH /eservices/templates/:eServiceTemplateId",
-    "copy": {
-      "it": "Non puoi inserire un link nel nome, nella descrizione o nel campo “A chi è rivolto il template”. Rimuovi il link e riprova.",
-      "en": "You can't include a link in the name, description, or “Who is the template intended for?” field. Remove the link and try again."
-    }
-  },
-  {
     "process": "Purpose Template Process",
     "error": "invalidAssociatedEServiceForPublicationError",
     "errorCode": "015-0023",
@@ -1360,26 +1270,6 @@ export const errorMessages = [
     "copy": {
       "it": "Non puoi scaricare il documento dell’analisi del rischio di questo template finalità con il tuo ruolo. Chiedi a un amministratore del tuo ente di scaricarlo.",
       "en": "You can’t download this purpose template’s risk analysis document with your role. Ask an Administrator in your party to download it."
-    }
-  },
-  {
-    "process": "Purpose Template Process",
-    "error": "purposeTemplateTitleConflict",
-    "errorCode": "015-0002",
-    "bffEndpoint": "PATCH /purposeTemplates/:purposeTemplateId",
-    "copy": {
-      "it": "Esiste già un template finalità con lo stesso nome. Scegli un altro nome.",
-      "en": "There is already a purpose template with the same name. Choose a different name."
-    }
-  },
-  {
-    "process": "Purpose Template Process",
-    "error": "hyperlinkDetectionError",
-    "errorCode": "015-0021",
-    "bffEndpoint": "PATCH /purposeTemplates/:purposeTemplateId",
-    "copy": {
-      "it": "Non puoi inserire un link nei campi di testo del template finalità. Rimuovi il link e riprova.",
-      "en": "You can't include a link in the purpose template text fields. Remove the link and try again."
     }
   },
   {
