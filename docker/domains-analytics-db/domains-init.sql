@@ -433,6 +433,7 @@ CREATE TABLE IF NOT EXISTS domains.tenant (
   name VARCHAR(2048) NOT NULL,
   onboarded_at TIMESTAMP WITH TIME ZONE,
   sub_unit_type VARCHAR(2048),
+  contact_id VARCHAR(36),
   deleted BOOLEAN,
   PRIMARY KEY (id)
 );
