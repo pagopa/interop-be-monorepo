@@ -52,6 +52,7 @@ import {
   enhanceEServiceToBffCatalogApiProducerDescriptorEService,
   enhanceEServiceRiskAnalysisArray,
 } from "../api/catalogApiConverter.js";
+import { toBffApiParentTenants } from "../api/tenantApiConverter.js";
 import {
   AuthorizationProcessClient,
   DelegationProcessClient,
@@ -247,12 +248,16 @@ const enhanceProducerEService = (
               name: delegator.name,
               kind: delegator.kind,
               contactMail: getLatestTenantContactEmail(delegator),
+              subUnitType: delegator.subUnitType,
+              parentTenants: toBffApiParentTenants(delegator.parentTenants),
             },
             delegate: {
               id: delegate.id,
               name: delegate.name,
               kind: delegate.kind,
               contactMail: getLatestTenantContactEmail(delegate),
+              subUnitType: delegate.subUnitType,
+              parentTenants: toBffApiParentTenants(delegate.parentTenants),
             },
           }
         : undefined,
@@ -580,12 +585,18 @@ export function catalogServiceBuilder(
                   name: delegate.name,
                   kind: delegate.kind,
                   contactMail: getLatestTenantContactEmail(delegate),
+                  subUnitType: delegate.subUnitType,
+                  parentTenants: toBffApiParentTenants(delegate.parentTenants),
                 },
                 delegator: {
                   id: producerTenant.id,
                   name: producerTenant.name,
                   kind: producerTenant.kind,
                   contactMail: getLatestTenantContactEmail(producerTenant),
+                  subUnitType: producerTenant.subUnitType,
+                  parentTenants: toBffApiParentTenants(
+                    producerTenant.parentTenants
+                  ),
                 },
               }
             : undefined,

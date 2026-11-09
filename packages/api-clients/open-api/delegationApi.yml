@@ -748,6 +748,25 @@ components:
       required:
         - results
         - totalCount
+    TenantUnitType:
+      type: string
+      enum:
+        - AOO
+        - UO
+    ParentTenant:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        subUnitType:
+          $ref: "#/components/schemas/TenantUnitType"
     CompactTenant:
       type: object
       additionalProperties: false
@@ -757,6 +776,13 @@ components:
           format: uuid
         name:
           type: string
+        subUnitType:
+          $ref: "#/components/schemas/TenantUnitType"
+        parentTenants:
+          type: array
+          maxItems: 2
+          items:
+            $ref: "#/components/schemas/ParentTenant"
       required:
         - id
         - name
