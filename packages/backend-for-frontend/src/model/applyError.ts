@@ -1,7 +1,10 @@
 import type { ErrorMessage } from "pagopa-interop-models";
 
+import { constants } from "http2";
 import {
   Problem,
+  emptyErrorMapper,
+  genericError,
   makeApiProblemBuilder,
   ProblemBuilderOptions,
 } from "pagopa-interop-models";
@@ -13,6 +16,8 @@ import {
   UserFacingProblemWithMessages,
   PlaceholderMapperGeneratorReturn,
 } from "./types.js";
+
+const { HTTP_STATUS_INTERNAL_SERVER_ERROR } = constants;
 
 export function applyErrorCopy(
   problem: Problem,
@@ -134,6 +139,19 @@ export function makeUserFacingApiProblemBuilder<T extends string>(
       errorMessages,
       context.locale
     );
+
+    // 500 errors are shown with their CSV copy only when one exists;
+    // otherwise the internal details (possibly coming from downstream processes) are hidden
+    if (
+      problem.status === HTTP_STATUS_INTERNAL_SERVER_ERROR &&
+      !errorHasUserMessages(userFacingProblem)
+    ) {
+      return makeApiProblem(
+        genericError("Unexpected error"),
+        emptyErrorMapper,
+        context
+      );
+    }
 
     if (placeholderMapper && errorHasUserMessages(userFacingProblem)) {
       return placeholderMapper(userFacingProblem);

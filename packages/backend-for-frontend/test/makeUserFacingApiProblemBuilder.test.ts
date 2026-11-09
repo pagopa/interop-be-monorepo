@@ -54,6 +54,14 @@ describe("makeUserFacingApiProblemBuilder", () => {
     },
     commonErrorMessages
   );
+  const makeApiProblemWithoutForce = makeUserFacingApiProblemBuilder(
+    testErrorCodes,
+    {
+      forceGenericProblemOn500: false,
+      problemErrorsPassthrough: true,
+    },
+    commonErrorMessages
+  );
 
   it("should create a Problem with the localised user message from an Axios Error found in the error copy", () => {
     const error: Problem = {
@@ -113,6 +121,66 @@ describe("makeUserFacingApiProblemBuilder", () => {
       endpoint: "GET /tenant/:tenantId",
     });
     expect(problem).toEqual(error);
+  });
+
+  it("should return a generic problem for a 500 Axios Error without a localised user message", () => {
+    const error: Problem = {
+      type: "about:blank",
+      status: 500,
+      title: "Internal process error",
+      correlationId: "correlationId",
+      detail: "Sensitive downstream detail",
+      errors: [
+        {
+          code: "001-0015",
+          detail: "Sensitive downstream detail",
+        },
+      ],
+    };
+
+    const problem = makeApiProblemWithoutForce(
+      makeAxiosError(error),
+      emptyErrorMapper,
+      {
+        ...getMockContext({}),
+        endpoint: "GET /tenant/:tenantId",
+      }
+    );
+    expect(problem.status).toBe(500);
+    expect(problem.title).toBe("Unexpected error");
+    expect(problem.detail).not.toContain("Sensitive downstream detail");
+    expect(problem.userMessages).toBeUndefined();
+  });
+
+  it("should keep the localised user message for a 500 Axios Error found in the error copy", () => {
+    const error: Problem = {
+      type: "about:blank",
+      status: 500,
+      title: "expirationDateCannotBeInThePast",
+      correlationId: "correlationId",
+      detail: "Detail message",
+      errors: [
+        {
+          code: "005-0014",
+          detail: "Detail message",
+        },
+      ],
+    };
+
+    const problem = makeApiProblemWithoutForce(
+      makeAxiosError(error),
+      emptyErrorMapper,
+      {
+        ...getMockContext({}),
+        endpoint: "GET /tenant/:tenantId",
+      }
+    );
+    expect(problem.status).toBe(500);
+    expect(problem.detail).toBe("Un messaggio di errore");
+    expect(problem.userMessages).toEqual({
+      it: "Un messaggio di errore",
+      en: "Some error message",
+    });
   });
 
   it.each([
