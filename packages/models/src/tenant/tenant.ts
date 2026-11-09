@@ -220,5 +220,7 @@ export type CompactTenant = z.infer<typeof CompactTenant>;
 export const CompactOrganization = z.object({
   id: TenantId,
   name: z.string(),
+  subUnitType: TenantUnitType.optional(),
+  parentTenants: z.array(ParentTenant).max(2).optional(),
 });
 export type CompactOrganization = z.infer<typeof CompactOrganization>;

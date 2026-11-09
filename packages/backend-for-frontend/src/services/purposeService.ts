@@ -34,6 +34,7 @@ import {
   toBffApiRiskAnalysisForm,
 } from "../api/purposeApiConverter.js";
 import { toCompactPurposeTemplate } from "../api/purposeTemplateApiConverter.js";
+import { toBffApiParentTenants } from "../api/tenantApiConverter.js";
 import {
   DelegationProcessClient,
   PagoPAInteropBeClients,
@@ -91,12 +92,16 @@ const enrichPurposeDelegation = async (
       name: delegate.name,
       contactMail: getLatestTenantContactEmail(delegate),
       kind: delegate.kind,
+      subUnitType: delegate.subUnitType,
+      parentTenants: toBffApiParentTenants(delegate.parentTenants),
     },
     delegator: {
       id: delegator.id,
       name: delegator.name,
       contactMail: getLatestTenantContactEmail(delegator),
       kind: delegator.kind,
+      subUnitType: delegator.subUnitType,
+      parentTenants: toBffApiParentTenants(delegator.parentTenants),
     },
   };
 };
@@ -357,6 +362,8 @@ export function purposeServiceBuilder(
         id: consumer.id,
         name: consumer.name,
         kind: consumer.kind,
+        subUnitType: consumer.subUnitType,
+        parentTenants: toBffApiParentTenants(consumer.parentTenants),
         contactMail: getLatestTenantContactEmail(consumer),
       },
       riskAnalysisForm:
@@ -365,7 +372,12 @@ export function purposeServiceBuilder(
       eservice: {
         id: eservice.id,
         name: eservice.name,
-        producer: { id: producer.id, name: producer.name },
+        producer: {
+          id: producer.id,
+          name: producer.name,
+          subUnitType: producer.subUnitType,
+          parentTenants: toBffApiParentTenants(producer.parentTenants),
+        },
         descriptor: {
           id: currentDescriptor.id,
           state: currentDescriptor.state,
