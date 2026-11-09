@@ -422,6 +422,5 @@ describe("enrichAgreement", () => {
         parentTenants,
       });
     });
-
   });
 });
