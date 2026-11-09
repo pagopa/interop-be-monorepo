@@ -11,9 +11,8 @@ import {
 
 import {
   MakeUserFacingApiProblemFn,
-  UserFacingMessages,
   UserFacingProblem,
-  UserFacingProblemWithMessages,
+  UserFacingProblemWithMessage,
   PlaceholderMapperGeneratorReturn,
 } from "./types.js";
 
@@ -48,12 +47,11 @@ export function applyErrorCopy(
     it: copy.copy.it.trim(),
     en: copy.copy.en.trim() || undefined,
   };
-  const detail = userMessages[defaultLanguage ?? "it"] || userMessages.it;
+  const userMessage = userMessages[defaultLanguage ?? "it"] || userMessages.it;
 
   return {
     ...problem,
-    detail,
-    userMessages,
+    userMessage,
   };
 }
 
@@ -66,19 +64,10 @@ export async function placeholderMapperGenerator<T>(
     const callbackValue = callback();
     const value =
       callbackValue instanceof Promise ? await callbackValue : callbackValue;
-    return (
-      problem: UserFacingProblem & {
-        userMessages: UserFacingMessages;
-      }
-    ) => ({
+    return (problem: UserFacingProblemWithMessage) => ({
       ...problem,
       detail: problem.detail ? replace(value, problem.detail) : undefined,
-      userMessages: {
-        it: replace(value, problem.userMessages.it),
-        en: problem.userMessages.en
-          ? replace(value, problem.userMessages.en)
-          : undefined,
-      },
+      userMessage: replace(value, problem.userMessage),
     });
   } catch (error) {
     onError(error);
@@ -88,8 +77,8 @@ export async function placeholderMapperGenerator<T>(
 
 function errorHasUserMessages(
   error: UserFacingProblem
-): error is UserFacingProblemWithMessages {
-  return error.userMessages !== undefined;
+): error is UserFacingProblemWithMessage {
+  return error.userMessage !== undefined;
 }
 
 export async function applyPlaceholderToError(
@@ -100,9 +89,7 @@ export async function applyPlaceholderToError(
   if (
     errorHasUserMessages(error) &&
     placeholders &&
-    placeholders.some((placeholder) =>
-      error.userMessages.it.includes(placeholder)
-    )
+    placeholders.some((placeholder) => error.userMessage.includes(placeholder))
   ) {
     const placeholderMapper = await placeholderGenerator();
     if (placeholderMapper) {
