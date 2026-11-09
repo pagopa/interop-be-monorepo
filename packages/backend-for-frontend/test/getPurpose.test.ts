@@ -31,6 +31,10 @@ describe("getPurpose — reviewer enrichment", () => {
   const reviewerId = generateId<UserId>();
   const sentToReviewerAt = new Date().toISOString();
   const consumerSelfcareId = generateId();
+  const parentTenants: tenantApi.ParentTenant[] = [
+    { id: generateId(), name: "Tenant AOO", subUnitType: "AOO" },
+    { id: generateId(), name: "Tenant root" },
+  ];
 
   const descriptor = getMockedApiEserviceDescriptor({
     state: catalogApi.EServiceDescriptorState.Values.PUBLISHED,
@@ -60,6 +64,8 @@ describe("getPurpose — reviewer enrichment", () => {
     kind: "GSP",
     mails: [],
     features: [],
+    subUnitType: "UO",
+    parentTenants,
   };
 
   const producer: tenantApi.Tenant = {
@@ -71,6 +77,8 @@ describe("getPurpose — reviewer enrichment", () => {
     kind: "GSP",
     mails: [],
     features: [],
+    subUnitType: "UO",
+    parentTenants,
   };
 
   const agreement: agreementApi.Agreement = {
@@ -191,6 +199,16 @@ describe("getPurpose — reviewer enrichment", () => {
       expect(mockGetUserInfoUsingGET).toHaveBeenCalledWith(
         expect.objectContaining({ params: { id: reviewerId } })
       );
+      expect(result.data.consumer).toMatchObject({
+        id: consumerId,
+        subUnitType: "UO",
+        parentTenants,
+      });
+      expect(result.data.eservice.producer).toMatchObject({
+        id: producerId,
+        subUnitType: "UO",
+        parentTenants,
+      });
     }
   );
 
@@ -398,6 +416,16 @@ describe("getPurpose — reviewer enrichment", () => {
         const result = await retrieve({}, 0, 10, ctx);
 
         expect(result.results[0]?.currentVersion).toBeUndefined();
+        expect(result.results[0]?.consumer).toMatchObject({
+          id: consumerId,
+          subUnitType: "UO",
+          parentTenants,
+        });
+        expect(result.results[0]?.eservice.producer).toMatchObject({
+          id: producerId,
+          subUnitType: "UO",
+          parentTenants,
+        });
         expect(result.results[0]?.waitingForApprovalVersion).toMatchObject(
           expectedWaitingVersion
         );

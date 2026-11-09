@@ -2,6 +2,7 @@ import {
   catalogApi,
   eserviceTemplateApi,
   purposeTemplateApi,
+  tenantApi,
 } from "pagopa-interop-api-clients";
 import { AuthData } from "pagopa-interop-commons";
 import {
@@ -122,6 +123,20 @@ describe("getPurposeTemplateLinkableResources (service)", () => {
     const concreteOldest = buildConcreteFixture("2026-01-01T00:00:00.000Z");
     const templateMid = buildTemplateFixture("2026-02-01T00:00:00.000Z");
     const concreteNewest = buildConcreteFixture("2026-03-01T00:00:00.000Z");
+    const parentTenants: tenantApi.ParentTenant[] = [
+      { id: generateId(), name: "Tenant AOO", subUnitType: "AOO" },
+      { id: generateId(), name: "Tenant root" },
+    ];
+    concreteNewest.tenant = {
+      ...concreteNewest.tenant,
+      subUnitType: "UO",
+      parentTenants,
+    };
+    templateMid.tenant = {
+      ...templateMid.tenant,
+      subUnitType: "UO",
+      parentTenants,
+    };
 
     const { service, mocks } = buildService({
       getPurposeTemplateEServices: vi.fn().mockResolvedValue({
@@ -169,6 +184,29 @@ describe("getPurposeTemplateLinkableResources (service)", () => {
     expect(result.results[2].createdAt).toBe(concreteOldest.link.createdAt);
     expect(mocks.getEServices).toHaveBeenCalledTimes(1);
     expect(mocks.getEServiceTemplates).toHaveBeenCalledTimes(1);
+    expect(result.results[0]).toMatchObject({
+      eservice: {
+        producer: {
+          id: concreteNewest.tenant.id,
+          subUnitType: "UO",
+          parentTenants,
+        },
+      },
+    });
+    expect(result.results[1]).toMatchObject({
+      eserviceTemplate: {
+        creator: {
+          id: templateMid.tenant.id,
+          subUnitType: "UO",
+          parentTenants,
+        },
+      },
+    });
+    expect(result.results[2]).toMatchObject({
+      eservice: {
+        producer: { id: concreteOldest.tenant.id, parentTenants: undefined },
+      },
+    });
   });
 
   it("performs multi round-trip until each upstream is exhausted", async () => {

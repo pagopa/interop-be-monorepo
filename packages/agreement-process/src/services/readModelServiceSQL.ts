@@ -39,6 +39,8 @@ import {
   DelegationReadModelService,
   TenantReadModelService,
   toAgreementAggregatorArray,
+  getTenantHierarchyNameFilter,
+  toParentTenants,
 } from "pagopa-interop-readmodel";
 import {
   agreementInReadmodelAgreement,
@@ -61,6 +63,37 @@ import {
   AgreementQueryFilters,
   AgreementQueryFiltersWithExactConsumerIdMatch,
 } from "./readModelService.js";
+
+const parentTenantTable = alias(tenantInReadmodelTenant, "parentTenantTable");
+const rootTenantTable = alias(tenantInReadmodelTenant, "rootTenantTable");
+const organizationSelection = {
+  id: tenantInReadmodelTenant.id,
+  name: tenantInReadmodelTenant.name,
+  subUnitType: tenantInReadmodelTenant.subUnitType,
+  parentTenantId: parentTenantTable.id,
+  parentTenantName: parentTenantTable.name,
+  parentTenantSubUnitType: parentTenantTable.subUnitType,
+  rootTenantId: rootTenantTable.id,
+  rootTenantName: rootTenantTable.name,
+};
+
+function toCompactOrganization(row: {
+  id: string;
+  name: string;
+  subUnitType: string | null;
+  parentTenantId: string | null;
+  parentTenantName: string | null;
+  parentTenantSubUnitType: string | null;
+  rootTenantId: string | null;
+  rootTenantName: string | null;
+}): CompactOrganization {
+  return CompactOrganization.parse({
+    id: row.id,
+    name: row.name,
+    subUnitType: row.subUnitType ?? undefined,
+    parentTenants: toParentTenants(row),
+  });
+}
 
 type AgreementEServicesQueryFilters = {
   eserviceName: string | undefined;
@@ -662,13 +695,16 @@ export function readModelServiceBuilderSQL(
     ): Promise<ListResult<CompactOrganization>> {
       const resultSet = await addDelegationJoins(
         readmodelDB
-          .select(
-            withTotalCount({
-              id: tenantInReadmodelTenant.id,
-              name: tenantInReadmodelTenant.name,
-            })
-          )
+          .select(withTotalCount(organizationSelection))
           .from(tenantInReadmodelTenant)
+          .leftJoin(
+            parentTenantTable,
+            eq(tenantInReadmodelTenant.parentTenantId, parentTenantTable.id)
+          )
+          .leftJoin(
+            rootTenantTable,
+            eq(tenantInReadmodelTenant.rootTenantId, rootTenantTable.id)
+          )
           .leftJoin(
             agreementInReadmodelAgreement,
             eq(
@@ -678,18 +714,29 @@ export function readModelServiceBuilderSQL(
           )
           .where(
             and(
-              getNameFilter(tenantInReadmodelTenant.name, consumerName),
+              getTenantHierarchyNameFilter(
+                consumerName,
+                tenantInReadmodelTenant.name,
+                tenantInReadmodelTenant.parentTenantId,
+                parentTenantTable.name,
+                tenantInReadmodelTenant.rootTenantId,
+                rootTenantTable.name
+              ),
               getVisibilityFilter(requesterId)
             )
           )
-          .groupBy(tenantInReadmodelTenant.id)
+          .groupBy(
+            tenantInReadmodelTenant.id,
+            parentTenantTable.id,
+            rootTenantTable.id
+          )
           .orderBy(ascLower(tenantInReadmodelTenant.name))
           .limit(limit)
           .offset(offset)
           .$dynamic()
       );
       return createListResult(
-        resultSet.map(({ id, name }) => ({ id: unsafeBrandId(id), name })),
+        resultSet.map(toCompactOrganization),
         resultSet[0]?.totalCount
       );
     },
@@ -702,13 +749,16 @@ export function readModelServiceBuilderSQL(
     ): Promise<ListResult<CompactOrganization>> {
       const resultSet = await addDelegationJoins(
         readmodelDB
-          .select(
-            withTotalCount({
-              id: tenantInReadmodelTenant.id,
-              name: tenantInReadmodelTenant.name,
-            })
-          )
+          .select(withTotalCount(organizationSelection))
           .from(tenantInReadmodelTenant)
+          .leftJoin(
+            parentTenantTable,
+            eq(tenantInReadmodelTenant.parentTenantId, parentTenantTable.id)
+          )
+          .leftJoin(
+            rootTenantTable,
+            eq(tenantInReadmodelTenant.rootTenantId, rootTenantTable.id)
+          )
           .leftJoin(
             agreementInReadmodelAgreement,
             eq(
@@ -718,18 +768,29 @@ export function readModelServiceBuilderSQL(
           )
           .where(
             and(
-              getNameFilter(tenantInReadmodelTenant.name, producerName),
+              getTenantHierarchyNameFilter(
+                producerName,
+                tenantInReadmodelTenant.name,
+                tenantInReadmodelTenant.parentTenantId,
+                parentTenantTable.name,
+                tenantInReadmodelTenant.rootTenantId,
+                rootTenantTable.name
+              ),
               getVisibilityFilter(requesterId)
             )
           )
-          .groupBy(tenantInReadmodelTenant.id)
+          .groupBy(
+            tenantInReadmodelTenant.id,
+            parentTenantTable.id,
+            rootTenantTable.id
+          )
           .orderBy(ascLower(tenantInReadmodelTenant.name))
           .limit(limit)
           .offset(offset)
           .$dynamic()
       );
       return createListResult(
-        resultSet.map(({ id, name }) => ({ id: unsafeBrandId(id), name })),
+        resultSet.map(toCompactOrganization),
         resultSet[0]?.totalCount
       );
     },
