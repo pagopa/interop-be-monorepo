@@ -416,7 +416,7 @@ function groupAndMapReceivedPurposeResults(
   }));
 }
 
-const consumerArchivingColumns = {
+const archivingColumns = {
   eserviceId: eserviceDescriptorArchivingScheduleInReadmodelCatalog.eserviceId,
   descriptorId:
     eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId,
@@ -428,10 +428,17 @@ const consumerArchivingColumns = {
 };
 
 /**
+ * The archiving schedule row is kept after the descriptor becomes Archived,
+ * so every archiving query must also check the descriptor state.
+ */
+const descriptorInArchivingCountdown = inArray(
+  eserviceDescriptorInReadmodelCatalog.state,
+  [descriptorState.archiving, descriptorState.archivingSuspended]
+);
+
+/**
  * Filter for consumer-side archiving queries: the consumer holds an Active or
  * Suspended agreement on a descriptor that is still in the archiving countdown.
- * The descriptor state check is needed because the archiving schedule row is
- * kept after the descriptor becomes Archived.
  */
 const consumerArchivingFilter = (consumerId: TenantId): SQL | undefined =>
   and(
@@ -440,10 +447,7 @@ const consumerArchivingFilter = (consumerId: TenantId): SQL | undefined =>
       agreementState.active,
       agreementState.suspended,
     ]),
-    inArray(eserviceDescriptorInReadmodelCatalog.state, [
-      descriptorState.archiving,
-      descriptorState.archivingSuspended,
-    ])
+    descriptorInArchivingCountdown
   );
 
 function toArchivingEservice(row: {
@@ -911,84 +915,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
       );
 
       const results = await db
-        .select(
-          withTotalCount({
-            eserviceId:
-              eserviceDescriptorArchivingScheduleInReadmodelCatalog.eserviceId,
-            descriptorId:
-              eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId,
-            eserviceName: eserviceInReadmodelCatalog.name,
-            version: eserviceDescriptorInReadmodelCatalog.version,
-            scope: eserviceDescriptorArchivingScheduleInReadmodelCatalog.scope,
-            archivableOn:
-              eserviceDescriptorArchivingScheduleInReadmodelCatalog.archivableOn,
-          })
-        )
-        .from(eserviceDescriptorArchivingScheduleInReadmodelCatalog)
-        .innerJoin(
-          eserviceInReadmodelCatalog,
-          eq(
-            eserviceInReadmodelCatalog.id,
-            eserviceDescriptorArchivingScheduleInReadmodelCatalog.eserviceId
-          )
-        )
-        .innerJoin(
-          eserviceDescriptorInReadmodelCatalog,
-          eq(
-            eserviceDescriptorInReadmodelCatalog.id,
-            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
-          )
-        )
-        .where(eq(eserviceInReadmodelCatalog.producerId, producerId))
-        .orderBy(
-          desc(eserviceDescriptorArchivingScheduleInReadmodelCatalog.startedAt)
-        )
-        .limit(SECTION_LIST_LIMIT);
-
-      logger.info(
-        `Retrieved ${results.length} in-progress archiving e-services for producer ${producerId}`
-      );
-
-      return results.map((row) => ({
-        eserviceId: unsafeBrandId<EServiceId>(row.eserviceId),
-        descriptorId: unsafeBrandId<DescriptorId>(row.descriptorId),
-        eserviceName: row.eserviceName,
-        version: row.version,
-        scope: row.scope as ArchivingScope,
-        archivableOn: row.archivableOn,
-        totalCount: row.totalCount,
-      }));
-    },
-
-    /**
-     * Returns descriptors/e-services owned by the producer whose archiving will become
-     * definitive within the next 7 days ("previste a breve"), ordered from most to least
-     * imminent. Limited to 5.
-     */
-    async getArchivingImminentEservices(
-      producerId: TenantId
-    ): Promise<ArchivingEservice[]> {
-      const imminentCutoff = new Date();
-      imminentCutoff.setDate(imminentCutoff.getDate() + 7);
-
-      logger.info(
-        `Retrieving imminent archiving e-services for producer ${producerId} (cutoff ${imminentCutoff.toISOString()})`
-      );
-
-      const results = await db
-        .select(
-          withTotalCount({
-            eserviceId:
-              eserviceDescriptorArchivingScheduleInReadmodelCatalog.eserviceId,
-            descriptorId:
-              eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId,
-            eserviceName: eserviceInReadmodelCatalog.name,
-            version: eserviceDescriptorInReadmodelCatalog.version,
-            scope: eserviceDescriptorArchivingScheduleInReadmodelCatalog.scope,
-            archivableOn:
-              eserviceDescriptorArchivingScheduleInReadmodelCatalog.archivableOn,
-          })
-        )
+        .select(withTotalCount(archivingColumns))
         .from(eserviceDescriptorArchivingScheduleInReadmodelCatalog)
         .innerJoin(
           eserviceInReadmodelCatalog,
@@ -1007,6 +934,57 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         .where(
           and(
             eq(eserviceInReadmodelCatalog.producerId, producerId),
+            descriptorInArchivingCountdown
+          )
+        )
+        .orderBy(
+          desc(eserviceDescriptorArchivingScheduleInReadmodelCatalog.startedAt)
+        )
+        .limit(SECTION_LIST_LIMIT);
+
+      logger.info(
+        `Retrieved ${results.length} in-progress archiving e-services for producer ${producerId}`
+      );
+
+      return results.map(toArchivingEservice);
+    },
+
+    /**
+     * Returns descriptors/e-services owned by the producer whose archiving will become
+     * definitive within the next 7 days ("previste a breve"), ordered from most to least
+     * imminent. Limited to 5.
+     */
+    async getArchivingImminentEservices(
+      producerId: TenantId
+    ): Promise<ArchivingEservice[]> {
+      const imminentCutoff = new Date();
+      imminentCutoff.setDate(imminentCutoff.getDate() + 7);
+
+      logger.info(
+        `Retrieving imminent archiving e-services for producer ${producerId} (cutoff ${imminentCutoff.toISOString()})`
+      );
+
+      const results = await db
+        .select(withTotalCount(archivingColumns))
+        .from(eserviceDescriptorArchivingScheduleInReadmodelCatalog)
+        .innerJoin(
+          eserviceInReadmodelCatalog,
+          eq(
+            eserviceInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.eserviceId
+          )
+        )
+        .innerJoin(
+          eserviceDescriptorInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+          )
+        )
+        .where(
+          and(
+            eq(eserviceInReadmodelCatalog.producerId, producerId),
+            descriptorInArchivingCountdown,
             lte(
               eserviceDescriptorArchivingScheduleInReadmodelCatalog.archivableOn,
               imminentCutoff.toISOString()
@@ -1024,15 +1002,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         `Retrieved ${results.length} imminent archiving e-services for producer ${producerId}`
       );
 
-      return results.map((row) => ({
-        eserviceId: unsafeBrandId<EServiceId>(row.eserviceId),
-        descriptorId: unsafeBrandId<DescriptorId>(row.descriptorId),
-        eserviceName: row.eserviceName,
-        version: row.version,
-        scope: row.scope as ArchivingScope,
-        archivableOn: row.archivableOn,
-        totalCount: row.totalCount,
-      }));
+      return results.map(toArchivingEservice);
     },
 
     /**
@@ -1057,7 +1027,19 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
             eserviceDescriptorArchivingScheduleInReadmodelCatalog.eserviceId
           )
         )
-        .where(eq(eserviceInReadmodelCatalog.producerId, producerId))
+        .innerJoin(
+          eserviceDescriptorInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+          )
+        )
+        .where(
+          and(
+            eq(eserviceInReadmodelCatalog.producerId, producerId),
+            descriptorInArchivingCountdown
+          )
+        )
         .groupBy(eserviceDescriptorArchivingScheduleInReadmodelCatalog.scope);
 
       const eserviceScopeCount =
@@ -1083,7 +1065,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
       );
 
       const results = await db
-        .select(withTotalCount(consumerArchivingColumns))
+        .select(withTotalCount(archivingColumns))
         .from(eserviceDescriptorArchivingScheduleInReadmodelCatalog)
         .innerJoin(
           eserviceInReadmodelCatalog,
@@ -1135,7 +1117,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
       );
 
       const results = await db
-        .select(withTotalCount(consumerArchivingColumns))
+        .select(withTotalCount(archivingColumns))
         .from(eserviceDescriptorArchivingScheduleInReadmodelCatalog)
         .innerJoin(
           eserviceInReadmodelCatalog,
