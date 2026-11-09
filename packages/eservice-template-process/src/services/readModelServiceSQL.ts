@@ -41,6 +41,8 @@ import {
   EServiceTemplateReadModelService,
   TenantReadModelService,
   toEServiceTemplateAggregatorArray,
+  getTenantHierarchyNameFilter,
+  toParentTenants,
 } from "pagopa-interop-readmodel";
 import {
   attributeInReadmodelAttribute,
@@ -61,6 +63,9 @@ import { z } from "zod";
 
 import { GetEServiceTemplatesFilters } from "./readModelService.js";
 import { hasRoleToAccessDraftTemplateVersions } from "./validators.js";
+
+const parentTenantTable = alias(tenantInReadmodelTenant, "parentTenantTable");
+const rootTenantTable = alias(tenantInReadmodelTenant, "rootTenantTable");
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
@@ -366,9 +371,23 @@ export function readModelServiceBuilderSQL({
           withTotalCount({
             id: tenantInReadmodelTenant.id,
             name: tenantInReadmodelTenant.name,
+            subUnitType: tenantInReadmodelTenant.subUnitType,
+            parentTenantId: parentTenantTable.id,
+            parentTenantName: parentTenantTable.name,
+            parentTenantSubUnitType: parentTenantTable.subUnitType,
+            rootTenantId: rootTenantTable.id,
+            rootTenantName: rootTenantTable.name,
           })
         )
         .from(tenantInReadmodelTenant)
+        .leftJoin(
+          parentTenantTable,
+          eq(tenantInReadmodelTenant.parentTenantId, parentTenantTable.id)
+        )
+        .leftJoin(
+          rootTenantTable,
+          eq(tenantInReadmodelTenant.rootTenantId, rootTenantTable.id)
+        )
         .innerJoin(
           eserviceTemplateInReadmodelEserviceTemplate,
           eq(
@@ -391,22 +410,30 @@ export function readModelServiceBuilderSQL({
               eserviceTemplateVersionState.published
             ),
             // TENANT FILTER
-            name
-              ? ilikeEscaped(
-                  tenantInReadmodelTenant.name,
-                  `%${escapeSqlLike(name)}%`
-                )
-              : undefined
+            getTenantHierarchyNameFilter(
+              name,
+              tenantInReadmodelTenant.name,
+              tenantInReadmodelTenant.parentTenantId,
+              parentTenantTable.name,
+              tenantInReadmodelTenant.rootTenantId,
+              rootTenantTable.name
+            )
           )
         )
-        .groupBy(tenantInReadmodelTenant.id)
+        .groupBy(
+          tenantInReadmodelTenant.id,
+          parentTenantTable.id,
+          rootTenantTable.id
+        )
         .orderBy(ascLower(tenantInReadmodelTenant.name))
         .limit(limit)
         .offset(offset);
 
-      const data: CompactOrganization[] = queryResult.map((d) => ({
+      const data = queryResult.map((d) => ({
         id: unsafeBrandId(d.id),
         name: d.name,
+        subUnitType: d.subUnitType ?? undefined,
+        parentTenants: toParentTenants(d),
       }));
 
       const result = z.array(CompactOrganization).safeParse(data);

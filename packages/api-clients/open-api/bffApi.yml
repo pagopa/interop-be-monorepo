@@ -18525,6 +18525,13 @@ components:
           format: uuid
         producerName:
           type: string
+        producerSubUnitType:
+          $ref: "#/components/schemas/TenantUnitType"
+        producerParentTenants:
+          type: array
+          maxItems: 2
+          items:
+            $ref: "#/components/schemas/ParentTenant"
         latestDescriptor:
           $ref: "#/components/schemas/CompactDescriptor"
         descriptors:

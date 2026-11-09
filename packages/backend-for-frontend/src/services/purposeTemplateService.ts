@@ -21,6 +21,7 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
+import { toBffCompactOrganization } from "../api/agreementApiConverter.js";
 import { toCompactDescriptor } from "../api/catalogApiConverter.js";
 import { toBffCompactEServiceTemplateVersion } from "../api/eserviceTemplateApiConverter.js";
 import {
@@ -897,7 +898,7 @@ export function purposeTemplateServiceBuilder(
         });
 
       return {
-        results: results.map((t) => ({ id: t.id, name: t.name })),
+        results: results.map((t) => toBffCompactOrganization(t)),
         pagination: {
           offset,
           limit,

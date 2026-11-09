@@ -9,7 +9,9 @@ import {
   EServiceTemplate,
   eserviceTemplateVersionState,
   Tenant,
+  TenantId,
   CompactOrganization,
+  generateId,
 } from "pagopa-interop-models";
 import { describe, beforeEach, it, expect } from "vitest";
 
@@ -20,6 +22,18 @@ import {
 } from "../integrationUtils.js";
 
 describe("getEServiceTemplateCreators", () => {
+  const rootTenant: Tenant = {
+    ...getMockTenant(),
+    name: "Tenant root",
+    subUnitType: undefined,
+  };
+  const parentTenant: Tenant = {
+    ...getMockTenant(),
+    name: "Tenant AOO",
+    subUnitType: "AOO",
+    parentTenantId: rootTenant.id,
+    rootTenantId: rootTenant.id,
+  };
   let tenant1: Tenant;
   let tenant2: Tenant;
   let tenant3: Tenant;
@@ -30,16 +44,37 @@ describe("getEServiceTemplateCreators", () => {
   const toCompactOrganization = (tenant: Tenant): CompactOrganization => ({
     id: tenant.id,
     name: tenant.name,
+    ...(tenant.id === tenant3.id
+      ? {
+          subUnitType: tenant3.subUnitType,
+          parentTenants: [
+            {
+              id: parentTenant.id,
+              name: parentTenant.name,
+              subUnitType: parentTenant.subUnitType,
+            },
+            { id: rootTenant.id, name: rootTenant.name },
+          ],
+        }
+      : {}),
   });
 
   beforeEach(async () => {
     tenant1 = { ...getMockTenant(), name: "Tenant 1 Foo" };
     tenant2 = { ...getMockTenant(), name: "Tenant 2 Bar" };
-    tenant3 = { ...getMockTenant(), name: "Tenant 3 FooBar" };
+    tenant3 = {
+      ...getMockTenant(),
+      name: "Tenant 3 FooBar",
+      subUnitType: "UO",
+      parentTenantId: parentTenant.id,
+      rootTenantId: rootTenant.id,
+    };
     tenant4 = { ...getMockTenant(), name: "Tenant 4 Baz" };
     tenant5 = { ...getMockTenant(), name: "Tenant 5 BazBar" };
     tenant6 = { ...getMockTenant(), name: "Tenant 6 BazFoo" };
 
+    await addOneTenant(rootTenant);
+    await addOneTenant(parentTenant);
     await addOneTenant(tenant1);
     await addOneTenant(tenant2);
     await addOneTenant(tenant3);
@@ -61,6 +96,10 @@ describe("getEServiceTemplateCreators", () => {
     const eserviceTemplate2: EServiceTemplate = {
       ...getMockEServiceTemplate(),
       versions: [
+        {
+          ...getMockEServiceTemplateVersion(),
+          state: eserviceTemplateVersionState.published,
+        },
         {
           ...getMockEServiceTemplateVersion(),
           state: eserviceTemplateVersionState.published,
@@ -104,6 +143,16 @@ describe("getEServiceTemplateCreators", () => {
 
     await addOneEServiceTemplate(eserviceTemplate1);
     await addOneEServiceTemplate(eserviceTemplate2);
+    await addOneEServiceTemplate({
+      ...getMockEServiceTemplate(),
+      creatorId: tenant3.id,
+      versions: [
+        {
+          ...getMockEServiceTemplateVersion(),
+          state: eserviceTemplateVersionState.published,
+        },
+      ],
+    });
     await addOneEServiceTemplate(eserviceTemplate3);
     await addOneEServiceTemplate(eserviceTemplate4);
     await addOneEServiceTemplate(eserviceTemplate5);
@@ -240,5 +289,80 @@ describe("getEServiceTemplateCreators", () => {
       totalCount: 0,
       results: [],
     });
+  });
+
+  it.each([
+    "Tenant AOO",
+    "Tenant root",
+    "Tenant 3 FooBar - Tenant AOO - Tenant root",
+  ])("should filter creators by hierarchical name %s", async (name) => {
+    const creators = await eserviceTemplateService.getEServiceTemplateCreators(
+      name,
+      10,
+      0,
+      getMockContext({})
+    );
+
+    expect(creators.totalCount).toBe(1);
+    expect(creators.results).toEqual([toCompactOrganization(tenant3)]);
+  });
+
+  it("should return a direct root only once", async () => {
+    await addOneEServiceTemplate({
+      ...getMockEServiceTemplate(),
+      creatorId: parentTenant.id,
+      versions: [
+        {
+          ...getMockEServiceTemplateVersion(),
+          state: eserviceTemplateVersionState.published,
+        },
+      ],
+    });
+
+    const creators = await eserviceTemplateService.getEServiceTemplateCreators(
+      "Tenant AOO - Tenant root",
+      10,
+      0,
+      getMockContext({})
+    );
+
+    expect(
+      creators.results.find((creator) => creator.id === parentTenant.id)
+    ).toEqual({
+      id: parentTenant.id,
+      name: parentTenant.name,
+      subUnitType: "AOO",
+      parentTenants: [{ id: rootTenant.id, name: rootTenant.name }],
+    });
+    const duplicatedRoot =
+      await eserviceTemplateService.getEServiceTemplateCreators(
+        "Tenant root - Tenant root",
+        10,
+        0,
+        getMockContext({})
+      );
+    expect(duplicatedRoot.results).toEqual([]);
+  });
+
+  it("should preserve creators whose parent cannot be resolved", async () => {
+    await addOneTenant({
+      ...tenant3,
+      parentTenantId: generateId<TenantId>(),
+    });
+    const creators = await eserviceTemplateService.getEServiceTemplateCreators(
+      tenant3.name,
+      10,
+      0,
+      getMockContext({})
+    );
+
+    expect(creators.results).toEqual([
+      {
+        id: tenant3.id,
+        name: tenant3.name,
+        subUnitType: "UO",
+        parentTenants: undefined,
+      },
+    ]);
   });
 });

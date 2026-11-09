@@ -11,7 +11,14 @@ import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 
 describe("API GET /creators", () => {
   const mockEserviceTemplate: CompactOrganization[] = [
-    CompactOrganization.parse(getMockTenant()),
+    CompactOrganization.parse({
+      ...getMockTenant(),
+      subUnitType: "UO",
+      parentTenants: [
+        { id: generateId(), name: "Tenant AOO", subUnitType: "AOO" },
+        { id: generateId(), name: "Tenant root" },
+      ],
+    }),
   ];
 
   const mockEserviceTemplateCreatorsResult = {
