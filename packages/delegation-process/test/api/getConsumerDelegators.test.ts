@@ -27,7 +27,17 @@ describe("API GET /consumer/delegators test", () => {
   };
 
   const apiDelegators = delegationApi.CompactTenants.parse({
-    results: mockDelegators.results.map(tenantToApiCompactTenant),
+    results: [
+      {
+        ...tenantToApiCompactTenant(mockDelegator1),
+        subUnitType: "UO",
+        parentTenants: [
+          { id: generateId(), name: "Direzione", subUnitType: "AOO" },
+          { id: generateId(), name: "Regione" },
+        ],
+      },
+      ...[mockDelegator2, mockDelegator3].map(tenantToApiCompactTenant),
+    ],
     totalCount: mockDelegators.totalCount,
   });
 

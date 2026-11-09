@@ -28,6 +28,7 @@ import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import {
   getMockCatalogApiEServiceDoc,
   getMockDelegationApiDelegation,
+  getMockBffApiCompactOrganizationWithHierarchy,
   toApiEServiceDoc,
 } from "./mockUtils.js";
 import { fileManager, getBffMockContext } from "./utils.js";
@@ -85,6 +86,8 @@ describe("getProducerEServiceDescriptor", () => {
     getEServiceById: vi.fn().mockResolvedValue(eService),
   } as unknown as catalogApi.CatalogProcessClient;
 
+  const { subUnitType, parentTenants } =
+    getMockBffApiCompactOrganizationWithHierarchy();
   const mockTenantProcessClient = {
     tenant: {
       getTenant: vi.fn(({ params: { id } }) => ({
@@ -92,6 +95,8 @@ describe("getProducerEServiceDescriptor", () => {
         name: id === delegateId ? "mockDelegate" : "mockTenant",
         attributes: [],
         mails: [],
+        subUnitType,
+        parentTenants,
       })),
     },
   } as unknown as TenantProcessClient;
@@ -257,6 +262,10 @@ describe("getProducerEServiceDescriptor", () => {
 
     expect(result.eservice.hasProducerKeychain).toBe(true);
     expect(result.eservice.hasProducerKeychainKeys).toBe(true);
+    expect(result.delegation).toMatchObject({
+      delegator: { id: tenantId, subUnitType, parentTenants },
+      delegate: { id: delegateId, subUnitType, parentTenants },
+    });
     expect(mockProducerKeychainEServiceFlags).toHaveBeenCalledWith({
       headers: delegateBffMockContext.headers,
       params: {

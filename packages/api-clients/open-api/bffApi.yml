@@ -18014,6 +18014,13 @@ components:
           format: uuid
         name:
           type: string
+        subUnitType:
+          $ref: "#/components/schemas/TenantUnitType"
+        parentTenants:
+          type: array
+          maxItems: 2
+          items:
+            $ref: "#/components/schemas/ParentTenant"
       required:
         - id
         - name
@@ -18046,6 +18053,13 @@ components:
           format: uuid
         producerName:
           type: string
+        producerSubUnitType:
+          $ref: "#/components/schemas/TenantUnitType"
+        producerParentTenants:
+          type: array
+          maxItems: 2
+          items:
+            $ref: "#/components/schemas/ParentTenant"
         descriptors:
           type: array
           items:
