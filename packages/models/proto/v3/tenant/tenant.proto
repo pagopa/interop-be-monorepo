@@ -1,0 +1,126 @@
+syntax = "proto3";
+
+package tenant.v3;
+
+message TenantV3 {
+  // Field 8 carried the plain-text mails in TenantV2: V3 references the
+  // contact managed by the Contact Data Manager instead.
+  reserved 8;
+  reserved "mails";
+
+  string id = 1;
+  string selfcareId = 2;
+  ExternalIdV3 externalId = 3;
+  repeated TenantFeatureV3 features = 4;
+  repeated TenantAttributeV3 attributes = 5;
+  int64 createdAt = 6;
+  optional int64 updatedAt = 7;
+  string name = 9;
+  optional TenantKindV3 kind = 10;
+  int64 onboardedAt = 11;
+  optional TenantUnitTypeV3 subUnitType = 12;
+  optional string selfcareInstitutionType = 13;
+  repeated TenantRemoteIdV3 remoteIds = 14;
+  optional TenantContactV3 contact = 15;
+}
+
+message TenantContactV3 {
+  string contactId = 1;
+  int64 createdAt = 2;
+}
+
+message TenantRemoteIdV3 {
+  string origin = 1;
+  string value = 2;
+  int64 assignmentTimestamp = 3;
+}
+
+enum TenantKindV3 {
+  PA = 0;
+  GSP = 1;
+  PRIVATE = 2;
+  SCP = 3;
+}
+
+enum TenantUnitTypeV3 {
+  AOO = 0;
+  UO = 1;
+}
+
+message TenantFeatureV3 {
+  oneof sealed_value {
+    CertifierV3 certifier = 1;
+    DelegatedProducerV3 delegatedProducer = 2;
+    DelegatedConsumerV3 delegatedConsumer = 3;
+  }
+}
+
+message CertifierV3 {
+  string certifierId = 1;
+}
+
+message DelegatedProducerV3 {
+  int64 availabilityTimestamp = 1;
+}
+
+message DelegatedConsumerV3 {
+  int64 availabilityTimestamp = 1;
+}
+
+message TenantVerifierV3 {
+  string id = 1;
+  int64 verificationDate = 2;
+  optional int64 expirationDate = 3;
+  optional int64 extensionDate = 4;
+  optional string delegationId = 5;
+}
+
+message TenantRevokerV3 {
+  string id = 1;
+  int64 verificationDate = 2;
+  optional int64 expirationDate = 3;
+  optional int64 extensionDate = 4;
+  int64 revocationDate = 5;
+  optional string delegationId = 6;
+}
+
+message ExternalIdV3 {
+  string origin = 1;
+  string value = 2;
+}
+
+message TenantCertifiedAttributeV3 {
+  string id = 1;
+  int64 assignmentTimestamp = 2;
+  optional int64 revocationTimestamp = 3;
+}
+
+message TenantCertifiedDiscreteAttributeV3 {
+  string id = 1;
+  int64 assignmentTimestamp = 2;
+  optional int64 revocationTimestamp = 3;
+  int32 discreteValue = 4;
+}
+
+message TenantDeclaredAttributeV3 {
+  string id = 1;
+  int64 assignmentTimestamp = 2;
+  optional int64 revocationTimestamp = 3;
+  optional string delegationId = 4;
+}
+
+message TenantVerifiedAttributeV3 {
+  string id = 1;
+  int64 assignmentTimestamp = 2;
+  repeated TenantVerifierV3 verifiedBy = 3;
+  repeated TenantRevokerV3 revokedBy = 4;
+}
+
+message TenantAttributeV3 {
+  oneof sealed_value {
+    TenantCertifiedAttributeV3 certifiedAttribute = 1;
+    TenantDeclaredAttributeV3 declaredAttribute = 2;
+    TenantVerifiedAttributeV3 verifiedAttribute = 3;
+    TenantCertifiedDiscreteAttributeV3 certifiedDiscreteAttribute = 4;
+  }
+}
