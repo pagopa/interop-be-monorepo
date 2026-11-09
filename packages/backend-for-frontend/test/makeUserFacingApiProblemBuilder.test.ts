@@ -87,17 +87,14 @@ describe("makeUserFacingApiProblemBuilder", () => {
       status: 400,
       title: error.title,
       correlationId: expect.any(String),
-      detail: "Un messaggio di errore",
+      detail: "Detail message",
       errors: [
         {
           code: "005-0014",
           detail: "Detail message",
         },
       ],
-      userMessages: {
-        it: "Un messaggio di errore",
-        en: "Some error message",
-      },
+      userMessage: "Un messaggio di errore",
     });
   });
 
@@ -149,7 +146,7 @@ describe("makeUserFacingApiProblemBuilder", () => {
     expect(problem.status).toBe(500);
     expect(problem.title).toBe("Unexpected error");
     expect(problem.detail).not.toContain("Sensitive downstream detail");
-    expect(problem.userMessages).toBeUndefined();
+    expect(problem.userMessage).toBeUndefined();
   });
 
   it("should keep the localised user message for a 500 Axios Error found in the error copy", () => {
@@ -176,11 +173,7 @@ describe("makeUserFacingApiProblemBuilder", () => {
       }
     );
     expect(problem.status).toBe(500);
-    expect(problem.detail).toBe("Un messaggio di errore");
-    expect(problem.userMessages).toEqual({
-      it: "Un messaggio di errore",
-      en: "Some error message",
-    });
+    expect(problem.userMessage).toBe("Un messaggio di errore");
   });
 
   it.each([
@@ -230,16 +223,12 @@ describe("makeUserFacingApiProblemBuilder", () => {
 
       const res = await makeRequest();
       const body = res.body;
-      expect(body).toHaveProperty("userMessages");
+      expect(body).toHaveProperty("userMessage");
       const itMessage = `Esiste già un e-service con la parola identificativa ${mockApiProducerEServiceDetails.name}. Scegli un'altra parola identificativa.`;
       const enMessage = `There is already an e-service with the identifying word ${mockApiProducerEServiceDetails.name}. Choose a different identifying word.`;
-      expect(body.userMessages).toEqual({
-        it: itMessage,
-        en: enMessage,
-      });
       const expectedDetailMessage =
         expectedLocale === "it" ? itMessage : enMessage;
-      expect(body.detail).toEqual(expectedDetailMessage);
+      expect(body.userMessage).toEqual(expectedDetailMessage);
     }
   );
 });

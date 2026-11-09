@@ -41,17 +41,13 @@ describe("applyErrorCopy", () => {
     expect({
       ...result,
       detail: undefined,
-      userMessages: undefined,
+      userMessage: undefined,
     }).toEqual({
       ...problem,
       detail: undefined,
     });
 
-    expect(result.userMessages).toEqual({
-      it: "Un messaggio di errore",
-      en: "Some error message",
-    });
-    expect(result.detail).toBe("Un messaggio di errore");
+    expect(result.userMessage).toBe("Un messaggio di errore");
   });
 
   it("should correctly leave unaltered when no matching error copy is found", () => {
@@ -151,11 +147,7 @@ describe("applyErrorCopy", () => {
       errorMessages
     );
 
-    expect(result.detail).toBe("Messaggio valido");
-    expect(result.userMessages).toEqual({
-      it: "Messaggio valido",
-      en: undefined,
-    });
+    expect(result.userMessage).toBe("Messaggio valido");
   });
 
   it("should fall back to Italian when the selected English copy is missing", () => {
@@ -188,10 +180,6 @@ describe("applyErrorCopy", () => {
       "en"
     );
 
-    expect(result.detail).toBe("Un messaggio di errore");
-    expect(result.userMessages).toEqual({
-      it: "Un messaggio di errore",
-      en: undefined,
-    });
+    expect(result.userMessage).toBe("Un messaggio di errore");
   });
 });

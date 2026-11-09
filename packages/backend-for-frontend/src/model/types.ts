@@ -210,28 +210,21 @@ export const ConfigurationEservice = z.object({
 export type ConfigurationEservice = z.infer<typeof ConfigurationEservice>;
 
 export type UserFacingProblem = Problem & {
-  userMessages?: UserFacingMessages;
-};
-
-export type UserFacingMessages = {
-  it: string;
-  en?: string;
+  userMessage?: string;
 };
 
 export type UserFacingLanguage = keyof ErrorMessage["copy"];
 
-export type UserFacingProblemWithMessages = UserFacingProblem & {
-  userMessages: UserFacingMessages;
+export type UserFacingProblemWithMessage = UserFacingProblem & {
+  userMessage: string;
 };
 
 type PlaceholderMapperFn = (
-  problem: UserFacingProblemWithMessages
+  problem: UserFacingProblemWithMessage
 ) => UserFacingProblem;
 
 export type PlaceholderMapperGeneratorReturn = Promise<
-  | ((
-      prob: UserFacingProblem & { userMessages: UserFacingMessages }
-    ) => UserFacingProblem)
+  | ((prob: UserFacingProblem & { userMessage: string }) => UserFacingProblem)
   | undefined
 >;
 
