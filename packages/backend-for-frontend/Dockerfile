@@ -21,7 +21,6 @@ COPY ./packages/dpop-validation/package.json /app/packages/dpop-validation/packa
 COPY ./packages/error-messages/package.json /app/packages/error-messages/package.json
 COPY ./packages/application-audit/package.json /app/packages/application-audit/package.json
 COPY ./packages/kafka-iam-auth/package.json /app/packages/kafka-iam-auth/package.json
-COPY ./packages/error-messages/package.json /app/packages/error-messages/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
@@ -37,7 +36,6 @@ COPY ./packages/dpop-validation /app/packages/dpop-validation
 COPY ./packages/error-messages /app/packages/error-messages
 COPY ./packages/application-audit /app/packages/application-audit
 COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
-COPY ./packages/error-messages /app/packages/error-messages
 
 ARG NODE_HEAP_SIZE=4096
 RUN NODE_OPTIONS="--max-old-space-size=${NODE_HEAP_SIZE}" pnpm build && \
