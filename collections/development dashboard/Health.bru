@@ -1,0 +1,18 @@
+meta {
+  name: Health
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-dashboard}}/health
+  body: none
+  auth: none
+}
+
+tests {
+  test("Dashboard is available", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().status).to.equal("ok");
+  });
+}
