@@ -37,6 +37,8 @@ export * from "./tenant/tenantEvents.js";
 export * from "./tenant/protobufConverterFromV1.js";
 export * from "./tenant/protobufConverterFromV2.js";
 export * from "./tenant/protobufConverterToV2.js";
+export * from "./tenant/protobufConverterFromV3.js";
+export * from "./tenant/protobufConverterToV3.js";
 
 export * from "./tenant-kind-history/tenantKindHistory.js";
 export * from "./tenant-kind-history/tenantKindHistorySQLAdapter.js";
@@ -139,6 +141,8 @@ export * from "./gen/v2/eservice-template/eservice-template.js";
 export * from "./gen/v2/eservice-template/events.js";
 export * from "./gen/v2/notification-config/notification-config.js";
 export * from "./gen/v2/notification-config/events.js";
+export * from "./gen/v3/tenant/tenant.js";
+export * from "./gen/v3/tenant/events.js";
 
 // Selfcare User model
 export * from "./user/user.js";
