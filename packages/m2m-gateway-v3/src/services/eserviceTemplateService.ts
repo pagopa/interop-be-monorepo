@@ -37,6 +37,7 @@ import {
   eserviceTemplateVersionAttributeNotFound,
   eserviceTemplateVersionNotFound,
   eserviceTemplateVersionAttributeGroupNotFound,
+  eserviceTemplateVersionInterfaceNotFound,
   missingDiscreteConfig,
 } from "../model/errors.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
@@ -963,6 +964,32 @@ export function eserviceTemplateServiceBuilder(
 
       return downloadDocument(
         document,
+        fileManager,
+        config.eserviceTemplateDocumentsContainer,
+        logger
+      );
+    },
+
+    async downloadEServiceTemplateVersionInterface(
+      templateId: EServiceTemplateId,
+      versionId: EServiceTemplateVersionId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<DownloadedDocument> {
+      logger.info(
+        `Retrieving interface for eservice template version with id ${versionId} for eservice template with id ${templateId}`
+      );
+
+      const version = retrieveEServiceTemplateVersionById(
+        await retrieveEServiceTemplateById(headers, templateId),
+        versionId
+      );
+
+      if (!version.interface) {
+        throw eserviceTemplateVersionInterfaceNotFound(templateId, versionId);
+      }
+
+      return downloadDocument(
+        version.interface,
         fileManager,
         config.eserviceTemplateDocumentsContainer,
         logger

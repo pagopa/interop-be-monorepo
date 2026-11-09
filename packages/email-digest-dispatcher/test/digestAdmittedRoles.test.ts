@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 
+import { TenantDigestData } from "../src/services/digestDataService.js";
 import {
   canReceiveReviewerDigest,
   getVisibleSections,
@@ -8,6 +9,37 @@ import {
   DigestSection,
 } from "../src/utils/digestAdmittedRoles.js";
 import { getMockTenantDigestData } from "./mockUtils.js";
+
+const getRiskAnalysisOnlyDigestData = (): TenantDigestData => {
+  const empty = { items: [], totalCount: 0 };
+
+  return {
+    ...getMockTenantDigestData(),
+    newEservices: empty,
+    updatedEservices: empty,
+    updatedEserviceTemplates: empty,
+    acceptedSentAgreements: empty,
+    rejectedSentAgreements: empty,
+    suspendedSentAgreements: empty,
+    publishedSentPurposes: empty,
+    rejectedSentPurposes: empty,
+    waitingForApprovalSentPurposes: empty,
+    waitingForApprovalReceivedAgreements: empty,
+    publishedReceivedPurposes: empty,
+    waitingForApprovalReceivedPurposes: empty,
+    waitingForApprovalReceivedDelegations: empty,
+    revokedReceivedDelegations: empty,
+    receivedAttributes: empty,
+    revokedAttributes: empty,
+    archivingImminentEservices: empty,
+    archivingInProgressEservices: empty,
+    archivingConsumerImminentEservices: empty,
+    archivingConsumerInProgressEservices: empty,
+    archivingRequests: empty,
+    approvedArchivingRequests: empty,
+    rejectedArchivingRequests: empty,
+  };
+};
 
 describe("digestAdmittedRoles", () => {
   it("should have all sections deny support role", () => {
@@ -114,9 +146,63 @@ describe("hasVisibleDigestContent", () => {
     expect(hasVisibleDigestContent(fullData, visibility)).toBe(true);
   });
 
+  it("should count visible risk analyses as digest content", () => {
+    const data = getRiskAnalysisOnlyDigestData();
+
+    expect(
+      hasVisibleDigestContent(data, getVisibleSections(["security"]))
+    ).toBe(true);
+    expect(hasVisibleDigestContent(data, getVisibleSections(["api"]))).toBe(
+      false
+    );
+  });
+
   it("should return true when api role has data in visible sections", () => {
     const visibility = getVisibleSections(["api"]);
     expect(hasVisibleDigestContent(fullData, visibility)).toBe(true);
+  });
+
+  it("should count delegated e-services awaiting approval as delegation content", () => {
+    const empty = { items: [], totalCount: 0 };
+    const data = {
+      ...getMockTenantDigestData(),
+      newEservices: empty,
+      updatedEservices: empty,
+      updatedEserviceTemplates: empty,
+      acceptedSentAgreements: empty,
+      rejectedSentAgreements: empty,
+      suspendedSentAgreements: empty,
+      publishedSentPurposes: empty,
+      rejectedSentPurposes: empty,
+      waitingForApprovalSentPurposes: empty,
+      waitingForApprovalReceivedAgreements: empty,
+      publishedReceivedPurposes: empty,
+      waitingForApprovalReceivedPurposes: empty,
+      waitingForApprovalReceivedDelegations: empty,
+      waitingForApprovalDelegatedEservices: {
+        items: [
+          {
+            name: "Delegated e-service",
+            delegatedName: "Delegate tenant",
+            link: "https://example.com/eservice/1",
+            id: "eservice-id",
+            producerName: "",
+          },
+        ],
+        totalCount: 1,
+      },
+      receivedAttributes: empty,
+      revokedAttributes: empty,
+      archivingImminentEservices: empty,
+      archivingInProgressEservices: empty,
+    };
+
+    expect(hasVisibleDigestContent(data, getVisibleSections(["admin"]))).toBe(
+      true
+    );
+    expect(hasVisibleDigestContent(data, getVisibleSections(["api"]))).toBe(
+      false
+    );
   });
 
   it("should return false when support role has no visible sections", () => {
@@ -144,7 +230,7 @@ describe("hasVisibleDigestContent", () => {
       activeSentDelegations: empty,
       rejectedSentDelegations: empty,
       waitingForApprovalReceivedDelegations: empty,
-      revokedReceivedDelegations: empty,
+      waitingForApprovalDelegatedEservices: empty,
       receivedAttributes: empty,
       revokedAttributes: empty,
       archivingRequests: empty,
@@ -269,7 +355,7 @@ describe("hasVisibleDigestContent", () => {
       publishedReceivedPurposes: empty,
       waitingForApprovalReceivedPurposes: empty,
       waitingForApprovalReceivedDelegations: empty,
-      revokedReceivedDelegations: empty,
+      waitingForApprovalDelegatedEservices: empty,
       receivedAttributes: empty,
       revokedAttributes: empty,
       archivingImminentEservices: empty,
@@ -279,6 +365,8 @@ describe("hasVisibleDigestContent", () => {
       archivingRequests: empty,
       approvedArchivingRequests: empty,
       rejectedArchivingRequests: empty,
+      approvedRiskAnalysis: empty,
+      rejectedRiskAnalysis: empty,
     };
 
     // Admin can see everything, but there's no data at all
