@@ -56,6 +56,8 @@ import {
   clientKind,
   UserId,
   ClientAdminSetV2,
+  ClientAdminRoleRevokedV2,
+  ClientAdminRemovedV2,
 } from "pagopa-interop-models";
 import {
   afterAll,
@@ -2976,7 +2978,7 @@ describe("integration tests V2 events", async () => {
         adminId: undefined,
       };
 
-      const payload = {
+      const payload: ClientAdminRoleRevokedV2 = {
         adminId,
         client: toClientV2(client),
       };
@@ -3058,7 +3060,7 @@ describe("integration tests V2 events", async () => {
         adminId,
       };
 
-      const payload = {
+      const payload: ClientAdminRoleRevokedV2 = {
         adminId,
         client: toClientV2(client),
       };
@@ -3148,11 +3150,11 @@ describe("integration tests V2 events", async () => {
       // token-generation-states
       const retrievedTokenGenStatesEntries =
         await readAllTokenGenStatesItems(dynamoDBClient);
-      const expectedTokenClientEntry1 = {
+      const expectedTokenClientEntry1: TokenGenerationStatesApiClient = {
         ...tokenClientEntry1,
         adminId: undefined,
       };
-      const expectedTokenClientEntry2 = {
+      const expectedTokenClientEntry2: TokenGenerationStatesApiClient = {
         ...tokenClientEntry2,
         adminId: undefined,
       };
@@ -3172,7 +3174,7 @@ describe("integration tests V2 events", async () => {
 
       const client: Client = getMockClient();
 
-      const payload = {
+      const payload: ClientAdminRoleRevokedV2 = {
         adminId,
         client: toClientV2(client),
       };
@@ -3232,7 +3234,7 @@ describe("integration tests V2 events", async () => {
         adminId: undefined,
       };
 
-      const payload = {
+      const payload: ClientAdminRemovedV2 = {
         adminId,
         client: toClientV2(client),
       };
@@ -3314,7 +3316,7 @@ describe("integration tests V2 events", async () => {
         adminId,
       };
 
-      const payload = {
+      const payload: ClientAdminRemovedV2 = {
         adminId,
         client: toClientV2(client),
       };
@@ -3404,11 +3406,11 @@ describe("integration tests V2 events", async () => {
       // token-generation-states
       const retrievedTokenGenStatesEntries =
         await readAllTokenGenStatesItems(dynamoDBClient);
-      const expectedTokenClientEntry1 = {
+      const expectedTokenClientEntry1: TokenGenerationStatesApiClient = {
         ...tokenClientEntry1,
         adminId: undefined,
       };
-      const expectedTokenClientEntry2 = {
+      const expectedTokenClientEntry2: TokenGenerationStatesApiClient = {
         ...tokenClientEntry2,
         adminId: undefined,
       };
@@ -3428,7 +3430,7 @@ describe("integration tests V2 events", async () => {
 
       const client: Client = getMockClient();
 
-      const payload = {
+      const payload: ClientAdminRemovedV2 = {
         adminId,
         client: toClientV2(client),
       };

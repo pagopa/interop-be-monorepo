@@ -2,7 +2,12 @@
 import { agreementApi } from "pagopa-interop-api-clients";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { generateToken, getMockAgreement } from "pagopa-interop-commons-test";
-import { AgreementId, generateId } from "pagopa-interop-models";
+import {
+  AgreementDocument,
+  AgreementId,
+  ListResult,
+  generateId,
+} from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
@@ -23,7 +28,7 @@ describe("API GET /agreements/{agreementId}/consumer-documents test", () => {
   const mockConsumerDocument1 = getMockConsumerDocument(mockAgreement.id);
   const mockConsumerDocument2 = getMockConsumerDocument(mockAgreement.id);
 
-  const mockProcessRespomse = {
+  const mockProcessRespomse: ListResult<AgreementDocument> = {
     results: [mockConsumerDocument1, mockConsumerDocument2],
     totalCount: 2,
   };

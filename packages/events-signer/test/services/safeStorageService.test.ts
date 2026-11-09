@@ -1,10 +1,16 @@
 /* eslint-disable functional/no-let */
 import axios from "axios";
-import { createSafeStorageApiClient } from "pagopa-interop-commons";
+import {
+  createSafeStorageApiClient,
+  FileCreationResponse,
+  FileDownloadResponse,
+} from "pagopa-interop-commons";
 import { describe, it, expect, vi, beforeEach, afterEach, Mock } from "vitest";
 
 import { config } from "../../src/config/config.js";
 
+// TODO REVIEW THIS CHANGE
+// eslint-disable-next-line interop/require-type-for-object
 const mockLogger = {
   info: vi.fn(),
   debug: vi.fn(),
@@ -21,6 +27,8 @@ const mockedAxios = axios as unknown as {
 };
 
 describe("SafeStorageApiClient", () => {
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const mockAxiosInstance = {
     post: vi.fn(),
     get: vi.fn(),
@@ -36,7 +44,7 @@ describe("SafeStorageApiClient", () => {
   });
 
   it("createFile should POST and return presigned URL info", async () => {
-    const mockResponseData = {
+    const mockResponseData: FileCreationResponse = {
       uploadMethod: "PUT",
       uploadUrl: "https://presigned-upload-url.com",
       secret: "mock-secret",
@@ -104,7 +112,7 @@ describe("SafeStorageApiClient", () => {
   });
 
   it("getFile should GET file metadata and/or download URL", async () => {
-    const mockResponse = {
+    const mockResponse: FileDownloadResponse = {
       key: "mock/key.pdf",
       versionId: "v1",
       contentType: "application/pdf",

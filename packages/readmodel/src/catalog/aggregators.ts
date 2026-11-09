@@ -622,7 +622,11 @@ export const attributesSQLtoAttributes = (
     >
   >();
   attributesSQL.forEach((current) => {
-    const currentAttribute = {
+    // TODO REVIEW THIS CHANGE
+    const currentAttribute:
+      | EServiceAttribute
+      | EServiceAttributeCertified
+      | EServiceAttributeCertifiedDiscrete = {
       id: unsafeBrandId<AttributeId>(current.attributeId),
       explicitAttributeVerification: current.explicitAttributeVerification,
       ...(current.dailyCallsPerConsumer != null

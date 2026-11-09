@@ -11,6 +11,7 @@ import {
   AgreementAddedV2,
   AgreementEventEnvelopeV2,
   AuthorizationEventEnvelopeV2,
+  Client,
   ClientKeyAddedV2,
   EServiceDescriptorSuspendedV2,
   EServiceDescriptorV2,
@@ -122,7 +123,7 @@ describe("Notification tests", async () => {
       const descriptor = getDescriptorMock(
         "6b48e234-aac6-4d33-aef4-93816588ff41"
       );
-      const mockEService = {
+      const mockEService: EServiceV2 = {
         ...getMockEService("d27f668f-630b-4889-a97f-2b7e39b24188"),
         descriptors: [descriptor],
       };
@@ -216,7 +217,7 @@ describe("Notification tests", async () => {
       await queueWriter.send(agreementMessage, genericLogger);
 
       const key = getMockKey();
-      const mockClient = { ...getMockClient(), keys: [key] };
+      const mockClient: Client = { ...getMockClient(), keys: [key] };
       const authorizationEventV2: ClientKeyAddedV2 = {
         client: toClientV2(mockClient),
         kid: key.kid,

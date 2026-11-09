@@ -72,7 +72,7 @@ describe("Notification config queries", () => {
 
     // Test that the query works even if there are no user_enabled_notification rows
     it("should get a user notification config with all notifications disabled", async () => {
-      const userNotificationConfig = {
+      const userNotificationConfig: UserNotificationConfig = {
         ...getMockUserNotificationConfig(),
         inAppConfig: {
           agreementSuspendedUnsuspendedToProducer: false,

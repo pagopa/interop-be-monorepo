@@ -1,4 +1,5 @@
 import {
+  Descriptor,
   DescriptorId,
   EServiceId,
   TenantId,
@@ -428,7 +429,7 @@ describe("ReadModelService - getNewEservices", () => {
       const producer = createMockTenant();
       await addOneTenant(producer);
 
-      const descriptor = {
+      const descriptor: Descriptor = {
         ...createMockDescriptor(descriptorState.published),
         publishedAt: undefined, // Null publishedAt
       };

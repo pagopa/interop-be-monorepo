@@ -10,13 +10,16 @@ import {
 import { makeScheduledNotificationDrizzleConnection } from "pagopa-interop-scheduled-notification-db-models";
 
 import { config } from "./config/config.js";
-import { handleCatalogMessageV2 } from "./handlers/catalog/handleCatalogMessageV2.js";
+import {
+  handleCatalogMessageV2,
+  ReminderConfig,
+} from "./handlers/catalog/handleCatalogMessageV2.js";
 import { schedulerServiceBuilder } from "./services/schedulerService.js";
 
 const db = makeScheduledNotificationDrizzleConnection(config);
 const schedulerService = schedulerServiceBuilder(db);
 
-const reminderConfig = {
+const reminderConfig: ReminderConfig = {
   eserviceReminderDays: config.eserviceManualArchiveReminderDays,
   descriptorReminderDays: config.eserviceDescriptorManualArchiveReminderDays,
   sendAtHour: config.reminderSendAtHour,

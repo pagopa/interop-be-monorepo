@@ -50,7 +50,12 @@ function assignmentEvent({
             reviewers: reviewers.map((id) => ({ id })),
           },
   });
-  const data = {
+  // TODO REVIEW THIS CHANGE
+  const data: {
+    purpose: PurposeV2;
+    previousRiskAnalysisReviewMode: Mode | undefined;
+    removedReviewers: RiskAnalysisReviewerV2[];
+  } = {
     purpose,
     previousRiskAnalysisReviewMode: previousMode,
     removedReviewers: removed,

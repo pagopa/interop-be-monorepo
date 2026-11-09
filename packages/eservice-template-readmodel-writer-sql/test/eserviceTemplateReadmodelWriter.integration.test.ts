@@ -29,6 +29,7 @@ import {
   EServiceTemplateDraftVersionUpdatedV2,
   eserviceTemplateVersionState,
   EServiceTemplateNameUpdatedV2,
+  EServiceTemplatePersonalDataFlagUpdatedAfterPublicationV2,
   RiskAnalysis,
   tenantKind,
 } from "pagopa-interop-models";
@@ -902,9 +903,10 @@ describe("database test", async () => {
         ...eserviceTemplate,
         personalData: false,
       };
-      const payload = {
-        eserviceTemplate: toEServiceTemplateV2(updatedEServiceTemplate),
-      };
+      const payload: EServiceTemplatePersonalDataFlagUpdatedAfterPublicationV2 =
+        {
+          eserviceTemplate: toEServiceTemplateV2(updatedEServiceTemplate),
+        };
       const message: EServiceTemplateEventEnvelope = {
         sequence_num: 1,
         stream_id: mockEServiceTemplate.id,

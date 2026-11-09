@@ -69,22 +69,25 @@ describe("Integration tests", async () => {
         purposeWaitingForApprovalReason
       )) {
         const activeVersion = getMockPurposeVersion(purposeVersionState.active);
-        const waitingVersion = {
+        const waitingVersion: PurposeVersion = {
           ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
           waitingForApprovalReason,
         };
-        const purpose = {
+        const purpose: Purpose = {
           ...getMockPurpose(),
           versions: [activeVersion, waitingVersion],
         };
-        const envelope = {
+        // TODO REVIEW THIS CHANGE
+        const envelope: Omit<PurposeEventEnvelopeV2, "type" | "data"> = {
           sequence_num: 1,
           stream_id: purpose.id,
           version: 1,
           event_version: 2 as const,
           log_date: new Date(),
         };
-        const data = { purpose: toPurposeV2(purpose) };
+        const data: PurposeWaitingForApprovalV2 = {
+          purpose: toPurposeV2(purpose),
+        };
         const message: PurposeEventEnvelopeV2 =
           type === "PurposeWaitingForApproval"
             ? { ...envelope, type, data }
@@ -103,7 +106,7 @@ describe("Integration tests", async () => {
           result?.data.versions.find((v) => v.id === activeVersion.id)
             ?.waitingForApprovalReason
         ).toBeUndefined();
-        const transitionedPurpose = {
+        const transitionedPurpose: Purpose = {
           ...purpose,
           versions: [
             activeVersion,
@@ -208,7 +211,7 @@ describe("Integration tests", async () => {
     it("PurposeUpdated", async () => {
       await purposeWriterService.upsertPurpose(mockPurpose, 1);
 
-      const updatedPurpose = {
+      const updatedPurpose: Purpose = {
         ...mockPurpose,
         description: "Updated description",
       };
@@ -239,7 +242,7 @@ describe("Integration tests", async () => {
     });
 
     it("PurposeVersionActivated", async () => {
-      const purpose = {
+      const purpose: Purpose = {
         ...mockPurpose,
         versions: [mockPurposeVersion],
       };
@@ -278,7 +281,7 @@ describe("Integration tests", async () => {
     });
 
     it("PurposeVersionSuspended", async () => {
-      const purpose = {
+      const purpose: Purpose = {
         ...mockPurpose,
         versions: [mockPurposeVersion],
       };
@@ -317,7 +320,7 @@ describe("Integration tests", async () => {
     });
 
     it("PurposeVersionArchived", async () => {
-      const purpose = {
+      const purpose: Purpose = {
         ...mockPurpose,
         versions: [mockPurposeVersion],
       };
@@ -356,7 +359,7 @@ describe("Integration tests", async () => {
     });
 
     it("PurposeVersionWaitedForApproval", async () => {
-      const purpose = {
+      const purpose: Purpose = {
         ...mockPurpose,
         versions: [mockPurposeVersion],
       };
@@ -398,7 +401,7 @@ describe("Integration tests", async () => {
     });
 
     it("PurposeVersionRejected", async () => {
-      const purpose = {
+      const purpose: Purpose = {
         ...mockPurpose,
         versions: [mockPurposeVersion],
       };
@@ -441,7 +444,7 @@ describe("Integration tests", async () => {
     });
 
     it("PurposeVersionUpdated", async () => {
-      const purpose = {
+      const purpose: Purpose = {
         ...mockPurpose,
         versions: [mockPurposeVersion],
       };
@@ -525,7 +528,7 @@ describe("Integration tests", async () => {
     it("PurposeVersionDeleted", async () => {
       const mockPurposeVersion2 = getMockPurposeVersion();
 
-      const purpose = {
+      const purpose: Purpose = {
         ...mockPurpose,
         versions: [mockPurposeVersion, mockPurposeVersion2],
       };

@@ -72,7 +72,7 @@ describe("EService Descriptors Archiver", async () => {
         state: descriptorState.deprecated,
       };
 
-      const eservice = {
+      const eservice: EService = {
         ...getMockEService(),
         producerId,
         descriptors: [descriptor],
@@ -141,7 +141,7 @@ describe("EService Descriptors Archiver", async () => {
         state: descriptorState.deprecated,
       };
 
-      const eservice = {
+      const eservice: EService = {
         ...getMockEService(),
         producerId,
         descriptors: [descriptor],
@@ -220,7 +220,7 @@ describe("EService Descriptors Archiver", async () => {
           version: "2",
         };
 
-        const eservice = {
+        const eservice: EService = {
           ...getMockEService(),
           producerId,
           descriptors: [descriptor, newerDescriptor],
@@ -287,7 +287,7 @@ describe("EService Descriptors Archiver", async () => {
       const producerId: TenantId = generateId();
       const descriptor = getMockDescriptorPublished();
 
-      const eservice = {
+      const eservice: EService = {
         ...getMockEService(),
         producerId,
         descriptors: [descriptor],
@@ -361,7 +361,7 @@ describe("EService Descriptors Archiver", async () => {
           state,
         };
 
-        const eservice = {
+        const eservice: EService = {
           ...getMockEService(),
           producerId,
           descriptors: [descriptor],
@@ -429,7 +429,7 @@ describe("EService Descriptors Archiver", async () => {
           version: "1",
         };
 
-        const eservice = {
+        const eservice: EService = {
           ...getMockEService(),
           producerId,
           descriptors: [descriptor],
@@ -516,7 +516,7 @@ describe("EService Descriptors Archiver", async () => {
           archivingSchedule: eserviceArchivingSchedule,
         };
 
-        const eservice = {
+        const eservice: EService = {
           ...getMockEService(),
           descriptors: [previousDescriptor, descriptor],
         };
@@ -572,7 +572,7 @@ describe("EService Descriptors Archiver", async () => {
 
     it("should throw an error when the Descriptor is not found", async () => {
       const producerId: TenantId = generateId();
-      const eservice = {
+      const eservice: EService = {
         ...getMockEService(),
         producerId,
       };

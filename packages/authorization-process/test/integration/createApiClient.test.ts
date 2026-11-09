@@ -93,7 +93,7 @@ describe("createConsumerClient", () => {
 
   it("Should fail if duplicate users are passed in the seed", async () => {
     const userId = generateId();
-    const seed = {
+    const seed: authorizationApi.ClientSeed = {
       ...clientSeed,
       members: [userId, userId, generateId()],
     };

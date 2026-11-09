@@ -16,7 +16,8 @@ import { match } from "ts-pattern";
 
 import { SchedulerService } from "../../services/schedulerService.js";
 
-type ReminderConfig = {
+// TODO REVIEW THIS CHANGE
+export type ReminderConfig = {
   eserviceReminderDays: number[];
   descriptorReminderDays: number[];
   sendAtHour: number;

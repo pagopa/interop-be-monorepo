@@ -74,6 +74,7 @@ export class InteropTokenGenerator {
     service configures just the token kinds it produces.
   */
   private logConfiguredKids(): void {
+    // eslint-disable-next-line interop/require-type-for-object
     const configuredKids = {
       internalTokenKid: this.config.kid,
       sessionTokenKid: this.config.generatedKid,

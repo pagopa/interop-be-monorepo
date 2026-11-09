@@ -693,7 +693,7 @@ describe("create agreement", () => {
     const certifiedTenantAttribute1: TenantAttribute =
       getMockCertifiedTenantAttribute(certifiedDescriptorAttribute1.id);
 
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       attributes: [certifiedTenantAttribute1],
     };
@@ -754,7 +754,7 @@ describe("create agreement", () => {
       assignmentTimestamp: new Date(),
     };
 
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       attributes: [certifiedTenantAttribute1, certifiedTenantAttribute2],
     };

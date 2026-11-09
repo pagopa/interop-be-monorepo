@@ -2,6 +2,7 @@ import {
   DynamoDBClient,
   GetItemCommand,
   PutItemCommand,
+  PutItemCommandInput,
 } from "@aws-sdk/client-dynamodb";
 import { fail } from "assert";
 import { getUnixTime } from "date-fns";
@@ -37,7 +38,7 @@ describe("signatureServiceBuilder - Integration Tests", () => {
   it("should successfully delete logically and still retrieve it", async () => {
     const safeStorageId = generateId();
     const signatureService = signatureServiceBuilder(dynamoDBClient, config);
-    const mockReference = {
+    const mockReference: SignatureReference = {
       safeStorageId,
       fileKind: "INTEROP_LEGAL_FACTS",
       fileName: "multa.pdf",
@@ -122,7 +123,7 @@ describe("signatureServiceBuilder - Integration Tests", () => {
     const signatureService = signatureServiceBuilder(dynamoDBClient, config);
     const malformedId = "malformed-ID";
 
-    const command = {
+    const command: PutItemCommandInput = {
       TableName: config.signatureReferencesTableName,
       Item: {
         safeStorageId: { S: malformedId },
@@ -145,7 +146,7 @@ describe("signatureServiceBuilder - Integration Tests", () => {
   it("should correctly set 'ttl' and 'logicallyDeleted' fields on deleteSignatureReference", async () => {
     const signatureService = signatureServiceBuilder(dynamoDBClient, config);
     const safeStorageId = generateId();
-    const mockReference = {
+    const mockReference: SignatureReference = {
       safeStorageId,
       fileKind: "INTEROP_LEGAL_FACTS",
       fileName: "atto.pdf",

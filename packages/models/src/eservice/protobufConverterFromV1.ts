@@ -194,7 +194,7 @@ export const fromRiskAnalysisV1 = (
 });
 
 export const fromEServiceV1 = (input: EServiceV1): EService => {
-  const eservice = { ...input };
+  const eservice: EServiceV1 = { ...input };
   delete eservice.attributes;
 
   return {

@@ -7,7 +7,12 @@ import {
   userRole,
 } from "pagopa-interop-commons";
 import { getMockClient, getMockTenant } from "pagopa-interop-commons-test";
-import { clientKind, relationshipStatus, Tenant } from "pagopa-interop-models";
+import {
+  clientKind,
+  Client,
+  relationshipStatus,
+  Tenant,
+} from "pagopa-interop-models";
 import {
   vi,
   afterEach,
@@ -77,13 +82,13 @@ describe("selfcareClientUsersUpdaterProcessor", () => {
         ...getMockTenant(),
         selfcareId: correctEventPayload.institutionId,
       };
-      const clientMock = {
+      const clientMock: Client = {
         ...getMockClient(),
         consumerId: tenantMock.id,
         adminId: correctEventPayload.user.userId,
         kind: clientKind.api,
       };
-      const clientMock2 = {
+      const clientMock2: Client = {
         ...getMockClient(),
         consumerId: tenantMock.id,
         adminId: correctEventPayload.user.userId,

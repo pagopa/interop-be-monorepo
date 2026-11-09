@@ -570,7 +570,7 @@ describe("Integration tests", async () => {
           (a) => a.key === "purpose"
         )!;
 
-      const riskAnalysisWithAnnotation = {
+      const riskAnalysisWithAnnotation: RiskAnalysisFormTemplate = {
         ...mockValidRiskAnalysisTemplateForm,
         singleAnswers: mockValidRiskAnalysisTemplateForm.singleAnswers.map(
           (a) =>

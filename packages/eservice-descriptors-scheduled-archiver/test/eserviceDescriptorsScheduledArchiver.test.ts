@@ -27,7 +27,7 @@ import {
   beforeEach,
 } from "vitest";
 
-import { ArchivableDescriptorRef } from "../src/models/models.js";
+import { ArchivableDescriptorRef, Headers } from "../src/models/models.js";
 import {
   CatalogProcessZodiosClient,
   catalogProcessClientBuilder,
@@ -38,11 +38,11 @@ import { addOneEService, readModelService, toUTCMidnight } from "./utils.js";
 describe("EService Descriptors Scheduled Archiver Service", async () => {
   const testCorrelationId: CorrelationId = generateId();
   const testToken = "mockToken";
-  const testHeaders = {
+  const testHeaders: Headers = {
     "X-Correlation-Id": testCorrelationId,
     Authorization: `Bearer ${testToken}`,
   };
-  const manualPayload = {
+  const manualPayload: catalogApi.ArchivingKindSeed = {
     kind: "MANUAL",
   };
 
@@ -114,7 +114,7 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
                 },
               };
 
-              const eservice = {
+              const eservice: EService = {
                 ...getMockEService(),
                 producerId,
                 descriptors: [descriptor],
@@ -196,7 +196,7 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
                 version: "1",
               };
 
-              const eservice = {
+              const eservice: EService = {
                 ...getMockEService(),
                 producerId,
                 descriptors: [descriptor],
@@ -271,7 +271,7 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
                 },
               };
 
-              const eservice = {
+              const eservice: EService = {
                 ...getMockEService(),
                 producerId,
                 descriptors: [descriptor],
@@ -339,7 +339,7 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
                 },
               };
 
-              const eservice = {
+              const eservice: EService = {
                 ...getMockEService(),
                 producerId,
                 descriptors: [descriptor],
@@ -383,7 +383,7 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
                 version: "1",
               };
 
-              const eservice = {
+              const eservice: EService = {
                 ...getMockEService(),
                 producerId,
                 descriptors: [descriptor],
@@ -470,7 +470,7 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
                 },
               };
 
-              const eservice = {
+              const eservice: EService = {
                 ...getMockEService(),
                 producerId,
                 descriptors: [descriptor],
@@ -597,7 +597,7 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
                 },
               };
 
-              const eservice = {
+              const eservice: EService = {
                 ...getMockEService(),
                 producerId,
                 descriptors: [descriptor],

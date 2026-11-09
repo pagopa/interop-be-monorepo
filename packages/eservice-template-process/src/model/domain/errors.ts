@@ -9,6 +9,7 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 
+// eslint-disable-next-line interop/require-type-for-object
 const errorCodes = {
   eserviceTemplateNotFound: "0001",
   eserviceTemplateVersionNotFound: "0002",

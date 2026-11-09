@@ -230,7 +230,7 @@ describe("Agreement states flows", () => {
       revokedBy: [],
     };
 
-    const updatedConsumer = {
+    const updatedConsumer: Tenant = {
       ...consumer,
       attributes: [...consumer.attributes, validVerifiedTenantAttribute],
     };
@@ -441,7 +441,7 @@ describe("Agreement states flows", () => {
       revokedBy: [],
     };
 
-    const updatedConsumer = {
+    const updatedConsumer: Tenant = {
       ...consumer,
       attributes: [...consumer.attributes, validVerifiedTenantAttribute],
     };

@@ -23,6 +23,10 @@ import {
   toDelegationV2,
   WithMetadata,
   Descriptor,
+  Tenant,
+  EService,
+  Tenant,
+  TenantAttribute,
 } from "pagopa-interop-models";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -110,7 +114,7 @@ describe.each([
     const authData = getMockAuthData(delegatorId);
     const delegator = getMockTenant(delegatorId);
 
-    const delegate = {
+    const delegate: Tenant = {
       ...getMockTenant(),
       features: [
         {
@@ -119,7 +123,7 @@ describe.each([
         },
       ],
     };
-    const eservice = {
+    const eservice: EService = {
       ...getMockEService(generateId<EServiceId>(), delegatorId),
       isConsumerDelegable: true,
     };
@@ -165,7 +169,7 @@ describe.each([
 
       const delegatorId = generateId<TenantId>();
       const authData = getMockAuthData(delegatorId);
-      const delegator = {
+      const delegator: Tenant = {
         ...getMockTenant(delegatorId),
         externalId: {
           origin: "IPA",
@@ -173,7 +177,7 @@ describe.each([
         },
       };
 
-      const delegate = {
+      const delegate: Tenant = {
         ...getMockTenant(),
         features: [
           {
@@ -182,12 +186,12 @@ describe.each([
           },
         ],
       };
-      const eservice = {
+      const eservice: EService = {
         ...getMockEService(generateId<EServiceId>(), delegatorId),
         isConsumerDelegable: true,
       };
 
-      const existentDelegation = {
+      const existentDelegation: Delegation = {
         ...getMockDelegation({
           kind,
           id: generateId<DelegationId>(),
@@ -239,7 +243,7 @@ describe.each([
     async (activeDelegationState) => {
       const delegatorId = generateId<TenantId>();
       const authData = getMockAuthData(delegatorId);
-      const delegator = {
+      const delegator: Tenant = {
         ...getMockTenant(delegatorId),
         externalId: {
           origin: "IPA",
@@ -247,7 +251,7 @@ describe.each([
         },
       };
 
-      const delegate = {
+      const delegate: Tenant = {
         ...getMockTenant(),
         features: [
           {
@@ -256,11 +260,11 @@ describe.each([
           },
         ],
       };
-      const eservice = {
+      const eservice: EService = {
         ...getMockEService(generateId<EServiceId>(), delegatorId),
         isConsumerDelegable: true,
       };
-      const existentActiveDelegation = {
+      const existentActiveDelegation: Delegation = {
         ...getMockDelegation({
           kind,
           id: generateId<DelegationId>(),
@@ -335,7 +339,7 @@ describe.each([
   it("should throw a tenantNotFound error if delegated tenant does not exist", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getMockAuthData(delegatorId);
-    const delegator = {
+    const delegator: Tenant = {
       ...getMockTenant(delegatorId),
       externalId: {
         origin: "IPA",
@@ -363,7 +367,7 @@ describe.each([
     const delegatorId = generateId<TenantId>();
     const authData = getMockAuthData(delegatorId);
 
-    const delegate = {
+    const delegate: Tenant = {
       ...getMockTenant(),
       features: [
         {
@@ -404,7 +408,7 @@ describe.each([
   });
 
   describe("with delegation constraint enabled (flag disabled)", () => {
-    const delegationAllowedAttribute = {
+    const delegationAllowedAttribute: TenantAttribute = {
       type: tenantAttributeType.CERTIFIED,
       id: config.delegationsAllowedAttributeId as AttributeId,
       assignmentTimestamp: new Date(),
@@ -424,7 +428,7 @@ describe.each([
       const delegatorId = generateId<TenantId>();
       const authData = getMockAuthData(delegatorId);
       const delegator = getMockTenant(delegatorId);
-      const delegate = {
+      const delegate: Tenant = {
         ...getMockTenant(undefined, [delegationAllowedAttribute]),
         features: [
           {
@@ -434,7 +438,7 @@ describe.each([
         ],
       };
 
-      const eservice = {
+      const eservice: EService = {
         ...getMockEService(generateId<EServiceId>(), delegatorId),
         isConsumerDelegable: true,
       };
@@ -462,7 +466,7 @@ describe.each([
       const delegator = getMockTenant(delegatorId, [
         delegationAllowedAttribute,
       ]);
-      const delegate = {
+      const delegate: Tenant = {
         ...getMockTenant(),
         features: [
           {
@@ -472,7 +476,7 @@ describe.each([
         ],
       };
 
-      const eservice = {
+      const eservice: EService = {
         ...getMockEService(generateId<EServiceId>(), delegatorId),
         isConsumerDelegable: true,
       };
@@ -504,7 +508,7 @@ describe.each([
       const delegator = getMockTenant(delegatorId, [
         delegationAllowedAttribute,
       ]);
-      const delegate = {
+      const delegate: Tenant = {
         ...getMockTenant(undefined, [delegationAllowedAttribute]),
         features: [
           {
@@ -513,7 +517,7 @@ describe.each([
           },
         ],
       };
-      const eservice = {
+      const eservice: EService = {
         ...getMockEService(generateId<EServiceId>(), delegatorId),
         isConsumerDelegable: true,
       };
@@ -538,7 +542,7 @@ describe.each([
   it("should throw an eserviceNotFound error if Eservice does not exist", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getMockAuthData(delegatorId);
-    const delegator = {
+    const delegator: Tenant = {
       ...getMockTenant(delegatorId),
       externalId: {
         origin: "IPA",
@@ -546,7 +550,7 @@ describe.each([
       },
     };
 
-    const delegate = {
+    const delegate: Tenant = {
       ...getMockTenant(),
       features: [
         {
@@ -574,7 +578,7 @@ describe.each([
   it(`should throw a tenantNotAllowedToDelegation error if delegate tenant has no ${kind} feature`, async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getMockAuthData(delegatorId);
-    const delegator = {
+    const delegator: Tenant = {
       ...getMockTenant(delegatorId),
       externalId: {
         origin: "IPA",
@@ -582,8 +586,8 @@ describe.each([
       },
     };
 
-    const delegate = getMockTenant();
-    const eservice = {
+    const delegate: Tenant = getMockTenant();
+    const eservice: EService = {
       ...getMockEService(generateId<EServiceId>(), delegatorId),
       isConsumerDelegable: true,
     };
@@ -606,7 +610,7 @@ describe.each([
   it("Should throw eserviceAlreadyArchived error if the eservice is archived", async () => {
     const delegatorId = generateId<TenantId>();
     const authData = getMockAuthData(delegatorId);
-    const delegator = {
+    const delegator: Tenant = {
       ...getMockTenant(delegatorId),
       externalId: {
         origin: "IPA",
@@ -614,7 +618,7 @@ describe.each([
       },
     };
 
-    const delegate = {
+    const delegate: Tenant = {
       ...getMockTenant(),
       features: [
         {
@@ -625,7 +629,7 @@ describe.each([
     };
 
     const archivedDescriptor: Descriptor = getMockDescriptor("Archived");
-    const eservice = {
+    const eservice: EService = {
       ...getMockEService(generateId<EServiceId>(), delegatorId),
       isConsumerDelegable: true,
       descriptors: [archivedDescriptor],

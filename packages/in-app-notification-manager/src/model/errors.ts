@@ -1,5 +1,6 @@
 import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
 
+// eslint-disable-next-line interop/require-type-for-object
 const errorCodes = {
   notificationNotFound: "0001",
 };

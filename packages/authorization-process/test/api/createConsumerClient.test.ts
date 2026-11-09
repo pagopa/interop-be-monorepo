@@ -84,7 +84,7 @@ describe("API /clientsConsumer authorization test", () => {
 
   it("Should return 400 if passed duplicated users in body", async () => {
     const userId = generateId();
-    const seed = {
+    const seed: authorizationApi.ClientSeed = {
       ...clientSeed,
       members: [userId, userId, generateId()],
     };

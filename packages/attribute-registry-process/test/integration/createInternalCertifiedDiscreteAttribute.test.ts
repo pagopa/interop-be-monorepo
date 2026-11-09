@@ -128,11 +128,11 @@ describe("certified discrete attribute internal creation", () => {
   });
 
   it("should throw attributeDuplicate if an attribute with the same name OR code and origin already exists, case insensitive", async () => {
-    const attribute = {
+    const attribute: Attribute = {
       ...mockAttribute,
       code: "123456ab",
     };
-    const attribute2 = {
+    const attribute2: Attribute = {
       ...attribute,
       name: `${mockAttribute.name}-test`,
       code: "123456cd",

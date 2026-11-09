@@ -17,10 +17,12 @@ import {
   sortAgreementV2,
 } from "pagopa-interop-commons-test";
 import {
+  Agreement,
   AgreementAddedV2,
   AgreementDocument,
   AgreementId,
   AgreementV2,
+  CertifiedTenantAttribute,
   DescriptorId,
   EServiceId,
   TenantId,
@@ -105,7 +107,7 @@ describe("clone agreement", () => {
     const authData = getMockAuthData();
     const consumerId = authData.organizationId;
 
-    const validCertifiedTenantAttribute = {
+    const validCertifiedTenantAttribute: CertifiedTenantAttribute = {
       ...getMockCertifiedTenantAttribute(),
       revocationTimestamp: undefined,
     };
@@ -135,7 +137,7 @@ describe("clone agreement", () => {
     const agreementConsumerDocuments = Array.from({ length: docsNumber }, () =>
       getMockConsumerDocument(agreementId)
     );
-    const agreementToBeCloned = {
+    const agreementToBeCloned: Agreement = {
       ...getMockAgreement(
         eservice.id,
         consumerId,
@@ -155,7 +157,7 @@ describe("clone agreement", () => {
       await uploadDocument(agreementId, doc.id, doc.name);
     }
 
-    const anotherNonConflictingAgreement = {
+    const anotherNonConflictingAgreement: Agreement = {
       ...getMockAgreement(
         eservice.id,
         consumerId,
@@ -222,7 +224,7 @@ describe("clone agreement", () => {
     const authData = getMockAuthData();
     const consumerId = generateId<TenantId>();
 
-    const validCertifiedTenantAttribute = {
+    const validCertifiedTenantAttribute: CertifiedTenantAttribute = {
       ...getMockCertifiedTenantAttribute(),
       revocationTimestamp: undefined,
     };
@@ -252,7 +254,7 @@ describe("clone agreement", () => {
     const agreementConsumerDocuments = Array.from({ length: docsNumber }, () =>
       getMockConsumerDocument(agreementId)
     );
-    const agreementToBeCloned = {
+    const agreementToBeCloned: Agreement = {
       ...getMockAgreement(
         eservice.id,
         consumerId,
@@ -282,7 +284,7 @@ describe("clone agreement", () => {
     await addOneDelegation(delegation);
     await addSomeRandomDelegations(agreementToBeCloned, addOneDelegation);
 
-    const anotherNonConflictingAgreement = {
+    const anotherNonConflictingAgreement: Agreement = {
       ...getMockAgreement(
         eservice.id,
         consumerId,
@@ -444,7 +446,7 @@ describe("clone agreement", () => {
     const authData = getMockAuthData();
     const consumerId = authData.organizationId;
     const eservice = getMockEService();
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(
         eservice.id,
         consumerId,
@@ -453,7 +455,7 @@ describe("clone agreement", () => {
       producerId: eservice.producerId,
     };
 
-    const conflictingAgreement = {
+    const conflictingAgreement: Agreement = {
       ...getMockAgreement(
         eservice.id,
         consumerId,
@@ -483,7 +485,7 @@ describe("clone agreement", () => {
       generateId<TenantId>(),
       [descriptor]
     );
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(
         eservice.id,
         consumerId,
@@ -493,7 +495,7 @@ describe("clone agreement", () => {
       descriptorId: descriptor.id,
     };
 
-    const conflictingAgreement = {
+    const conflictingAgreement: Agreement = {
       ...getMockAgreement(
         eservice.id,
         consumerId,
@@ -522,7 +524,7 @@ describe("clone agreement", () => {
     const consumerId = authData.organizationId;
     const consumer = getMockTenant(consumerId);
     const eservice = getMockEService();
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(
         eservice.id,
         consumerId,
@@ -548,7 +550,7 @@ describe("clone agreement", () => {
     const authData = getMockAuthData();
     const consumerId = authData.organizationId;
 
-    const invalidCertifiedTenantAttribute = {
+    const invalidCertifiedTenantAttribute: CertifiedTenantAttribute = {
       ...getMockCertifiedTenantAttribute(),
       revocationTimestamp: new Date(),
     };
@@ -572,7 +574,7 @@ describe("clone agreement", () => {
 
     const agreementId = generateId<AgreementId>();
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(
         eservice.id,
         consumerId,
@@ -612,7 +614,7 @@ describe("clone agreement", () => {
 
     const agreementId = generateId<AgreementId>();
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(
         eservice.id,
         consumerId,

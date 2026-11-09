@@ -82,7 +82,7 @@ describe("setAdminToClient", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedClient = {
+    const expectedClient: Client = {
       ...mockClient,
       adminId,
     };

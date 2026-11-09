@@ -9,6 +9,7 @@ import {
   sortAgreementV2,
 } from "pagopa-interop-commons-test";
 import {
+  Agreement,
   AgreementDeletedByRevokedDelegationV2,
   AgreementId,
   agreementState,
@@ -47,7 +48,7 @@ describe("internal delete agreement", () => {
         getMockConsumerDocument(agreementId, "doc1"),
         getMockConsumerDocument(agreementId, "doc2"),
       ];
-      const agreement = {
+      const agreement: Agreement = {
         ...getMockAgreement(),
         id: agreementId,
         state,
@@ -141,7 +142,7 @@ describe("internal delete agreement", () => {
   });
 
   it("should throw agreementNotInExpectedState when the agreement is not in a deletable state", async () => {
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       state: randomArrayItem(
         Object.values(agreementState).filter(
@@ -176,7 +177,7 @@ describe("internal delete agreement", () => {
     config.s3Bucket = "invalid-bucket"; // configure an invalid bucket to force a failure
 
     const agreementId = generateId<AgreementId>();
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       id: agreementId,
       state: randomArrayItem(agreementDeletableStates),

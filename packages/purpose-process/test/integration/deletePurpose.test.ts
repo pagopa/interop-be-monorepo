@@ -19,6 +19,7 @@ import {
   Purpose,
   PurposeId,
   PurposeVersion,
+  Tenant,
   TenantId,
   WaitingForApprovalPurposeDeletedV2,
   delegationKind,
@@ -195,22 +196,22 @@ describe("deletePurpose", () => {
     expect(writtenPayload).toEqual({ purpose: toPurposeV2(mockPurpose) });
   });
   it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the Purpose is in a deletable state", async () => {
-    const producer = {
+    const producer: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
     };
-    const producerDelegate = {
+    const producerDelegate: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
     };
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
     };
-    const consumerDelegate = {
+    const consumerDelegate: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,

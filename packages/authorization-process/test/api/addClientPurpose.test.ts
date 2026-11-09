@@ -17,6 +17,7 @@ import {
   clientKind,
   Descriptor,
   descriptorState,
+  EService,
   generateId,
   Purpose,
   PurposeId,
@@ -49,7 +50,7 @@ describe("API /clients/{clientId}/purposes authorization test", () => {
     publishedAt: new Date(),
   };
 
-  const mockEservice = {
+  const mockEservice: EService = {
     ...getMockEService(),
     descriptors: [mockDescriptor],
   };

@@ -5,6 +5,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
+  Document,
   EServiceDocumentId,
   EServiceId,
   generateId,
@@ -19,7 +20,7 @@ describe("interfaceExporter", () => {
   it("should export interface files for a descriptor", async () => {
     const mockEserviceId1 = generateId<EServiceId>();
     const mockDocumentId1 = generateId<EServiceDocumentId>();
-    const mockDocument1 = {
+    const mockDocument1: Document = {
       ...getMockDocument(),
       id: mockDocumentId1,
       name: "document1.json",
@@ -32,7 +33,7 @@ describe("interfaceExporter", () => {
 
     const mockEserviceId2 = generateId<EServiceId>();
     const mockDocumentId2 = generateId<EServiceDocumentId>();
-    const mockDocument2 = {
+    const mockDocument2: Document = {
       ...getMockDocument(),
       id: mockDocumentId2,
       name: "document2.txt",

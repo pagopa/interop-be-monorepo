@@ -31,6 +31,7 @@ import {
   AgreementId,
   AgreementSetMissingCertifiedAttributesByPlatformV2,
   AgreementSuspendedByPlatformV2,
+  AgreementStamps,
   AgreementSuspensionReasonV2,
   AgreementUnsuspendedByConsumerV2,
   AgreementUnsuspendedByPlatformV2,
@@ -1447,7 +1448,7 @@ describe("activate agreement", () => {
           delegateConsumer,
         } = authDataAndDelegationsFromRequesterIs(requesterIs, mockAgreement);
 
-        const expectedStamps = {
+        const expectedStamps: AgreementStamps = {
           suspensionByProducer: match(requesterIs)
             .with("Producer", "DelegateProducer", () => undefined)
             .with(
@@ -1493,7 +1494,7 @@ describe("activate agreement", () => {
             ...mockAgreement,
             suspendedByPlatform: false,
           };
-          const expected = {
+          const expected: Agreement = {
             ...expectedUnsuspendedAgreement,
             suspendedByPlatform: false,
           };
@@ -1555,12 +1556,12 @@ describe("activate agreement", () => {
             suspendedByPlatform: true,
           };
 
-          const expected1 = {
+          const expected1: Agreement = {
             ...expectedUnsuspendedAgreement,
             suspendedByPlatform: true,
           };
 
-          const expected2 = {
+          const expected2: Agreement = {
             ...expected1,
             suspendedByPlatform: false,
           };
@@ -1729,7 +1730,7 @@ describe("activate agreement", () => {
             delegateConsumer,
           } = authDataAndDelegationsFromRequesterIs(requesterIs, agreement);
 
-          const expectedStamps = {
+          const expectedStamps: AgreementStamps = {
             suspensionByProducer: match(requesterIs)
               .with("Producer", "DelegateProducer", () => undefined)
               .with(
@@ -2054,7 +2055,7 @@ describe("activate agreement", () => {
           delegateConsumer,
         } = authDataAndDelegationsFromRequesterIs(requesterIs, mockAgreement);
 
-        const expectedStamps = {
+        const expectedStamps: AgreementStamps = {
           suspensionByProducer: match(requesterIs)
             .with("Producer", "DelegateProducer", () => undefined)
             .with(
@@ -2099,7 +2100,7 @@ describe("activate agreement", () => {
             ...mockAgreement,
             suspendedByPlatform: true,
           };
-          const expected = {
+          const expected: Agreement = {
             ...expectedUnsuspendedAgreement,
             suspendedByPlatform: true,
           };
@@ -2155,12 +2156,12 @@ describe("activate agreement", () => {
             suspendedByPlatform: false,
           };
 
-          const expected1 = {
+          const expected1: Agreement = {
             ...expectedUnsuspendedAgreement,
             suspendedByPlatform: false,
           };
 
-          const expected2 = {
+          const expected2: Agreement = {
             ...expected1,
             suspendedByPlatform: true,
           };
