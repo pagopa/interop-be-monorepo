@@ -13,6 +13,7 @@ import {
   TenantVerifier,
   VerifiedTenantAttribute,
   dateToString,
+  genericInternalError,
 } from "pagopa-interop-models";
 import {
   TenantCertifiedAttributeSQL,
@@ -40,6 +41,7 @@ export const splitTenantIntoObjectsSQL = (
     createdAt,
     updatedAt,
     mails,
+    contact,
     name,
     onboardedAt,
     subUnitType,
@@ -50,6 +52,13 @@ export const splitTenantIntoObjectsSQL = (
   metadataVersion: number
 ): TenantItemsSQL => {
   void (rest satisfies Record<string, never>);
+
+  // TODO PIN-11266: project the tenant contact reference into the readmodel
+  if (contact) {
+    throw genericInternalError(
+      `Tenant ${id} contact projection not supported yet`
+    );
+  }
 
   const tenantSQL: TenantSQL = {
     id,
