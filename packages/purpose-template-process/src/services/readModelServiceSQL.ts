@@ -9,7 +9,7 @@ import {
   or,
   SQL,
 } from "drizzle-orm";
-import { PgSelect } from "drizzle-orm/pg-core";
+import { alias, PgSelect } from "drizzle-orm/pg-core";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
   ascLower,
@@ -55,6 +55,8 @@ import {
   PurposeTemplateReadModelService,
   toPurposeTemplateAggregatorArray,
   toRiskAnalysisTemplateAnswerAnnotationDocument,
+  getTenantHierarchyNameFilter,
+  toParentTenants,
 } from "pagopa-interop-readmodel";
 import {
   DrizzleReturnType,
@@ -75,6 +77,9 @@ import {
 import { z } from "zod";
 
 import { hasRoleToAccessDraftPurposeTemplates } from "./validators.js";
+
+const parentTenantTable = alias(tenantInReadmodelTenant, "parentTenantTable");
+const rootTenantTable = alias(tenantInReadmodelTenant, "rootTenantTable");
 
 export type GetPurposeTemplatesFilters = {
   purposeTitle?: string;
@@ -740,9 +745,23 @@ export function readModelServiceBuilderSQL({
           withTotalCount({
             id: tenantInReadmodelTenant.id,
             name: tenantInReadmodelTenant.name,
+            subUnitType: tenantInReadmodelTenant.subUnitType,
+            parentTenantId: parentTenantTable.id,
+            parentTenantName: parentTenantTable.name,
+            parentTenantSubUnitType: parentTenantTable.subUnitType,
+            rootTenantId: rootTenantTable.id,
+            rootTenantName: rootTenantTable.name,
           })
         )
         .from(tenantInReadmodelTenant)
+        .leftJoin(
+          parentTenantTable,
+          eq(tenantInReadmodelTenant.parentTenantId, parentTenantTable.id)
+        )
+        .leftJoin(
+          rootTenantTable,
+          eq(tenantInReadmodelTenant.rootTenantId, rootTenantTable.id)
+        )
         .innerJoin(
           purposeTemplateInReadmodelPurposeTemplate,
           and(
@@ -758,25 +777,31 @@ export function readModelServiceBuilderSQL({
               purposeTemplateInReadmodelPurposeTemplate.state,
               purposeTemplateState.published
             ),
-            creatorName
-              ? ilikeEscaped(
-                  tenantInReadmodelTenant.name,
-                  `%${escapeSqlLike(creatorName)}%`
-                )
-              : undefined
+            getTenantHierarchyNameFilter(
+              creatorName,
+              tenantInReadmodelTenant.name,
+              tenantInReadmodelTenant.parentTenantId,
+              parentTenantTable.name,
+              tenantInReadmodelTenant.rootTenantId,
+              rootTenantTable.name
+            )
           )
         )
-        .groupBy(tenantInReadmodelTenant.id)
+        .groupBy(
+          tenantInReadmodelTenant.id,
+          parentTenantTable.id,
+          rootTenantTable.id
+        )
         .orderBy(ascLower(tenantInReadmodelTenant.name))
         .limit(limit)
         .offset(offset);
 
-      const data: purposeTemplateApi.CompactOrganization[] = queryResult.map(
-        (d) => ({
-          id: d.id,
-          name: d.name,
-        })
-      );
+      const data = queryResult.map((d) => ({
+        id: d.id,
+        name: d.name,
+        subUnitType: d.subUnitType ?? undefined,
+        parentTenants: toParentTenants(d),
+      }));
 
       const result = z
         .array(purposeTemplateApi.CompactOrganization)

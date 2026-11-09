@@ -496,6 +496,8 @@ export function toBffEServiceTemplateInstance(
     name: eservice.name,
     producerId: producer.id,
     producerName: producer.name,
+    producerSubUnitType: producer.subUnitType,
+    producerParentTenants: toBffApiParentTenants(producer.parentTenants),
     latestDescriptor: descriptorsToInclude.at(-1),
     descriptors: descriptorsToInclude,
     instanceLabel: eservice.instanceLabel,

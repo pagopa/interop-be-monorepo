@@ -197,4 +197,6 @@ export const compactOrganizationToApi = (
 ): eserviceTemplateApi.CompactOrganization => ({
   id: organization.id,
   name: organization.name,
+  subUnitType: organization.subUnitType,
+  parentTenants: organization.parentTenants,
 });
