@@ -50,9 +50,9 @@ describe("API GET /purposeTemplates/filter/creators test", () => {
     const res = await makeRequest(token);
     expect(res.status).toBe(200);
     expect(res.body).toEqual(mockPurposeTemplateCreators);
-    expect(res.body.results[0]).toMatchObject({
+    expect(res.body.results[1]).toMatchObject({
       subUnitType: "UO",
-      parentTenants: mockProcessCreators.results[0].parentTenants,
+      parentTenants: mockProcessCreators.results[1].parentTenants,
     });
   });
 
