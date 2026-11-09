@@ -41,7 +41,7 @@ export const splitTenantIntoObjectsSQL = (
     createdAt,
     updatedAt,
     mails,
-    contact,
+    contactId,
     name,
     onboardedAt,
     subUnitType,
@@ -54,7 +54,7 @@ export const splitTenantIntoObjectsSQL = (
   void (rest satisfies Record<string, never>);
 
   // TODO PIN-11266: project the tenant contact reference into the readmodel
-  if (contact) {
+  if (contactId) {
     throw genericInternalError(
       `Tenant ${id} contact projection not supported yet`
     );

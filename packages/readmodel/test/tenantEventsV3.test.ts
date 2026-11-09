@@ -3,7 +3,6 @@ import {
   getMockCertifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
   getMockTenant,
-  getMockTenantContact,
   getMockTenantMail,
   getMockTenantRemoteId,
   getMockVerifiedTenantAttribute,
@@ -11,6 +10,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   AttributeId,
+  ContactId,
   CorrelationId,
   Tenant,
   TenantEvent,
@@ -50,7 +50,7 @@ const toEventEnvelope = (
   data: Buffer.from(tenantEventToBinaryData(event)).toString("hex"),
 });
 
-const contact = getMockTenantContact();
+const contactId = generateId<ContactId>();
 
 const tenant: Tenant = {
   ...getMockTenant(undefined, [
@@ -69,7 +69,7 @@ const tenant: Tenant = {
     { type: "DelegatedConsumer", availabilityTimestamp: new Date() },
   ],
   remoteIds: [getMockTenantRemoteId()],
-  contact,
+  contactId,
 };
 
 const tenantV3 = toTenantV3(tenant);
@@ -154,7 +154,7 @@ const tenantEventsV3: TenantEventV3[] = [
   {
     event_version: 3,
     type: "TenantContactAdded",
-    data: { contactId: contact.contactId, tenant: tenantV3 },
+    data: { contactId, tenant: tenantV3 },
   },
   {
     event_version: 3,
@@ -164,7 +164,7 @@ const tenantEventsV3: TenantEventV3[] = [
   {
     event_version: 3,
     type: "TenantContactDeleted",
-    data: { contactId: contact.contactId, tenant: tenantV3 },
+    data: { contactId, tenant: tenantV3 },
   },
   {
     event_version: 3,
@@ -222,14 +222,14 @@ describe("Tenant V3 events", () => {
   });
 
   it("should round-trip a tenant without a contact reference through TenantV3 protobuf", () => {
-    const tenantWithoutContact: Tenant = { ...tenant, contact: undefined };
+    const tenantWithoutContact: Tenant = { ...tenant, contactId: undefined };
 
     const protobuf = TenantV3.fromBinary(
       TenantV3.toBinary(toTenantV3(tenantWithoutContact))
     );
     const actualTenant = fromTenantV3(protobuf);
 
-    expect(actualTenant.contact).toBeUndefined();
+    expect(actualTenant.contactId).toBeUndefined();
     expect(actualTenant).toEqual(tenantWithoutContact);
   });
 
@@ -237,11 +237,7 @@ describe("Tenant V3 events", () => {
     const json = TenantV3.toJson(toTenantV3(tenant)) as Record<string, unknown>;
 
     expect(json).not.toHaveProperty("mails");
-    expect(Object.keys(json.contact as object).sort()).toEqual([
-      "contactId",
-      "createdAt",
-    ]);
-    expect(json.contact).toHaveProperty("contactId", contact.contactId);
+    expect(json).toHaveProperty("contactId", contactId);
   });
 
   it("should refuse to serialize a tenant with legacy mails to V3", () => {
@@ -286,7 +282,7 @@ describe("Tenant V3 events", () => {
       const event: TenantEventV3 = {
         event_version: 3,
         type,
-        data: { contactId: contact.contactId, tenant: tenantV3 },
+        data: { contactId, tenant: tenantV3 },
       };
 
       const decoded = TenantEventEnvelope.parse(
@@ -301,7 +297,7 @@ describe("Tenant V3 events", () => {
         )
         .otherwise(() => undefined);
 
-      expect(decodedData?.contactId).toBe(contact.contactId);
+      expect(decodedData?.contactId).toBe(contactId);
       expect(decodedData).not.toHaveProperty("mailId");
     }
   );
@@ -332,7 +328,7 @@ describe("Tenant legacy events", () => {
       .otherwise(() => undefined);
 
     expect(decodedTenant?.mails).toEqual([mail]);
-    expect(decodedTenant?.contact).toBeUndefined();
+    expect(decodedTenant?.contactId).toBeUndefined();
   });
 
   it("should still decode V1 events carrying legacy mails", () => {
@@ -356,6 +352,6 @@ describe("Tenant legacy events", () => {
       .otherwise(() => undefined);
 
     expect(decodedTenant?.mails).toEqual([mail]);
-    expect(decodedTenant?.contact).toBeUndefined();
+    expect(decodedTenant?.contactId).toBeUndefined();
   });
 });

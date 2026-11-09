@@ -40,9 +40,7 @@ import {
   PurposeVersionState,
   Tenant,
   TenantAttribute,
-  TenantContact,
   TenantId,
-  ContactId,
   VerifiedTenantAttribute,
   attributeKind,
   agreementState,
@@ -372,13 +370,6 @@ export const getMockTenantMail = (
   kind,
   description: generateMock(z.string()),
   address: generateMock(z.string().email()),
-});
-
-export const getMockTenantContact = (
-  contactId: ContactId = generateId<ContactId>()
-): TenantContact => ({
-  contactId,
-  createdAt: new Date(),
 });
 
 export const getMockAgreementStamp = (): AgreementStamp => ({

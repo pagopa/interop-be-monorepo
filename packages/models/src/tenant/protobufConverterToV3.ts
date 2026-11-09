@@ -3,7 +3,6 @@ import { match } from "ts-pattern";
 import { genericError } from "../errors.js";
 import {
   TenantAttributeV3,
-  TenantContactV3,
   TenantFeatureV3,
   TenantKindV3,
   TenantRemoteIdV3,
@@ -16,7 +15,6 @@ import { dateToBigInt } from "../utils.js";
 import {
   Tenant,
   TenantAttribute,
-  TenantContact,
   TenantFeature,
   TenantKind,
   TenantRemoteId,
@@ -150,13 +148,6 @@ export function toRemoteIdsV3(remoteId: TenantRemoteId): TenantRemoteIdV3 {
   };
 }
 
-export function toTenantContactV3(contact: TenantContact): TenantContactV3 {
-  return {
-    contactId: contact.contactId,
-    createdAt: dateToBigInt(contact.createdAt),
-  };
-}
-
 function checkSelfcareId(selfcareId: string | undefined): string {
   if (selfcareId === undefined) {
     throw new Error("SelfcareId can't be undefined");
@@ -196,6 +187,6 @@ export const toTenantV3 = (tenant: Tenant): TenantV3 => {
       : undefined,
     selfcareInstitutionType: tenant.selfcareInstitutionType,
     remoteIds: (tenant.remoteIds ?? []).map(toRemoteIdsV3),
-    contact: tenant.contact ? toTenantContactV3(tenant.contact) : undefined,
+    contactId: tenant.contactId,
   };
 };

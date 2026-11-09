@@ -169,12 +169,6 @@ export const TenantMail = z.object({
 });
 export type TenantMail = z.infer<typeof TenantMail>;
 
-export const TenantContact = z.object({
-  contactId: ContactId,
-  createdAt: z.coerce.date(),
-});
-export type TenantContact = z.infer<typeof TenantContact>;
-
 export const tenantUnitType = {
   AOO: "AOO",
   UO: "UO",
@@ -204,9 +198,9 @@ export const Tenant = z.object({
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date().optional(),
   // Legacy plain-text mails, populated only by V1/V2 events and kept until
-  // the V3 cutover; V3 events populate `contact` instead.
+  // the V3 cutover; V3 events populate `contactId` instead.
   mails: z.array(TenantMail),
-  contact: TenantContact.optional(),
+  contactId: ContactId.optional(),
   name: z.string(),
   onboardedAt: z.coerce.date().optional(),
   subUnitType: TenantUnitType.optional(),

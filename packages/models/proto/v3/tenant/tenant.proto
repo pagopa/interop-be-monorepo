@@ -4,7 +4,7 @@ package tenant.v3;
 
 message TenantV3 {
   // Field 8 carried the plain-text mails in TenantV2: V3 references the
-  // contact managed by the Contact Data Manager instead.
+  // contact managed by the Contact Data Manager through contactId instead.
   reserved 8;
   reserved "mails";
 
@@ -21,12 +21,7 @@ message TenantV3 {
   optional TenantUnitTypeV3 subUnitType = 12;
   optional string selfcareInstitutionType = 13;
   repeated TenantRemoteIdV3 remoteIds = 14;
-  optional TenantContactV3 contact = 15;
-}
-
-message TenantContactV3 {
-  string contactId = 1;
-  int64 createdAt = 2;
+  optional string contactId = 15;
 }
 
 message TenantRemoteIdV3 {

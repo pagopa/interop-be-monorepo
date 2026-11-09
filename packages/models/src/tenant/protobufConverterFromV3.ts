@@ -4,7 +4,6 @@ import { ContactId, DelegationId, unsafeBrandId } from "../brandedIds.js";
 import { genericError } from "../errors.js";
 import {
   TenantAttributeV3,
-  TenantContactV3,
   TenantFeatureV3,
   TenantKindV3,
   TenantRemoteIdV3,
@@ -18,7 +17,6 @@ import {
   ExternalId,
   Tenant,
   TenantAttribute,
-  TenantContact,
   TenantFeature,
   TenantKind,
   TenantRemoteId,
@@ -174,13 +172,6 @@ export const fromRemoteIdsV3 = (
   assignmentTimestamp: bigIntToDate(remoteId.assignmentTimestamp),
 });
 
-export const fromTenantContactV3 = (
-  contact: TenantContactV3
-): TenantContact => ({
-  contactId: unsafeBrandId<ContactId>(contact.contactId),
-  createdAt: bigIntToDate(contact.createdAt),
-});
-
 export const fromTenantV3 = (input: TenantV3): Tenant => {
   /**
    * The `externalId` field is required in the TenantV3 protobuf model but
@@ -203,9 +194,11 @@ export const fromTenantV3 = (input: TenantV3): Tenant => {
     externalId: externalId.data,
     features: input.features.map(fromTenantFeatureV3),
     // V3 events never carry plain-text mails: the tenant references its
-    // contact through `contact` instead.
+    // contact through `contactId` instead.
     mails: [],
-    contact: input.contact ? fromTenantContactV3(input.contact) : undefined,
+    contactId: input.contactId
+      ? unsafeBrandId<ContactId>(input.contactId)
+      : undefined,
     kind: input.kind != null ? fromTenantKindV3(input.kind) : undefined,
     updatedAt: bigIntToDate(input.updatedAt),
     onboardedAt: bigIntToDate(input.onboardedAt),
