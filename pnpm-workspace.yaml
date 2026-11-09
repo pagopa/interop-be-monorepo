@@ -109,7 +109,7 @@ catalog:
   p-retry: 6.2.1
   pg: 8.13.1
   pg-promise: 11.8.0
-  postcss: 8.5.6
+  postcss: 8.5.23
   prettier: 3.8.1
   puppeteer: 22.11.2
   qs: 6.15.2
