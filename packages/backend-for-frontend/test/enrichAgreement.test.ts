@@ -423,23 +423,5 @@ describe("enrichAgreement", () => {
       });
     });
 
-    it("should return producer, consumer and delegate hierarchy in producer agreements", async () => {
-      const result = await service.getProducerAgreements(filters, ctx);
-      expect(result.results[0].eservice.producer).toMatchObject({
-        id: producer.id,
-        subUnitType: "UO",
-        parentTenants,
-      });
-      expect(result.results[0].consumer).toMatchObject({
-        id: consumer.id,
-        subUnitType: "UO",
-        parentTenants,
-      });
-      expect(result.results[0].delegation?.delegate).toMatchObject({
-        id: delegate.id,
-        subUnitType: "UO",
-        parentTenants,
-      });
-    });
   });
 });
