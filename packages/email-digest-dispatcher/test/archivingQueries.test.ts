@@ -41,7 +41,8 @@ const createMockEServiceWithScheduledArchiving = (
   producerId: TenantId,
   startedAt: Date,
   archivableOn: Date,
-  scope: ArchivingSchedule["scope"] = archivingScope.descriptor
+  scope: ArchivingSchedule["scope"] = archivingScope.descriptor,
+  state: DescriptorState = descriptorState.archiving
 ): EService => ({
   ...getMockEService(),
   producerId,
@@ -49,7 +50,7 @@ const createMockEServiceWithScheduledArchiving = (
     {
       ...getMockDescriptor(),
       version: "3",
-      state: descriptorState.archiving,
+      state,
       archivingSchedule: {
         startedAt,
         archivableOn,
@@ -141,6 +142,26 @@ describe("ReadModelService - getArchivingInProgressEservices", () => {
     expect(results.length).toBe(2);
     expect(results[0].eserviceId).toBe(newer.id);
     expect(results[1].eserviceId).toBe(older.id);
+  });
+
+  it("should not return descriptors already archived even if the schedule is kept", async () => {
+    const producer = getMockTenant();
+    await addOneTenant(producer);
+
+    const eservice = createMockEServiceWithScheduledArchiving(
+      producer.id,
+      daysAgo(31),
+      daysAgo(1),
+      archivingScope.descriptor,
+      descriptorState.archived
+    );
+    await addOneEService(eservice);
+
+    const results = await readModelService.getArchivingInProgressEservices(
+      producer.id
+    );
+
+    expect(results).toEqual([]);
   });
 
   it("should not return schedules belonging to a different producer", async () => {
@@ -240,6 +261,26 @@ describe("ReadModelService - getArchivingImminentEservices", () => {
     expect(results[1].eserviceId).toBe(later.id);
   });
 
+  it("should not return descriptors already archived even if the schedule is kept", async () => {
+    const producer = getMockTenant();
+    await addOneTenant(producer);
+
+    const eservice = createMockEServiceWithScheduledArchiving(
+      producer.id,
+      daysAgo(31),
+      daysAgo(1),
+      archivingScope.descriptor,
+      descriptorState.archived
+    );
+    await addOneEService(eservice);
+
+    const results = await readModelService.getArchivingImminentEservices(
+      producer.id
+    );
+
+    expect(results).toEqual([]);
+  });
+
   it("should not return imminent archiving belonging to a different producer", async () => {
     const producer = getMockTenant();
     const otherProducer = getMockTenant();
@@ -300,6 +341,31 @@ describe("ReadModelService - getArchivingScopeCounts", () => {
     const counts = await readModelService.getArchivingScopeCounts(producer.id);
 
     expect(counts).toEqual({ eserviceScopeCount: 2, descriptorScopeCount: 1 });
+  });
+
+  it("should not count descriptors already archived even if the schedule is kept", async () => {
+    const producer = getMockTenant();
+    await addOneTenant(producer);
+
+    const archived = createMockEServiceWithScheduledArchiving(
+      producer.id,
+      daysAgo(31),
+      daysAgo(1),
+      archivingScope.eservice,
+      descriptorState.archived
+    );
+    const inCountdown = createMockEServiceWithScheduledArchiving(
+      producer.id,
+      daysAgo(1),
+      daysFromNow(30),
+      archivingScope.descriptor
+    );
+    await addOneEService(archived);
+    await addOneEService(inCountdown);
+
+    const counts = await readModelService.getArchivingScopeCounts(producer.id);
+
+    expect(counts).toEqual({ eserviceScopeCount: 0, descriptorScopeCount: 1 });
   });
 
   it("should not count schedules belonging to a different producer", async () => {
