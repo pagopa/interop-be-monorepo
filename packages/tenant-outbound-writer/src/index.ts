@@ -8,6 +8,7 @@ import { decodeKafkaMessage, logger } from "pagopa-interop-commons";
 import {
   CorrelationId,
   generateId,
+  genericInternalError,
   TenantEvent,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -39,6 +40,11 @@ async function processMessage({
   const outboundEvent: TenantOutboundEvent | undefined = match(msg)
     .with({ event_version: 1 }, (msg) => toOutboundEventV1(msg))
     .with({ event_version: 2 }, (msg) => toOutboundEventV2(msg))
+    .with({ event_version: 3 }, (msg) => {
+      throw genericInternalError(
+        `Tenant event V3 not supported yet: ${msg.type}`
+      );
+    })
     .exhaustive();
 
   if (outboundEvent) {
