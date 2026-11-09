@@ -11,6 +11,7 @@ import {
 import {
   CertifiedDiscreteTenantAttribute,
   CertifiedTenantAttribute,
+  ContactId,
   DeclaredTenantAttribute,
   DelegationId,
   ExternalId,
@@ -118,6 +119,7 @@ describe("Tenant aggregators", () => {
       externalId,
       updatedAt: new Date(),
       mails: [tenantMail],
+      contactId: generateId<ContactId>(),
       attributes: [
         tenantCertifiedAttribute,
         tenantCertifiedDiscreteAttribute,
