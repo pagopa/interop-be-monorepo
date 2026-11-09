@@ -23,6 +23,7 @@ import {
   EServiceTemplateVersionDocumentAddedV2,
   AttributeId,
   attributeKind,
+  hyperlinkDetectionError,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
@@ -407,4 +408,32 @@ describe("createEServiceTemplateVersion", async () => {
       );
     }
   );
+  it("should throw hyperlinkDetectionError when a document prettyName contains a hyperlink", async () => {
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [
+        {
+          ...getMockEServiceTemplateVersion(),
+          state: eserviceTemplateVersionState.published,
+        },
+      ],
+    };
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    const prettyNameWithHyperlink = "see https://evil.example.com";
+    const versionSeed = buildCreateVersionSeed({
+      ...getMockEServiceTemplateVersion(),
+      docs: [{ ...getMockDocument(), prettyName: prettyNameWithHyperlink }],
+    });
+
+    await expect(
+      eserviceTemplateService.createEServiceTemplateVersion(
+        eserviceTemplate.id,
+        versionSeed,
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(hyperlinkDetectionError(prettyNameWithHyperlink));
+  });
 });
