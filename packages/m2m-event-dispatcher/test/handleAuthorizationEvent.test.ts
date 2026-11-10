@@ -17,7 +17,6 @@ import {
   toProducerKeychainV2,
   generateId,
   Client,
-  clientKind,
   ProducerKeychain,
   toClientV1,
   AuthorizationEventEnvelopeV1,
@@ -49,47 +48,6 @@ describe("handleAuthorizationEvent test", async () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
-
-  describe.each(Object.values(clientKind))(
-    "metadata events for %s clients",
-    (kind) => {
-      it.each(["ClientNameUpdated", "ClientDescriptionUpdated"] as const)(
-        "%s is not exposed before the dedicated M2M feed implementation",
-        async (type) => {
-          const client = getMockClient({ kind });
-          const eventTimestamp = new Date();
-          const message: AuthorizationEventEnvelopeV2 = {
-            ...getMockEventEnvelopeCommons(),
-            event_version: 2,
-            stream_id: client.id,
-            version: 1,
-            type,
-            data: { client: toClientV2(client) },
-          };
-
-          await handleAuthorizationEvent(
-            message,
-            eventTimestamp,
-            genericLogger,
-            testM2mEventWriterService
-          );
-
-          expect(
-            testM2mEventWriterService.insertClientM2MEvent
-          ).not.toHaveBeenCalled();
-          expect(
-            testM2mEventWriterService.insertKeyM2MEvent
-          ).not.toHaveBeenCalled();
-          expect(
-            testM2mEventWriterService.insertProducerKeychainM2MEvent
-          ).not.toHaveBeenCalled();
-          expect(
-            testM2mEventWriterService.insertProducerKeyM2MEvent
-          ).not.toHaveBeenCalled();
-        }
-      );
-    }
-  );
 
   describe.each(AuthorizationEventV2.options.map((o) => o.shape.type.value))(
     "with event type %s",
