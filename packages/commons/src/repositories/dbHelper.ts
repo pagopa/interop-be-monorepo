@@ -37,6 +37,6 @@ export const escapeSqlLike = (value: string): string =>
 // to interpret backslashes produced by escapeSqlLike as escape characters.
 // Without ESCAPE '\\', the \% and \_ sequences would not be treated as literals.
 export const ilikeEscaped = (
-  column: Column | SQL.Aliased,
+  column: Column | SQL | SQL.Aliased,
   pattern: string
 ): SQL => sql`${column} ILIKE ${pattern} ESCAPE '\\'`;

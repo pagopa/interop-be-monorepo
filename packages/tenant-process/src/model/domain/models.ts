@@ -1,4 +1,8 @@
-import { TenantFeatureType } from "pagopa-interop-models";
+import { ParentTenant, TenantFeatureType } from "pagopa-interop-models";
+
+export type TenantHierarchy = {
+  parentTenants?: ParentTenant[];
+};
 
 export type ApiGetTenantsFilters = {
   name: string | undefined;
