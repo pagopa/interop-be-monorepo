@@ -18,26 +18,45 @@ import {
 
 const { HTTP_STATUS_INTERNAL_SERVER_ERROR } = constants;
 
+// bffEndpoint -> errorCode -> first ErrorMessage with a non-empty Italian copy
+export type ErrorCopyIndex = Map<string, Map<string, ErrorMessage>>;
+
+export function indexErrorMessages(
+  errorMessages: readonly ErrorMessage[]
+): ErrorCopyIndex {
+  const index: ErrorCopyIndex = new Map();
+  for (const message of errorMessages) {
+    if (message.copy.it.trim() === "") {
+      continue;
+    }
+    let messagesByCode = index.get(message.bffEndpoint);
+    if (!messagesByCode) {
+      messagesByCode = new Map();
+      index.set(message.bffEndpoint, messagesByCode);
+    }
+    if (!messagesByCode.has(message.errorCode)) {
+      messagesByCode.set(message.errorCode, message);
+    }
+  }
+  return index;
+}
+
 export function applyErrorCopy(
   problem: Problem,
   endpoint: string | undefined,
-  errorMessages: readonly ErrorMessage[],
+  errorCopyIndex: ErrorCopyIndex,
   defaultLanguage?: keyof ErrorMessage["copy"]
 ): UserFacingProblem {
   if (!endpoint) {
     return problem;
   }
 
-  const copy = problem.errors
-    ?.map(({ code }) =>
-      errorMessages.find(
-        (message) =>
-          message.bffEndpoint === endpoint &&
-          message.errorCode === code &&
-          message.copy.it.trim() !== ""
-      )
-    )
-    .find((entry) => entry !== undefined);
+  const messagesByCode = errorCopyIndex.get(endpoint);
+  const copy = messagesByCode
+    ? problem.errors
+        ?.map(({ code }) => messagesByCode.get(code))
+        .find((entry) => entry !== undefined)
+    : undefined;
 
   if (!copy) {
     return problem;
@@ -105,13 +124,13 @@ export function makeUserFacingApiProblemBuilder<T extends string>(
   errorMessages: readonly ErrorMessage[]
 ): MakeUserFacingApiProblemFn<T> {
   const makeApiProblem = makeApiProblemBuilder(errors, options);
+  const errorCopyIndex = indexErrorMessages(errorMessages);
 
   const userFacingApiProblem: MakeUserFacingApiProblemFn<T> = (
     error,
     httpMapper,
     context,
-    operationalLogMessage,
-    placeholderMapper
+    operationalLogMessage
   ) => {
     const problem = makeApiProblem(
       error,
@@ -123,7 +142,7 @@ export function makeUserFacingApiProblemBuilder<T extends string>(
     const userFacingProblem = applyErrorCopy(
       problem,
       context.endpoint,
-      errorMessages,
+      errorCopyIndex,
       context.locale
     );
 
@@ -138,10 +157,6 @@ export function makeUserFacingApiProblemBuilder<T extends string>(
         emptyErrorMapper,
         context
       );
-    }
-
-    if (placeholderMapper && errorHasUserMessages(userFacingProblem)) {
-      return placeholderMapper(userFacingProblem);
     }
 
     return userFacingProblem;

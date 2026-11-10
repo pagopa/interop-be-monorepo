@@ -3,7 +3,23 @@ import type { Problem } from "pagopa-interop-models";
 
 import { describe, it, expect } from "vitest";
 
-import { applyErrorCopy } from "../src/model/applyError.js";
+import {
+  applyErrorCopy as applyErrorCopyFromIndex,
+  indexErrorMessages,
+} from "../src/model/applyError.js";
+
+const applyErrorCopy = (
+  problem: Problem,
+  endpoint: string | undefined,
+  errorMessages: readonly ErrorMessage[],
+  defaultLanguage?: keyof ErrorMessage["copy"]
+) =>
+  applyErrorCopyFromIndex(
+    problem,
+    endpoint,
+    indexErrorMessages(errorMessages),
+    defaultLanguage
+  );
 
 describe("applyErrorCopy", () => {
   const commonErrorMessages: ErrorMessage[] = [

@@ -219,10 +219,6 @@ export type UserFacingProblemWithMessage = UserFacingProblem & {
   userMessage: string;
 };
 
-type PlaceholderMapperFn = (
-  problem: UserFacingProblemWithMessage
-) => UserFacingProblem;
-
 export type PlaceholderMapperGeneratorReturn = Promise<
   | ((prob: UserFacingProblem & { userMessage: string }) => UserFacingProblem)
   | undefined
@@ -235,6 +231,5 @@ export type MakeUserFacingApiProblemFn<T extends string> = (
     endpoint?: string;
     locale?: UserFacingLanguage;
   },
-  operationalLogMessage?: Parameters<MakeApiProblemFn<T>>[3],
-  placeholderMapper?: PlaceholderMapperFn
+  operationalLogMessage?: Parameters<MakeApiProblemFn<T>>[3]
 ) => UserFacingProblem;
