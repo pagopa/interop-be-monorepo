@@ -58,7 +58,8 @@ async function handleTenantEventV2(
           "MaintenanceTenantUpdated",
           "TenantDelegatedConsumerFeatureAdded",
           "TenantDelegatedConsumerFeatureRemoved",
-          "TenantRemoteIdAssigned"
+          "TenantRemoteIdAssigned",
+          "TenantParentUpdated"
         ),
       },
       async (event) => {
