@@ -153,7 +153,7 @@ const addActiveVersionsDailyCallsJoinsAndFilters = <T extends PgSelect>(
       )
     );
 
-export const producerDashboardDescriptorStates: DescriptorState[] = [
+const producerDashboardDescriptorStates: DescriptorState[] = [
   descriptorState.published,
   descriptorState.deprecated,
   descriptorState.suspended,
@@ -161,13 +161,13 @@ export const producerDashboardDescriptorStates: DescriptorState[] = [
   descriptorState.archivingSuspended,
 ];
 
-export type SaturationSortBy =
+type SaturationSortBy =
   | "PERCENTAGE_DESC"
   | "PERCENTAGE_ASC"
   | "NAME_ASC"
   | "NAME_DESC";
 
-export type ProducerDashboardSaturationRow = {
+type ProducerDashboardSaturationRow = {
   eserviceId: EServiceId;
   eserviceName: string;
   descriptorId: DescriptorId;
@@ -178,7 +178,7 @@ export type ProducerDashboardSaturationRow = {
   waitingForApprovalDailyCalls: number;
 };
 
-export type ProducerDashboardSaturationResult = {
+type ProducerDashboardSaturationResult = {
   results: ProducerDashboardSaturationRow[];
   totalCount: number;
   summary: { overThreshold: number; nearThreshold: number; total: number };
