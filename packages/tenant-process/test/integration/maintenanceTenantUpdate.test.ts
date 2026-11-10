@@ -86,6 +86,7 @@ describe("maintenanceTenantUpdate", async () => {
     const updatedMockTenant: Tenant = {
       ...mockTenant,
       ...tenantUpdate,
+      contactId: mockTenant.contactId,
       features: mockTenant.features,
       mails: tenantUpdate.mails.map((mail) => ({
         ...mail,
