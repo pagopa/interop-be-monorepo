@@ -100,4 +100,31 @@ describe("OpenDataExtractor", async () => {
 
     expect(extractedCategories).toEqual(categories);
   });
+
+  it("getAllInstitutions should treat an empty Codice_uni_aoo as absent", async () => {
+    const fieldIndex = uoDataset.fields.findIndex(
+      (f: { id: string }) => f.id === "Codice_uni_aoo"
+    );
+    (axios.get as MockedFunction<typeof axios.get>).mockResolvedValue({
+      data: {
+        ...uoDataset,
+        records: uoDataset.records.map((r: readonly unknown[]) =>
+          r.map((v, i) => (i === fieldIndex ? "  " : v))
+        ),
+      },
+    });
+
+    const institutions = await getAllInstitutions(
+      "UO",
+      new Map([["Z1234ABC", { category: "SA", kind: "Stazioni Appaltanti" }]]),
+      openDataConfig
+    );
+
+    expect(institutions).toHaveLength(1);
+    expect(institutions[0]).toMatchObject({
+      rootOriginId: "Z1234ABC",
+      parentOriginId: "Z1234ABC",
+      aooOriginId: undefined,
+    });
+  });
 });
