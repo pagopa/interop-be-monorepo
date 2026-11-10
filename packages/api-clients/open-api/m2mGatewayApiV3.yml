@@ -13654,7 +13654,8 @@ components:
               $ref: "#/components/schemas/ClientName"
             description:
               $ref: "#/components/schemas/ClientDescription"
-          required: [name]
+          required: 
+            - name
         - type: object
           additionalProperties: false
           properties:
@@ -13662,7 +13663,8 @@ components:
               $ref: "#/components/schemas/ClientName"
             description:
               $ref: "#/components/schemas/ClientDescription"
-          required: [description]
+          required: 
+            - description
     ClientName:
       type: string
       minLength: 5
