@@ -35,7 +35,7 @@ export const tenantErrorCodes = {
   certifiedDiscreteAttributeRevoked: "0034",
   tenantNotAllowedForDelegation: "0035",
   tenantUpdateVersionMismatch: "0036",
-  nantIsNotAooOrUo: "0037",
+  tenantIsNotAooOrUo: "0037",
   tenantParentRootReferencesMustBeBothSetOrNull: "0038",
   tenantCannotBeItsOwnParent: "0039",
   tenantRootMustBeMainInstitution: "0040",
