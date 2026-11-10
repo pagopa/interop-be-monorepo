@@ -74,6 +74,41 @@ describe("API POST /catalog authorization test", () => {
       .set("X-Correlation-Id", generateId())
       .send(payload);
 
+  describe("templateId validation", () => {
+    it.each([undefined, false, true])(
+      "should accept and forward templateId with onlyTemplateInstances=%s",
+      async (onlyTemplateInstances) => {
+        const payload = {
+          ...body,
+          templateId: generateId(),
+          onlyTemplateInstances,
+        };
+        vi.mocked(catalogService.queryEServices).mockClear();
+        const res = await makeRequest(
+          generateToken(authRole.ADMIN_ROLE),
+          payload
+        );
+
+        expect(res.status).toBe(200);
+        expect(catalogService.queryEServices).toHaveBeenCalledExactlyOnceWith(
+          payload,
+          expect.anything()
+        );
+      }
+    );
+
+    it("should return 400 for an invalid templateId", async () => {
+      vi.mocked(catalogService.queryEServices).mockClear();
+      const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), {
+        ...body,
+        templateId: "not-a-uuid",
+      });
+
+      expect(res.status).toBe(400);
+      expect(catalogService.queryEServices).not.toHaveBeenCalled();
+    });
+  });
+
   describe("availableForRequester validation", () => {
     it("should accept availableForRequester when it is true", async () => {
       const token = generateToken(authRole.ADMIN_ROLE);
