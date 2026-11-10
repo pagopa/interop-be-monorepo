@@ -742,6 +742,18 @@ export function catalogServiceBuilder(
       );
       return { id, descriptorId: descriptors[0].id };
     },
+    patchUpdateEServiceById: async (
+      eServiceId: EServiceId,
+      seed: bffApi.PatchUpdateEServiceSeed,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> => {
+      logger.info(`Partially updating EService ${eServiceId}`);
+      const { id } = await catalogProcessClient.patchUpdateDraftEServiceById(
+        seed,
+        { headers, params: { eServiceId } }
+      );
+      return { id };
+    },
     updateEServiceById: async (
       eServiceId: EServiceId,
       updateEServiceSeed: bffApi.UpdateEServiceSeed,
@@ -2449,6 +2461,18 @@ export function catalogServiceBuilder(
           }
         );
       return { id: eservice.id };
+    },
+    getEserviceTemplateById: async (
+      templateId: EServiceTemplateId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<eserviceTemplateApi.EServiceTemplate> => {
+      logger.info(`Retrieving e-service template with id = ${templateId}`);
+      return await eserviceTemplateProcessClient.getEServiceTemplateById({
+        headers,
+        params: {
+          templateId,
+        },
+      });
     },
   };
 }
