@@ -214,12 +214,72 @@ export const errorMessages = [
   },
   {
     "process": "Purpose Process",
+    "error": "riskAnalysisAlreadyApproved",
+    "errorCode": "004-0066",
+    "bffEndpoint": "POST /purposes/:purposeId/riskAnalysis/sign",
+    "copy": {
+      "it": "Questa analisi del rischio è già stata approvata da un altro valutatore. Ricarica la pagina per vedere l’analisi del rischio approvata.",
+      "en": "This risk analysis has already been approved by another reviewer. Refresh the page to see the approved risk analysis."
+    }
+  },
+  {
+    "process": "Purpose Process",
+    "error": "riskAnalysisAlreadyRejected",
+    "errorCode": "004-0067",
+    "bffEndpoint": "POST /purposes/:purposeId/riskAnalysis/sign",
+    "copy": {
+      "it": "Questa analisi del rischio è già stata rifiutata da un altro valutatore. Ricarica la pagina per vedere l’analisi del rischio rifiutata.",
+      "en": "This risk analysis has already been rejected by another reviewer. Refresh the page to see the rejected risk analysis."
+    }
+  },
+  {
+    "process": "Purpose Process",
     "error": "purposeMetadataVersionMismatch",
     "errorCode": "004-0064",
     "bffEndpoint": "POST /purposes/:purposeId/riskAnalysis/sign",
     "copy": {
       "it": "Un altro valutatore ha modificato questa analisi del rischio. Ricarica la pagina per vedere la versione aggiornata e decidi se approvarla.",
       "en": "Another reviewer has modified this risk analysis. Refresh the page to see the updated version and decide whether to approve or reject it."
+    }
+  },
+  {
+    "process": "Purpose Process",
+    "error": "riskAnalysisAlreadyApproved",
+    "errorCode": "004-0066",
+    "bffEndpoint": "POST /purposes/:purposeId/riskAnalysis/reject",
+    "copy": {
+      "it": "Questa analisi del rischio è già stata approvata da un altro valutatore. Ricarica la pagina per vedere l’analisi del rischio approvata.",
+      "en": "This risk analysis has already been approved by another reviewer. Refresh the page to see the approved risk analysis."
+    }
+  },
+  {
+    "process": "Purpose Process",
+    "error": "riskAnalysisAlreadyRejected",
+    "errorCode": "004-0067",
+    "bffEndpoint": "POST /purposes/:purposeId/riskAnalysis/reject",
+    "copy": {
+      "it": "Questa analisi del rischio è già stata rifiutata da un altro valutatore. Ricarica la pagina per vedere l’analisi del rischio rifiutata.",
+      "en": "This risk analysis has already been rejected by another reviewer. Refresh the page to see the rejected risk analysis."
+    }
+  },
+  {
+    "process": "Purpose Process",
+    "error": "riskAnalysisAlreadyApproved",
+    "errorCode": "004-0066",
+    "bffEndpoint": "PUT /purposes/:purposeId/riskAnalysis/form",
+    "copy": {
+      "it": "Questa analisi del rischio è già stata approvata da un altro valutatore. Ricarica la pagina per vedere l’analisi del rischio approvata.",
+      "en": "This risk analysis has already been approved by another reviewer. Refresh the page to see the approved risk analysis."
+    }
+  },
+  {
+    "process": "Purpose Process",
+    "error": "riskAnalysisAlreadyRejected",
+    "errorCode": "004-0067",
+    "bffEndpoint": "PUT /purposes/:purposeId/riskAnalysis/form",
+    "copy": {
+      "it": "Questa analisi del rischio è già stata rifiutata da un altro valutatore. Ricarica la pagina per vedere l’analisi del rischio rifiutata.",
+      "en": "This risk analysis has already been rejected by another reviewer. Refresh the page to see the rejected risk analysis."
     }
   },
   {
