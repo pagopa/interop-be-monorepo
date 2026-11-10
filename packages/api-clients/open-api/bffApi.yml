@@ -15080,6 +15080,7 @@ components:
         delegationId:
           type: string
           format: uuid
+          nullable: true
       required:
         - eserviceId
         - descriptorId

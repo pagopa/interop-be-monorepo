@@ -82,9 +82,10 @@ export function agreementServiceBuilder(
         `Creating agreement with consumerId ${authData.organizationId} eserviceId ${payload.eserviceId} descriptorId ${payload.descriptorId}`
       );
 
-      const { id } = await agreementProcessClient.createAgreement(payload, {
-        headers,
-      });
+      const { id } = await agreementProcessClient.createAgreement(
+        { ...payload, delegationId: payload.delegationId ?? undefined },
+        { headers }
+      );
       return { id };
     },
 
