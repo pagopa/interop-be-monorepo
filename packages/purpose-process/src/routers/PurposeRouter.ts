@@ -58,6 +58,7 @@ import {
   getRiskAnalysisDocumentErrorMapper,
   getRemainingDailyCallsErrorMapper,
   getProducerEServiceMonitoringPurposesErrorMapper,
+  getProducerDashboardSaturationErrorMapper,
   rejectPurposeVersionErrorMapper,
   retrieveLatestRiskAnalysisConfigurationErrorMapper,
   retrieveRiskAnalysisConfigurationByVersionErrorMapper,
@@ -239,6 +240,34 @@ const purposeRouter = (
         const errorRes = makeApiProblem(
           error,
           updateReversePurposeErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/producers/dashboard/saturation", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE]);
+
+        const result = await purposeService.getProducerDashboardSaturation(
+          {
+            q: req.query.q,
+            sortBy: req.query.sortBy,
+            offset: req.query.offset,
+            limit: req.query.limit,
+          },
+          ctx
+        );
+
+        return res
+          .status(200)
+          .send(purposeApi.ProducerDashboardSaturation.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getProducerDashboardSaturationErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);

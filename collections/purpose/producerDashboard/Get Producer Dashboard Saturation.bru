@@ -1,0 +1,23 @@
+meta {
+  name: Get Producer Dashboard Saturation
+  type: http
+  seq: 25
+}
+
+get {
+  url: {{host-purpose}}/producers/dashboard/saturation?offset=0&limit=10&sortBy=PERCENTAGE_DESC
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+  sortBy: PERCENTAGE_DESC
+  ~q: 
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

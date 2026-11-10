@@ -6,6 +6,7 @@ import {
   exists,
   inArray,
   isNotNull,
+  isNull,
   lte,
   ne,
   notExists,
@@ -47,6 +48,9 @@ import {
   UserId,
   RiskAnalysisSigningState,
   TenantKind,
+  unsafeBrandId,
+  descriptorState,
+  DescriptorState,
 } from "pagopa-interop-models";
 import {
   aggregatePurposeArray,
@@ -64,6 +68,7 @@ import {
   delegationInReadmodelDelegation,
   DrizzleReturnType,
   eserviceInReadmodelCatalog,
+  eserviceDescriptorInReadmodelCatalog,
   purposeInReadmodelPurpose,
   purposeRiskAnalysisAnswerInReadmodelPurpose,
   purposeRiskAnalysisFormInReadmodelPurpose,
@@ -75,6 +80,9 @@ import {
   purposeVersionStampInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
 import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
+import { match } from "ts-pattern";
+
+import { config } from "../config/config.js";
 
 export type GetPurposesFilters = {
   title?: string;
@@ -97,6 +105,31 @@ const activeConsumerDelegations = alias(
   "activeConsumerDelegations"
 );
 
+// Aggregation rule of the descriptor load, shared by the per-descriptor
+// queries and the producer dashboard batch (GROUP BY) query:
+// - the agreement of the purpose consumer must be Active or Suspended;
+// - the approved load is made of the Active purpose versions;
+// - the load waiting for approval is made of the WaitingForApproval versions.
+const approvedLoadVersionState = purposeVersionState.active;
+const waitingForApprovalLoadVersionState =
+  purposeVersionState.waitingForApproval;
+
+const purposeAgreementLoadCondition = (): SQL | undefined =>
+  and(
+    eq(
+      agreementInReadmodelAgreement.eserviceId,
+      purposeInReadmodelPurpose.eserviceId
+    ),
+    eq(
+      agreementInReadmodelAgreement.consumerId,
+      purposeInReadmodelPurpose.consumerId
+    ),
+    inArray(agreementInReadmodelAgreement.state, [
+      agreementState.active,
+      agreementState.suspended,
+    ])
+  );
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const addActiveVersionsDailyCallsJoinsAndFilters = <T extends PgSelect>(
   query: T,
@@ -111,30 +144,45 @@ const addActiveVersionsDailyCallsJoinsAndFilters = <T extends PgSelect>(
         purposeInReadmodelPurpose.id
       )
     )
-    .innerJoin(
-      agreementInReadmodelAgreement,
-      and(
-        eq(
-          agreementInReadmodelAgreement.eserviceId,
-          purposeInReadmodelPurpose.eserviceId
-        ),
-        eq(
-          agreementInReadmodelAgreement.consumerId,
-          purposeInReadmodelPurpose.consumerId
-        ),
-        inArray(agreementInReadmodelAgreement.state, [
-          agreementState.active,
-          agreementState.suspended,
-        ])
-      )
-    )
+    .innerJoin(agreementInReadmodelAgreement, purposeAgreementLoadCondition())
     .where(
       and(
         eq(purposeInReadmodelPurpose.eserviceId, eserviceId),
         eq(agreementInReadmodelAgreement.descriptorId, descriptorId),
-        eq(purposeVersionInReadmodelPurpose.state, purposeVersionState.active)
+        eq(purposeVersionInReadmodelPurpose.state, approvedLoadVersionState)
       )
     );
+
+const producerDashboardDescriptorStates: DescriptorState[] = [
+  descriptorState.published,
+  descriptorState.deprecated,
+  descriptorState.suspended,
+  descriptorState.archiving,
+  descriptorState.archivingSuspended,
+];
+
+type SaturationSortBy =
+  | "PERCENTAGE_DESC"
+  | "PERCENTAGE_ASC"
+  | "NAME_ASC"
+  | "NAME_DESC";
+
+type ProducerDashboardSaturationRow = {
+  eserviceId: EServiceId;
+  eserviceName: string;
+  descriptorId: DescriptorId;
+  version: string;
+  activePurposesCount: number;
+  approvedDailyCalls: number;
+  dailyCallsTotal: number;
+  waitingForApprovalDailyCalls: number;
+};
+
+type ProducerDashboardSaturationResult = {
+  results: ProducerDashboardSaturationRow[];
+  totalCount: number;
+  summary: { overThreshold: number; nearThreshold: number; total: number };
+};
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const addDelegationJoins = <T extends PgSelect>(query: T) =>
@@ -313,7 +361,102 @@ const getPurposesFilters = (
   ];
 };
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const buildProducerDashboardSaturationQuery = (
+  db: DrizzleReturnType,
+  producerId: TenantId
+) => {
+  const descriptors = eserviceDescriptorInReadmodelCatalog;
+  const eservices = eserviceInReadmodelCatalog;
+
+  // Descriptors of the e-services the requester acts on as producer: own
+  // e-services without an active producer delegation, or delegated ones.
+  const scope = db.$with("saturation_scope").as(
+    db
+      .select({
+        descriptorId: sql<string>`${descriptors.id}`.as("sat_descriptor_id"),
+        eserviceId: sql<string>`${eservices.id}`.as("sat_eservice_id"),
+        eserviceName: sql<string>`${eservices.name}`.as("sat_eservice_name"),
+        version: sql<string>`${descriptors.version}`.as("sat_version"),
+        dailyCallsTotal: sql<number>`${descriptors.dailyCallsTotal}`.as(
+          "sat_daily_calls_total"
+        ),
+      })
+      .from(descriptors)
+      .innerJoin(eservices, eq(eservices.id, descriptors.eserviceId))
+      .leftJoin(
+        activeProducerDelegations,
+        and(
+          eq(activeProducerDelegations.eserviceId, eservices.id),
+          eq(activeProducerDelegations.state, delegationState.active),
+          eq(activeProducerDelegations.kind, delegationKind.delegatedProducer),
+          eq(activeProducerDelegations.delegatorId, eservices.producerId)
+        )
+      )
+      .where(
+        and(
+          inArray(descriptors.state, producerDashboardDescriptorStates),
+          or(
+            and(
+              eq(eservices.producerId, producerId),
+              isNull(activeProducerDelegations.id)
+            ),
+            eq(activeProducerDelegations.delegateId, producerId)
+          )
+        )
+      )
+  );
+
+  // Load of every descriptor in scope in a single pass (GROUP BY), using the
+  // same aggregation rule of the per-descriptor queries.
+  const load = db.$with("saturation_load").as(
+    db
+      .select({
+        descriptorId: sql<string>`${scope.descriptorId}`.as(
+          "sat_load_descriptor_id"
+        ),
+        approvedDailyCalls:
+          sql<string>`COALESCE(SUM(${purposeVersionInReadmodelPurpose.dailyCalls}) FILTER (WHERE ${purposeVersionInReadmodelPurpose.state} = ${approvedLoadVersionState}), 0)`.as(
+            "sat_approved_daily_calls"
+          ),
+        waitingForApprovalDailyCalls:
+          sql<string>`COALESCE(SUM(${purposeVersionInReadmodelPurpose.dailyCalls}) FILTER (WHERE ${purposeVersionInReadmodelPurpose.state} = ${waitingForApprovalLoadVersionState}), 0)`.as(
+            "sat_waiting_daily_calls"
+          ),
+        activePurposesCount:
+          sql<string>`COUNT(DISTINCT ${purposeInReadmodelPurpose.id}) FILTER (WHERE ${purposeVersionInReadmodelPurpose.state} = ${approvedLoadVersionState})`.as(
+            "sat_active_purposes_count"
+          ),
+      })
+      .from(purposeInReadmodelPurpose)
+      .innerJoin(
+        purposeVersionInReadmodelPurpose,
+        eq(
+          purposeVersionInReadmodelPurpose.purposeId,
+          purposeInReadmodelPurpose.id
+        )
+      )
+      .innerJoin(agreementInReadmodelAgreement, purposeAgreementLoadCondition())
+      .innerJoin(
+        scope,
+        eq(scope.descriptorId, agreementInReadmodelAgreement.descriptorId)
+      )
+      .where(
+        inArray(purposeVersionInReadmodelPurpose.state, [
+          approvedLoadVersionState,
+          waitingForApprovalLoadVersionState,
+        ])
+      )
+      .groupBy(scope.descriptorId)
+  );
+
+  const approved = sql`COALESCE(${load.approvedDailyCalls}, 0)`;
+  const percentage = sql`CASE WHEN ${scope.dailyCallsTotal} > 0 THEN ${approved} * 100.0 / ${scope.dailyCallsTotal} ELSE 0 END`;
+  const isOver = sql`(${scope.dailyCallsTotal} > 0 AND ${approved} > ${scope.dailyCallsTotal})`;
+  const isNear = sql`(NOT ${isOver} AND ${percentage} > ${config.producerDashboardNearThresholdPercentage})`;
+
+  return { scope, load, approved, percentage, isOver, isNear };
+};
+
 export function readModelServiceBuilderSQL({
   readModelDB,
   purposeReadModelServiceSQL,
@@ -680,6 +823,131 @@ export function readModelServiceBuilderSQL({
       id: ClientId
     ): Promise<WithMetadata<Client> | undefined> {
       return clientReadModelServiceSQL.getClientById(id);
+    },
+    async getProducerDashboardSaturation(
+      producerId: TenantId,
+      { q, sortBy }: { q: string | undefined; sortBy: SaturationSortBy },
+      { offset, limit }: { offset: number; limit: number }
+    ): Promise<ProducerDashboardSaturationResult> {
+      const { scope, load, approved, percentage, isOver, isNear } =
+        buildProducerDashboardSaturationQuery(readModelDB, producerId);
+      const eservices = eserviceInReadmodelCatalog;
+      const nameFilter = q
+        ? ilikeEscaped(eservices.name, `%${escapeSqlLike(q)}%`)
+        : undefined;
+      const summary = readModelDB.$with("saturation_summary").as(
+        readModelDB
+          .select({
+            overThreshold: sql<number>`COUNT(*) FILTER (WHERE ${isOver})`
+              .mapWith(Number)
+              .as("sat_summary_over_threshold"),
+            nearThreshold: sql<number>`COUNT(*) FILTER (WHERE ${isNear})`
+              .mapWith(Number)
+              .as("sat_summary_near_threshold"),
+            total: sql<number>`COUNT(*)`
+              .mapWith(Number)
+              .as("sat_summary_total"),
+          })
+          .from(scope)
+          .leftJoin(load, eq(load.descriptorId, scope.descriptorId))
+      );
+
+      const versionNumber = sql`CAST(${scope.version} AS INTEGER)`;
+      const orderBy = match(sortBy)
+        .with("PERCENTAGE_DESC", () => [desc(percentage)])
+        .with("PERCENTAGE_ASC", () => [asc(percentage)])
+        .with("NAME_ASC", () => [asc(sql`lower(${scope.eserviceName})`)])
+        .with("NAME_DESC", () => [desc(sql`lower(${scope.eserviceName})`)])
+        .exhaustive();
+
+      const rows = await readModelDB
+        .with(scope, load, summary)
+        .select({
+          eserviceId: scope.eserviceId,
+          eserviceName: scope.eserviceName,
+          descriptorId: scope.descriptorId,
+          version: scope.version,
+          dailyCallsTotal: scope.dailyCallsTotal,
+          approvedDailyCalls: approved.mapWith(Number),
+          waitingForApprovalDailyCalls:
+            sql`COALESCE(${load.waitingForApprovalDailyCalls}, 0)`.mapWith(
+              Number
+            ),
+          activePurposesCount:
+            sql`COALESCE(${load.activePurposesCount}, 0)`.mapWith(Number),
+          totalCount: sql`COUNT(*) OVER ()`.mapWith(Number),
+          summaryOverThreshold: summary.overThreshold,
+          summaryNearThreshold: summary.nearThreshold,
+          summaryTotal: summary.total,
+        })
+        .from(scope)
+        .leftJoin(load, eq(load.descriptorId, scope.descriptorId))
+        .innerJoin(summary, sql`true`)
+        .innerJoin(eservices, eq(eservices.id, scope.eserviceId))
+        .where(nameFilter)
+        .orderBy(
+          ...orderBy,
+          asc(sql`lower(${scope.eserviceName})`),
+          asc(versionNumber),
+          asc(scope.descriptorId)
+        )
+        .limit(limit)
+        .offset(offset);
+
+      const results = rows.map((r) => ({
+        eserviceId: unsafeBrandId<EServiceId>(r.eserviceId),
+        eserviceName: r.eserviceName,
+        descriptorId: unsafeBrandId<DescriptorId>(r.descriptorId),
+        version: r.version,
+        activePurposesCount: r.activePurposesCount,
+        approvedDailyCalls: r.approvedDailyCalls,
+        dailyCallsTotal: Number(r.dailyCallsTotal),
+        waitingForApprovalDailyCalls: r.waitingForApprovalDailyCalls,
+      }));
+
+      const [firstRow] = rows;
+      if (firstRow) {
+        return {
+          results,
+          totalCount: firstRow.totalCount,
+          summary: {
+            overThreshold: firstRow.summaryOverThreshold,
+            nearThreshold: firstRow.summaryNearThreshold,
+            total: firstRow.summaryTotal,
+          },
+        };
+      }
+
+      // Window counts are absent when the requested page has no rows. Compute
+      // the unfiltered summary and filtered result count independently.
+      const [emptyPageSummary] = await readModelDB
+        .with(scope, load)
+        .select({
+          totalCount:
+            sql<number>`COUNT(*) FILTER (WHERE ${nameFilter ?? sql`true`})`.mapWith(
+              Number
+            ),
+          overThreshold: sql<number>`COUNT(*) FILTER (WHERE ${isOver})`.mapWith(
+            Number
+          ),
+          nearThreshold: sql<number>`COUNT(*) FILTER (WHERE ${isNear})`.mapWith(
+            Number
+          ),
+          total: sql<number>`COUNT(*)`.mapWith(Number),
+        })
+        .from(scope)
+        .leftJoin(load, eq(load.descriptorId, scope.descriptorId))
+        .innerJoin(eservices, eq(eservices.id, scope.eserviceId));
+
+      return {
+        results,
+        totalCount: emptyPageSummary?.totalCount ?? 0,
+        summary: {
+          overThreshold: emptyPageSummary?.overThreshold ?? 0,
+          nearThreshold: emptyPageSummary?.nearThreshold ?? 0,
+          total: emptyPageSummary?.total ?? 0,
+        },
+      };
     },
     async getWaitingForApprovalPurposesCounts(
       eserviceId: EServiceId,
