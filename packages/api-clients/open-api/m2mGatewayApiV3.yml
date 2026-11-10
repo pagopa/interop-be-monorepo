@@ -13642,7 +13642,8 @@ components:
               $ref: "#/components/schemas/ProducerKeychainName"
             description:
               $ref: "#/components/schemas/ProducerKeychainDescription"
-          required: [name]
+          required: 
+            - name
         - type: object
           additionalProperties: false
           properties:
@@ -13650,7 +13651,8 @@ components:
               $ref: "#/components/schemas/ProducerKeychainName"
             description:
               $ref: "#/components/schemas/ProducerKeychainDescription"
-          required: [description]
+          required:
+            - description
     ProducerKeychainName:
       type: string
       minLength: 5
