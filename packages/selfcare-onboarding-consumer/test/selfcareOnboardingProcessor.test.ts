@@ -148,6 +148,15 @@ describe("Message processor", () => {
     expect(selfcareUpsertTenantSpy).toBeCalledTimes(1);
   });
 
+  it("should not forward the institution digital address to the tenant process", async () => {
+    await selfcareOnboardingProcessor.processMessage(kafkaMessagePayload);
+
+    expect(selfcareUpsertTenantSpy).toBeCalledTimes(1);
+    expect(selfcareUpsertTenantSpy.mock.calls[0][0]).not.toHaveProperty(
+      "digitalAddress"
+    );
+  });
+
   it("should upsert PA tenant - Main institution", async () => {
     const message: EachMessagePayload = {
       ...kafkaMessagePayload,

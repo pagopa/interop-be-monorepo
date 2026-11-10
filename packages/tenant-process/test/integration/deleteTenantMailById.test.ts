@@ -1,3 +1,4 @@
+/* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
   getMockAuthData,
@@ -16,7 +17,12 @@ import {
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
 
-import { mailNotFound, tenantNotFound } from "../../src/model/domain/errors.js";
+import { config } from "../../src/config/config.js";
+import {
+  mailNotFound,
+  tenantMailsNotAllowed,
+  tenantNotFound,
+} from "../../src/model/domain/errors.js";
 import {
   addOneTenant,
   postgresDB,
@@ -162,5 +168,36 @@ describe("deleteTenantMailById", async () => {
         })
       )
     ).rejects.toThrowError(mailNotFound(mailIdNotInTenant));
+  });
+
+  it("Should throw tenantMailsNotAllowed when tenant events V3 are enabled", async () => {
+    (config as Record<string, unknown>).featureFlagTenantEventsV3 = true;
+
+    const tenant: Tenant = {
+      ...getMockTenant(),
+      mails: [
+        {
+          id: mailId,
+          createdAt: new Date(),
+          kind: "CONTACT_EMAIL",
+          address: "testMail@test.it",
+        },
+      ],
+    };
+    await addOneTenant(tenant);
+
+    await expect(
+      tenantService.deleteTenantMailById(
+        {
+          tenantId: tenant.id,
+          mailId,
+        },
+        getMockContext({
+          authData: getMockAuthData(tenant.id),
+        })
+      )
+    ).rejects.toThrowError(tenantMailsNotAllowed(tenant.id));
+
+    (config as Record<string, unknown>).featureFlagTenantEventsV3 = false;
   });
 });

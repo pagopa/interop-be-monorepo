@@ -1,20 +1,37 @@
+/* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { tenantApi } from "pagopa-interop-api-clients";
 import {
   getMockContextMaintenance,
   getMockTenant,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
 import {
+  ContactId,
   MaintenanceTenantUpdatedV2,
+  MaintenanceTenantUpdatedV3,
   Tenant,
   TenantFeature,
+  featureFlagNotEnabled,
+  generateId,
   protobufDecoder,
   tenantFeatureType,
   toTenantV2,
+  toTenantV3,
 } from "pagopa-interop-models";
-import { describe, it, expect, beforeAll, vi, afterAll } from "vitest";
-
 import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  vi,
+  afterAll,
+  afterEach,
+} from "vitest";
+
+import { config } from "../../src/config/config.js";
+import {
+  tenantMailsNotAllowed,
   tenantNotFound,
   tenantUpdateVersionMismatch,
 } from "../../src/model/domain/errors.js";
@@ -33,6 +50,10 @@ describe("maintenanceTenantUpdate", async () => {
 
   afterAll(() => {
     vi.useRealTimers();
+  });
+
+  afterEach(() => {
+    (config as Record<string, unknown>).featureFlagTenantEventsV3 = false;
   });
 
   it("should write on event-store for the update of a tenant", async () => {
@@ -256,5 +277,133 @@ describe("maintenanceTenantUpdate", async () => {
     expect(writtenPayload.tenant?.features).toEqual(
       toTenantV2({ ...mockTenant, features: expectedFeatures }).features
     );
+  });
+
+  it("should write a V3 event setting the contact when tenant events V3 are enabled", async () => {
+    (config as Record<string, unknown>).featureFlagTenantEventsV3 = true;
+
+    const mockTenant = getMockTenant();
+    await addOneTenant(mockTenant);
+    const contactId = generateId<ContactId>();
+    const tenantUpdate: tenantApi.MaintenanceTenantUpdate = {
+      ...getMockMaintenanceTenantUpdate(),
+      contactId,
+    };
+
+    await tenantService.maintenanceTenantUpdate(
+      {
+        tenantId: mockTenant.id,
+        tenantUpdate,
+        version: 0,
+      },
+      getMockContextMaintenance({})
+    );
+
+    const writtenEvent = await readLastEventByStreamId(
+      mockTenant.id,
+      "tenant",
+      postgresDB
+    );
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: mockTenant.id,
+      version: "1",
+      type: "MaintenanceTenantUpdated",
+      event_version: 3,
+    });
+    const writtenPayload = protobufDecoder(MaintenanceTenantUpdatedV3).parse(
+      writtenEvent.data
+    );
+
+    const expectedTenant: Tenant = {
+      ...mockTenant,
+      ...tenantUpdate,
+      contactId,
+      features: mockTenant.features,
+      mails: [],
+      onboardedAt: new Date(tenantUpdate.onboardedAt),
+      selfcareInstitutionType: tenantUpdate.selfcareInstitutionType,
+      updatedAt: new Date(),
+    };
+    expect(writtenPayload).toEqual({
+      tenant: toTenantV3(expectedTenant),
+    });
+  });
+
+  it("should keep the current contact when 'contactId' is omitted from the update", async () => {
+    (config as Record<string, unknown>).featureFlagTenantEventsV3 = true;
+
+    const contactId = generateId<ContactId>();
+    const mockTenant: Tenant = { ...getMockTenant(), contactId };
+    await addOneTenant(mockTenant);
+
+    await tenantService.maintenanceTenantUpdate(
+      {
+        tenantId: mockTenant.id,
+        tenantUpdate: getMockMaintenanceTenantUpdate(),
+        version: 0,
+      },
+      getMockContextMaintenance({})
+    );
+
+    const writtenEvent = await readLastEventByStreamId(
+      mockTenant.id,
+      "tenant",
+      postgresDB
+    );
+    const writtenPayload = protobufDecoder(MaintenanceTenantUpdatedV3).parse(
+      writtenEvent.data
+    );
+
+    expect(writtenPayload.tenant?.contactId).toBe(contactId);
+  });
+
+  it("Should throw tenantMailsNotAllowed when mails are provided and tenant events V3 are enabled", async () => {
+    (config as Record<string, unknown>).featureFlagTenantEventsV3 = true;
+
+    const mockTenant = getMockTenant();
+    await addOneTenant(mockTenant);
+    const tenantUpdate: tenantApi.MaintenanceTenantUpdate = {
+      ...getMockMaintenanceTenantUpdate(),
+      mails: [
+        {
+          id: generateId(),
+          kind: "CONTACT_EMAIL",
+          address: "testMail@test.it",
+          createdAt: new Date().toISOString(),
+        },
+      ],
+    };
+
+    await expect(
+      tenantService.maintenanceTenantUpdate(
+        {
+          tenantId: mockTenant.id,
+          tenantUpdate,
+          version: 0,
+        },
+        getMockContextMaintenance({})
+      )
+    ).rejects.toThrowError(tenantMailsNotAllowed(mockTenant.id));
+  });
+
+  it("Should throw featureFlagNotEnabled when 'contactId' is provided and tenant events V3 are disabled", async () => {
+    const mockTenant = getMockTenant();
+    await addOneTenant(mockTenant);
+    const tenantUpdate: tenantApi.MaintenanceTenantUpdate = {
+      ...getMockMaintenanceTenantUpdate(),
+      contactId: generateId<ContactId>(),
+    };
+
+    await expect(
+      tenantService.maintenanceTenantUpdate(
+        {
+          tenantId: mockTenant.id,
+          tenantUpdate,
+          version: 0,
+        },
+        getMockContextMaintenance({})
+      )
+    ).rejects.toThrowError(featureFlagNotEnabled("featureFlagTenantEventsV3"));
   });
 });
