@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package attribute.v2;
+
+message AttributeV2 {
+  string id = 1;
+  optional string code = 2;
+  optional string origin = 3;
+  AttributeKindV2 kind = 4;
+  string name = 5;
+  string description = 6;
+  int64 creationTime = 7;
+  optional bool subunitPropagationEnabled = 8;
+}
+
+enum AttributeKindV2 {
+  CERTIFIED = 0;
+  DECLARED = 1;
+  VERIFIED = 2;
+  CERTIFIED_DISCRETE = 3;
+}

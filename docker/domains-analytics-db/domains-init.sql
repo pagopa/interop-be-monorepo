@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS domains.attribute (
   origin VARCHAR(2048),
   name VARCHAR(2048) NOT NULL,
   creation_time TIMESTAMP WITH TIME ZONE NOT NULL,
+  subunit_propagation_enabled BOOLEAN,
   deleted BOOLEAN,
   PRIMARY KEY (id)
 );

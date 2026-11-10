@@ -19,6 +19,7 @@ describe("Attribute Splitter", () => {
       creationTime: mockAttribute.creationTime.toISOString(),
       origin: "alfa",
       code: "beta",
+      subunitPropagationEnabled: null,
     };
 
     expect(attributeSQL).toStrictEqual(expectedAttributeSQL);
@@ -37,6 +38,7 @@ describe("Attribute Splitter", () => {
       creationTime: mockAttribute.creationTime.toISOString(),
       origin: null,
       code: null,
+      subunitPropagationEnabled: null,
     };
 
     expect(attributeSQL).toStrictEqual(expectedAttributeSQL);
