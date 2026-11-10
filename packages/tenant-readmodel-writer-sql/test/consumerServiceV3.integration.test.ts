@@ -1,7 +1,4 @@
-import {
-  getMockTenant,
-  getMockTenantMail,
-} from "pagopa-interop-commons-test";
+import { getMockTenant, getMockTenantMail } from "pagopa-interop-commons-test";
 import {
   ContactId,
   Tenant,
