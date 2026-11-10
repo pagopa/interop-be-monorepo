@@ -19,6 +19,7 @@ import {
   toTenantV2,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   SCP,
+  TenantId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
@@ -184,5 +185,125 @@ describe("selfcareUpsertTenant", async () => {
         newSelfcareId: newTenantSeed.selfcareId,
       })
     );
+  });
+
+  const onboardingParent = getMockTenant();
+
+  it.each([
+    {
+      name: "Should assign the existing parent to an IPA AOO",
+      origin: "IPA",
+      subUnitType: "AOO" as const,
+      parentExists: true,
+      withParentExternalId: true,
+      expectedParentTenantId: onboardingParent.id,
+    },
+    {
+      name: "Should leave the hierarchy unset when the parent does not exist",
+      origin: "IPA",
+      subUnitType: "AOO" as const,
+      parentExists: false,
+      withParentExternalId: true,
+      expectedParentTenantId: undefined,
+    },
+    {
+      name: "Should leave the hierarchy unset without a parent reference",
+      origin: "IPA",
+      subUnitType: "AOO" as const,
+      parentExists: true,
+      withParentExternalId: false,
+      expectedParentTenantId: undefined,
+    },
+    {
+      name: "Should ignore the parent reference for UO tenants",
+      origin: "IPA",
+      subUnitType: "UO" as const,
+      parentExists: true,
+      withParentExternalId: true,
+      expectedParentTenantId: undefined,
+    },
+    {
+      name: "Should ignore the parent reference for root tenants",
+      origin: "IPA",
+      subUnitType: undefined,
+      parentExists: true,
+      withParentExternalId: true,
+      expectedParentTenantId: undefined,
+    },
+    {
+      name: "Should ignore the parent reference for non-IPA tenants",
+      origin: "ANAC",
+      subUnitType: "AOO" as const,
+      parentExists: true,
+      withParentExternalId: true,
+      expectedParentTenantId: undefined,
+    },
+  ])(
+    "$name",
+    async ({
+      origin,
+      subUnitType,
+      parentExists,
+      withParentExternalId,
+      expectedParentTenantId,
+    }) => {
+      if (parentExists) {
+        await addOneTenant(onboardingParent);
+      }
+      const tenantSeed: tenantApi.SelfcareTenantSeed = {
+        externalId: { origin, value: generateId() },
+        name: "A tenant",
+        selfcareId: generateId(),
+        onboardedAt: new Date().toISOString(),
+        subUnitType,
+        parentExternalId: withParentExternalId
+          ? onboardingParent.externalId
+          : undefined,
+      };
+
+      const id = await tenantService.selfcareUpsertTenant(
+        tenantSeed,
+        getMockContext({})
+      );
+      const event = await readLastTenantEvent(id);
+      expect(event?.type).toBe("TenantOnboarded");
+      const payload = protobufDecoder(TenantOnboardedV2).parse(event?.data);
+
+      expect(payload.tenant?.parentTenantId).toBe(expectedParentTenantId);
+      expect(payload.tenant?.rootTenantId).toBe(expectedParentTenantId);
+    }
+  );
+
+  it("Should preserve existing parent and root during SelfCare updates", async () => {
+    const tenant: Tenant = {
+      ...getMockTenant(),
+      subUnitType: "AOO",
+      parentTenantId: generateId<TenantId>(),
+      rootTenantId: generateId<TenantId>(),
+    };
+    const parent = getMockTenant();
+    await addOneTenant(tenant);
+    await addOneTenant(parent);
+
+    await tenantService.selfcareUpsertTenant(
+      {
+        externalId: tenant.externalId,
+        name: tenant.name,
+        selfcareId: tenant.selfcareId!,
+        onboardedAt: tenant.onboardedAt!.toISOString(),
+        subUnitType: "AOO",
+        parentExternalId: parent.externalId,
+      },
+      getMockContext({ authData: getMockAuthData(tenant.id) })
+    );
+
+    const event = await readLastTenantEvent(tenant.id);
+    expect(event?.type).toBe("TenantOnboardDetailsUpdated");
+    const payload = protobufDecoder(TenantOnboardDetailsUpdatedV2).parse(
+      event?.data
+    );
+
+    expect(payload.tenant?.parentTenantId).toBe(tenant.parentTenantId);
+    expect(payload.tenant?.rootTenantId).toBe(tenant.rootTenantId);
   });
 });
