@@ -1,0 +1,26 @@
+meta {
+  name: Add tenant contact
+  type: http
+  seq: 29
+}
+
+post {
+  url: {{host-tenant}}/tenants/:tenantId/contact
+  body: json
+  auth: none
+}
+
+params:path {
+  tenantId: {{tenantId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "contactId": "{{contactId}}"
+  }
+}

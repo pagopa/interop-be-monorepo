@@ -34,6 +34,8 @@ import {
   maintenanceTenantPromotedToCertifierErrorMapper,
   deleteTenantMailErrorMapper,
   addTenantMailErrorMapper,
+  addTenantContactErrorMapper,
+  deleteTenantContactErrorMapper,
   addDeclaredAttributeErrorMapper,
   verifyVerifiedAttributeErrorMapper,
   revokeVerifiedAttributeErrorMapper,
@@ -479,6 +481,64 @@ const tenantsRouter = (
         const errorRes = makeApiProblem(
           error,
           deleteTenantMailErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/tenants/:tenantId/contact", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+        const { data: tenant, metadata } = await tenantService.addTenantContact(
+          {
+            tenantId: unsafeBrandId(req.params.tenantId),
+            contactId: unsafeBrandId(req.body.contactId),
+          },
+          ctx
+        );
+
+        setMetadataVersionHeader(res, metadata);
+
+        return res
+          .status(200)
+          .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          addTenantContactErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .delete("/tenants/:tenantId/contact/:contactId", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+        const { tenantId, contactId } = req.params;
+        const { data: tenant, metadata } =
+          await tenantService.deleteTenantContact(
+            {
+              tenantId: unsafeBrandId(tenantId),
+              contactId: unsafeBrandId(contactId),
+            },
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
+        return res
+          .status(200)
+          .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          deleteTenantContactErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);
