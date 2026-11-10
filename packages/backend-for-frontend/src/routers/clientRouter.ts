@@ -8,7 +8,10 @@ import {
 } from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
 
-import { placeholderMapperGenerator } from "../model/applyError.js";
+import {
+  placeholderMapperGenerator,
+  applyPlaceholderToError,
+} from "../model/applyError.js";
 import { makeApiProblem } from "../model/errors.js";
 import { ClientService } from "../services/clientService.js";
 import { fromBffAppContext } from "../utilities/context.js";
@@ -143,25 +146,28 @@ const clientRouter = (
 
         return res.status(204).send();
       } catch (error) {
-        const placeholderMapper = await placeholderMapperGenerator(
-          async () =>
-            await clientService.getClientKeyById(
-              req.params.clientId,
-              req.params.keyId,
-              ctx
-            ),
-          (value, message) => message.replace("{keyName}", value.name),
-          (placeholderError) =>
-            ctx.logger.warn(
-              `Error retrieving client key placeholder data: ${placeholderError}`
+        const errorRes = await applyPlaceholderToError(
+          makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error deleting key ${req.params.keyId} of client ${req.params.clientId}`
+          ),
+          ["{keyName}"],
+          () =>
+            placeholderMapperGenerator(
+              async () =>
+                await clientService.getClientKeyById(
+                  req.params.clientId,
+                  req.params.keyId,
+                  ctx
+                ),
+              (value, message) => message.replace("{keyName}", value.name),
+              (placeholderError) =>
+                ctx.logger.warn(
+                  `Error retrieving client key placeholder data: ${placeholderError}`
+                )
             )
-        );
-        const errorRes = makeApiProblem(
-          error,
-          emptyErrorMapper,
-          ctx,
-          `Error deleting key ${req.params.keyId} of client ${req.params.clientId}`,
-          placeholderMapper
         );
         return res.status(errorRes.status).send(errorRes);
       }
