@@ -19,7 +19,7 @@ import {
 const { HTTP_STATUS_INTERNAL_SERVER_ERROR } = constants;
 
 // bffEndpoint -> errorCode -> first ErrorMessage with a non-empty Italian copy
-export type ErrorCopyIndex = Map<string, Map<string, ErrorMessage>>;
+type ErrorCopyIndex = Map<string, Map<string, ErrorMessage>>;
 
 export function indexErrorMessages(
   errorMessages: readonly ErrorMessage[]
