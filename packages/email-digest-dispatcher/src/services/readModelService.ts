@@ -2318,7 +2318,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           and(
             eq(eserviceInReadmodelCatalog.producerId, delegateId),
             gte(
-              eserviceDescriptorArchivingRequestInReadmodelCatalog.requestedAt,
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.acceptedAt,
               dateThreshold.toISOString()
             ),
             isNotNull(
@@ -2338,19 +2338,17 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         `Retrieved ${results.length} approved delegation archiving requests for delegate ${delegateId}`
       );
 
-      return results
-        .filter((row) => row.acceptedAt != null)
-        .map((row) => ({
-          eserviceId: row.eserviceId,
-          descriptorId: row.descriptorId,
-          eserviceName: row.eserviceName,
-          requestedAt: row.requestedAt,
-          descriptorVersion: row.descriptorVersion,
-          tenantId: delegateId,
-          totalCount: row.totalCount,
-          acceptedAt: row.acceptedAt,
-          rejectedAt: row.rejectedAt,
-        }));
+      return results.map((row) => ({
+        eserviceId: row.eserviceId,
+        descriptorId: row.descriptorId,
+        eserviceName: row.eserviceName,
+        requestedAt: row.requestedAt,
+        descriptorVersion: row.descriptorVersion,
+        tenantId: delegateId,
+        totalCount: row.totalCount,
+        acceptedAt: row.acceptedAt,
+        rejectedAt: row.rejectedAt,
+      }));
     },
 
     /**
