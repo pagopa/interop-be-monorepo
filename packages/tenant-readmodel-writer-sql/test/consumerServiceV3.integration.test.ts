@@ -1,13 +1,17 @@
+import { genericLogger } from "pagopa-interop-commons";
 import { getMockTenant, getMockTenantMail } from "pagopa-interop-commons-test";
 import {
   ContactId,
   Tenant,
+  TenantEventEnvelopeV2,
   TenantEventEnvelopeV3,
   generateId,
+  toTenantV2,
   toTenantV3,
 } from "pagopa-interop-models";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
+import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import { handleMessageV3 } from "../src/consumerServiceV3.js";
 import {
   getCustomMockCertifiedTenantAttribute,
@@ -148,6 +152,40 @@ describe("Tenant Events V3", async () => {
     expect(retrievedTenant?.data).toStrictEqual(updatedTenant);
     expect(retrievedTenant?.data.mails).toEqual([]);
     expect(retrievedTenant?.metadata).toStrictEqual({ version: 2 });
+  });
+
+  it("drops the contact reference on a later V2 event, logging a warning", async () => {
+    const contactId = generateId<ContactId>();
+    const contactAdded: TenantEventEnvelopeV3 = {
+      ...mockMessage,
+      type: "TenantContactAdded",
+      data: { contactId, tenant: toTenantV3({ ...mockTenant, contactId }) },
+      version: 1,
+    };
+    await handleMessageV3(contactAdded, tenantWriterService);
+
+    // A V2 event carries no contact reference.
+    const v2Message: TenantEventEnvelopeV2 = {
+      ...mockMessage,
+      event_version: 2,
+      type: "TenantOnboardDetailsUpdated",
+      data: { tenant: toTenantV2(mockTenant) },
+      version: 2,
+    };
+    const warn = vi.spyOn(genericLogger, "warn");
+
+    await handleMessageV2(v2Message, tenantWriterService);
+
+    const retrievedTenant = await tenantReadModelService.getTenantById(
+      mockTenant.id
+    );
+
+    expect(retrievedTenant?.data).toStrictEqual(mockTenant);
+    expect(retrievedTenant?.metadata).toStrictEqual({ version: 2 });
+    expect(warn).toHaveBeenCalledWith(
+      `Tenant ${mockTenant.id} lost its contact reference ${contactId}: V2 event TenantOnboardDetailsUpdated carries no contact`
+    );
+    warn.mockRestore();
   });
 
   it("ignores an event already processed or older than the readmodel version", async () => {

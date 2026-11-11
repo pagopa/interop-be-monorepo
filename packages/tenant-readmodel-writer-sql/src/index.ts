@@ -41,7 +41,7 @@ async function processMessage({
       handleMessageV1(msg, tenantWriterService)
     )
     .with({ event_version: 2 }, (msg) =>
-      handleMessageV2(msg, tenantWriterService)
+      handleMessageV2(msg, tenantWriterService, loggerInstance)
     )
     .with({ event_version: 3 }, (msg) =>
       handleMessageV3(msg, tenantWriterService)
