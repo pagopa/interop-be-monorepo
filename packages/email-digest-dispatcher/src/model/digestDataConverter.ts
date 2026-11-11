@@ -672,7 +672,7 @@ export async function receivedDelegationArchivingRequestsToDigest(
   const enrichedItems = await enrichWithProducerNames(
     data.map((item) => ({
       ...item,
-      entityProducerId: item.tenantId,
+      entityProducerId: item.producerId,
     })),
     readModelService
   );

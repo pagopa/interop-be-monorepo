@@ -263,6 +263,25 @@ export function digestDataServiceBuilder(
         selfcareId
       );
 
+      const [
+        archivingRequestsDigest,
+        approvedArchivingRequestsDigest,
+        rejectedArchivingRequestsDigest,
+      ] = await Promise.all([
+        receivedDelegationArchivingRequestsToDigest(
+          archivingRequests,
+          readModelService
+        ),
+        receivedDelegationArchivingRequestsToDigest(
+          approvedArchivingRequests,
+          readModelService
+        ),
+        receivedDelegationArchivingRequestsToDigest(
+          rejectedArchivingRequests,
+          readModelService
+        ),
+      ]);
+
       return {
         tenantId,
         tenantName,
@@ -391,20 +410,9 @@ export function digestDataServiceBuilder(
           archivingConsumerScopeCounts.eserviceScopeCount,
         archivingConsumerDescriptorScopeCount:
           archivingConsumerScopeCounts.descriptorScopeCount,
-        archivingRequests: await receivedDelegationArchivingRequestsToDigest(
-          archivingRequests,
-          readModelService
-        ),
-        approvedArchivingRequests:
-          await receivedDelegationArchivingRequestsToDigest(
-            approvedArchivingRequests,
-            readModelService
-          ),
-        rejectedArchivingRequests:
-          await receivedDelegationArchivingRequestsToDigest(
-            rejectedArchivingRequests,
-            readModelService
-          ),
+        archivingRequests: archivingRequestsDigest,
+        approvedArchivingRequests: approvedArchivingRequestsDigest,
+        rejectedArchivingRequests: rejectedArchivingRequestsDigest,
         approvedRiskAnalysis: await approvedRiskAnalysisToDigest(
           approvedRiskAnalysis,
           selfcareId
