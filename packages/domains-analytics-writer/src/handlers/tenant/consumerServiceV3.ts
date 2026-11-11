@@ -5,7 +5,6 @@ import {
   genericInternalError,
   TenantEventEnvelopeV3,
 } from "pagopa-interop-models";
-import { splitTenantIntoObjectsSQL } from "pagopa-interop-readmodel";
 import { match, P } from "ts-pattern";
 import { z } from "zod";
 
@@ -13,6 +12,7 @@ import { DBContext } from "../../db/db.js";
 import { TenantDeletingSchema } from "../../model/tenant/tenant.js";
 import { tenantServiceBuilder } from "../../service/tenantService.js";
 import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
+import { toTenantItems } from "./tenantItems.js";
 
 export async function handleTenantMessageV3(
   messages: TenantEventEnvelopeV3[],
@@ -69,27 +69,8 @@ export async function handleTenantMessageV3(
             );
           }
 
-          const splitResult = splitTenantIntoObjectsSQL(
-            fromTenantV3(msg.data.tenant),
-            message.version
-          );
-
           upsertTenantBatch.push(
-            TenantItemsSchema.parse({
-              tenantSQL: splitResult.tenantSQL,
-              mailsSQL: splitResult.mailsSQL,
-              certifiedAttributesSQL: splitResult.certifiedAttributesSQL,
-              declaredAttributesSQL: splitResult.declaredAttributesSQL,
-              verifiedAttributesSQL: splitResult.verifiedAttributesSQL,
-              verifiedAttributeVerifiersSQL:
-                splitResult.verifiedAttributeVerifiersSQL,
-              verifiedAttributeRevokersSQL:
-                splitResult.verifiedAttributeRevokersSQL,
-              featuresSQL: splitResult.featuresSQL,
-              remoteIdsSQL: splitResult.remoteIdsSQL,
-              certifiedDiscreteAttributesSQL:
-                splitResult.certifiedDiscreteAttributesSQL,
-            } satisfies z.input<typeof TenantItemsSchema>)
+            toTenantItems(fromTenantV3(msg.data.tenant), message.version)
           );
         }
       )
