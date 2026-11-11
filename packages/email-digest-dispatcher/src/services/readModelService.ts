@@ -222,7 +222,7 @@ export type DelegatedArchivingRequest = {
   acceptedAt: string | null;
   rejectedAt: string | null;
   descriptorVersion: string | null;
-  tenantId: TenantId;
+  producerId: TenantId;
   totalCount: number;
 };
 
@@ -2178,15 +2178,15 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
     },
 
     /**
-     * Returns all Received delegated eservice and descriptor archiving requests
-     * that are waiting for approval (acceptedAt and rejectedAt are null) in the last configured frequency hours.
+     * Returns pending delegated eservice and descriptor archiving requests for the producer
+     * (requests made by its delegate) in the last configured frequency hours.
      * Limited to 5 results.
      */
     async getReceivedDelegationArchivingRequests(
-      delegateId: TenantId
+      producerId: TenantId
     ): Promise<DelegatedArchivingRequest[]> {
       logger.info(
-        `Retrieving received delegation archiving requests for delegate ${delegateId} since ${dateThreshold.toISOString()}`
+        `Retrieving received delegation archiving requests for producer ${producerId} since ${dateThreshold.toISOString()}`
       );
 
       const results = await db
@@ -2229,7 +2229,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         )
         .where(
           and(
-            eq(eserviceInReadmodelCatalog.producerId, delegateId),
+            eq(eserviceInReadmodelCatalog.producerId, producerId),
             gte(
               eserviceDescriptorArchivingRequestInReadmodelCatalog.requestedAt,
               dateThreshold.toISOString()
@@ -2248,7 +2248,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         .limit(SECTION_LIST_LIMIT);
 
       logger.info(
-        `Retrieved ${results.length} received delegation archiving requests for delegate ${delegateId}`
+        `Retrieved ${results.length} received delegation archiving requests for producer ${producerId}`
       );
 
       return results.map((row) => ({
@@ -2259,21 +2259,21 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         acceptedAt: row.acceptedAt,
         rejectedAt: row.rejectedAt,
         descriptorVersion: row.descriptorVersion,
-        tenantId: delegateId,
+        producerId: producerId,
         totalCount: row.totalCount,
       }));
     },
 
     /**
-     * Returns all Received delegated eservice and descriptor archiving requests
-     * that have been approved (acceptedAt is not null) in the last configured frequency hours.
+     * Returns approved delegated eservice and descriptor archiving requests for the producer
+     * (requests made by its delegate) in the last configured frequency hours.
      * Limited to 5 results.
      */
     async getApprovedDelegationArchivingRequests(
-      delegateId: TenantId
+      producerId: TenantId
     ): Promise<DelegatedArchivingRequest[]> {
       logger.info(
-        `Retrieving approved delegation archiving requests for delegate ${delegateId} since ${dateThreshold.toISOString()}`
+        `Retrieving approved delegation archiving requests for producer ${producerId} since ${dateThreshold.toISOString()}`
       );
 
       const results = await db
@@ -2316,7 +2316,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         )
         .where(
           and(
-            eq(eserviceInReadmodelCatalog.producerId, delegateId),
+            eq(eserviceInReadmodelCatalog.producerId, producerId),
             gte(
               eserviceDescriptorArchivingRequestInReadmodelCatalog.acceptedAt,
               dateThreshold.toISOString()
@@ -2335,7 +2335,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         .limit(SECTION_LIST_LIMIT);
 
       logger.info(
-        `Retrieved ${results.length} approved delegation archiving requests for delegate ${delegateId}`
+        `Retrieved ${results.length} approved delegation archiving requests for producer ${producerId}`
       );
 
       return results.map((row) => ({
@@ -2344,7 +2344,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         eserviceName: row.eserviceName,
         requestedAt: row.requestedAt,
         descriptorVersion: row.descriptorVersion,
-        tenantId: delegateId,
+        producerId: producerId,
         totalCount: row.totalCount,
         acceptedAt: row.acceptedAt,
         rejectedAt: row.rejectedAt,
@@ -2352,15 +2352,15 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
     },
 
     /**
-     * Returns all Received delegated eservice and descriptor archiving requests
-     * that have been rejected (rejectedAt is not null) in the last configured frequency hours.
+     * Returns rejected delegated eservice and descriptor archiving requests for the producer
+     * (requests made by its delegate) in the last configured frequency hours.
      * Limited to 5 results.
      */
     async getRejectedDelegationArchivingRequests(
-      delegateId: TenantId
+      producerId: TenantId
     ): Promise<DelegatedArchivingRequest[]> {
       logger.info(
-        `Retrieving rejected delegation archiving requests for delegate ${delegateId} since ${dateThreshold.toISOString()}`
+        `Retrieving rejected delegation archiving requests for producer ${producerId} since ${dateThreshold.toISOString()}`
       );
 
       const results = await db
@@ -2403,7 +2403,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         )
         .where(
           and(
-            eq(eserviceInReadmodelCatalog.producerId, delegateId),
+            eq(eserviceInReadmodelCatalog.producerId, producerId),
             gte(
               eserviceDescriptorArchivingRequestInReadmodelCatalog.rejectedAt,
               dateThreshold.toISOString()
@@ -2422,7 +2422,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         .limit(SECTION_LIST_LIMIT);
 
       logger.info(
-        `Retrieved ${results.length} rejected delegation archiving requests for delegate ${delegateId}`
+        `Retrieved ${results.length} rejected delegation archiving requests for producer ${producerId}`
       );
 
       return results.map((row) => ({
@@ -2433,7 +2433,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         acceptedAt: row.acceptedAt,
         rejectedAt: row.rejectedAt,
         descriptorVersion: row.descriptorVersion,
-        tenantId: delegateId,
+        producerId: producerId,
         totalCount: row.totalCount,
       }));
     },
