@@ -96,24 +96,26 @@ describe("create eService from template", () => {
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
-    expect(eService).toBeDefined();
+    expect(eService.data).toBeDefined();
 
     const eServiceCreationEvent = await readEventByStreamIdAndVersion(
-      eService.id,
+      eService.data.id,
       0,
       "catalog",
       postgresDB
     );
-    const descriptorCreationEvent = await readLastEserviceEvent(eService.id);
+    const descriptorCreationEvent = await readLastEserviceEvent(
+      eService.data.id
+    );
 
     expect(eServiceCreationEvent).toMatchObject({
-      stream_id: eService.id,
+      stream_id: eService.data.id,
       version: "0",
       type: "EServiceAdded",
       event_version: 2,
     });
     expect(descriptorCreationEvent).toMatchObject({
-      stream_id: eService.id,
+      stream_id: eService.data.id,
       version: "1",
       type: "EServiceDescriptorAdded",
       event_version: 2,
@@ -132,9 +134,9 @@ describe("create eService from template", () => {
       ...mockEService,
       description: eServiceTemplate.description,
       name: eServiceTemplate.name,
-      createdAt: eService.createdAt,
-      id: eService.id,
-      isSignalHubEnabled: eService.isSignalHubEnabled,
+      createdAt: eService.data.createdAt,
+      id: eService.data.id,
+      isSignalHubEnabled: eService.data.isSignalHubEnabled,
       isConsumerDelegable: false,
       isClientAccessDelegable: false,
       templateId: eServiceTemplate.id,
@@ -147,8 +149,8 @@ describe("create eService from template", () => {
       description: eServiceTemplate.description,
       name: eServiceTemplate.name,
       createdAt: new Date(),
-      id: eService.id,
-      isSignalHubEnabled: eService.isSignalHubEnabled,
+      id: eService.data.id,
+      isSignalHubEnabled: eService.data.isSignalHubEnabled,
       isClientAccessDelegable: false,
       isConsumerDelegable: false,
       templateId: eServiceTemplate.id,
@@ -158,7 +160,7 @@ describe("create eService from template", () => {
         {
           ...mockDescriptor,
           description: publishedVersion.description,
-          id: eService.descriptors[0].id,
+          id: eService.data.descriptors[0].id,
           createdAt: new Date(),
           serverUrls: [],
           audience: [],
@@ -177,7 +179,7 @@ describe("create eService from template", () => {
       eservice: toEServiceV2(expectedEService),
     });
     expect(descriptorCreationPayload).toEqual({
-      descriptorId: eService.descriptors[0].id,
+      descriptorId: eService.data.descriptors[0].id,
       eservice: toEServiceV2(expectedEServiceWithDescriptor),
     });
   });
@@ -250,24 +252,26 @@ describe("create eService from template", () => {
         })
       );
 
-      expect(eService).toBeDefined();
+      expect(eService.data).toBeDefined();
 
       const eServiceCreationEvent = await readEventByStreamIdAndVersion(
-        eService.id,
+        eService.data.id,
         0,
         "catalog",
         postgresDB
       );
-      const descriptorCreationEvent = await readLastEserviceEvent(eService.id);
+      const descriptorCreationEvent = await readLastEserviceEvent(
+        eService.data.id
+      );
 
       expect(eServiceCreationEvent).toMatchObject({
-        stream_id: eService.id,
+        stream_id: eService.data.id,
         version: "0",
         type: "EServiceAdded",
         event_version: 2,
       });
       expect(descriptorCreationEvent).toMatchObject({
-        stream_id: eService.id,
+        stream_id: eService.data.id,
         version: "1",
         type: "EServiceDescriptorAdded",
         event_version: 2,
@@ -286,9 +290,9 @@ describe("create eService from template", () => {
         ...mockEService,
         description: eServiceTemplate.description,
         name: expectedName,
-        createdAt: eService.createdAt,
-        id: eService.id,
-        isSignalHubEnabled: eService.isSignalHubEnabled,
+        createdAt: eService.data.createdAt,
+        id: eService.data.id,
+        isSignalHubEnabled: eService.data.isSignalHubEnabled,
         isConsumerDelegable: false,
         isClientAccessDelegable: false,
         templateId: eServiceTemplate.id,
@@ -304,8 +308,8 @@ describe("create eService from template", () => {
         description: eServiceTemplate.description,
         name: expectedName,
         createdAt: new Date(),
-        id: eService.id,
-        isSignalHubEnabled: eService.isSignalHubEnabled,
+        id: eService.data.id,
+        isSignalHubEnabled: eService.data.isSignalHubEnabled,
         isClientAccessDelegable: false,
         isConsumerDelegable: false,
         templateId: eServiceTemplate.id,
@@ -318,7 +322,7 @@ describe("create eService from template", () => {
           {
             ...mockDescriptor,
             description: publishedVersion.description,
-            id: eService.descriptors[0].id,
+            id: eService.data.descriptors[0].id,
             createdAt: new Date(),
             serverUrls: [],
             audience: [],
@@ -336,7 +340,7 @@ describe("create eService from template", () => {
         eservice: toEServiceV2(expectedEService),
       });
       expect(descriptorCreationPayload).toEqual({
-        descriptorId: eService.descriptors[0].id,
+        descriptorId: eService.data.descriptors[0].id,
         eservice: toEServiceV2(expectedEServiceWithDescriptor),
       });
     }
@@ -396,8 +400,8 @@ describe("create eService from template", () => {
       name: eserviceTemplate.name,
       mode: eserviceMode.receive,
       createdAt: new Date(),
-      id: result.id,
-      isSignalHubEnabled: result.isSignalHubEnabled,
+      id: result.data.id,
+      isSignalHubEnabled: result.data.isSignalHubEnabled,
       isClientAccessDelegable: false,
       isConsumerDelegable: false,
       templateId: eserviceTemplate.id,
@@ -411,7 +415,7 @@ describe("create eService from template", () => {
         {
           ...mockDescriptor,
           description: publishedVersion.description,
-          id: result.descriptors[0].id,
+          id: result.data.descriptors[0].id,
           createdAt: new Date(),
           serverUrls: [],
           audience: [],
@@ -426,7 +430,7 @@ describe("create eService from template", () => {
       ],
     };
 
-    expect(result).toEqual(expectedEServiceWithDescriptor);
+    expect(result.data).toEqual(expectedEServiceWithDescriptor);
   });
 
   it("should write on event-store for the creation of an eService in RECEIVE mode from a template when user has kind Private", async () => {
@@ -483,8 +487,8 @@ describe("create eService from template", () => {
       name: eserviceTemplate.name,
       mode: eserviceMode.receive,
       createdAt: new Date(),
-      id: result.id,
-      isSignalHubEnabled: result.isSignalHubEnabled,
+      id: result.data.id,
+      isSignalHubEnabled: result.data.isSignalHubEnabled,
       isClientAccessDelegable: false,
       isConsumerDelegable: false,
       templateId: eserviceTemplate.id,
@@ -495,7 +499,7 @@ describe("create eService from template", () => {
         {
           ...mockDescriptor,
           description: publishedVersion.description,
-          id: result.descriptors[0].id,
+          id: result.data.descriptors[0].id,
           createdAt: new Date(),
           serverUrls: [],
           audience: [],
@@ -510,7 +514,7 @@ describe("create eService from template", () => {
       ],
     };
 
-    expect(result).toEqual(expectedEServiceWithDescriptor);
+    expect(result.data).toEqual(expectedEServiceWithDescriptor);
   });
 
   it("should write on event-store for the creation of an eService from a template with documents", async () => {
@@ -601,56 +605,56 @@ describe("create eService from template", () => {
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
-    expect(eService).toBeDefined();
+    expect(eService.data).toBeDefined();
 
     const eServiceCreationEvent = await readEventByStreamIdAndVersion(
-      eService.id,
+      eService.data.id,
       0,
       "catalog",
       postgresDB
     );
 
     const eServiceDescriptorCreationEvent = await readEventByStreamIdAndVersion(
-      eService.id,
+      eService.data.id,
       1,
       "catalog",
       postgresDB
     );
 
     const eServiceDocument1CreationEvent = await readEventByStreamIdAndVersion(
-      eService.id,
+      eService.data.id,
       2,
       "catalog",
       postgresDB
     );
 
     const eServiceDocument2CreationEvent = await readEventByStreamIdAndVersion(
-      eService.id,
+      eService.data.id,
       3,
       "catalog",
       postgresDB
     );
 
     expect(eServiceCreationEvent).toMatchObject({
-      stream_id: eService.id,
+      stream_id: eService.data.id,
       version: "0",
       type: "EServiceAdded",
       event_version: 2,
     });
     expect(eServiceDescriptorCreationEvent).toMatchObject({
-      stream_id: eService.id,
+      stream_id: eService.data.id,
       version: "1",
       type: "EServiceDescriptorAdded",
       event_version: 2,
     });
     expect(eServiceDocument1CreationEvent).toMatchObject({
-      stream_id: eService.id,
+      stream_id: eService.data.id,
       version: "2",
       type: "EServiceDescriptorDocumentAdded",
       event_version: 2,
     });
     expect(eServiceDocument2CreationEvent).toMatchObject({
-      stream_id: eService.id,
+      stream_id: eService.data.id,
       version: "3",
       type: "EServiceDescriptorDocumentAdded",
       event_version: 2,
@@ -678,8 +682,8 @@ describe("create eService from template", () => {
       description: eServiceTemplate.description,
       name: eServiceTemplate.name,
       createdAt: new Date(),
-      id: eService.id,
-      isSignalHubEnabled: eService.isSignalHubEnabled,
+      id: eService.data.id,
+      isSignalHubEnabled: eService.data.isSignalHubEnabled,
       isClientAccessDelegable: false,
       isConsumerDelegable: false,
       templateId: eServiceTemplate.id,
@@ -689,7 +693,7 @@ describe("create eService from template", () => {
         {
           ...mockDescriptor,
           description: eserviceTemplatePublishedVersion.description,
-          id: eService.descriptors[0].id,
+          id: eService.data.descriptors[0].id,
           createdAt: new Date(),
           serverUrls: [],
           audience: [],
@@ -759,7 +763,7 @@ describe("create eService from template", () => {
     );
 
     expect(actualEServiceDocument2Creation).toEqual({
-      descriptorId: eService.descriptors[0].id,
+      descriptorId: eService.data.descriptors[0].id,
       documentId: expectedDocument2.id,
       eservice: toEServiceV2({
         ...expectedEServiceWithDescriptor,
@@ -1023,17 +1027,17 @@ describe("create eService from template", () => {
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
-    expect(eService).toBeDefined();
+    expect(eService.data).toBeDefined();
 
     const descriptorCreationEvent = await readEventByStreamIdAndVersion(
-      eService.id,
+      eService.data.id,
       1,
       "catalog",
       postgresDB
     );
 
     expect(descriptorCreationEvent).toMatchObject({
-      stream_id: eService.id,
+      stream_id: eService.data.id,
       version: "1",
       type: "EServiceDescriptorAdded",
       event_version: 2,
@@ -1095,10 +1099,10 @@ describe("create eService from template", () => {
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
-    expect(eService).toBeDefined();
+    expect(eService.data).toBeDefined();
 
     const descriptorCreationEvent = await readEventByStreamIdAndVersion(
-      eService.id,
+      eService.data.id,
       1,
       "catalog",
       postgresDB
@@ -1154,10 +1158,10 @@ describe("create eService from template", () => {
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
-    expect(eService).toBeDefined();
+    expect(eService.data).toBeDefined();
 
     const descriptorCreationEvent = await readEventByStreamIdAndVersion(
-      eService.id,
+      eService.data.id,
       1,
       "catalog",
       postgresDB
@@ -1221,11 +1225,11 @@ describe("create eService from template", () => {
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
-    expect(eService).toBeDefined();
-    expect(eService.asyncExchange).toBeUndefined();
+    expect(eService.data).toBeDefined();
+    expect(eService.data.asyncExchange).toBeUndefined();
 
     const descriptorCreationEvent = await readEventByStreamIdAndVersion(
-      eService.id,
+      eService.data.id,
       1,
       "catalog",
       postgresDB
@@ -1301,18 +1305,18 @@ describe("create eService from template", () => {
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
-    expect(eService).toBeDefined();
+    expect(eService.data).toBeDefined();
 
     // Events: 0=EServiceAdded, 1=EServiceDescriptorAdded, 2=AsyncExchangeCallbackInterfaceAdded
     const callbackInterfaceEvent = await readEventByStreamIdAndVersion(
-      eService.id,
+      eService.data.id,
       2,
       "catalog",
       postgresDB
     );
 
     expect(callbackInterfaceEvent).toMatchObject({
-      stream_id: eService.id,
+      stream_id: eService.data.id,
       version: "2",
       type: "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
       event_version: 2,
@@ -1397,14 +1401,14 @@ describe("create eService from template", () => {
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
-    expect(eService).toBeDefined();
-    expect(eService.asyncExchange).toBeUndefined();
+    expect(eService.data).toBeDefined();
+    expect(eService.data.asyncExchange).toBeUndefined();
 
     // Only 2 events should exist: EServiceAdded and EServiceDescriptorAdded
     // No EServiceDescriptorAsyncExchangeCallbackInterfaceAdded event
-    const lastEvent = await readLastEserviceEvent(eService.id);
+    const lastEvent = await readLastEserviceEvent(eService.data.id);
     expect(lastEvent).toMatchObject({
-      stream_id: eService.id,
+      stream_id: eService.data.id,
       version: "1",
       type: "EServiceDescriptorAdded",
     });

@@ -111,7 +111,7 @@ describe("update descriptor", () => {
       });
       expect(writtenPayload).toEqual({
         descriptorId: descriptor.id,
-        eservice: toEServiceV2(returnedEService),
+        eservice: toEServiceV2(returnedEService.data),
       });
     }
   );
@@ -183,7 +183,7 @@ describe("update descriptor", () => {
       });
       expect(writtenPayload).toEqual({
         descriptorId: descriptor.id,
-        eservice: toEServiceV2(returnedEService),
+        eservice: toEServiceV2(returnedEService.data),
       });
     }
   );
@@ -480,7 +480,9 @@ describe("update descriptor", () => {
     );
     expect(attr2?.dailyCallsPerConsumer).toBe(300);
 
-    expect(returnedEService.descriptors[0].attributes.certified[0]).toEqual(
+    expect(
+      returnedEService.data.descriptors[0].attributes.certified[0]
+    ).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           id: mockCertifiedAttribute1.id,
@@ -582,7 +584,7 @@ describe("update descriptor", () => {
     };
 
     expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
-    expect(returnedEService).toEqual(expectedEService);
+    expect(returnedEService.data).toEqual(expectedEService);
   });
 
   it("should throw templateInstanceNotAllowed when seed.attributes changes attribute structure", async () => {

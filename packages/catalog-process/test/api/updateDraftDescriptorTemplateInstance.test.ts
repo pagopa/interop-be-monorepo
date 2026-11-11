@@ -6,6 +6,7 @@ import {
   getMockEServiceTemplate,
   getMockDescriptor,
   getMockEService,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
@@ -55,10 +56,12 @@ describe("API /templates/eservices/{eServiceId}/descriptors/{descriptorId} autho
       agreementApprovalPolicy: "AUTOMATIC",
     };
 
+  const serviceResponse = getMockWithMetadata(mockEService);
+
   beforeEach(() => {
     catalogService.updateDraftDescriptorTemplateInstance = vi
       .fn()
-      .mockResolvedValue(mockEService);
+      .mockResolvedValue(serviceResponse);
   });
 
   const makeRequest = async (
@@ -73,7 +76,11 @@ describe("API /templates/eservices/{eServiceId}/descriptors/{descriptorId} autho
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
@@ -83,6 +90,9 @@ describe("API /templates/eservices/{eServiceId}/descriptors/{descriptorId} autho
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiEservice);
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
     }
   );
 

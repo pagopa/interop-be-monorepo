@@ -243,14 +243,17 @@ const eservicesRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-        const eService =
+        const { data: eService, metadata } =
           await catalogService.createEServiceInstanceFromTemplate(
             unsafeBrandId(req.params.templateId),
             req.body,
             ctx
           );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(catalogApi.EService.parse(eServiceToApiEService(eService)));
@@ -346,14 +349,17 @@ const eservicesRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-        const updatedEService =
+        const { data: updatedEService, metadata } =
           await catalogService.updateEServiceTemplateInstance(
             unsafeBrandId(req.params.eServiceId),
             req.body,
             ctx
           );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(
@@ -979,15 +985,18 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-          const updatedEService =
+          const { data: updatedEService, metadata } =
             await catalogService.updateDraftDescriptorTemplateInstance(
               unsafeBrandId(req.params.eServiceId),
               unsafeBrandId(req.params.descriptorId),
               req.body,
               ctx
             );
+
+          setMetadataVersionHeader(res, metadata);
+
           return res
             .status(200)
             .send(
@@ -1957,14 +1966,17 @@ const eservicesRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-        const descriptor =
+        const { data: descriptor, metadata } =
           await catalogService.createTemplateInstanceDescriptor(
             unsafeBrandId(req.params.eServiceId),
             req.body,
             ctx
           );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(
@@ -1987,15 +1999,18 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-          const updatedEService =
+          const { data: updatedEService, metadata } =
             await catalogService.updateTemplateInstanceDescriptor(
               unsafeBrandId(req.params.eServiceId),
               unsafeBrandId(req.params.descriptorId),
               req.body,
               ctx
             );
+
+          setMetadataVersionHeader(res, metadata);
+
           return res
             .status(200)
             .send(
@@ -2044,14 +2059,16 @@ const eservicesRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-          const updatedEService =
+          const { data: updatedEService, metadata } =
             await catalogService.updateEServiceInstanceLabelAfterPublication(
               unsafeBrandId(req.params.eServiceId),
               req.body.instanceLabel,
               ctx
             );
+
+          setMetadataVersionHeader(res, metadata);
 
           return res
             .status(200)

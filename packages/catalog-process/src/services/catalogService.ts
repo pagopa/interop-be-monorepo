@@ -1351,8 +1351,12 @@ export function catalogServiceBuilder(
     async updateEServiceTemplateInstance(
       eserviceId: EServiceId,
       eserviceSeed: catalogApi.UpdateEServiceTemplateInstanceSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EService> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(`Updating EService ${eserviceId} template instance`);
 
       validateNoHyperlinksSafe(eserviceSeed.instanceLabel);
@@ -1411,9 +1415,14 @@ export function catalogServiceBuilder(
         updatedEService,
         correlationId
       );
-      await repository.createEvent(event);
+      const createdEvent = await repository.createEvent(event);
 
-      return updatedEService;
+      return {
+        data: updatedEService,
+        metadata: {
+          version: createdEvent.newVersion,
+        },
+      };
     },
 
     async deleteEService(
@@ -2184,8 +2193,12 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       seed: catalogApi.UpdateEServiceDescriptorTemplateInstanceSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EService> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(
         `Updating draft Descriptor ${descriptorId} for EService ${eserviceId} template instance`
       );
@@ -2273,9 +2286,14 @@ export function catalogServiceBuilder(
         updatedEService,
         correlationId
       );
-      await repository.createEvent(event);
+      const createdEvent = await repository.createEvent(event);
 
-      return updatedEService;
+      return {
+        data: updatedEService,
+        metadata: {
+          version: createdEvent.newVersion,
+        },
+      };
     },
 
     async publishDescriptor(
@@ -2972,8 +2990,12 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       seed: catalogApi.UpdateEServiceTemplateInstanceDescriptorQuotasSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EService> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(
         `Updating Descriptor ${descriptorId} for EService ${eserviceId} template instance`
       );
@@ -3036,9 +3058,14 @@ export function catalogServiceBuilder(
         updatedEService,
         correlationId
       );
-      await repository.createEvent(event);
+      const createdEvent = await repository.createEvent(event);
 
-      return updatedEService;
+      return {
+        data: updatedEService,
+        metadata: {
+          version: createdEvent.newVersion,
+        },
+      };
     },
     async updateAgreementApprovalPolicy(
       eserviceId: EServiceId,
@@ -4810,8 +4837,8 @@ export function catalogServiceBuilder(
     async createEServiceInstanceFromTemplate(
       templateId: EServiceTemplateId,
       seed: catalogApi.InstanceEServiceSeed,
-      ctx: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EService> {
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       ctx.logger.info(`Creating EService from template ${templateId}`);
 
       const template =
@@ -5004,9 +5031,17 @@ export function catalogServiceBuilder(
         lastEService = eService;
       }
 
-      await repository.createEvents([...events, ...docEvents]);
+      const createdEvents = await repository.createEvents([
+        ...events,
+        ...docEvents,
+      ]);
 
-      return lastEService;
+      return {
+        data: lastEService,
+        metadata: {
+          version: createdEvents.latestNewVersions.get(lastEService.id) ?? 0,
+        },
+      };
     },
     async addEServiceTemplateInstanceInterface(
       eServiceId: EServiceId,
@@ -5088,8 +5123,8 @@ export function catalogServiceBuilder(
     async createTemplateInstanceDescriptor(
       eserviceId: EServiceId,
       eserviceInstanceDescriptorSeed: catalogApi.EServiceInstanceDescriptorSeed,
-      ctx: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Descriptor> {
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Descriptor>> {
       ctx.logger.info(
         `Creating Instance Descriptor for EService ${eserviceId}`
       );
@@ -5242,9 +5277,14 @@ export function catalogServiceBuilder(
         })
       );
 
-      await repository.createEvents(events);
+      const createdEvents = await repository.createEvents(events);
 
-      return updatedDescriptor;
+      return {
+        data: updatedDescriptor,
+        metadata: {
+          version: createdEvents.latestNewVersions.get(eserviceId) ?? 0,
+        },
+      };
     },
     async updateEServicePersonalDataFlagAfterPublication(
       eserviceId: EServiceId,
@@ -5300,8 +5340,12 @@ export function catalogServiceBuilder(
     async updateEServiceInstanceLabelAfterPublication(
       eserviceId: EServiceId,
       instanceLabel: string | undefined,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<EService> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
       logger.info(
         `Updating instance label for E-Service ${eserviceId} to ${instanceLabel}`
       );
@@ -5352,9 +5396,14 @@ export function catalogServiceBuilder(
         correlationId
       );
 
-      await repository.createEvent(event);
+      const createdEvent = await repository.createEvent(event);
 
-      return updatedEservice;
+      return {
+        data: updatedEservice,
+        metadata: {
+          version: createdEvent.newVersion,
+        },
+      };
     },
     async cancelEServiceDescriptorArchiving(
       eserviceId: EServiceId,

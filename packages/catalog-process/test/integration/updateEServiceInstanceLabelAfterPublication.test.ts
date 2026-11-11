@@ -110,7 +110,7 @@ describe("update E-service instanceLabel after publication", async () => {
         eservice: toEServiceV2(updatedEService),
       });
       expect(writtenPayload).toEqual({
-        eservice: toEServiceV2(returnedEService),
+        eservice: toEServiceV2(returnedEService.data),
       });
     }
   );
@@ -153,8 +153,8 @@ describe("update E-service instanceLabel after publication", async () => {
         })
       );
 
-    expect(returnedEService.instanceLabel).toBe(newLabel);
-    expect(returnedEService.name).toBe(`${template.name} - ${newLabel}`);
+    expect(returnedEService.data.instanceLabel).toBe(newLabel);
+    expect(returnedEService.data.name).toBe(`${template.name} - ${newLabel}`);
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
