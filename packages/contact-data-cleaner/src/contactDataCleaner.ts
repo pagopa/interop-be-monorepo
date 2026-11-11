@@ -85,18 +85,27 @@ const cleanPage = async (
     return { ...verification, deleted: 0, failed: 0 };
   }
 
+  let deletedIds: Array<ContactDB["id"]>;
   try {
-    const deleted = await deleteContactsPastProtectionPeriod(db, {
+    deletedIds = await deleteContactsPastProtectionPeriod(db, {
       cutoff,
       ids: orphanIds,
     });
-    return { ...verification, deleted, failed: 0 };
   } catch (error) {
     logger.error(
       `Failed to delete ${orphanIds.length} orphan contacts: ${describeError(error)}`
     );
     return { ...verification, deleted: 0, failed: orphanIds.length };
   }
+
+  if (deletedIds.length > 0) {
+    // Contact IDs are opaque: logging them traces an irreversible deletion
+    // without exposing personal data.
+    logger.info(
+      `Deleted ${deletedIds.length} orphan contacts: ${deletedIds.join(", ")}`
+    );
+  }
+  return { ...verification, deleted: deletedIds.length, failed: 0 };
 };
 
 export const runContactDataCleaner = async ({

@@ -81,6 +81,20 @@ describe("runContactDataCleaner", () => {
     );
   });
 
+  it("logs the IDs of the deleted contacts", async () => {
+    const [referencedId, ...orphanIds] = await addContactsPastProtection(3);
+    const info = vi.spyOn(loggerInstance, "info");
+
+    await runCleaner(referenceCheckerFor([referencedId]));
+
+    const deletionLog = info.mock.calls
+      .map(([message]) => String(message))
+      .find((message) => message.startsWith("Deleted "));
+    expect(deletionLog).toMatch(/^Deleted 2 orphan contacts: /);
+    orphanIds.forEach((id) => expect(deletionLog).toContain(id));
+    expect(deletionLog).not.toContain(referencedId);
+  });
+
   it("only counts the orphans when deletion is disabled", async () => {
     const ids = await addContactsPastProtection(2);
 
