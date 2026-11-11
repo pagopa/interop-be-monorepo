@@ -92,7 +92,14 @@ describe("contact creation through HTTP and PostgreSQL", () => {
       ]);
       expect(await db.select().from(contact)).toEqual([]);
       expect(JSON.stringify(response.body)).not.toContain(email);
-      expect(logs).toHaveBeenCalled();
+      expect(logs).toHaveBeenCalledWith(
+        expect.objectContaining({
+          level: "error",
+          message: expect.stringMatching(
+            /^Contact creation failed for contact [0-9a-f-]{36}$/
+          ),
+        })
+      );
       expect(JSON.stringify(logs.mock.calls)).not.toContain(email);
     } finally {
       await db.execute(
