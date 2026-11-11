@@ -450,7 +450,8 @@ export function digestDataServiceBuilder(
         data.approvedArchivingRequests?.totalCount ||
         data.rejectedArchivingRequests?.totalCount ||
         data.approvedRiskAnalysis?.totalCount ||
-        data.rejectedRiskAnalysis?.totalCount
+        data.rejectedRiskAnalysis?.totalCount ||
+        data.archivingConsumerImminentEservices?.totalCount
       );
     },
   };
