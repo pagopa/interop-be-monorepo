@@ -1732,7 +1732,7 @@
                                         {{#if archivingImminentEservicesSingular}}
                                         C'è <strong>1 archiviazione prevista a breve</strong>:
                                         {{else}}
-                                        Ci sono <strong>{{ archivingImminentEservices.totalCount }} archiviazioni previste a breve</strong>:
+                                        Ci sono <strong>{{ archivingImminentEservices.totalCount }} archiviazioni previste a breve</strong>{{#if archivingImminentRemainder}}, tra cui{{/if}}:
                                         {{/if}}
                                       </p>
                                       <div class="archiving-box">
@@ -1745,6 +1745,9 @@
                                           {{/if}}
                                         </p>
                                         {{/each}}
+                                        {{#if archivingImminentRemainder}}
+                                        <p class="archiving-item">E altre <strong>{{ archivingImminentRemainder }}</strong>.</p>
+                                        {{/if}}
 
                                         <!-- Red Alert -->
                                         <div class="alert-error" role="note">
@@ -1859,7 +1862,7 @@
                                         {{#if archivingConsumerImminentEservicesSingular}}
                                         C'è <strong>1 archiviazione prevista a breve</strong>:
                                         {{else}}
-                                        Ci sono <strong>{{ archivingConsumerImminentEservices.totalCount }} archiviazioni previste a breve</strong>:
+                                        Ci sono <strong>{{ archivingConsumerImminentEservices.totalCount }} archiviazioni previste a breve</strong>{{#if archivingConsumerImminentRemainder}}, tra cui{{/if}}:
                                         {{/if}}
                                       </p>
                                       <div class="archiving-box">
@@ -1872,6 +1875,9 @@
                                           {{/if}}
                                         </p>
                                         {{/each}}
+                                        {{#if archivingConsumerImminentRemainder}}
+                                        <p class="archiving-item">E altre <strong>{{ archivingConsumerImminentRemainder }}</strong>.</p>
+                                        {{/if}}
 
                                         <!-- Red Alert -->
                                         <div class="alert-error" role="note">
