@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { ContactDataCleanerConfig } from "../src/config/config.js";
 
 describe("ContactDataCleanerConfig", () => {
-  it.each([undefined, "", "0", "-1", "1.5", "abc"])(
+  it.each([undefined, "", "0", "-1", "1.5", "169", "abc"])(
     "refuses to start with protection period %j",
     (protectionPeriodHours) => {
       expect(
