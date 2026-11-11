@@ -220,6 +220,46 @@ describe("Template Service", () => {
     expect(compiledHtml).not.toContain("In fase di archiviazione - fruizione");
   });
 
+  it("renders the remainder of imminent archivings beyond the listed items", () => {
+    const mockData = getMockTenantDigestData();
+    const data = {
+      ...mockData,
+      archivingImminentEservices: {
+        items: mockData.archivingImminentEservices?.items ?? [],
+        totalCount: 7,
+      },
+      archivingConsumerImminentEservices: {
+        items: mockData.archivingConsumerImminentEservices?.items ?? [],
+        totalCount: 8,
+      },
+    };
+    const producerItems = data.archivingImminentEservices.items.length;
+    const consumerItems = data.archivingConsumerImminentEservices.items.length;
+
+    const service = digestTemplateServiceBuilder(buildHTMLTemplateService());
+    const producerHtml = service.compileDigestEmail(
+      data,
+      getVisibleSections(["admin"])
+    );
+    const consumerHtml = service.compileDigestEmail(
+      data,
+      getVisibleSections(["security"])
+    );
+
+    expect(producerHtml).toContain(
+      "Ci sono <strong>7 archiviazioni previste a breve</strong>, tra cui:"
+    );
+    expect(producerHtml).toContain(
+      `E altre <strong>${7 - producerItems}</strong>.`
+    );
+    expect(consumerHtml).toContain(
+      "Ci sono <strong>8 archiviazioni previste a breve</strong>, tra cui:"
+    );
+    expect(consumerHtml).toContain(
+      `E altre <strong>${8 - consumerItems}</strong>.`
+    );
+  });
+
   it("renders sent-agreements heading and link when only rejected items exist", () => {
     const empty = { items: [], totalCount: 0 };
 
