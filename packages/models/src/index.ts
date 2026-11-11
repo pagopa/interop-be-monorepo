@@ -11,7 +11,9 @@ export * from "./agreement/protobufConverterToV2.js";
 export * from "./attribute/attribute.js";
 export * from "./attribute/attributeEvents.js";
 export * from "./attribute/protobufConverterFromV1.js";
+export * from "./attribute/protobufConverterFromV2.js";
 export * from "./attribute/protobufConverterToV1.js";
+export * from "./attribute/protobufConverterToV2.js";
 
 export * from "./delegation/delegation.js";
 export * from "./delegation/delegationEvents.js";
@@ -109,6 +111,8 @@ export * from "./gen/v1/tenant/tenant.js";
 export * from "./gen/v1/tenant/events.js";
 export * from "./gen/v1/attribute/attribute.js";
 export * from "./gen/v1/attribute/events.js";
+export * from "./gen/v2/attribute/attribute.js";
+export * from "./gen/v2/attribute/events.js";
 export * from "./gen/v1/eservice/eservice.js";
 export * from "./gen/v1/eservice/events.js";
 export * from "./gen/v1/tenant/events.js";

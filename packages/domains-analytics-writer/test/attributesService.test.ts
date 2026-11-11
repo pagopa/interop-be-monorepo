@@ -6,13 +6,16 @@ import { getMockAttribute } from "pagopa-interop-commons-test";
 import {
   Attribute,
   AttributeAddedV1,
-  AttributeEventEnvelope,
+  AttributeEventEnvelopeV1,
+  AttributeEventEnvelopeV2,
   attributeKind,
   toAttributeV1,
+  toRegistryAttributeV2,
 } from "pagopa-interop-models";
 import { describe, expect, it, beforeEach } from "vitest";
 
 import { handleAttributeMessageV1 } from "../src/handlers/attribute/consumerServiceV1.js";
+import { handleAttributeMessageV2 } from "../src/handlers/attribute/consumerServiceV2.js";
 import { AttributeDbTable } from "../src/model/db/index.js";
 import {
   attributeTables,
@@ -35,7 +38,7 @@ describe("SQL Attribute Service - Events V1", () => {
     const payload: AttributeAddedV1 = {
       attribute: toAttributeV1(certifiedAttribute),
     };
-    const message: AttributeEventEnvelope = {
+    const message: AttributeEventEnvelopeV1 = {
       sequence_num: 1,
       stream_id: certifiedAttribute.id,
       version: 5,
@@ -61,7 +64,7 @@ describe("SQL Attribute Service - Events V1", () => {
     const payload: AttributeAddedV1 = {
       attribute: toAttributeV1(declaredAttribute),
     };
-    const message: AttributeEventEnvelope = {
+    const message: AttributeEventEnvelopeV1 = {
       sequence_num: 1,
       stream_id: declaredAttribute.id,
       version: 2,
@@ -87,7 +90,7 @@ describe("SQL Attribute Service - Events V1", () => {
     const payload: AttributeAddedV1 = {
       attribute: toAttributeV1(verifiedAttribute),
     };
-    const message: AttributeEventEnvelope = {
+    const message: AttributeEventEnvelopeV1 = {
       sequence_num: 1,
       stream_id: verifiedAttribute.id,
       version: 3,
@@ -109,7 +112,7 @@ describe("SQL Attribute Service - Events V1", () => {
 
   it("AttributeAdded - deduplicates batch by attribute ID, keeps only record with highest metadataVersion", async () => {
     const attr = getMockAttribute(attributeKind.verified);
-    const older: AttributeEventEnvelope = {
+    const older: AttributeEventEnvelopeV1 = {
       sequence_num: 1,
       stream_id: attr.id,
       version: 10,
@@ -118,7 +121,7 @@ describe("SQL Attribute Service - Events V1", () => {
       data: { attribute: toAttributeV1(attr) },
       log_date: new Date(),
     };
-    const newer: AttributeEventEnvelope = {
+    const newer: AttributeEventEnvelopeV1 = {
       sequence_num: 2,
       stream_id: attr.id,
       version: 1,
@@ -141,7 +144,7 @@ describe("SQL Attribute Service - Events V1", () => {
     const attr1 = getMockAttribute();
     const attr2 = getMockAttribute(attributeKind.declared);
     const attr3 = getMockAttribute(attributeKind.verified);
-    const messages: AttributeEventEnvelope[] = [
+    const messages: AttributeEventEnvelopeV1[] = [
       {
         sequence_num: 1,
         stream_id: attr1.id,
@@ -195,7 +198,7 @@ describe("SQL Attribute Service - Events V1", () => {
         ...getMockAttribute(attributeKind.declared),
         code: "AAA",
       };
-      const first: AttributeEventEnvelope = {
+      const first: AttributeEventEnvelopeV1 = {
         sequence_num: 1,
         stream_id: attr.id,
         version: 5,
@@ -211,7 +214,7 @@ describe("SQL Attribute Service - Events V1", () => {
       });
       expect(stored?.metadataVersion).toBe(5);
 
-      const equal: AttributeEventEnvelope = {
+      const equal: AttributeEventEnvelopeV1 = {
         sequence_num: 2,
         stream_id: attr.id,
         version: 5,
@@ -227,7 +230,7 @@ describe("SQL Attribute Service - Events V1", () => {
       });
       expect(stored?.metadataVersion).toBe(5);
 
-      const lower: AttributeEventEnvelope = {
+      const lower: AttributeEventEnvelopeV1 = {
         sequence_num: 3,
         stream_id: attr.id,
         version: 4,
@@ -249,7 +252,7 @@ describe("SQL Attribute Service - Events V1", () => {
         ...getMockAttribute(attributeKind.verified),
         code: "code",
       };
-      const initial: AttributeEventEnvelope = {
+      const initial: AttributeEventEnvelopeV1 = {
         sequence_num: 1,
         stream_id: attr.id,
         version: 1,
@@ -260,7 +263,7 @@ describe("SQL Attribute Service - Events V1", () => {
       };
 
       const higherAttr: Attribute = { ...attr, code: "updated code" };
-      const higher: AttributeEventEnvelope = {
+      const higher: AttributeEventEnvelopeV1 = {
         sequence_num: 2,
         stream_id: attr.id,
         version: 10,
@@ -277,5 +280,36 @@ describe("SQL Attribute Service - Events V1", () => {
       expect(stored?.metadataVersion).toBe(10);
       expect(stored?.code).toBe("updated code");
     });
+  });
+});
+
+describe("SQL Attribute Service - Events V2", () => {
+  beforeEach(async () => {
+    await resetTargetTables(attributeTables);
+  });
+
+  it("AttributeSubunitPropagationUpdated", async () => {
+    const attribute: Attribute = {
+      ...getMockAttribute(attributeKind.certified),
+      origin: "certifier-id",
+      subunitPropagationEnabled: true,
+    };
+    const message: AttributeEventEnvelopeV2 = {
+      sequence_num: 1,
+      stream_id: attribute.id,
+      version: 2,
+      type: "AttributeSubunitPropagationUpdated",
+      event_version: 2,
+      data: { attribute: toRegistryAttributeV2(attribute) },
+      log_date: new Date(),
+    };
+
+    await handleAttributeMessageV2([message], dbContext);
+
+    const stored = await getOneFromDb(dbContext, AttributeDbTable.attribute, {
+      id: attribute.id,
+    });
+    expect(stored?.subunitPropagationEnabled).toBe(true);
+    expect(stored?.metadataVersion).toBe(2);
   });
 });

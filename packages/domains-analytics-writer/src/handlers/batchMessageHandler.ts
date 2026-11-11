@@ -24,7 +24,8 @@ import {
   EServiceTemplateEventEnvelopeV2,
   EServiceTemplateEvent,
   genericInternalError,
-  AttributeEventEnvelope,
+  AttributeEventEnvelopeV1,
+  AttributeEventEnvelopeV2,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -33,6 +34,7 @@ import { DBContext } from "../db/db.js";
 import { handleAgreementMessageV1 } from "./agreement/consumerServiceV1.js";
 import { handleAgreementMessageV2 } from "./agreement/consumerServiceV2.js";
 import { handleAttributeMessageV1 } from "./attribute/consumerServiceV1.js";
+import { handleAttributeMessageV2 } from "./attribute/consumerServiceV2.js";
 import { handleAuthorizationMessageV1 } from "./authorization/consumerServiceV1.js";
 import { handleAuthorizationEventMessageV2 } from "./authorization/consumerServiceV2.js";
 import { handleCatalogMessageV1 } from "./catalog/consumerServiceV1.js";
@@ -98,17 +100,22 @@ export async function executeTopicHandler(
       }
     })
     .with(config.attributeTopic, async () => {
-      const attributeV1: AttributeEventEnvelope[] = [];
+      const attributeV1: AttributeEventEnvelopeV1[] = [];
+      const attributeV2: AttributeEventEnvelopeV2[] = [];
       const decodedMessages = kafkaMessages.map((message) =>
         decodeKafkaMessage(message, AttributeEvent)
       );
       for (const decoded of decodedMessages) {
         match(decoded)
           .with({ event_version: 1 }, (msg) => attributeV1.push(msg))
+          .with({ event_version: 2 }, (msg) => attributeV2.push(msg))
           .exhaustive();
       }
       if (attributeV1.length > 0) {
         await handleAttributeMessageV1(attributeV1, dbContext);
+      }
+      if (attributeV2.length > 0) {
+        await handleAttributeMessageV2(attributeV2, dbContext);
       }
     })
     .with(config.purposeTopic, async () => {
