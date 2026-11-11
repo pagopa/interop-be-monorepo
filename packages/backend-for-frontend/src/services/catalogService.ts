@@ -22,6 +22,8 @@ import {
   formatDateyyyyMMddTHHmmss,
   getAllFromPaginated,
   getRulesetExpiration,
+  isDefined,
+  removeDuplicates,
   retry,
   verifyAndCreateDocument,
   verifyAndCreateImportedDocument,
@@ -84,7 +86,11 @@ import {
   createDescriptorDocumentZipFile,
 } from "../utilities/fileUtils.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
-import { getLatestAgreementsOnDescriptor } from "./agreementService.js";
+import { getUseCases } from "../utilities/useCasesUtils.js";
+import {
+  getAllAgreements,
+  getLatestAgreementsOnDescriptor,
+} from "./agreementService.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 import {
   getAllDelegations,
@@ -96,6 +102,7 @@ import {
   assertNotDelegatedEservice,
   assertRequesterCanActAsProducer,
   assertRequesterIsProducer,
+  isAgreementSubscribed,
   isInvalidDescriptor,
 } from "./validators.js";
 
@@ -172,6 +179,50 @@ const enhanceCatalogEservices = async (
   return await Promise.all(
     eservices.map(enhanceEService(requesterId, notifications))
   );
+};
+
+const getUseCasesEservices = async (
+  eserviceIds: EServiceId[],
+  catalogProcessClient: catalogApi.CatalogProcessClient,
+  agreementProcessClient: agreementApi.AgreementProcessClient,
+  tenantProcessClient: TenantProcessClient,
+  inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient,
+  ctx: WithLogger<BffAppContext>
+): Promise<{
+  eservices: bffApi.CatalogEService[];
+  subscribedEserviceIds: Set<string>;
+}> => {
+  if (eserviceIds.length === 0) {
+    return { eservices: [], subscribedEserviceIds: new Set() };
+  }
+
+  const [eservices, agreements] = await Promise.all([
+    getAllFromPaginated((offset, limit) =>
+      catalogProcessClient.getEServices({
+        headers: ctx.headers,
+        queries: { offset, limit, eservicesIds: eserviceIds },
+      })
+    ),
+    getAllAgreements(agreementProcessClient, ctx.headers, {
+      consumersIds: [ctx.authData.organizationId],
+      eservicesIds: eserviceIds,
+    }),
+  ]);
+
+  return {
+    eservices: await enhanceCatalogEservices(
+      eservices,
+      tenantProcessClient,
+      inAppNotificationManagerClient,
+      ctx,
+      ctx.authData.organizationId
+    ),
+    subscribedEserviceIds: new Set(
+      agreements
+        .filter((agreement) => isAgreementSubscribed(agreement))
+        .map((agreement) => agreement.eserviceId)
+    ),
+  };
 };
 
 const checkNewTemplateVersionAvailable = (
@@ -421,6 +472,45 @@ export function catalogServiceBuilder(
           totalCount: eservicesResponse.totalCount,
         },
       };
+    },
+    getCatalogUseCases: async (
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.CatalogUseCase[]> => {
+      ctx.logger.info(`Retrieving catalog use cases, locale = ${ctx.locale}`);
+
+      const useCases = await getUseCases(
+        fileManager,
+        bffConfig,
+        ctx.locale,
+        ctx.logger
+      );
+      const { eservices, subscribedEserviceIds } = await getUseCasesEservices(
+        removeDuplicates(useCases.flatMap((useCase) => useCase.eserviceIds)),
+        catalogProcessClient,
+        agreementProcessClient,
+        tenantProcessClient,
+        inAppNotificationManagerClient,
+        ctx
+      );
+      const eservicesById = new Map(
+        eservices.map((eservice) => [eservice.id, eservice])
+      );
+
+      return useCases.map(({ eserviceIds, ...useCase }) => {
+        const useCaseEservices = removeDuplicates(eserviceIds)
+          .map((eserviceId) => eservicesById.get(eserviceId))
+          .filter(isDefined);
+
+        return {
+          ...useCase,
+          subscribedEservices: useCaseEservices.filter((eservice) =>
+            subscribedEserviceIds.has(eservice.id)
+          ),
+          unsubscribedEservices: useCaseEservices.filter(
+            (eservice) => !subscribedEserviceIds.has(eservice.id)
+          ),
+        };
+      });
     },
     getProducerEServiceDescriptor: async (
       eserviceId: EServiceId,

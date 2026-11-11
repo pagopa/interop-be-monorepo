@@ -1427,6 +1427,44 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  "/catalog/use-cases":
+    get:
+      tags:
+        - eservices
+      summary: Retrieves the use cases of the catalog
+      description: Retrieves the use cases of the catalog in the language of the Accept-Language header, with italian as fallback. The EServices of each use case are split between the EServices with a valid agreement of the requester and the others. The EServices that are not found are ignored.
+      operationId: getCatalogUseCases
+      responses:
+        "200":
+          description: A list of use cases
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CatalogUseCase"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   "/consumers/delegations/delegators":
     parameters:
       - in: query
@@ -15187,6 +15225,44 @@ components:
       required:
         - results
         - pagination
+    CatalogUseCaseField:
+      type: string
+      description: Category of the use case
+      enum:
+        - CITIZEN_SERVICES
+        - WELFARE
+        - MOBILITY
+        - EDUCATION
+        - HEALTHCARE
+    CatalogUseCase:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - slug
+        - fieldId
+        - subscribedEservices
+        - unsubscribedEservices
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        slug:
+          type: string
+          description: Identifier of the use case page on api.gov.it
+        fieldId:
+          $ref: "#/components/schemas/CatalogUseCaseField"
+        subscribedEservices:
+          type: array
+          description: EServices with a valid agreement of the requester
+          items:
+            $ref: "#/components/schemas/CatalogEService"
+        unsubscribedEservices:
+          type: array
+          description: EServices without a valid agreement of the requester
+          items:
+            $ref: "#/components/schemas/CatalogEService"
     CatalogEService:
       type: object
       additionalProperties: false

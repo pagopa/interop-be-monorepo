@@ -19,6 +19,7 @@ import {
   unsafeBrandId,
   emptyErrorMapper,
 } from "pagopa-interop-models";
+import { z } from "zod";
 
 import {
   toBffCatalogApiDescriptorDoc,
@@ -92,6 +93,24 @@ const catalogRouter = (
           bffGetCatalogErrorMapper,
           ctx,
           "Error retrieving filtered Catalog EServices"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/catalog/use-cases", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const response = await catalogService.getCatalogUseCases(ctx);
+
+        return res
+          .status(200)
+          .send(z.array(bffApi.CatalogUseCase).parse(response));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          bffGetCatalogErrorMapper,
+          ctx,
+          "Error retrieving Catalog use cases"
         );
         return res.status(errorRes.status).send(errorRes);
       }
