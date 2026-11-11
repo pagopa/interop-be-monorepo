@@ -1,11 +1,13 @@
 import { genericLogger } from "pagopa-interop-commons";
 import { getMockTenant, getMockTenantMail } from "pagopa-interop-commons-test";
 import {
+  AttributeId,
   ContactId,
   Tenant,
   TenantEventEnvelopeV2,
   TenantEventEnvelopeV3,
   generateId,
+  missingKafkaMessageDataError,
   toTenantV2,
   toTenantV3,
 } from "pagopa-interop-models";
@@ -28,6 +30,133 @@ describe("Tenant Events V3", async () => {
     sequence_num: 1,
     log_date: new Date(),
   };
+
+  // Every V3 event that upserts the tenant, except the contact events, which
+  // have their own tests.
+  const contactTenant: Tenant = {
+    ...mockTenant,
+    contactId: generateId<ContactId>(),
+  };
+  const contactTenantV3 = toTenantV3(contactTenant);
+  const attributeId = generateId<AttributeId>();
+  const base = { ...mockMessage, version: 2 };
+  const eventsKeepingTheContact: TenantEventEnvelopeV3[] = [
+    {
+      ...base,
+      type: "TenantOnboarded",
+      data: { tenant: contactTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantOnboardDetailsUpdated",
+      data: { tenant: contactTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantCertifiedAttributeAssigned",
+      data: { attributeId, tenant: contactTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantCertifiedAttributeRevoked",
+      data: { attributeId, tenant: contactTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantCertifiedDiscreteAttributeAssigned",
+      data: { attributeId, tenant: contactTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantCertifiedDiscreteAttributeRevoked",
+      data: { attributeId, tenant: contactTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantCertifiedDiscreteAttributeUpdated",
+      data: {
+        attributeId,
+        tenant: contactTenantV3,
+        previousValue: 1,
+        newValue: 2,
+      },
+    },
+    {
+      ...base,
+      type: "TenantDeclaredAttributeAssigned",
+      data: { attributeId, tenant: contactTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantDeclaredAttributeRevoked",
+      data: { attributeId, tenant: contactTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantVerifiedAttributeAssigned",
+      data: { attributeId, tenant: contactTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantVerifiedAttributeRevoked",
+      data: { attributeId, tenant: contactTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantVerifiedAttributeExpirationUpdated",
+      data: { attributeId, tenant: contactTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantVerifiedAttributeExtensionUpdated",
+      data: { attributeId, tenant: contactTenantV3 },
+    },
+    {
+      ...base,
+      type: "MaintenanceTenantUpdated",
+      data: { tenant: contactTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantKindUpdated",
+      data: { tenant: contactTenantV3 },
+    },
+    {
+      ...base,
+      type: "MaintenanceTenantPromotedToCertifier",
+      data: { tenant: contactTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantDelegatedProducerFeatureAdded",
+      data: { tenant: contactTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantDelegatedProducerFeatureRemoved",
+      data: { tenant: contactTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantDelegatedConsumerFeatureAdded",
+      data: { tenant: contactTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantDelegatedConsumerFeatureRemoved",
+      data: { tenant: contactTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantRemoteIdAssigned",
+      data: { tenant: contactTenantV3 },
+    },
+    {
+      ...base,
+      type: "MaintenanceTenantRemoteIdDeleted",
+      data: { tenant: contactTenantV3 },
+    },
+  ];
 
   it("TenantContactAdded", async () => {
     await tenantWriterService.upsertTenant(mockTenant, 1);
@@ -127,6 +256,39 @@ describe("Tenant Events V3", async () => {
     expect(retrievedTenant?.metadata).toStrictEqual({ version: 2 });
   });
 
+  it.each(eventsKeepingTheContact)(
+    "$type keeps the contact reference",
+    async (message) => {
+      await tenantWriterService.upsertTenant(contactTenant, 1);
+
+      await handleMessageV3(message, tenantWriterService);
+
+      const retrievedTenant = await tenantReadModelService.getTenantById(
+        mockTenant.id
+      );
+
+      expect(retrievedTenant?.data).toStrictEqual(contactTenant);
+      expect(retrievedTenant?.metadata).toStrictEqual({ version: 2 });
+    }
+  );
+
+  it("TenantOnboarded inserts a tenant not in the readmodel with its contact", async () => {
+    const message: TenantEventEnvelopeV3 = {
+      ...mockMessage,
+      type: "TenantOnboarded",
+      data: { tenant: contactTenantV3 },
+    };
+
+    await handleMessageV3(message, tenantWriterService);
+
+    const retrievedTenant = await tenantReadModelService.getTenantById(
+      mockTenant.id
+    );
+
+    expect(retrievedTenant?.data).toStrictEqual(contactTenant);
+    expect(retrievedTenant?.metadata).toStrictEqual({ version: 1 });
+  });
+
   it("drops the legacy mails of a tenant on its first V3 event", async () => {
     await tenantWriterService.upsertTenant(
       { ...mockTenant, mails: [getMockTenantMail()] },
@@ -188,7 +350,46 @@ describe("Tenant Events V3", async () => {
     warn.mockRestore();
   });
 
-  it("ignores an event already processed or older than the readmodel version", async () => {
+  it("handles an event replayed at the same version idempotently", async () => {
+    await tenantWriterService.upsertTenant(mockTenant, 1);
+
+    const contactId = generateId<ContactId>();
+    const updatedTenant: Tenant = { ...mockTenant, contactId };
+    const message: TenantEventEnvelopeV3 = {
+      ...mockMessage,
+      type: "TenantContactAdded",
+      data: { contactId, tenant: toTenantV3(updatedTenant) },
+      version: 2,
+    };
+
+    await handleMessageV3(message, tenantWriterService);
+    await handleMessageV3(message, tenantWriterService);
+
+    const retrievedTenant = await tenantReadModelService.getTenantById(
+      mockTenant.id
+    );
+
+    expect(retrievedTenant?.data).toStrictEqual(updatedTenant);
+    expect(retrievedTenant?.metadata).toStrictEqual({ version: 2 });
+  });
+
+  it("rejects an event without the tenant", async () => {
+    const message: TenantEventEnvelopeV3 = {
+      ...mockMessage,
+      type: "TenantContactAdded",
+      data: { contactId: generateId<ContactId>() },
+    };
+    const expectedError = missingKafkaMessageDataError(
+      "tenant",
+      "TenantContactAdded"
+    );
+
+    await expect(
+      handleMessageV3(message, tenantWriterService)
+    ).rejects.toThrow(expectedError);
+  });
+
+  it("ignores an event older than the readmodel version", async () => {
     const currentContactId = generateId<ContactId>();
     const currentTenant: Tenant = {
       ...mockTenant,
