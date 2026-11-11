@@ -70,7 +70,7 @@ export type DelegatedEserviceDigest = BaseDigest & {
   }>;
 };
 
-type ArchivingProducerItem = {
+type ArchivingItem = {
   id: string;
   eserviceName: string;
   version: string;
@@ -80,8 +80,8 @@ type ArchivingProducerItem = {
   link: string;
 };
 
-export type ArchivingProducerDigest = {
-  items: ArchivingProducerItem[];
+export type ArchivingDigest = {
+  items: ArchivingItem[];
   totalCount: number;
 };
 
@@ -115,10 +115,14 @@ export type TenantDigestData = {
   waitingForApprovalDelegatedEservices?: DelegatedEserviceDigest;
   receivedAttributes?: AttributeDigest;
   revokedAttributes?: AttributeDigest;
-  archivingImminentEservices?: ArchivingProducerDigest;
-  archivingInProgressEservices?: ArchivingProducerDigest;
+  archivingImminentEservices?: ArchivingDigest;
+  archivingInProgressEservices?: ArchivingDigest;
   archivingEserviceScopeCount?: number;
   archivingDescriptorScopeCount?: number;
+  archivingConsumerImminentEservices?: ArchivingDigest;
+  archivingConsumerInProgressEservices?: ArchivingDigest;
+  archivingConsumerEserviceScopeCount?: number;
+  archivingConsumerDescriptorScopeCount?: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -182,6 +186,9 @@ export function digestDataServiceBuilder(
         archivingInProgressEservices,
         archivingImminentEservices,
         archivingScopeCounts,
+        archivingConsumerInProgressEservices,
+        archivingConsumerImminentEservices,
+        archivingConsumerScopeCounts,
       ] = await Promise.all([
         readModelService.getNewVersionEservices(tenantId),
         readModelService.getNewEserviceTemplates(tenantId),
@@ -199,6 +206,9 @@ export function digestDataServiceBuilder(
         readModelService.getArchivingInProgressEservices(tenantId), // tenantId as producerId
         readModelService.getArchivingImminentEservices(tenantId), // tenantId as producerId
         readModelService.getArchivingScopeCounts(tenantId), // tenantId as producerId
+        readModelService.getConsumerArchivingInProgressEservices(tenantId), // tenantId as consumerId
+        readModelService.getConsumerArchivingImminentEservices(tenantId), // tenantId as consumerId
+        readModelService.getConsumerArchivingScopeCounts(tenantId), // tenantId as consumerId
       ]);
 
       const tenantData = tenantDataMap.get(tenantId);
@@ -325,6 +335,18 @@ export function digestDataServiceBuilder(
         archivingEserviceScopeCount: archivingScopeCounts.eserviceScopeCount,
         archivingDescriptorScopeCount:
           archivingScopeCounts.descriptorScopeCount,
+        archivingConsumerInProgressEservices: archivingEservicesToDigest(
+          archivingConsumerInProgressEservices,
+          selfcareId
+        ),
+        archivingConsumerImminentEservices: archivingEservicesToDigest(
+          archivingConsumerImminentEservices,
+          selfcareId
+        ),
+        archivingConsumerEserviceScopeCount:
+          archivingConsumerScopeCounts.eserviceScopeCount,
+        archivingConsumerDescriptorScopeCount:
+          archivingConsumerScopeCounts.descriptorScopeCount,
       };
     },
 
@@ -347,7 +369,9 @@ export function digestDataServiceBuilder(
         data.receivedAttributes?.totalCount ||
         data.revokedAttributes?.totalCount ||
         data.archivingInProgressEservices?.totalCount ||
-        data.archivingImminentEservices?.totalCount
+        data.archivingImminentEservices?.totalCount ||
+        data.archivingConsumerInProgressEservices?.totalCount ||
+        data.archivingConsumerImminentEservices?.totalCount
       );
     },
   };

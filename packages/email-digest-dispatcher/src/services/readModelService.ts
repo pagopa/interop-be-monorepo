@@ -13,6 +13,7 @@ import {
   inArray,
   gt,
   sql,
+  SQL,
 } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { Logger, withTotalCount } from "pagopa-interop-commons";
@@ -400,6 +401,60 @@ function groupAndMapReceivedPurposeResults(
     actionDate: row.updatedAt ?? row.createdAt,
     totalCount,
   }));
+}
+
+const archivingColumns = {
+  eserviceId: eserviceDescriptorArchivingScheduleInReadmodelCatalog.eserviceId,
+  descriptorId:
+    eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId,
+  eserviceName: eserviceInReadmodelCatalog.name,
+  version: eserviceDescriptorInReadmodelCatalog.version,
+  scope: eserviceDescriptorArchivingScheduleInReadmodelCatalog.scope,
+  archivableOn:
+    eserviceDescriptorArchivingScheduleInReadmodelCatalog.archivableOn,
+};
+
+/**
+ * The archiving schedule row is kept after the descriptor becomes Archived,
+ * so every archiving query must also check the descriptor state.
+ */
+const descriptorInArchivingCountdown = inArray(
+  eserviceDescriptorInReadmodelCatalog.state,
+  [descriptorState.archiving, descriptorState.archivingSuspended]
+);
+
+/**
+ * Filter for consumer-side archiving queries: the consumer holds an Active or
+ * Suspended agreement on a descriptor that is still in the archiving countdown.
+ */
+const consumerArchivingFilter = (consumerId: TenantId): SQL | undefined =>
+  and(
+    eq(agreementInReadmodelAgreement.consumerId, consumerId),
+    inArray(agreementInReadmodelAgreement.state, [
+      agreementState.active,
+      agreementState.suspended,
+    ]),
+    descriptorInArchivingCountdown
+  );
+
+function toArchivingEservice(row: {
+  eserviceId: string;
+  descriptorId: string;
+  eserviceName: string;
+  version: string;
+  scope: string;
+  archivableOn: string;
+  totalCount: number;
+}): ArchivingEservice {
+  return {
+    eserviceId: unsafeBrandId<EServiceId>(row.eserviceId),
+    descriptorId: unsafeBrandId<DescriptorId>(row.descriptorId),
+    eserviceName: row.eserviceName,
+    version: row.version,
+    scope: row.scope as ArchivingScope,
+    archivableOn: row.archivableOn,
+    totalCount: row.totalCount,
+  };
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -847,84 +902,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
       );
 
       const results = await db
-        .select(
-          withTotalCount({
-            eserviceId:
-              eserviceDescriptorArchivingScheduleInReadmodelCatalog.eserviceId,
-            descriptorId:
-              eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId,
-            eserviceName: eserviceInReadmodelCatalog.name,
-            version: eserviceDescriptorInReadmodelCatalog.version,
-            scope: eserviceDescriptorArchivingScheduleInReadmodelCatalog.scope,
-            archivableOn:
-              eserviceDescriptorArchivingScheduleInReadmodelCatalog.archivableOn,
-          })
-        )
-        .from(eserviceDescriptorArchivingScheduleInReadmodelCatalog)
-        .innerJoin(
-          eserviceInReadmodelCatalog,
-          eq(
-            eserviceInReadmodelCatalog.id,
-            eserviceDescriptorArchivingScheduleInReadmodelCatalog.eserviceId
-          )
-        )
-        .innerJoin(
-          eserviceDescriptorInReadmodelCatalog,
-          eq(
-            eserviceDescriptorInReadmodelCatalog.id,
-            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
-          )
-        )
-        .where(eq(eserviceInReadmodelCatalog.producerId, producerId))
-        .orderBy(
-          desc(eserviceDescriptorArchivingScheduleInReadmodelCatalog.startedAt)
-        )
-        .limit(SECTION_LIST_LIMIT);
-
-      logger.info(
-        `Retrieved ${results.length} in-progress archiving e-services for producer ${producerId}`
-      );
-
-      return results.map((row) => ({
-        eserviceId: unsafeBrandId<EServiceId>(row.eserviceId),
-        descriptorId: unsafeBrandId<DescriptorId>(row.descriptorId),
-        eserviceName: row.eserviceName,
-        version: row.version,
-        scope: row.scope as ArchivingScope,
-        archivableOn: row.archivableOn,
-        totalCount: row.totalCount,
-      }));
-    },
-
-    /**
-     * Returns descriptors/e-services owned by the producer whose archiving will become
-     * definitive within the next 7 days ("previste a breve"), ordered from most to least
-     * imminent. Limited to 5.
-     */
-    async getArchivingImminentEservices(
-      producerId: TenantId
-    ): Promise<ArchivingEservice[]> {
-      const imminentCutoff = new Date();
-      imminentCutoff.setDate(imminentCutoff.getDate() + 7);
-
-      logger.info(
-        `Retrieving imminent archiving e-services for producer ${producerId} (cutoff ${imminentCutoff.toISOString()})`
-      );
-
-      const results = await db
-        .select(
-          withTotalCount({
-            eserviceId:
-              eserviceDescriptorArchivingScheduleInReadmodelCatalog.eserviceId,
-            descriptorId:
-              eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId,
-            eserviceName: eserviceInReadmodelCatalog.name,
-            version: eserviceDescriptorInReadmodelCatalog.version,
-            scope: eserviceDescriptorArchivingScheduleInReadmodelCatalog.scope,
-            archivableOn:
-              eserviceDescriptorArchivingScheduleInReadmodelCatalog.archivableOn,
-          })
-        )
+        .select(withTotalCount(archivingColumns))
         .from(eserviceDescriptorArchivingScheduleInReadmodelCatalog)
         .innerJoin(
           eserviceInReadmodelCatalog,
@@ -943,6 +921,57 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         .where(
           and(
             eq(eserviceInReadmodelCatalog.producerId, producerId),
+            descriptorInArchivingCountdown
+          )
+        )
+        .orderBy(
+          desc(eserviceDescriptorArchivingScheduleInReadmodelCatalog.startedAt)
+        )
+        .limit(SECTION_LIST_LIMIT);
+
+      logger.info(
+        `Retrieved ${results.length} in-progress archiving e-services for producer ${producerId}`
+      );
+
+      return results.map(toArchivingEservice);
+    },
+
+    /**
+     * Returns descriptors/e-services owned by the producer whose archiving will become
+     * definitive within the next 7 days ("previste a breve"), ordered from most to least
+     * imminent. Limited to 5.
+     */
+    async getArchivingImminentEservices(
+      producerId: TenantId
+    ): Promise<ArchivingEservice[]> {
+      const imminentCutoff = new Date();
+      imminentCutoff.setDate(imminentCutoff.getDate() + 7);
+
+      logger.info(
+        `Retrieving imminent archiving e-services for producer ${producerId} (cutoff ${imminentCutoff.toISOString()})`
+      );
+
+      const results = await db
+        .select(withTotalCount(archivingColumns))
+        .from(eserviceDescriptorArchivingScheduleInReadmodelCatalog)
+        .innerJoin(
+          eserviceInReadmodelCatalog,
+          eq(
+            eserviceInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.eserviceId
+          )
+        )
+        .innerJoin(
+          eserviceDescriptorInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+          )
+        )
+        .where(
+          and(
+            eq(eserviceInReadmodelCatalog.producerId, producerId),
+            descriptorInArchivingCountdown,
             lte(
               eserviceDescriptorArchivingScheduleInReadmodelCatalog.archivableOn,
               imminentCutoff.toISOString()
@@ -960,15 +989,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         `Retrieved ${results.length} imminent archiving e-services for producer ${producerId}`
       );
 
-      return results.map((row) => ({
-        eserviceId: unsafeBrandId<EServiceId>(row.eserviceId),
-        descriptorId: unsafeBrandId<DescriptorId>(row.descriptorId),
-        eserviceName: row.eserviceName,
-        version: row.version,
-        scope: row.scope as ArchivingScope,
-        archivableOn: row.archivableOn,
-        totalCount: row.totalCount,
-      }));
+      return results.map(toArchivingEservice);
     },
 
     /**
@@ -993,7 +1014,19 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
             eserviceDescriptorArchivingScheduleInReadmodelCatalog.eserviceId
           )
         )
-        .where(eq(eserviceInReadmodelCatalog.producerId, producerId))
+        .innerJoin(
+          eserviceDescriptorInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+          )
+        )
+        .where(
+          and(
+            eq(eserviceInReadmodelCatalog.producerId, producerId),
+            descriptorInArchivingCountdown
+          )
+        )
         .groupBy(eserviceDescriptorArchivingScheduleInReadmodelCatalog.scope);
 
       const eserviceScopeCount =
@@ -1002,6 +1035,165 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
       const descriptorScopeCount =
         results.find((r) => r.scope === archivingScope.descriptor)
           ?.scopeCount ?? 0;
+
+      return { eserviceScopeCount, descriptorScopeCount };
+    },
+
+    /**
+     * Returns descriptors/e-services the consumer is subscribed to (Active or Suspended
+     * agreement on that descriptor) that are currently in the archiving notice-period
+     * countdown. Ordered from most recently started to least recent. Limited to 5.
+     */
+    async getConsumerArchivingInProgressEservices(
+      consumerId: TenantId
+    ): Promise<ArchivingEservice[]> {
+      logger.info(
+        `Retrieving in-progress archiving e-services for consumer ${consumerId}`
+      );
+
+      const results = await db
+        .select(withTotalCount(archivingColumns))
+        .from(eserviceDescriptorArchivingScheduleInReadmodelCatalog)
+        .innerJoin(
+          eserviceInReadmodelCatalog,
+          eq(
+            eserviceInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.eserviceId
+          )
+        )
+        .innerJoin(
+          eserviceDescriptorInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+          )
+        )
+        .innerJoin(
+          agreementInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.descriptorId,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+          )
+        )
+        .where(consumerArchivingFilter(consumerId))
+        .orderBy(
+          desc(eserviceDescriptorArchivingScheduleInReadmodelCatalog.startedAt)
+        )
+        .limit(SECTION_LIST_LIMIT);
+
+      logger.info(
+        `Retrieved ${results.length} in-progress archiving e-services for consumer ${consumerId}`
+      );
+
+      return results.map(toArchivingEservice);
+    },
+
+    /**
+     * Returns descriptors/e-services the consumer is subscribed to whose archiving will
+     * become definitive within the next 7 days ("previste a breve"), ordered from most
+     * to least imminent. Limited to 5.
+     */
+    async getConsumerArchivingImminentEservices(
+      consumerId: TenantId
+    ): Promise<ArchivingEservice[]> {
+      const imminentCutoff = new Date();
+      imminentCutoff.setDate(imminentCutoff.getDate() + 7);
+
+      logger.info(
+        `Retrieving imminent archiving e-services for consumer ${consumerId} (cutoff ${imminentCutoff.toISOString()})`
+      );
+
+      const results = await db
+        .select(withTotalCount(archivingColumns))
+        .from(eserviceDescriptorArchivingScheduleInReadmodelCatalog)
+        .innerJoin(
+          eserviceInReadmodelCatalog,
+          eq(
+            eserviceInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.eserviceId
+          )
+        )
+        .innerJoin(
+          eserviceDescriptorInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+          )
+        )
+        .innerJoin(
+          agreementInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.descriptorId,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+          )
+        )
+        .where(
+          and(
+            consumerArchivingFilter(consumerId),
+            lte(
+              eserviceDescriptorArchivingScheduleInReadmodelCatalog.archivableOn,
+              imminentCutoff.toISOString()
+            )
+          )
+        )
+        .orderBy(
+          asc(
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.archivableOn
+          )
+        )
+        .limit(SECTION_LIST_LIMIT);
+
+      logger.info(
+        `Retrieved ${results.length} imminent archiving e-services for consumer ${consumerId}`
+      );
+
+      return results.map(toArchivingEservice);
+    },
+
+    /**
+     * Returns, for the e-services the consumer is subscribed to that are currently in
+     * the archiving countdown, how many distinct e-services are scheduled at e-service
+     * scope vs how many single descriptors are scheduled at descriptor scope.
+     * Used for the section's stat cards.
+     */
+    async getConsumerArchivingScopeCounts(consumerId: TenantId): Promise<{
+      eserviceScopeCount: number;
+      descriptorScopeCount: number;
+    }> {
+      const results = await db
+        .select({
+          scope: eserviceDescriptorArchivingScheduleInReadmodelCatalog.scope,
+          eserviceCount: countDistinct(
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.eserviceId
+          ),
+          descriptorCount: countDistinct(
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+          ),
+        })
+        .from(eserviceDescriptorArchivingScheduleInReadmodelCatalog)
+        .innerJoin(
+          eserviceDescriptorInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+          )
+        )
+        .innerJoin(
+          agreementInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.descriptorId,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+          )
+        )
+        .where(consumerArchivingFilter(consumerId))
+        .groupBy(eserviceDescriptorArchivingScheduleInReadmodelCatalog.scope);
+
+      const eserviceScopeCount =
+        results.find((r) => r.scope === archivingScope.eservice)
+          ?.eserviceCount ?? 0;
+      const descriptorScopeCount =
+        results.find((r) => r.scope === archivingScope.descriptor)
+          ?.descriptorCount ?? 0;
 
       return { eserviceScopeCount, descriptorScopeCount };
     },

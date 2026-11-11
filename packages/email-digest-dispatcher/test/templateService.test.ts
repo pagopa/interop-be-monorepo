@@ -3,7 +3,10 @@ import { beforeAll, describe, expect, it } from "vitest";
 
 import { digestTemplateServiceBuilder } from "../src/services/templateService.js";
 import { getVisibleSections } from "../src/utils/digestAdmittedRoles.js";
-import { getMockTenantDigestData } from "./mockUtils.js";
+import {
+  getMockSingularTenantDigestData,
+  getMockTenantDigestData,
+} from "./mockUtils.js";
 
 describe("Template Service", () => {
   let compiledHtml: string;
@@ -155,6 +158,106 @@ describe("Template Service", () => {
 
     expect(compiledHtml).toContain("https://example.com/archiving");
     expect(compiledHtml).toContain("https://example.com/eservice/6");
+  });
+
+  it("should render the consumer archiving section, hiding zero-count stat cards", () => {
+    const htmlTemplateService = buildHTMLTemplateService();
+    const digestTemplateService =
+      digestTemplateServiceBuilder(htmlTemplateService);
+
+    const compiledHtml = digestTemplateService.compileDigestEmail(
+      getMockTenantDigestData(),
+      getVisibleSections(["security"])
+    );
+
+    expect(compiledHtml).toContain("In fase di archiviazione - fruizione");
+    expect(compiledHtml).toContain(
+      "Ci sono <strong>2 archiviazioni previste a breve</strong>"
+    );
+    expect(compiledHtml).toContain("Servizio Pagamenti Fruito");
+    expect(compiledHtml).toContain("Servizio Residenze Fruito");
+    expect(compiledHtml).toContain("06/10/2026");
+    expect(compiledHtml).toContain(
+      "passa a una nuova versione per continuare a scambiare dati"
+    );
+    expect(compiledHtml).toContain(
+      "Ci sono <strong>10 versioni di e-service o e-service in fase di archiviazione</strong>"
+    );
+    expect(compiledHtml).toContain("Servizio Tributi Fruito");
+    expect(compiledHtml).toContain("E altre <strong>5</strong>.");
+    // archivingConsumerEserviceScopeCount is 0: only 2 of the 3 cards are rendered
+    expect(compiledHtml.match(/width="50%"/g)?.length).toBe(2);
+  });
+
+  it("should use singular texts in the consumer archiving section", () => {
+    const htmlTemplateService = buildHTMLTemplateService();
+    const digestTemplateService =
+      digestTemplateServiceBuilder(htmlTemplateService);
+
+    const compiledHtml = digestTemplateService.compileDigestEmail(
+      getMockSingularTenantDigestData(),
+      getVisibleSections(["security"])
+    );
+
+    expect(compiledHtml).toContain(
+      "C'è <strong>1 archiviazione prevista a breve</strong>"
+    );
+    expect(compiledHtml).toContain(
+      "C'è <strong>1 versione di e-service o e-service in fase di archiviazione</strong>"
+    );
+  });
+
+  it("should not render the consumer archiving section for the api role", () => {
+    const htmlTemplateService = buildHTMLTemplateService();
+    const digestTemplateService =
+      digestTemplateServiceBuilder(htmlTemplateService);
+
+    const compiledHtml = digestTemplateService.compileDigestEmail(
+      getMockTenantDigestData(),
+      getVisibleSections(["api"])
+    );
+
+    expect(compiledHtml).not.toContain("In fase di archiviazione - fruizione");
+  });
+
+  it("renders the remainder of imminent archivings beyond the listed items", () => {
+    const mockData = getMockTenantDigestData();
+    const data = {
+      ...mockData,
+      archivingImminentEservices: {
+        items: mockData.archivingImminentEservices?.items ?? [],
+        totalCount: 7,
+      },
+      archivingConsumerImminentEservices: {
+        items: mockData.archivingConsumerImminentEservices?.items ?? [],
+        totalCount: 8,
+      },
+    };
+    const producerItems = data.archivingImminentEservices.items.length;
+    const consumerItems = data.archivingConsumerImminentEservices.items.length;
+
+    const service = digestTemplateServiceBuilder(buildHTMLTemplateService());
+    const producerHtml = service.compileDigestEmail(
+      data,
+      getVisibleSections(["admin"])
+    );
+    const consumerHtml = service.compileDigestEmail(
+      data,
+      getVisibleSections(["security"])
+    );
+
+    expect(producerHtml).toContain(
+      "Ci sono <strong>7 archiviazioni previste a breve</strong>, tra cui:"
+    );
+    expect(producerHtml).toContain(
+      `E altre <strong>${7 - producerItems}</strong>.`
+    );
+    expect(consumerHtml).toContain(
+      "Ci sono <strong>8 archiviazioni previste a breve</strong>, tra cui:"
+    );
+    expect(consumerHtml).toContain(
+      `E altre <strong>${8 - consumerItems}</strong>.`
+    );
   });
 
   it("renders sent-agreements heading and link when only rejected items exist", () => {
