@@ -1,4 +1,7 @@
-import { RiskAnalysisTemplateValidationIssue } from "pagopa-interop-commons";
+import {
+  RiskAnalysisTemplateValidationIssue,
+  purposeTemplateErrorCodes,
+} from "pagopa-interop-commons";
 import {
   ApiError,
   EServiceId,
@@ -15,46 +18,9 @@ import {
 
 import { PurposeTemplateValidationIssue } from "../../errors/purposeTemplateValidationErrors.js";
 
-const errorCodes = {
-  missingFreeOfChargeReason: "0001",
-  purposeTemplateTitleConflict: "0002",
-  purposeTemplateNotFound: "0003",
-  riskAnalysisTemplateValidationFailed: "0004",
-  ruleSetNotFoundError: "0005",
-  tenantNotAllowed: "0006",
-  purposeTemplateNotInExpectedStates: "0007",
-  purposeTemplateStateConflict: "0008",
-  purposeTemplateRiskAnalysisFormNotFound: "0009",
-  riskAnalysisTemplateAnswerNotFound: "0010",
-  riskAnalysisTemplateAnswerAnnotationNotFound: "0011",
-  riskAnalysisTemplateAnswerAnnotationDocumentNotFound: "0012",
-  associationEServicesForPurposeTemplateFailed: "0013",
-  associationBetweenEServiceAndPurposeTemplateAlreadyExists: "0014",
-  tooManyEServicesForPurposeTemplate: "0015",
-  disassociationEServicesFromPurposeTemplateFailed: "0016",
-  associationBetweenEServiceAndPurposeTemplateDoesNotExist: "0017",
-  conflictDocumentPrettyNameDuplicate: "0018",
-  annotationDocumentLimitExceeded: "0019",
-  conflictDuplicatedDocument: "0020",
-  hyperlinkDetectionError: "0021",
-  purposeTemplateNotInValidState: "0022",
-  invalidAssociatedEServiceForPublicationError: "0023",
-  purposeTemplateRiskAnalysisTemplateDocumentNotFound: "0024",
-  purposeTemplateRiskAnalysisTemplateSignedDocumentNotFound: "0025",
-  missingRiskAnalysisFormTemplate: "0026",
-  eServiceDescriptorPurposeTemplateNotFound: "0027",
-  invalidFreeOfChargeReason: "0028",
-  associationEServiceTemplatesForPurposeTemplateFailed: "0029",
-  associationBetweenEServiceTemplateAndPurposeTemplateAlreadyExists: "0030",
-  tooManyEServiceTemplatesForPurposeTemplate: "0031",
-  disassociationEServiceTemplatesFromPurposeTemplateFailed: "0032",
-  associationBetweenEServiceTemplateAndPurposeTemplateDoesNotExist: "0033",
-  eServiceTemplateVersionPurposeTemplateNotFound: "0034",
-};
+export type ErrorCodes = keyof typeof purposeTemplateErrorCodes;
 
-export type ErrorCodes = keyof typeof errorCodes;
-
-export const makeApiProblem = makeApiProblemBuilder(errorCodes);
+export const makeApiProblem = makeApiProblemBuilder(purposeTemplateErrorCodes);
 
 export function missingFreeOfChargeReason(): ApiError<ErrorCodes> {
   return new ApiError({

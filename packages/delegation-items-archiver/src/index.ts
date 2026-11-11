@@ -14,6 +14,7 @@ import {
 } from "pagopa-interop-models";
 import {
   agreementReadModelServiceBuilder,
+  catalogReadModelServiceBuilder,
   makeDrizzleConnection,
   purposeReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
@@ -28,11 +29,13 @@ const readModelDB = makeDrizzleConnection(config);
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
 const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
+const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
 
 const readModelServiceSQL = readModelServiceBuilderSQL({
   readModelDB,
   agreementReadModelServiceSQL,
   purposeReadModelServiceSQL,
+  catalogReadModelServiceSQL,
 });
 
 const refreshableToken = new RefreshableInteropToken(
@@ -40,7 +43,8 @@ const refreshableToken = new RefreshableInteropToken(
 );
 await refreshableToken.init();
 
-const { agreementProcessClient, purposeProcessClient } = getInteropBeClients();
+const { agreementProcessClient, purposeProcessClient, catalogProcessClient } =
+  getInteropBeClients();
 
 async function processMessage({
   message,
@@ -74,6 +78,7 @@ async function processMessage({
         readModelService: readModelServiceSQL,
         agreementProcessClient,
         purposeProcessClient,
+        catalogProcessClient,
       })
     )
     .exhaustive();

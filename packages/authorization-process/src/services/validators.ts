@@ -17,6 +17,7 @@ import {
   Delegation,
   delegationKind,
   delegationState,
+  descriptorState,
   EService,
   genericError,
   ProducerKeychain,
@@ -25,6 +26,7 @@ import {
   Tenant,
   TenantId,
   UserId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 
 import { config } from "../config/config.js";
@@ -42,8 +44,34 @@ import {
   tenantNotAllowedOnClient,
   missingSelfcareId,
   duplicatedMembersInSeed,
+  eserviceInArchivedState,
+  userNotFound,
 } from "../model/domain/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+
+export const assertUsersExistInSelfcare = async ({
+  userIds,
+  selfcareId,
+  correlationId,
+  selfcareV2InstitutionClient,
+}: {
+  userIds: string[];
+  selfcareId: string;
+  correlationId: CorrelationId;
+  selfcareV2InstitutionClient: SelfcareV2InstitutionClient;
+}): Promise<void> => {
+  for (const userId of userIds) {
+    const users =
+      await selfcareV2InstitutionClient.getInstitutionUsersByProductUsingGET({
+        params: { institutionId: selfcareId },
+        queries: { userId: userId },
+        headers: { "X-Correlation-Id": correlationId },
+      });
+    if (users.length === 0) {
+      throw userNotFound(unsafeBrandId<UserId>(userId), selfcareId);
+    }
+  }
+};
 
 export const assertUserSelfcareSecurityPrivileges = async ({
   selfcareId,
@@ -226,3 +254,17 @@ export function assertMembersAreUnique(members: string[]) {
     throw duplicatedMembersInSeed();
   }
 }
+
+export const assertEServiceIsNotArchived = (eservice: EService): void => {
+  if (eservice.descriptors.length === 0) {
+    return;
+  }
+
+  const isArchived = eservice.descriptors.every(
+    (descriptor) => descriptor.state === descriptorState.archived
+  );
+
+  if (isArchived) {
+    throw eserviceInArchivedState(eservice.id);
+  }
+};

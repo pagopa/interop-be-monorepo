@@ -18,6 +18,8 @@ import {
   EService,
   EServiceId,
   generateId,
+  GracePeriodDays,
+  gracePeriodDays,
   missingKafkaMessageDataError,
   TenantId,
   toEServiceV2,
@@ -42,26 +44,22 @@ describe("handleEserviceArchivingCanceledToConsumer", () => {
 
   // After cancel the descriptor went back to its previous state; for the test
   // it's enough that the readmodel returns an agreement linking consumer to eservice.
-  const descriptor: Descriptor = {
+  const getDescriptor = (
+    gracePeriodDaysValue: GracePeriodDays
+  ): Descriptor => ({
     ...getMockDescriptor(descriptorState.archiving),
     archivingSchedule: {
       archivableOn: new Date("2026-12-31T00:00:00.000Z"),
       startedAt: new Date("2026-05-14T00:00:00.000Z"),
       scope: archivingScope.eservice,
+      gracePeriodDays: gracePeriodDaysValue,
     },
-  };
-  const eservice: EService = {
-    ...getMockEService(),
-    name: "Test E-service",
-    producerId,
-    descriptors: [descriptor],
-  };
+  });
   const users = [getMockUser(consumerTenant.id)];
 
   const { logger } = getMockContext({});
 
   beforeEach(async () => {
-    await addOneEService(eservice);
     await addOneTenant(producerTenant);
     await addOneTenant(consumerTenant);
     readModelService.getTenantUsersWithNotificationEnabled = vi
@@ -91,34 +89,46 @@ describe("handleEserviceArchivingCanceledToConsumer", () => {
     );
   });
 
-  it("emits one email per consumer user with the expected subject", async () => {
-    const agreement: Agreement = {
-      ...getMockAgreement(),
-      stamps: {},
-      eserviceId: eservice.id,
-      producerId,
-      descriptorId: descriptor.id,
-      consumerId: consumerTenant.id,
-      state: agreementState.active,
-    };
-    await addOneAgreement(agreement);
+  it.each([...gracePeriodDays])(
+    "emits one email per consumer user with the expected subject (gracePeriodDays: %d)",
+    async (gracePeriodDaysValue: GracePeriodDays) => {
+      const descriptor = getDescriptor(gracePeriodDaysValue);
+      const eservice: EService = {
+        ...getMockEService(),
+        name: "Test E-service",
+        producerId,
+        descriptors: [descriptor],
+      };
+      await addOneEService(eservice);
 
-    const messages = await handleEserviceArchivingCanceledToConsumer({
-      eserviceV2Msg: toEServiceV2(eservice),
-      logger,
-      templateService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
-    expect(messages.length).toBeGreaterThanOrEqual(1);
-    expect(messages[0].email.subject).toContain(
-      "Un e-service con cui stai scambiando dati non è più in fase di archiviazione"
-    );
-  });
+      const agreement: Agreement = {
+        ...getMockAgreement(),
+        stamps: {},
+        eserviceId: eservice.id,
+        producerId,
+        descriptorId: descriptor.id,
+        consumerId: consumerTenant.id,
+        state: agreementState.active,
+      };
+      await addOneAgreement(agreement);
+
+      const messages = await handleEserviceArchivingCanceledToConsumer({
+        eserviceV2Msg: toEServiceV2(eservice),
+        logger,
+        templateService,
+        readModelService,
+        correlationId: generateId<CorrelationId>(),
+      });
+      expect(messages.length).toBeGreaterThanOrEqual(1);
+      expect(messages[0].email.subject).toContain(
+        "Un e-service con cui stai scambiando dati non è più in fase di archiviazione"
+      );
+    }
+  );
 
   it("returns empty array when there are no agreements", async () => {
     const otherDescriptor: Descriptor = {
-      ...descriptor,
+      ...getDescriptor(30),
       id: generateId<DescriptorId>(),
     };
     const otherEservice: EService = {
