@@ -11,14 +11,9 @@ export interface ContactReferenceChecker {
 }
 
 /**
- * Placeholder until the tenant readmodel references contacts (WI2): no
- * reference can be verified, so every contact is preserved.
+ * Not available until the tenant readmodel references contacts (WI2): until
+ * then no reference can be verified, so the job skips every run and no contact
+ * is ever deleted.
  */
-export const unavailableContactReferenceChecker: ContactReferenceChecker = {
-  findReferencedContactIds: () =>
-    Promise.reject(
-      new Error(
-        "Contact references cannot be verified: the tenant readmodel does not reference contacts yet"
-      )
-    ),
-};
+export const contactReferenceChecker: ContactReferenceChecker | undefined =
+  undefined;

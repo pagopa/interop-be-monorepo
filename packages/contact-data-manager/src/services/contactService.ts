@@ -26,6 +26,7 @@ export function contactServiceBuilder(db: ReturnType<typeof drizzle>) {
         });
       } catch {
         // Driver errors can contain the SQL parameters, including the email.
+        logger.error(`Contact creation failed for contact ${newContact.id}`);
         throw contactCreationFailed();
       }
 
