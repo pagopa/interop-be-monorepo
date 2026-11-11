@@ -709,8 +709,15 @@ paths:
               $ref: "#/components/schemas/RejectPurposeVersionPayload"
         required: true
       responses:
-        "204":
+        "200":
           description: Purpose Version Rejected
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurposeVersion"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":

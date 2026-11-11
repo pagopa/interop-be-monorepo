@@ -1014,8 +1014,12 @@ export function purposeServiceBuilder(
         versionId: PurposeVersionId;
         rejectionReason: string;
       },
-      { correlationId, authData, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        correlationId,
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<PurposeVersion>> {
       logger.info(`Rejecting Version ${versionId} in Purpose ${purposeId}`);
 
       validateNoHyperlinksSafe(rejectionReason);
@@ -1059,7 +1063,11 @@ export function purposeServiceBuilder(
         versionId,
         correlationId,
       });
-      await repository.createEvent(event);
+      const createdEvent = await repository.createEvent(event);
+      return {
+        data: updatedPurposeVersion,
+        metadata: { version: createdEvent.newVersion },
+      };
     },
     async updatePurpose(
       purposeId: PurposeId,
