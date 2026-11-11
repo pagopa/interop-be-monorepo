@@ -79,7 +79,7 @@ import {
   getLatestActiveDescriptor,
   getLatestTenantContactEmail,
 } from "../model/modelMappingUtils.js";
-import { ConfigurationEservice, UseCasesLanguage } from "../model/types.js";
+import { ConfigurationEservice } from "../model/types.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import {
   cloneEServiceDocument,
@@ -474,15 +474,14 @@ export function catalogServiceBuilder(
       };
     },
     getCatalogUseCases: async (
-      ctx: WithLogger<BffAppContext>,
-      language: UseCasesLanguage
+      ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.CatalogUseCase[]> => {
-      ctx.logger.info(`Retrieving catalog use cases, language = ${language}`);
+      ctx.logger.info(`Retrieving catalog use cases, locale = ${ctx.locale}`);
 
       const useCases = await getUseCases(
         fileManager,
         bffConfig,
-        language,
+        ctx.locale,
         ctx.logger
       );
       const { eservices, subscribedEserviceIds } = await getUseCasesEservices(

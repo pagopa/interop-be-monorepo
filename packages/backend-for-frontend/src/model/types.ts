@@ -210,9 +210,6 @@ export const ConfigurationEservice = z.object({
 });
 export type ConfigurationEservice = z.infer<typeof ConfigurationEservice>;
 
-export const UseCasesLanguage = z.enum(["it", "en"]);
-export type UseCasesLanguage = z.infer<typeof UseCasesLanguage>;
-
 export const UseCasesFile = z.array(
   z.object({
     name: z.string(),
