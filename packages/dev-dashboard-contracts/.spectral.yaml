@@ -1,0 +1,4 @@
+# The dashboard is a private local tool, not a public interoperability API.
+# Validate its OpenAPI with the repository's Spectral tooling and standard OAS rules.
+extends:
+  - spectral:oas

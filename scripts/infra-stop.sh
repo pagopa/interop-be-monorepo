@@ -1,3 +1,4 @@
-#!/bin/bash
-
-docker compose -f docker/docker-compose.yml stop
+#!/usr/bin/env bash
+set -euo pipefail
+REPOSITORY_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+bash "$REPOSITORY_ROOT/scripts/local-development/dashboard-infra.sh" stop
