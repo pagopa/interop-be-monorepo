@@ -384,9 +384,9 @@ describe("Tenant Events V3", async () => {
       "TenantContactAdded"
     );
 
-    await expect(
-      handleMessageV3(message, tenantWriterService)
-    ).rejects.toThrow(expectedError);
+    await expect(handleMessageV3(message, tenantWriterService)).rejects.toThrow(
+      expectedError
+    );
   });
 
   it("ignores an event older than the readmodel version", async () => {
