@@ -34,9 +34,11 @@ import {
   TenantMailAddedV1,
   TenantOnboardedV2,
   TenantRemoteId,
+  AttributeId,
   ContactId,
   Tenant,
   TenantEventEnvelopeV3,
+  TenantEventV3,
   TenantOnboardedV3,
   toTenantV3,
 } from "pagopa-interop-models";
@@ -984,6 +986,187 @@ describe("Tenant messages consumers - handleTenantMessageV3", () => {
     log_date: new Date(),
   });
 
+  // Every V3 event that upserts the tenant, except TenantContactDeleted and
+  // MaintenanceTenantDeleted, which have their own tests.
+  const baseTenant = getMockTenant();
+  const upsertContactId = generateId<ContactId>();
+  const upsertTenant: Tenant = {
+    ...baseTenant,
+    contactId: upsertContactId,
+    attributes: [getMockCertifiedTenantAttribute()],
+  };
+  const upsertTenantV3 = toTenantV3(upsertTenant);
+  const attributeId = generateId<AttributeId>();
+  const base: Omit<TenantEventEnvelopeV3, "type" | "data"> = {
+    sequence_num: 2,
+    stream_id: baseTenant.id,
+    version: 2,
+    event_version: 3,
+    log_date: new Date(),
+  };
+  const eventsUpsertingTheTenant: TenantEventEnvelopeV3[] = [
+    {
+      ...base,
+      type: "TenantOnboarded",
+      data: { tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantOnboardDetailsUpdated",
+      data: { tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantContactAdded",
+      data: { contactId: upsertContactId, tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantCertifiedAttributeAssigned",
+      data: { attributeId, tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantCertifiedAttributeRevoked",
+      data: { attributeId, tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantCertifiedDiscreteAttributeAssigned",
+      data: { attributeId, tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantCertifiedDiscreteAttributeRevoked",
+      data: { attributeId, tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantCertifiedDiscreteAttributeUpdated",
+      data: {
+        attributeId,
+        tenant: upsertTenantV3,
+        previousValue: 1,
+        newValue: 2,
+      },
+    },
+    {
+      ...base,
+      type: "TenantDeclaredAttributeAssigned",
+      data: { attributeId, tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantDeclaredAttributeRevoked",
+      data: { attributeId, tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantVerifiedAttributeAssigned",
+      data: { attributeId, tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantVerifiedAttributeRevoked",
+      data: { attributeId, tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantVerifiedAttributeExpirationUpdated",
+      data: { attributeId, tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantVerifiedAttributeExtensionUpdated",
+      data: { attributeId, tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "MaintenanceTenantUpdated",
+      data: { tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantKindUpdated",
+      data: { tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "MaintenanceTenantPromotedToCertifier",
+      data: { tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantDelegatedProducerFeatureAdded",
+      data: { tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantDelegatedProducerFeatureRemoved",
+      data: { tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantDelegatedConsumerFeatureAdded",
+      data: { tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantDelegatedConsumerFeatureRemoved",
+      data: { tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantRemoteIdAssigned",
+      data: { tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "MaintenanceTenantRemoteIdDeleted",
+      data: { tenant: upsertTenantV3 },
+    },
+  ];
+
+  it("covers every V3 tenant event type", () => {
+    const testedTypes = [
+      ...eventsUpsertingTheTenant.map((event) => event.type),
+      "TenantContactDeleted",
+      "MaintenanceTenantDeleted",
+    ];
+    const v3EventTypes = TenantEventV3.options.map(
+      (option) => option.shape.type.value
+    );
+
+    expect(new Set(testedTypes)).toEqual(new Set(v3EventTypes));
+    expect(testedTypes).toHaveLength(v3EventTypes.length);
+  });
+
+  it.each(eventsUpsertingTheTenant)(
+    "$type: upserts the tenant and its attributes at the event version",
+    async (message) => {
+      await handleTenantMessageV3(
+        [getTenantOnboardedMessageV3(baseTenant)],
+        dbContext
+      );
+
+      await handleTenantMessageV3([message], dbContext);
+
+      const stored = await getOneFromDb(dbContext, TenantDbTable.tenant, {
+        id: baseTenant.id,
+      });
+      expect(stored?.contactId).toBe(upsertContactId);
+      expect(stored?.metadataVersion).toBe(2);
+
+      const storedAttributes = await getManyFromDb(
+        dbContext,
+        TenantDbTable.tenant_certified_attribute,
+        { tenantId: baseTenant.id }
+      );
+      expect(storedAttributes).toHaveLength(1);
+      expect(storedAttributes[0].metadataVersion).toBe(2);
+    }
+  );
+
   it("TenantOnboarded: inserts tenant with contact id, attributes, features and remote ids, without mails", async () => {
     const mockDeclaredTenantAttribute = getMockDeclaredTenantAttribute();
     const mockCertifiedTenantAttribute = getMockCertifiedTenantAttribute();
@@ -1279,7 +1462,45 @@ describe("Tenant messages consumers - handleTenantMessageV3", () => {
     );
   });
 
-  it("TenantContactAdded: should skip update when incoming metadata_version is lower or equal (V3)", async () => {
+  it("TenantContactAdded: should apply an event replayed at the same metadata_version idempotently (V3)", async () => {
+    const mockTenant: Tenant = {
+      ...getMockTenant(),
+      attributes: [getMockCertifiedTenantAttribute()],
+    };
+    const contactId = generateId<ContactId>();
+    const message: TenantEventEnvelopeV3 = {
+      sequence_num: 2,
+      stream_id: mockTenant.id,
+      version: 2,
+      type: "TenantContactAdded",
+      event_version: 3,
+      data: { contactId, tenant: toTenantV3({ ...mockTenant, contactId }) },
+      log_date: new Date(),
+    };
+
+    await handleTenantMessageV3(
+      [getTenantOnboardedMessageV3(mockTenant)],
+      dbContext
+    );
+    await handleTenantMessageV3([message], dbContext);
+    await handleTenantMessageV3([message], dbContext);
+
+    const stored = await getOneFromDb(dbContext, TenantDbTable.tenant, {
+      id: mockTenant.id,
+    });
+    expect(stored?.contactId).toBe(contactId);
+    expect(stored?.metadataVersion).toBe(2);
+
+    const storedAttributes = await getManyFromDb(
+      dbContext,
+      TenantDbTable.tenant_certified_attribute,
+      { tenantId: mockTenant.id }
+    );
+    expect(storedAttributes).toHaveLength(1);
+    expect(storedAttributes[0].metadataVersion).toBe(2);
+  });
+
+  it("TenantContactAdded: should skip update when incoming metadata_version is lower (V3)", async () => {
     const mockTenant = getMockTenant();
     const newerContactId = generateId<ContactId>();
     const olderContactId = generateId<ContactId>();
