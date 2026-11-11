@@ -3,11 +3,11 @@ import {
   fromAppContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { badRequestError, genericError } from "pagopa-interop-models";
+import { badRequestError } from "pagopa-interop-models";
 
 import { makeApiProblem } from "../model/errors.js";
 
-// Validation and JSON parsing errors may include fragments of the request.
+// Validation errors may include fragments of the request.
 export const contactValidationErrorToApiProblem: typeof zodiosValidationErrorToApiProblem =
   (_error, req, res, _next) => {
     const problem = makeApiProblem(
@@ -18,12 +18,13 @@ export const contactValidationErrorToApiProblem: typeof zodiosValidationErrorToA
     return res.status(problem.status).send(problem);
   };
 
+// Any exception can include fragments of the contact email.
 export const contactErrorsToApiProblemsMiddleware: typeof errorsToApiProblemsMiddleware =
   (error, req, res, next) => {
     errorsToApiProblemsMiddleware(
       error instanceof SyntaxError
         ? new SyntaxError("Invalid request body")
-        : genericError("Unexpected error"),
+        : new Error("Contact request failed"),
       req,
       res,
       next

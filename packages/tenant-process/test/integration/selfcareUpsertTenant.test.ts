@@ -145,6 +145,39 @@ describe("selfcareUpsertTenant", async () => {
       });
     }
   );
+  it("Should ignore the deprecated digitalAddress when creating the tenant", async () => {
+    const tenantSeed: tenantApi.SelfcareTenantSeed = {
+      externalId: {
+        origin: "PRV",
+        value: generateId(),
+      },
+      name: "A tenant",
+      selfcareId: generateId(),
+      onboardedAt: mockTenant.onboardedAt!.toISOString(),
+      selfcareInstitutionType: "PRV",
+      digitalAddress: {
+        kind: tenantApi.MailKind.Values.DIGITAL_ADDRESS,
+        description: "Domicilio digitale",
+        address: "tenant@pec.example.com",
+      },
+    };
+
+    const id = await tenantService.selfcareUpsertTenant(
+      tenantSeed,
+      getMockContext({})
+    );
+
+    const writtenEvent = await readLastTenantEvent(unsafeBrandId(id));
+    const writtenPayload = protobufDecoder(TenantOnboardedV2).parse(
+      writtenEvent.data
+    );
+
+    expect(writtenEvent).toMatchObject({
+      type: "TenantOnboarded",
+      event_version: 2,
+    });
+    expect(writtenPayload.tenant?.mails).toEqual([]);
+  });
   it("should throw operation forbidden if role isn't internal and the requester is another tenant", async () => {
     await addOneTenant(mockTenant);
     const tenantSeed: tenantApi.SelfcareTenantSeed = {

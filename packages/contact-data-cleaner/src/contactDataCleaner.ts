@@ -85,18 +85,27 @@ const cleanPage = async (
     return { ...verification, deleted: 0, failed: 0 };
   }
 
+  let deletedIds: Array<ContactDB["id"]>;
   try {
-    const deleted = await deleteContactsPastProtectionPeriod(db, {
+    deletedIds = await deleteContactsPastProtectionPeriod(db, {
       cutoff,
       ids: orphanIds,
     });
-    return { ...verification, deleted, failed: 0 };
   } catch (error) {
     logger.error(
       `Failed to delete ${orphanIds.length} orphan contacts: ${describeError(error)}`
     );
     return { ...verification, deleted: 0, failed: orphanIds.length };
   }
+
+  if (deletedIds.length > 0) {
+    // Contact IDs are opaque: logging them traces an irreversible deletion
+    // without exposing personal data.
+    logger.info(
+      `Deleted ${deletedIds.length} orphan contacts: ${deletedIds.join(", ")}`
+    );
+  }
+  return { ...verification, deleted: deletedIds.length, failed: 0 };
 };
 
 export const runContactDataCleaner = async ({
@@ -114,9 +123,27 @@ export const runContactDataCleaner = async ({
   now: Date;
   pageSize: number;
   protectionPeriodHours: number;
-  referenceChecker: ContactReferenceChecker;
+  referenceChecker: ContactReferenceChecker | undefined;
 }): Promise<ContactDataCleanerResult> => {
   const cutoff = getProtectionCutoff(now, protectionPeriodHours);
+  const result: ContactDataCleanerResult = {
+    cutoff,
+    scannedContacts: 0,
+    verifiedContacts: 0,
+    orphanContacts: 0,
+    deletedContacts: 0,
+    failedContacts: 0,
+  };
+
+  if (referenceChecker === undefined) {
+    // Every page would fail its reference check: skip the run instead of
+    // scanning the whole table and reporting every contact as failed.
+    logger.warn(
+      "Contact references cannot be verified yet: run skipped, no contact scanned or deleted"
+    );
+    return result;
+  }
+
   logger.info(
     `Scanning contacts created before ${cutoff.toISOString()} (protection period: ${protectionPeriodHours} hours, deletion ${deletionEnabled ? "enabled" : "disabled"})`
   );
@@ -127,14 +154,6 @@ export const runContactDataCleaner = async ({
     deletionEnabled,
     logger,
     referenceChecker,
-  };
-  const result: ContactDataCleanerResult = {
-    cutoff,
-    scannedContacts: 0,
-    verifiedContacts: 0,
-    orphanContacts: 0,
-    deletedContacts: 0,
-    failedContacts: 0,
   };
   try {
     for await (const ids of scanContactIdsPastProtectionPeriod(db, {

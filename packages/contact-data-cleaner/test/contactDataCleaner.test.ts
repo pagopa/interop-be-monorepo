@@ -8,10 +8,7 @@ import {
   ContactDataCleanerResult,
   runContactDataCleaner,
 } from "../src/contactDataCleaner.js";
-import {
-  ContactReferenceChecker,
-  unavailableContactReferenceChecker,
-} from "../src/contactReferenceChecker.js";
+import { ContactReferenceChecker } from "../src/contactReferenceChecker.js";
 import { getProtectionCutoff } from "../src/contactScanner.js";
 import {
   addContacts,
@@ -40,7 +37,7 @@ const referenceCheckerFor = (
 });
 
 const runCleaner = (
-  referenceChecker: ContactReferenceChecker,
+  referenceChecker: ContactReferenceChecker | undefined,
   { deletionEnabled = true, pageSize = 10 } = {}
 ): Promise<ContactDataCleanerResult> =>
   runContactDataCleaner({
@@ -82,6 +79,20 @@ describe("runContactDataCleaner", () => {
     expect(info).toHaveBeenLastCalledWith(
       "Contact data cleaner completed: 3 scanned, 3 verified, 2 orphans, 2 deleted, 0 failed"
     );
+  });
+
+  it("logs the IDs of the deleted contacts", async () => {
+    const [referencedId, ...orphanIds] = await addContactsPastProtection(3);
+    const info = vi.spyOn(loggerInstance, "info");
+
+    await runCleaner(referenceCheckerFor([referencedId]));
+
+    const deletionLog = info.mock.calls
+      .map(([message]) => String(message))
+      .find((message) => message.startsWith("Deleted "));
+    expect(deletionLog).toMatch(/^Deleted 2 orphan contacts: /);
+    orphanIds.forEach((id) => expect(deletionLog).toContain(id));
+    expect(deletionLog).not.toContain(referencedId);
   });
 
   it("only counts the orphans when deletion is disabled", async () => {
@@ -128,16 +139,27 @@ describe("runContactDataCleaner", () => {
     );
   });
 
-  it("preserves every contact until references can be verified, then deletes the orphans in a later run", async () => {
+  it("skips the run without reading the contacts while references cannot be verified, then deletes the orphans in a later run", async () => {
     await addContactsPastProtection(2);
+    const select = vi.spyOn(db, "select");
+    const warn = vi.spyOn(loggerInstance, "warn");
 
-    const unverifiedRun = await runCleaner(unavailableContactReferenceChecker);
+    const skippedRun = await runCleaner(undefined);
+
+    expect(skippedRun).toEqual({
+      cutoff,
+      scannedContacts: 0,
+      verifiedContacts: 0,
+      orphanContacts: 0,
+      deletedContacts: 0,
+      failedContacts: 0,
+    });
+    expect(select).not.toHaveBeenCalled();
+    expect(warn).toHaveBeenCalledOnce();
+    expect(await getContactIds()).toHaveLength(2);
+
     const laterRun = await runCleaner(referenceCheckerFor([]));
 
-    expect(unverifiedRun).toMatchObject({
-      deletedContacts: 0,
-      failedContacts: 2,
-    });
     expect(laterRun).toMatchObject({ deletedContacts: 2, failedContacts: 0 });
     expect(await getContactIds()).toEqual([]);
   });
@@ -245,7 +267,13 @@ describe("runContactDataCleaner", () => {
       vi.spyOn(loggerInstance, "error"),
     ];
 
-    await runCleaner(unavailableContactReferenceChecker, { pageSize: 2 });
+    const unavailableReferenceChecker: ContactReferenceChecker = {
+      findReferencedContactIds: () =>
+        Promise.reject(new Error("readmodel unavailable")),
+    };
+
+    await runCleaner(undefined);
+    await runCleaner(unavailableReferenceChecker, { pageSize: 2 });
     await runCleaner(referenceCheckerFor([]));
 
     expect(JSON.stringify(logs.map((log) => log.mock.calls))).not.toContain(

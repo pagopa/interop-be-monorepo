@@ -1297,7 +1297,6 @@ export const tenantInReadmodelTenant = readmodelTenant.table(
       table.id,
       table.metadataVersion
     ),
-    unique("tenant_contact_id_unique").on(table.contactId),
   ]
 );
 

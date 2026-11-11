@@ -22,6 +22,7 @@ import { upsertTenant } from "pagopa-interop-readmodel/testUtils";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { config } from "../../src/config/config.js";
+import { tenantContactRequiresEventsV3 } from "../../src/model/domain/errors.js";
 import {
   toCreateEventMaintenanceTenantDeleted,
   toCreateEventMaintenanceTenantPromotedToCertifier,
@@ -63,16 +64,17 @@ const setTenantEventsV3 = (enabled: boolean): void => {
 };
 
 describe("Tenant events version", () => {
-  const tenant: Tenant = {
+  const tenantWithContact: Tenant = {
     ...getMockTenant(),
     contactId: generateId<ContactId>(),
   };
+  const tenantWithoutContact = getMockTenant();
   const attributeId = generateId<AttributeId>();
   const correlationId = generateId<CorrelationId>();
 
-  const switchableBuilders: Array<
-    [TenantEvent["type"], () => CreateEvent<TenantEvent>]
-  > = [
+  type EventBuilder = [TenantEvent["type"], () => CreateEvent<TenantEvent>];
+
+  const switchableBuilders = (tenant: Tenant): EventBuilder[] => [
     [
       "TenantOnboarded",
       () => toCreateEventTenantOnboarded(tenant, correlationId),
@@ -274,7 +276,7 @@ describe("Tenant events version", () => {
     setTenantEventsV3(false);
   });
 
-  it.each(switchableBuilders)(
+  it.each(switchableBuilders(tenantWithoutContact))(
     "Should build %s as V2 when tenant events V3 are disabled",
     (type, build) => {
       setTenantEventsV3(false);
@@ -291,7 +293,18 @@ describe("Tenant events version", () => {
     }
   );
 
-  it.each(switchableBuilders)(
+  it.each(switchableBuilders(tenantWithContact))(
+    "Should refuse to build %s as V2 for a tenant with a contact",
+    (_type, build) => {
+      setTenantEventsV3(false);
+
+      expect(build).toThrow(
+        tenantContactRequiresEventsV3(tenantWithContact.id)
+      );
+    }
+  );
+
+  it.each(switchableBuilders(tenantWithContact))(
     "Should build %s as V3 with the contact reference when tenant events V3 are enabled",
     (type, build) => {
       setTenantEventsV3(true);
@@ -305,7 +318,7 @@ describe("Tenant events version", () => {
         data: tenantEventToBinaryData(event),
       });
       expect(decoded.type).toBe(type);
-      expect(decoded.data.tenant?.contactId).toBe(tenant.contactId);
+      expect(decoded.data.tenant?.contactId).toBe(tenantWithContact.contactId);
     }
   );
 
@@ -313,7 +326,6 @@ describe("Tenant events version", () => {
     "Should always build the mail events as V2 (tenant events V3 enabled: %s)",
     (enabled) => {
       setTenantEventsV3(enabled);
-      const tenantWithoutContact = getMockTenant();
 
       expect(
         toCreateEventTenantMailAdded(
@@ -334,6 +346,27 @@ describe("Tenant events version", () => {
     }
   );
 
+  it("Should refuse to build the mail events for a tenant with a contact", () => {
+    const error = tenantContactRequiresEventsV3(tenantWithContact.id);
+
+    expect(() =>
+      toCreateEventTenantMailAdded(
+        1,
+        tenantWithContact,
+        generateId(),
+        correlationId
+      )
+    ).toThrow(error);
+    expect(() =>
+      toCreateEventTenantMailDeleted(
+        1,
+        tenantWithContact,
+        generateId(),
+        correlationId
+      )
+    ).toThrow(error);
+  });
+
   it.each([false, true])(
     "Should always build the contact events as V3 (tenant events V3 enabled: %s)",
     (enabled) => {
@@ -341,16 +374,24 @@ describe("Tenant events version", () => {
       const contactId = generateId<ContactId>();
 
       expect(
-        toCreateEventTenantContactAdded(1, tenant, contactId, correlationId)
-          .event
+        toCreateEventTenantContactAdded(
+          1,
+          tenantWithContact,
+          contactId,
+          correlationId
+        ).event
       ).toMatchObject({
         type: "TenantContactAdded",
         event_version: 3,
         data: { contactId },
       });
       expect(
-        toCreateEventTenantContactDeleted(1, tenant, contactId, correlationId)
-          .event
+        toCreateEventTenantContactDeleted(
+          1,
+          tenantWithContact,
+          contactId,
+          correlationId
+        ).event
       ).toMatchObject({
         type: "TenantContactDeleted",
         event_version: 3,

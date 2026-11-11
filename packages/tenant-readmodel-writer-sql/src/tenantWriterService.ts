@@ -60,7 +60,14 @@ export function tenantWriterServiceBuilder(db: DrizzleReturnType) {
   };
 
   return {
-    async upsertTenant(tenant: Tenant, metadataVersion: number): Promise<void> {
+    /**
+     * Returns the contact referenced by the readmodel row the upsert replaced,
+     * if any, so that the caller can detect a contact reference being dropped.
+     */
+    async upsertTenant(
+      tenant: Tenant,
+      metadataVersion: number
+    ): Promise<string | undefined> {
       const {
         tenantSQL,
         mailsSQL,
@@ -74,7 +81,7 @@ export function tenantWriterServiceBuilder(db: DrizzleReturnType) {
         remoteIdsSQL,
       } = splitTenantIntoObjectsSQL(tenant, metadataVersion);
 
-      await db.transaction(async (tx) => {
+      return await db.transaction(async (tx) => {
         const shouldUpsert = await checkMetadataVersion(
           tx,
           tenantInReadmodelTenant,
@@ -83,12 +90,13 @@ export function tenantWriterServiceBuilder(db: DrizzleReturnType) {
         );
 
         if (!shouldUpsert) {
-          return;
+          return undefined;
         }
 
-        await tx
+        const replacedTenants = await tx
           .delete(tenantInReadmodelTenant)
-          .where(eq(tenantInReadmodelTenant.id, tenant.id));
+          .where(eq(tenantInReadmodelTenant.id, tenant.id))
+          .returning({ contactId: tenantInReadmodelTenant.contactId });
 
         await tx.insert(tenantInReadmodelTenant).values(tenantSQL);
 
@@ -139,6 +147,11 @@ export function tenantWriterServiceBuilder(db: DrizzleReturnType) {
         for (const remoteIdSQL of remoteIdsSQL) {
           await tx.insert(tenantRemoteIdInReadmodelTenant).values(remoteIdSQL);
         }
+
+        const replacedContactId = replacedTenants.find(
+          ({ contactId }) => contactId !== null
+        )?.contactId;
+        return replacedContactId ?? undefined;
       });
     },
     async deleteTenantById(tenantId: TenantId, version: number): Promise<void> {

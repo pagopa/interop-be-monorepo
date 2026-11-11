@@ -31,6 +31,7 @@ import {
 
 import { config } from "../../src/config/config.js";
 import {
+  tenantContactRequiresEventsV3,
   tenantMailsNotAllowed,
   tenantNotFound,
   tenantUpdateVersionMismatch,
@@ -406,5 +407,32 @@ describe("maintenanceTenantUpdate", async () => {
         getMockContextMaintenance({})
       )
     ).rejects.toThrowError(featureFlagNotEnabled("featureFlagTenantEventsV3"));
+  });
+
+  it("Should throw tenantContactRequiresEventsV3 when the tenant has a contact and tenant events V3 are disabled", async () => {
+    const mockTenant: Tenant = {
+      ...getMockTenant(),
+      contactId: generateId<ContactId>(),
+    };
+    await addOneTenant(mockTenant);
+
+    await expect(
+      tenantService.maintenanceTenantUpdate(
+        {
+          tenantId: mockTenant.id,
+          tenantUpdate: getMockMaintenanceTenantUpdate(),
+          version: 0,
+        },
+        getMockContextMaintenance({})
+      )
+    ).rejects.toThrowError(tenantContactRequiresEventsV3(mockTenant.id));
+
+    // No V2 event dropping the contact is written.
+    const lastEvent = await readLastEventByStreamId(
+      mockTenant.id,
+      "tenant",
+      postgresDB
+    );
+    expect(lastEvent.version).toBe("0");
   });
 });
