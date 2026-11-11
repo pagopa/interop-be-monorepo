@@ -1,0 +1,25 @@
+meta {
+  name: Start Package
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{host-dashboard}}/__local-dashboard/api/actions
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "type": "package.start",
+    "name": "pagopa-interop-tenant-process"
+  }
+}
+
+tests {
+  test("Startup operation was accepted", function () {
+    expect(res.getStatus()).to.equal(202);
+    expect(res.getBody().operationId).to.be.a("string");
+  });
+}
