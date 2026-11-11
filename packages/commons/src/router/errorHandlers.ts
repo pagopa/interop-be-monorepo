@@ -1,13 +1,17 @@
 import { WithZodiosContext } from "@zodios/express";
 import express, { Response, NextFunction } from "express";
 import { constants } from "http2";
-import multer from "multer";
 import {
+  ApiError,
   badRequestError,
+  contentTooLargeError,
+  emptyErrorMapper,
   genericError,
   makeApiProblemBuilder,
   parseErrorMessage,
+  unsupportedMediaTypeError,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import { z } from "zod";
 import { fromZodIssue } from "zod-validation-error";
 
@@ -15,17 +19,31 @@ import { ExpressContext, fromAppContext } from "../context/context.js";
 
 const makeApiProblem = makeApiProblemBuilder({});
 
-// The multipart parsing middleware (multer/busboy) runs as a global middleware,
-// before routing, so its errors escape the route handlers and reach this
-// middleware. They are always caused by a malformed request body (e.g. a
-// "multipart/form-data" Content-Type without a boundary parameter, which makes
-// busboy throw "Multipart: Boundary not found"), so they must be reported as a
-// client error (400) and not as an unexpected server error (500).
-function isMultipartRequestError(error: unknown): boolean {
-  return (
-    error instanceof multer.MulterError ||
-    (error instanceof Error && error.message.startsWith("Multipart:"))
-  );
+const BodyParserClientError = z.object({
+  status: z.number().int().min(400).max(499),
+  expose: z.literal(true),
+});
+
+function toMalformedRequestError(
+  error: unknown
+): ApiError<unknown> | undefined {
+  if (error instanceof ApiError && error.code === "badRequestError") {
+    return error;
+  }
+
+  const bodyParserError = BodyParserClientError.safeParse(error);
+  if (!bodyParserError.success) {
+    return undefined;
+  }
+
+  return match(bodyParserError.data.status)
+    .with(constants.HTTP_STATUS_PAYLOAD_TOO_LARGE, () =>
+      contentTooLargeError("Request body too large")
+    )
+    .with(constants.HTTP_STATUS_UNSUPPORTED_MEDIA_TYPE, () =>
+      unsupportedMediaTypeError("Unsupported request body charset or encoding")
+    )
+    .otherwise(() => badRequestError("Invalid request body"));
 }
 
 export function zodiosValidationErrorToApiProblem(
@@ -65,17 +83,15 @@ export function errorsToApiProblemsMiddleware(
 
   const ctx = fromAppContext(req.ctx);
 
-  if (isMultipartRequestError(error)) {
-    ctx.logger.warn(`Bad multipart request: ${parseErrorMessage(error)}`);
-    res
-      .status(constants.HTTP_STATUS_BAD_REQUEST)
-      .send(
-        makeApiProblem(
-          badRequestError("Invalid multipart/form-data request"),
-          () => constants.HTTP_STATUS_BAD_REQUEST,
-          ctx
-        )
-      );
+  const malformedRequestError = toMalformedRequestError(error);
+  if (malformedRequestError) {
+    const problem = makeApiProblem(
+      malformedRequestError,
+      emptyErrorMapper,
+      ctx,
+      `Malformed request: ${parseErrorMessage(error)}`
+    );
+    res.status(problem.status).send(problem);
     return;
   }
 
