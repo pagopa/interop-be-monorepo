@@ -2,8 +2,10 @@ import { Logger } from "pagopa-interop-commons";
 import {
   TenantEventEnvelopeV1,
   TenantEventEnvelopeV2,
+  TenantEventEnvelopeV3,
   fromTenantV1,
   fromTenantV2,
+  fromTenantV3,
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
@@ -91,6 +93,67 @@ export async function handleMessageV2(
           "TenantMailAdded",
           "MaintenanceTenantPromotedToCertifier",
           "TenantMailDeleted",
+          "TenantDelegatedProducerFeatureAdded",
+          "TenantDelegatedProducerFeatureRemoved",
+          "TenantDelegatedConsumerFeatureAdded",
+          "TenantDelegatedConsumerFeatureRemoved",
+          "TenantCertifiedDiscreteAttributeAssigned",
+          "TenantCertifiedDiscreteAttributeRevoked",
+          "TenantCertifiedDiscreteAttributeUpdated",
+          "TenantRemoteIdAssigned",
+          "MaintenanceTenantRemoteIdDeleted"
+        ),
+      },
+      async (message) => {
+        logger.info(`Ignoring ${message.type} message`);
+      }
+    )
+    .exhaustive();
+}
+
+export async function handleMessageV3(
+  message: TenantEventEnvelopeV3,
+  tenantKindHistoryWriterService: TenantKindHistoryWriterService,
+  logger: Logger
+): Promise<void> {
+  await match(message)
+    .with(
+      {
+        type: P.union(
+          "TenantOnboarded",
+          "TenantOnboardDetailsUpdated",
+          "MaintenanceTenantUpdated",
+          "TenantKindUpdated"
+        ),
+      },
+      async (message) => {
+        if (!message.data.tenant) {
+          throw missingKafkaMessageDataError("tenant", message.type);
+        }
+        const tenant = fromTenantV3(message.data.tenant);
+        await tenantKindHistoryWriterService.createTenantKindHistoryEntry(
+          tenant.id,
+          message.version,
+          tenant.kind,
+          message.log_date
+        );
+      }
+    )
+    .with(
+      {
+        type: P.union(
+          "MaintenanceTenantDeleted",
+          "TenantCertifiedAttributeAssigned",
+          "TenantCertifiedAttributeRevoked",
+          "TenantDeclaredAttributeAssigned",
+          "TenantDeclaredAttributeRevoked",
+          "TenantVerifiedAttributeAssigned",
+          "TenantVerifiedAttributeRevoked",
+          "TenantVerifiedAttributeExpirationUpdated",
+          "TenantVerifiedAttributeExtensionUpdated",
+          "TenantContactAdded",
+          "MaintenanceTenantPromotedToCertifier",
+          "TenantContactDeleted",
           "TenantDelegatedProducerFeatureAdded",
           "TenantDelegatedProducerFeatureRemoved",
           "TenantDelegatedConsumerFeatureAdded",
