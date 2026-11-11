@@ -34,12 +34,12 @@ export function zipBy<A, B, K>(
   b: B[],
   getValueA: (a: A) => K,
   getValueB: (b: B) => K
-): Array<[A, B]> {
+): [A, B][] {
   const mapB = new Map<K, B>();
 
   b.forEach((bv) => mapB.set(getValueB(bv), bv));
 
   return a
     .map((av) => [av, mapB.get(getValueA(av))])
-    .filter(([_, bv]) => bv !== undefined) as Array<[A, B]>;
+    .filter(([_, bv]) => bv !== undefined) as [A, B][];
 }

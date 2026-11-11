@@ -57,10 +57,10 @@ export async function executeTopicHandler(
 ): Promise<void> {
   await match(topic)
     .with(config.catalogTopic, async () => {
-      const eservicesV2WithTimestamp: Array<{
+      const eservicesV2WithTimestamp: {
         eserviceV2: EServiceEventEnvelopeV2;
         timestamp: Date;
-      }> = [];
+      }[] = [];
 
       for (const message of kafkaMessages) {
         const decoded = decodeKafkaMessage(message, EServiceEvent);
@@ -84,10 +84,10 @@ export async function executeTopicHandler(
       }
     })
     .with(config.agreementTopic, async () => {
-      const agreementsV2WithTimestamp: Array<{
+      const agreementsV2WithTimestamp: {
         agreementV2: AgreementEventEnvelopeV2;
         timestamp: Date;
-      }> = [];
+      }[] = [];
 
       for (const message of kafkaMessages) {
         const decoded = decodeKafkaMessage(message, AgreementEvent);
@@ -111,10 +111,10 @@ export async function executeTopicHandler(
       }
     })
     .with(config.purposeTopic, async () => {
-      const purposesV2WithTimestamp: Array<{
+      const purposesV2WithTimestamp: {
         purposeV2: PurposeEventEnvelopeV2;
         timestamp: Date;
-      }> = [];
+      }[] = [];
 
       for (const message of kafkaMessages) {
         const decoded = decodeKafkaMessage(message, PurposeEvent);
@@ -138,14 +138,14 @@ export async function executeTopicHandler(
       }
     })
     .with(config.authorizationTopic, async () => {
-      const authorizationsV1WithTimestamp: Array<{
+      const authorizationsV1WithTimestamp: {
         authV1: AuthorizationEventEnvelopeV1;
         timestamp: Date;
-      }> = [];
-      const authorizationsV2WithTimestamp: Array<{
+      }[] = [];
+      const authorizationsV2WithTimestamp: {
         authV2: AuthorizationEventEnvelopeV2;
         timestamp: Date;
-      }> = [];
+      }[] = [];
 
       for (const message of kafkaMessages) {
         const decoded = decodeKafkaMessage(message, AuthorizationEvent);
@@ -182,10 +182,10 @@ export async function executeTopicHandler(
       }
     })
     .with(config.delegationTopic, async () => {
-      const delegationsV2WithTimestamp: Array<{
+      const delegationsV2WithTimestamp: {
         delegationV2: DelegationEventEnvelopeV2;
         timestamp: Date;
-      }> = [];
+      }[] = [];
 
       for (const message of kafkaMessages) {
         const decoded = decodeKafkaMessage(message, DelegationEvent);
@@ -208,10 +208,10 @@ export async function executeTopicHandler(
       }
     })
     .with(config.purposeTemplateTopic, async () => {
-      const purposeTemplatesV2WithTimestamp: Array<{
+      const purposeTemplatesV2WithTimestamp: {
         purposeTemplateV2: PurposeTemplateEventEnvelopeV2;
         timestamp: Date;
-      }> = [];
+      }[] = [];
 
       for (const message of kafkaMessages) {
         const decoded = decodeKafkaMessage(message, PurposeTemplateEvent);

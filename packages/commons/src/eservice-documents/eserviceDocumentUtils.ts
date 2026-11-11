@@ -113,7 +113,7 @@ export const interpolateTemplateApiSpec = async (
     contentType: string;
     prettyName: string;
   },
-  serverUrls: Array<{ url: string; description?: string }>,
+  serverUrls: { url: string; description?: string }[],
   eserviceInstanceInterfaceRestData:
     | {
         contactEmail: string;
@@ -161,7 +161,7 @@ export const interpolateTemplateRestApiSpec = async (
     contactEmail?: string;
     contactUrl?: string;
     termsAndConditionsUrl?: string;
-    serverUrls: Array<{ url: string; description?: string }>;
+    serverUrls: { url: string; description?: string }[];
   }
 ): Promise<File> => {
   const fileType = getInterfaceFileType(interfaceFileInfo.name);
@@ -223,7 +223,7 @@ export const interpolateTemplateSoapApiSpec = async (
     prettyName: string;
   },
   eserviceInstanceInterfaceData: {
-    serverUrls: Array<{ url: string; description?: string }>;
+    serverUrls: { url: string; description?: string }[];
   }
 ): Promise<File> => {
   const fileType = getInterfaceFileType(interfaceFileInfo.name);

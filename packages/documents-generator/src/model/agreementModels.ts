@@ -29,27 +29,27 @@ export type AgreementContractPDFPayload = {
   producerIpaCode: string | undefined;
   consumerName: string;
   consumerIpaCode: string | undefined;
-  certifiedAttributes: Array<{
+  certifiedAttributes: {
     assignmentDate: string;
     assignmentTime: string;
     attributeName: string;
     attributeId: string;
-  }>;
-  declaredAttributes: Array<{
+  }[];
+  declaredAttributes: {
     assignmentDate: string;
     assignmentTime: string;
     attributeName: string;
     attributeId: string;
     delegationId: string | undefined;
-  }>;
-  verifiedAttributes: Array<{
+  }[];
+  verifiedAttributes: {
     assignmentDate: string;
     assignmentTime: string;
     attributeName: string;
     attributeId: string;
     expirationDate: string | undefined;
     delegationId: string | undefined;
-  }>;
+  }[];
   producerDelegationId: string | undefined;
   producerDelegateName: string | undefined;
   producerDelegateIpaCode: string | undefined;

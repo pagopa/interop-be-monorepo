@@ -67,18 +67,18 @@ const getAttributesData = async (
   agreement: Agreement,
   readModelService: ReadModelServiceSQL
 ): Promise<{
-  certified: Array<{
+  certified: {
     attribute: Attribute;
     tenantAttribute: CertifiedTenantAttribute;
-  }>;
-  declared: Array<{
+  }[];
+  declared: {
     attribute: Attribute;
     tenantAttribute: DeclaredTenantAttribute;
-  }>;
-  verified: Array<{
+  }[];
+  verified: {
     attribute: Attribute;
     tenantAttribute: VerifiedTenantAttribute;
-  }>;
+  }[];
 }> => {
   const getAttributesDataByType = async <
     T extends
@@ -88,10 +88,10 @@ const getAttributesData = async (
   >(
     type: TenantAttributeType
   ): Promise<
-    Array<{
+    {
       attribute: Attribute;
       tenantAttribute: T;
-    }>
+    }[]
   > => {
     const seedAttributes = match(type)
       .with(

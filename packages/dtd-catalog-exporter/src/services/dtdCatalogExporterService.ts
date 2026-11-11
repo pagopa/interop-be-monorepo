@@ -29,7 +29,7 @@ export const convertTenantsToCSV = (tenants: PublicTenant[]): string => {
     attributes: JSON.stringify(tenant.attributes),
   }));
 
-  const columns: Array<keyof FlattenedPublicTenant> = [
+  const columns: (keyof FlattenedPublicTenant)[] = [
     "id",
     "name",
     "fiscalCode",
@@ -58,7 +58,7 @@ export const convertEservicesToCSV = (
     activeDescriptorVersion: service.activeDescriptor.version,
   }));
 
-  const columns: Array<keyof FlattenedPublicEService> = [
+  const columns: (keyof FlattenedPublicEService)[] = [
     "id",
     "name",
     "description",

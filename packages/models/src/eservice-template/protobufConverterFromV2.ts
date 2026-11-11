@@ -28,9 +28,7 @@ import {
 
 const fromEServiceTemplateAttributeGroupV2 = (
   input: EServiceTemplateAttributeV2
-): Array<
-  EServiceTemplateAttribute | EServiceTemplateAttributeCertifiedDiscrete
-> =>
+): (EServiceTemplateAttribute | EServiceTemplateAttributeCertifiedDiscrete)[] =>
   input.values.map((attribute) => {
     const common: EServiceTemplateAttribute = {
       id: unsafeBrandId(attribute.id),

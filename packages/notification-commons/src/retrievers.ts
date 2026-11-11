@@ -139,12 +139,12 @@ export function retrieveDescriptor(
 
 export function getRequesterIdFromLatestArchivingRequest(
   requests:
-    | Array<{
+    | {
         requesterId: TenantId;
         requestedAt: Date;
         acceptedAt?: Date;
         rejectedAt?: Date;
-      }>
+      }[]
     | undefined
 ): TenantId | undefined {
   if (!requests || requests.length === 0) {

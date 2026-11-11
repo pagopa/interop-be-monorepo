@@ -518,7 +518,7 @@ async function getEServiceAssociationResults(
   purposeTemplateId: PurposeTemplateId,
   readModelService: ReadModelServiceSQL
 ): Promise<
-  Array<PromiseSettledResult<EServiceDescriptorPurposeTemplate | undefined>>
+  PromiseSettledResult<EServiceDescriptorPurposeTemplate | undefined>[]
 > {
   return Promise.allSettled(
     validEservices.map(
@@ -639,16 +639,16 @@ async function validateEServiceDisassociations(
  */
 function validateEServiceDescriptorsToAssociate(validEservices: EService[]): {
   validationIssues: PurposeTemplateValidationIssue[];
-  validEServiceDescriptorPairs: Array<{
+  validEServiceDescriptorPairs: {
     eservice: EService;
     descriptorId: DescriptorId;
-  }>;
+  }[];
 } {
   const validationIssues: PurposeTemplateValidationIssue[] = [];
-  const validEServiceDescriptorPairs: Array<{
+  const validEServiceDescriptorPairs: {
     eservice: EService;
     descriptorId: DescriptorId;
-  }> = [];
+  }[] = [];
 
   validEservices.forEach((eservice) => {
     if (!eservice.descriptors || eservice.descriptors.length === 0) {
@@ -700,16 +700,16 @@ function validateEServiceDescriptorsToDisassociate(
   validEServiceDescriptorPurposeTemplates: EServiceDescriptorPurposeTemplate[]
 ): {
   validationIssues: PurposeTemplateValidationIssue[];
-  validEServiceDescriptorPairs: Array<{
+  validEServiceDescriptorPairs: {
     eservice: EService;
     descriptorId: DescriptorId;
-  }>;
+  }[];
 } {
   const validationIssues: PurposeTemplateValidationIssue[] = [];
-  const validEServiceDescriptorPairs: Array<{
+  const validEServiceDescriptorPairs: {
     eservice: EService;
     descriptorId: DescriptorId;
-  }> = [];
+  }[] = [];
 
   // Get the eservice from the eservice id.
   // If the eservice is not found, return a validation issue.
@@ -737,11 +737,11 @@ function validateEServiceDescriptorsToDisassociate(
           },
         ];
       },
-      [] as Array<{
+      [] as {
         eservice: EService;
         descriptorId: DescriptorId;
         purposeTemplateId: PurposeTemplateId;
-      }>
+      }[]
     );
 
   // Validate the descriptors, checking the descriptor is linked to the purpose template and is in a valid state
@@ -823,7 +823,7 @@ export async function validateEservicesAssociations(
   readModelService: ReadModelServiceSQL
 ): Promise<
   PurposeTemplateValidationResult<
-    Array<{ eservice: EService; descriptorId: DescriptorId }>
+    { eservice: EService; descriptorId: DescriptorId }[]
   >
 > {
   const { validationIssues, validEservices } = await validateEServiceExistence(
@@ -918,7 +918,7 @@ export async function validateEservicesDisassociations(
   readModelService: ReadModelServiceSQL
 ): Promise<
   PurposeTemplateValidationResult<
-    Array<{ eservice: EService; descriptorId: DescriptorId }>
+    { eservice: EService; descriptorId: DescriptorId }[]
   >
 > {
   const { validationIssues, validEservices } = await validateEServiceExistence(
@@ -1086,16 +1086,16 @@ function validateEServiceTemplateVersionsToAssociate(
   validEServiceTemplates: EServiceTemplate[]
 ): {
   validationIssues: PurposeTemplateValidationIssue[];
-  validEServiceTemplateVersionPairs: Array<{
+  validEServiceTemplateVersionPairs: {
     eserviceTemplate: EServiceTemplate;
     eserviceTemplateVersionId: EServiceTemplateVersionId;
-  }>;
+  }[];
 } {
   const validationIssues: PurposeTemplateValidationIssue[] = [];
-  const validEServiceTemplateVersionPairs: Array<{
+  const validEServiceTemplateVersionPairs: {
     eserviceTemplate: EServiceTemplate;
     eserviceTemplateVersionId: EServiceTemplateVersionId;
-  }> = [];
+  }[] = [];
 
   validEServiceTemplates.forEach((eserviceTemplate) => {
     if (!eserviceTemplate.versions || eserviceTemplate.versions.length === 0) {
@@ -1139,10 +1139,10 @@ export async function validateEServiceTemplatesAssociations(
   readModelService: ReadModelServiceSQL
 ): Promise<
   PurposeTemplateValidationResult<
-    Array<{
+    {
       eserviceTemplate: EServiceTemplate;
       eserviceTemplateVersionId: EServiceTemplateVersionId;
-    }>
+    }[]
   >
 > {
   const { validationIssues, validEServiceTemplates } =
@@ -1319,16 +1319,16 @@ function validateEServiceTemplateVersionsToDisassociate(
   validEServiceTemplateVersionPurposeTemplates: EServiceTemplateVersionPurposeTemplate[]
 ): {
   validationIssues: PurposeTemplateValidationIssue[];
-  validEServiceTemplateVersionPairs: Array<{
+  validEServiceTemplateVersionPairs: {
     eserviceTemplate: EServiceTemplate;
     eserviceTemplateVersionId: EServiceTemplateVersionId;
-  }>;
+  }[];
 } {
   const validationIssues: PurposeTemplateValidationIssue[] = [];
-  const validEServiceTemplateVersionPairs: Array<{
+  const validEServiceTemplateVersionPairs: {
     eserviceTemplate: EServiceTemplate;
     eserviceTemplateVersionId: EServiceTemplateVersionId;
-  }> = [];
+  }[] = [];
 
   validEServiceTemplateVersionPurposeTemplates.forEach((link) => {
     const eserviceTemplate = validEServiceTemplates.find(
@@ -1400,10 +1400,10 @@ export async function validateEServiceTemplatesDisassociations(
   readModelService: ReadModelServiceSQL
 ): Promise<
   PurposeTemplateValidationResult<
-    Array<{
+    {
       eserviceTemplate: EServiceTemplate;
       eserviceTemplateVersionId: EServiceTemplateVersionId;
-    }>
+    }[]
   >
 > {
   const { validationIssues, validEServiceTemplates } =

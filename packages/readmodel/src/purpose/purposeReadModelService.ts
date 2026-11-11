@@ -133,7 +133,7 @@ export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
     },
     async getPurposesByFilter(
       filter: SQL | undefined
-    ): Promise<Array<WithMetadata<Purpose>>> {
+    ): Promise<WithMetadata<Purpose>[]> {
       if (filter === undefined) {
         throw genericInternalError("Filter cannot be undefined");
       }
