@@ -29,7 +29,6 @@ const getRiskAnalysisOnlyDigestData = (
     publishedReceivedPurposes: empty,
     waitingForApprovalReceivedPurposes: empty,
     waitingForApprovalReceivedDelegations: empty,
-    revokedReceivedDelegations: empty,
     receivedAttributes: empty,
     revokedAttributes: empty,
     archivingImminentEservices: empty,
