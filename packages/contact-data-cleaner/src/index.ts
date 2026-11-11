@@ -4,7 +4,7 @@ import pg from "pg";
 
 import { config } from "./config/config.js";
 import { runContactDataCleaner } from "./contactDataCleaner.js";
-import { unavailableContactReferenceChecker } from "./contactReferenceChecker.js";
+import { contactReferenceChecker } from "./contactReferenceChecker.js";
 import { describeError } from "./utilities/errors.js";
 
 const loggerInstance = logger({ serviceName: "contact-data-cleaner" });
@@ -26,7 +26,7 @@ try {
     now: new Date(),
     pageSize: config.contactScanPageSize,
     protectionPeriodHours: config.contactProtectionPeriodHours,
-    referenceChecker: unavailableContactReferenceChecker,
+    referenceChecker: contactReferenceChecker,
   });
   // Failed contacts are retried by the next run; report this run as failed.
   if (failedContacts > 0) {
