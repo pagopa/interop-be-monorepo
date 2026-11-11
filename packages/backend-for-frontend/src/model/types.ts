@@ -2,6 +2,7 @@ import type { ErrorMessage } from "pagopa-interop-models";
 import type { Problem, MakeApiProblemFn } from "pagopa-interop-models";
 
 import { agreementApi, bffApi, catalogApi } from "pagopa-interop-api-clients";
+import { EServiceId } from "pagopa-interop-models";
 import { z } from "zod";
 
 const Conditions = z.object({
@@ -233,3 +234,17 @@ export type MakeUserFacingApiProblemFn<T extends string> = (
   },
   operationalLogMessage?: Parameters<MakeApiProblemFn<T>>[3]
 ) => UserFacingProblem;
+
+export const UseCasesLanguage = z.enum(["it", "en"]);
+export type UseCasesLanguage = z.infer<typeof UseCasesLanguage>;
+
+export const UseCasesFile = z.array(
+  z.object({
+    name: z.string(),
+    description: z.string().optional(),
+    slug: z.string(),
+    fieldId: bffApi.CatalogUseCaseField,
+    eserviceIds: z.array(EServiceId),
+  })
+);
+export type UseCasesFile = z.infer<typeof UseCasesFile>;
