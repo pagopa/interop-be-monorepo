@@ -22,7 +22,7 @@ describe("deleteContactsPastProtectionPeriod", () => {
       ids: [deletedId],
     });
 
-    expect(deleted).toBe(1);
+    expect(deleted).toEqual([deletedId]);
     expect(await getContactIds()).toEqual([keptId]);
   });
 
@@ -34,7 +34,7 @@ describe("deleteContactsPastProtectionPeriod", () => {
       ids,
     });
 
-    expect(deleted).toBe(0);
+    expect(deleted).toEqual([]);
     expect(new Set(await getContactIds())).toEqual(new Set(ids));
   });
 
@@ -50,7 +50,7 @@ describe("deleteContactsPastProtectionPeriod", () => {
       ids: [remainingId, alreadyDeletedId],
     });
 
-    expect(deleted).toBe(1);
+    expect(deleted).toEqual([remainingId]);
     expect(await getContactIds()).toEqual([]);
   });
 });
