@@ -48,6 +48,7 @@ const errorCodes = {
   tenantContactAlreadyAssigned: "0037",
   tenantContactNotFound: "0038",
   tenantMailsNotAllowed: "0039",
+  tenantContactRequiresEventsV3: "0040",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -427,5 +428,15 @@ export function tenantMailsNotAllowed(
     detail: `Mails are not allowed for tenant ${tenantId}: the tenant contact is managed by contactId`,
     code: "tenantMailsNotAllowed",
     title: "Tenant mails not allowed",
+  });
+}
+
+export function tenantContactRequiresEventsV3(
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} has a contact, which V2 events cannot carry: tenant events V3 must be enabled`,
+    code: "tenantContactRequiresEventsV3",
+    title: "Tenant contact requires tenant events V3",
   });
 }
