@@ -416,7 +416,8 @@ export function digestDataServiceBuilder(
         data.archivingConsumerImminentEservices?.totalCount ||
         data.archivingRequests?.totalCount ||
         data.approvedArchivingRequests?.totalCount ||
-        data.rejectedArchivingRequests?.totalCount
+        data.rejectedArchivingRequests?.totalCount ||
+        data.archivingConsumerImminentEservices?.totalCount
       );
     },
   };
