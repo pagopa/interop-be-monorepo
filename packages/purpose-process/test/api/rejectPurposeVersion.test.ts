@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { purposeApi } from "pagopa-interop-api-clients";
-import { authRole } from "pagopa-interop-commons";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockPurpose,
   getMockPurposeVersion,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import {
   DelegationId,
@@ -16,6 +17,7 @@ import {
 import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+import { purposeVersionToApiPurposeVersion } from "../../src/model/domain/apiConverter.js";
 import {
   notValidVersionState,
   tenantIsNotTheDelegatedProducer,
@@ -31,11 +33,16 @@ describe("API POST /purposes/{purposeId}/versions/{versionId}/reject test", () =
   const defaultBody: purposeApi.RejectPurposeVersionPayload = {
     rejectionReason: "Mock rejection reason",
   };
+  const serviceResponse = getMockWithMetadata(mockPurposeVersion);
+
+  const apiResponse = purposeApi.PurposeVersion.parse(
+    purposeVersionToApiPurposeVersion(mockPurposeVersion)
+  );
 
   beforeEach(() => {
     purposeService.rejectPurposeVersion = vi
       .fn()
-      .mockResolvedValue(mockPurposeVersion);
+      .mockResolvedValue(serviceResponse);
   });
 
   const makeRequest = async (
@@ -50,14 +57,26 @@ describe("API POST /purposes/{purposeId}/versions/{versionId}/reject test", () =
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  it("Should return 204 for user with role Admin", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(204);
-  });
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
+
+  it.each(authorizedRoles)(
+    "Should return 200 for user with role %s",
+    async (role) => {
+      const token = generateToken(role);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(apiResponse);
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
+    }
+  );
 
   it.each(
-    Object.values(authRole).filter((role) => role !== authRole.ADMIN_ROLE)
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token);
