@@ -18,8 +18,7 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant (
     setweight(to_tsvector('public.italian_unaccent', public.normalize_text(name)), 'A')
   ) STORED,
   PRIMARY KEY (id),
-  CONSTRAINT tenant_id_metadata_version_unique UNIQUE (id, metadata_version),
-  CONSTRAINT tenant_contact_id_unique UNIQUE (contact_id)
+  CONSTRAINT tenant_id_metadata_version_unique UNIQUE (id, metadata_version)
 );
 
 CREATE INDEX IF NOT EXISTS tenant_search_vector_gin

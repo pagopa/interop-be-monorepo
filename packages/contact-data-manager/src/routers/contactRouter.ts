@@ -8,9 +8,9 @@ import {
   validateAuthorization,
   ZodiosContext,
 } from "pagopa-interop-commons";
-import { ApiError, emptyErrorMapper } from "pagopa-interop-models";
+import { emptyErrorMapper } from "pagopa-interop-models";
 
-import { contactCreationFailed, makeApiProblem } from "../model/errors.js";
+import { makeApiProblem } from "../model/errors.js";
 import { ContactService } from "../services/contactService.js";
 import { contactValidationErrorToApiProblem } from "../utilities/errorHandlers.js";
 
@@ -30,11 +30,7 @@ export const contactRouter = (
         const contact = await service.createContact(req.body, ctx);
         return res.status(201).send(contactDataApi.Contact.parse(contact));
       } catch (error) {
-        const problem = makeApiProblem(
-          error instanceof ApiError ? error : contactCreationFailed(),
-          emptyErrorMapper,
-          ctx
-        );
+        const problem = makeApiProblem(error, emptyErrorMapper, ctx);
         return res.status(problem.status).send(problem);
       }
     });
