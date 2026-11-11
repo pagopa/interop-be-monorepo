@@ -54,15 +54,21 @@ export function assertIsReceiveTemplate(template: EServiceTemplate): void {
   }
 }
 
+export function isDraftEServiceTemplate(
+  eserviceTemplate: EServiceTemplate
+): boolean {
+  return (
+    eserviceTemplate.versions.length === 0 ||
+    eserviceTemplate.versions.every(
+      (v) => v.state === eserviceTemplateVersionState.draft
+    )
+  );
+}
+
 export function assertIsDraftEServiceTemplate(
   eserviceTemplate: EServiceTemplate
 ): void {
-  if (
-    eserviceTemplate.versions.length > 0 &&
-    eserviceTemplate.versions.some(
-      (v) => v.state !== eserviceTemplateVersionState.draft
-    )
-  ) {
+  if (!isDraftEServiceTemplate(eserviceTemplate)) {
     throw eserviceTemplateNotInDraftState(eserviceTemplate.id);
   }
 }
