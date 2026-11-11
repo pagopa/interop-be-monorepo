@@ -63,21 +63,21 @@ describe("getPurposeTemplateEServiceDescriptors", async () => {
       purposeTemplateId: purposeTemplate1.id,
       eserviceId: eservice1.id,
       descriptorId: eservice1.descriptors[0].id,
-      createdAt: new Date(),
+      createdAt: new Date("2026-01-01T00:00:00.000Z"),
     };
   const purposeTemplateEServiceDescriptor2: EServiceDescriptorPurposeTemplate =
     {
       purposeTemplateId: purposeTemplate1.id,
       eserviceId: eservice2.id,
       descriptorId: eservice2.descriptors[0].id,
-      createdAt: new Date(),
+      createdAt: new Date("2026-01-01T00:00:01.000Z"),
     };
   const purposeTemplateEServiceDescriptor3: EServiceDescriptorPurposeTemplate =
     {
       purposeTemplateId: purposeTemplate2.id,
       eserviceId: eservice1.id,
       descriptorId: eservice1.descriptors[0].id,
-      createdAt: new Date(),
+      createdAt: new Date("2026-01-01T00:00:02.000Z"),
     };
 
   beforeEach(async () => {
