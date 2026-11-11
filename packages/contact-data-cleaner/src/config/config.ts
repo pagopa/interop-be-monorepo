@@ -4,8 +4,13 @@ import { z } from "zod";
 export const ContactDataCleanerConfig = ContactDataDBConfig.and(
   z
     .object({
-      // The job must not run without a validated period.
-      CONTACT_PROTECTION_PERIOD_HOURS: z.coerce.number().int().positive(),
+      // The job must not run without a validated period. At most one week:
+      // orphan contacts must not be kept longer than that.
+      CONTACT_PROTECTION_PERIOD_HOURS: z.coerce
+        .number()
+        .int()
+        .positive()
+        .max(168),
       CONTACT_SCAN_PAGE_SIZE: z.coerce
         .number()
         .int()
