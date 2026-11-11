@@ -22,7 +22,7 @@ import type {
 } from "../src/clients/clientsProvider.js";
 
 import { config } from "../src/config/config.js";
-import { UseCasesLanguage } from "../src/model/types.js";
+import { UserFacingLanguage } from "../src/model/types.js";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import {
   getMockCatalogApiEService,
@@ -31,8 +31,8 @@ import {
 import { fileManager, getBffMockContext } from "./utils.js";
 
 describe("getCatalogUseCases", () => {
-  const italian = UseCasesLanguage.enum.it;
-  const english = UseCasesLanguage.enum.en;
+  const italian: UserFacingLanguage = "it";
+  const english: UserFacingLanguage = "en";
   const useCaseFieldId = bffApi.CatalogUseCaseField.enum.WELFARE;
 
   const requesterId: TenantId = generateId<TenantId>();
@@ -42,6 +42,9 @@ describe("getCatalogUseCases", () => {
     organizationId: requesterId,
   };
   const bffMockContext = getBffMockContext(getMockContext({ authData }));
+  const getContext = (
+    locale: UserFacingLanguage | undefined
+  ): typeof bffMockContext => ({ ...bffMockContext, locale });
 
   const getMockEService = (
     eserviceProducerId: TenantId = producerId
@@ -88,7 +91,7 @@ describe("getCatalogUseCases", () => {
   );
 
   const storeUseCasesFile = async (
-    language: UseCasesLanguage,
+    language: UserFacingLanguage,
     content: string
   ): Promise<void> => {
     await fileManager.storeBytes(
@@ -216,17 +219,23 @@ describe("getCatalogUseCases", () => {
       );
 
       const result = await catalogService.getCatalogUseCases(
-        bffMockContext,
-        english
+        getContext(english)
       );
 
       expect(getNames(result)).toEqual([english]);
     });
 
+    it("should read the italian file when the locale is missing", async () => {
+      const result = await catalogService.getCatalogUseCases(
+        getContext(undefined)
+      );
+
+      expect(getNames(result)).toEqual([italian]);
+    });
+
     it("should read the italian file for the italian language", async () => {
       const result = await catalogService.getCatalogUseCases(
-        bffMockContext,
-        italian
+        getContext(italian)
       );
 
       expect(getNames(result)).toEqual([italian]);
@@ -234,8 +243,7 @@ describe("getCatalogUseCases", () => {
 
     it("should fall back to the italian file when the file of the language is missing", async () => {
       const result = await catalogService.getCatalogUseCases(
-        bffMockContext,
-        english
+        getContext(english)
       );
 
       expect(getNames(result)).toEqual([italian]);
@@ -245,8 +253,7 @@ describe("getCatalogUseCases", () => {
       await storeUseCasesFile(english, "not a json");
 
       const result = await catalogService.getCatalogUseCases(
-        bffMockContext,
-        english
+        getContext(english)
       );
 
       expect(getNames(result)).toEqual([italian]);
@@ -261,8 +268,7 @@ describe("getCatalogUseCases", () => {
       );
 
       const result = await catalogService.getCatalogUseCases(
-        bffMockContext,
-        english
+        getContext(english)
       );
 
       expect(getNames(result)).toEqual([italian]);
@@ -272,7 +278,7 @@ describe("getCatalogUseCases", () => {
       await storeUseCasesFile(english, JSON.stringify([]));
 
       expect(
-        await catalogService.getCatalogUseCases(bffMockContext, english)
+        await catalogService.getCatalogUseCases(getContext(english))
       ).toEqual([]);
       expect(getEServices).not.toHaveBeenCalled();
     });
@@ -280,7 +286,7 @@ describe("getCatalogUseCases", () => {
 
   it("should return an empty array when the italian file is missing", async () => {
     expect(
-      await catalogService.getCatalogUseCases(bffMockContext, english)
+      await catalogService.getCatalogUseCases(getContext(english))
     ).toEqual([]);
     expect(getEServices).not.toHaveBeenCalled();
   });
@@ -289,7 +295,7 @@ describe("getCatalogUseCases", () => {
     await storeUseCasesFile(italian, "not a json");
 
     expect(
-      await catalogService.getCatalogUseCases(bffMockContext, italian)
+      await catalogService.getCatalogUseCases(getContext(italian))
     ).toEqual([]);
   });
 
@@ -305,7 +311,7 @@ describe("getCatalogUseCases", () => {
       ])
     );
 
-    await catalogService.getCatalogUseCases(bffMockContext, italian);
+    await catalogService.getCatalogUseCases(getContext(italian));
 
     expect(getEServices).toHaveBeenCalledExactlyOnceWith({
       headers: bffMockContext.headers,
@@ -342,8 +348,7 @@ describe("getCatalogUseCases", () => {
     );
 
     const [useCase] = await catalogService.getCatalogUseCases(
-      bffMockContext,
-      italian
+      getContext(italian)
     );
 
     expect(getEServices).toHaveBeenCalledTimes(2);
@@ -358,10 +363,7 @@ describe("getCatalogUseCases", () => {
       JSON.stringify([toUseCaseFileItem("empty", [])])
     );
 
-    const result = await catalogService.getCatalogUseCases(
-      bffMockContext,
-      italian
-    );
+    const result = await catalogService.getCatalogUseCases(getContext(italian));
 
     expect(getEServices).not.toHaveBeenCalled();
     expect(getAgreements).not.toHaveBeenCalled();
@@ -413,10 +415,7 @@ describe("getCatalogUseCases", () => {
     ]);
     await storeUseCasesFile(italian, getUseCasesFileItems(eservices));
 
-    const result = await catalogService.getCatalogUseCases(
-      bffMockContext,
-      italian
-    );
+    const result = await catalogService.getCatalogUseCases(getContext(italian));
 
     expect(result).toEqual([
       {
@@ -464,8 +463,7 @@ describe("getCatalogUseCases", () => {
     await storeUseCasesFile(italian, getUseCasesFileItems([eservice]));
 
     const [useCase] = await catalogService.getCatalogUseCases(
-      bffMockContext,
-      italian
+      getContext(italian)
     );
 
     expect(useCase.subscribedEservices.map((e) => e.id)).toEqual([eservice.id]);
@@ -481,8 +479,7 @@ describe("getCatalogUseCases", () => {
     );
 
     const [useCase] = await catalogService.getCatalogUseCases(
-      bffMockContext,
-      italian
+      getContext(italian)
     );
 
     expect(useCase.unsubscribedEservices).toEqual([
@@ -497,8 +494,7 @@ describe("getCatalogUseCases", () => {
     await storeUseCasesFile(italian, getUseCasesFileItems([ownEService]));
 
     const [useCase] = await catalogService.getCatalogUseCases(
-      bffMockContext,
-      italian
+      getContext(italian)
     );
 
     expect(useCase.unsubscribedEservices).toEqual([
@@ -522,10 +518,7 @@ describe("getCatalogUseCases", () => {
       ])
     );
 
-    const result = await catalogService.getCatalogUseCases(
-      bffMockContext,
-      italian
-    );
+    const result = await catalogService.getCatalogUseCases(getContext(italian));
 
     expect(
       result.map(({ name, subscribedEservices, unsubscribedEservices }) => ({
@@ -560,10 +553,7 @@ describe("getCatalogUseCases", () => {
       ])
     );
 
-    const result = await catalogService.getCatalogUseCases(
-      bffMockContext,
-      italian
-    );
+    const result = await catalogService.getCatalogUseCases(getContext(italian));
 
     expect(result).toEqual([
       {
@@ -584,7 +574,7 @@ describe("getCatalogUseCases", () => {
     await storeUseCasesFile(italian, getUseCasesFileItems([eservice]));
 
     await expect(
-      catalogService.getCatalogUseCases(bffMockContext, italian)
+      catalogService.getCatalogUseCases(getContext(italian))
     ).rejects.toThrow(error);
   });
 
@@ -596,7 +586,7 @@ describe("getCatalogUseCases", () => {
     await storeUseCasesFile(italian, getUseCasesFileItems([eservice]));
 
     await expect(
-      catalogService.getCatalogUseCases(bffMockContext, italian)
+      catalogService.getCatalogUseCases(getContext(italian))
     ).rejects.toThrow(error);
   });
 });

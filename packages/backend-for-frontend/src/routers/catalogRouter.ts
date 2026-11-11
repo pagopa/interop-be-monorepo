@@ -41,7 +41,6 @@ import {
   importEServiceErrorMapper,
   getEServiceTemplateInstancesErrorMapper,
 } from "../utilities/errorMappers.js";
-import { getUseCasesLanguage } from "../utilities/useCasesUtils.js";
 
 const catalogRouter = (
   ctx: ZodiosContext,
@@ -120,10 +119,7 @@ const catalogRouter = (
     .get("/catalog/use-cases", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
-        const response = await catalogService.getCatalogUseCases(
-          ctx,
-          getUseCasesLanguage(req.headers["accept-language"])
-        );
+        const response = await catalogService.getCatalogUseCases(ctx);
 
         return res
           .status(200)

@@ -210,6 +210,17 @@ export const ConfigurationEservice = z.object({
 });
 export type ConfigurationEservice = z.infer<typeof ConfigurationEservice>;
 
+export const UseCasesFile = z.array(
+  z.object({
+    name: z.string(),
+    description: z.string().optional(),
+    slug: z.string(),
+    fieldId: bffApi.CatalogUseCaseField,
+    eserviceIds: z.array(EServiceId),
+  })
+);
+export type UseCasesFile = z.infer<typeof UseCasesFile>;
+
 export type UserFacingProblem = Problem & {
   userMessage?: string;
 };
@@ -234,17 +245,3 @@ export type MakeUserFacingApiProblemFn<T extends string> = (
   },
   operationalLogMessage?: Parameters<MakeApiProblemFn<T>>[3]
 ) => UserFacingProblem;
-
-export const UseCasesLanguage = z.enum(["it", "en"]);
-export type UseCasesLanguage = z.infer<typeof UseCasesLanguage>;
-
-export const UseCasesFile = z.array(
-  z.object({
-    name: z.string(),
-    description: z.string().optional(),
-    slug: z.string(),
-    fieldId: bffApi.CatalogUseCaseField,
-    eserviceIds: z.array(EServiceId),
-  })
-);
-export type UseCasesFile = z.infer<typeof UseCasesFile>;

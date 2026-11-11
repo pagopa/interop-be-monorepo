@@ -10,7 +10,6 @@ import { z } from "zod";
 
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { tenantNotFound } from "../../../src/model/errors.js";
-import { UseCasesLanguage } from "../../../src/model/types.js";
 import { getMockBffApiCatalogEService } from "../../mockUtils.js";
 import { api, services } from "../../vitest.api.setup.js";
 
@@ -53,20 +52,18 @@ describe("API GET /catalog/use-cases", () => {
   });
 
   it.each([
-    { acceptLanguage: "en-EN", language: UseCasesLanguage.enum.en },
-    { acceptLanguage: "it-IT", language: UseCasesLanguage.enum.it },
-    { acceptLanguage: undefined, language: UseCasesLanguage.enum.it },
-    { acceptLanguage: "fr-FR", language: UseCasesLanguage.enum.it },
-    { acceptLanguage: "../it", language: UseCasesLanguage.enum.it },
+    { acceptLanguage: "en-EN", locale: "en" },
+    { acceptLanguage: "it-IT", locale: "it" },
+    { acceptLanguage: undefined, locale: undefined },
   ])(
-    "Should pass the language $language for the Accept-Language header $acceptLanguage",
-    async ({ acceptLanguage, language }) => {
+    "Should pass the locale $locale for the Accept-Language header $acceptLanguage",
+    async ({ acceptLanguage, locale }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(token, acceptLanguage);
       expect(res.status).toBe(200);
       expect(
         services.catalogService.getCatalogUseCases
-      ).toHaveBeenCalledExactlyOnceWith(expect.anything(), language);
+      ).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ locale }));
     }
   );
 
