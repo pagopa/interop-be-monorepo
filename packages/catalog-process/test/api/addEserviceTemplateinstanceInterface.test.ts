@@ -35,6 +35,7 @@ import {
   eServiceNotAnInstance,
   eServiceNotFound,
   eserviceTemplateInterfaceNotFound,
+  eserviceTemplateInterfaceTechnologyMismatch,
   eServiceTemplateNotFound,
   eServiceTemplateWithoutPublishedVersion,
   interfaceAlreadyExists,
@@ -123,6 +124,15 @@ describe("addEServiceTemplateInstanceInterface", () => {
 
           expect(res.body).toEqual(eServiceToApiEService(eservice));
           expect(res.status).toBe(200);
+          expect(
+            catalogService.addEServiceTemplateInstanceInterface
+          ).toHaveBeenCalledWith(
+            eservice.id,
+            descriptor.id,
+            technology,
+            technology === "Rest" ? restBody : soapBody,
+            expect.anything()
+          );
         }
       );
 
@@ -155,6 +165,14 @@ describe("addEServiceTemplateInstanceInterface", () => {
           expectedStatus: 409,
         },
         { error: interfaceAlreadyExists(descriptor.id), expectedStatus: 409 },
+        {
+          error: eserviceTemplateInterfaceTechnologyMismatch(
+            eservice.templateId!,
+            technology,
+            technology === "Rest" ? "Soap" : "Rest"
+          ),
+          expectedStatus: 409,
+        },
         { error: eServiceNotFound(eservice.id), expectedStatus: 404 },
         {
           error: eServiceDescriptorNotFound(eservice.id, descriptor.id),

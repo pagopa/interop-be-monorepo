@@ -17,9 +17,20 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice (
   instance_label VARCHAR,
   archiving_reason VARCHAR,
   async_exchange BOOLEAN,
+  search_vector TSVECTOR GENERATED ALWAYS AS (
+    setweight(to_tsvector('public.italian_unaccent', public.normalize_text(name)), 'A') ||
+    setweight(to_tsvector('public.italian_unaccent', public.normalize_text(description)), 'B')
+  ) STORED,
   PRIMARY KEY (id),
   CONSTRAINT eservice_id_metadata_version_unique UNIQUE (id, metadata_version)
 );
+
+CREATE INDEX IF NOT EXISTS eservice_search_vector_gin
+  ON readmodel_catalog.eservice USING GIN (search_vector);
+CREATE INDEX IF NOT EXISTS eservice_name_trgm
+  ON readmodel_catalog.eservice USING GIN (public.normalize_text(name) public.gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS eservice_description_trgm
+  ON readmodel_catalog.eservice USING GIN (public.normalize_text(description) public.gin_trgm_ops);
 
 CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor (
   id UUID,
@@ -35,7 +46,7 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor (
   agreement_approval_policy VARCHAR,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   server_urls VARCHAR ARRAY NOT NULL,
-  server_urls_descriptions VARCHAR ARRAY NOT NULL,
+  server_urls_descriptions VARCHAR ARRAY,
   published_at TIMESTAMP WITH TIME ZONE,
   suspended_at TIMESTAMP WITH TIME ZONE,
   deprecated_at TIMESTAMP WITH TIME ZONE,
@@ -160,6 +171,23 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_archiving_sched
   scope VARCHAR NOT NULL,
   archivable_on TIMESTAMP WITH TIME ZONE NOT NULL,
   started_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  grace_period_days INTEGER NOT NULL,
   PRIMARY KEY (eservice_id, descriptor_id),
+  FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
+);
+
+CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_archiving_request (
+  id UUID NOT NULL,
+  eservice_id UUID NOT NULL REFERENCES readmodel_catalog.eservice (id) ON DELETE CASCADE,
+  metadata_version INTEGER NOT NULL,
+  descriptor_id UUID REFERENCES readmodel_catalog.eservice_descriptor (id) ON DELETE CASCADE,
+  grace_period_days INTEGER NOT NULL,
+  requester_id UUID NOT NULL,
+  requested_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  accepted_at TIMESTAMP WITH TIME ZONE,
+  rejected_at TIMESTAMP WITH TIME ZONE,
+  rejection_reason VARCHAR,
+  archiving_reason VARCHAR,
+  PRIMARY KEY (id),
   FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );

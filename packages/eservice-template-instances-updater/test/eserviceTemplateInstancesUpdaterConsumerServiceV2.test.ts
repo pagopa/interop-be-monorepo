@@ -981,7 +981,6 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     "EServiceTemplateVersionAdded",
     "EServiceTemplateVersionInterfaceAdded",
     "EServiceTemplateVersionInterfaceDeleted",
-    "EServiceTemplateVersionInterfaceUpdated",
     "EServiceTemplateVersionPublished",
     "EServiceTemplateVersionSuspended",
   ] as const)("Should ignore %s event", async (eventType) => {

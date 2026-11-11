@@ -2,26 +2,20 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/cognitive-complexity */
 import { genericLogger } from "pagopa-interop-commons";
+import { EserviceItemsSchema } from "pagopa-interop-kpi-models";
+import { EserviceDescriptorDocumentSchema } from "pagopa-interop-kpi-models";
+import { EserviceDescriptorInterfaceSchema } from "pagopa-interop-kpi-models";
 
 import { config } from "../config/config.js";
 import { DBContext } from "../db/db.js";
-import {
-  EserviceDeletingSchema,
-  EserviceItemsSchema,
-} from "../model/catalog/eservice.js";
+import { EserviceDeletingSchema } from "../model/catalog/eservice.js";
 import {
   EserviceDescriptorServerUrlsSchema,
   EserviceDescriptorDeletingSchema,
   EserviceDescriptorItemsSchema,
 } from "../model/catalog/eserviceDescriptor.js";
-import {
-  EserviceDescriptorDocumentDeletingSchema,
-  EserviceDescriptorDocumentSchema,
-} from "../model/catalog/eserviceDescriptorDocument.js";
-import {
-  EserviceDescriptorDocumentOrInterfaceDeletingSchema,
-  EserviceDescriptorInterfaceSchema,
-} from "../model/catalog/eserviceDescriptorInterface.js";
+import { EserviceDescriptorDocumentDeletingSchema } from "../model/catalog/eserviceDescriptorDocument.js";
+import { EserviceDescriptorDocumentOrInterfaceDeletingSchema } from "../model/catalog/eserviceDescriptorInterface.js";
 import { CatalogDbTable, DeletingDbTable } from "../model/db/index.js";
 import { eserviceRepository } from "../repository/catalog/eservice.repository.js";
 import { eserviceDescriptorRepository } from "../repository/catalog/eserviceDescriptor.repository.js";

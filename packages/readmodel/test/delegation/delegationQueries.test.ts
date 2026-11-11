@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { getMockDelegation } from "pagopa-interop-commons-test/index.js";
+import { getMockDelegation } from "pagopa-interop-commons-test";
 import {
   Delegation,
   DelegationId,
