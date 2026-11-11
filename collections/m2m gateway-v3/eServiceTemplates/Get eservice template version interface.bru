@@ -1,0 +1,20 @@
+meta {
+  name: Get eservice template version interface
+  type: http
+}
+
+get {
+  url: {{host-m2m-gw-v3}}/eserviceTemplates/:templateId/versions/:versionId/interface
+  body: none
+  auth: none
+}
+
+params:path {
+  versionId: {{versionId}}
+  templateId: {{templateId}}
+}
+
+headers {
+  Authorization: {{DPOP-JWT-M2M}}
+  DPoP: {{DPOP-PROOF}}
+}

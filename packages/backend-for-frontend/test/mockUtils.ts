@@ -257,6 +257,7 @@ export const getMockBffApiCatalogEServiceDescriptor =
       z.string().datetime({ offset: true }).optional()
     ),
     archivedAt: generateMock(z.string().datetime({ offset: true }).optional()),
+    templateRef: generateMock(bffApi.EServiceTemplateRef.optional()),
   });
 
 export const getMockBffApiCreatedEServiceDescriptor = (
@@ -419,6 +420,11 @@ export const getMockBffApiEServiceSeed = (): bffApi.EServiceSeed => ({
 
 export const getMockBffApiRejectDelegatedEServiceDescriptorSeed =
   (): bffApi.RejectDelegatedEServiceDescriptorSeed => ({
+    rejectionReason: generateMock(z.string()),
+  });
+
+export const getMockBffApiRejectDelegatedDescriptorArchivingSeed =
+  (): bffApi.RejectDelegatedDescriptorArchivingSeed => ({
     rejectionReason: generateMock(z.string()),
   });
 
@@ -715,7 +721,7 @@ export const getMockBffApiEServiceTemplateSeed =
     version: generateMock(
       z
         .object({
-          description: z.string().min(10).max(250).optional(),
+          description: z.string().min(10).max(250),
           voucherLifespan: z.number().int().min(60).max(86400),
           dailyCallsPerConsumer: z
             .number()

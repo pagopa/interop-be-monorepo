@@ -223,12 +223,23 @@ export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
         ),
       }
     : undefined,
+  serverUrlsDescriptions: input.serverUrlsDescriptions ?? [],
   asyncExchangeCallbackInterface: input.asyncExchangeCallbackInterface
     ? toDocumentV2(input.asyncExchangeCallbackInterface)
     : undefined,
   asyncExchangeProperties: input.asyncExchangeProperties
     ? { ...input.asyncExchangeProperties }
     : undefined,
+  delegatedArchivingRequest: input.delegatedArchivingRequest
+    ? input.delegatedArchivingRequest.map((request) => ({
+        requestedAt: dateToBigInt(request.requestedAt),
+        acceptedAt: dateToBigInt(request.acceptedAt),
+        rejectedAt: dateToBigInt(request.rejectedAt),
+        rejectionReason: request.rejectionReason,
+        requesterId: request.requesterId,
+        gracePeriodDays: toGracePeriodDaysV2(request.gracePeriodDays),
+      }))
+    : [],
 });
 
 export const toRiskAnalysisV2 = (
@@ -253,4 +264,15 @@ export const toEServiceV2 = (eservice: EService): EServiceV2 => ({
   createdAt: dateToBigInt(eservice.createdAt),
   mode: toEServiceModeV2(eservice.mode),
   riskAnalysis: eservice.riskAnalysis.map(toRiskAnalysisV2),
+  delegatedArchivingRequest: eservice.delegatedArchivingRequest
+    ? eservice.delegatedArchivingRequest.map((request) => ({
+        requestedAt: dateToBigInt(request.requestedAt),
+        acceptedAt: dateToBigInt(request.acceptedAt),
+        rejectedAt: dateToBigInt(request.rejectedAt),
+        rejectionReason: request.rejectionReason,
+        requesterId: request.requesterId,
+        gracePeriodDays: toGracePeriodDaysV2(request.gracePeriodDays),
+        archivingReason: request.archivingReason,
+      }))
+    : [],
 });

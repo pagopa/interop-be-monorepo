@@ -185,6 +185,26 @@ export const AsyncExchangeProperties = z.object({
 });
 export type AsyncExchangeProperties = z.infer<typeof AsyncExchangeProperties>;
 
+export const DelegatedDescriptorArchivingRequest = z.object({
+  requestedAt: z.coerce.date(),
+  acceptedAt: z.coerce.date().optional(),
+  rejectedAt: z.coerce.date().optional(),
+  rejectionReason: z.string().optional(),
+  requesterId: TenantId,
+  gracePeriodDays: GracePeriodDays,
+});
+export type DelegatedDescriptorArchivingRequest = z.infer<
+  typeof DelegatedDescriptorArchivingRequest
+>;
+
+export const DelegatedEServiceArchivingRequest =
+  DelegatedDescriptorArchivingRequest.extend({
+    archivingReason: z.string(),
+  });
+export type DelegatedEServiceArchivingRequest = z.infer<
+  typeof DelegatedEServiceArchivingRequest
+>;
+
 export const Descriptor = z.object({
   id: DescriptorId,
   version: z.string(),
@@ -199,7 +219,7 @@ export const Descriptor = z.object({
   agreementApprovalPolicy: AgreementApprovalPolicy.optional(),
   createdAt: z.coerce.date(),
   serverUrls: z.array(z.string()),
-  serverUrlsDescriptions: z.array(z.string()),
+  serverUrlsDescriptions: z.array(z.string()).optional(),
   publishedAt: z.coerce.date().optional(),
   suspendedAt: z.coerce.date().optional(),
   deprecatedAt: z.coerce.date().optional(),
@@ -210,6 +230,9 @@ export const Descriptor = z.object({
   archivingSchedule: ArchivingSchedule.optional(),
   asyncExchangeCallbackInterface: Document.optional(),
   asyncExchangeProperties: AsyncExchangeProperties.optional(),
+  delegatedArchivingRequest: z
+    .array(DelegatedDescriptorArchivingRequest)
+    .optional(),
 });
 export type Descriptor = z.infer<typeof Descriptor>;
 
@@ -241,6 +264,9 @@ export const EService = z.object({
   instanceLabel: z.string().optional(),
   archivingReason: z.string().optional(),
   asyncExchange: z.boolean().optional(),
+  delegatedArchivingRequest: z
+    .array(DelegatedEServiceArchivingRequest)
+    .optional(),
 });
 
 export type EService = z.infer<typeof EService>;

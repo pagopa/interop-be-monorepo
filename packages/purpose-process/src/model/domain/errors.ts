@@ -1,4 +1,7 @@
-import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
+import {
+  RiskAnalysisValidationIssue,
+  purposeErrorCodes,
+} from "pagopa-interop-commons";
 import {
   ApiError,
   DelegationId,
@@ -18,72 +21,17 @@ import {
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
-const errorCodes = {
-  purposeNotFound: "0001",
-  eserviceNotFound: "0002",
-  tenantNotFound: "0003",
-  tenantKindNotFound: "0004",
-  purposeVersionNotFound: "0005",
-  purposeVersionDocumentNotFound: "0006",
-  tenantNotAllowed: "0007",
-  tenantIsNotTheConsumer: "0008",
-  purposeVersionCannotBeDeleted: "0009",
-  tenantIsNotTheProducer: "0010",
-  notValidVersionState: "0011",
-  eServiceModeNotAllowed: "0012",
-  missingFreeOfChargeReason: "0013",
-  riskAnalysisValidationFailed: "0014",
-  purposeNotInDraftState: "0015",
-  duplicatedPurposeTitle: "0016",
-  purposeCannotBeDeleted: "0017",
-  agreementNotFound: "0018",
-  eserviceRiskAnalysisNotFound: "0019",
-  purposeCannotBeCloned: "0020",
-  riskAnalysisConfigVersionNotFound: "0021",
-  descriptorNotFound: "0022",
-  unchangedDailyCalls: "0023",
-  missingRiskAnalysis: "0024",
-  purposeVersionStateConflict: "0025",
-  riskAnalysisConfigLatestVersionNotFound: "0026",
-  tenantIsNotTheDelegatedConsumer: "0027",
-  tenantIsNotTheDelegatedProducer: "0028",
-  purposeDelegationNotFound: "0029",
-  purposeCannotBeUpdated: "0030",
-  tenantIsNotTheDelegate: "0031",
-  purposeTemplateNotFound: "0032",
-  invalidPurposeTenantKind: "0033",
-  riskAnalysisContainsNotEditableAnswers: "0034",
-  riskAnalysisAnswerNotInSuggestValues: "0035",
-  riskAnalysisMissingExpectedFieldError: "0036",
-  riskAnalysisVersionMismatch: "0037",
-  invalidPersonalData: "0038",
-  purposeDraftVersionNotFound: "0039",
-  purposeFromTemplateCannotBeModified: "0040",
-  invalidFreeOfChargeReason: "0041",
-  riskAnalysisTenantKindMismatch: "0042",
-  unableToDetermineTenantKind: "0043",
-  reviewerWorkflowConflict: "0044",
-  multipleReviewersNotAllowed: "0045",
-  reviewerWorkflowNotFound: "0046",
-  reviewerWorkflowNotSubmittable: "0047",
-  submitNotAllowedForReviewMode: "0048",
-  reviewerWorkflowNotInSignableState: "0049",
-  requesterIsNotDesignatedReviewer: "0050",
-  rejectNotAllowedInCurrentMode: "0051",
-  reviewerWorkflowNotInSubmittedState: "0052",
-  editNotAllowedForReviewMode: "0053",
-  reviewerWorkflowNotEditable: "0054",
-  reviewerWorkflowNotInSignedState: "0055",
-  riskAnalysisFormCannotBeUpdated: "0056",
-  userWithoutReviewerPrivileges: "0057",
-  missingSelfcareId: "0058",
-  reviewerWorkflowNotAllowedForDelegatedPurpose: "0059",
-  reviewerWorkflowNotAllowedForReceiveMode: "0060",
-};
+export type ErrorCodes = keyof typeof purposeErrorCodes;
 
-export type ErrorCodes = keyof typeof errorCodes;
+export const makeApiProblem = makeApiProblemBuilder(purposeErrorCodes);
 
-export const makeApiProblem = makeApiProblemBuilder(errorCodes);
+export function duplicatedReviewersInSeed(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: "The reviewer IDs must be unique",
+    code: "duplicatedReviewersInSeed",
+    title: "Duplicated reviewers in seed",
+  });
+}
 
 export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
   return new ApiError({
@@ -552,16 +500,6 @@ export function reviewerWorkflowConflict(
   });
 }
 
-export function multipleReviewersNotAllowed(
-  purposeId: PurposeId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Purpose ${purposeId} can't be assigned to multiple reviewers`,
-    code: "multipleReviewersNotAllowed",
-    title: "Multiple reviewers not allowed",
-  });
-}
-
 export function reviewerWorkflowNotFound(
   purposeId: PurposeId
 ): ApiError<ErrorCodes> {
@@ -672,14 +610,14 @@ export function riskAnalysisFormCannotBeUpdated(
   });
 }
 
-export function userWithoutReviewerPrivileges(
+export function userNotFoundOrWithoutReviewerPrivileges(
   consumerId: TenantId,
   userId: UserId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `User ${userId} does not have reviewer privileges for tenant ${consumerId}`,
-    code: "userWithoutReviewerPrivileges",
-    title: "User without reviewer privileges",
+    code: "userNotFoundOrWithoutReviewerPrivileges",
+    title: "User not found or without reviewer privileges",
   });
 }
 
@@ -708,5 +646,45 @@ export function reviewerWorkflowNotAllowedForReceiveMode(
     detail: `Reviewer workflow is not allowed for purpose ${purposeId} because the eservice is in receive mode`,
     code: "reviewerWorkflowNotAllowedForReceiveMode",
     title: "Reviewer workflow not allowed for receive mode",
+  });
+}
+
+export function missingReviewers(purposeId: PurposeId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `At least one reviewer must be provided for purpose ${purposeId} when the review mode is not AdminWritesAdminSigns`,
+    code: "missingReviewers",
+    title: "Missing reviewers",
+  });
+}
+
+export function reviewersNotAllowedForReviewMode(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No reviewer can be provided for purpose ${purposeId} when the review mode is AdminWritesAdminSigns`,
+    code: "reviewersNotAllowedForReviewMode",
+    title: "Reviewers not allowed for review mode",
+  });
+}
+
+export function purposeMetadataVersionMismatch(
+  purposeId: PurposeId,
+  metadataVersionToSign: number,
+  currentMetadataVersion: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Cannot sign risk analysis for purpose ${purposeId}: requested metadata version ${metadataVersionToSign} does not match current metadata version ${currentMetadataVersion}`,
+    code: "purposeMetadataVersionMismatch",
+    title: "Purpose metadata version mismatch",
+  });
+}
+
+export function riskAnalysisReviewModeNotFound(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} does not contain a risk analysis review mode`,
+    code: "riskAnalysisReviewModeNotFound",
+    title: "Risk analysis review mode not found",
   });
 }
