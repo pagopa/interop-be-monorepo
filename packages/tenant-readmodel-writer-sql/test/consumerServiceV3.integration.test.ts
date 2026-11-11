@@ -179,32 +179,32 @@ describe("Tenant Events V3", async () => {
     expect(retrievedTenant?.metadata).toStrictEqual({ version: 3 });
   });
 
-  it("rejects a contact already referenced by another tenant", async () => {
+  it("accepts a contact already referenced by another tenant", async () => {
     const contactId = generateId<ContactId>();
     const otherTenant: Tenant = { ...getMockTenant(), contactId };
     await tenantWriterService.upsertTenant(otherTenant, 1);
     await tenantWriterService.upsertTenant(mockTenant, 1);
 
+    const updatedTenant: Tenant = { ...mockTenant, contactId };
     const message: TenantEventEnvelopeV3 = {
       ...mockMessage,
       type: "TenantContactAdded",
-      data: {
-        contactId,
-        tenant: toTenantV3({ ...mockTenant, contactId }),
-      },
+      data: { contactId, tenant: toTenantV3(updatedTenant) },
       version: 2,
     };
 
-    await expect(
-      handleMessageV3(message, tenantWriterService)
-    ).rejects.toThrow();
+    await handleMessageV3(message, tenantWriterService);
 
     const retrievedTenant = await tenantReadModelService.getTenantById(
       mockTenant.id
     );
+    const retrievedOtherTenant = await tenantReadModelService.getTenantById(
+      otherTenant.id
+    );
 
-    expect(retrievedTenant?.data).toStrictEqual(mockTenant);
-    expect(retrievedTenant?.metadata).toStrictEqual({ version: 1 });
+    expect(retrievedTenant?.data).toStrictEqual(updatedTenant);
+    expect(retrievedTenant?.metadata).toStrictEqual({ version: 2 });
+    expect(retrievedOtherTenant?.data).toStrictEqual(otherTenant);
   });
 
   it("MaintenanceTenantDeleted", async () => {
