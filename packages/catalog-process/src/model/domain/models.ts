@@ -89,6 +89,7 @@ export type EServicesQueryFilters = {
   subscribedByRequester?: boolean;
   requesterDelegationRoles: RequesterDelegationRole[];
   onlyTemplateInstances?: boolean;
+  templateId?: EServiceTemplateId;
   hasLinkedPurposeTemplates?: boolean;
   producerCategories: EServiceProducerCategory[];
   availableForRequester?: boolean;

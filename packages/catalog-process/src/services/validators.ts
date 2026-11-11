@@ -59,7 +59,6 @@ import {
   eserviceWithActiveOrPendingDelegation,
   eserviceDescriptorWithActiveOrPendingDelegation,
   eserviceArchivingWithActiveOrPendingDelegation,
-  eserviceCloningWithActiveOrPendingDelegation,
   notValidDescriptorState,
   riskAnalysisNotValid,
   riskAnalysisValidationFailed,
@@ -305,31 +304,21 @@ export async function assertNoExistingProducerDelegationForEServiceArchiving(
   }
 }
 
-export async function assertNoExistingProducerDelegationForEServiceCloning(
-  eserviceId: EServiceId,
-  readModelService: ReadModelServiceSQL
-): Promise<void> {
-  const producerDelegation = await getActiveOrPendingProducerDelegation(
-    eserviceId,
-    readModelService
-  );
-
-  if (producerDelegation) {
-    throw eserviceCloningWithActiveOrPendingDelegation(
-      eserviceId,
-      producerDelegation.id
-    );
-  }
+export function isDraftEservice(eservice: EService): boolean {
+  /**
+   * NB. Empty array still returns true.
+   */
+  return eservice.descriptors.every((d) => d.state === descriptorState.draft);
 }
 
 export function assertIsDraftEservice(eservice: EService): void {
-  if (eservice.descriptors.some((d) => d.state !== descriptorState.draft)) {
+  if (!isDraftEservice(eservice)) {
     throw eserviceNotInDraftState(eservice.id);
   }
 }
 
 export function assertIsNotDraftEservice(eservice: EService): void {
-  if (eservice.descriptors.every((d) => d.state === descriptorState.draft)) {
+  if (isDraftEservice(eservice)) {
     throw eserviceInDraftState(eservice.id);
   }
 }

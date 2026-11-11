@@ -45,6 +45,28 @@ describe("API POST /eservices/templates", () => {
     expect(res.body).toEqual(mockEServiceTemplate);
   });
 
+  it("Should forward the whole version seed (voucherLifespan, dailyCallsPerConsumer, dailyCallsTotal, description, agreementApprovalPolicy) to the process (PIN-9924)", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const version: bffApi.VersionSeedForEServiceTemplateCreation = {
+      description: "a".repeat(10),
+      voucherLifespan: 86400,
+      dailyCallsPerConsumer: 3,
+      dailyCallsTotal: 7,
+      agreementApprovalPolicy: "MANUAL",
+    };
+    const res = await makeRequest(token, {
+      ...mockEServiceTemplateSeed,
+      version,
+    });
+    expect(res.status).toBe(200);
+    expect(
+      clients.eserviceTemplateProcessClient.createEServiceTemplate
+    ).toHaveBeenCalledWith(
+      expect.objectContaining({ version }),
+      expect.anything()
+    );
+  });
+
   it.each([
     { body: {} },
     {

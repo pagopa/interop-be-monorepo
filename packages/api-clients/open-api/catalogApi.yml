@@ -301,9 +301,9 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Partially updates Draft E-Service general information
+      summary: Partially updates E-Service general information
       operationId: patchUpdateDraftEServiceById
-      description: Partially updates the general information of the specified Draft E-Service
+      description: Partially updates the general information of the specified E-Service
       requestBody:
         required: true
         content:
@@ -1396,6 +1396,40 @@ paths:
           $ref: "#/components/responses/NotFound"
         "409":
           $ref: "#/components/responses/Conflict"
+  /internal/eservices/{eServiceId}/descriptors/{descriptorId}/restoreDraft:
+    put:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Restore a delegated descriptor to draft state.
+      operationId: internalRestoreDraftDescriptorAfterDelegationRevoke
+      description: Restores a descriptor from waitingForApproval to draft after its producer delegation is revoked. If the descriptor is in another state, the operation is skipped
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: the descriptor Id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: E-Service Descriptor updated
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /internal/eservices/{eServiceId}/delegatedArchivingRequests/archive:
     post:
       security:
@@ -3187,6 +3221,7 @@ components:
     PatchUpdateEServiceSeed:
       type: object
       additionalProperties: false
+      minProperties: 1
       properties:
         name:
           type: string

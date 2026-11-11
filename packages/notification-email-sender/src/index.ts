@@ -177,7 +177,8 @@ export async function handleCatalogMessage(
           "EServiceDescriptorArchivingRequestCanceledByDelegate",
           "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation",
           "MaintenanceEServicePersonalDataFlagReset",
-          "MaintenanceEServiceDescriptorUnarchived"
+          "MaintenanceEServiceDescriptorUnarchived",
+          "EServiceDescriptorRestoredToDraftByRevokedDelegation"
         ),
       },
       () => {
@@ -272,7 +273,8 @@ export async function handlePurposeMessage(
           "PurposeRiskAnalysisSubmitted",
           "PurposeRiskAnalysisSigned",
           "PurposeRiskAnalysisRejected",
-          "PurposeRiskAnalysisFormEdited"
+          "PurposeRiskAnalysisFormEdited",
+          "MaintenancePurposeRiskAnalysisFixReviewerWorkflow"
         ),
       },
       () => {

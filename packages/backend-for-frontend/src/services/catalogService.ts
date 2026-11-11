@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
 import AdmZip from "adm-zip";
+import { isAxiosError } from "axios";
 import { randomUUID } from "crypto";
 import {
   agreementApi,
@@ -21,6 +22,7 @@ import {
   formatDateyyyyMMddTHHmmss,
   getAllFromPaginated,
   getRulesetExpiration,
+  retry,
   verifyAndCreateDocument,
   verifyAndCreateImportedDocument,
 } from "pagopa-interop-commons";
@@ -30,6 +32,7 @@ import {
   EServiceId,
   EServiceTemplateId,
   genericInternalError,
+  Problem,
   RiskAnalysisId,
   TenantId,
   unsafeBrandId,
@@ -55,7 +58,12 @@ import {
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
 import { BffProcessConfig, config } from "../config/config.js";
-import { ASYNC_EXCHANGE_CALLBACK_INTERFACE_FOLDER } from "../config/constants.js";
+import {
+  ASYNC_EXCHANGE_CALLBACK_INTERFACE_FOLDER,
+  CATALOG_EVENT_CONFLICT_CODE,
+  EVENT_CONFLICT_MAX_ATTEMPTS,
+  EVENT_CONFLICT_RETRY_DELAY_MS,
+} from "../config/constants.js";
 import {
   eserviceDescriptorNotFound,
   eserviceRiskNotFound,
@@ -90,6 +98,13 @@ import {
   assertRequesterIsProducer,
   isInvalidDescriptor,
 } from "./validators.js";
+
+const isCatalogEventConflict = (error: unknown): boolean =>
+  isAxiosError<Problem>(error) &&
+  error.response?.status === 409 &&
+  error.response.data.errors?.some(
+    ({ code }) => code === CATALOG_EVENT_CONFLICT_CODE
+  ) === true;
 
 const enhanceCatalogEservices = async (
   eservices: catalogApi.EService[],
@@ -727,6 +742,18 @@ export function catalogServiceBuilder(
       );
       return { id, descriptorId: descriptors[0].id };
     },
+    patchUpdateEServiceById: async (
+      eServiceId: EServiceId,
+      seed: bffApi.PatchUpdateEServiceSeed,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> => {
+      logger.info(`Partially updating EService ${eServiceId}`);
+      const { id } = await catalogProcessClient.patchUpdateDraftEServiceById(
+        seed,
+        { headers, params: { eServiceId } }
+      );
+      return { id };
+    },
     updateEServiceById: async (
       eServiceId: EServiceId,
       updateEServiceSeed: bffApi.UpdateEServiceSeed,
@@ -833,23 +860,31 @@ export function catalogServiceBuilder(
           contentType,
           checksum
         ) => {
-          await catalogProcessClient.createEServiceDocument(
+          await retry(
+            () =>
+              catalogProcessClient.createEServiceDocument(
+                {
+                  documentId,
+                  prettyName,
+                  fileName,
+                  filePath,
+                  kind,
+                  contentType,
+                  checksum,
+                  serverUrls,
+                },
+                {
+                  headers: ctx.headers,
+                  params: {
+                    eServiceId: eService.id,
+                    descriptorId,
+                  },
+                }
+              ),
             {
-              documentId,
-              prettyName,
-              fileName,
-              filePath,
-              kind,
-              contentType,
-              checksum,
-              serverUrls,
-            },
-            {
-              headers: ctx.headers,
-              params: {
-                eServiceId: eService.id,
-                descriptorId,
-              },
+              retries: EVENT_CONFLICT_MAX_ATTEMPTS,
+              delay: EVENT_CONFLICT_RETRY_DELAY_MS,
+              shouldRetry: isCatalogEventConflict,
             }
           );
         },
@@ -2426,6 +2461,18 @@ export function catalogServiceBuilder(
           }
         );
       return { id: eservice.id };
+    },
+    getEserviceTemplateById: async (
+      templateId: EServiceTemplateId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<eserviceTemplateApi.EServiceTemplate> => {
+      logger.info(`Retrieving e-service template with id = ${templateId}`);
+      return await eserviceTemplateProcessClient.getEServiceTemplateById({
+        headers,
+        params: {
+          templateId,
+        },
+      });
     },
   };
 }
