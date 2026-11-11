@@ -8,6 +8,7 @@ import {
   authRole,
   ExpressContext,
   validateAuthorization,
+  WithLogger,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
@@ -24,9 +25,13 @@ import {
   toBffCatalogApiDescriptorDoc,
   toEserviceCatalogProcessQueryParams,
 } from "../api/catalogApiConverter.js";
+import {
+  placeholderMapperGenerator,
+  applyPlaceholderToError,
+} from "../model/applyError.js";
 import { makeApiProblem } from "../model/errors.js";
 import { CatalogService } from "../services/catalogService.js";
-import { fromBffAppContext } from "../utilities/context.js";
+import { BffAppContext, fromBffAppContext } from "../utilities/context.js";
 import {
   addEServiceInterfaceByTemplateErrorMapper,
   bffGetCatalogErrorMapper,
@@ -44,6 +49,20 @@ const catalogRouter = (
   const catalogRouter = ctx.router(bffApi.eservicesApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
+
+  const commonCatalogProducerPlaceholderMapper = async (
+    usedFor: "EService" | "Template",
+    id: string,
+    ctx: WithLogger<BffAppContext>
+  ) =>
+    placeholderMapperGenerator(
+      async () =>
+        usedFor === "Template"
+          ? catalogService.getEserviceTemplateById(unsafeBrandId(id), ctx)
+          : catalogService.getProducerEServiceDetails(unsafeBrandId(id), ctx),
+      (value, message) => message.replace("{identifyingWord}", value.name),
+      (error) => ctx.logger.warn(`Error retrieving placeholder data: ${error}`)
+    );
 
   catalogRouter
     .get("/catalog", async (req, res) => {
@@ -209,11 +228,20 @@ const catalogRouter = (
           .status(200)
           .send(bffApi.CreatedEServiceDescriptor.parse(response));
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          emptyErrorMapper,
-          ctx,
-          `Error creating EService instance from template ${req.params.templateId}`
+        const errorRes = await applyPlaceholderToError(
+          makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error creating EService instance from template ${req.params.templateId}`
+          ),
+          ["{identifyingWord}"],
+          () =>
+            commonCatalogProducerPlaceholderMapper(
+              "Template",
+              req.params.templateId,
+              ctx
+            )
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -931,11 +959,20 @@ const catalogRouter = (
           .status(200)
           .send(bffApi.CreatedResource.parse(createdResource));
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          emptyErrorMapper,
-          ctx,
-          `Error updating EService ${req.params.eServiceId} template instance`
+        const errorRes = await applyPlaceholderToError(
+          makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error updating EService ${req.params.eServiceId} template instance`
+          ),
+          ["{identifyingWord}"],
+          () =>
+            commonCatalogProducerPlaceholderMapper(
+              "EService",
+              req.params.eServiceId,
+              ctx
+            )
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -1454,11 +1491,20 @@ const catalogRouter = (
           );
           return res.status(200).send(bffApi.CreatedResource.parse(result));
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            emptyErrorMapper,
-            ctx,
-            `Error updating instance label for eservice with Id: ${req.params.eServiceId}`
+          const errorRes = await applyPlaceholderToError(
+            makeApiProblem(
+              error,
+              emptyErrorMapper,
+              ctx,
+              `Error updating instance label for eservice with Id: ${req.params.eServiceId}`
+            ),
+            ["{identifyingWord}"],
+            () =>
+              commonCatalogProducerPlaceholderMapper(
+                "EService",
+                req.params.eServiceId,
+                ctx
+              )
           );
           return res.status(errorRes.status).send(errorRes);
         }
