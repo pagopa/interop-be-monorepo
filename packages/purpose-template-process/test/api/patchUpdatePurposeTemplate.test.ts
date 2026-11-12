@@ -188,7 +188,7 @@ describe("PATCH /purposeTemplates/{id} router test", () => {
     expect(res.status).toBe(HTTP_STATUS_FORBIDDEN);
   });
 
-  it("Should return the final metadata version provided by the service", async () => {
+  it("Should return the unchanged metadata version for a no-op", async () => {
     purposeTemplateService.patchUpdatePurposeTemplate = vi
       .fn()
       .mockResolvedValueOnce({
