@@ -11880,6 +11880,33 @@ paths:
         schema:
           type: string
           format: uuid
+    patch:
+      tags:
+        - eserviceTemplates
+      summary: Partially updates E-Service Template general information
+      description: Partially updates the general information of the specified E-Service Template
+      operationId: patchUpdateEServiceTemplate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchUpdateEServiceTemplateSeed"
+      responses:
+        "200":
+          description: E-Service Template updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatedResource"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
     post:
       tags:
         - eserviceTemplates
@@ -18387,6 +18414,8 @@ components:
       properties:
         name:
           type: string
+          minLength: 5
+          maxLength: 45
       required:
         - name
     EServiceTemplateDescriptionUpdateSeed:
@@ -18615,6 +18644,35 @@ components:
       required:
         - id
         - versionId
+    PatchUpdateEServiceTemplateSeed:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        name:
+          type: string
+          minLength: 5
+          maxLength: 45
+        intendedTarget:
+          type: string
+          minLength: 10
+          maxLength: 250
+        description:
+          type: string
+          minLength: 10
+          maxLength: 400
+        technology:
+          $ref: "#/components/schemas/EServiceTechnology"
+        mode:
+          $ref: "#/components/schemas/EServiceMode"
+        isSignalHubEnabled:
+          type: boolean
+        personalData:
+          type: boolean
+          nullable: true
+        asyncExchange:
+          type: boolean
+          nullable: true
     UpdateEServiceTemplateSeed:
       type: object
       additionalProperties: false
