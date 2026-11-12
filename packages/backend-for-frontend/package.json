@@ -21,7 +21,6 @@
   "keywords": [],
   "devDependencies": {
     "@anatine/zod-mock": "catalog:",
-    "@types/adm-zip": "catalog:",
     "@types/express": "catalog:",
     "@types/node": "catalog:",
     "@types/supertest": "catalog:",
@@ -42,6 +41,7 @@
     "@zodios/express": "catalog:",
     "adm-zip": "catalog:",
     "axios": "catalog:",
+    "content-disposition": "catalog:",
     "dotenv-flow": "catalog:",
     "express": "catalog:",
     "fast-xml-parser": "catalog:",
@@ -51,6 +51,7 @@
     "pagopa-interop-client-assertion-validation": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-dpop-validation": "workspace:*",
+    "pagopa-interop-error-messages": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "swagger-ui-express": "catalog:",
     "ts-pattern": "catalog:",

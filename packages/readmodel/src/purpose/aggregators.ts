@@ -12,12 +12,14 @@ import {
   PurposeVersionStamp,
   PurposeVersionStampKind,
   PurposeVersionState,
+  PurposeWaitingForApprovalReason,
   ReviewerWorkflow,
   RiskAnalysisAnswerKind,
   riskAnalysisAnswerKind,
   RiskAnalysisId,
   RiskAnalysisMultiAnswer,
   RiskAnalysisMultiAnswerId,
+  RiskAnalysisReviewer,
   RiskAnalysisSingleAnswer,
   RiskAnalysisSingleAnswerId,
   RiskAnalysisReviewMode,
@@ -202,6 +204,13 @@ PurposeItemsSQL): WithMetadata<Purpose> => {
       id: unsafeBrandId(versionSQL.id),
       state: PurposeVersionState.parse(versionSQL.state),
       dailyCalls: versionSQL.dailyCalls,
+      ...(versionSQL.waitingForApprovalReason !== null
+        ? {
+            waitingForApprovalReason: PurposeWaitingForApprovalReason.parse(
+              versionSQL.waitingForApprovalReason
+            ),
+          }
+        : {}),
       createdAt: stringToDate(versionSQL.createdAt),
       ...(versionSQL.rejectionReason
         ? { rejectionReason: versionSQL.rejectionReason }
@@ -233,6 +242,24 @@ PurposeItemsSQL): WithMetadata<Purpose> => {
 
     return [...acc, version];
   }, []);
+
+  // purposes projected before the review mode moved onto the purpose still
+  // carry it in the reviewer workflow column
+  const riskAnalysisReviewMode =
+    purposeSQL.riskAnalysisReviewMode ?? purposeSQL.reviewerWorkflowReviewMode;
+
+  const reviewers: RiskAnalysisReviewer[] = reviewersSQL.map((reviewerSQL) => {
+    const sentToReviewerAt =
+      reviewerSQL.sentToReviewerAt ??
+      purposeSQL.reviewerWorkflowSentToReviewerAt;
+
+    return {
+      id: unsafeBrandId<UserId>(reviewerSQL.reviewerId),
+      ...(sentToReviewerAt
+        ? { sentToReviewerAt: stringToDate(sentToReviewerAt) }
+        : {}),
+    };
+  });
 
   const purpose: Purpose = {
     id: unsafeBrandId(purposeSQL.id),
@@ -274,19 +301,20 @@ PurposeItemsSQL): WithMetadata<Purpose> => {
           ),
         }
       : {}),
-    ...(purposeSQL.reviewerWorkflowReviewMode &&
-    purposeSQL.reviewerWorkflowSigningState
+    ...(riskAnalysisReviewMode
+      ? {
+          riskAnalysisReviewMode: RiskAnalysisReviewMode.parse(
+            riskAnalysisReviewMode
+          ),
+        }
+      : {}),
+    ...(purposeSQL.reviewerWorkflowSigningState
       ? {
           reviewerWorkflow: {
-            reviewMode: RiskAnalysisReviewMode.parse(
-              purposeSQL.reviewerWorkflowReviewMode
-            ),
             signingState: RiskAnalysisSigningState.parse(
               purposeSQL.reviewerWorkflowSigningState
             ),
-            reviewerIds: reviewersSQL.map((r) =>
-              unsafeBrandId<UserId>(r.reviewerId)
-            ),
+            reviewers,
             ...(purposeSQL.reviewerWorkflowSignedBy
               ? {
                   signedBy: unsafeBrandId<UserId>(
@@ -294,16 +322,28 @@ PurposeItemsSQL): WithMetadata<Purpose> => {
                   ),
                 }
               : {}),
+            ...(purposeSQL.reviewerWorkflowSignedAt
+              ? {
+                  signedAt: stringToDate(purposeSQL.reviewerWorkflowSignedAt),
+                }
+              : {}),
+            ...(purposeSQL.reviewerWorkflowRejectedBy
+              ? {
+                  rejectedBy: unsafeBrandId<UserId>(
+                    purposeSQL.reviewerWorkflowRejectedBy
+                  ),
+                }
+              : {}),
+            ...(purposeSQL.reviewerWorkflowRejectedAt
+              ? {
+                  rejectedAt: stringToDate(
+                    purposeSQL.reviewerWorkflowRejectedAt
+                  ),
+                }
+              : {}),
             ...(purposeSQL.reviewerWorkflowRejectionReason
               ? {
                   rejectionReason: purposeSQL.reviewerWorkflowRejectionReason,
-                }
-              : {}),
-            ...(purposeSQL.reviewerWorkflowSentToReviewerAt
-              ? {
-                  sentToReviewerAt: stringToDate(
-                    purposeSQL.reviewerWorkflowSentToReviewerAt
-                  ),
                 }
               : {}),
           } satisfies ReviewerWorkflow,

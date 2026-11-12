@@ -111,6 +111,16 @@ describe("Notification config splitters", () => {
             "producerKeychainKeyAddedDeletedToClientUsers",
             "purposeQuotaAdjustmentRequestToProducer",
             "purposeOverQuotaStateToConsumer",
+            "purposeRiskAnalysisAssignedForSigningToReviewer",
+            "purposeRiskAnalysisAssignedForWritingAndSigningToReviewer",
+            "purposePublishedWithRiskAnalysisToReviewer",
+            "draftPurposeDeletedWithRiskAnalysisToReviewer",
+            "purposeRiskAnalysisAssignmentRemovedToReviewer",
+            "purposeRiskAnalysisSignedToReviewer",
+            "purposeRiskAnalysisSignedToAdmin",
+            "purposeRiskAnalysisRejectedToAdmin",
+            "eserviceArchivingRequestedToDelegator",
+            "eserviceArchivingApprovedRejectedToDelegate",
           ] as const
         )
           .filter(
@@ -149,6 +159,16 @@ describe("Notification config splitters", () => {
             "producerKeychainKeyAddedDeletedToClientUsers",
             "purposeQuotaAdjustmentRequestToProducer",
             "purposeOverQuotaStateToConsumer",
+            "purposeRiskAnalysisAssignedForSigningToReviewer",
+            "purposeRiskAnalysisAssignedForWritingAndSigningToReviewer",
+            "purposePublishedWithRiskAnalysisToReviewer",
+            "draftPurposeDeletedWithRiskAnalysisToReviewer",
+            "purposeRiskAnalysisAssignmentRemovedToReviewer",
+            "purposeRiskAnalysisSignedToReviewer",
+            "purposeRiskAnalysisSignedToAdmin",
+            "purposeRiskAnalysisRejectedToAdmin",
+            "eserviceArchivingRequestedToDelegator",
+            "eserviceArchivingApprovedRejectedToDelegate",
           ] as const
         )
           .filter(

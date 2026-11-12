@@ -5,7 +5,7 @@ import {
   getMockClient,
   getMockWithMetadata,
   mockTokenOrganizationId,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import { Client, ClientId, generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi } from "vitest";
