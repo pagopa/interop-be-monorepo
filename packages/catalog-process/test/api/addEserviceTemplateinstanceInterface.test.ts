@@ -20,6 +20,7 @@ import {
   invalidContentTypeDetected,
   invalidInterfaceData,
   invalidInterfaceFileDetected,
+  openapiVersionNotRecognized,
   operationForbidden,
   technology,
   Technology,
@@ -207,6 +208,10 @@ describe("addEServiceTemplateInstanceInterface", () => {
         },
         {
           error: notValidDescriptorState(descriptor.id, descriptor.state),
+          expectedStatus: 400,
+        },
+        {
+          error: openapiVersionNotRecognized("1.0"),
           expectedStatus: 400,
         },
         {

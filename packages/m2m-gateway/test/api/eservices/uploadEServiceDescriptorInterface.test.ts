@@ -14,7 +14,7 @@ import {
   pollingMaxRetriesExceeded,
 } from "pagopa-interop-models";
 import request from "supertest";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { config } from "../../../src/config/config.js";
@@ -224,7 +224,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/interface router
       expectedStatus: 400,
     },
   ])(
-    "Should return $expectedStatus in case of $error",
+    "Should return $expectedStatus in case of $error.code",
     async ({ error, expectedStatus }) => {
       mockEserviceService.uploadEServiceDescriptorInterface = vi
         .fn()

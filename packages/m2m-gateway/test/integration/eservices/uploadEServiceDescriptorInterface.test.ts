@@ -1,10 +1,10 @@
 import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { genericLogger } from "pagopa-interop-commons";
 import {
-  getMockWithMetadata,
   getMockedApiEservice,
   getMockedApiEserviceDescriptor,
   getMockedApiEserviceDoc,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import {
   invalidContentTypeDetected,
@@ -14,7 +14,7 @@ import {
   technology,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
