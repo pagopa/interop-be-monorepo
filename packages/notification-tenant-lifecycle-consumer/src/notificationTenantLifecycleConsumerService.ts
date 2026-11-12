@@ -8,9 +8,11 @@ import {
   CorrelationId,
   TenantEventEnvelopeV1,
   TenantEventEnvelopeV2,
+  TenantEventEnvelopeV3,
   TenantId,
   fromTenantV1,
   fromTenantV2,
+  fromTenantV3,
   genericInternalError,
   missingKafkaMessageDataError,
   unsafeBrandId,
@@ -159,6 +161,65 @@ export function notificationTenantLifecycleConsumerServiceBuilder(
               "TenantKindUpdated",
               "TenantMailAdded",
               "TenantMailDeleted",
+              "TenantOnboardDetailsUpdated",
+              "TenantRemoteIdAssigned",
+              "MaintenanceTenantRemoteIdDeleted",
+              "TenantVerifiedAttributeAssigned",
+              "TenantVerifiedAttributeExpirationUpdated",
+              "TenantVerifiedAttributeExtensionUpdated",
+              "TenantVerifiedAttributeRevoked"
+            ),
+          },
+          async (message) => {
+            logger.info(`Ignoring ${message.type} message`);
+          }
+        )
+        .exhaustive();
+    },
+
+    async handleMessageV3(
+      message: TenantEventEnvelopeV3,
+      correlationId: CorrelationId,
+      logger: Logger
+    ): Promise<void> {
+      await match(message)
+        .with({ type: "TenantOnboarded" }, async (message) => {
+          if (!message.data.tenant) {
+            throw missingKafkaMessageDataError("tenant", "TenantOnboarded");
+          }
+          await createTenantDefaultNotificationConfig(
+            fromTenantV3(message.data.tenant).id,
+            correlationId,
+            logger
+          );
+        })
+        // eslint-disable-next-line sonarjs/no-identical-functions
+        .with({ type: "MaintenanceTenantDeleted" }, async (message) => {
+          await deleteTenantNotificationConfig(
+            unsafeBrandId(message.data.tenantId),
+            correlationId,
+            logger
+          );
+        })
+        .with(
+          {
+            type: P.union(
+              "MaintenanceTenantPromotedToCertifier",
+              "MaintenanceTenantUpdated",
+              "TenantCertifiedAttributeAssigned",
+              "TenantCertifiedAttributeRevoked",
+              "TenantCertifiedDiscreteAttributeAssigned",
+              "TenantCertifiedDiscreteAttributeRevoked",
+              "TenantCertifiedDiscreteAttributeUpdated",
+              "TenantContactAdded",
+              "TenantContactDeleted",
+              "TenantDeclaredAttributeAssigned",
+              "TenantDeclaredAttributeRevoked",
+              "TenantDelegatedConsumerFeatureAdded",
+              "TenantDelegatedConsumerFeatureRemoved",
+              "TenantDelegatedProducerFeatureAdded",
+              "TenantDelegatedProducerFeatureRemoved",
+              "TenantKindUpdated",
               "TenantOnboardDetailsUpdated",
               "TenantRemoteIdAssigned",
               "MaintenanceTenantRemoteIdDeleted",
