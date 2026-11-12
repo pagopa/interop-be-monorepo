@@ -1,10 +1,14 @@
 import { genericLogger } from "pagopa-interop-commons";
 import { getMockTenant, toTenantV1 } from "pagopa-interop-commons-test";
 import {
+  genericInternalError,
   toTenantV2,
+  toTenantV3,
   TenantEventEnvelopeV2,
   TenantEventEnvelopeV1,
+  TenantEventEnvelopeV3,
   TenantEventV1,
+  TenantEventV3,
   TenantM2MEvent,
   TenantM2MEventType,
 } from "pagopa-interop-models";
@@ -109,6 +113,36 @@ describe("handleTenantEvent test", async () => {
         eventTimestamp,
         genericLogger,
         testM2mEventWriterService
+      );
+
+      expect(
+        testM2mEventWriterService.insertTenantM2MEvent
+      ).not.toHaveBeenCalled();
+    }
+  );
+
+  it.each(TenantEventV3.options.map((o) => o.shape.type.value))(
+    "should reject tenant %s v3 event until V3 is supported",
+    async (eventType: TenantEventV3["type"]) => {
+      const message = {
+        ...getMockEventEnvelopeCommons(),
+        stream_id: tenant.id,
+        type: eventType,
+        event_version: 3,
+        data: {
+          tenant: toTenantV3(tenant),
+        },
+      } as TenantEventEnvelopeV3;
+
+      await expect(
+        handleTenantEvent(
+          message,
+          new Date(),
+          genericLogger,
+          testM2mEventWriterService
+        )
+      ).rejects.toThrowError(
+        genericInternalError(`Tenant event V3 not supported yet: ${eventType}`)
       );
 
       expect(

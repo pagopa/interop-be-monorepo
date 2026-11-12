@@ -1,6 +1,8 @@
 import { match } from "ts-pattern";
 import { z } from "zod";
 
+import { ContactId } from "../brandedIds.js";
+import { genericError } from "../errors.js";
 import { EventEnvelope } from "../events/events.js";
 import {
   TenantCreatedV1,
@@ -181,7 +183,23 @@ export function tenantEventToBinaryDataV2(event: TenantEventV2): Uint8Array {
     .exhaustive();
 }
 
+/**
+ * V3 events reference the tenant contact only through an opaque CDM
+ * identifier: any other value (e.g. a plain-text email address) is rejected
+ * before it reaches the event store. The rejected value is deliberately left
+ * out of the error, so that it cannot leak into the logs.
+ */
+function assertOpaqueContactId(contactId: string | undefined): void {
+  if (contactId !== undefined && !ContactId.safeParse(contactId).success) {
+    throw genericError(
+      "Tenant V3 event rejected: contactId is not an opaque contact identifier"
+    );
+  }
+}
+
 export function tenantEventToBinaryDataV3(event: TenantEventV3): Uint8Array {
+  assertOpaqueContactId(event.data.tenant?.contactId);
+
   return match(event)
     .with({ type: "TenantOnboarded" }, ({ data }) =>
       TenantOnboardedV3.toBinary(data)
@@ -228,15 +246,17 @@ export function tenantEventToBinaryDataV3(event: TenantEventV3): Uint8Array {
     .with({ type: "MaintenanceTenantUpdated" }, ({ data }) =>
       MaintenanceTenantUpdatedV3.toBinary(data)
     )
-    .with({ type: "TenantContactAdded" }, ({ data }) =>
-      TenantContactAddedV3.toBinary(data)
-    )
+    .with({ type: "TenantContactAdded" }, ({ data }) => {
+      assertOpaqueContactId(data.contactId);
+      return TenantContactAddedV3.toBinary(data);
+    })
     .with({ type: "TenantKindUpdated" }, ({ data }) =>
       TenantKindUpdatedV3.toBinary(data)
     )
-    .with({ type: "TenantContactDeleted" }, ({ data }) =>
-      TenantContactDeletedV3.toBinary(data)
-    )
+    .with({ type: "TenantContactDeleted" }, ({ data }) => {
+      assertOpaqueContactId(data.contactId);
+      return TenantContactDeletedV3.toBinary(data);
+    })
     .with({ type: "MaintenanceTenantPromotedToCertifier" }, ({ data }) =>
       MaintenanceTenantPromotedToCertifierV3.toBinary(data)
     )
