@@ -698,10 +698,12 @@ export async function waitingForApprovalDelegatedEservicesToDigest(
  *
  * @param data - The list of received delegation archiving requests to transform into a digest.
  * @param readModelService - Service for fetching tenant names and descriptor IDs
+ * @param selfcareId - The tenant's selfcare ID for deeplink authentication
  */
 export async function receivedDelegationArchivingRequestsToDigest(
   data: DelegatedArchivingRequest[],
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
+  selfcareId: string | null
 ): Promise<DelegationArchivingRequestDigest> {
   if (data.length === 0) {
     return { items: [], totalCount: 0 };
@@ -720,14 +722,14 @@ export async function receivedDelegationArchivingRequestsToDigest(
       eserviceId: request.eserviceId,
       descriptorId: request.descriptorId,
       descriptorVersion: request.descriptorVersion,
-      id: request.eserviceId, // Using eserviceId as the unique identifier for the digest item
+      id: request.eserviceId,
       name: request.eserviceName,
       producerName: request.entityProducerName,
       eserviceName: request.eserviceName,
       link: buildEserviceLink(
         request.eserviceId,
         request.descriptorId ?? "",
-        null // No selfcareId needed for archiving requests
+        selfcareId
       ),
     })),
     totalCount: data[0].totalCount,
