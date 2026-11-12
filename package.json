@@ -3,7 +3,7 @@
   "name": "root",
   "license": "EUPL-1.2",
   "engines": {
-    "node": ">=20"
+    "node": ">=24"
   },
   "scripts": {
     "start:catalog": "turbo start --filter pagopa-interop-catalog-process",
@@ -71,6 +71,8 @@
     "lint:autofix": "turbo lint:autofix",
     "lint:openapi": "turbo lint:openapi",
     "generate-model": "turbo generate-model",
+    "generate-error-messages": "turbo generate-error-messages",
+    "validate-error-messages": "turbo validate-error-messages",
     "generate-protobuf": "turbo generate-protobuf",
     "generate-db-models": "turbo generate-db-models",
     "infra:start": "./scripts/infra-start.sh",
