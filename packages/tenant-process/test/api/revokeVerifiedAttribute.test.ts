@@ -31,9 +31,7 @@ import { api, tenantService } from "../vitest.api.setup.js";
 
 describe("API DELETE /tenants/{tenantId}/attributes/verified/{attributeId} test", () => {
   const tenant: Tenant = getMockTenant();
-  const defaultBody: { agreementId: AgreementId } = {
-    agreementId: generateId(),
-  };
+  const defaultAgreementId: AgreementId = generateId();
 
   const apiResponse = tenantApi.Tenant.parse(toApiTenant(tenant));
 
@@ -46,13 +44,13 @@ describe("API DELETE /tenants/{tenantId}/attributes/verified/{attributeId} test"
     token: string,
     tenantId: TenantId = tenant.id,
     attributeId: AttributeId = generateId(),
-    body: { agreementId: AgreementId } = defaultBody
+    agreementId: AgreementId = defaultAgreementId
   ) =>
     request(api)
       .delete(`/tenants/${tenantId}/attributes/verified/${attributeId}`)
+      .query({ agreementId })
       .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .send(body);
+      .set("X-Correlation-Id", generateId());
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -62,11 +60,20 @@ describe("API DELETE /tenants/{tenantId}/attributes/verified/{attributeId} test"
     "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
-      const res = await makeRequest(token);
+      const attributeId: AttributeId = generateId();
+      const res = await makeRequest(token, tenant.id, attributeId);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiResponse);
       expect(res.headers["x-metadata-version"]).toBe(
         serviceResponse.metadata.version.toString()
+      );
+      expect(tenantService.revokeVerifiedAttribute).toHaveBeenLastCalledWith(
+        {
+          tenantId: tenant.id,
+          attributeId,
+          agreementId: defaultAgreementId,
+        },
+        expect.any(Object)
       );
     }
   );
@@ -107,23 +114,33 @@ describe("API DELETE /tenants/{tenantId}/attributes/verified/{attributeId} test"
     }
   );
 
-  it.each([
+  const invalidRequests: Array<{
+    tenantId?: TenantId;
+    attributeId?: AttributeId;
+    agreementId?: AgreementId;
+  }> = [
     { tenantId: "invalid" as TenantId },
     { attributeId: "invalid" as AttributeId },
-    { body: {} },
-    { body: { agreementId: "invalid" } },
-    { body: { ...defaultBody, extraField: 1 } },
-  ])(
+    { agreementId: "invalid" as AgreementId },
+  ];
+
+  it.each(invalidRequests)(
     "Should return 400 if passed invalid data: %s",
-    async ({ tenantId, attributeId, body }) => {
+    async ({ tenantId, attributeId, agreementId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(
-        token,
-        tenantId,
-        attributeId,
-        body as { agreementId: AgreementId }
-      );
+      const res = await makeRequest(token, tenantId, attributeId, agreementId);
       expect(res.status).toBe(400);
     }
   );
+
+  it("Should return 400 if agreementId is passed only in the body", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await request(api)
+      .delete(`/tenants/${tenant.id}/attributes/verified/${generateId()}`)
+      .set("Authorization", `Bearer ${token}`)
+      .set("X-Correlation-Id", generateId())
+      .send({ agreementId: defaultAgreementId });
+
+    expect(res.status).toBe(400);
+  });
 });
