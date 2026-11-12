@@ -1,13 +1,17 @@
 import { genericLogger } from "pagopa-interop-commons";
 import { getMockTenant, toTenantV1 } from "pagopa-interop-commons-test";
 import {
-  genericInternalError,
+  ContactId,
+  generateId,
+  missingKafkaMessageDataError,
+  Tenant,
   toTenantV2,
   toTenantV3,
   TenantEventEnvelopeV2,
   TenantEventEnvelopeV1,
   TenantEventEnvelopeV3,
   TenantEventV1,
+  TenantEventV2,
   TenantEventV3,
   TenantM2MEvent,
   TenantM2MEventType,
@@ -22,6 +26,13 @@ import {
   testM2mEventWriterService,
 } from "./utils.js";
 
+const tenantEventV2Types: string[] = TenantEventV2.options.map(
+  (o) => o.shape.type.value
+);
+const tenantEventV3Types: string[] = TenantEventV3.options.map(
+  (o) => o.shape.type.value
+);
+
 describe("handleTenantEvent test", async () => {
   const tenant = getMockTenant();
   vi.spyOn(testM2mEventWriterService, "insertTenantM2MEvent");
@@ -30,7 +41,11 @@ describe("handleTenantEvent test", async () => {
     vi.clearAllMocks();
   });
 
-  it.each(TenantM2MEventType.options)(
+  it.each(
+    TenantM2MEventType.options.filter((type) =>
+      tenantEventV2Types.includes(type)
+    )
+  )(
     "should write the %s M2M event",
     async (eventType: TenantM2MEvent["eventType"]) => {
       const message: TenantEventEnvelopeV2 = {
@@ -121,17 +136,79 @@ describe("handleTenantEvent test", async () => {
     }
   );
 
-  it.each(TenantEventV3.options.map((o) => o.shape.type.value))(
-    "should reject tenant %s v3 event until V3 is supported",
-    async (eventType: TenantEventV3["type"]) => {
+  describe("V3 events", () => {
+    const contactId = generateId<ContactId>();
+    const tenantWithContact: Tenant = { ...tenant, contactId };
+
+    it.each(
+      TenantM2MEventType.options.filter((type) =>
+        tenantEventV3Types.includes(type)
+      )
+    )(
+      "should write the %s M2M event",
+      async (eventType: TenantM2MEvent["eventType"]) => {
+        const message = {
+          ...getMockEventEnvelopeCommons(),
+          stream_id: tenant.id,
+          type: eventType,
+          event_version: 3,
+          data: {
+            tenant: toTenantV3(tenantWithContact),
+          },
+        } as TenantEventEnvelopeV3;
+
+        const eventTimestamp = new Date();
+
+        await handleTenantEvent(
+          message,
+          eventTimestamp,
+          genericLogger,
+          testM2mEventWriterService
+        );
+
+        expect(
+          testM2mEventWriterService.insertTenantM2MEvent
+        ).toHaveBeenCalledTimes(1);
+        expect(await retrieveLastTenantM2MEvent()).toEqual({
+          id: expect.any(String),
+          eventType,
+          eventTimestamp,
+          resourceVersion: message.version,
+          tenantId: tenant.id,
+        });
+      }
+    );
+
+    it("should ignore the MaintenanceTenantRemoteIdDeleted event", async () => {
+      const message: TenantEventEnvelopeV3 = {
+        ...getMockEventEnvelopeCommons(),
+        stream_id: tenant.id,
+        type: "MaintenanceTenantRemoteIdDeleted",
+        event_version: 3,
+        data: {
+          tenant: toTenantV3(tenantWithContact),
+        },
+      };
+
+      await handleTenantEvent(
+        message,
+        new Date(),
+        genericLogger,
+        testM2mEventWriterService
+      );
+
+      expect(
+        testM2mEventWriterService.insertTenantM2MEvent
+      ).not.toHaveBeenCalled();
+    });
+
+    it("should throw missingKafkaMessageDataError when the tenant is missing", async () => {
       const message = {
         ...getMockEventEnvelopeCommons(),
         stream_id: tenant.id,
-        type: eventType,
+        type: "TenantContactAdded",
         event_version: 3,
-        data: {
-          tenant: toTenantV3(tenant),
-        },
+        data: { contactId },
       } as TenantEventEnvelopeV3;
 
       await expect(
@@ -141,15 +218,15 @@ describe("handleTenantEvent test", async () => {
           genericLogger,
           testM2mEventWriterService
         )
-      ).rejects.toThrowError(
-        genericInternalError(`Tenant event V3 not supported yet: ${eventType}`)
+      ).rejects.toThrow(
+        missingKafkaMessageDataError("tenant", "TenantContactAdded")
       );
 
       expect(
         testM2mEventWriterService.insertTenantM2MEvent
       ).not.toHaveBeenCalled();
-    }
-  );
+    });
+  });
 
   it("should not write the event if the same resource version is already present", async () => {
     const message = {
