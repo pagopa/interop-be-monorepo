@@ -326,6 +326,7 @@ export const addProducerKeychainEServiceErrorMapper = (
     .with(
       "tenantNotAllowedOnProducerKeychain",
       "tenantNotAllowedOnEService",
+      "eserviceInArchivedState",
       () => HTTP_STATUS_FORBIDDEN
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
