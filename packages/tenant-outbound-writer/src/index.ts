@@ -8,7 +8,6 @@ import { decodeKafkaMessage, logger } from "pagopa-interop-commons";
 import {
   CorrelationId,
   generateId,
-  genericInternalError,
   TenantEvent,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -17,6 +16,7 @@ import { match } from "ts-pattern";
 import { config } from "./config/config.js";
 import { toOutboundEventV1 } from "./converters/toOutboundEventV1.js";
 import { toOutboundEventV2 } from "./converters/toOutboundEventV2.js";
+import { toOutboundEventV3 } from "./converters/toOutboundEventV3.js";
 
 const producer = await initProducer(config, config.tenantOutboundTopic);
 
@@ -40,11 +40,7 @@ async function processMessage({
   const outboundEvent: TenantOutboundEvent | undefined = match(msg)
     .with({ event_version: 1 }, (msg) => toOutboundEventV1(msg))
     .with({ event_version: 2 }, (msg) => toOutboundEventV2(msg))
-    .with({ event_version: 3 }, (msg) => {
-      throw genericInternalError(
-        `Tenant event V3 not supported yet: ${msg.type}`
-      );
-    })
+    .with({ event_version: 3 }, (msg) => toOutboundEventV3(msg))
     .exhaustive();
 
   if (outboundEvent) {
