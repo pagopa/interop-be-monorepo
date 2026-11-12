@@ -34,11 +34,19 @@ import {
   TenantMailAddedV1,
   TenantOnboardedV2,
   TenantRemoteId,
+  AttributeId,
+  ContactId,
+  Tenant,
+  TenantEventEnvelopeV3,
+  TenantEventV3,
+  TenantOnboardedV3,
+  toTenantV3,
 } from "pagopa-interop-models";
 import { describe, it, expect, beforeEach } from "vitest";
 
 import { handleTenantMessageV1 } from "../src/handlers/tenant/consumerServiceV1.js";
 import { handleTenantMessageV2 } from "../src/handlers/tenant/consumerServiceV2.js";
+import { handleTenantMessageV3 } from "../src/handlers/tenant/consumerServiceV3.js";
 import { TenantDbTable } from "../src/model/db/index.js";
 import {
   dbContext,
@@ -957,6 +965,589 @@ describe("Tenant messages consumers - handleTenantMessageV2", () => {
     });
 
     expect(stored?.name).toBe("V3");
+    expect(stored?.metadataVersion).toBe(3);
+  });
+});
+
+describe("Tenant messages consumers - handleTenantMessageV3", () => {
+  beforeEach(async () => {
+    await resetTargetTables(tenantTables);
+  });
+
+  const getTenantOnboardedMessageV3 = (
+    tenant: Tenant
+  ): TenantEventEnvelopeV3 => ({
+    sequence_num: 1,
+    stream_id: tenant.id,
+    version: 1,
+    type: "TenantOnboarded",
+    event_version: 3,
+    data: { tenant: toTenantV3(tenant) },
+    log_date: new Date(),
+  });
+
+  // Every V3 event that upserts the tenant, except TenantContactDeleted and
+  // MaintenanceTenantDeleted, which have their own tests.
+  const baseTenant = getMockTenant();
+  const upsertContactId = generateId<ContactId>();
+  const upsertTenant: Tenant = {
+    ...baseTenant,
+    contactId: upsertContactId,
+    attributes: [getMockCertifiedTenantAttribute()],
+  };
+  const upsertTenantV3 = toTenantV3(upsertTenant);
+  const attributeId = generateId<AttributeId>();
+  const base: Omit<TenantEventEnvelopeV3, "type" | "data"> = {
+    sequence_num: 2,
+    stream_id: baseTenant.id,
+    version: 2,
+    event_version: 3,
+    log_date: new Date(),
+  };
+  const eventsUpsertingTheTenant: TenantEventEnvelopeV3[] = [
+    {
+      ...base,
+      type: "TenantOnboarded",
+      data: { tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantOnboardDetailsUpdated",
+      data: { tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantContactAdded",
+      data: { contactId: upsertContactId, tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantCertifiedAttributeAssigned",
+      data: { attributeId, tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantCertifiedAttributeRevoked",
+      data: { attributeId, tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantCertifiedDiscreteAttributeAssigned",
+      data: { attributeId, tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantCertifiedDiscreteAttributeRevoked",
+      data: { attributeId, tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantCertifiedDiscreteAttributeUpdated",
+      data: {
+        attributeId,
+        tenant: upsertTenantV3,
+        previousValue: 1,
+        newValue: 2,
+      },
+    },
+    {
+      ...base,
+      type: "TenantDeclaredAttributeAssigned",
+      data: { attributeId, tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantDeclaredAttributeRevoked",
+      data: { attributeId, tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantVerifiedAttributeAssigned",
+      data: { attributeId, tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantVerifiedAttributeRevoked",
+      data: { attributeId, tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantVerifiedAttributeExpirationUpdated",
+      data: { attributeId, tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantVerifiedAttributeExtensionUpdated",
+      data: { attributeId, tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "MaintenanceTenantUpdated",
+      data: { tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantKindUpdated",
+      data: { tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "MaintenanceTenantPromotedToCertifier",
+      data: { tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantDelegatedProducerFeatureAdded",
+      data: { tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantDelegatedProducerFeatureRemoved",
+      data: { tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantDelegatedConsumerFeatureAdded",
+      data: { tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantDelegatedConsumerFeatureRemoved",
+      data: { tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "TenantRemoteIdAssigned",
+      data: { tenant: upsertTenantV3 },
+    },
+    {
+      ...base,
+      type: "MaintenanceTenantRemoteIdDeleted",
+      data: { tenant: upsertTenantV3 },
+    },
+  ];
+
+  it("covers every V3 tenant event type", () => {
+    const testedTypes = [
+      ...eventsUpsertingTheTenant.map((event) => event.type),
+      "TenantContactDeleted",
+      "MaintenanceTenantDeleted",
+    ];
+    const v3EventTypes = TenantEventV3.options.map(
+      (option) => option.shape.type.value
+    );
+
+    expect(new Set(testedTypes)).toEqual(new Set(v3EventTypes));
+    expect(testedTypes).toHaveLength(v3EventTypes.length);
+  });
+
+  it.each(eventsUpsertingTheTenant)(
+    "$type: upserts the tenant and its attributes at the event version",
+    async (message) => {
+      await handleTenantMessageV3(
+        [getTenantOnboardedMessageV3(baseTenant)],
+        dbContext
+      );
+
+      await handleTenantMessageV3([message], dbContext);
+
+      const stored = await getOneFromDb(dbContext, TenantDbTable.tenant, {
+        id: baseTenant.id,
+      });
+      expect(stored?.contactId).toBe(upsertContactId);
+      expect(stored?.metadataVersion).toBe(2);
+
+      const storedAttributes = await getManyFromDb(
+        dbContext,
+        TenantDbTable.tenant_certified_attribute,
+        { tenantId: baseTenant.id }
+      );
+      expect(storedAttributes).toHaveLength(1);
+      expect(storedAttributes[0].metadataVersion).toBe(2);
+    }
+  );
+
+  it("TenantOnboarded: inserts tenant with contact id, attributes, features and remote ids, without mails", async () => {
+    const mockDeclaredTenantAttribute = getMockDeclaredTenantAttribute();
+    const mockCertifiedTenantAttribute = getMockCertifiedTenantAttribute();
+    const mockTenantFeatureCertifier: TenantFeatureCertifier = {
+      type: tenantFeatureType.persistentCertifier,
+      certifierId: generateId(),
+    };
+    const mockTenantRemoteId = getMockTenantRemoteId();
+    const mockTenant: Tenant = {
+      ...getMockTenant(),
+      contactId: generateId<ContactId>(),
+      attributes: [mockDeclaredTenantAttribute, mockCertifiedTenantAttribute],
+      features: [mockTenantFeatureCertifier],
+      remoteIds: [mockTenantRemoteId],
+    };
+
+    await handleTenantMessageV3(
+      [getTenantOnboardedMessageV3(mockTenant)],
+      dbContext
+    );
+
+    const storedTenant = await getOneFromDb(dbContext, TenantDbTable.tenant, {
+      id: mockTenant.id,
+    });
+    expect(storedTenant?.id).toBe(mockTenant.id);
+    expect(storedTenant?.contactId).toBe(mockTenant.contactId);
+    expect(storedTenant?.metadataVersion).toBe(1);
+
+    const storedTenantMails = await getManyFromDb(
+      dbContext,
+      TenantDbTable.tenant_mail,
+      { tenantId: mockTenant.id }
+    );
+    expect(storedTenantMails).toHaveLength(0);
+
+    const storedDeclaredTenantAttributes = await getManyFromDb(
+      dbContext,
+      TenantDbTable.tenant_declared_attribute,
+      { tenantId: mockTenant.id }
+    );
+    expect(storedDeclaredTenantAttributes).toHaveLength(1);
+    expect(storedDeclaredTenantAttributes[0].attributeId).toBe(
+      mockDeclaredTenantAttribute.id
+    );
+
+    const storedCertifiedTenantAttributes = await getManyFromDb(
+      dbContext,
+      TenantDbTable.tenant_certified_attribute,
+      { tenantId: mockTenant.id }
+    );
+    expect(storedCertifiedTenantAttributes).toHaveLength(1);
+    expect(storedCertifiedTenantAttributes[0].attributeId).toBe(
+      mockCertifiedTenantAttribute.id
+    );
+
+    const storedTenantFeatures = await getManyFromDb(
+      dbContext,
+      TenantDbTable.tenant_feature,
+      { tenantId: mockTenant.id }
+    );
+    expect(storedTenantFeatures).toHaveLength(1);
+    expect(storedTenantFeatures[0].certifierId).toBe(
+      mockTenantFeatureCertifier.certifierId
+    );
+
+    const storedTenantRemoteIds = await getManyFromDb(
+      dbContext,
+      TenantDbTable.tenant_remote_id,
+      { tenantId: mockTenant.id }
+    );
+    expect(storedTenantRemoteIds).toHaveLength(1);
+  });
+
+  it("TenantContactAdded: sets the tenant contact id", async () => {
+    const mockTenant = getMockTenant();
+    const contactId = generateId<ContactId>();
+
+    await handleTenantMessageV3(
+      [
+        getTenantOnboardedMessageV3(mockTenant),
+        {
+          sequence_num: 2,
+          stream_id: mockTenant.id,
+          version: 2,
+          type: "TenantContactAdded",
+          event_version: 3,
+          data: {
+            contactId,
+            tenant: toTenantV3({ ...mockTenant, contactId }),
+          },
+          log_date: new Date(),
+        },
+      ],
+      dbContext
+    );
+
+    const stored = await getOneFromDb(dbContext, TenantDbTable.tenant, {
+      id: mockTenant.id,
+    });
+    expect(stored?.contactId).toBe(contactId);
+    expect(stored?.metadataVersion).toBe(2);
+  });
+
+  it("TenantContactAdded: replaces the current tenant contact id", async () => {
+    const mockTenant: Tenant = {
+      ...getMockTenant(),
+      contactId: generateId<ContactId>(),
+    };
+    const newContactId = generateId<ContactId>();
+
+    await handleTenantMessageV3(
+      [getTenantOnboardedMessageV3(mockTenant)],
+      dbContext
+    );
+    await handleTenantMessageV3(
+      [
+        {
+          sequence_num: 2,
+          stream_id: mockTenant.id,
+          version: 2,
+          type: "TenantContactAdded",
+          event_version: 3,
+          data: {
+            contactId: newContactId,
+            tenant: toTenantV3({ ...mockTenant, contactId: newContactId }),
+          },
+          log_date: new Date(),
+        },
+      ],
+      dbContext
+    );
+
+    const stored = await getOneFromDb(dbContext, TenantDbTable.tenant, {
+      id: mockTenant.id,
+    });
+    expect(stored?.contactId).toBe(newContactId);
+    expect(stored?.metadataVersion).toBe(2);
+  });
+
+  it("TenantContactDeleted: removes the tenant contact id", async () => {
+    const contactId = generateId<ContactId>();
+    const mockTenant: Tenant = { ...getMockTenant(), contactId };
+
+    await handleTenantMessageV3(
+      [getTenantOnboardedMessageV3(mockTenant)],
+      dbContext
+    );
+    await handleTenantMessageV3(
+      [
+        {
+          sequence_num: 2,
+          stream_id: mockTenant.id,
+          version: 2,
+          type: "TenantContactDeleted",
+          event_version: 3,
+          data: {
+            contactId,
+            tenant: toTenantV3({ ...mockTenant, contactId: undefined }),
+          },
+          log_date: new Date(),
+        },
+      ],
+      dbContext
+    );
+
+    const stored = await getOneFromDb(dbContext, TenantDbTable.tenant, {
+      id: mockTenant.id,
+    });
+    expect(stored?.contactId).toBeNull();
+    expect(stored?.metadataVersion).toBe(2);
+  });
+
+  it("removes the legacy tenant mails written by V2 events at the first V3 event", async () => {
+    const mockTenant = getMockTenant();
+    const contactId = generateId<ContactId>();
+
+    await handleTenantMessageV2(
+      [
+        {
+          sequence_num: 1,
+          stream_id: mockTenant.id,
+          version: 1,
+          type: "TenantOnboarded",
+          event_version: 2,
+          data: {
+            tenant: toTenantV2({ ...mockTenant, mails: [getMockTenantMail()] }),
+          },
+          log_date: new Date(),
+        },
+      ],
+      dbContext
+    );
+    const legacyMails = await getManyFromDb(
+      dbContext,
+      TenantDbTable.tenant_mail,
+      { tenantId: mockTenant.id }
+    );
+    expect(legacyMails).toHaveLength(1);
+
+    await handleTenantMessageV3(
+      [
+        {
+          sequence_num: 2,
+          stream_id: mockTenant.id,
+          version: 2,
+          type: "TenantContactAdded",
+          event_version: 3,
+          data: {
+            contactId,
+            tenant: toTenantV3({ ...mockTenant, contactId }),
+          },
+          log_date: new Date(),
+        },
+      ],
+      dbContext
+    );
+
+    const mails = await getManyFromDb(dbContext, TenantDbTable.tenant_mail, {
+      tenantId: mockTenant.id,
+    });
+    expect(mails).toHaveLength(0);
+
+    const stored = await getOneFromDb(dbContext, TenantDbTable.tenant, {
+      id: mockTenant.id,
+    });
+    expect(stored?.contactId).toBe(contactId);
+    expect(stored?.metadataVersion).toBe(2);
+  });
+
+  it("MaintenanceTenantDeleted: cascades logical deletion to all related tables", async () => {
+    const mockDeclaredTenantAttribute = getMockDeclaredTenantAttribute();
+    const mockTenant: Tenant = {
+      ...getMockTenant(),
+      contactId: generateId<ContactId>(),
+      attributes: [mockDeclaredTenantAttribute],
+      remoteIds: [getMockTenantRemoteId()],
+    };
+
+    await handleTenantMessageV3(
+      [
+        getTenantOnboardedMessageV3(mockTenant),
+        {
+          sequence_num: 2,
+          stream_id: mockTenant.id,
+          version: 2,
+          type: "MaintenanceTenantDeleted",
+          event_version: 3,
+          data: {
+            tenantId: mockTenant.id,
+            tenant: toTenantV3(mockTenant),
+          },
+          log_date: new Date(),
+        },
+      ],
+      dbContext
+    );
+
+    const storedTenant = await getOneFromDb(dbContext, TenantDbTable.tenant, {
+      id: mockTenant.id,
+    });
+    expect(storedTenant?.deleted).toBe(true);
+
+    const storedDeclaredTenantAttributes = await getManyFromDb(
+      dbContext,
+      TenantDbTable.tenant_declared_attribute,
+      { tenantId: mockTenant.id }
+    );
+    expect(storedDeclaredTenantAttributes).toHaveLength(1);
+    expect(storedDeclaredTenantAttributes[0].deleted).toBe(true);
+
+    const storedTenantRemoteIds = await getManyFromDb(
+      dbContext,
+      TenantDbTable.tenant_remote_id,
+      { tenantId: mockTenant.id }
+    );
+    expect(storedTenantRemoteIds).toHaveLength(1);
+    expect(storedTenantRemoteIds[0].deleted).toBe(true);
+  });
+
+  it("TenantOnboarded: should throw error when tenant is missing", async () => {
+    const msg: TenantEventEnvelopeV3 = {
+      sequence_num: 1,
+      stream_id: "some-id",
+      version: 1,
+      type: "TenantOnboarded",
+      event_version: 3,
+      data: {} as unknown as TenantOnboardedV3,
+      log_date: new Date(),
+    };
+
+    await expect(() => handleTenantMessageV3([msg], dbContext)).rejects.toThrow(
+      "Tenant can't be missing in the event message"
+    );
+  });
+
+  it("TenantContactAdded: should apply an event replayed at the same metadata_version idempotently (V3)", async () => {
+    const mockTenant: Tenant = {
+      ...getMockTenant(),
+      attributes: [getMockCertifiedTenantAttribute()],
+    };
+    const contactId = generateId<ContactId>();
+    const message: TenantEventEnvelopeV3 = {
+      sequence_num: 2,
+      stream_id: mockTenant.id,
+      version: 2,
+      type: "TenantContactAdded",
+      event_version: 3,
+      data: { contactId, tenant: toTenantV3({ ...mockTenant, contactId }) },
+      log_date: new Date(),
+    };
+
+    await handleTenantMessageV3(
+      [getTenantOnboardedMessageV3(mockTenant)],
+      dbContext
+    );
+    await handleTenantMessageV3([message], dbContext);
+    await handleTenantMessageV3([message], dbContext);
+
+    const stored = await getOneFromDb(dbContext, TenantDbTable.tenant, {
+      id: mockTenant.id,
+    });
+    expect(stored?.contactId).toBe(contactId);
+    expect(stored?.metadataVersion).toBe(2);
+
+    const storedAttributes = await getManyFromDb(
+      dbContext,
+      TenantDbTable.tenant_certified_attribute,
+      { tenantId: mockTenant.id }
+    );
+    expect(storedAttributes).toHaveLength(1);
+    expect(storedAttributes[0].metadataVersion).toBe(2);
+  });
+
+  it("TenantContactAdded: should skip update when incoming metadata_version is lower (V3)", async () => {
+    const mockTenant = getMockTenant();
+    const newerContactId = generateId<ContactId>();
+    const olderContactId = generateId<ContactId>();
+
+    await handleTenantMessageV3(
+      [getTenantOnboardedMessageV3(mockTenant)],
+      dbContext
+    );
+    await handleTenantMessageV3(
+      [
+        {
+          sequence_num: 3,
+          stream_id: mockTenant.id,
+          version: 3,
+          type: "TenantContactAdded",
+          event_version: 3,
+          data: {
+            contactId: newerContactId,
+            tenant: toTenantV3({ ...mockTenant, contactId: newerContactId }),
+          },
+          log_date: new Date(),
+        },
+      ],
+      dbContext
+    );
+    await handleTenantMessageV3(
+      [
+        {
+          sequence_num: 2,
+          stream_id: mockTenant.id,
+          version: 2,
+          type: "TenantContactAdded",
+          event_version: 3,
+          data: {
+            contactId: olderContactId,
+            tenant: toTenantV3({ ...mockTenant, contactId: olderContactId }),
+          },
+          log_date: new Date(),
+        },
+      ],
+      dbContext
+    );
+
+    const stored = await getOneFromDb(dbContext, TenantDbTable.tenant, {
+      id: mockTenant.id,
+    });
+    expect(stored?.contactId).toBe(newerContactId);
     expect(stored?.metadataVersion).toBe(3);
   });
 });

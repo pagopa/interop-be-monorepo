@@ -15,6 +15,7 @@ import {
   PurposeEvent,
   TenantEventEnvelopeV1,
   TenantEventEnvelopeV2,
+  TenantEventEnvelopeV3,
   TenantEvent,
   AuthorizationEventEnvelopeV1,
   AuthorizationEventEnvelopeV2,
@@ -43,6 +44,7 @@ import { handlePurposeMessageV1 } from "./purpose/consumerServiceV1.js";
 import { handlePurposeMessageV2 } from "./purpose/consumerServiceV2.js";
 import { handleTenantMessageV1 } from "./tenant/consumerServiceV1.js";
 import { handleTenantMessageV2 } from "./tenant/consumerServiceV2.js";
+import { handleTenantMessageV3 } from "./tenant/consumerServiceV3.js";
 
 /**
  * Processes a list of Kafka messages for the specified topic by decoding each message and invoking the corresponding handler.
@@ -133,6 +135,7 @@ export async function executeTopicHandler(
     .with(config.tenantTopic, async () => {
       const tenantV1: TenantEventEnvelopeV1[] = [];
       const tenantV2: TenantEventEnvelopeV2[] = [];
+      const tenantV3: TenantEventEnvelopeV3[] = [];
       const decodedMessages = kafkaMessages.map((message) =>
         decodeKafkaMessage(message, TenantEvent)
       );
@@ -140,11 +143,7 @@ export async function executeTopicHandler(
         match(decoded)
           .with({ event_version: 1 }, (msg) => tenantV1.push(msg))
           .with({ event_version: 2 }, (msg) => tenantV2.push(msg))
-          .with({ event_version: 3 }, (msg) => {
-            throw genericInternalError(
-              `Tenant event V3 not supported yet: ${msg.type}`
-            );
-          })
+          .with({ event_version: 3 }, (msg) => tenantV3.push(msg))
           .exhaustive();
       }
       if (tenantV1.length > 0) {
@@ -152,6 +151,9 @@ export async function executeTopicHandler(
       }
       if (tenantV2.length > 0) {
         await handleTenantMessageV2(tenantV2, dbContext);
+      }
+      if (tenantV3.length > 0) {
+        await handleTenantMessageV3(tenantV3, dbContext);
       }
     })
     .with(config.authorizationTopic, async () => {

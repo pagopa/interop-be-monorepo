@@ -6,6 +6,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { mockAttributeBatch } from "./utilsAttribute.js";
 import { mockCatalogBatch } from "./utilsCatalog.js";
+import { mockTenantBatch } from "./utilsTenant.js";
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -39,6 +40,22 @@ vi.doMock("../src/handlers/catalog/consumerServiceV2.js", () => ({
   handleCatalogMessageV2: mockCatalogV2Handler,
 }));
 
+const mockTenantV1Handler = vi.fn().mockResolvedValue(undefined);
+const mockTenantV2Handler = vi.fn().mockResolvedValue(undefined);
+const mockTenantV3Handler = vi.fn().mockResolvedValue(undefined);
+
+vi.doMock("../src/handlers/tenant/consumerServiceV1.js", () => ({
+  handleTenantMessageV1: mockTenantV1Handler,
+}));
+
+vi.doMock("../src/handlers/tenant/consumerServiceV2.js", () => ({
+  handleTenantMessageV2: mockTenantV2Handler,
+}));
+
+vi.doMock("../src/handlers/tenant/consumerServiceV3.js", () => ({
+  handleTenantMessageV3: mockTenantV3Handler,
+}));
+
 describe("executeTopicHandler", () => {
   it("should handle correctly topic and event version", async () => {
     const executeTopicHandler = await setupHandlerAfterMock();
@@ -60,6 +77,25 @@ describe("executeTopicHandler", () => {
 
     expect(mockCatalogV1Handler).toHaveBeenCalledOnce();
     expect(mockCatalogV2Handler).toHaveBeenCalledOnce();
+  });
+
+  it("should dispatch tenant V1, V2 and V3 events of the same batch, handling V3 last", async () => {
+    const executeTopicHandler = await setupHandlerAfterMock();
+    await executeTopicHandler(
+      mockTenantBatch.messages,
+      mockTenantBatch.topic,
+      {} as any
+    );
+
+    expect(mockTenantV1Handler).toHaveBeenCalledOnce();
+    expect(mockTenantV2Handler).toHaveBeenCalledOnce();
+    expect(mockTenantV3Handler).toHaveBeenCalledOnce();
+    expect(mockTenantV3Handler.mock.calls[0][0]).toEqual([
+      { event_version: 3 },
+    ]);
+    expect(mockTenantV2Handler.mock.invocationCallOrder[0]).toBeLessThan(
+      mockTenantV3Handler.mock.invocationCallOrder[0]
+    );
   });
 
   it("should throw genericInternalError for unknown topic", async () => {
