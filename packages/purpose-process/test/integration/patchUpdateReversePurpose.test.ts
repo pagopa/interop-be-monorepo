@@ -10,6 +10,8 @@ import {
   getMockEService,
   sortPurpose,
   getMockContextM2MAdmin,
+  getMockContext,
+  getMockAuthData,
   getMockDelegation,
   getMockValidRiskAnalysis,
   readEventByStreamIdAndVersion,
@@ -172,6 +174,44 @@ describe("patchUpdateReversePurpose", () => {
   };
 
   const validRiskAnalysis = getMockValidRiskAnalysis(producer.kind!);
+
+  it.each([purposeVersionState.draft, purposeVersionState.archived])(
+    "should update metadata with UI ADMIN in %s",
+    async (state) => {
+      const purpose: Purpose = {
+        ...draftPurpose,
+        versions: [getMockPurposeVersion(state)],
+      };
+      await addOnePurpose(purpose);
+      await addOneEService(eservice);
+      await addOneTenant(consumer);
+      await addOneTenant(producer);
+      const ctx = getMockContext({
+        authData: getMockAuthData(consumer.id),
+      });
+      const result = await purposeService.patchUpdateReversePurpose(
+        purpose.id,
+        { title: "Updated title", description: "Updated description" },
+        ctx
+      );
+      const isDraft = state === purposeVersionState.draft;
+      expect(result.data.purpose).toMatchObject({
+        title: "Updated title",
+        description: "Updated description",
+        versions: isDraft
+          ? [{ ...purpose.versions[0], updatedAt: new Date() }]
+          : purpose.versions,
+        riskAnalysisForm: purpose.riskAnalysisForm,
+      });
+      expect(result.metadata.version).toBe(isDraft ? 1 : 2);
+      await expectWrittenEventAndGetPayload(
+        purpose.id,
+        isDraft
+          ? ["DraftPurposeUpdated"]
+          : ["PurposeTitleUpdated", "PurposeDescriptionUpdated"]
+      );
+    }
+  );
 
   it.each(Object.values(purposeVersionState))(
     "should create events and advance the version for unchanged metadata in %s",

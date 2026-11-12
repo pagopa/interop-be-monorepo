@@ -8333,10 +8333,8 @@ paths:
     patch:
       tags:
         - purposes
-      summary: Update a Draft Purpose
-      description: |
-        Update a Purpose in Draft state.
-        The Purpose must have a single version, and that version must be in Draft state.
+      summary: Partially update a Purpose
+      description: Partially update a Purpose
       operationId: updateDraftPurpose
       requestBody:
         content:
@@ -8960,10 +8958,8 @@ paths:
     patch:
       tags:
         - purposes
-      summary: Update a Draft reverse Purpose
-      description: |
-        Update a Purpose in Draft state for an E-Service in receive mode.
-        The Purpose must have a single version, and that version must be in Draft state.
+      summary: Partially update a reverse Purpose
+      description: Partially update a Purpose for an E-Service in receive mode
       operationId: updateDraftReversePurpose
       requestBody:
         content:
@@ -15159,6 +15155,7 @@ components:
     PurposeDraftUpdateSeed:
       type: object
       additionalProperties: false
+      minProperties: 1
       description:
         Contains the expected payload for purpose update of a purpose not
         created from a purpose template
@@ -15187,6 +15184,7 @@ components:
     PurposeDraftFromTemplateUpdateSeed:
       type: object
       additionalProperties: false
+      minProperties: 1
       description: Contains the expected payload for purpose update of a purpose
         created from a purpose template
       properties:
@@ -15205,6 +15203,7 @@ components:
     ReversePurposeDraftUpdateSeed:
       type: object
       additionalProperties: false
+      minProperties: 1
       description: Contains the expected payload for purpose update
       properties:
         title:
