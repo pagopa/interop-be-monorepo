@@ -1669,21 +1669,19 @@
                                         </p>
                                         <div class="section-cell">
                                           <ul class="list-items">
-                                            {{#each
-                                            archivingRequests.items}}
+                                            {{#each archivingRequests.items}}
                                               {{#if descriptorVersion}}
                                               <ul class="list-item">
                                                 Versione
-                                                <a
-                                                  href="{{ link }}"
-                                                  class="link-primary" style="color: #0073e6;"
-                                                  >{{ descriptorVersion }}</a
-                                                > di
-                                                <a
-                                                  href="{{ link }}"
-                                                  class="link-primary" style="color: #0073e6;"
-                                                  >{{ name }}</a
-                                                >
+                                                <a href="{{ link }}"
+                                                  class="link-primary" style="color: #0073e6;">
+                                                  {{ descriptorVersion }}
+                                                </a> 
+                                                di
+                                                <a href="{{ link }}"
+                                                  class="link-primary" style="color: #0073e6;">
+                                                {{ name }}
+                                                </a>
                                                 <span class="list-item-secondary"
                                                   >delegato a {{ producerName }}</span
                                                 >
@@ -1738,9 +1736,8 @@
                                         </p>
                                         <div class="section-cell">
                                           <ul class="list-items">
-                                            {{#each
-                                            approvedArchivingRequests.items}}
-                                            {{#if descriptorVersion}}
+                                            {{#each approvedArchivingRequests.items}}
+                                              {{#if descriptorVersion}}
                                               <ul class="list-item">
                                                 Versione
                                                 <a
@@ -1800,9 +1797,8 @@
                                         </p>
                                         <div class="section-cell">
                                           <ul class="list-items">
-                                            {{#each
-                                            rejectedArchivingRequests.items}}
-                                            {{#if descriptorVersion}}
+                                            {{#each rejectedArchivingRequests.items}}
+                                              {{#if descriptorVersion}}
                                               <ul class="list-item">
                                                 Versione
                                                 <a
@@ -1837,15 +1833,15 @@
                                               E altre
                                               <strong>{{ rejectedArchivingRequestsExceededItemsCount }}</strong>.
                                             </ul>
-                                            <!-- Yellow Alert -->
-                                            <div class="alert-warning" role="note">
-                                              <p class="alert-text">
-                                                Leggi la motivazione
-                                                condivisa dall'ente delegante.
-                                              </p>
-                                            </div>
                                             {{/if}}
                                           </ul>
+                                          <!-- Yellow Alert -->
+                                          <div class="alert-warning" role="note">
+                                            <p class="alert-text">
+                                              Leggi la motivazione
+                                              condivisa dall'ente delegante.
+                                            </p>
+                                          </div>
                                         </div>
                                       </div>
                                       {{/if}}
@@ -2050,7 +2046,7 @@
                                         {{#if archivingImminentEservicesSingular}}
                                         C'è <strong>1 archiviazione prevista a breve</strong>:
                                         {{else}}
-                                        Ci sono <strong>{{ archivingImminentEservices.totalCount }} archiviazioni previste a breve</strong>:
+                                        Ci sono <strong>{{ archivingImminentEservices.totalCount }} archiviazioni previste a breve</strong>{{#if archivingImminentRemainder}}, tra cui{{/if}}:
                                         {{/if}}
                                       </p>
                                       <div class="archiving-box">
@@ -2063,6 +2059,9 @@
                                           {{/if}}
                                         </p>
                                         {{/each}}
+                                        {{#if archivingImminentRemainder}}
+                                        <p class="archiving-item">E altre <strong>{{ archivingImminentRemainder }}</strong>.</p>
+                                        {{/if}}
 
                                         <!-- Red Alert -->
                                         <div class="alert-error" role="note">
@@ -2177,7 +2176,7 @@
                                         {{#if archivingConsumerImminentEservicesSingular}}
                                         C'è <strong>1 archiviazione prevista a breve</strong>:
                                         {{else}}
-                                        Ci sono <strong>{{ archivingConsumerImminentEservices.totalCount }} archiviazioni previste a breve</strong>:
+                                        Ci sono <strong>{{ archivingConsumerImminentEservices.totalCount }} archiviazioni previste a breve</strong>{{#if archivingConsumerImminentRemainder}}, tra cui{{/if}}:
                                         {{/if}}
                                       </p>
                                       <div class="archiving-box">
@@ -2190,6 +2189,9 @@
                                           {{/if}}
                                         </p>
                                         {{/each}}
+                                        {{#if archivingConsumerImminentRemainder}}
+                                        <p class="archiving-item">E altre <strong>{{ archivingConsumerImminentRemainder }}</strong>.</p>
+                                        {{/if}}
 
                                         <!-- Red Alert -->
                                         <div class="alert-error" role="note">

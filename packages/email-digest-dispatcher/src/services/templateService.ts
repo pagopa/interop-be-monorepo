@@ -107,6 +107,11 @@ export function digestTemplateServiceBuilder(
         data.revokedAttributes?.totalCount === 1;
       const archivingImminentEservicesSingular =
         data.archivingImminentEservices?.totalCount === 1;
+      const archivingImminentRemainder = Math.max(
+        (data.archivingImminentEservices?.totalCount ?? 0) -
+          (data.archivingImminentEservices?.items.length ?? 0),
+        0
+      );
       const archivingInProgressEservicesSingular =
         data.archivingInProgressEservices?.totalCount === 1;
       const archivingInProgressRemainder = Math.max(
@@ -116,6 +121,11 @@ export function digestTemplateServiceBuilder(
       );
       const archivingConsumerImminentEservicesSingular =
         data.archivingConsumerImminentEservices?.totalCount === 1;
+      const archivingConsumerImminentRemainder = Math.max(
+        (data.archivingConsumerImminentEservices?.totalCount ?? 0) -
+          (data.archivingConsumerImminentEservices?.items.length ?? 0),
+        0
+      );
       const archivingConsumerInProgressEservicesSingular =
         data.archivingConsumerInProgressEservices?.totalCount === 1;
       const archivingConsumerInProgressRemainder = Math.max(
@@ -287,11 +297,13 @@ export function digestTemplateServiceBuilder(
         receivedAttributesSingular,
         revokedAttributesSingular,
         archivingImminentEservicesSingular,
+        archivingImminentRemainder,
         archivingInProgressEservicesSingular,
         approvedRiskAnalysisSingular,
         rejectedRiskAnalysisSingular,
         archivingInProgressRemainder,
         archivingConsumerImminentEservicesSingular,
+        archivingConsumerImminentRemainder,
         archivingConsumerInProgressEservicesSingular,
         archivingConsumerInProgressRemainder,
         archivingConsumerCardWidth,

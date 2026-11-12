@@ -4,7 +4,7 @@ import { TenantDigestData } from "../services/digestDataService.js";
 
 /**
  * Keys of TenantDigestData whose values are digest objects carrying a totalCount
- * (BaseDigest and its variants, e.g. ArchivingProducerDigest). This excludes
+ * (BaseDigest and its variants, e.g. ArchivingDigest). This excludes
  * string metadata fields (tenantId, tenantName, links, etc.) and plain numbers.
  */
 type DigestDataField = {
@@ -206,9 +206,6 @@ const digestSectionFields: Record<DigestSection, DigestDataField[]> = {
   ],
   delegations: [
     "waitingForApprovalReceivedDelegations",
-    "archivingRequests",
-    "approvedArchivingRequests",
-    "rejectedArchivingRequests",
     "archivingRequests",
     "approvedArchivingRequests",
     "rejectedArchivingRequests",

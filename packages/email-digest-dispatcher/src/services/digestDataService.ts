@@ -77,7 +77,7 @@ export type DelegatedEserviceDigest = BaseDigest & {
   }>;
 };
 
-type ArchivingProducerItem = {
+type ArchivingItem = {
   id: string;
   eserviceName: string;
   version: string;
@@ -87,8 +87,8 @@ type ArchivingProducerItem = {
   link: string;
 };
 
-export type ArchivingProducerDigest = {
-  items: ArchivingProducerItem[];
+export type ArchivingDigest = {
+  items: ArchivingItem[];
   totalCount: number;
 };
 
@@ -169,12 +169,12 @@ export type TenantDigestData = {
   waitingForApprovalDelegatedEservices?: DelegatedEserviceDigest;
   receivedAttributes?: AttributeDigest;
   revokedAttributes?: AttributeDigest;
-  archivingImminentEservices?: ArchivingProducerDigest;
-  archivingInProgressEservices?: ArchivingProducerDigest;
+  archivingImminentEservices?: ArchivingDigest;
+  archivingInProgressEservices?: ArchivingDigest;
   archivingEserviceScopeCount?: number;
   archivingDescriptorScopeCount?: number;
-  archivingConsumerImminentEservices?: ArchivingProducerDigest;
-  archivingConsumerInProgressEservices?: ArchivingProducerDigest;
+  archivingConsumerImminentEservices?: ArchivingDigest;
+  archivingConsumerInProgressEservices?: ArchivingDigest;
   archivingConsumerEserviceScopeCount?: number;
   archivingConsumerDescriptorScopeCount?: number;
   archivingRequests?: DelegationArchivingRequestDigest;
@@ -289,6 +289,25 @@ export function digestDataServiceBuilder(
         priorityProducerIds,
         selfcareId
       );
+
+      const [
+        archivingRequestsDigest,
+        approvedArchivingRequestsDigest,
+        rejectedArchivingRequestsDigest,
+      ] = await Promise.all([
+        receivedDelegationArchivingRequestsToDigest(
+          archivingRequests,
+          readModelService
+        ),
+        receivedDelegationArchivingRequestsToDigest(
+          approvedArchivingRequests,
+          readModelService
+        ),
+        receivedDelegationArchivingRequestsToDigest(
+          rejectedArchivingRequests,
+          readModelService
+        ),
+      ]);
 
       return {
         tenantId,
@@ -418,20 +437,9 @@ export function digestDataServiceBuilder(
           archivingConsumerScopeCounts.eserviceScopeCount,
         archivingConsumerDescriptorScopeCount:
           archivingConsumerScopeCounts.descriptorScopeCount,
-        archivingRequests: await receivedDelegationArchivingRequestsToDigest(
-          archivingRequests,
-          readModelService
-        ),
-        approvedArchivingRequests:
-          await receivedDelegationArchivingRequestsToDigest(
-            approvedArchivingRequests,
-            readModelService
-          ),
-        rejectedArchivingRequests:
-          await receivedDelegationArchivingRequestsToDigest(
-            rejectedArchivingRequests,
-            readModelService
-          ),
+        archivingRequests: archivingRequestsDigest,
+        approvedArchivingRequests: approvedArchivingRequestsDigest,
+        rejectedArchivingRequests: rejectedArchivingRequestsDigest,
         approvedRiskAnalysis: await approvedRiskAnalysisToDigest(
           approvedRiskAnalysis,
           selfcareId
@@ -532,7 +540,8 @@ export function digestDataServiceBuilder(
         data.approvedArchivingRequests?.totalCount ||
         data.rejectedArchivingRequests?.totalCount ||
         data.approvedRiskAnalysis?.totalCount ||
-        data.rejectedRiskAnalysis?.totalCount
+        data.rejectedRiskAnalysis?.totalCount ||
+        data.archivingConsumerImminentEservices?.totalCount
       );
     },
   };

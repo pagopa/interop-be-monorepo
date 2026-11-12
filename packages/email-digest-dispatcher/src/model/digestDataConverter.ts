@@ -18,7 +18,7 @@ import {
 } from "../services/deeplinkBuilder.js";
 import {
   ApprovedRiskAnalysisDigest,
-  ArchivingProducerDigest,
+  ArchivingDigest,
   ReviewerRiskAnalysisDigest,
   AttributeDigest,
   BaseDigest,
@@ -266,13 +266,12 @@ export async function popularEserviceTemplateToBaseDigest(
 }
 
 /**
- * Transforms producer-side archiving data (in-progress or imminent) into a digest object.
- * No producer name lookup is needed: the recipient is the producer itself.
+ * Transforms archiving data (producer or consumer side, in-progress or imminent) into a digest object.
  */
 export function archivingEservicesToDigest(
   data: ArchivingEservice[],
   selfcareId: string | null
-): ArchivingProducerDigest {
+): ArchivingDigest {
   if (data.length === 0) {
     return { items: [], totalCount: 0 };
   }
@@ -711,7 +710,7 @@ export async function receivedDelegationArchivingRequestsToDigest(
   const enrichedItems = await enrichWithProducerNames(
     data.map((item) => ({
       ...item,
-      entityProducerId: item.tenantId,
+      entityProducerId: item.producerId,
     })),
     readModelService
   );
