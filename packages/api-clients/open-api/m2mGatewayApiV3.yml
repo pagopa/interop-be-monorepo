@@ -12267,8 +12267,6 @@ components:
             - TENANT_VERIFIED_ATTRIBUTE_EXTENSION_UPDATED
             - TENANT_VERIFIED_ATTRIBUTE_REVOKED
             - TENANT_REMOTE_ID_ASSIGNED
-            - TENANT_CONTACT_ADDED
-            - TENANT_CONTACT_DELETED
         eventTimestamp:
           type: string
           format: date-time
