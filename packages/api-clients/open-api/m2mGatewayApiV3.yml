@@ -4,7 +4,7 @@ info:
   description: PDND Interoperability API for machine-to-machine interaction with
     interoperability features
   x-summary: PDND Interoperability API
-  version: "3.2.2"
+  version: "3.3.0"
   contact:
     name: API Support
     url: "https://github.com/pagopa/pdnd-interop-frontend/issues"
@@ -2869,8 +2869,8 @@ paths:
     patch:
       tags:
         - eservices
-      summary: Update a Draft E-Service
-      description: Update an E-Service in Draft state
+      summary: Partially update an E-Service
+      description: Partially update an E-Service
       operationId: updateDraftEService
       requestBody:
         content:
@@ -2880,7 +2880,7 @@ paths:
         required: true
       responses:
         "200":
-          description: Draft E-Service updated
+          description: E-Service updated
           content:
             application/json:
               schema:
@@ -6814,6 +6814,54 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /eserviceTemplates/{templateId}/versions/{versionId}/interface:
+    parameters:
+      - name: templateId
+        in: path
+        description: The E-Service Template ID
+        required: true
+        schema:
+          $ref: "#/components/schemas/TemplateId"
+      - name: versionId
+        in: path
+        description: The ID of the Version for which to download the interface
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - eserviceTemplates
+      summary: Download an E-Service Template Version interface
+      description: Download the interface document of an E-Service Template Version
+      operationId: downloadEServiceTemplateVersionInterface
+      responses:
+        "200":
+          description: E-Service Template Version interface retrieved, a multipart
+            containing the file and its metadata
+          content:
+            multipart/form-data:
+              schema:
+                $ref: "#/components/schemas/FileDownloadMultipart"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /eserviceTemplates/{templateId}/riskAnalyses:
     parameters:
       - name: templateId
@@ -8705,6 +8753,57 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /purposes/{purposeId}/reject:
+    parameters:
+      - name: purposeId
+        description: The ID of the Purpose to reject
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/PurposeId"
+    post:
+      tags:
+        - purposes
+      summary: Reject a Purpose in Waiting for Approval state
+      description: Reject the latest version of a Purpose that is in Waiting for
+        Approval state, transitioning it to Rejected state
+      operationId: rejectPurpose
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PurposeRejection"
+        required: true
+      responses:
+        "200":
+          description: Purpose rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /purposes/{purposeId}/suspend:
@@ -12313,7 +12412,7 @@ components:
             - ESERVICE_DESCRIPTOR_ARCHIVING_REQUEST_CANCELED_BY_REVOKED_DELEGATION
             - MAINTENANCE_ESERVICE_PERSONAL_DATA_FLAG_RESET
             - MAINTENANCE_ESERVICE_DESCRIPTOR_UNARCHIVED
-            - ESERVICE_DESCRIPTOR_UPDATED_BY_REVOKED_DELEGATION
+            - ESERVICE_DESCRIPTOR_RESTORED_TO_DRAFT_BY_REVOKED_DELEGATION
         eventTimestamp:
           type: string
           format: date-time
@@ -13754,6 +13853,7 @@ components:
     EServiceDraftUpdateSeed:
       type: object
       additionalProperties: false
+      minProperties: 1
       properties:
         name:
           type: string
@@ -14774,6 +14874,8 @@ components:
           $ref: "#/components/schemas/PurposeTemplateId"
         riskAnalysisReviewMode:
           $ref: "#/components/schemas/RiskAnalysisReviewMode"
+        reviewerWorkflow:
+          $ref: "#/components/schemas/ReviewerWorkflow"
       required:
         - id
         - eserviceId
@@ -14784,11 +14886,60 @@ components:
         - isFreeOfCharge
     RiskAnalysisReviewMode:
       type: string
-      description: Risk analysis review mode
+      description: Risk analysis review mode. Visible only to the consumer of the Purpose.
       enum:
         - ADMIN_WRITES_ADMIN_SIGNS
         - ADMIN_WRITES_REVIEWER_SIGNS
         - REVIEWER_WRITES_REVIEWER_SIGNS
+    RiskAnalysisSigningState:
+      type: string
+      description: Risk analysis signing state
+      enum:
+        - DRAFT
+        - ASSIGNED
+        - SUBMITTED
+        - SIGNED
+        - REJECTED
+    RiskAnalysisReviewer:
+      type: object
+      additionalProperties: false
+      description: A reviewer designated for a purpose risk analysis
+      properties:
+        userId:
+          type: string
+          format: uuid
+        sentToReviewerAt:
+          type: string
+          format: date-time
+      required:
+        - userId
+    ReviewerWorkflow:
+      type: object
+      additionalProperties: false
+      description: Reviewer workflow state for a purpose risk analysis. Returned only to the consumer of the Purpose.
+      properties:
+        reviewers:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskAnalysisReviewer"
+        signingState:
+          $ref: "#/components/schemas/RiskAnalysisSigningState"
+        signedBy:
+          type: string
+          format: uuid
+        signedAt:
+          type: string
+          format: date-time
+        rejectedBy:
+          type: string
+          format: uuid
+        rejectedAt:
+          type: string
+          format: date-time
+        rejectionReason:
+          type: string
+      required:
+        - signingState
     RiskAnalysisAssignmentSeed:
       type: object
       additionalProperties: false
@@ -14984,6 +15135,17 @@ components:
           format: int32
           minimum: 1
           maximum: 1000000000
+    PurposeRejection:
+      type: object
+      additionalProperties: false
+      description: contains the information for purpose rejection
+      properties:
+        rejectionReason:
+          type: string
+          minLength: 10
+          maxLength: 250
+      required:
+        - rejectionReason
     PurposeVersionState:
       type: string
       description: Purpose State

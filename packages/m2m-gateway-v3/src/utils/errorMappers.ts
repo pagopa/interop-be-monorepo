@@ -111,6 +111,17 @@ export const downloadEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper
       )
       .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const downloadEServiceTemplateVersionInterfaceErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eserviceTemplateVersionInterfaceNotFound",
+      "eserviceTemplateVersionNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const getPurposeVersionErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -142,6 +153,11 @@ export const suspendPurposeErrorMapper = (
 export const approvePurposeErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
+  match(error.code)
+    .with("missingPurposeVersionWithState", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const rejectPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("missingPurposeVersionWithState", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
