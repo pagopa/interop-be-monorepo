@@ -83,6 +83,26 @@ export const errorMessages = [
     }
   },
   {
+    "process": "Delegation Process",
+    "error": "incorrectState",
+    "errorCode": "010-0011",
+    "bffEndpoint": "POST /consumers/delegations/:delegationId/reject",
+    "copy": {
+      "it": "Non puoi rifiutare la delega perché non è più in attesa di approvazione. Aggiorna la pagina.",
+      "en": "You can't reject the delegation because it's no longer waiting for approval. Refresh the page."
+    }
+  },
+  {
+    "process": "Delegation Process",
+    "error": "incorrectState",
+    "errorCode": "010-0011",
+    "bffEndpoint": "POST /producers/delegations/:delegationId/reject",
+    "copy": {
+      "it": "Non puoi rifiutare la delega perché non è più in attesa di approvazione. Aggiorna la pagina.",
+      "en": "You can't reject the delegation because it's no longer waiting for approval. Refresh the page."
+    }
+  },
+  {
     "process": "Tenant Process",
     "error": "expirationDateCannotBeInThePast",
     "errorCode": "005-009",
@@ -104,8 +124,8 @@ export const errorMessages = [
   },
   {
     "process": "Tenant Process",
-    "error": "certifiedAttributeAlreadyAssigned",
-    "errorCode": "005-0014",
+    "error": "certifiedDiscreteAttributeAlreadyAssigned",
+    "errorCode": "005-0032",
     "bffEndpoint": "POST /tenants/:tenantId/attributes/certifiedDiscrete",
     "copy": {
       "it": "L’ente possiede già l'attributo certificato {attributeName}. Aggiorna la pagina.",
@@ -214,12 +234,72 @@ export const errorMessages = [
   },
   {
     "process": "Purpose Process",
+    "error": "riskAnalysisAlreadyApproved",
+    "errorCode": "004-0066",
+    "bffEndpoint": "POST /purposes/:purposeId/riskAnalysis/sign",
+    "copy": {
+      "it": "Questa analisi del rischio è già stata approvata da un altro valutatore. Ricarica la pagina per vedere l’analisi del rischio approvata.",
+      "en": "This risk analysis has already been approved by another reviewer. Refresh the page to see the approved risk analysis."
+    }
+  },
+  {
+    "process": "Purpose Process",
+    "error": "riskAnalysisAlreadyRejected",
+    "errorCode": "004-0067",
+    "bffEndpoint": "POST /purposes/:purposeId/riskAnalysis/sign",
+    "copy": {
+      "it": "Questa analisi del rischio è già stata rifiutata da un altro valutatore. Ricarica la pagina per vedere l’analisi del rischio rifiutata.",
+      "en": "This risk analysis has already been rejected by another reviewer. Refresh the page to see the rejected risk analysis."
+    }
+  },
+  {
+    "process": "Purpose Process",
     "error": "purposeMetadataVersionMismatch",
     "errorCode": "004-0064",
     "bffEndpoint": "POST /purposes/:purposeId/riskAnalysis/sign",
     "copy": {
       "it": "Un altro valutatore ha modificato questa analisi del rischio. Ricarica la pagina per vedere la versione aggiornata e decidi se approvarla.",
       "en": "Another reviewer has modified this risk analysis. Refresh the page to see the updated version and decide whether to approve or reject it."
+    }
+  },
+  {
+    "process": "Purpose Process",
+    "error": "riskAnalysisAlreadyApproved",
+    "errorCode": "004-0066",
+    "bffEndpoint": "POST /purposes/:purposeId/riskAnalysis/reject",
+    "copy": {
+      "it": "Questa analisi del rischio è già stata approvata da un altro valutatore. Ricarica la pagina per vedere l’analisi del rischio approvata.",
+      "en": "This risk analysis has already been approved by another reviewer. Refresh the page to see the approved risk analysis."
+    }
+  },
+  {
+    "process": "Purpose Process",
+    "error": "riskAnalysisAlreadyRejected",
+    "errorCode": "004-0067",
+    "bffEndpoint": "POST /purposes/:purposeId/riskAnalysis/reject",
+    "copy": {
+      "it": "Questa analisi del rischio è già stata rifiutata da un altro valutatore. Ricarica la pagina per vedere l’analisi del rischio rifiutata.",
+      "en": "This risk analysis has already been rejected by another reviewer. Refresh the page to see the rejected risk analysis."
+    }
+  },
+  {
+    "process": "Purpose Process",
+    "error": "riskAnalysisAlreadyApproved",
+    "errorCode": "004-0066",
+    "bffEndpoint": "PUT /purposes/:purposeId/riskAnalysis/form",
+    "copy": {
+      "it": "Questa analisi del rischio è già stata approvata da un altro valutatore. Ricarica la pagina per vedere l’analisi del rischio approvata.",
+      "en": "This risk analysis has already been approved by another reviewer. Refresh the page to see the approved risk analysis."
+    }
+  },
+  {
+    "process": "Purpose Process",
+    "error": "riskAnalysisAlreadyRejected",
+    "errorCode": "004-0067",
+    "bffEndpoint": "PUT /purposes/:purposeId/riskAnalysis/form",
+    "copy": {
+      "it": "Questa analisi del rischio è già stata rifiutata da un altro valutatore. Ricarica la pagina per vedere l’analisi del rischio rifiutata.",
+      "en": "This risk analysis has already been rejected by another reviewer. Refresh the page to see the rejected risk analysis."
     }
   },
   {
@@ -793,6 +873,16 @@ export const errorMessages = [
     }
   },
   {
+    "process": "Catalog Process",
+    "error": "riskAnalysisValidationFailed",
+    "errorCode": "001-0016",
+    "bffEndpoint": "POST /eservices/:eServiceId/riskAnalysis",
+    "copy": {
+      "it": "Non puoi inserire un link in una risposta dell’analisi del rischio. Rimuovi il link e riprova.",
+      "en": "You can't include a link in a risk analysis answer. Remove the link and try again."
+    }
+  },
+  {
     "process": "Attribute Registry Process",
     "error": "attributeDuplicate",
     "errorCode": "003-0002",
@@ -1053,6 +1143,26 @@ export const errorMessages = [
     }
   },
   {
+    "process": "Authorization Process",
+    "error": "eserviceInArchivedState",
+    "errorCode": "006-0040",
+    "bffEndpoint": "POST /producerKeychains/:producerKeychainId/eservices",
+    "copy": {
+      "it": "Non puoi associare un portachiavi a questo e-service perché è archiviato.",
+      "en": "You can't associate a keychain with this e-service because it is archived."
+    }
+  },
+  {
+    "process": "Authorization Process",
+    "error": "noActiveOrSuspendedPurposeVersionFound",
+    "errorCode": "006-0010",
+    "bffEndpoint": "POST /clients/:clientId/purposes",
+    "copy": {
+      "it": "Non puoi associare il client a questa finalità perché non è attiva. ",
+      "en": "You can't associate the client with this purpose because it isn't active."
+    }
+  },
+  {
     "process": "EService Template Process",
     "error": "eserviceTemplateDuplicate",
     "errorCode": "011-0004",
@@ -1270,6 +1380,16 @@ export const errorMessages = [
     "copy": {
       "it": "Non puoi scaricare il documento dell’analisi del rischio di questo template finalità con il tuo ruolo. Chiedi a un amministratore del tuo ente di scaricarlo.",
       "en": "You can’t download this purpose template’s risk analysis document with your role. Ask an Administrator in your party to download it."
+    }
+  },
+  {
+    "process": "Purpose Template Process",
+    "error": "associationEServicesForPurposeTemplateFailed",
+    "errorCode": "015-0013",
+    "bffEndpoint": "POST /purposeTemplates/:purposeTemplateId/linkResource",
+    "copy": {
+      "it": "Non puoi aggiungere questo e-service tra quelli suggeriti perché è stato creato da un template e-service.",
+      "en": "You can't add this e-service to the suggested e-services because it was created from an e-service template."
     }
   },
   {
@@ -1770,6 +1890,26 @@ export const errorMessages = [
     "copy": {
       "it": "Non puoi caricare il documento perché il file selezionato non è valido o è in un formato non supportato. Scegli un file valido in formato PDF, JSON, Markdown, YAML, TXT, XSD, WSDL o XML e riprova.",
       "en": "You can't upload the document because the selected file is invalid or its format is not supported. Choose a valid PDF, JSON, Markdown, YAML, TXT, XSD, WSDL, or XML file and try again."
+    }
+  },
+  {
+    "process": "BFF Process",
+    "error": "badRequestError",
+    "errorCode": "008-9999",
+    "bffEndpoint": "PATCH /purposeTemplates/:purposeTemplateId/purposes/:purposeId",
+    "copy": {
+      "it": "La stima delle chiamate API al giorno non può superare 1.000.000.000. Modifica il numero e riprova.",
+      "en": "The estimated number of API calls per day can't exceed 1,000,000,000. Change the value and try again."
+    }
+  },
+  {
+    "process": "BFF Process",
+    "error": "badRequestError",
+    "errorCode": "008-9999",
+    "bffEndpoint": "PUT /purposeTemplates/:purposeTemplateId",
+    "copy": {
+      "it": "Il numero di chiamate API al giorno che suggerisci al fruitore non può superare 1.000.000.000. Modifica il numero e riprova.",
+      "en": "The number of API calls per day you suggest to the consumer can't exceed 1,000,000,000. Change the number and try again."
     }
   }
 ] as const satisfies readonly ErrorMessage[];
