@@ -156,6 +156,18 @@ export const getMockBffApiCatalogEService = (): bffApi.CatalogEService => ({
   activeDescriptor: generateMock(bffApi.CompactDescriptor.optional()),
 });
 
+export const getMockBffApiCompactCatalogEService =
+  (): bffApi.CompactCatalogEService => ({
+    id: generateId(),
+    name: generateMock(z.string()),
+    producer: {
+      id: generateId(),
+      name: generateMock(z.string()),
+    },
+    personalData: generateMock(z.boolean().optional()),
+    activeDescriptor: generateMock(bffApi.CompactDescriptor.optional()),
+  });
+
 export const getMockBffApiProducerEServiceDescriptor =
   (): bffApi.ProducerEServiceDescriptor => ({
     id: generateId(),
