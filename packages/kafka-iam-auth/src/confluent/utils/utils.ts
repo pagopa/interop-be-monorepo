@@ -1,4 +1,3 @@
-import { KafkaMessage } from "@confluentinc/kafka-javascript/types/kafkajs.js";
 import { Logger } from "pagopa-interop-commons";
 
 export async function processExitAndDisconnect({
@@ -31,7 +30,10 @@ function processExit({
   process.exit(exitStatusCode);
 }
 
-export function extractBasicMessageInfo(message: KafkaMessage): {
+export function extractBasicMessageInfo(message: {
+  offset: string;
+  value: Buffer | null;
+}): {
   offset: string;
   streamId?: string;
   eventType?: string;
