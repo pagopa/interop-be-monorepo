@@ -80,6 +80,8 @@ export function toApiTenantM2MEventType(
       () => "TENANT_VERIFIED_ATTRIBUTE_REVOKED"
     )
     .with("TenantRemoteIdAssigned", () => "TENANT_REMOTE_ID_ASSIGNED")
+    .with("TenantContactAdded", () => "TENANT_CONTACT_ADDED")
+    .with("TenantContactDeleted", () => "TENANT_CONTACT_DELETED")
     .exhaustive();
 }
 
