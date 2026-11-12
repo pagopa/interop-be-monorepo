@@ -1,12 +1,45 @@
 import { buildHTMLTemplateService } from "pagopa-interop-commons";
 import { beforeAll, describe, expect, it } from "vitest";
 
+import { TenantDigestData } from "../src/services/digestDataService.js";
 import { digestTemplateServiceBuilder } from "../src/services/templateService.js";
 import { getVisibleSections } from "../src/utils/digestAdmittedRoles.js";
 import {
   getMockSingularTenantDigestData,
   getMockTenantDigestData,
 } from "./mockUtils.js";
+
+const getRiskAnalysisOnlyDigestData = (
+  data: TenantDigestData
+): TenantDigestData => {
+  const empty = { items: [], totalCount: 0 };
+
+  return {
+    ...data,
+    newEservices: empty,
+    updatedEservices: empty,
+    updatedEserviceTemplates: empty,
+    acceptedSentAgreements: empty,
+    rejectedSentAgreements: empty,
+    suspendedSentAgreements: empty,
+    publishedSentPurposes: empty,
+    rejectedSentPurposes: empty,
+    waitingForApprovalSentPurposes: empty,
+    waitingForApprovalReceivedAgreements: empty,
+    publishedReceivedPurposes: empty,
+    waitingForApprovalReceivedPurposes: empty,
+    waitingForApprovalReceivedDelegations: empty,
+    receivedAttributes: empty,
+    revokedAttributes: empty,
+    archivingImminentEservices: empty,
+    archivingInProgressEservices: empty,
+    archivingConsumerImminentEservices: empty,
+    archivingConsumerInProgressEservices: empty,
+    archivingRequests: empty,
+    approvedArchivingRequests: empty,
+    rejectedArchivingRequests: empty,
+  };
+};
 
 describe("Template Service", () => {
   let compiledHtml: string;
@@ -81,6 +114,83 @@ describe("Template Service", () => {
 
     expect(compiledHtml).toContain("https://example.com/agreements/sent");
     expect(compiledHtml).toContain("https://example.com/agreement/1");
+  });
+
+  it("renders approved and rejected risk analyses and their links", () => {
+    const service = digestTemplateServiceBuilder(buildHTMLTemplateService());
+    const data = getRiskAnalysisOnlyDigestData(getMockTenantDigestData());
+    const visibility = {
+      ...getVisibleSections(["security"]),
+      sentPurposes: false,
+    };
+    const html = service.compileDigestEmail(data, visibility);
+
+    expect(html).toContain("Analisi del rischio assegnate");
+    expect(html).toContain("Sono state approvate 10 analisi del rischio");
+    expect(html).toContain("Finalità con analisi del rischio approvata 1");
+    expect(html).toContain("https://example.com/purpose/1");
+    expect(html).toContain("https://example.com/purposes/sent");
+    expect(
+      html.match(/href="https:\/\/example\.com\/purpose\/\d+"/g)
+    ).toHaveLength(10);
+
+    expect(html).toContain("Sono state rifiutate 10 analisi del rischio");
+    expect(html).toContain("Finalità con analisi del rischio rifiutata 1");
+    expect(html).toContain("E altre");
+    expect(html).toContain("<strong>5</strong>.");
+  });
+
+  it("renders approved and rejected risk analysis sections independently", () => {
+    const service = digestTemplateServiceBuilder(buildHTMLTemplateService());
+    const data = getRiskAnalysisOnlyDigestData(getMockTenantDigestData());
+    const empty = { items: [], totalCount: 0 };
+    const visibility = getVisibleSections(["security"]);
+
+    const approvedHtml = service.compileDigestEmail(
+      { ...data, rejectedRiskAnalysis: empty },
+      visibility
+    );
+    const rejectedHtml = service.compileDigestEmail(
+      { ...data, approvedRiskAnalysis: empty },
+      visibility
+    );
+
+    expect(approvedHtml).toContain(
+      "Sono state approvate 10 analisi del rischio"
+    );
+    expect(approvedHtml).not.toContain("Sono state rifiutate");
+    expect(rejectedHtml).toContain(
+      "Sono state rifiutate 10 analisi del rischio"
+    );
+    expect(rejectedHtml).not.toContain("Sono state approvate");
+    expect(rejectedHtml).toContain("Analisi del rischio assegnate");
+  });
+
+  it("renders singular copy for one approved and one rejected risk analysis", () => {
+    const service = digestTemplateServiceBuilder(buildHTMLTemplateService());
+    const data = getRiskAnalysisOnlyDigestData(
+      getMockSingularTenantDigestData()
+    );
+    const html = service.compileDigestEmail(
+      data,
+      getVisibleSections(["security"])
+    );
+
+    expect(html).toContain("È approvata un'analisi del rischio");
+    expect(html).toContain("È stata rifiutata una finalità");
+  });
+
+  it("does not render risk analysis sections when their counts are zero", () => {
+    const service = digestTemplateServiceBuilder(buildHTMLTemplateService());
+    const data = getRiskAnalysisOnlyDigestData(getMockTenantDigestData());
+    const empty = { items: [], totalCount: 0 };
+    const html = service.compileDigestEmail(
+      { ...data, approvedRiskAnalysis: empty, rejectedRiskAnalysis: empty },
+      getVisibleSections(["security"])
+    );
+
+    expect(html).not.toContain("Analisi del rischio assegnate");
+    expect(html).not.toContain("Sono state rifiutate");
   });
 
   it("Should render received agreements and purposes", () => {

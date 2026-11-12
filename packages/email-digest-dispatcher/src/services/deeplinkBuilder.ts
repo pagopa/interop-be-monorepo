@@ -12,7 +12,11 @@ const DEEPLINK_BASE_PATH = "emailDeepLink";
  */
 function buildDeeplinkUrl(
   notificationType: DigestNotificationType,
-  params?: { entityId?: string; selfcareId?: string | null }
+  params?: {
+    entityId?: string;
+    selfcareId?: string | null;
+    states?: string;
+  }
 ): string {
   const url = new URL(`${DEEPLINK_BASE_PATH}/${notificationType}`, baseUrl);
 
@@ -21,6 +25,9 @@ function buildDeeplinkUrl(
   }
   if (params?.selfcareId) {
     url.searchParams.set("selfcareId", params.selfcareId);
+  }
+  if (params?.states) {
+    url.searchParams.set("states", params.states);
   }
 
   return url.href;
@@ -126,6 +133,15 @@ export function viewAllSentAgreementsLink(selfcareId: string | null): string {
 
 export function viewAllSentPurposesLink(selfcareId: string | null): string {
   return buildDeeplinkUrl("purposeToConsumer", { selfcareId });
+}
+
+export function viewAllRiskAnalysisPurposesLink(
+  selfcareId: string | null
+): string {
+  return buildDeeplinkUrl("purposeToConsumer", {
+    selfcareId,
+    states: "DRAFT",
+  });
 }
 
 export function viewAllReceivedAgreementsLink(

@@ -20,11 +20,14 @@ import {
   waitingForApprovalDelegatedEservicesToDigest,
   archivingEservicesToDigest,
   receivedDelegationArchivingRequestsToDigest,
+  approvedRiskAnalysisToDigest,
+  rejectedRiskAnalysisToDigest,
 } from "../model/digestDataConverter.js";
 import {
   viewAllNewUpdatedEservicesLink,
   viewAllSentAgreementsLink,
   viewAllSentPurposesLink,
+  viewAllRiskAnalysisPurposesLink,
   viewAllReceivedAgreementsLink,
   viewAllReceivedPurposesLink,
   viewAllReceivedDelegationsLink,
@@ -96,6 +99,18 @@ export type DelegationArchivingRequestDigest = BaseDigest & {
   totalCount: number;
 };
 
+export type ApprovedRiskAnalysisDigest = BaseDigest & {
+  items: Array<{
+    signedAt: string;
+  }>;
+};
+
+export type RejectedRiskAnalysisDigest = BaseDigest & {
+  items: Array<{
+    rejectedAt: string;
+  }>;
+};
+
 export type TenantDigestData = {
   tenantId: TenantId;
   tenantName: string;
@@ -110,6 +125,7 @@ export type TenantDigestData = {
   viewAllAttributesLink: string;
   viewAllUpdatedEserviceTemplatesLink: string;
   viewAllArchivingProducerLink: string;
+  viewAllRiskAnalysisPurposes: string;
   newEservices?: BaseDigest;
   updatedEservices?: BaseDigest;
   updatedEserviceTemplates?: BaseDigest;
@@ -137,6 +153,8 @@ export type TenantDigestData = {
   archivingRequests?: DelegationArchivingRequestDigest;
   approvedArchivingRequests?: DelegationArchivingRequestDigest;
   rejectedArchivingRequests?: DelegationArchivingRequestDigest;
+  approvedRiskAnalysis?: ApprovedRiskAnalysisDigest;
+  rejectedRiskAnalysis?: RejectedRiskAnalysisDigest;
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -206,6 +224,8 @@ export function digestDataServiceBuilder(
         archivingRequests,
         approvedArchivingRequests,
         rejectedArchivingRequests,
+        approvedRiskAnalysis,
+        rejectedRiskAnalysis,
       ] = await Promise.all([
         readModelService.getNewVersionEservices(tenantId),
         readModelService.getNewEserviceTemplates(tenantId),
@@ -229,6 +249,8 @@ export function digestDataServiceBuilder(
         readModelService.getReceivedDelegationArchivingRequests(tenantId),
         readModelService.getApprovedDelegationArchivingRequests(tenantId),
         readModelService.getRejectedDelegationArchivingRequests(tenantId),
+        readModelService.getApprovedRiskAnalysis(tenantId),
+        readModelService.getRejectedRiskAnalysis(tenantId),
       ]);
 
       const tenantData = tenantDataMap.get(tenantId);
@@ -281,6 +303,8 @@ export function digestDataServiceBuilder(
           viewAllUpdatedEserviceTemplatesLink(selfcareId),
         viewAllArchivingProducerLink: viewAllArchivingProducerLink(selfcareId),
         newEservices,
+        viewAllRiskAnalysisPurposes:
+          viewAllRiskAnalysisPurposesLink(selfcareId),
         updatedEservices: await eserviceToBaseDigest(
           updatedEservices,
           readModelService,
@@ -392,6 +416,14 @@ export function digestDataServiceBuilder(
         archivingRequests: archivingRequestsDigest,
         approvedArchivingRequests: approvedArchivingRequestsDigest,
         rejectedArchivingRequests: rejectedArchivingRequestsDigest,
+        approvedRiskAnalysis: await approvedRiskAnalysisToDigest(
+          approvedRiskAnalysis,
+          selfcareId
+        ),
+        rejectedRiskAnalysis: await rejectedRiskAnalysisToDigest(
+          rejectedRiskAnalysis,
+          selfcareId
+        ),
       };
     },
 
@@ -420,6 +452,8 @@ export function digestDataServiceBuilder(
         data.archivingRequests?.totalCount ||
         data.approvedArchivingRequests?.totalCount ||
         data.rejectedArchivingRequests?.totalCount ||
+        data.approvedRiskAnalysis?.totalCount ||
+        data.rejectedRiskAnalysis?.totalCount ||
         data.archivingConsumerImminentEservices?.totalCount
       );
     },

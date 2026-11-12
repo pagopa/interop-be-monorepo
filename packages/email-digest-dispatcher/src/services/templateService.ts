@@ -127,6 +127,10 @@ export function digestTemplateServiceBuilder(
         data.approvedArchivingRequests?.totalCount === 1;
       const rejectedArchivingRequestsSingular =
         data.rejectedArchivingRequests?.totalCount === 1;
+      const approvedRiskAnalysisSingular =
+        data.approvedRiskAnalysis?.totalCount === 1;
+      const rejectedRiskAnalysisSingular =
+        data.rejectedRiskAnalysis?.totalCount === 1;
 
       // Count for items that exceeded list or card limits
       const newEservicesExceededItemsCount =
@@ -230,6 +234,16 @@ export function digestTemplateServiceBuilder(
         data.rejectedArchivingRequests.totalCount > SECTION_ITEMS_LIMIT
           ? data.rejectedArchivingRequests.totalCount - SECTION_ITEMS_LIMIT
           : 0;
+      const approvedRiskAnalysisExceededItemsCount =
+        data.approvedRiskAnalysis &&
+        data.approvedRiskAnalysis.totalCount > SECTION_ITEMS_LIMIT
+          ? data.approvedRiskAnalysis.totalCount - SECTION_ITEMS_LIMIT
+          : 0;
+      const rejectedRiskAnalysisExceededItemsCount =
+        data.rejectedRiskAnalysis &&
+        data.rejectedRiskAnalysis.totalCount > SECTION_ITEMS_LIMIT
+          ? data.rejectedRiskAnalysis.totalCount - SECTION_ITEMS_LIMIT
+          : 0;
       return templateService.compileHtml(digestTemplate, {
         title: "Riepilogo notifiche",
         ...data,
@@ -264,6 +278,8 @@ export function digestTemplateServiceBuilder(
         archivingImminentEservicesSingular,
         archivingImminentRemainder,
         archivingInProgressEservicesSingular,
+        approvedRiskAnalysisSingular,
+        rejectedRiskAnalysisSingular,
         archivingInProgressRemainder,
         archivingConsumerImminentEservicesSingular,
         archivingConsumerImminentRemainder,
@@ -292,6 +308,8 @@ export function digestTemplateServiceBuilder(
         archivingRequestsExceededItemsCount,
         approvedArchivingRequestsExceededItemsCount,
         rejectedArchivingRequestsExceededItemsCount,
+        approvedRiskAnalysisExceededItemsCount,
+        rejectedRiskAnalysisExceededItemsCount,
       });
     },
   };
