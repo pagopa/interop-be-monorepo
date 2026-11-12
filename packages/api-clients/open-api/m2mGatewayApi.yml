@@ -19891,6 +19891,8 @@ components:
           enum:
             - CLIENT_ADDED
             - CLIENT_DELETED
+            - CLIENT_NAME_UPDATED
+            - CLIENT_DESCRIPTION_UPDATED
             - CLIENT_PURPOSE_ADDED
             - CLIENT_PURPOSE_REMOVED
         eventTimestamp:
