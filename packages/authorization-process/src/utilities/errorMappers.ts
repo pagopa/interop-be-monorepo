@@ -51,11 +51,7 @@ export const deleteClientErrorMapper = (error: ApiError<ErrorCodes>): number =>
 export const updateClientErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with(
-      "tenantNotAllowedOnClient",
-      "clientKindNotAllowed",
-      () => HTTP_STATUS_FORBIDDEN
-    )
+    .with("tenantNotAllowedOnClient", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const removeClientUserErrorMapper = (

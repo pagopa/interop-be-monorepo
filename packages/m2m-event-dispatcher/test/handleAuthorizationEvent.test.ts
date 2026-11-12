@@ -17,6 +17,7 @@ import {
   toProducerKeychainV2,
   generateId,
   Client,
+  clientKind,
   ProducerKeychain,
   toClientV1,
   AuthorizationEventEnvelopeV1,
@@ -48,6 +49,56 @@ describe("handleAuthorizationEvent test", async () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
+
+  describe.each(Object.values(clientKind))(
+    "metadata events for %s clients",
+    (kind) => {
+      it.each(["ClientNameUpdated", "ClientDescriptionUpdated"] as const)(
+        "%s is exposed with public visibility",
+        async (type) => {
+          const client = getMockClient({ kind });
+          const eventTimestamp = new Date();
+          const message: AuthorizationEventEnvelopeV2 = {
+            ...getMockEventEnvelopeCommons(),
+            event_version: 2,
+            stream_id: client.id,
+            version: 1,
+            type,
+            data: { client: toClientV2(client) },
+          };
+
+          await handleAuthorizationEvent(
+            message,
+            eventTimestamp,
+            genericLogger,
+            testM2mEventWriterService
+          );
+
+          expect(
+            testM2mEventWriterService.insertClientM2MEvent
+          ).toHaveBeenCalledTimes(1);
+          expect(await retrieveLastClientM2MEvent()).toEqual({
+            id: expect.any(String),
+            eventType: type,
+            eventTimestamp,
+            resourceVersion: 1,
+            clientId: client.id,
+            consumerId: client.consumerId,
+            visibility: m2mEventVisibility.public,
+          });
+          expect(
+            testM2mEventWriterService.insertKeyM2MEvent
+          ).not.toHaveBeenCalled();
+          expect(
+            testM2mEventWriterService.insertProducerKeychainM2MEvent
+          ).not.toHaveBeenCalled();
+          expect(
+            testM2mEventWriterService.insertProducerKeyM2MEvent
+          ).not.toHaveBeenCalled();
+        }
+      );
+    }
+  );
 
   describe.each(AuthorizationEventV2.options.map((o) => o.shape.type.value))(
     "with event type %s",
@@ -466,27 +517,35 @@ function buildTestCaseData(
       /**
        * Public Client events
        */
-      .with(P.union("ClientAdded", "ClientDeleted"), (eventType) => ({
-        message: {
-          ...getMockEventEnvelopeCommons(),
-          stream_id: client.id,
-          type: eventType,
-          version: 1,
-          data: {
-            client: toClientV2(client),
+      .with(
+        P.union(
+          "ClientAdded",
+          "ClientDeleted",
+          "ClientNameUpdated",
+          "ClientDescriptionUpdated"
+        ),
+        (eventType) => ({
+          message: {
+            ...getMockEventEnvelopeCommons(),
+            stream_id: client.id,
+            type: eventType,
+            version: 1,
+            data: {
+              client: toClientV2(client),
+            },
+          } as AuthorizationEventEnvelopeV2,
+          expectedM2MEvent: {
+            id: expect.any(String),
+            eventType,
+            eventTimestamp,
+            resourceVersion: 1,
+            clientId: client.id,
+            consumerId: client.consumerId,
+            visibility: m2mEventVisibility.public,
           },
-        } as AuthorizationEventEnvelopeV2,
-        expectedM2MEvent: {
-          id: expect.any(String),
-          eventType,
-          eventTimestamp,
-          resourceVersion: 1,
-          clientId: client.id,
-          consumerId: client.consumerId,
-          visibility: m2mEventVisibility.public,
-        },
-        type: "client",
-      }))
+          type: "client",
+        })
+      )
       /**
        * Owner Client events
        */
@@ -632,8 +691,6 @@ function buildTestCaseData(
       .with(
         P.union(
           "ClientUserAdded",
-          "ClientNameUpdated",
-          "ClientDescriptionUpdated",
           "ClientUserDeleted",
           "ProducerKeychainUserAdded",
           "ProducerKeychainUserDeleted",
