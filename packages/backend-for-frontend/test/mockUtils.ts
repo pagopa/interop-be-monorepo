@@ -1075,7 +1075,6 @@ export const getMockBffApiAgreement = (): bffApi.Agreement & {
   suspendedByConsumer: generateMock(z.boolean().optional()),
   suspendedByPlatform: generateMock(z.boolean().optional()),
   suspendedByProducer: generateMock(z.boolean().optional()),
-  isContractPresent: generateMock(z.boolean()),
   consumerNotes: generateMock(z.string().optional()),
   rejectionReason: generateMock(z.string().optional()),
   consumerDocuments: generateMock(z.array(bffApi.Document)),
