@@ -132,10 +132,10 @@ export type ReviewerDigestData = {
   tenantName: string;
   notificationSettingsLink: string;
   viewAllReviewerPurposesLink: string;
-  toApproveRiskAnalyses?: ReviewerRiskAnalysisDigest;
-  toFillRiskAnalyses?: ReviewerRiskAnalysisDigest;
+  riskAnalysesToApprove?: ReviewerRiskAnalysisDigest;
+  riskAnalysesToFill?: ReviewerRiskAnalysisDigest;
   publishedReviewerPurposes?: ReviewerRiskAnalysisDigest;
-  signedByOtherReviewerRiskAnalyses?: ReviewerRiskAnalysisDigest;
+  riskAnalysesSignedByOtherReviewer?: ReviewerRiskAnalysisDigest;
 };
 
 export type TenantDigestData = {
@@ -461,10 +461,10 @@ export function digestDataServiceBuilder(
 
       const [
         tenantDataMap,
-        toApproveRiskAnalyses,
-        toFillRiskAnalyses,
-        publishedReviewerPurposes,
-        signedByOtherReviewerRiskAnalyses,
+        riskAnalysesToApproveRows,
+        riskAnalysesToFillRows,
+        publishedReviewerPurposesRows,
+        riskAnalysesSignedByOtherReviewerRows,
       ] = await Promise.all([
         readModelService.getTenantsByIds([tenantId]),
         readModelService.getReviewerRiskAnalysesToApprove(tenantId, reviewerId),
@@ -484,22 +484,22 @@ export function digestDataServiceBuilder(
         tenantName: tenantData?.name ?? "Tenant Name Placeholder",
         notificationSettingsLink: notificationSettingsLink(selfcareId),
         viewAllReviewerPurposesLink: viewAllSentPurposesLink(selfcareId),
-        toApproveRiskAnalyses:
+        riskAnalysesToApprove:
           await reviewerRiskAnalysesWithEserviceLinkToDigest(
-            toApproveRiskAnalyses,
+            riskAnalysesToApproveRows,
             selfcareId,
             readModelService
           ),
-        toFillRiskAnalyses: reviewerRiskAnalysesToDigest(
-          toFillRiskAnalyses,
+        riskAnalysesToFill: reviewerRiskAnalysesToDigest(
+          riskAnalysesToFillRows,
           selfcareId
         ),
         publishedReviewerPurposes: reviewerRiskAnalysesToDigest(
-          publishedReviewerPurposes,
+          publishedReviewerPurposesRows,
           selfcareId
         ),
-        signedByOtherReviewerRiskAnalyses: reviewerRiskAnalysesToDigest(
-          signedByOtherReviewerRiskAnalyses,
+        riskAnalysesSignedByOtherReviewer: reviewerRiskAnalysesToDigest(
+          riskAnalysesSignedByOtherReviewerRows,
           selfcareId
         ),
       };
@@ -507,10 +507,10 @@ export function digestDataServiceBuilder(
 
     hasReviewerDigestContent(data: ReviewerDigestData): boolean {
       return Boolean(
-        data.toApproveRiskAnalyses?.totalCount ||
-        data.toFillRiskAnalyses?.totalCount ||
+        data.riskAnalysesToApprove?.totalCount ||
+        data.riskAnalysesToFill?.totalCount ||
         data.publishedReviewerPurposes?.totalCount ||
-        data.signedByOtherReviewerRiskAnalyses?.totalCount
+        data.riskAnalysesSignedByOtherReviewer?.totalCount
       );
     },
 

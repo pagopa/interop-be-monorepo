@@ -611,10 +611,10 @@ describe("Template Service - reviewer digest", () => {
     const text = toText(
       digestTemplateService.compileReviewerDigestEmail({
         ...getMockReviewerDigestData(),
-        toApproveRiskAnalyses: { items: [], totalCount: 0 },
-        toFillRiskAnalyses: undefined,
+        riskAnalysesToApprove: { items: [], totalCount: 0 },
+        riskAnalysesToFill: undefined,
         publishedReviewerPurposes: undefined,
-        signedByOtherReviewerRiskAnalyses: undefined,
+        riskAnalysesSignedByOtherReviewer: undefined,
       })
     );
 

@@ -339,22 +339,22 @@ export function digestTemplateServiceBuilder(
         title: "Riepilogo notifiche",
         ...data,
         hasReviewerContent: Boolean(
-          data.toApproveRiskAnalyses?.totalCount ||
-          data.toFillRiskAnalyses?.totalCount ||
+          data.riskAnalysesToApprove?.totalCount ||
+          data.riskAnalysesToFill?.totalCount ||
           data.publishedReviewerPurposes?.totalCount ||
-          data.signedByOtherReviewerRiskAnalyses?.totalCount
+          data.riskAnalysesSignedByOtherReviewer?.totalCount
         ),
         publishedReviewerPurposesSingular:
           data.publishedReviewerPurposes?.totalCount === 1,
-        signedByOtherReviewerRiskAnalysesSingular:
-          data.signedByOtherReviewerRiskAnalyses?.totalCount === 1,
-        toApproveRiskAnalysesRemainder: remainderOf(data.toApproveRiskAnalyses),
-        toFillRiskAnalysesRemainder: remainderOf(data.toFillRiskAnalyses),
+        riskAnalysesSignedByOtherReviewerSingular:
+          data.riskAnalysesSignedByOtherReviewer?.totalCount === 1,
+        riskAnalysesToApproveRemainder: remainderOf(data.riskAnalysesToApprove),
+        riskAnalysesToFillRemainder: remainderOf(data.riskAnalysesToFill),
         publishedReviewerPurposesRemainder: remainderOf(
           data.publishedReviewerPurposes
         ),
-        signedByOtherReviewerRiskAnalysesRemainder: remainderOf(
-          data.signedByOtherReviewerRiskAnalyses
+        riskAnalysesSignedByOtherReviewerRemainder: remainderOf(
+          data.riskAnalysesSignedByOtherReviewer
         ),
       });
     },

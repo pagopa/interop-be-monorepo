@@ -774,18 +774,18 @@ export function getMockReviewerDigestData(): ReviewerDigestData {
     tenantName: "Comune di Test",
     notificationSettingsLink: "https://example.com/notifications/settings",
     viewAllReviewerPurposesLink: "https://example.com/reviewer/purposes",
-    toApproveRiskAnalyses: generateReviewerRiskAnalyses(
+    riskAnalysesToApprove: generateReviewerRiskAnalyses(
       7,
       "Da approvare",
       true
     ),
-    toFillRiskAnalyses: generateReviewerRiskAnalyses(2, "Da compilare", false),
+    riskAnalysesToFill: generateReviewerRiskAnalyses(2, "Da compilare", false),
     publishedReviewerPurposes: generateReviewerRiskAnalyses(
       2,
       "Pubblicata",
       false
     ),
-    signedByOtherReviewerRiskAnalyses: generateReviewerRiskAnalyses(
+    riskAnalysesSignedByOtherReviewer: generateReviewerRiskAnalyses(
       1,
       "Approvata da altro valutatore",
       false
@@ -799,18 +799,18 @@ export function getMockReviewerDigestData(): ReviewerDigestData {
 export function getMockSingularReviewerDigestData(): ReviewerDigestData {
   return {
     ...getMockReviewerDigestData(),
-    toApproveRiskAnalyses: generateReviewerRiskAnalyses(
+    riskAnalysesToApprove: generateReviewerRiskAnalyses(
       1,
       "Da approvare",
       true
     ),
-    toFillRiskAnalyses: generateReviewerRiskAnalyses(1, "Da compilare", false),
+    riskAnalysesToFill: generateReviewerRiskAnalyses(1, "Da compilare", false),
     publishedReviewerPurposes: generateReviewerRiskAnalyses(
       1,
       "Pubblicata",
       false
     ),
-    signedByOtherReviewerRiskAnalyses: generateReviewerRiskAnalyses(
+    riskAnalysesSignedByOtherReviewer: generateReviewerRiskAnalyses(
       3,
       "Approvata da altro valutatore",
       false

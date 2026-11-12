@@ -657,31 +657,31 @@
                                       </table>
 
                                       <!-- Da approvare -->
-                                      {{#if toApproveRiskAnalyses.totalCount}}
+                                      {{#if riskAnalysesToApprove.totalCount}}
                                       <p class="body-text-no-margin">
-                                        <strong>Hai {{ toApproveRiskAnalyses.totalCount }} analisi del rischio da approvare:</strong>
+                                        <strong>Hai {{ riskAnalysesToApprove.totalCount }} analisi del rischio da approvare:</strong>
                                       </p>
                                       <div class="archiving-box">
-                                        {{#each toApproveRiskAnalyses.items}}
+                                        {{#each riskAnalysesToApprove.items}}
                                         {{> reviewer-item}}
                                         {{/each}}
-                                        {{#if toApproveRiskAnalysesRemainder}}
-                                        <p class="archiving-item">e altre {{ toApproveRiskAnalysesRemainder }}.</p>
+                                        {{#if riskAnalysesToApproveRemainder}}
+                                        <p class="archiving-item">e altre {{ riskAnalysesToApproveRemainder }}.</p>
                                         {{/if}}
                                       </div>
                                       {{/if}}
 
                                       <!-- Da compilare -->
-                                      {{#if toFillRiskAnalyses.totalCount}}
+                                      {{#if riskAnalysesToFill.totalCount}}
                                       <p class="body-text-no-margin">
-                                        <strong>Hai {{ toFillRiskAnalyses.totalCount }} analisi del rischio da compilare:</strong>
+                                        <strong>Hai {{ riskAnalysesToFill.totalCount }} analisi del rischio da compilare:</strong>
                                       </p>
                                       <div class="archiving-box">
-                                        {{#each toFillRiskAnalyses.items}}
+                                        {{#each riskAnalysesToFill.items}}
                                         {{> reviewer-item}}
                                         {{/each}}
-                                        {{#if toFillRiskAnalysesRemainder}}
-                                        <p class="archiving-item">e altre {{ toFillRiskAnalysesRemainder }}.</p>
+                                        {{#if riskAnalysesToFillRemainder}}
+                                        <p class="archiving-item">e altre {{ riskAnalysesToFillRemainder }}.</p>
                                         {{/if}}
                                       </div>
                                       {{/if}}
@@ -706,20 +706,20 @@
                                       {{/if}}
 
                                       <!-- Approvate da un altro valutatore -->
-                                      {{#if signedByOtherReviewerRiskAnalyses.totalCount}}
+                                      {{#if riskAnalysesSignedByOtherReviewer.totalCount}}
                                       <p class="body-text-no-margin">
-                                        {{#if signedByOtherReviewerRiskAnalysesSingular}}
+                                        {{#if riskAnalysesSignedByOtherReviewerSingular}}
                                         <strong>Un altro valutatore ha approvato una analisi del rischio assegnata a te:</strong>
                                         {{else}}
-                                        <strong>Altri valutatori hanno approvato {{ signedByOtherReviewerRiskAnalyses.totalCount }} analisi del rischio assegnate a te:</strong>
+                                        <strong>Altri valutatori hanno approvato {{ riskAnalysesSignedByOtherReviewer.totalCount }} analisi del rischio assegnate a te:</strong>
                                         {{/if}}
                                       </p>
                                       <div class="archiving-box">
-                                        {{#each signedByOtherReviewerRiskAnalyses.items}}
+                                        {{#each riskAnalysesSignedByOtherReviewer.items}}
                                         {{> reviewer-item}}
                                         {{/each}}
-                                        {{#if signedByOtherReviewerRiskAnalysesRemainder}}
-                                        <p class="archiving-item">e altre {{ signedByOtherReviewerRiskAnalysesRemainder }}.</p>
+                                        {{#if riskAnalysesSignedByOtherReviewerRemainder}}
+                                        <p class="archiving-item">e altre {{ riskAnalysesSignedByOtherReviewerRemainder }}.</p>
                                         {{/if}}
                                       </div>
                                       {{/if}}
