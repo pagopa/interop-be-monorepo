@@ -113,6 +113,8 @@ import {
   purposeMetadataVersionMismatch,
   riskAnalysisReviewModeNotFound,
   purposeNotInDraftState,
+  riskAnalysisAlreadyApproved,
+  riskAnalysisAlreadyRejected,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -198,6 +200,19 @@ const retrievePurpose = async (
     throw purposeNotFound(purposeId);
   }
   return purpose;
+};
+
+const assertRiskAnalysisNotFinalized = (purpose: Purpose): void => {
+  if (
+    purpose.reviewerWorkflow?.signingState === riskAnalysisSigningState.signed
+  ) {
+    throw riskAnalysisAlreadyApproved(purpose.id);
+  }
+  if (
+    purpose.reviewerWorkflow?.signingState === riskAnalysisSigningState.rejected
+  ) {
+    throw riskAnalysisAlreadyRejected(purpose.id);
+  }
 };
 
 const retrievePurposeVersion = (
@@ -772,6 +787,8 @@ export function purposeServiceBuilder(
 
       assertRequesterIsConsumer(purpose.data, authData);
 
+      assertRiskAnalysisNotFinalized(purpose.data);
+
       if (metadataVersionToSign !== purpose.metadata.version) {
         throw purposeMetadataVersionMismatch(
           purposeId,
@@ -879,6 +896,8 @@ export function purposeServiceBuilder(
 
       assertRequesterIsConsumer(purpose.data, authData);
 
+      assertRiskAnalysisNotFinalized(purpose.data);
+
       const workflow = purpose.data.reviewerWorkflow;
 
       if (!workflow) {
@@ -942,6 +961,8 @@ export function purposeServiceBuilder(
       const purpose = await retrievePurpose(purposeId, readModelService);
 
       assertRequesterIsConsumer(purpose.data, authData);
+
+      assertRiskAnalysisNotFinalized(purpose.data);
 
       const workflow = purpose.data.reviewerWorkflow;
 
@@ -1017,8 +1038,12 @@ export function purposeServiceBuilder(
         versionId: PurposeVersionId;
         rejectionReason: string;
       },
-      { correlationId, authData, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        correlationId,
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<PurposeVersion>> {
       logger.info(`Rejecting Version ${versionId} in Purpose ${purposeId}`);
 
       validateNoHyperlinksSafe(rejectionReason);
@@ -1062,7 +1087,11 @@ export function purposeServiceBuilder(
         versionId,
         correlationId,
       });
-      await repository.createEvent(event);
+      const createdEvent = await repository.createEvent(event);
+      return {
+        data: updatedPurposeVersion,
+        metadata: { version: createdEvent.newVersion },
+      };
     },
     async updatePurpose(
       purposeId: PurposeId,
