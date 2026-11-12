@@ -115,10 +115,8 @@ async function handleTenantEventV3(
           "TenantVerifiedAttributeRevoked",
           "TenantVerifiedAttributeExpirationUpdated",
           "MaintenanceTenantDeleted",
-          "TenantContactAdded",
           "TenantVerifiedAttributeExtensionUpdated",
           "MaintenanceTenantPromotedToCertifier",
-          "TenantContactDeleted",
           "TenantKindUpdated",
           "TenantDelegatedProducerFeatureAdded",
           "TenantDelegatedProducerFeatureRemoved",
@@ -150,6 +148,15 @@ async function handleTenantEventV3(
         );
       }
     )
-    .with({ type: "MaintenanceTenantRemoteIdDeleted" }, () => Promise.resolve())
+    .with(
+      {
+        type: P.union(
+          "MaintenanceTenantRemoteIdDeleted",
+          "TenantContactAdded",
+          "TenantContactDeleted"
+        ),
+      },
+      () => Promise.resolve()
+    )
     .exhaustive();
 }
