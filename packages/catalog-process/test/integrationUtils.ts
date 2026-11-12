@@ -17,6 +17,7 @@ import {
   Agreement,
   Delegation,
   EServiceDescriptorPurposeTemplate,
+  EServiceTemplateVersionPurposeTemplate,
   EServiceId,
   PurposeTemplate,
   TenantId,
@@ -35,6 +36,7 @@ import {
   upsertEServiceTemplate,
   upsertPurposeTemplate,
   upsertPurposeTemplateEServiceDescriptor,
+  upsertEServiceTemplateVersionPurposeTemplate,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
 import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
@@ -161,6 +163,12 @@ export const addOnePurposeTemplateEServiceDescriptor = async (
   link: EServiceDescriptorPurposeTemplate
 ): Promise<void> => {
   await upsertPurposeTemplateEServiceDescriptor(readModelDB, link, 0);
+};
+
+export const addOneEServiceTemplateVersionPurposeTemplate = async (
+  link: EServiceTemplateVersionPurposeTemplate
+): Promise<void> => {
+  await upsertEServiceTemplateVersionPurposeTemplate(readModelDB, link, 0);
 };
 
 export const addOneTenantKindHistory = async ({
