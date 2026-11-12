@@ -1015,6 +1015,8 @@ components:
           enum:
             - PRODUCER_KEYCHAIN_ADDED
             - PRODUCER_KEYCHAIN_DELETED
+            - PRODUCER_KEYCHAIN_NAME_UPDATED
+            - PRODUCER_KEYCHAIN_DESCRIPTION_UPDATED
             - PRODUCER_KEYCHAIN_ESERVICE_ADDED
             - PRODUCER_KEYCHAIN_ESERVICE_REMOVED
         eventTimestamp:

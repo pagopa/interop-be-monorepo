@@ -113,6 +113,11 @@ function toApiProducerKeychainM2MEventType(
   >(eventType)
     .with("ProducerKeychainAdded", () => "PRODUCER_KEYCHAIN_ADDED")
     .with("ProducerKeychainDeleted", () => "PRODUCER_KEYCHAIN_DELETED")
+    .with("ProducerKeychainNameUpdated", () => "PRODUCER_KEYCHAIN_NAME_UPDATED")
+    .with(
+      "ProducerKeychainDescriptionUpdated",
+      () => "PRODUCER_KEYCHAIN_DESCRIPTION_UPDATED"
+    )
     .with(
       "ProducerKeychainEServiceAdded",
       () => "PRODUCER_KEYCHAIN_ESERVICE_ADDED"

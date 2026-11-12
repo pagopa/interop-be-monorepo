@@ -71,6 +71,22 @@ export function producerKeychainServiceBuilder(
 
       return toM2MGatewayApiProducerKeychain(keychain.data);
     },
+    async updateProducerKeychain(
+      keychainId: ProducerKeychainId,
+      seed: m2mGatewayApiV3.ProducerKeychainUpdateSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.ProducerKeychain> {
+      logger.info(`Updating producer keychain with id ${keychainId}`);
+
+      const response =
+        await clients.authorizationClient.producerKeychain.updateProducerKeychain(
+          seed,
+          { params: { producerKeychainId: keychainId }, headers }
+        );
+
+      const producerKeychain = await pollProducerKeychain(response, headers);
+      return toM2MGatewayApiProducerKeychain(producerKeychain.data);
+    },
     async getProducerKeychains(
       params: m2mGatewayApiV3.GetProducerKeychainsQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
