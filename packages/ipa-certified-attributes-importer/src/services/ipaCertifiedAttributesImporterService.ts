@@ -380,29 +380,45 @@ function getAooUoAttributeSeeds(
     baseSeeds.map((a) => toAttributeKey({ origin: a.origin, code: a.code }))
   );
 
-  const takenNames = new Set([
-    ...platformAttributes
-      .filter(
-        (a) => !seedKeys.has(toAttributeKey({ origin: a.origin, code: a.code }))
-      )
-      .map((a) => a.name),
-    ...registryData.attributes.map((a) => a.name),
-  ]);
+  const normalizeName = (name: string): string => name.trim().toLowerCase();
 
-  const seedsPerName = baseSeeds.reduce(
-    (acc, a) => acc.set(a.name, (acc.get(a.name) ?? 0) + 1),
-    new Map<string, number>()
+  const takenNames = new Set(
+    [
+      ...platformAttributes
+        .filter(
+          (a) =>
+            !seedKeys.has(toAttributeKey({ origin: a.origin, code: a.code }))
+        )
+        .map((a) => a.name),
+      ...registryData.attributes.map((a) => a.name),
+    ].map(normalizeName)
   );
 
-  return baseSeeds.map((a) =>
-    (seedsPerName.get(a.name) ?? 0) > 1 || takenNames.has(a.name)
-      ? {
-          ...a,
-          name: `${a.name} (${a.code})`,
-          description: `${a.description} (${a.code})`,
-        }
-      : a
-  );
+  const seedsPerName = baseSeeds.reduce((acc, a) => {
+    const name = normalizeName(a.name);
+    return acc.set(name, (acc.get(name) ?? 0) + 1);
+  }, new Map<string, number>());
+
+  return baseSeeds.flatMap((a) => {
+    const name = normalizeName(a.name);
+    if ((seedsPerName.get(name) ?? 0) <= 1 && !takenNames.has(name)) {
+      return [a];
+    }
+
+    const suffixedName = `${a.name} (${a.code})`;
+    // skip names that are already taken
+    if (takenNames.has(normalizeName(suffixedName))) {
+      return [];
+    }
+    takenNames.add(normalizeName(suffixedName));
+    return [
+      {
+        ...a,
+        name: suffixedName,
+        description: `${a.description} (${a.code})`,
+      },
+    ];
+  });
 }
 
 export function getNewAttributes(
