@@ -19,6 +19,7 @@ import {
   suspendPurposeErrorMapper,
   archivePurposeErrorMapper,
   approvePurposeErrorMapper,
+  rejectPurposeErrorMapper,
   activatePurposeErrorMapper,
   unsuspendPurposeErrorMapper,
   downloadPurposeVersionRiskAnalysisDocumentErrorMapper,
@@ -210,6 +211,28 @@ const purposeRouter = (
           approvePurposeErrorMapper,
           ctx,
           `Error approving purpose ${req.params.purposeId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/purposes/:purposeId/reject", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const purpose = await purposeService.rejectPurpose(
+          unsafeBrandId(req.params.purposeId),
+          req.body,
+          ctx
+        );
+
+        return res.status(200).send(m2mGatewayApiV3.Purpose.parse(purpose));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          rejectPurposeErrorMapper,
+          ctx,
+          `Error rejecting purpose ${req.params.purposeId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
