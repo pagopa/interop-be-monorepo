@@ -45,19 +45,6 @@ export function toCompactPurposeTemplateEService(
   };
 }
 
-export function toBffEServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor(
-  eserviceDescriptorPurposeTemplate: purposeTemplateApi.EServiceDescriptorPurposeTemplate,
-  eservice: bffApi.CompactPurposeTemplateEService,
-  descriptor: bffApi.CompactDescriptor
-): bffApi.EServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor {
-  return {
-    purposeTemplateId: eserviceDescriptorPurposeTemplate.purposeTemplateId,
-    eservice,
-    descriptor,
-    createdAt: eserviceDescriptorPurposeTemplate.createdAt,
-  };
-}
-
 export function toCompactPurposeTemplateEServiceTemplate(
   eserviceTemplate: eserviceTemplateApi.EServiceTemplate,
   creator: tenantApi.Tenant

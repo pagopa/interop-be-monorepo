@@ -20,6 +20,7 @@ describe("POST /eservices/:eserviceId/scheduleArchive router test", () => {
 
   const mockSeed: m2mGatewayApiV3.EServiceArchivingReasonSeed = {
     archivingReason: "test reason",
+    gracePeriodDays: 60,
   };
 
   const mockM2MEService: m2mGatewayApiV3.EService =
@@ -66,25 +67,65 @@ describe("POST /eservices/:eserviceId/scheduleArchive router test", () => {
     expect(res.status).toBe(403);
   });
 
+  it("Should return 200 and perform service calls with undefined gracePeriodDays", async () => {
+    mockEserviceService.scheduleArchiveEService = vi
+      .fn()
+      .mockResolvedValue(mockM2MEService);
+
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const seed = {
+      ...mockSeed,
+      gracePeriodDays: undefined,
+    } as unknown as m2mGatewayApiV3.EServiceArchivingReasonSeed;
+    const res = await makeRequest(token, mockEService.id, seed);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(mockM2MEService);
+    expect(mockEserviceService.scheduleArchiveEService).toHaveBeenCalledWith(
+      mockEService.id,
+      {
+        ...mockSeed,
+        gracePeriodDays: 60,
+      },
+      expect.any(Object) // context
+    );
+  });
+
   it("Should return 400 if passed an invalid eservice id", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, "invalidEServiceId");
     expect(res.status).toBe(400);
   });
 
-  it.each([{ invalidParam: "invalidValue" }, { ...mockSeed, extraParam: -1 }])(
-    "Should return 400 if passed invalid seed (seed #%#)",
-    async (seed) => {
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(
-        token,
-        mockEService.id,
-        seed as m2mGatewayApiV3.EServiceArchivingReasonSeed
-      );
+  it.each([
+    { invalidParam: "invalidValue" },
+    { ...mockSeed, extraParam: -1 },
+    {
+      ...mockSeed,
+      gracePeriodDays: -1,
+    },
+    {
+      ...mockSeed,
+      gracePeriodDays: 0,
+    },
+    {
+      ...mockSeed,
+      gracePeriodDays: 1,
+    },
+    {
+      ...mockSeed,
+      gracePeriodDays: 29,
+    },
+  ])("Should return 400 if passed invalid seed (seed #%#)", async (seed) => {
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(
+      token,
+      mockEService.id,
+      seed as m2mGatewayApiV3.EServiceArchivingReasonSeed
+    );
 
-      expect(res.status).toBe(400);
-    }
-  );
+    expect(res.status).toBe(400);
+  });
 
   it.each([
     missingMetadata(),

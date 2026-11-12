@@ -151,6 +151,42 @@ export const aggregateUserNotificationConfig = ({
     purposeOverQuotaStateToConsumer: enabledInAppNotifications.includes(
       "purposeOverQuotaStateToConsumer"
     ),
+    purposeRiskAnalysisAssignedForSigningToReviewer:
+      enabledInAppNotifications.includes(
+        "purposeRiskAnalysisAssignedForSigningToReviewer"
+      ),
+    purposeRiskAnalysisAssignedForWritingAndSigningToReviewer:
+      enabledInAppNotifications.includes(
+        "purposeRiskAnalysisAssignedForWritingAndSigningToReviewer"
+      ),
+    purposePublishedWithRiskAnalysisToReviewer:
+      enabledInAppNotifications.includes(
+        "purposePublishedWithRiskAnalysisToReviewer"
+      ),
+    draftPurposeDeletedWithRiskAnalysisToReviewer:
+      enabledInAppNotifications.includes(
+        "draftPurposeDeletedWithRiskAnalysisToReviewer"
+      ),
+    purposeRiskAnalysisAssignmentRemovedToReviewer:
+      enabledInAppNotifications.includes(
+        "purposeRiskAnalysisAssignmentRemovedToReviewer"
+      ),
+    purposeRiskAnalysisSignedToReviewer: enabledInAppNotifications.includes(
+      "purposeRiskAnalysisSignedToReviewer"
+    ),
+    purposeRiskAnalysisSignedToAdmin: enabledInAppNotifications.includes(
+      "purposeRiskAnalysisSignedToAdmin"
+    ),
+    purposeRiskAnalysisRejectedToAdmin: enabledInAppNotifications.includes(
+      "purposeRiskAnalysisRejectedToAdmin"
+    ),
+    eserviceArchivingRequestedToDelegator: enabledInAppNotifications.includes(
+      "eserviceArchivingRequestedToDelegator"
+    ),
+    eserviceArchivingApprovedRejectedToDelegate:
+      enabledInAppNotifications.includes(
+        "eserviceArchivingApprovedRejectedToDelegate"
+      ),
   };
   const emailConfig: NotificationConfig = {
     agreementSuspendedUnsuspendedToProducer: enabledEmailNotifications.includes(
@@ -232,6 +268,42 @@ export const aggregateUserNotificationConfig = ({
     purposeOverQuotaStateToConsumer: enabledEmailNotifications.includes(
       "purposeOverQuotaStateToConsumer"
     ),
+    purposeRiskAnalysisAssignedForSigningToReviewer:
+      enabledEmailNotifications.includes(
+        "purposeRiskAnalysisAssignedForSigningToReviewer"
+      ),
+    purposeRiskAnalysisAssignedForWritingAndSigningToReviewer:
+      enabledEmailNotifications.includes(
+        "purposeRiskAnalysisAssignedForWritingAndSigningToReviewer"
+      ),
+    purposePublishedWithRiskAnalysisToReviewer:
+      enabledEmailNotifications.includes(
+        "purposePublishedWithRiskAnalysisToReviewer"
+      ),
+    draftPurposeDeletedWithRiskAnalysisToReviewer:
+      enabledEmailNotifications.includes(
+        "draftPurposeDeletedWithRiskAnalysisToReviewer"
+      ),
+    purposeRiskAnalysisAssignmentRemovedToReviewer:
+      enabledEmailNotifications.includes(
+        "purposeRiskAnalysisAssignmentRemovedToReviewer"
+      ),
+    purposeRiskAnalysisSignedToReviewer: enabledEmailNotifications.includes(
+      "purposeRiskAnalysisSignedToReviewer"
+    ),
+    purposeRiskAnalysisSignedToAdmin: enabledEmailNotifications.includes(
+      "purposeRiskAnalysisSignedToAdmin"
+    ),
+    purposeRiskAnalysisRejectedToAdmin: enabledEmailNotifications.includes(
+      "purposeRiskAnalysisRejectedToAdmin"
+    ),
+    eserviceArchivingRequestedToDelegator: enabledEmailNotifications.includes(
+      "eserviceArchivingRequestedToDelegator"
+    ),
+    eserviceArchivingApprovedRejectedToDelegate:
+      enabledEmailNotifications.includes(
+        "eserviceArchivingApprovedRejectedToDelegate"
+      ),
   };
 
   return {

@@ -1,5 +1,5 @@
 meta {
-  name: Update draft eservice
+  name: Partially update eservice
   type: http
   seq: 19
 }
@@ -22,12 +22,15 @@ headers {
 
 body:json {
   {
-    "name": "Updated name"
+    "name": "Updated name",
     "description": "test eservice updated",
-    "technology": "SOAP",
-    "mode": "RECEIVE",
+    "technology": "REST",
+    "mode": "DELIVER",
     "isSignalHubEnabled": false,
     "isConsumerDelegable": false,
-    "isClientAccessDelegable": true
+    "isClientAccessDelegable": false,
+    "personalData": false,
+    "asyncExchange": false
   }
+
 }

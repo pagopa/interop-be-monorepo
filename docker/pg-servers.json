@@ -6,9 +6,9 @@
       "Host": "event-store",
       "Port": 5432,
       "Username": "root",
-      "PassFile": "/pgadmin4/pgpass",
+      "PassFile": "/var/lib/pgadmin/pgpass",
       "SSLMode": "prefer",
-      "MaintenanceDB": "postgres"
+      "MaintenanceDB": "root"
     },
     "2": {
       "Name": "Read Model",
@@ -16,9 +16,9 @@
       "Host": "readmodel-sql",
       "Port": 5433,
       "Username": "root",
-      "PassFile": "/pgadmin4/pgpass",
+      "PassFile": "/var/lib/pgadmin/pgpass",
       "SSLMode": "prefer",
-      "MaintenanceDB": "postgres"
+      "MaintenanceDB": "root"
     }
   }
 }

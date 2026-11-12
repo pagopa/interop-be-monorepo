@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { constants } from "http2";
 import { authRole } from "pagopa-interop-commons";
-import { generateToken } from "pagopa-interop-commons-test/index.js";
+import { generateToken } from "pagopa-interop-commons-test";
 import {
   DescriptorId,
   EServiceDocumentId,
