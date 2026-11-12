@@ -114,6 +114,7 @@ describe("E-service aggregator", () => {
         templateVersionRefsSQL,
         archivingSchedulesSQL,
         asyncExchangePropertiesSQL,
+        archivingRequestsSQL,
       } = splitEserviceIntoObjectsSQL(eservice, 1);
 
       const aggregatedEservice = aggregateEservice({
@@ -128,6 +129,7 @@ describe("E-service aggregator", () => {
         templateVersionRefsSQL,
         archivingSchedulesSQL,
         asyncExchangePropertiesSQL,
+        archivingRequestsSQL,
       });
 
       expect(aggregatedEservice).toStrictEqual({
@@ -152,6 +154,7 @@ describe("E-service aggregator", () => {
       templateVersionRefsSQL,
       archivingSchedulesSQL,
       asyncExchangePropertiesSQL,
+      archivingRequestsSQL,
     } = splitEserviceIntoObjectsSQL(eservice, 1);
 
     const aggregatedEservice = aggregateEservice({
@@ -166,6 +169,7 @@ describe("E-service aggregator", () => {
       templateVersionRefsSQL,
       archivingSchedulesSQL,
       asyncExchangePropertiesSQL,
+      archivingRequestsSQL,
     });
 
     expect(aggregatedEservice).toStrictEqual({

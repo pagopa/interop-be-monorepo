@@ -49,7 +49,13 @@ export const handleCatalogMessageV2 = async (
             "EServiceDescriptorArchivingScheduled",
             "EServiceDescriptorArchivingCanceled",
             "EServiceDescriptorArchivingCompleted",
-            "MaintenanceEServiceDescriptorUnarchived"
+            "EServiceDescriptorArchivingRequestedByDelegate",
+            "EServiceDescriptorArchivingRequestRejectedByDelegator",
+            "EServiceDescriptorArchivingRequestApprovedByDelegator",
+            "EServiceDescriptorArchivingRequestCanceledByDelegate",
+            "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation",
+            "MaintenanceEServiceDescriptorUnarchived",
+            "EServiceDescriptorRestoredToDraftByRevokedDelegation"
           ),
         },
         (event) => {
@@ -79,7 +85,12 @@ export const handleCatalogMessageV2 = async (
           type: P.union(
             "EServiceArchivingScheduled",
             "EServiceArchivingCanceled",
-            "EServiceArchivingCompleted"
+            "EServiceArchivingCompleted",
+            "EServiceArchivingRequestedByDelegate",
+            "EServiceArchivingRequestRejectedByDelegator",
+            "EServiceArchivingRequestApprovedByDelegator",
+            "EServiceArchivingRequestCanceledByDelegate",
+            "EServiceArchivingRequestCanceledByRevokedDelegation"
           ),
         },
         (event) => {

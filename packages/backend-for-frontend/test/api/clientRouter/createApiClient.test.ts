@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { bffApi } from "pagopa-interop-api-clients";
 import { authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
@@ -42,6 +43,42 @@ describe("API POST /clientsApi", () => {
     const res = await makeRequest(token);
     expect(res.status).toEqual(200);
     expect(res.body).toEqual(mockApiCreatedResource);
+  });
+
+  it("Should propagate 404 when authorization cannot find a client member", async () => {
+    const upstreamProblem = {
+      type: "about:blank",
+      title: "Not Found",
+      status: 404,
+      detail: "Client member not found",
+      correlationId: "test-correlation-id",
+      errors: [{ code: "005-9999", detail: "Client member not found" }],
+    };
+    const upstreamError = new AxiosError(
+      "upstream error",
+      "404",
+      undefined,
+      undefined,
+      {
+        status: 404,
+        data: upstreamProblem,
+        statusText: "Not Found",
+        config: {} as InternalAxiosRequestConfig,
+        headers: {},
+      }
+    );
+    clients.authorizationClient.client.createApiClient = vi
+      .fn()
+      .mockRejectedValue(upstreamError);
+
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+
+    expect(res.status).toBe(404);
+    expect(res.body).toMatchObject({
+      status: 404,
+      errors: upstreamProblem.errors,
+    });
   });
 
   it.each([

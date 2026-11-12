@@ -156,6 +156,18 @@ export const getMockBffApiCatalogEService = (): bffApi.CatalogEService => ({
   activeDescriptor: generateMock(bffApi.CompactDescriptor.optional()),
 });
 
+export const getMockBffApiCompactCatalogEService =
+  (): bffApi.CompactCatalogEService => ({
+    id: generateId(),
+    name: generateMock(z.string()),
+    producer: {
+      id: generateId(),
+      name: generateMock(z.string()),
+    },
+    personalData: generateMock(z.boolean().optional()),
+    activeDescriptor: generateMock(bffApi.CompactDescriptor.optional()),
+  });
+
 export const getMockBffApiProducerEServiceDescriptor =
   (): bffApi.ProducerEServiceDescriptor => ({
     id: generateId(),
@@ -408,6 +420,11 @@ export const getMockBffApiEServiceSeed = (): bffApi.EServiceSeed => ({
 
 export const getMockBffApiRejectDelegatedEServiceDescriptorSeed =
   (): bffApi.RejectDelegatedEServiceDescriptorSeed => ({
+    rejectionReason: generateMock(z.string()),
+  });
+
+export const getMockBffApiRejectDelegatedDescriptorArchivingSeed =
+  (): bffApi.RejectDelegatedDescriptorArchivingSeed => ({
     rejectionReason: generateMock(z.string()),
   });
 
@@ -704,7 +721,7 @@ export const getMockBffApiEServiceTemplateSeed =
     version: generateMock(
       z
         .object({
-          description: z.string().min(10).max(250).optional(),
+          description: z.string().min(10).max(250),
           voucherLifespan: z.number().int().min(60).max(86400),
           dailyCallsPerConsumer: z
             .number()

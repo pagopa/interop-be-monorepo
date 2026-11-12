@@ -1,0 +1,27 @@
+meta {
+  name: Submit delegate archiving request for an E-Service
+  type: http
+  seq: 41
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/eservices/:eServiceId/submitDelegatedArchiving
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{DPOP-JWT-M2M-ADMIN}}
+  DPoP: {{DPOP-PROOF}}
+}
+
+body:json {
+  {
+    "gracePeriodDays": 60,
+    "archivingReason": "Please archive this e-service"
+  }
+}
