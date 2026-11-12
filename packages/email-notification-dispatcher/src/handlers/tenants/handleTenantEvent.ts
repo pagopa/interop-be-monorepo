@@ -1,6 +1,7 @@
 import {
   AttributeId,
   EmailNotificationMessagePayload,
+  genericInternalError,
   TenantEvent,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -30,8 +31,13 @@ export async function handleTenantEvent(
       logger.info(`Skipping V1 event ${decodedMessage.type} message`);
       return [];
     })
+    .with({ event_version: 3 }, (msg) => {
+      throw genericInternalError(
+        `Tenant event V3 not supported yet: ${msg.type}`
+      );
+    })
     .with(
-      { type: "TenantCertifiedAttributeAssigned" },
+      { event_version: 2, type: "TenantCertifiedAttributeAssigned" },
       ({ data: { tenant, attributeId } }) =>
         handleTenantCertifiedAttributeAssigned({
           tenantV2Msg: tenant,
@@ -43,7 +49,7 @@ export async function handleTenantEvent(
         })
     )
     .with(
-      { type: "TenantCertifiedDiscreteAttributeAssigned" },
+      { event_version: 2, type: "TenantCertifiedDiscreteAttributeAssigned" },
       ({ data: { tenant, attributeId } }) =>
         handleTenantCertifiedDiscreteAttributeAssigned({
           tenantV2Msg: tenant,
@@ -55,7 +61,7 @@ export async function handleTenantEvent(
         })
     )
     .with(
-      { type: "TenantCertifiedAttributeRevoked" },
+      { event_version: 2, type: "TenantCertifiedAttributeRevoked" },
       ({ data: { tenant, attributeId } }) =>
         handleTenantCertifiedAttributeRevoked({
           tenantV2Msg: tenant,
@@ -67,7 +73,7 @@ export async function handleTenantEvent(
         })
     )
     .with(
-      { type: "TenantCertifiedDiscreteAttributeRevoked" },
+      { event_version: 2, type: "TenantCertifiedDiscreteAttributeRevoked" },
       ({ data: { tenant, attributeId } }) =>
         handleTenantCertifiedDiscreteAttributeRevoked({
           tenantV2Msg: tenant,
@@ -79,7 +85,7 @@ export async function handleTenantEvent(
         })
     )
     .with(
-      { type: "TenantCertifiedDiscreteAttributeUpdated" },
+      { event_version: 2, type: "TenantCertifiedDiscreteAttributeUpdated" },
       ({ data: { tenant, attributeId } }) =>
         handleTenantCertifiedDiscreteAttributeUpdated({
           tenantV2Msg: tenant,
@@ -91,7 +97,7 @@ export async function handleTenantEvent(
         })
     )
     .with(
-      { type: "TenantVerifiedAttributeAssigned" },
+      { event_version: 2, type: "TenantVerifiedAttributeAssigned" },
       ({ data: { tenant, attributeId } }) =>
         handleTenantVerifiedAttributeAssigned({
           tenantV2Msg: tenant,
@@ -103,7 +109,7 @@ export async function handleTenantEvent(
         })
     )
     .with(
-      { type: "TenantVerifiedAttributeRevoked" },
+      { event_version: 2, type: "TenantVerifiedAttributeRevoked" },
       ({ data: { tenant, attributeId } }) =>
         handleTenantVerifiedAttributeRevoked({
           tenantV2Msg: tenant,
@@ -116,6 +122,7 @@ export async function handleTenantEvent(
     )
     .with(
       {
+        event_version: 2,
         type: P.union(
           "TenantOnboarded",
           "TenantOnboardDetailsUpdated",

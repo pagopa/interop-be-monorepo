@@ -140,6 +140,11 @@ export async function executeTopicHandler(
         match(decoded)
           .with({ event_version: 1 }, (msg) => tenantV1.push(msg))
           .with({ event_version: 2 }, (msg) => tenantV2.push(msg))
+          .with({ event_version: 3 }, (msg) => {
+            throw genericInternalError(
+              `Tenant event V3 not supported yet: ${msg.type}`
+            );
+          })
           .exhaustive();
       }
       if (tenantV1.length > 0) {

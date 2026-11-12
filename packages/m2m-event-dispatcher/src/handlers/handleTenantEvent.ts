@@ -1,6 +1,7 @@
 import { Logger } from "pagopa-interop-commons";
 import {
   fromTenantV2,
+  genericInternalError,
   missingKafkaMessageDataError,
   TenantEventEnvelope,
   TenantEventEnvelopeV2,
@@ -22,6 +23,11 @@ export async function handleTenantEvent(
     .with({ event_version: 2 }, (msg) =>
       handleTenantEventV2(msg, eventTimestamp, logger, m2mEventWriterService)
     )
+    .with({ event_version: 3 }, (msg) => {
+      throw genericInternalError(
+        `Tenant event V3 not supported yet: ${msg.type}`
+      );
+    })
     .exhaustive();
 }
 

@@ -1,6 +1,11 @@
 import z from "zod";
 
-import { AttributeId, DelegationId, TenantId } from "../brandedIds.js";
+import {
+  AttributeId,
+  ContactId,
+  DelegationId,
+  TenantId,
+} from "../brandedIds.js";
 
 export const tenantKind = {
   PA: "PA",
@@ -192,7 +197,10 @@ export const Tenant = z.object({
   attributes: z.array(TenantAttribute),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date().optional(),
+  // Legacy plain-text mails, populated only by V1/V2 events and kept until
+  // the V3 cutover; V3 events populate `contactId` instead.
   mails: z.array(TenantMail),
+  contactId: ContactId.optional(),
   name: z.string(),
   onboardedAt: z.coerce.date().optional(),
   subUnitType: TenantUnitType.optional(),
