@@ -30,6 +30,7 @@ import {
   AgreementSubmittedV2,
   AgreementV2,
   Attribute,
+  ContactId,
   DescriptorId,
   DescriptorState,
   EServiceId,
@@ -415,6 +416,49 @@ describe("submit agreement", () => {
     ).rejects.toThrowError(
       consumerWithNotValidEmail(agreement.id, consumer.id)
     );
+  });
+
+  it("should submit the agreement when the consumer references its contact by contactId and has no mails", async () => {
+    const consumer = {
+      ...getMockTenant(),
+      contactId: generateId<ContactId>(),
+      mails: [],
+    };
+    const producer = getMockTenant();
+
+    const descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.published,
+      agreementApprovalPolicy: agreementApprovalPolicy.manual,
+    };
+    const eservice = getMockEService(generateId<EServiceId>(), producer.id, [
+      descriptor,
+    ]);
+
+    const agreement: Agreement = {
+      ...getMockAgreement(eservice.id, consumer.id),
+      producerId: producer.id,
+      descriptorId: descriptor.id,
+      ...draftAgreementSubmissionSeed,
+    };
+
+    await addOneEService(eservice);
+    await addOneTenant(producer);
+    await addOneTenant(consumer);
+    await addOneAgreement(agreement);
+
+    const submitAgreementResponse = await agreementService.submitAgreement(
+      agreement.id,
+      { consumerNotes: "This is a test" },
+      getMockContext({ authData: getMockAuthData(consumer.id) })
+    );
+
+    expect(submitAgreementResponse.data.state).toEqual(agreementState.pending);
+    expect(await readLastAgreementEvent(agreement.id)).toMatchObject({
+      type: "AgreementSubmitted",
+      event_version: 2,
+      stream_id: agreement.id,
+    });
   });
 
   it("should throw an eServiceNotFound error when eservice does not exist", async () => {
