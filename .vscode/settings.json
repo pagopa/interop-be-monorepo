@@ -8,6 +8,7 @@
   "files.watcherExclude": {
     "**/target": true
   },
+  "prettier.trailingComma": "es5",
   "terminal.integrated.enablePersistentSessions": true,
   "vitest.disableWorkspaceWarning": true
 }

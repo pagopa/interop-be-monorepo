@@ -2,7 +2,6 @@ import {
   InteropTokenGenerator,
   RefreshableInteropToken,
   getInteropHeaders,
-  isFeatureFlagEnabled,
   logger,
 } from "pagopa-interop-commons";
 import { CorrelationId, generateId } from "pagopa-interop-models";
@@ -12,7 +11,7 @@ import {
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 
-import { parseIPACertifiedAttributesImporterConfig } from "./config/config.js";
+import { config } from "./config/config.js";
 import {
   assignNewAttributes,
   createTenantProcessClient,
@@ -25,8 +24,6 @@ import {
 } from "./services/ipaCertifiedAttributesImporterService.js";
 import { getRegistryData } from "./services/openDataService.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
-
-const config = parseIPACertifiedAttributesImporterConfig(process.env);
 
 const correlationId = generateId<CorrelationId>();
 const loggerInstance = logger({
@@ -77,8 +74,7 @@ try {
   const newAttributes = getNewAttributes(
     registryData,
     tenantUpsertData,
-    attributes,
-    isFeatureFlagEnabled(config, "featureFlagAooUoAttributes")
+    attributes
   );
 
   const token = (await refreshableToken.get()).serialized;

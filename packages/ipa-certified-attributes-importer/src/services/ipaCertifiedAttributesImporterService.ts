@@ -26,7 +26,10 @@ import {
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 
-import { IPACertifiedAttributesImporterConfig } from "../config/config.js";
+import {
+  config,
+  IPACertifiedAttributesImporterConfig,
+} from "../config/config.js";
 import {
   RegistryData,
   InternalCertifiedAttribute,
@@ -324,7 +327,7 @@ export async function createNewAttributes(
   );
 }
 
-function getAooUoAttributeSeeds(
+function getAooUoAttributes(
   registryData: RegistryData,
   tenantUpsertData: TenantSeed[],
   platformAttributes: Attribute[]
@@ -424,8 +427,7 @@ function getAooUoAttributeSeeds(
 export function getNewAttributes(
   registryData: RegistryData,
   tenantUpsertData: TenantSeed[],
-  attributes: Attribute[],
-  aooUoAttributesEnabled: boolean = false
+  attributes: Attribute[]
 ): InternalCertifiedAttribute[] {
   // get a set with all the certified attributes in the platform
   const platformAttributesIndex = new Set(
@@ -442,8 +444,11 @@ export function getNewAttributes(
     )
   );
 
-  const aooUoSeeds = aooUoAttributesEnabled
-    ? getAooUoAttributeSeeds(registryData, tenantUpsertData, attributes)
+  const aooUoAttributes = isFeatureFlagEnabled(
+    config,
+    "featureFlagAooUoAttributes"
+  )
+    ? getAooUoAttributes(registryData, tenantUpsertData, attributes)
     : [];
 
   const seen = new Set<string>();
@@ -451,7 +456,7 @@ export function getNewAttributes(
     ...registryData.attributes.filter((a) =>
       newAttributesIndex.has(toAttributeKey({ origin: a.origin, code: a.code }))
     ),
-    ...aooUoSeeds,
+    ...aooUoAttributes,
   ].filter((a) => {
     const key = toAttributeKey({ origin: a.origin, code: a.code });
     if (platformAttributesIndex.has(key) || seen.has(key)) {

@@ -1,10 +1,11 @@
 import { randomUUID } from "crypto";
 import { getMockAttribute } from "pagopa-interop-commons-test";
 import { Attribute, unsafeBrandId } from "pagopa-interop-models";
-import { expect, describe, it } from "vitest";
+import { expect, describe, it, beforeEach } from "vitest";
 
 import type { Institution } from "../src/services/openDataExtractor.js";
 
+import { config } from "../src/config/config.js";
 import {
   TenantSeed,
   getNewAttributes,
@@ -12,6 +13,10 @@ import {
 import { agency, aoo, attributes, uo } from "./expectation.js";
 
 describe("NewAttributes", async () => {
+  beforeEach(() => {
+    config.featureFlagAooUoAttributes = false;
+  });
+
   it("create only attribute that are not present and that will be assigned to a tenant", async () => {
     const registryData = {
       institutions: [...agency, ...aoo, ...uo],
@@ -161,7 +166,8 @@ describe("NewAttributes", async () => {
   });
 
   it("AOO/UO A4: composes names, handles collisions and excludes SCEC", () => {
-    const result = getNewAttributes(aooUoRegistryData, aooUoSeeds, [], true);
+    config.featureFlagAooUoAttributes = true;
+    const result = getNewAttributes(aooUoRegistryData, aooUoSeeds, []);
     expect(result.map((a) => [a.code, a.name])).toEqual([
       ["A001", "AOO One di Ente"],
       ["U001", "UO One di AOO One di Ente"],
@@ -185,12 +191,8 @@ describe("NewAttributes", async () => {
         name: "UO One di AOO One di Ente",
       },
     ];
-    const result = getNewAttributes(
-      aooUoRegistryData,
-      aooUoSeeds,
-      platform,
-      true
-    );
+    config.featureFlagAooUoAttributes = true;
+    const result = getNewAttributes(aooUoRegistryData, aooUoSeeds, platform);
     expect(result.map((a) => a.code)).toEqual(["U001", "U002", "U003"]);
     expect(result[0].name).toBe("UO One di AOO One di Ente (U001)");
   });
@@ -210,11 +212,11 @@ describe("NewAttributes", async () => {
         name: "UO Two di Ente (U002)",
       },
     ];
+    config.featureFlagAooUoAttributes = true;
     const result = getNewAttributes(
       { institutions: aooUoInstitutions, attributes: [] },
       aooUoSeeds,
-      platform,
-      true
+      platform
     );
     expect(result.map((a) => [a.code, a.name])).toEqual([
       ["A001", "AOO One di Ente"],
