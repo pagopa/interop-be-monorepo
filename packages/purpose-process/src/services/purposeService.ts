@@ -25,6 +25,7 @@ import {
   isFeatureFlagEnabled,
   ownership,
   riskAnalysisFormToRiskAnalysisFormToValidate,
+  explicitPropertiesChecker,
   validateNoHyperlinksSafe,
 } from "pagopa-interop-commons";
 import {
@@ -111,6 +112,8 @@ import {
   reviewersNotAllowedForReviewMode,
   purposeMetadataVersionMismatch,
   riskAnalysisReviewModeNotFound,
+  riskAnalysisAlreadyApproved,
+  riskAnalysisAlreadyRejected,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -194,6 +197,19 @@ const retrievePurpose = async (
     throw purposeNotFound(purposeId);
   }
   return purpose;
+};
+
+const assertRiskAnalysisNotFinalized = (purpose: Purpose): void => {
+  if (
+    purpose.reviewerWorkflow?.signingState === riskAnalysisSigningState.signed
+  ) {
+    throw riskAnalysisAlreadyApproved(purpose.id);
+  }
+  if (
+    purpose.reviewerWorkflow?.signingState === riskAnalysisSigningState.rejected
+  ) {
+    throw riskAnalysisAlreadyRejected(purpose.id);
+  }
 };
 
 const retrievePurposeVersion = (
@@ -768,6 +784,8 @@ export function purposeServiceBuilder(
 
       assertRequesterIsConsumer(purpose.data, authData);
 
+      assertRiskAnalysisNotFinalized(purpose.data);
+
       if (metadataVersionToSign !== purpose.metadata.version) {
         throw purposeMetadataVersionMismatch(
           purposeId,
@@ -875,6 +893,8 @@ export function purposeServiceBuilder(
 
       assertRequesterIsConsumer(purpose.data, authData);
 
+      assertRiskAnalysisNotFinalized(purpose.data);
+
       const workflow = purpose.data.reviewerWorkflow;
 
       if (!workflow) {
@@ -938,6 +958,8 @@ export function purposeServiceBuilder(
       const purpose = await retrievePurpose(purposeId, readModelService);
 
       assertRequesterIsConsumer(purpose.data, authData);
+
+      assertRiskAnalysisNotFinalized(purpose.data);
 
       const workflow = purpose.data.reviewerWorkflow;
 
@@ -1013,8 +1035,12 @@ export function purposeServiceBuilder(
         versionId: PurposeVersionId;
         rejectionReason: string;
       },
-      { correlationId, authData, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        correlationId,
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<PurposeVersion>> {
       logger.info(`Rejecting Version ${versionId} in Purpose ${purposeId}`);
 
       validateNoHyperlinksSafe(rejectionReason);
@@ -1058,7 +1084,11 @@ export function purposeServiceBuilder(
         versionId,
         correlationId,
       });
-      await repository.createEvent(event);
+      const createdEvent = await repository.createEvent(event);
+      return {
+        data: updatedPurposeVersion,
+        metadata: { version: createdEvent.newVersion },
+      };
     },
     async updatePurpose(
       purposeId: PurposeId,
@@ -2083,12 +2113,20 @@ export function purposeServiceBuilder(
 
       const versionToClone = getVersionToClone(purposeToClone.data);
 
-      const newPurposeVersion: PurposeVersion = {
+      const newPurposeVersion = explicitPropertiesChecker<PurposeVersion>({
         id: generateId(),
         createdAt: new Date(),
         state: purposeVersionState.draft,
         dailyCalls: versionToClone.dailyCalls,
-      };
+        updatedAt: undefined,
+        rejectionReason: undefined,
+        suspendedAt: undefined,
+        riskAnalysis: undefined,
+        stamps: undefined,
+        signedContract: undefined,
+        firstActivationAt: undefined,
+        waitingForApprovalReason: undefined,
+      });
 
       const riskAnalysisFormToClone = purposeToClone.data.riskAnalysisForm;
 
@@ -2134,7 +2172,7 @@ export function purposeServiceBuilder(
         title: clonedPurposeTitle,
       });
 
-      const clonedPurpose: Purpose = {
+      const clonedPurpose = explicitPropertiesChecker<Purpose>({
         title: clonedPurposeTitle,
         id: generateId(),
         createdAt: currentDate,
@@ -2146,7 +2184,13 @@ export function purposeServiceBuilder(
         freeOfChargeReason: purposeToClone.data.freeOfChargeReason,
         riskAnalysisForm: clonedRiskAnalysisForm,
         delegationId: purposeToClone.data.delegationId,
-      };
+        updatedAt: undefined,
+        suspendedByConsumer: undefined,
+        suspendedByProducer: undefined,
+        purposeTemplateId: undefined,
+        reviewerWorkflow: undefined,
+        riskAnalysisReviewMode: undefined,
+      });
 
       const event = toCreateEventPurposeCloned({
         purpose: clonedPurpose,
