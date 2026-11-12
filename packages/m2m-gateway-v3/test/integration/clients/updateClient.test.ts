@@ -3,6 +3,7 @@ import { authorizationApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   getMockWithMetadata,
   getMockedApiConsumerFullClient,
+  getMockedApiConsumerPartialClient,
 } from "pagopa-interop-commons-test";
 import {
   pollingMaxRetriesExceeded,
@@ -13,7 +14,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { toM2MGatewayApiConsumerClient } from "../../../src/api/clientApiConverter.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
-import { missingMetadata } from "../../../src/model/errors.js";
+import { clientNotFound, missingMetadata } from "../../../src/model/errors.js";
 import {
   clientService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -47,7 +48,72 @@ describe("updateClient", () => {
 
   beforeEach(() => {
     mockUpdateClient.mockReset().mockResolvedValue(finalResponse);
-    mockGetClient.mockReset().mockResolvedValue(finalResponse);
+    mockGetClient
+      .mockReset()
+      .mockResolvedValue(finalResponse)
+      .mockResolvedValueOnce(getMockWithMetadata(originalClient, 2));
+  });
+
+  it.each([
+    { name: seed.name },
+    { description: seed.description },
+    seed,
+    { name: originalClient.name, description: originalClient.description },
+  ])(
+    "should reject an API client before updating or polling: %j",
+    async (body) => {
+      const client = {
+        ...originalClient,
+        kind: authorizationApi.ClientKind.Values.API,
+      };
+      mockGetClient
+        .mockReset()
+        .mockResolvedValue(getMockWithMetadata(client, 2));
+
+      await expect(
+        clientService.updateClient(
+          unsafeBrandId(client.id),
+          body,
+          getMockM2MAdminAppContext()
+        )
+      ).rejects.toThrowError(clientNotFound(client));
+
+      expect(mockUpdateClient).not.toHaveBeenCalled();
+      expect(mockGetClient).toHaveBeenCalledTimes(1);
+      expectApiClientGetToHaveBeenCalledWith({
+        mockGet: mockGetClient,
+        params: { clientId: client.id },
+      });
+    }
+  );
+
+  it("should leave Consumer client ownership validation to the process without polling on rejection", async () => {
+    const client = getMockedApiConsumerPartialClient();
+    mockGetClient.mockReset().mockResolvedValue(getMockWithMetadata(client));
+    const error = new AxiosError("Forbidden", undefined, undefined, undefined, {
+      status: 403,
+      statusText: "Forbidden",
+      data: {},
+      headers: {},
+      config: {} as InternalAxiosRequestConfig,
+    });
+    mockUpdateClient.mockRejectedValueOnce(error);
+
+    await expect(
+      clientService.updateClient(
+        unsafeBrandId(client.id),
+        seed,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toBe(error);
+
+    expect(mockUpdateClient).toHaveBeenCalledTimes(1);
+    expectApiClientPostToHaveBeenCalledWith({
+      mockPost: mockUpdateClient,
+      params: { clientId: client.id },
+      body: seed,
+    });
+    expect(mockGetClient).toHaveBeenCalledTimes(1);
   });
 
   it("should issue one command and wait past the intermediate version to return the final state", async () => {
@@ -70,7 +136,10 @@ describe("updateClient", () => {
       params: { clientId: originalClient.id },
       body: seed,
     });
-    expect(mockGetClient).toHaveBeenCalledTimes(3);
+    expect(mockGetClient).toHaveBeenCalledTimes(4);
+    expect(mockGetClient.mock.invocationCallOrder[0]).toBeLessThan(
+      mockUpdateClient.mock.invocationCallOrder[0]
+    );
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockGetClient,
       params: { clientId: originalClient.id },
@@ -100,7 +169,7 @@ describe("updateClient", () => {
         params: { clientId: client.id },
         body,
       });
-      expect(mockGetClient).toHaveBeenCalledTimes(1);
+      expect(mockGetClient).toHaveBeenCalledTimes(2);
     }
   );
 
@@ -129,7 +198,7 @@ describe("updateClient", () => {
         )
       ).rejects.toBe(error);
       expect(mockUpdateClient).toHaveBeenCalledTimes(1);
-      expect(mockGetClient).not.toHaveBeenCalled();
+      expect(mockGetClient).toHaveBeenCalledTimes(1);
     }
   );
 
@@ -170,7 +239,7 @@ describe("updateClient", () => {
       )
     );
     expect(mockGetClient).toHaveBeenCalledTimes(
-      config.defaultPollingMaxRetries
+      config.defaultPollingMaxRetries + 1
     );
     expect(mockUpdateClient).toHaveBeenCalledTimes(1);
   });

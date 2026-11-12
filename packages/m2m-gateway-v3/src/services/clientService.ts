@@ -402,6 +402,15 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<m2mGatewayApiV3.Client> {
       logger.info(`Updating client with id ${clientId}`);
 
+      const { data: currentClient } = await retrieveClientById(
+        clientId,
+        headers
+      );
+
+      if (currentClient.kind === authorizationApi.ClientKind.Values.API) {
+        throw clientNotFound(currentClient);
+      }
+
       const response = await clients.authorizationClient.client.updateClient(
         seed,
         { params: { clientId }, headers }
