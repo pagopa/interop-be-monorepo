@@ -207,7 +207,12 @@ async function handleAuthorizationEventV2(
       )
       .with(
         {
-          type: P.union("ClientNameUpdated", "ClientDescriptionUpdated"),
+          type: P.union(
+            "ClientNameUpdated",
+            "ClientDescriptionUpdated",
+            "ProducerKeychainNameUpdated",
+            "ProducerKeychainDescriptionUpdated"
+          ),
         },
         () => Promise.resolve(void 0)
       )

@@ -99,6 +99,8 @@ export async function handleAuthorizationEvent(
           "ClientAdminRoleRevoked",
           "ClientAdminRemoved",
           "ProducerKeychainAdded",
+          "ProducerKeychainNameUpdated",
+          "ProducerKeychainDescriptionUpdated",
           "ProducerKeychainDeleted",
           "ProducerKeychainUserAdded"
         ),

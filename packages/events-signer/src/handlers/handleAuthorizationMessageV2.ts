@@ -97,6 +97,8 @@ export const handleAuthorizationMessageV2 = async (
           { type: "ClientPurposeAdded" },
           { type: "ClientPurposeRemoved" },
           { type: "ProducerKeychainAdded" },
+          { type: "ProducerKeychainNameUpdated" },
+          { type: "ProducerKeychainDescriptionUpdated" },
           { type: "ProducerKeychainDeleted" },
           { type: "ProducerKeychainKeyAdded" },
           { type: "ProducerKeychainKeyDeleted" },
