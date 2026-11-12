@@ -7,7 +7,6 @@ import {
 import {
   generateId,
   missingKafkaMessageDataError,
-  toTenantV2,
   AttributeId,
   Attribute,
   attributeKind,
@@ -82,7 +81,7 @@ describe("handleCertifiedDiscreteAttributeRevokedToAssignee", () => {
 
     await expect(() =>
       handleCertifiedDiscreteAttributeRevokedToAssignee(
-        toTenantV2(assignee),
+        assignee,
         unknownAttributeId,
         logger,
         readModelService
@@ -103,7 +102,7 @@ describe("handleCertifiedDiscreteAttributeRevokedToAssignee", () => {
 
     await expect(() =>
       handleCertifiedDiscreteAttributeRevokedToAssignee(
-        toTenantV2(assignee),
+        assignee,
         certifiedAttributeWithUndefinedOrigin.id,
         logger,
         readModelService
@@ -127,7 +126,7 @@ describe("handleCertifiedDiscreteAttributeRevokedToAssignee", () => {
 
     await expect(() =>
       handleCertifiedDiscreteAttributeRevokedToAssignee(
-        toTenantV2(assignee),
+        assignee,
         certifiedAttributeWithUnknownCertifier.id,
         logger,
         readModelService
@@ -140,7 +139,7 @@ describe("handleCertifiedDiscreteAttributeRevokedToAssignee", () => {
 
     const notifications =
       await handleCertifiedDiscreteAttributeRevokedToAssignee(
-        toTenantV2(assignee),
+        assignee,
         certifiedAttributeISTAT.id,
         logger,
         readModelService
@@ -159,7 +158,7 @@ describe("handleCertifiedDiscreteAttributeRevokedToAssignee", () => {
 
     const notifications =
       await handleCertifiedDiscreteAttributeRevokedToAssignee(
-        toTenantV2(assignee),
+        assignee,
         certifiedAttributeISTAT.id,
         logger,
         readModelService
@@ -192,7 +191,7 @@ describe("handleCertifiedDiscreteAttributeRevokedToAssignee", () => {
 
     const notifications =
       await handleCertifiedDiscreteAttributeRevokedToAssignee(
-        toTenantV2(assignee),
+        assignee,
         certifiedAttribute.id,
         logger,
         readModelService
