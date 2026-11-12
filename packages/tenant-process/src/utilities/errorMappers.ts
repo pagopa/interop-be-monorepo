@@ -13,6 +13,7 @@ const {
   HTTP_STATUS_FORBIDDEN,
   HTTP_STATUS_BAD_REQUEST,
   HTTP_STATUS_CONFLICT,
+  HTTP_STATUS_NOT_IMPLEMENTED,
 } = constants;
 
 export const getTenantByIdErrorMapper = (error: ApiError<ErrorCodes>): number =>
@@ -170,8 +171,10 @@ export const maintenanceTenantUpdatedErrorMapper = (
     .with(
       "invalidTenantFeature",
       "tenantUpdateVersionMismatch",
+      "tenantMailsNotAllowed",
       () => HTTP_STATUS_BAD_REQUEST
     )
+    .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const maintenanceTenantDeleteRemoteIdErrorMapper = (
@@ -225,6 +228,7 @@ export const deleteTenantMailErrorMapper = (
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("mailNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("tenantMailsNotAllowed", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const addTenantMailErrorMapper = (error: ApiError<ErrorCodes>): number =>
@@ -232,6 +236,30 @@ export const addTenantMailErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("mailAlreadyExists", () => HTTP_STATUS_CONFLICT)
+    .with("tenantMailsNotAllowed", () => HTTP_STATUS_BAD_REQUEST)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const addTenantContactErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("tenantContactAlreadyAssigned", () => HTTP_STATUS_CONFLICT)
+    .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const deleteTenantContactErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "tenantNotFound",
+      "tenantContactNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const internalUpsertTenantErrorMapper = (

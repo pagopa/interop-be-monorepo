@@ -1,6 +1,7 @@
 import {
   ApiError,
   AttributeId,
+  ContactId,
   DelegationId,
   EServiceId,
   TenantId,
@@ -44,6 +45,10 @@ const errorCodes = {
   certifiedDiscreteAttributeRevoked: "0034",
   tenantNotAllowedForDelegation: "0035",
   tenantUpdateVersionMismatch: "0036",
+  tenantContactAlreadyAssigned: "0037",
+  tenantContactNotFound: "0038",
+  tenantMailsNotAllowed: "0039",
+  tenantContactRequiresEventsV3: "0040",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -391,5 +396,47 @@ export function tenantUpdateVersionMismatch(
     detail: `Tenant ${tenantId} current version is ${expectedVersion}, but ${providedVersion} was provided`,
     code: "tenantUpdateVersionMismatch",
     title: "Tenant update version mismatch",
+  });
+}
+
+export function tenantContactAlreadyAssigned(
+  tenantId: TenantId,
+  contactId: ContactId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Contact ${contactId} is already assigned to tenant ${tenantId}`,
+    code: "tenantContactAlreadyAssigned",
+    title: "Tenant contact already assigned",
+  });
+}
+
+export function tenantContactNotFound(
+  tenantId: TenantId,
+  contactId: ContactId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Contact ${contactId} not found in tenant ${tenantId}`,
+    code: "tenantContactNotFound",
+    title: "Tenant contact not found",
+  });
+}
+
+export function tenantMailsNotAllowed(
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Mails are not allowed for tenant ${tenantId}: the tenant contact is managed by contactId`,
+    code: "tenantMailsNotAllowed",
+    title: "Tenant mails not allowed",
+  });
+}
+
+export function tenantContactRequiresEventsV3(
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} has a contact, which V2 events cannot carry: tenant events V3 must be enabled`,
+    code: "tenantContactRequiresEventsV3",
+    title: "Tenant contact requires tenant events V3",
   });
 }

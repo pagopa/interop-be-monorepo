@@ -1,0 +1,21 @@
+meta {
+  name: Delete tenant contact
+  type: http
+  seq: 30
+}
+
+delete {
+  url: {{host-tenant}}/tenants/:tenantId/contact/:contactId
+  body: none
+  auth: none
+}
+
+params:path {
+  tenantId: {{tenantId}}
+  contactId: {{contactId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

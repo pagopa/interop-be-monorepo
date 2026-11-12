@@ -1,3 +1,4 @@
+/* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { fail } from "assert";
@@ -16,13 +17,16 @@ import {
   unsafeBrandId,
   TenantOnboardDetailsUpdatedV2,
   TenantOnboardedV2,
+  TenantOnboardedV3,
   toTenantV2,
+  toTenantV3,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   SCP,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 
+import { config } from "../../src/config/config.js";
 import { selfcareIdConflict } from "../../src/model/domain/errors.js";
 import {
   addOneTenant,
@@ -141,6 +145,39 @@ describe("selfcareUpsertTenant", async () => {
       });
     }
   );
+  it("Should ignore the deprecated digitalAddress when creating the tenant", async () => {
+    const tenantSeed: tenantApi.SelfcareTenantSeed = {
+      externalId: {
+        origin: "PRV",
+        value: generateId(),
+      },
+      name: "A tenant",
+      selfcareId: generateId(),
+      onboardedAt: mockTenant.onboardedAt!.toISOString(),
+      selfcareInstitutionType: "PRV",
+      digitalAddress: {
+        kind: tenantApi.MailKind.Values.DIGITAL_ADDRESS,
+        description: "Domicilio digitale",
+        address: "tenant@pec.example.com",
+      },
+    };
+
+    const id = await tenantService.selfcareUpsertTenant(
+      tenantSeed,
+      getMockContext({})
+    );
+
+    const writtenEvent = await readLastTenantEvent(unsafeBrandId(id));
+    const writtenPayload = protobufDecoder(TenantOnboardedV2).parse(
+      writtenEvent.data
+    );
+
+    expect(writtenEvent).toMatchObject({
+      type: "TenantOnboarded",
+      event_version: 2,
+    });
+    expect(writtenPayload.tenant?.mails).toEqual([]);
+  });
   it("should throw operation forbidden if role isn't internal and the requester is another tenant", async () => {
     await addOneTenant(mockTenant);
     const tenantSeed: tenantApi.SelfcareTenantSeed = {
@@ -184,5 +221,57 @@ describe("selfcareUpsertTenant", async () => {
         newSelfcareId: newTenantSeed.selfcareId,
       })
     );
+  });
+  it("Should create the tenant with a V3 event and without mails when tenant events V3 are enabled", async () => {
+    (config as Record<string, unknown>).featureFlagTenantEventsV3 = true;
+
+    const tenantSeed: tenantApi.SelfcareTenantSeed = {
+      externalId: {
+        origin: "PRV",
+        value: generateId(),
+      },
+      name: "A tenant",
+      selfcareId: generateId(),
+      onboardedAt: mockTenant.onboardedAt!.toISOString(),
+      selfcareInstitutionType: "PRV",
+    };
+
+    const id = await tenantService.selfcareUpsertTenant(
+      tenantSeed,
+      getMockContext({})
+    );
+
+    const writtenEvent = await readLastTenantEvent(unsafeBrandId(id));
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: id,
+      version: "0",
+      type: "TenantOnboarded",
+      event_version: 3,
+    });
+
+    const writtenPayload: TenantOnboardedV3 | undefined = protobufDecoder(
+      TenantOnboardedV3
+    ).parse(writtenEvent.data);
+
+    const expectedTenant: Tenant = {
+      externalId: tenantSeed.externalId,
+      id: unsafeBrandId(id),
+      kind: tenantKind.PRIVATE,
+      selfcareId: tenantSeed.selfcareId,
+      onboardedAt: mockTenant.onboardedAt!,
+      selfcareInstitutionType: tenantSeed.selfcareInstitutionType,
+      createdAt: new Date(),
+      name: tenantSeed.name,
+      attributes: [],
+      features: [],
+      mails: [],
+    };
+
+    expect(writtenPayload).toEqual({
+      tenant: toTenantV3(expectedTenant),
+    });
+
+    (config as Record<string, unknown>).featureFlagTenantEventsV3 = false;
   });
 });

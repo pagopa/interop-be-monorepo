@@ -1,3 +1,4 @@
+/* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import crypto from "crypto";
 import { tenantApi } from "pagopa-interop-api-clients";
@@ -18,9 +19,11 @@ import {
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 
+import { config } from "../../src/config/config.js";
 import {
   mailAlreadyExists,
   notValidMailAddress,
+  tenantMailsNotAllowed,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
 import {
@@ -303,5 +306,26 @@ describe("addTenantMail", async () => {
         })
       )
     ).rejects.toThrowError(hyperlinkDetectionError(description));
+  });
+
+  it("Should throw tenantMailsNotAllowed when tenant events V3 are enabled", async () => {
+    (config as Record<string, unknown>).featureFlagTenantEventsV3 = true;
+
+    const mockTenant: Tenant = getMockTenant();
+    await addOneTenant(mockTenant);
+
+    await expect(
+      tenantService.addTenantMail(
+        {
+          tenantId: mockTenant.id,
+          mailSeed,
+        },
+        getMockContext({
+          authData: getMockAuthData(mockTenant.id),
+        })
+      )
+    ).rejects.toThrowError(tenantMailsNotAllowed(mockTenant.id));
+
+    (config as Record<string, unknown>).featureFlagTenantEventsV3 = false;
   });
 });

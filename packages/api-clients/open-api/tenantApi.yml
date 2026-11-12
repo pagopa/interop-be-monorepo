@@ -1223,6 +1223,83 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+  /tenants/{tenantId}/contact:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tenantId
+        in: path
+        description: the tenant id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - tenant
+      summary: Add or replace the tenant contact
+      description: Sets the contact of the specified tenant, replacing the current one if present
+      operationId: addTenantContact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TenantContactSeed"
+      responses:
+        "200":
+          description: Updated Tenant
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /tenants/{tenantId}/contact/{contactId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tenantId
+        in: path
+        description: the tenant id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: contactId
+        in: path
+        description: the contact id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      tags:
+        - tenant
+      summary: Delete the tenant contact
+      description: Removes the contact from the specified tenant
+      operationId: deleteTenantContact
+      responses:
+        "200":
+          description: Updated Tenant
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /tenants/delegatedFeatures/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1404,6 +1481,9 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Mail"
+        contactId:
+          type: string
+          format: uuid
         name:
           type: string
         kind:
@@ -1820,6 +1900,9 @@ components:
           type: string
           minLength: 1
           maxLength: 1000
+        # Deprecated and ignored: kept only so that the tenant-process and the
+        # selfcare-onboarding-consumer can be released in any order.
+        # To be removed in the next release.
         digitalAddress:
           $ref: "#/components/schemas/MailSeed"
         onboardedAt:
@@ -1900,6 +1983,16 @@ components:
       required:
         - kind
         - address
+    TenantContactSeed:
+      description: The reference to the tenant contact
+      type: object
+      additionalProperties: false
+      properties:
+        contactId:
+          type: string
+          format: uuid
+      required:
+        - contactId
     CertifierPromotionPayload:
       description: Certifier promotion payload
       type: object
@@ -1935,6 +2028,9 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Mail"
+        contactId:
+          type: string
+          format: uuid
         name:
           type: string
         kind:
