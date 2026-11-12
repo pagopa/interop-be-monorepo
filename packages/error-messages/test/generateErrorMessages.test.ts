@@ -141,7 +141,7 @@ describe("error message generation", () => {
         [row[0], "unknownError", row[2], "", ""],
         [
           "Purpose Process",
-          "riskAnalysisAlreadyRejected",
+          "riskAnalysisAlreadyRejected1",
           "PUT /purposes/:purposeId/riskAnalysis/form",
           "",
           "",
