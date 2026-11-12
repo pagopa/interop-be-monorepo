@@ -13,7 +13,7 @@ import { beforeEach, describe, it, expect, vi } from "vitest";
 import { toM2MGatewayApiConsumerClient } from "../../../src/api/clientApiConverter.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { config } from "../../../src/config/config.js";
-import { missingMetadata } from "../../../src/model/errors.js";
+import { clientNotFound, missingMetadata } from "../../../src/model/errors.js";
 import { api, mockClientService } from "../../vitest.api.setup.js";
 
 describe("PATCH /clients/:clientId router test", () => {
@@ -95,6 +95,21 @@ describe("PATCH /clients/:clientId router test", () => {
     const res = await makeRequest(authRole.M2M_ADMIN_ROLE, seed, "invalid");
     expect(res.status).toBe(400);
     expect(mockClientService.updateClient).not.toHaveBeenCalled();
+  });
+
+  it("should return the gateway client-not-found error for an API client", async () => {
+    const error = clientNotFound({
+      ...client,
+      kind: authorizationApi.ClientKind.Values.API,
+    });
+    mockClientService.updateClient = vi.fn().mockRejectedValue(error);
+
+    const res = await makeRequest();
+
+    expect(res.status).toBe(404);
+    expect(res.body.errors).toEqual([
+      { code: expect.stringMatching(/^\d{3}-0048$/), detail: error.detail },
+    ]);
   });
 
   it.each([400, 403, 404, 409])(
