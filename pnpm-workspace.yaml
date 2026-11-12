@@ -55,7 +55,7 @@ catalog:
   "@types/supertest": 6.0.3
   "@types/swagger-ui-express": 4.1.8
   "@vitejs/plugin-react": 4.7.0
-  "@xmldom/xmldom": 0.9.10
+  "@xmldom/xmldom": 0.9.12
   "@zodios/core": 10.9.6
   "@zodios/express": 10.6.1
   adm-zip: 0.6.0
@@ -109,10 +109,10 @@ catalog:
   p-retry: 6.2.1
   pg: 8.13.1
   pg-promise: 11.8.0
-  postcss: 8.5.6
+  postcss: 8.5.23
   prettier: 3.8.1
   puppeteer: 22.11.2
-  qs: 6.15.2
+  qs: 6.16.0
   rate-limiter-flexible: 5.0.5
   react: 18.3.1
   react-dom: 18.3.1
