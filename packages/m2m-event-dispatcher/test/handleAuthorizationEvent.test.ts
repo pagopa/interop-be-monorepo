@@ -696,8 +696,6 @@ function buildTestCaseData(
       .with(
         P.union(
           "ClientUserAdded",
-          "ClientNameUpdated",
-          "ClientDescriptionUpdated",
           "ClientUserDeleted",
           "ProducerKeychainUserAdded",
           "ProducerKeychainUserDeleted",
