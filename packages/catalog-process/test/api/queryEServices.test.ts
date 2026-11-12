@@ -61,7 +61,6 @@ describe("API POST /catalog authorization test", () => {
     onlyActiveEservices: true,
     producersIds: [producerId],
     producerCategories: [],
-    requesterDelegationRoles: [],
   };
 
   const makeRequest = async (
@@ -73,6 +72,41 @@ describe("API POST /catalog authorization test", () => {
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(payload);
+
+  describe("templateId validation", () => {
+    it.each([undefined, false, true])(
+      "should accept and forward templateId with onlyTemplateInstances=%s",
+      async (onlyTemplateInstances) => {
+        const payload = {
+          ...body,
+          templateId: generateId(),
+          onlyTemplateInstances,
+        };
+        vi.mocked(catalogService.queryEServices).mockClear();
+        const res = await makeRequest(
+          generateToken(authRole.ADMIN_ROLE),
+          payload
+        );
+
+        expect(res.status).toBe(200);
+        expect(catalogService.queryEServices).toHaveBeenCalledExactlyOnceWith(
+          payload,
+          expect.anything()
+        );
+      }
+    );
+
+    it("should return 400 for an invalid templateId", async () => {
+      vi.mocked(catalogService.queryEServices).mockClear();
+      const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), {
+        ...body,
+        templateId: "not-a-uuid",
+      });
+
+      expect(res.status).toBe(400);
+      expect(catalogService.queryEServices).not.toHaveBeenCalled();
+    });
+  });
 
   describe("availableForRequester validation", () => {
     it("should accept availableForRequester when it is true", async () => {
@@ -316,7 +350,6 @@ describe("API POST /catalog authorization test", () => {
     { ...body, mode: "invalid-mode" },
     { ...body, onlyActiveEservices: "yes" },
     { ...body, producersIds: ["not-a-uuid"] },
-    { ...body, requesterDelegationRoles: ["WRONG"] },
     { ...body, producerCategories: ["NOT_A_CATEGORY"] },
   ])("Should return 400 if passed invalid params: %s", async (payload) => {
     const token = generateToken(authRole.ADMIN_ROLE);

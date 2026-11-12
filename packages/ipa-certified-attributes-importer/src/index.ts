@@ -85,7 +85,7 @@ try {
     config.tenantProcessUrl
   );
 
-  await createNewAttributes(
+  const failedCreations = await createNewAttributes(
     newAttributes,
     readModelServiceSQL,
     headers,
@@ -138,10 +138,10 @@ try {
   );
 
   loggerInstance.info(
-    `IPA certified attributes import completed. Failed upserts: ${failedUpserts}, failed revocations: ${failedRevocations}`
+    `IPA certified attributes import completed. Failed creations: ${failedCreations}, failed upserts: ${failedUpserts}, failed revocations: ${failedRevocations}`
   );
 
-  if (failedUpserts > 0 || failedRevocations > 0) {
+  if (failedCreations > 0 || failedUpserts > 0 || failedRevocations > 0) {
     process.exitCode = 1;
   }
 } catch (error) {
