@@ -11,7 +11,6 @@ import {
   TenantEventEnvelopeV1,
   TenantEventEnvelopeV3,
   TenantEventV1,
-  TenantEventV2,
   TenantEventV3,
   TenantM2MEvent,
   TenantM2MEventType,
@@ -26,9 +25,6 @@ import {
   testM2mEventWriterService,
 } from "./utils.js";
 
-const tenantEventV2Types: string[] = TenantEventV2.options.map(
-  (o) => o.shape.type.value
-);
 const tenantEventV3Types: string[] = TenantEventV3.options.map(
   (o) => o.shape.type.value
 );
@@ -41,11 +37,7 @@ describe("handleTenantEvent test", async () => {
     vi.clearAllMocks();
   });
 
-  it.each(
-    TenantM2MEventType.options.filter((type) =>
-      tenantEventV2Types.includes(type)
-    )
-  )(
+  it.each(TenantM2MEventType.options)(
     "should write the %s M2M event",
     async (eventType: TenantM2MEvent["eventType"]) => {
       const message: TenantEventEnvelopeV2 = {
@@ -179,16 +171,21 @@ describe("handleTenantEvent test", async () => {
       }
     );
 
-    it("should ignore the MaintenanceTenantRemoteIdDeleted event", async () => {
-      const message: TenantEventEnvelopeV3 = {
+    it.each([
+      "MaintenanceTenantRemoteIdDeleted",
+      "TenantContactAdded",
+      "TenantContactDeleted",
+    ] as const)("should ignore the %s event", async (eventType) => {
+      const message = {
         ...getMockEventEnvelopeCommons(),
         stream_id: tenant.id,
-        type: "MaintenanceTenantRemoteIdDeleted",
+        type: eventType,
         event_version: 3,
         data: {
+          contactId,
           tenant: toTenantV3(tenantWithContact),
         },
-      };
+      } as TenantEventEnvelopeV3;
 
       await handleTenantEvent(
         message,
@@ -206,9 +203,9 @@ describe("handleTenantEvent test", async () => {
       const message = {
         ...getMockEventEnvelopeCommons(),
         stream_id: tenant.id,
-        type: "TenantContactAdded",
+        type: "TenantOnboarded",
         event_version: 3,
-        data: { contactId },
+        data: {},
       } as TenantEventEnvelopeV3;
 
       await expect(
@@ -219,7 +216,7 @@ describe("handleTenantEvent test", async () => {
           testM2mEventWriterService
         )
       ).rejects.toThrow(
-        missingKafkaMessageDataError("tenant", "TenantContactAdded")
+        missingKafkaMessageDataError("tenant", "TenantOnboarded")
       );
 
       expect(
