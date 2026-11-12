@@ -589,6 +589,124 @@ describe("getPurposes", async () => {
     expectSinglePageListResult(submittedResult, [submittedPurpose]);
   });
 
+  it.each([
+    [true, [riskAnalysisSigningState.assigned], true],
+    [true, [riskAnalysisSigningState.submitted], true],
+    [
+      true,
+      [riskAnalysisSigningState.assigned, riskAnalysisSigningState.submitted],
+      true,
+    ],
+    [true, [riskAnalysisSigningState.signed], true],
+    [true, [riskAnalysisSigningState.rejected], true],
+    [
+      true,
+      [riskAnalysisSigningState.signed, riskAnalysisSigningState.rejected],
+      true,
+    ],
+    [
+      true,
+      [riskAnalysisSigningState.assigned, riskAnalysisSigningState.signed],
+      false,
+    ],
+    [
+      false,
+      [riskAnalysisSigningState.assigned, riskAnalysisSigningState.submitted],
+      false,
+    ],
+  ])(
+    "should paginate reviewer assignments deterministically (reviewer filter: %s, signing states: %j, date ordering: %s)",
+    async (filterByReviewer, signingStates, orderByDate) => {
+      const reviewerId = generateId<UserId>();
+      const otherReviewerId = generateId<UserId>();
+      const purposes = [
+        { title: "A", date: new Date("2026-09-01T00:00:00.000Z") },
+        { title: "B", date: new Date("2026-09-02T00:00:00.000Z") },
+        { title: "C", date: new Date("2026-09-04T00:00:00.000Z") },
+        { title: "D", date: new Date("2026-09-03T00:00:00.000Z") },
+        { title: "E", date: undefined },
+        { title: "C", date: new Date("2026-09-04T00:00:00.000Z") },
+      ].map(({ title, date }, index): Purpose => {
+        const signingState = signingStates[index % signingStates.length];
+        return {
+          ...getMockPurpose(),
+          id: unsafeBrandId(
+            `00000000-0000-0000-0000-${String(index + 1).padStart(12, "0")}`
+          ),
+          title,
+          consumerId: consumerId1,
+          eserviceId: mockEService1ByTenant1.id,
+          versions: [
+            getMockPurposeVersion(purposeVersionState.suspended),
+            getMockPurposeVersion(purposeVersionState.archived),
+          ],
+          riskAnalysisReviewMode:
+            riskAnalysisReviewMode.adminWritesReviewerSigns,
+          reviewerWorkflow: {
+            signingState,
+            reviewers: [
+              {
+                id: otherReviewerId,
+                sentToReviewerAt: new Date(
+                  index === 0
+                    ? "2026-10-01T00:00:00.000Z"
+                    : "2026-08-01T00:00:00.000Z"
+                ),
+              },
+              {
+                id: reviewerId,
+                sentToReviewerAt:
+                  signingState === riskAnalysisSigningState.assigned ||
+                  signingState === riskAnalysisSigningState.submitted
+                    ? (date ?? new Date("2026-08-01T00:00:00.000Z"))
+                    : new Date("2026-07-01T00:00:00.000Z"),
+              },
+            ],
+            signedAt:
+              signingState === riskAnalysisSigningState.signed
+                ? date
+                : undefined,
+            rejectedAt:
+              signingState === riskAnalysisSigningState.rejected
+                ? date
+                : undefined,
+          },
+        };
+      });
+      await Promise.all(purposes.map(addOnePurpose));
+
+      const pages = await Promise.all(
+        [0, 2, 4].map((offset) =>
+          purposeService.getPurposes(
+            {
+              eservicesIds: [mockEService1ByTenant1.id],
+              consumersIds: [consumerId1],
+              producersIds: [],
+              clientId: undefined,
+              states: [],
+              excludeDraft: undefined,
+              reviewerId: filterByReviewer ? reviewerId : undefined,
+              signingStates,
+            },
+            { offset, limit: 2 },
+            getMockContext({
+              authData: getMockAuthData(consumerId1, reviewerId),
+            })
+          )
+        )
+      );
+
+      const expectedOrder = orderByDate
+        ? [2, 5, 3, 1, 0, 4]
+        : [0, 1, 2, 5, 3, 4];
+      expect(
+        pages.flatMap(({ results }) => results.map(({ id }) => id))
+      ).toEqual(expectedOrder.map((index) => purposes[index].id));
+      expect(pages.map(({ totalCount }) => totalCount)).toEqual([6, 6, 6]);
+      expect(pages.map(({ results }) => results.length)).toEqual([2, 2, 2]);
+    }
+  );
+
   it("should get purposes with filters: reviewerId", async () => {
     const reviewerId1: UserId = generateId();
     const reviewerId2: UserId = generateId();
