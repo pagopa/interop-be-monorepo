@@ -2,12 +2,10 @@ import { Logger } from "pagopa-interop-commons";
 import {
   AttributeId,
   Attribute,
-  fromTenantV2,
   missingKafkaMessageDataError,
   NewNotification,
   Tenant,
   tenantAttributeType,
-  TenantV2,
   VerifiedTenantAttribute,
 } from "pagopa-interop-models";
 import {
@@ -21,22 +19,20 @@ import {
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 export async function handleVerifiedAttributeRevokedToAssignee(
-  tenantV2Msg: TenantV2 | undefined,
+  tenant: Tenant | undefined,
   attributeId: AttributeId,
   logger: Logger,
   readModelService: ReadModelServiceSQL
 ): Promise<NewNotification[]> {
-  if (!tenantV2Msg) {
+  if (!tenant) {
     throw missingKafkaMessageDataError(
       "tenant",
       "TenantVerifiedAttributeRevoked"
     );
   }
   logger.info(
-    `Sending in-app notification for handleVerifiedAttributeRevokedToAssignee - entityId: ${tenantV2Msg.id}, eventType: TenantVerifiedAttributeRevoked`
+    `Sending in-app notification for handleVerifiedAttributeRevokedToAssignee - entityId: ${tenant.id}, eventType: TenantVerifiedAttributeRevoked`
   );
-
-  const tenant = fromTenantV2(tenantV2Msg);
 
   const usersWithNotifications = await getNotificationRecipients(
     [tenant.id],

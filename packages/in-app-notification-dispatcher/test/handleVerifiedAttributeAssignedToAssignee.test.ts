@@ -8,7 +8,6 @@ import {
 import {
   generateId,
   missingKafkaMessageDataError,
-  toTenantV2,
   AttributeId,
   Tenant,
   Attribute,
@@ -78,7 +77,7 @@ describe("handleVerifiedAttributeAssignedToAssignee", () => {
 
     await expect(() =>
       handleVerifiedAttributeAssignedToAssignee(
-        toTenantV2(assignee),
+        assignee,
         unknownAttributeId,
         logger,
         readModelService
@@ -93,7 +92,7 @@ describe("handleVerifiedAttributeAssignedToAssignee", () => {
 
     await expect(() =>
       handleVerifiedAttributeAssignedToAssignee(
-        toTenantV2({ ...assignee, attributes: [] }),
+        { ...assignee, attributes: [] },
         verifiedAttribute.id,
         logger,
         readModelService
@@ -112,7 +111,7 @@ describe("handleVerifiedAttributeAssignedToAssignee", () => {
 
     await expect(() =>
       handleVerifiedAttributeAssignedToAssignee(
-        toTenantV2({
+        {
           ...assignee,
           attributes: [
             {
@@ -122,7 +121,7 @@ describe("handleVerifiedAttributeAssignedToAssignee", () => {
               ],
             },
           ],
-        }),
+        },
         verifiedAttribute.id,
         logger,
         readModelService
@@ -134,7 +133,7 @@ describe("handleVerifiedAttributeAssignedToAssignee", () => {
     mockGetNotificationRecipients.mockResolvedValue([]);
 
     const notifications = await handleVerifiedAttributeAssignedToAssignee(
-      toTenantV2(assignee),
+      assignee,
       verifiedAttribute.id,
       logger,
       readModelService
@@ -164,7 +163,7 @@ describe("handleVerifiedAttributeAssignedToAssignee", () => {
     mockGetNotificationRecipients.mockResolvedValue(assigneeUsers);
 
     const notifications = await handleVerifiedAttributeAssignedToAssignee(
-      toTenantV2({ ...assignee, attributes: assigneeAttributes }),
+      { ...assignee, attributes: assigneeAttributes },
       verifiedAttribute.id,
       logger,
       readModelService
@@ -207,7 +206,7 @@ describe("handleVerifiedAttributeAssignedToAssignee", () => {
     mockGetNotificationRecipients.mockResolvedValue(users);
 
     const notifications = await handleVerifiedAttributeAssignedToAssignee(
-      toTenantV2({ ...assignee, attributes: assigneeAttributes }),
+      { ...assignee, attributes: assigneeAttributes },
       verifiedAttribute.id,
       logger,
       readModelService

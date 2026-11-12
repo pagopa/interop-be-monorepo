@@ -1,7 +1,8 @@
 import { Logger } from "pagopa-interop-commons";
 import {
   AttributeId,
-  genericInternalError,
+  fromTenantV2,
+  fromTenantV3,
   NewNotification,
   TenantEventEnvelope,
   unsafeBrandId,
@@ -27,16 +28,11 @@ export async function handleTenantEvent(
       logger.info(`Skipping V1 event ${decodedMessage.type} message`);
       return [];
     })
-    .with({ event_version: 3 }, (msg) => {
-      throw genericInternalError(
-        `Tenant event V3 not supported yet: ${msg.type}`
-      );
-    })
     .with(
       { event_version: 2, type: "TenantCertifiedAttributeAssigned" },
       ({ data: { tenant, attributeId } }) =>
         handleCertifiedAttributeAssignedToAssignee(
-          tenant,
+          tenant && fromTenantV2(tenant),
           unsafeBrandId<AttributeId>(attributeId),
           logger,
           readModelService
@@ -46,7 +42,7 @@ export async function handleTenantEvent(
       { event_version: 2, type: "TenantCertifiedAttributeRevoked" },
       ({ data: { tenant, attributeId } }) =>
         handleCertifiedAttributeRevokedToAssignee(
-          tenant,
+          tenant && fromTenantV2(tenant),
           unsafeBrandId<AttributeId>(attributeId),
           logger,
           readModelService
@@ -56,7 +52,7 @@ export async function handleTenantEvent(
       { event_version: 2, type: "TenantCertifiedDiscreteAttributeAssigned" },
       ({ data: { tenant, attributeId } }) =>
         handleCertifiedDiscreteAttributeAssignedToAssignee(
-          tenant,
+          tenant && fromTenantV2(tenant),
           unsafeBrandId<AttributeId>(attributeId),
           logger,
           readModelService
@@ -66,7 +62,7 @@ export async function handleTenantEvent(
       { event_version: 2, type: "TenantCertifiedDiscreteAttributeRevoked" },
       ({ data: { tenant, attributeId } }) =>
         handleCertifiedDiscreteAttributeRevokedToAssignee(
-          tenant,
+          tenant && fromTenantV2(tenant),
           unsafeBrandId<AttributeId>(attributeId),
           logger,
           readModelService
@@ -76,7 +72,7 @@ export async function handleTenantEvent(
       { event_version: 2, type: "TenantCertifiedDiscreteAttributeUpdated" },
       ({ data: { tenant, attributeId } }) =>
         handleCertifiedDiscreteAttributeUpdatedToAssignee(
-          tenant,
+          tenant && fromTenantV2(tenant),
           unsafeBrandId<AttributeId>(attributeId),
           logger,
           readModelService
@@ -86,7 +82,7 @@ export async function handleTenantEvent(
       { event_version: 2, type: "TenantVerifiedAttributeAssigned" },
       ({ data: { tenant, attributeId } }) =>
         handleVerifiedAttributeAssignedToAssignee(
-          tenant,
+          tenant && fromTenantV2(tenant),
           unsafeBrandId<AttributeId>(attributeId),
           logger,
           readModelService
@@ -96,7 +92,7 @@ export async function handleTenantEvent(
       { event_version: 2, type: "TenantVerifiedAttributeRevoked" },
       ({ data: { tenant, attributeId } }) =>
         handleVerifiedAttributeRevokedToAssignee(
-          tenant,
+          tenant && fromTenantV2(tenant),
           unsafeBrandId<AttributeId>(attributeId),
           logger,
           readModelService
@@ -117,6 +113,107 @@ export async function handleTenantEvent(
           "TenantMailAdded",
           "TenantKindUpdated",
           "TenantMailDeleted",
+          "MaintenanceTenantPromotedToCertifier",
+          "TenantDelegatedProducerFeatureAdded",
+          "TenantDelegatedProducerFeatureRemoved",
+          "TenantDelegatedConsumerFeatureAdded",
+          "TenantDelegatedConsumerFeatureRemoved",
+          "TenantRemoteIdAssigned",
+          "MaintenanceTenantRemoteIdDeleted"
+        ),
+      },
+      () => {
+        logger.info(
+          `Skipping in-app notification for event ${decodedMessage.type}`
+        );
+        return [];
+      }
+    )
+    .with(
+      { event_version: 3, type: "TenantCertifiedAttributeAssigned" },
+      ({ data: { tenant, attributeId } }) =>
+        handleCertifiedAttributeAssignedToAssignee(
+          tenant && fromTenantV3(tenant),
+          unsafeBrandId<AttributeId>(attributeId),
+          logger,
+          readModelService
+        )
+    )
+    .with(
+      { event_version: 3, type: "TenantCertifiedAttributeRevoked" },
+      ({ data: { tenant, attributeId } }) =>
+        handleCertifiedAttributeRevokedToAssignee(
+          tenant && fromTenantV3(tenant),
+          unsafeBrandId<AttributeId>(attributeId),
+          logger,
+          readModelService
+        )
+    )
+    .with(
+      { event_version: 3, type: "TenantCertifiedDiscreteAttributeAssigned" },
+      ({ data: { tenant, attributeId } }) =>
+        handleCertifiedDiscreteAttributeAssignedToAssignee(
+          tenant && fromTenantV3(tenant),
+          unsafeBrandId<AttributeId>(attributeId),
+          logger,
+          readModelService
+        )
+    )
+    .with(
+      { event_version: 3, type: "TenantCertifiedDiscreteAttributeRevoked" },
+      ({ data: { tenant, attributeId } }) =>
+        handleCertifiedDiscreteAttributeRevokedToAssignee(
+          tenant && fromTenantV3(tenant),
+          unsafeBrandId<AttributeId>(attributeId),
+          logger,
+          readModelService
+        )
+    )
+    .with(
+      { event_version: 3, type: "TenantCertifiedDiscreteAttributeUpdated" },
+      ({ data: { tenant, attributeId } }) =>
+        handleCertifiedDiscreteAttributeUpdatedToAssignee(
+          tenant && fromTenantV3(tenant),
+          unsafeBrandId<AttributeId>(attributeId),
+          logger,
+          readModelService
+        )
+    )
+    .with(
+      { event_version: 3, type: "TenantVerifiedAttributeAssigned" },
+      ({ data: { tenant, attributeId } }) =>
+        handleVerifiedAttributeAssignedToAssignee(
+          tenant && fromTenantV3(tenant),
+          unsafeBrandId<AttributeId>(attributeId),
+          logger,
+          readModelService
+        )
+    )
+    .with(
+      { event_version: 3, type: "TenantVerifiedAttributeRevoked" },
+      ({ data: { tenant, attributeId } }) =>
+        handleVerifiedAttributeRevokedToAssignee(
+          tenant && fromTenantV3(tenant),
+          unsafeBrandId<AttributeId>(attributeId),
+          logger,
+          readModelService
+        )
+    )
+    .with(
+      {
+        event_version: 3,
+        type: P.union(
+          "TenantOnboarded",
+          "TenantOnboardDetailsUpdated",
+          "TenantDeclaredAttributeAssigned",
+          "TenantDeclaredAttributeRevoked",
+          "TenantVerifiedAttributeExpirationUpdated",
+          "TenantVerifiedAttributeExtensionUpdated",
+          "MaintenanceTenantDeleted",
+          "MaintenanceTenantUpdated",
+          "TenantContactAdded",
+          "TenantKindUpdated",
+          "TenantContactDeleted",
           "MaintenanceTenantPromotedToCertifier",
           "TenantDelegatedProducerFeatureAdded",
           "TenantDelegatedProducerFeatureRemoved",
