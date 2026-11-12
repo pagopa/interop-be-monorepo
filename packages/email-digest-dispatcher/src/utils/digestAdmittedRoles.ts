@@ -291,3 +291,16 @@ export function computeGroupFlags(
     ])
   );
 }
+
+const reviewerDigestAdmittedRoles = {
+  [ADMIN_ROLE]: false,
+  [API_ROLE]: false,
+  [SECURITY_ROLE]: false,
+  [SUPPORT_ROLE]: false,
+  [REVIEWER_ROLE]: true,
+  [VIEWER_ROLE]: false,
+} as const satisfies Record<UserRole, boolean> &
+  Record<typeof SUPPORT_ROLE, false>;
+
+export const canReceiveReviewerDigest = (roles: UserRole[]): boolean =>
+  roles.some((role) => reviewerDigestAdmittedRoles[role]);

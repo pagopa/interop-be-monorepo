@@ -2,6 +2,7 @@ import { Logger } from "pagopa-interop-commons";
 import {
   agreementState,
   TenantId,
+  UserId,
   purposeVersionState,
   delegationState,
 } from "pagopa-interop-models";
@@ -22,6 +23,8 @@ import {
   receivedDelegationArchivingRequestsToDigest,
   approvedRiskAnalysisToDigest,
   rejectedRiskAnalysisToDigest,
+  reviewerRiskAnalysesToDigest,
+  reviewerRiskAnalysesWithEserviceLinkToDigest,
 } from "../model/digestDataConverter.js";
 import {
   viewAllNewUpdatedEservicesLink,
@@ -109,6 +112,30 @@ export type RejectedRiskAnalysisDigest = BaseDigest & {
   items: Array<{
     rejectedAt: string;
   }>;
+};
+
+type ReviewerRiskAnalysisItem = {
+  purposeTitle: string;
+  purposeLink: string;
+  eserviceName: string;
+  eserviceLink?: string;
+};
+
+export type ReviewerRiskAnalysisDigest = {
+  items: ReviewerRiskAnalysisItem[];
+  totalCount: number;
+};
+
+// Built per user, unlike TenantDigestData
+export type ReviewerDigestData = {
+  tenantId: TenantId;
+  tenantName: string;
+  notificationSettingsLink: string;
+  viewAllReviewerPurposesLink: string;
+  riskAnalysesToApprove?: ReviewerRiskAnalysisDigest;
+  riskAnalysesToFill?: ReviewerRiskAnalysisDigest;
+  publishedReviewerPurposes?: ReviewerRiskAnalysisDigest;
+  riskAnalysesSignedByOtherReviewer?: ReviewerRiskAnalysisDigest;
 };
 
 export type TenantDigestData = {
@@ -425,6 +452,69 @@ export function digestDataServiceBuilder(
           selfcareId
         ),
       };
+    },
+
+    async getReviewerDigestData(
+      tenantId: TenantId,
+      reviewerId: UserId
+    ): Promise<ReviewerDigestData> {
+      logger.info(
+        `Retrieving reviewer digest data for user ${reviewerId} of tenant ${tenantId}`
+      );
+
+      const [
+        tenantDataMap,
+        riskAnalysesToApproveRows,
+        riskAnalysesToFillRows,
+        publishedReviewerPurposesRows,
+        riskAnalysesSignedByOtherReviewerRows,
+      ] = await Promise.all([
+        readModelService.getTenantsByIds([tenantId]),
+        readModelService.getReviewerRiskAnalysesToApprove(tenantId, reviewerId),
+        readModelService.getReviewerRiskAnalysesToFill(tenantId, reviewerId),
+        readModelService.getReviewerPublishedPurposes(tenantId, reviewerId),
+        readModelService.getReviewerRiskAnalysesSignedByOthers(
+          tenantId,
+          reviewerId
+        ),
+      ]);
+
+      const tenantData = tenantDataMap.get(tenantId);
+      const selfcareId = tenantData?.selfcareId ?? null;
+
+      return {
+        tenantId,
+        tenantName: tenantData?.name ?? "Tenant Name Placeholder",
+        notificationSettingsLink: notificationSettingsLink(selfcareId),
+        viewAllReviewerPurposesLink: viewAllSentPurposesLink(selfcareId),
+        riskAnalysesToApprove:
+          await reviewerRiskAnalysesWithEserviceLinkToDigest(
+            riskAnalysesToApproveRows,
+            selfcareId,
+            readModelService
+          ),
+        riskAnalysesToFill: reviewerRiskAnalysesToDigest(
+          riskAnalysesToFillRows,
+          selfcareId
+        ),
+        publishedReviewerPurposes: reviewerRiskAnalysesToDigest(
+          publishedReviewerPurposesRows,
+          selfcareId
+        ),
+        riskAnalysesSignedByOtherReviewer: reviewerRiskAnalysesToDigest(
+          riskAnalysesSignedByOtherReviewerRows,
+          selfcareId
+        ),
+      };
+    },
+
+    hasReviewerDigestContent(data: ReviewerDigestData): boolean {
+      return Boolean(
+        data.riskAnalysesToApprove?.totalCount ||
+        data.riskAnalysesToFill?.totalCount ||
+        data.publishedReviewerPurposes?.totalCount ||
+        data.riskAnalysesSignedByOtherReviewer?.totalCount
+      );
     },
 
     hasDigestContent(data: TenantDigestData): boolean {

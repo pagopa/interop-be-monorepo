@@ -5,6 +5,8 @@ import { TenantDigestData } from "../src/services/digestDataService.js";
 import { digestTemplateServiceBuilder } from "../src/services/templateService.js";
 import { getVisibleSections } from "../src/utils/digestAdmittedRoles.js";
 import {
+  getMockReviewerDigestData,
+  getMockSingularReviewerDigestData,
   getMockSingularTenantDigestData,
   getMockTenantDigestData,
 } from "./mockUtils.js";
@@ -547,5 +549,75 @@ describe("Template Service", () => {
     expect(compiledHtml).toContain(
       "Hai rifiutato una richiesta di archiviazione"
     );
+  });
+});
+
+describe("Template Service - reviewer digest", () => {
+  const toText = (html: string): string =>
+    html
+      .replace(/<head\b[^>]*>[\s\S]*?<\/head>/gi, " ")
+      .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ")
+      .replace(/<!--[\s\S]*?-->/g, " ")
+      .replace(/<[^>]*>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+  const digestTemplateService = digestTemplateServiceBuilder(
+    buildHTMLTemplateService()
+  );
+
+  it("should render the assigned risk analyses section with all lists", () => {
+    const html = digestTemplateService.compileReviewerDigestEmail(
+      getMockReviewerDigestData()
+    );
+    const text = toText(html);
+
+    expect(text).toContain("Il tuo riepilogo settimanale su PDND");
+    expect(text).toContain("Analisi del rischio assegnate");
+    expect(text).toContain("Hai 7 analisi del rischio da approvare:");
+    expect(text).toContain("e altre 2.");
+    expect(text).toContain("Hai 2 analisi del rischio da compilare:");
+    expect(text).toContain(
+      "Sono state pubblicate 2 finalità con analisi del rischio assegnata a te:"
+    );
+    expect(text).toContain(
+      "Un altro valutatore ha approvato una analisi del rischio assegnata a te:"
+    );
+    expect(text).toContain(
+      "Da approvare - Finalità 1 associata all'e-service E-service 1"
+    );
+    expect(html).toContain("https://example.com/reviewer/purposes");
+    expect(html).toContain("https://example.com/reviewer/purpose/1");
+    expect(html).toContain("https://example.com/eservice/1");
+  });
+
+  it("should use singular texts for the published purposes", () => {
+    const text = toText(
+      digestTemplateService.compileReviewerDigestEmail(
+        getMockSingularReviewerDigestData()
+      )
+    );
+
+    expect(text).toContain(
+      "È stata pubblicata 1 finalità con analisi del rischio assegnata a te:"
+    );
+    expect(text).toContain(
+      "Altri valutatori hanno approvato 3 analisi del rischio assegnate a te:"
+    );
+    expect(text).not.toContain("e altre");
+  });
+
+  it("should not render the section when there is no content", () => {
+    const text = toText(
+      digestTemplateService.compileReviewerDigestEmail({
+        ...getMockReviewerDigestData(),
+        riskAnalysesToApprove: { items: [], totalCount: 0 },
+        riskAnalysesToFill: undefined,
+        publishedReviewerPurposes: undefined,
+        riskAnalysesSignedByOtherReviewer: undefined,
+      })
+    );
+
+    expect(text).not.toContain("Analisi del rischio assegnate");
   });
 });

@@ -19,6 +19,7 @@ import {
 import {
   ApprovedRiskAnalysisDigest,
   ArchivingDigest,
+  ReviewerRiskAnalysisDigest,
   AttributeDigest,
   BaseDigest,
   DelegationArchivingRequestDigest,
@@ -48,6 +49,7 @@ import {
   DelegatedArchivingRequest,
   ApprovedRiskAnalysisQueryResult,
   RejectedRiskAnalysisQueryResult,
+  ReviewerRiskAnalysis,
 } from "../services/readModelService.js";
 
 // Module-level cache for descriptor IDs to avoid repeated readModelService calls
@@ -286,6 +288,43 @@ export function archivingEservicesToDigest(
     })),
     totalCount: data[0].totalCount,
   };
+}
+
+export function reviewerRiskAnalysesToDigest(
+  data: ReviewerRiskAnalysis[],
+  selfcareId: string | null,
+  descriptorIds: Map<EServiceId, DescriptorId> = new Map()
+): ReviewerRiskAnalysisDigest {
+  if (data.length === 0) {
+    return { items: [], totalCount: 0 };
+  }
+
+  return {
+    items: data.map((item) => {
+      const descriptorId = descriptorIds.get(item.eserviceId);
+      return {
+        purposeTitle: item.purposeTitle,
+        purposeLink: buildPurposeLink(item.purposeId, false, selfcareId),
+        eserviceName: item.eserviceName,
+        eserviceLink: descriptorId
+          ? buildEserviceLink(item.eserviceId, descriptorId, selfcareId)
+          : undefined,
+      };
+    }),
+    totalCount: data[0].totalCount,
+  };
+}
+
+export async function reviewerRiskAnalysesWithEserviceLinkToDigest(
+  data: ReviewerRiskAnalysis[],
+  selfcareId: string | null,
+  readModelService: ReadModelService
+): Promise<ReviewerRiskAnalysisDigest> {
+  const descriptorIds = await getCachedDescriptorIds(
+    [...new Set(data.map((item) => item.eserviceId))],
+    readModelService
+  );
+  return reviewerRiskAnalysesToDigest(data, selfcareId, descriptorIds);
 }
 
 /**

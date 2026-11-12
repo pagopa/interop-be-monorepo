@@ -1,6 +1,10 @@
 import { generateId } from "pagopa-interop-models";
 
-import { TenantDigestData } from "../src/services/digestDataService.js";
+import {
+  ReviewerDigestData,
+  ReviewerRiskAnalysisDigest,
+  TenantDigestData,
+} from "../src/services/digestDataService.js";
 
 const CARDS_LIMIT = 6;
 const LISTS_LIMIT = 5;
@@ -736,5 +740,80 @@ export function getMockPartialDigestData(): TenantDigestData {
     // Attributes section - populated
     receivedAttributes: generateAttributes(1, "Attributo assegnato"),
     revokedAttributes: generateAttributes(1, "Attributo revocato"),
+  };
+}
+
+/**
+ * Generates mock reviewer risk analysis items, limited to LISTS_LIMIT.
+ */
+function generateReviewerRiskAnalyses(
+  itemsNumber: number,
+  sectionLabel: string,
+  withEserviceLink: boolean
+): ReviewerRiskAnalysisDigest {
+  const items = Array.from(
+    { length: itemsNumber > LISTS_LIMIT ? LISTS_LIMIT : itemsNumber },
+    (_, index) => ({
+      purposeTitle: `${sectionLabel} - Finalità ${index + 1}`,
+      purposeLink: `https://example.com/reviewer/purpose/${index + 1}`,
+      eserviceName: `E-service ${index + 1}`,
+      eserviceLink: withEserviceLink
+        ? `https://example.com/eservice/${index + 1}`
+        : undefined,
+    })
+  );
+  return { items, totalCount: itemsNumber };
+}
+
+/**
+ * Returns mock reviewer digest data matching the Figma "Digest_valutatore" frame
+ */
+export function getMockReviewerDigestData(): ReviewerDigestData {
+  return {
+    tenantId: generateId(),
+    tenantName: "Comune di Test",
+    notificationSettingsLink: "https://example.com/notifications/settings",
+    viewAllReviewerPurposesLink: "https://example.com/reviewer/purposes",
+    riskAnalysesToApprove: generateReviewerRiskAnalyses(
+      7,
+      "Da approvare",
+      true
+    ),
+    riskAnalysesToFill: generateReviewerRiskAnalyses(2, "Da compilare", false),
+    publishedReviewerPurposes: generateReviewerRiskAnalyses(
+      2,
+      "Pubblicata",
+      false
+    ),
+    riskAnalysesSignedByOtherReviewer: generateReviewerRiskAnalyses(
+      1,
+      "Approvata da altro valutatore",
+      false
+    ),
+  };
+}
+
+/**
+ * Returns mock reviewer digest data with a single item per section
+ */
+export function getMockSingularReviewerDigestData(): ReviewerDigestData {
+  return {
+    ...getMockReviewerDigestData(),
+    riskAnalysesToApprove: generateReviewerRiskAnalyses(
+      1,
+      "Da approvare",
+      true
+    ),
+    riskAnalysesToFill: generateReviewerRiskAnalyses(1, "Da compilare", false),
+    publishedReviewerPurposes: generateReviewerRiskAnalyses(
+      1,
+      "Pubblicata",
+      false
+    ),
+    riskAnalysesSignedByOtherReviewer: generateReviewerRiskAnalyses(
+      3,
+      "Approvata da altro valutatore",
+      false
+    ),
   };
 }

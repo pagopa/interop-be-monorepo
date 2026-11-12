@@ -7,14 +7,22 @@ import {
   DigestSection,
   computeGroupFlags,
 } from "../utils/digestAdmittedRoles.js";
-import { TenantDigestData } from "./digestDataService.js";
+import {
+  ReviewerDigestData,
+  ReviewerRiskAnalysisDigest,
+  TenantDigestData,
+} from "./digestDataService.js";
 
 type DigestTemplateService = {
   compileDigestEmail: (
     data: TenantDigestData,
     visibility: Record<DigestSection, boolean>
   ) => string;
+  compileReviewerDigestEmail: (data: ReviewerDigestData) => string;
 };
+
+const remainderOf = (digest: ReviewerRiskAnalysisDigest | undefined): number =>
+  Math.max((digest?.totalCount ?? 0) - (digest?.items.length ?? 0), 0);
 
 export function digestTemplateServiceBuilder(
   templateService: HtmlTemplateService
@@ -47,6 +55,19 @@ export function digestTemplateServiceBuilder(
   // Load digest template
   const digestTemplatePath = `${dirname}/../resources/templates/digest-mail.html`;
   const digestTemplate = fs.readFileSync(digestTemplatePath).toString();
+
+  templateService.registerPartial(
+    "reviewer-item",
+    fs
+      .readFileSync(
+        `${dirname}/../resources/templates/partials/reviewer-item.html`
+      )
+      .toString()
+  );
+  const reviewerDigestTemplatePath = `${dirname}/../resources/templates/digest-reviewer-mail.html`;
+  const reviewerDigestTemplate = fs
+    .readFileSync(reviewerDigestTemplatePath)
+    .toString();
 
   return {
     compileDigestEmail(
@@ -310,6 +331,31 @@ export function digestTemplateServiceBuilder(
         rejectedArchivingRequestsExceededItemsCount,
         approvedRiskAnalysisExceededItemsCount,
         rejectedRiskAnalysisExceededItemsCount,
+      });
+    },
+
+    compileReviewerDigestEmail(data: ReviewerDigestData): string {
+      return templateService.compileHtml(reviewerDigestTemplate, {
+        title: "Riepilogo notifiche",
+        ...data,
+        hasReviewerContent: Boolean(
+          data.riskAnalysesToApprove?.totalCount ||
+          data.riskAnalysesToFill?.totalCount ||
+          data.publishedReviewerPurposes?.totalCount ||
+          data.riskAnalysesSignedByOtherReviewer?.totalCount
+        ),
+        publishedReviewerPurposesSingular:
+          data.publishedReviewerPurposes?.totalCount === 1,
+        riskAnalysesSignedByOtherReviewerSingular:
+          data.riskAnalysesSignedByOtherReviewer?.totalCount === 1,
+        riskAnalysesToApproveRemainder: remainderOf(data.riskAnalysesToApprove),
+        riskAnalysesToFillRemainder: remainderOf(data.riskAnalysesToFill),
+        publishedReviewerPurposesRemainder: remainderOf(
+          data.publishedReviewerPurposes
+        ),
+        riskAnalysesSignedByOtherReviewerRemainder: remainderOf(
+          data.riskAnalysesSignedByOtherReviewer
+        ),
       });
     },
   };
