@@ -1,3 +1,6 @@
+import type { ErrorMessage } from "pagopa-interop-models";
+import type { Problem, MakeApiProblemFn } from "pagopa-interop-models";
+
 import { agreementApi, bffApi, catalogApi } from "pagopa-interop-api-clients";
 import { z } from "zod";
 
@@ -181,6 +184,8 @@ type ConfigurationDoc = z.infer<typeof ConfigurationDoc>;
 
 const ConfigurationDescriptor = z.object({
   interface: ConfigurationDoc.optional(),
+  asyncExchangeCallbackInterface: ConfigurationDoc.optional(),
+  asyncExchangeProperties: bffApi.AsyncExchangeProperties.optional(),
   docs: z.array(ConfigurationDoc),
   audience: z.array(z.string()),
   voucherLifespan: z.number(),
@@ -195,6 +200,7 @@ export const ConfigurationEservice = z.object({
   description: z.string(),
   technology: bffApi.EServiceTechnology,
   mode: bffApi.EServiceMode,
+  asyncExchange: z.boolean().optional(),
   descriptor: ConfigurationDescriptor,
   riskAnalysis: z.array(ConfigurationRiskAnalysis),
   isSignalHubEnabled: z.boolean().optional(),
@@ -202,3 +208,28 @@ export const ConfigurationEservice = z.object({
   isClientAccessDelegable: z.boolean().optional(),
 });
 export type ConfigurationEservice = z.infer<typeof ConfigurationEservice>;
+
+export type UserFacingProblem = Problem & {
+  userMessage?: string;
+};
+
+export type UserFacingLanguage = keyof ErrorMessage["copy"];
+
+export type UserFacingProblemWithMessage = UserFacingProblem & {
+  userMessage: string;
+};
+
+export type PlaceholderMapperGeneratorReturn = Promise<
+  | ((prob: UserFacingProblem & { userMessage: string }) => UserFacingProblem)
+  | undefined
+>;
+
+export type MakeUserFacingApiProblemFn<T extends string> = (
+  error: Parameters<MakeApiProblemFn<T>>[0],
+  httpMapper: Parameters<MakeApiProblemFn<T>>[1],
+  context: Parameters<MakeApiProblemFn<T>>[2] & {
+    endpoint?: string;
+    locale?: UserFacingLanguage;
+  },
+  operationalLogMessage?: Parameters<MakeApiProblemFn<T>>[3]
+) => UserFacingProblem;

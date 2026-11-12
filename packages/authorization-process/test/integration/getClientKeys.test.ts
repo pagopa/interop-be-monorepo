@@ -4,7 +4,7 @@ import {
   getMockClient,
   getMockContext,
   getMockKey,
-} from "pagopa-interop-commons-test/src/testUtils.js";
+} from "pagopa-interop-commons-test";
 import {
   Client,
   Key,

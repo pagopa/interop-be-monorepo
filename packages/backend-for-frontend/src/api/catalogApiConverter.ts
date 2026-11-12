@@ -19,6 +19,7 @@ import { match } from "ts-pattern";
 
 import { attributeNotExists } from "../model/errors.js";
 import {
+  getLastArchivingRequest,
   getLatestActiveDescriptor,
   getLatestTenantContactEmail,
   getValidDescriptor,
@@ -42,6 +43,39 @@ export function toEserviceCatalogProcessQueryParams(
     consumersIds: [],
     name: queryParams.q,
     templatesIds: [],
+  };
+}
+
+export function toCompactCatalogEServicesQueryParams(
+  queryParams: bffApi.BffGetCompactCatalogEServicesQueryParam
+): catalogApi.GetEServicesQueryParams {
+  return {
+    ...queryParams,
+    name: queryParams.q,
+    eservicesIds: [],
+    producersIds: [],
+    attributesIds: [],
+    consumersIds: [],
+    templatesIds: [],
+  };
+}
+
+export function toCompactCatalogEService(
+  eservice: catalogApi.EService,
+  producerTenant: tenantApi.Tenant,
+  activeDescriptor?: catalogApi.EServiceDescriptor
+): bffApi.CompactCatalogEService {
+  return {
+    id: eservice.id,
+    name: eservice.name,
+    producer: {
+      id: producerTenant.id,
+      name: producerTenant.name,
+    },
+    personalData: eservice.personalData,
+    activeDescriptor: activeDescriptor
+      ? toCompactDescriptor(activeDescriptor)
+      : undefined,
   };
 }
 
@@ -325,6 +359,10 @@ export async function enhanceEServiceToBffCatalogApiProducerDescriptorEService(
     personalData: eservice.personalData,
     instanceLabel: eservice.instanceLabel,
     asyncExchange: eservice.asyncExchange,
+    delegatedArchivingRequest: getLastArchivingRequest(
+      eservice,
+      eservice.descriptors
+    ),
   };
 }
 

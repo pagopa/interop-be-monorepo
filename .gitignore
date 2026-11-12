@@ -43,9 +43,12 @@ node_modules/
 packages/models/src/gen
 packages/*/src/model/generated
 packages/*/src/generated
+!packages/error-messages/src/generated/
+packages/error-messages/src/generated/*
+!packages/error-messages/src/generated/errorMessages.ts
 
-# MinIO container data
-docker/minio-data
+# RustFS container data
+docker/rustfs-data
 
 # DynamoDB container data
 docker/dynamo-db-data
@@ -55,6 +58,9 @@ docker/dynamo-db-data
 .turbo
 
 .env.local
+# Generated full-stack seed state and local JWTs
+.local-development/
+.pnpm-store/
 ## Ignore pnpm-lock.yaml files in packages, to prevent committing them
 packages/**/pnpm-lock.yaml
 

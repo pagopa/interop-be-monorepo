@@ -1,12 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { create as createContentDisposition } from "content-disposition";
 import { constants } from "http2";
 import { bffApi } from "pagopa-interop-api-clients";
 import {
   authRole,
   ExpressContext,
   validateAuthorization,
+  WithLogger,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
@@ -20,11 +22,16 @@ import {
 
 import {
   toBffCatalogApiDescriptorDoc,
+  toCompactCatalogEServicesQueryParams,
   toEserviceCatalogProcessQueryParams,
 } from "../api/catalogApiConverter.js";
+import {
+  placeholderMapperGenerator,
+  applyPlaceholderToError,
+} from "../model/applyError.js";
 import { makeApiProblem } from "../model/errors.js";
 import { CatalogService } from "../services/catalogService.js";
-import { fromBffAppContext } from "../utilities/context.js";
+import { BffAppContext, fromBffAppContext } from "../utilities/context.js";
 import {
   addEServiceInterfaceByTemplateErrorMapper,
   bffGetCatalogErrorMapper,
@@ -41,6 +48,20 @@ const catalogRouter = (
   const catalogRouter = ctx.router(bffApi.eservicesApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
+
+  const commonCatalogProducerPlaceholderMapper = async (
+    usedFor: "EService" | "Template",
+    id: string,
+    ctx: WithLogger<BffAppContext>
+  ) =>
+    placeholderMapperGenerator(
+      async () =>
+        usedFor === "Template"
+          ? catalogService.getEserviceTemplateById(unsafeBrandId(id), ctx)
+          : catalogService.getProducerEServiceDetails(unsafeBrandId(id), ctx),
+      (value, message) => message.replace("{identifyingWord}", value.name),
+      (error) => ctx.logger.warn(`Error retrieving placeholder data: ${error}`)
+    );
 
   catalogRouter
     .get("/catalog", async (req, res) => {
@@ -60,6 +81,44 @@ const catalogRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post("/catalog", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const response = await catalogService.queryCatalog(ctx, req.body);
+
+        return res.status(200).send(bffApi.CatalogEServices.parse(response));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          bffGetCatalogErrorMapper,
+          ctx,
+          "Error retrieving filtered Catalog EServices"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/catalog/eservices", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      const queryParams = toCompactCatalogEServicesQueryParams(req.query);
+      try {
+        const response = await catalogService.getCompactCatalogEServices(
+          ctx,
+          queryParams
+        );
+
+        return res
+          .status(200)
+          .send(bffApi.CompactCatalogEServices.parse(response));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          bffGetCatalogErrorMapper,
+          ctx,
+          "Error retrieving compact Catalog EServices"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get("/producers/eservices", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
@@ -68,6 +127,7 @@ const catalogRouter = (
           req.query.consumersIds,
           req.query.delegated,
           req.query.personalData,
+          req.query.states,
           req.query.offset,
           req.query.limit,
           ctx
@@ -168,11 +228,20 @@ const catalogRouter = (
           .status(200)
           .send(bffApi.CreatedEServiceDescriptor.parse(response));
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          emptyErrorMapper,
-          ctx,
-          `Error creating EService instance from template ${req.params.templateId}`
+        const errorRes = await applyPlaceholderToError(
+          makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error creating EService instance from template ${req.params.templateId}`
+          ),
+          ["{identifyingWord}"],
+          () =>
+            commonCatalogProducerPlaceholderMapper(
+              "Template",
+              req.params.templateId,
+              ctx
+            )
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -185,11 +254,10 @@ const catalogRouter = (
           ctx
         );
 
+        const filename = response.filename.replace(/[\\/]/g, "_");
+
         return res
-          .header(
-            "Content-Disposition",
-            `attachment; filename=${response.filename}`
-          )
+          .header("Content-Disposition", createContentDisposition(filename))
           .header("Content-Type", "application/octet-stream")
           .send(response.file);
       } catch (error) {
@@ -413,6 +481,182 @@ const catalogRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post(
+      "/eservices/:eServiceId/approveDelegatedArchiving",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await catalogService.approveDelegatedEServiceArchiving(
+            unsafeBrandId(req.params.eServiceId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error approving delegated archiving request for eService ${req.params.eServiceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eServiceId/rejectDelegatedArchiving",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await catalogService.rejectDelegatedEServiceArchiving(
+            unsafeBrandId(req.params.eServiceId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error rejecting delegated archiving request for eService ${req.params.eServiceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eServiceId/submitDelegatedArchiving",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await catalogService.submitDelegatedEServiceArchiving(
+            unsafeBrandId(req.params.eServiceId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error requesting archival for EService ${req.params.eServiceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/eservices/:eServiceId/submitDelegatedArchiving",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await catalogService.cancelDelegatedEServiceArchiving(
+            unsafeBrandId(req.params.eServiceId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error canceling delegated archiving request for eService ${req.params.eServiceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/submitDelegatedArchiving",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await catalogService.submitDelegatedDescriptorArchiving(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error requesting archival for descriptor ${req.params.descriptorId} for eservice ${req.params.eServiceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/eservices/:eServiceId/descriptors/:descriptorId/submitDelegatedArchiving",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await catalogService.cancelDelegatedDescriptorArchiving(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error canceling delegated archiving request for descriptor ${req.params.descriptorId} of eservice ${req.params.eServiceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/approveDelegatedArchiving",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await catalogService.approveDelegatedDescriptorArchiving(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error approving delegated archiving request for descriptor ${req.params.descriptorId} of eservice ${req.params.eServiceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/rejectDelegatedArchiving",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await catalogService.rejectDelegatedDescriptorArchiving(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error rejecting delegated archiving request for descriptor ${req.params.descriptorId} of eservice ${req.params.eServiceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/agreementApprovalPolicy/update",
       async (req, res) => {
@@ -660,6 +904,27 @@ const catalogRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .patch("/eservices/:eServiceId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const createdResource = await catalogService.patchUpdateEServiceById(
+          unsafeBrandId(req.params.eServiceId),
+          req.body,
+          ctx
+        );
+        return res
+          .status(200)
+          .send(bffApi.CreatedResource.parse(createdResource));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error updating EService ${req.params.eServiceId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .put("/eservices/:eServiceId", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
@@ -694,11 +959,20 @@ const catalogRouter = (
           .status(200)
           .send(bffApi.CreatedResource.parse(createdResource));
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          emptyErrorMapper,
-          ctx,
-          `Error updating EService ${req.params.eServiceId} template instance`
+        const errorRes = await applyPlaceholderToError(
+          makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error updating EService ${req.params.eServiceId} template instance`
+          ),
+          ["{identifyingWord}"],
+          () =>
+            commonCatalogProducerPlaceholderMapper(
+              "EService",
+              req.params.eServiceId,
+              ctx
+            )
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -1217,11 +1491,20 @@ const catalogRouter = (
           );
           return res.status(200).send(bffApi.CreatedResource.parse(result));
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            emptyErrorMapper,
-            ctx,
-            `Error updating instance label for eservice with Id: ${req.params.eServiceId}`
+          const errorRes = await applyPlaceholderToError(
+            makeApiProblem(
+              error,
+              emptyErrorMapper,
+              ctx,
+              `Error updating instance label for eservice with Id: ${req.params.eServiceId}`
+            ),
+            ["{identifyingWord}"],
+            () =>
+              commonCatalogProducerPlaceholderMapper(
+                "EService",
+                req.params.eServiceId,
+                ctx
+              )
           );
           return res.status(errorRes.status).send(errorRes);
         }
