@@ -13,6 +13,7 @@ import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { ContactService } from "../services/contactService.js";
 import { contactValidationErrorToApiProblem } from "../utilities/errorHandlers.js";
+import { getContactErrorMapper } from "../utilities/errorMappers.js";
 
 export const contactRouter = (
   ctx: ZodiosContext,
@@ -21,6 +22,18 @@ export const contactRouter = (
   ctx
     .router(contactDataApi.contactApi.api, {
       validationErrorHandler: contactValidationErrorToApiProblem,
+    })
+    .get("/contacts/:contactId", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [authRole.INTERNAL_ROLE]);
+        const contact = await service.getContact(req.params.contactId, ctx);
+        return res.status(200).send(contactDataApi.Contact.parse(contact));
+      } catch (error) {
+        const problem = makeApiProblem(error, getContactErrorMapper, ctx);
+        return res.status(problem.status).send(problem);
+      }
     })
     .post("/contacts", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
