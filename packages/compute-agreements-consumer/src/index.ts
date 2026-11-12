@@ -11,9 +11,10 @@ import {
 import {
   CorrelationId,
   fromTenantV2,
+  fromTenantV3,
   generateId,
-  genericInternalError,
   missingKafkaMessageDataError,
+  Tenant,
   TenantEvent,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -49,6 +50,29 @@ async function processMessage({
     correlationId,
   });
 
+  const computeAgreementsByAttribute = async (
+    consumer: Tenant,
+    attributeId: string
+  ): Promise<void> => {
+    loggerInstance.info(
+      `Processing ${decodedMsg.type} message - Partition number: ${partition} - Offset: ${message.offset}`
+    );
+    const token = (await refreshableToken.get()).serialized;
+
+    await agreementProcessClient.internalComputeAgreementsByAttribute(
+      {
+        attributeId: unsafeBrandId(attributeId),
+        consumer: toApiCompactTenant(consumer),
+      },
+      {
+        headers: {
+          "X-Correlation-Id": correlationId,
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  };
+
   await match(decodedMsg)
     .with(
       {
@@ -67,23 +91,7 @@ async function processMessage({
         }
 
         if (tenant) {
-          loggerInstance.info(
-            `Processing ${decodedMsg.type} message - Partition number: ${partition} - Offset: ${message.offset}`
-          );
-          const token = (await refreshableToken.get()).serialized;
-
-          await agreementProcessClient.internalComputeAgreementsByAttribute(
-            {
-              attributeId: unsafeBrandId(attributeId),
-              consumer: toApiCompactTenant(fromTenantV2(tenant)),
-            },
-            {
-              headers: {
-                "X-Correlation-Id": correlationId,
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
+          await computeAgreementsByAttribute(fromTenantV2(tenant), attributeId);
         } else {
           throw missingKafkaMessageDataError("tenant", decodedMsg.type);
         }
@@ -103,23 +111,7 @@ async function processMessage({
       },
       async ({ data: { tenant, attributeId } }) => {
         if (tenant) {
-          loggerInstance.info(
-            `Processing ${decodedMsg.type} message - Partition number: ${partition} - Offset: ${message.offset}`
-          );
-          const token = (await refreshableToken.get()).serialized;
-
-          await agreementProcessClient.internalComputeAgreementsByAttribute(
-            {
-              attributeId: unsafeBrandId(attributeId),
-              consumer: toApiCompactTenant(fromTenantV2(tenant)),
-            },
-            {
-              headers: {
-                "X-Correlation-Id": correlationId,
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
+          await computeAgreementsByAttribute(fromTenantV2(tenant), attributeId);
         } else {
           throw missingKafkaMessageDataError("tenant", decodedMsg.type);
         }
@@ -149,12 +141,74 @@ async function processMessage({
       },
       () => Promise.resolve()
     )
+    .with(
+      {
+        event_version: 3,
+        type: P.union(
+          "TenantCertifiedDiscreteAttributeAssigned",
+          "TenantCertifiedDiscreteAttributeRevoked",
+          "TenantCertifiedDiscreteAttributeUpdated"
+        ),
+      },
+      async ({ data: { tenant, attributeId } }) => {
+        if (
+          !isFeatureFlagEnabled(config, "featureFlagAttributeCertifiedDiscrete")
+        ) {
+          return;
+        }
+
+        if (tenant) {
+          await computeAgreementsByAttribute(fromTenantV3(tenant), attributeId);
+        } else {
+          throw missingKafkaMessageDataError("tenant", decodedMsg.type);
+        }
+      }
+    )
+    .with(
+      {
+        event_version: 3,
+        type: P.union(
+          "TenantCertifiedAttributeRevoked",
+          "TenantCertifiedAttributeAssigned",
+          "TenantDeclaredAttributeAssigned",
+          "TenantDeclaredAttributeRevoked",
+          "TenantVerifiedAttributeAssigned",
+          "TenantVerifiedAttributeRevoked"
+        ),
+      },
+      async ({ data: { tenant, attributeId } }) => {
+        if (tenant) {
+          await computeAgreementsByAttribute(fromTenantV3(tenant), attributeId);
+        } else {
+          throw missingKafkaMessageDataError("tenant", decodedMsg.type);
+        }
+      }
+    )
+    .with(
+      {
+        event_version: 3,
+        type: P.union(
+          "TenantOnboarded",
+          "TenantOnboardDetailsUpdated",
+          "TenantVerifiedAttributeExtensionUpdated",
+          "TenantVerifiedAttributeExpirationUpdated",
+          "TenantKindUpdated",
+          "MaintenanceTenantDeleted",
+          "MaintenanceTenantUpdated",
+          "TenantContactAdded",
+          "TenantContactDeleted",
+          "MaintenanceTenantPromotedToCertifier",
+          "TenantDelegatedProducerFeatureAdded",
+          "TenantDelegatedProducerFeatureRemoved",
+          "TenantDelegatedConsumerFeatureAdded",
+          "TenantDelegatedConsumerFeatureRemoved",
+          "TenantRemoteIdAssigned",
+          "MaintenanceTenantRemoteIdDeleted"
+        ),
+      },
+      () => Promise.resolve()
+    )
     .with({ event_version: 1 }, () => Promise.resolve())
-    .with({ event_version: 3 }, (msg) => {
-      throw genericInternalError(
-        `Tenant event V3 not supported yet: ${msg.type}`
-      );
-    })
     .exhaustive();
 }
 
