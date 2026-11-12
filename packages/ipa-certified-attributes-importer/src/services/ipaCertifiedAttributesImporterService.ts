@@ -291,37 +291,50 @@ export async function createNewAttributes(
   attributeRegistryUrl: string,
   attributeCreationWaitTime: number,
   maxRetries: number
-): Promise<void> {
+): Promise<number> {
   if (newAttributes.length === 0) {
     loggerInstance.info("No new attributes to create");
-    return;
+    return 0;
   }
 
   const client =
     attributeRegistryApi.createAttributeApiClient(attributeRegistryUrl);
 
+  const createdAttributes: InternalCertifiedAttribute[] = [];
+
   for (const attribute of newAttributes) {
     loggerInstance.info(
       `Creating attribute ${attribute.origin}/${attribute.code}`
     );
-    await client.createInternalCertifiedAttribute(attribute, {
-      headers,
-    });
+    try {
+      await client.createInternalCertifiedAttribute(attribute, {
+        headers,
+      });
+      createdAttributes.push(attribute);
+    } catch (error: unknown) {
+      loggerInstance.warn(
+        `Failed creation of attribute ${attribute.origin}/${attribute.code}. Skipping. ${describeHttpError(error)}`
+      );
+    }
   }
+
+  const failures = newAttributes.length - createdAttributes.length;
 
   // wait until every event reaches the read model store
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     loggerInstance.info("Waiting for attributes to be created");
     await delay(attributeCreationWaitTime);
 
-    if (await checkAttributesPresence(readModelService, newAttributes)) {
-      return;
+    if (await checkAttributesPresence(readModelService, createdAttributes)) {
+      return failures;
     }
   }
 
   loggerInstance.warn(
     `New attributes are not present in the read model after ${maxRetries} attempts. Continuing with the import`
   );
+
+  return failures;
 }
 
 export function getNewAttributes(
