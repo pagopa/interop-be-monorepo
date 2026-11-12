@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package attribute.v2;
+
+import "v2/attribute/attribute.proto";
+
+message AttributeSubunitPropagationUpdatedV2 {
+  AttributeV2 attribute = 1;
+}

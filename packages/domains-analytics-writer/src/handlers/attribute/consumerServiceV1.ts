@@ -2,7 +2,7 @@
 /* eslint-disable functional/immutable-data */
 import { AttributeSchema } from "pagopa-interop-kpi-models";
 import {
-  AttributeEventEnvelope,
+  AttributeEventEnvelopeV1,
   fromAttributeV1,
   genericInternalError,
 } from "pagopa-interop-models";
@@ -14,7 +14,7 @@ import { DBContext } from "../../db/db.js";
 import { attributeServiceBuilder } from "../../service/attributeService.js";
 
 export async function handleAttributeMessageV1(
-  messages: AttributeEventEnvelope[],
+  messages: AttributeEventEnvelopeV1[],
   dbContext: DBContext
 ): Promise<void> {
   const attributeService = attributeServiceBuilder(dbContext);

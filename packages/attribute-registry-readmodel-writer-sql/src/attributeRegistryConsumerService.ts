@@ -1,5 +1,5 @@
 import {
-  AttributeEventEnvelope,
+  AttributeEventEnvelopeV1,
   fromAttributeV1,
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
@@ -8,7 +8,7 @@ import { match } from "ts-pattern";
 import { AttributeWriterService } from "./attributeWriterService.js";
 
 export async function handleMessage(
-  message: AttributeEventEnvelope,
+  message: AttributeEventEnvelopeV1,
   attributeWriterService: AttributeWriterService
 ): Promise<void> {
   await match(message)

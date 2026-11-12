@@ -41,5 +41,8 @@ export async function handleAttributeEvent(
         );
       }
     )
+    .with({ type: "AttributeSubunitPropagationUpdated" }, () =>
+      Promise.resolve()
+    )
     .exhaustive();
 }
