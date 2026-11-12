@@ -157,6 +157,11 @@ export const approvePurposeErrorMapper = (
     .with("missingPurposeVersionWithState", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const rejectPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("missingPurposeVersionWithState", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const unsuspendPurposeErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
