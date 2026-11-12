@@ -26,7 +26,10 @@ import {
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 
-import { IPACertifiedAttributesImporterConfig } from "../config/config.js";
+import {
+  config,
+  IPACertifiedAttributesImporterConfig,
+} from "../config/config.js";
 import {
   RegistryData,
   InternalCertifiedAttribute,
@@ -324,6 +327,103 @@ export async function createNewAttributes(
   );
 }
 
+function getAooUoAttributes(
+  registryData: RegistryData,
+  tenantUpsertData: TenantSeed[],
+  platformAttributes: Attribute[]
+): InternalCertifiedAttribute[] {
+  const platformTenantKeys = new Set(
+    tenantUpsertData.map((t) =>
+      toTenantKey({ origin: t.origin, value: t.originId })
+    )
+  );
+
+  const aooNames = new Map(
+    registryData.institutions
+      .filter((i) => i.classification === "AOO" && i.subUnit)
+      .map((i) => [i.originId, i.subUnit?.name])
+  );
+
+  const baseSeeds = registryData.institutions
+    .filter(
+      (i) =>
+        i.classification !== AGENCY_CLASSIFICATION &&
+        i.category !== ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER &&
+        platformTenantKeys.has(
+          toTenantKey({ origin: i.origin, value: i.originId })
+        )
+    )
+    .flatMap((i) => {
+      if (!i.subUnit) {
+        return [];
+      }
+
+      const { name, entityName, aooCode } = i.subUnit;
+      const aooName = aooCode ? aooNames.get(aooCode) : undefined;
+      if (aooCode && !aooName) {
+        return [];
+      }
+
+      const fullName = aooName
+        ? `${name} di ${aooName} di ${entityName}`
+        : `${name} di ${entityName}`;
+
+      return [
+        {
+          origin: i.origin,
+          code: i.originId,
+          name: fullName,
+          description: fullName,
+        },
+      ];
+    })
+    .sort((a, b) => a.code.localeCompare(b.code));
+
+  const seedKeys = new Set(
+    baseSeeds.map((a) => toAttributeKey({ origin: a.origin, code: a.code }))
+  );
+
+  const normalizeName = (name: string): string => name.trim().toLowerCase();
+
+  const takenNames = new Set(
+    [
+      ...platformAttributes
+        .filter(
+          (a) =>
+            !seedKeys.has(toAttributeKey({ origin: a.origin, code: a.code }))
+        )
+        .map((a) => a.name),
+      ...registryData.attributes.map((a) => a.name),
+    ].map(normalizeName)
+  );
+
+  const seedsPerName = baseSeeds.reduce((acc, a) => {
+    const name = normalizeName(a.name);
+    return acc.set(name, (acc.get(name) ?? 0) + 1);
+  }, new Map<string, number>());
+
+  return baseSeeds.flatMap((a) => {
+    const name = normalizeName(a.name);
+    if ((seedsPerName.get(name) ?? 0) <= 1 && !takenNames.has(name)) {
+      return [a];
+    }
+
+    const suffixedName = `${a.name} (${a.code})`;
+    // skip names that are already taken
+    if (takenNames.has(normalizeName(suffixedName))) {
+      return [];
+    }
+    takenNames.add(normalizeName(suffixedName));
+    return [
+      {
+        ...a,
+        name: suffixedName,
+        description: `${a.description} (${a.code})`,
+      },
+    ];
+  });
+}
+
 export function getNewAttributes(
   registryData: RegistryData,
   tenantUpsertData: TenantSeed[],
@@ -344,15 +444,27 @@ export function getNewAttributes(
     )
   );
 
-  return registryData.attributes.filter(
-    (a) =>
-      newAttributesIndex.has(
-        toAttributeKey({ origin: a.origin, code: a.code })
-      ) &&
-      !platformAttributesIndex.has(
-        toAttributeKey({ origin: a.origin, code: a.code })
-      )
-  );
+  const aooUoAttributes = isFeatureFlagEnabled(
+    config,
+    "featureFlagAooUoAttributes"
+  )
+    ? getAooUoAttributes(registryData, tenantUpsertData, attributes)
+    : [];
+
+  const seen = new Set<string>();
+  return [
+    ...registryData.attributes.filter((a) =>
+      newAttributesIndex.has(toAttributeKey({ origin: a.origin, code: a.code }))
+    ),
+    ...aooUoAttributes,
+  ].filter((a) => {
+    const key = toAttributeKey({ origin: a.origin, code: a.code });
+    if (platformAttributesIndex.has(key) || seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
 }
 
 export async function getAttributesToAssign(
