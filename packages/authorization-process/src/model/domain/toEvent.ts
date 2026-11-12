@@ -49,6 +49,40 @@ export function toCreateEventClientDeleted(
   };
 }
 
+export function toCreateEventClientNameUpdated(
+  client: Client,
+  version: number,
+  correlationId: CorrelationId
+): CreateEvent<AuthorizationEventV2> {
+  return {
+    streamId: client.id,
+    version,
+    event: {
+      type: "ClientNameUpdated",
+      event_version: 2,
+      data: { client: toClientV2(client) },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventClientDescriptionUpdated(
+  client: Client,
+  version: number,
+  correlationId: CorrelationId
+): CreateEvent<AuthorizationEventV2> {
+  return {
+    streamId: client.id,
+    version,
+    event: {
+      type: "ClientDescriptionUpdated",
+      event_version: 2,
+      data: { client: toClientV2(client) },
+    },
+    correlationId,
+  };
+}
+
 export function toCreateEventClientUserDeleted(
   client: Client,
   userId: UserId,

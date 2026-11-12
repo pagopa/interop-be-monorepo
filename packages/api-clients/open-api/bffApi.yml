@@ -9348,6 +9348,55 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /clients/{clientId}:
+    patch:
+      description: Updates a Client
+      tags:
+        - clients
+      summary: Update a Client
+      operationId: updateClient
+      parameters:
+        - name: clientId
+          in: path
+          description: The Client id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClientUpdateSeed"
+      responses:
+        "204":
+          description: Client updated
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
     get:
       description: Retrieves a Client
       tags:
@@ -16806,6 +16855,33 @@ components:
       required:
         - key
         - purposeId
+    ClientUpdateSeed:
+      description: Client update request body
+      anyOf:
+        - type: object
+          additionalProperties: false
+          properties:
+            name:
+              $ref: "#/components/schemas/ClientName"
+            description:
+              $ref: "#/components/schemas/ClientDescription"
+          required: [name]
+        - type: object
+          additionalProperties: false
+          properties:
+            name:
+              $ref: "#/components/schemas/ClientName"
+            description:
+              $ref: "#/components/schemas/ClientDescription"
+          required: [description]
+    ClientName:
+      type: string
+      minLength: 5
+      maxLength: 60
+    ClientDescription:
+      type: string
+      minLength: 10
+      maxLength: 250
     ClientSeed:
       description: Client creation request body
       type: object
