@@ -8,6 +8,7 @@ import {
   Tenant,
   Delegation,
   EServiceTemplate,
+  PurposeTemplate,
 } from "pagopa-interop-models";
 import { eserviceTemplateReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import {
@@ -16,6 +17,7 @@ import {
   upsertEService,
   upsertEServiceTemplate,
   upsertPurpose,
+  upsertPurposeTemplate,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
 import { afterEach, inject } from "vitest";
@@ -75,5 +77,13 @@ export const seedEServiceTemplates = async (
 ): Promise<void> => {
   for (const e of eserviceTemplates) {
     await upsertEServiceTemplate(readModelDB, e, 0);
+  }
+};
+
+export const seedPurposeTemplate = async (
+  purposeTemplates: PurposeTemplate[]
+): Promise<void> => {
+  for (const p of purposeTemplates) {
+    await upsertPurposeTemplate(readModelDB, p, 0);
   }
 };

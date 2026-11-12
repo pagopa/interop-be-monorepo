@@ -6,7 +6,7 @@ meta {
 
 post {
   url: {{host-bff}}/purposes/:purposeId/riskAnalysis/sign
-  body: none
+  body: json
   auth: none
 }
 
@@ -16,4 +16,31 @@ params:path {
 
 headers {
   Authorization: {{JWT}}
+}
+
+body:json {
+  {
+    "metadataVersionToSign": {{metadataVersionToSign}}
+  }
+}
+
+docs {
+  Set metadataVersionToSign to the X-Metadata-Version returned by GET /purposes/:purposeId
+  for the version actually reviewed. Keep this value when testing a concurrent change;
+  signing never retries or silently switches to the latest version.
+
+  HTTP 409 codes: 004-0066 already approved, 004-0067 already rejected,
+  004-0064 purpose metadata version changed since review. Approved/rejected states take
+  precedence over a version mismatch when verifiable. Other process conflicts
+  retain their original codes.
+
+  Example HTTP 409 (version changed):
+  {
+    "type": "about:blank",
+    "status": 409,
+    "title": "Purpose metadata version mismatch",
+    "detail": "Cannot sign risk analysis for purpose <purposeId>: requested metadata version 1 does not match current metadata version 2",
+    "correlationId": "<correlationId>",
+    "errors": [{ "code": "004-0064", "detail": "Cannot sign risk analysis for purpose <purposeId>: requested metadata version 1 does not match current metadata version 2" }]
+  }
 }

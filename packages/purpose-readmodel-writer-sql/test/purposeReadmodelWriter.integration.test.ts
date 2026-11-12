@@ -18,6 +18,7 @@ import {
   PurposeCreatedV1,
   PurposeDeletedV1,
   PurposeEventEnvelope,
+  PurposeEventEnvelopeV2,
   PurposeUpdatedV1,
   PurposeVersion,
   PurposeVersionActivatedV1,
@@ -39,6 +40,7 @@ import {
   WaitingForApprovalPurposeVersionDeletedV2,
   generateId,
   purposeVersionState,
+  purposeWaitingForApprovalReason,
   toPurposeV2,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
@@ -48,6 +50,98 @@ import { handleMessageV2 } from "../src/purposeConsumerServiceV2.js";
 import { purposeReadModelService, purposeWriterService } from "./utils.js";
 
 describe("Integration tests", async () => {
+  it.each(
+    (
+      [
+        "PurposeWaitingForApproval",
+        "NewPurposeVersionWaitingForApproval",
+        "PurposeVersionOverQuotaUnsuspended",
+      ] as const
+    ).flatMap((type) =>
+      (["PurposeVersionActivated", "PurposeVersionRejected"] as const).map(
+        (transition) => ({ type, transition })
+      )
+    )
+  )(
+    "persists the reason from $type and clears it on $transition",
+    async ({ type, transition }) => {
+      for (const waitingForApprovalReason of Object.values(
+        purposeWaitingForApprovalReason
+      )) {
+        const activeVersion = getMockPurposeVersion(purposeVersionState.active);
+        const waitingVersion = {
+          ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+          waitingForApprovalReason,
+        };
+        const purpose = {
+          ...getMockPurpose(),
+          versions: [activeVersion, waitingVersion],
+        };
+        const envelope = {
+          sequence_num: 1,
+          stream_id: purpose.id,
+          version: 1,
+          event_version: 2 as const,
+          log_date: new Date(),
+        };
+        const data = { purpose: toPurposeV2(purpose) };
+        const message: PurposeEventEnvelopeV2 =
+          type === "PurposeWaitingForApproval"
+            ? { ...envelope, type, data }
+            : {
+                ...envelope,
+                type,
+                data: { ...data, versionId: waitingVersion.id },
+              };
+        await handleMessageV2(message, purposeWriterService);
+        let result = await purposeReadModelService.getPurposeById(purpose.id);
+        expect(
+          result?.data.versions.find((v) => v.id === waitingVersion.id)
+            ?.waitingForApprovalReason
+        ).toBe(waitingForApprovalReason);
+        expect(
+          result?.data.versions.find((v) => v.id === activeVersion.id)
+            ?.waitingForApprovalReason
+        ).toBeUndefined();
+        const transitionedPurpose = {
+          ...purpose,
+          versions: [
+            activeVersion,
+            {
+              ...waitingVersion,
+              state:
+                transition === "PurposeVersionActivated"
+                  ? purposeVersionState.active
+                  : purposeVersionState.rejected,
+              waitingForApprovalReason: undefined,
+              rejectionReason:
+                transition === "PurposeVersionRejected"
+                  ? "Rejected by producer"
+                  : undefined,
+            },
+          ],
+        };
+        await handleMessageV2(
+          {
+            ...envelope,
+            version: 2,
+            type: transition,
+            data: {
+              purpose: toPurposeV2(transitionedPurpose),
+              versionId: waitingVersion.id,
+            },
+          },
+          purposeWriterService
+        );
+        result = await purposeReadModelService.getPurposeById(purpose.id);
+        expect(
+          result?.data.versions.find((v) => v.id === waitingVersion.id)
+            ?.waitingForApprovalReason
+        ).toBeUndefined();
+      }
+    }
+  );
+
   describe("Events V1", () => {
     const mockPurpose = getMockPurpose();
     const mockPurposeVersion = getMockPurposeVersion();

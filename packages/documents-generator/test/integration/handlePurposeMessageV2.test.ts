@@ -14,7 +14,7 @@ import {
   getMockPurposeVersion,
   getMockTenant,
   getMockValidRiskAnalysisForm,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   CorrelationId,
   EServiceId,
@@ -169,9 +169,9 @@ describe("handleDelegationMessageV2", () => {
       consumerId: mockAgreement.consumerId,
       eserviceId: mockEService.id,
       versions: [mockPurposeVersion],
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-        reviewerIds: [mockReviewerId],
+        reviewers: [{ id: mockReviewerId, sentToReviewerAt: new Date() }],
         signingState: "Signed",
         signedBy: mockReviewerId,
         rejectionReason: undefined,

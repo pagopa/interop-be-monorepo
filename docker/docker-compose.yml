@@ -23,8 +23,37 @@ volumes:
   mailpit-data:
   local-kms-data:
   redis-data:
+  dynamodb-data:
+  rustfs-data:
 
 services:
+  # Optional local development supervisor. Use scripts/local-development/dashboard.sh
+  # to generate source/dependency mounts for the current checkout.
+  dashboard:
+    profiles: [dashboard]
+    image: "${INTEROP_DASHBOARD_IMAGE:-pagopa-interop-dashboard:local}"
+    build:
+      context: ..
+      dockerfile: docker/dev-dashboard/Dockerfile
+    init: true
+    entrypoint: ["/usr/local/bin/dashboard-entrypoint"]
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    ports:
+      - "127.0.0.1:8076:8076"
+    environment:
+      DASHBOARD_PORT: "8076"
+      COMPOSE_PROJECT_NAME: "${COMPOSE_PROJECT_NAME:-pagopa-interop}"
+      INTEROP_DASHBOARD_RUNTIME: "true"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8076/health"]
+      interval: 3s
+      timeout: 2s
+      start_period: 10m
+      retries: 10
+
   # Event Store Postgres DB
   event-store:
     security_opt:
@@ -187,8 +216,17 @@ services:
       - /tmp
     volumes:
       - zookeeper-data:/zookeeper/data
-      - zookeeper-logs:/zookeeper/logs
+      - zookeeper-logs:/zookeeper/txns
     image: quay.io/debezium/zookeeper:2.3
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          curl --fail --silent --show-error --max-time 1 http://localhost:8080/commands/ruok
+          | grep -q '"error"[[:space:]]*:[[:space:]]*null'
+      interval: 2s
+      timeout: 2s
+      retries: 30
 
   # Kafka server
   kafka:
@@ -206,7 +244,8 @@ services:
       - 9092:9092
       - 29092:29092
     depends_on:
-      - zookeeper
+      zookeeper:
+        condition: service_healthy
     environment:
       ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LISTENERS: LISTENER_DOCKER://kafka:29092,LISTENER_HOST://kafka:9092
@@ -215,6 +254,11 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER
       KAFKA_NUM_PARTITIONS: 3
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: ["CMD", "/kafka/bin/kafka-topics.sh", "--bootstrap-server", "kafka:29092", "--list"]
+      interval: 3s
+      timeout: 3s
+      retries: 40
 
   # Debezium to stream event store changes to kafka
   connect:
@@ -238,7 +282,8 @@ services:
       STATUS_STORAGE_TOPIC: connect_statuses
       CONNECT__BINARY_HANDLING_MODE: hex
     depends_on:
-      - kafka
+      kafka:
+        condition: service_healthy
 
   # Dynamo DB readmodel for token generation and privacy notices
   dynamodb-local:
@@ -246,13 +291,14 @@ services:
       - no-new-privileges:true
     read_only: true
     tmpfs:
-      - /tmp
-    command: "-jar DynamoDBLocal.jar -inMemory -sharedDb"
+      - /tmp:exec
+    user: "0:0"
+    command: "-jar DynamoDBLocal.jar -dbPath /data -sharedDb"
     image: amazon/dynamodb-local:2.5.2
     ports:
       - 8085:8000
     volumes:
-      - ./dynamo-db-data:/data
+      - dynamodb-data:/data
     working_dir: /home/dynamodblocal
 
   # Web GUI for dynamodb
@@ -297,10 +343,8 @@ services:
   pg-admin:
     security_opt:
       - no-new-privileges:true
-    read_only: true
     tmpfs:
       - /tmp
-      - /var/log/pgadmin
     image: dpage/pgadmin4:2024-04-01-1
     ports:
       - 8082:80
@@ -309,20 +353,15 @@ services:
       PGADMIN_DEFAULT_PASSWORD: example
       PGADMIN_CONFIG_SERVER_MODE: "False"
       PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+      PGADMIN_CONFIG_DESKTOP_USER: "'root@example.com'"
+      PGADMIN_DISABLE_POSTFIX: "1"
     restart: always
     volumes:
       - ./pg-servers.json:/pgadmin4/servers.json
-      - ./pg-pass:/pgadmin4/pgpass
+      - ./pg-pass:/pgadmin4/pgpass-source:ro
+      - ./pgadmin-entrypoint.sh:/pgadmin-entrypoint.sh:ro
       - pg-admin-data:/var/lib/pgadmin
-    # see https://stackoverflow.com/a/69475874/846273
-    entrypoint: >
-      /bin/sh -c "
-      mkdir -m 700 /var/lib/pgadmin/storage/root_example.com;
-      chown -R pgadmin:pgadmin /var/lib/pgadmin/storage/root_example.com;
-      cp -prv /pgadmin4/pgpass /var/lib/pgadmin/storage/root_example.com/;
-      chmod 600 /var/lib/pgadmin/storage/root_example.com/pgpass;
-      /entrypoint.sh
-      "
+    entrypoint: ["/bin/sh", "/pgadmin-entrypoint.sh"]
 
   # Web GUI for kafka
   kafka-ui:
@@ -341,53 +380,64 @@ services:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
 
-  # MinIO is a local S3-compatible storage, to replace AWS S3 in local development
-  minio:
+  # RustFS is a local S3-compatible storage, to replace AWS S3 in local development
+  rustfs:
     security_opt:
       - no-new-privileges:true
     read_only: true
     tmpfs:
       - /tmp
-      - /root/.minio
-    image: minio/minio:RELEASE.2024-02-06T21-36-22Z
-    entrypoint: >
-      /usr/bin/minio server /data --console-address ':9001'
+      - /logs
+    image: rustfs/rustfs:1.0.0
     ports:
       - 9000:9000
       - 9001:9001
     environment:
-      MINIO_ROOT_USER: testawskey # use this as AWS S3 access key ID
-      MINIO_ROOT_PASSWORD: testawssecret # use this as AWS S3 secret access key
-      MINIO_SITE_REGION: eu-south-1
+      RUSTFS_ACCESS_KEY: testawskey # use this as AWS S3 access key ID
+      RUSTFS_SECRET_KEY: testawssecret # use this as AWS S3 secret access key
+      RUSTFS_REGION: eu-south-1
+      RUSTFS_VOLUMES: /data
+      RUSTFS_ADDRESS: ":9000"
+      RUSTFS_CONSOLE_ADDRESS: ":9001"
+      RUSTFS_CONSOLE_ENABLE: "true"
+      RUSTFS_OBS_LOG_DIRECTORY: /logs
     volumes:
-      - ./minio-data:/data
+      - rustfs-data:/data
     restart: always
 
-  # Seed data for MinIO
-  minio-seed:
+  # Seed data for RustFS
+  rustfs-seed:
     security_opt:
       - no-new-privileges:true
     read_only: true
     tmpfs:
       - /tmp
-      - /root/.mc
-    image: minio/mc:RELEASE.2024-02-09T22-18-24Z
+      - /root/.aws
+    image: amazon/aws-cli:2.17.44
     depends_on:
-      - minio
+      - rustfs
+    environment:
+      AWS_ACCESS_KEY_ID: testawskey
+      AWS_SECRET_ACCESS_KEY: testawssecret
+      AWS_REGION: eu-south-1
+      AWS_DEFAULT_REGION: eu-south-1
     entrypoint: >
       /bin/sh -c "
-        mc alias set minio http://minio:9000 testawskey testawssecret;
-        mc ready minio;
-        echo 'MinIO is ready. Seeding data...';
-        mc mb minio/interop-local-bucket || true;
-        mc mb minio/interop-datalake-bucket || true;
-        mc mb minio/interop-application-import-export-local || true;
-        mc mb minio/interop-data-lake-interfaces-exports-local-es1 || true;
-        mc mb --with-lock minio/interop-generated-jwt-audit || true;
-        mc cp --recursive data/ minio/;
+        until aws --endpoint-url http://rustfs:9000 s3 ls; do
+          echo 'Waiting for RustFS to be ready...';
+          sleep 1;
+        done;
+        echo 'RustFS is ready. Seeding data...';
+        aws --endpoint-url http://rustfs:9000 s3 mb s3://interop-local-bucket || true;
+        aws --endpoint-url http://rustfs:9000 s3 mb s3://interop-local-bucket-signed || true;
+        aws --endpoint-url http://rustfs:9000 s3 mb s3://interop-datalake-bucket || true;
+        aws --endpoint-url http://rustfs:9000 s3 mb s3://interop-application-import-export-local || true;
+        aws --endpoint-url http://rustfs:9000 s3 mb s3://interop-data-lake-interfaces-exports-local-es1 || true;
+        aws --endpoint-url http://rustfs:9000 s3api create-bucket --bucket interop-generated-jwt-audit --object-lock-enabled-for-bucket || true;
+        aws --endpoint-url http://rustfs:9000 s3 cp --recursive /data/interop-local-bucket s3://interop-local-bucket;
       "
     volumes:
-      - ./minio-seed:/data
+      - ./rustfs-seed:/data
 
   # ElasticMQ is a local SQS-compatible queue system, to replace AWS SQS in local development
   elasticmq:
@@ -421,6 +471,7 @@ services:
 
   # local-kms is a local KMS-compatible key management service, to replace AWS KMS in local development
   local-kms:
+    init: true
     security_opt:
       - no-new-privileges:true
     read_only: true
@@ -478,3 +529,26 @@ services:
     image: "redis:7.2.5-alpine3.20"
     ports:
       - "6379:6379"
+
+  # Minimal implementation of the Selfcare APIs consumed by the BFF.
+  selfcare-mock:
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+    image: node:20-alpine
+    command: node /app/selfcare-mock.mjs
+    environment:
+      PORT: 8006
+      SELFCARE_MOCK_DATASET: /app/dataset.json
+    ports:
+      - "8006:8006"
+    volumes:
+      - ./selfcare-mock/selfcare-mock.mjs:/app/selfcare-mock.mjs:ro
+      - ./local-development/dataset.json:/app/dataset.json:ro
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8006/health"]
+      interval: 2s
+      timeout: 2s
+      retries: 30

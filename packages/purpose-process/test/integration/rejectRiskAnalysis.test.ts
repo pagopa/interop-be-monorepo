@@ -13,8 +13,10 @@ import {
   PurposeRiskAnalysisRejectedV2,
   TenantId,
   UserId,
+  eventConflictError,
   fromPurposeV2,
   generateId,
+  hyperlinkDetectionError,
   riskAnalysisReviewMode,
   riskAnalysisSigningState,
 } from "pagopa-interop-models";
@@ -26,11 +28,14 @@ import {
   requesterIsNotDesignatedReviewer,
   reviewerWorkflowNotFound,
   reviewerWorkflowNotInSubmittedState,
+  riskAnalysisAlreadyApproved,
+  riskAnalysisAlreadyRejected,
   tenantIsNotTheConsumer,
 } from "../../src/model/domain/errors.js";
 import {
   addOnePurpose,
   purposeService,
+  postgresDB,
   readLastPurposeEvent,
 } from "../integrationUtils.js";
 
@@ -42,11 +47,10 @@ describe("rejectRiskAnalysis", () => {
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-        reviewerIds: [reviewerId],
+        reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.submitted,
-        sentToReviewerAt: new Date(),
       },
     };
 
@@ -79,6 +83,9 @@ describe("rejectRiskAnalysis", () => {
     expect(sortPurpose(fromPurposeV2(writtenPayload.purpose!))).toEqual(
       sortPurpose(updatedPurpose)
     );
+
+    expect(updatedPurpose.reviewerWorkflow?.rejectedBy).toEqual(reviewerId);
+    expect(updatedPurpose.reviewerWorkflow?.rejectedAt).toEqual(new Date());
 
     vi.useRealTimers();
   });
@@ -118,72 +125,137 @@ describe("rejectRiskAnalysis", () => {
     ).rejects.toThrowError(reviewerWorkflowNotFound(mockPurpose.id));
   });
 
-  it("should throw tenantIsNotTheConsumer if the requester is not the consumer", async () => {
-    const reviewerId: UserId = generateId();
-    const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
-      reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-        reviewerIds: [reviewerId],
-        signingState: riskAnalysisSigningState.submitted,
-        sentToReviewerAt: new Date(),
-      },
-    };
-
-    await addOnePurpose(mockPurpose);
-
-    const otherOrganizationId = generateId<TenantId>();
-
-    await expect(
-      purposeService.rejectRiskAnalysis(
-        mockPurpose.id,
-        {
-          rejectionReason:
-            "This risk analysis is incomplete and needs revision",
+  it.each([
+    riskAnalysisSigningState.submitted,
+    riskAnalysisSigningState.signed,
+    riskAnalysisSigningState.rejected,
+  ])(
+    "should check the consumer before workflow state %s",
+    async (signingState) => {
+      const reviewerId: UserId = generateId();
+      const mockPurpose: Purpose = {
+        ...getMockPurpose([getMockPurposeVersion()]),
+        riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+        reviewerWorkflow: {
+          reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
+          signingState,
         },
-        getMockContext({
-          authData: getMockAuthData(otherOrganizationId, reviewerId),
-        })
-      )
-    ).rejects.toThrowError(tenantIsNotTheConsumer(otherOrganizationId));
-  });
+      };
 
-  it("should throw reviewerWorkflowNotInSubmittedState if the workflow is not in Submitted state", async () => {
-    const reviewerId: UserId = generateId();
-    const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
-      reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-        reviewerIds: [reviewerId],
-        signingState: riskAnalysisSigningState.draft,
-      },
-    };
+      await addOnePurpose(mockPurpose);
 
-    await addOnePurpose(mockPurpose);
+      const otherOrganizationId = generateId<TenantId>();
 
-    await expect(
-      purposeService.rejectRiskAnalysis(
-        mockPurpose.id,
-        {
-          rejectionReason:
-            "This risk analysis is incomplete and needs revision",
+      await expect(
+        purposeService.rejectRiskAnalysis(
+          mockPurpose.id,
+          {
+            rejectionReason:
+              "This risk analysis is incomplete and needs revision",
+          },
+          getMockContext({
+            authData: getMockAuthData(otherOrganizationId, reviewerId),
+          })
+        )
+      ).rejects.toThrowError(tenantIsNotTheConsumer(otherOrganizationId));
+
+      expect(await readLastPurposeEvent(mockPurpose.id)).toMatchObject({
+        version: "0",
+        type: "PurposeAdded",
+      });
+    }
+  );
+
+  it.each([riskAnalysisSigningState.draft, riskAnalysisSigningState.assigned])(
+    "should throw reviewerWorkflowNotInSubmittedState for state %s",
+    async (signingState) => {
+      const reviewerId: UserId = generateId();
+      const mockPurpose: Purpose = {
+        ...getMockPurpose([getMockPurposeVersion()]),
+        riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+        reviewerWorkflow: {
+          reviewers: [{ id: reviewerId }],
+          signingState,
         },
-        getMockContext({
-          authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
-        })
-      )
-    ).rejects.toThrowError(reviewerWorkflowNotInSubmittedState(mockPurpose.id));
-  });
+      };
+
+      await addOnePurpose(mockPurpose);
+
+      await expect(
+        purposeService.rejectRiskAnalysis(
+          mockPurpose.id,
+          {
+            rejectionReason:
+              "This risk analysis is incomplete and needs revision",
+          },
+          getMockContext({
+            authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
+          })
+        )
+      ).rejects.toThrowError(
+        reviewerWorkflowNotInSubmittedState(mockPurpose.id)
+      );
+
+      expect(await readLastPurposeEvent(mockPurpose.id)).toMatchObject({
+        version: "0",
+        type: "PurposeAdded",
+      });
+    }
+  );
+
+  it.each([
+    {
+      signingState: riskAnalysisSigningState.signed,
+      expectedError: riskAnalysisAlreadyApproved,
+    },
+    {
+      signingState: riskAnalysisSigningState.rejected,
+      expectedError: riskAnalysisAlreadyRejected,
+    },
+  ])(
+    "should report the corresponding terminal conflict for state $signingState",
+    async ({ signingState, expectedError }) => {
+      const reviewerId: UserId = generateId();
+      const mockPurpose: Purpose = {
+        ...getMockPurpose([getMockPurposeVersion()]),
+        riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+        reviewerWorkflow: {
+          reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
+          signingState,
+        },
+      };
+
+      await addOnePurpose(mockPurpose);
+
+      await expect(
+        purposeService.rejectRiskAnalysis(
+          mockPurpose.id,
+          {
+            rejectionReason:
+              "This risk analysis is incomplete and needs revision",
+          },
+          getMockContext({
+            authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
+          })
+        )
+      ).rejects.toThrowError(expectedError(mockPurpose.id));
+
+      expect(await readLastPurposeEvent(mockPurpose.id)).toMatchObject({
+        version: "0",
+        type: "PurposeAdded",
+      });
+    }
+  );
 
   it("should throw rejectNotAllowedInCurrentMode if the workflow mode is ReviewerWritesReviewerSigns", async () => {
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
+      riskAnalysisReviewMode:
+        riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-        reviewerIds: [reviewerId],
+        reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.submitted,
-        sentToReviewerAt: new Date(),
       },
     };
 
@@ -206,11 +278,10 @@ describe("rejectRiskAnalysis", () => {
   it("should throw requesterIsNotDesignatedReviewer if the requester is not in reviewerIds", async () => {
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-        reviewerIds: [generateId<UserId>()],
+        reviewers: [{ id: generateId<UserId>(), sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.submitted,
-        sentToReviewerAt: new Date(),
       },
     };
 
@@ -231,5 +302,76 @@ describe("rejectRiskAnalysis", () => {
         })
       )
     ).rejects.toThrowError(requesterIsNotDesignatedReviewer(mockPurpose.id));
+  });
+
+  it("should throw hyperlinkDetectionError when the rejectionReason contains a hyperlink", async () => {
+    const reviewerId: UserId = generateId();
+    const mockPurpose: Purpose = {
+      ...getMockPurpose([getMockPurposeVersion()]),
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      reviewerWorkflow: {
+        reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
+        signingState: riskAnalysisSigningState.submitted,
+      },
+    };
+
+    await addOnePurpose(mockPurpose);
+
+    const rejectionReason = "see https://evil.example.com";
+
+    await expect(
+      purposeService.rejectRiskAnalysis(
+        mockPurpose.id,
+        { rejectionReason },
+        getMockContext({
+          authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
+        })
+      )
+    ).rejects.toThrowError(hyperlinkDetectionError(rejectionReason));
+  });
+
+  it("should propagate an event-store conflict without writing another event", async () => {
+    const reviewerId: UserId = generateId();
+    const mockPurpose: Purpose = {
+      ...getMockPurpose([getMockPurposeVersion()]),
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      reviewerWorkflow: {
+        reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
+        signingState: riskAnalysisSigningState.submitted,
+      },
+    };
+    const context = getMockContext({
+      authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
+    });
+    const rejectionSeed = {
+      rejectionReason: "This risk analysis is incomplete and needs revision",
+    };
+
+    await addOnePurpose(mockPurpose);
+    await purposeService.rejectRiskAnalysis(
+      mockPurpose.id,
+      rejectionSeed,
+      context
+    );
+    const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
+
+    // The readmodel still has version 0 after the first event-store write.
+    const writeTransaction = vi.spyOn(postgresDB, "tx");
+    try {
+      await expect(
+        purposeService.rejectRiskAnalysis(
+          mockPurpose.id,
+          rejectionSeed,
+          context
+        )
+      ).rejects.toThrowError(
+        eventConflictError(context.correlationId, mockPurpose.id, 0)
+      );
+      expect(writeTransaction).toHaveBeenCalledOnce();
+    } finally {
+      writeTransaction.mockRestore();
+    }
+
+    expect(await readLastPurposeEvent(mockPurpose.id)).toEqual(writtenEvent);
   });
 });
