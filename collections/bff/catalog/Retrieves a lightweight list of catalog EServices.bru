@@ -1,0 +1,30 @@
+meta {
+  name: Retrieves a lightweight list of catalog EServices
+  type: http
+  seq: 47
+}
+
+get {
+  url: {{host-bff}}/catalog/eservices
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+  ~q: <string>
+  ~states:
+  ~agreementStates:
+  ~mode: RECEIVE
+  ~isConsumerDelegable: true
+  ~personalData: "FALSE"
+}
+
+headers {
+  Authorization: {{JWT}}
+}
+
+docs {
+  Retrieves a lightweight list of catalog EServices, meant to populate selects and autocomplete inputs
+}
