@@ -18,6 +18,11 @@ import {
   TenantEventEnvelopeV1,
   TenantEventV1,
   TenantV1,
+  ContactId,
+  TenantEventEnvelopeV3,
+  TenantEventV3,
+  TenantV3,
+  toTenantV3,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -66,6 +71,17 @@ describe("notificationTenantLifecycleProcessor", async () => {
     sequence_num: 1,
     stream_id: "stream-id",
     version: 2,
+    correlation_id: correlationId,
+    log_date: new Date(),
+  });
+
+  const toTenantEventEnvelopeV3 = (
+    event: TenantEventV3
+  ): TenantEventEnvelopeV3 => ({
+    ...event,
+    sequence_num: 1,
+    stream_id: "stream-id",
+    version: 3,
     correlation_id: correlationId,
     log_date: new Date(),
   });
@@ -544,6 +560,133 @@ describe("notificationTenantLifecycleProcessor", async () => {
       expect(
         interopBeClients.notificationConfigProcess.client
           .createTenantDefaultNotificationConfig
+      ).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("handleMessageV3", () => {
+    it("Should call the createTenantDefaultNotificationConfig route on a TenantOnboarded event", async () => {
+      const tenant: TenantV3 = toTenantV3({
+        ...getMockTenant(),
+        contactId: generateId<ContactId>(),
+      });
+      const message = toTenantEventEnvelopeV3({
+        type: "TenantOnboarded",
+        data: { tenant },
+        event_version: 3,
+      });
+      await notificationTenantLifecycleConsumerService.handleMessageV3(
+        message,
+        correlationId,
+        loggerInstance
+      );
+      expect(refreshableToken.get).toHaveBeenCalledOnce();
+      expect(
+        interopBeClients.notificationConfigProcess.client
+          .createTenantDefaultNotificationConfig
+      ).toHaveBeenCalledOnce();
+      expect(
+        interopBeClients.notificationConfigProcess.client
+          .createTenantDefaultNotificationConfig
+      ).toHaveBeenCalledWith(
+        { tenantId: tenant.id },
+        {
+          headers: expectedHeaders,
+        }
+      );
+    });
+
+    it("Should call the deleteTenantNotificationConfig route on a MaintenanceTenantDeleted event", async () => {
+      const tenantId = generateId();
+      const message = toTenantEventEnvelopeV3({
+        type: "MaintenanceTenantDeleted",
+        data: { tenantId },
+        event_version: 3,
+      });
+      await notificationTenantLifecycleConsumerService.handleMessageV3(
+        message,
+        correlationId,
+        loggerInstance
+      );
+      expect(refreshableToken.get).toHaveBeenCalledOnce();
+      expect(
+        interopBeClients.notificationConfigProcess.client
+          .deleteTenantNotificationConfig
+      ).toHaveBeenCalledOnce();
+      expect(
+        interopBeClients.notificationConfigProcess.client
+          .deleteTenantNotificationConfig
+      ).toHaveBeenCalledWith(undefined, {
+        params: { tenantId },
+        headers: expectedHeaders,
+      });
+    });
+
+    it("Should throw missingKafkaMessageDataError when the tenant is missing in a TenantOnboarded event", async () => {
+      const message = toTenantEventEnvelopeV3({
+        type: "TenantOnboarded",
+        data: {},
+        event_version: 3,
+      });
+      await expect(
+        notificationTenantLifecycleConsumerService.handleMessageV3(
+          message,
+          correlationId,
+          loggerInstance
+        )
+      ).rejects.toThrow(
+        missingKafkaMessageDataError("tenant", "TenantOnboarded")
+      );
+      expect(refreshableToken.get).not.toHaveBeenCalled();
+      expect(
+        interopBeClients.notificationConfigProcess.client
+          .createTenantDefaultNotificationConfig
+      ).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      "TenantOnboardDetailsUpdated",
+      "TenantCertifiedAttributeAssigned",
+      "TenantCertifiedAttributeRevoked",
+      "TenantCertifiedDiscreteAttributeAssigned",
+      "TenantCertifiedDiscreteAttributeRevoked",
+      "TenantCertifiedDiscreteAttributeUpdated",
+      "TenantDeclaredAttributeAssigned",
+      "TenantDeclaredAttributeRevoked",
+      "TenantVerifiedAttributeAssigned",
+      "TenantVerifiedAttributeRevoked",
+      "TenantVerifiedAttributeExpirationUpdated",
+      "TenantVerifiedAttributeExtensionUpdated",
+      "TenantContactAdded",
+      "MaintenanceTenantPromotedToCertifier",
+      "MaintenanceTenantUpdated",
+      "TenantContactDeleted",
+      "TenantKindUpdated",
+      "TenantDelegatedProducerFeatureAdded",
+      "TenantDelegatedProducerFeatureRemoved",
+      "TenantDelegatedConsumerFeatureAdded",
+      "TenantDelegatedConsumerFeatureRemoved",
+      "TenantRemoteIdAssigned",
+      "MaintenanceTenantRemoteIdDeleted",
+    ] as const)("Should ignore the event %s", async (eventType) => {
+      const message = toTenantEventEnvelopeV3({
+        type: eventType,
+        data: {} as never,
+        event_version: 3,
+      });
+      await notificationTenantLifecycleConsumerService.handleMessageV3(
+        message,
+        correlationId,
+        loggerInstance
+      );
+      expect(refreshableToken.get).not.toHaveBeenCalled();
+      expect(
+        interopBeClients.notificationConfigProcess.client
+          .createTenantDefaultNotificationConfig
+      ).not.toHaveBeenCalled();
+      expect(
+        interopBeClients.notificationConfigProcess.client
+          .deleteTenantNotificationConfig
       ).not.toHaveBeenCalled();
     });
   });
