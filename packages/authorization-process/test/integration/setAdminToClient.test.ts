@@ -1,4 +1,10 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
+import {
+  decodeProtobufPayload,
+  getMockAuthData,
+  getMockClient,
+  getMockContext,
+} from "pagopa-interop-commons-test";
 import {
   Client,
   ClientAdminSetV2,
@@ -9,13 +15,8 @@ import {
   toClientV2,
   UserId,
 } from "pagopa-interop-models";
-import {
-  decodeProtobufPayload,
-  getMockAuthData,
-  getMockClient,
-  getMockContext,
-} from "pagopa-interop-commons-test";
-import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import {
   clientAdminAlreadyAssignedToUser,
   clientKindNotAllowed,

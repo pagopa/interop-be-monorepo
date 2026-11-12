@@ -7,16 +7,14 @@ import {
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
-  retrieveEService,
-  retrieveHTMLTemplate,
-  retrieveTenant,
-} from "../../services/utils.js";
-import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-  ProducerKeychainEServiceHandlerParams,
-} from "../handlerCommons.js";
+  retrieveHTMLTemplate,
+} from "pagopa-interop-notification-commons";
+
 import { config } from "../../config/config.js";
+import { ProducerKeychainEServiceHandlerParams } from "../../models/handlerParams.js";
+import { retrieveEService, retrieveTenant } from "../../services/utils.js";
 
 const notificationType: NotificationType =
   "producerKeychainKeyAddedDeletedToClientUsers";

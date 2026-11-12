@@ -14,6 +14,7 @@ enum EServiceTemplateVersionStateV2 {
 message EServiceTemplateAttributeValueV2 {
   string id = 1;
   bool explicitAttributeVerification = 2;
+  optional eservice.v2.EServiceAttributeCertifiedDiscreteConfigV2 discreteConfig = 3;
 }
 
 message EServiceTemplateAttributeV2 {

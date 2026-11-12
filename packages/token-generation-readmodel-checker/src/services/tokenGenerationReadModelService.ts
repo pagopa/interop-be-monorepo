@@ -1,16 +1,17 @@
 import {
-  genericInternalError,
-  TokenGenerationStatesGenericClient,
-} from "pagopa-interop-models";
-import {
   AttributeValue,
   DynamoDBClient,
   ScanCommand,
   ScanInput,
 } from "@aws-sdk/client-dynamodb";
-import { PlatformStatesGenericEntry } from "pagopa-interop-models";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
+import {
+  genericInternalError,
+  TokenGenerationStatesGenericClient,
+} from "pagopa-interop-models";
+import { PlatformStatesGenericEntry } from "pagopa-interop-models";
 import { z } from "zod";
+
 import { config } from "../configs/config.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

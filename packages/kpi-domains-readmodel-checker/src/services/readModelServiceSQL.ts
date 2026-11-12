@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, isNull, or } from "drizzle-orm";
 import { ascLower } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -92,8 +92,11 @@ import {
   purposeVersionInReadmodelPurpose,
   purposeVersionSignedDocumentInReadmodelPurpose,
   purposeVersionStampInReadmodelPurpose,
+  riskAnalysisReviewerInReadmodelPurpose,
   tenantCertifiedAttributeInReadmodelTenant,
   TenantCertifiedAttributeSQL,
+  tenantCertifiedDiscreteAttributeInReadmodelTenant,
+  TenantCertifiedDiscreteAttributeSQL,
   tenantDeclaredAttributeInReadmodelTenant,
   TenantDeclaredAttributeSQL,
   tenantFeatureInReadmodelTenant,
@@ -101,6 +104,8 @@ import {
   tenantInReadmodelTenant,
   tenantMailInReadmodelTenant,
   TenantMailSQL,
+  tenantRemoteIdInReadmodelTenant,
+  TenantRemoteIdSQL,
   TenantSQL,
   tenantVerifiedAttributeInReadmodelTenant,
   tenantVerifiedAttributeRevokerInReadmodelTenant,
@@ -108,6 +113,8 @@ import {
   TenantVerifiedAttributeSQL,
   tenantVerifiedAttributeVerifierInReadmodelTenant,
   TenantVerifiedAttributeVerifierSQL,
+  eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+  eserviceDescriptorArchivingRequestInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -134,6 +141,10 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
           templateVersionRef:
             eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+          archivingSchedule:
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+          archivingRequests:
+            eserviceDescriptorArchivingRequestInReadmodelCatalog,
           asyncExchangeProperties:
             eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
         })
@@ -208,6 +219,33 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           eq(
             eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
             eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
+          )
+        )
+        .leftJoin(
+          // 9
+          eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          // 10
+          eserviceDescriptorArchivingRequestInReadmodelCatalog,
+          or(
+            eq(
+              eserviceDescriptorInReadmodelCatalog.id,
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.descriptorId
+            ),
+            and(
+              eq(
+                eserviceInReadmodelCatalog.id,
+                eserviceDescriptorArchivingRequestInReadmodelCatalog.eserviceId
+              ),
+              isNull(
+                eserviceDescriptorArchivingRequestInReadmodelCatalog.descriptorId
+              )
+            )
           )
         );
 
@@ -300,31 +338,37 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         tenantsSQL,
         mailsSQL,
         certifiedAttributesSQL,
+        certifiedDiscreteAttributesSQL,
         declaredAttributesSQL,
         verifiedAttributesSQL,
         verifiedAttributeVerifiersSQL,
         verifiedAttributeRevokersSQL,
         featuresSQL,
+        remoteIdsSQL,
       ] = await Promise.all([
         readTenantsSQL(readModelDB),
         readTenantMailsSQL(readModelDB),
         readTenantCertifiedAttributesSQL(readModelDB),
+        readTenantCertifiedDiscreteAttributesSQL(readModelDB),
         readTenantDeclaredAttributesSQL(readModelDB),
         readTenantVerifiedAttributesSQL(readModelDB),
         readTenantVerifiedAttributeVerifiersSQL(readModelDB),
         readTenantVerifiedAttributeRevokersSQL(readModelDB),
         readTenantFeaturesSQL(readModelDB),
+        readTenantRemoteIdsSQL(readModelDB),
       ]);
 
       return aggregateTenantArray({
         tenantsSQL,
         mailsSQL,
         certifiedAttributesSQL,
+        certifiedDiscreteAttributesSQL,
         declaredAttributesSQL,
         verifiedAttributesSQL,
         verifiedAttributeVerifiersSQL,
         verifiedAttributeRevokersSQL,
         featuresSQL,
+        remoteIdsSQL,
       });
     },
 
@@ -340,6 +384,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           purposeVersionStamp: purposeVersionStampInReadmodelPurpose,
           purposeVersionSignedDocument:
             purposeVersionSignedDocumentInReadmodelPurpose,
+          purposeRiskAnalysisReviewer: riskAnalysisReviewerInReadmodelPurpose,
         })
         .from(purposeInReadmodelPurpose)
         .leftJoin(
@@ -388,6 +433,14 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           eq(
             purposeVersionInReadmodelPurpose.id,
             purposeVersionSignedDocumentInReadmodelPurpose.purposeVersionId
+          )
+        )
+        .leftJoin(
+          // 7
+          riskAnalysisReviewerInReadmodelPurpose,
+          eq(
+            purposeInReadmodelPurpose.id,
+            riskAnalysisReviewerInReadmodelPurpose.purposeId
           )
         );
 
@@ -673,6 +726,13 @@ const readTenantCertifiedAttributesSQL = async (
 ): Promise<TenantCertifiedAttributeSQL[]> =>
   await readModelDB.select().from(tenantCertifiedAttributeInReadmodelTenant);
 
+const readTenantCertifiedDiscreteAttributesSQL = async (
+  readModelDB: DrizzleReturnType
+): Promise<TenantCertifiedDiscreteAttributeSQL[]> =>
+  await readModelDB
+    .select()
+    .from(tenantCertifiedDiscreteAttributeInReadmodelTenant);
+
 const readTenantDeclaredAttributesSQL = async (
   readModelDB: DrizzleReturnType
 ): Promise<TenantDeclaredAttributeSQL[]> =>
@@ -701,3 +761,8 @@ const readTenantFeaturesSQL = async (
   readModelDB: DrizzleReturnType
 ): Promise<TenantFeatureSQL[]> =>
   await readModelDB.select().from(tenantFeatureInReadmodelTenant);
+
+const readTenantRemoteIdsSQL = async (
+  readModelDB: DrizzleReturnType
+): Promise<TenantRemoteIdSQL[]> =>
+  await readModelDB.select().from(tenantRemoteIdInReadmodelTenant);

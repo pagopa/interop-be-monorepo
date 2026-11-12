@@ -9,6 +9,7 @@ import {
   or,
   SQL,
 } from "drizzle-orm";
+import { PgSelect } from "drizzle-orm/pg-core";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
   ascLower,
@@ -72,7 +73,7 @@ import {
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
 import { z } from "zod";
-import { PgSelect } from "drizzle-orm/pg-core";
+
 import { hasRoleToAccessDraftPurposeTemplates } from "./validators.js";
 
 export type GetPurposeTemplatesFilters = {

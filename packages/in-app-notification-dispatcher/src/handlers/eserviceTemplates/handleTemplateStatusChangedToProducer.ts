@@ -1,3 +1,4 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   EServiceTemplateIdEServiceTemplateVersionId,
   EServiceTemplateV2,
@@ -5,10 +6,12 @@ import {
   missingKafkaMessageDataError,
   NewNotification,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
+import {
+  inAppTemplates,
+  getNotificationRecipients,
+} from "pagopa-interop-notification-commons";
+
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import { getNotificationRecipients } from "../handlerCommons.js";
 
 export async function handleTemplateStatusChangedToProducer(
   eserviceTemplateV2Msg: EServiceTemplateV2 | undefined,

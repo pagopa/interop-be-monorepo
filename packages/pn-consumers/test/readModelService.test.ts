@@ -1,5 +1,4 @@
 /* eslint-disable functional/no-let */
-import { describe, expect, it } from "vitest";
 import {
   getMockPurpose,
   getMockPurposeVersion,
@@ -15,6 +14,8 @@ import {
   Tenant,
   TenantId,
 } from "pagopa-interop-models";
+import { describe, expect, it } from "vitest";
+
 import { readModelService, seedPurposes, seedTenants } from "./utils.js";
 
 describe("MetricsManager", () => {

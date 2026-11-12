@@ -1,13 +1,14 @@
 import {
-  CommonHTTPServiceConfig,
-  FileManagerConfig,
-  EventStoreConfig,
-  S3Config,
   ApplicationAuditProducerConfig,
-  ReadModelSQLDbConfig,
+  CommonHTTPServiceConfig,
+  EventStoreConfig,
   FeatureFlagAgreementApprovalPolicyUpdateConfig,
   FeatureFlagAsyncExchangeConfig,
+  FeatureFlagAttributeCertifiedDiscreteConfig,
   FeatureFlagTenantKindInRiskAnalysisConfig,
+  FileManagerConfig,
+  ReadModelSQLDbConfig,
+  S3Config,
   TenantKindHistoryDBConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -28,6 +29,7 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
   .and(S3Config)
   .and(EventStoreConfig)
   .and(FeatureFlagAgreementApprovalPolicyUpdateConfig)
+  .and(FeatureFlagAttributeCertifiedDiscreteConfig)
   .and(TenantKindHistoryDBConfig)
   .and(FeatureFlagTenantKindInRiskAnalysisConfig)
   .and(

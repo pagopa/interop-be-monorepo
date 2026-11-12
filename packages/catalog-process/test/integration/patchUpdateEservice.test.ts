@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { catalogApi } from "pagopa-interop-api-clients";
 import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
@@ -24,9 +25,14 @@ import {
   EServiceTemplateId,
   EServiceTemplate,
 } from "pagopa-interop-models";
-import { vi, expect, describe, it } from "vitest";
 import { match } from "ts-pattern";
-import { catalogApi } from "pagopa-interop-api-clients";
+import { vi, expect, describe, it } from "vitest";
+
+import { config } from "../../src/config/config.js";
+import {
+  apiEServiceModeToEServiceMode,
+  apiTechnologyToTechnology,
+} from "../../src/model/domain/apiConverter.js";
 import {
   eServiceNotFound,
   eServiceNameDuplicateForProducer,
@@ -35,7 +41,6 @@ import {
   templateInstanceNotAllowed,
   eserviceTemplateNameConflict,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
 import {
   fileManager,
   addOneEService,
@@ -44,10 +49,6 @@ import {
   addOneDelegation,
   addOneEServiceTemplate,
 } from "../integrationUtils.js";
-import {
-  apiEServiceModeToEServiceMode,
-  apiTechnologyToTechnology,
-} from "../../src/model/domain/apiConverter.js";
 
 describe("patch update eService", () => {
   const mockEService: EService = {
@@ -110,6 +111,17 @@ describe("patch update eService", () => {
       isClientAccessDelegable: true,
       personalData: true,
       asyncExchange: true,
+    },
+    {
+      name: "New name",
+      description: "New description",
+      technology: "SOAP",
+      mode: "DELIVER",
+      isSignalHubEnabled: true,
+      isConsumerDelegable: true,
+      isClientAccessDelegable: true,
+      personalData: true,
+      archivingReason: "archiving reason",
     },
   ] as catalogApi.PatchUpdateEServiceSeed[])(
     "should write on event-store and update only the fields set in the seed, and leave undefined fields unchanged (seed #%#)",

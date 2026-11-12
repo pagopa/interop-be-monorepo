@@ -1,4 +1,5 @@
 import { JsonWebKey } from "crypto";
+import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
 import {
   M2MAdminAuthData,
   M2MAuthData,
@@ -24,8 +25,10 @@ import {
   Tenant,
   TenantId,
   UserId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
-import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
+
+import { config } from "../config/config.js";
 import {
   userWithoutSecurityPrivileges,
   tenantNotAllowedOnPurpose,
@@ -40,9 +43,33 @@ import {
   tenantNotAllowedOnClient,
   missingSelfcareId,
   duplicatedMembersInSeed,
+  userNotFound,
 } from "../model/domain/errors.js";
-import { config } from "../config/config.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+
+export const assertUsersExistInSelfcare = async ({
+  userIds,
+  selfcareId,
+  correlationId,
+  selfcareV2InstitutionClient,
+}: {
+  userIds: string[];
+  selfcareId: string;
+  correlationId: CorrelationId;
+  selfcareV2InstitutionClient: SelfcareV2InstitutionClient;
+}): Promise<void> => {
+  for (const userId of userIds) {
+    const users =
+      await selfcareV2InstitutionClient.getInstitutionUsersByProductUsingGET({
+        params: { institutionId: selfcareId },
+        queries: { userId: userId },
+        headers: { "X-Correlation-Id": correlationId },
+      });
+    if (users.length === 0) {
+      throw userNotFound(unsafeBrandId<UserId>(userId), selfcareId);
+    }
+  }
+};
 
 export const assertUserSelfcareSecurityPrivileges = async ({
   selfcareId,

@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { describe, expect, it } from "vitest";
 import {
   decodeProtobufPayload,
   getMockClient,
@@ -13,6 +12,8 @@ import {
   generateId,
   toClientV2,
 } from "pagopa-interop-models";
+import { describe, expect, it } from "vitest";
+
 import {
   addOneClient,
   authorizationService,

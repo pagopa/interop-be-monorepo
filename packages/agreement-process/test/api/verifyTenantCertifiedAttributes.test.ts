@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test";
 import {
   DescriptorId,
   EServiceId,
   TenantId,
   generateId,
 } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { api, agreementService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import {
   descriptorNotFound,
   eServiceNotFound,
@@ -17,6 +17,7 @@ import {
   tenantIsNotTheDelegateConsumer,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
+import { api, agreementService } from "../vitest.api.setup.js";
 
 describe("API GET /tenants/{tenantId}/eservices/{eserviceId}/descriptors/{descriptorId}/certifiedAttributes/validate test", () => {
   const result = { hasCertifiedAttributes: true };
@@ -44,6 +45,7 @@ describe("API GET /tenants/{tenantId}/eservices/{eserviceId}/descriptors/{descri
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
     authRole.SUPPORT_ROLE,
+    authRole.VIEWER_ROLE,
   ];
 
   it.each(authorizedRoles)(

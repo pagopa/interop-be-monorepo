@@ -1,5 +1,5 @@
-import { initDB, startServer } from "pagopa-interop-commons";
 import { selfcareV2InstitutionClientBuilder } from "pagopa-interop-api-clients";
+import { initDB, startServer } from "pagopa-interop-commons";
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
@@ -12,8 +12,9 @@ import {
   purposeReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
-import { config } from "./config/config.js";
+
 import { createApp } from "./app.js";
+import { config } from "./config/config.js";
 import { authorizationServiceBuilder } from "./services/authorizationService.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 

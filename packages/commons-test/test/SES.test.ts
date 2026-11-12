@@ -6,12 +6,12 @@ import {
   TooManyRequestsException,
 } from "@aws-sdk/client-sesv2";
 import { mockClient } from "aws-sdk-client-mock";
-import { describe, it, expect, beforeEach } from "vitest";
 import {
   AWSSesConfig,
   initSesMailManager,
   logger,
 } from "pagopa-interop-commons";
+import { describe, it, expect, beforeEach } from "vitest";
 
 const sesMock = mockClient(SESv2Client);
 

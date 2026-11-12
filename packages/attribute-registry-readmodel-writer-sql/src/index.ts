@@ -1,3 +1,4 @@
+import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import { decodeKafkaMessage, logger } from "pagopa-interop-commons";
 import {
@@ -6,11 +7,11 @@ import {
   generateId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { runConsumer } from "kafka-iam-auth";
 import { makeDrizzleConnection } from "pagopa-interop-readmodel";
+
 import { handleMessage } from "./attributeRegistryConsumerService.js";
-import { config } from "./config/config.js";
 import { attributeWriterServiceBuilder } from "./attributeWriterService.js";
+import { config } from "./config/config.js";
 
 const attributeWriterService = attributeWriterServiceBuilder(
   makeDrizzleConnection(config)

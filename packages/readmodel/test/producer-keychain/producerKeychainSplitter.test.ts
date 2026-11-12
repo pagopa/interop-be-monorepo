@@ -2,7 +2,6 @@ import {
   getMockKey,
   getMockProducerKeychain,
 } from "pagopa-interop-commons-test";
-import { describe, it, expect } from "vitest";
 import {
   EServiceId,
   generateId,
@@ -15,6 +14,8 @@ import {
   ProducerKeychainSQL,
   ProducerKeychainUserSQL,
 } from "pagopa-interop-readmodel-models";
+import { describe, it, expect } from "vitest";
+
 import { splitProducerKeychainIntoObjectsSQL } from "../../src/producer-keychain/splitters.js";
 
 describe("Producer keychain splitter", () => {

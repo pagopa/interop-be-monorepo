@@ -3,6 +3,7 @@ import {
   m2mGatewayApiV3,
   purposeApi,
 } from "pagopa-interop-api-clients";
+
 import {
   getPurposeCurrentVersion,
   sortPurposeVersionsByDate,
@@ -21,6 +22,7 @@ export function toGetPurposesApiQueryParams(
     states: params.states,
     excludeDraft: false,
     name: params.title,
+    signingStates: [],
   };
 }
 
@@ -39,11 +41,25 @@ export function toGetPurposesApiQueryParamsForClient(
     states: params.states,
     excludeDraft: false,
     name: "",
+    signingStates: [],
+  };
+}
+
+function toM2MGatewayApiReviewerWorkflow(
+  workflow: purposeApi.ReviewerWorkflow
+): m2mGatewayApiV3.ReviewerWorkflow {
+  return {
+    ...workflow,
+    reviewers: workflow.reviewers.map(({ id, ...reviewer }) => ({
+      ...reviewer,
+      userId: id,
+    })),
   };
 }
 
 export function toM2MGatewayApiPurpose(
-  purpose: purposeApi.Purpose
+  purpose: purposeApi.Purpose,
+  requesterOrganizationId?: string
 ): m2mGatewayApiV3.Purpose {
   const currentVersion = getPurposeCurrentVersion(purpose);
 
@@ -84,6 +100,20 @@ export function toM2MGatewayApiPurpose(
       ? toM2mGatewayApiPurposeVersion(rejectedVersion)
       : undefined,
     purposeTemplateId: purpose.purposeTemplateId,
+    ...(requesterOrganizationId === purpose.consumerId
+      ? {
+          ...(purpose.riskAnalysisReviewMode
+            ? { riskAnalysisReviewMode: purpose.riskAnalysisReviewMode }
+            : {}),
+          ...(purpose.reviewerWorkflow
+            ? {
+                reviewerWorkflow: toM2MGatewayApiReviewerWorkflow(
+                  purpose.reviewerWorkflow
+                ),
+              }
+            : {}),
+        }
+      : {}),
   };
 }
 

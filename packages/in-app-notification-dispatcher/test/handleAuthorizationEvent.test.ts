@@ -17,10 +17,13 @@ import {
   toProducerKeychainV2,
   UserId,
 } from "pagopa-interop-models";
+import {
+  getNotificationRecipients,
+  inAppTemplates,
+} from "pagopa-interop-notification-commons";
 import { beforeEach, describe, expect, it, vi, Mock } from "vitest";
+
 import { handleAuthorizationEvent } from "../src/handlers/authorizations/handleAuthorizationEvent.js";
-import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
-import { inAppTemplates } from "../src/templates/inAppTemplates.js";
 import { readModelService } from "./utils.js";
 
 describe("handleAuthorizationEvent", () => {

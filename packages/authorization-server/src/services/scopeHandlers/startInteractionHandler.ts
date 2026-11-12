@@ -11,24 +11,26 @@ import {
   interactionState,
   makeTokenGenerationStatesClientKidPurposePK,
 } from "pagopa-interop-models";
+
+import type {
+  AsyncGeneratedTokenData,
+  ScopeHandlerContext,
+} from "../asyncTokenService.js";
+
 import {
   asyncClientAssertionClaimsValidationFailed,
   asyncExchangeNotEnabled,
   clientAssertionSignatureValidationFailed,
   platformStateValidationFailed,
 } from "../../model/domain/errors.js";
+import { publishConsumerTokenAudit } from "../../utilities/audit.js";
+import { createInteraction } from "../../utilities/interactionsUtils.js";
 import {
   deconstructGSIPK_eserviceId_descriptorId,
   logTokenGenerationInfo,
-  publishAudit,
   retrieveAsyncCatalogEntry,
   retrieveKey,
 } from "../../utilities/tokenServiceHelpers.js";
-import { createInteraction } from "../../utilities/interactionsUtils.js";
-import type {
-  AsyncGeneratedTokenData,
-  ScopeHandlerContext,
-} from "../asyncTokenService.js";
 
 export const handleStartInteraction = async (
   ctx: ScopeHandlerContext
@@ -186,7 +188,7 @@ export const handleStartInteraction = async (
   });
 
   // 10. Publish audit
-  await publishAudit({
+  await publishConsumerTokenAudit({
     producer,
     generatedToken: token,
     key,

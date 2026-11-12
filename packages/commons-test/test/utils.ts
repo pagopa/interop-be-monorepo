@@ -1,6 +1,7 @@
-import { inject, afterEach } from "vitest";
 import { eventRepository } from "pagopa-interop-commons";
 import { catalogEventToBinaryData } from "pagopa-interop-models";
+import { inject, afterEach } from "vitest";
+
 import { setupTestContainersVitest } from "../src/index.js";
 
 export const { cleanup, fileManager, postgresDB, redisRateLimiter } =

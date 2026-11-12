@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeEach, Mock } from "vitest";
 import {
   getMockContext,
   getMockEService,
@@ -16,10 +15,15 @@ import {
   toPurposeV2,
   purposeVersionState,
 } from "pagopa-interop-models";
-import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
+import {
+  getNotificationRecipients,
+  tenantNotFound,
+  eserviceNotFound,
+  inAppTemplates,
+} from "pagopa-interop-notification-commons";
+import { describe, it, expect, beforeEach, Mock } from "vitest";
+
 import { handlePurposeSuspendedUnsuspendedToConsumer } from "../src/handlers/purposes/handlePurposeSuspendedUnsuspendedToConsumer.js";
-import { tenantNotFound, eserviceNotFound } from "../src/models/errors.js";
-import { inAppTemplates } from "../src/templates/inAppTemplates.js";
 import {
   addOneEService,
   addOnePurpose,

@@ -26,6 +26,7 @@ import {
   RiskAnalysis,
 } from "pagopa-interop-models";
 import { expect, describe, it, afterAll, vi, beforeAll } from "vitest";
+
 import {
   eserviceTemplateNotFound,
   missingPersonalDataFlag,

@@ -3,6 +3,7 @@ import {
   attributeRegistryApi,
   createZodiosClientEnhancedWithMetadata,
 } from "pagopa-interop-api-clients";
+
 import { config } from "../config/config.js";
 
 function buildTenantProcessClient() {

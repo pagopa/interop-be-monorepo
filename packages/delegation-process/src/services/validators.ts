@@ -1,10 +1,17 @@
 import {
+  isFeatureFlagEnabled,
+  M2MAdminAuthData,
+  M2MAuthData,
+  UIAuthData,
+} from "pagopa-interop-commons";
+import {
   CertifiedTenantAttribute,
   Delegation,
   delegationKind,
   DelegationKind,
   DelegationState,
   delegationState,
+  descriptorState,
   EService,
   EServiceId,
   operationForbidden,
@@ -14,12 +21,8 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import {
-  isFeatureFlagEnabled,
-  M2MAdminAuthData,
-  M2MAuthData,
-  UIAuthData,
-} from "pagopa-interop-commons";
+
+import { config } from "../config/config.js";
 import {
   delegationAlreadyExists,
   delegationRelatedAgreementExists,
@@ -31,8 +34,8 @@ import {
   operationRestrictedToDelegator,
   delegationNotAllowedForTenant,
   tenantNotAllowedToDelegation,
+  eserviceAlreadyArchived,
 } from "../model/domain/errors.js";
-import { config } from "../config/config.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 /* ========= STATES ========= */
@@ -200,5 +203,15 @@ export const assertNoDelegationRelatedAgreementExists = async (
       agreement.eserviceId,
       agreement.consumerId
     );
+  }
+};
+
+export const assertEserviceIsNotArchived = (eservice: EService): void => {
+  const latestDescriptor = [...eservice.descriptors].sort(
+    (a, b) => Number(a.version) - Number(b.version)
+  )[eservice.descriptors.length - 1];
+
+  if (latestDescriptor?.state === descriptorState.archived) {
+    throw eserviceAlreadyArchived(eservice.id);
   }
 };

@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { randomUUID } from "crypto";
-import { it, afterEach, beforeAll, describe, expect, vi, vitest } from "vitest";
 import {
   InteropInternalToken,
   InteropTokenGenerator,
@@ -13,10 +12,12 @@ import {
   attributeReadModelServiceBuilder,
   makeDrizzleConnection,
 } from "pagopa-interop-readmodel";
-import { TenantProcessService } from "../src/service/tenantProcessService.js";
+import { it, afterEach, beforeAll, describe, expect, vi, vitest } from "vitest";
+
+import { config } from "../src/config/config.js";
 import { importAttributes } from "../src/service/processor.js";
 import { readModelQueriesBuilderSQL } from "../src/service/readModelQueriesServiceSQL.js";
-import { config } from "../src/config/config.js";
+import { TenantProcessService } from "../src/service/tenantProcessService.js";
 import {
   ATTRIBUTE_IVASS_INSURANCES_ID,
   downloadCSVMock,

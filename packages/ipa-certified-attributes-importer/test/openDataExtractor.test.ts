@@ -1,5 +1,6 @@
 import axios from "axios";
 import { expect, vi, describe, it, MockedFunction } from "vitest";
+
 import {
   getAllCategories,
   getAllInstitutions,

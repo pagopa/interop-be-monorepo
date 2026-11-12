@@ -2,6 +2,20 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { fail } from "assert";
+import { purposeApi } from "pagopa-interop-api-clients";
+import { rulesVersionNotFoundError } from "pagopa-interop-commons";
+import {
+  decodeProtobufPayload,
+  getMockAgreement,
+  getMockTenant,
+  getMockPurpose,
+  getMockDescriptor,
+  getMockAuthData,
+  getMockDelegation,
+  getMockContext,
+  getMockPurposeTemplate,
+  getMockValidRiskAnalysisFormTemplate,
+} from "pagopa-interop-commons-test";
 import {
   Agreement,
   Descriptor,
@@ -13,6 +27,7 @@ import {
   agreementState,
   descriptorState,
   generateId,
+  hyperlinkDetectionError,
   purposeVersionState,
   tenantKind,
   toPurposeV2,
@@ -27,21 +42,8 @@ import {
   eserviceMode,
   PurposeTemplateId,
 } from "pagopa-interop-models";
-import { purposeApi } from "pagopa-interop-api-clients";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import {
-  decodeProtobufPayload,
-  getMockAgreement,
-  getMockTenant,
-  getMockPurpose,
-  getMockDescriptor,
-  getMockAuthData,
-  getMockDelegation,
-  getMockContext,
-  getMockPurposeTemplate,
-  getMockValidRiskAnalysisFormTemplate,
-} from "pagopa-interop-commons-test";
-import { rulesVersionNotFoundError } from "pagopa-interop-commons";
+
 import {
   tenantKindNotFound,
   tenantNotFound,
@@ -1466,5 +1468,33 @@ describe("createPurposeFromTemplate", () => {
     ).rejects.toThrowError(
       invalidPersonalData(eserviceOtherPersonalData.personalData)
     );
+  });
+
+  it("should throw hyperlinkDetectionError when the template purposeDescription contains a hyperlink", async () => {
+    const purposeDescription = "see https://evil.example.com";
+    const templateWithHyperlink: PurposeTemplate = {
+      ...mockPurposeTemplateWithValidRiskAnalysis,
+      purposeDescription,
+    };
+
+    await addOneTenant(tenant);
+    await addOneAgreement(activeAgreement);
+    await addOneEService(publishedEservice);
+    await addOnePurposeTemplate(templateWithHyperlink);
+    await addOnePurposeTemplateEServiceDescriptor(
+      purposeTemplateEServiceDescriptor1
+    );
+
+    await expect(
+      purposeService.createPurposeFromTemplate(
+        templateWithHyperlink.id,
+        purposeFromTemplateSeed,
+        getMockContext({
+          authData: getMockAuthData(
+            unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId)
+          ),
+        })
+      )
+    ).rejects.toThrowError(hyperlinkDetectionError(purposeDescription));
   });
 });

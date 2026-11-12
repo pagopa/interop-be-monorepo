@@ -16,7 +16,8 @@
   },
   "keywords": [],
   "dependencies": {
-    "pagopa-interop-models": "workspace:*"
+    "pagopa-interop-models": "workspace:*",
+    "ts-pattern": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",

@@ -1,8 +1,10 @@
 import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
+import { agreementApi } from "pagopa-interop-api-clients";
 import {
   decodeKafkaMessage,
   InteropTokenGenerator,
+  isFeatureFlagEnabled,
   logger,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
@@ -15,7 +17,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import { agreementApi } from "pagopa-interop-api-clients";
+
 import { config } from "./config/config.js";
 import { toApiCompactTenant } from "./converters.js";
 
@@ -47,6 +49,45 @@ async function processMessage({
   });
 
   await match(decodedMsg)
+    .with(
+      {
+        event_version: 2,
+        type: P.union(
+          "TenantCertifiedDiscreteAttributeAssigned",
+          "TenantCertifiedDiscreteAttributeRevoked",
+          "TenantCertifiedDiscreteAttributeUpdated"
+        ),
+      },
+      async ({ data: { tenant, attributeId } }) => {
+        if (
+          !isFeatureFlagEnabled(config, "featureFlagAttributeCertifiedDiscrete")
+        ) {
+          return;
+        }
+
+        if (tenant) {
+          loggerInstance.info(
+            `Processing ${decodedMsg.type} message - Partition number: ${partition} - Offset: ${message.offset}`
+          );
+          const token = (await refreshableToken.get()).serialized;
+
+          await agreementProcessClient.internalComputeAgreementsByAttribute(
+            {
+              attributeId: unsafeBrandId(attributeId),
+              consumer: toApiCompactTenant(fromTenantV2(tenant)),
+            },
+            {
+              headers: {
+                "X-Correlation-Id": correlationId,
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+        } else {
+          throw missingKafkaMessageDataError("tenant", decodedMsg.type);
+        }
+      }
+    )
     .with(
       {
         event_version: 2,
@@ -100,7 +141,9 @@ async function processMessage({
           "TenantDelegatedProducerFeatureAdded",
           "TenantDelegatedProducerFeatureRemoved",
           "TenantDelegatedConsumerFeatureAdded",
-          "TenantDelegatedConsumerFeatureRemoved"
+          "TenantDelegatedConsumerFeatureRemoved",
+          "TenantRemoteIdAssigned",
+          "MaintenanceTenantRemoteIdDeleted"
         ),
       },
       () => Promise.resolve()

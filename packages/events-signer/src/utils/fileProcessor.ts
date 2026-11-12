@@ -6,10 +6,11 @@ import {
   SignatureServiceBuilder,
 } from "pagopa-interop-commons";
 import { genericInternalError } from "pagopa-interop-models";
+
+import { config } from "../config/config.js";
 import { uploadPreparedFileToS3 } from "../handlers/s3UploaderHandler.js";
 import { archiveFileToSafeStorage } from "../handlers/safeStorageArchivingHandler.js";
 import { AllEventData } from "../models/eventTypes.js";
-import { config } from "../config/config.js";
 import { prepareNdjsonEventData } from "./ndjsonStore.js";
 
 /**

@@ -12,6 +12,12 @@ export type CertifiedAgreementAttribute = z.infer<
   typeof CertifiedAgreementAttribute
 >;
 
+export const CertifiedDiscreteAgreementAttribute =
+  AgreementAttribute.brand<"CertifiedDiscreteAgreementAttribute">();
+export type CertifiedDiscreteAgreementAttribute = z.infer<
+  typeof CertifiedDiscreteAgreementAttribute
+>;
+
 export const DeclaredAgreementAttribute =
   AgreementAttribute.brand<"DeclaredAgreementAttribute">();
 export type DeclaredAgreementAttribute = z.infer<
@@ -27,6 +33,7 @@ export type VerifiedAgreementAttribute = z.infer<
 export type UpdateAgreementSeed = {
   state: AgreementState;
   certifiedAttributes?: CertifiedAgreementAttribute[];
+  certifiedDiscreteAttributes?: CertifiedDiscreteAgreementAttribute[];
   declaredAttributes?: DeclaredAgreementAttribute[];
   verifiedAttributes?: VerifiedAgreementAttribute[];
   suspendedByConsumer?: boolean;

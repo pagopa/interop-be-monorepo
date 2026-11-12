@@ -12,13 +12,12 @@ import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
   retrieveLatestDescriptor,
-} from "../../services/utils.js";
-import {
-  EserviceTemplateNameUpdatedHandlerParams,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
+
 import { config } from "../../config/config.js";
+import { EserviceTemplateNameUpdatedHandlerParams } from "../../models/handlerParams.js";
 
 const notificationType: NotificationType =
   "eserviceTemplateNameChangedToInstantiator";

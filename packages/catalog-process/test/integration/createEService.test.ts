@@ -14,9 +14,12 @@ import {
   EService,
   toEServiceV2,
   EServiceDescriptorAddedV2,
+  hyperlinkDetectionError,
 } from "pagopa-interop-models";
-import { expect, describe, it, beforeAll, vi, afterAll } from "vitest";
 import { match } from "ts-pattern";
+import { expect, describe, it, beforeAll, vi, afterAll } from "vitest";
+
+import { config } from "../../src/config/config.js";
 import {
   eServiceNameDuplicateForProducer,
   eserviceTemplateNameConflict,
@@ -25,7 +28,6 @@ import {
   originNotCompliant,
   asyncExchangeNotAllowedForReceiveMode,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
 import {
   addOneEService,
   addOneEServiceTemplate,
@@ -444,4 +446,35 @@ describe("create eservice", () => {
       code: asyncExchangeNotAllowedForReceiveMode(mockEService.id).code,
     });
   });
+  it.each([
+    {
+      label: "name",
+      seedOverride: () => ({ name: "EService https://evil.example.com" }),
+      text: "EService https://evil.example.com",
+    },
+    {
+      label: "description",
+      seedOverride: () => ({
+        description: "Details on www.evil.example.com",
+      }),
+      text: "Details on www.evil.example.com",
+    },
+  ])(
+    "should throw hyperlinkDetectionError when eservice $label contains a hyperlink",
+    async ({ seedOverride, text }) => {
+      await expect(
+        catalogService.createEService(
+          {
+            name: mockEService.name,
+            description: mockEService.description,
+            technology: "REST",
+            mode: "DELIVER",
+            descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
+            ...seedOverride(),
+          },
+          getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        )
+      ).rejects.toThrowError(hyperlinkDetectionError(text));
+    }
+  );
 });

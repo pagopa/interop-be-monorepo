@@ -1,4 +1,3 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   agreementApi,
   attributeRegistryApi,
@@ -6,15 +5,18 @@ import {
   eserviceTemplateApi,
   inAppNotificationApi,
 } from "pagopa-interop-api-clients";
-import { EServiceId, generateId, TenantId } from "pagopa-interop-models";
 import { AuthData, formatDateyyyyMMddTHHmmss } from "pagopa-interop-commons";
-import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import * as commons from "pagopa-interop-commons";
+import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
+import { EServiceId, generateId, TenantId } from "pagopa-interop-models";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import type {
   AuthorizationProcessClient,
   DelegationProcessClient,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
+
 import { config } from "../src/config/config.js";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import { fileManager, getBffMockContext } from "./utils.js";

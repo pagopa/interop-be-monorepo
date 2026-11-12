@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-import { afterEach, inject } from "vitest";
+import {
+  ReadEvent,
+  StoredEvent,
+  readLastEventByStreamId,
+  writeInEventstore,
+} from "pagopa-interop-commons-test";
 import {
   Attribute,
   AttributeEvent,
@@ -9,12 +14,6 @@ import {
   toAttributeV1,
 } from "pagopa-interop-models";
 import {
-  ReadEvent,
-  StoredEvent,
-  readLastEventByStreamId,
-  writeInEventstore,
-} from "pagopa-interop-commons-test";
-import {
   attributeReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
@@ -22,6 +21,8 @@ import {
   upsertAttribute,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
+import { afterEach, inject } from "vitest";
+
 import { attributeRegistryServiceBuilder } from "../src/services/attributeRegistryService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 

@@ -9,11 +9,12 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { handleTenantEvent } from "../src/handlers/tenants/handleTenantEvent.js";
+
 import { handleAgreementEvent } from "../src/handlers/agreements/handleAgreementEvent.js";
+import { handleAuthorizationEvent } from "../src/handlers/authorization/handleAuthorizationEvent.js";
 import { handleEServiceEvent } from "../src/handlers/eservices/handleEserviceEvent.js";
 import { handlePurposeEvent } from "../src/handlers/purposes/handlePurposeEvent.js";
-import { handleAuthorizationEvent } from "../src/handlers/authorization/handleAuthorizationEvent.js";
+import { handleTenantEvent } from "../src/handlers/tenants/handleTenantEvent.js";
 import { readModelService, templateService } from "./utils.js";
 
 const { logger } = getMockContext({});

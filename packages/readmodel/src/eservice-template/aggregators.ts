@@ -1,5 +1,7 @@
 import {
   AgreementApprovalPolicy,
+  AttributeCertifiedDiscreteComparator,
+  AttributeId,
   AttributeKind,
   attributeKind,
   EServiceMode,
@@ -13,6 +15,7 @@ import {
   unsafeBrandId,
   WithMetadata,
   type EServiceTemplateAttribute,
+  type EServiceTemplateAttributeCertifiedDiscrete,
 } from "pagopa-interop-models";
 import {
   EServiceTemplateItemsSQL,
@@ -26,6 +29,7 @@ import {
   EServiceTemplateVersionSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
+
 import {
   aggregateRiskAnalysisForm,
   documentSQLtoDocument,
@@ -72,28 +76,34 @@ export const aggregateEServiceTemplateVersion = ({
     certified: certifiedAttributesSQL,
     verified: verifiedAttributesSQL,
     declared: declaredAttributesSQL,
-  } = attributesSQL.reduce(
-    (acc, attributeSQL) =>
-      match(AttributeKind.parse(attributeSQL.kind))
-        .with(attributeKind.certified, () => ({
-          ...acc,
-          certified: [...acc.certified, attributeSQL],
-        }))
-        .with(attributeKind.declared, () => ({
-          ...acc,
-          declared: [...acc.declared, attributeSQL],
-        }))
-        .with(attributeKind.verified, () => ({
-          ...acc,
-          verified: [...acc.verified, attributeSQL],
-        }))
-        .exhaustive(),
-    {
-      certified: new Array<EServiceTemplateVersionAttributeSQL>(),
-      declared: new Array<EServiceTemplateVersionAttributeSQL>(),
-      verified: new Array<EServiceTemplateVersionAttributeSQL>(),
-    }
-  );
+  } = [...attributesSQL]
+    .sort((attr1, attr2) => attr1.groupId - attr2.groupId)
+    .reduce(
+      (acc, attributeSQL) =>
+        match(AttributeKind.parse(attributeSQL.kind))
+          .with(
+            attributeKind.certified,
+            attributeKind.certifiedDiscrete,
+            () => ({
+              ...acc,
+              certified: [...acc.certified, attributeSQL],
+            })
+          )
+          .with(attributeKind.declared, () => ({
+            ...acc,
+            declared: [...acc.declared, attributeSQL],
+          }))
+          .with(attributeKind.verified, () => ({
+            ...acc,
+            verified: [...acc.verified, attributeSQL],
+          }))
+          .exhaustive(),
+      {
+        certified: new Array<EServiceTemplateVersionAttributeSQL>(),
+        declared: new Array<EServiceTemplateVersionAttributeSQL>(),
+        verified: new Array<EServiceTemplateVersionAttributeSQL>(),
+      }
+    );
   const certifiedAttributes = templateAttributesSQLtoTemplateAttributes(
     certifiedAttributesSQL
   );
@@ -502,12 +512,29 @@ export const toEServiceTemplateAggregatorArray = (
 
 export const templateAttributesSQLtoTemplateAttributes = (
   attributesSQL: EServiceTemplateVersionAttributeSQL[]
-): EServiceTemplateAttribute[][] => {
-  const attributesMap = new Map<number, EServiceTemplateAttribute[]>();
+): Array<
+  Array<EServiceTemplateAttribute | EServiceTemplateAttributeCertifiedDiscrete>
+> => {
+  const attributesMap = new Map<
+    number,
+    Array<
+      EServiceTemplateAttribute | EServiceTemplateAttributeCertifiedDiscrete
+    >
+  >();
   attributesSQL.forEach((current) => {
-    const currentAttribute: EServiceTemplateAttribute = {
-      id: unsafeBrandId(current.attributeId),
+    const currentAttribute = {
+      id: unsafeBrandId<AttributeId>(current.attributeId),
       explicitAttributeVerification: current.explicitAttributeVerification,
+      ...(current.threshold != null && current.comparator != null
+        ? {
+            discreteConfig: {
+              threshold: current.threshold,
+              comparator: AttributeCertifiedDiscreteComparator.parse(
+                current.comparator
+              ),
+            },
+          }
+        : undefined),
     };
     const group = attributesMap.get(current.groupId);
     if (group) {

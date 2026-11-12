@@ -1,4 +1,5 @@
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
+
 import {
   unexpectedAttributeKind,
   unexpectedUndefinedAttributeOriginOrCode,

@@ -1,9 +1,10 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   DelegationEventEnvelopeV2,
   NewNotification,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
+
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { handleDelegationApprovedRejectedToDelegator } from "./handleDelegationApprovedRejectedToDelegator.js";
 import { handleDelegationSubmittedRevokedToDelegate } from "./handleDelegationSubmittedRevokedToDelegate.js";

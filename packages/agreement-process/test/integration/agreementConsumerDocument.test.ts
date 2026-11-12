@@ -32,6 +32,8 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it } from "vitest";
+
+import { config } from "../../src/config/config.js";
 import { agreementConsumerDocumentChangeValidStates } from "../../src/model/domain/agreement-validators.js";
 import {
   agreementDocumentAlreadyExists,
@@ -42,7 +44,6 @@ import {
   tenantIsNotTheDelegateConsumer,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
 import {
   addOneAgreement,
   addOneDelegation,

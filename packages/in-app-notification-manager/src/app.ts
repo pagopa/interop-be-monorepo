@@ -1,3 +1,4 @@
+import { inAppNotificationApi } from "pagopa-interop-api-clients";
 import {
   applicationAuditBeginMiddleware,
   applicationAuditEndMiddleware,
@@ -12,7 +13,7 @@ import {
   zodiosCtx,
 } from "pagopa-interop-commons";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
-import { inAppNotificationApi } from "pagopa-interop-api-clients";
+
 import { config } from "./config/config.js";
 import { notificationRouter } from "./routers/notificationRouter.js";
 import { InAppNotificationService } from "./services/inAppNotificationService.js";

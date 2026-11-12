@@ -7,6 +7,7 @@ import {
   catalogApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
+import { getRulesetExpiration } from "pagopa-interop-commons";
 import {
   Descriptor,
   EServiceAttribute,
@@ -15,9 +16,10 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { getRulesetExpiration } from "pagopa-interop-commons";
+
 import { attributeNotExists } from "../model/errors.js";
 import {
+  getLastArchivingRequest,
   getLatestActiveDescriptor,
   getLatestTenantContactEmail,
   getValidDescriptor,
@@ -84,6 +86,7 @@ export function toBffCatalogApiEService(
             version: activeDescriptor.version,
             audience: activeDescriptor.audience,
             state: activeDescriptor.state,
+            archivableOn: activeDescriptor.archivingSchedule?.archivableOn,
           },
         }
       : {}),
@@ -141,6 +144,7 @@ export async function toBffCatalogDescriptorEService(
     isConsumerDelegable: eservice.isConsumerDelegable,
     isClientAccessDelegable: eservice.isClientAccessDelegable,
     personalData: eservice.personalData,
+    archivingReason: eservice.archivingReason,
     asyncExchange: eservice.asyncExchange,
     hasProducerKeychain,
     hasProducerKeychainKeys,
@@ -148,10 +152,13 @@ export async function toBffCatalogDescriptorEService(
 }
 
 function toBffCatalogApiDescriptorAttribute(
-  attributes: attributeRegistryApi.Attribute[],
+  attributesById: Map<
+    attributeRegistryApi.Attribute["id"],
+    attributeRegistryApi.Attribute
+  >,
   attribute: catalogApi.Attribute
 ): bffApi.DescriptorAttribute {
-  const foundAttribute = attributes.find((att) => att.id === attribute.id);
+  const foundAttribute = attributesById.get(attribute.id);
   if (!foundAttribute) {
     throw attributeNotExists(unsafeBrandId(attribute.id));
   }
@@ -161,9 +168,25 @@ function toBffCatalogApiDescriptorAttribute(
     name: foundAttribute.name,
     description: foundAttribute.description,
     explicitAttributeVerification: attribute.explicitAttributeVerification,
-    dailyCallsPerConsumer: attribute.dailyCallsPerConsumer,
+    kind: toBffAttributeKind(foundAttribute.kind),
+    ...(attribute.dailyCallsPerConsumer !== undefined
+      ? { dailyCallsPerConsumer: attribute.dailyCallsPerConsumer }
+      : {}),
+    ...(attribute.discreteConfig !== undefined
+      ? { discreteConfig: attribute.discreteConfig }
+      : {}),
   };
 }
+
+const toBffAttributeKind = (
+  kind: attributeRegistryApi.AttributeKind
+): bffApi.AttributeKind =>
+  match<attributeRegistryApi.AttributeKind, bffApi.AttributeKind>(kind)
+    .with("CERTIFIED", () => "CERTIFIED")
+    .with("CERTIFIED_DISCRETE", () => "CERTIFIED_DISCRETE")
+    .with("DECLARED", () => "DECLARED")
+    .with("VERIFIED", () => "VERIFIED")
+    .exhaustive();
 
 export function toBffCatalogApiDescriptorDoc(
   document: catalogApi.EServiceDoc
@@ -303,6 +326,10 @@ export async function enhanceEServiceToBffCatalogApiProducerDescriptorEService(
     personalData: eservice.personalData,
     instanceLabel: eservice.instanceLabel,
     asyncExchange: eservice.asyncExchange,
+    delegatedArchivingRequest: getLastArchivingRequest(
+      eservice,
+      eservice.descriptors
+    ),
   };
 }
 
@@ -341,12 +368,15 @@ export function descriptorAttributesFromApi(
 }
 
 function toBffCatalogApiDescriptorAttributeGroups(
-  attributes: attributeRegistryApi.Attribute[],
+  attributesById: Map<
+    attributeRegistryApi.Attribute["id"],
+    attributeRegistryApi.Attribute
+  >,
   descriptorAttributesGroups: catalogApi.Attribute[][]
 ): bffApi.DescriptorAttribute[][] {
   return descriptorAttributesGroups.map((attributeGroup) =>
     attributeGroup.map((attribute) =>
-      toBffCatalogApiDescriptorAttribute(attributes, attribute)
+      toBffCatalogApiDescriptorAttribute(attributesById, attribute)
     )
   );
 }
@@ -355,17 +385,21 @@ export function toBffCatalogApiDescriptorAttributes(
   attributes: attributeRegistryApi.Attribute[],
   descriptorAttributes: catalogApi.Attributes
 ): bffApi.DescriptorAttributes {
+  const attributesById = new Map(
+    attributes.map((attribute) => [attribute.id, attribute])
+  );
+
   return {
     certified: toBffCatalogApiDescriptorAttributeGroups(
-      attributes,
+      attributesById,
       descriptorAttributes.certified
     ),
     declared: toBffCatalogApiDescriptorAttributeGroups(
-      attributes,
+      attributesById,
       descriptorAttributes.declared
     ),
     verified: toBffCatalogApiDescriptorAttributeGroups(
-      attributes,
+      attributesById,
       descriptorAttributes.verified
     ),
   };
@@ -411,6 +445,7 @@ export function toCompactDescriptor(
     state: descriptor.state,
     version: descriptor.version,
     templateVersionId: descriptor.templateVersionRef?.id,
+    archivableOn: descriptor.archivingSchedule?.archivableOn,
   };
 }
 
@@ -430,6 +465,7 @@ export function toCompactProducerDescriptor(
       descriptor.state === catalogApi.EServiceDescriptorState.Values.DRAFT &&
       descriptor.rejectionReasons &&
       descriptor.rejectionReasons.length > 0,
+    archivableOn: descriptor.archivingSchedule?.archivableOn,
   };
 }
 

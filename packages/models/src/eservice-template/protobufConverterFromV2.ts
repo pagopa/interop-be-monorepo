@@ -2,12 +2,14 @@ import { unsafeBrandId } from "../brandedIds.js";
 import {
   fromAgreementApprovalPolicyV2,
   fromDocumentV2,
+  fromCertifiedDiscreteConfigV2,
   fromEServiceAttributeV2,
   fromEServiceModeV2,
   fromEServiceTechnologyV2,
   fromRiskAnalysisFormV2,
 } from "../eservice/protobufConverterFromV2.js";
 import {
+  EServiceTemplateAttributeV2,
   EServiceTemplateV2,
   EServiceTemplateVersionStateV2,
   EServiceTemplateVersionV2,
@@ -20,7 +22,29 @@ import {
   EServiceTemplateVersion,
   EServiceTemplateVersionState,
   eserviceTemplateVersionState,
+  EServiceTemplateAttribute,
+  EServiceTemplateAttributeCertifiedDiscrete,
 } from "./eserviceTemplate.js";
+
+const fromEServiceTemplateAttributeGroupV2 = (
+  input: EServiceTemplateAttributeV2
+): Array<
+  EServiceTemplateAttribute | EServiceTemplateAttributeCertifiedDiscrete
+> =>
+  input.values.map((attribute) => {
+    const common: EServiceTemplateAttribute = {
+      id: unsafeBrandId(attribute.id),
+      explicitAttributeVerification: attribute.explicitAttributeVerification,
+    };
+    return attribute.discreteConfig != null
+      ? {
+          ...common,
+          discreteConfig: fromCertifiedDiscreteConfigV2(
+            attribute.discreteConfig
+          ),
+        }
+      : common;
+  });
 
 export const fromEServiceTemplateVersionStateV2 = (
   input: EServiceTemplateVersionStateV2
@@ -46,7 +70,9 @@ export const fromEServiceTemplateVersionV2 = (
   attributes:
     input.attributes != null
       ? {
-          certified: input.attributes.certified.map(fromEServiceAttributeV2),
+          certified: input.attributes.certified.map(
+            fromEServiceTemplateAttributeGroupV2
+          ),
           declared: input.attributes.declared.map(fromEServiceAttributeV2),
           verified: input.attributes.verified.map(fromEServiceAttributeV2),
         }

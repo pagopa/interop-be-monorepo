@@ -5,14 +5,15 @@ import {
   PurposeV2,
 } from "pagopa-interop-models";
 import { NewNotification } from "pagopa-interop-models";
-import { match } from "ts-pattern";
-import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import {
   getNotificationRecipients,
   retrieveEservice,
   retrieveTenant,
-} from "../handlerCommons.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
+  inAppTemplates,
+} from "pagopa-interop-notification-commons";
+import { match } from "ts-pattern";
+
+import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 export async function handlePurposeSuspendedUnsuspendedToConsumer(
   purposeV2Msg: PurposeV2 | undefined,

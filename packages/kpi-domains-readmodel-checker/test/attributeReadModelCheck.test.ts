@@ -1,8 +1,9 @@
-import { getMockAttribute } from "pagopa-interop-commons-test";
-import { describe, expect, it } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
+import { getMockAttribute } from "pagopa-interop-commons-test";
 import { Attribute, WithMetadata, attributeKind } from "pagopa-interop-models";
 import { upsertAttribute } from "pagopa-interop-readmodel/testUtils";
+import { describe, expect, it } from "vitest";
+
 import { compare } from "../src/utils.js";
 import {
   addOneAttribute,

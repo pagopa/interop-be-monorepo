@@ -44,4 +44,5 @@ export type RiskAnalysisDocumentPDFPayload = {
   consumerDelegateIpaCode: string | undefined;
   userId: UserId | undefined;
   consumerId: TenantId;
+  reviewerId: UserId | undefined;
 };

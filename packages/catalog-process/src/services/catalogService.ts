@@ -13,6 +13,7 @@ import {
   riskAnalysisValidatedFormToNewRiskAnalysis,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   UIAuthData,
+  validateNoHyperlinksSafe,
   verifyAndCreateDocument,
   WithLogger,
   dateAtRomeZone,
@@ -25,6 +26,7 @@ import {
   isFeatureFlagEnabled,
   RiskAnalysisFormToValidate,
   MaintenanceAuthData,
+  explicitPropertiesChecker,
 } from "pagopa-interop-commons";
 import {
   agreementApprovalPolicy,
@@ -43,6 +45,8 @@ import {
   EService,
   EServiceAttribute,
   EserviceAttributes,
+  EServiceCertifiedAttribute,
+  getEServiceAttributeDiscreteConfig,
   EServiceDocumentId,
   EServiceEvent,
   EServiceId,
@@ -63,9 +67,16 @@ import {
   WithMetadata,
   AttributeKind,
   attributeKind,
+  archivingScope,
+  ArchivingScope,
   AsyncExchangeProperties,
+  Technology,
+  GracePeriodDays,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
+
+import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
+
 import { config } from "../config/config.js";
 import {
   agreementApprovalPolicyToApiAgreementApprovalPolicy,
@@ -75,6 +86,10 @@ import {
   eServiceModeToApiEServiceMode,
   technologyToApiTechnology,
 } from "../model/domain/apiConverter.js";
+import {
+  DEFAULT_DAILY_CALLS_PER_CONSUMER,
+  DEFAULT_DAILY_CALLS_TOTAL,
+} from "../model/domain/constants.js";
 import {
   attributeNotFound,
   audienceCannotBeEmpty,
@@ -89,11 +104,12 @@ import {
   eServiceNotFound,
   eServiceRiskAnalysisNotFound,
   eserviceTemplateInterfaceNotFound,
+  eserviceTemplateInterfaceTechnologyMismatch,
   eServiceTemplateNotFound,
   eServiceTemplateWithoutPublishedVersion,
-  eserviceWithoutValidDescriptors,
   inconsistentAttributesSeedGroupsCount,
   interfaceAlreadyExists,
+  interfaceDocumentNotUpdatable,
   notValidDescriptorState,
   originNotCompliant,
   riskAnalysisDuplicated,
@@ -112,8 +128,13 @@ import {
   eServiceAsyncExchangeNotEnabled,
   templateVersionMissingAsyncExchangeProperties,
   certifiedAttributeGroupNotFoundInSeed,
+  noDelegationForArchivingRequest,
 } from "../model/domain/errors.js";
-import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
+import {
+  ApiGetEServicesFilters,
+  Consumer,
+  defaultEServiceSortBy,
+} from "../model/domain/models.js";
 import {
   toCreateEventClonedEServiceAdded,
   toCreateEventEServiceAdded,
@@ -144,7 +165,6 @@ import {
   toCreateEventEServiceDraftDescriptorUpdated,
   toCreateEventEServiceInterfaceAdded,
   toCreateEventEServiceInterfaceDeleted,
-  toCreateEventEServiceInterfaceUpdated,
   toCreateEventEServiceIsClientAccessDelegableDisabled,
   toCreateEventEServiceIsClientAccessDelegableEnabled,
   toCreateEventEServiceIsConsumerDelegableDisabled,
@@ -161,13 +181,41 @@ import {
   toCreateEventEServicePersonalDataFlagUpdatedAfterPublication,
   toCreateEventEServicePersonalDataFlagUpdatedByTemplateUpdate,
   toCreateEventEServiceAsyncExchangeCallbackInterfaceAdded,
-  toCreateEventEServiceAsyncExchangeCallbackInterfaceUpdated,
   toCreateEventEServiceAsyncExchangeCallbackInterfaceDeleted,
   toCreateEventEServiceInstanceLabelUpdated,
+  toCreateEventEServiceDescriptorArchivingScheduled,
+  toCreateEventEServiceDescriptorArchivingCanceled,
   toCreateEventMaintenanceEServicePersonalDataFlagReset,
+  toCreateEventEServiceArchivingScheduled,
+  toCreateEventEServiceDescriptorArchivingCompleted,
+  toCreateEventEServiceArchivingCanceled,
+  toCreateEventEServiceArchivingCompleted,
+  toCreateEventMaintenanceEServiceDescriptorUnarchived,
+  toCreateEventEServiceArchivingRequestedByDelegate,
+  toCreateEventEServiceDescriptorArchivingRequestedByDelegate,
+  toCreateEventEServiceArchivingRequestApprovedByDelegator,
+  toCreateEventEServiceArchivingRequestCanceledByRevokedDelegation,
+  toCreateEventEServiceDescriptorArchivingRequestCanceledByRevokedDelegation,
+  toCreateEventEServiceArchivingRequestRejectedByDelegator,
+  toCreateEventEServiceDescriptorArchivingRequestRejectedByDelegator,
+  toCreateEventEServiceDescriptorArchivingRequestApprovedByDelegator,
+  toCreateEventEServiceArchivingRequestCanceledByDelegate,
+  toCreateEventEServiceDescriptorArchivingRequestCanceledByDelegate,
+  toCreateEventEServiceDescriptorRestoredToDraftByRevokedDelegation,
 } from "../model/domain/toEvent.js";
 import {
+  appendArchivingRequest,
+  getLatestActiveArchivingRequest,
+  getLatestArchivingRequest,
+  hasActiveArchivingRequest,
+  removeActiveArchivingRequest,
+  updateLatestActiveArchivingRequest,
+} from "../utilities/archivingRequests.js";
+import { calculateArchivableOn } from "../utilities/dateCalculator.js";
+import {
   getLatestDescriptor,
+  getPreviousDescriptorByStates,
+  isLatestActiveDescriptorVersion,
   nextDescriptorVersion,
 } from "../utilities/versionGenerator.js";
 import {
@@ -178,6 +226,8 @@ import {
   assertIsDraftEservice,
   assertIsReceiveEservice,
   assertNoExistingProducerDelegationInActiveOrPendingState,
+  assertNoExistingProducerDelegationForDescriptorArchiving,
+  assertNoExistingProducerDelegationForEServiceArchiving,
   assertEServiceNameAvailableForProducer,
   assertRequesterIsDelegateProducerOrProducer,
   assertRequesterIsProducer,
@@ -200,15 +250,29 @@ import {
   assertAsyncExchangeBulkAllowedForDescriptor,
   assertAsyncExchangeReadyForPublication,
   assertDailyCallsForCertifiedAttributesOnly,
+  assertDiscreteConfigForCertifiedAttributesOnly,
+  assertCertifiedDiscreteConfigUnchanged,
   assertAttributeDailyCallsConsistentWithTotal,
+  assertEserviceIsNotInArchivingOrArchivedState,
+  assertDescriptorArchivable,
+  assertDescriptorInRequiredStates,
+  assertDescriptorCancelArchivable,
+  assertDescriptorArchivingIsNotEserviceScoped,
+  assertEServiceArchivable,
+  assertDescriptorIsNotAlreadyArchived,
   assertTemplateInstanceAttributeStructureUnchanged,
   assertIsNotDraftEservice,
+  assertEServiceIsInArchiving,
+  assertEServiceIsNotAlreadyArchived,
+  assertEServiceGracePeriodIsNotLowerThanDescriptors,
+  assertRequesterIsDelegateForArchiving,
+  assertDelegatedEserviceHasNoActiveArchivingRequests,
+  assertDelegatedEserviceHasAtLeastOneArchivingRequests,
+  assertDelegatedEserviceHasActiveArchivingRequests,
+  assertDelegatedDescriptorHasAtLeastOneArchivingRequests,
+  assertDelegatedDescriptorHasActiveArchivingRequests,
+  assertDelegatedArchivingRequestDelegationIsStillValid,
 } from "./validators.js";
-import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
-import {
-  DEFAULT_DAILY_CALLS_PER_CONSUMER,
-  DEFAULT_DAILY_CALLS_TOTAL,
-} from "../model/domain/constants.js";
 
 const retrieveEService = async (
   eserviceId: EServiceId,
@@ -357,38 +421,63 @@ const updateDescriptorState = (
         publishedAt: new Date(),
       })
     )
-    .with([descriptorState.published, descriptorState.suspended], () => ({
-      ...descriptor,
-      state: newState,
-      suspendedAt: new Date(),
-    }))
-    .with([descriptorState.suspended, descriptorState.published], () => ({
-      ...descriptor,
-      state: newState,
-      suspendedAt: undefined,
-    }))
+    .with(
+      [descriptorState.published, descriptorState.suspended],
+      [descriptorState.deprecated, descriptorState.suspended],
+      [descriptorState.archiving, descriptorState.archivingSuspended],
+      () => ({
+        ...descriptor,
+        state: newState,
+        suspendedAt: new Date(),
+      })
+    )
     .with([descriptorState.suspended, descriptorState.deprecated], () => ({
       ...descriptor,
       state: newState,
       suspendedAt: undefined,
       deprecatedAt: new Date(),
     }))
+    .with(
+      [descriptorState.suspended, descriptorState.published],
+      [descriptorState.archivingSuspended, descriptorState.archiving],
+      () => ({
+        ...descriptor,
+        state: newState,
+        suspendedAt: undefined,
+      })
+    )
     .with([descriptorState.suspended, descriptorState.archived], () => ({
       ...descriptor,
       state: newState,
       suspendedAt: undefined,
       archivedAt: new Date(),
     }))
-    .with([descriptorState.published, descriptorState.archived], () => ({
-      ...descriptor,
-      state: newState,
-      archivedAt: new Date(),
-    }))
+    .with(
+      [descriptorState.published, descriptorState.archived],
+      [descriptorState.deprecated, descriptorState.archived],
+      [descriptorState.archiving, descriptorState.archived],
+      [descriptorState.archivingSuspended, descriptorState.archived],
+      () => ({
+        ...descriptor,
+        state: newState,
+        archivedAt: new Date(),
+      })
+    )
     .with([descriptorState.published, descriptorState.deprecated], () => ({
       ...descriptor,
       state: newState,
       deprecatedAt: new Date(),
     }))
+    .with(
+      [descriptorState.archived, descriptorState.published],
+      [descriptorState.archived, descriptorState.deprecated],
+      [descriptorState.archived, descriptorState.suspended],
+      () => ({
+        ...descriptor,
+        state: newState,
+        archivedAt: undefined,
+      })
+    )
     .otherwise(() => ({
       ...descriptor,
       state: newState,
@@ -407,7 +496,7 @@ const deprecateDescriptor = (
   return updateDescriptorState(descriptor, descriptorState.deprecated);
 };
 
-const archiveDescriptor = (
+const archiveDescriptorLogic = (
   streamId: string,
   descriptor: Descriptor,
   logger: Logger
@@ -470,10 +559,19 @@ async function parseAndCheckAttributesOfKind(
     .flat()
     .map(({ id }) => id);
 
-  const attributes = await readModelService.getAttributesByIds(
-    attributesSeedIds,
-    kind
-  );
+  const attributes =
+    kind === attributeKind.certified
+      ? [
+          ...(await readModelService.getAttributesByIds(
+            attributesSeedIds,
+            attributeKind.certified
+          )),
+          ...(await readModelService.getAttributesByIds(
+            attributesSeedIds,
+            attributeKind.certifiedDiscrete
+          )),
+        ]
+      : await readModelService.getAttributesByIds(attributesSeedIds, kind);
 
   const attributesIds = attributes.map((attr) => attr.id);
   attributesSeedIds.forEach((attributeId) => {
@@ -481,6 +579,36 @@ async function parseAndCheckAttributesOfKind(
       throw attributeNotFound(attributeId);
     }
   });
+
+  if (kind === attributeKind.certified) {
+    const hasCertifiedDiscreteConfig = parsedAttributesSeed
+      .flat()
+      .some((seedAttribute) => seedAttribute.discreteConfig !== undefined);
+    const hasCertifiedDiscreteAttribute = attributes.some(
+      (attribute) => attribute.kind === attributeKind.certifiedDiscrete
+    );
+
+    if (hasCertifiedDiscreteConfig || hasCertifiedDiscreteAttribute) {
+      assertFeatureFlagEnabled(config, "featureFlagAttributeCertifiedDiscrete");
+    }
+
+    const attributesById = new Map(
+      attributes.map((attribute) => [attribute.id, attribute])
+    );
+
+    parsedAttributesSeed.flat().forEach((seedAttribute) => {
+      const attribute = attributesById.get(seedAttribute.id);
+
+      if (
+        (attribute?.kind === attributeKind.certifiedDiscrete &&
+          seedAttribute.discreteConfig === undefined) ||
+        (attribute?.kind === attributeKind.certified &&
+          seedAttribute.discreteConfig !== undefined)
+      ) {
+        throw attributeNotFound(seedAttribute.id);
+      }
+    });
+  }
 
   return parsedAttributesSeed;
 }
@@ -542,6 +670,9 @@ async function innerCreateEService(
   eService: EService;
   events: Array<CreateEvent<EServiceEvent>>;
 }> {
+  validateNoHyperlinksSafe(seed.name);
+  validateNoHyperlinksSafe(seed.description);
+
   const origin = await retrieveOriginFromAuthData(
     authData,
     readModelService,
@@ -566,7 +697,6 @@ async function innerCreateEService(
     description: seed.description,
     technology: apiTechnologyToTechnology(seed.technology),
     mode: apiEServiceModeToEServiceMode(seed.mode),
-    attributes: undefined,
     descriptors: [],
     createdAt: creationDate,
     riskAnalysis: template?.riskAnalysis ?? [],
@@ -618,6 +748,7 @@ async function innerCreateEService(
         seed.descriptor.agreementApprovalPolicy
       ),
     serverUrls: [],
+    serverUrlsDescriptions: [],
     publishedAt: undefined,
     suspendedAt: undefined,
     deprecatedAt: undefined,
@@ -735,6 +866,9 @@ async function innerAddDocumentToEserviceEvent(
     interface: isInterface ? createdDocument : descriptor.interface,
     docs: isDocument ? [...descriptor.docs, createdDocument] : descriptor.docs,
     serverUrls: isInterface ? documentSeed.serverUrls : descriptor.serverUrls,
+    serverUrlsDescriptions: isInterface
+      ? (documentSeed.serverUrlsDescriptions ?? [])
+      : descriptor.serverUrlsDescriptions,
     templateVersionRef: evaluateTemplateVersionRef(descriptor, documentSeed),
     asyncExchangeCallbackInterface: isAsyncExchangeCallbackInterface
       ? createdDocument
@@ -810,6 +944,7 @@ function createNextDescriptor(
     dailyCallsTotal: seed.dailyCallsTotal,
     agreementApprovalPolicy: seed.agreementApprovalPolicy,
     serverUrls: [],
+    serverUrlsDescriptions: [],
     publishedAt: undefined,
     suspendedAt: undefined,
     deprecatedAt: undefined,
@@ -821,6 +956,29 @@ function createNextDescriptor(
       ? { id: seed.templateVersionId }
       : undefined,
     asyncExchangeProperties: seed.asyncExchangeProperties,
+  };
+}
+
+async function cloneDocumentWithNewId(
+  document: Document,
+  fileManager: FileManager,
+  logger: Logger
+): Promise<Document> {
+  const clonedDocumentId = generateId<EServiceDocumentId>();
+  const clonedDocumentPath = await fileManager.copy(
+    config.s3Bucket,
+    document.path,
+    config.eserviceDocumentsPath,
+    clonedDocumentId,
+    document.name,
+    logger
+  );
+
+  return {
+    ...document,
+    id: clonedDocumentId,
+    path: clonedDocumentPath,
+    uploadDate: new Date(),
   };
 }
 
@@ -876,6 +1034,67 @@ export function catalogServiceBuilder(
         filters,
         offset,
         limit
+      );
+
+      const eservicesToReturn = await Promise.all(
+        eservicesList.results.map((eservice) =>
+          applyVisibilityToEService(eservice, authData, readModelService)
+        )
+      );
+
+      return {
+        results: eservicesToReturn,
+        totalCount: eservicesList.totalCount,
+      };
+    },
+
+    async queryEServices(
+      filters: catalogApi.EServicesFilterPayload,
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<ListResult<EService>> {
+      const sortBy = filters.sortBy ?? defaultEServiceSortBy;
+      const trimmedKeyword = filters.keyword?.trim();
+      const keyword = trimmedKeyword === "" ? undefined : trimmedKeyword;
+      const producersIds = (filters.producersIds ?? []).map<TenantId>(
+        unsafeBrandId
+      );
+      const availableForRequester = filters.availableForRequester;
+      const producerCategories = filters.producerCategories ?? [];
+      logger.info(
+        `Querying EServices, limit = ${filters.limit}, offset = ${filters.offset}, sortBy = ${sortBy}, keyword = ${keyword}, producersIds = ${producersIds}, onlyActiveEservices = ${filters.onlyActiveEservices}, subscribedByRequester = ${filters.subscribedByRequester}, onlyTemplateInstances = ${filters.onlyTemplateInstances}, templateId = ${filters.templateId}, hasLinkedPurposeTemplates = ${filters.hasLinkedPurposeTemplates}, producerCategories = ${producerCategories}, availableForRequester = ${availableForRequester}`
+      );
+      const certifiedDiscreteEnabled = isFeatureFlagEnabled(
+        config,
+        "featureFlagAttributeCertifiedDiscrete"
+      );
+
+      const eservicesList = await readModelService.queryEServices(
+        authData,
+        {
+          offset: filters.offset,
+          limit: filters.limit,
+          sortBy,
+          keyword,
+          producersIds,
+          onlyActiveEservices: filters.onlyActiveEservices,
+          subscribedByRequester: filters.subscribedByRequester,
+          onlyTemplateInstances: filters.onlyTemplateInstances,
+          templateId: filters.templateId
+            ? unsafeBrandId<EServiceTemplateId>(filters.templateId)
+            : undefined,
+          hasLinkedPurposeTemplates: filters.hasLinkedPurposeTemplates,
+          producerCategories,
+          availableForRequester,
+          mode: filters.mode
+            ? apiEServiceModeToEServiceMode(filters.mode)
+            : undefined,
+          onlySignalHubEnabled: filters.onlySignalHubEnabled,
+          asyncExchange: filters.asyncExchange,
+        },
+        certifiedDiscreteEnabled
       );
 
       const eservicesToReturn = await Promise.all(
@@ -1038,6 +1257,8 @@ export function catalogServiceBuilder(
     ): Promise<EService> {
       logger.info(`Updating EService ${eserviceId} template instance`);
 
+      validateNoHyperlinksSafe(eserviceSeed.instanceLabel);
+
       const eservice = await retrieveEService(eserviceId, readModelService);
       await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
@@ -1124,16 +1345,12 @@ export function catalogServiceBuilder(
         );
         await repository.createEvent(eserviceDeletionEvent);
       } else {
-        await deleteDescriptorInterfaceAndDocs(
+        const eserviceWithoutDescriptors = await deleteInactiveDescriptorLogic(
+          eservice.data,
           eservice.data.descriptors[0],
           fileManager,
           logger
         );
-
-        const eserviceWithoutDescriptors: EService = {
-          ...eservice.data,
-          descriptors: [],
-        };
         const descriptorDeletionEvent =
           toCreateEventEServiceDraftDescriptorDeleted(
             eservice.metadata.version,
@@ -1153,6 +1370,199 @@ export function catalogServiceBuilder(
       }
     },
 
+    async scheduleEServiceArchiving(
+      eserviceId: EServiceId,
+      body: catalogApi.EServiceArchivingSeed,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(`Archiving EService ${eserviceId}`);
+
+      validateNoHyperlinksSafe(body.archivingReason);
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      const requestDate = new Date();
+
+      assertRequesterIsProducer(eservice.data.producerId, authData);
+
+      await assertNoExistingProducerDelegationForEServiceArchiving(
+        eserviceId,
+        readModelService
+      );
+
+      assertEServiceArchivable(eservice.data);
+
+      assertEServiceGracePeriodIsNotLowerThanDescriptors(
+        requestDate,
+        eservice.data,
+        body.gracePeriodDays
+      );
+
+      const updatedEService = await processEserviceArchiving(
+        requestDate,
+        eservice.data,
+        body,
+        fileManager,
+        logger
+      );
+
+      const event = toCreateEventEServiceArchivingScheduled(
+        eservice.metadata.version,
+        updatedEService,
+        correlationId
+      );
+      const createdEvent = await repository.createEvent(event);
+
+      return {
+        data: updatedEService,
+        metadata: { version: createdEvent.newVersion },
+      };
+    },
+    async approveDelegatedEServiceArchiving(
+      eserviceId: EServiceId,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertRequesterIsProducer(eservice.data.producerId, authData);
+      assertDelegatedEserviceHasAtLeastOneArchivingRequests(eservice.data);
+      assertDelegatedEserviceHasActiveArchivingRequests(eservice.data);
+      assertEServiceArchivable(eservice.data);
+
+      const latestActiveRequest = getLatestActiveArchivingRequest(
+        eservice.data.delegatedArchivingRequest,
+        eserviceId
+      );
+      const producerDelegation = await retrieveActiveProducerDelegation(
+        eservice.data,
+        readModelService
+      );
+      assertDelegatedArchivingRequestDelegationIsStillValid(
+        producerDelegation,
+        latestActiveRequest,
+        eserviceId
+      );
+      assertEServiceGracePeriodIsNotLowerThanDescriptors(
+        latestActiveRequest.requestedAt,
+        eservice.data,
+        latestActiveRequest.gracePeriodDays
+      );
+
+      const now = new Date();
+
+      const updatedRequests = updateLatestActiveArchivingRequest(
+        eservice.data.delegatedArchivingRequest ?? [],
+        {
+          acceptedAt: now,
+        },
+        eserviceId
+      );
+
+      const updatedEService: EService = {
+        ...eservice.data,
+        delegatedArchivingRequest: updatedRequests,
+      };
+
+      const lastRequest = getLatestArchivingRequest(
+        updatedRequests,
+        eserviceId
+      );
+
+      const archivableEservice = await processEserviceArchiving(
+        now,
+        updatedEService,
+        {
+          gracePeriodDays: lastRequest.gracePeriodDays,
+          archivingReason: lastRequest.archivingReason,
+        },
+        fileManager,
+        logger
+      );
+
+      const event = await repository.createEvent(
+        toCreateEventEServiceArchivingRequestApprovedByDelegator(
+          eservice.metadata.version,
+          archivableEservice,
+          correlationId
+        )
+      );
+      return {
+        data: archivableEservice,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+    async rejectDelegatedEServiceArchiving(
+      eserviceId: EServiceId,
+      body: catalogApi.RejectDelegatedEServiceArchivingSeed,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(
+        `Rejecting delegated archiving request for EService ${eserviceId}`
+      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertRequesterIsProducer(eservice.data.producerId, authData);
+      assertDelegatedEserviceHasAtLeastOneArchivingRequests(eservice.data);
+
+      assertDelegatedEserviceHasActiveArchivingRequests(eservice.data);
+
+      const producerDelegation = await retrieveActiveProducerDelegation(
+        eservice.data,
+        readModelService
+      );
+
+      const latestActiveRequest = getLatestActiveArchivingRequest(
+        eservice.data.delegatedArchivingRequest,
+        eserviceId
+      );
+
+      assertDelegatedArchivingRequestDelegationIsStillValid(
+        producerDelegation,
+        latestActiveRequest,
+        eserviceId
+      );
+
+      const updatedRequests = updateLatestActiveArchivingRequest(
+        eservice.data.delegatedArchivingRequest ?? [],
+        {
+          rejectedAt: new Date(),
+          rejectionReason: body.rejectionReason,
+        },
+        eserviceId
+      );
+
+      const updatedEService: EService = {
+        ...eservice.data,
+        delegatedArchivingRequest: updatedRequests,
+      };
+
+      const event = await repository.createEvent(
+        toCreateEventEServiceArchivingRequestRejectedByDelegator(
+          eservice.metadata.version,
+          updatedEService,
+          correlationId
+        )
+      );
+      return {
+        data: updatedEService,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
     async uploadDocument(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -1166,6 +1576,9 @@ export function catalogServiceBuilder(
           document.filePath
         } for EService ${eserviceId} and Descriptor ${descriptorId}`
       );
+
+      validateNoHyperlinksSafe(document.fileName);
+      validateNoHyperlinksSafe(document.prettyName);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
@@ -1248,6 +1661,9 @@ export function catalogServiceBuilder(
                 interface:
                   d.interface?.id === documentId ? undefined : d.interface,
                 serverUrls: isInterface ? [] : d.serverUrls,
+                serverUrlsDescriptions: isInterface
+                  ? []
+                  : d.serverUrlsDescriptions,
                 docs: d.docs.filter((doc) => doc.id !== documentId),
                 asyncExchangeCallbackInterface:
                   d.asyncExchangeCallbackInterface?.id === documentId
@@ -1307,6 +1723,10 @@ export function catalogServiceBuilder(
         `Updating Document ${documentId} of Descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
+      validateNoHyperlinksSafe(
+        apiEServiceDescriptorDocumentUpdateSeed.prettyName
+      );
+
       const eservice = await retrieveEService(eserviceId, readModelService);
 
       assertEServiceNotTemplateInstance(
@@ -1329,15 +1749,13 @@ export function catalogServiceBuilder(
 
       const document = retrieveDocument(eserviceId, descriptor, documentId);
 
-      const isInterface = document.id === descriptor?.interface?.id;
-      const isAsyncExchangeCallbackInterface =
-        document.id === descriptor?.asyncExchangeCallbackInterface?.id;
-
+      // The interface and the async exchange callback interface cannot be
+      // updated: only regular documents are updatable through this operation.
       if (
-        (isInterface || isAsyncExchangeCallbackInterface) &&
-        descriptorStatesNotAllowingInterfaceOperations(descriptor)
+        document.id === descriptor.interface?.id ||
+        document.id === descriptor.asyncExchangeCallbackInterface?.id
       ) {
-        throw notValidDescriptorState(descriptor.id, descriptor.state);
+        throw interfaceDocumentNotUpdatable(descriptor.id, documentId);
       }
 
       if (
@@ -1365,13 +1783,9 @@ export function catalogServiceBuilder(
           d.id === descriptorId
             ? {
                 ...d,
-                interface: isInterface ? updatedDocument : d.interface,
                 docs: d.docs.map((doc) =>
                   doc.id === documentId ? updatedDocument : doc
                 ),
-                asyncExchangeCallbackInterface: isAsyncExchangeCallbackInterface
-                  ? updatedDocument
-                  : d.asyncExchangeCallbackInterface,
               }
             : d
         ),
@@ -1383,26 +1797,12 @@ export function catalogServiceBuilder(
         eservice: newEservice,
       };
 
-      const event = isInterface
-        ? toCreateEventEServiceInterfaceUpdated(
-            eserviceId,
-            eservice.metadata.version,
-            eventPayload,
-            correlationId
-          )
-        : isAsyncExchangeCallbackInterface
-          ? toCreateEventEServiceAsyncExchangeCallbackInterfaceUpdated(
-              eserviceId,
-              eservice.metadata.version,
-              eventPayload,
-              correlationId
-            )
-          : toCreateEventEServiceDocumentUpdated(
-              eserviceId,
-              eservice.metadata.version,
-              eventPayload,
-              correlationId
-            );
+      const event = toCreateEventEServiceDocumentUpdated(
+        eserviceId,
+        eservice.metadata.version,
+        eventPayload,
+        correlationId
+      );
 
       await repository.createEvent(event);
       return updatedDocument;
@@ -1424,7 +1824,15 @@ export function catalogServiceBuilder(
     > {
       logger.info(`Creating Descriptor for EService ${eserviceId}`);
 
+      validateNoHyperlinksSafe(eserviceDescriptorSeed.description);
+      eserviceDescriptorSeed.docs.forEach((doc) => {
+        validateNoHyperlinksSafe(doc.fileName);
+        validateNoHyperlinksSafe(doc.prettyName);
+      });
+
       const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertEserviceIsNotInArchivingOrArchivedState(eservice.data);
 
       assertEServiceNotTemplateInstance(
         eservice.data.id,
@@ -1445,6 +1853,7 @@ export function catalogServiceBuilder(
       );
 
       assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
+      assertDiscreteConfigForCertifiedAttributesOnly(parsedAttributes);
       assertConsistentDailyCalls(eserviceDescriptorSeed);
       assertAttributeDailyCallsConsistentWithTotal(
         parsedAttributes,
@@ -1595,14 +2004,13 @@ export function catalogServiceBuilder(
         throw notValidDescriptorState(descriptorId, descriptor.state);
       }
 
-      await deleteDescriptorInterfaceAndDocs(descriptor, fileManager, logger);
-
-      const eserviceAfterDescriptorDeletion: EService = {
-        ...eservice.data,
-        descriptors: eservice.data.descriptors.filter(
-          (d: Descriptor) => d.id !== descriptorId
-        ),
-      };
+      const eserviceAfterDescriptorDeletion =
+        await deleteInactiveDescriptorLogic(
+          eservice.data,
+          descriptor,
+          fileManager,
+          logger
+        );
 
       const descriptorDeletionEvent =
         toCreateEventEServiceDraftDescriptorDeleted(
@@ -1697,31 +2105,30 @@ export function catalogServiceBuilder(
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
       if (descriptor.state !== descriptorState.draft) {
-        throw notValidDescriptorState(
-          descriptorId,
-          descriptor.state.toString()
-        );
+        throw notValidDescriptorState(descriptorId, descriptor.state);
       }
 
       assertConsistentDailyCalls(seed);
+
+      const parsedSeedAttributes = seed.attributes
+        ? await parseAndCheckAttributes(seed.attributes, readModelService)
+        : undefined;
 
       const asyncExchangeEnabled =
         isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
         eservice.data.asyncExchange === true;
 
-      if (seed.attributes) {
+      if (parsedSeedAttributes) {
+        assertDiscreteConfigForCertifiedAttributesOnly(parsedSeedAttributes);
         assertTemplateInstanceAttributeStructureUnchanged(
           eserviceId,
           eservice.data.templateId,
           descriptor.attributes,
-          seed.attributes
+          parsedSeedAttributes
         );
       }
 
-      const updatedAttributes = seed.attributes
-        ? await parseAndCheckAttributes(seed.attributes, readModelService)
-        : descriptor.attributes;
-
+      const updatedAttributes = parsedSeedAttributes ?? descriptor.attributes;
       assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
       assertAttributeDailyCallsConsistentWithTotal(
         updatedAttributes,
@@ -1797,10 +2204,7 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
       if (descriptor.state !== descriptorState.draft) {
-        throw notValidDescriptorState(
-          descriptor.id,
-          descriptor.state.toString()
-        );
+        throw notValidDescriptorState(descriptor.id, descriptor.state);
       }
 
       if (descriptor.interface === undefined) {
@@ -1902,19 +2306,17 @@ export function catalogServiceBuilder(
       );
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
-      if (
-        descriptor.state !== descriptorState.deprecated &&
-        descriptor.state !== descriptorState.published
-      ) {
-        throw notValidDescriptorState(
-          descriptorId,
-          descriptor.state.toString()
-        );
-      }
+      assertDescriptorInRequiredStates(descriptor, [
+        descriptorState.deprecated,
+        descriptorState.published,
+        descriptorState.archiving,
+      ]);
 
       const updatedDescriptor = updateDescriptorState(
         descriptor,
-        descriptorState.suspended
+        descriptor.state === descriptorState.archiving
+          ? descriptorState.archivingSuspended
+          : descriptorState.suspended
       );
 
       const newEservice = replaceDescriptor(eservice.data, updatedDescriptor);
@@ -1959,85 +2361,47 @@ export function catalogServiceBuilder(
       );
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
-      if (descriptor.state !== descriptorState.suspended) {
-        throw notValidDescriptorState(
-          descriptorId,
-          descriptor.state.toString()
+      assertDescriptorInRequiredStates(descriptor, [
+        descriptorState.suspended, // --> to published or deprecated
+        descriptorState.archivingSuspended, // --> to archiving
+      ]);
+
+      const resolveTargetState = () => {
+        if (descriptor.state === descriptorState.archivingSuspended) {
+          return descriptorState.archiving;
+        }
+        const isMostRecent = isLatestActiveDescriptorVersion(
+          descriptor,
+          eservice.data.descriptors
         );
-      }
+        return isMostRecent
+          ? descriptorState.published
+          : descriptorState.deprecated;
+      };
 
       const updatedDescriptor = updateDescriptorState(
         descriptor,
-        descriptorState.published
+        resolveTargetState()
       );
-      const descriptorVersions: number[] = eservice.data.descriptors
-        .filter(
-          (d: Descriptor) =>
-            d.state === descriptorState.suspended ||
-            d.state === descriptorState.deprecated ||
-            d.state === descriptorState.published
+
+      const updatedEserviceData = replaceDescriptor(
+        eservice.data,
+        updatedDescriptor
+      );
+
+      const event = await repository.createEvent(
+        toCreateEventEServiceDescriptorActivated(
+          eserviceId,
+          eservice.metadata.version,
+          descriptorId,
+          updatedEserviceData,
+          correlationId
         )
-        .map((d: Descriptor) => parseInt(d.version, 10));
-      const recentDescriptorVersion = Math.max(...descriptorVersions);
-
-      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-      const createActivationEvent = async () => {
-        if (
-          recentDescriptorVersion !== null &&
-          parseInt(descriptor.version, 10) === recentDescriptorVersion
-        ) {
-          const newEservice = replaceDescriptor(
-            eservice.data,
-            updatedDescriptor
-          );
-
-          const event = await repository.createEvent(
-            toCreateEventEServiceDescriptorActivated(
-              eserviceId,
-              eservice.metadata.version,
-              descriptorId,
-              newEservice,
-              correlationId
-            )
-          );
-
-          return {
-            data: newEservice,
-            metadata: {
-              version: event.newVersion,
-            },
-          };
-        } else {
-          const newEservice = replaceDescriptor(
-            eservice.data,
-            deprecateDescriptor(eserviceId, descriptor, logger)
-          );
-
-          const event = await repository.createEvent(
-            toCreateEventEServiceDescriptorActivated(
-              eserviceId,
-              eservice.metadata.version,
-              descriptorId,
-              newEservice,
-              correlationId
-            )
-          );
-          return {
-            data: newEservice,
-            metadata: {
-              version: event.newVersion,
-            },
-          };
-        }
-      };
-
-      const response = await createActivationEvent();
+      );
 
       return {
-        data: response.data,
-        metadata: {
-          version: response.metadata.version,
-        },
+        data: updatedEserviceData,
+        metadata: { version: event.newVersion },
       };
     },
 
@@ -2058,25 +2422,16 @@ export function catalogServiceBuilder(
       );
 
       assertRequesterIsProducer(eservice.data.producerId, authData);
-      await assertNoExistingProducerDelegationInActiveOrPendingState(
-        eservice.data.id,
-        readModelService
-      );
 
       const currentDate = new Date();
-      const suffix = ` - clone - ${dateAtRomeZone(
-        currentDate
-      )} ${timeAtRomeZone(currentDate)}`;
+      const suffix = ` - clone - ${dateAtRomeZone(currentDate)} ${timeAtRomeZone(currentDate)}`;
       const dots = "...";
       const maxNameLength = 60; // same value as in the api spec (EServiceSeed)
       const prefixLengthAllowance = maxNameLength - suffix.length - dots.length;
       const clonedEServiceName =
         eservice.data.name.length + suffix.length <= maxNameLength
           ? `${eservice.data.name}${suffix}`
-          : `${eservice.data.name.slice(
-              0,
-              prefixLengthAllowance
-            )}${dots}${suffix}`;
+          : `${eservice.data.name.slice(0, prefixLengthAllowance)}${dots}${suffix}`;
 
       await assertEServiceNameAvailableForProducer(
         clonedEServiceName,
@@ -2091,55 +2446,57 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      const clonedInterfaceId = generateId<EServiceDocumentId>();
-      const clonedInterfacePath =
-        descriptor.interface !== undefined
-          ? await fileManager.copy(
-              config.s3Bucket,
-              descriptor.interface.path,
-              config.eserviceDocumentsPath,
-              clonedInterfaceId,
-              descriptor.interface.name,
+      const clonedInterfaceDocument = descriptor.interface
+        ? await cloneDocumentWithNewId(
+            descriptor.interface,
+            fileManager,
+            logger
+          )
+        : undefined;
+
+      const clonedAsyncExchangeCallbackInterfaceDocument =
+        descriptor.asyncExchangeCallbackInterface
+          ? await cloneDocumentWithNewId(
+              descriptor.asyncExchangeCallbackInterface,
+              fileManager,
               logger
             )
           : undefined;
 
-      const clonedInterfaceDocument: Document | undefined =
-        descriptor.interface !== undefined && clonedInterfacePath !== undefined
-          ? {
-              id: clonedInterfaceId,
-              name: descriptor.interface.name,
-              contentType: descriptor.interface.contentType,
-              prettyName: descriptor.interface.prettyName,
-              path: clonedInterfacePath,
-              checksum: descriptor.interface.checksum,
-              uploadDate: new Date(),
-            }
-          : undefined;
-
       const clonedDocuments = await Promise.all(
-        descriptor.docs.map(async (doc: Document) => {
-          const clonedDocumentId = generateId<EServiceDocumentId>();
-          const clonedDocumentPath = await fileManager.copy(
-            config.s3Bucket,
-            doc.path,
-            config.eserviceDocumentsPath,
-            clonedDocumentId,
-            doc.name,
-            logger
-          );
-          const clonedDocument: Document = {
-            id: clonedDocumentId,
-            name: doc.name,
-            contentType: doc.contentType,
-            prettyName: doc.prettyName,
-            path: clonedDocumentPath,
-            checksum: doc.checksum,
-            uploadDate: new Date(),
-          };
-          return clonedDocument;
-        })
+        descriptor.docs.map((doc) =>
+          cloneDocumentWithNewId(doc, fileManager, logger)
+        )
       );
+
+      const newDescriptor = explicitPropertiesChecker<Descriptor>({
+        id: generateId(),
+        version: "1",
+        interface: clonedInterfaceDocument,
+        asyncExchangeCallbackInterface:
+          clonedAsyncExchangeCallbackInterfaceDocument,
+        docs: clonedDocuments,
+        state: descriptorState.draft,
+        createdAt: new Date(),
+        publishedAt: undefined,
+        suspendedAt: undefined,
+        deprecatedAt: undefined,
+        archivedAt: undefined,
+        archivingSchedule: undefined,
+        attributes: descriptor.attributes,
+        dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+        audience: descriptor.audience,
+        voucherLifespan: descriptor.voucherLifespan,
+        dailyCallsTotal: descriptor.dailyCallsTotal,
+        serverUrls: descriptor.serverUrls,
+        description: descriptor.description,
+        serverUrlsDescriptions: descriptor.serverUrlsDescriptions,
+        agreementApprovalPolicy: descriptor.agreementApprovalPolicy,
+        asyncExchangeProperties: descriptor.asyncExchangeProperties,
+        rejectionReasons: undefined,
+        templateVersionRef: descriptor.templateVersionRef,
+        delegatedArchivingRequest: undefined,
+      });
 
       const clonedEservice: EService = {
         id: generateId(),
@@ -2147,27 +2504,13 @@ export function catalogServiceBuilder(
         name: clonedEServiceName,
         description: eservice.data.description,
         technology: eservice.data.technology,
-        attributes: eservice.data.attributes,
         createdAt: new Date(),
         riskAnalysis: eservice.data.riskAnalysis,
         mode: eservice.data.mode,
-        descriptors: [
-          {
-            ...descriptor,
-            id: generateId(),
-            version: "1",
-            interface: clonedInterfaceDocument,
-            docs: clonedDocuments,
-            state: descriptorState.draft,
-            createdAt: new Date(),
-            publishedAt: undefined,
-            suspendedAt: undefined,
-            deprecatedAt: undefined,
-            archivedAt: undefined,
-          },
-        ],
+        descriptors: [newDescriptor],
         personalData: eservice.data.personalData,
         asyncExchange: eservice.data.asyncExchange,
+        delegatedArchivingRequest: undefined,
       };
       const event = toCreateEventClonedEServiceAdded(
         descriptorId,
@@ -2183,23 +2526,215 @@ export function catalogServiceBuilder(
     async archiveDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
+      archivingKindSeed: catalogApi.ArchivingKindSeed,
       { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<void> {
       logger.info(
-        `Archiving Descriptor ${descriptorId} for EService ${eserviceId}`
+        `Archiving Descriptor ${descriptorId} for EService ${eserviceId} with kind ${archivingKindSeed.kind}`
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-
       const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      assertDescriptorIsNotAlreadyArchived(descriptor);
+
+      const descriptorAfterCleanup =
+        deletePendingDescriptorArchivingRequests(descriptor);
+
       const updatedDescriptor = updateDescriptorState(
-        descriptor,
+        descriptorAfterCleanup,
         descriptorState.archived
       );
 
       const newEservice = replaceDescriptor(eservice.data, updatedDescriptor);
 
-      const event = toCreateEventEServiceDescriptorArchived(
+      const event =
+        archivingKindSeed.kind === "AUTOMATIC"
+          ? toCreateEventEServiceDescriptorArchived(
+              eserviceId,
+              eservice.metadata.version,
+              descriptorId,
+              newEservice,
+              correlationId
+            )
+          : toCreateEventEServiceDescriptorArchivingCompleted(
+              eserviceId,
+              eservice.metadata.version,
+              descriptorId,
+              newEservice,
+              correlationId
+            );
+
+      await repository.createEvent(event);
+    },
+    async internalRestoreDraftDescriptorAfterDelegationRevoke(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<void> {
+      logger.info(
+        `Internal restoring delegated waitingForApproval descriptor ${descriptorId} for EService ${eserviceId} to draft state`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      if (descriptor.state !== descriptorState.waitingForApproval) {
+        logger.info(
+          `Skipping delegated descriptor draft restore for EService ${eserviceId}, descriptor ${descriptorId}: state is ${descriptor.state}, expected ${descriptorState.waitingForApproval}`
+        );
+        return;
+      }
+
+      const updatedDescriptor = updateDescriptorState(
+        descriptor,
+        descriptorState.draft
+      );
+
+      const updatedEService = replaceDescriptor(
+        eservice.data,
+        updatedDescriptor
+      );
+
+      const delegatedDescriptorRevokedEvent =
+        toCreateEventEServiceDescriptorRestoredToDraftByRevokedDelegation(
+          eservice.metadata.version,
+          descriptorId,
+          updatedEService,
+          correlationId
+        );
+
+      await repository.createEvent(delegatedDescriptorRevokedEvent);
+    },
+    async internalDeleteDelegatedArchivingRequest(
+      eserviceId: EServiceId,
+      seed: catalogApi.InternalDeleteDelegatedArchivingRequestSeed,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<void> {
+      logger.info(
+        `Internal deleting delegated archiving request for EService ${eserviceId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      if (seed.descriptorId) {
+        const descriptorId = unsafeBrandId<DescriptorId>(seed.descriptorId);
+        const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+        if (!hasActiveArchivingRequest(descriptor.delegatedArchivingRequest)) {
+          logger.info(
+            `No active delegated descriptor archiving request found for descriptor ${descriptorId} of EService ${eserviceId}`
+          );
+          return;
+        }
+
+        const updatedRequests = removeActiveArchivingRequest(
+          descriptor.delegatedArchivingRequest
+        );
+
+        const updatedEService = replaceDescriptor(eservice.data, {
+          ...descriptor,
+          delegatedArchivingRequest: updatedRequests,
+        });
+
+        await repository.createEvent(
+          toCreateEventEServiceDescriptorArchivingRequestCanceledByRevokedDelegation(
+            eservice.metadata.version,
+            descriptorId,
+            updatedEService,
+            correlationId
+          )
+        );
+        return;
+      }
+
+      if (!hasActiveArchivingRequest(eservice.data.delegatedArchivingRequest)) {
+        logger.info(
+          `No active delegated eService archiving request found for EService ${eserviceId}`
+        );
+        return;
+      }
+
+      const updatedRequests = removeActiveArchivingRequest(
+        eservice.data.delegatedArchivingRequest
+      );
+
+      const updatedEService: EService = {
+        ...eservice.data,
+        delegatedArchivingRequest: updatedRequests,
+      };
+
+      await repository.createEvent(
+        toCreateEventEServiceArchivingRequestCanceledByRevokedDelegation(
+          eservice.metadata.version,
+          updatedEService,
+          correlationId
+        )
+      );
+    },
+    async archiveEService(
+      eserviceId: EServiceId,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<void> {
+      logger.info(`Archiving EService ${eserviceId}`);
+
+      const { data: eservice, metadata } = await retrieveEService(
+        eserviceId,
+        readModelService
+      );
+
+      assertEServiceIsNotAlreadyArchived(eservice);
+
+      const descriptors = eservice.descriptors.map((d) =>
+        d.state === descriptorState.archived
+          ? d
+          : updateDescriptorState(d, descriptorState.archived)
+      );
+      const updatedEservice: EService = {
+        ...eservice,
+        descriptors,
+      };
+
+      const event = toCreateEventEServiceArchivingCompleted(
+        metadata.version,
+        updatedEservice,
+        correlationId
+      );
+      await repository.createEvent(event);
+    },
+
+    async unarchiveDescriptor(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      payload: catalogApi.ForceTargetState,
+      { correlationId, logger }: WithLogger<AppContext<MaintenanceAuthData>>
+    ): Promise<void> {
+      logger.info(
+        `Unarchiving Descriptor ${descriptorId} for EService ${eserviceId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      assertDescriptorInRequiredStates(descriptor, [descriptorState.archived]);
+
+      const latestDescriptor = getLatestDescriptor(eservice.data);
+      const isLatestDescriptor = latestDescriptor.id === descriptor.id;
+
+      const restoredState =
+        payload.forceTargetState === "SUSPENDED"
+          ? descriptorState.suspended
+          : isLatestDescriptor
+            ? descriptorState.published
+            : descriptorState.deprecated;
+
+      const updatedDescriptor = updateDescriptorState(
+        { ...descriptor, archivingSchedule: undefined },
+        restoredState
+      );
+      const newEservice = replaceDescriptor(eservice.data, updatedDescriptor);
+
+      const event = toCreateEventMaintenanceEServiceDescriptorUnarchived(
         eserviceId,
         eservice.metadata.version,
         descriptorId,
@@ -2209,6 +2744,7 @@ export function catalogServiceBuilder(
 
       await repository.createEvent(event);
     },
+
     async updateDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -2247,6 +2783,8 @@ export function catalogServiceBuilder(
         : descriptor.attributes;
 
       assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
+      assertDiscreteConfigForCertifiedAttributesOnly(updatedAttributes);
+      assertCertifiedDiscreteConfigUnchanged(descriptor, updatedAttributes);
 
       const updatedDescriptor: Descriptor = {
         ...descriptor,
@@ -2281,6 +2819,57 @@ export function catalogServiceBuilder(
         metadata: { version: event.newVersion },
       };
     },
+    async scheduleEServiceDescriptorArchiving(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      body: catalogApi.GracePeriodDaysSeed,
+      {
+        authData,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      assertRequesterIsProducer(eservice.data.producerId, authData);
+
+      await assertNoExistingProducerDelegationForDescriptorArchiving(
+        eserviceId,
+        descriptorId,
+        readModelService
+      );
+
+      assertDescriptorArchivable(descriptor, eservice.data);
+
+      const newState =
+        descriptor.state === descriptorState.suspended
+          ? descriptorState.archivingSuspended
+          : descriptorState.archiving;
+
+      const updatedDescriptor = await processDescriptorArchiving(
+        descriptor,
+        newState,
+        body.gracePeriodDays
+      );
+
+      const updatedEService = replaceDescriptor(
+        eservice.data,
+        updatedDescriptor
+      );
+
+      const event = toCreateEventEServiceDescriptorArchivingScheduled(
+        eservice.metadata.version,
+        updatedEService,
+        descriptorId,
+        correlationId
+      );
+
+      const createdEvent = await repository.createEvent(event);
+      return {
+        data: updatedEService,
+        metadata: { version: createdEvent.newVersion },
+      };
+    },
     async updateTemplateInstanceDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -2307,18 +2896,21 @@ export function catalogServiceBuilder(
       assertDescriptorUpdatableAfterPublish(descriptor);
       assertConsistentDailyCalls(seed);
 
-      if (seed.attributes) {
+      const parsedSeedAttributes = seed.attributes
+        ? await parseAndCheckAttributes(seed.attributes, readModelService)
+        : undefined;
+
+      if (parsedSeedAttributes) {
+        assertDiscreteConfigForCertifiedAttributesOnly(parsedSeedAttributes);
         assertTemplateInstanceAttributeStructureUnchanged(
           eserviceId,
           eservice.data.templateId,
           descriptor.attributes,
-          seed.attributes
+          parsedSeedAttributes
         );
       }
 
-      const updatedAttributes = seed.attributes
-        ? await parseAndCheckAttributes(seed.attributes, readModelService)
-        : descriptor.attributes;
+      const updatedAttributes = parsedSeedAttributes ?? descriptor.attributes;
 
       assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
 
@@ -2417,6 +3009,8 @@ export function catalogServiceBuilder(
     > {
       logger.info(`Creating Risk Analysis for EService ${eserviceId}`);
 
+      validateNoHyperlinksSafe(eserviceRiskAnalysisSeed.name);
+
       const eservice = await retrieveEService(eserviceId, readModelService);
 
       assertEServiceNotTemplateInstance(
@@ -2501,6 +3095,8 @@ export function catalogServiceBuilder(
       logger.info(
         `Updating Risk Analysis ${riskAnalysisId} for EService ${eserviceId}`
       );
+
+      validateNoHyperlinksSafe(eserviceRiskAnalysisSeed.name);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
@@ -2688,6 +3284,9 @@ export function catalogServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<EService>> {
       logger.info(`Updating EService ${eserviceId} description`);
+
+      validateNoHyperlinksSafe(description);
+
       const eservice = await retrieveEService(eserviceId, readModelService);
 
       assertEServiceNotTemplateInstance(
@@ -2825,6 +3424,8 @@ export function catalogServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<EService>> {
       logger.info(`Updating name of EService ${eserviceId}`);
+
+      validateNoHyperlinksSafe(name);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
@@ -2975,10 +3576,7 @@ export function catalogServiceBuilder(
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
       if (descriptor.state !== descriptorState.waitingForApproval) {
-        throw notValidDescriptorState(
-          descriptor.id,
-          descriptor.state.toString()
-        );
+        throw notValidDescriptorState(descriptor.id, descriptor.state);
       }
 
       if (eservice.data.personalData === undefined) {
@@ -3029,6 +3627,9 @@ export function catalogServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<EService>> {
       logger.info(`Rejecting EService ${eserviceId} version ${descriptorId}`);
+
+      validateNoHyperlinksSafe(body.rejectionReason);
+
       const eservice = await retrieveEService(eserviceId, readModelService);
 
       assertRequesterIsProducer(eservice.data.producerId, authData);
@@ -3036,10 +3637,7 @@ export function catalogServiceBuilder(
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
       if (descriptor.state !== descriptorState.waitingForApproval) {
-        throw notValidDescriptorState(
-          descriptor.id,
-          descriptor.state.toString()
-        );
+        throw notValidDescriptorState(descriptor.id, descriptor.state);
       }
 
       const newRejectionReason: DescriptorRejectionReason = {
@@ -3067,6 +3665,424 @@ export function catalogServiceBuilder(
         toCreateEventEServiceDescriptorRejectedByDelegator(
           eservice.metadata.version,
           descriptor.id,
+          updatedEService,
+          correlationId
+        )
+      );
+      return {
+        data: updatedEService,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+    // Delegated archiving requests
+    async submitDelegatedEServiceArchiving(
+      eserviceId: EServiceId,
+      seed: catalogApi.EServiceArchivingSeed,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(
+        `Submitting delegated archiving request for EService ${eserviceId}`
+      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      const producerDelegation = await retrieveActiveProducerDelegation(
+        eservice.data,
+        readModelService
+      );
+
+      if (!producerDelegation) {
+        throw noDelegationForArchivingRequest(eserviceId);
+      }
+
+      assertRequesterIsDelegateForArchiving(producerDelegation, authData);
+
+      assertEServiceArchivable(eservice.data);
+      assertDelegatedEserviceHasNoActiveArchivingRequests(eservice.data);
+      assertEServiceGracePeriodIsNotLowerThanDescriptors(
+        new Date(),
+        eservice.data,
+        seed.gracePeriodDays
+      );
+
+      const updatedRequests = appendArchivingRequest(
+        eservice.data.delegatedArchivingRequest,
+        {
+          requestedAt: new Date(),
+          requesterId: authData.organizationId,
+          gracePeriodDays: seed.gracePeriodDays,
+          archivingReason: seed.archivingReason,
+        }
+      );
+
+      const updatedEService: EService = {
+        ...eservice.data,
+        delegatedArchivingRequest: updatedRequests,
+      };
+
+      const event = await repository.createEvent(
+        toCreateEventEServiceArchivingRequestedByDelegate(
+          eservice.metadata.version,
+          updatedEService,
+          correlationId
+        )
+      );
+      return {
+        data: updatedEService,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+    async submitDelegatedDescriptorArchiving(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: catalogApi.GracePeriodDaysSeed,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(
+        `Submitting delegated archiving request for Descriptor ${descriptorId}`
+      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      const producerDelegation = await retrieveActiveProducerDelegation(
+        eservice.data,
+        readModelService
+      );
+
+      if (!producerDelegation) {
+        throw noDelegationForArchivingRequest(eserviceId);
+      }
+
+      assertRequesterIsDelegateForArchiving(producerDelegation, authData);
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      assertDescriptorArchivable(descriptor, eservice.data);
+      assertDelegatedEserviceHasNoActiveArchivingRequests(eservice.data);
+
+      const updatedRequests = appendArchivingRequest(
+        descriptor.delegatedArchivingRequest,
+        {
+          requestedAt: new Date(),
+          requesterId: authData.organizationId,
+          gracePeriodDays: seed.gracePeriodDays,
+        }
+      );
+
+      const updatedEService = replaceDescriptor(eservice.data, {
+        ...descriptor,
+        delegatedArchivingRequest: updatedRequests,
+      });
+
+      const event = await repository.createEvent(
+        toCreateEventEServiceDescriptorArchivingRequestedByDelegate(
+          eservice.metadata.version,
+          descriptorId,
+          updatedEService,
+          correlationId
+        )
+      );
+      return {
+        data: updatedEService,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+    async cancelDelegatedEServiceArchiving(
+      eserviceId: EServiceId,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(
+        `Cancelling delegated archiving request for EService ${eserviceId}`
+      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      const producerDelegation = await retrieveActiveProducerDelegation(
+        eservice.data,
+        readModelService
+      );
+
+      if (!producerDelegation) {
+        throw noDelegationForArchivingRequest(eserviceId);
+      }
+
+      assertRequesterIsDelegateForArchiving(producerDelegation, authData);
+
+      assertDelegatedEserviceHasActiveArchivingRequests(eservice.data);
+      const activeArchivingRequest = getLatestActiveArchivingRequest(
+        eservice.data.delegatedArchivingRequest,
+        eserviceId
+      );
+      assertDelegatedArchivingRequestDelegationIsStillValid(
+        producerDelegation,
+        activeArchivingRequest,
+        eserviceId
+      );
+      const updatedRequests = removeActiveArchivingRequest(
+        eservice.data.delegatedArchivingRequest
+      );
+
+      const updatedEService: EService = {
+        ...eservice.data,
+        delegatedArchivingRequest: updatedRequests,
+      };
+
+      const event = await repository.createEvent(
+        toCreateEventEServiceArchivingRequestCanceledByDelegate(
+          eservice.metadata.version,
+          updatedEService,
+          correlationId
+        )
+      );
+      return {
+        data: updatedEService,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+    async cancelDelegatedDescriptorArchiving(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(
+        `Cancelling delegated archiving request for Descriptor ${descriptorId}`
+      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      const producerDelegation = await retrieveActiveProducerDelegation(
+        eservice.data,
+        readModelService
+      );
+
+      if (!producerDelegation) {
+        throw noDelegationForArchivingRequest(eserviceId);
+      }
+
+      assertRequesterIsDelegateForArchiving(producerDelegation, authData);
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      assertDelegatedDescriptorHasAtLeastOneArchivingRequests(
+        descriptor,
+        eserviceId
+      );
+
+      const activeArchivingRequest = getLatestActiveArchivingRequest(
+        descriptor.delegatedArchivingRequest,
+        eserviceId,
+        descriptorId
+      );
+
+      assertDelegatedArchivingRequestDelegationIsStillValid(
+        producerDelegation,
+        activeArchivingRequest,
+        eserviceId,
+        descriptorId
+      );
+
+      const updatedRequests = removeActiveArchivingRequest(
+        descriptor.delegatedArchivingRequest
+      );
+
+      const updatedEService = replaceDescriptor(eservice.data, {
+        ...descriptor,
+        delegatedArchivingRequest: updatedRequests,
+      });
+
+      const event = await repository.createEvent(
+        toCreateEventEServiceDescriptorArchivingRequestCanceledByDelegate(
+          eservice.metadata.version,
+          descriptorId,
+          updatedEService,
+          correlationId
+        )
+      );
+      return {
+        data: updatedEService,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+    async rejectDelegatedDescriptorArchiving(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      body: catalogApi.RejectDelegatedDescriptorArchivingSeed,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(
+        `Rejecting delegated archiving request for Descriptor ${descriptorId} of EService ${eserviceId}`
+      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertRequesterIsProducer(eservice.data.producerId, authData);
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+      assertDelegatedDescriptorHasAtLeastOneArchivingRequests(
+        descriptor,
+        eserviceId
+      );
+
+      assertDelegatedDescriptorHasActiveArchivingRequests(
+        descriptor,
+        eserviceId
+      );
+
+      const producerDelegation = await retrieveActiveProducerDelegation(
+        eservice.data,
+        readModelService
+      );
+
+      const latestActiveRequest = getLatestActiveArchivingRequest(
+        descriptor.delegatedArchivingRequest,
+        eserviceId,
+        descriptorId
+      );
+
+      assertDelegatedArchivingRequestDelegationIsStillValid(
+        producerDelegation,
+        latestActiveRequest,
+        eserviceId,
+        descriptorId
+      );
+
+      const updatedRequests = updateLatestActiveArchivingRequest(
+        descriptor.delegatedArchivingRequest ?? [],
+        {
+          rejectedAt: new Date(),
+          rejectionReason: body.rejectionReason,
+        },
+        eserviceId,
+        descriptorId
+      );
+
+      const updatedEService = replaceDescriptor(eservice.data, {
+        ...descriptor,
+        delegatedArchivingRequest: updatedRequests,
+      });
+
+      const event = await repository.createEvent(
+        toCreateEventEServiceDescriptorArchivingRequestRejectedByDelegator(
+          eservice.metadata.version,
+          descriptorId,
+          updatedEService,
+          correlationId
+        )
+      );
+      return {
+        data: updatedEService,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+    async approveDelegatedDescriptorArchiving(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(
+        `Approving delegated archiving request for Descriptor ${descriptorId} of EService ${eserviceId}`
+      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertRequesterIsProducer(eservice.data.producerId, authData);
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+      assertDelegatedDescriptorHasAtLeastOneArchivingRequests(
+        descriptor,
+        eserviceId
+      );
+
+      assertDelegatedDescriptorHasActiveArchivingRequests(
+        descriptor,
+        eserviceId
+      );
+
+      const producerDelegation = await retrieveActiveProducerDelegation(
+        eservice.data,
+        readModelService
+      );
+
+      const latestActiveRequest = getLatestActiveArchivingRequest(
+        descriptor.delegatedArchivingRequest,
+        eserviceId,
+        descriptorId
+      );
+
+      assertDelegatedArchivingRequestDelegationIsStillValid(
+        producerDelegation,
+        latestActiveRequest,
+        eserviceId,
+        descriptorId
+      );
+
+      assertDescriptorArchivable(descriptor, eservice.data);
+
+      const updatedRequests = updateLatestActiveArchivingRequest(
+        descriptor.delegatedArchivingRequest ?? [],
+        {
+          acceptedAt: new Date(),
+        },
+        eserviceId,
+        descriptorId
+      );
+
+      const acceptedRequest = getLatestArchivingRequest(
+        updatedRequests,
+        eserviceId,
+        descriptorId
+      );
+
+      const newState =
+        descriptor.state === descriptorState.suspended
+          ? descriptorState.archivingSuspended
+          : descriptorState.archiving;
+
+      const archivedDescriptor = await processDescriptorArchiving(
+        { ...descriptor, delegatedArchivingRequest: updatedRequests },
+        newState,
+        acceptedRequest.gracePeriodDays
+      );
+
+      const updatedEService = replaceDescriptor(
+        eservice.data,
+        archivedDescriptor
+      );
+
+      const event = await repository.createEvent(
+        toCreateEventEServiceDescriptorArchivingRequestApprovedByDelegator(
+          eservice.metadata.version,
+          descriptorId,
           updatedEService,
           correlationId
         )
@@ -3114,7 +4130,8 @@ export function catalogServiceBuilder(
         descriptor,
         seed
       );
-      const hasDailyCallsChanged = hasCertifiedAttributeDailyCallsChanged(
+
+      const hasConfigurationChanged = hasCertifiedAttributeConfigurationChanged(
         eserviceId,
         descriptor,
         seed
@@ -3126,12 +4143,14 @@ export function catalogServiceBuilder(
       );
 
       assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
+      assertDiscreteConfigForCertifiedAttributesOnly(parsedAttributes);
+      assertCertifiedDiscreteConfigUnchanged(descriptor, parsedAttributes);
       assertAttributeDailyCallsConsistentWithTotal(
         parsedAttributes,
         descriptor.dailyCallsTotal
       );
 
-      if (newAttributes.length === 0 && !hasDailyCallsChanged) {
+      if (newAttributes.length === 0 && !hasConfigurationChanged) {
         throw unchangedAttributes(eserviceId, descriptorId);
       }
 
@@ -3413,10 +4432,11 @@ export function catalogServiceBuilder(
         descriptor,
         seed
       );
-
-      if (newAttributes.length === 0) {
-        return;
-      }
+      const hasConfigurationChanged = hasCertifiedAttributeConfigurationChanged(
+        eserviceId,
+        descriptor,
+        seed
+      );
 
       const parsedAttributes = await parseAndCheckAttributes(
         seed,
@@ -3427,6 +4447,10 @@ export function catalogServiceBuilder(
         parsedAttributes,
         descriptor.attributes
       );
+
+      if (newAttributes.length === 0 && !hasConfigurationChanged) {
+        return;
+      }
 
       const updatedDescriptor: Descriptor = {
         ...descriptor,
@@ -3630,44 +4654,44 @@ export function catalogServiceBuilder(
       }
 
       const docs = await Promise.all(
-        // eslint-disable-next-line sonarjs/no-identical-functions
-        lastVersion.docs.map(async (doc) => {
-          const clonedDocumentId = generateId<EServiceDocumentId>();
-          const clonedDocumentPath = await fileManager.copy(
-            config.s3Bucket,
-            doc.path,
-            config.eserviceDocumentsPath,
-            clonedDocumentId,
-            doc.name,
-            logger
-          );
-          const clonedDocument: Document = {
-            id: clonedDocumentId,
-            name: doc.name,
-            contentType: doc.contentType,
-            prettyName: doc.prettyName,
-            path: clonedDocumentPath,
-            checksum: doc.checksum,
-            uploadDate: new Date(),
-          };
-
-          return clonedDocument;
-        })
+        lastVersion.docs.map((doc) =>
+          cloneDocumentWithNewId(doc, fileManager, logger)
+        )
       );
 
-      const newDescriptor: Descriptor = createNextDescriptor(eservice.data, {
-        description: lastVersion.description,
-        voucherLifespan: lastVersion.voucherLifespan,
-        audience: [],
-        dailyCallsPerConsumer:
-          lastVersion.dailyCallsPerConsumer ?? DEFAULT_DAILY_CALLS_PER_CONSUMER,
-        dailyCallsTotal:
-          lastVersion.dailyCallsTotal ?? DEFAULT_DAILY_CALLS_TOTAL,
-        agreementApprovalPolicy: lastVersion.agreementApprovalPolicy,
-        attributes: lastVersion.attributes,
-        docs,
-        templateVersionId: lastVersion.id,
-      });
+      const asyncExchangeEnabled =
+        isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+        eservice.data.asyncExchange === true;
+
+      const clonedAsyncExchangeCallbackInterface =
+        asyncExchangeEnabled && lastVersion.asyncExchangeCallbackInterface
+          ? await cloneDocumentWithNewId(
+              lastVersion.asyncExchangeCallbackInterface,
+              fileManager,
+              logger
+            )
+          : undefined;
+
+      const newDescriptor: Descriptor = {
+        ...createNextDescriptor(eservice.data, {
+          description: lastVersion.description,
+          voucherLifespan: lastVersion.voucherLifespan,
+          audience: [],
+          dailyCallsPerConsumer:
+            lastVersion.dailyCallsPerConsumer ??
+            DEFAULT_DAILY_CALLS_PER_CONSUMER,
+          dailyCallsTotal:
+            lastVersion.dailyCallsTotal ?? DEFAULT_DAILY_CALLS_TOTAL,
+          agreementApprovalPolicy: lastVersion.agreementApprovalPolicy,
+          attributes: lastVersion.attributes,
+          docs,
+          templateVersionId: lastVersion.id,
+          asyncExchangeProperties: asyncExchangeEnabled
+            ? lastVersion.asyncExchangeProperties
+            : undefined,
+        }),
+        asyncExchangeCallbackInterface: clonedAsyncExchangeCallbackInterface,
+      };
 
       const upgradedEService: EService = {
         ...eservice.data,
@@ -3889,6 +4913,7 @@ export function catalogServiceBuilder(
     async addEServiceTemplateInstanceInterface(
       eServiceId: EServiceId,
       descriptorId: DescriptorId,
+      interfaceTechnology: Technology,
       eserviceInstanceInterfaceData:
         | catalogApi.TemplateInstanceInterfaceRESTSeed
         | catalogApi.TemplateInstanceInterfaceSOAPSeed,
@@ -3923,6 +4948,18 @@ export function catalogServiceBuilder(
         readModelService
       );
 
+      if (eserviceTemplate.technology !== interfaceTechnology) {
+        throw eserviceTemplateInterfaceTechnologyMismatch(
+          eserviceTemplate.id,
+          eserviceTemplate.technology,
+          interfaceTechnology
+        );
+      }
+
+      const contactDataRestApi = match(eserviceInstanceInterfaceData)
+        .with({ contactEmail: P.string, contactName: P.string }, (data) => data)
+        .otherwise(() => undefined);
+
       const eserviceTemplateVersion = eserviceTemplate.versions.find(
         (v) => v.id === eserviceTemplateVersionId
       );
@@ -3933,10 +4970,6 @@ export function catalogServiceBuilder(
           eserviceTemplateVersionId
         );
       }
-
-      const contactDataRestApi = match(eserviceInstanceInterfaceData)
-        .with({ contactEmail: P.string, contactName: P.string }, (data) => data)
-        .otherwise(() => undefined);
 
       const { eService: updatedEService, event: addDocumentEvent } =
         await createOpenApiInterfaceByTemplate(
@@ -3982,10 +5015,6 @@ export function catalogServiceBuilder(
 
       const latestDescriptor = getLatestDescriptor(eservice.data);
 
-      if (!latestDescriptor) {
-        throw eserviceWithoutValidDescriptors(eserviceId);
-      }
-
       const templateVersion = template.versions.find(
         (v) => v.id === latestDescriptor.templateVersionRef?.id
       );
@@ -4007,21 +5036,55 @@ export function catalogServiceBuilder(
 
       assertConsistentDailyCalls(eserviceInstanceDescriptorSeed);
 
-      const newDescriptor: Descriptor = createNextDescriptor(eservice.data, {
-        description: templateVersion.description,
-        voucherLifespan: templateVersion.voucherLifespan,
-        audience: eserviceInstanceDescriptorSeed.audience,
-        dailyCallsPerConsumer:
-          eserviceInstanceDescriptorSeed.dailyCallsPerConsumer,
-        dailyCallsTotal: eserviceInstanceDescriptorSeed.dailyCallsTotal,
-        agreementApprovalPolicy:
-          agreementApprovalPolicySeed ??
-          templateVersion.agreementApprovalPolicy ??
-          agreementApprovalPolicy.automatic,
-        docs: [],
-        attributes: templateVersion.attributes,
-        templateVersionId: templateVersion.id,
-      });
+      const asyncExchangeEnabled =
+        isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+        eservice.data.asyncExchange === true;
+
+      const asyncExchangeProperties =
+        asyncExchangeEnabled && templateVersion.asyncExchangeProperties
+          ? {
+              ...templateVersion.asyncExchangeProperties,
+              responseTime:
+                latestDescriptor.asyncExchangeProperties?.responseTime ??
+                templateVersion.asyncExchangeProperties.responseTime,
+              resourceAvailableTime:
+                latestDescriptor.asyncExchangeProperties
+                  ?.resourceAvailableTime ??
+                templateVersion.asyncExchangeProperties.resourceAvailableTime,
+              maxResultSet:
+                latestDescriptor.asyncExchangeProperties?.maxResultSet ??
+                templateVersion.asyncExchangeProperties.maxResultSet,
+            }
+          : undefined;
+
+      const clonedAsyncExchangeCallbackInterface =
+        asyncExchangeEnabled && templateVersion.asyncExchangeCallbackInterface
+          ? await cloneDocumentWithNewId(
+              templateVersion.asyncExchangeCallbackInterface,
+              fileManager,
+              ctx.logger
+            )
+          : undefined;
+
+      const newDescriptor: Descriptor = {
+        ...createNextDescriptor(eservice.data, {
+          description: templateVersion.description,
+          voucherLifespan: templateVersion.voucherLifespan,
+          audience: eserviceInstanceDescriptorSeed.audience,
+          dailyCallsPerConsumer:
+            eserviceInstanceDescriptorSeed.dailyCallsPerConsumer,
+          dailyCallsTotal: eserviceInstanceDescriptorSeed.dailyCallsTotal,
+          agreementApprovalPolicy:
+            agreementApprovalPolicySeed ??
+            templateVersion.agreementApprovalPolicy ??
+            agreementApprovalPolicy.automatic,
+          docs: [],
+          attributes: templateVersion.attributes,
+          templateVersionId: templateVersion.id,
+          asyncExchangeProperties,
+        }),
+        asyncExchangeCallbackInterface: clonedAsyncExchangeCallbackInterface,
+      };
 
       const eserviceVersion = eservice.metadata.version;
 
@@ -4145,6 +5208,8 @@ export function catalogServiceBuilder(
         `Updating instance label for E-Service ${eserviceId} to ${instanceLabel}`
       );
 
+      validateNoHyperlinksSafe(instanceLabel);
+
       const eservice = await retrieveEService(eserviceId, readModelService);
 
       await assertRequesterIsDelegateProducerOrProducer(
@@ -4193,6 +5258,120 @@ export function catalogServiceBuilder(
 
       return updatedEservice;
     },
+    async cancelEServiceDescriptorArchiving(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(
+        `Cancel archiving schedule for EService ${eserviceId} Descriptor ${descriptorId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+      const latestDescriptor = getLatestDescriptor(eservice.data);
+
+      assertRequesterIsProducer(eservice.data.producerId, authData);
+
+      assertDescriptorArchivingIsNotEserviceScoped(descriptor);
+
+      assertDescriptorCancelArchivable(descriptor, latestDescriptor);
+
+      const updatedDescriptor =
+        latestDescriptor.archivingSchedule?.scope === archivingScope.eservice
+          ? {
+              ...descriptor,
+              archivingSchedule: latestDescriptor.archivingSchedule,
+            }
+          : updateDescriptorState(
+              { ...descriptor, archivingSchedule: undefined },
+              descriptor.state === descriptorState.archivingSuspended
+                ? descriptorState.suspended
+                : descriptorState.deprecated
+            );
+
+      const updatedEService = replaceDescriptor(
+        eservice.data,
+        updatedDescriptor
+      );
+
+      const event = toCreateEventEServiceDescriptorArchivingCanceled(
+        eservice.metadata.version,
+        updatedEService,
+        descriptorId,
+        correlationId
+      );
+
+      const createdEvent = await repository.createEvent(event);
+      return {
+        data: updatedEService,
+        metadata: { version: createdEvent.newVersion },
+      };
+    },
+    async cancelEServiceArchiving(
+      eserviceId: EServiceId,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(`Canceling archiving for EService ${eserviceId}`);
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertRequesterIsProducer(eservice.data.producerId, authData);
+
+      assertEServiceIsInArchiving(eservice.data);
+
+      const latestDescriptor = getLatestDescriptor(eservice.data);
+
+      const updatedDescriptors = eservice.data.descriptors.map((descriptor) => {
+        if (
+          descriptor.archivingSchedule?.scope === archivingScope.descriptor ||
+          descriptor.state === descriptorState.archived
+        ) {
+          return descriptor;
+        }
+
+        const isLatest = descriptor.id === latestDescriptor.id;
+
+        const newState: DescriptorState =
+          descriptor.state === descriptorState.archivingSuspended
+            ? descriptorState.suspended
+            : isLatest
+              ? descriptorState.published
+              : descriptorState.deprecated;
+
+        return updateDescriptorState(
+          { ...descriptor, archivingSchedule: undefined },
+          newState
+        );
+      });
+
+      const updatedEService: EService = {
+        ...eservice.data,
+        descriptors: updatedDescriptors,
+        archivingReason: undefined,
+      };
+
+      const event = toCreateEventEServiceArchivingCanceled(
+        eservice.metadata.version,
+        updatedEService,
+        correlationId
+      );
+
+      const createdEvent = await repository.createEvent(event);
+      return {
+        data: updatedEService,
+        metadata: { version: createdEvent.newVersion },
+      };
+    },
+
     async maintenanceResetEServicePersonalDataFlag(
       eserviceId: EServiceId,
       currentVersion: number,
@@ -4224,11 +5403,108 @@ export function catalogServiceBuilder(
   };
 }
 
+async function processEserviceArchiving(
+  requestDate: Date,
+  eservice: EService,
+  body: catalogApi.EServiceArchivingSeed,
+  fileManager: FileManager,
+  logger: Logger
+): Promise<EService> {
+  const draftOrWaiting = eservice.descriptors.find(
+    (d) =>
+      d.state === descriptorState.draft ||
+      d.state === descriptorState.waitingForApproval
+  );
+
+  const eserviceAfterCleanup = draftOrWaiting
+    ? await deleteInactiveDescriptorLogic(
+        eservice,
+        draftOrWaiting,
+        fileManager,
+        logger
+      )
+    : eservice;
+
+  const descriptors = await Promise.all(
+    eserviceAfterCleanup.descriptors.map((descriptor) =>
+      match(descriptor.state)
+        .with(
+          descriptorState.archived,
+          descriptorState.archivingSuspended,
+          descriptorState.archiving,
+          () => descriptor
+        )
+        .with(descriptorState.published, descriptorState.deprecated, () =>
+          processDescriptorArchiving(
+            descriptor,
+            descriptorState.archiving,
+            body.gracePeriodDays,
+            archivingScope.eservice,
+            requestDate
+          )
+        )
+        .with(descriptorState.suspended, () =>
+          processDescriptorArchiving(
+            descriptor,
+            descriptorState.archivingSuspended,
+            body.gracePeriodDays,
+            archivingScope.eservice,
+            requestDate
+          )
+        )
+        .with(descriptorState.draft, descriptorState.waitingForApproval, () => {
+          throw notValidDescriptorState(descriptor.id, descriptor.state);
+        })
+        .exhaustive()
+    )
+  );
+
+  return {
+    ...eservice,
+    archivingReason: body.archivingReason,
+    descriptors,
+  };
+}
+
+async function deleteInactiveDescriptorLogic(
+  eservice: EService,
+  descriptor: Descriptor,
+  fileManager: FileManager,
+  logger: Logger
+): Promise<EService> {
+  await deleteDescriptorInterfaceAndDocs(descriptor, fileManager, logger);
+
+  const eserviceAfterDescriptorDeletion: EService = {
+    ...eservice,
+    descriptors: eservice.descriptors.filter(
+      (d: Descriptor) => d.id !== descriptor.id
+    ),
+  };
+
+  return eserviceAfterDescriptorDeletion;
+}
+
+async function processDescriptorArchiving(
+  descriptor: Descriptor,
+  newState: DescriptorState,
+  gracePeriodDays: GracePeriodDays,
+  scope: ArchivingScope = archivingScope.descriptor,
+  requestDate: Date = new Date()
+): Promise<Descriptor> {
+  const archivingSchedule = {
+    ...calculateArchivableOn(requestDate, gracePeriodDays),
+    scope,
+    gracePeriodDays,
+  };
+
+  return updateDescriptorState({ ...descriptor, archivingSchedule }, newState);
+}
+
 async function createOpenApiInterfaceByTemplate(
   eserviceWithMetadata: WithMetadata<EService>,
   descriptorId: DescriptorId,
   eserviceTemplateInterface: Document,
-  serverUrls: string[],
+  serverUrls: Array<{ url: string; description?: string }>,
   eserviceInstanceInterfaceRestData:
     | {
         contactEmail: string;
@@ -4277,7 +5553,7 @@ async function createOpenApiInterfaceByTemplate(
       filePath,
       prettyName,
       kind,
-      serverUrls,
+      extractedServerUrls,
       contentType,
       checksum
     ) =>
@@ -4292,7 +5568,10 @@ async function createOpenApiInterfaceByTemplate(
           fileName,
           contentType,
           checksum,
-          serverUrls,
+          serverUrls: extractedServerUrls,
+          serverUrlsDescriptions: extractedServerUrls.map(
+            (_, index) => serverUrls[index]?.description ?? ""
+          ),
           interfaceTemplateMetadata: eserviceInstanceInterfaceRestData,
         },
         ctx
@@ -4337,14 +5616,20 @@ async function applyVisibilityToEService(
   }
 
   /* If the conditions above are not met:
-    - we filter out the draft descriptors.
+    - we filter out the draft descriptors and remove all delegated archiving requests.
     - we throw a not found error if there are no active descriptors
   */
   const hasActiveDescriptors = eservice.descriptors.some(isActiveDescriptor);
   if (hasActiveDescriptors) {
     return {
       ...eservice,
-      descriptors: eservice.descriptors.filter(isActiveDescriptor),
+      descriptors: eservice.descriptors
+        .filter(isActiveDescriptor)
+        .map((descriptor) => ({
+          ...descriptor,
+          delegatedArchivingRequest: undefined,
+        })),
+      delegatedArchivingRequest: undefined,
     };
   }
 
@@ -4384,8 +5669,13 @@ const processDescriptorPublication = async (
   readModelService: ReadModelServiceSQL,
   logger: Logger
 ): Promise<EService> => {
-  const currentActiveDescriptor = eservice.descriptors.find(
-    (d: Descriptor) => d.state === descriptorState.published
+  const currentActiveDescriptor = getPreviousDescriptorByStates(
+    eservice,
+    descriptor.version,
+    [
+      descriptorState.published,
+      descriptorState.suspended, // The last active descriptor could be suspended
+    ]
   );
 
   const publishedDescriptor = updateDescriptorState(
@@ -4402,36 +5692,61 @@ const processDescriptorPublication = async (
     return eserviceWithPublishedDescriptor;
   }
 
-  const currentEServiceAgreements = await readModelService.listAgreements({
-    eservicesIds: [eservice.id],
-    consumersIds: [],
-    producersIds: [],
-    states: [agreementState.active, agreementState.suspended],
-    limit: 1,
-    descriptorId: currentActiveDescriptor.id,
-  });
+  const hasAgreements =
+    (
+      await readModelService.listAgreements({
+        eservicesIds: [eservice.id],
+        consumersIds: [],
+        producersIds: [],
+        states: [agreementState.active, agreementState.suspended],
+        limit: 1,
+        descriptorId: currentActiveDescriptor.id,
+      })
+    ).length > 0;
+
+  if (
+    currentActiveDescriptor.state === descriptorState.suspended &&
+    hasAgreements
+  ) {
+    // The previous active descriptor state was suspended, no state change is needed
+    return eserviceWithPublishedDescriptor;
+  }
 
   return replaceDescriptor(
     eserviceWithPublishedDescriptor,
-    currentEServiceAgreements.length === 0
-      ? archiveDescriptor(eservice.id, currentActiveDescriptor, logger)
-      : deprecateDescriptor(eservice.id, currentActiveDescriptor, logger)
+    hasAgreements
+      ? deprecateDescriptor(eservice.id, currentActiveDescriptor, logger)
+      : archiveDescriptorLogic(eservice.id, currentActiveDescriptor, logger)
   );
 };
 
+function deletePendingDescriptorArchivingRequests(
+  descriptor: Descriptor
+): Descriptor {
+  const filtered = descriptor.delegatedArchivingRequest?.filter(
+    (request) => request.acceptedAt || request.rejectedAt
+  );
+
+  return {
+    ...descriptor,
+    delegatedArchivingRequest:
+      filtered && filtered.length > 0 ? filtered : undefined,
+  };
+}
+
 /**
- * Retains the existing `dailyCallsPerConsumer` value on the certified attribute.
+ * Retains the existing `dailyCallsPerConsumer` value on certified attributes.
  * Used with template instances. This ensures that when a template updates and
- * propagates its attributes to its instances, any custom threshold configured
- * on the instance is preserved instead of being cleared.
+ * propagates its attributes to its instances, any custom differentiated
+ * threshold configured on the instance is preserved instead of being cleared.
  */
 function retainCurrentCertifiedDailyCalls(
   incomingAttributes: EserviceAttributes,
   currentAttributes: EserviceAttributes
 ): EserviceAttributes {
   function isMatchingCertifiedGroup(
-    incomingGroup: EServiceAttribute[],
-    currentGroup: EServiceAttribute[]
+    incomingGroup: EServiceCertifiedAttribute[],
+    currentGroup: EServiceCertifiedAttribute[]
   ): boolean {
     return currentGroup.every((currentAttribute) =>
       incomingGroup.some(
@@ -4441,10 +5756,10 @@ function retainCurrentCertifiedDailyCalls(
   }
 
   function findMatchingCertifiedGroup(
-    incomingGroup: EServiceAttribute[],
-    currentGroups: EServiceAttribute[][],
+    incomingGroup: EServiceCertifiedAttribute[],
+    currentGroups: EServiceCertifiedAttribute[][],
     usedCurrentGroupIndexes: Set<number>
-  ): EServiceAttribute[] | undefined {
+  ): EServiceCertifiedAttribute[] | undefined {
     for (const [groupIndex, currentGroup] of currentGroups.entries()) {
       if (usedCurrentGroupIndexes.has(groupIndex)) {
         continue;
@@ -4462,19 +5777,23 @@ function retainCurrentCertifiedDailyCalls(
   }
 
   function findCurrentCertifiedAttribute(
-    incomingAttribute: EServiceAttribute,
-    currentGroup: EServiceAttribute[] | undefined
-  ): EServiceAttribute | undefined {
+    incomingAttribute: EServiceCertifiedAttribute,
+    currentGroup: EServiceCertifiedAttribute[] | undefined
+  ): EServiceCertifiedAttribute | undefined {
     return currentGroup?.find(
       (currentAttribute) => currentAttribute.id === incomingAttribute.id
     );
   }
 
   function retainCurrentDailyCallsPerConsumer(
-    incomingAttribute: EServiceAttribute,
-    currentAttribute: EServiceAttribute | undefined
-  ): EServiceAttribute {
-    const currentDailyCalls = currentAttribute?.dailyCallsPerConsumer;
+    incomingAttribute: EServiceCertifiedAttribute,
+    currentAttribute: EServiceCertifiedAttribute | undefined
+  ): EServiceCertifiedAttribute {
+    const currentDailyCalls =
+      currentAttribute && "dailyCallsPerConsumer" in currentAttribute
+        ? currentAttribute.dailyCallsPerConsumer
+        : undefined;
+
     if (currentDailyCalls === undefined) {
       return incomingAttribute;
     }
@@ -4486,9 +5805,9 @@ function retainCurrentCertifiedDailyCalls(
   }
 
   function retainCurrentDailyCallsInCertifiedGroup(
-    incomingGroup: EServiceAttribute[],
-    currentGroup: EServiceAttribute[] | undefined
-  ): EServiceAttribute[] {
+    incomingGroup: EServiceCertifiedAttribute[],
+    currentGroup: EServiceCertifiedAttribute[] | undefined
+  ): EServiceCertifiedAttribute[] {
     return incomingGroup.map((incomingAttribute) => {
       const currentAttribute = findCurrentCertifiedAttribute(
         incomingAttribute,
@@ -4595,7 +5914,7 @@ function updateEServiceDescriptorAttributeInAdd(
   ].map(unsafeBrandId<AttributeId>);
 }
 
-function hasCertifiedAttributeDailyCallsChanged(
+function hasCertifiedAttributeConfigurationChanged(
   eserviceId: EServiceId,
   descriptor: Descriptor,
   seed: catalogApi.AttributesSeed
@@ -4618,9 +5937,15 @@ function hasCertifiedAttributeDailyCallsChanged(
         (attribute) => attribute.id === descriptorAttribute.id
       );
 
+      const descriptorDiscreteConfig =
+        getEServiceAttributeDiscreteConfig(descriptorAttribute);
       return (
         seedAttribute?.dailyCallsPerConsumer !==
-        descriptorAttribute.dailyCallsPerConsumer
+          descriptorAttribute.dailyCallsPerConsumer ||
+        seedAttribute?.discreteConfig?.threshold !==
+          descriptorDiscreteConfig?.threshold ||
+        seedAttribute?.discreteConfig?.comparator !==
+          descriptorDiscreteConfig?.comparator
       );
     });
   });
@@ -4746,6 +6071,9 @@ async function updateDraftEService(
     isClientAccessDelegable,
   } = typeAndSeed.seed;
 
+  validateNoHyperlinksSafe(name);
+  validateNoHyperlinksSafe(description);
+
   if (name && name !== eservice.data.name) {
     await assertEServiceNameAvailableForProducer(
       name,
@@ -4854,6 +6182,7 @@ async function updateDraftEService(
           interface: undefined,
           asyncExchangeCallbackInterface: undefined,
           serverUrls: [],
+          serverUrlsDescriptions: [],
         }))
       : eservice.data.descriptors,
     isSignalHubEnabled: updatedIsSignalHubEnabled,
@@ -4928,6 +6257,8 @@ async function updateDraftDescriptor(
   void (rest satisfies Record<string, never>);
   // ^ To make sure we extract all the updated fields
 
+  validateNoHyperlinksSafe(description);
+
   const updatedDailyCallsPerConsuemer =
     dailyCallsPerConsumer ?? descriptor.dailyCallsPerConsumer;
   const updatedDailyCallsTotal = dailyCallsTotal ?? descriptor.dailyCallsTotal;
@@ -4949,6 +6280,7 @@ async function updateDraftDescriptor(
     : descriptor.attributes;
 
   assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
+  assertDiscreteConfigForCertifiedAttributesOnly(updatedAttributes);
   assertAttributeDailyCallsConsistentWithTotal(
     updatedAttributes,
     updatedDailyCallsTotal
@@ -5031,5 +6363,4 @@ const buildInstanceName = ({
     : templateName;
   return { parsedInstanceLabel, instanceName };
 };
-
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;

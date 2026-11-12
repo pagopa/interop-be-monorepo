@@ -1,18 +1,30 @@
-import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
   agreementApi,
   delegationApi,
   m2mGatewayApiV3,
 } from "pagopa-interop-api-clients";
+import { FileManager, isValidFile, WithLogger } from "pagopa-interop-commons";
 import {
   AgreementDocumentId,
   AgreementId,
   generateId,
+  invalidFileUploadError,
   unsafeBrandId,
 } from "pagopa-interop-models";
+
+import {
+  toGetAgreementsApiQueryParams,
+  toGetPurposesApiQueryParamsForAgreement,
+  toM2MGatewayApiAgreement,
+  toM2MGatewayApiDocument,
+} from "../api/agreementApiConverter.js";
+import { toM2MGatewayApiPurpose } from "../api/purposeApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { M2MGatewayAppContext } from "../utils/context.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
+import { config } from "../config/config.js";
+import { agreementContractNotFound } from "../model/errors.js";
+import { M2MGatewayAppContext } from "../utils/context.js";
+import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
 import {
   isPolledVersionAtLeastMetadataTargetVersion,
   isPolledVersionAtLeastResponseVersion,
@@ -22,17 +34,7 @@ import {
 import {
   assertAgreementIsPending,
   assertAgreementIsSuspended,
-} from "../utils/validators/agreementValidators.js";
-import {
-  toGetAgreementsApiQueryParams,
-  toGetPurposesApiQueryParamsForAgreement,
-  toM2MGatewayApiAgreement,
-  toM2MGatewayApiDocument,
-} from "../api/agreementApiConverter.js";
-import { toM2MGatewayApiPurpose } from "../api/purposeApiConverter.js";
-import { config } from "../config/config.js";
-import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
-import { agreementContractNotFound } from "../model/errors.js";
+} from "../utils/validators/agreementValidator.js";
 
 export type AgreementService = ReturnType<typeof agreementServiceBuilder>;
 
@@ -171,7 +173,7 @@ export function agreementServiceBuilder(
     async getAgreementPurposes(
       agreementId: AgreementId,
       { limit, offset }: m2mGatewayApiV3.GetAgreementPurposesQueryParams,
-      { logger, headers }: WithLogger<M2MGatewayAppContext>
+      { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.Purposes> {
       logger.info(`Retrieving purposes for agreement ${agreementId}`);
 
@@ -191,7 +193,9 @@ export function agreementServiceBuilder(
       });
 
       return {
-        results: results.map(toM2MGatewayApiPurpose),
+        results: results.map((purpose) =>
+          toM2MGatewayApiPurpose(purpose, authData.organizationId)
+        ),
         pagination: {
           limit,
           offset,
@@ -233,7 +237,7 @@ export function agreementServiceBuilder(
 
       assertAgreementIsPending(agreement.data);
 
-      const response = await clients.agreementProcessClient.activateAgreement(
+      const response = await clients.agreementProcessClient.approveAgreement(
         { delegationId },
         {
           params: { agreementId },
@@ -325,7 +329,7 @@ export function agreementServiceBuilder(
 
       assertAgreementIsSuspended(agreement.data);
 
-      const response = await clients.agreementProcessClient.activateAgreement(
+      const response = await clients.agreementProcessClient.unsuspendAgreement(
         { delegationId },
         {
           params: { agreementId },
@@ -417,6 +421,10 @@ export function agreementServiceBuilder(
       logger.info(
         `Adding consumer document ${fileUpload.file.name} to agreement with id ${agreementId}`
       );
+
+      if (!(await isValidFile(fileUpload.file))) {
+        throw invalidFileUploadError();
+      }
 
       const documentId = generateId();
       const storagePath = await fileManager.storeBytes(

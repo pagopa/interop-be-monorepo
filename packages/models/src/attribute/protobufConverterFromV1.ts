@@ -10,6 +10,8 @@ export const fromAttributeKindV1 = (input: AttributeKindV1): AttributeKind => {
       return attributeKind.declared;
     case AttributeKindV1.VERIFIED:
       return attributeKind.verified;
+    case AttributeKindV1.CERTIFIED_DISCRETE:
+      return attributeKind.certifiedDiscrete;
     case AttributeKindV1.UNSPECIFIED$:
       throw new Error("Unspecified attribute kind");
   }

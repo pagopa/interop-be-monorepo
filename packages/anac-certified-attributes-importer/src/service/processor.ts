@@ -7,17 +7,18 @@ import {
   zipBy,
 } from "pagopa-interop-commons";
 import { TenantFeatureCertifier, CorrelationId } from "pagopa-interop-models";
+
+import { CsvRow, NonPaRow, PaRow } from "../model/csvRowModel.js";
+import { InteropContext } from "../model/interopContextModel.js";
 import {
   AnacAttributes,
   AttributeIdentifiers,
   BatchParseResult,
 } from "../model/processorModel.js";
-import { CsvRow, NonPaRow, PaRow } from "../model/csvRowModel.js";
-import { InteropContext } from "../model/interopContextModel.js";
 import { AnacReadModelTenant } from "../model/tenant.js";
-import { TenantProcessService } from "./tenantProcessService.js";
-import { SftpClient } from "./sftpService.js";
 import { ReadModelQueriesSQL } from "./readmodelQueriesServiceSQL.js";
+import { SftpClient } from "./sftpService.js";
+import { TenantProcessService } from "./tenantProcessService.js";
 
 export const ANAC_ENABLED_CODE = "anac_abilitato";
 export const ANAC_ASSIGNED_CODE = "anac_incaricato";

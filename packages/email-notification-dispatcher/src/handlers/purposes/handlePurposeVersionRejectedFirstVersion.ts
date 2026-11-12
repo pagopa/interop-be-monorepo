@@ -7,16 +7,15 @@ import {
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
-  retrieveEService,
+  retrieveEservice,
   retrieveHTMLTemplate,
   retrieveTenant,
-} from "../../services/utils.js";
-import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-  PurposeHandlerParams,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
+
 import { config } from "../../config/config.js";
+import { PurposeHandlerParams } from "../../models/handlerParams.js";
 
 const notificationType: NotificationType = "purposeActivatedRejectedToConsumer";
 
@@ -48,7 +47,7 @@ export async function handlePurposeVersionRejectedFirstVersion(
     retrieveHTMLTemplate(
       eventMailTemplateType.purposeVersionRejectedMailTemplate
     ),
-    retrieveEService(purpose.eserviceId, readModelService),
+    retrieveEservice(purpose.eserviceId, readModelService),
     retrieveTenant(purpose.consumerId, readModelService),
   ]);
 

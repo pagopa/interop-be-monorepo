@@ -1,10 +1,11 @@
 import { eq } from "drizzle-orm";
 import { logger } from "pagopa-interop-commons";
-import { describe, expect, it, vi } from "vitest";
 import {
   attributeInM2MEvent,
   tenantInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
+import { describe, expect, it, vi } from "vitest";
+
 import { deleteOldM2MEvents } from "../src/deleteOldM2MEvents.js";
 import {
   addAttributeM2MEvent,

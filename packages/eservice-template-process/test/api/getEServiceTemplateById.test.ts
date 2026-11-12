@@ -1,21 +1,22 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  EServiceTemplate,
-  EServiceTemplateId,
-  generateId,
-} from "pagopa-interop-models";
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockEServiceTemplate,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  EServiceTemplate,
+  EServiceTemplateId,
+  generateId,
+} from "pagopa-interop-models";
 import request from "supertest";
-import { eserviceTemplateApi } from "pagopa-interop-api-clients";
-import { api, eserviceTemplateService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { eserviceTemplateToApiEServiceTemplate } from "../../src/model/domain/apiConverter.js";
 import { eserviceTemplateNotFound } from "../../src/model/domain/errors.js";
+import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 
 describe("API GET /templates/:templateId", () => {
   const mockEserviceTemplate: EServiceTemplate = getMockEServiceTemplate();
@@ -50,6 +51,7 @@ describe("API GET /templates/:templateId", () => {
     authRole.M2M_ROLE,
     authRole.SUPPORT_ROLE,
     authRole.M2M_ADMIN_ROLE,
+    authRole.VIEWER_ROLE,
   ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",

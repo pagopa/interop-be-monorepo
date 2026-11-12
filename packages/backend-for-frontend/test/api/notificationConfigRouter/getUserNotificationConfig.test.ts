@@ -1,18 +1,19 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { generateMock } from "@anatine/zod-mock";
-import { generateId } from "pagopa-interop-models";
+import { bffApi, notificationConfigApi } from "pagopa-interop-api-clients";
+import { authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   mockTokenOrganizationId,
   mockTokenUserId,
 } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
-import { bffApi, notificationConfigApi } from "pagopa-interop-api-clients";
+import { generateId } from "pagopa-interop-models";
 import request from "supertest";
-import { api, clients, services } from "../../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { expectedUserIdAndOrganizationId } from "../../utils.js";
+import { api, clients, services } from "../../vitest.api.setup.js";
 
 describe("API GET /userNotificationConfigs", () => {
   const userId = mockTokenUserId;
@@ -28,6 +29,19 @@ describe("API GET /userNotificationConfigs", () => {
         inAppClientKeyConsumerAddedDeletedToClientUsers,
       producerKeychainKeyAddedDeletedToClientUsers:
         inAppProducerKeychainKeyAddedDeletedToClientUsers,
+      purposeRiskAnalysisSignedToAdmin: purposeRiskAnalysisSignedToAdminInApp,
+      purposeRiskAnalysisRejectedToAdmin:
+        purposeRiskAnalysisRejectedToAdminInApp,
+      purposeRiskAnalysisAssignedForSigningToReviewer:
+        purposeRiskAnalysisAssignedForSigningToReviewerInApp,
+      purposeRiskAnalysisAssignedForWritingAndSigningToReviewer:
+        purposeRiskAnalysisAssignedForWritingAndSigningToReviewerInApp,
+      purposeRiskAnalysisAssignmentRemovedToReviewer:
+        purposeRiskAnalysisAssignmentRemovedToReviewerInApp,
+      draftPurposeDeletedWithRiskAnalysisToReviewer:
+        draftPurposeDeletedWithRiskAnalysisToReviewerInApp,
+      purposeRiskAnalysisSignedToReviewer:
+        purposeRiskAnalysisSignedToReviewerInApp,
       ...inAppConfig
     },
     emailConfig: {
@@ -37,6 +51,19 @@ describe("API GET /userNotificationConfigs", () => {
         emailClientKeyConsumerAddedDeletedToClientUsers,
       producerKeychainKeyAddedDeletedToClientUsers:
         emailProducerKeychainKeyAddedDeletedToClientUsers,
+      purposeRiskAnalysisSignedToAdmin: purposeRiskAnalysisSignedToAdminEmail,
+      purposeRiskAnalysisRejectedToAdmin:
+        purposeRiskAnalysisRejectedToAdminEmail,
+      purposeRiskAnalysisAssignedForSigningToReviewer:
+        purposeRiskAnalysisAssignedForSigningToReviewerEmail,
+      purposeRiskAnalysisAssignedForWritingAndSigningToReviewer:
+        purposeRiskAnalysisAssignedForWritingAndSigningToReviewerEmail,
+      purposeRiskAnalysisAssignmentRemovedToReviewer:
+        purposeRiskAnalysisAssignmentRemovedToReviewerEmail,
+      draftPurposeDeletedWithRiskAnalysisToReviewer:
+        draftPurposeDeletedWithRiskAnalysisToReviewerEmail,
+      purposeRiskAnalysisSignedToReviewer:
+        purposeRiskAnalysisSignedToReviewerEmail,
       ...emailConfig
     },
   }: notificationConfigApi.UserNotificationConfig = generateMock(
@@ -50,6 +77,19 @@ describe("API GET /userNotificationConfigs", () => {
       ...inAppConfig,
       clientKeyAddedDeletedToClientUsers:
         inAppClientKeyAddedDeletedToClientUsers,
+      purposeRiskAnalysisSignedToAdmin: purposeRiskAnalysisSignedToAdminInApp,
+      purposeRiskAnalysisRejectedToAdmin:
+        purposeRiskAnalysisRejectedToAdminInApp,
+      purposeRiskAnalysisAssignedForSigningToReviewer:
+        purposeRiskAnalysisAssignedForSigningToReviewerInApp,
+      purposeRiskAnalysisAssignedForWritingAndSigningToReviewer:
+        purposeRiskAnalysisAssignedForWritingAndSigningToReviewerInApp,
+      purposeRiskAnalysisAssignmentRemovedToReviewer:
+        purposeRiskAnalysisAssignmentRemovedToReviewerInApp,
+      draftPurposeDeletedWithRiskAnalysisToReviewer:
+        draftPurposeDeletedWithRiskAnalysisToReviewerInApp,
+      purposeRiskAnalysisSignedToReviewer:
+        purposeRiskAnalysisSignedToReviewerInApp,
       clientKeyConsumerAddedDeletedToClientUsers:
         inAppClientKeyConsumerAddedDeletedToClientUsers,
       producerKeychainKeyAddedDeletedToClientUsers:
@@ -59,6 +99,19 @@ describe("API GET /userNotificationConfigs", () => {
       ...emailConfig,
       clientKeyAddedDeletedToClientUsers:
         emailClientKeyAddedDeletedToClientUsers,
+      purposeRiskAnalysisSignedToAdmin: purposeRiskAnalysisSignedToAdminEmail,
+      purposeRiskAnalysisRejectedToAdmin:
+        purposeRiskAnalysisRejectedToAdminEmail,
+      purposeRiskAnalysisAssignedForSigningToReviewer:
+        purposeRiskAnalysisAssignedForSigningToReviewerEmail,
+      purposeRiskAnalysisAssignedForWritingAndSigningToReviewer:
+        purposeRiskAnalysisAssignedForWritingAndSigningToReviewerEmail,
+      purposeRiskAnalysisAssignmentRemovedToReviewer:
+        purposeRiskAnalysisAssignmentRemovedToReviewerEmail,
+      draftPurposeDeletedWithRiskAnalysisToReviewer:
+        draftPurposeDeletedWithRiskAnalysisToReviewerEmail,
+      purposeRiskAnalysisSignedToReviewer:
+        purposeRiskAnalysisSignedToReviewerEmail,
       clientKeyConsumerAddedDeletedToClientUsers:
         emailClientKeyConsumerAddedDeletedToClientUsers,
       producerKeychainKeyAddedDeletedToClientUsers:
@@ -75,6 +128,15 @@ describe("API GET /userNotificationConfigs", () => {
         inAppClientKeyAddedDeletedToClientUsers ||
         inAppClientKeyConsumerAddedDeletedToClientUsers ||
         inAppProducerKeychainKeyAddedDeletedToClientUsers,
+      purposeRiskAnalysisAssignmentStatusToAdmin:
+        purposeRiskAnalysisSignedToAdminInApp ||
+        purposeRiskAnalysisRejectedToAdminInApp,
+      purposeRiskAnalysisAssignmentStatusToReviewer:
+        purposeRiskAnalysisAssignedForSigningToReviewerInApp ||
+        purposeRiskAnalysisAssignedForWritingAndSigningToReviewerInApp ||
+        purposeRiskAnalysisAssignmentRemovedToReviewerInApp ||
+        draftPurposeDeletedWithRiskAnalysisToReviewerInApp ||
+        purposeRiskAnalysisSignedToReviewerInApp,
     },
     emailConfig: {
       ...emailConfig,
@@ -82,6 +144,15 @@ describe("API GET /userNotificationConfigs", () => {
         emailClientKeyAddedDeletedToClientUsers ||
         emailClientKeyConsumerAddedDeletedToClientUsers ||
         emailProducerKeychainKeyAddedDeletedToClientUsers,
+      purposeRiskAnalysisAssignmentStatusToAdmin:
+        purposeRiskAnalysisSignedToAdminEmail ||
+        purposeRiskAnalysisRejectedToAdminEmail,
+      purposeRiskAnalysisAssignmentStatusToReviewer:
+        purposeRiskAnalysisAssignedForSigningToReviewerEmail ||
+        purposeRiskAnalysisAssignedForWritingAndSigningToReviewerEmail ||
+        purposeRiskAnalysisAssignmentRemovedToReviewerEmail ||
+        draftPurposeDeletedWithRiskAnalysisToReviewerEmail ||
+        purposeRiskAnalysisSignedToReviewerEmail,
     },
   };
 
