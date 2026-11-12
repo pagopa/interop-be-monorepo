@@ -7,6 +7,8 @@ import {
 } from "pagopa-interop-commons";
 import { CorrelationId } from "pagopa-interop-models";
 
+import type { UserFacingLanguage } from "../model/types.js";
+
 export type Headers = {
   "X-Correlation-Id": CorrelationId;
   Authorization: string | undefined;
@@ -15,6 +17,8 @@ export type Headers = {
 
 export type BffAppContext = AppContext<UIAuthData> & {
   headers: Headers;
+  endpoint?: string;
+  locale?: UserFacingLanguage;
 };
 /* ^ BFF can be called only by UI, so we can use UIAuthData as auth data type.
 This is enforced by the audience check during authentication and by the

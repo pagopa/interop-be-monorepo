@@ -10,6 +10,7 @@ import {
   getMockEService,
   getMockEServiceTemplate,
   getMockContextM2MAdmin,
+  sortRiskAnalysisCollections,
   getMockContext,
   getMockAuthData,
   ReadEvent,
@@ -890,13 +891,18 @@ describe("patch update eService", () => {
         event_version: 2,
       });
 
-      expect(decodeEServicePatchEvent(writtenEvent)).toEqual(
-        toEServiceV2(expectedEService)
-      );
-      expect(updateEServiceReturn).toEqual({
-        data: expectedEService,
-        metadata: { version: 1 },
+      const writtenPayload = decodeProtobufPayload({
+        messageType: DraftEServiceUpdatedV2,
+        payload: writtenEvent.data,
       });
+
+      expect(sortRiskAnalysisCollections(writtenPayload.eservice)).toEqual(
+        sortRiskAnalysisCollections(toEServiceV2(expectedEService))
+      );
+      expect(updateEServiceReturn.metadata).toEqual({ version: 1 });
+      expect(sortRiskAnalysisCollections(updateEServiceReturn.data)).toEqual(
+        sortRiskAnalysisCollections(expectedEService)
+      );
     }
   );
 
