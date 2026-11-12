@@ -640,6 +640,19 @@ export function purposeTemplateServiceBuilder(
         headers,
       });
     },
+    async patchUpdatePurposeTemplate(
+      id: PurposeTemplateId,
+      seed: bffApi.PatchUpdatePurposeTemplateSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.PurposeTemplate> {
+      logger.info(`Partially updating purpose template ${id}`);
+      const updatedPurposeTemplate =
+        await purposeTemplateClient.patchUpdateDraftPurposeTemplateById(seed, {
+          headers,
+          params: { id },
+        });
+      return toBffPurposeTemplate(updatedPurposeTemplate);
+    },
     async updatePurposeTemplate(
       id: PurposeTemplateId,
       seed: bffApi.PurposeTemplateSeed,
