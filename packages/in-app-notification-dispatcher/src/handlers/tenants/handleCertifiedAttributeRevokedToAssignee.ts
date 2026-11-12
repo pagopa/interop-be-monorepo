@@ -1,10 +1,9 @@
 import { Logger } from "pagopa-interop-commons";
 import {
   AttributeId,
-  fromTenantV2,
   missingKafkaMessageDataError,
   NewNotification,
-  TenantV2,
+  Tenant,
 } from "pagopa-interop-models";
 import {
   getNotificationRecipients,
@@ -19,22 +18,20 @@ import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 const IMPORTED_ATTRIBUTE_ORIGINS = ["IPA", "SELFCARE"];
 
 export async function handleCertifiedAttributeRevokedToAssignee(
-  tenantV2Msg: TenantV2 | undefined,
+  tenant: Tenant | undefined,
   attributeId: AttributeId,
   logger: Logger,
   readModelService: ReadModelServiceSQL
 ): Promise<NewNotification[]> {
-  if (!tenantV2Msg) {
+  if (!tenant) {
     throw missingKafkaMessageDataError(
       "tenant",
       "TenantCertifiedAttributeRevoked"
     );
   }
   logger.info(
-    `Sending in-app notification for handleCertifiedAttributeRevokedToAssignee - entityId: ${tenantV2Msg.id}, eventType: TenantCertifiedAttributeRevoked`
+    `Sending in-app notification for handleCertifiedAttributeRevokedToAssignee - entityId: ${tenant.id}, eventType: TenantCertifiedAttributeRevoked`
   );
-
-  const tenant = fromTenantV2(tenantV2Msg);
 
   const usersWithNotifications = await getNotificationRecipients(
     [tenant.id],
