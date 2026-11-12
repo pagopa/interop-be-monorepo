@@ -13,6 +13,46 @@ import {
 import { agency, aoo, attributes, uo } from "./expectation.js";
 
 describe("NewAttributes", async () => {
+  const getMockInstitution = (
+    originId: string,
+    classification: "AOO" | "UO",
+    subUnit: { name: string; entityName: string; aooCode?: string },
+    category = "L6"
+  ): Institution => ({
+    id: `tax-${originId}`,
+    originId,
+    category,
+    description: subUnit.name,
+    origin: "IPA",
+    kind: "Pubbliche Amministrazioni",
+    classification,
+    subUnit,
+  });
+
+  const aooUoInstitutions = [
+    getMockInstitution("A001", "AOO", { name: "AOO One", entityName: "Ente" }),
+    getMockInstitution("U001", "UO", {
+      name: "UO One",
+      entityName: "Ente",
+      aooCode: "A001",
+    }),
+    getMockInstitution("U002", "UO", { name: "UO Two", entityName: "Ente" }),
+    getMockInstitution("U003", "UO", { name: "UO Two", entityName: "Ente" }),
+    getMockInstitution(
+      "U004",
+      "UO",
+      { name: "UO Scec", entityName: "Ente" },
+      "S01G"
+    ),
+  ];
+  const aooUoSeeds: TenantSeed[] = aooUoInstitutions.map((i) => ({
+    origin: "IPA",
+    originId: i.originId,
+    description: i.description,
+    attributes: [],
+  }));
+  const aooUoRegistryData = { institutions: aooUoInstitutions, attributes: [] };
+
   beforeEach(() => {
     config.featureFlagAooUoAttributes = false;
   });
@@ -121,51 +161,12 @@ describe("NewAttributes", async () => {
 
     expect(newAttributes).toEqual([]);
   });
-  const getMockInstitution = (
-    originId: string,
-    classification: "AOO" | "UO",
-    subUnit: { name: string; entityName: string; aooCode?: string },
-    category = "L6"
-  ): Institution => ({
-    id: `tax-${originId}`,
-    originId,
-    category,
-    description: subUnit.name,
-    origin: "IPA",
-    kind: "Pubbliche Amministrazioni",
-    classification,
-    subUnit,
-  });
 
-  const aooUoInstitutions = [
-    getMockInstitution("A001", "AOO", { name: "AOO One", entityName: "Ente" }),
-    getMockInstitution("U001", "UO", {
-      name: "UO One",
-      entityName: "Ente",
-      aooCode: "A001",
-    }),
-    getMockInstitution("U002", "UO", { name: "UO Two", entityName: "Ente" }),
-    getMockInstitution("U003", "UO", { name: "UO Two", entityName: "Ente" }),
-    getMockInstitution(
-      "U004",
-      "UO",
-      { name: "UO Scec", entityName: "Ente" },
-      "S01G"
-    ),
-  ];
-  const aooUoSeeds: TenantSeed[] = aooUoInstitutions.map((i) => ({
-    origin: "IPA",
-    originId: i.originId,
-    description: i.description,
-    attributes: [],
-  }));
-  const aooUoRegistryData = { institutions: aooUoInstitutions, attributes: [] };
-
-  it("AOO/UO A4: creates seeds only when the flag is enabled", () => {
+  it("should not return AOO/UO attributes when the feature flag is disabled", () => {
     expect(getNewAttributes(aooUoRegistryData, aooUoSeeds, [])).toEqual([]);
   });
 
-  it("AOO/UO A4: composes names, handles collisions and excludes SCEC", () => {
+  it("should return AOO/UO attributes with composed names, handling collisions and excluding SCEC", () => {
     config.featureFlagAooUoAttributes = true;
     const result = getNewAttributes(aooUoRegistryData, aooUoSeeds, []);
     expect(result.map((a) => [a.code, a.name])).toEqual([
@@ -176,7 +177,7 @@ describe("NewAttributes", async () => {
     ]);
   });
 
-  it("AOO/UO A4: is idempotent and suffixes names already in the platform", () => {
+  it("should return AOO/UO attributes idempotently and suffix names already in the platform", () => {
     const platform = [
       {
         ...getMockAttribute(),
@@ -197,7 +198,7 @@ describe("NewAttributes", async () => {
     expect(result[0].name).toBe("UO One di AOO One di Ente (U001)");
   });
 
-  it("AOO/UO A4: compares names case-insensitively and avoids suffixed name collisions", () => {
+  it("should return AOO/UO attributes case-insensitively and avoid suffixed name collisions", () => {
     const platform = [
       {
         ...getMockAttribute(),
