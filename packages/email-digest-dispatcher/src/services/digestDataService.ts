@@ -270,15 +270,18 @@ export function digestDataServiceBuilder(
       ] = await Promise.all([
         receivedDelegationArchivingRequestsToDigest(
           archivingRequests,
-          readModelService
+          readModelService,
+          selfcareId
         ),
         receivedDelegationArchivingRequestsToDigest(
           approvedArchivingRequests,
-          readModelService
+          readModelService,
+          selfcareId
         ),
         receivedDelegationArchivingRequestsToDigest(
           rejectedArchivingRequests,
-          readModelService
+          readModelService,
+          selfcareId
         ),
       ]);
 
