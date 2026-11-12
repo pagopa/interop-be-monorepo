@@ -121,6 +121,12 @@ export function digestTemplateServiceBuilder(
       const archivingConsumerCardWidth = `${Math.floor(
         100 / Math.max(archivingConsumerVisibleCardsCount, 1)
       )}%`;
+      const archivingRequestsSingular =
+        data.archivingRequests?.totalCount === 1;
+      const approvedArchivingRequestsSingular =
+        data.approvedArchivingRequests?.totalCount === 1;
+      const rejectedArchivingRequestsSingular =
+        data.rejectedArchivingRequests?.totalCount === 1;
 
       // Count for items that exceeded list or card limits
       const newEservicesExceededItemsCount =
@@ -209,7 +215,21 @@ export function digestTemplateServiceBuilder(
         data.revokedAttributes.totalCount > SECTION_ITEMS_LIMIT
           ? data.revokedAttributes.totalCount - SECTION_ITEMS_LIMIT
           : 0;
-
+      const archivingRequestsExceededItemsCount =
+        data.archivingRequests &&
+        data.archivingRequests.totalCount > SECTION_ITEMS_LIMIT
+          ? data.archivingRequests.totalCount - SECTION_ITEMS_LIMIT
+          : 0;
+      const approvedArchivingRequestsExceededItemsCount =
+        data.approvedArchivingRequests &&
+        data.approvedArchivingRequests.totalCount > SECTION_ITEMS_LIMIT
+          ? data.approvedArchivingRequests.totalCount - SECTION_ITEMS_LIMIT
+          : 0;
+      const rejectedArchivingRequestsExceededItemsCount =
+        data.rejectedArchivingRequests &&
+        data.rejectedArchivingRequests.totalCount > SECTION_ITEMS_LIMIT
+          ? data.rejectedArchivingRequests.totalCount - SECTION_ITEMS_LIMIT
+          : 0;
       return templateService.compileHtml(digestTemplate, {
         title: "Riepilogo notifiche",
         ...data,
@@ -250,6 +270,9 @@ export function digestTemplateServiceBuilder(
         archivingConsumerInProgressEservicesSingular,
         archivingConsumerInProgressRemainder,
         archivingConsumerCardWidth,
+        archivingRequestsSingular,
+        approvedArchivingRequestsSingular,
+        rejectedArchivingRequestsSingular,
         newEservicesExceededItemsCount,
         updatedEservicesExceededItemsCount,
         updatedEserviceTemplatesExceededItemsCount,
@@ -266,6 +289,9 @@ export function digestTemplateServiceBuilder(
         waitingForApprovalDelegatedEservicesExceededItemsCount,
         receivedAttributesExceededItemsCount,
         revokedAttributesExceededItemsCount,
+        archivingRequestsExceededItemsCount,
+        approvedArchivingRequestsExceededItemsCount,
+        rejectedArchivingRequestsExceededItemsCount,
       });
     },
   };
