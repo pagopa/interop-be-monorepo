@@ -5,7 +5,7 @@ import {
   getMockEService,
   getMockTenant,
   getMockValidRiskAnalysis,
-  sortEServiceV2,
+  sortRiskAnalysisCollections,
 } from "pagopa-interop-commons-test";
 import {
   EService,
@@ -99,8 +99,8 @@ describe("fixEServiceRiskAnalysisTenantKind", () => {
         riskAnalysis: [riskAnalysisOther, fixedRiskAnalysis],
       };
 
-      expect(sortEServiceV2(writtenPayload.eservice)).toEqual(
-        sortEServiceV2(toEServiceV2(expectedEService))
+      expect(sortRiskAnalysisCollections(writtenPayload.eservice)).toEqual(
+        sortRiskAnalysisCollections(toEServiceV2(expectedEService))
       );
     } finally {
       vi.useRealTimers();
