@@ -67,7 +67,10 @@ describe("handlePurposeTemplateEvent test", async () => {
           .with(
             P.union(
               "PurposeTemplateEServiceLinked",
-              "PurposeTemplateEServiceUnlinked"
+              "PurposeTemplateEServiceUnlinked",
+              "PurposeTemplatePurposeTitleUpdated",
+              "PurposeTemplatePurposeDescriptionUpdated",
+              "PurposeTemplateTargetDescriptionUpdated"
             ),
             async () => [
               {

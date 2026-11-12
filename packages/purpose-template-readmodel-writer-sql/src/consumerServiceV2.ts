@@ -17,6 +17,9 @@ export async function handleMessageV2(
     .with(
       { type: "PurposeTemplateAdded" },
       { type: "PurposeTemplateDraftUpdated" },
+      { type: "PurposeTemplatePurposeTitleUpdated" },
+      { type: "PurposeTemplatePurposeDescriptionUpdated" },
+      { type: "PurposeTemplateTargetDescriptionUpdated" },
       { type: "PurposeTemplatePublished" },
       { type: "PurposeTemplateUnsuspended" },
       { type: "PurposeTemplateSuspended" },
