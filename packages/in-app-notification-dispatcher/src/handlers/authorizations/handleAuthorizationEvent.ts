@@ -91,6 +91,8 @@ export async function handleAuthorizationEvent(
       {
         type: P.union(
           "ClientAdded",
+          "ClientNameUpdated",
+          "ClientDescriptionUpdated",
           "ClientAdminSet",
           "ClientDeleted",
           "ClientUserAdded",

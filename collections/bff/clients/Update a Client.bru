@@ -1,0 +1,26 @@
+meta {
+  name: Update a Client
+  type: http
+  seq: 8
+}
+
+patch {
+  url: {{host-bff}}/clients/:clientId
+  body: json
+  auth: none
+}
+
+params:path {
+  clientId: {{clientId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+}
+
+body:json {
+  {
+    "name": "Updated client",
+    "description": "Updated client description"
+  }
+}
