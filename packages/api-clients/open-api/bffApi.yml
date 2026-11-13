@@ -13800,6 +13800,14 @@ paths:
           description: The selfcare ID for the institution (optional, falls back to generic URL if not provided)
           schema:
             type: string
+        - name: states
+          in: query
+          required: false
+          description: Optional purpose state filter for the destination page
+          schema:
+            type: string
+            enum:
+              - DRAFT
       responses:
         "302":
           description: Redirect to the correct deepLink based on notification type and entity id
