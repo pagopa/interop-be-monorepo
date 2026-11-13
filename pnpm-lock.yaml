@@ -37,8 +37,8 @@ catalogs:
       specifier: 3.1.7
       version: 3.1.7
     '@faker-js/faker':
-      specifier: 8.4.1
-      version: 8.4.1
+      specifier: 9.9.0
+      version: 9.9.0
     '@pagopa/eslint-config':
       specifier: 5.1.2
       version: 5.1.2
@@ -590,10 +590,10 @@ importers:
     devDependencies:
       '@anatine/zod-mock':
         specifier: 'catalog:'
-        version: 3.14.0(@faker-js/faker@8.4.1)(zod@3.23.8)
+        version: 3.14.0(@faker-js/faker@9.9.0)(zod@3.23.8)
       '@faker-js/faker':
         specifier: 'catalog:'
-        version: 8.4.1
+        version: 9.9.0
       '@types/express':
         specifier: 'catalog:'
         version: 4.17.21
@@ -666,10 +666,10 @@ importers:
     devDependencies:
       '@anatine/zod-mock':
         specifier: 'catalog:'
-        version: 3.14.0(@faker-js/faker@8.4.1)(zod@3.23.8)
+        version: 3.14.0(@faker-js/faker@9.9.0)(zod@3.23.8)
       '@faker-js/faker':
         specifier: 'catalog:'
-        version: 8.4.1
+        version: 9.9.0
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
@@ -1498,7 +1498,7 @@ importers:
     devDependencies:
       '@anatine/zod-mock':
         specifier: 'catalog:'
-        version: 3.14.0(@faker-js/faker@8.4.1)(zod@3.23.8)
+        version: 3.14.0(@faker-js/faker@9.9.0)(zod@3.23.8)
       '@types/express':
         specifier: 'catalog:'
         version: 4.17.21
@@ -2159,7 +2159,7 @@ importers:
     devDependencies:
       '@anatine/zod-mock':
         specifier: 'catalog:'
-        version: 3.14.0(@faker-js/faker@8.4.1)(zod@3.23.8)
+        version: 3.14.0(@faker-js/faker@9.9.0)(zod@3.23.8)
       '@aws-sdk/client-dynamodb':
         specifier: 'catalog:'
         version: 3.840.0
@@ -2177,7 +2177,7 @@ importers:
         version: 3.840.0(@aws-sdk/client-dynamodb@3.840.0)
       '@faker-js/faker':
         specifier: 'catalog:'
-        version: 8.4.1
+        version: 9.9.0
       '@protobuf-ts/runtime':
         specifier: 'catalog:'
         version: 2.9.4
@@ -4769,7 +4769,7 @@ importers:
     devDependencies:
       '@anatine/zod-mock':
         specifier: 'catalog:'
-        version: 3.14.0(@faker-js/faker@8.4.1)(zod@3.23.8)
+        version: 3.14.0(@faker-js/faker@9.9.0)(zod@3.23.8)
       '@types/express':
         specifier: 'catalog:'
         version: 4.17.21
@@ -4854,7 +4854,7 @@ importers:
     devDependencies:
       '@anatine/zod-mock':
         specifier: 'catalog:'
-        version: 3.14.0(@faker-js/faker@8.4.1)(zod@3.23.8)
+        version: 3.14.0(@faker-js/faker@9.9.0)(zod@3.23.8)
       '@aws-sdk/client-dynamodb':
         specifier: 'catalog:'
         version: 3.840.0
@@ -6140,7 +6140,7 @@ importers:
     devDependencies:
       '@anatine/zod-mock':
         specifier: 'catalog:'
-        version: 3.14.0(@faker-js/faker@8.4.1)(zod@3.23.8)
+        version: 3.14.0(@faker-js/faker@9.9.0)(zod@3.23.8)
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
@@ -8235,9 +8235,9 @@ packages:
   '@ewoudenberg/difflib@0.1.0':
     resolution: {integrity: sha512-OU5P5mJyD3OoWYMWY+yIgwvgNS9cFAU10f+DDuvtogcWQOoJIsQ4Hy2McSfUfhKjq8L0FuWVb4Rt7kgA+XK86A==}
 
-  '@faker-js/faker@8.4.1':
-    resolution: {integrity: sha512-XQ3cU+Q8Uqmrbf2e0cIC/QN43sTBSC8KF12u29Mb47tWrt2hAgBXSgpZMj4Ao8Uk0iJcU99QsOCaIL8934obCg==}
-    engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0, npm: '>=6.14.13'}
+  '@faker-js/faker@9.9.0':
+    resolution: {integrity: sha512-OEl393iCOoo/z8bMezRlJu+GlRGlsKbUAN7jKB6LhnKoqKve5DXRpalbItIIcwnCjs1k/FOPjFzcA6Qn+H+YbA==}
+    engines: {node: '>=18.0.0', npm: '>=9.0.0'}
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -13992,9 +13992,9 @@ snapshots:
 
   '@alloc/quick-lru@5.3.0': {}
 
-  '@anatine/zod-mock@3.14.0(@faker-js/faker@8.4.1)(zod@3.23.8)':
+  '@anatine/zod-mock@3.14.0(@faker-js/faker@9.9.0)(zod@3.23.8)':
     dependencies:
-      '@faker-js/faker': 8.4.1
+      '@faker-js/faker': 9.9.0
       randexp: 0.5.3
       zod: 3.23.8
 
@@ -15955,7 +15955,7 @@ snapshots:
     dependencies:
       heap: 0.2.7
 
-  '@faker-js/faker@8.4.1': {}
+  '@faker-js/faker@9.9.0': {}
 
   '@humanfs/core@0.19.1': {}
 

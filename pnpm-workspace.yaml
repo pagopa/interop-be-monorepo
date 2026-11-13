@@ -21,7 +21,7 @@ catalog:
   "@aws-sdk/client-sqs": 3.840.0
   "@aws-sdk/s3-request-presigner": 3.842.0
   "@aws-sdk/util-dynamodb": 3.840.0
-  "@faker-js/faker": 8.4.1
+  "@faker-js/faker": 9.9.0
   "@pagopa/eslint-config": 5.1.2
   "@protobuf-ts/plugin": 2.9.4
   "@protobuf-ts/protoc": 2.9.4
