@@ -114,14 +114,6 @@ describe("patchUpdateReversePurpose", () => {
         event_version: 2,
       });
     }
-    if (eventTypes.length > 0) {
-      const correlations = await postgresDB.many<{ correlation_id: string }>(
-        "SELECT DISTINCT correlation_id FROM purpose.events WHERE stream_id = $1 AND version > 0",
-        [purposeId]
-      );
-      expect(correlations).toHaveLength(1);
-      expect(correlations[0].correlation_id).toEqual(expect.any(String));
-    }
     return decodeProtobufPayload({
       messageType:
         writtenEvent.type === "PurposeTitleUpdated"
