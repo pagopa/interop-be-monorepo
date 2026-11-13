@@ -90,6 +90,7 @@ describe("PATCH /eservices/{eServiceId} router test", () => {
   );
 
   it.each([
+    {},
     { name: "updated name" },
     { description: "updated description" },
     { personalData: null },
@@ -134,7 +135,6 @@ describe("PATCH /eservices/{eServiceId} router test", () => {
   );
 
   it.each([
-    [{}, mockEService.id],
     [{ name: "a".repeat(4) }, mockEService.id],
     [{ name: "a".repeat(61) }, mockEService.id],
     [{ name: null }, mockEService.id],

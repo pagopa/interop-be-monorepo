@@ -652,6 +652,19 @@ export function purposeServiceBuilder(
         });
       return { id: purposeId };
     },
+    async patchUpdateReversePurpose(
+      id: PurposeId,
+      seed: bffApi.PatchReversePurposeUpdateContent,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> {
+      logger.info(`Partially updating reverse Purpose ${id}`);
+      const updatedPurpose =
+        await purposeProcessClient.patchUpdateReversePurpose(seed, {
+          headers,
+          params: { id },
+        });
+      return { id: updatedPurpose.id };
+    },
     async reversePurposeUpdate(
       id: PurposeId,
       updateSeed: bffApi.ReversePurposeUpdateContent,
@@ -963,6 +976,18 @@ export function purposeServiceBuilder(
         },
         headers,
       });
+    },
+    async patchUpdatePurpose(
+      id: PurposeId,
+      seed: bffApi.PatchPurposeUpdateContent,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> {
+      logger.info(`Partially updating Purpose ${id}`);
+      const updatedPurpose = await purposeProcessClient.patchUpdatePurpose(
+        seed,
+        { headers, params: { id } }
+      );
+      return { id: updatedPurpose.id };
     },
     async updatePurpose(
       id: PurposeId,
