@@ -1,6 +1,7 @@
 name: PR app validation
 on:
   pull_request:
+    types: [opened, synchronize, reopened, labeled]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -72,7 +73,9 @@ jobs:
           node-version-file: ./package.json
       - name: Find packages affected by the PR
         id: affected_packages
-        if: github.event.pull_request.base.ref == 'develop'
+        if: >-
+          (github.event.pull_request.base.ref == 'develop' || startsWith(github.event.pull_request.base.ref, 'feature/'))
+          && !contains(github.event.pull_request.labels.*.name, 'run-all-tests')
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
