@@ -5,6 +5,7 @@ import {
   toDocumentV1,
   toDescriptorV1,
   getMockDocument,
+  sortRiskAnalysisCollections,
 } from "pagopa-interop-commons-test";
 import {
   AttributeId,
@@ -182,8 +183,11 @@ describe("database test", async () => {
         mockEService.id
       );
 
-      expect(retrievedEservice).toMatchObject({
-        data: updatedEService,
+      expect({
+        ...retrievedEservice,
+        data: sortRiskAnalysisCollections(retrievedEservice?.data),
+      }).toMatchObject({
+        data: sortRiskAnalysisCollections(updatedEService),
         metadata: { version: 2 },
       });
     });
@@ -1394,8 +1398,11 @@ describe("database test", async () => {
         mockEService.id
       );
 
-      expect(retrievedEservice).toMatchObject({
-        data: updatedEService,
+      expect({
+        ...retrievedEservice,
+        data: sortRiskAnalysisCollections(retrievedEservice?.data),
+      }).toMatchObject({
+        data: sortRiskAnalysisCollections(updatedEService),
         metadata: { version: 2 },
       });
     });
@@ -1443,8 +1450,11 @@ describe("database test", async () => {
         mockEService.id
       );
 
-      expect(retrievedEservice).toMatchObject({
-        data: updatedEService,
+      expect({
+        ...retrievedEservice,
+        data: sortRiskAnalysisCollections(retrievedEservice?.data),
+      }).toMatchObject({
+        data: sortRiskAnalysisCollections(updatedEService),
         metadata: { version: 2 },
       });
     });
