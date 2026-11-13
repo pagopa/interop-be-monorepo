@@ -391,6 +391,7 @@ export function purposeServiceBuilder(
       excludeDraft?: boolean | undefined;
       reviewerId?: string | undefined;
       signingStates?: purposeApi.RiskAnalysisSigningState[] | undefined;
+      sortByRiskAnalysisAssignmentDateDescending?: boolean;
       offset: number;
       limit: number;
     },
@@ -708,6 +709,7 @@ export function purposeServiceBuilder(
         authData,
         {
           reviewerId: authData.userId,
+          sortByRiskAnalysisAssignmentDateDescending: true,
           consumersIds: [authData.organizationId],
           eservicesIds: filters.eservicesIds,
           signingStates,

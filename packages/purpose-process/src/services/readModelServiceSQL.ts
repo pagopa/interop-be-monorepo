@@ -87,6 +87,7 @@ export type GetPurposesFilters = {
   excludeDraft: boolean | undefined;
   reviewerId?: UserId;
   signingStates?: RiskAnalysisSigningState[];
+  sortByRiskAnalysisAssignmentDateDescending?: boolean;
 };
 
 const activeProducerDelegations = alias(
@@ -357,13 +358,22 @@ export function readModelServiceBuilderSQL({
     ): Promise<ListResult<Purpose>> {
       const { producersIds, consumersIds, purposesIds, ...otherFilters } =
         filters;
-      const { reviewerId, signingStates } = otherFilters;
+      const {
+        reviewerId,
+        signingStates,
+        sortByRiskAnalysisAssignmentDateDescending,
+      } = otherFilters;
       const orderBy = [
         ascLower(purposeInReadmodelPurpose.title),
         asc(purposeInReadmodelPurpose.id),
       ];
 
-      if (reviewerId && signingStates && signingStates.length > 0) {
+      if (
+        sortByRiskAnalysisAssignmentDateDescending === true &&
+        reviewerId &&
+        signingStates &&
+        signingStates.length > 0
+      ) {
         if (
           signingStates.every(
             (state) =>

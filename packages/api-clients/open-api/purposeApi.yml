@@ -183,7 +183,12 @@ paths:
       tags:
         - purpose
       operationId: getPurposes
-      description: Retrieve Purposes
+      description: |
+        Retrieve purposes ordered by title and ID.
+        Date ordering is enabled only when sortByRiskAnalysisAssignmentDateDescending is true,
+        reviewerId is provided and signingStates contains only Assigned/Submitted
+        or only Signed/Rejected. It is applied before pagination, with missing
+        dates last and title and ID used to break ties.
       parameters:
         - in: query
           name: name
@@ -255,6 +260,16 @@ paths:
               $ref: "#/components/schemas/RiskAnalysisSigningState"
             default: []
           explode: false
+        - in: query
+          name: sortByRiskAnalysisAssignmentDateDescending
+          description: |
+            Opt in to risk analysis date ordering for reviewer assignments.
+            Assigned/Submitted uses the current reviewer's assignment date descending;
+            Signed/Rejected uses signature/rejection date descending.
+            Other filter combinations retain title and ID ordering.
+          schema:
+            type: boolean
+            default: false
         - in: query
           name: offset
           required: true

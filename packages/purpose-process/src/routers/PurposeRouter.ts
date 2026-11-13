@@ -111,6 +111,7 @@ const purposeRouter = (
           excludeDraft,
           reviewerId,
           signingStates,
+          sortByRiskAnalysisAssignmentDateDescending,
           offset,
           limit,
         } = req.query;
@@ -127,6 +128,7 @@ const purposeRouter = (
               ? unsafeBrandId<UserId>(reviewerId)
               : undefined,
             signingStates: signingStates?.map(apiSigningStateToSigningState),
+            sortByRiskAnalysisAssignmentDateDescending,
           },
           { offset, limit },
           ctx

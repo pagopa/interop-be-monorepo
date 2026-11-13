@@ -590,33 +590,117 @@ describe("getPurposes", async () => {
   });
 
   it.each([
-    [true, [riskAnalysisSigningState.assigned], true],
-    [true, [riskAnalysisSigningState.submitted], true],
-    [
-      true,
-      [riskAnalysisSigningState.assigned, riskAnalysisSigningState.submitted],
-      true,
-    ],
-    [true, [riskAnalysisSigningState.signed], true],
-    [true, [riskAnalysisSigningState.rejected], true],
-    [
-      true,
-      [riskAnalysisSigningState.signed, riskAnalysisSigningState.rejected],
-      true,
-    ],
-    [
-      true,
-      [riskAnalysisSigningState.assigned, riskAnalysisSigningState.signed],
-      false,
-    ],
-    [
-      false,
-      [riskAnalysisSigningState.assigned, riskAnalysisSigningState.submitted],
-      false,
-    ],
+    {
+      name: "assigned purposes by assignment date",
+      signingStates: [riskAnalysisSigningState.assigned],
+      filterByReviewer: true,
+      sortByDate: true,
+      orderByDate: true,
+    },
+    {
+      name: "submitted purposes by assignment date",
+      signingStates: [riskAnalysisSigningState.submitted],
+      filterByReviewer: true,
+      sortByDate: true,
+      orderByDate: true,
+    },
+    {
+      name: "pending purposes by assignment date",
+      signingStates: [
+        riskAnalysisSigningState.assigned,
+        riskAnalysisSigningState.submitted,
+      ],
+      filterByReviewer: true,
+      sortByDate: true,
+      orderByDate: true,
+    },
+    {
+      name: "signed purposes by signature date",
+      signingStates: [riskAnalysisSigningState.signed],
+      filterByReviewer: true,
+      sortByDate: true,
+      orderByDate: true,
+    },
+    {
+      name: "rejected purposes by rejection date",
+      signingStates: [riskAnalysisSigningState.rejected],
+      filterByReviewer: true,
+      sortByDate: true,
+      orderByDate: true,
+    },
+    {
+      name: "completed purposes by signature/rejection date",
+      signingStates: [
+        riskAnalysisSigningState.signed,
+        riskAnalysisSigningState.rejected,
+      ],
+      filterByReviewer: true,
+      sortByDate: true,
+      orderByDate: true,
+    },
+    {
+      name: "mixed pending/completed purposes alphabetically",
+      signingStates: [
+        riskAnalysisSigningState.assigned,
+        riskAnalysisSigningState.signed,
+      ],
+      filterByReviewer: true,
+      sortByDate: true,
+      orderByDate: false,
+    },
+    {
+      name: "purposes alphabetically without a reviewer filter",
+      signingStates: [
+        riskAnalysisSigningState.assigned,
+        riskAnalysisSigningState.submitted,
+      ],
+      filterByReviewer: false,
+      sortByDate: true,
+      orderByDate: false,
+    },
+    {
+      name: "pending purposes alphabetically without the sorting parameter",
+      signingStates: [
+        riskAnalysisSigningState.assigned,
+        riskAnalysisSigningState.submitted,
+      ],
+      filterByReviewer: true,
+      sortByDate: undefined,
+      orderByDate: false,
+    },
+    {
+      name: "completed purposes alphabetically without the sorting parameter",
+      signingStates: [
+        riskAnalysisSigningState.signed,
+        riskAnalysisSigningState.rejected,
+      ],
+      filterByReviewer: true,
+      sortByDate: undefined,
+      orderByDate: false,
+    },
+    {
+      name: "pending purposes alphabetically with date sorting disabled",
+      signingStates: [
+        riskAnalysisSigningState.assigned,
+        riskAnalysisSigningState.submitted,
+      ],
+      filterByReviewer: true,
+      sortByDate: false,
+      orderByDate: false,
+    },
+    {
+      name: "completed purposes alphabetically with date sorting disabled",
+      signingStates: [
+        riskAnalysisSigningState.signed,
+        riskAnalysisSigningState.rejected,
+      ],
+      filterByReviewer: true,
+      sortByDate: false,
+      orderByDate: false,
+    },
   ])(
-    "should paginate reviewer assignments deterministically (reviewer filter: %s, signing states: %j, date ordering: %s)",
-    async (filterByReviewer, signingStates, orderByDate) => {
+    "should paginate $name deterministically",
+    async ({ filterByReviewer, signingStates, sortByDate, orderByDate }) => {
       const reviewerId = generateId<UserId>();
       const otherReviewerId = generateId<UserId>();
       const purposes = [
@@ -673,6 +757,14 @@ describe("getPurposes", async () => {
           },
         };
       });
+      const [
+        purposeOfDay1,
+        purposeOfDay2,
+        purposeOfDay4,
+        purposeOfDay3,
+        purposeWithoutDate,
+        anotherPurposeOfDay4,
+      ] = purposes;
       await Promise.all(purposes.map(addOnePurpose));
 
       const pages = await Promise.all(
@@ -687,6 +779,7 @@ describe("getPurposes", async () => {
               excludeDraft: undefined,
               reviewerId: filterByReviewer ? reviewerId : undefined,
               signingStates,
+              sortByRiskAnalysisAssignmentDateDescending: sortByDate,
             },
             { offset, limit: 2 },
             getMockContext({
@@ -696,12 +789,28 @@ describe("getPurposes", async () => {
         )
       );
 
-      const expectedOrder = orderByDate
-        ? [2, 5, 3, 1, 0, 4]
-        : [0, 1, 2, 5, 3, 4];
-      expect(
-        pages.flatMap(({ results }) => results.map(({ id }) => id))
-      ).toEqual(expectedOrder.map((index) => purposes[index].id));
+      const [firstPage, secondPage, thirdPage] = pages;
+      const [expectedFirstPage, expectedSecondPage, expectedThirdPage] =
+        orderByDate
+          ? [
+              [purposeOfDay4, anotherPurposeOfDay4],
+              [purposeOfDay3, purposeOfDay2],
+              [purposeOfDay1, purposeWithoutDate],
+            ]
+          : [
+              [purposeOfDay1, purposeOfDay2],
+              [purposeOfDay4, anotherPurposeOfDay4],
+              [purposeOfDay3, purposeWithoutDate],
+            ];
+      expect(firstPage.results.map(({ id }) => id)).toEqual(
+        expectedFirstPage.map(({ id }) => id)
+      );
+      expect(secondPage.results.map(({ id }) => id)).toEqual(
+        expectedSecondPage.map(({ id }) => id)
+      );
+      expect(thirdPage.results.map(({ id }) => id)).toEqual(
+        expectedThirdPage.map(({ id }) => id)
+      );
       expect(pages.map(({ totalCount }) => totalCount)).toEqual([6, 6, 6]);
       expect(pages.map(({ results }) => results.length)).toEqual([2, 2, 2]);
     }
