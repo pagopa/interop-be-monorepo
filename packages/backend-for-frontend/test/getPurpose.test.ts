@@ -278,6 +278,55 @@ describe("getPurpose — reviewer enrichment", () => {
     expect(mockGetUserInfoUsingGET).not.toHaveBeenCalled();
   });
 
+  describe("risk analysis assignment date sorting opt-in", () => {
+    beforeEach(() => {
+      mockGetPurposes.mockResolvedValue({ results: [], totalCount: 0 });
+    });
+
+    it("requests date sorting for risk analysis assignments", async () => {
+      const ctx = getBffMockContext(
+        getMockContext({ authData: getMockAuthData(consumerId, reviewerId) })
+      );
+
+      await purposeService.getRiskAnalysisAssignments({}, 0, 10, ctx);
+
+      expect(mockGetPurposes).toHaveBeenCalledWith({
+        queries: expect.objectContaining({
+          reviewerId,
+          sortByRiskAnalysisAssignmentDateDescending: true,
+        }),
+        headers: ctx.headers,
+      });
+    });
+
+    it.each([
+      {
+        name: "consumer purposes",
+        retrieve: purposeService.getConsumerPurposes,
+        organizationId: consumerId,
+      },
+      {
+        name: "producer purposes",
+        retrieve: purposeService.getProducerPurposes,
+        organizationId: producerId,
+      },
+    ])(
+      "does not request date sorting for $name",
+      async ({ retrieve, organizationId }) => {
+        const ctx = getBffMockContext(
+          getMockContext({ authData: getMockAuthData(organizationId) })
+        );
+
+        await retrieve({}, 0, 10, ctx);
+
+        expect(mockGetPurposes).toHaveBeenCalledOnce();
+        expect(mockGetPurposes.mock.calls[0][0].queries).not.toHaveProperty(
+          "sortByRiskAnalysisAssignmentDateDescending"
+        );
+      }
+    );
+  });
+
   describe("consumer-suspended purpose version normalization", () => {
     const currentVersion: purposeApi.PurposeVersion = {
       ...getMockedApiPurposeVersion({
