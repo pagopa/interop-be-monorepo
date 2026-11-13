@@ -10,6 +10,7 @@ import {
   getMockContext,
   getMockTenant,
   getMockValidRiskAnalysisForm,
+  sortPurpose,
 } from "pagopa-interop-commons-test";
 import {
   Purpose,
@@ -907,8 +908,8 @@ describe("assignRiskAnalysisReviewer", () => {
         );
 
       expect(updatedPurpose.riskAnalysisReviewMode).toBe(requestedReviewMode);
-      expect(updatedPurpose.riskAnalysisForm).toEqual(
-        shouldResetForm ? undefined : riskAnalysisForm
+      expect(sortPurpose(updatedPurpose).riskAnalysisForm).toEqual(
+        shouldResetForm ? undefined : sortPurpose(mockPurpose).riskAnalysisForm
       );
 
       expect(updatedPurpose.reviewerWorkflow?.signingState, description).toBe(
