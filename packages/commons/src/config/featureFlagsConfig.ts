@@ -233,6 +233,21 @@ export type FeatureFlagNewOperatorsConfig = z.infer<
   typeof FeatureFlagNewOperatorsConfig
 >;
 
+export const FeatureFlagConfluentKafkaConfig = z
+  .object({
+    FEATURE_FLAG_CONFLUENT_KAFKA: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagConfluentKafka: c.FEATURE_FLAG_CONFLUENT_KAFKA ?? false,
+  }));
+export type FeatureFlagConfluentKafkaConfig = z.infer<
+  typeof FeatureFlagConfluentKafkaConfig
+>;
+
 type FeatureFlags = FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagApplicationAuditStrictConfig &
   FeatureFlagImprovedProducerVerificationClaimsConfig &
@@ -246,7 +261,8 @@ type FeatureFlags = FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagDelegationConstraintSkipConfig &
   FeatureFlagAttributeCertifiedDiscreteConfig &
   FeatureFlagTenantKindInRiskAnalysisConfig &
-  FeatureFlagNewOperatorsConfig;
+  FeatureFlagNewOperatorsConfig &
+  FeatureFlagConfluentKafkaConfig;
 
 export type FeatureFlagKeys = keyof FeatureFlags & `featureFlag${string}`;
 
