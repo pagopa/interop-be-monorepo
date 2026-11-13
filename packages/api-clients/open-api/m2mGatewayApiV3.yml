@@ -14401,7 +14401,6 @@ components:
     EServiceTemplateDraftUpdateSeed:
       type: object
       additionalProperties: false
-      minProperties: 1
       properties:
         name:
           type: string

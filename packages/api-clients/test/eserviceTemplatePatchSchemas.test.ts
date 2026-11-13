@@ -15,48 +15,54 @@ describe.each([
     surface: "M2M v3",
     schema: m2mGatewayApiV3.EServiceTemplateDraftUpdateSeed,
   },
-])("$surface generated E-Service Template PATCH schema", ({ schema }) => {
-  it.each([
-    {},
-    { name: null },
-    { name: 123 },
-    { name: "a".repeat(4) },
-    { name: "a".repeat(46) },
-    { description: null },
-    { description: "a".repeat(9) },
-    { description: "a".repeat(401) },
-    { intendedTarget: null },
-    { intendedTarget: "a".repeat(9) },
-    { intendedTarget: "a".repeat(251) },
-    { name: "valid name", unknown: true },
-    { technology: "invalid" },
-    { mode: "invalid" },
-  ])("rejects invalid payload %#", (seed) => {
-    expect(schema.safeParse(seed).success).toBe(false);
-  });
+])(
+  "$surface generated E-Service Template PATCH schema",
+  ({ surface, schema }) => {
+    it("preserves empty-payload compatibility outside the new BFF route", () => {
+      expect(schema.safeParse({}).success).toBe(surface !== "BFF");
+    });
 
-  it.each([
-    { name: "a".repeat(5) },
-    { name: "a".repeat(45) },
-    { description: "a".repeat(10) },
-    { description: "a".repeat(400) },
-    { intendedTarget: "a".repeat(10) },
-    { intendedTarget: "a".repeat(250) },
-    { personalData: null },
-    { isSignalHubEnabled: false },
-    {
-      name: "valid name",
-      description: "valid description",
-      intendedTarget: "valid intended target",
-      technology: "REST",
-      mode: "DELIVER",
-      isSignalHubEnabled: false,
-      personalData: null,
-    },
-  ])("preserves valid payload %# without adding omitted fields", (seed) => {
-    expect(schema.parse(seed)).toEqual(seed);
-  });
-});
+    it.each([
+      { name: null },
+      { name: 123 },
+      { name: "a".repeat(4) },
+      { name: "a".repeat(46) },
+      { description: null },
+      { description: "a".repeat(9) },
+      { description: "a".repeat(401) },
+      { intendedTarget: null },
+      { intendedTarget: "a".repeat(9) },
+      { intendedTarget: "a".repeat(251) },
+      { name: "valid name", unknown: true },
+      { technology: "invalid" },
+      { mode: "invalid" },
+    ])("rejects invalid payload %#", (seed) => {
+      expect(schema.safeParse(seed).success).toBe(false);
+    });
+
+    it.each([
+      { name: "a".repeat(5) },
+      { name: "a".repeat(45) },
+      { description: "a".repeat(10) },
+      { description: "a".repeat(400) },
+      { intendedTarget: "a".repeat(10) },
+      { intendedTarget: "a".repeat(250) },
+      { personalData: null },
+      { isSignalHubEnabled: false },
+      {
+        name: "valid name",
+        description: "valid description",
+        intendedTarget: "valid intended target",
+        technology: "REST",
+        mode: "DELIVER",
+        isSignalHubEnabled: false,
+        personalData: null,
+      },
+    ])("preserves valid payload %# without adding omitted fields", (seed) => {
+      expect(schema.parse(seed)).toEqual(seed);
+    });
+  }
+);
 
 describe.each([
   {

@@ -105,6 +105,7 @@ describe("updateDraftEServiceTemplate", () => {
   });
 
   it.each([
+    {},
     { name: "a".repeat(45) },
     { description: "updated description" },
     { intendedTarget: "updated intended target" },

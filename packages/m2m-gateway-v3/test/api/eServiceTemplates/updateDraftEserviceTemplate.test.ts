@@ -79,6 +79,7 @@ describe("PATCH /eserviceTemplates/:templateId router test", () => {
   });
 
   it.each([
+    {},
     { name: "updated name" },
     { name: "a".repeat(5) },
     { name: "a".repeat(45) },
@@ -128,7 +129,6 @@ describe("PATCH /eserviceTemplates/:templateId router test", () => {
   });
 
   it.each([
-    {},
     { name: "a".repeat(4) },
     { name: "a".repeat(46) },
     { name: null },
