@@ -1,4 +1,7 @@
-import { bffErrorCodes } from "pagopa-interop-commons";
+import {
+  bffErrorCodes,
+  zodiosValidationErrorToApiProblemBuilder,
+} from "pagopa-interop-commons";
 import { errorMessages } from "pagopa-interop-error-messages";
 import {
   ApiError,
@@ -18,6 +21,9 @@ export const makeApiProblem = makeUserFacingApiProblemBuilder(
   },
   errorMessages
 );
+
+export const zodiosValidationErrorToApiProblem =
+  zodiosValidationErrorToApiProblemBuilder(makeApiProblem);
 
 export function selfcareEntityNotFilled(
   className: string,
