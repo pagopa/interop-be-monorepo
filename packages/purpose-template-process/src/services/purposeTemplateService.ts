@@ -1593,48 +1593,49 @@ export function purposeTemplateServiceBuilder(
 
       const isDraft = isPurposeTemplateDraft(purposeTemplate.data.state);
 
-      if (seedIncludesOperationalFields && !isDraft) {
-        throw purposeTemplateNotInExpectedStates(
-          purposeTemplate.data.id,
-          purposeTemplate.data.state,
-          [purposeTemplateState.draft]
-        );
-      }
-
-      if (!seedIncludesOperationalFields) {
-        await validatePurposeTemplateMetadata(
-          purposeTemplate.data,
-          purposeTemplateSeed,
-          readModelService
-        );
-      }
-
-      const purposeTitleUpdatedTemplate: PurposeTemplate = {
-        ...purposeTemplate.data,
-        purposeTitle: purposeTitle ?? purposeTemplate.data.purposeTitle,
-        updatedAt: new Date(),
-      };
-      const purposeDescriptionUpdatedTemplate: PurposeTemplate = {
-        ...purposeTitleUpdatedTemplate,
-        purposeDescription:
-          purposeDescription ?? purposeTemplate.data.purposeDescription,
-      };
-      let updatedPurposeTemplate: PurposeTemplate = {
-        ...purposeDescriptionUpdatedTemplate,
-        targetDescription:
-          targetDescription ?? purposeTemplate.data.targetDescription,
-      };
-
-      if (isDraft) {
-        if (seedIncludesOperationalFields) {
-          updatedPurposeTemplate = await prepareDraftPurposeTemplateUpdate(
+      const updatedPurposeTemplate = await match({
+        isDraft,
+        seedIncludesOperationalFields,
+      })
+        .with({ isDraft: false, seedIncludesOperationalFields: true }, () => {
+          throw purposeTemplateNotInExpectedStates(
+            purposeTemplate.data.id,
+            purposeTemplate.data.state,
+            [purposeTemplateState.draft]
+          );
+        })
+        .with({ isDraft: true, seedIncludesOperationalFields: true }, () =>
+          prepareDraftPurposeTemplateUpdate(
             purposeTemplate.data,
             { type: "patch", seed: purposeTemplateSeed },
             readModelService,
             fileManager,
             ctx.logger
-          );
-        }
+          )
+        )
+        .with(
+          { isDraft: true, seedIncludesOperationalFields: false },
+          { isDraft: false, seedIncludesOperationalFields: false },
+          async () => {
+            await validatePurposeTemplateMetadata(
+              purposeTemplate.data,
+              purposeTemplateSeed,
+              readModelService
+            );
+            return {
+              ...purposeTemplate.data,
+              purposeTitle: purposeTitle ?? purposeTemplate.data.purposeTitle,
+              purposeDescription:
+                purposeDescription ?? purposeTemplate.data.purposeDescription,
+              targetDescription:
+                targetDescription ?? purposeTemplate.data.targetDescription,
+              updatedAt: new Date(),
+            };
+          }
+        )
+        .exhaustive();
+
+      if (isDraft) {
         const event = await repository.createEvent(
           toCreateEventPurposeTemplateDraftUpdated(
             updatedPurposeTemplate,
@@ -1647,6 +1648,16 @@ export function purposeTemplateServiceBuilder(
           metadata: { version: event.newVersion },
         };
       }
+
+      const purposeTitleUpdatedTemplate: PurposeTemplate = {
+        ...purposeTemplate.data,
+        purposeTitle: updatedPurposeTemplate.purposeTitle,
+        updatedAt: updatedPurposeTemplate.updatedAt,
+      };
+      const purposeDescriptionUpdatedTemplate: PurposeTemplate = {
+        ...purposeTitleUpdatedTemplate,
+        purposeDescription: updatedPurposeTemplate.purposeDescription,
+      };
 
       const events = [
         ...(purposeTitle !== undefined
