@@ -88,6 +88,7 @@ describe("PATCH /purposeTemplates/{id} router test", () => {
   );
 
   it.each([
+    {},
     { purposeTitle: "updated purpose title" },
     { purposeDescription: "updated purpose description" },
     {
@@ -148,7 +149,6 @@ describe("PATCH /purposeTemplates/{id} router test", () => {
   );
 
   it.each([
-    [{}, mockPurposeTemplate.id],
     [{ purposeTitle: "a".repeat(4) }, mockPurposeTemplate.id],
     [{ purposeTitle: "a".repeat(61) }, mockPurposeTemplate.id],
     [{ purposeDescription: "a".repeat(9) }, mockPurposeTemplate.id],

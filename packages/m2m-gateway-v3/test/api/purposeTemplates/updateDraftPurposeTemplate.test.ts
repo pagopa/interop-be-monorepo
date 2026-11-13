@@ -74,6 +74,7 @@ describe("PATCH /purposeTemplates/:purposeTemplateId router test", () => {
   });
 
   it.each([
+    {},
     { purposeTitle: "updated purpose title" },
     { purposeDescription: "updated purpose description" },
     { targetDescription: "updated target description" },
@@ -135,7 +136,6 @@ describe("PATCH /purposeTemplates/:purposeTemplateId router test", () => {
   });
 
   it.each([
-    {},
     { purposeTitle: "a".repeat(4) },
     { purposeTitle: "a".repeat(61) },
     { purposeTitle: null },
