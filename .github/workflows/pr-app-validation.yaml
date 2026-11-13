@@ -1,6 +1,7 @@
 name: PR app validation
 on:
   pull_request:
+    types: [opened, synchronize, reopened, labeled]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -65,8 +66,35 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: ./package.json
+      - name: Find packages affected by the PR
+        id: affected_packages
+        if: >-
+          (github.event.pull_request.base.ref == 'develop' || startsWith(github.event.pull_request.base.ref, 'feature/'))
+          && !contains(github.event.pull_request.labels.*.name, 'run-all-tests')
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          CHANGED_OUTSIDE_PACKAGES=$(git diff --name-only "$BASE_SHA...HEAD" | grep -v '^packages/' || true)
+          if [ -n "$CHANGED_OUTSIDE_PACKAGES" ]; then
+            echo "Files changed outside packages/, testing all packages:"
+            echo "$CHANGED_OUTSIDE_PACKAGES"
+            exit 0
+          fi
+
+          AFFECTED_PACKAGES=$(pnpm --filter "...[$BASE_SHA...HEAD]" --filter pagopa-interop-dev-dashboard-api ls --depth -1 --json | jq -c '[.[].name]')
+          echo "::group::Packages affected by the PR"
+          echo "$AFFECTED_PACKAGES" | jq .
+          echo "::endgroup::"
+          echo "affected_packages=$AFFECTED_PACKAGES" >> $GITHUB_OUTPUT
       - name: Find and categorize test packages
         id: get_test_packages
+        env:
+          AFFECTED_PACKAGES: ${{ steps.affected_packages.outputs.affected_packages }}
         run: |
           # Scan all packages with test dirs. For each, detect test:shard* scripts.
           # Packages with test:shard* scripts get dedicated shards (one per script).
@@ -78,6 +106,12 @@ jobs:
             SHARD_COMMANDS=$(jq -c '[.scripts | keys[] | select(startswith("test:shard"))] | sort' "$DIR/package.json")
             echo "{\"name\":\"$PACKAGE_NAME\",\"weight\":$WEIGHT,\"shardCommands\":$SHARD_COMMANDS}"
           done | jq -s -c 'sort_by(.name)')
+
+          if [ -n "$AFFECTED_PACKAGES" ]; then
+            ALL_TEST_PACKAGES=$(echo "$ALL_TEST_PACKAGES" | jq -c --argjson affected "$AFFECTED_PACKAGES" '
+              [.[] | select(.name as $name | $affected | index($name))]
+            ')
+          fi
 
           # Packages with test:shard* scripts → dedicated shards
           DEDICATED_SHARDS=$(echo "$ALL_TEST_PACKAGES" | jq -c '
