@@ -33,6 +33,7 @@ import {
   eServiceDescriptorNotFound,
   notValidDescriptorState,
   inconsistentDailyCalls,
+  invalidAudience,
   attributeNotFound,
   templateInstanceNotAllowed,
   asyncExchangeBulkNotAllowedForSoap,
@@ -464,6 +465,33 @@ describe("updateDraftDescriptor", () => {
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
   });
+
+  it.each([":::", "1abc:def", "abc:de f"])(
+    "should throw invalidAudience if audience %s contains ':' but is not a valid URI",
+    async (audience) => {
+      const descriptor: Descriptor = {
+        ...mockDescriptor,
+        state: descriptorState.draft,
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor],
+      };
+      await addOneEService(eservice);
+
+      await expect(
+        catalogService.updateDraftDescriptor(
+          eservice.id,
+          descriptor.id,
+          buildUpdateDescriptorSeed({
+            ...descriptor,
+            audience: [audience],
+          }),
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        )
+      ).rejects.toThrowError(invalidAudience(audience));
+    }
+  );
 
   it("should throw attributeNotFound if at least one of the attributes doesn't exist", async () => {
     const descriptor: Descriptor = {
