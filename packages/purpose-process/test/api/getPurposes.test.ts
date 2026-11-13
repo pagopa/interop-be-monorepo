@@ -101,8 +101,7 @@ describe("API GET /purposes test", () => {
       expect(res.status).toBe(200);
       expect(purposeService.getPurposes).toHaveBeenCalledWith(
         expect.objectContaining({
-          sortByRiskAnalysisAssignmentDateDescending:
-            sortByRiskAnalysisAssignmentDateDescending ?? false,
+          sortByRiskAnalysisAssignmentDateDescending,
         }),
         { offset: defaultQuery.offset, limit: defaultQuery.limit },
         expect.anything()

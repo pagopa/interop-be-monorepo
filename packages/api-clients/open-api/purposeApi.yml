@@ -267,9 +267,9 @@ paths:
             Assigned/Submitted uses the current reviewer's assignment date descending;
             Signed/Rejected uses signature/rejection date descending.
             Other filter combinations retain title and ID ordering.
+            When omitted or false, title and ID ordering is preserved.
           schema:
             type: boolean
-            default: false
         - in: query
           name: offset
           required: true
