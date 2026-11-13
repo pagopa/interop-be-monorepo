@@ -5,7 +5,10 @@ import { getUserInfoFromAuthData } from "../auth/authData.js";
 import { AppContext } from "../context/context.js";
 import { LoggerMetadata, logger } from "../logging/index.js";
 
-export function loggerMiddleware(serviceName: string): express.RequestHandler {
+export function loggerMiddleware(
+  serviceName: string,
+  loggerFactory: typeof logger = logger
+): express.RequestHandler {
   return (req, res, next): void => {
     res.on("finish", () => {
       const context = (req as express.Request & { ctx?: AppContext }).ctx;
@@ -22,9 +25,11 @@ export function loggerMiddleware(serviceName: string): express.RequestHandler {
         jti: context?.authData?.jti,
       };
 
-      const loggerInstance = logger(loggerMetadata);
+      const loggerInstance = loggerFactory(loggerMetadata);
       const msg = `Request ${req.method} ${req.url} - Response ${res.statusCode} ${res.statusMessage}`;
-      if (req.url === "/status") {
+      if (res.statusCode >= 500) {
+        loggerInstance.error(msg);
+      } else if (req.url === "/status") {
         loggerInstance.debug(msg);
       } else {
         loggerInstance.info(msg);
