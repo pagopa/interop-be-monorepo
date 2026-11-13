@@ -34,7 +34,6 @@ import { AuthorizationService } from "../services/authorizationService.js";
 import {
   addClientUserErrorMapper,
   deleteClientErrorMapper,
-  getClientsErrorMapper,
   createApiClientErrorMapper,
   createConsumerClientErrorMapper,
   deleteClientKeyByIdErrorMapper,
@@ -46,10 +45,8 @@ import {
   removeClientUserErrorMapper,
   createKeyErrorMapper,
   getClientKeyWithClientErrorMapper,
-  getClientsWithKeysErrorMapper,
   addClientPurposeErrorMapper,
   createProducerKeychainErrorMapper,
-  getProducerKeychainsErrorMapper,
   deleteProducerKeychainErrorMapper,
   createProducerKeychainKeyErrorMapper,
   deleteProducerKeychainKeyByIdErrorMapper,
@@ -184,11 +181,7 @@ const authorizationRouter = (
           })
         );
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          getClientsWithKeysErrorMapper,
-          ctx
-        );
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
     })
@@ -233,7 +226,7 @@ const authorizationRouter = (
           })
         );
       } catch (error) {
-        const errorRes = makeApiProblem(error, getClientsErrorMapper, ctx);
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
     })
@@ -726,11 +719,7 @@ const authorizationRouter = (
           })
         );
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          getProducerKeychainsErrorMapper,
-          ctx
-        );
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
     })
@@ -766,11 +755,7 @@ const authorizationRouter = (
             )
           );
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          getProducerKeychainsErrorMapper,
-          ctx
-        );
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
     })
