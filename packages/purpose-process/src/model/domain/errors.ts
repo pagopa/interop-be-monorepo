@@ -479,6 +479,17 @@ export function purposeFromTemplateCannotBeModified(
   });
 }
 
+export function purposeNotCreatedFromTemplate(
+  purposeId: PurposeId,
+  purposeTemplateId: PurposeTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} was not created from purpose template ${purposeTemplateId}`,
+    code: "purposeNotCreatedFromTemplate",
+    title: "Purpose not created from template",
+  });
+}
+
 export function invalidFreeOfChargeReason(
   isFreeOfCharge: boolean,
   freeOfChargeReason: string | undefined
