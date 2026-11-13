@@ -173,14 +173,6 @@ export function tenantLoginNotAllowed(
   });
 }
 
-export function samlNotValid(message: string): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Error while validating saml -> ${message}`,
-    code: "samlNotValid",
-    title: "SAML not valid",
-  });
-}
-
 export function missingSelfcareId(tenantId: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `SelfcareId in Tenant ${tenantId} not found`,
