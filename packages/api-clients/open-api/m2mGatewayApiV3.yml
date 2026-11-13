@@ -13849,7 +13849,6 @@ components:
     EServiceDraftUpdateSeed:
       type: object
       additionalProperties: false
-      minProperties: 1
       properties:
         name:
           type: string
@@ -15155,7 +15154,6 @@ components:
     PurposeDraftUpdateSeed:
       type: object
       additionalProperties: false
-      minProperties: 1
       description:
         Contains the expected payload for purpose update of a purpose not
         created from a purpose template
@@ -15184,7 +15182,6 @@ components:
     PurposeDraftFromTemplateUpdateSeed:
       type: object
       additionalProperties: false
-      minProperties: 1
       description: Contains the expected payload for purpose update of a purpose
         created from a purpose template
       properties:
@@ -15203,7 +15200,6 @@ components:
     ReversePurposeDraftUpdateSeed:
       type: object
       additionalProperties: false
-      minProperties: 1
       description: Contains the expected payload for purpose update
       properties:
         title:

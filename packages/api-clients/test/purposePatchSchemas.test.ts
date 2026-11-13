@@ -17,9 +17,12 @@ describe.each([
     surface: "reverse M2M v3",
     schema: m2mGatewayApiV3.ReversePurposeDraftUpdateSeed,
   },
-])("$surface generated Purpose PATCH schema", ({ schema }) => {
+])("$surface generated Purpose PATCH schema", ({ surface, schema }) => {
+  it("preserves empty-payload compatibility outside the new BFF routes", () => {
+    expect(schema.safeParse({}).success).toBe(!surface.includes("BFF"));
+  });
+
   it.each([
-    {},
     { title: null },
     { title: 123 },
     { title: "a".repeat(4) },
@@ -93,9 +96,9 @@ describe.each([
 });
 
 describe("M2M v3 Purpose PATCH template alternative", () => {
-  it("rejects empty objects and preserves partial template updates", () => {
+  it("preserves empty objects and partial template updates", () => {
     const schema = m2mGatewayApiV3.PurposeDraftFromTemplateUpdateSeed;
-    expect(schema.safeParse({}).success).toBe(false);
+    expect(schema.parse({})).toEqual({});
     expect(schema.parse({ title: "valid title" })).toEqual({
       title: "valid title",
     });

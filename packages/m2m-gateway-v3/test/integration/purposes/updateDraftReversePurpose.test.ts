@@ -103,6 +103,7 @@ describe("updateDraftReversePurpose", () => {
   });
 
   it.each([
+    {},
     { title: "Updated metadata title" },
     { description: "Updated metadata description" },
     { title: mockPurpose.title, description: mockPurpose.description },
