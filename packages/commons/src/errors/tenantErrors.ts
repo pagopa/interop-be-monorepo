@@ -35,4 +35,5 @@ export const tenantErrorCodes = {
   certifiedDiscreteAttributeRevoked: "0034",
   tenantNotAllowedForDelegation: "0035",
   tenantUpdateVersionMismatch: "0036",
+  attributeAlreadyVerified: "0037",
 };

@@ -232,6 +232,18 @@ export function attributeAlreadyRevoked(
   });
 }
 
+export function attributeAlreadyVerified(
+  tenantId: TenantId,
+  verifierId: TenantId,
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute ${attributeId} has been already verified for ${tenantId} by ${verifierId}`,
+    code: "attributeAlreadyVerified",
+    title: "Attribute is already verified",
+  });
+}
+
 export function certifiedDiscreteAttributeRevoked(
   tenantId: TenantId,
   attributeId: AttributeId
