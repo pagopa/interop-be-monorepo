@@ -459,6 +459,17 @@ export function eserviceInterfaceDataNotValid(): ApiError<ErrorCodes> {
   });
 }
 
+export function templateInstanceInterfaceDataMissing(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The interface of descriptor ${descriptorId} of template instance EService ${eserviceId} has not been generated because interface data (server URLs and contact metadata) is missing`,
+    code: "templateInstanceInterfaceDataMissing",
+    title: "Template instance interface data missing",
+  });
+}
+
 export function descriptorTemplateVersionNotFound(
   descriptorId: DescriptorId,
   eserviceId: EServiceId,
