@@ -34,7 +34,7 @@ export function assertRequesterIsDelegateConsumerForEservice(
   assertRequesterIsDelegateConsumer(authData, delegation);
 }
 
-export function assertRequesterIsDelegateConsumer(
+function assertRequesterIsDelegateConsumer(
   authData: M2MAdminAuthData,
   delegation: delegationApi.Delegation
 ): void {

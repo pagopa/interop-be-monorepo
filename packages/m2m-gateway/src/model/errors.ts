@@ -16,7 +16,6 @@ import {
   PurposeId,
   PurposeTemplateId,
   PurposeVersionId,
-  TenantId,
 } from "pagopa-interop-models";
 
 const errorCodes = {
@@ -43,7 +42,6 @@ const errorCodes = {
   purposeAgreementNotFound: "0022",
   agreementContractNotFound: "0023",
   requesterIsNotTheDelegateConsumer: "0025",
-  cannotEditDeclaredAttributesForTenant: "0026",
   tenantDeclaredAttributeNotFound: "0027",
   tenantVerifiedAttributeNotFound: "0028",
   cannotDeleteLastEServiceDescriptor: "0029",
@@ -343,21 +341,6 @@ export function requesterIsNotTheDelegateConsumer(
     detail: `Requester tenant is not the delegate consumer for delegation ${delegation.id}`,
     code: "requesterIsNotTheDelegateConsumer",
     title: "Requester is not the delegate consumer",
-  });
-}
-
-export function cannotEditDeclaredAttributesForTenant(
-  targetTenantId: TenantId,
-  delegation: delegationApi.Delegation | undefined
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Cannot edit declared attributes for tenant ${targetTenantId}${
-      delegation
-        ? ` since it is not the delegator for delegation ${delegation.id}`
-        : ` without a delegation (delegationId is missing)`
-    }`,
-    code: "cannotEditDeclaredAttributesForTenant",
-    title: "Tenant cannot edit declared attributes",
   });
 }
 

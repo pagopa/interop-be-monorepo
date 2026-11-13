@@ -22,9 +22,7 @@ import { z } from "zod";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
 import {
-  cannotEditDeclaredAttributesForTenant,
   missingMetadata,
-  requesterIsNotTheDelegateConsumer,
   tenantDeclaredAttributeNotFound,
 } from "../../../src/model/errors.js";
 import {
@@ -79,10 +77,6 @@ describe("assignTenantDeclaredAttribute", () => {
     mockPollingResponse(mockTenantProcessResponse, 2)
   );
 
-  const mockGetDelegation = vi
-    .fn()
-    .mockResolvedValue(getMockWithMetadata(mockConsumerDelegation));
-
   mockInteropBeClients.tenantProcessClient = {
     tenantAttribute: {
       addDeclaredAttribute: mockAddDeclaredAttribute,
@@ -91,10 +85,6 @@ describe("assignTenantDeclaredAttribute", () => {
       getTenant: mockGetTenant,
     },
   } as unknown as PagoPAInteropBeClients["tenantProcessClient"];
-
-  mockInteropBeClients.delegationProcessClient = {
-    delegation: { getDelegation: mockGetDelegation },
-  } as unknown as PagoPAInteropBeClients["delegationProcessClient"];
 
   beforeEach(() => {
     // Clear mock counters and call information before each test
@@ -125,6 +115,7 @@ describe("assignTenantDeclaredAttribute", () => {
         ...mockTenantDeclaredAttributeSeed,
         delegationId: undefined,
       },
+      params: { tenantId: mockTenantId },
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.tenantProcessClient.tenant.getTenant,
@@ -137,10 +128,6 @@ describe("assignTenantDeclaredAttribute", () => {
 
   it(`Should succeed and perform API clients calls when requester is delegate
       consumer of target tenant`, async () => {
-    mockGetDelegation.mockResolvedValueOnce(
-      getMockWithMetadata(mockConsumerDelegation)
-    );
-
     const m2mTenantAttributeResponse: m2mGatewayApi.TenantDeclaredAttribute = {
       id: mockDeclaredAttribute2.id,
       assignedAt: mockDeclaredAttribute2.assignmentTimestamp,
@@ -170,77 +157,12 @@ describe("assignTenantDeclaredAttribute", () => {
         ...mockTenantDeclaredAttributeSeed,
         delegationId: mockConsumerDelegation.id,
       },
+      params: { tenantId: mockTenantId },
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.tenantProcessClient.tenant.getTenant,
       params: { id: mockTenantId },
     });
-  });
-
-  it(`Should throw cannotEditDeclaredAttributesForTenant when requester
-      is not target tenant and no delegationId is provided`, async () => {
-    await expect(
-      tenantService.assignTenantDeclaredAttribute(
-        unsafeBrandId(mockTenantId),
-        mockTenantDeclaredAttributeSeed,
-        getMockM2MAdminAppContext()
-      )
-    ).rejects.toThrowError(
-      cannotEditDeclaredAttributesForTenant(mockTenantId, undefined)
-    );
-  });
-
-  it(`Should throw cannotEditDeclaredAttributesForTenant when requester
-      is delegate consumer for delegation id, but targetTenant is not the delegator`, async () => {
-    const targetTenantId = generateId<TenantId>();
-    await expect(
-      tenantService.assignTenantDeclaredAttribute(
-        targetTenantId,
-        {
-          ...mockTenantDeclaredAttributeSeed,
-          delegationId: mockConsumerDelegation.id,
-        },
-        getMockM2MAdminAppContext({
-          organizationId: unsafeBrandId<TenantId>(
-            mockConsumerDelegation.delegateId
-          ),
-        })
-      )
-    ).rejects.toThrowError(
-      cannotEditDeclaredAttributesForTenant(
-        targetTenantId,
-        mockConsumerDelegation
-      )
-    );
-  });
-
-  it(`Should throw requesterIsNotTheDelegateConsumer when requester is not delegate consumer for
-       delegation id, even when requester is target tenant`, async () => {
-    await expect(
-      tenantService.assignTenantDeclaredAttribute(
-        mockTenantId,
-        {
-          ...mockTenantDeclaredAttributeSeed,
-          delegationId: mockConsumerDelegation.id,
-        },
-        getMockM2MAdminAppContext({})
-      )
-    ).rejects.toThrowError(
-      requesterIsNotTheDelegateConsumer(mockConsumerDelegation)
-    );
-
-    await expect(
-      tenantService.assignTenantDeclaredAttribute(
-        mockTenantId,
-        {
-          ...mockTenantDeclaredAttributeSeed,
-          delegationId: mockConsumerDelegation.id,
-        },
-        getMockM2MAdminAppContext({ organizationId: mockTenantId })
-      )
-    ).rejects.toThrowError(
-      requesterIsNotTheDelegateConsumer(mockConsumerDelegation)
-    );
   });
 
   it("Should throw tenantDeclaredAttributeNotFound in case the attribute is not found in the tenant", async () => {
