@@ -408,6 +408,17 @@ export function templateInstanceNotAllowed(
   });
 }
 
+export function templateInstanceAttributesCannotBeChanged(
+  eserviceId: EServiceId,
+  eServiceTemplateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attributes of EService ${eserviceId} cannot differ from those inherited from template ${eServiceTemplateId}`,
+    code: "templateInstanceAttributesCannotBeChanged",
+    title: "Template instance attributes cannot be changed",
+  });
+}
+
 export function eServiceNotAnInstance(
   eserviceId: EServiceId
 ): ApiError<ErrorCodes> {

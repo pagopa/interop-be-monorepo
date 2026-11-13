@@ -6,6 +6,7 @@ import {
   getMockContextM2MAdmin,
   getMockPurposeTemplate,
   getMockValidRiskAnalysisFormTemplate,
+  sortPurposeTemplate,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
@@ -158,11 +159,16 @@ describe("patch update purpose template", () => {
         payload: writtenEvent.data,
       });
 
-      expect(writtenPayload).toEqual({
-        purposeTemplate: toPurposeTemplateV2(expectedPurposeTemplate),
+      expect({
+        ...writtenPayload,
+        purposeTemplate: sortPurposeTemplate(writtenPayload.purposeTemplate),
+      }).toEqual({
+        purposeTemplate: sortPurposeTemplate(
+          toPurposeTemplateV2(expectedPurposeTemplate)
+        ),
       });
-      expect(updatePurposeTemplateReturn).toEqual({
-        data: expectedPurposeTemplate,
+      expect(sortPurposeTemplate(updatePurposeTemplateReturn)).toEqual({
+        data: sortPurposeTemplate(expectedPurposeTemplate),
         metadata: { version: 1 },
       });
     }
@@ -448,8 +454,8 @@ describe("patch update purpose template", () => {
         updatedAt: new Date(),
       };
 
-      expect(patchPurposeTemplateResult).toEqual({
-        data: expectedPurposeTemplate,
+      expect(sortPurposeTemplate(patchPurposeTemplateResult)).toEqual({
+        data: sortPurposeTemplate(expectedPurposeTemplate),
         metadata: { version: 1 },
       });
     }

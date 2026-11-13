@@ -402,8 +402,8 @@ describe("createReversePurpose", () => {
       },
     };
 
-    expect(createReversePurposeResponse).toEqual({
-      data: expectedPurpose,
+    expect(sortPurpose(createReversePurposeResponse)).toEqual({
+      data: sortPurpose(expectedPurpose),
       metadata: { version: 0 },
     });
     expect({
