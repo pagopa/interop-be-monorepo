@@ -1,4 +1,5 @@
-import { sql, asc, desc, SQL, Column, Table } from "drizzle-orm";
+import { sql, asc, desc, SQL, Column, Table, count } from "drizzle-orm";
+import { PgSelect } from "drizzle-orm/pg-core";
 import { ListResult } from "pagopa-interop-models";
 
 export const createListResult = <T>(
@@ -16,6 +17,10 @@ export const ascLower = (column: Column): SQL => asc(lowerCase(column));
 
 export const descLower = (column: Column): SQL => desc(lowerCase(column));
 
+// Adds a COUNT(*) OVER() column, so the total count is read from the returned rows.
+// Do not use it for paginated queries (limit/offset): when the requested page is
+// empty no rows are returned and the total count is lost (it falls back to 0).
+// For paginated queries use getTableTotalCount with a separate count query.
 export const withTotalCount = <
   P extends Record<string, Table | Column | SQL | SQL.Aliased>,
 >(
@@ -24,6 +29,18 @@ export const withTotalCount = <
   ...projection,
   totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
 });
+
+export async function getTableTotalCount(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  db: { select: (...args: any[]) => any }, // NodePgDatabase,
+  query: PgSelect
+): Promise<number> {
+  const totalCountResult = await db
+    .select({ count: count() })
+    .from(query.as("filterQuery"))
+    .limit(1);
+  return totalCountResult[0]?.count ?? 0;
+}
 
 // Escapes SQL LIKE metacharacters (%, _, \) so they are treated as literals.
 // Must be used on user input before embedding it in an ILIKE pattern.
