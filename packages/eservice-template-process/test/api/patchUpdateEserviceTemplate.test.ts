@@ -78,6 +78,7 @@ describe("PATCH /templates/{templateId} router test", () => {
   );
 
   it.each([
+    {},
     { name: "updated name" },
     { name: "a".repeat(5) },
     { name: "a".repeat(45) },
@@ -127,7 +128,6 @@ describe("PATCH /templates/{templateId} router test", () => {
   );
 
   it.each([
-    [{}, mockEServiceTemplate.id],
     [{ name: "a".repeat(4) }, mockEServiceTemplate.id],
     [{ name: "a".repeat(46) }, mockEServiceTemplate.id],
     [{ name: 123 }, mockEServiceTemplate.id],
