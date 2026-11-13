@@ -101,6 +101,7 @@ describe("API PATCH /purposes/{purposeId} test", () => {
   });
 
   it.each([
+    {},
     { title: "updated title" },
     { description: "updated description" },
     {
@@ -176,7 +177,6 @@ describe("API PATCH /purposes/{purposeId} test", () => {
   });
 
   it.each([
-    {},
     { ...mockPurposeUpdateContent, dailyCalls: -1 },
     { ...mockPurposeUpdateContent, extraField: 1 },
   ])(

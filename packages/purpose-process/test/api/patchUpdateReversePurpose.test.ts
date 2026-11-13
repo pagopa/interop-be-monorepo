@@ -96,6 +96,7 @@ describe("API PATCH /reverse/purposes/{purposeId} test", () => {
   });
 
   it.each([
+    {},
     { title: "updated title" },
     { description: "updated description" },
     {
@@ -173,7 +174,6 @@ describe("API PATCH /reverse/purposes/{purposeId} test", () => {
   });
 
   it.each([
-    {},
     { riskAnalysisForm: { version: "3.0", answers: {} } },
     { ...mockReversePurposeUpdateContent, dailyCalls: -1 },
     { ...mockReversePurposeUpdateContent, extraField: 1 },

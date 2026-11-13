@@ -23,9 +23,12 @@ describe.each([
   { surface: "catalog", schema: catalogApi.PatchUpdateEServiceSeed },
   { surface: "BFF", schema: bffApi.PatchUpdateEServiceSeed },
   { surface: "M2M v3", schema: m2mGatewayApiV3.EServiceDraftUpdateSeed },
-])("$surface generated E-Service PATCH schema", ({ schema }) => {
+])("$surface generated E-Service PATCH schema", ({ surface, schema }) => {
+  it("preserves empty-payload compatibility outside the new BFF route", () => {
+    expect(schema.safeParse({}).success).toBe(surface !== "BFF");
+  });
+
   it.each([
-    {},
     { name: null },
     { name: 123 },
     { name: "a".repeat(4) },

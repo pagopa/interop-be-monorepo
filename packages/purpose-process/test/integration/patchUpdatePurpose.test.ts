@@ -626,6 +626,11 @@ describe("patchUpdatePurpose", () => {
 
   it.each([
     {
+      seed: {},
+      eventTypes: ["DraftPurposeUpdated"],
+      operationalChanges: false,
+    },
+    {
       seed: { title: "updated title" },
       eventTypes: ["DraftPurposeUpdated"],
       operationalChanges: false,
