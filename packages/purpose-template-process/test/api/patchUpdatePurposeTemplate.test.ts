@@ -70,7 +70,10 @@ describe("PATCH /purposeTemplates/{id} router test", () => {
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
@@ -146,6 +149,13 @@ describe("PATCH /purposeTemplates/{id} router test", () => {
   );
 
   it.each([
+    [{ purposeTitle: "a".repeat(4) }, mockPurposeTemplate.id],
+    [{ purposeTitle: "a".repeat(61) }, mockPurposeTemplate.id],
+    [{ purposeDescription: "a".repeat(9) }, mockPurposeTemplate.id],
+    [{ purposeDescription: "a".repeat(251) }, mockPurposeTemplate.id],
+    [{ targetDescription: "a".repeat(9) }, mockPurposeTemplate.id],
+    [{ targetDescription: "a".repeat(251) }, mockPurposeTemplate.id],
+    [{ ...purposeTemplateSeed, extraField: true }, mockPurposeTemplate.id],
     [{ targetDescription: null }, mockPurposeTemplate.id],
     [{ targetTenantKind: "invalidTenantKind" }, mockPurposeTemplate.id],
     [{ purposeTitle: null }, mockPurposeTemplate.id],
