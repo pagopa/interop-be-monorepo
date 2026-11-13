@@ -1,3 +1,4 @@
+import { AxiosError, InternalAxiosRequestConfig } from "axios";
 import {
   eserviceTemplateApi,
   m2mGatewayApiV3,
@@ -80,6 +81,11 @@ describe("PATCH /eserviceTemplates/:templateId router test", () => {
   it.each([
     {},
     { name: "updated name" },
+    { name: "a".repeat(5) },
+    { name: "a".repeat(45) },
+    { description: "updated description" },
+    { intendedTarget: "updated intended target" },
+    { personalData: null },
     { name: "updated name", description: "updated description" },
     {
       name: "updated name",
@@ -123,10 +129,16 @@ describe("PATCH /eserviceTemplates/:templateId router test", () => {
   });
 
   it.each([
+    { name: "a".repeat(4) },
+    { name: "a".repeat(46) },
+    { name: null },
+    { intendedTarget: "a".repeat(9) },
+    { intendedTarget: "a".repeat(251) },
     { invalidParam: "invalidValue" },
     { ...mockUpdateSeed, extraParam: -1 },
     { ...mockUpdateSeed, description: "short" },
   ])("Should return 400 if passed invalid seed", async (seed) => {
+    mockEServiceTemplateService.updateDraftEServiceTemplate = vi.fn();
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
       token,
@@ -135,7 +147,43 @@ describe("PATCH /eserviceTemplates/:templateId router test", () => {
     );
 
     expect(res.status).toBe(400);
+    expect(
+      mockEServiceTemplateService.updateDraftEServiceTemplate
+    ).not.toHaveBeenCalled();
   });
+
+  it.each([400, 403, 404, 409])(
+    "Should propagate eservice-template-process status %s",
+    async (status) => {
+      const problem = {
+        type: "about:blank",
+        title: "Template update failed",
+        status,
+        detail: "Template update failed",
+        errors: [{ code: "016-0001", detail: "Template update failed" }],
+      };
+      mockEServiceTemplateService.updateDraftEServiceTemplate = vi
+        .fn()
+        .mockRejectedValue(
+          new AxiosError(
+            "Template update failed",
+            undefined,
+            undefined,
+            undefined,
+            {
+              status,
+              data: problem,
+              statusText: "Template update failed",
+              config: {} as InternalAxiosRequestConfig,
+              headers: {},
+            }
+          )
+        );
+      const res = await makeRequest(generateToken(authRole.M2M_ADMIN_ROLE));
+      expect(res.status).toBe(status);
+      expect(res.body.errors).toEqual(problem.errors);
+    }
+  );
 
   it.each([
     missingMetadata(),

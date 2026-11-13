@@ -1,3 +1,4 @@
+import { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   getMockedApiEServiceTemplate,
@@ -101,6 +102,63 @@ describe("updateDraftEServiceTemplate", () => {
     expect(
       mockInteropBeClients.eserviceTemplateProcessClient.getEServiceTemplateById
     ).toHaveBeenCalledTimes(2);
+  });
+
+  it.each([
+    {},
+    { name: "a".repeat(45) },
+    { description: "updated description" },
+    { intendedTarget: "updated intended target" },
+    {
+      name: mockEServiceTemplate.name,
+      description: mockEServiceTemplate.description,
+      intendedTarget: mockEServiceTemplate.intendedTarget,
+    },
+  ])(
+    "Should forward metadata seed %# and poll its returned version",
+    async (seed) => {
+      mockGetEServiceTemplate.mockImplementation(
+        mockPollingResponse(mockEServiceTemplateProcessGetResponse, 1)
+      );
+      await eserviceTemplateService.updateDraftEServiceTemplate(
+        unsafeBrandId(mockEServiceTemplate.id),
+        seed,
+        getMockM2MAdminAppContext()
+      );
+      expect(mockPatchUpdateEServiceTemplate).toHaveBeenCalledTimes(1);
+      expectApiClientPostToHaveBeenCalledWith({
+        mockPost: mockPatchUpdateEServiceTemplate,
+        params: { templateId: mockEServiceTemplate.id },
+        body: seed,
+      });
+      expect(mockGetEServiceTemplate).toHaveBeenCalledTimes(1);
+    }
+  );
+
+  it("Should propagate a conflict without polling or retrying", async () => {
+    const error = new AxiosError(
+      "Template conflict",
+      undefined,
+      undefined,
+      undefined,
+      {
+        status: 409,
+        statusText: "Conflict",
+        data: {},
+        config: {} as InternalAxiosRequestConfig,
+        headers: {},
+      }
+    );
+    mockPatchUpdateEServiceTemplate.mockRejectedValueOnce(error);
+    await expect(
+      eserviceTemplateService.updateDraftEServiceTemplate(
+        unsafeBrandId(mockEServiceTemplate.id),
+        mockEServiceTemplateSeed,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toBe(error);
+    expect(mockPatchUpdateEServiceTemplate).toHaveBeenCalledTimes(1);
+    expect(mockGetEServiceTemplate).not.toHaveBeenCalled();
   });
 
   it("Should throw missingMetadata in case the eservice returned by the PATCH call has no metadata", async () => {
