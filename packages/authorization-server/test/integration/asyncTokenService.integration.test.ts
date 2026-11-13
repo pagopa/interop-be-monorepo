@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { fail } from "assert";
 import {
+  invalidKidFormat,
   purposeIdNotProvided,
   urlCallbackNotProvided,
 } from "pagopa-interop-client-assertion-validation";
@@ -35,7 +36,10 @@ import {
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { config } from "../../src/config/config.js";
-import { catalogEntryNotFound } from "../../src/model/domain/errors.js";
+import {
+  catalogEntryNotFound,
+  clientAssertionValidationFailed,
+} from "../../src/model/domain/errors.js";
 import { readInteraction } from "../../src/utilities/interactionsUtils.js";
 import { deconstructGSIPK_eserviceId_descriptorId } from "../../src/utilities/tokenServiceHelpers.js";
 import {
@@ -291,6 +295,30 @@ describe("async token service - start_interaction", () => {
 
     await expect(callAsyncTokenService(jws, clientId)).rejects.toThrowError(
       new RegExp(purposeIdNotProvided(clientId).detail)
+    );
+  });
+
+  it("should throw clientAssertionValidationFailed when the kid is a thumbprint with an extra leading character", async () => {
+    const clientId = generateId<ClientId>();
+    // Value seen in production: the caller sends its own thumbprint with an
+    // extra leading "-", so no token-generation-states entry can match it.
+    const malformedKid = "-f9lp2Z7yV6UWp55ZNg-Rv98s0hyDngwmmPGG_axON_c";
+
+    const { jws } = await getMockClientAssertion({
+      standardClaimsOverride: { sub: clientId },
+      customClaims: {
+        scope: interactionState.startInteraction,
+        purposeId: generateId(),
+        urlCallback: "https://callback.example.com",
+      },
+      customHeader: { kid: malformedKid },
+    });
+
+    await expect(callAsyncTokenService(jws, clientId)).rejects.toThrowError(
+      clientAssertionValidationFailed(
+        clientId,
+        invalidKidFormat(malformedKid).detail
+      )
     );
   });
 
