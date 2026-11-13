@@ -7,14 +7,22 @@ import {
   DigestSection,
   computeGroupFlags,
 } from "../utils/digestAdmittedRoles.js";
-import { TenantDigestData } from "./digestDataService.js";
+import {
+  ReviewerDigestData,
+  ReviewerRiskAnalysisDigest,
+  TenantDigestData,
+} from "./digestDataService.js";
 
 type DigestTemplateService = {
   compileDigestEmail: (
     data: TenantDigestData,
     visibility: Record<DigestSection, boolean>
   ) => string;
+  compileReviewerDigestEmail: (data: ReviewerDigestData) => string;
 };
+
+const remainderOf = (digest: ReviewerRiskAnalysisDigest | undefined): number =>
+  Math.max((digest?.totalCount ?? 0) - (digest?.items.length ?? 0), 0);
 
 export function digestTemplateServiceBuilder(
   templateService: HtmlTemplateService
@@ -35,6 +43,9 @@ export function digestTemplateServiceBuilder(
     "icon-error",
   ];
 
+  const SECTION_CARD_LIMIT = 6;
+  const SECTION_ITEMS_LIMIT = 5;
+
   iconPartials.forEach((iconName) => {
     const iconPath = `${dirname}/../resources/templates/partials/${iconName}.svg`;
     const iconContent = fs.readFileSync(iconPath).toString();
@@ -44,6 +55,19 @@ export function digestTemplateServiceBuilder(
   // Load digest template
   const digestTemplatePath = `${dirname}/../resources/templates/digest-mail.html`;
   const digestTemplate = fs.readFileSync(digestTemplatePath).toString();
+
+  templateService.registerPartial(
+    "reviewer-item",
+    fs
+      .readFileSync(
+        `${dirname}/../resources/templates/partials/reviewer-item.html`
+      )
+      .toString()
+  );
+  const reviewerDigestTemplatePath = `${dirname}/../resources/templates/digest-reviewer-mail.html`;
+  const reviewerDigestTemplate = fs
+    .readFileSync(reviewerDigestTemplatePath)
+    .toString();
 
   return {
     compileDigestEmail(
@@ -55,8 +79,6 @@ export function digestTemplateServiceBuilder(
       const updatedEservicesSingular = data.updatedEservices?.totalCount === 1;
       const updatedEserviceTemplatesSingular =
         data.updatedEserviceTemplates?.totalCount === 1;
-      const popularEserviceTemplatesSingular =
-        data.popularEserviceTemplates?.totalCount === 1;
       const acceptedSentAgreementsSingular =
         data.acceptedSentAgreements?.totalCount === 1;
       const rejectedSentAgreementsSingular =
@@ -67,21 +89,182 @@ export function digestTemplateServiceBuilder(
         data.publishedSentPurposes?.totalCount === 1;
       const rejectedSentPurposesSingular =
         data.rejectedSentPurposes?.totalCount === 1;
+      const waitingForApprovalSentPurposesSingular =
+        data.waitingForApprovalSentPurposes?.totalCount === 1;
+      const publishedReceivedPurposesSingular =
+        data.publishedReceivedPurposes?.totalCount === 1;
+      const waitingForApprovalReceivedPurposesSingular =
+        data.waitingForApprovalReceivedPurposes?.totalCount === 1;
       const waitingForApprovalReceivedAgreementsSingular =
         data.waitingForApprovalReceivedAgreements?.totalCount === 1;
       const waitingForApprovalReceivedDelegationsSingular =
         data.waitingForApprovalReceivedDelegations?.totalCount === 1;
-      const revokedReceivedDelegationsSingular =
-        data.revokedReceivedDelegations?.totalCount === 1;
-      const activeSentDelegationsSingular =
-        data.activeSentDelegations?.totalCount === 1;
-      const rejectedSentDelegationsSingular =
-        data.rejectedSentDelegations?.totalCount === 1;
+      const waitingForApprovalDelegatedEservicesSingular =
+        data.waitingForApprovalDelegatedEservices?.totalCount === 1;
       const receivedAttributesSingular =
         data.receivedAttributes?.totalCount === 1;
       const revokedAttributesSingular =
         data.revokedAttributes?.totalCount === 1;
+      const archivingImminentEservicesSingular =
+        data.archivingImminentEservices?.totalCount === 1;
+      const archivingImminentRemainder = Math.max(
+        (data.archivingImminentEservices?.totalCount ?? 0) -
+          (data.archivingImminentEservices?.items.length ?? 0),
+        0
+      );
+      const archivingInProgressEservicesSingular =
+        data.archivingInProgressEservices?.totalCount === 1;
+      const archivingInProgressRemainder = Math.max(
+        (data.archivingInProgressEservices?.totalCount ?? 0) -
+          (data.archivingInProgressEservices?.items.length ?? 0),
+        0
+      );
+      const archivingConsumerImminentEservicesSingular =
+        data.archivingConsumerImminentEservices?.totalCount === 1;
+      const archivingConsumerImminentRemainder = Math.max(
+        (data.archivingConsumerImminentEservices?.totalCount ?? 0) -
+          (data.archivingConsumerImminentEservices?.items.length ?? 0),
+        0
+      );
+      const archivingConsumerInProgressEservicesSingular =
+        data.archivingConsumerInProgressEservices?.totalCount === 1;
+      const archivingConsumerInProgressRemainder = Math.max(
+        (data.archivingConsumerInProgressEservices?.totalCount ?? 0) -
+          (data.archivingConsumerInProgressEservices?.items.length ?? 0),
+        0
+      );
+      // Consumer stat cards with a zero count are hidden: the remaining ones share the row.
+      const archivingConsumerVisibleCardsCount = [
+        data.archivingConsumerImminentEservices?.totalCount,
+        data.archivingConsumerEserviceScopeCount,
+        data.archivingConsumerDescriptorScopeCount,
+      ].filter(Boolean).length;
+      const archivingConsumerCardWidth = `${Math.floor(
+        100 / Math.max(archivingConsumerVisibleCardsCount, 1)
+      )}%`;
+      const archivingRequestsSingular =
+        data.archivingRequests?.totalCount === 1;
+      const approvedArchivingRequestsSingular =
+        data.approvedArchivingRequests?.totalCount === 1;
+      const rejectedArchivingRequestsSingular =
+        data.rejectedArchivingRequests?.totalCount === 1;
+      const approvedRiskAnalysisSingular =
+        data.approvedRiskAnalysis?.totalCount === 1;
+      const rejectedRiskAnalysisSingular =
+        data.rejectedRiskAnalysis?.totalCount === 1;
 
+      // Count for items that exceeded list or card limits
+      const newEservicesExceededItemsCount =
+        data.newEservices && data.newEservices.totalCount > SECTION_CARD_LIMIT
+          ? data.newEservices.totalCount - SECTION_CARD_LIMIT
+          : 0;
+      const updatedEservicesExceededItemsCount =
+        data.updatedEservices &&
+        data.updatedEservices.totalCount > SECTION_CARD_LIMIT
+          ? data.updatedEservices.totalCount - SECTION_CARD_LIMIT
+          : 0;
+      const updatedEserviceTemplatesExceededItemsCount =
+        data.updatedEserviceTemplates &&
+        data.updatedEserviceTemplates.totalCount > SECTION_CARD_LIMIT
+          ? data.updatedEserviceTemplates.totalCount - SECTION_CARD_LIMIT
+          : 0;
+      const acceptedSentAgreementsExceededItemsCount =
+        data.acceptedSentAgreements &&
+        data.acceptedSentAgreements.totalCount > SECTION_ITEMS_LIMIT
+          ? data.acceptedSentAgreements.totalCount - SECTION_ITEMS_LIMIT
+          : 0;
+      const rejectedSentAgreementsExceededItemsCount =
+        data.rejectedSentAgreements &&
+        data.rejectedSentAgreements.totalCount > SECTION_ITEMS_LIMIT
+          ? data.rejectedSentAgreements.totalCount - SECTION_ITEMS_LIMIT
+          : 0;
+      const suspendedSentAgreementsExceededItemsCount =
+        data.suspendedSentAgreements &&
+        data.suspendedSentAgreements.totalCount > SECTION_ITEMS_LIMIT
+          ? data.suspendedSentAgreements.totalCount - SECTION_ITEMS_LIMIT
+          : 0;
+      const publishedSentPurposesExceededItemsCount =
+        data.publishedSentPurposes &&
+        data.publishedSentPurposes.totalCount > SECTION_ITEMS_LIMIT
+          ? data.publishedSentPurposes.totalCount - SECTION_ITEMS_LIMIT
+          : 0;
+      const rejectedSentPurposesExceededItemsCount =
+        data.rejectedSentPurposes &&
+        data.rejectedSentPurposes.totalCount > SECTION_ITEMS_LIMIT
+          ? data.rejectedSentPurposes.totalCount - SECTION_ITEMS_LIMIT
+          : 0;
+      const waitingForApprovalSentPurposesExceededItemsCount =
+        data.waitingForApprovalSentPurposes &&
+        data.waitingForApprovalSentPurposes.totalCount > SECTION_ITEMS_LIMIT
+          ? data.waitingForApprovalSentPurposes.totalCount - SECTION_ITEMS_LIMIT
+          : 0;
+      const waitingForApprovalReceivedAgreementsExceededItemsCount =
+        data.waitingForApprovalReceivedAgreements &&
+        data.waitingForApprovalReceivedAgreements.totalCount >
+          SECTION_ITEMS_LIMIT
+          ? data.waitingForApprovalReceivedAgreements.totalCount -
+            SECTION_ITEMS_LIMIT
+          : 0;
+      const publishedReceivedPurposesExceededItemsCount =
+        data.publishedReceivedPurposes &&
+        data.publishedReceivedPurposes.totalCount > SECTION_ITEMS_LIMIT
+          ? data.publishedReceivedPurposes.totalCount - SECTION_ITEMS_LIMIT
+          : 0;
+      const waitingForApprovalReceivedPurposesExceededItemsCount =
+        data.waitingForApprovalReceivedPurposes &&
+        data.waitingForApprovalReceivedPurposes.totalCount > SECTION_ITEMS_LIMIT
+          ? data.waitingForApprovalReceivedPurposes.totalCount -
+            SECTION_ITEMS_LIMIT
+          : 0;
+      const waitingForApprovalReceivedDelegationsExceededItemsCount =
+        data.waitingForApprovalReceivedDelegations &&
+        data.waitingForApprovalReceivedDelegations.totalCount >
+          SECTION_ITEMS_LIMIT
+          ? data.waitingForApprovalReceivedDelegations.totalCount -
+            SECTION_ITEMS_LIMIT
+          : 0;
+      const waitingForApprovalDelegatedEservicesExceededItemsCount =
+        data.waitingForApprovalDelegatedEservices &&
+        data.waitingForApprovalDelegatedEservices.totalCount >
+          SECTION_ITEMS_LIMIT
+          ? data.waitingForApprovalDelegatedEservices.totalCount -
+            SECTION_ITEMS_LIMIT
+          : 0;
+      const receivedAttributesExceededItemsCount =
+        data.receivedAttributes &&
+        data.receivedAttributes.totalCount > SECTION_ITEMS_LIMIT
+          ? data.receivedAttributes.totalCount - SECTION_ITEMS_LIMIT
+          : 0;
+      const revokedAttributesExceededItemsCount =
+        data.revokedAttributes &&
+        data.revokedAttributes.totalCount > SECTION_ITEMS_LIMIT
+          ? data.revokedAttributes.totalCount - SECTION_ITEMS_LIMIT
+          : 0;
+      const archivingRequestsExceededItemsCount =
+        data.archivingRequests &&
+        data.archivingRequests.totalCount > SECTION_ITEMS_LIMIT
+          ? data.archivingRequests.totalCount - SECTION_ITEMS_LIMIT
+          : 0;
+      const approvedArchivingRequestsExceededItemsCount =
+        data.approvedArchivingRequests &&
+        data.approvedArchivingRequests.totalCount > SECTION_ITEMS_LIMIT
+          ? data.approvedArchivingRequests.totalCount - SECTION_ITEMS_LIMIT
+          : 0;
+      const rejectedArchivingRequestsExceededItemsCount =
+        data.rejectedArchivingRequests &&
+        data.rejectedArchivingRequests.totalCount > SECTION_ITEMS_LIMIT
+          ? data.rejectedArchivingRequests.totalCount - SECTION_ITEMS_LIMIT
+          : 0;
+      const approvedRiskAnalysisExceededItemsCount =
+        data.approvedRiskAnalysis &&
+        data.approvedRiskAnalysis.totalCount > SECTION_ITEMS_LIMIT
+          ? data.approvedRiskAnalysis.totalCount - SECTION_ITEMS_LIMIT
+          : 0;
+      const rejectedRiskAnalysisExceededItemsCount =
+        data.rejectedRiskAnalysis &&
+        data.rejectedRiskAnalysis.totalCount > SECTION_ITEMS_LIMIT
+          ? data.rejectedRiskAnalysis.totalCount - SECTION_ITEMS_LIMIT
+          : 0;
       return templateService.compileHtml(digestTemplate, {
         title: "Riepilogo notifiche",
         ...data,
@@ -89,29 +272,90 @@ export function digestTemplateServiceBuilder(
         showNewEservices: visibility.newEservices,
         showUpdatedEservices: visibility.updatedEservices,
         showUpdatedEserviceTemplates: visibility.updatedEserviceTemplates,
-        showPopularEserviceTemplates: visibility.popularEserviceTemplates,
         showSentAgreements: visibility.sentAgreements,
         showReceivedAgreements: visibility.receivedAgreements,
         showSentPurposes: visibility.sentPurposes,
         showReceivedPurposes: visibility.receivedPurposes,
         showDelegations: visibility.delegations,
         showAttributes: visibility.attributes,
+        showArchivingProducer: visibility.archivingProducer,
+        showArchivingConsumer: visibility.archivingConsumer,
         newEservicesSingular,
         updatedEservicesSingular,
         updatedEserviceTemplatesSingular,
-        popularEserviceTemplatesSingular,
         acceptedSentAgreementsSingular,
         rejectedSentAgreementsSingular,
         suspendedSentAgreementsSingular,
         publishedSentPurposesSingular,
         rejectedSentPurposesSingular,
+        publishedReceivedPurposesSingular,
+        waitingForApprovalReceivedPurposesSingular,
+        waitingForApprovalSentPurposesSingular,
         waitingForApprovalReceivedAgreementsSingular,
         waitingForApprovalReceivedDelegationsSingular,
-        revokedReceivedDelegationsSingular,
-        activeSentDelegationsSingular,
-        rejectedSentDelegationsSingular,
+        waitingForApprovalDelegatedEservicesSingular,
         receivedAttributesSingular,
         revokedAttributesSingular,
+        archivingImminentEservicesSingular,
+        archivingImminentRemainder,
+        archivingInProgressEservicesSingular,
+        approvedRiskAnalysisSingular,
+        rejectedRiskAnalysisSingular,
+        archivingInProgressRemainder,
+        archivingConsumerImminentEservicesSingular,
+        archivingConsumerImminentRemainder,
+        archivingConsumerInProgressEservicesSingular,
+        archivingConsumerInProgressRemainder,
+        archivingConsumerCardWidth,
+        archivingRequestsSingular,
+        approvedArchivingRequestsSingular,
+        rejectedArchivingRequestsSingular,
+        newEservicesExceededItemsCount,
+        updatedEservicesExceededItemsCount,
+        updatedEserviceTemplatesExceededItemsCount,
+        acceptedSentAgreementsExceededItemsCount,
+        rejectedSentAgreementsExceededItemsCount,
+        suspendedSentAgreementsExceededItemsCount,
+        publishedSentPurposesExceededItemsCount,
+        rejectedSentPurposesExceededItemsCount,
+        waitingForApprovalSentPurposesExceededItemsCount,
+        waitingForApprovalReceivedAgreementsExceededItemsCount,
+        publishedReceivedPurposesExceededItemsCount,
+        waitingForApprovalReceivedPurposesExceededItemsCount,
+        waitingForApprovalReceivedDelegationsExceededItemsCount,
+        waitingForApprovalDelegatedEservicesExceededItemsCount,
+        receivedAttributesExceededItemsCount,
+        revokedAttributesExceededItemsCount,
+        archivingRequestsExceededItemsCount,
+        approvedArchivingRequestsExceededItemsCount,
+        rejectedArchivingRequestsExceededItemsCount,
+        approvedRiskAnalysisExceededItemsCount,
+        rejectedRiskAnalysisExceededItemsCount,
+      });
+    },
+
+    compileReviewerDigestEmail(data: ReviewerDigestData): string {
+      return templateService.compileHtml(reviewerDigestTemplate, {
+        title: "Riepilogo notifiche",
+        ...data,
+        hasReviewerContent: Boolean(
+          data.riskAnalysesToApprove?.totalCount ||
+          data.riskAnalysesToFill?.totalCount ||
+          data.publishedReviewerPurposes?.totalCount ||
+          data.riskAnalysesSignedByOtherReviewer?.totalCount
+        ),
+        publishedReviewerPurposesSingular:
+          data.publishedReviewerPurposes?.totalCount === 1,
+        riskAnalysesSignedByOtherReviewerSingular:
+          data.riskAnalysesSignedByOtherReviewer?.totalCount === 1,
+        riskAnalysesToApproveRemainder: remainderOf(data.riskAnalysesToApprove),
+        riskAnalysesToFillRemainder: remainderOf(data.riskAnalysesToFill),
+        publishedReviewerPurposesRemainder: remainderOf(
+          data.publishedReviewerPurposes
+        ),
+        riskAnalysesSignedByOtherReviewerRemainder: remainderOf(
+          data.riskAnalysesSignedByOtherReviewer
+        ),
       });
     },
   };
