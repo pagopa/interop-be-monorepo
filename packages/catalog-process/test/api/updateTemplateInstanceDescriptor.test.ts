@@ -21,7 +21,7 @@ import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   eServiceDescriptorNotFound,
   eServiceNotFound,
-  templateInstanceNotAllowed,
+  templateInstanceAttributesCannotBeChanged,
 } from "../../src/model/domain/errors.js";
 import { api, catalogService } from "../vitest.api.setup.js";
 
@@ -94,7 +94,10 @@ describe("API /templates/eservices/{eServiceId}/descriptors/{descriptorId}/updat
       expectedStatus: 404,
     },
     {
-      error: templateInstanceNotAllowed(mockEService.id, generateId()),
+      error: templateInstanceAttributesCannotBeChanged(
+        mockEService.id,
+        generateId()
+      ),
       expectedStatus: 400,
     },
   ])(
