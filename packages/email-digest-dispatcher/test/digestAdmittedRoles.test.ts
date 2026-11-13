@@ -1,12 +1,44 @@
 import { describe, it, expect } from "vitest";
 
+import { TenantDigestData } from "../src/services/digestDataService.js";
 import {
+  canReceiveReviewerDigest,
   getVisibleSections,
   hasVisibleDigestContent,
   digestAdmittedRoles,
   DigestSection,
 } from "../src/utils/digestAdmittedRoles.js";
 import { getMockTenantDigestData } from "./mockUtils.js";
+
+const getRiskAnalysisOnlyDigestData = (): TenantDigestData => {
+  const empty = { items: [], totalCount: 0 };
+
+  return {
+    ...getMockTenantDigestData(),
+    newEservices: empty,
+    updatedEservices: empty,
+    updatedEserviceTemplates: empty,
+    acceptedSentAgreements: empty,
+    rejectedSentAgreements: empty,
+    suspendedSentAgreements: empty,
+    publishedSentPurposes: empty,
+    rejectedSentPurposes: empty,
+    waitingForApprovalSentPurposes: empty,
+    waitingForApprovalReceivedAgreements: empty,
+    publishedReceivedPurposes: empty,
+    waitingForApprovalReceivedPurposes: empty,
+    waitingForApprovalReceivedDelegations: empty,
+    receivedAttributes: empty,
+    revokedAttributes: empty,
+    archivingImminentEservices: empty,
+    archivingInProgressEservices: empty,
+    archivingConsumerImminentEservices: empty,
+    archivingConsumerInProgressEservices: empty,
+    archivingRequests: empty,
+    approvedArchivingRequests: empty,
+    rejectedArchivingRequests: empty,
+  };
+};
 
 describe("digestAdmittedRoles", () => {
   it("should have all sections deny support role", () => {
@@ -23,13 +55,14 @@ describe("getVisibleSections", () => {
     expect(visibility.newEservices).toBe(true);
     expect(visibility.updatedEservices).toBe(true);
     expect(visibility.updatedEserviceTemplates).toBe(true);
-    expect(visibility.popularEserviceTemplates).toBe(true);
     expect(visibility.sentAgreements).toBe(true);
     expect(visibility.receivedAgreements).toBe(true);
     expect(visibility.sentPurposes).toBe(true);
     expect(visibility.receivedPurposes).toBe(true);
     expect(visibility.delegations).toBe(true);
     expect(visibility.attributes).toBe(true);
+    expect(visibility.archivingProducer).toBe(true);
+    expect(visibility.archivingConsumer).toBe(true);
   });
 
   it("should enable only eservices and received purposes for api role", () => {
@@ -38,14 +71,15 @@ describe("getVisibleSections", () => {
     expect(visibility.newEservices).toBe(true);
     expect(visibility.updatedEservices).toBe(true);
     expect(visibility.updatedEserviceTemplates).toBe(true);
-    expect(visibility.popularEserviceTemplates).toBe(true);
     expect(visibility.receivedPurposes).toBe(true);
+    expect(visibility.archivingProducer).toBe(true);
 
     expect(visibility.sentAgreements).toBe(false);
     expect(visibility.receivedAgreements).toBe(false);
     expect(visibility.sentPurposes).toBe(false);
     expect(visibility.delegations).toBe(false);
     expect(visibility.attributes).toBe(false);
+    expect(visibility.archivingConsumer).toBe(false);
   });
 
   it("should enable eservices (no templates), sent agreements, and sent purposes for security role", () => {
@@ -55,9 +89,10 @@ describe("getVisibleSections", () => {
     expect(visibility.updatedEservices).toBe(true);
     expect(visibility.sentAgreements).toBe(true);
     expect(visibility.sentPurposes).toBe(true);
+    expect(visibility.archivingProducer).toBe(true);
+    expect(visibility.archivingConsumer).toBe(true);
 
     expect(visibility.updatedEserviceTemplates).toBe(false);
-    expect(visibility.popularEserviceTemplates).toBe(false);
     expect(visibility.receivedAgreements).toBe(false);
     expect(visibility.receivedPurposes).toBe(false);
     expect(visibility.delegations).toBe(false);
@@ -75,16 +110,17 @@ describe("getVisibleSections", () => {
   it("should apply union of permissions for multi-role users", () => {
     const visibility = getVisibleSections(["api", "security"]);
 
-    // From api: eservices (all 4), receivedPurposes
+    // From api: e-services, receivedPurposes
     // From security: newEservices, updatedEservices, sentAgreements, sentPurposes
-    // Union: all 4 eservices + sentAgreements + sentPurposes + receivedPurposes
+    // Union: e-services + sentAgreements + sentPurposes + receivedPurposes
     expect(visibility.newEservices).toBe(true);
     expect(visibility.updatedEservices).toBe(true);
     expect(visibility.updatedEserviceTemplates).toBe(true);
-    expect(visibility.popularEserviceTemplates).toBe(true);
     expect(visibility.sentAgreements).toBe(true);
     expect(visibility.sentPurposes).toBe(true);
     expect(visibility.receivedPurposes).toBe(true);
+    expect(visibility.archivingProducer).toBe(true);
+    expect(visibility.archivingConsumer).toBe(true);
 
     // Still denied: receivedAgreements (admin only), delegations (admin only), attributes (admin only)
     expect(visibility.receivedAgreements).toBe(false);
@@ -109,41 +145,29 @@ describe("hasVisibleDigestContent", () => {
     expect(hasVisibleDigestContent(fullData, visibility)).toBe(true);
   });
 
+  it("should count visible risk analyses as digest content", () => {
+    const data = getRiskAnalysisOnlyDigestData();
+
+    expect(
+      hasVisibleDigestContent(data, getVisibleSections(["security"]))
+    ).toBe(true);
+    expect(hasVisibleDigestContent(data, getVisibleSections(["api"]))).toBe(
+      false
+    );
+  });
+
   it("should return true when api role has data in visible sections", () => {
     const visibility = getVisibleSections(["api"]);
     expect(hasVisibleDigestContent(fullData, visibility)).toBe(true);
   });
 
-  it("should return false when support role has no visible sections", () => {
-    const visibility = getVisibleSections(["support"]);
-    expect(hasVisibleDigestContent(fullData, visibility)).toBe(false);
-  });
-
-  it("should return false when all visible sections have no data", () => {
+  it("should count delegated e-services awaiting approval as delegation content", () => {
     const empty = { items: [], totalCount: 0 };
-    const emptyData = {
+    const data = {
       ...getMockTenantDigestData(),
       newEservices: empty,
       updatedEservices: empty,
       updatedEserviceTemplates: empty,
-      popularEserviceTemplates: empty,
-      publishedReceivedPurposes: empty,
-      waitingForApprovalReceivedPurposes: empty,
-    };
-
-    const visibility = getVisibleSections(["api"]);
-    expect(hasVisibleDigestContent(emptyData, visibility)).toBe(false);
-  });
-
-  it("should return false when data exists only in non-visible sections", () => {
-    const empty = { items: [], totalCount: 0 };
-    // Zero out everything except delegations
-    const delegationsOnlyData = {
-      ...getMockTenantDigestData(),
-      newEservices: empty,
-      updatedEservices: empty,
-      updatedEserviceTemplates: empty,
-      popularEserviceTemplates: empty,
       acceptedSentAgreements: empty,
       rejectedSentAgreements: empty,
       suspendedSentAgreements: empty,
@@ -153,21 +177,41 @@ describe("hasVisibleDigestContent", () => {
       waitingForApprovalReceivedAgreements: empty,
       publishedReceivedPurposes: empty,
       waitingForApprovalReceivedPurposes: empty,
+      waitingForApprovalReceivedDelegations: empty,
+      waitingForApprovalDelegatedEservices: {
+        items: [
+          {
+            name: "Delegated e-service",
+            delegatedName: "Delegate tenant",
+            link: "https://example.com/eservice/1",
+            id: "eservice-id",
+            producerName: "",
+          },
+        ],
+        totalCount: 1,
+      },
       receivedAttributes: empty,
       revokedAttributes: empty,
-      // delegations still have data from getMockTenantDigestData
+      archivingImminentEservices: empty,
+      archivingInProgressEservices: empty,
     };
 
-    // api role cannot see delegations
-    const visibility = getVisibleSections(["api"]);
-    expect(hasVisibleDigestContent(delegationsOnlyData, visibility)).toBe(
+    expect(hasVisibleDigestContent(data, getVisibleSections(["admin"]))).toBe(
+      true
+    );
+    expect(hasVisibleDigestContent(data, getVisibleSections(["api"]))).toBe(
       false
     );
   });
 
-  it("should return false when all sections are empty even if role allows them", () => {
+  it("should return false when support role has no visible sections", () => {
+    const visibility = getVisibleSections(["support"]);
+    expect(hasVisibleDigestContent(fullData, visibility)).toBe(false);
+  });
+
+  it("should return true when producer archiving data is the only content visible to the role", () => {
     const empty = { items: [], totalCount: 0 };
-    const allEmptyData = {
+    const archivingOnlyData = {
       ...getMockTenantDigestData(),
       newEservices: empty,
       updatedEservices: empty,
@@ -185,9 +229,143 @@ describe("hasVisibleDigestContent", () => {
       activeSentDelegations: empty,
       rejectedSentDelegations: empty,
       waitingForApprovalReceivedDelegations: empty,
-      revokedReceivedDelegations: empty,
+      waitingForApprovalDelegatedEservices: empty,
       receivedAttributes: empty,
       revokedAttributes: empty,
+      archivingRequests: empty,
+      approvedArchivingRequests: empty,
+      rejectedArchivingRequests: empty,
+      // archivingImminentEservices / archivingInProgressEservices still have data
+    };
+
+    const visibility = getVisibleSections(["api"]);
+    expect(hasVisibleDigestContent(archivingOnlyData, visibility)).toBe(true);
+  });
+
+  it("should return true when consumer archiving data is the only content visible to the role", () => {
+    const empty = { items: [], totalCount: 0 };
+    const consumerArchivingOnlyData = {
+      ...getMockTenantDigestData(),
+      newEservices: empty,
+      updatedEservices: empty,
+      acceptedSentAgreements: empty,
+      rejectedSentAgreements: empty,
+      suspendedSentAgreements: empty,
+      publishedSentPurposes: empty,
+      rejectedSentPurposes: empty,
+      waitingForApprovalSentPurposes: empty,
+      archivingImminentEservices: empty,
+      archivingInProgressEservices: empty,
+      // archivingConsumerImminentEservices / archivingConsumerInProgressEservices still have data
+    };
+
+    const visibility = getVisibleSections(["security"]);
+    expect(hasVisibleDigestContent(consumerArchivingOnlyData, visibility)).toBe(
+      true
+    );
+  });
+
+  it("should return false when consumer archiving data is the only content and the role cannot see it", () => {
+    const empty = { items: [], totalCount: 0 };
+    const consumerArchivingOnlyData = {
+      ...getMockTenantDigestData(),
+      newEservices: empty,
+      updatedEservices: empty,
+      updatedEserviceTemplates: empty,
+      publishedReceivedPurposes: empty,
+      waitingForApprovalReceivedPurposes: empty,
+      archivingImminentEservices: empty,
+      archivingInProgressEservices: empty,
+    };
+
+    // api role cannot see consumer archiving
+    const visibility = getVisibleSections(["api"]);
+    expect(hasVisibleDigestContent(consumerArchivingOnlyData, visibility)).toBe(
+      false
+    );
+  });
+
+  it("should return false when all visible sections have no data", () => {
+    const empty = { items: [], totalCount: 0 };
+    const emptyData = {
+      ...getMockTenantDigestData(),
+      newEservices: empty,
+      updatedEservices: empty,
+      updatedEserviceTemplates: empty,
+      publishedReceivedPurposes: empty,
+      waitingForApprovalReceivedPurposes: empty,
+      archivingImminentEservices: empty,
+      archivingInProgressEservices: empty,
+      archivingConsumerImminentEservices: empty,
+      archivingConsumerInProgressEservices: empty,
+    };
+
+    const visibility = getVisibleSections(["api"]);
+    expect(hasVisibleDigestContent(emptyData, visibility)).toBe(false);
+  });
+
+  it("should return false when data exists only in non-visible sections", () => {
+    const empty = { items: [], totalCount: 0 };
+    // Zero out everything except delegations
+    const delegationsOnlyData = {
+      ...getMockTenantDigestData(),
+      newEservices: empty,
+      updatedEservices: empty,
+      updatedEserviceTemplates: empty,
+      acceptedSentAgreements: empty,
+      rejectedSentAgreements: empty,
+      suspendedSentAgreements: empty,
+      publishedSentPurposes: empty,
+      rejectedSentPurposes: empty,
+      waitingForApprovalSentPurposes: empty,
+      waitingForApprovalReceivedAgreements: empty,
+      publishedReceivedPurposes: empty,
+      waitingForApprovalReceivedPurposes: empty,
+      receivedAttributes: empty,
+      revokedAttributes: empty,
+      archivingImminentEservices: empty,
+      archivingInProgressEservices: empty,
+      archivingConsumerImminentEservices: empty,
+      archivingConsumerInProgressEservices: empty,
+      // delegations still have data from getMockTenantDigestData
+    };
+
+    // api role cannot see delegations
+    const visibility = getVisibleSections(["api"]);
+    expect(hasVisibleDigestContent(delegationsOnlyData, visibility)).toBe(
+      false
+    );
+  });
+
+  it("should return false when all sections are empty even if role allows them", () => {
+    const empty = { items: [], totalCount: 0 };
+    const allEmptyData = {
+      ...getMockTenantDigestData(),
+      newEservices: empty,
+      updatedEservices: empty,
+      updatedEserviceTemplates: empty,
+      acceptedSentAgreements: empty,
+      rejectedSentAgreements: empty,
+      suspendedSentAgreements: empty,
+      publishedSentPurposes: empty,
+      rejectedSentPurposes: empty,
+      waitingForApprovalSentPurposes: empty,
+      waitingForApprovalReceivedAgreements: empty,
+      publishedReceivedPurposes: empty,
+      waitingForApprovalReceivedPurposes: empty,
+      waitingForApprovalReceivedDelegations: empty,
+      waitingForApprovalDelegatedEservices: empty,
+      receivedAttributes: empty,
+      revokedAttributes: empty,
+      archivingImminentEservices: empty,
+      archivingInProgressEservices: empty,
+      archivingConsumerImminentEservices: empty,
+      archivingConsumerInProgressEservices: empty,
+      archivingRequests: empty,
+      approvedArchivingRequests: empty,
+      rejectedArchivingRequests: empty,
+      approvedRiskAnalysis: empty,
+      rejectedRiskAnalysis: empty,
     };
 
     // Admin can see everything, but there's no data at all
@@ -198,5 +376,29 @@ describe("hasVisibleDigestContent", () => {
   it("should return false for empty roles array", () => {
     const visibility = getVisibleSections([]);
     expect(hasVisibleDigestContent(fullData, visibility)).toBe(false);
+  });
+});
+
+describe("canReceiveReviewerDigest", () => {
+  it("should allow only the reviewer role", () => {
+    expect(canReceiveReviewerDigest(["reviewer"])).toBe(true);
+    expect(canReceiveReviewerDigest(["admin"])).toBe(false);
+    expect(canReceiveReviewerDigest(["api"])).toBe(false);
+    expect(canReceiveReviewerDigest(["security"])).toBe(false);
+    expect(canReceiveReviewerDigest(["support"])).toBe(false);
+    expect(canReceiveReviewerDigest(["viewer"])).toBe(false);
+  });
+
+  it("should allow multi-role users that include the reviewer role", () => {
+    expect(canReceiveReviewerDigest(["admin", "reviewer"])).toBe(true);
+  });
+
+  it("should deny an empty roles array", () => {
+    expect(canReceiveReviewerDigest([])).toBe(false);
+  });
+
+  it("should keep the reviewer role out of every tenant digest section", () => {
+    const visibility = getVisibleSections(["reviewer"]);
+    expect(Object.values(visibility).every((visible) => !visible)).toBe(true);
   });
 });
