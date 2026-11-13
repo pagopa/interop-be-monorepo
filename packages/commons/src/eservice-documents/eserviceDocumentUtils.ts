@@ -35,8 +35,8 @@ import {
 } from "./restFileParser.js";
 import {
   retrieveServerUrlsSoapAPI,
-  soapApiFileToBuffer,
   soapParse,
+  updateSoapApiFileServerUrls,
 } from "./soapFileParser.js";
 
 export const eserviceInterfaceAllowedFileType = {
@@ -57,11 +57,6 @@ export type EserviceInterfaceAllowedFileType = z.infer<
 export type EserviceRestInterfaceType = Extract<
   EserviceInterfaceAllowedFileType,
   "json" | "yaml"
->;
-
-export type EserviceSoapInterfaceType = Extract<
-  EserviceInterfaceAllowedFileType,
-  "wsdl" | "xml"
 >;
 
 const getInterfaceFileType = (
@@ -227,18 +222,12 @@ export const interpolateTemplateSoapApiSpec = async (
   }
 ): Promise<File> => {
   const fileType = getInterfaceFileType(interfaceFileInfo.name);
-  const { concreteFileType, jsonApi } = match(fileType)
-    .with(
-      eserviceInterfaceAllowedFileType.wsdl,
-      eserviceInterfaceAllowedFileType.xml,
-      (fileType) => ({
-        concreteFileType: fileType,
-        jsonApi: soapParse(file),
-      })
-    )
-    .otherwise(() => {
-      throw interfaceExtractingInfoError();
-    });
+  if (
+    fileType !== eserviceInterfaceAllowedFileType.wsdl &&
+    fileType !== eserviceInterfaceAllowedFileType.xml
+  ) {
+    throw interfaceExtractingInfoError();
+  }
 
   /* ======================================================
     NOTE : SOAP protocol does not have specific fields for
@@ -249,34 +238,11 @@ export const interpolateTemplateSoapApiSpec = async (
     this data is not present in the final WSDL file
   ========================================================= */
 
-  const urlsPorts = eserviceInstanceInterfaceData.serverUrls.map((server) => ({
-    "soap:address": {
-      location: server.url,
-    },
-    ...(server.description ? { "wsdl:documentation": server.description } : {}),
-  }));
-
-  // eslint-disable-next-line functional/immutable-data
-  const interpolatedJsonApi = {
-    ...jsonApi,
-    "wsdl:definitions": {
-      ...jsonApi["wsdl:definitions"],
-      "wsdl:service": {
-        "wsdl:port": [...urlsPorts],
-      },
-    },
-  };
-
   try {
-    const updatedInterfaceBuffer = match(concreteFileType)
-      .with(
-        eserviceInterfaceAllowedFileType.wsdl,
-        eserviceInterfaceAllowedFileType.xml,
-        (fileType) => soapApiFileToBuffer(fileType, interpolatedJsonApi)
-      )
-      .otherwise(() => {
-        throw interfaceExtractingInfoError();
-      });
+    const updatedInterfaceBuffer = updateSoapApiFileServerUrls(
+      file,
+      eserviceInstanceInterfaceData.serverUrls.map((server) => server.url)
+    );
 
     return new File([updatedInterfaceBuffer], interfaceFileInfo.name, {
       type: interfaceFileInfo.contentType,

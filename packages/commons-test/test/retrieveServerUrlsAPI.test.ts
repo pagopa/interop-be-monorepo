@@ -196,7 +196,7 @@ describe("retrieveServerUrlsAPI", () => {
     const soapDoc = {
       name: "test.wsdl",
       text: vi.fn().mockResolvedValue(`
-          <wsdl:definitions>
+          <wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
             <wsdl:service name="TestWS">
                 <wsdl:port name="TestWS" binding="tns:TestWS">
                         <soap:address location="https://host.com/TestWS/v1"/>
@@ -206,6 +206,29 @@ describe("retrieveServerUrlsAPI", () => {
           </wsdl:definitions>
         `),
     } as unknown as File;
+
+    await expect(
+      retrieveServerUrlsAPI(soapDoc, "INTERFACE", "Soap", {
+        id: generateId(),
+        isEserviceTemplate: false,
+      })
+    ).rejects.toThrow(interfaceExtractingSoapFiledError("soap:operation"));
+  });
+  it.each([
+    "<soap:operation/>",
+    '<other:operation xmlns:other="urn:other" soapAction="action"/>',
+    '<soap:operation xmlns:other="urn:other" other:soapAction="action"/>',
+  ])("should reject an invalid SOAP operation (%s)", async (operation) => {
+    const file = await readFileContent("interface-test.wsdl");
+    const soapDoc = new File(
+      [
+        file.replace(
+          '<soap:operation soapAction="http://host/TestWS/One" style="document"/>',
+          operation
+        ),
+      ],
+      "test.wsdl"
+    );
 
     await expect(
       retrieveServerUrlsAPI(soapDoc, "INTERFACE", "Soap", {
@@ -415,10 +438,13 @@ describe("retrieveServerUrlsAPI", () => {
     });
 
     it("should return an empty array for SOAP callback interface with XML", async () => {
-      const soapfileContent = await readFileContent("interface-test.wsdl");
       const xmlCallbackDoc = {
         name: "callback.xml",
-        text: vi.fn().mockResolvedValue(soapfileContent),
+        text: vi
+          .fn()
+          .mockResolvedValue(
+            '<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope"><soap:Body/></soap:Envelope>'
+          ),
       } as unknown as File;
 
       const urls = await retrieveServerUrlsAPI(
