@@ -5,13 +5,16 @@ import {
   and,
   or,
   gte,
+  lte,
   isNotNull,
   isNull,
   count,
   countDistinct,
   inArray,
   gt,
+  ne,
   sql,
+  SQL,
 } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { Logger, withTotalCount } from "pagopa-interop-commons";
@@ -32,6 +35,10 @@ import {
   DelegationKind,
   DelegationState,
   delegationState,
+  descriptorState,
+  riskAnalysisSigningState,
+  delegationKind,
+  archivingScope,
   attributeKind,
 } from "pagopa-interop-models";
 import {
@@ -55,11 +62,15 @@ import {
   purposeVersionInReadmodelPurpose,
   delegationInReadmodelDelegation,
   delegationStampInReadmodelDelegation,
+  eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+  eserviceDescriptorArchivingRequestInReadmodelCatalog,
+  riskAnalysisReviewerInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
 
 import { config } from "../config/config.js";
 
 const SECTION_LIST_LIMIT = 5;
+const SECTION_CARDS_LIMIT = 6;
 
 export type DigestUser = {
   userId: UserId;
@@ -139,7 +150,7 @@ type BaseDelegation = {
   totalCount: number;
 };
 
-export type SentDelegation = BaseDelegation & {
+type SentDelegation = BaseDelegation & {
   state: DelegationState;
   delegateId: TenantId;
 };
@@ -158,12 +169,41 @@ export type PopularEserviceTemplate = {
   totalCount: number;
 };
 
+type ArchivingScope = "Descriptor" | "EService";
+
+export type ArchivingEservice = {
+  eserviceId: EServiceId;
+  descriptorId: DescriptorId;
+  eserviceName: string;
+  version: string;
+  scope: ArchivingScope;
+  archivableOn: string;
+  totalCount: number;
+};
+
+export type ReviewerRiskAnalysis = {
+  purposeId: PurposeId;
+  purposeTitle: string;
+  eserviceId: EServiceId;
+  eserviceName: string;
+  totalCount: number;
+};
+
 // Base type for purpose data shared between sent and received purposes
 type BasePurpose = {
   purposeId: PurposeId;
   purposeTitle: string;
   consumerId: TenantId;
   actionDate: string;
+  totalCount: number;
+};
+
+export type WaitingForApprovalDelegatedDescriptor = {
+  eserviceId: EServiceId;
+  eserviceName: string;
+  descriptorId: DescriptorId;
+  descriptorVersion: string;
+  delegatedTenantName: string;
   totalCount: number;
 };
 
@@ -185,6 +225,33 @@ export type ReceivedPurposeState =
 export type ReceivedPurpose = BasePurpose & {
   state: ReceivedPurposeState;
   consumerName: string;
+};
+
+type BaseRiskAnalysisQueryResult = {
+  purposeId: PurposeId;
+  purposeTitle: string;
+  consumerId: TenantId;
+  totalCount: number;
+};
+
+export type ApprovedRiskAnalysisQueryResult = BaseRiskAnalysisQueryResult & {
+  signedAt: string;
+};
+
+export type RejectedRiskAnalysisQueryResult = BaseRiskAnalysisQueryResult & {
+  rejectedAt: string;
+};
+
+export type DelegatedArchivingRequest = {
+  eserviceId: string;
+  eserviceName: string;
+  descriptorId: string | null;
+  requestedAt: string;
+  acceptedAt: string | null;
+  rejectedAt: string | null;
+  descriptorVersion: string | null;
+  producerId: TenantId;
+  totalCount: number;
 };
 
 /**
@@ -250,6 +317,35 @@ function processDelegationResults<T extends string>(
     }
   );
 }
+
+type DelegatedDescriptorQueryResult = {
+  eserviceId: string;
+  eserviceName: string;
+  descriptorId: string;
+  descriptorVersion: string;
+  delegatedTenantName: string;
+};
+
+const processDelegatedDescriptorResults = (
+  results: Array<DelegatedDescriptorQueryResult>,
+  limit: number
+): WaitingForApprovalDelegatedDescriptor[] => {
+  const uniqueResults = Array.from(
+    new Map(results.map((row) => [row.eserviceId, row])).values()
+  );
+
+  const totalCount = uniqueResults.length;
+  const limitedResults = uniqueResults.slice(0, limit);
+
+  return limitedResults.map((row) => ({
+    eserviceId: unsafeBrandId<EServiceId>(row.eserviceId),
+    eserviceName: row.eserviceName,
+    descriptorId: unsafeBrandId<DescriptorId>(row.descriptorId),
+    descriptorVersion: row.descriptorVersion,
+    delegatedTenantName: row.delegatedTenantName,
+    totalCount,
+  }));
+};
 
 /**
  * Generic helper to retrieve entities with request-scoped caching.
@@ -348,12 +444,115 @@ function groupAndMapReceivedPurposeResults(
   }));
 }
 
+const archivingColumns = {
+  eserviceId: eserviceDescriptorArchivingScheduleInReadmodelCatalog.eserviceId,
+  descriptorId:
+    eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId,
+  eserviceName: eserviceInReadmodelCatalog.name,
+  version: eserviceDescriptorInReadmodelCatalog.version,
+  scope: eserviceDescriptorArchivingScheduleInReadmodelCatalog.scope,
+  archivableOn:
+    eserviceDescriptorArchivingScheduleInReadmodelCatalog.archivableOn,
+};
+
+/**
+ * The archiving schedule row is kept after the descriptor becomes Archived,
+ * so every archiving query must also check the descriptor state.
+ */
+const descriptorInArchivingCountdown = inArray(
+  eserviceDescriptorInReadmodelCatalog.state,
+  [descriptorState.archiving, descriptorState.archivingSuspended]
+);
+
+/**
+ * Filter for consumer-side archiving queries: the consumer holds an Active or
+ * Suspended agreement on a descriptor that is still in the archiving countdown.
+ */
+const consumerArchivingFilter = (consumerId: TenantId): SQL | undefined =>
+  and(
+    eq(agreementInReadmodelAgreement.consumerId, consumerId),
+    inArray(agreementInReadmodelAgreement.state, [
+      agreementState.active,
+      agreementState.suspended,
+    ]),
+    descriptorInArchivingCountdown
+  );
+
+function toArchivingEservice(row: {
+  eserviceId: string;
+  descriptorId: string;
+  eserviceName: string;
+  version: string;
+  scope: string;
+  archivableOn: string;
+  totalCount: number;
+}): ArchivingEservice {
+  return {
+    eserviceId: unsafeBrandId<EServiceId>(row.eserviceId),
+    descriptorId: unsafeBrandId<DescriptorId>(row.descriptorId),
+    eserviceName: row.eserviceName,
+    version: row.version,
+    scope: row.scope as ArchivingScope,
+    archivableOn: row.archivableOn,
+    totalCount: row.totalCount,
+  };
+}
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
   const dateThreshold = new Date();
   dateThreshold.setHours(
     dateThreshold.getHours() - config.digestFrequencyHours
   );
+
+  // Purposes of the consumer whose risk analysis is assigned to the reviewer
+  const getReviewerRiskAnalyses = async (
+    consumerId: TenantId,
+    reviewerId: UserId,
+    sectionCondition: SQL | undefined,
+    orderBy: SQL
+  ): Promise<ReviewerRiskAnalysis[]> => {
+    const results = await db
+      .select(
+        withTotalCount({
+          purposeId: purposeInReadmodelPurpose.id,
+          purposeTitle: purposeInReadmodelPurpose.title,
+          eserviceId: eserviceInReadmodelCatalog.id,
+          eserviceName: eserviceInReadmodelCatalog.name,
+        })
+      )
+      .from(purposeInReadmodelPurpose)
+      .innerJoin(
+        riskAnalysisReviewerInReadmodelPurpose,
+        and(
+          eq(
+            riskAnalysisReviewerInReadmodelPurpose.purposeId,
+            purposeInReadmodelPurpose.id
+          ),
+          eq(riskAnalysisReviewerInReadmodelPurpose.reviewerId, reviewerId)
+        )
+      )
+      .innerJoin(
+        eserviceInReadmodelCatalog,
+        eq(eserviceInReadmodelCatalog.id, purposeInReadmodelPurpose.eserviceId)
+      )
+      .where(
+        and(
+          eq(purposeInReadmodelPurpose.consumerId, consumerId),
+          sectionCondition
+        )
+      )
+      .orderBy(orderBy)
+      .limit(SECTION_LIST_LIMIT);
+
+    return results.map((row) => ({
+      purposeId: unsafeBrandId<PurposeId>(row.purposeId),
+      purposeTitle: row.purposeTitle,
+      eserviceId: unsafeBrandId<EServiceId>(row.eserviceId),
+      eserviceName: row.eserviceName,
+      totalCount: row.totalCount,
+    }));
+  };
 
   // Request-scoped caches to avoid duplicate DB lookups for the same IDs
   // These caches live for the lifetime of the service instance (job duration)
@@ -424,7 +623,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           desc(count(agreementInReadmodelAgreement.id)),
           asc(eserviceDescriptorInReadmodelCatalog.publishedAt)
         )
-        .limit(SECTION_LIST_LIMIT);
+        .limit(SECTION_CARDS_LIMIT);
 
       logger.info(`Retrieved ${results.length} new e-services`);
 
@@ -500,24 +699,23 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           eserviceInReadmodelCatalog.producerId
         );
 
-      // Filter results where newVersion > agreementVersion (as integers) and limit to 5
-      const filteredResults = results
-        .filter((row) => {
-          const newVersionInt = parseInt(row.newVersion, 10);
-          const agreementVersionInt = parseInt(row.agreementVersion, 10);
-          return (
-            !isNaN(newVersionInt) &&
-            !isNaN(agreementVersionInt) &&
-            newVersionInt > agreementVersionInt
-          );
-        })
-        .slice(0, SECTION_LIST_LIMIT);
+      // Filter results where newVersion > agreementVersion (as integers)
+      const filteredResults = results.filter((row) => {
+        const newVersionInt = parseInt(row.newVersion, 10);
+        const agreementVersionInt = parseInt(row.agreementVersion, 10);
+        return (
+          !isNaN(newVersionInt) &&
+          !isNaN(agreementVersionInt) &&
+          newVersionInt > agreementVersionInt
+        );
+      });
 
       logger.info(
         `Retrieved ${filteredResults.length} new e-service versions for consumer ${consumerId}`
       );
 
-      return filteredResults.map((row) => ({
+      // Limited results before sending to digest section
+      return filteredResults.slice(0, SECTION_CARDS_LIMIT).map((row) => ({
         eserviceId: unsafeBrandId<EServiceId>(row.eserviceId),
         eserviceDescriptorId: unsafeBrandId<DescriptorId>(
           row.eserviceDescriptorId
@@ -556,18 +754,16 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         .as("template_usage");
 
       const results = await db
-        .select(
-          withTotalCount({
-            eserviceTemplateId: eserviceTemplateInReadmodelEserviceTemplate.id,
-            templateVersionId: templateVersionNew.id,
-            templateVersionCreatedAt: templateVersionNew.createdAt,
-            eserviceTemplateName:
-              eserviceTemplateInReadmodelEserviceTemplate.name,
-            eserviceTemplateProducerId:
-              eserviceTemplateInReadmodelEserviceTemplate.creatorId,
-            templateUsageCount: templateUsage.templateUsageCount,
-          })
-        )
+        .select({
+          eserviceTemplateId: eserviceTemplateInReadmodelEserviceTemplate.id,
+          templateVersionId: templateVersionNew.id,
+          templateVersionCreatedAt: templateVersionNew.createdAt,
+          eserviceTemplateName:
+            eserviceTemplateInReadmodelEserviceTemplate.name,
+          eserviceTemplateProducerId:
+            eserviceTemplateInReadmodelEserviceTemplate.creatorId,
+          templateUsageCount: templateUsage.templateUsageCount,
+        })
         .from(eserviceInReadmodelCatalog)
         .innerJoin(
           eserviceDescriptorInReadmodelCatalog,
@@ -639,20 +835,22 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           asc(templateVersionNew.createdAt)
         );
 
-      // Apply logic to select earliest version per template and limit to 5 templates
+      // Apply logic to select earliest version per template
       const templateMap = new Map<string, (typeof results)[0]>();
       for (const row of results) {
         if (!templateMap.has(row.eserviceTemplateId)) {
           templateMap.set(row.eserviceTemplateId, row);
         }
       }
-      const filteredResults = Array.from(templateMap.values()).slice(
-        0,
-        SECTION_LIST_LIMIT
-      );
 
       logger.info(
-        `Retrieved ${filteredResults.length} new e-service templates for consumer ${consumerId}`
+        `Retrieved ${templateMap.size} new e-service templates for consumer ${consumerId}`
+      );
+
+      // limited to 6 templates
+      const filteredResults = Array.from(templateMap.values()).slice(
+        0,
+        SECTION_CARDS_LIMIT
       );
 
       return filteredResults.map((row) => ({
@@ -662,7 +860,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         eserviceTemplateProducerId: unsafeBrandId<TenantId>(
           row.eserviceTemplateProducerId
         ),
-        totalCount: row.totalCount,
+        totalCount: templateMap.size,
       }));
     },
 
@@ -763,7 +961,7 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
           eserviceTemplateInReadmodelEserviceTemplate.creatorId
         )
         .orderBy(desc(countDistinct(eserviceInReadmodelCatalog.id)))
-        .limit(5);
+        .limit(SECTION_CARDS_LIMIT);
 
       logger.info(
         `Retrieved ${results.length} popular eservice templates for creator ${creatorId}`
@@ -779,6 +977,315 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         instances: row.instances,
         totalCount: row.totalCount,
       }));
+    },
+
+    /**
+     * Returns descriptors/e-services owned by the producer that are currently in the
+     * "Archiving" notice-period countdown ("fase di archiviazione" snapshot, not a delta).
+     * Ordered from most recently started to least recent. Limited to 5.
+     */
+    async getArchivingInProgressEservices(
+      producerId: TenantId
+    ): Promise<ArchivingEservice[]> {
+      logger.info(
+        `Retrieving in-progress archiving e-services for producer ${producerId}`
+      );
+
+      const results = await db
+        .select(withTotalCount(archivingColumns))
+        .from(eserviceDescriptorArchivingScheduleInReadmodelCatalog)
+        .innerJoin(
+          eserviceInReadmodelCatalog,
+          eq(
+            eserviceInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.eserviceId
+          )
+        )
+        .innerJoin(
+          eserviceDescriptorInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+          )
+        )
+        .where(
+          and(
+            eq(eserviceInReadmodelCatalog.producerId, producerId),
+            descriptorInArchivingCountdown
+          )
+        )
+        .orderBy(
+          desc(eserviceDescriptorArchivingScheduleInReadmodelCatalog.startedAt)
+        )
+        .limit(SECTION_LIST_LIMIT);
+
+      logger.info(
+        `Retrieved ${results.length} in-progress archiving e-services for producer ${producerId}`
+      );
+
+      return results.map(toArchivingEservice);
+    },
+
+    /**
+     * Returns descriptors/e-services owned by the producer whose archiving will become
+     * definitive within the next 7 days ("previste a breve"), ordered from most to least
+     * imminent. Limited to 5.
+     */
+    async getArchivingImminentEservices(
+      producerId: TenantId
+    ): Promise<ArchivingEservice[]> {
+      const imminentCutoff = new Date();
+      imminentCutoff.setDate(imminentCutoff.getDate() + 7);
+
+      logger.info(
+        `Retrieving imminent archiving e-services for producer ${producerId} (cutoff ${imminentCutoff.toISOString()})`
+      );
+
+      const results = await db
+        .select(withTotalCount(archivingColumns))
+        .from(eserviceDescriptorArchivingScheduleInReadmodelCatalog)
+        .innerJoin(
+          eserviceInReadmodelCatalog,
+          eq(
+            eserviceInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.eserviceId
+          )
+        )
+        .innerJoin(
+          eserviceDescriptorInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+          )
+        )
+        .where(
+          and(
+            eq(eserviceInReadmodelCatalog.producerId, producerId),
+            descriptorInArchivingCountdown,
+            lte(
+              eserviceDescriptorArchivingScheduleInReadmodelCatalog.archivableOn,
+              imminentCutoff.toISOString()
+            )
+          )
+        )
+        .orderBy(
+          asc(
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.archivableOn
+          )
+        )
+        .limit(SECTION_LIST_LIMIT);
+
+      logger.info(
+        `Retrieved ${results.length} imminent archiving e-services for producer ${producerId}`
+      );
+
+      return results.map(toArchivingEservice);
+    },
+
+    /**
+     * Returns, for the producer's e-services currently in the archiving countdown,
+     * how many are scheduled at e-service scope vs single-descriptor scope.
+     * Used for the section's stat cards.
+     */
+    async getArchivingScopeCounts(producerId: TenantId): Promise<{
+      eserviceScopeCount: number;
+      descriptorScopeCount: number;
+    }> {
+      const results = await db
+        .select({
+          scope: eserviceDescriptorArchivingScheduleInReadmodelCatalog.scope,
+          scopeCount: count(),
+        })
+        .from(eserviceDescriptorArchivingScheduleInReadmodelCatalog)
+        .innerJoin(
+          eserviceInReadmodelCatalog,
+          eq(
+            eserviceInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.eserviceId
+          )
+        )
+        .innerJoin(
+          eserviceDescriptorInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+          )
+        )
+        .where(
+          and(
+            eq(eserviceInReadmodelCatalog.producerId, producerId),
+            descriptorInArchivingCountdown
+          )
+        )
+        .groupBy(eserviceDescriptorArchivingScheduleInReadmodelCatalog.scope);
+
+      const eserviceScopeCount =
+        results.find((r) => r.scope === archivingScope.eservice)?.scopeCount ??
+        0;
+      const descriptorScopeCount =
+        results.find((r) => r.scope === archivingScope.descriptor)
+          ?.scopeCount ?? 0;
+
+      return { eserviceScopeCount, descriptorScopeCount };
+    },
+
+    /**
+     * Returns descriptors/e-services the consumer is subscribed to (Active or Suspended
+     * agreement on that descriptor) that are currently in the archiving notice-period
+     * countdown. Ordered from most recently started to least recent. Limited to 5.
+     */
+    async getConsumerArchivingInProgressEservices(
+      consumerId: TenantId
+    ): Promise<ArchivingEservice[]> {
+      logger.info(
+        `Retrieving in-progress archiving e-services for consumer ${consumerId}`
+      );
+
+      const results = await db
+        .select(withTotalCount(archivingColumns))
+        .from(eserviceDescriptorArchivingScheduleInReadmodelCatalog)
+        .innerJoin(
+          eserviceInReadmodelCatalog,
+          eq(
+            eserviceInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.eserviceId
+          )
+        )
+        .innerJoin(
+          eserviceDescriptorInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+          )
+        )
+        .innerJoin(
+          agreementInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.descriptorId,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+          )
+        )
+        .where(consumerArchivingFilter(consumerId))
+        .orderBy(
+          desc(eserviceDescriptorArchivingScheduleInReadmodelCatalog.startedAt)
+        )
+        .limit(SECTION_LIST_LIMIT);
+
+      logger.info(
+        `Retrieved ${results.length} in-progress archiving e-services for consumer ${consumerId}`
+      );
+
+      return results.map(toArchivingEservice);
+    },
+
+    /**
+     * Returns descriptors/e-services the consumer is subscribed to whose archiving will
+     * become definitive within the next 7 days ("previste a breve"), ordered from most
+     * to least imminent. Limited to 5.
+     */
+    async getConsumerArchivingImminentEservices(
+      consumerId: TenantId
+    ): Promise<ArchivingEservice[]> {
+      const imminentCutoff = new Date();
+      imminentCutoff.setDate(imminentCutoff.getDate() + 7);
+
+      logger.info(
+        `Retrieving imminent archiving e-services for consumer ${consumerId} (cutoff ${imminentCutoff.toISOString()})`
+      );
+
+      const results = await db
+        .select(withTotalCount(archivingColumns))
+        .from(eserviceDescriptorArchivingScheduleInReadmodelCatalog)
+        .innerJoin(
+          eserviceInReadmodelCatalog,
+          eq(
+            eserviceInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.eserviceId
+          )
+        )
+        .innerJoin(
+          eserviceDescriptorInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+          )
+        )
+        .innerJoin(
+          agreementInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.descriptorId,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+          )
+        )
+        .where(
+          and(
+            consumerArchivingFilter(consumerId),
+            lte(
+              eserviceDescriptorArchivingScheduleInReadmodelCatalog.archivableOn,
+              imminentCutoff.toISOString()
+            )
+          )
+        )
+        .orderBy(
+          asc(
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.archivableOn
+          )
+        )
+        .limit(SECTION_LIST_LIMIT);
+
+      logger.info(
+        `Retrieved ${results.length} imminent archiving e-services for consumer ${consumerId}`
+      );
+
+      return results.map(toArchivingEservice);
+    },
+
+    /**
+     * Returns, for the e-services the consumer is subscribed to that are currently in
+     * the archiving countdown, how many distinct e-services are scheduled at e-service
+     * scope vs how many single descriptors are scheduled at descriptor scope.
+     * Used for the section's stat cards.
+     */
+    async getConsumerArchivingScopeCounts(consumerId: TenantId): Promise<{
+      eserviceScopeCount: number;
+      descriptorScopeCount: number;
+    }> {
+      const results = await db
+        .select({
+          scope: eserviceDescriptorArchivingScheduleInReadmodelCatalog.scope,
+          eserviceCount: countDistinct(
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.eserviceId
+          ),
+          descriptorCount: countDistinct(
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+          ),
+        })
+        .from(eserviceDescriptorArchivingScheduleInReadmodelCatalog)
+        .innerJoin(
+          eserviceDescriptorInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+          )
+        )
+        .innerJoin(
+          agreementInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.descriptorId,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+          )
+        )
+        .where(consumerArchivingFilter(consumerId))
+        .groupBy(eserviceDescriptorArchivingScheduleInReadmodelCatalog.scope);
+
+      const eserviceScopeCount =
+        results.find((r) => r.scope === archivingScope.eservice)
+          ?.eserviceCount ?? 0;
+      const descriptorScopeCount =
+        results.find((r) => r.scope === archivingScope.descriptor)
+          ?.descriptorCount ?? 0;
+
+      return { eserviceScopeCount, descriptorScopeCount };
     },
 
     /**
@@ -1102,6 +1609,83 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         totalCount: r.totalCount,
         delegatorId: r.counterpartyId,
       }));
+    },
+
+    /**
+     * Returns the list of delegated descriptors that are waiting for approval for a given delegator.
+     * Limited to 5 results.
+     */
+    async getWaitingForApprovalDelegatedDescriptors(
+      delegatorId: TenantId
+    ): Promise<WaitingForApprovalDelegatedDescriptor[]> {
+      logger.info(
+        `Retrieving waiting for approval delegated descriptors for delegator ${delegatorId} since ${dateThreshold.toISOString()}`
+      );
+
+      const delegatedTenant = alias(
+        tenantInReadmodelTenant,
+        "delegated_tenant"
+      );
+
+      const results = await db
+        .select({
+          eserviceId: eserviceInReadmodelCatalog.id,
+          eserviceName: eserviceInReadmodelCatalog.name,
+          descriptorId: eserviceDescriptorInReadmodelCatalog.id,
+          descriptorVersion: eserviceDescriptorInReadmodelCatalog.version,
+          delegatedTenantName: delegatedTenant.name,
+        })
+        .from(eserviceDescriptorInReadmodelCatalog)
+        .innerJoin(
+          eserviceInReadmodelCatalog,
+          eq(
+            eserviceInReadmodelCatalog.id,
+            eserviceDescriptorInReadmodelCatalog.eserviceId
+          )
+        )
+        .innerJoin(
+          delegationInReadmodelDelegation,
+          and(
+            eq(
+              delegationInReadmodelDelegation.eserviceId,
+              eserviceInReadmodelCatalog.id
+            ),
+            eq(
+              delegationInReadmodelDelegation.delegatorId,
+              eserviceInReadmodelCatalog.producerId
+            ),
+            eq(
+              delegationInReadmodelDelegation.kind,
+              delegationKind.delegatedProducer
+            ),
+            eq(delegationInReadmodelDelegation.state, delegationState.active)
+          )
+        )
+        .innerJoin(
+          delegatedTenant,
+          eq(delegatedTenant.id, delegationInReadmodelDelegation.delegateId)
+        )
+        .where(
+          and(
+            eq(
+              eserviceDescriptorInReadmodelCatalog.state,
+              descriptorState.waitingForApproval
+            ),
+            eq(eserviceInReadmodelCatalog.producerId, delegatorId)
+          )
+        )
+        .orderBy(asc(eserviceDescriptorInReadmodelCatalog.createdAt));
+
+      logger.info(
+        `Retrieved ${results.length} waiting for approval delegated descriptors for delegator ${delegatorId}`
+      );
+
+      const processedResults = processDelegatedDescriptorResults(
+        results,
+        SECTION_LIST_LIMIT
+      );
+
+      return processedResults;
     },
 
     /**
@@ -1703,6 +2287,102 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
     },
 
     /**
+     * Risk analyses written by the admin, waiting for the reviewer's signature.
+     */
+    async getReviewerRiskAnalysesToApprove(
+      consumerId: TenantId,
+      reviewerId: UserId
+    ): Promise<ReviewerRiskAnalysis[]> {
+      logger.info(
+        `Retrieving risk analyses to approve for reviewer ${reviewerId} of tenant ${consumerId}`
+      );
+      return getReviewerRiskAnalyses(
+        consumerId,
+        reviewerId,
+        eq(
+          purposeInReadmodelPurpose.reviewerWorkflowSigningState,
+          riskAnalysisSigningState.submitted
+        ),
+        sql`${riskAnalysisReviewerInReadmodelPurpose.sentToReviewerAt} DESC NULLS LAST`
+      );
+    },
+
+    /**
+     * Risk analyses the reviewer has to write and sign.
+     */
+    async getReviewerRiskAnalysesToFill(
+      consumerId: TenantId,
+      reviewerId: UserId
+    ): Promise<ReviewerRiskAnalysis[]> {
+      logger.info(
+        `Retrieving risk analyses to fill for reviewer ${reviewerId} of tenant ${consumerId}`
+      );
+      return getReviewerRiskAnalyses(
+        consumerId,
+        reviewerId,
+        eq(
+          purposeInReadmodelPurpose.reviewerWorkflowSigningState,
+          riskAnalysisSigningState.assigned
+        ),
+        sql`${riskAnalysisReviewerInReadmodelPurpose.sentToReviewerAt} DESC NULLS LAST`
+      );
+    },
+
+    /**
+     * Purposes with a risk analysis assigned to the reviewer, published in the
+     * last configured frequency hours.
+     */
+    async getReviewerPublishedPurposes(
+      consumerId: TenantId,
+      reviewerId: UserId
+    ): Promise<ReviewerRiskAnalysis[]> {
+      logger.info(
+        `Retrieving published purposes for reviewer ${reviewerId} of tenant ${consumerId} since ${dateThreshold.toISOString()}`
+      );
+      const lastActivation = sql`(
+        SELECT MAX(${purposeVersionInReadmodelPurpose.firstActivationAt})
+        FROM ${purposeVersionInReadmodelPurpose}
+        WHERE ${purposeVersionInReadmodelPurpose.purposeId} = ${purposeInReadmodelPurpose.id}
+          AND ${purposeVersionInReadmodelPurpose.state} = ${purposeVersionState.active}
+      )`;
+      return getReviewerRiskAnalyses(
+        consumerId,
+        reviewerId,
+        sql`${lastActivation} >= ${dateThreshold.toISOString()}`,
+        sql`${lastActivation} DESC`
+      );
+    },
+
+    /**
+     * Risk analyses assigned to the reviewer, signed by another reviewer in the
+     * last configured frequency hours.
+     */
+    async getReviewerRiskAnalysesSignedByOthers(
+      consumerId: TenantId,
+      reviewerId: UserId
+    ): Promise<ReviewerRiskAnalysis[]> {
+      logger.info(
+        `Retrieving risk analyses signed by other reviewers for reviewer ${reviewerId} of tenant ${consumerId} since ${dateThreshold.toISOString()}`
+      );
+      return getReviewerRiskAnalyses(
+        consumerId,
+        reviewerId,
+        and(
+          eq(
+            purposeInReadmodelPurpose.reviewerWorkflowSigningState,
+            riskAnalysisSigningState.signed
+          ),
+          ne(purposeInReadmodelPurpose.reviewerWorkflowSignedBy, reviewerId),
+          gte(
+            purposeInReadmodelPurpose.reviewerWorkflowSignedAt,
+            dateThreshold.toISOString()
+          )
+        ),
+        desc(purposeInReadmodelPurpose.reviewerWorkflowSignedAt)
+      );
+    },
+
+    /**
      * Returns all users who have email notification preference set to "Digest"
      */
     async getUsersWithDigestPreference(): Promise<DigestUser[]> {
@@ -1727,6 +2407,363 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         tenantId: unsafeBrandId<TenantId>(row.tenantId),
         userRoles: row.userRoles.map((r) => UserRole.parse(r)),
       }));
+    },
+
+    /**
+     * Returns pending delegated eservice and descriptor archiving requests for the producer
+     * (requests made by its delegate) in the last configured frequency hours.
+     * Limited to 5 results.
+     */
+    async getReceivedDelegationArchivingRequests(
+      producerId: TenantId
+    ): Promise<DelegatedArchivingRequest[]> {
+      logger.info(
+        `Retrieving received delegation archiving requests for producer ${producerId} since ${dateThreshold.toISOString()}`
+      );
+
+      const results = await db
+        .select(
+          withTotalCount({
+            eserviceId:
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.eserviceId,
+            descriptorId:
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.descriptorId,
+            requestedAt:
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.requestedAt,
+            acceptedAt:
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.acceptedAt,
+            rejectedAt:
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.rejectedAt,
+            eserviceName: eserviceInReadmodelCatalog.name,
+            descriptorVersion: eserviceDescriptorInReadmodelCatalog.version,
+          })
+        )
+        .from(eserviceDescriptorArchivingRequestInReadmodelCatalog)
+        .innerJoin(
+          eserviceInReadmodelCatalog,
+          eq(
+            eserviceDescriptorArchivingRequestInReadmodelCatalog.eserviceId,
+            eserviceInReadmodelCatalog.id
+          )
+        )
+        .leftJoin(
+          eserviceDescriptorInReadmodelCatalog,
+          and(
+            eq(
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.eserviceId,
+              eserviceDescriptorInReadmodelCatalog.eserviceId
+            ),
+            eq(
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.descriptorId,
+              eserviceDescriptorInReadmodelCatalog.id
+            )
+          )
+        )
+        .where(
+          and(
+            eq(eserviceInReadmodelCatalog.producerId, producerId),
+            gte(
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.requestedAt,
+              dateThreshold.toISOString()
+            ),
+            isNull(
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.rejectedAt
+            ),
+            isNull(
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.acceptedAt
+            )
+          )
+        )
+        .orderBy(
+          desc(eserviceDescriptorArchivingRequestInReadmodelCatalog.requestedAt)
+        )
+        .limit(SECTION_LIST_LIMIT);
+
+      logger.info(
+        `Retrieved ${results.length} received delegation archiving requests for producer ${producerId}`
+      );
+
+      return results.map((row) => ({
+        eserviceId: row.eserviceId,
+        descriptorId: row.descriptorId,
+        eserviceName: row.eserviceName,
+        requestedAt: row.requestedAt,
+        acceptedAt: row.acceptedAt,
+        rejectedAt: row.rejectedAt,
+        descriptorVersion: row.descriptorVersion,
+        producerId: producerId,
+        totalCount: row.totalCount,
+      }));
+    },
+
+    /**
+     * Returns approved delegated eservice and descriptor archiving requests for the producer
+     * (requests made by its delegate) in the last configured frequency hours.
+     * Limited to 5 results.
+     */
+    async getApprovedDelegationArchivingRequests(
+      producerId: TenantId
+    ): Promise<DelegatedArchivingRequest[]> {
+      logger.info(
+        `Retrieving approved delegation archiving requests for producer ${producerId} since ${dateThreshold.toISOString()}`
+      );
+
+      const results = await db
+        .select(
+          withTotalCount({
+            eserviceId:
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.eserviceId,
+            descriptorId:
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.descriptorId,
+            requestedAt:
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.requestedAt,
+            acceptedAt:
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.acceptedAt,
+            rejectedAt:
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.rejectedAt,
+            eserviceName: eserviceInReadmodelCatalog.name,
+            descriptorVersion: eserviceDescriptorInReadmodelCatalog.version,
+          })
+        )
+        .from(eserviceDescriptorArchivingRequestInReadmodelCatalog)
+        .innerJoin(
+          eserviceInReadmodelCatalog,
+          eq(
+            eserviceDescriptorArchivingRequestInReadmodelCatalog.eserviceId,
+            eserviceInReadmodelCatalog.id
+          )
+        )
+        .leftJoin(
+          eserviceDescriptorInReadmodelCatalog,
+          and(
+            eq(
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.eserviceId,
+              eserviceDescriptorInReadmodelCatalog.eserviceId
+            ),
+            eq(
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.descriptorId,
+              eserviceDescriptorInReadmodelCatalog.id
+            )
+          )
+        )
+        .where(
+          and(
+            eq(eserviceInReadmodelCatalog.producerId, producerId),
+            gte(
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.acceptedAt,
+              dateThreshold.toISOString()
+            ),
+            isNotNull(
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.acceptedAt
+            ),
+            isNull(
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.rejectedAt
+            )
+          )
+        )
+        .orderBy(
+          desc(eserviceDescriptorArchivingRequestInReadmodelCatalog.acceptedAt)
+        )
+        .limit(SECTION_LIST_LIMIT);
+
+      logger.info(
+        `Retrieved ${results.length} approved delegation archiving requests for producer ${producerId}`
+      );
+
+      return results.map((row) => ({
+        eserviceId: row.eserviceId,
+        descriptorId: row.descriptorId,
+        eserviceName: row.eserviceName,
+        requestedAt: row.requestedAt,
+        descriptorVersion: row.descriptorVersion,
+        producerId: producerId,
+        totalCount: row.totalCount,
+        acceptedAt: row.acceptedAt,
+        rejectedAt: row.rejectedAt,
+      }));
+    },
+
+    /**
+     * Returns rejected delegated eservice and descriptor archiving requests for the producer
+     * (requests made by its delegate) in the last configured frequency hours.
+     * Limited to 5 results.
+     */
+    async getRejectedDelegationArchivingRequests(
+      producerId: TenantId
+    ): Promise<DelegatedArchivingRequest[]> {
+      logger.info(
+        `Retrieving rejected delegation archiving requests for producer ${producerId} since ${dateThreshold.toISOString()}`
+      );
+
+      const results = await db
+        .select(
+          withTotalCount({
+            eserviceId:
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.eserviceId,
+            descriptorId:
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.descriptorId,
+            requestedAt:
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.requestedAt,
+            acceptedAt:
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.acceptedAt,
+            rejectedAt:
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.rejectedAt,
+            eserviceName: eserviceInReadmodelCatalog.name,
+            descriptorVersion: eserviceDescriptorInReadmodelCatalog.version,
+          })
+        )
+        .from(eserviceDescriptorArchivingRequestInReadmodelCatalog)
+        .innerJoin(
+          eserviceInReadmodelCatalog,
+          eq(
+            eserviceDescriptorArchivingRequestInReadmodelCatalog.eserviceId,
+            eserviceInReadmodelCatalog.id
+          )
+        )
+        .leftJoin(
+          eserviceDescriptorInReadmodelCatalog,
+          and(
+            eq(
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.eserviceId,
+              eserviceDescriptorInReadmodelCatalog.eserviceId
+            ),
+            eq(
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.descriptorId,
+              eserviceDescriptorInReadmodelCatalog.id
+            )
+          )
+        )
+        .where(
+          and(
+            eq(eserviceInReadmodelCatalog.producerId, producerId),
+            gte(
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.rejectedAt,
+              dateThreshold.toISOString()
+            ),
+            isNull(
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.acceptedAt
+            ),
+            isNotNull(
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.rejectedAt
+            )
+          )
+        )
+        .orderBy(
+          desc(eserviceDescriptorArchivingRequestInReadmodelCatalog.rejectedAt)
+        )
+        .limit(SECTION_LIST_LIMIT);
+
+      logger.info(
+        `Retrieved ${results.length} rejected delegation archiving requests for producer ${producerId}`
+      );
+
+      return results.map((row) => ({
+        eserviceId: row.eserviceId,
+        descriptorId: row.descriptorId,
+        eserviceName: row.eserviceName,
+        requestedAt: row.requestedAt,
+        acceptedAt: row.acceptedAt,
+        rejectedAt: row.rejectedAt,
+        descriptorVersion: row.descriptorVersion,
+        producerId: producerId,
+        totalCount: row.totalCount,
+      }));
+    },
+
+    /**
+     * Returns all risk analysis that have been approved
+     * in the last configured frequency hours.
+     * Limited to 5 results.
+     */
+    async getApprovedRiskAnalysis(
+      consumerId: TenantId
+    ): Promise<ApprovedRiskAnalysisQueryResult[]> {
+      const results = await db
+        .select(
+          withTotalCount({
+            purposeId: purposeInReadmodelPurpose.id,
+            purposeTitle: purposeInReadmodelPurpose.title,
+            signedAt: purposeInReadmodelPurpose.reviewerWorkflowSignedAt,
+          })
+        )
+        .from(purposeInReadmodelPurpose)
+        .where(
+          and(
+            eq(purposeInReadmodelPurpose.consumerId, consumerId),
+            eq(
+              purposeInReadmodelPurpose.reviewerWorkflowSigningState,
+              riskAnalysisSigningState.signed
+            ),
+            isNotNull(purposeInReadmodelPurpose.reviewerWorkflowSignedAt),
+            gte(
+              purposeInReadmodelPurpose.reviewerWorkflowSignedAt,
+              dateThreshold.toISOString()
+            )
+          )
+        )
+        .orderBy(desc(purposeInReadmodelPurpose.reviewerWorkflowSignedAt))
+        .limit(SECTION_LIST_LIMIT);
+
+      return results
+        .filter(
+          (row): row is typeof row & { signedAt: string } =>
+            row.signedAt !== null
+        )
+        .map((row) => ({
+          purposeId: unsafeBrandId<PurposeId>(row.purposeId),
+          purposeTitle: row.purposeTitle,
+          consumerId: consumerId,
+          signedAt: row.signedAt,
+          totalCount: row.totalCount,
+        }));
+    },
+
+    /**
+     * Returns all risk analysis that have been rejected
+     * in the last configured frequency hours.
+     * Limited to 5 results.
+     */
+    async getRejectedRiskAnalysis(
+      consumerId: TenantId
+    ): Promise<RejectedRiskAnalysisQueryResult[]> {
+      const results = await db
+        .select(
+          withTotalCount({
+            purposeId: purposeInReadmodelPurpose.id,
+            purposeTitle: purposeInReadmodelPurpose.title,
+            rejectedAt: purposeInReadmodelPurpose.reviewerWorkflowRejectedAt,
+          })
+        )
+        .from(purposeInReadmodelPurpose)
+        .where(
+          and(
+            eq(purposeInReadmodelPurpose.consumerId, consumerId),
+            isNotNull(purposeInReadmodelPurpose.reviewerWorkflowRejectedAt),
+            eq(
+              purposeInReadmodelPurpose.reviewerWorkflowSigningState,
+              riskAnalysisSigningState.rejected
+            ),
+            gte(
+              purposeInReadmodelPurpose.reviewerWorkflowRejectedAt,
+              dateThreshold.toISOString()
+            )
+          )
+        )
+        .orderBy(desc(purposeInReadmodelPurpose.reviewerWorkflowRejectedAt))
+        .limit(SECTION_LIST_LIMIT);
+
+      return results
+        .filter(
+          (row): row is typeof row & { rejectedAt: string } =>
+            row.rejectedAt !== null
+        )
+        .map((row) => ({
+          purposeId: unsafeBrandId<PurposeId>(row.purposeId),
+          purposeTitle: row.purposeTitle,
+          consumerId: consumerId,
+          rejectedAt: row.rejectedAt,
+          totalCount: row.totalCount,
+        }));
     },
   };
 }
