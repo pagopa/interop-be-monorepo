@@ -19,11 +19,15 @@ import {
 } from "./services/readModelService.js";
 import { digestTemplateServiceBuilder } from "./services/templateService.js";
 import {
+  canReceiveReviewerDigest,
   getVisibleSections,
   hasVisibleDigestContent,
 } from "./utils/digestAdmittedRoles.js";
 import { processUserWithTenantData } from "./utils/processUserWithTenantData.js";
-import { createResultsCollector } from "./utils/resultsCollector.js";
+import {
+  createResultsCollector,
+  ProcessResult,
+} from "./utils/resultsCollector.js";
 
 const correlationId = generateId<CorrelationId>();
 const log = logger({
@@ -50,6 +54,40 @@ const emailProducerService = emailProducerServiceBuilder(producer);
 const trackingDb = makeDigestTrackingDbConnection(config);
 const trackingService = digestTrackingServiceBuilder(trackingDb);
 
+const processReviewerUser = async (
+  user: DigestUser
+): Promise<ProcessResult> => {
+  try {
+    const reviewerData = await digestDataService.getReviewerDigestData(
+      user.tenantId,
+      user.userId
+    );
+
+    if (!digestDataService.hasReviewerDigestContent(reviewerData)) {
+      log.info(
+        `No reviewer digest content for user ${user.userId} in tenant ${user.tenantId}, skipping`
+      );
+      return "skipped";
+    }
+
+    return await processUserWithTenantData(
+      user,
+      reviewerData,
+      templateService.compileReviewerDigestEmail(reviewerData),
+      log,
+      trackingService,
+      emailProducerService,
+      correlationId,
+      config.digestFrequencyHours
+    );
+  } catch (error) {
+    log.error(
+      `Error retrieving reviewer digest data for user ${user.userId} of tenant ${user.tenantId}: ${error}`
+    );
+    return "error";
+  }
+};
+
 try {
   log.info("Fetching users with digest preference enabled");
   const digestUsers = await readModelService.getUsersWithDigestPreference();
@@ -75,8 +113,12 @@ try {
     log.info(`Processing tenant ${tenantId} with ${users.length} users`);
 
     const tenantData = await digestDataService.getDigestDataForTenant(tenantId);
+    const tenantHasContent = digestDataService.hasDigestContent(tenantData);
+    const reviewerUsers = users.filter((user) =>
+      canReceiveReviewerDigest(user.userRoles)
+    );
 
-    if (!digestDataService.hasDigestContent(tenantData)) {
+    if (!tenantHasContent && reviewerUsers.length === 0) {
       log.info(
         `No digest content for tenant ${tenantId}, skipping all tenant users`
       );
@@ -87,34 +129,40 @@ try {
     for (const user of users) {
       const visibility = getVisibleSections(user.userRoles);
 
-      if (!hasVisibleDigestContent(tenantData, visibility)) {
-        log.info(
-          `No visible digest content for user ${
-            user.userId
-          } with roles [${user.userRoles.join(
-            ","
-          )}] in tenant ${tenantId}, skipping`
+      // Only one digest per user and tenant per period: the tenant digest wins
+      if (tenantHasContent && hasVisibleDigestContent(tenantData, visibility)) {
+        const emailBody = templateService.compileDigestEmail(
+          tenantData,
+          visibility
         );
-        resultsCollector.add("skipped");
+
+        const result = await processUserWithTenantData(
+          user,
+          tenantData,
+          emailBody,
+          log,
+          trackingService,
+          emailProducerService,
+          correlationId,
+          config.digestFrequencyHours
+        );
+        resultsCollector.add(result);
         continue;
       }
 
-      const emailBody = templateService.compileDigestEmail(
-        tenantData,
-        visibility
-      );
+      if (canReceiveReviewerDigest(user.userRoles)) {
+        resultsCollector.add(await processReviewerUser(user));
+        continue;
+      }
 
-      const result = await processUserWithTenantData(
-        user,
-        tenantData,
-        emailBody,
-        log,
-        trackingService,
-        emailProducerService,
-        correlationId,
-        config.digestFrequencyHours
+      log.info(
+        `No visible digest content for user ${
+          user.userId
+        } with roles [${user.userRoles.join(
+          ","
+        )}] in tenant ${tenantId}, skipping`
       );
-      resultsCollector.add(result);
+      resultsCollector.add("skipped");
     }
   }
 
