@@ -16066,7 +16066,6 @@ components:
     PurposeTemplateDraftUpdateSeed:
       type: object
       additionalProperties: false
-      minProperties: 1
       properties:
         targetDescription:
           type: string

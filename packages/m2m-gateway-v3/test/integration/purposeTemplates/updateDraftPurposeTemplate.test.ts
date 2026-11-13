@@ -115,6 +115,7 @@ describe("updateDraftPurposeTemplate", () => {
   });
 
   it.each([
+    {},
     { purposeTitle: "updated purpose title" },
     { purposeDescription: "updated purpose description" },
     { targetDescription: "updated target description" },

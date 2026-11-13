@@ -56,6 +56,7 @@ describe("patch update purpose template", () => {
   });
 
   it.each([
+    {},
     { targetDescription: "updated target description" },
     {
       targetDescription: "updated target description",
