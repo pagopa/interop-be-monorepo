@@ -603,9 +603,6 @@ importers:
       '@types/supertest':
         specifier: 'catalog:'
         version: 6.0.3
-      cpx2:
-        specifier: 'catalog:'
-        version: 7.0.2
       date-fns:
         specifier: 'catalog:'
         version: 4.1.0
@@ -2544,9 +2541,6 @@ importers:
       '@types/supertest':
         specifier: 'catalog:'
         version: 6.0.3
-      cpx2:
-        specifier: 'catalog:'
-        version: 7.0.2
       eslint:
         specifier: 'catalog:'
         version: 9.39.2(jiti@2.6.1)
@@ -5860,9 +5854,6 @@ importers:
       '@types/supertest':
         specifier: 'catalog:'
         version: 6.0.3
-      cpx2:
-        specifier: 'catalog:'
-        version: 7.0.2
       eslint:
         specifier: 'catalog:'
         version: 9.39.2(jiti@2.6.1)
