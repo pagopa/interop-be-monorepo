@@ -1,18 +1,19 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { AuthData } from "pagopa-interop-commons";
 import {
+  getMockAuthData,
+  getMockClient,
+  getMockContext,
+  getMockKey,
+} from "pagopa-interop-commons-test";
+import {
   Client,
   TenantId,
   generateId,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
-import {
-  getMockAuthData,
-  getMockClient,
-  getMockContext,
-  getMockKey,
-} from "pagopa-interop-commons-test";
+
 import {
   clientNotFound,
   clientKeyNotFound,

@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   decodeProtobufPayload,
   getMockContext,
@@ -22,15 +23,16 @@ import {
   attributeKind,
   attributeCertifiedDiscreteComparator,
 } from "pagopa-interop-models";
-import { catalogApi } from "pagopa-interop-api-clients";
 import { expect, describe, it } from "vitest";
+
+import { config } from "../../src/config/config.js";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
   notValidDescriptorState,
   inconsistentDailyCalls,
   eServiceNotAnInstance,
-  templateInstanceNotAllowed,
+  templateInstanceAttributesCannotBeChanged,
   attributeDailyCallsNotAllowed,
   attributeDiscreteConfigNotAllowed,
 } from "../../src/model/domain/errors.js";
@@ -42,7 +44,6 @@ import {
   readLastEserviceEvent,
   addOneDelegation,
 } from "../integrationUtils.js";
-import { config } from "../../src/config/config.js";
 
 describe("update descriptor", () => {
   const mockEService = getMockEService();
@@ -584,7 +585,7 @@ describe("update descriptor", () => {
     expect(returnedEService).toEqual(expectedEService);
   });
 
-  it("should throw templateInstanceNotAllowed when seed.attributes changes attribute structure", async () => {
+  it("should throw templateInstanceAttributesCannotBeChanged when seed.attributes changes attribute structure", async () => {
     const mockCertifiedAttribute1 = getMockAttribute(attributeKind.certified);
     const mockCertifiedAttribute2 = getMockAttribute(attributeKind.certified);
 
@@ -651,11 +652,11 @@ describe("update descriptor", () => {
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
-      templateInstanceNotAllowed(eservice.id, mockTemplate.id)
+      templateInstanceAttributesCannotBeChanged(eservice.id, mockTemplate.id)
     );
   });
 
-  it("should throw templateInstanceNotAllowed when changing inherited discreteConfig", async () => {
+  it("should throw templateInstanceAttributesCannotBeChanged when changing inherited discreteConfig", async () => {
     config.featureFlagAttributeCertifiedDiscrete = true;
     const certifiedDiscreteAttribute = getMockAttribute(
       attributeKind.certifiedDiscrete
@@ -722,7 +723,7 @@ describe("update descriptor", () => {
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
-      templateInstanceNotAllowed(eservice.id, mockTemplate.id)
+      templateInstanceAttributesCannotBeChanged(eservice.id, mockTemplate.id)
     );
   });
 

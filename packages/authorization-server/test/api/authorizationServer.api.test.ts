@@ -1,14 +1,4 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import request from "supertest";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  algorithm,
-  ClientId,
-  generateId,
-  makeTokenGenerationStatesClientKidPK,
-  PurposeId,
-  TenantId,
-} from "pagopa-interop-models";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import {
   InteropApiToken,
@@ -19,7 +9,17 @@ import {
 } from "pagopa-interop-commons";
 import * as interopCommons from "pagopa-interop-commons";
 import { getMockClient, getMockDPoPProof } from "pagopa-interop-commons-test";
-import { api, tokenService } from "../vitest.api.setup.js";
+import {
+  algorithm,
+  ClientId,
+  generateId,
+  makeTokenGenerationStatesClientKidPK,
+  PurposeId,
+  TenantId,
+} from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import {
   clientAssertionRequestValidationFailed,
   clientAssertionSignatureValidationFailed,
@@ -31,6 +31,7 @@ import {
   tokenGenerationStatesEntryNotFound,
 } from "../../src/model/domain/errors.js";
 import { GeneratedTokenData } from "../../src/services/tokenService.js";
+import { api, tokenService } from "../vitest.api.setup.js";
 
 describe("POST /authorization-server/token.oauth2", async () => {
   const clientId = getMockClient().id;

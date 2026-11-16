@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { afterEach, beforeAll, describe, expect, it, vi, vitest } from "vitest";
 import {
   InteropInternalToken,
   InteropTokenGenerator,
@@ -12,11 +11,13 @@ import {
   makeDrizzleConnection,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
-import { TenantProcessService } from "../src/service/tenantProcessService.js";
-import { SftpClient } from "../src/service/sftpService.js";
-import { readModelQueriesBuilderSQL } from "../src/service/readmodelQueriesServiceSQL.js";
-import { importAttributes } from "../src/service/processor.js";
+import { afterEach, beforeAll, describe, expect, it, vi, vitest } from "vitest";
+
 import { config } from "../src/config/config.js";
+import { importAttributes } from "../src/service/processor.js";
+import { readModelQueriesBuilderSQL } from "../src/service/readmodelQueriesServiceSQL.js";
+import { SftpClient } from "../src/service/sftpService.js";
+import { TenantProcessService } from "../src/service/tenantProcessService.js";
 import {
   ATTRIBUTE_ANAC_ASSIGNED_ID,
   ATTRIBUTE_ANAC_ENABLED_ID,

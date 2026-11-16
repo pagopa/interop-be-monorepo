@@ -1,5 +1,6 @@
 import { ApiError } from "pagopa-interop-models";
 import { z } from "zod";
+
 import { ErrorCodes } from "./errors.js";
 
 export const Base64Encoded = z.string().base64().min(1);

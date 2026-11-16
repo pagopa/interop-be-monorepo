@@ -4,6 +4,7 @@ import {
   getMockEServiceTemplate,
   getMockValidEServiceTemplateRiskAnalysis,
   getMockEServiceTemplateVersion,
+  sortRiskAnalysisCollections,
 } from "pagopa-interop-commons-test";
 import {
   EServiceTemplate,
@@ -14,6 +15,7 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
+
 import { upsertEServiceTemplate } from "../../src/testUtils.js";
 import { readModelDB } from "../utils.js";
 import { eserviceTemplateReadModelService } from "./eserviceTemplateUtils.js";
@@ -51,7 +53,12 @@ describe("E-service template queries", () => {
           eserviceTemplate.data.id
         );
 
-      expect(retrievedEServiceTemplate).toStrictEqual(eserviceTemplate);
+      expect(retrievedEServiceTemplate?.metadata).toStrictEqual(
+        eserviceTemplate.metadata
+      );
+      expect(
+        sortRiskAnalysisCollections(retrievedEServiceTemplate?.data)
+      ).toStrictEqual(sortRiskAnalysisCollections(eserviceTemplate.data));
     });
 
     it("e-service template NOT found", async () => {

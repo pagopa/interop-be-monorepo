@@ -24,6 +24,7 @@ import {
   technology,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
+
 import {
   attributeDiscreteConfigNotAllowed,
   attributeNotFound,

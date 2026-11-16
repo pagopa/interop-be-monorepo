@@ -15,15 +15,16 @@ import {
   UserNotificationConfigRoleRemovedV2,
 } from "pagopa-interop-models";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+
+import {
+  userNotificationConfigNotFound,
+  userRoleNotInUserNotificationConfig,
+} from "../../src/model/domain/errors.js";
 import {
   addOneUserNotificationConfig,
   notificationConfigService,
   readLastNotificationConfigEvent,
 } from "../integrationUtils.js";
-import {
-  userNotificationConfigNotFound,
-  userRoleNotInUserNotificationConfig,
-} from "../../src/model/domain/errors.js";
 
 describe("removeUserNotificationConfigRole", () => {
   const userId: UserId = generateId();

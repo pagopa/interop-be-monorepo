@@ -1,18 +1,19 @@
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import { authRole, AuthRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockedApiEServiceTemplate,
   getMockDPoPProof,
 } from "pagopa-interop-commons-test";
-import request from "supertest";
-import { authRole, AuthRole } from "pagopa-interop-commons";
-import { describe, expect, it, vi } from "vitest";
 import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
-import { appBasePath } from "../../../src/config/appBasePath.js";
-import { api, mockEServiceTemplateService } from "../../vitest.api.setup.js";
-import { missingMetadata } from "../../../src/model/errors.js";
-import { config } from "../../../src/config/config.js";
+import request from "supertest";
+import { describe, expect, it, vi } from "vitest";
+
 import { toM2MGatewayEServiceTemplate } from "../../../src/api/eserviceTemplateApiConverter.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
+import { config } from "../../../src/config/config.js";
+import { missingMetadata } from "../../../src/model/errors.js";
+import { api, mockEServiceTemplateService } from "../../vitest.api.setup.js";
 
 describe("POST /eserviceTemplates router test", () => {
   const mockApiEserviceTemplate = getMockedApiEServiceTemplate();

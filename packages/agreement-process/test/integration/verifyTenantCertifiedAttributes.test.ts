@@ -1,4 +1,3 @@
-import { describe, expect, it } from "vitest";
 import {
   getMockCertifiedTenantAttribute,
   getMockContext,
@@ -18,6 +17,8 @@ import {
   Tenant,
   TenantId,
 } from "pagopa-interop-models";
+import { describe, expect, it } from "vitest";
+
 import {
   descriptorNotFound,
   eServiceNotFound,

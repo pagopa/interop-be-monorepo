@@ -2,7 +2,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable functional/immutable-data */
-import { describe, it, expect, beforeEach } from "vitest";
+import {
+  getMockDescriptor,
+  getMockEService,
+  getMockPurposeTemplate,
+} from "pagopa-interop-commons-test";
 import {
   EService,
   missingKafkaMessageDataError,
@@ -21,11 +25,8 @@ import {
   toEServiceV2,
   toPurposeTemplateV2,
 } from "pagopa-interop-models";
-import {
-  getMockDescriptor,
-  getMockEService,
-  getMockPurposeTemplate,
-} from "pagopa-interop-commons-test";
+import { describe, it, expect, beforeEach } from "vitest";
+
 import { handlePurposeTemplateMessageV2 } from "../src/handlers/purpose-template/consumerServiceV2.js";
 import { PurposeTemplateDbTable } from "../src/model/db/index.js";
 import {

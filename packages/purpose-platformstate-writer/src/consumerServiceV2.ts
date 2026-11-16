@@ -1,4 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { Logger } from "pagopa-interop-commons";
 import {
   fromPurposeV2,
   ItemState,
@@ -13,7 +14,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { Logger } from "pagopa-interop-commons";
+
 import {
   deletePlatformPurposeEntry,
   getPurposeStateFromPurposeVersions,
@@ -166,6 +167,8 @@ export async function handleMessageV2(
       { type: "WaitingForApprovalPurposeDeleted" },
       { type: "PurposeAdded" },
       { type: "DraftPurposeUpdated" },
+      { type: "PurposeTitleUpdated" },
+      { type: "PurposeDescriptionUpdated" },
       { type: "NewPurposeVersionWaitingForApproval" },
       { type: "PurposeVersionOverQuotaUnsuspended" },
       { type: "PurposeVersionRejected" },
@@ -178,10 +181,12 @@ export async function handleMessageV2(
       { type: "MaintenancePurposeRiskAnalysisSetTenantKind" },
       { type: "PurposeRiskAnalysisWorkflowCreated" },
       { type: "PurposeRiskAnalysisAssigned" },
+      { type: "PurposeRiskAnalysisSelfAssigned" },
       { type: "PurposeRiskAnalysisSubmitted" },
       { type: "PurposeRiskAnalysisSigned" },
       { type: "PurposeRiskAnalysisRejected" },
       { type: "PurposeRiskAnalysisFormEdited" },
+      { type: "MaintenancePurposeRiskAnalysisFixReviewerWorkflow" },
       () => Promise.resolve()
     )
     .exhaustive();

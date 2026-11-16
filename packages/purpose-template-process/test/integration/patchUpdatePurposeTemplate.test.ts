@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
   decodeProtobufPayload,
   getMockContextM2MAdmin,
   getMockPurposeTemplate,
   getMockValidRiskAnalysisFormTemplate,
+  sortPurposeTemplate,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
@@ -16,12 +18,7 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { expect, describe, it, beforeAll, vi, afterAll } from "vitest";
-import { purposeTemplateApi } from "pagopa-interop-api-clients";
-import {
-  addOnePurposeTemplate,
-  purposeTemplateService,
-  readLastPurposeTemplateEvent,
-} from "../integrationUtils.js";
+
 import {
   invalidFreeOfChargeReason,
   missingFreeOfChargeReason,
@@ -29,6 +26,11 @@ import {
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
 } from "../../src/model/domain/errors.js";
+import {
+  addOnePurposeTemplate,
+  purposeTemplateService,
+  readLastPurposeTemplateEvent,
+} from "../integrationUtils.js";
 
 describe("patch update purpose template", () => {
   const mockPurposeTemplate: PurposeTemplate = {
@@ -157,11 +159,16 @@ describe("patch update purpose template", () => {
         payload: writtenEvent.data,
       });
 
-      expect(writtenPayload).toEqual({
-        purposeTemplate: toPurposeTemplateV2(expectedPurposeTemplate),
+      expect({
+        ...writtenPayload,
+        purposeTemplate: sortPurposeTemplate(writtenPayload.purposeTemplate),
+      }).toEqual({
+        purposeTemplate: sortPurposeTemplate(
+          toPurposeTemplateV2(expectedPurposeTemplate)
+        ),
       });
-      expect(updatePurposeTemplateReturn).toEqual({
-        data: expectedPurposeTemplate,
+      expect(sortPurposeTemplate(updatePurposeTemplateReturn)).toEqual({
+        data: sortPurposeTemplate(expectedPurposeTemplate),
         metadata: { version: 1 },
       });
     }
@@ -447,8 +454,8 @@ describe("patch update purpose template", () => {
         updatedAt: new Date(),
       };
 
-      expect(patchPurposeTemplateResult).toEqual({
-        data: expectedPurposeTemplate,
+      expect(sortPurposeTemplate(patchPurposeTemplateResult)).toEqual({
+        data: sortPurposeTemplate(expectedPurposeTemplate),
         metadata: { version: 1 },
       });
     }

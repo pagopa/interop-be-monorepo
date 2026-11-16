@@ -1,23 +1,22 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { bffApi } from "pagopa-interop-api-clients";
+import { authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test";
 import {
   DescriptorId,
   generateId,
   invalidContentTypeDetected,
+  invalidInterfaceData,
   invalidInterfaceFileDetected,
+  invalidServerUrl,
   interfaceExtractingInfoError,
+  interfaceExtractingSoapFieldError,
+  parsingSoapFileError,
   EServiceId,
 } from "pagopa-interop-models";
 import request from "supertest";
-import { generateToken } from "pagopa-interop-commons-test/index.js";
-import { authRole } from "pagopa-interop-commons";
-import { bffApi } from "pagopa-interop-api-clients";
-import { api, clients, services } from "../../vitest.api.setup.js";
-import {
-  getMockBffApiCreatedResource,
-  getMockBffApiTemplateInstanceInterfaceRESTSeed,
-  getMockCatalogApiEService,
-} from "../../mockUtils.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   eserviceIsNotDraft,
@@ -25,9 +24,15 @@ import {
   eserviceTemplateNotPublished,
 } from "../../../src/model/errors.js";
 import {
+  getMockBffApiCreatedResource,
+  getMockBffApiTemplateInstanceInterfaceRESTSeed,
+  getMockCatalogApiEService,
+} from "../../mockUtils.js";
+import {
   eserviceInterfaceDataNotValid,
   eserviceTemplateInterfaceNotFound,
 } from "../../utils.js";
+import { api, clients, services } from "../../vitest.api.setup.js";
 
 describe("API POST /templates/eservices/:eServiceId/descriptors/:descriptorId/interface/rest", () => {
   const mockEService = getMockCatalogApiEService();
@@ -97,6 +102,25 @@ describe("API POST /templates/eservices/:eServiceId/descriptors/:descriptorId/in
       expectedStatus: 400,
     },
     { error: interfaceExtractingInfoError(), expectedStatus: 400 },
+    {
+      error: invalidInterfaceData({
+        id: mockEService.id,
+        isEserviceTemplate: true,
+      }),
+      expectedStatus: 400,
+    },
+    {
+      error: invalidServerUrl({
+        id: mockEService.id,
+        isEserviceTemplate: true,
+      }),
+      expectedStatus: 400,
+    },
+    { error: parsingSoapFileError(), expectedStatus: 400 },
+    {
+      error: interfaceExtractingSoapFieldError("invalid-field"),
+      expectedStatus: 400,
+    },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {

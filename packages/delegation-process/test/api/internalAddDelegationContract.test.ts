@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockDelegation,
@@ -12,11 +13,11 @@ import {
   DelegationContractDocument,
   DelegationContractId,
 } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { api, delegationService } from "../vitest.api.setup.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { delegationNotFound } from "../../src/model/domain/errors.js";
+import { api, delegationService } from "../vitest.api.setup.js";
 
 const mockDelegationContract: DelegationContractDocument = {
   id: generateId<DelegationContractId>(),

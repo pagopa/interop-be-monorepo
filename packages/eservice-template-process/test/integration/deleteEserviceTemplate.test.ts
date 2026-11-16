@@ -19,11 +19,12 @@ import {
   EServiceTemplateDraftVersionDeletedV2,
 } from "pagopa-interop-models";
 import { expect, describe, it, vi } from "vitest";
+
+import { config } from "../../src/config/config.js";
 import {
   eserviceTemplateNotFound,
   eserviceTemplateNotInDraftState,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
 import {
   addOneEServiceTemplate,
   eserviceTemplateService,

@@ -3,6 +3,7 @@
 import { randomUUID } from "crypto";
 import { Attribute, Tenant, unsafeBrandId } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
+
 import {
   TenantSeed,
   getAttributesToRevoke,

@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeEach, Mock } from "vitest";
 import {
   getMockContext,
   getMockProducerKeychain,
@@ -14,12 +13,13 @@ import {
   toProducerKeychainV2,
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
-import { handleProducerKeychainKeyAddedDeletedToClientUsers } from "../src/handlers/authorizations/handleProducerKeychainKeyAddedDeletedToClientUsers.js";
 import {
   inAppTemplates,
   getNotificationRecipients,
 } from "pagopa-interop-notification-commons";
+import { describe, it, expect, beforeEach, Mock } from "vitest";
 
+import { handleProducerKeychainKeyAddedDeletedToClientUsers } from "../src/handlers/authorizations/handleProducerKeychainKeyAddedDeletedToClientUsers.js";
 import { addOneTenant, readModelService } from "./utils.js";
 
 describe("handleProducerKeychainKeyAddedDeletedToClientUsers", () => {

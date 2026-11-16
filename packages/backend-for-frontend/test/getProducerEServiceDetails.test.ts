@@ -1,4 +1,3 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   attributeRegistryApi,
   agreementApi,
@@ -6,21 +5,24 @@ import {
   eserviceTemplateApi,
   inAppNotificationApi,
 } from "pagopa-interop-api-clients";
+import { AuthData } from "pagopa-interop-commons";
+import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import {
   DescriptorId,
   EServiceId,
   TenantId,
   generateId,
 } from "pagopa-interop-models";
-import { AuthData } from "pagopa-interop-commons";
-import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import type {
   AuthorizationProcessClient,
   DelegationProcessClient,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
-import { catalogServiceBuilder } from "../src/services/catalogService.js";
+
 import { config } from "../src/config/config.js";
+import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import { fileManager, getBffMockContext } from "./utils.js";
 
 describe("getProducerEServiceDetails", () => {
@@ -74,6 +76,14 @@ describe("getProducerEServiceDetails", () => {
     mode: catalogApi.EServiceMode.Values.RECEIVE,
     riskAnalysis: [],
     asyncExchange: true,
+    delegatedArchivingRequest: [
+      {
+        requestedAt: "2026-08-04T10:00:00.000Z",
+        requesterId: generateId<TenantId>(),
+        gracePeriodDays: 60,
+        archivingReason: "Requested by delegate",
+      },
+    ],
   };
 
   const mockGetEServiceById = vi.fn();
@@ -138,6 +148,9 @@ describe("getProducerEServiceDetails", () => {
 
     expect(result.asyncExchange).toBe(true);
     expect(result.latestActiveDescriptorId).toBe(publishedDescriptor.id);
+    expect(result.delegatedArchivingRequest).toEqual(
+      eService.delegatedArchivingRequest?.[0]
+    );
   });
 
   it("should return undefined latestActiveDescriptorId when no active descriptor exists", async () => {
@@ -154,5 +167,129 @@ describe("getProducerEServiceDetails", () => {
 
     expect(result.asyncExchange).toBe(false);
     expect(result.latestActiveDescriptorId).toBeUndefined();
+  });
+
+  it("should return only the pending request if there is a previous one which was rejected", async () => {
+    const rejectedRequest: catalogApi.DelegatedEServiceArchivingRequest = {
+      requestedAt: "2026-08-04T10:00:00.000Z",
+      rejectedAt: "2026-08-05T10:00:00.000Z",
+      rejectionReason: "Missing prerequisite",
+      requesterId: generateId<TenantId>(),
+      gracePeriodDays: 60,
+      archivingReason: "Requested by delegate",
+    };
+    const pendingRequest: catalogApi.DelegatedEServiceArchivingRequest = {
+      requestedAt: "2026-08-06T10:00:00.000Z",
+      requesterId: generateId<TenantId>(),
+      gracePeriodDays: 60,
+      archivingReason: "Requested by delegate",
+    };
+    mockGetEServiceById.mockResolvedValue({
+      ...eService,
+      delegatedArchivingRequest: [rejectedRequest, pendingRequest],
+    });
+
+    const result = await catalogService.getProducerEServiceDetails(
+      eServiceId,
+      bffMockContext
+    );
+
+    expect(result.delegatedArchivingRequest).toEqual(pendingRequest);
+  });
+
+  it("should return the last rejected request if no pending or accepted request exists", async () => {
+    const previousRejectedRequest: catalogApi.DelegatedEServiceArchivingRequest =
+      {
+        requestedAt: "2026-08-02T10:00:00.000Z",
+        rejectedAt: "2026-08-03T10:00:00.000Z",
+        rejectionReason: "Missing prerequisite",
+        requesterId: generateId<TenantId>(),
+        gracePeriodDays: 60,
+        archivingReason: "Requested by delegate",
+      };
+    const lastRejectedRequest: catalogApi.DelegatedEServiceArchivingRequest = {
+      requestedAt: "2026-08-04T10:00:00.000Z",
+      rejectedAt: "2026-08-05T10:00:00.000Z",
+      rejectionReason: "Missing prerequisite",
+      requesterId: generateId<TenantId>(),
+      gracePeriodDays: 60,
+      archivingReason: "Requested by delegate",
+    };
+    mockGetEServiceById.mockResolvedValue({
+      ...eService,
+      delegatedArchivingRequest: [previousRejectedRequest, lastRejectedRequest],
+    });
+
+    const result = await catalogService.getProducerEServiceDetails(
+      eServiceId,
+      bffMockContext
+    );
+
+    expect(result.delegatedArchivingRequest).toEqual(lastRejectedRequest);
+  });
+
+  it("should return undefined delegatedArchivingRequest if no request exists", async () => {
+    mockGetEServiceById.mockResolvedValue({
+      ...eService,
+      delegatedArchivingRequest: [],
+    });
+
+    const result = await catalogService.getProducerEServiceDetails(
+      eServiceId,
+      bffMockContext
+    );
+
+    expect(result.delegatedArchivingRequest).toBeUndefined();
+  });
+
+  it("should return undefined delegated archiving request if the last request has been accepted", async () => {
+    const rejectedRequest: catalogApi.DelegatedEServiceArchivingRequest = {
+      requestedAt: "2026-08-04T10:00:00.000Z",
+      rejectedAt: "2026-08-05T10:00:00.000Z",
+      rejectionReason: "Missing prerequisite",
+      requesterId: generateId<TenantId>(),
+      gracePeriodDays: 60,
+      archivingReason: "Requested by delegate",
+    };
+    const acceptedRequest: catalogApi.DelegatedEServiceArchivingRequest = {
+      requestedAt: "2026-08-06T10:00:00.000Z",
+      acceptedAt: "2026-08-07T10:00:00.000Z",
+      requesterId: generateId<TenantId>(),
+      gracePeriodDays: 60,
+      archivingReason: "Requested by delegate",
+    };
+    mockGetEServiceById.mockResolvedValue({
+      ...eService,
+      delegatedArchivingRequest: [rejectedRequest, acceptedRequest],
+    });
+
+    const result = await catalogService.getProducerEServiceDetails(
+      eServiceId,
+      bffMockContext
+    );
+
+    expect(result.delegatedArchivingRequest).toEqual(undefined);
+  });
+
+  it("should return undefined when every archiving request has been accepted", async () => {
+    mockGetEServiceById.mockResolvedValue({
+      ...eService,
+      delegatedArchivingRequest: [
+        {
+          requestedAt: "2026-08-04T10:00:00.000Z",
+          acceptedAt: "2026-08-05T10:00:00.000Z",
+          requesterId: generateId<TenantId>(),
+          gracePeriodDays: 60,
+          archivingReason: "Requested by delegate",
+        },
+      ],
+    });
+
+    const result = await catalogService.getProducerEServiceDetails(
+      eServiceId,
+      bffMockContext
+    );
+
+    expect(result.delegatedArchivingRequest).toBeUndefined();
   });
 });

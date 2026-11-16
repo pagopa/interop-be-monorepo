@@ -1,10 +1,11 @@
+import { EachMessagePayload } from "kafkajs";
+import { authorizationApi } from "pagopa-interop-api-clients";
 import {
   getInteropHeaders,
   logger,
   RefreshableInteropToken,
   userRole,
 } from "pagopa-interop-commons";
-import { EachMessagePayload } from "kafkajs";
 import {
   generateId,
   CorrelationId,
@@ -17,7 +18,7 @@ import {
   BaseUsersEventPayload,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import { authorizationApi } from "pagopa-interop-api-clients";
+
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

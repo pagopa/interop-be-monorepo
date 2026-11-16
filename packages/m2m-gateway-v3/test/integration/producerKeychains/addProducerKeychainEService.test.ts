@@ -1,14 +1,18 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  generateId,
-  pollingMaxRetriesExceeded,
-  unsafeBrandId,
-} from "pagopa-interop-models";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   getMockedApiFullProducerKeychain,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
+import {
+  generateId,
+  pollingMaxRetriesExceeded,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { config } from "../../../src/config/config.js";
+import { missingMetadata } from "../../../src/model/errors.js";
 import {
   producerKeychainService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -16,9 +20,6 @@ import {
   mockInteropBeClients,
   mockPollingResponse,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { config } from "../../../src/config/config.js";
-import { missingMetadata } from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("addProducerKeychainEService", () => {

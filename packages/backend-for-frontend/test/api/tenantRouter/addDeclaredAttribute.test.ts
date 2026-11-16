@@ -1,14 +1,15 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { z } from "zod";
 import { generateMock } from "@anatine/zod-mock";
 import { bffApi } from "pagopa-interop-api-clients";
-import { generateId } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test";
+import { generateId } from "pagopa-interop-models";
 import request from "supertest";
-import { api, clients } from "../../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { z } from "zod";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { api, clients } from "../../vitest.api.setup.js";
 
 describe("API POST /tenants/attributes/declared test", () => {
   const attributeSeed: bffApi.DeclaredTenantAttributeSeed = {

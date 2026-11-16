@@ -6,8 +6,9 @@ import {
   AgreementState,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import { generateM2MEventId } from "../../utils/uuidv7.js";
+
 import { Delegations } from "../../models/delegations.js";
+import { generateM2MEventId } from "../../utils/uuidv7.js";
 
 export async function createAgreementM2MEvent(
   agreement: Agreement,

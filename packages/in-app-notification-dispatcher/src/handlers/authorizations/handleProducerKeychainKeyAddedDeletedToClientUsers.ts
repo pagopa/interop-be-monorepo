@@ -1,16 +1,17 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   AuthorizationEventEnvelopeV2,
   fromProducerKeychainV2,
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
 import { NewNotification } from "pagopa-interop-models";
-import { match } from "ts-pattern";
-import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import {
   inAppTemplates,
   getNotificationRecipients,
 } from "pagopa-interop-notification-commons";
+import { match } from "ts-pattern";
+
+import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 type ProducerKeychainKeyAddedDeletedToClientUsersEventType =
   | "ProducerKeychainKeyAdded"

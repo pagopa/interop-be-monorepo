@@ -1,0 +1,26 @@
+meta {
+  name: Unsuspend Agreement
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{host-agreement}}/agreements/:agreementId/unsuspend
+  body: json
+  auth: none
+}
+
+params:path {
+  agreementId: {{agreementId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "delegationId": "{{delegationId}}"
+  }
+}

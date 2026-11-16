@@ -1,4 +1,10 @@
-import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
+import { authorizationApi } from "pagopa-interop-api-clients";
+import {
+  decodeProtobufPayload,
+  getMockAuthData,
+  getMockContext,
+  readLastEventByStreamId,
+} from "pagopa-interop-commons-test";
 import {
   ProducerKeychain,
   ProducerKeychainAddedV2,
@@ -9,14 +15,21 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
-  decodeProtobufPayload,
-  getMockAuthData,
-  getMockContext,
-  readLastEventByStreamId,
-} from "pagopa-interop-commons-test";
-import { authorizationApi } from "pagopa-interop-api-clients";
-import { authorizationService, postgresDB } from "../integrationUtils.js";
+  describe,
+  it,
+  vi,
+  beforeAll,
+  afterAll,
+  beforeEach,
+  expect,
+} from "vitest";
+
 import { duplicatedMembersInSeed } from "../../src/model/domain/errors.js";
+import {
+  authorizationService,
+  postgresDB,
+  selfcareV2Client,
+} from "../integrationUtils.js";
 
 describe("createProducerKeychain", () => {
   const organizationId: TenantId = generateId();
@@ -35,6 +48,14 @@ describe("createProducerKeychain", () => {
     description: "Description",
     members: [organizationId],
   };
+  beforeEach(() => {
+    selfcareV2Client.getInstitutionUsersByProductUsingGET = vi.fn(
+      async (config) =>
+        config?.queries?.userId === organizationId
+          ? [{ id: organizationId, name: "Test", surname: "User" }]
+          : []
+    );
+  });
   it("should write on event-store for the creation of a producer keychain", async () => {
     const producerKeychain = await authorizationService.createProducerKeychain(
       {

@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
-import request from "supertest";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockValidRiskAnalysis,
+  getMockEService,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   EService,
   EServiceId,
@@ -9,14 +14,9 @@ import {
   RiskAnalysisId,
   tenantKind,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockValidRiskAnalysis,
-  getMockEService,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import { api, catalogService } from "../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import {
   eServiceNotFound,
   eserviceNotInDraftState,
@@ -24,6 +24,7 @@ import {
   eServiceRiskAnalysisNotFound,
   templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
+import { api, catalogService } from "../vitest.api.setup.js";
 
 describe("API /eservices/{eServiceId}/riskAnalysis/{riskAnalysisId} authorization test", () => {
   const riskAnalysis = getMockValidRiskAnalysis(tenantKind.PA);

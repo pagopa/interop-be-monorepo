@@ -1,17 +1,18 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
+import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockedApiRiskAnalysisTemplateAnnotationDocumentWithAnswerId,
   getMockDPoPProof,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
-import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { generateId, PurposeTemplateId } from "pagopa-interop-models";
-import { api, mockPurposeTemplateService } from "../../vitest.api.setup.js";
-import { appBasePath } from "../../../src/config/appBasePath.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { toM2MGatewayApiRiskAnalysisTemplateAnnotationDocument } from "../../../src/api/purposeTemplateApiConverter.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
+import { api, mockPurposeTemplateService } from "../../vitest.api.setup.js";
 
 describe("GET /purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocuments route test", () => {
   const mockResponse: m2mGatewayApiV3.RiskAnalysisTemplateAnnotationDocuments =

@@ -1,11 +1,12 @@
-import { vi, describe, it, expect, beforeEach } from "vitest";
 import {
   FileManager,
   genericLogger,
   initFileManager,
 } from "pagopa-interop-commons";
-import { uploadPreparedFileToS3 } from "../src/handlers/s3UploaderHandler.js";
+import { vi, describe, it, expect, beforeEach } from "vitest";
+
 import { config as appConfig, config } from "../src/config/config.js";
+import { uploadPreparedFileToS3 } from "../src/handlers/s3UploaderHandler.js";
 
 const fileManager: FileManager = initFileManager(config);
 

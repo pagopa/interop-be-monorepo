@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockClient,
   getMockKey,
@@ -22,8 +22,9 @@ import {
   AuthorizationEventEnvelopeV1,
   AuthorizationEventV1,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { handleAuthorizationEvent } from "../src/handlers/handleAuthorizationEvent.js";
 import {
   getMockEventEnvelopeCommons,

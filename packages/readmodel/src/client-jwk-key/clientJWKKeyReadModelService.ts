@@ -9,6 +9,7 @@ import {
   clientJwkKeyInReadmodelClientJwkKey,
   DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
+
 import { aggregateClientJWKKey } from "./aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

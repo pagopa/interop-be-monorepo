@@ -12,6 +12,7 @@ import {
   PurposeVersionDocument,
   PurposeVersionDocumentId,
 } from "pagopa-interop-models";
+
 import { getInteropBeClients } from "../../clients/clientProvider.js";
 
 export const addPurposeRiskAnalysisSignedDocument = async (

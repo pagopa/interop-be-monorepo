@@ -3,11 +3,16 @@
 import { fail } from "assert";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
+  unexpectedRiskAnalysisTemplateFieldError,
+  unexpectedRiskAnalysisTemplateFieldValueError,
+} from "pagopa-interop-commons";
+import {
   decodeProtobufPayload,
   getMockAuthData,
   getMockContext,
   getMockPurposeTemplate,
   getMockValidRiskAnalysisFormTemplate,
+  sortPurposeTemplate,
 } from "pagopa-interop-commons-test";
 import {
   PurposeTemplate,
@@ -18,10 +23,7 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
-import {
-  unexpectedRiskAnalysisTemplateFieldError,
-  unexpectedRiskAnalysisTemplateFieldValueError,
-} from "pagopa-interop-commons";
+
 import {
   hyperlinkDetectionError,
   purposeTemplateNotFound,
@@ -99,7 +101,10 @@ describe("createPurposeTemplateRiskAnalysisAnswer", () => {
       annotation: validRiskAnalysisAnswerRequest.answerData.annotation,
     });
 
-    expect(writtenPayload).toEqual({
+    expect({
+      ...writtenPayload,
+      purposeTemplate: sortPurposeTemplate(writtenPayload.purposeTemplate),
+    }).toEqual({
       purposeTemplate: {
         ...toPurposeTemplateV2({
           ...mockPurposeTemplate,
@@ -121,7 +126,8 @@ describe("createPurposeTemplateRiskAnalysisAnswer", () => {
             }),
           ]),
           multiAnswers:
-            mockPurposeTemplate.purposeRiskAnalysisForm!.multiAnswers,
+            sortPurposeTemplate(mockPurposeTemplate).purposeRiskAnalysisForm!
+              .multiAnswers,
         }),
       },
     });

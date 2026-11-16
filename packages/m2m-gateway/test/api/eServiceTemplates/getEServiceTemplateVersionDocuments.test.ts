@@ -1,20 +1,21 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
+import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockedApiEserviceDoc,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
   EServiceTemplateId,
   EServiceTemplateVersionId,
   generateId,
 } from "pagopa-interop-models";
-import { api, mockEServiceTemplateService } from "../../vitest.api.setup.js";
-import { appBasePath } from "../../../src/config/appBasePath.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { toM2MGatewayApiDocument } from "../../../src/api/eserviceTemplateApiConverter.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
+import { api, mockEServiceTemplateService } from "../../vitest.api.setup.js";
 
 describe("GET /eserviceTemplates/:templateId/descriptor/:versionId/documents route test", () => {
   const mockResponse: m2mGatewayApi.Documents = {

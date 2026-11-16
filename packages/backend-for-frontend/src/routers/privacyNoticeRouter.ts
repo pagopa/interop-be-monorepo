@@ -1,16 +1,17 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { bffApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
   ZodiosContext,
   fromAppContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { bffApi } from "pagopa-interop-api-clients";
+
 import { makeApiProblem } from "../model/errors.js";
 import { PrivacyNoticeService } from "../services/privacyNoticeService.js";
-import { getPrivacyNoticeErrorMapper } from "../utilities/errorMappers.js";
 import { fromBffAppContext } from "../utilities/context.js";
+import { getPrivacyNoticeErrorMapper } from "../utilities/errorMappers.js";
 
 const privacyNoticeRouter = (
   ctx: ZodiosContext,

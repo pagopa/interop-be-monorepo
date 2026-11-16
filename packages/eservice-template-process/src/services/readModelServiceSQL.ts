@@ -1,4 +1,16 @@
 import {
+  and,
+  count,
+  eq,
+  exists,
+  inArray,
+  isNotNull,
+  ne,
+  or,
+  sql,
+} from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
+import {
   ascLower,
   createListResult,
   escapeSqlLike,
@@ -12,6 +24,7 @@ import {
   Attribute,
   AttributeId,
   AttributeKind,
+  ESERVICE_INSTANCE_NAME_SEPARATOR,
   EServiceTemplate,
   EServiceTemplateId,
   ListResult,
@@ -23,7 +36,13 @@ import {
   CompactOrganization,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { z } from "zod";
+import {
+  aggregateEServiceTemplateArray,
+  AttributeReadModelService,
+  EServiceTemplateReadModelService,
+  TenantReadModelService,
+  toEServiceTemplateAggregatorArray,
+} from "pagopa-interop-readmodel";
 import {
   attributeInReadmodelAttribute,
   DrizzleReturnType,
@@ -38,28 +57,11 @@ import {
   eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate,
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
-import {
-  aggregateEServiceTemplateArray,
-  AttributeReadModelService,
-  EServiceTemplateReadModelService,
-  TenantReadModelService,
-  toEServiceTemplateAggregatorArray,
-} from "pagopa-interop-readmodel";
-import {
-  and,
-  count,
-  eq,
-  exists,
-  inArray,
-  isNotNull,
-  ne,
-  or,
-  sql,
-} from "drizzle-orm";
-import { alias } from "drizzle-orm/pg-core";
 import { match } from "ts-pattern";
-import { hasRoleToAccessDraftTemplateVersions } from "./validators.js";
+import { z } from "zod";
+
 import { GetEServiceTemplatesFilters } from "./readModelService.js";
+import { hasRoleToAccessDraftTemplateVersions } from "./validators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
@@ -344,7 +346,7 @@ export function readModelServiceBuilderSQL({
                     ne(eserviceInReadmodelCatalog.id, templateInstances.id),
                     sql`${eserviceInReadmodelCatalog.name} ILIKE CASE
                       WHEN ${templateInstances.instanceLabel} IS NOT NULL
-                        THEN ${escapedNewName} || ' - ' || ${templateInstances.instanceLabel}
+                        THEN ${escapedNewName} || ${ESERVICE_INSTANCE_NAME_SEPARATOR} || ${templateInstances.instanceLabel}
                       ELSE ${escapedNewName}
                     END ESCAPE '\\'`
                   )

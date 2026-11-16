@@ -1,13 +1,13 @@
-import {
-  clientJwkKeyInReadmodelClientJwkKey,
-  DrizzleReturnType,
-} from "pagopa-interop-readmodel-models";
 import { and, eq, lte } from "drizzle-orm";
 import { ClientId, ClientJWKKey } from "pagopa-interop-models";
 import {
   checkMetadataVersionByFilter,
   splitClientJWKKeyIntoObjectsSQL,
 } from "pagopa-interop-readmodel";
+import {
+  clientJwkKeyInReadmodelClientJwkKey,
+  DrizzleReturnType,
+} from "pagopa-interop-readmodel-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function clientJWKKeyWriterServiceBuilder(db: DrizzleReturnType) {

@@ -9,10 +9,11 @@ import {
   EServiceId,
   generateId,
 } from "pagopa-interop-models";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
-import { CatalogProcessZodiosClient } from "./catalogProcessClient.js";
+
 import { config } from "../config/config.js";
 import { ArchivableDescriptorRef, Headers } from "../models/models.js";
+import { CatalogProcessZodiosClient } from "./catalogProcessClient.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 const getHeaders = (correlationId: CorrelationId, token: string): Headers => ({
   "X-Correlation-Id": correlationId,

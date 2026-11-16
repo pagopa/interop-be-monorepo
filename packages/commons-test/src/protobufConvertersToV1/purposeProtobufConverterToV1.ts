@@ -1,4 +1,3 @@
-import { match } from "ts-pattern";
 import {
   Purpose,
   PurposeVersion,
@@ -11,6 +10,7 @@ import {
   PurposeVersionDocumentV1,
   PurposeVersionV1,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 
 export const toPurposeVersionStateV1 = (
   input: PurposeVersionState

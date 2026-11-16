@@ -7,6 +7,7 @@ import {
   Tenant,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import { getLatestActiveDescriptor } from "../utils/utils.js";
 import {
   PublicEService,

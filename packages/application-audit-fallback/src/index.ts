@@ -1,5 +1,6 @@
-import { initQueueManager, logger } from "pagopa-interop-commons";
 import { initProducer } from "kafka-iam-auth";
+import { initQueueManager, logger } from "pagopa-interop-commons";
+
 import { config } from "./config/config.js";
 import { handleMessage } from "./handlers/handleMessage.js";
 

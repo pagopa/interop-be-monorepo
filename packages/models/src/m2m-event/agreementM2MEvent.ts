@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { AgreementEventV2 } from "../agreement/agreementEvents.js";
 import {
   DelegationId,

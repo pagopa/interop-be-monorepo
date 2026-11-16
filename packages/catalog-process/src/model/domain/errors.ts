@@ -1,4 +1,8 @@
-import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
+import {
+  RiskAnalysisValidationIssue,
+  dateAtRomeZone,
+  catalogErrorCodes,
+} from "pagopa-interop-commons";
 import {
   ApiError,
   AttributeId,
@@ -12,79 +16,13 @@ import {
   RiskAnalysisId,
   TenantId,
   TenantKind,
+  Technology,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
-const errorCodes = {
-  eServiceDescriptorNotFound: "0001",
-  eServiceDescriptorWithoutInterface: "0002",
-  notValidDescriptor: "0003",
-  eServiceDocumentNotFound: "0004",
-  eServiceNotFound: "0005",
-  draftDescriptorAlreadyExists: "0006",
-  eServiceNameDuplicateForProducer: "007",
-  originNotCompliant: "0008",
-  attributeNotFound: "0009",
-  inconsistentDailyCalls: "0010",
-  interfaceAlreadyExists: "0011",
-  eserviceNotInDraftState: "0012",
-  eserviceNotInReceiveMode: "0013",
-  tenantNotFound: "0014",
-  tenantKindNotFound: "0015",
-  riskAnalysisValidationFailed: "0016",
-  eServiceRiskAnalysisNotFound: "0017",
-  eServiceRiskAnalysisIsRequired: "0018",
-  riskAnalysisNotValid: "0019",
-  documentPrettyNameDuplicate: "0020",
-  riskAnalysisDuplicated: "0021",
-  eserviceWithoutValidDescriptors: "0022",
-  audienceCannotBeEmpty: "0023",
-  eserviceWithActiveOrPendingDelegation: "0024",
-  invalidDelegationFlags: "0025",
-  inconsistentAttributesSeedGroupsCount: "0026",
-  descriptorAttributeGroupSupersetMissingInAttributesSeed: "0027",
-  unchangedAttributes: "0028",
-  eServiceTemplateNotFound: "0029",
-  eServiceTemplateWithoutPublishedVersion: "0030",
-  templateInstanceNotAllowed: "0031",
-  eServiceNotAnInstance: "0032",
-  eServiceAlreadyUpgraded: "0033",
-  invalidDescriptorVersion: "0034",
-  eserviceTemplateInterfaceNotFound: "0035",
-  eserviceTemplateInterfaceDataNotValid: "0036",
-  descriptorTemplateVersionNotFound: "0037",
-  templateMissingRequiredRiskAnalysis: "0038",
-  eserviceTemplateNameConflict: "0039",
-  checksumDuplicate: "0040",
-  attributeDuplicatedInGroup: "0041",
-  eservicePersonalDataFlagCanOnlyBeSetOnce: "0042",
-  missingPersonalDataFlag: "0043",
-  eServiceTemplateWithoutPersonalDataFlag: "0044",
-  eServiceUpdateSameDescriptionConflict: "0045",
-  eServiceUpdateSameNameConflict: "0046",
-  eserviceInDraftState: "0047",
-  attributeDailyCallsNotAllowed: "0048",
-  certifiedAttributeGroupNotFoundInSeed: "0049",
-  asyncExchangeCallbackInterfaceAlreadyExists: "0050",
-  eServiceAsyncExchangeNotEnabled: "0051",
-  missingAsyncExchangeProperties: "0053",
-  asyncExchangeBulkNotAllowedForSoap: "0054",
-  asyncExchangeNotAllowedForReceiveMode: "0055",
-  missingAsyncExchangeCallbackInterface: "0056",
-  templateVersionMissingAsyncExchangeProperties: "0057",
-  riskAnalysisTenantKindMismatch: "0058",
-  eserviceInArchivingOrArchivedState: "0059",
-  descriptorArchivingNotCancelableByScope: "0060",
-  descriptorAlreadyArchived: "0061",
-  notValidEServiceState: "0062",
-  eserviceNotInArchiving: "0063",
-  eServiceAlreadyArchived: "0064",
-  attributeDiscreteConfigNotAllowed: "0065",
-};
+export type ErrorCodes = keyof typeof catalogErrorCodes;
 
-export type ErrorCodes = keyof typeof errorCodes;
-
-export const makeApiProblem = makeApiProblemBuilder(errorCodes);
+export const makeApiProblem = makeApiProblemBuilder(catalogErrorCodes);
 
 export function eServiceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
   return new ApiError({
@@ -146,6 +84,17 @@ export function eServiceDocumentNotFound(
     detail: `Document with id ${documentId} not found in EService ${eserviceId} / Descriptor ${descriptorId}`,
     code: "eServiceDocumentNotFound",
     title: "EService document not found",
+  });
+}
+
+export function interfaceDocumentNotUpdatable(
+  descriptorId: DescriptorId,
+  documentId: EServiceDocumentId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Document ${documentId} is the interface or the async exchange callback interface of descriptor ${descriptorId} and cannot be updated`,
+    code: "interfaceDocumentNotUpdatable",
+    title: "Interface document not updatable",
   });
 }
 
@@ -394,6 +343,29 @@ export function eserviceWithActiveOrPendingDelegation(
   });
 }
 
+export function eserviceArchivingWithActiveOrPendingDelegation(
+  eserviceId: EServiceId,
+  delegationId: DelegationId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `E-service ${eserviceId} can't be archived with an active or pending delegation ${delegationId}`,
+    code: "eserviceArchivingWithActiveOrPendingDelegation",
+    title: "E-service archiving with active or pending delegation",
+  });
+}
+
+export function eserviceDescriptorWithActiveOrPendingDelegation(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId,
+  delegationId: DelegationId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `E-service ${eserviceId} descriptor ${descriptorId} can't be archived with an active or pending delegation ${delegationId}`,
+    code: "eserviceDescriptorWithActiveOrPendingDelegation",
+    title: "E-service descriptor with active or pending delegation",
+  });
+}
+
 export function invalidDelegationFlags(
   isConsumerDelegable: boolean | undefined,
   isClientAccessDelegable: boolean | undefined
@@ -436,6 +408,17 @@ export function templateInstanceNotAllowed(
   });
 }
 
+export function templateInstanceAttributesCannotBeChanged(
+  eserviceId: EServiceId,
+  eServiceTemplateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attributes of EService ${eserviceId} cannot differ from those inherited from template ${eServiceTemplateId}`,
+    code: "templateInstanceAttributesCannotBeChanged",
+    title: "Template instance attributes cannot be changed",
+  });
+}
+
 export function eServiceNotAnInstance(
   eserviceId: EServiceId
 ): ApiError<ErrorCodes> {
@@ -464,6 +447,18 @@ export function eserviceTemplateInterfaceNotFound(
     detail: `EService template interface for template ${eserviceTemplateId} with version ${eserviceTemplateVersionId} not found`,
     code: "eserviceTemplateInterfaceNotFound",
     title: "EService template interface document not found",
+  });
+}
+
+export function eserviceTemplateInterfaceTechnologyMismatch(
+  eserviceTemplateId: EServiceTemplateId,
+  templateTechnology: Technology,
+  interfaceTechnology: Technology
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService template ${eserviceTemplateId} has technology ${templateTechnology}, which is incompatible with interface technology ${interfaceTechnology}`,
+    code: "eserviceTemplateInterfaceTechnologyMismatch",
+    title: "EService template interface technology mismatch",
   });
 }
 
@@ -680,6 +675,16 @@ export function attributeDiscreteConfigNotAllowed(
   });
 }
 
+export function certifiedDiscreteAttributeConfigCannotBeChanged(
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The discrete configuration for the certified attribute ${attributeId} cannot be changed`,
+    code: "certifiedDiscreteAttributeConfigCannotBeChanged",
+    title: "Certified discrete attribute config cannot be changed",
+  });
+}
+
 export function certifiedAttributeGroupNotFoundInSeed(
   eserviceId: EServiceId,
   descriptorId: DescriptorId
@@ -737,5 +742,81 @@ export function eServiceAlreadyArchived(
     detail: `EService ${eserviceId} is already archived`,
     code: "eServiceAlreadyArchived",
     title: "EService already archived",
+  });
+}
+
+export function gracePeriodDaysLowerThanDescriptor(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId,
+  requestedArchivableOn: Date,
+  expectedArchivableOn: Date
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Requested archiving date ${dateAtRomeZone(requestedArchivableOn)} for EService ${eserviceId} cannot be lower than expected archiving date ${dateAtRomeZone(expectedArchivableOn)} already scheduled for Descriptor ${descriptorId}`,
+    code: "gracePeriodDaysLowerThanDescriptor",
+    title: "Grace period days lower than descriptor",
+  });
+}
+
+export function delegatedArchivingRequestAlreadyInProgress(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `An archiving request for EService ${eserviceId} is already in progress`,
+    code: "delegatedArchivingRequestAlreadyInProgress",
+    title: "Delegated archiving request already in progress",
+  });
+}
+
+export function noDelegationForArchivingRequest(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No active producer delegation found for E-service ${eserviceId} to submit an archiving request`,
+    code: "noDelegationForArchivingRequest",
+    title: "No delegation for archiving request",
+  });
+}
+
+export function noActiveDelegationFound(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The E-service ${eserviceId} has no active delegation`,
+    code: "noActiveDelegationFound",
+    title: "No active delegation found for E-service",
+  });
+}
+
+export function delegatedArchiveRequestForIncorrectDelegateProducer(
+  eserviceId: EServiceId,
+  descriptorId?: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The E-service ${eserviceId}${descriptorId ? ` and descriptor ${descriptorId}` : ""} archiving request refers to a delegation no longer active`,
+    code: "delegatedArchiveRequestForIncorrectDelegateProducer",
+    title: "Archiving request with invalid requesterId",
+  });
+}
+
+export function noDelegatedArchivingRequestFound(
+  eserviceId: EServiceId,
+  descriptorId?: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No active delegated archiving request found for E-service ${eserviceId}${descriptorId ? ` and descriptor ${descriptorId}` : ""}`,
+    code: "noDelegatedArchivingRequestFound",
+    title: "No delegated archiving request found",
+  });
+}
+
+export function delegatedArchivingRequestNotActive(
+  eserviceId: EServiceId,
+  descriptorId?: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The delegated archiving request for E-service ${eserviceId}${descriptorId ? ` and descriptor ${descriptorId}` : ""} is no longer active as it has already been processed (accepted or rejected). The delegate must resubmit.`,
+    code: "delegatedArchivingRequestNotActive",
+    title: "Delegated archiving request not active",
   });
 }

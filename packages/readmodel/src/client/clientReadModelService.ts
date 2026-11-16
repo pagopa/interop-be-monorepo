@@ -12,6 +12,7 @@ import {
   clientUserInReadmodelClient,
   DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
+
 import {
   aggregateClient,
   aggregateClientArray,

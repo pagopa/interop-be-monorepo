@@ -24,6 +24,8 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { vi, expect, describe, it } from "vitest";
+
+import { config } from "../../src/config/config.js";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
@@ -31,7 +33,6 @@ import {
   eServiceDocumentNotFound,
   templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
 import {
   fileManager,
   addOneEService,

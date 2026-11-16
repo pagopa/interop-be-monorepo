@@ -1,5 +1,5 @@
-import { ProducerKeyM2MEvent, dateToString } from "pagopa-interop-models";
 import { ProducerKeyM2MEventSQL } from "pagopa-interop-m2m-event-db-models";
+import { ProducerKeyM2MEvent, dateToString } from "pagopa-interop-models";
 
 export function toProducerKeyM2MEventSQL(
   event: ProducerKeyM2MEvent

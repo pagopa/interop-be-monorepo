@@ -1,4 +1,5 @@
 /* eslint-disable functional/no-let */
+import { logger } from "pagopa-interop-commons";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import {
   getMockTenant,
@@ -31,6 +32,7 @@ import {
   Attribute,
   AttributeId,
   attributeKind,
+  CertifiedDiscreteTenantAttribute,
   VerifiedTenantAttribute,
   CertifiedTenantAttribute,
   tenantAttributeType,
@@ -41,7 +43,6 @@ import {
   PurposeVersionState,
   tenantFeatureType,
 } from "pagopa-interop-models";
-import { afterEach, inject } from "vitest";
 import {
   upsertAgreement,
   upsertEService,
@@ -50,7 +51,8 @@ import {
   upsertAttribute,
   upsertPurpose,
 } from "pagopa-interop-readmodel/testUtils";
-import { logger } from "pagopa-interop-commons";
+import { afterEach, inject } from "vitest";
+
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(
@@ -86,7 +88,8 @@ export const TEST_TIME_WINDOWS = {
 } as const;
 
 export const TEST_LIMITS = {
-  MAX_RESULTS: 5,
+  MAX_CARD_RESULTS: 6,
+  MAX_LIST_RESULTS: 5,
 } as const;
 
 /**
@@ -740,6 +743,18 @@ const createMockCertifiedTenantAttribute = (
   revocationTimestamp,
 });
 
+const createMockCertifiedDiscreteTenantAttribute = (
+  attributeId: AttributeId,
+  assignmentTimestamp: Date,
+  revocationTimestamp?: Date
+): CertifiedDiscreteTenantAttribute => ({
+  id: attributeId,
+  type: tenantAttributeType.CERTIFIED_DISCRETE,
+  assignmentTimestamp,
+  revocationTimestamp,
+  discreteValue: 42,
+});
+
 /**
  * Creates a tenant with a certified assigned attribute
  */
@@ -777,6 +792,25 @@ const createTenantWithCertifiedRevokedAttribute = (
   return createMockTenant({
     id: tenantId,
     attributes: [certifiedAttribute],
+  });
+};
+
+const createTenantWithCertifiedDiscreteAttribute = (
+  tenantId: TenantId,
+  attributeId: AttributeId,
+  assignmentTimestamp: Date,
+  revocationTimestamp?: Date
+): Tenant => {
+  const certifiedDiscreteAttribute: CertifiedDiscreteTenantAttribute =
+    createMockCertifiedDiscreteTenantAttribute(
+      attributeId,
+      assignmentTimestamp,
+      revocationTimestamp
+    );
+
+  return createMockTenant({
+    id: tenantId,
+    attributes: [certifiedDiscreteAttribute],
   });
 };
 
@@ -865,6 +899,54 @@ export const createCertifiedRevokedAttributeScenario = async (config: {
   await addOneTenant(certifier);
 
   const tenant = createTenantWithCertifiedRevokedAttribute(
+    config.tenantId,
+    attribute.id,
+    assignmentTimestamp,
+    revocationTimestamp
+  );
+  await addOneTenant(tenant);
+
+  return { tenant, attribute, certifier };
+};
+
+export const createCertifiedDiscreteAttributeScenario = async (config: {
+  tenantId: TenantId;
+  attributeName?: string;
+  assignmentDaysAgo: number;
+  revocationDaysAgo?: number;
+  certifierId?: string;
+  certifierName?: string;
+}): Promise<{
+  tenant: Tenant;
+  attribute: Attribute;
+  certifier: Tenant;
+}> => {
+  const assignmentTimestamp: Date = daysAgo(config.assignmentDaysAgo);
+  const revocationTimestamp: Date | undefined =
+    config.revocationDaysAgo === undefined
+      ? undefined
+      : daysAgo(config.revocationDaysAgo);
+  const certifierId: string = config.certifierId ?? generateId<TenantId>();
+  const attribute: Attribute = createMockAttribute({
+    kind: attributeKind.certifiedDiscrete,
+    origin: certifierId,
+    ...(config.attributeName ? { name: config.attributeName } : {}),
+  });
+
+  await addOneAttribute(attribute);
+
+  const certifier: Tenant = createMockTenant({
+    name: config.certifierName ?? `Certifier ${certifierId}`,
+    features: [
+      {
+        type: tenantFeatureType.persistentCertifier,
+        certifierId,
+      },
+    ],
+  });
+  await addOneTenant(certifier);
+
+  const tenant: Tenant = createTenantWithCertifiedDiscreteAttribute(
     config.tenantId,
     attribute.id,
     assignmentTimestamp,

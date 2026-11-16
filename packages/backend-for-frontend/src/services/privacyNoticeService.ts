@@ -3,8 +3,8 @@
 import { bffApi } from "pagopa-interop-api-clients";
 import { FileManager, Logger, WithLogger } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
+
 import { config } from "../config/config.js";
-import { BffAppContext } from "../utilities/context.js";
 import {
   privacyNoticeNotFound,
   privacyNoticeNotFoundInConfiguration,
@@ -16,6 +16,7 @@ import {
   UserPrivacyNoticeConsentTypePP,
   UserPrivacyNoticeConsentTypeTOS,
 } from "../model/types.js";
+import { BffAppContext } from "../utilities/context.js";
 import { PrivacyNoticeStorage } from "./privacyNoticeStorage.js";
 
 export function privacyNoticeServiceBuilder(

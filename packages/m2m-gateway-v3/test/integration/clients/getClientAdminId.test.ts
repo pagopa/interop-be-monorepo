@@ -1,19 +1,20 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import { authorizationApi } from "pagopa-interop-api-clients";
-import { unsafeBrandId } from "pagopa-interop-models";
 import {
   getMockWithMetadata,
   getMockedApiConsumerPartialClient,
   getMockedApiConsumerFullClient,
 } from "pagopa-interop-commons-test";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import { unsafeBrandId } from "pagopa-interop-models";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { clientAdminIdNotFound } from "../../../src/model/errors.js";
 import {
   clientService,
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { clientAdminIdNotFound } from "../../../src/model/errors.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getClientAdminId", () => {
   const mockAuthProcessResponseWithAdminId = getMockWithMetadata(

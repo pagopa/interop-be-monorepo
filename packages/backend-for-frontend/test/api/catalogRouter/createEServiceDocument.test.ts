@@ -1,23 +1,28 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { bffApi } from "pagopa-interop-api-clients";
+import { authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test";
 import {
   DescriptorId,
   EServiceId,
   generateId,
+  interfaceExtractingInfoError,
+  interfaceExtractingSoapFieldError,
   invalidContentTypeDetected,
   invalidInterfaceFileDetected,
+  openapiVersionNotRecognized,
+  parsingSoapFileError,
 } from "pagopa-interop-models";
 import request from "supertest";
-import { generateToken } from "pagopa-interop-commons-test/index.js";
-import { authRole } from "pagopa-interop-commons";
-import { bffApi } from "pagopa-interop-api-clients";
-import { api, services } from "../../vitest.api.setup.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { eserviceDescriptorNotFound } from "../../../src/model/errors.js";
 import {
   getMockBffApiCreatedResource,
   getMockBffApiCreateEServiceDocumentBody,
 } from "../../mockUtils.js";
-import { eserviceDescriptorNotFound } from "../../../src/model/errors.js";
+import { api, services } from "../../vitest.api.setup.js";
 
 describe("API POST /eservices/:eServiceId/descriptors/:descriptorId/documents", () => {
   const mockApiCreatedResource = getMockBffApiCreatedResource();
@@ -86,6 +91,22 @@ describe("API POST /eservices/:eServiceId/descriptors/:descriptorId/documents", 
         id: generateId(),
         isEserviceTemplate: false,
       }),
+      expectedStatus: 400,
+    },
+    {
+      error: interfaceExtractingSoapFieldError("field-name"),
+      expectedStatus: 400,
+    },
+    {
+      error: interfaceExtractingInfoError(),
+      expectedStatus: 400,
+    },
+    {
+      error: parsingSoapFileError(),
+      expectedStatus: 400,
+    },
+    {
+      error: openapiVersionNotRecognized("invalid-version"),
       expectedStatus: 400,
     },
   ])(

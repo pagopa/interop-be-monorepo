@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import { getMockPurposeTemplate } from "pagopa-interop-commons-test";
 import {
   PurposeTemplateEventV2,
@@ -9,8 +9,9 @@ import {
   toPurposeTemplateV2,
   TenantId,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { handlePurposeTemplateEvent } from "../src/handlers/handlePurposeTemplateEvent.js";
 import {
   getMockEventEnvelopeCommons,

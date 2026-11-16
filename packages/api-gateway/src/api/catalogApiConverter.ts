@@ -4,6 +4,7 @@ import {
   catalogApi,
 } from "pagopa-interop-api-clients";
 import { Logger } from "pagopa-interop-commons";
+
 import {
   assertIsValidDescriptor,
   assertRegistryAttributeExists,

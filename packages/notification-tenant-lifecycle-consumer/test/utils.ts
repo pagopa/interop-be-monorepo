@@ -1,4 +1,5 @@
 import { RefreshableInteropToken } from "pagopa-interop-commons";
+
 import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
 import { notificationTenantLifecycleConsumerServiceBuilder } from "../src/notificationTenantLifecycleConsumerService.js";
 

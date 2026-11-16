@@ -10,7 +10,6 @@ import {
   ProducerKeychainPlatformStateEntry,
   Purpose,
 } from "pagopa-interop-models";
-import { afterEach, inject } from "vitest";
 import {
   upsertAgreement,
   upsertClient,
@@ -18,6 +17,8 @@ import {
   upsertProducerKeychain,
   upsertPurpose,
 } from "pagopa-interop-readmodel/testUtils";
+import { afterEach, inject } from "vitest";
+
 import { asyncTokenGenerationReadModelServiceBuilder } from "../src/services/asyncTokenGenerationReadModelService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 

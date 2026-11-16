@@ -1,12 +1,21 @@
-import { match } from "ts-pattern";
+import {
+  agreementApi,
+  catalogApi,
+  purposeApi,
+} from "pagopa-interop-api-clients";
+import { InteropHeaders } from "pagopa-interop-commons";
 import {
   agreementState,
+  DelegatedDescriptorArchivingRequest,
+  DelegatedEServiceArchivingRequest,
   Delegation,
   DelegationId,
+  DescriptorId,
+  descriptorState,
   purposeVersionState,
 } from "pagopa-interop-models";
-import { InteropHeaders } from "pagopa-interop-commons";
-import { agreementApi, purposeApi } from "pagopa-interop-api-clients";
+import { match } from "ts-pattern";
+
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const processPurposes = async ({
@@ -81,6 +90,99 @@ export const processPurposes = async ({
       }
     })
   );
+};
+
+const hasPendingArchivingRequest = (
+  archivingRequests:
+    | Array<
+        DelegatedEServiceArchivingRequest | DelegatedDescriptorArchivingRequest
+      >
+    | undefined
+): boolean =>
+  archivingRequests?.some(
+    (request) =>
+      request.acceptedAt === undefined && request.rejectedAt === undefined
+  ) ?? false;
+
+export const processEServiceDescriptorAfterRevoke = async ({
+  readModelService,
+  catalogProcessClient,
+  headers,
+  delegation,
+}: {
+  readModelService: ReadModelServiceSQL;
+  catalogProcessClient: catalogApi.CatalogProcessClient;
+  headers: InteropHeaders;
+  delegation: Delegation;
+}): Promise<void> => {
+  const eservice = await readModelService.getEService(delegation.eserviceId);
+
+  if (!eservice) {
+    return;
+  }
+
+  const descriptorsInWaitingForApprovalState = eservice.descriptors
+    .filter(
+      (descriptor) => descriptor.state === descriptorState.waitingForApproval
+    )
+    .map((descriptor) => descriptor.id)
+    .at(0);
+
+  if (descriptorsInWaitingForApprovalState) {
+    await catalogProcessClient.internalRestoreDraftDescriptorAfterDelegationRevoke(
+      undefined,
+      {
+        params: {
+          eServiceId: eservice.id,
+          descriptorId: descriptorsInWaitingForApprovalState,
+        },
+        headers,
+      }
+    );
+  }
+};
+
+export const processEServiceArchivingRequests = async ({
+  readModelService,
+  catalogProcessClient,
+  headers,
+  delegation,
+}: {
+  readModelService: ReadModelServiceSQL;
+  catalogProcessClient: catalogApi.CatalogProcessClient;
+  headers: InteropHeaders;
+  delegation: Delegation;
+}): Promise<void> => {
+  const eservice = await readModelService.getEService(delegation.eserviceId);
+
+  if (!eservice) {
+    return;
+  }
+
+  const descriptorIdsWithPendingRequest = eservice.descriptors
+    .filter((descriptor) =>
+      hasPendingArchivingRequest(descriptor.delegatedArchivingRequest)
+    )
+    .map((descriptor) => descriptor.id);
+
+  const scopes: Array<DescriptorId | undefined> = [
+    ...descriptorIdsWithPendingRequest,
+    ...(hasPendingArchivingRequest(eservice.delegatedArchivingRequest)
+      ? [undefined]
+      : []),
+  ];
+
+  for (const descriptorId of scopes) {
+    await catalogProcessClient.internalDeleteDelegatedArchivingRequest(
+      {
+        descriptorId,
+      },
+      {
+        params: { eServiceId: eservice.id },
+        headers,
+      }
+    );
+  }
 };
 
 export const processAgreement = async ({

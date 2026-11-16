@@ -1,15 +1,16 @@
 import { startServer } from "pagopa-interop-commons";
-import { makeDrizzleConnection } from "pagopa-interop-readmodel";
 import { initDB, initFileManager } from "pagopa-interop-commons";
+import { makeDrizzleConnection } from "pagopa-interop-readmodel";
 import {
   attributeReadModelServiceBuilder,
   eserviceTemplateReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
-import { config } from "./config/config.js";
-import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
-import { eserviceTemplateServiceBuilder } from "./services/eserviceTemplateService.js";
+
 import { createApp } from "./app.js";
+import { config } from "./config/config.js";
+import { eserviceTemplateServiceBuilder } from "./services/eserviceTemplateService.js";
+import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 
 const readModelDB = makeDrizzleConnection(config);
 const eserviceTemplateReadModelServiceSQL =

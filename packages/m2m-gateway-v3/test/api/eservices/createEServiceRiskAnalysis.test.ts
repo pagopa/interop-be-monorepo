@@ -1,28 +1,29 @@
-import { describe, it, expect, vi } from "vitest";
+import { catalogApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockValidRiskAnalysis,
   getMockedApiEservice,
   getMockDPoPProof,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
-import { catalogApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   generateId,
   pollingMaxRetriesExceeded,
   tenantKind,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { api, mockEserviceService } from "../../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
+import { toM2MGatewayApiEServiceRiskAnalysis } from "../../../src/api/eserviceApiConverter.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { config } from "../../../src/config/config.js";
 import {
   eserviceRiskAnalysisNotFound,
   missingMetadata,
 } from "../../../src/model/errors.js";
 import { buildRiskAnalysisSeed } from "../../mockUtils.js";
-import { toM2MGatewayApiEServiceRiskAnalysis } from "../../../src/api/eserviceApiConverter.js";
-import { config } from "../../../src/config/config.js";
+import { api, mockEserviceService } from "../../vitest.api.setup.js";
 
 describe("POST /eservice/:eserviceId/riskAnalyses router test", () => {
   const mockRiskAnalysisSeed: m2mGatewayApiV3.EServiceRiskAnalysisSeed =

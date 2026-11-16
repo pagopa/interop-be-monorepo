@@ -1,5 +1,12 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { describe, it, expect, vi } from "vitest";
+import {
+  decodeProtobufPayload,
+  getMockContextInternal,
+  getMockEService,
+  getMockTenant,
+  getMockValidRiskAnalysis,
+  sortRiskAnalysisCollections,
+} from "pagopa-interop-commons-test";
 import {
   EService,
   MaintenanceEServiceRiskAnalysisSetTenantKindV2,
@@ -11,13 +18,8 @@ import {
   EServiceId,
   RiskAnalysisId,
 } from "pagopa-interop-models";
-import {
-  decodeProtobufPayload,
-  getMockContextInternal,
-  getMockEService,
-  getMockTenant,
-  getMockValidRiskAnalysis,
-} from "pagopa-interop-commons-test";
+import { describe, it, expect, vi } from "vitest";
+
 import {
   eServiceNotFound,
   tenantKindNotFound,
@@ -97,7 +99,9 @@ describe("fixEServiceRiskAnalysisTenantKind", () => {
         riskAnalysis: [riskAnalysisOther, fixedRiskAnalysis],
       };
 
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+      expect(sortRiskAnalysisCollections(writtenPayload.eservice)).toEqual(
+        sortRiskAnalysisCollections(toEServiceV2(expectedEService))
+      );
     } finally {
       vi.useRealTimers();
     }
@@ -119,7 +123,7 @@ describe("fixEServiceRiskAnalysisTenantKind", () => {
 
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.fixEServiceRiskAnalysisTenantKind(
         eservice.id,
         riskAnalysisToFix.id,
@@ -132,7 +136,7 @@ describe("fixEServiceRiskAnalysisTenantKind", () => {
     const unknownEServiceId = generateId<EServiceId>();
     const riskAnalysisId = generateId<RiskAnalysisId>();
 
-    expect(
+    await expect(
       catalogService.fixEServiceRiskAnalysisTenantKind(
         unknownEServiceId,
         riskAnalysisId,

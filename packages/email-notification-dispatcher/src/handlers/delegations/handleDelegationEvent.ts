@@ -3,10 +3,11 @@ import {
   DelegationEventV2,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+
 import { HandlerParams } from "../../models/handlerParams.js";
-import { handleProducerDelegationApproved } from "./handleProducerDelegationApproved.js";
 import { handleConsumerDelegationApproved } from "./handleConsumerDelegationApproved.js";
 import { handleConsumerDelegationRejected } from "./handleConsumerDelegationRejected.js";
+import { handleProducerDelegationApproved } from "./handleProducerDelegationApproved.js";
 import { handleProducerDelegationRejected } from "./handleProducerDelegationRejected.js";
 import { handleProducerDelegationRevoked } from "./handleProducerDelegationRevoked.js";
 

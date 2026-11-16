@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { purposeTemplateApi } from "pagopa-interop-api-clients";
+import { authRole, AuthRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockPurposeTemplate,
@@ -9,10 +11,9 @@ import {
   PurposeTemplate,
   targetTenantKind,
 } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import request from "supertest";
-import { authRole, AuthRole } from "pagopa-interop-commons";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { purposeTemplateToApiPurposeTemplate } from "../../src/model/domain/apiConverter.js";
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
 

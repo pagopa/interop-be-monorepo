@@ -6,7 +6,7 @@ meta {
 
 post {
   url: {{host-bff}}/eservices/:eserviceId/descriptors/:descriptorId/scheduleArchive
-  body: none
+  body: json
   auth: none
 }
 
@@ -17,4 +17,10 @@ params:path {
 
 headers {
   Authorization: {{JWT}}
+}
+
+body:json {
+  {
+    "gracePeriodDays": 60
+  }
 }

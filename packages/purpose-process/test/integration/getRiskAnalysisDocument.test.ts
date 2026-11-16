@@ -28,13 +28,13 @@ import {
   eserviceMode,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
+
 import {
   purposeNotFound,
   purposeVersionNotFound,
   purposeVersionDocumentNotFound,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
-
 import {
   addOnePurpose,
   purposeService,

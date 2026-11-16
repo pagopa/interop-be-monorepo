@@ -9,7 +9,7 @@ import {
   riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate,
   systemRole,
   UIAuthData,
-  validateNoHyperlinks,
+  validateNoHyperlinksSafe,
   validatePurposeTemplateRiskAnalysis,
   validateRiskAnalysisAnswer,
 } from "pagopa-interop-commons";
@@ -20,6 +20,7 @@ import {
   EService,
   EServiceDescriptorPurposeTemplate,
   EServiceId,
+  eserviceMode,
   EServiceTemplate,
   EServiceTemplateId,
   EServiceTemplateVersionId,
@@ -40,9 +41,11 @@ import {
   userRole,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import { config } from "../config/config.js";
 import {
   eserviceAlreadyAssociatedError,
+  eserviceInReceiveMode,
   eserviceIsInstanceOfEServiceTemplateError,
   eserviceNotAssociatedError,
   eserviceNotFound,
@@ -255,7 +258,19 @@ export function validateAndTransformRiskAnalysisTemplate(
 export function validateRiskAnalysisAnswerAnnotationOrThrow(
   text: string
 ): void {
-  validateNoHyperlinks(text, hyperlinkDetectionError(text));
+  validateNoHyperlinksSafe(text, hyperlinkDetectionError(text));
+}
+
+export function validatePurposeTemplateFreeTextFields(fields: {
+  targetDescription?: string;
+  purposeTitle?: string;
+  purposeDescription?: string;
+  purposeFreeOfChargeReason?: string | null;
+}): void {
+  validateNoHyperlinksSafe(fields.targetDescription);
+  validateNoHyperlinksSafe(fields.purposeTitle);
+  validateNoHyperlinksSafe(fields.purposeDescription);
+  validateNoHyperlinksSafe(fields.purposeFreeOfChargeReason ?? undefined);
 }
 
 export function validateRiskAnalysisTemplateOrThrow({
@@ -468,6 +483,16 @@ async function validateEServiceExistence(
                   res.value,
                   purposeTemplate
                 ),
+              ],
+            };
+          }
+
+          if (res.value.mode === eserviceMode.receive) {
+            return {
+              ...acc,
+              validationIssues: [
+                ...acc.validationIssues,
+                eserviceInReceiveMode(res.value.id),
               ],
             };
           }
@@ -1447,6 +1472,7 @@ export function hasRoleToAccessDraftPurposeTemplates(
       userRole.ADMIN_ROLE,
       userRole.API_ROLE,
       userRole.SUPPORT_ROLE,
+      userRole.VIEWER_ROLE,
     ]) ||
     hasAtLeastOneSystemRole(authData, [
       systemRole.M2M_ADMIN_ROLE,

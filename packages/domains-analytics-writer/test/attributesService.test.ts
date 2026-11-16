@@ -2,7 +2,6 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { describe, expect, it, beforeEach } from "vitest";
 import { getMockAttribute } from "pagopa-interop-commons-test";
 import {
   Attribute,
@@ -11,6 +10,8 @@ import {
   attributeKind,
   toAttributeV1,
 } from "pagopa-interop-models";
+import { describe, expect, it, beforeEach } from "vitest";
+
 import { handleAttributeMessageV1 } from "../src/handlers/attribute/consumerServiceV1.js";
 import { AttributeDbTable } from "../src/model/db/index.js";
 import {

@@ -1,9 +1,10 @@
 import { z } from "zod";
-import { KafkaProducerConfig } from "./producerServiceConfig.js";
-import { ApplicationAuditTopicConfig } from "./kafkaTopicConfig.js";
+
 import { ApplicationAuditFallbackSQSProducerConfig } from "./applicationAuditFallbackSQSProducerConfig.js";
-import { LoggerConfig } from "./loggerConfig.js";
 import { FeatureFlagApplicationAuditStrictConfig } from "./featureFlagsConfig.js";
+import { ApplicationAuditTopicConfig } from "./kafkaTopicConfig.js";
+import { LoggerConfig } from "./loggerConfig.js";
+import { KafkaProducerConfig } from "./producerServiceConfig.js";
 
 export const ApplicationAuditProducerConfig = z
   .object({

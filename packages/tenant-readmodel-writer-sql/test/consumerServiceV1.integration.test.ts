@@ -1,4 +1,3 @@
-import { describe, it, expect, vi } from "vitest";
 import { getMockTenant } from "pagopa-interop-commons-test";
 import {
   SelfcareMappingCreatedV1,
@@ -11,6 +10,8 @@ import {
   TenantUpdatedV1,
   generateId,
 } from "pagopa-interop-models";
+import { describe, it, expect, vi } from "vitest";
+
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import { toTenantV1 } from "./converterV1.js";
 import { tenantReadModelService, tenantWriterService } from "./utils.js";

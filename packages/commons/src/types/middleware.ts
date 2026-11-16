@@ -1,10 +1,10 @@
-import { ZodiosRequestHandler } from "@zodios/express";
-import { z } from "zod";
 import {
   ZodiosPathsByMethod,
   ZodiosEndpointDefinition,
   Method,
 } from "@zodios/core";
+import { ZodiosRequestHandler } from "@zodios/express";
+import { z } from "zod";
 
 export type Middleware<
   Api extends ZodiosEndpointDefinition[],

@@ -1,6 +1,7 @@
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import { logger, decodeKafkaMessage } from "pagopa-interop-commons";
-import { runConsumer } from "kafka-iam-auth";
 import {
   CorrelationId,
   generateId,
@@ -8,12 +9,14 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+
+import { config } from "./config/config.js";
 import { handleMessageV1 } from "./consumerServiceV1.js";
 import { handleMessageV2 } from "./consumerServiceV2.js";
-import { config } from "./config/config.js";
 
-const dynamoDBClient = new DynamoDBClient();
+const dynamoDBClient = new DynamoDBClient({
+  endpoint: process.env.DYNAMO_DB_ENDPOINT,
+});
 async function processMessage({
   message,
   partition,

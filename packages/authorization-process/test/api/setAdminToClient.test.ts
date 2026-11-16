@@ -1,12 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockClient,
   mockTokenOrganizationId,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
 import {
   ClientId,
   clientKind,
@@ -14,7 +12,9 @@ import {
   TenantId,
   UserId,
 } from "pagopa-interop-models";
-import { api, authorizationService } from "../vitest.api.setup.js";
+import request from "supertest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import {
   clientAdminAlreadyAssignedToUser,
   clientKindNotAllowed,
@@ -22,6 +22,7 @@ import {
   userWithoutSecurityPrivileges,
 } from "../../src/model/domain/errors.js";
 import { testToFullClient } from "../apiUtils.js";
+import { api, authorizationService } from "../vitest.api.setup.js";
 
 describe("API POST /clients/{clientId}/admin test", () => {
   const mockClient = getMockClient({

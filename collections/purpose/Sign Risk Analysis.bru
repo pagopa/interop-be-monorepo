@@ -18,3 +18,17 @@ headers {
   Authorization: {{JWT}}
   X-Correlation-Id: {{correlation-id}}
 }
+
+body:json {
+  {
+    "metadataVersionToSign": 0
+  }
+}
+
+docs {
+  Sign with the metadata version actually reviewed, without refreshing it on conflict.
+  HTTP 409 codes: 004-0066 already approved, 004-0067 already rejected,
+  004-0064 purpose metadata version changed since review. Approved/rejected states
+  take precedence when verifiable. Other conflicts retain their original codes.
+  The mutation is never retried.
+}

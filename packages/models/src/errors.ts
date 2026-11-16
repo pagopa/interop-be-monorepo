@@ -1,9 +1,10 @@
 /* eslint-disable max-classes-per-file */
+import { AxiosError, isAxiosError } from "axios";
 import { constants } from "http2";
 import { P, match } from "ts-pattern";
 import { z, ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
-import { AxiosError, isAxiosError } from "axios";
+
 import { CorrelationId } from "./brandedIds.js";
 import { serviceErrorCode, ServiceName } from "./services.js";
 
@@ -12,9 +13,11 @@ const {
   HTTP_STATUS_FORBIDDEN,
   HTTP_STATUS_BAD_REQUEST,
   HTTP_STATUS_PAYLOAD_TOO_LARGE,
+  HTTP_STATUS_UNSUPPORTED_MEDIA_TYPE,
   HTTP_STATUS_TOO_MANY_REQUESTS,
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
   HTTP_STATUS_NOT_IMPLEMENTED,
+  HTTP_STATUS_CONFLICT,
 } = constants;
 
 export const emptyErrorMapper = (): number => HTTP_STATUS_INTERNAL_SERVER_ERROR;
@@ -79,7 +82,7 @@ export const ProblemSchema = z.strictObject({
 });
 export type Problem = z.infer<typeof ProblemSchema>;
 
-type MakeApiProblemFn<T extends string> = (
+export type MakeApiProblemFn<T extends string> = (
   error: unknown,
   httpMapper: (apiError: ApiError<T | CommonErrorCodes>) => number,
   context: {
@@ -105,7 +108,7 @@ const makeProblemLogString = (
   return `- title: ${problem.title} - detail: ${problem.detail}${errorsString} - original error: ${originalError}`;
 };
 
-type ProblemBuilderOptions = {
+export type ProblemBuilderOptions = {
   /**
    * If true, allows Problem objects received from downstream services
    * to be passed through directly. If false, they are treated as generic errors.
@@ -312,9 +315,15 @@ export const commonErrorCodes = {
   keyTypeNotAllowed: "10029",
   invalidJWKClaim: "10030",
   contentTooLargeError: "10031",
+  invalidPdfSignatureError: "10032",
+  invalidFileUploadError: "10033",
+  eventConflictError: "10034",
+  unsupportedMediaTypeError: "10035",
 } as const;
 
 export type CommonErrorCodes = keyof typeof commonErrorCodes;
+
+export const PG_DUPLICATE_KEY_ERROR = "23505";
 
 export function parseErrorMessage(error: unknown): string {
   if (error instanceof ZodError) {
@@ -412,10 +421,34 @@ export function tokenGenerationError(
 
 export function hyperlinkDetectionError(
   text: string
-): InternalError<CommonErrorCodes> {
-  return new InternalError({
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
     code: "hyperlinkDetectionError",
-    detail: `Hyperlink detection error for text ${text}`,
+    title: "Hyperlink not allowed",
+    detail: `Hyperlink detected in text ${text}`,
+  });
+}
+
+export function eventConflictError(
+  correlationId?: string,
+  streamId?: string,
+  streamVersion?: number
+): ApiError<CommonErrorCodes> {
+  const correlationIdPrefix = correlationId ? `[CID=${correlationId}]` : "";
+  const streamVersionPrefix =
+    streamVersion !== undefined ? `[SV=${streamVersion}]` : "";
+  const streamIdPrefix = streamId ? `[SID=${streamId}]` : "";
+
+  const prefixes = [
+    correlationIdPrefix,
+    streamVersionPrefix,
+    streamIdPrefix,
+  ].join(" ");
+
+  return new ApiError({
+    title: "Conflict",
+    code: "eventConflictError",
+    detail: `${prefixes} Request conflicts with an ongoing operation on the same resource. Please retry.`,
   });
 }
 
@@ -487,8 +520,16 @@ export function pdfGenerationError(
 
 const defaultCommonErrorMapper = (code: CommonErrorCodes): number =>
   match(code)
-    .with("badRequestError", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "badRequestError",
+      "hyperlinkDetectionError",
+      "invalidPdfSignatureError",
+      "invalidFileUploadError",
+      "invalidContentTypeDetected",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .with("contentTooLargeError", () => HTTP_STATUS_PAYLOAD_TOO_LARGE)
+    .with("unsupportedMediaTypeError", () => HTTP_STATUS_UNSUPPORTED_MEDIA_TYPE)
     .with("tokenVerificationFailed", () => HTTP_STATUS_UNAUTHORIZED)
     .with(
       "unauthorizedError",
@@ -497,6 +538,7 @@ const defaultCommonErrorMapper = (code: CommonErrorCodes): number =>
     )
     .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .with("tooManyRequestsError", () => HTTP_STATUS_TOO_MANY_REQUESTS)
+    .with("eventConflictError", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export function authenticationSaslFailed(
@@ -545,6 +587,40 @@ export function contentTooLargeError(
     detail,
     code: "contentTooLargeError",
     title: "Content too large",
+    errors,
+  });
+}
+
+export function unsupportedMediaTypeError(
+  detail: string,
+  errors?: Error[]
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail,
+    code: "unsupportedMediaTypeError",
+    title: "Unsupported media type",
+    errors,
+  });
+}
+
+export function invalidPdfSignatureError(
+  errors?: Error[]
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    code: "invalidPdfSignatureError",
+    title: "Invalid file",
+    detail: "File is not a valid PDF",
+    errors,
+  });
+}
+
+export function invalidFileUploadError(
+  errors?: Error[]
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    code: "invalidFileUploadError",
+    title: "Invalid file",
+    detail: `File is not an allowed format or extension`,
     errors,
   });
 }
@@ -771,7 +847,7 @@ export function interfaceExtractingInfoError(): ApiError<CommonErrorCodes> {
   });
 }
 
-export function interfaceExtractingSoapFiledError(
+export function interfaceExtractingSoapFieldError(
   fieldName: string
 ): ApiError<CommonErrorCodes> {
   return new ApiError({
@@ -842,3 +918,14 @@ export function invalidDocumentDetected(
     title: "Invalid document detected",
   });
 }
+
+export type ErrorMessage = {
+  readonly process: string;
+  readonly error: string;
+  readonly errorCode: string;
+  readonly bffEndpoint: string;
+  readonly copy: {
+    readonly it: string;
+    readonly en: string;
+  };
+};

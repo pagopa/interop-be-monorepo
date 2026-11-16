@@ -1,14 +1,15 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   fromTenantV2,
   missingKafkaMessageDataError,
   TenantEventEnvelope,
   TenantEventEnvelopeV2,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
-import { M2MEventWriterServiceSQL } from "../services/m2mEventWriterServiceSQL.js";
+
 import { toTenantM2MEventSQL } from "../models/tenantM2MEventAdapterSQL.js";
 import { createTenantM2MEvent } from "../services/event-builders/tenantM2MEventBuilder.js";
+import { M2MEventWriterServiceSQL } from "../services/m2mEventWriterServiceSQL.js";
 
 export async function handleTenantEvent(
   tenantEvent: TenantEventEnvelope,

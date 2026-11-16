@@ -1,4 +1,13 @@
 /* eslint-disable functional/no-let */
+import { EachMessagePayload } from "kafkajs";
+import { authorizationApi } from "pagopa-interop-api-clients";
+import {
+  InteropTokenGenerator,
+  RefreshableInteropToken,
+  userRole,
+} from "pagopa-interop-commons";
+import { getMockClient, getMockTenant } from "pagopa-interop-commons-test";
+import { clientKind, relationshipStatus, Tenant } from "pagopa-interop-models";
 import {
   vi,
   afterEach,
@@ -9,17 +18,9 @@ import {
   it,
   expect,
 } from "vitest";
-import {
-  InteropTokenGenerator,
-  RefreshableInteropToken,
-  userRole,
-} from "pagopa-interop-commons";
-import { EachMessagePayload } from "kafkajs";
-import { getMockClient, getMockTenant } from "pagopa-interop-commons-test";
-import { clientKind, relationshipStatus, Tenant } from "pagopa-interop-models";
-import { authorizationApi } from "pagopa-interop-api-clients";
-import { selfcareClientUsersUpdaterProcessorBuilder } from "../src/services/selfcareClientUsersUpdaterProcessor.js";
+
 import { config } from "../src/config/config.js";
+import { selfcareClientUsersUpdaterProcessorBuilder } from "../src/services/selfcareClientUsersUpdaterProcessor.js";
 import {
   addOneClient,
   addOneTenant,

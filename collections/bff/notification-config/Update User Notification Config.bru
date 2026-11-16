@@ -17,12 +17,16 @@ headers {
 
 body:json {
   {
+    "inAppNotificationPreference": true,
+    "emailNotificationPreference": true,
+    "emailDigestPreference": false,
     "inAppConfig": {
       "agreementSuspendedUnsuspendedToProducer": true,
       "agreementManagementToProducer": true,
       "clientAddedRemovedToProducer": true,
       "purposeStatusChangedToProducer": true,
       "templateStatusChangedToProducer": true,
+      "eserviceStateChangedToProducer": true,
       "agreementSuspendedUnsuspendedToConsumer": true,
       "eserviceStateChangedToConsumer": true,
       "agreementActivatedRejectedToConsumer": true,
@@ -36,7 +40,14 @@ body:json {
       "eserviceNewVersionApprovedRejectedToDelegate": true,
       "delegationSubmittedRevokedToDelegate": true,
       "certifiedVerifiedAttributeAssignedRevokedToAssignee": true,
-      "clientKeyAddedDeletedToClientUsers": true
+      "clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers": true,
+      "purposeQuotaAdjustmentRequestToProducer": true,
+      "purposeOverQuotaStateToConsumer": true,
+      "purposeRiskAnalysisAssignmentStatusToAdmin": false,
+      "purposeRiskAnalysisAssignmentStatusToReviewer": false,
+      "purposePublishedWithRiskAnalysisToReviewer": false,
+      "eserviceArchivingRequestedToDelegator": false,
+      "eserviceArchivingApprovedRejectedToDelegate": false
     },
     "emailConfig": {
       "agreementSuspendedUnsuspendedToProducer": true,
@@ -44,6 +55,7 @@ body:json {
       "clientAddedRemovedToProducer": true,
       "purposeStatusChangedToProducer": true,
       "templateStatusChangedToProducer": true,
+      "eserviceStateChangedToProducer": true,
       "agreementSuspendedUnsuspendedToConsumer": true,
       "eserviceStateChangedToConsumer": true,
       "agreementActivatedRejectedToConsumer": true,
@@ -57,7 +69,14 @@ body:json {
       "eserviceNewVersionApprovedRejectedToDelegate": true,
       "delegationSubmittedRevokedToDelegate": true,
       "certifiedVerifiedAttributeAssignedRevokedToAssignee": true,
-      "clientKeyAddedDeletedToClientUsers": true
+      "clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers": true,
+      "purposeQuotaAdjustmentRequestToProducer": true,
+      "purposeOverQuotaStateToConsumer": true,
+      "purposeRiskAnalysisAssignmentStatusToAdmin": false,
+      "purposeRiskAnalysisAssignmentStatusToReviewer": false,
+      "purposePublishedWithRiskAnalysisToReviewer": false,
+      "eserviceArchivingRequestedToDelegator": false,
+      "eserviceArchivingApprovedRejectedToDelegate": false
     }
   }
 }

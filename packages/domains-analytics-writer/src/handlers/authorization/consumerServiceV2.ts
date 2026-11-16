@@ -1,27 +1,26 @@
 /* eslint-disable functional/immutable-data */
 import {
+  ClientItemsSchema,
+  ProducerKeychainItemsSchema,
+} from "pagopa-interop-kpi-models";
+import {
   AuthorizationEventEnvelopeV2,
   fromClientV2,
   fromProducerKeychainV2,
   genericInternalError,
 } from "pagopa-interop-models";
-import { match, P } from "ts-pattern";
 import {
   splitClientIntoObjectsSQL,
   splitProducerKeychainIntoObjectsSQL,
 } from "pagopa-interop-readmodel";
+import { match, P } from "ts-pattern";
 import { z } from "zod";
+
 import { DBContext } from "../../db/db.js";
+import { ClientDeletingSchema } from "../../model/authorization/client.js";
+import { ProducerKeychainDeletingSchema } from "../../model/authorization/producerKeychain.js";
 import { authorizationServiceBuilder } from "../../service/authorizationService.js";
-import {
-  ClientItemsSchema,
-  ClientDeletingSchema,
-} from "../../model/authorization/client.js";
 import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
-import {
-  ProducerKeychainItemsSchema,
-  ProducerKeychainDeletingSchema,
-} from "../../model/authorization/producerKeychain.js";
 
 export async function handleAuthorizationEventMessageV2(
   messages: AuthorizationEventEnvelopeV2[],

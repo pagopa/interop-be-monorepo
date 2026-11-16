@@ -1,21 +1,22 @@
-import { describe, it, expect, vi } from "vitest";
-import {
-  generateToken,
-  getMockedApiEServiceTemplate,
-  getMockedApiAttribute,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole, genericLogger } from "pagopa-interop-commons";
-import request from "supertest";
 import {
   attributeRegistryApi,
   eserviceTemplateApi,
   m2mGatewayApi,
 } from "pagopa-interop-api-clients";
+import { AuthRole, authRole, genericLogger } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockedApiEServiceTemplate,
+  getMockedApiAttribute,
+} from "pagopa-interop-commons-test";
 import { generateId, unsafeBrandId } from "pagopa-interop-models";
-import { api, mockEServiceTemplateService } from "../../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
+import { toM2MGatewayApiVerifiedAttribute } from "../../../src/api/attributeApiConverter.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { eserviceTemplateVersionNotFound } from "../../../src/model/errors.js";
-import { toM2MGatewayApiVerifiedAttribute } from "../../../src/api/attributeApiConverter.js";
+import { api, mockEServiceTemplateService } from "../../vitest.api.setup.js";
 
 describe("POST /eserviceTemplates/{templateId}/versions/{versionId}/verifiedAttributes/groups/{groupIndex}/attributes router test", () => {
   const mockTemplate: eserviceTemplateApi.EServiceTemplate =

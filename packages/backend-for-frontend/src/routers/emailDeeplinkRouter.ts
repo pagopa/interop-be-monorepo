@@ -1,24 +1,25 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { bffApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { bffApi } from "pagopa-interop-api-clients";
 import {
   badRequestError,
   DigestNotificationType,
   emptyErrorMapper,
   NotificationType,
 } from "pagopa-interop-models";
-import { fromBffAppContext } from "../utilities/context.js";
-import { makeApiProblem } from "../model/errors.js";
+
 import { config } from "../config/config.js";
+import { makeApiProblem } from "../model/errors.js";
 import {
   digestNotificationTypeToUiSection,
-  notificationTypeToUiSection,
+  getNotificationDeepLink,
 } from "../model/modelMappingUtils.js";
+import { fromBffAppContext } from "../utilities/context.js";
 
 /**
  * Builds the token-exchange URL for selfcare authentication.
@@ -52,7 +53,10 @@ const emailDeeplinkRouters = (
       const notificationType = NotificationType.parse(
         req.params.notificationType
       );
-      const redirectPath = `${notificationTypeToUiSection[notificationType]}/${req.params.entityId}`;
+      const redirectPath = getNotificationDeepLink(
+        notificationType,
+        req.params.entityId
+      );
       const redirectUrl = buildTokenExchangeUrl(
         req.query.selfcareId,
         redirectPath
@@ -72,7 +76,7 @@ const emailDeeplinkRouters = (
     "/emailDeepLink/:digestNotificationType",
     async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
-      const { entityId, selfcareId } = req.query;
+      const { entityId, selfcareId, states } = req.query;
 
       try {
         const parseResult = DigestNotificationType.safeParse(
@@ -86,7 +90,14 @@ const emailDeeplinkRouters = (
         const notificationType = parseResult.data;
         const section = digestNotificationTypeToUiSection[notificationType];
         const redirectPath = entityId ? `${section}/${entityId}` : section;
-        const redirectUrl = buildTokenExchangeUrl(selfcareId, redirectPath);
+        const uiUrl = new URL(redirectPath, config.frontendBaseUrl);
+        if (states) {
+          uiUrl.searchParams.set("states", states);
+        }
+        const redirectUrl = buildTokenExchangeUrl(
+          selfcareId,
+          `${uiUrl.pathname}${uiUrl.search}`
+        );
 
         return res.redirect(redirectUrl ?? config.frontendBaseUrl);
       } catch (error) {

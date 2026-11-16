@@ -1,4 +1,3 @@
-import { z } from "zod";
 import {
   CommonHTTPServiceConfig,
   EventStoreConfig,
@@ -6,6 +5,7 @@ import {
   ReadModelSQLDbConfig,
   FeatureFlagDelegationConstraintSkipConfig,
 } from "pagopa-interop-commons";
+import { z } from "zod";
 
 const TenantProcessConfig = CommonHTTPServiceConfig.and(EventStoreConfig)
   .and(ReadModelSQLDbConfig)

@@ -1,6 +1,7 @@
-import { describe, it, expect, vi, Mock } from "vitest";
 import { DynamoDBClient, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
 import { genericLogger, signatureServiceBuilder } from "pagopa-interop-commons";
+import { describe, it, expect, vi, Mock } from "vitest";
+
 import { config } from "../src/config/config.js";
 
 const mockDynamoDBClient = {

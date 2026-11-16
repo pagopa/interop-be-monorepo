@@ -5,6 +5,10 @@
 import { generateMock } from "@anatine/zod-mock";
 import { getMockAgreement } from "pagopa-interop-commons-test";
 import {
+  toAgreementDocumentV1,
+  toAgreementV1,
+} from "pagopa-interop-commons-test";
+import {
   Agreement,
   AgreementActivatedV1,
   AgreementAddedV1,
@@ -23,10 +27,7 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import {
-  toAgreementDocumentV1,
-  toAgreementV1,
-} from "pagopa-interop-commons-test";
+
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import { agreementReadModelService, agreementWriterService } from "./utils.js";
 

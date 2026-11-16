@@ -10,6 +10,7 @@ import {
   ProducerKeychainV2,
   PurposeId,
   PurposeV2,
+  PurposeVersionId,
   TenantV2,
   UserId,
 } from "pagopa-interop-models";
@@ -18,6 +19,7 @@ import {
   HandlerParams as CommonsHandlerParams,
 } from "pagopa-interop-notification-commons";
 import { z } from "zod";
+
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 
 export type HandlerCommonParams =
@@ -49,6 +51,11 @@ export type PurposeHandlerParams = HandlerCommonParams & {
   purposeV2Msg?: PurposeV2;
 };
 
+export type PurposeVersionHandlerParams = HandlerCommonParams & {
+  purposeV2Msg?: PurposeV2;
+  purposeVersionId: PurposeVersionId;
+};
+
 export type TenantHandlerParams = HandlerCommonParams & {
   tenantV2Msg?: TenantV2;
   attributeId: AttributeId;
@@ -61,11 +68,6 @@ export type DelegationHandlerParams = HandlerCommonParams & {
 export type EserviceTemplateHandlerParams = HandlerCommonParams & {
   eserviceTemplateV2Msg?: EServiceTemplateV2;
   eserviceTemplateVersionId: EServiceTemplateVersionId;
-};
-
-export type EserviceTemplateNameUpdatedHandlerParams = HandlerCommonParams & {
-  eserviceTemplateV2Msg?: EServiceTemplateV2;
-  oldName?: string;
 };
 
 export type ProducerKeychainKeyHandlerParams = HandlerCommonParams & {

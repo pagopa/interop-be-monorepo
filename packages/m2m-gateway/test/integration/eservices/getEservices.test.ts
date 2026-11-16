@@ -1,17 +1,18 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   catalogApi,
   m2mGatewayApi,
   WithMaybeMetadata,
 } from "pagopa-interop-api-clients";
-import { generateId } from "pagopa-interop-models";
 import { getMockedApiEservice } from "pagopa-interop-commons-test";
+import { generateId } from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
   eserviceService,
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
   getMockM2MAdminAppContext,
   testToM2mGatewayApiEService,

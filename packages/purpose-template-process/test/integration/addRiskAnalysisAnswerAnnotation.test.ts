@@ -8,6 +8,7 @@ import {
   getMockContext,
   getMockPurposeTemplate,
   getMockValidRiskAnalysisFormTemplate,
+  sortPurposeTemplate,
 } from "pagopa-interop-commons-test";
 import {
   PurposeTemplate,
@@ -18,11 +19,11 @@ import {
   TenantId,
   RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotationId,
-  hyperlinkDetectionError,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
+
 import {
-  // hyperlinkDetectionError,
+  hyperlinkDetectionError,
   purposeTemplateNotFound,
   purposeTemplateRiskAnalysisFormNotFound,
   riskAnalysisTemplateAnswerNotFound,
@@ -93,7 +94,10 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
       docs: [],
     });
 
-    expect(writtenPayload).toEqual({
+    expect({
+      ...writtenPayload,
+      purposeTemplate: sortPurposeTemplate(writtenPayload.purposeTemplate),
+    }).toEqual({
       purposeTemplate: {
         ...toPurposeTemplateV2({
           ...mockPurposeTemplate,
@@ -111,7 +115,8 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
             }),
           ]),
           multiAnswers:
-            mockPurposeTemplate.purposeRiskAnalysisForm!.multiAnswers,
+            sortPurposeTemplate(mockPurposeTemplate).purposeRiskAnalysisForm!
+              .multiAnswers,
         }),
       },
     });

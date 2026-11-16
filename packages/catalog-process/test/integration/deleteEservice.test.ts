@@ -22,12 +22,13 @@ import {
   delegationKind,
 } from "pagopa-interop-models";
 import { expect, describe, it, vi } from "vitest";
+
+import { config } from "../../src/config/config.js";
 import {
   eServiceNotFound,
   eserviceNotInDraftState,
   eserviceWithActiveOrPendingDelegation,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
 import {
   addOneEService,
   catalogService,

@@ -21,7 +21,8 @@ type NotificationCommonsErrorCode =
   | "producerKeychainKeyNotFound"
   | "purposeNotFound"
   | "attributeOriginUndefined"
-  | "attributeNotFoundInTenant";
+  | "attributeNotFoundInTenant"
+  | "archivingRequesterIdNotFound";
 
 export class NotificationCommonsError extends InternalError<NotificationCommonsErrorCode> {
   constructor({
@@ -83,6 +84,16 @@ export function activeProducerDelegationNotFound(
   return new InternalError({
     detail: `Active producer delegation not found for EService ${eserviceId}`,
     code: "activeProducerDelegationNotFound",
+  });
+}
+
+export function archivingRequesterIdNotFound(
+  eserviceId: EServiceId,
+  eventType: string
+): NotificationCommonsError {
+  return new InternalError({
+    detail: `RequesterId not found in archiving request snapshot for EService ${eserviceId}, eventType ${eventType}`,
+    code: "archivingRequesterIdNotFound",
   });
 }
 

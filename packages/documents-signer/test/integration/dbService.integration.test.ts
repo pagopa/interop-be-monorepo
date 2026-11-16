@@ -1,17 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { GetItemCommand } from "@aws-sdk/client-dynamodb";
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import {
-  buildDynamoDBTables,
-  deleteDynamoDBTables,
-} from "pagopa-interop-commons-test";
 import {
   signatureServiceBuilder,
   DocumentSignatureReference,
   genericLogger,
 } from "pagopa-interop-commons";
+import {
+  buildDynamoDBTables,
+  deleteDynamoDBTables,
+} from "pagopa-interop-commons-test";
 import { generateId } from "pagopa-interop-models";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+
 import { config } from "../../src/config/config.js";
 import { dynamoDBClient } from "../utils.js";
 describe("dbServiceBuilder integration with DynamoDB", () => {

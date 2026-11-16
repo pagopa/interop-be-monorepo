@@ -16,6 +16,7 @@ import {
   purposeVersionStampInReadmodelPurpose,
   riskAnalysisReviewerInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
+
 import {
   aggregatePurpose,
   aggregatePurposeArray,

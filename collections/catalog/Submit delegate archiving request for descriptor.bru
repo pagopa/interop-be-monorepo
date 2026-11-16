@@ -1,0 +1,27 @@
+meta {
+  name: Submit delegate archiving request for a Descriptor
+  type: http
+  seq: 44
+}
+
+post {
+  url: {{host-catalog}}/eservices/:eServiceId/descriptors/:descriptorId/submitDelegatedArchiving
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "gracePeriodDays": 60
+  }
+}

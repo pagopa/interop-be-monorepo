@@ -1,17 +1,18 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { constants } from "http2";
-import { describe, it, expect, vi } from "vitest";
+import { authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test";
 import {
   EServiceDocumentId,
   EServiceTemplateId,
   EServiceTemplateVersionId,
   generateId,
 } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { api, services } from "../../vitest.api.setup.js";
+import { describe, it, expect, vi } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { api, services } from "../../vitest.api.setup.js";
 
 describe("API GET /eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents/:documentId", () => {
   const content = new Uint8Array(100).map(() =>

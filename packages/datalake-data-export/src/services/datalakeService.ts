@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { FileManager, Logger } from "pagopa-interop-commons";
+
 import { config } from "../config/config.js";
 import {
   getDataCountBucketKey,
@@ -22,6 +23,7 @@ export function datalakeServiceBuilder(
       const purposes = await readModelService.getPurposes();
       const delegations = await readModelService.getDelegations();
       const eserviceTemplates = await readModelService.getEServiceTemplates();
+      const purposeTemplates = await readModelService.getPurposeTemplates();
 
       const exportTimestamp = new Date();
       logger.info("Preparing data for export...");
@@ -32,7 +34,8 @@ export function datalakeServiceBuilder(
         purposes,
         delegations,
         eserviceTemplates,
-        exportTimestamp
+        exportTimestamp,
+        purposeTemplates
       );
 
       logger.info(

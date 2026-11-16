@@ -1,5 +1,5 @@
-import { inject } from "vitest";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
+import { Attribute, Tenant } from "pagopa-interop-models";
 import {
   attributeReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
@@ -8,7 +8,8 @@ import {
   upsertAttribute,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
-import { Attribute, Tenant } from "pagopa-interop-models";
+import { inject } from "vitest";
+
 import { readModelServiceBuilderSQL } from "../src/service/readModelService.js";
 
 // Setup dei container PostgreSQL per il Read Model

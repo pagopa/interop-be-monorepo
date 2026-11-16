@@ -1,6 +1,7 @@
-import { describe, it, expect } from "vitest";
-import { generateId, ProducerKeychainId } from "pagopa-interop-models";
 import { getMockProducerJWKKey } from "pagopa-interop-commons-test";
+import { generateId, ProducerKeychainId } from "pagopa-interop-models";
+import { describe, it, expect } from "vitest";
+
 import { upsertProducerJWKKey } from "../../src/testUtils.js";
 import { readModelDB } from "../utils.js";
 import { producerJWKKeyReadModelService } from "./producerJWKKeyUtils.js";

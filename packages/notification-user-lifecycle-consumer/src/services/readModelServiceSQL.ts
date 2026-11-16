@@ -1,5 +1,5 @@
-import { TenantId, SelfcareId, unsafeBrandId } from "pagopa-interop-models";
 import { eq } from "drizzle-orm";
+import { TenantId, SelfcareId, unsafeBrandId } from "pagopa-interop-models";
 import {
   DrizzleReturnType,
   tenantInReadmodelTenant,

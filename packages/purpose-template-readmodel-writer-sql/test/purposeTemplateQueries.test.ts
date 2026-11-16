@@ -1,11 +1,15 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { getMockPurposeTemplate } from "pagopa-interop-commons-test";
-import { describe, expect, it } from "vitest";
-import { aggregatePurposeTemplate } from "pagopa-interop-readmodel";
+import {
+  getMockPurposeTemplate,
+  sortPurposeTemplate,
+} from "pagopa-interop-commons-test";
 import {
   EServiceDescriptorPurposeTemplate,
   generateId,
 } from "pagopa-interop-models";
+import { aggregatePurposeTemplate } from "pagopa-interop-readmodel";
+import { describe, expect, it } from "vitest";
+
 import {
   checkCompletePurposeTemplate,
   getCompleteMockPurposeTemplate,
@@ -68,8 +72,8 @@ describe("Purpose template queries", () => {
           purposeTemplate.id
         );
 
-      expect(retrievedPurposeTemplate).toStrictEqual({
-        data: purposeTemplate,
+      expect(sortPurposeTemplate(retrievedPurposeTemplate)).toStrictEqual({
+        data: sortPurposeTemplate(purposeTemplate),
         metadata: { version: metadataVersion },
       });
       expect(retrievedPurposeTemplateEServiceDescriptors).toEqual([
@@ -189,8 +193,8 @@ describe("Purpose template queries", () => {
         riskAnalysisTemplateSignedDocumentSQL,
       });
 
-      expect(retrievedPurposeTemplate).toStrictEqual({
-        data: purposeTemplate,
+      expect(sortPurposeTemplate(retrievedPurposeTemplate)).toStrictEqual({
+        data: sortPurposeTemplate(purposeTemplate),
         metadata: { version: 2 },
       });
     });

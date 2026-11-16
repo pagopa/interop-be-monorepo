@@ -8,8 +8,9 @@ import {
   WithMetadata,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { vi } from "vitest";
 import { match } from "ts-pattern";
+import { vi } from "vitest";
+
 import { IVASS_INSURANCES_ATTRIBUTE_CODE } from "../src/config/constants.js";
 import { InteropContext } from "../src/model/interopContextModel.js";
 

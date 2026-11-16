@@ -1,10 +1,27 @@
 /* eslint-disable fp/no-delete */
-import crypto from "crypto";
-import { fail } from "assert";
-import fs from "fs/promises";
-import path from "path";
-import { fileURLToPath } from "url";
 import { generateMock } from "@anatine/zod-mock";
+import { fail } from "assert";
+import crypto from "crypto";
+import fs from "fs/promises";
+import * as jose from "jose";
+import {
+  AppContext,
+  dateToSeconds,
+  genericLogger,
+  keyToClientJWKKey,
+  keyToProducerJWKKey,
+  InternalAuthData,
+  M2MAuthData,
+  MaintenanceAuthData,
+  systemRole,
+  UIAuthData,
+  UserRole,
+  userRole,
+  WithLogger,
+  UIClaims,
+  M2MAdminAuthData,
+  createJWK,
+} from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementState,
@@ -134,27 +151,10 @@ import {
   SelfcareId,
   archivingScope,
 } from "pagopa-interop-models";
-import {
-  AppContext,
-  dateToSeconds,
-  genericLogger,
-  keyToClientJWKKey,
-  keyToProducerJWKKey,
-  InternalAuthData,
-  M2MAuthData,
-  MaintenanceAuthData,
-  systemRole,
-  UIAuthData,
-  UserRole,
-  userRole,
-  WithLogger,
-  UIClaims,
-  M2MAdminAuthData,
-  createJWK,
-} from "pagopa-interop-commons";
-import { z } from "zod";
-import * as jose from "jose";
+import path from "path";
 import { match } from "ts-pattern";
+import { fileURLToPath } from "url";
+import { z } from "zod";
 
 export function expectPastTimestamp(timestamp: bigint): boolean {
   return new Date(Number(timestamp)) <= new Date();
@@ -210,6 +210,7 @@ export const getMockDescriptorArchiving = (
     scope: archivingScope.descriptor,
     startedAt: new Date(),
     archivableOn: new Date(new Date().setUTCDate(new Date().getUTCDate() + 30)),
+    gracePeriodDays: 30,
   },
 });
 
@@ -505,6 +506,7 @@ export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
   dailyCallsTotal: 1000,
   createdAt: new Date(),
   serverUrls: ["pagopa.it"],
+  serverUrlsDescriptions: [],
   agreementApprovalPolicy: "Automatic",
   attributes: {
     certified: [],
@@ -1116,6 +1118,46 @@ export const sortBy =
     return 0;
   };
 
+type SortableRiskAnalysis = {
+  id: string;
+  riskAnalysisForm?: {
+    singleAnswers: Array<{ id: string }>;
+    multiAnswers: Array<{ id: string }>;
+  };
+};
+
+const sortRiskAnalysisAnswers = <T extends SortableRiskAnalysis>(
+  riskAnalysis: T
+): T => {
+  if (!riskAnalysis.riskAnalysisForm) {
+    return riskAnalysis;
+  }
+  const { singleAnswers, multiAnswers } = riskAnalysis.riskAnalysisForm;
+  return {
+    ...riskAnalysis,
+    riskAnalysisForm: {
+      ...riskAnalysis.riskAnalysisForm,
+      singleAnswers: [...singleAnswers].sort(sortBy((answer) => answer.id)),
+      multiAnswers: [...multiAnswers].sort(sortBy((answer) => answer.id)),
+    },
+  };
+};
+
+// Risk analyses and answers are reconstructed from SQL joins without a defined order.
+export const sortRiskAnalysisCollections = <
+  T extends { riskAnalysis: SortableRiskAnalysis[] } | undefined,
+>(
+  entity: T
+): T =>
+  entity
+    ? {
+        ...entity,
+        riskAnalysis: entity.riskAnalysis
+          .map(sortRiskAnalysisAnswers)
+          .sort(sortBy((riskAnalysis) => riskAnalysis.id)),
+      }
+    : entity;
+
 export const sortTenant = <T extends Tenant | WithMetadata<Tenant> | undefined>(
   tenant: T
 ): T => {
@@ -1516,6 +1558,25 @@ export const readFileContent = async (fileName: string): Promise<string> => {
   const htmlTemplateBuffer = await fs.readFile(`${dirname}/${templatePath}`);
   return htmlTemplateBuffer.toString();
 };
+
+export const readFileContentAsBuffer = async (
+  fileName: string
+): Promise<Buffer> => {
+  const filename = fileURLToPath(import.meta.url);
+  const dirname = path.dirname(filename);
+  const templatePath = `../test/resources/${fileName}`;
+
+  const buffer = await fs.readFile(`${dirname}/${templatePath}`);
+  return buffer;
+};
+
+export const getMockedPdfBuffer = (): Buffer =>
+  Buffer.from([0x25, 0x50, 0x44, 0x46, 0x2d]);
+
+// with the default the last 5 bytes will still be contained
+// in the valid pdf header window
+export const getPaddedMockedPdfBuffer = (padding: number = 1019): Buffer =>
+  Buffer.from([...Array(padding).fill(0xff), 0x25, 0x50, 0x44, 0x46, 0x2d]);
 
 export function createDummyStub<T>(): T {
   return {} as T;

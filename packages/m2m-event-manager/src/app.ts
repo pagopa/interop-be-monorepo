@@ -1,3 +1,4 @@
+import { m2mEventApi } from "pagopa-interop-api-clients";
 import {
   applicationAuditBeginMiddleware,
   applicationAuditEndMiddleware,
@@ -11,7 +12,7 @@ import {
   zodiosCtx,
 } from "pagopa-interop-commons";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
-import { m2mEventApi } from "pagopa-interop-api-clients";
+
 import { config } from "./config/config.js";
 import { m2mEventRouter } from "./routers/m2mEventRouter.js";
 import { M2MEventService } from "./services/m2mEventService.js";

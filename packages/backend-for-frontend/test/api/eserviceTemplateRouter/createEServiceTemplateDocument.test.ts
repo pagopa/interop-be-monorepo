@@ -1,23 +1,28 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { bffApi } from "pagopa-interop-api-clients";
+import { authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test";
 import {
   EServiceTemplateId,
   EServiceTemplateVersionId,
   generateId,
   invalidContentTypeDetected,
   invalidInterfaceFileDetected,
+  interfaceExtractingInfoError,
+  interfaceExtractingSoapFieldError,
+  openapiVersionNotRecognized,
+  parsingSoapFileError,
 } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { bffApi } from "pagopa-interop-api-clients";
-import { api, services } from "../../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { eserviceTemplateVersionNotFound } from "../../../src/model/errors.js";
 import {
   getMockBffApiCreatedResource,
   getMockBffApiCreateEServiceDocumentBody,
 } from "../../mockUtils.js";
-import { eserviceTemplateVersionNotFound } from "../../../src/model/errors.js";
+import { api, services } from "../../vitest.api.setup.js";
 
 describe("API POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents", () => {
   const mockCreatedResource = getMockBffApiCreatedResource();
@@ -86,6 +91,22 @@ describe("API POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTe
         id: generateId(),
         isEserviceTemplate: true,
       }),
+      expectedStatus: 400,
+    },
+    {
+      error: interfaceExtractingSoapFieldError("field-name"),
+      expectedStatus: 400,
+    },
+    {
+      error: interfaceExtractingInfoError(),
+      expectedStatus: 400,
+    },
+    {
+      error: parsingSoapFileError(),
+      expectedStatus: 400,
+    },
+    {
+      error: openapiVersionNotRecognized("invalid-version"),
       expectedStatus: 400,
     },
   ])(

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { z } from "zod";
 import { KafkaMessage } from "kafkajs";
 import { Message } from "pagopa-interop-models";
+import { z } from "zod";
 
 /**
  * Decodes a Kafka message using the provided event schema.

@@ -1,16 +1,17 @@
-import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
+import { generateToken } from "pagopa-interop-commons-test";
 import { generateId } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { agreementContractNotFound } from "../../../src/model/errors.js";
 import { getMockDownloadedDocument } from "../../mockUtils.js";
 import {
   testExpectedMultipartResponse,
   testMultipartResponseParser,
 } from "../../multipartTestUtils.js";
 import { api, mockAgreementService } from "../../vitest.api.setup.js";
-import { agreementContractNotFound } from "../../../src/model/errors.js";
 
 describe("GET /agreements/:agreementId/contract router test", () => {
   const mockDownloadedDoc = getMockDownloadedDocument();

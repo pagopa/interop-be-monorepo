@@ -15,10 +15,11 @@ import {
   tenantAttributeType,
   SCP,
 } from "pagopa-interop-models";
-import { bootstrapRegistryAttributes } from "./attributeService.js";
+
 import { InteropClients } from "../client/client.js";
-import { ReadModelServiceSQL } from "./readModelService.js";
 import { config } from "../config/config.js";
+import { bootstrapRegistryAttributes } from "./attributeService.js";
+import { ReadModelServiceSQL } from "./readModelService.js";
 
 const INFOCAMERE_ORIGIN_PREFIX = "PDND_INFOCAMERE";
 

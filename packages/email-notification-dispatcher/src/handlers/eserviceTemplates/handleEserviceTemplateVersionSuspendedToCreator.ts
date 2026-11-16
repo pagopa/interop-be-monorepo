@@ -13,9 +13,9 @@ import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
 } from "pagopa-interop-notification-commons";
-import { EserviceTemplateHandlerParams } from "../../models/handlerParams.js";
 
 import { config } from "../../config/config.js";
+import { EserviceTemplateHandlerParams } from "../../models/handlerParams.js";
 
 const notificationType: NotificationType = "templateStatusChangedToProducer";
 

@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
-import request from "supertest";
+import { catalogApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockDescriptor,
+  getMockEService,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   descriptorState,
@@ -8,16 +14,11 @@ import {
   EServiceId,
   generateId,
   operationForbidden,
+  eventConflictError,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockDescriptor,
-  getMockEService,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import { catalogApi } from "pagopa-interop-api-clients";
-import { api, catalogService } from "../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   eServiceNameDuplicateForProducer,
@@ -27,6 +28,7 @@ import {
   invalidDelegationFlags,
   templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
+import { api, catalogService } from "../vitest.api.setup.js";
 
 describe("PATCH /eservices/{eServiceId} router test", () => {
   const descriptor: Descriptor = {
@@ -69,7 +71,11 @@ describe("PATCH /eservices/{eServiceId} router test", () => {
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
@@ -86,6 +92,9 @@ describe("PATCH /eservices/{eServiceId} router test", () => {
   it.each([
     {},
     { name: "updated name" },
+    { description: "updated description" },
+    { personalData: null },
+    { asyncExchange: null },
     {
       name: "updated name",
       description: "updated description",
@@ -126,6 +135,12 @@ describe("PATCH /eservices/{eServiceId} router test", () => {
   );
 
   it.each([
+    [{ name: "a".repeat(4) }, mockEService.id],
+    [{ name: "a".repeat(61) }, mockEService.id],
+    [{ name: null }, mockEService.id],
+    [{ description: "a".repeat(9) }, mockEService.id],
+    [{ description: "a".repeat(401) }, mockEService.id],
+    [{ ...eserviceSeed, unknown: true }, mockEService.id],
     [{ name: 123 }, mockEService.id],
     [{ description: null }, mockEService.id],
     [{ technology: "invalidTechnology" }, mockEService.id],
@@ -177,7 +192,11 @@ describe("PATCH /eservices/{eServiceId} router test", () => {
     },
     {
       error: eserviceNotInDraftState(mockEService.id),
-      expectedStatus: 400,
+      expectedStatus: 409,
+    },
+    {
+      error: eventConflictError(generateId(), mockEService.id, 0),
+      expectedStatus: 409,
     },
     {
       error: templateInstanceNotAllowed(

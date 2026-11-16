@@ -1,9 +1,11 @@
 const IVASS_ORIGIN_NAME = "IVASS";
 const ANAC_ORIGIN_NAME = "ANAC";
 const IPA_ORIGIN_NAME = "IPA";
+const ISTAT_ORIGIN_NAME = "ISTAT";
 
 export const certifierDatabaseOriginNames = [
   IVASS_ORIGIN_NAME,
   ANAC_ORIGIN_NAME,
   IPA_ORIGIN_NAME,
+  ISTAT_ORIGIN_NAME,
 ];

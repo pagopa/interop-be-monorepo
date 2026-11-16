@@ -1,5 +1,6 @@
 import { match } from "ts-pattern";
 import { z } from "zod";
+
 import { EventEnvelope } from "../events/events.js";
 import {
   PurposeCreatedV1,
@@ -14,10 +15,11 @@ import {
   PurposeVersionUpdatedV1,
   PurposeVersionWaitedForApprovalV1,
 } from "../gen/v1/purpose/events.js";
-import { protobufDecoder } from "../protobuf/protobuf.js";
 import {
   PurposeAddedV2,
   DraftPurposeUpdatedV2,
+  PurposeTitleUpdatedV2,
+  PurposeDescriptionUpdatedV2,
   PurposeWaitingForApprovalV2,
   PurposeActivatedV2,
   DraftPurposeDeletedV2,
@@ -39,13 +41,16 @@ import {
   RiskAnalysisDocumentGeneratedV2,
   RiskAnalysisSignedDocumentGeneratedV2,
   MaintenancePurposeRiskAnalysisSetTenantKindV2,
+  MaintenancePurposeRiskAnalysisFixReviewerWorkflowV2,
   PurposeRiskAnalysisWorkflowCreatedV2,
   PurposeRiskAnalysisAssignedV2,
   PurposeRiskAnalysisSubmittedV2,
   PurposeRiskAnalysisSignedV2,
   PurposeRiskAnalysisRejectedV2,
   PurposeRiskAnalysisFormEditedV2,
+  PurposeRiskAnalysisSelfAssignedV2,
 } from "../gen/v2/purpose/events.js";
+import { protobufDecoder } from "../protobuf/protobuf.js";
 
 export function purposeEventToBinaryData(event: PurposeEvent): Uint8Array {
   return match(event)
@@ -97,6 +102,12 @@ export function purposeEventToBinaryDataV2(event: PurposeEventV2): Uint8Array {
     .with({ type: "PurposeAdded" }, ({ data }) => PurposeAddedV2.toBinary(data))
     .with({ type: "DraftPurposeUpdated" }, ({ data }) =>
       DraftPurposeUpdatedV2.toBinary(data)
+    )
+    .with({ type: "PurposeTitleUpdated" }, ({ data }) =>
+      PurposeTitleUpdatedV2.toBinary(data)
+    )
+    .with({ type: "PurposeDescriptionUpdated" }, ({ data }) =>
+      PurposeDescriptionUpdatedV2.toBinary(data)
     )
     .with({ type: "PurposeWaitingForApproval" }, ({ data }) =>
       PurposeWaitingForApprovalV2.toBinary(data)
@@ -179,6 +190,14 @@ export function purposeEventToBinaryDataV2(event: PurposeEventV2): Uint8Array {
     .with({ type: "PurposeRiskAnalysisFormEdited" }, ({ data }) =>
       PurposeRiskAnalysisFormEditedV2.toBinary(data)
     )
+    .with({ type: "PurposeRiskAnalysisSelfAssigned" }, ({ data }) =>
+      PurposeRiskAnalysisSelfAssignedV2.toBinary(data)
+    )
+    .with(
+      { type: "MaintenancePurposeRiskAnalysisFixReviewerWorkflow" },
+      ({ data }) =>
+        MaintenancePurposeRiskAnalysisFixReviewerWorkflowV2.toBinary(data)
+    )
     .exhaustive();
 }
 
@@ -251,6 +270,16 @@ export const PurposeEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("DraftPurposeUpdated"),
     data: protobufDecoder(DraftPurposeUpdatedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("PurposeTitleUpdated"),
+    data: protobufDecoder(PurposeTitleUpdatedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("PurposeDescriptionUpdated"),
+    data: protobufDecoder(PurposeDescriptionUpdatedV2),
   }),
   z.object({
     event_version: z.literal(2),
@@ -386,6 +415,16 @@ export const PurposeEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("PurposeRiskAnalysisFormEdited"),
     data: protobufDecoder(PurposeRiskAnalysisFormEditedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("PurposeRiskAnalysisSelfAssigned"),
+    data: protobufDecoder(PurposeRiskAnalysisSelfAssignedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("MaintenancePurposeRiskAnalysisFixReviewerWorkflow"),
+    data: protobufDecoder(MaintenancePurposeRiskAnalysisFixReviewerWorkflowV2),
   }),
 ]);
 export type PurposeEventV2 = z.infer<typeof PurposeEventV2>;

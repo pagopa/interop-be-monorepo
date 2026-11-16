@@ -1,6 +1,8 @@
-import { describe, it, expect, vi } from "vitest";
-import { genericInternalError } from "pagopa-interop-models";
 import type { Message } from "@aws-sdk/client-sqs";
+
+import { genericInternalError } from "pagopa-interop-models";
+import { describe, it, expect, vi } from "vitest";
+
 import { decodeSQSEventMessage } from "../../../src/utils/decodeSQSEventMessage.js";
 
 vi.mock("pagopa-interop-models", () => ({

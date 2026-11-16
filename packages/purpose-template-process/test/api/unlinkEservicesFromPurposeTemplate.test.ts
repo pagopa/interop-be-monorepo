@@ -1,5 +1,6 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
 import {
@@ -13,15 +14,15 @@ import {
 } from "pagopa-interop-models";
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { purposeTemplateApi } from "pagopa-interop-api-clients";
-import { api, purposeTemplateService } from "../vitest.api.setup.js";
+
+import { eserviceNotAssociatedError } from "../../src/errors/purposeTemplateValidationErrors.js";
 import {
   tooManyEServicesForPurposeTemplate,
   disassociationEServicesFromPurposeTemplateFailed,
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
 } from "../../src/model/domain/errors.js";
-import { eserviceNotAssociatedError } from "../../src/errors/purposeTemplateValidationErrors.js";
+import { api, purposeTemplateService } from "../vitest.api.setup.js";
 
 describe("API POST /purposeTemplates/:id/unlinkEservices", () => {
   const authorizedRoles: AuthRole[] = [

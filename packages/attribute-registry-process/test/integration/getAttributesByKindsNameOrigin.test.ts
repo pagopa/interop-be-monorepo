@@ -2,6 +2,7 @@
 import { getMockAttribute } from "pagopa-interop-commons-test";
 import { attributeKind } from "pagopa-interop-models";
 import { describe, beforeEach, it, expect } from "vitest";
+
 import { addOneAttribute, readModelService } from "../integrationUtils.js";
 
 describe("getAttributesByKindsNameOrigin", () => {

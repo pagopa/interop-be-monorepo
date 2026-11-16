@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { JWKKeyRS256, JWKKeyES256 } from "../authorization/key.js";
 
 export const algorithm = {

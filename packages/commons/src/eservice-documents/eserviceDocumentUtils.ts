@@ -1,8 +1,7 @@
 /* eslint-disable max-params */
-import { randomUUID } from "crypto";
-import { Readable } from "stream";
 import SwaggerParser from "@apidevtools/swagger-parser";
 import AdmZip from "adm-zip";
+import { randomUUID } from "crypto";
 import mime from "mime";
 import {
   ApiError,
@@ -15,16 +14,19 @@ import {
   invalidContentTypeDetected,
   invalidInterfaceData,
   invalidInterfaceFileDetected,
+  invalidFileUploadError,
   invalidServerUrl,
   openapiVersionNotRecognized,
   technology,
   Technology,
 } from "pagopa-interop-models";
+import { Readable } from "stream";
 import { match, P } from "ts-pattern";
-import { z, ZodError } from "zod";
-import { calculateChecksum } from "../utils/fileUtils.js";
+import { z } from "zod";
+
 import { FileManager } from "../file-manager/fileManager.js";
 import { Logger } from "../logging/index.js";
+import { calculateChecksum, isValidFile } from "../utils/fileUtils.js";
 import {
   parseOpenApi,
   restApiFileToBuffer,
@@ -84,7 +86,11 @@ const getInterfaceFileType = (
 
 const retrieveServerUrlsRestAPI = (
   fileType: EserviceRestInterfaceType,
-  file: string
+  file: string,
+  resource: {
+    id: string;
+    isEserviceTemplate: boolean;
+  }
 ): string[] => {
   const openApi = parseOpenApi(fileType, file);
   const { data: version, error } = z.string().safeParse(openApi.openapi);
@@ -93,9 +99,9 @@ const retrieveServerUrlsRestAPI = (
     throw openapiVersionNotRecognized("nd");
   }
   return match(version)
-    .with("2.0", () => retrieveServerUrlsOpenApiV2(openApi))
+    .with("2.0", () => retrieveServerUrlsOpenApiV2(openApi, resource))
     .with(P.string.startsWith("3."), () =>
-      retriesceServerUrlsOpenApiV3(openApi)
+      retriesceServerUrlsOpenApiV3(openApi, resource)
     )
     .otherwise(() => {
       throw openapiVersionNotRecognized(version);
@@ -111,7 +117,7 @@ export const interpolateTemplateApiSpec = async (
     contentType: string;
     prettyName: string;
   },
-  serverUrls: string[],
+  serverUrls: Array<{ url: string; description?: string }>,
   eserviceInstanceInterfaceRestData:
     | {
         contactEmail: string;
@@ -159,7 +165,7 @@ export const interpolateTemplateRestApiSpec = async (
     contactEmail?: string;
     contactUrl?: string;
     termsAndConditionsUrl?: string;
-    serverUrls: string[];
+    serverUrls: Array<{ url: string; description?: string }>;
   }
 ): Promise<File> => {
   const fileType = getInterfaceFileType(interfaceFileInfo.name);
@@ -187,8 +193,9 @@ export const interpolateTemplateRestApiSpec = async (
     email: eserviceInstanceInterfaceData.contactEmail,
     url: eserviceInstanceInterfaceData.contactUrl,
   };
-  jsonApi.servers = eserviceInstanceInterfaceData.serverUrls.map((url) => ({
-    url,
+  jsonApi.servers = eserviceInstanceInterfaceData.serverUrls.map((server) => ({
+    url: server.url,
+    ...(server.description ? { description: server.description } : {}),
   }));
   /* eslint-enable */
 
@@ -220,7 +227,7 @@ export const interpolateTemplateSoapApiSpec = async (
     prettyName: string;
   },
   eserviceInstanceInterfaceData: {
-    serverUrls: string[];
+    serverUrls: Array<{ url: string; description?: string }>;
   }
 ): Promise<File> => {
   const fileType = getInterfaceFileType(interfaceFileInfo.name);
@@ -246,10 +253,11 @@ export const interpolateTemplateSoapApiSpec = async (
     this data is not present in the final WSDL file
   ========================================================= */
 
-  const urlsPorts = eserviceInstanceInterfaceData.serverUrls.map((url) => ({
+  const urlsPorts = eserviceInstanceInterfaceData.serverUrls.map((server) => ({
     "soap:address": {
-      location: url,
+      location: server.url,
     },
+    ...(server.description ? { "wsdl:documentation": server.description } : {}),
   }));
 
   // eslint-disable-next-line functional/immutable-data
@@ -307,7 +315,7 @@ export const retrieveServerUrlsAPI = async (
           technology: technology.rest,
           fileType: P.union("json", "yaml"),
         },
-        (f) => retrieveServerUrlsRestAPI(f.fileType, fileContent)
+        (f) => retrieveServerUrlsRestAPI(f.fileType, fileContent, resource)
       )
       .with(
         {
@@ -369,11 +377,7 @@ export const retrieveServerUrlsAPI = async (
     return serverUrls;
   } catch (error) {
     throw match(error)
-      .with(
-        P.instanceOf(ApiError<CommonErrorCodes>),
-        P.instanceOf(ZodError),
-        () => error
-      )
+      .with(P.instanceOf(ApiError<CommonErrorCodes>), () => error)
       .otherwise(() => invalidInterfaceFileDetected(resource));
   }
 };
@@ -432,6 +436,10 @@ export async function verifyAndCreateDocument<T>(
     );
   }
 
+  if (!(await isValidFile(doc))) {
+    throw invalidFileUploadError();
+  }
+
   const serverUrls = await retrieveServerUrlsAPI(
     doc,
     kind,
@@ -477,7 +485,7 @@ export const verifyAndCreateImportedDocument = async <T>(
     prettyName: string;
     path: string;
   },
-  kind: "INTERFACE" | "DOCUMENT",
+  kind: "INTERFACE" | "DOCUMENT" | "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
   createDocumentHandler: (
     documentId: string,
     fileName: string,

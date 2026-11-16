@@ -1,10 +1,11 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { generateId } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test";
+import { generateId } from "pagopa-interop-models";
 import request from "supertest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
 import { api, inAppNotificationService } from "../vitest.api.setup.js";
 
 describe("API POST /notifications/bulk/markAsRead", () => {
@@ -31,6 +32,7 @@ describe("API POST /notifications/bulk/markAsRead", () => {
     authRole.ADMIN_ROLE,
     authRole.API_ROLE,
     authRole.SECURITY_ROLE,
+    authRole.REVIEWER_ROLE,
   ];
   it.each(authorizedRoles)(
     "Should return 204 when marking notifications as read with role %s",

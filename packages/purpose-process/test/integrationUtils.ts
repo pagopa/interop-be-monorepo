@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
 import {
   ReadEvent,
   StoredEvent,
@@ -27,7 +28,6 @@ import {
   TenantId,
   TenantKind,
 } from "pagopa-interop-models";
-import { afterEach, expect, inject } from "vitest";
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
@@ -47,12 +47,14 @@ import {
   upsertPurposeTemplateEServiceDescriptor,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
+import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
+import { afterEach, expect, inject } from "vitest";
+
 import {
   UpdatePurposeReturn,
   purposeServiceBuilder,
 } from "../src/services/purposeService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
-import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
 
 const { cleanup, postgresDB, readModelDB, tenantKindHistoryDB } =
   await setupTestContainersVitest(
@@ -95,9 +97,13 @@ const readModelService = readModelServiceBuilderSQL({
   tenantKindHistoryDB,
 });
 
+export const selfcareV2Client: SelfcareV2InstitutionClient =
+  {} as SelfcareV2InstitutionClient;
+
 export const purposeService = purposeServiceBuilder(
   postgresDB,
-  readModelService
+  readModelService,
+  selfcareV2Client
 );
 
 export const addOneClient = async (client: Client): Promise<void> => {

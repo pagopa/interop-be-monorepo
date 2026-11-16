@@ -1,9 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { TenantId, UserId, generateId, userRole } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test";
+import { TenantId, UserId, generateId, userRole } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { api, notificationConfigService } from "../vitest.api.setup.js";
 
 describe("API POST /internal/ensureUserNotificationConfigExistsWithRoles test", () => {

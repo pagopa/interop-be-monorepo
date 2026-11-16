@@ -1,19 +1,19 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { Purpose, PurposeId, generateId } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockPurpose,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
+import { purposeApi } from "pagopa-interop-api-clients";
 import {
   AuthRole,
   authRole,
   unexpectedFieldError,
 } from "pagopa-interop-commons";
-import { purposeApi } from "pagopa-interop-api-clients";
+import {
+  generateToken,
+  getMockPurpose,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import { Purpose, PurposeId, generateId } from "pagopa-interop-models";
 import request from "supertest";
-import { api, purposeService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { purposeToApiPurpose } from "../../src/model/domain/apiConverter.js";
 import {
   editNotAllowedForReviewMode,
@@ -23,7 +23,10 @@ import {
   reviewerWorkflowNotFound,
   riskAnalysisValidationFailed,
   tenantIsNotTheConsumer,
+  riskAnalysisAlreadyApproved,
+  riskAnalysisAlreadyRejected,
 } from "../../src/model/domain/errors.js";
+import { api, purposeService } from "../vitest.api.setup.js";
 
 describe("API PUT /purposes/{purposeId}/riskAnalysis/form test", () => {
   const mockPurpose: Purpose = getMockPurpose();
@@ -82,6 +85,16 @@ describe("API PUT /purposes/{purposeId}/riskAnalysis/form test", () => {
   it.each([
     { error: purposeNotFound(mockPurpose.id), expectedStatus: 404 },
     {
+      error: riskAnalysisAlreadyApproved(mockPurpose.id),
+      expectedStatus: 409,
+      expectedCode: "004-0066",
+    },
+    {
+      error: riskAnalysisAlreadyRejected(mockPurpose.id),
+      expectedStatus: 409,
+      expectedCode: "004-0067",
+    },
+    {
       error: reviewerWorkflowNotFound(mockPurpose.id),
       expectedStatus: 404,
     },
@@ -106,11 +119,16 @@ describe("API PUT /purposes/{purposeId}/riskAnalysis/form test", () => {
     },
   ])(
     "Should return $expectedStatus for $error.code",
-    async ({ error, expectedStatus }) => {
+    async ({ error, expectedStatus, expectedCode }) => {
       purposeService.editRiskAnalysisForm = vi.fn().mockRejectedValue(error);
       const token = generateToken(authRole.REVIEWER_ROLE);
       const res = await makeRequest(token);
       expect(res.status).toBe(expectedStatus);
+      if (expectedCode) {
+        expect(res.body.errors).toEqual([
+          expect.objectContaining({ code: expectedCode }),
+        ]);
+      }
     }
   );
 

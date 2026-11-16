@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
@@ -13,9 +14,9 @@ import {
 } from "pagopa-interop-models";
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { purposeTemplateApi } from "pagopa-interop-api-clients";
-import { api, purposeTemplateService } from "../vitest.api.setup.js";
+
 import { purposeTemplateToApiPurposeTemplate } from "../../src/model/domain/apiConverter.js";
+import { api, purposeTemplateService } from "../vitest.api.setup.js";
 
 describe("API POST /purposeTemplates", () => {
   const authorizedRoles: AuthRole[] = [

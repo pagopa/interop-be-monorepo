@@ -1,6 +1,13 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
+  getMockAttribute,
+  getMockContextMaintenance,
+  getMockTenant,
+  readLastEventByStreamId,
+} from "pagopa-interop-commons-test";
+import {
   Attribute,
+  attributeKind,
   MaintenanceTenantPromotedToCertifierV2,
   Tenant,
   generateId,
@@ -8,12 +15,7 @@ import {
   toTenantV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
-import {
-  getMockAttribute,
-  getMockContextMaintenance,
-  getMockTenant,
-  readLastEventByStreamId,
-} from "pagopa-interop-commons-test";
+
 import {
   tenantNotFound,
   tenantIsAlreadyACertifier,
@@ -142,6 +144,39 @@ describe("addCertifierId", async () => {
     await addOneTenant(certifierTenant);
     await addOneAttribute(attribute);
     expect(
+      tenantService.addCertifierId(
+        {
+          tenantId: certifierTenant.id,
+          certifierId,
+        },
+        getMockContextMaintenance({})
+      )
+    ).rejects.toThrowError(
+      certifierWithExistingAttributes(certifierTenant.id, previousCertifierId)
+    );
+  });
+
+  it("Should throw certifierWithExistingAttributes if the organization has already created discrete attributes", async () => {
+    const previousCertifierId: string = generateId();
+
+    const attribute: Attribute = {
+      ...getMockAttribute(attributeKind.certifiedDiscrete),
+      origin: previousCertifierId,
+    };
+
+    const certifierTenant: Tenant = {
+      ...getMockTenant(),
+      features: [
+        {
+          type: "PersistentCertifier",
+          certifierId: previousCertifierId,
+        },
+      ],
+    };
+
+    await addOneTenant(certifierTenant);
+    await addOneAttribute(attribute);
+    await expect(
       tenantService.addCertifierId(
         {
           tenantId: certifierTenant.id,

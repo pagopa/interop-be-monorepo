@@ -13,9 +13,12 @@ import SwaggerParser from "@apidevtools/swagger-parser";
 import type { OpenAPIObject } from "openapi3-ts";
 import { generateZodClientFromOpenAPI } from "openapi-zod-client";
 import Handlebars from "handlebars";
-import { createEndpointChunkHelpers } from "./src/generatorUtils.js";
+import {
+  createEndpointChunkHelpers,
+  createSchemaRenderer,
+} from "./src/generatorUtils.js";
 
-const maxEndpointsPerChunk = 50;
+const maxEndpointsPerChunk = 30;
 
 const main = async () => {
   const handlebars = Handlebars.create();
@@ -78,6 +81,10 @@ const main = async () => {
     )) as OpenAPIObject;
 
     const fileName = doc.split(".")[0];
+    handlebars.registerHelper(
+      "renderSchema",
+      createSchemaRenderer(openApiDoc.components?.schemas)
+    );
     await generateZodClientFromOpenAPI({
       openApiDoc,
       distPath: `./src/generated/${fileName}.ts`,

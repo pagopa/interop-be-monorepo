@@ -4,9 +4,10 @@ import {
   rateLimiterMiddleware as rateLimiterMiddlewareBuilder,
   startServer,
 } from "pagopa-interop-commons";
-import { config } from "./config/config.js";
+
 import { createApp, createServices, serviceName } from "./app.js";
 import { getInteropBeClients } from "./clients/clientsProvider.js";
+import { config } from "./config/config.js";
 import getAllowList from "./utilities/getAllowList.js";
 
 const clients = getInteropBeClients();

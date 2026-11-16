@@ -1,5 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { purposeApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockPurpose,
+  getMockValidRiskAnalysis,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   DelegationId,
   Purpose,
@@ -7,17 +14,11 @@ import {
   eserviceMode,
   generateId,
   tenantKind,
+  eventConflictError,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockPurpose,
-  getMockValidRiskAnalysis,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { purposeApi } from "pagopa-interop-api-clients";
-import { api, purposeService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { purposeToApiPurpose } from "../../src/model/domain/apiConverter.js";
 import {
   duplicatedPurposeTitle,
@@ -35,6 +36,7 @@ import {
   purposeFromTemplateCannotBeModified,
 } from "../../src/model/domain/errors.js";
 import { buildRiskAnalysisSeed } from "../mockUtils.js";
+import { api, purposeService } from "../vitest.api.setup.js";
 
 describe("API PATCH /purposes/{purposeId} test", () => {
   const mockPurposeUpdateContent: purposeApi.PatchPurposeUpdateContent = {
@@ -73,7 +75,10 @@ describe("API PATCH /purposes/{purposeId} test", () => {
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
@@ -128,7 +133,8 @@ describe("API PATCH /purposes/{purposeId} test", () => {
     },
     { error: missingFreeOfChargeReason(), expectedStatus: 400 },
     { error: riskAnalysisValidationFailed([]), expectedStatus: 400 },
-    { error: purposeNotInDraftState(mockPurpose.id), expectedStatus: 400 },
+    { error: purposeNotInDraftState(mockPurpose.id), expectedStatus: 409 },
+    { error: eventConflictError(generateId()), expectedStatus: 409 },
     {
       error: invalidFreeOfChargeReason(false, "Some reason"),
       expectedStatus: 400,
@@ -179,6 +185,7 @@ describe("API PATCH /purposes/{purposeId} test", () => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token, mockPurpose.id, seed);
       expect(res.status).toBe(400);
+      expect(purposeService.patchUpdatePurpose).not.toHaveBeenCalled();
     }
   );
 });

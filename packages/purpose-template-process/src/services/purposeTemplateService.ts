@@ -49,6 +49,8 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
+import { purposeTemplateToApiPurposeTemplateSeed } from "../model/domain/apiConverter.js";
 import {
   associationEServicesForPurposeTemplateFailed,
   associationEServiceTemplatesForPurposeTemplateFailed,
@@ -90,7 +92,6 @@ import {
   cleanupAnnotationDocsForRemovedAnswers,
   deleteRiskAnalysisTemplateAnswerAnnotationDocuments,
 } from "../utilities/riskAnalysisDocUtils.js";
-import { purposeTemplateToApiPurposeTemplateSeed } from "../model/domain/apiConverter.js";
 import {
   GetPurposeTemplateEServiceDescriptorsFilters,
   GetPurposeTemplateEServiceTemplatesFilters,
@@ -122,6 +123,7 @@ import {
   validateEservicesDisassociations,
   validateEServiceTemplatesAssociations,
   validateEServiceTemplatesDisassociations,
+  validatePurposeTemplateFreeTextFields,
   validateRiskAnalysisAnswerAnnotationOrThrow,
   validateRiskAnalysisAnswerOrThrow,
   validateRiskAnalysisTemplateOrThrow,
@@ -729,6 +731,8 @@ async function updateDraftPurposeTemplate(
     handlesPersonalData,
   } = typeAndSeed.seed;
 
+  validatePurposeTemplateFreeTextFields(typeAndSeed.seed);
+
   if (
     purposeTitle &&
     purposeTitle.toLowerCase() !==
@@ -923,6 +927,8 @@ export function purposeTemplateServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<PurposeTemplate>> {
       logger.info(`Creating purpose template`);
+
+      validatePurposeTemplateFreeTextFields(seed);
 
       assertConsistentFreeOfCharge(
         seed.purposeIsFreeOfCharge,

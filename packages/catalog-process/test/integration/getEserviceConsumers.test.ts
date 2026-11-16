@@ -1,11 +1,4 @@
 import {
-  agreementState,
-  Descriptor,
-  descriptorState,
-  EService,
-} from "pagopa-interop-models";
-import { expect, describe, it } from "vitest";
-import {
   getMockContext,
   getMockTenant,
   getMockAgreement,
@@ -13,6 +6,14 @@ import {
   getMockDocument,
   getMockEService,
 } from "pagopa-interop-commons-test";
+import {
+  agreementState,
+  Descriptor,
+  descriptorState,
+  EService,
+} from "pagopa-interop-models";
+import { expect, describe, it } from "vitest";
+
 import {
   addOneAgreement,
   addOneEService,

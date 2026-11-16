@@ -1,3 +1,4 @@
+import { and, eq, isNull } from "drizzle-orm";
 import {
   genericInternalError,
   Tenant,
@@ -9,7 +10,6 @@ import {
   AttributeReadModelService,
   TenantReadModelService,
 } from "pagopa-interop-readmodel";
-import { and, eq, isNull } from "drizzle-orm";
 import {
   attributeInReadmodelAttribute,
   DrizzleReturnType,
@@ -17,6 +17,7 @@ import {
   tenantInReadmodelTenant,
   tenantRemoteIdInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
+
 import { IstatReadModelTenant } from "../model/istatModel.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

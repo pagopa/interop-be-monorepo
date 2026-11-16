@@ -1,11 +1,9 @@
+import { eq } from "drizzle-orm";
 import {
   getMockDelegation,
   getMockDelegationDocument,
   setupTestContainersVitest,
 } from "pagopa-interop-commons-test";
-import { inject, afterEach } from "vitest";
-import { delegationReadModelServiceBuilder } from "pagopa-interop-readmodel";
-import { eq } from "drizzle-orm";
 import {
   WithMetadata,
   Delegation,
@@ -14,6 +12,7 @@ import {
   UserId,
   DelegationId,
 } from "pagopa-interop-models";
+import { delegationReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import {
   DelegationSQL,
   DelegationStampSQL,
@@ -22,6 +21,8 @@ import {
   delegationContractDocumentInReadmodelDelegation,
   delegationInReadmodelDelegation,
 } from "pagopa-interop-readmodel-models";
+import { inject, afterEach } from "vitest";
+
 import { delegationWriterServiceBuilder } from "../src/delegationWriterService.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(

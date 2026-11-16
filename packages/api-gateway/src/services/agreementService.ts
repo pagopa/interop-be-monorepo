@@ -1,19 +1,20 @@
-import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
 import {
   agreementApi,
   apiGatewayApi,
   purposeApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
-import { ApiGatewayAppContext } from "../utilities/context.js";
+import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
+
 import { toApiGatewayAgreementIfNotDraft } from "../api/agreementApiConverter.js";
+import { toAgreementProcessGetAgreementsQueryParams } from "../api/agreementApiConverter.js";
+import { toApiGatewayAgreementAttributes } from "../api/attributeApiConverter.js";
+import { clientStatusCodeToError } from "../clients/catchClientError.js";
 import {
   agreementNotFound,
   producerAndConsumerParamMissing,
 } from "../models/errors.js";
-import { toAgreementProcessGetAgreementsQueryParams } from "../api/agreementApiConverter.js";
-import { toApiGatewayAgreementAttributes } from "../api/attributeApiConverter.js";
-import { clientStatusCodeToError } from "../clients/catchClientError.js";
+import { ApiGatewayAppContext } from "../utilities/context.js";
 import { getAllPurposes } from "./purposeService.js";
 
 export async function getAllAgreements(

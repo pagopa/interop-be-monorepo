@@ -1,4 +1,10 @@
 import {
+  certifiedAttributesSatisfied,
+  declaredAttributesSatisfied,
+  evaluateCertifiedAttributesSuspension,
+  verifiedAttributesSatisfied,
+} from "pagopa-interop-agreement-lifecycle";
+import {
   CreateEvent,
   isFeatureFlagEnabled,
   Logger,
@@ -19,19 +25,14 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
-import {
-  certifiedAttributesSatisfied,
-  declaredAttributesSatisfied,
-  evaluateCertifiedAttributesSuspension,
-  verifiedAttributesSatisfied,
-} from "pagopa-interop-agreement-lifecycle";
+
+import { config } from "../config/config.js";
 import {
   toCreateEventAgreementSetDraftByPlatform,
   toCreateEventAgreementSetMissingCertifiedAttributesByPlatform,
   toCreateEventAgreementSuspendedByPlatform,
   toCreateEventAgreementUnsuspendedByPlatform,
 } from "../model/domain/toEvent.js";
-import { config } from "../config/config.js";
 import { retrieveEService } from "./agreementService.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 

@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { beforeEach, describe, it, expect, vi } from "vitest";
-import request from "supertest";
+import { catalogApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockEServiceTemplate,
+  getMockDescriptor,
+  getMockEService,
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   DescriptorId,
@@ -10,15 +16,9 @@ import {
   generateId,
   operationForbidden,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockEServiceTemplate,
-  getMockDescriptor,
-  getMockEService,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import { catalogApi } from "pagopa-interop-api-clients";
-import { api, catalogService } from "../vitest.api.setup.js";
+import request from "supertest";
+import { beforeEach, describe, it, expect, vi } from "vitest";
+
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   attributeNotFound,
@@ -27,8 +27,9 @@ import {
   eServiceNotFound,
   inconsistentDailyCalls,
   notValidDescriptorState,
-  templateInstanceNotAllowed,
+  templateInstanceAttributesCannotBeChanged,
 } from "../../src/model/domain/errors.js";
+import { api, catalogService } from "../vitest.api.setup.js";
 
 describe("API /templates/eservices/{eServiceId}/descriptors/{descriptorId} authorization test", () => {
   const descriptor: Descriptor = {
@@ -120,7 +121,7 @@ describe("API /templates/eservices/{eServiceId}/descriptors/{descriptorId} autho
       expectedStatus: 400,
     },
     {
-      error: templateInstanceNotAllowed(
+      error: templateInstanceAttributesCannotBeChanged(
         mockEService.id,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         mockEService.templateId!

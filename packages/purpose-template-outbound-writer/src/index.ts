@@ -1,17 +1,18 @@
-import { EachMessagePayload } from "kafkajs";
-import { decodeKafkaMessage, logger } from "pagopa-interop-commons";
-import { initProducer, runConsumer } from "kafka-iam-auth";
-import { match } from "ts-pattern";
 import {
   encodeOutboundPurposeTemplateEvent,
   PurposeTemplateEventV2 as PurposeTemplateOutboundEvent,
 } from "@pagopa/interop-outbound-models";
+import { initProducer, runConsumer } from "kafka-iam-auth";
+import { EachMessagePayload } from "kafkajs";
+import { decodeKafkaMessage, logger } from "pagopa-interop-commons";
 import {
   CorrelationId,
   generateId,
   PurposeTemplateEvent,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
+
 import { config } from "./config/config.js";
 import { toOutboundEventV2 } from "./converters/toOutboundEventV2.js";
 

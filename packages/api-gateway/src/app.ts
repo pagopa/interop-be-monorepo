@@ -1,3 +1,8 @@
+import { apiGatewayApi } from "pagopa-interop-api-clients";
+import {
+  applicationAuditBeginMiddleware,
+  applicationAuditEndMiddleware,
+} from "pagopa-interop-application-audit";
 import {
   authenticationMiddleware,
   contextMiddleware,
@@ -8,15 +13,11 @@ import {
   rateLimiterMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
-import {
-  applicationAuditBeginMiddleware,
-  applicationAuditEndMiddleware,
-} from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
-import { apiGatewayApi } from "pagopa-interop-api-clients";
-import apiGatewayRouter from "./routers/apiGatewayRouter.js";
+
 import { getInteropBeClients } from "./clients/clientsProvider.js";
 import { config } from "./config/config.js";
+import apiGatewayRouter from "./routers/apiGatewayRouter.js";
 
 const serviceName = modelsServiceName.API_GATEWAY;
 

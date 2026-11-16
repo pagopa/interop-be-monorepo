@@ -1,12 +1,13 @@
+import { ZodiosEndpointDefinitions } from "@zodios/core";
+import { ZodiosRouter } from "@zodios/express";
+import { authorizationServerApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
   rateLimiterHeadersFromStatus,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { authorizationServerApi } from "pagopa-interop-api-clients";
-import { ZodiosEndpointDefinitions } from "@zodios/core";
-import { ZodiosRouter } from "@zodios/express";
+
 import { AsyncTokenService } from "../services/asyncTokenService.js";
 import {
   buildCtxHelpers,

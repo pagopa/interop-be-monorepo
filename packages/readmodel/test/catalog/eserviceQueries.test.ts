@@ -5,6 +5,7 @@ import {
   getMockEService,
   getMockEServiceAttribute,
   getMockValidRiskAnalysis,
+  sortRiskAnalysisCollections,
 } from "pagopa-interop-commons-test";
 import {
   agreementApprovalPolicy,
@@ -17,6 +18,7 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
+
 import { upsertEService } from "../../src/testUtils.js";
 import { readModelDB } from "../utils.js";
 import { catalogReadModelService } from "./eserviceUtils.js";
@@ -74,7 +76,10 @@ describe("E-service queries", () => {
         eservice.data.id
       );
 
-      expect(retrievedEService).toStrictEqual(eservice);
+      expect(retrievedEService?.metadata).toStrictEqual(eservice.metadata);
+      expect(
+        sortRiskAnalysisCollections(retrievedEService?.data)
+      ).toStrictEqual(sortRiskAnalysisCollections(eservice.data));
     });
 
     it("eservice NOT found", async () => {

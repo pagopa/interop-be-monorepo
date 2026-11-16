@@ -4,6 +4,7 @@ import { generateToken } from "pagopa-interop-commons-test";
 import { PurposeTemplateId, generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, services } from "../../vitest.api.setup.js";
 

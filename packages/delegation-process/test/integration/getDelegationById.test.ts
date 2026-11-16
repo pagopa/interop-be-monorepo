@@ -6,6 +6,7 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
+
 import { delegationNotFound } from "../../src/model/domain/errors.js";
 import { addOneDelegation, delegationService } from "../integrationUtils.js";
 

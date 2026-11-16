@@ -1,18 +1,19 @@
-import { describe, it, expect, vi } from "vitest";
-import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
+import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
+import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
 import {
   TenantId,
   UserId,
   generateId,
   pollingMaxRetriesExceeded,
 } from "pagopa-interop-models";
-import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
-import { api, mockProducerKeychainService } from "../../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { missingMetadata, userNotFound } from "../../../src/model/errors.js";
 import { config } from "../../../src/config/config.js";
+import { missingMetadata, userNotFound } from "../../../src/model/errors.js";
+import { api, mockProducerKeychainService } from "../../vitest.api.setup.js";
 
 describe("POST /producerKeychains/:producerKeychainId/users router test", () => {
   const userId = generateId<UserId>();

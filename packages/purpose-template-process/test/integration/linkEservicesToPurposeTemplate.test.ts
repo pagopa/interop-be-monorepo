@@ -19,6 +19,7 @@ import {
   Tenant,
   dateToBigInt,
   descriptorState,
+  eserviceMode,
   generateId,
   purposeTemplateState,
   targetTenantKind,
@@ -26,9 +27,11 @@ import {
   toPurposeTemplateV2,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
+
 import { config } from "../../src/config/config.js";
 import {
   eserviceAlreadyAssociatedError,
+  eserviceInReceiveMode,
   eserviceIsInstanceOfEServiceTemplateError,
   eserviceNotFound,
   invalidDescriptorStateError,
@@ -361,6 +364,33 @@ describe("linkEservicesToPurposeTemplate", () => {
           ),
         ],
         [eserviceWithDifferentPersonalDataFlag.id],
+        purposeTemplate.id
+      )
+    );
+  });
+
+  it("should throw associationEServicesForPurposeTemplateFailed if the e-service is in receive mode", async () => {
+    const receiveModeEService: EService = {
+      ...eService1,
+      mode: eserviceMode.receive,
+    };
+
+    await addOneTenant(tenant);
+    await addOneEService(receiveModeEService);
+    await addOnePurposeTemplate(purposeTemplate);
+
+    await expect(
+      purposeTemplateService.linkEservicesToPurposeTemplate(
+        purposeTemplate.id,
+        [receiveModeEService.id],
+        getMockContext({
+          authData: getMockAuthData(tenant.id),
+        })
+      )
+    ).rejects.toThrowError(
+      associationEServicesForPurposeTemplateFailed(
+        [eserviceInReceiveMode(receiveModeEService.id)],
+        [receiveModeEService.id],
         purposeTemplate.id
       )
     );

@@ -1,4 +1,5 @@
 /* eslint-disable functional/immutable-data */
+import { addDays, subDays } from "date-fns";
 import {
   getMockCertifiedTenantAttribute,
   getMockContext,
@@ -25,7 +26,7 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { addDays, subDays } from "date-fns";
+
 import {
   writeOnlyOneAgreement,
   updateAgreementInReadModel,
@@ -257,7 +258,7 @@ describe("Agreement states flows", () => {
     const producerAuthData = getMockAuthData(producer.id);
 
     const { data: activatedAgreement } =
-      await agreementService.activateAgreement(
+      await agreementService.approveAgreement(
         { agreementId: submittedUpgradedAgreement.id, delegationId: undefined },
         getMockContext({ authData: producerAuthData })
       );
@@ -462,7 +463,7 @@ describe("Agreement states flows", () => {
     const producerAuthData = getMockAuthData(producer.id);
 
     const { data: activatedAgreement } =
-      await agreementService.activateAgreement(
+      await agreementService.approveAgreement(
         { agreementId: submittedUpgradedAgreement.id, delegationId: undefined },
         getMockContext({ authData: producerAuthData })
       );

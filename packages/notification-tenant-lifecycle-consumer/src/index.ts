@@ -1,4 +1,4 @@
-import { match } from "ts-pattern";
+import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import {
   logger,
@@ -6,16 +6,17 @@ import {
   InteropTokenGenerator,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
-import { runConsumer } from "kafka-iam-auth";
 import {
   CorrelationId,
   generateId,
   TenantEvent,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
+
+import { getInteropBeClients } from "./clients/clientsProvider.js";
 import { config } from "./config/config.js";
 import { notificationTenantLifecycleConsumerServiceBuilder } from "./notificationTenantLifecycleConsumerService.js";
-import { getInteropBeClients } from "./clients/clientsProvider.js";
 
 const refreshableToken = new RefreshableInteropToken(
   new InteropTokenGenerator(config)

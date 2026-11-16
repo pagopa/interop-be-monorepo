@@ -28,6 +28,8 @@ import {
   SCP,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
+import { config } from "../config/config.js";
 import {
   expirationDateCannotBeInThePast,
   tenantNotFoundInVerifiers,
@@ -38,8 +40,8 @@ import {
   attributeNotFound,
   eServiceNotFound,
   descriptorNotFoundInEservice,
+  tenantNotAllowedForDelegation,
 } from "../model/domain/errors.js";
-import { config } from "../config/config.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export function assertVerifiedAttributeExistsInTenant(
@@ -169,7 +171,7 @@ export function assertTenantAllowedForDelegation(tenant: Tenant): void {
   );
 
   if (!hasAttribute) {
-    throw operationForbidden;
+    throw tenantNotAllowedForDelegation(tenant.id, tenant.externalId.origin);
   }
 }
 

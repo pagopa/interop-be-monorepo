@@ -6,20 +6,21 @@ import {
   GetItemCommand,
   UpdateItemCommand,
 } from "@aws-sdk/client-dynamodb";
-import { genericInternalError } from "pagopa-interop-models";
-import { getUnixTime } from "date-fns";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
+import { getUnixTime } from "date-fns";
+import { genericInternalError } from "pagopa-interop-models";
+
+import { Logger } from "../../logging/index.js";
 import { DynamoDBClientConfig } from "../config/config.js";
-import { formatError } from "../utils/errorFormatter.js";
-import {
-  SignatureReference,
-  SignatureReferenceSchema,
-} from "../models/signatureReference.js";
 import {
   DocumentSignatureReference,
   DocumentSignatureReferenceSchema,
 } from "../models/documentSignatureReference.js";
-import { Logger } from "../../logging/index.js";
+import {
+  SignatureReference,
+  SignatureReferenceSchema,
+} from "../models/signatureReference.js";
+import { formatError } from "../utils/errorFormatter.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function signatureServiceBuilder(

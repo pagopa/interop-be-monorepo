@@ -1,13 +1,18 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
-import {
-  pollingMaxRetriesExceeded,
-  unsafeBrandId,
-} from "pagopa-interop-models";
 import {
   getMockedApiEservice,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
+import {
+  pollingMaxRetriesExceeded,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { config } from "../../../src/config/config.js";
+import { missingMetadata } from "../../../src/model/errors.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientGetToHaveBeenNthCalledWith,
@@ -16,9 +21,6 @@ import {
   mockPollingResponse,
   eserviceService,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { config } from "../../../src/config/config.js";
-import { missingMetadata } from "../../../src/model/errors.js";
 import {
   getMockM2MAdminAppContext,
   testToM2mGatewayApiEService,
@@ -86,6 +88,61 @@ describe("updateDraftEService", () => {
     expect(
       mockInteropBeClients.catalogProcessClient.getEServiceById
     ).toHaveBeenCalledTimes(2);
+  });
+
+  it.each([
+    {},
+    { name: "Updated metadata name" },
+    { description: "Updated metadata description" },
+    { name: mockEService.name, description: mockEService.description },
+  ])(
+    "Should forward metadata-only or no-op seed %# and poll its returned version",
+    async (seed) => {
+      mockGetEService.mockImplementation(
+        mockPollingResponse(mockEServiceProcessGetResponse, 1)
+      );
+      const result = await eserviceService.updateDraftEService(
+        unsafeBrandId(mockEService.id),
+        seed,
+        getMockM2MAdminAppContext()
+      );
+      expect(result).toEqual(
+        testToM2mGatewayApiEService(mockEServiceProcessGetResponse.data)
+      );
+      expect(mockPatchUpdateEService).toHaveBeenCalledTimes(1);
+      expectApiClientPostToHaveBeenCalledWith({
+        mockPost: mockPatchUpdateEService,
+        params: { eServiceId: mockEService.id },
+        body: seed,
+      });
+      expect(mockGetEService).toHaveBeenCalledTimes(1);
+    }
+  );
+
+  it("Should propagate a conflict without polling or retrying", async () => {
+    const error = new AxiosError(
+      "Catalog conflict",
+      undefined,
+      undefined,
+      undefined,
+      {
+        status: 409,
+        statusText: "Conflict",
+        data: {},
+        config: {} as InternalAxiosRequestConfig,
+        headers: {},
+      }
+    );
+    mockPatchUpdateEService.mockRejectedValueOnce(error);
+    await expect(
+      eserviceService.updateDraftEService(
+        unsafeBrandId(mockEService.id),
+        mockEServiceSeed,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toBe(error);
+    expect(mockPatchUpdateEService).toHaveBeenCalledTimes(1);
+    expect(mockGetEService).not.toHaveBeenCalled();
   });
 
   it("Should throw missingMetadata in case the eservice returned by the PATCH call has no metadata", async () => {

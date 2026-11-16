@@ -1,4 +1,3 @@
-import { match } from "ts-pattern";
 import {
   Purpose,
   PurposeVersion,
@@ -6,6 +5,8 @@ import {
   PurposeVersionState,
   purposeVersionState,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
+
 import {
   PurposeV1Notification,
   PurposeVersionDocumentV1Notification,

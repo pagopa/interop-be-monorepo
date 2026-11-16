@@ -1,5 +1,6 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
   ZodiosContext,
@@ -9,15 +10,21 @@ import {
   validateAuthorization,
   setMetadataVersionHeader,
 } from "pagopa-interop-commons";
-import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   EServiceTemplateId,
   TenantId,
   emptyErrorMapper,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { EServiceTemplateService } from "../services/eserviceTemplateService.js";
+
+import {
+  compactOrganizationToApi,
+  eserviceTemplateToApiEServiceTemplate,
+  apiEServiceTemplateVersionStateToEServiceTemplateVersionState,
+  documentToApiDocument,
+} from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
+import { EServiceTemplateService } from "../services/eserviceTemplateService.js";
 import {
   activateEServiceTemplateVersionErrorMapper,
   suspendEServiceTemplateVersionErrorMapper,
@@ -34,6 +41,7 @@ import {
   deleteEServiceTemplateVersionErrorMapper,
   createEServiceTemplateErrorMapper,
   updateEServiceTemplateErrorMapper,
+  patchUpdateEServiceTemplateErrorMapper,
   updateDraftTemplateVersionErrorMapper,
   publishEServiceTemplateVersionErrorMapper,
   createEServiceTemplateDocumentErrorMapper,
@@ -45,12 +53,6 @@ import {
   deleteEServiceTemplateErrorMapper,
   maintenanceFixRiskAnalysisErrorMapper,
 } from "../utilities/errorMappers.js";
-import {
-  compactOrganizationToApi,
-  eserviceTemplateToApiEServiceTemplate,
-  apiEServiceTemplateVersionStateToEServiceTemplateVersionState,
-  documentToApiDocument,
-} from "../model/domain/apiConverter.js";
 
 const eserviceTemplatesRouter = (
   ctx: ZodiosContext,
@@ -298,7 +300,7 @@ const eserviceTemplatesRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          updateEServiceTemplateErrorMapper,
+          patchUpdateEServiceTemplateErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);

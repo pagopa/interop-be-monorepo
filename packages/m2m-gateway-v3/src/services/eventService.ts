@@ -1,7 +1,6 @@
-import { WithLogger } from "pagopa-interop-commons";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { M2MGatewayAppContext } from "../utils/context.js";
+import { WithLogger } from "pagopa-interop-commons";
+
 import {
   toM2MGatewayApiAgreementEvent,
   toM2MGatewayApiAttributeEvent,
@@ -17,6 +16,8 @@ import {
   toM2MGatewayApiPurposeEvent,
   toM2MGatewayApiPurposeTemplateEvent,
 } from "../api/eventApiConverter.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { M2MGatewayAppContext } from "../utils/context.js";
 
 const normalizeDelegationId = (
   delegationId: string | null | undefined

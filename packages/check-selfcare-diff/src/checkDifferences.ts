@@ -11,6 +11,7 @@ import {
   tenantNotificationConfigInReadmodelNotificationConfig,
   userNotificationConfigInReadmodelNotificationConfig,
 } from "pagopa-interop-readmodel-models";
+
 import { CheckDiffConfig } from "./config/config.js";
 
 type UserWithRoles = { id: string; roles: string[] };
@@ -50,7 +51,7 @@ type UserDifferences = {
   }>;
 };
 
-type TenantDiff = {
+export type TenantDiff = {
   tenantId: string;
   tenantName: string;
   selfcareId: string;
@@ -60,7 +61,7 @@ type TenantDiff = {
   hasTenantNotificationConfig: boolean;
 };
 
-type DiffResult = {
+export type DiffResult = {
   tenants: TenantDiff[];
   tenantsMissingNotificationConfig: Array<{
     tenantId: string;

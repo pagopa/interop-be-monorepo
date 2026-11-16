@@ -4,6 +4,7 @@ import {
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import { DelegationWriterService } from "./delegationWriterService.js";
 
 export async function handleMessageV2(

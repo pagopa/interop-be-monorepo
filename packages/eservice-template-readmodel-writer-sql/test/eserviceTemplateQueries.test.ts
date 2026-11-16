@@ -5,6 +5,7 @@ import {
   getMockEServiceTemplate,
   getMockValidEServiceTemplateRiskAnalysis,
   getMockEServiceTemplateVersion,
+  sortRiskAnalysisCollections,
 } from "pagopa-interop-commons-test";
 import {
   agreementApprovalPolicy,
@@ -12,9 +13,9 @@ import {
   EServiceTemplateVersion,
   tenantKind,
 } from "pagopa-interop-models";
+import { aggregateEServiceTemplate } from "pagopa-interop-readmodel";
 import { describe, expect, it } from "vitest";
 
-import { aggregateEServiceTemplate } from "pagopa-interop-readmodel";
 import {
   checkCompleteEServiceTemplate,
   eserviceTemplateWriterService,
@@ -90,8 +91,11 @@ describe("E-service template queries", () => {
         asyncExchangePropertiesSQL,
       });
 
-      expect(retrievedEServiceTemplate).toStrictEqual({
-        data: eserviceTemplate,
+      expect({
+        ...retrievedEServiceTemplate,
+        data: sortRiskAnalysisCollections(retrievedEServiceTemplate.data),
+      }).toStrictEqual({
+        data: sortRiskAnalysisCollections(eserviceTemplate),
         metadata: {
           version: 1,
         },
@@ -233,8 +237,11 @@ describe("E-service template queries", () => {
         asyncExchangePropertiesSQL,
       });
 
-      expect(retrievedEServiceTemplate).toStrictEqual({
-        data: eserviceTemplate,
+      expect({
+        ...retrievedEServiceTemplate,
+        data: sortRiskAnalysisCollections(retrievedEServiceTemplate.data),
+      }).toStrictEqual({
+        data: sortRiskAnalysisCollections(eserviceTemplate),
         metadata: {
           version: 2,
         },

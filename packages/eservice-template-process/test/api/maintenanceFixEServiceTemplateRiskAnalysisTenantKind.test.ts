@@ -1,21 +1,22 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
-import request from "supertest";
+import { authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockEServiceTemplate,
+} from "pagopa-interop-commons-test";
 import {
   EServiceTemplateId,
   RiskAnalysisId,
   generateId,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockEServiceTemplate,
-} from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
-import { api, eserviceTemplateService } from "../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import {
   eserviceTemplateNotFound,
   riskAnalysisNotFound,
 } from "../../src/model/domain/errors.js";
+import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 
 describe("API POST /maintenance/templates/{templateId}/riskAnalyses/{riskAnalysisId}/tenantKind/fix test", () => {
   const mockEServiceTemplate = getMockEServiceTemplate();

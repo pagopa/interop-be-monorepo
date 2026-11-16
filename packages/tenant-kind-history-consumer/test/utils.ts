@@ -1,5 +1,6 @@
-import { inject, afterEach } from "vitest";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
+import { inject, afterEach } from "vitest";
+
 import { tenantKindHistoryWriterServiceBuilder } from "../src/tenantKindHistoryWriterService.js";
 
 export const { cleanup, tenantKindHistoryDB } = await setupTestContainersVitest(

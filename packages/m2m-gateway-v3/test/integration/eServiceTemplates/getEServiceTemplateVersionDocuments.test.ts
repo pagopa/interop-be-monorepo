@@ -1,4 +1,3 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   m2mGatewayApiV3,
   eserviceTemplateApi,
@@ -10,15 +9,17 @@ import {
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { unsafeBrandId } from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { toM2MGatewayApiDocument } from "../../../src/api/eserviceTemplateApiConverter.js";
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 import {
   eserviceTemplateService,
   mockInteropBeClients,
   mockPollingResponse,
 } from "../../integrationUtils.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { toM2MGatewayApiDocument } from "../../../src/api/eserviceTemplateApiConverter.js";
 
 describe("getEServiceTemplateVersionDocuments", () => {
   type EServiceTemplateDocs = {

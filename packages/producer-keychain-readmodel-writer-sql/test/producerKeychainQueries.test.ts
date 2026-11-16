@@ -1,10 +1,11 @@
 import {
   getMockProducerKeychain,
   getMockKey,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import { ProducerKeychain, generateId } from "pagopa-interop-models";
 import { aggregateProducerKeychain } from "pagopa-interop-readmodel";
 import { describe, expect, it } from "vitest";
+
 import {
   checkCompleteProducerKeychain,
   producerKeychainWriterService,

@@ -1,7 +1,7 @@
 // test/jwks-server.ts
 import { createServer, Server } from "http";
-import { AddressInfo } from "net";
 import { JWK } from "jose";
+import { AddressInfo } from "net";
 
 export interface JwksServer {
   url: string;

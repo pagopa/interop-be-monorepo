@@ -7,7 +7,6 @@ import {
   missingKafkaMessageDataError,
   NotificationType,
 } from "pagopa-interop-models";
-import { PurposeHandlerParams } from "../../models/handlerParams.js";
 import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
@@ -16,7 +15,9 @@ import {
   retrieveHTMLTemplate,
   retrieveTenant,
 } from "pagopa-interop-notification-commons";
+
 import { config } from "../../config/config.js";
+import { PurposeHandlerParams } from "../../models/handlerParams.js";
 
 const notificationType: NotificationType =
   "purposeSuspendedUnsuspendedToConsumer";

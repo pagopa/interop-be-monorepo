@@ -10,9 +10,10 @@ import {
   makeDrizzleConnectionWithCleanup,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
+
+import { getInteropClients } from "./client/client.js";
 import { config } from "./config/config.js";
 import { importAttributes } from "./service/processor.js";
-import { getInteropClients } from "./client/client.js";
 import { readModelServiceBuilderSQL } from "./service/readModelService.js";
 
 const { db, cleanup } = makeDrizzleConnectionWithCleanup(config);

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { delegationApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockDelegation,
@@ -10,15 +11,14 @@ import {
 import {
   Delegation,
   EService,
+  EServiceId,
   TenantId,
   delegationKind,
   generateId,
 } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { api, delegationService } from "../vitest.api.setup.js";
 import { delegationToApiDelegation } from "../../src/model/domain/apiConverter.js";
 import {
   delegationAlreadyExists,
@@ -28,7 +28,9 @@ import {
   delegationNotAllowedForTenant,
   tenantNotAllowedToDelegation,
   tenantNotFound,
+  eserviceAlreadyArchived,
 } from "../../src/model/domain/errors.js";
+import { api, delegationService } from "../vitest.api.setup.js";
 
 describe("API POST /producer/delegations test", () => {
   const mockDelegator = { ...getMockTenant(), name: "Comune di Burione" };
@@ -119,6 +121,10 @@ describe("API POST /producer/delegations test", () => {
         "DelegatedProducer"
       ),
       expectedStatus: 409,
+    },
+    {
+      error: eserviceAlreadyArchived(generateId<EServiceId>()),
+      expectedStatus: 400,
     },
   ])(
     "Should return $expectedStatus for $error.code",

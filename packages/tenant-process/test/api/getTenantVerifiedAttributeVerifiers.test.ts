@@ -1,15 +1,16 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import request from "supertest";
-import { generateId, TenantId, AttributeId } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import { api, tenantService } from "../vitest.api.setup.js";
+import { generateToken } from "pagopa-interop-commons-test";
+import { generateId, TenantId, AttributeId } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import {
   attributeNotFoundInTenant,
   tenantNotFound,
   attributeNotFound,
 } from "../../src/model/domain/errors.js";
+import { api, tenantService } from "../vitest.api.setup.js";
 describe("API GET /tenants/{tenantId}/attributes/verified/{attributeId}/verifiers test", () => {
   const tenantId: TenantId = generateId();
   const attributeId: AttributeId = generateId();

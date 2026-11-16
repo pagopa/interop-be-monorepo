@@ -10,6 +10,12 @@ import {
   isInteractionStateAllowedForScope,
   makeTokenGenerationStatesClientKidPurposePK,
 } from "pagopa-interop-models";
+
+import type {
+  AsyncGeneratedTokenData,
+  ScopeHandlerContext,
+} from "../asyncTokenService.js";
+
 import {
   asyncClientAssertionClaimsValidationFailed,
   asyncExchangeConfirmationNotEnabled,
@@ -22,20 +28,16 @@ import {
   platformStateValidationFailed,
   resourceAvailableTimeExpired,
 } from "../../model/domain/errors.js";
-import {
-  logTokenGenerationInfo,
-  publishAudit,
-  retrieveAsyncCatalogEntry,
-  retrieveKey,
-} from "../../utilities/tokenServiceHelpers.js";
+import { publishConsumerTokenAudit } from "../../utilities/audit.js";
 import {
   readInteraction,
   updateInteractionState,
 } from "../../utilities/interactionsUtils.js";
-import type {
-  AsyncGeneratedTokenData,
-  ScopeHandlerContext,
-} from "../asyncTokenService.js";
+import {
+  logTokenGenerationInfo,
+  retrieveAsyncCatalogEntry,
+  retrieveKey,
+} from "../../utilities/tokenServiceHelpers.js";
 
 export const handleConfirmation = async (
   ctx: ScopeHandlerContext
@@ -229,7 +231,7 @@ export const handleConfirmation = async (
   });
 
   // 12. Publish audit (consumer-side)
-  await publishAudit({
+  await publishConsumerTokenAudit({
     producer,
     generatedToken: token,
     key,

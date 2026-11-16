@@ -1,17 +1,13 @@
 import { createHash } from "crypto";
+import * as jose from "jose";
+import { dateToSeconds } from "pagopa-interop-commons";
 import {
   Algorithm,
   ApiError,
   JWKKeyRS256,
   JWKKeyES256,
 } from "pagopa-interop-models";
-import * as jose from "jose";
-import { dateToSeconds } from "pagopa-interop-commons";
-import {
-  FailedValidation,
-  ValidationResult,
-  SuccessfulValidation,
-} from "../types.js";
+
 import {
   dpopAlgorithmNotAllowed,
   dpopAlgorithmNotFound,
@@ -30,6 +26,11 @@ import {
   dpopAthNotFound,
   invalidDPoPAth,
 } from "../errors.js";
+import {
+  FailedValidation,
+  ValidationResult,
+  SuccessfulValidation,
+} from "../types.js";
 
 const EXPECTED_TYP = "dpop+jwt";
 const ALLOWED_ALGORITHMS: string[] = Algorithm.options;

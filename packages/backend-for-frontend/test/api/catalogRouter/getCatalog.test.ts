@@ -1,18 +1,18 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test";
 import { generateId } from "pagopa-interop-models";
 import request from "supertest";
-import { generateToken } from "pagopa-interop-commons-test/index.js";
-import { authRole } from "pagopa-interop-commons";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   eserviceDescriptorNotFound,
   eserviceRiskNotFound,
   invalidEServiceRequester,
 } from "../../../src/model/errors.js";
-import { api, services } from "../../vitest.api.setup.js";
 import { getMockBffApiCatalogEService } from "../../mockUtils.js";
-import { appBasePath } from "../../../src/config/appBasePath.js";
+import { api, services } from "../../vitest.api.setup.js";
 
 describe("API GET /catalog", () => {
   const defaultQuery = {
@@ -56,6 +56,12 @@ describe("API GET /catalog", () => {
     expect(res.body).toEqual(mockApiCatalogEServices);
   });
 
+  it("Should accept a limit up to 50", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, { offset: 0, limit: 50 });
+    expect(res.status).toBe(200);
+  });
+
   it.each([
     {
       error: eserviceRiskNotFound(generateId(), generateId()),
@@ -85,7 +91,7 @@ describe("API GET /catalog", () => {
     { query: { limit: 10 } },
     { query: { offset: -1, limit: 10 } },
     { query: { offset: 0, limit: -2 } },
-    { query: { offset: 0, limit: 201 } },
+    { query: { offset: 0, limit: 51 } },
     { query: { offset: "invalid", limit: 10 } },
     { query: { offset: 0, limit: "invalid" } },
     { query: { ...defaultQuery, personalData: "invalid" } },

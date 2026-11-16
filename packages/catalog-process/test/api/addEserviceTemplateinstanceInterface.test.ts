@@ -1,8 +1,14 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import request from "supertest";
+import { catalogApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockDescriptor,
+  getMockDocument,
+  getMockEService,
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   DescriptorId,
@@ -12,21 +18,17 @@ import {
   generateId,
   interfaceExtractingInfoError,
   invalidContentTypeDetected,
+  invalidInterfaceData,
   invalidInterfaceFileDetected,
+  openapiVersionNotRecognized,
   operationForbidden,
   technology,
   Technology,
   TenantId,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockDescriptor,
-  getMockDocument,
-  getMockEService,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import { catalogApi } from "pagopa-interop-api-clients";
-import { api, catalogService } from "../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   documentPrettyNameDuplicate,
@@ -35,11 +37,13 @@ import {
   eServiceNotAnInstance,
   eServiceNotFound,
   eserviceTemplateInterfaceNotFound,
+  eserviceTemplateInterfaceTechnologyMismatch,
   eServiceTemplateNotFound,
   eServiceTemplateWithoutPublishedVersion,
   interfaceAlreadyExists,
   notValidDescriptorState,
 } from "../../src/model/domain/errors.js";
+import { api, catalogService } from "../vitest.api.setup.js";
 
 describe("addEServiceTemplateInstanceInterface", () => {
   beforeEach(() => {
@@ -53,11 +57,17 @@ describe("addEServiceTemplateInstanceInterface", () => {
     contactUrl: "https://contact.url",
     contactEmail: "john.doe@example.com",
     termsAndConditionsUrl: "https://terms.url",
-    serverUrls: ["https://server1.com", "https://server2.com"],
+    serverUrls: [
+      { url: "https://server1.com", description: "Primary REST server" },
+      { url: "https://server2.com" },
+    ],
   };
 
   const soapBody: catalogApi.TemplateInstanceInterfaceSOAPSeed = {
-    serverUrls: ["https://soap.server1.com", "https://soap.server2.com"],
+    serverUrls: [
+      { url: "https://soap.server1.com", description: "Primary SOAP server" },
+      { url: "https://soap.server2.com" },
+    ],
   };
 
   const makeRequest = async (
@@ -116,6 +126,15 @@ describe("addEServiceTemplateInstanceInterface", () => {
 
           expect(res.body).toEqual(eServiceToApiEService(eservice));
           expect(res.status).toBe(200);
+          expect(
+            catalogService.addEServiceTemplateInstanceInterface
+          ).toHaveBeenCalledWith(
+            eservice.id,
+            descriptor.id,
+            technology,
+            technology === "Rest" ? restBody : soapBody,
+            expect.anything()
+          );
         }
       );
 
@@ -148,6 +167,14 @@ describe("addEServiceTemplateInstanceInterface", () => {
           expectedStatus: 409,
         },
         { error: interfaceAlreadyExists(descriptor.id), expectedStatus: 409 },
+        {
+          error: eserviceTemplateInterfaceTechnologyMismatch(
+            eservice.templateId!,
+            technology,
+            technology === "Rest" ? "Soap" : "Rest"
+          ),
+          expectedStatus: 409,
+        },
         { error: eServiceNotFound(eservice.id), expectedStatus: 404 },
         {
           error: eServiceDescriptorNotFound(eservice.id, descriptor.id),
@@ -181,6 +208,17 @@ describe("addEServiceTemplateInstanceInterface", () => {
         },
         {
           error: notValidDescriptorState(descriptor.id, descriptor.state),
+          expectedStatus: 400,
+        },
+        {
+          error: openapiVersionNotRecognized("1.0"),
+          expectedStatus: 400,
+        },
+        {
+          error: invalidInterfaceData({
+            id: eservice.id,
+            isEserviceTemplate: true,
+          }),
           expectedStatus: 400,
         },
       ])(
@@ -244,11 +282,21 @@ describe("addEServiceTemplateInstanceInterface", () => {
           eservice.id,
           descriptor.id,
         ]);
+        invalidCases.push([
+          { ...restBody, serverUrls: ["wwwinvalidcom"] },
+          eservice.id,
+          descriptor.id,
+        ]);
       }
 
       if (technology === "Soap") {
         invalidCases.push([
           { serverUrls: "not-an-array" },
+          eservice.id,
+          descriptor.id,
+        ]);
+        invalidCases.push([
+          { serverUrls: ["wwwinvalidcom"] },
           eservice.id,
           descriptor.id,
         ]);

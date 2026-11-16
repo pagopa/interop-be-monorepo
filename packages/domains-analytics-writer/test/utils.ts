@@ -1,14 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import camelcaseKeys from "camelcase-keys";
+import crypto from "crypto";
 import { genericLogger } from "pagopa-interop-commons";
+import {
+  getMockKey,
+  setupTestContainersVitest,
+} from "pagopa-interop-commons-test";
+import { Key, UserId } from "pagopa-interop-models";
 import { inject } from "vitest";
-import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { z } from "zod";
-import { DBContext, DBConnection } from "../src/db/db.js";
+
 import { config } from "../src/config/config.js";
 import { retryConnection } from "../src/db/buildColumnSet.js";
-import { setupDbServiceBuilder } from "../src/service/setupDbService.js";
+import { DBContext, DBConnection } from "../src/db/db.js";
 import {
   AgreementDbTable,
   AttributeDbTable,
@@ -28,6 +33,7 @@ import {
   PurposeTemplateDbTable,
   ClientDbTablePartialTable,
 } from "../src/model/db/index.js";
+import { setupDbServiceBuilder } from "../src/service/setupDbService.js";
 import { getColumnNameMapper } from "../src/utils/sqlQueryHelper.js";
 
 const { analyticsPostgresDB } = await setupTestContainersVitest(
@@ -45,6 +51,11 @@ export const dbContext: DBContext = {
   conn: connection,
   pgp: analyticsPostgresDB.$config.pgp,
 };
+
+await dbContext.conn.none(`
+  ALTER TABLE domains.eservice_descriptor_archiving_schedule
+  ADD COLUMN IF NOT EXISTS grace_period_days INTEGER;
+`);
 
 export const attributeTables: AttributeDbTable[] = [AttributeDbTable.attribute];
 
@@ -79,6 +90,7 @@ export const purposeTables: PurposeDbTable[] = [
   PurposeDbTable.purpose_risk_analysis_form,
   PurposeDbTable.purpose_risk_analysis_answer,
   PurposeDbTable.purpose_version_signed_document,
+  PurposeDbTable.purpose_risk_analysis_reviewer,
 ];
 
 export const delegationTables: DelegationDbTable[] = [
@@ -293,3 +305,25 @@ export async function getManyFromDb<T extends DomainDbTable>(
 
   return rows.map((row) => camelcaseKeys(row));
 }
+
+export const getMockRsaKey = (userId: UserId): Key => {
+  const publicKey = crypto.generateKeyPairSync("rsa", {
+    modulusLength: 2048,
+  }).publicKey;
+  const encodedPem = Buffer.from(
+    publicKey.export({ type: "pkcs1", format: "pem" })
+  ).toString("base64url");
+
+  return { ...getMockKey(), encodedPem, userId };
+};
+
+export const getMockEcKey = (userId: UserId): Key => {
+  const publicKey = crypto.generateKeyPairSync("ec", {
+    namedCurve: "P-256",
+  }).publicKey;
+  const encodedPem = Buffer.from(
+    publicKey.export({ type: "spki", format: "pem" })
+  ).toString("base64url");
+
+  return { ...getMockKey(), encodedPem, userId };
+};

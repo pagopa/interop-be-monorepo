@@ -1,10 +1,3 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  generateId,
-  pollingMaxRetriesExceeded,
-  unsafeBrandId,
-  WithMetadata,
-} from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import {
   getMockedApiPurpose,
@@ -12,18 +5,26 @@ import {
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import {
-  expectApiClientGetToHaveBeenCalledWith,
-  expectApiClientPostToHaveBeenCalledWith,
-  mockInteropBeClients,
-  mockPollingResponse,
-  purposeService,
-} from "../../integrationUtils.js";
+  generateId,
+  pollingMaxRetriesExceeded,
+  unsafeBrandId,
+  WithMetadata,
+} from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
 import {
   missingPurposeVersionWithState,
   missingMetadata,
 } from "../../../src/model/errors.js";
+import {
+  expectApiClientGetToHaveBeenCalledWith,
+  expectApiClientPostToHaveBeenCalledWith,
+  mockInteropBeClients,
+  mockPollingResponse,
+  purposeService,
+} from "../../integrationUtils.js";
 import {
   getMockM2MAdminAppContext,
   testToM2mGatewayApiPurpose,

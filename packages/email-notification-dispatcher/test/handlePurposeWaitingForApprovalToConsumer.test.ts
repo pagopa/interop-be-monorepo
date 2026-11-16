@@ -1,13 +1,15 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/no-identical-functions */
+import { authRole } from "pagopa-interop-commons";
 import {
   getMockContext,
   getMockDescriptorPublished,
   getMockEService,
   getMockPurpose,
+  getMockPurposeVersion,
   getMockTenant,
+  getMockTenantMail,
 } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
 import {
   CorrelationId,
   EService,
@@ -16,17 +18,20 @@ import {
   missingKafkaMessageDataError,
   NotificationType,
   Purpose,
+  purposeVersionState,
+  purposeWaitingForApprovalReason,
   Tenant,
   TenantId,
   TenantNotificationConfigId,
   toPurposeV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   eserviceNotFound,
   tenantNotFound,
 } from "pagopa-interop-notification-commons";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { handlePurposeWaitingForApprovalToConsumer } from "../src/handlers/purposes/handlePurposeWaitingForApprovalToConsumer.js";
 import {
   addOneEService,
@@ -114,7 +119,13 @@ describe("handlePurposeWaitingForApprovalOverthreshold", async () => {
     const unknownConsumerId = generateId<TenantId>();
 
     const purpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([
+        {
+          ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+          waitingForApprovalReason:
+            purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+        },
+      ]),
       eserviceId: eservice.id,
       consumerId: unknownConsumerId,
     };
@@ -135,7 +146,13 @@ describe("handlePurposeWaitingForApprovalOverthreshold", async () => {
     const unknownEServiceId = generateId<EServiceId>();
 
     const purpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([
+        {
+          ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+          waitingForApprovalReason:
+            purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+        },
+      ]),
       eserviceId: unknownEServiceId,
       consumerId: consumerTenant.id,
     };
@@ -154,7 +171,13 @@ describe("handlePurposeWaitingForApprovalOverthreshold", async () => {
 
   it("should generate one message per user of the consumer", async () => {
     const purpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([
+        {
+          ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+          waitingForApprovalReason:
+            purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+        },
+      ]),
       eserviceId: eservice.id,
       consumerId: consumerTenant.id,
     };
@@ -193,7 +216,13 @@ describe("handlePurposeWaitingForApprovalOverthreshold", async () => {
       ]);
 
     const purpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([
+        {
+          ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+          waitingForApprovalReason:
+            purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+        },
+      ]),
       eserviceId: eservice.id,
       consumerId: consumerTenant.id,
     };
@@ -215,9 +244,62 @@ describe("handlePurposeWaitingForApprovalOverthreshold", async () => {
     ).toBe(true);
   });
 
+  it("should include the tenant contact email for the first approval request", async () => {
+    const mail = getMockTenantMail();
+    await addOneTenant({ ...consumerTenant, mails: [mail] });
+    const purpose = {
+      ...getMockPurpose([
+        {
+          ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+          waitingForApprovalReason:
+            purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+        },
+      ]),
+      eserviceId: eservice.id,
+      consumerId,
+    };
+    const messages = await handlePurposeWaitingForApprovalToConsumer({
+      purposeV2Msg: toPurposeV2({
+        ...purpose,
+        versions: [
+          {
+            ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+            waitingForApprovalReason:
+              purposeWaitingForApprovalReason.dailyCallsPerConsumer,
+          },
+        ],
+      }),
+      logger,
+      templateService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+    });
+    expect(messages).toHaveLength(3);
+    expect(messages).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: "Tenant", address: mail.address }),
+      ])
+    );
+    for (const message of messages) {
+      expect(message.email.subject).toBe(
+        "Hai superato la soglia di chiamate API per fruitore"
+      );
+      expect(message.email.body).toContain(
+        "è stata superata la soglia per fruitore di chiamate API"
+      );
+      expect(message.email.body).toContain("Visualizza finalità");
+    }
+  });
+
   it("should generate a complete and correct message", async () => {
     const purpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([
+        {
+          ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
+          waitingForApprovalReason:
+            purposeWaitingForApprovalReason.dailyCallsPerConsumerAndTotal,
+        },
+      ]),
       eserviceId: eservice.id,
       consumerId: consumerTenant.id,
     };
@@ -235,7 +317,10 @@ describe("handlePurposeWaitingForApprovalOverthreshold", async () => {
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain(eservice.name);
-      expect(message.email.body).toContain(dailyCallsPerConsumer.toString());
+      expect(message.email.body).toContain(purpose.title);
+      expect(message.email.body).toContain(
+        "sia la soglia di chiamate API per fruitore sia la soglia totale"
+      );
       if (message.type === "User") {
         expect(message.email.body).toContain("{{ recipientName }}");
       }

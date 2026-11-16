@@ -1,17 +1,36 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { isNotNull, isNull, eq, ne, and, or, sql } from "drizzle-orm";
 import {
   agreementState,
   delegationState,
   descriptorState,
   eserviceTemplateVersionState,
+  purposeTemplateState,
   purposeVersionState,
 } from "pagopa-interop-models";
+import {
+  aggregateAgreementArray,
+  aggregateDelegationsArray,
+  aggregateEserviceArray,
+  aggregateEServiceTemplateArray,
+  aggregatePurposeArray,
+  aggregatePurposeTemplateArray,
+  aggregateTenantArray,
+  toAgreementAggregatorArray,
+  toDelegationAggregatorArray,
+  toEServiceAggregatorArray,
+  toEServiceTemplateAggregatorArray,
+  toPurposeAggregatorArray,
+  toPurposeTemplateAggregatorArray,
+  toTenantAggregatorArray,
+} from "pagopa-interop-readmodel";
 import {
   agreementInReadmodelAgreement,
   agreementStampInReadmodelAgreement,
   delegationInReadmodelDelegation,
   delegationStampInReadmodelDelegation,
   DrizzleReturnType,
+  eserviceDescriptorArchivingRequestInReadmodelCatalog,
   eserviceDescriptorArchivingScheduleInReadmodelCatalog,
   eserviceDescriptorAttributeInReadmodelCatalog,
   eserviceDescriptorDocumentInReadmodelCatalog,
@@ -24,33 +43,21 @@ import {
   eserviceTemplateVersionInReadmodelEserviceTemplate,
   eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
   purposeInReadmodelPurpose,
+  purposeTemplateInReadmodelPurposeTemplate,
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
   purposeVersionSignedDocumentInReadmodelPurpose,
   purposeVersionStampInReadmodelPurpose,
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
-import {
-  aggregateAgreementArray,
-  aggregateDelegationsArray,
-  aggregateEserviceArray,
-  aggregateEServiceTemplateArray,
-  aggregatePurposeArray,
-  aggregateTenantArray,
-  toAgreementAggregatorArray,
-  toDelegationAggregatorArray,
-  toEServiceAggregatorArray,
-  toEServiceTemplateAggregatorArray,
-  toPurposeAggregatorArray,
-  toTenantAggregatorArray,
-} from "pagopa-interop-readmodel";
-import { isNotNull, eq, ne, and, sql } from "drizzle-orm";
+
 import {
   ExportedAgreement,
   ExportedDelegation,
   ExportedEService,
   ExportedEServiceTemplate,
   ExportedPurpose,
+  ExportedPurposeTemplate,
   ExportedTenant,
 } from "../config/models/models.js";
 
@@ -92,6 +99,8 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           riskAnalysisAnswer: sql<null>`NULL`,
           archivingSchedule:
             eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+          archivingRequests:
+            eserviceDescriptorArchivingRequestInReadmodelCatalog,
           asyncExchangeProperties: sql<null>`NULL`,
         })
         .from(eserviceInReadmodelCatalog)
@@ -142,6 +151,24 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
             eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          eserviceDescriptorArchivingRequestInReadmodelCatalog,
+          or(
+            eq(
+              eserviceDescriptorInReadmodelCatalog.id,
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.descriptorId
+            ),
+            and(
+              eq(
+                eserviceInReadmodelCatalog.id,
+                eserviceDescriptorArchivingRequestInReadmodelCatalog.eserviceId
+              ),
+              isNull(
+                eserviceDescriptorArchivingRequestInReadmodelCatalog.descriptorId
+              )
+            )
           )
         )
         .where(
@@ -326,6 +353,32 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         toEServiceTemplateAggregatorArray(queryResult)
       ).map((eserviceTemplate) =>
         ExportedEServiceTemplate.parse(eserviceTemplate.data)
+      );
+    },
+
+    async getPurposeTemplates(): Promise<ExportedPurposeTemplate[]> {
+      const queryResult = await readModelDB
+        .select({
+          purposeTemplate: purposeTemplateInReadmodelPurposeTemplate,
+          purposeRiskAnalysisFormTemplate: sql<null>`NULL`,
+          purposeRiskAnalysisTemplateAnswer: sql<null>`NULL`,
+          purposeRiskAnalysisTemplateAnswerAnnotation: sql<null>`NULL`,
+          purposeRiskAnalysisTemplateAnswerAnnotationDocument: sql<null>`NULL`,
+          purposeRiskAnalysisTemplateDocument: sql<null>`NULL`,
+          purposeRiskAnalysisTemplateSignedDocument: sql<null>`NULL`,
+        })
+        .from(purposeTemplateInReadmodelPurposeTemplate)
+        .where(
+          ne(
+            purposeTemplateInReadmodelPurposeTemplate.state,
+            purposeTemplateState.draft
+          )
+        );
+
+      return aggregatePurposeTemplateArray(
+        toPurposeTemplateAggregatorArray(queryResult)
+      ).map((purposeTemplate) =>
+        ExportedPurposeTemplate.parse(purposeTemplate.data)
       );
     },
   };

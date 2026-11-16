@@ -2,18 +2,17 @@
 /* eslint-disable sonarjs/no-identical-functions */
 /* eslint-disable functional/no-let */
 
-import path from "path";
-import { fileURLToPath } from "url";
 import {
-  describe,
-  it,
-  expect,
-  vi,
-  beforeEach,
-  afterEach,
-  beforeAll,
-  afterAll,
-} from "vitest";
+  RefreshableInteropToken,
+  dateAtRomeZone,
+  genericLogger,
+  timeAtRomeZone,
+} from "pagopa-interop-commons";
+import {
+  getMockDelegation,
+  getMockTenant,
+  getMockEService,
+} from "pagopa-interop-commons-test";
 import {
   DelegationEventEnvelopeV2,
   DelegationId,
@@ -27,17 +26,23 @@ import {
   unsafeBrandId,
   CorrelationId,
 } from "pagopa-interop-models";
+import path from "path";
+import { fileURLToPath } from "url";
 import {
-  getMockDelegation,
-  getMockTenant,
-  getMockEService,
-} from "pagopa-interop-commons-test";
-import {
-  RefreshableInteropToken,
-  dateAtRomeZone,
-  genericLogger,
-  timeAtRomeZone,
-} from "pagopa-interop-commons";
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+  beforeAll,
+  afterAll,
+} from "vitest";
+
+import { getInteropBeClients } from "../../src/clients/clientProvider.js";
+import { config } from "../../src/config/config.js";
+import { handleDelegationMessageV2 } from "../../src/handler/handleDelegationMessageV2.js";
+import { tenantNotFound } from "../../src/model/errors.js";
 import { getIpaCode } from "../../src/pdf-generator/pdfGenerator.js";
 import {
   cleanup,
@@ -48,10 +53,6 @@ import {
   addOneTenant,
   addOneEService,
 } from "../integrationUtils.js";
-import { handleDelegationMessageV2 } from "../../src/handler/handleDelegationMessageV2.js";
-import { config } from "../../src/config/config.js";
-import { tenantNotFound } from "../../src/model/errors.js";
-import { getInteropBeClients } from "../../src/clients/clientProvider.js";
 
 const mockDelegationId = generateId<DelegationId>();
 const mockDelegatorId = generateId<TenantId>();

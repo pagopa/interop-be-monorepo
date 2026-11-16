@@ -15,6 +15,7 @@ import {
   agreementState,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
+
 import {
   ActiveDelegations,
   UpdateAgreementSeed,
@@ -23,12 +24,12 @@ import {
   toCreateEventAgreementSuspendedByProducer,
   toCreateEventAgreementSuspendedByConsumer,
 } from "../model/domain/toEvent.js";
+import { getSuspensionFlags } from "./agreementService.js";
+import { createStamp, getSuspensionStamps } from "./agreementStampUtils.js";
 import {
   agreementStateByFlags,
   nextStateByAttributesFSM,
 } from "./agreementStateProcessor.js";
-import { createStamp, getSuspensionStamps } from "./agreementStampUtils.js";
-import { getSuspensionFlags } from "./agreementService.js";
 
 export function createSuspensionUpdatedAgreement({
   agreement,

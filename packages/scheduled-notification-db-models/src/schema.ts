@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+import { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import {
   index,
   integer,
@@ -8,7 +9,7 @@ import {
   uuid,
   varchar,
 } from "drizzle-orm/pg-core";
-import { InferInsertModel, InferSelectModel } from "drizzle-orm";
+
 import { scheduledNotificationSchema } from "./pgSchema.js";
 
 export const scheduledNotification = scheduledNotificationSchema.table(

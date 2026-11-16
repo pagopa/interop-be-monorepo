@@ -1,4 +1,3 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
   getMockWithMetadata,
@@ -6,13 +5,15 @@ import {
   getMockedApiKey,
 } from "pagopa-interop-commons-test";
 import { ProducerKeychainId, generateId } from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
   producerKeychainService,
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientGetToHaveBeenNthCalledWith,
   mockInteropBeClients,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getProducerKeychainKeys", () => {

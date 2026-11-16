@@ -1,13 +1,16 @@
+import { genericLogger } from "pagopa-interop-commons";
 import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+  toDescriptorV1,
+  getMockDescriptor,
+  getMockEService,
+  getMockDocument,
+  getMockTokenGenStatesConsumerClient,
+  buildDynamoDBTables,
+  deleteDynamoDBTables,
+  readAllTokenGenStatesItems,
+  writePlatformCatalogEntry,
+} from "pagopa-interop-commons-test";
+import { writeTokenGenStatesConsumerClient } from "pagopa-interop-commons-test";
 import {
   Descriptor,
   EService,
@@ -23,18 +26,16 @@ import {
   makeTokenGenerationStatesClientKidPurposePK,
 } from "pagopa-interop-models";
 import {
-  toDescriptorV1,
-  getMockDescriptor,
-  getMockEService,
-  getMockDocument,
-  getMockTokenGenStatesConsumerClient,
-  buildDynamoDBTables,
-  deleteDynamoDBTables,
-  readAllTokenGenStatesItems,
-  writePlatformCatalogEntry,
-} from "pagopa-interop-commons-test";
-import { writeTokenGenStatesConsumerClient } from "pagopa-interop-commons-test";
-import { genericLogger } from "pagopa-interop-commons";
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import { readCatalogEntry } from "../src/utils.js";
 import { dynamoDBClient } from "./utils.js";

@@ -5,10 +5,10 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
+
 import { HandlerParams } from "../../models/handlerParams.js";
-import { handleEServiceTemplateVersionSuspendedToCreator } from "./handleEserviceTemplateVersionSuspendedToCreator.js";
 import { handleEServiceTemplateVersionPublished } from "./handleEserviceTemplateVersionPublished.js";
-import { handleEServiceTemplateNameUpdated } from "./handleEserviceTemplateNameUpdated.js";
+import { handleEServiceTemplateVersionSuspendedToCreator } from "./handleEserviceTemplateVersionSuspendedToCreator.js";
 import { handleEServiceTemplateVersionSuspendedToInstantiator } from "./handleEserviceTemplateVersionSuspendedToInstantiator.js";
 
 export async function handleEServiceTemplateEvent(
@@ -62,21 +62,15 @@ export async function handleEServiceTemplateEvent(
         })
     )
     .with(
-      { type: "EServiceTemplateNameUpdated" },
-      async ({ data: { eserviceTemplate, oldName } }) =>
-        handleEServiceTemplateNameUpdated({
-          eserviceTemplateV2Msg: eserviceTemplate,
-          oldName,
-          logger,
-          readModelService,
-          templateService,
-          correlationId,
-        })
-    )
-    .with(
       {
         type: P.union(
           "EServiceTemplateAdded",
+          /**
+           * The instantiators are notified of the rename on the eservice event
+           * `EServiceNameUpdatedByTemplateUpdate`, which carries the actual old
+           * and new names of each instance.
+           */
+          "EServiceTemplateNameUpdated",
           "EServiceTemplateRiskAnalysisAdded",
           "EServiceTemplateRiskAnalysisDeleted",
           "EServiceTemplateRiskAnalysisUpdated",
@@ -89,7 +83,6 @@ export async function handleEServiceTemplateEvent(
           "EServiceTemplateVersionDocumentAdded",
           "EServiceTemplateVersionInterfaceDeleted",
           "EServiceTemplateVersionDocumentDeleted",
-          "EServiceTemplateVersionInterfaceUpdated",
           "EServiceTemplateVersionDocumentUpdated",
           "EServiceTemplateIntendedTargetUpdated",
           "EServiceTemplateDescriptionUpdated",
@@ -99,7 +92,6 @@ export async function handleEServiceTemplateEvent(
           "EServiceTemplateVersionActivated",
           "EServiceTemplatePersonalDataFlagUpdatedAfterPublication",
           "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded",
-          "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated",
           "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted"
         ),
       },

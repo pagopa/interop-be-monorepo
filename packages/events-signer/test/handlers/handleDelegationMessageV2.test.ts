@@ -2,15 +2,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable functional/immutable-data */
 
-import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
-import {
-  DelegationEventEnvelopeV2,
-  generateId,
-  toDelegationV2,
-  unsafeBrandId,
-  TenantId,
-  EServiceId,
-} from "pagopa-interop-models";
 import {
   FileManager,
   initFileManager,
@@ -25,9 +16,19 @@ import {
   deleteDynamoDBTables,
   getMockDelegation,
 } from "pagopa-interop-commons-test";
+import {
+  DelegationEventEnvelopeV2,
+  generateId,
+  toDelegationV2,
+  unsafeBrandId,
+  TenantId,
+  EServiceId,
+} from "pagopa-interop-models";
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+
 import { config } from "../../src/config/config.js";
-import { dynamoDBClient } from "../utils/utils.js";
 import { handleDelegationMessageV2 } from "../../src/handlers/handleDelegationMessageV2.js";
+import { dynamoDBClient } from "../utils/utils.js";
 
 const fileManager: FileManager = initFileManager(config);
 const safeStorageService: SafeStorageService =

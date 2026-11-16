@@ -1,15 +1,16 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { EServiceTemplateId, generateId } from "pagopa-interop-models";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockEServiceTemplate,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
+import { EServiceTemplateId, generateId } from "pagopa-interop-models";
 import request from "supertest";
-import { api, eserviceTemplateService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { eserviceTemplateToApiEServiceTemplate } from "../../src/model/domain/apiConverter.js";
 import { eserviceTemplateNotFound } from "../../src/model/domain/errors.js";
+import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 
 describe("API GET /templates", () => {
   const mockEserviceTemplate = getMockEServiceTemplate();

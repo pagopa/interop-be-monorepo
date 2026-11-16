@@ -1,8 +1,10 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { bffApi } from "pagopa-interop-api-clients";
 import {
   authRole,
   ExpressContext,
+  setMetadataVersionHeader,
   validateAuthorization,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
@@ -12,16 +14,16 @@ import {
   emptyErrorMapper,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { bffApi } from "pagopa-interop-api-clients";
-import { PurposeService } from "../services/purposeService.js";
+
 import { makeApiProblem } from "../model/errors.js";
+import { PurposeService } from "../services/purposeService.js";
+import { fromBffAppContext } from "../utilities/context.js";
 import {
   getRiskAnalysisAssignmentsErrorMapper,
   getPurposesErrorMapper,
   reversePurposeUpdateErrorMapper,
   getPurposeErrorMapper,
 } from "../utilities/errorMappers.js";
-import { fromBffAppContext } from "../utilities/context.js";
 
 const purposeRouter = (
   ctx: ZodiosContext,
@@ -48,6 +50,25 @@ const purposeRouter = (
           emptyErrorMapper,
           ctx,
           `Error creating Purpose with eService ${req.body.eserviceId} and consumer ${req.body.consumerId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .patch("/reverse/purposes/:purposeId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const result = await purposeService.patchUpdateReversePurpose(
+          unsafeBrandId(req.params.purposeId),
+          req.body,
+          ctx
+        );
+        return res.status(200).send(bffApi.CreatedResource.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error updating reverse Purpose ${req.params.purposeId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -339,6 +360,7 @@ const purposeRouter = (
       try {
         await purposeService.signRiskAnalysis(
           unsafeBrandId(req.params.purposeId),
+          req.body,
           ctx
         );
 
@@ -499,6 +521,25 @@ const purposeRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .patch("/purposes/:purposeId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const result = await purposeService.patchUpdatePurpose(
+          unsafeBrandId(req.params.purposeId),
+          req.body,
+          ctx
+        );
+        return res.status(200).send(bffApi.CreatedResource.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error updating Purpose ${req.params.purposeId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post("/purposes/:purposeId", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
@@ -547,12 +588,14 @@ const purposeRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
-        const result = await purposeService.getPurpose(
+        const { data: purpose, metadata } = await purposeService.getPurpose(
           unsafeBrandId(req.params.purposeId),
           ctx
         );
 
-        return res.status(200).send(bffApi.Purpose.parse(result));
+        setMetadataVersionHeader(res, metadata);
+
+        return res.status(200).send(bffApi.Purpose.parse(purpose));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

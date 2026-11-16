@@ -16,6 +16,7 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
+
 import {
   originNotCompliant,
   attributeDuplicateByName,

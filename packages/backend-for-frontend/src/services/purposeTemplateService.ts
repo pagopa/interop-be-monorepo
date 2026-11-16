@@ -20,13 +20,12 @@ import {
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { TenantProcessClient } from "../clients/clientsProvider.js";
-import { BffAppContext } from "../utilities/context.js";
-import { config } from "../config/config.js";
+
+import { toCompactDescriptor } from "../api/catalogApiConverter.js";
+import { toBffCompactEServiceTemplateVersion } from "../api/eserviceTemplateApiConverter.js";
 import {
   toBffCatalogPurposeTemplate,
   toBffCreatorPurposeTemplate,
-  toBffEServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor,
   toBffPurposeTemplate,
   toBffPurposeTemplateWithCompactCreator,
   toBffLinkableEService,
@@ -34,6 +33,8 @@ import {
   toCompactPurposeTemplateEService,
   toCompactPurposeTemplateEServiceTemplate,
 } from "../api/purposeTemplateApiConverter.js";
+import { TenantProcessClient } from "../clients/clientsProvider.js";
+import { config } from "../config/config.js";
 import {
   eserviceDescriptorNotFound,
   eServiceNotFound,
@@ -41,8 +42,7 @@ import {
   eserviceTemplateVersionNotFound,
   tenantNotFound,
 } from "../model/errors.js";
-import { toCompactDescriptor } from "../api/catalogApiConverter.js";
-import { toBffCompactEServiceTemplateVersion } from "../api/eserviceTemplateApiConverter.js";
+import { BffAppContext } from "../utilities/context.js";
 
 const FETCH_ALL_PAGE = 50;
 
@@ -146,13 +146,49 @@ export function purposeTemplateServiceBuilder(
     return acc;
   }
 
+  async function fetchEServicesByIds(
+    eserviceIds: string[],
+    headers: BffAppContext["headers"]
+  ): Promise<catalogApi.EService[]> {
+    const uniqueIds = Array.from(new Set(eserviceIds));
+    const pages = Array.from(
+      { length: Math.ceil(uniqueIds.length / FETCH_ALL_PAGE) },
+      (_, index) =>
+        uniqueIds.slice(index * FETCH_ALL_PAGE, (index + 1) * FETCH_ALL_PAGE)
+    );
+
+    const results = await Promise.all(
+      pages.map(async (page) =>
+        page.length === 0
+          ? []
+          : (
+              await catalogProcessClient.getEServices({
+                headers,
+                queries: {
+                  eservicesIds: page,
+                  offset: 0,
+                  limit: page.length,
+                },
+              })
+            ).results
+      )
+    );
+
+    return results.flat();
+  }
+
   async function enrichLinkableResourcePage(
     page: LinkableResourceRow[],
-    headers: BffAppContext["headers"]
+    headers: BffAppContext["headers"],
+    preloadedEServiceById: Map<string, catalogApi.EService> = new Map()
   ): Promise<bffApi.LinkableResource[]> {
     const eserviceIds = Array.from(
       new Set(
-        page.flatMap((p) => (p.kind === "ESERVICE" ? [p.link.eserviceId] : []))
+        page.flatMap((p) =>
+          p.kind === "ESERVICE" && !preloadedEServiceById.has(p.link.eserviceId)
+            ? [p.link.eserviceId]
+            : []
+        )
       )
     );
     const eserviceTemplateIds = Array.from(
@@ -164,18 +200,7 @@ export function purposeTemplateServiceBuilder(
     );
 
     const [eservices, eserviceTemplates] = await Promise.all([
-      eserviceIds.length === 0
-        ? Promise.resolve([] as catalogApi.EService[])
-        : catalogProcessClient
-            .getEServices({
-              headers,
-              queries: {
-                eservicesIds: eserviceIds,
-                offset: 0,
-                limit: eserviceIds.length,
-              },
-            })
-            .then(({ results }) => results),
+      fetchEServicesByIds(eserviceIds, headers),
       eserviceTemplateIds.length === 0
         ? Promise.resolve([] as eserviceTemplateApi.EServiceTemplate[])
         : eserviceTemplateProcessClient
@@ -190,14 +215,24 @@ export function purposeTemplateServiceBuilder(
             .then(({ results }) => results),
     ]);
 
-    const eserviceById = new Map(eservices.map((e) => [e.id, e]));
+    const eserviceById = new Map([
+      ...preloadedEServiceById,
+      ...eservices.map((e) => [e.id, e] as const),
+    ]);
     const eserviceTemplateById = new Map(
       eserviceTemplates.map((t) => [t.id, t])
+    );
+    const pageEServices = page.flatMap((p) =>
+      p.kind === "ESERVICE"
+        ? [eserviceById.get(p.link.eserviceId)].filter(
+            (e): e is catalogApi.EService => e !== undefined
+          )
+        : []
     );
 
     const tenantIds = Array.from(
       new Set([
-        ...eservices.map((e) => e.producerId),
+        ...pageEServices.map((e) => e.producerId),
         ...eserviceTemplates.map((t) => t.creatorId),
       ])
     );
@@ -261,6 +296,33 @@ export function purposeTemplateServiceBuilder(
     );
   }
 
+  async function filterDeliverConcreteLinks(
+    concreteLinks: purposeTemplateApi.EServiceDescriptorPurposeTemplate[],
+    headers: BffAppContext["headers"]
+  ): Promise<{
+    concreteLinks: purposeTemplateApi.EServiceDescriptorPurposeTemplate[];
+    eserviceById: Map<string, catalogApi.EService>;
+  }> {
+    const eservices = await fetchEServicesByIds(
+      concreteLinks.map((link) => link.eserviceId),
+      headers
+    );
+
+    const eserviceById = new Map(eservices.map((e) => [e.id, e] as const));
+    const deliverConcreteLinks = concreteLinks.filter((link) => {
+      const eservice = eserviceById.get(link.eserviceId);
+      return (
+        eservice === undefined ||
+        eservice.mode !== catalogApi.EServiceMode.Values.RECEIVE
+      );
+    });
+
+    return {
+      concreteLinks: deliverConcreteLinks,
+      eserviceById,
+    };
+  }
+
   return {
     async createPurposeTemplate(
       seed: bffApi.PurposeTemplateSeed,
@@ -272,50 +334,6 @@ export function purposeTemplateServiceBuilder(
       });
 
       return { id: result.id };
-    },
-    async linkEServiceToPurposeTemplate(
-      purposeTemplateId: PurposeTemplateId,
-      eserviceId: string,
-      { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.EServiceDescriptorPurposeTemplate> {
-      logger.info(
-        `Linking e-service ${eserviceId} to purpose template ${purposeTemplateId}`
-      );
-
-      const result = await purposeTemplateClient.linkEServicesToPurposeTemplate(
-        {
-          eserviceIds: [eserviceId],
-        },
-        {
-          params: {
-            id: purposeTemplateId,
-          },
-          headers,
-        }
-      );
-
-      return result[0];
-    },
-    async unlinkEServicesFromPurposeTemplate(
-      purposeTemplateId: PurposeTemplateId,
-      eserviceId: string,
-      { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<void> {
-      logger.info(
-        `Unlinking e-service ${eserviceId} from purpose template ${purposeTemplateId}`
-      );
-
-      await purposeTemplateClient.unlinkEServicesFromPurposeTemplate(
-        {
-          eserviceIds: [eserviceId],
-        },
-        {
-          params: {
-            id: purposeTemplateId,
-          },
-          headers,
-        }
-      );
     },
     async linkResourceToPurposeTemplate(
       purposeTemplateId: PurposeTemplateId,
@@ -509,85 +527,6 @@ export function purposeTemplateServiceBuilder(
         },
       };
     },
-    async getPurposeTemplateEServiceDescriptors({
-      purposeTemplateId,
-      producerIds,
-      eserviceName,
-      offset,
-      limit,
-      ctx,
-    }: {
-      purposeTemplateId: string;
-      producerIds: string[];
-      eserviceName?: string;
-      offset: number;
-      limit: number;
-      ctx: WithLogger<BffAppContext>;
-    }): Promise<bffApi.EServiceDescriptorsPurposeTemplate> {
-      const { headers, logger } = ctx;
-
-      logger.info(
-        `Retrieving e-service descriptors linked to purpose template ${purposeTemplateId} with eserviceName ${eserviceName}, producerIds ${producerIds.toString()}, offset ${offset}, limit ${limit}`
-      );
-
-      const purposeTemplateEServiceDescriptorsResponse =
-        await purposeTemplateClient.getPurposeTemplateEServices({
-          headers,
-          params: {
-            id: purposeTemplateId,
-          },
-          queries: {
-            producerIds,
-            eserviceName,
-            limit,
-            offset,
-          },
-        });
-
-      const producersById = new Map<string, tenantApi.Tenant>();
-      const results = await Promise.all(
-        purposeTemplateEServiceDescriptorsResponse.results.map(
-          async (eserviceDescriptor) => {
-            const { eserviceId, descriptorId } = eserviceDescriptor;
-
-            const eservice = await catalogProcessClient.getEServiceById({
-              headers,
-              params: { eServiceId: eserviceId },
-            });
-
-            const descriptor = eservice.descriptors.find(
-              (d) => d.id === descriptorId
-            );
-            if (!descriptor) {
-              throw eserviceDescriptorNotFound(eservice.id, descriptorId);
-            }
-
-            const producer =
-              producersById.get(eservice.producerId) ||
-              (await tenantProcessClient.tenant.getTenant({
-                headers,
-                params: { id: eservice.producerId },
-              }));
-            producersById.set(eservice.producerId, producer);
-
-            return toBffEServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor(
-              eserviceDescriptor,
-              toCompactPurposeTemplateEService(eservice, producer),
-              toCompactDescriptor(descriptor)
-            );
-          }
-        )
-      );
-
-      return {
-        results,
-        pagination: {
-          offset,
-          limit,
-          totalCount: purposeTemplateEServiceDescriptorsResponse.totalCount,
-        },
-      };
-    },
     async getPurposeTemplateLinkableResources({
       purposeTemplateId,
       publisherIds,
@@ -620,8 +559,11 @@ export function purposeTemplateServiceBuilder(
         fetchAllTemplateLinks(purposeTemplateId, publisherIds, q, headers),
       ]);
 
+      const { concreteLinks: deliverConcreteLinks, eserviceById } =
+        await filterDeliverConcreteLinks(concreteLinks, headers);
+
       const merged: LinkableResourceRow[] = [
-        ...concreteLinks.map(
+        ...deliverConcreteLinks.map(
           (link): LinkableResourceRow => ({ kind: "ESERVICE", link })
         ),
         ...templateLinks.map(
@@ -634,7 +576,11 @@ export function purposeTemplateServiceBuilder(
 
       const pageLinks = merged.slice(offset, offset + limit);
 
-      const results = await enrichLinkableResourcePage(pageLinks, headers);
+      const results = await enrichLinkableResourcePage(
+        pageLinks,
+        headers,
+        eserviceById
+      );
 
       return {
         results,

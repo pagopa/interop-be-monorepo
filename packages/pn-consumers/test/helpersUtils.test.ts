@@ -1,9 +1,10 @@
-import { describe, expect, it } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
-import { toCsvDataRow } from "../src/utils/helpersUtils.js";
-import { Purpose } from "../src/models/purposeModel.js";
+import { describe, expect, it } from "vitest";
+
 import { PNDataCSVRow } from "../src/models/pnDataCsvRowModel.js";
+import { Purpose } from "../src/models/purposeModel.js";
+import { toCsvDataRow } from "../src/utils/helpersUtils.js";
 
 describe("toCsvDataRow", () => {
   it("should return the correct data row (Active)", () => {

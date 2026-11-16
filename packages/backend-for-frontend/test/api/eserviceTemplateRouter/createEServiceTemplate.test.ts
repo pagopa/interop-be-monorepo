@@ -1,17 +1,18 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { generateId } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
-import request from "supertest";
 import { bffApi } from "pagopa-interop-api-clients";
-import { api, clients } from "../../vitest.api.setup.js";
+import { authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test";
+import { generateId } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { toBffCreatedEServiceTemplateVersion } from "../../../src/api/eserviceTemplateApiConverter.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   getMockBffApiEServiceTemplate,
   getMockBffApiEServiceTemplateSeed,
 } from "../../mockUtils.js";
-import { toBffCreatedEServiceTemplateVersion } from "../../../src/api/eserviceTemplateApiConverter.js";
+import { api, clients } from "../../vitest.api.setup.js";
 
 describe("API POST /eservices/templates", () => {
   const mockEServiceTemplateSeed = getMockBffApiEServiceTemplateSeed();
@@ -42,6 +43,28 @@ describe("API POST /eservices/templates", () => {
     const res = await makeRequest(token);
     expect(res.status).toBe(200);
     expect(res.body).toEqual(mockEServiceTemplate);
+  });
+
+  it("Should forward the whole version seed (voucherLifespan, dailyCallsPerConsumer, dailyCallsTotal, description, agreementApprovalPolicy) to the process (PIN-9924)", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const version: bffApi.VersionSeedForEServiceTemplateCreation = {
+      description: "a".repeat(10),
+      voucherLifespan: 86400,
+      dailyCallsPerConsumer: 3,
+      dailyCallsTotal: 7,
+      agreementApprovalPolicy: "MANUAL",
+    };
+    const res = await makeRequest(token, {
+      ...mockEServiceTemplateSeed,
+      version,
+    });
+    expect(res.status).toBe(200);
+    expect(
+      clients.eserviceTemplateProcessClient.createEServiceTemplate
+    ).toHaveBeenCalledWith(
+      expect.objectContaining({ version }),
+      expect.anything()
+    );
   });
 
   it.each([
@@ -104,6 +127,18 @@ describe("API POST /eservices/templates", () => {
       body: {
         ...mockEServiceTemplateSeed,
         isSignalHubEnabled: "invalid",
+      },
+    },
+    {
+      body: {
+        ...mockEServiceTemplateSeed,
+        version: { voucherLifespan: 60, description: undefined },
+      },
+    },
+    {
+      body: {
+        ...mockEServiceTemplateSeed,
+        version: { voucherLifespan: 60, description: "a".repeat(9) },
       },
     },
     {

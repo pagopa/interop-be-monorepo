@@ -1,4 +1,3 @@
-import { describe, test, expect, beforeEach } from "vitest";
 import {
   DescriptorId,
   EServiceId,
@@ -6,6 +5,8 @@ import {
   Tenant,
   descriptorState,
 } from "pagopa-interop-models";
+import { describe, test, expect, beforeEach } from "vitest";
+
 import {
   readModelService,
   addOneTenant,
@@ -106,7 +107,7 @@ describe("ReadModelService - getNewEservices", () => {
       const { eservice: priorityService } = createRecentPublishedEService(
         priorityProducer.id,
         1,
-        5
+        6
       );
       const { eservice: regularService } = createRecentPublishedEService(
         regularProducer.id,
@@ -124,7 +125,7 @@ describe("ReadModelService - getNewEservices", () => {
       await addOneTenant(consumer2);
 
       // Add agreements for priority service
-      const priorityAgreements = Array.from({ length: 5 }, () =>
+      const priorityAgreements = Array.from({ length: 6 }, () =>
         createMockAgreement(priorityService.id, consumer1.id, {
           descriptorId: priorityService.descriptors[0].id,
           producerId: priorityProducer.id,
@@ -317,7 +318,7 @@ describe("ReadModelService - getNewEservices", () => {
   });
 
   describe("Limit and pagination", () => {
-    test("should return the top 5 most relevant services based on ordering criteria", async () => {
+    test("should return the top 6 most relevant services based on ordering criteria", async () => {
       const priorityProducer = createMockTenant();
       const regularProducer = createMockTenant();
       await addOneTenant(priorityProducer);
@@ -333,7 +334,7 @@ describe("ReadModelService - getNewEservices", () => {
         return { eservice, isPriority: true, agreements: i + 1 };
       });
 
-      const regularServices = Array.from({ length: 5 }, (_, i) => {
+      const regularServices = Array.from({ length: 6 }, (_, i) => {
         const { eservice } = createRecentPublishedEService(
           regularProducer.id,
           i + 1,
@@ -371,7 +372,7 @@ describe("ReadModelService - getNewEservices", () => {
         priorityProducer.id,
       ]);
 
-      expect(result).toHaveLength(5);
+      expect(result).toHaveLength(6);
 
       // First 2 should be priority services
       expect(result[0].agreementCount).toBeLessThanOrEqual(2);
@@ -717,7 +718,7 @@ describe("ReadModelService - getNewVersionEservices", () => {
       );
     });
 
-    test("should respect the 5-item limit", async () => {
+    test("should respect the 6-item limit", async () => {
       const producer = createMockTenant();
       await addOneTenant(producer);
 
@@ -748,7 +749,7 @@ describe("ReadModelService - getNewVersionEservices", () => {
       );
 
       const result = await readModelService.getNewVersionEservices(consumer.id);
-      expect(result).toHaveLength(5); // Should be limited to 5
+      expect(result).toHaveLength(6); // Should be limited to 6
     });
   });
 
