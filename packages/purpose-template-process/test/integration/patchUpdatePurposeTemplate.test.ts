@@ -56,7 +56,7 @@ describe("patch update purpose template", () => {
   });
 
   it.each([
-    {}, // This should not throw an error and leave all fields unchanged
+    {},
     { targetDescription: "updated target description" },
     {
       targetDescription: "updated target description",

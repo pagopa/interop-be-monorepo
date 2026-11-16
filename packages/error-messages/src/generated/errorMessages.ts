@@ -1474,6 +1474,26 @@ export const errorMessages = [
   },
   {
     "process": "Purpose Template Process",
+    "error": "purposeTemplateTitleConflict",
+    "errorCode": "015-0002",
+    "bffEndpoint": "PATCH /purposeTemplates/:purposeTemplateId",
+    "copy": {
+      "it": "Esiste già un template finalità con lo stesso nome. Scegli un altro nome.",
+      "en": "There is already a purpose template with the same name. Choose a different name."
+    }
+  },
+  {
+    "process": "Purpose Template Process",
+    "error": "hyperlinkDetectionError",
+    "errorCode": "015-0021",
+    "bffEndpoint": "PATCH /purposeTemplates/:purposeTemplateId",
+    "copy": {
+      "it": "Non puoi inserire un link nei campi di testo del template finalità. Rimuovi il link e riprova.",
+      "en": "You can't include a link in the purpose template text fields. Remove the link and try again."
+    }
+  },
+  {
+    "process": "Purpose Template Process",
     "error": "associationEServicesForPurposeTemplateFailed",
     "errorCode": "015-0013",
     "bffEndpoint": "POST /purposeTemplates/:purposeTemplateId/linkResource",

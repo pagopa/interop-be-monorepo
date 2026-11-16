@@ -10153,8 +10153,8 @@ paths:
     patch:
       tags:
         - purposeTemplates
-      summary: Update a Draft Purpose Template
-      description: Update a Purpose Template in Draft state
+      summary: Partially update a Purpose Template
+      description: Partially update a Purpose Template
       operationId: updateDraftPurposeTemplate
       requestBody:
         content:
@@ -10164,7 +10164,7 @@ paths:
         required: true
       responses:
         "200":
-          description: Draft Purpose Template updated
+          description: Purpose Template updated
           content:
             application/json:
               schema:
@@ -10189,7 +10189,7 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
         "409":
-          description: Name Conflict
+          description: Name or state conflict
           content:
             application/problem+json:
               schema:
