@@ -198,6 +198,9 @@ export function toOutboundEventV2(
     .with(
       { type: "PurposeTemplateEServiceTemplateLinked" },
       { type: "PurposeTemplateEServiceTemplateUnlinked" },
+      { type: "PurposeTemplatePurposeTitleUpdated" },
+      { type: "PurposeTemplatePurposeDescriptionUpdated" },
+      { type: "PurposeTemplateTargetDescriptionUpdated" },
       () => undefined
     )
     .exhaustive();
