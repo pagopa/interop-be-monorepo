@@ -7,7 +7,6 @@ import {
   ExpressContext,
   validateAuthorization,
   ZodiosContext,
-  zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 
@@ -15,7 +14,10 @@ import {
   toBffCreatedEServiceTemplateVersion,
   toCatalogCreateEServiceTemplateSeed,
 } from "../api/eserviceTemplateApiConverter.js";
-import { makeApiProblem } from "../model/errors.js";
+import {
+  makeApiProblem,
+  zodiosValidationErrorToApiProblem,
+} from "../model/errors.js";
 import { EServiceTemplateService } from "../services/eserviceTemplateService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {

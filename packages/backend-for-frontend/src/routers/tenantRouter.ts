@@ -5,7 +5,6 @@ import {
   ExpressContext,
   WithLogger,
   ZodiosContext,
-  zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import {
   AgreementId,
@@ -19,7 +18,10 @@ import {
   placeholderMapperGenerator,
   applyPlaceholderToError,
 } from "../model/applyError.js";
-import { makeApiProblem } from "../model/errors.js";
+import {
+  makeApiProblem,
+  zodiosValidationErrorToApiProblem,
+} from "../model/errors.js";
 import { TenantService } from "../services/tenantService.js";
 import { BffAppContext, fromBffAppContext } from "../utilities/context.js";
 

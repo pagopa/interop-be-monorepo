@@ -1,18 +1,17 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { bffApi } from "pagopa-interop-api-clients";
-import {
-  ExpressContext,
-  ZodiosContext,
-  zodiosValidationErrorToApiProblem,
-} from "pagopa-interop-commons";
+import { ExpressContext, ZodiosContext } from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
 
 import {
   placeholderMapperGenerator,
   applyPlaceholderToError,
 } from "../model/applyError.js";
-import { makeApiProblem } from "../model/errors.js";
+import {
+  makeApiProblem,
+  zodiosValidationErrorToApiProblem,
+} from "../model/errors.js";
 import { ClientService } from "../services/clientService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {

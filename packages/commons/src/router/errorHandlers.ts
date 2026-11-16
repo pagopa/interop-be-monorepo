@@ -8,6 +8,7 @@ import {
   emptyErrorMapper,
   genericError,
   makeApiProblemBuilder,
+  MakeApiProblemFn,
   parseErrorMessage,
   unsupportedMediaTypeError,
 } from "pagopa-interop-models";
@@ -17,7 +18,7 @@ import { fromZodIssue } from "zod-validation-error";
 
 import { ExpressContext, fromAppContext } from "../context/context.js";
 
-const makeApiProblem = makeApiProblemBuilder({});
+const internalMakeApiProblem = makeApiProblemBuilder({});
 
 const BodyParserClientError = z.object({
   status: z.number().int().min(400).max(499),
@@ -46,77 +47,93 @@ function toMalformedRequestError(
     .otherwise(() => badRequestError("Invalid request body"));
 }
 
-export function zodiosValidationErrorToApiProblem(
-  zodError: {
-    context: string;
-    error: z.ZodIssue[];
-  },
-  req: WithZodiosContext<express.Request, ExpressContext>,
-  res: Response,
-  _next: NextFunction
-): Response {
-  const ctx = fromAppContext(req.ctx);
-  const detail = `Incorrect value for ${zodError.context}`;
-  const errors = zodError.error.map((e) => fromZodIssue(e));
+export function zodiosValidationErrorToApiProblemBuilder<T extends string>(
+  makeApiProblem: MakeApiProblemFn<T>
+) {
+  function internalZodiosValidationErrorToApiProblem(
+    zodError: {
+      context: string;
+      error: z.ZodIssue[];
+    },
+    req: WithZodiosContext<express.Request, ExpressContext>,
+    res: Response,
+    _next: NextFunction
+  ): Response {
+    const ctx = fromAppContext(req.ctx);
+    const detail = `Incorrect value for ${zodError.context}`;
+    const errors = zodError.error.map((e) => fromZodIssue(e));
 
-  return res
-    .status(constants.HTTP_STATUS_BAD_REQUEST)
-    .send(
-      makeApiProblem(
-        badRequestError(detail, errors),
-        () => constants.HTTP_STATUS_BAD_REQUEST,
-        ctx
-      )
-    );
-}
-
-export function errorsToApiProblemsMiddleware(
-  error: unknown,
-  req: WithZodiosContext<express.Request, ExpressContext>,
-  res: Response,
-  next: NextFunction
-): void {
-  if (res.headersSent) {
-    next(error);
-    return;
-  }
-
-  const ctx = fromAppContext(req.ctx);
-
-  const malformedRequestError = toMalformedRequestError(error);
-  if (malformedRequestError) {
-    const problem = makeApiProblem(
-      malformedRequestError,
-      emptyErrorMapper,
-      ctx,
-      `Malformed request: ${parseErrorMessage(error)}`
-    );
-    res.status(problem.status).send(problem);
-    return;
-  }
-
-  ctx.logger.error(`Error in request: ${parseErrorMessage(error)}`);
-
-  if (error instanceof SyntaxError) {
-    res
+    return res
       .status(constants.HTTP_STATUS_BAD_REQUEST)
       .send(
         makeApiProblem(
-          badRequestError("Invalid request body"),
+          badRequestError(detail, errors),
           () => constants.HTTP_STATUS_BAD_REQUEST,
           ctx
         )
       );
-    return;
   }
-
-  res
-    .status(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR)
-    .send(
-      makeApiProblem(
-        genericError("Unexpected error"),
-        () => constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
-        ctx
-      )
-    );
+  return internalZodiosValidationErrorToApiProblem;
 }
+
+export const zodiosValidationErrorToApiProblem =
+  zodiosValidationErrorToApiProblemBuilder(internalMakeApiProblem);
+
+export function errorsToApiProblemsMiddlewareBuilder<T extends string>(
+  makeApiProblem: MakeApiProblemFn<T>
+) {
+  function internalErrorsToApiProblemsMiddleware(
+    error: unknown,
+    req: WithZodiosContext<express.Request, ExpressContext>,
+    res: Response,
+    next: NextFunction
+  ): void {
+    if (res.headersSent) {
+      next(error);
+      return;
+    }
+
+    const ctx = fromAppContext(req.ctx);
+
+    const malformedRequestError = toMalformedRequestError(error);
+    if (malformedRequestError) {
+      const problem = makeApiProblem(
+        malformedRequestError,
+        emptyErrorMapper,
+        ctx,
+        `Malformed request: ${parseErrorMessage(error)}`
+      );
+      res.status(problem.status).send(problem);
+      return;
+    }
+
+    ctx.logger.error(`Error in request: ${parseErrorMessage(error)}`);
+
+    if (error instanceof SyntaxError) {
+      res
+        .status(constants.HTTP_STATUS_BAD_REQUEST)
+        .send(
+          makeApiProblem(
+            badRequestError("Invalid request body"),
+            () => constants.HTTP_STATUS_BAD_REQUEST,
+            ctx
+          )
+        );
+      return;
+    }
+
+    res
+      .status(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR)
+      .send(
+        makeApiProblem(
+          genericError("Unexpected error"),
+          () => constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
+          ctx
+        )
+      );
+  }
+  return internalErrorsToApiProblemsMiddleware;
+}
+
+export const errorsToApiProblemsMiddleware =
+  errorsToApiProblemsMiddlewareBuilder(internalMakeApiProblem);
