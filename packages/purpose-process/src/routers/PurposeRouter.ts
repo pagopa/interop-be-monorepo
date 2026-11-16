@@ -63,6 +63,8 @@ import {
   updatePurposeByTemplateErrorMapper,
   updatePurposeErrorMapper,
   updateReversePurposeErrorMapper,
+  patchUpdatePurposeErrorMapper,
+  patchUpdateReversePurposeErrorMapper,
   maintenanceFixRiskAnalysisErrorMapper,
   maintenanceFixReviewerWorkflowErrorMapper,
 } from "../utilities/errorMappers.js";
@@ -217,7 +219,7 @@ const purposeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
         const {
           data: { purpose },
@@ -236,7 +238,7 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          updateReversePurposeErrorMapper,
+          patchUpdateReversePurposeErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);
@@ -325,7 +327,7 @@ const purposeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
         const {
           data: { purpose },
@@ -342,7 +344,11 @@ const purposeRouter = (
           .status(200)
           .send(purposeApi.Purpose.parse(purposeToApiPurpose(purpose)));
       } catch (error) {
-        const errorRes = makeApiProblem(error, updatePurposeErrorMapper, ctx);
+        const errorRes = makeApiProblem(
+          error,
+          patchUpdatePurposeErrorMapper,
+          ctx
+        );
         return res.status(errorRes.status).send(errorRes);
       }
     })
