@@ -259,6 +259,46 @@ paths:
   /clients/{clientId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
+    patch:
+      description: Updates a Client
+      tags:
+        - client
+      summary: Update a Client
+      operationId: updateClient
+      parameters:
+        - name: clientId
+          in: path
+          description: The Client id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClientUpdateSeed"
+      responses:
+        "200":
+          description: Client updated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
     get:
       description: Retrieves a Client
       tags:
@@ -1547,6 +1587,33 @@ components:
       schema:
         type: string
   schemas:
+    ClientUpdateSeed:
+      description: Client update request body
+      anyOf:
+        - type: object
+          additionalProperties: false
+          properties:
+            name:
+              $ref: "#/components/schemas/ClientName"
+            description:
+              $ref: "#/components/schemas/ClientDescription"
+          required: [name]
+        - type: object
+          additionalProperties: false
+          properties:
+            name:
+              $ref: "#/components/schemas/ClientName"
+            description:
+              $ref: "#/components/schemas/ClientDescription"
+          required: [description]
+    ClientName:
+      type: string
+      minLength: 5
+      maxLength: 60
+    ClientDescription:
+      type: string
+      minLength: 10
+      maxLength: 250
     ClientSeed:
       description: Client creation request body
       type: object

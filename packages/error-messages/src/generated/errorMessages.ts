@@ -1184,6 +1184,16 @@ export const errorMessages = [
   },
   {
     "process": "Authorization Process",
+    "error": "hyperlinkDetectionError",
+    "errorCode": "006-10027",
+    "bffEndpoint": "PATCH /clients/:clientId",
+    "copy": {
+      "it": "Non puoi inserire un link nel nome o nella descrizione del client. Rimuovi il link e riprova.",
+      "en": "You can't include a link in the client name or description. Remove the link and try again."
+    }
+  },
+  {
+    "process": "Authorization Process",
     "error": "eserviceInArchivedState",
     "errorCode": "006-0040",
     "bffEndpoint": "POST /producerKeychains/:producerKeychainId/eservices",
