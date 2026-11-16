@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { ZodiosRouterContextRequestHandler } from "@zodios/express";
+import { constants } from "http2";
 import { makeApiProblemBuilder } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -31,10 +32,18 @@ export const authenticationMiddleware: (
         error,
         (err) =>
           match(err.code)
-            .with("tokenVerificationFailed", () => 401)
-            .with("operationForbidden", () => 403)
-            .with("missingHeader", "badBearerToken", "invalidClaim", () => 400)
-            .otherwise(() => 500),
+            .with(
+              "tokenVerificationFailed",
+              () => constants.HTTP_STATUS_UNAUTHORIZED
+            )
+            .with("operationForbidden", () => constants.HTTP_STATUS_FORBIDDEN)
+            .with(
+              "missingHeader",
+              "badBearerToken",
+              "invalidClaim",
+              () => constants.HTTP_STATUS_BAD_REQUEST
+            )
+            .otherwise(() => constants.HTTP_STATUS_INTERNAL_SERVER_ERROR),
         ctx
       );
       return res.status(problem.status).send(problem);
