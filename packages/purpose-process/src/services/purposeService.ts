@@ -1118,7 +1118,7 @@ export function purposeServiceBuilder(
         authData,
         correlationId,
         logger,
-      }: WithLogger<AppContext<M2MAdminAuthData>>
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<UpdatePurposeReturn> {
       logger.info(`Partially updating Purpose ${purposeId}`);
       return await performPatchUpdatePurpose(
@@ -1158,7 +1158,7 @@ export function purposeServiceBuilder(
         authData,
         correlationId,
         logger,
-      }: WithLogger<AppContext<M2MAdminAuthData>>
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<UpdatePurposeReturn> {
       logger.info(`Partially updating Purpose ${purposeId}`);
       return await performPatchUpdatePurpose(
@@ -2789,7 +2789,7 @@ const validatePurposeMetadataUpdate = async (
 const performPatchUpdatePurpose = async (
   purposeId: PurposeId,
   modeAndUpdateContent: PurposeModeAndUpdateContent,
-  authData: M2MAdminAuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   readModelService: ReadModelServiceSQL,
   correlationId: CorrelationId,
   repository: ReturnType<typeof eventRepository<PurposeEvent>>

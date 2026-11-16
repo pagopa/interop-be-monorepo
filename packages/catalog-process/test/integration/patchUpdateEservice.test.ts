@@ -777,6 +777,7 @@ describe("patch update eService", () => {
   });
 
   it.each([
+    {},
     {
       name: "New name",
     },
