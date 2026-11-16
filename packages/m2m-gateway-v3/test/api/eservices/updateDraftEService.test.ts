@@ -74,6 +74,7 @@ describe("PATCH /eservices/:eserviceId router test", () => {
   });
 
   it.each([
+    {},
     { name: "updated name" },
     { description: "updated description" },
     { name: "a".repeat(5), description: "a".repeat(10) },
@@ -134,7 +135,6 @@ describe("PATCH /eservices/:eserviceId router test", () => {
   });
 
   it.each([
-    {},
     { invalidParam: "invalidValue" },
     { name: "a".repeat(4) },
     { name: "a".repeat(61) },

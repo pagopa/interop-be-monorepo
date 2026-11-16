@@ -468,7 +468,7 @@ paths:
       tags:
         - purpose
       operationId: patchUpdatePurpose
-      description: Partially update a Purpose if not yet activated
+      description: Partially update a Purpose of an EService with Deliver mode
       requestBody:
         content:
           application/json:

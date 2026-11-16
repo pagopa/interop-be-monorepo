@@ -313,6 +313,46 @@ export const errorMessages = [
     }
   },
   {
+    "process": "Purpose Process",
+    "error": "duplicatedPurposeTitle",
+    "errorCode": "004-0016",
+    "bffEndpoint": "PATCH /purposes/:purposeId",
+    "copy": {
+      "it": "Esiste già una finalità con lo stesso nome per questo e-service. Scegli un altro nome.",
+      "en": "There is already a purpose with the same name for this e-service. Choose a different name."
+    }
+  },
+  {
+    "process": "Purpose Process",
+    "error": "hyperlinkDetectionError",
+    "errorCode": "004-10027",
+    "bffEndpoint": "PATCH /purposes/:purposeId",
+    "copy": {
+      "it": "Non puoi inserire un link nel nome o nella descrizione della finalità. Rimuovi il link e riprova.",
+      "en": "You can't include a link in the purpose name or description. Remove the link and try again."
+    }
+  },
+  {
+    "process": "Purpose Process",
+    "error": "duplicatedPurposeTitle",
+    "errorCode": "004-0016",
+    "bffEndpoint": "PATCH /reverse/purposes/:purposeId",
+    "copy": {
+      "it": "Esiste già una finalità con lo stesso nome per questo e-service. Scegli un altro nome.",
+      "en": "There is already a purpose with the same name for this e-service. Choose a different name."
+    }
+  },
+  {
+    "process": "Purpose Process",
+    "error": "hyperlinkDetectionError",
+    "errorCode": "004-10027",
+    "bffEndpoint": "PATCH /reverse/purposes/:purposeId",
+    "copy": {
+      "it": "Non puoi inserire un link nel nome o nella descrizione della finalità. Rimuovi il link e riprova.",
+      "en": "You can't include a link in the purpose name or description. Remove the link and try again."
+    }
+  },
+  {
     "process": "Catalog Process",
     "error": "eServiceNameDuplicateForProducer",
     "errorCode": "001-007",
