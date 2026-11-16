@@ -6038,10 +6038,8 @@ paths:
     patch:
       tags:
         - eserviceTemplates
-      summary: Update a Draft E-Service Template
-      description: |
-        Update an E-Service Template in Draft state.
-        The E-Service Template must have a single version, and that version must be in Draft state.
+      summary: Partially update an E-Service Template
+      description: Partially update an E-Service Template
       operationId: updateDraftEServiceTemplate
       requestBody:
         content:
@@ -6051,7 +6049,7 @@ paths:
         required: true
       responses:
         "200":
-          description: Draft E-Service Template updated
+          description: E-Service Template updated
           content:
             application/json:
               schema:
@@ -8333,10 +8331,8 @@ paths:
     patch:
       tags:
         - purposes
-      summary: Update a Draft Purpose
-      description: |
-        Update a Purpose in Draft state.
-        The Purpose must have a single version, and that version must be in Draft state.
+      summary: Partially update a Purpose
+      description: Partially update a Purpose
       operationId: updateDraftPurpose
       requestBody:
         content:
@@ -8960,10 +8956,8 @@ paths:
     patch:
       tags:
         - purposes
-      summary: Update a Draft reverse Purpose
-      description: |
-        Update a Purpose in Draft state for an E-Service in receive mode.
-        The Purpose must have a single version, and that version must be in Draft state.
+      summary: Partially update a reverse Purpose
+      description: Partially update a Purpose for an E-Service in receive mode
       operationId: updateDraftReversePurpose
       requestBody:
         content:
@@ -13853,7 +13847,6 @@ components:
     EServiceDraftUpdateSeed:
       type: object
       additionalProperties: false
-      minProperties: 1
       properties:
         name:
           type: string
@@ -14294,7 +14287,7 @@ components:
         name:
           type: string
           minLength: 5
-          maxLength: 60
+          maxLength: 45
       required:
         - name
     EServiceTemplateVersion:
@@ -14458,7 +14451,7 @@ components:
         name:
           type: string
           minLength: 5
-          maxLength: 60
+          maxLength: 45
         intendedTarget:
           type: string
           minLength: 10
