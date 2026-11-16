@@ -1343,6 +1343,36 @@ export const errorMessages = [
     }
   },
   {
+    "process": "EService Template Process",
+    "error": "eserviceTemplateDuplicate",
+    "errorCode": "011-0004",
+    "bffEndpoint": "PATCH /eservices/templates/:eServiceTemplateId",
+    "copy": {
+      "it": "Esiste già un template e-service con lo stesso nome. Scegli un altro nome.",
+      "en": "There is already an e-service template with the same name. Choose a different name."
+    }
+  },
+  {
+    "process": "EService Template Process",
+    "error": "instanceNameConflict",
+    "errorCode": "011-0020",
+    "bffEndpoint": "PATCH /eservices/templates/:eServiceTemplateId",
+    "copy": {
+      "it": "Non puoi usare questo nome perché almeno uno degli e-service creati dal template avrebbe lo stesso nome di un e-service già esistente. Scegli un altro nome.",
+      "en": "You can't use this name because at least one of the e-services created from the template would have the same name as an existing e-service. Choose a different name."
+    }
+  },
+  {
+    "process": "EService Template Process",
+    "error": "hyperlinkDetectionError",
+    "errorCode": "011-10027",
+    "bffEndpoint": "PATCH /eservices/templates/:eServiceTemplateId",
+    "copy": {
+      "it": "Non puoi inserire un link nel nome, nella descrizione o nel campo “A chi è rivolto il template”. Rimuovi il link e riprova.",
+      "en": "You can't include a link in the name, description, or “Who is the template intended for?” field. Remove the link and try again."
+    }
+  },
+  {
     "process": "Purpose Template Process",
     "error": "invalidAssociatedEServiceForPublicationError",
     "errorCode": "015-0023",

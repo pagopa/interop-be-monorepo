@@ -1,0 +1,32 @@
+meta {
+  name: Patch EService Template general information
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{host-bff}}/eservices/templates/:eServiceTemplateId
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceTemplateId: {{eserviceTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+}
+
+body:json {
+  {
+    "name": "Updated template name",
+    "description": "Updated description of the EService template",
+    "intendedTarget": "Updated intended target of the EService template",
+    "technology": "REST",
+    "mode": "DELIVER",
+    "isSignalHubEnabled": false,
+    "personalData": false,
+    "asyncExchange": false
+  }
+}
