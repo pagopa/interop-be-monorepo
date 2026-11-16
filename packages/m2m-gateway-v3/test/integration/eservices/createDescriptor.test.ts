@@ -15,6 +15,8 @@ import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js"
 import { config } from "../../../src/config/config.js";
 import {
   eserviceDescriptorNotFound,
+  invalidSeedForEService,
+  invalidSeedForEServiceTemplateInstance,
   missingMetadata,
 } from "../../../src/model/errors.js";
 import {
@@ -35,11 +37,43 @@ describe("createDescriptor", () => {
     dailyCallsTotal: 10,
     agreementApprovalPolicy: "AUTOMATIC",
   };
+  const templateInstanceDescriptorSeed: m2mGatewayApiV3.EServiceInstanceDescriptorSeed =
+    {
+      audience: ["http/test.test"],
+      dailyCallsPerConsumer: 10,
+      dailyCallsTotal: 100,
+      agreementApprovalPolicy: "AUTOMATIC",
+    };
 
   const mockDescriptor = getMockedApiEserviceDescriptor();
-  const mockEService = getMockedApiEservice({
+  const mockEServiceWithTemplate = getMockedApiEservice({
     descriptors: [mockDescriptor],
   });
+  const mockEService = {
+    ...mockEServiceWithTemplate,
+    templateId: undefined,
+  };
+
+  const m2mEserviceDescriptorResponse: m2mGatewayApiV3.EServiceDescriptor = {
+    id: mockDescriptor.id,
+    description: mockDescriptor.description,
+    state: mockDescriptor.state,
+    version: mockDescriptor.version,
+    serverUrls: mockDescriptor.serverUrls,
+    audience: mockDescriptor.audience,
+    voucherLifespan: mockDescriptor.voucherLifespan,
+    dailyCallsPerConsumer: mockDescriptor.dailyCallsPerConsumer,
+    dailyCallsTotal: mockDescriptor.dailyCallsTotal,
+    agreementApprovalPolicy: mockDescriptor.agreementApprovalPolicy,
+    archivedAt: mockDescriptor.archivedAt,
+    deprecatedAt: mockDescriptor.deprecatedAt,
+    publishedAt: mockDescriptor.publishedAt,
+    suspendedAt: mockDescriptor.suspendedAt,
+    templateVersionId: mockDescriptor.templateVersionRef?.id,
+    archivingSchedule: mockDescriptor.archivingSchedule,
+    asyncExchangeProperties: mockDescriptor.asyncExchangeProperties,
+    delegatedArchivingRequest: mockDescriptor.delegatedArchivingRequest,
+  };
 
   const mockCreateResponseData: catalogApi.CreatedEServiceDescriptor = {
     eservice: mockEService,
@@ -49,42 +83,31 @@ describe("createDescriptor", () => {
     data: mockCreateResponseData,
     metadata: { version: 0 },
   });
-  const mockGetEService = vi.fn(
-    mockPollingResponse(getMockWithMetadata(mockEService), 2)
-  );
+  const mockCreateTemplateInstanceDescriptor = vi.fn().mockResolvedValue({
+    data: mockDescriptor,
+    metadata: { version: 0 },
+  });
+  const mockGetEService = vi.fn();
 
   mockInteropBeClients.catalogProcessClient = {
     createDescriptor: mockcreateDescriptor,
+    createTemplateInstanceDescriptor: mockCreateTemplateInstanceDescriptor,
     getEServiceById: mockGetEService,
   } as unknown as PagoPAInteropBeClients["catalogProcessClient"];
 
   beforeEach(() => {
     // Clear mock counters and call information before each test
     mockcreateDescriptor.mockClear();
-    mockGetEService.mockClear();
+    mockCreateTemplateInstanceDescriptor.mockClear();
+    mockGetEService.mockReset();
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    const m2mEserviceDescriptorResponse: m2mGatewayApiV3.EServiceDescriptor = {
-      id: mockDescriptor.id,
-      description: mockDescriptor.description,
-      state: mockDescriptor.state,
-      version: mockDescriptor.version,
-      serverUrls: mockDescriptor.serverUrls,
-      audience: mockDescriptor.audience,
-      voucherLifespan: mockDescriptor.voucherLifespan,
-      dailyCallsPerConsumer: mockDescriptor.dailyCallsPerConsumer,
-      dailyCallsTotal: mockDescriptor.dailyCallsTotal,
-      agreementApprovalPolicy: mockDescriptor.agreementApprovalPolicy,
-      archivedAt: mockDescriptor.archivedAt,
-      deprecatedAt: mockDescriptor.deprecatedAt,
-      publishedAt: mockDescriptor.publishedAt,
-      suspendedAt: mockDescriptor.suspendedAt,
-      templateVersionId: mockDescriptor.templateVersionRef?.id,
-      archivingSchedule: mockDescriptor.archivingSchedule,
-      asyncExchangeProperties: mockDescriptor.asyncExchangeProperties,
-      delegatedArchivingRequest: mockDescriptor.delegatedArchivingRequest,
-    };
+    mockGetEService
+      .mockResolvedValueOnce(getMockWithMetadata(mockEService))
+      .mockImplementation(
+        mockPollingResponse(getMockWithMetadata(mockEService), 2)
+      );
 
     const result = await eserviceService.createDescriptor(
       mockEService.id as EServiceId,
@@ -106,16 +129,99 @@ describe("createDescriptor", () => {
         docs: [],
       },
     });
+    expect(
+      mockInteropBeClients.catalogProcessClient.createTemplateInstanceDescriptor
+    ).toHaveBeenCalledTimes(0);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
       params: { eServiceId: mockEService.id },
     });
     expect(
       mockInteropBeClients.catalogProcessClient.getEServiceById
-    ).toHaveBeenCalledTimes(2);
+    ).toHaveBeenCalledTimes(3);
+  });
+
+  it("Should succeed and perform API clients calls for eservice created from template", async () => {
+    mockGetEService
+      .mockResolvedValueOnce(getMockWithMetadata(mockEServiceWithTemplate))
+      .mockImplementation(
+        mockPollingResponse(getMockWithMetadata(mockEServiceWithTemplate), 2)
+      );
+
+    const result = await eserviceService.createDescriptor(
+      unsafeBrandId(mockEServiceWithTemplate.id),
+      templateInstanceDescriptorSeed,
+      getMockM2MAdminAppContext()
+    );
+
+    expect(result).toStrictEqual(m2mEserviceDescriptorResponse);
+    expectApiClientPostToHaveBeenCalledWith({
+      mockPost:
+        mockInteropBeClients.catalogProcessClient
+          .createTemplateInstanceDescriptor,
+      params: { eServiceId: mockEServiceWithTemplate.id },
+      body: templateInstanceDescriptorSeed,
+    });
+    expect(
+      mockInteropBeClients.catalogProcessClient.createDescriptor
+    ).toHaveBeenCalledTimes(0);
+    expectApiClientGetToHaveBeenCalledWith({
+      mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
+      params: { eServiceId: mockEServiceWithTemplate.id },
+    });
+    expect(
+      mockInteropBeClients.catalogProcessClient.getEServiceById
+    ).toHaveBeenCalledTimes(3);
+  });
+
+  it("Should throw invalidSeedForEServiceTemplateInstance when the seed is not for an eservice created from template", async () => {
+    mockGetEService.mockResolvedValueOnce(
+      getMockWithMetadata(mockEServiceWithTemplate)
+    );
+
+    await expect(
+      eserviceService.createDescriptor(
+        unsafeBrandId(mockEServiceWithTemplate.id),
+        descriptorSeed,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(
+      invalidSeedForEServiceTemplateInstance(
+        m2mGatewayApiV3.EServiceInstanceDescriptorSeed.safeParse(
+          descriptorSeed
+        ).error!.issues.map((i) => i.message)
+      )
+    );
+
+    expect(
+      mockInteropBeClients.catalogProcessClient.getEServiceById
+    ).toHaveBeenCalledTimes(1);
+  });
+
+  it("Should throw invalidSeedForEService when the seed is for an eservice created from template but the eservice is not", async () => {
+    mockGetEService.mockResolvedValueOnce(getMockWithMetadata(mockEService));
+
+    await expect(
+      eserviceService.createDescriptor(
+        mockEService.id as EServiceId,
+        templateInstanceDescriptorSeed,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(
+      invalidSeedForEService(
+        m2mGatewayApiV3.EServiceDescriptorSeed.safeParse(
+          templateInstanceDescriptorSeed
+        ).error!.issues.map((i) => i.message)
+      )
+    );
+
+    expect(
+      mockInteropBeClients.catalogProcessClient.getEServiceById
+    ).toHaveBeenCalledTimes(1);
   });
 
   it("Should throw missingMetadata in case the attribute returned by the creation POST call has no metadata", async () => {
+    mockGetEService.mockResolvedValueOnce(getMockWithMetadata(mockEService));
     mockcreateDescriptor.mockResolvedValueOnce({
       data: mockCreateResponseData,
       metadata: undefined,
@@ -130,11 +236,31 @@ describe("createDescriptor", () => {
     ).rejects.toThrowError(missingMetadata());
   });
 
-  it("Should throw missingMetadata in case the attribute returned by the polling GET call has no metadata", async () => {
-    mockGetEService.mockResolvedValueOnce({
-      data: mockEService,
+  it("Should throw missingMetadata in case the descriptor of an eservice created from template returned by the creation POST call has no metadata", async () => {
+    mockGetEService.mockResolvedValueOnce(
+      getMockWithMetadata(mockEServiceWithTemplate)
+    );
+    mockCreateTemplateInstanceDescriptor.mockResolvedValueOnce({
+      data: mockDescriptor,
       metadata: undefined,
     });
+
+    await expect(
+      eserviceService.createDescriptor(
+        unsafeBrandId(mockEServiceWithTemplate.id),
+        templateInstanceDescriptorSeed,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(missingMetadata());
+  });
+
+  it("Should throw missingMetadata in case the attribute returned by the polling GET call has no metadata", async () => {
+    mockGetEService
+      .mockResolvedValueOnce(getMockWithMetadata(mockEService))
+      .mockResolvedValueOnce({
+        data: mockEService,
+        metadata: undefined,
+      });
 
     await expect(
       eserviceService.createDescriptor(
@@ -150,6 +276,11 @@ describe("createDescriptor", () => {
       ...mockEService,
       descriptors: [],
     });
+    mockGetEService
+      .mockResolvedValueOnce(getMockWithMetadata(mockEService))
+      .mockImplementation(
+        mockPollingResponse(getMockWithMetadata(mockEService), 1)
+      );
     mockcreateDescriptor.mockResolvedValueOnce({
       data: {
         eservice: eserviceWithoutDescriptor.data,
@@ -173,12 +304,14 @@ describe("createDescriptor", () => {
   });
 
   it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
-    mockGetEService.mockImplementation(
-      mockPollingResponse(
-        getMockWithMetadata(mockEService),
-        config.defaultPollingMaxRetries + 1
-      )
-    );
+    mockGetEService
+      .mockResolvedValueOnce(getMockWithMetadata(mockEService))
+      .mockImplementation(
+        mockPollingResponse(
+          getMockWithMetadata(mockEService),
+          config.defaultPollingMaxRetries + 1
+        )
+      );
 
     await expect(
       eserviceService.createDescriptor(
@@ -193,7 +326,7 @@ describe("createDescriptor", () => {
       )
     );
     expect(mockGetEService).toHaveBeenCalledTimes(
-      config.defaultPollingMaxRetries
+      config.defaultPollingMaxRetries + 1
     );
   });
 });

@@ -3,8 +3,8 @@ meta {
   type: http
 }
 
-post {
-  url: {{host-m2m-gw-v3}}/eserviceTemplates/eservices/:eserviceId
+patch {
+  url: {{host-m2m-gw-v3}}/eservices/:eserviceId
   body: json
   auth: none
 }
@@ -16,6 +16,7 @@ params:path {
 headers {
   Authorization: {{DPOP-JWT-M2M-ADMIN}}
   DPoP: {{DPOP-PROOF}}
+  Content-Type: application/merge-patch+json
 }
 
 body:json {

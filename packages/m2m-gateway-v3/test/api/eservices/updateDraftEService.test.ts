@@ -13,7 +13,10 @@ import { describe, it, expect, vi } from "vitest";
 import { toM2MGatewayApiEService } from "../../../src/api/eserviceApiConverter.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { config } from "../../../src/config/config.js";
-import { missingMetadata } from "../../../src/model/errors.js";
+import {
+  invalidSeedForEServiceTemplateInstance,
+  missingMetadata,
+} from "../../../src/model/errors.js";
 import { api, mockEserviceService } from "../../vitest.api.setup.js";
 
 describe("PATCH /eservices/:eserviceId router test", () => {
@@ -28,6 +31,13 @@ describe("PATCH /eservices/:eserviceId router test", () => {
     isClientAccessDelegable: true,
     mode: "RECEIVE",
   };
+  const mockTemplateInstanceUpdateSeed: m2mGatewayApiV3.UpdateEServiceTemplateInstanceSeed =
+    {
+      isSignalHubEnabled: true,
+      isConsumerDelegable: true,
+      isClientAccessDelegable: false,
+      instanceLabel: "updated",
+    };
 
   const mockM2MEService: m2mGatewayApiV3.EService =
     toM2MGatewayApiEService(mockEService);
@@ -35,7 +45,9 @@ describe("PATCH /eservices/:eserviceId router test", () => {
   const makeRequest = async (
     token: string,
     eserviceId: string = mockEService.id,
-    body: m2mGatewayApiV3.EServiceDraftUpdateSeed = mockUpdateSeed
+    body:
+      | m2mGatewayApiV3.EServiceDraftUpdateSeed
+      | m2mGatewayApiV3.UpdateEServiceTemplateInstanceSeed = mockUpdateSeed
   ) =>
     request(api)
       .patch(`${appBasePath}/eservices/${eserviceId}`)
@@ -74,6 +86,7 @@ describe("PATCH /eservices/:eserviceId router test", () => {
   });
 
   it.each([
+    {},
     { name: "updated name" },
     { description: "updated description" },
     { name: "a".repeat(5), description: "a".repeat(10) },
@@ -127,6 +140,27 @@ describe("PATCH /eservices/:eserviceId router test", () => {
     }
   );
 
+  it.each([
+    mockTemplateInstanceUpdateSeed,
+    { instanceLabel: "updated" },
+    { isSignalHubEnabled: true, instanceLabel: "a".repeat(12) },
+  ] satisfies m2mGatewayApiV3.UpdateEServiceTemplateInstanceSeed[])(
+    "Should return 200 with an E-Service template instance seed (seed #%#)",
+    async (seed) => {
+      mockEserviceService.updateDraftEService = vi
+        .fn()
+        .mockResolvedValue(mockM2MEService);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token, mockEService.id, seed);
+      expect(res.status).toBe(200);
+      expect(mockEserviceService.updateDraftEService).toHaveBeenCalledWith(
+        mockEService.id,
+        seed,
+        expect.any(Object) // context
+      );
+    }
+  );
+
   it("Should return 400 if passed an invalid eservice id", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, "invalidEServiceId");
@@ -134,7 +168,6 @@ describe("PATCH /eservices/:eserviceId router test", () => {
   });
 
   it.each([
-    {},
     { invalidParam: "invalidValue" },
     { name: "a".repeat(4) },
     { name: "a".repeat(61) },
@@ -145,6 +178,9 @@ describe("PATCH /eservices/:eserviceId router test", () => {
     { mode: "invalid" },
     { ...mockUpdateSeed, extraParam: -1 },
     { ...mockUpdateSeed, description: "short" },
+    { instanceLabel: "" },
+    { instanceLabel: "a".repeat(13) },
+    { ...mockTemplateInstanceUpdateSeed, name: "updated name" },
   ])("Should return 400 if passed invalid seed", async (seed) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
@@ -186,6 +222,16 @@ describe("PATCH /eservices/:eserviceId router test", () => {
       expect(res.body.errors).toEqual(problem.errors);
     }
   );
+
+  it("Should return 400 in case of invalidSeedForEServiceTemplateInstance error", async () => {
+    mockEserviceService.updateDraftEService = vi
+      .fn()
+      .mockRejectedValue(invalidSeedForEServiceTemplateInstance(["invalid"]));
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token);
+
+    expect(res.status).toBe(400);
+  });
 
   it.each([
     missingMetadata(),

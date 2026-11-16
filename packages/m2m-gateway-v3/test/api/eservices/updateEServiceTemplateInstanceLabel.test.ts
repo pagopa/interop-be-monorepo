@@ -3,48 +3,42 @@ import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
-  getMockedApiEserviceDescriptor,
+  getMockedApiEservice,
   getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi } from "vitest";
 
-import { toM2MGatewayApiEServiceDescriptor } from "../../../src/api/eserviceApiConverter.js";
+import { toM2MGatewayApiEService } from "../../../src/api/eserviceApiConverter.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { config } from "../../../src/config/config.js";
-import {
-  eserviceDescriptorNotFound,
-  missingMetadata,
-} from "../../../src/model/errors.js";
+import { missingMetadata } from "../../../src/model/errors.js";
 import { api, mockEserviceService } from "../../vitest.api.setup.js";
 
-describe("POST /eserviceTemplates/eservices/{eserviceId}/descriptors/{descriptorId}/quotas router test", () => {
-  const seed: m2mGatewayApiV3.UpdateEServiceTemplateInstanceDescriptorQuotasSeed =
-    {
-      dailyCallsPerConsumer: 1000,
-      dailyCallsTotal: 10000,
-    };
+describe("PATCH /eservices/{eserviceId}/instanceLabel router test", () => {
+  const seed: m2mGatewayApiV3.EServiceInstanceLabelUpdateSeed = {
+    instanceLabel: "new-label",
+  };
 
-  const mockResponse: m2mGatewayApiV3.EServiceDescriptor =
-    toM2MGatewayApiEServiceDescriptor(getMockedApiEserviceDescriptor());
+  const mockResponse: m2mGatewayApiV3.EService = toM2MGatewayApiEService(
+    getMockedApiEservice()
+  );
 
-  mockEserviceService.updateTemplateInstanceDescriptorQuotas = vi
+  mockEserviceService.updateEServiceTemplateInstanceLabel = vi
     .fn()
     .mockResolvedValue(mockResponse);
 
   const makeRequest = async (
     token: string,
     eserviceId: string = generateId(),
-    descriptorId: string = generateId(),
-    body: m2mGatewayApiV3.UpdateEServiceTemplateInstanceDescriptorQuotasSeed = seed
+    body: m2mGatewayApiV3.EServiceInstanceLabelUpdateSeed = seed
   ) =>
     request(api)
-      .post(
-        `${appBasePath}/eserviceTemplates/eservices/${eserviceId}/descriptors/${descriptorId}/quotas`
-      )
+      .patch(`${appBasePath}/eservices/${eserviceId}/instanceLabel`)
       .set("Authorization", `DPoP ${token}`)
       .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
+      .set("Content-Type", "application/merge-patch+json")
       .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
@@ -67,30 +61,27 @@ describe("POST /eserviceTemplates/eservices/{eserviceId}/descriptors/{descriptor
   });
 
   it.each([
-    { ...seed, dailyCallsPerConsumer: undefined },
-    { ...seed, dailyCallsTotal: undefined },
-    { ...seed, dailyCallsPerConsumer: 0 },
-    { ...seed, extraField: "invalid" },
+    { instanceLabel: "" },
+    { instanceLabel: "a".repeat(13) },
+    { instanceLabel: "ok", extraField: "invalid" },
   ])("Should return 400 if passed an invalid seed (#%#)", async (body) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
       token,
       generateId(),
-      generateId(),
-      body as m2mGatewayApiV3.UpdateEServiceTemplateInstanceDescriptorQuotasSeed
+      body as m2mGatewayApiV3.EServiceInstanceLabelUpdateSeed
     );
     expect(res.status).toBe(400);
   });
 
   it.each([
-    eserviceDescriptorNotFound(generateId(), generateId()),
     missingMetadata(),
     pollingMaxRetriesExceeded(
       config.defaultPollingMaxRetries,
       config.defaultPollingRetryDelay
     ),
   ])("Should return 500 in case of $code error", async (error) => {
-    mockEserviceService.updateTemplateInstanceDescriptorQuotas = vi
+    mockEserviceService.updateEServiceTemplateInstanceLabel = vi
       .fn()
       .mockRejectedValue(error);
     const token = generateToken(authRole.M2M_ADMIN_ROLE);

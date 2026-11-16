@@ -16,39 +16,40 @@ import { config } from "../../../src/config/config.js";
 import { missingMetadata } from "../../../src/model/errors.js";
 import { api, mockEserviceService } from "../../vitest.api.setup.js";
 
-describe("POST /eserviceTemplates/eservices/{eserviceId}/instanceLabel router test", () => {
-  const seed: m2mGatewayApiV3.EServiceInstanceLabelUpdateSeed = {
-    instanceLabel: "new-label",
+describe("POST /eserviceTemplates/{templateId}/eservices router test", () => {
+  const seed: m2mGatewayApiV3.InstanceEServiceSeed = {
+    isSignalHubEnabled: true,
+    isConsumerDelegable: false,
+    isClientAccessDelegable: false,
+    instanceLabel: "label",
   };
 
   const mockResponse: m2mGatewayApiV3.EService = toM2MGatewayApiEService(
     getMockedApiEservice()
   );
 
-  mockEserviceService.updateEServiceTemplateInstanceLabel = vi
+  mockEserviceService.createEServiceInstanceFromTemplate = vi
     .fn()
     .mockResolvedValue(mockResponse);
 
   const makeRequest = async (
     token: string,
-    eserviceId: string = generateId(),
-    body: m2mGatewayApiV3.EServiceInstanceLabelUpdateSeed = seed
+    templateId: string = generateId(),
+    body: m2mGatewayApiV3.InstanceEServiceSeed = seed
   ) =>
     request(api)
-      .post(
-        `${appBasePath}/eserviceTemplates/eservices/${eserviceId}/instanceLabel`
-      )
+      .post(`${appBasePath}/eserviceTemplates/${templateId}/eservices`)
       .set("Authorization", `DPoP ${token}`)
       .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
-    "Should return 200 for user with role %s",
+    "Should return 201 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
-      expect(res.status).toBe(200);
+      expect(res.status).toBe(201);
       expect(res.body).toEqual(mockResponse);
     }
   );
@@ -62,15 +63,15 @@ describe("POST /eserviceTemplates/eservices/{eserviceId}/instanceLabel router te
   });
 
   it.each([
-    { instanceLabel: "" },
-    { instanceLabel: "a".repeat(13) },
-    { instanceLabel: "ok", extraField: "invalid" },
+    { ...seed, instanceLabel: "" },
+    { ...seed, instanceLabel: "a".repeat(13) },
+    { ...seed, extraField: "invalid" },
   ])("Should return 400 if passed an invalid seed (#%#)", async (body) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
       token,
       generateId(),
-      body as m2mGatewayApiV3.EServiceInstanceLabelUpdateSeed
+      body as m2mGatewayApiV3.InstanceEServiceSeed
     );
     expect(res.status).toBe(400);
   });
@@ -82,7 +83,7 @@ describe("POST /eserviceTemplates/eservices/{eserviceId}/instanceLabel router te
       config.defaultPollingRetryDelay
     ),
   ])("Should return 500 in case of $code error", async (error) => {
-    mockEserviceService.updateEServiceTemplateInstanceLabel = vi
+    mockEserviceService.createEServiceInstanceFromTemplate = vi
       .fn()
       .mockRejectedValue(error);
     const token = generateToken(authRole.M2M_ADMIN_ROLE);

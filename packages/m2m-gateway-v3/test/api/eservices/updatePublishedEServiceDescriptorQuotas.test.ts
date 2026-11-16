@@ -13,7 +13,10 @@ import { describe, it, expect, vi } from "vitest";
 import { toM2MGatewayApiEServiceDescriptor } from "../../../src/api/eserviceApiConverter.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { config } from "../../../src/config/config.js";
-import { missingMetadata } from "../../../src/model/errors.js";
+import {
+  invalidSeedForEServiceTemplateInstance,
+  missingMetadata,
+} from "../../../src/model/errors.js";
 import { api, mockEserviceService } from "../../vitest.api.setup.js";
 
 describe("PATCH /eservices/:eserviceId/descriptors/:descriptorId/quotas router test", () => {
@@ -141,6 +144,43 @@ describe("PATCH /eservices/:eserviceId/descriptors/:descriptorId/quotas router t
       mockDescriptor.id,
       seed as m2mGatewayApiV3.EServiceDescriptorQuotasUpdateSeed
     );
+
+    expect(res.status).toBe(400);
+  });
+
+  it("Should return 200 with an E-Service template instance Descriptor quotas seed", async () => {
+    const templateInstanceSeed: m2mGatewayApiV3.UpdateEServiceTemplateInstanceDescriptorQuotasSeed =
+      {
+        dailyCallsPerConsumer: 1000,
+        dailyCallsTotal: 10000,
+      };
+    mockEserviceService.updatePublishedEServiceDescriptorQuotas = vi
+      .fn()
+      .mockResolvedValue(mockM2MEServiceDescriptor);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(
+      token,
+      mockEService.id,
+      mockDescriptor.id,
+      templateInstanceSeed
+    );
+    expect(res.status).toBe(200);
+    expect(
+      mockEserviceService.updatePublishedEServiceDescriptorQuotas
+    ).toHaveBeenCalledWith(
+      mockEService.id,
+      mockDescriptor.id,
+      templateInstanceSeed,
+      expect.any(Object) // context
+    );
+  });
+
+  it("Should return 400 in case of invalidSeedForEServiceTemplateInstance error", async () => {
+    mockEserviceService.updatePublishedEServiceDescriptorQuotas = vi
+      .fn()
+      .mockRejectedValue(invalidSeedForEServiceTemplateInstance(["invalid"]));
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token);
 
     expect(res.status).toBe(400);
   });

@@ -12,7 +12,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
-import { missingMetadata } from "../../../src/model/errors.js";
+import {
+  invalidSeedForEServiceTemplateInstance,
+  missingMetadata,
+} from "../../../src/model/errors.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientGetToHaveBeenNthCalledWith,
@@ -25,9 +28,16 @@ import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("updatePublishedEServiceDescriptorQuotas", () => {
   const mockDescriptor = getMockedApiEserviceDescriptor();
-  const mockEService = getMockedApiEservice({
+  const mockEServiceWithTemplate = getMockedApiEservice({
     descriptors: [mockDescriptor, getMockedApiEserviceDescriptor()],
   });
+  const mockEService = {
+    ...mockEServiceWithTemplate,
+    templateId: undefined,
+  };
+  const mockEServiceProcessGetResponseWithTemplate = getMockWithMetadata(
+    mockEServiceWithTemplate
+  );
   const mockEServiceProcessGetResponse = getMockWithMetadata(mockEService);
 
   const mockSeed: m2mGatewayApiV3.EServiceDescriptorQuotasUpdateSeed = {
@@ -35,6 +45,11 @@ describe("updatePublishedEServiceDescriptorQuotas", () => {
     dailyCallsPerConsumer: 1000,
     dailyCallsTotal: 10000,
   };
+  const mockTemplateInstanceSeed: m2mGatewayApiV3.UpdateEServiceTemplateInstanceDescriptorQuotasSeed =
+    {
+      dailyCallsPerConsumer: 1000,
+      dailyCallsTotal: 10000,
+    };
 
   const pollingTentatives = 2;
   const mockUpdateEServiceDescriptorQuotas = vi
@@ -44,13 +59,19 @@ describe("updatePublishedEServiceDescriptorQuotas", () => {
     mockPollingResponse(mockEServiceProcessGetResponse, pollingTentatives)
   );
 
+  const mockUpdateTemplateInstanceDescriptor = vi
+    .fn()
+    .mockResolvedValue(mockEServiceProcessGetResponseWithTemplate);
+
   mockInteropBeClients.catalogProcessClient = {
     getEServiceById: mockGetEService,
     updateDescriptor: mockUpdateEServiceDescriptorQuotas,
+    updateTemplateInstanceDescriptor: mockUpdateTemplateInstanceDescriptor,
   } as unknown as PagoPAInteropBeClients["catalogProcessClient"];
 
   beforeEach(() => {
     mockUpdateEServiceDescriptorQuotas.mockClear();
+    mockUpdateTemplateInstanceDescriptor.mockClear();
     mockGetEService.mockClear();
   });
 
@@ -95,6 +116,9 @@ describe("updatePublishedEServiceDescriptorQuotas", () => {
       },
       body: mockSeed,
     });
+    expect(
+      mockInteropBeClients.catalogProcessClient.updateTemplateInstanceDescriptor
+    ).toHaveBeenCalledTimes(0);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
       params: { eServiceId: mockEService.id },
@@ -175,6 +199,100 @@ describe("updatePublishedEServiceDescriptorQuotas", () => {
         dailyCallsTotal: seed.dailyCallsTotal ?? mockDescriptor.dailyCallsTotal,
       },
     });
+  });
+
+  it("Should succeed and perform service calls for eservice created from template", async () => {
+    mockGetEService.mockResolvedValueOnce(
+      mockEServiceProcessGetResponseWithTemplate
+    );
+
+    const result =
+      await eserviceService.updatePublishedEServiceDescriptorQuotas(
+        unsafeBrandId(mockEServiceWithTemplate.id),
+        unsafeBrandId(mockDescriptor.id),
+        mockTemplateInstanceSeed,
+        getMockM2MAdminAppContext()
+      );
+
+    const expectedM2MDescriptor: m2mGatewayApiV3.EServiceDescriptor = {
+      id: mockDescriptor.id,
+      version: mockDescriptor.version,
+      description: mockDescriptor.description,
+      audience: mockDescriptor.audience,
+      voucherLifespan: mockDescriptor.voucherLifespan,
+      dailyCallsPerConsumer: mockDescriptor.dailyCallsPerConsumer,
+      dailyCallsTotal: mockDescriptor.dailyCallsTotal,
+      state: mockDescriptor.state,
+      agreementApprovalPolicy: mockDescriptor.agreementApprovalPolicy,
+      serverUrls: mockDescriptor.serverUrls,
+      publishedAt: mockDescriptor.publishedAt,
+      suspendedAt: mockDescriptor.suspendedAt,
+      deprecatedAt: mockDescriptor.deprecatedAt,
+      archivedAt: mockDescriptor.archivedAt,
+      templateVersionId: mockDescriptor.templateVersionRef?.id,
+      archivingSchedule: mockDescriptor.archivingSchedule,
+      asyncExchangeProperties: mockDescriptor.asyncExchangeProperties,
+      delegatedArchivingRequest: mockDescriptor.delegatedArchivingRequest,
+    };
+
+    expect(result).toStrictEqual(expectedM2MDescriptor);
+    expectApiClientPostToHaveBeenCalledWith({
+      mockPost:
+        mockInteropBeClients.catalogProcessClient
+          .updateTemplateInstanceDescriptor,
+      params: {
+        eServiceId: mockEServiceWithTemplate.id,
+        descriptorId: mockDescriptor.id,
+      },
+      body: mockTemplateInstanceSeed,
+    });
+    expect(
+      mockInteropBeClients.catalogProcessClient.updateDescriptor
+    ).toHaveBeenCalledTimes(0);
+  });
+
+  it("Should throw invalidSeedForEServiceTemplateInstance when the seed is not for an eservice created from template", async () => {
+    mockGetEService.mockResolvedValueOnce(
+      mockEServiceProcessGetResponseWithTemplate
+    );
+
+    await expect(
+      eserviceService.updatePublishedEServiceDescriptorQuotas(
+        unsafeBrandId(mockEServiceWithTemplate.id),
+        unsafeBrandId(mockDescriptor.id),
+        mockSeed,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(
+      invalidSeedForEServiceTemplateInstance(
+        m2mGatewayApiV3.UpdateEServiceTemplateInstanceDescriptorQuotasSeed.safeParse(
+          mockSeed
+        ).error!.issues.map((i) => i.message)
+      )
+    );
+
+    expect(
+      mockInteropBeClients.catalogProcessClient.updateTemplateInstanceDescriptor
+    ).toHaveBeenCalledTimes(0);
+  });
+
+  it("Should throw missingMetadata in case the eservice created from template returned by the update call has no metadata", async () => {
+    mockGetEService.mockResolvedValueOnce(
+      mockEServiceProcessGetResponseWithTemplate
+    );
+    mockUpdateTemplateInstanceDescriptor.mockResolvedValueOnce({
+      ...mockEServiceProcessGetResponseWithTemplate,
+      metadata: undefined,
+    });
+
+    await expect(
+      eserviceService.updatePublishedEServiceDescriptorQuotas(
+        unsafeBrandId(mockEServiceWithTemplate.id),
+        unsafeBrandId(mockDescriptor.id),
+        mockTemplateInstanceSeed,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(missingMetadata());
   });
 
   it("Should throw missingMetadata in case the eservice returned by the PATCH call has no metadata", async () => {

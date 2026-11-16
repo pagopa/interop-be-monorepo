@@ -90,6 +90,47 @@ export const getEserviceDescriptorErrorMapper = (
     .with("eserviceDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const updateDraftEServiceErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "invalidSeedForEServiceTemplateInstance",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const createDescriptorErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "invalidSeedForEService",
+      "invalidSeedForEServiceTemplateInstance",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updateDraftEServiceDescriptorErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "invalidSeedForEServiceTemplateInstance",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updatePublishedEServiceDescriptorQuotasErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "invalidSeedForEServiceTemplateInstance",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const downloadEServiceDescriptorInterfaceErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>

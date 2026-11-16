@@ -15,6 +15,8 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import { config } from "../../../src/config/config.js";
 import {
   eserviceDescriptorNotFound,
+  invalidSeedForEService,
+  invalidSeedForEServiceTemplateInstance,
   missingMetadata,
 } from "../../../src/model/errors.js";
 import { api, mockEserviceService } from "../../vitest.api.setup.js";
@@ -28,6 +30,13 @@ describe("POST /eservices/{eServiceId}/descriptors router test", () => {
     dailyCallsTotal: 10,
     agreementApprovalPolicy: "AUTOMATIC",
   };
+  const templateInstanceDescriptorSeed: m2mGatewayApiV3.EServiceInstanceDescriptorSeed =
+    {
+      audience: ["http/test.test"],
+      dailyCallsPerConsumer: 10,
+      dailyCallsTotal: 100,
+      agreementApprovalPolicy: "AUTOMATIC",
+    };
 
   const mockM2MEserviceDescriptorResponse: m2mGatewayApiV3.EServiceDescriptor =
     toM2MGatewayApiEServiceDescriptor(getMockedApiEserviceDescriptor());
@@ -39,7 +48,9 @@ describe("POST /eservices/{eServiceId}/descriptors router test", () => {
   const makeRequest = async (
     token: string,
     eserviceId: string = generateId(),
-    body: m2mGatewayApiV3.EServiceDescriptorSeed = descriptorSeed
+    body:
+      | m2mGatewayApiV3.EServiceDescriptorSeed
+      | m2mGatewayApiV3.EServiceInstanceDescriptorSeed = descriptorSeed
   ) =>
     request(api)
       .post(`${appBasePath}/eservices/${eserviceId}/descriptors`)
@@ -66,6 +77,31 @@ describe("POST /eservices/{eServiceId}/descriptors router test", () => {
 
     expect(res.status).toBe(403);
   });
+
+  it.each([
+    templateInstanceDescriptorSeed,
+    {
+      audience: ["http/test.test"],
+      dailyCallsPerConsumer: 10,
+      dailyCallsTotal: 100,
+    },
+  ] satisfies m2mGatewayApiV3.EServiceInstanceDescriptorSeed[])(
+    "Should return 201 with an E-Service template instance Descriptor seed (seed #%#)",
+    async (seed) => {
+      mockEserviceService.createDescriptor = vi
+        .fn()
+        .mockResolvedValue(mockM2MEserviceDescriptorResponse);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const eserviceId = generateId();
+      const res = await makeRequest(token, eserviceId, seed);
+      expect(res.status).toBe(201);
+      expect(mockEserviceService.createDescriptor).toHaveBeenCalledWith(
+        eserviceId,
+        seed,
+        expect.any(Object) // context
+      );
+    }
+  );
 
   it.each([
     { ...descriptorSeed, audience: undefined },
@@ -102,6 +138,9 @@ describe("POST /eservices/{eServiceId}/descriptors router test", () => {
       audience: ["audience1", "audience2"],
       // We currently do not support multiple audiences for consistency with front-end
     },
+    { ...templateInstanceDescriptorSeed, audience: undefined },
+    { ...templateInstanceDescriptorSeed, dailyCallsTotal: 0 },
+    { ...templateInstanceDescriptorSeed, extraParam: -1 },
   ])(
     "Should return 400 if passed an invalid Descriptor seed (seed #%#)",
     async (body) => {
@@ -115,6 +154,17 @@ describe("POST /eservices/{eServiceId}/descriptors router test", () => {
       expect(res.status).toBe(400);
     }
   );
+
+  it.each([
+    invalidSeedForEService(["invalid"]),
+    invalidSeedForEServiceTemplateInstance(["invalid"]),
+  ])("Should return 400 in case of $code error", async (error) => {
+    mockEserviceService.createDescriptor = vi.fn().mockRejectedValue(error);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, generateId());
+
+    expect(res.status).toBe(400);
+  });
 
   it.each([
     eserviceDescriptorNotFound(generateId(), generateId()),

@@ -49,6 +49,13 @@ import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
 import { uploadEServiceDocument } from "../utils/fileUpload.js";
 import { getResolvedAttributesMap } from "../utils/getResolvedAttributesMap.js";
 import {
+  assertSeedEServiceDescriptorContent,
+  assertSeedEServiceTemplateInstanceDescriptorContent,
+  assertSeedPatchEServiceTemplateInstanceDescriptorQuotasUpdateContent,
+  assertSeedPatchEServiceTemplateInstanceDescriptorUpdateContent,
+  assertSeedPatchEServiceTemplateInstanceUpdateContent,
+} from "../utils/validators/eserviceValidators.js";
+import {
   pollResourceWithMetadata,
   isPolledVersionAtLeastMetadataTargetVersion,
   isPolledVersionAtLeastResponseVersion,
@@ -492,6 +499,164 @@ export function eserviceServiceBuilder(
     await pollEService(response, headers);
   }
 
+  const innerUpdateDraftEService = async (
+    updateSeed:
+      | m2mGatewayApiV3.EServiceDraftUpdateSeed
+      | m2mGatewayApiV3.UpdateEServiceTemplateInstanceSeed,
+    eservice: catalogApi.EService,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<catalogApi.EService>> => {
+    if (eservice.templateId) {
+      assertSeedPatchEServiceTemplateInstanceUpdateContent(updateSeed);
+
+      return clients.catalogProcessClient.updateEServiceTemplateInstanceById(
+        updateSeed,
+        {
+          params: { eServiceId: eservice.id },
+          headers,
+        }
+      );
+    }
+
+    return clients.catalogProcessClient.patchUpdateDraftEServiceById(
+      updateSeed,
+      {
+        params: { eServiceId: eservice.id },
+        headers,
+      }
+    );
+  };
+
+  const innerCreateDescriptor = async (
+    descriptorSeed:
+      | m2mGatewayApiV3.EServiceDescriptorSeed
+      | m2mGatewayApiV3.EServiceInstanceDescriptorSeed,
+    eservice: catalogApi.EService,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<catalogApi.EServiceDescriptor> => {
+    if (eservice.templateId) {
+      assertSeedEServiceTemplateInstanceDescriptorContent(descriptorSeed);
+
+      const { data: descriptor, metadata } =
+        await clients.catalogProcessClient.createTemplateInstanceDescriptor(
+          descriptorSeed,
+          {
+            params: { eServiceId: eservice.id },
+            headers,
+          }
+        );
+
+      await pollEServiceById(unsafeBrandId(eservice.id), metadata, headers);
+
+      return descriptor;
+    }
+
+    // Unlike the other E-Service update endpoints, this one also validates the
+    // seed for E-Services not created from a template: the template instance
+    // seed lacks fields that are required here (e.g. voucherLifespan), so it
+    // cannot be forwarded as-is to catalog-process.
+    assertSeedEServiceDescriptorContent(descriptorSeed);
+
+    const {
+      data: { eservice: updatedEService, createdDescriptorId },
+      metadata,
+    } = await clients.catalogProcessClient.createDescriptor(
+      toCatalogApiEServiceDescriptorSeed(descriptorSeed),
+      {
+        params: { eServiceId: eservice.id },
+        headers,
+      }
+    );
+
+    await pollEService(
+      {
+        data: updatedEService,
+        metadata,
+      },
+      headers
+    );
+
+    return retrieveEServiceDescriptorById(
+      { data: updatedEService, metadata },
+      unsafeBrandId(createdDescriptorId)
+    );
+  };
+
+  const innerUpdateDraftEServiceDescriptor = async (
+    updateSeed:
+      | m2mGatewayApiV3.EServiceDescriptorDraftUpdateSeed
+      | m2mGatewayApiV3.UpdateEServiceDescriptorTemplateInstanceSeed,
+    eservice: catalogApi.EService,
+    descriptorId: DescriptorId,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<catalogApi.EService>> => {
+    if (eservice.templateId) {
+      assertSeedPatchEServiceTemplateInstanceDescriptorUpdateContent(
+        updateSeed
+      );
+
+      return clients.catalogProcessClient.updateDraftDescriptorTemplateInstance(
+        updateSeed,
+        {
+          params: { eServiceId: eservice.id, descriptorId },
+          headers,
+        }
+      );
+    }
+
+    return clients.catalogProcessClient.patchUpdateDraftDescriptor(
+      toCatalogApiPatchUpdateEServiceDescriptorSeed(updateSeed),
+      {
+        params: { eServiceId: eservice.id, descriptorId },
+        headers,
+      }
+    );
+  };
+
+  const innerUpdatePublishedEServiceDescriptorQuotas = async (
+    updateSeed:
+      | m2mGatewayApiV3.EServiceDescriptorQuotasUpdateSeed
+      | m2mGatewayApiV3.UpdateEServiceTemplateInstanceDescriptorQuotasSeed,
+    eservice: WithMaybeMetadata<catalogApi.EService>,
+    descriptorId: DescriptorId,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<catalogApi.EService>> => {
+    if (eservice.data.templateId) {
+      assertSeedPatchEServiceTemplateInstanceDescriptorQuotasUpdateContent(
+        updateSeed
+      );
+
+      return clients.catalogProcessClient.updateTemplateInstanceDescriptor(
+        updateSeed,
+        {
+          params: { eServiceId: eservice.data.id, descriptorId },
+          headers,
+        }
+      );
+    }
+
+    const descriptor = retrieveEServiceDescriptorById(eservice, descriptorId);
+
+    // The template instance quotas seed has no voucherLifespan, so it is read
+    // only when present and otherwise kept from the current descriptor.
+    return clients.catalogProcessClient.updateDescriptor(
+      {
+        voucherLifespan:
+          ("voucherLifespan" in updateSeed
+            ? updateSeed.voucherLifespan
+            : undefined) ?? descriptor.voucherLifespan,
+        dailyCallsPerConsumer:
+          updateSeed.dailyCallsPerConsumer ?? descriptor.dailyCallsPerConsumer,
+        dailyCallsTotal:
+          updateSeed.dailyCallsTotal ?? descriptor.dailyCallsTotal,
+      },
+      {
+        params: { eServiceId: eservice.data.id, descriptorId },
+        headers,
+      }
+    );
+  };
+
   return {
     async getEService(
       eserviceId: EServiceId,
@@ -751,33 +916,22 @@ export function eserviceServiceBuilder(
     },
     async createDescriptor(
       eserviceId: EServiceId,
-      eserviceDescriptorSeed: m2mGatewayApiV3.EServiceDescriptorSeed,
+      eserviceDescriptorSeed:
+        | m2mGatewayApiV3.EServiceDescriptorSeed
+        | m2mGatewayApiV3.EServiceInstanceDescriptorSeed,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.EServiceDescriptor> {
       logger.info(`Creating Descriptor for EService ${eserviceId}`);
 
-      const {
-        data: { eservice, createdDescriptorId },
-        metadata,
-      } = await clients.catalogProcessClient.createDescriptor(
-        toCatalogApiEServiceDescriptorSeed(eserviceDescriptorSeed),
-        {
-          params: { eServiceId: eserviceId },
-          headers,
-        }
+      const { data: eservice } = await retrieveEServiceById(
+        headers,
+        eserviceId
       );
 
-      await pollEService(
-        {
-          data: eservice,
-          metadata,
-        },
+      const createdDescriptor = await innerCreateDescriptor(
+        eserviceDescriptorSeed,
+        eservice,
         headers
-      );
-
-      const createdDescriptor = retrieveEServiceDescriptorById(
-        { data: eservice, metadata },
-        unsafeBrandId(createdDescriptorId)
       );
 
       return toM2MGatewayApiEServiceDescriptor(createdDescriptor);
@@ -786,21 +940,26 @@ export function eserviceServiceBuilder(
     async updateDraftEServiceDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      seed: m2mGatewayApiV3.EServiceDescriptorDraftUpdateSeed,
+      seed:
+        | m2mGatewayApiV3.EServiceDescriptorDraftUpdateSeed
+        | m2mGatewayApiV3.UpdateEServiceDescriptorTemplateInstanceSeed,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.EServiceDescriptor> {
       logger.info(
         `Updating draft descriptor ${descriptorId} for eservice ${eserviceId}`
       );
 
-      const response =
-        await clients.catalogProcessClient.patchUpdateDraftDescriptor(
-          toCatalogApiPatchUpdateEServiceDescriptorSeed(seed),
-          {
-            params: { eServiceId: eserviceId, descriptorId },
-            headers,
-          }
-        );
+      const { data: eservice } = await retrieveEServiceById(
+        headers,
+        eserviceId
+      );
+
+      const response = await innerUpdateDraftEServiceDescriptor(
+        seed,
+        eservice,
+        descriptorId,
+        headers
+      );
 
       await pollEService(response, headers);
 
@@ -857,16 +1016,19 @@ export function eserviceServiceBuilder(
 
     async updateDraftEService(
       eserviceId: EServiceId,
-      seed: m2mGatewayApiV3.EServiceDraftUpdateSeed,
+      seed:
+        | m2mGatewayApiV3.EServiceDraftUpdateSeed
+        | m2mGatewayApiV3.UpdateEServiceTemplateInstanceSeed,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.EService> {
       logger.info(`Updating draft EService with id ${eserviceId}`);
 
-      const response =
-        await clients.catalogProcessClient.patchUpdateDraftEServiceById(seed, {
-          params: { eServiceId: eserviceId },
-          headers,
-        });
+      const { data: eservice } = await retrieveEServiceById(
+        headers,
+        eserviceId
+      );
+
+      const response = await innerUpdateDraftEService(seed, eservice, headers);
       const polledResource = await pollEService(response, headers);
       return toM2MGatewayApiEService(polledResource.data);
     },
@@ -1587,29 +1749,22 @@ export function eserviceServiceBuilder(
     async updatePublishedEServiceDescriptorQuotas(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      seed: m2mGatewayApiV3.EServiceDescriptorQuotasUpdateSeed,
+      seed:
+        | m2mGatewayApiV3.EServiceDescriptorQuotasUpdateSeed
+        | m2mGatewayApiV3.UpdateEServiceTemplateInstanceDescriptorQuotasSeed,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.EServiceDescriptor> {
       logger.info(
         `Updating Descriptor Quotas for published E-Service with id ${eserviceId}`
       );
 
-      const descriptor = retrieveEServiceDescriptorById(
-        await retrieveEServiceById(headers, eserviceId),
-        descriptorId
-      );
+      const eservice = await retrieveEServiceById(headers, eserviceId);
 
-      const response = await clients.catalogProcessClient.updateDescriptor(
-        {
-          voucherLifespan: seed.voucherLifespan ?? descriptor.voucherLifespan,
-          dailyCallsPerConsumer:
-            seed.dailyCallsPerConsumer ?? descriptor.dailyCallsPerConsumer,
-          dailyCallsTotal: seed.dailyCallsTotal ?? descriptor.dailyCallsTotal,
-        },
-        {
-          params: { eServiceId: eserviceId, descriptorId },
-          headers,
-        }
+      const response = await innerUpdatePublishedEServiceDescriptorQuotas(
+        seed,
+        eservice,
+        descriptorId,
+        headers
       );
 
       const polledResource = await pollEService(response, headers);
@@ -2145,25 +2300,6 @@ export function eserviceServiceBuilder(
       return toM2MGatewayApiEService(polledResource.data);
     },
 
-    async updateEServiceTemplateInstance(
-      eserviceId: EServiceId,
-      seed: m2mGatewayApiV3.UpdateEServiceTemplateInstanceSeed,
-      { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApiV3.EService> {
-      logger.info(`Updating E-Service template instance ${eserviceId}`);
-
-      const response =
-        await clients.catalogProcessClient.updateEServiceTemplateInstanceById(
-          seed,
-          {
-            params: { eServiceId: eserviceId },
-            headers,
-          }
-        );
-      const polledResource = await pollEService(response, headers);
-      return toM2MGatewayApiEService(polledResource.data);
-    },
-
     async updateEServiceTemplateInstanceLabel(
       eserviceId: EServiceId,
       seed: m2mGatewayApiV3.EServiceInstanceLabelUpdateSeed,
@@ -2183,79 +2319,6 @@ export function eserviceServiceBuilder(
         );
       const polledResource = await pollEService(response, headers);
       return toM2MGatewayApiEService(polledResource.data);
-    },
-
-    async createTemplateInstanceDescriptor(
-      eserviceId: EServiceId,
-      seed: m2mGatewayApiV3.EServiceInstanceDescriptorSeed,
-      { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApiV3.EServiceDescriptor> {
-      logger.info(
-        `Creating descriptor for E-Service template instance ${eserviceId}`
-      );
-
-      const { data: descriptor, metadata } =
-        await clients.catalogProcessClient.createTemplateInstanceDescriptor(
-          seed,
-          {
-            params: { eServiceId: eserviceId },
-            headers,
-          }
-        );
-
-      await pollEServiceById(eserviceId, metadata, headers);
-
-      return toM2MGatewayApiEServiceDescriptor(descriptor);
-    },
-
-    async updateDraftDescriptorTemplateInstance(
-      eserviceId: EServiceId,
-      descriptorId: DescriptorId,
-      seed: m2mGatewayApiV3.UpdateEServiceDescriptorTemplateInstanceSeed,
-      { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApiV3.EServiceDescriptor> {
-      logger.info(
-        `Updating draft descriptor ${descriptorId} for E-Service template instance ${eserviceId}`
-      );
-
-      const response =
-        await clients.catalogProcessClient.updateDraftDescriptorTemplateInstance(
-          seed,
-          {
-            params: { eServiceId: eserviceId, descriptorId },
-            headers,
-          }
-        );
-      const polledResource = await pollEService(response, headers);
-
-      return toM2MGatewayApiEServiceDescriptor(
-        retrieveEServiceDescriptorById(polledResource, descriptorId)
-      );
-    },
-
-    async updateTemplateInstanceDescriptorQuotas(
-      eserviceId: EServiceId,
-      descriptorId: DescriptorId,
-      seed: m2mGatewayApiV3.UpdateEServiceTemplateInstanceDescriptorQuotasSeed,
-      { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApiV3.EServiceDescriptor> {
-      logger.info(
-        `Updating quotas for descriptor ${descriptorId} of E-Service template instance ${eserviceId}`
-      );
-
-      const response =
-        await clients.catalogProcessClient.updateTemplateInstanceDescriptor(
-          seed,
-          {
-            params: { eServiceId: eserviceId, descriptorId },
-            headers,
-          }
-        );
-      const polledResource = await pollEService(response, headers);
-
-      return toM2MGatewayApiEServiceDescriptor(
-        retrieveEServiceDescriptorById(polledResource, descriptorId)
-      );
     },
   };
 }

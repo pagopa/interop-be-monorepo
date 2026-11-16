@@ -71,6 +71,8 @@ const errorCodes = {
   missingDiscreteConfig: "0049",
   tenantCertifiedDiscreteAttributeNotFound: "0050",
   eserviceTemplateVersionInterfaceNotFound: "0051",
+  invalidSeedForEServiceTemplateInstance: "0052",
+  invalidSeedForEService: "0053",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -522,6 +524,30 @@ export function invalidSeedForPurposeFromTemplate(
     )}`,
     code: "invalidSeedForPurposeFromTemplate",
     title: "Invalid seed for purpose from template",
+  });
+}
+
+export function invalidSeedForEServiceTemplateInstance(
+  parsingErrors: string[]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Invalid seed for E-Service created from E-Service Template: ${parsingErrors.join(
+      ", "
+    )}`,
+    code: "invalidSeedForEServiceTemplateInstance",
+    title: "Invalid seed for E-Service template instance",
+  });
+}
+
+export function invalidSeedForEService(
+  parsingErrors: string[]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Invalid seed for E-Service not created from E-Service Template: ${parsingErrors.join(
+      ", "
+    )}`,
+    code: "invalidSeedForEService",
+    title: "Invalid seed for E-Service",
   });
 }
 

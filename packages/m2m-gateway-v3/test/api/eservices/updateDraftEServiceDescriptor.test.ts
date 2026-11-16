@@ -15,6 +15,7 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import { config } from "../../../src/config/config.js";
 import {
   eserviceDescriptorNotFound,
+  invalidSeedForEServiceTemplateInstance,
   missingMetadata,
 } from "../../../src/model/errors.js";
 import { api, mockEserviceService } from "../../vitest.api.setup.js";
@@ -28,6 +29,13 @@ describe("PATCH /eservices/{eServiceId}/descriptors/{descriptorId} router test",
     dailyCallsTotal: 10,
     agreementApprovalPolicy: "AUTOMATIC",
   };
+  const templateInstanceDescriptorSeed: m2mGatewayApiV3.UpdateEServiceDescriptorTemplateInstanceSeed =
+    {
+      audience: ["http/test.test"],
+      dailyCallsPerConsumer: 10,
+      dailyCallsTotal: 100,
+      agreementApprovalPolicy: "AUTOMATIC",
+    };
 
   const mockM2MEserviceDescriptorResponse: m2mGatewayApiV3.EServiceDescriptor =
     toM2MGatewayApiEServiceDescriptor(getMockedApiEserviceDescriptor());
@@ -40,7 +48,9 @@ describe("PATCH /eservices/{eServiceId}/descriptors/{descriptorId} router test",
     token: string,
     eserviceId: string = generateId(),
     descriptorId: string = generateId(),
-    body: m2mGatewayApiV3.EServiceDescriptorDraftUpdateSeed = descriptorSeed
+    body:
+      | m2mGatewayApiV3.EServiceDescriptorDraftUpdateSeed
+      | m2mGatewayApiV3.UpdateEServiceDescriptorTemplateInstanceSeed = descriptorSeed
   ) =>
     request(api)
       .patch(
@@ -136,6 +146,40 @@ describe("PATCH /eservices/{eServiceId}/descriptors/{descriptorId} router test",
       expect(res.status).toBe(400);
     }
   );
+
+  it("Should return 200 with an E-Service template instance Descriptor seed", async () => {
+    mockEserviceService.updateDraftEServiceDescriptor = vi
+      .fn()
+      .mockResolvedValue(mockM2MEserviceDescriptorResponse);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const eserviceId = generateId();
+    const descriptorId = generateId();
+    const res = await makeRequest(
+      token,
+      eserviceId,
+      descriptorId,
+      templateInstanceDescriptorSeed
+    );
+    expect(res.status).toBe(200);
+    expect(
+      mockEserviceService.updateDraftEServiceDescriptor
+    ).toHaveBeenCalledWith(
+      eserviceId,
+      descriptorId,
+      templateInstanceDescriptorSeed,
+      expect.any(Object) // context
+    );
+  });
+
+  it("Should return 400 in case of invalidSeedForEServiceTemplateInstance error", async () => {
+    mockEserviceService.updateDraftEServiceDescriptor = vi
+      .fn()
+      .mockRejectedValue(invalidSeedForEServiceTemplateInstance(["invalid"]));
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, generateId());
+
+    expect(res.status).toBe(400);
+  });
 
   it.each([
     eserviceDescriptorNotFound(generateId(), generateId()),
