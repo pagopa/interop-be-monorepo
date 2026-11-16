@@ -1,4 +1,5 @@
 import { and, eq, inArray } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import {
   EServiceId,
   WithMetadata,
@@ -13,6 +14,7 @@ import {
   delegationKind,
   delegationState,
   DelegationId,
+  ParentTenant,
 } from "pagopa-interop-models";
 import {
   CatalogReadModelService,
@@ -20,15 +22,52 @@ import {
   AgreementReadModelService,
   AttributeReadModelService,
   DelegationReadModelService,
+  toParentTenants,
 } from "pagopa-interop-readmodel";
 import {
   DrizzleReturnType,
   agreementInReadmodelAgreement,
   delegationInReadmodelDelegation,
+  tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
+
+const parentTenantTable = alias(tenantInReadmodelTenant, "parentTenantTable");
+const rootTenantTable = alias(tenantInReadmodelTenant, "rootTenantTable");
+
+async function getParentTenantsByTenantId(
+  readModelDB: DrizzleReturnType,
+  tenantId: TenantId
+): Promise<ParentTenant[] | undefined> {
+  const [hierarchy] = await readModelDB
+    .select({
+      parentTenantId: parentTenantTable.id,
+      parentTenantName: parentTenantTable.name,
+      parentTenantSubUnitType: parentTenantTable.subUnitType,
+      rootTenantId: rootTenantTable.id,
+      rootTenantName: rootTenantTable.name,
+    })
+    .from(tenantInReadmodelTenant)
+    .leftJoin(
+      parentTenantTable,
+      eq(tenantInReadmodelTenant.parentTenantId, parentTenantTable.id)
+    )
+    .leftJoin(
+      rootTenantTable,
+      eq(tenantInReadmodelTenant.rootTenantId, rootTenantTable.id)
+    )
+    .where(eq(tenantInReadmodelTenant.id, tenantId));
+  return hierarchy && toParentTenants(hierarchy);
+}
+
+// `<ente>`, `<sotto-unità> - <ente>` or `<UO> - <AOO> - <ente>`
+export const formatTenantNameWithHierarchy = (
+  name: string,
+  parentTenants: ParentTenant[] | undefined
+): string => [name, ...(parentTenants ?? []).map((p) => p.name)].join(" - ");
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
+  readModelDB,
   catalogReadModelServiceSQL,
   tenantReadModelServiceSQL,
   agreementReadModelServiceSQL,
@@ -49,7 +88,16 @@ export function readModelServiceBuilderSQL({
       return await catalogReadModelServiceSQL.getEServiceById(id);
     },
     async getTenantById(tenantId: TenantId): Promise<Tenant | undefined> {
-      return (await tenantReadModelServiceSQL.getTenantById(tenantId))?.data;
+      const [tenant, parentTenants] = await Promise.all([
+        tenantReadModelServiceSQL.getTenantById(tenantId),
+        getParentTenantsByTenantId(readModelDB, tenantId),
+      ]);
+      return (
+        tenant && {
+          ...tenant.data,
+          name: formatTenantNameWithHierarchy(tenant.data.name, parentTenants),
+        }
+      );
     },
     async getDelegationRelatedAgreement(
       eserviceId: EServiceId,

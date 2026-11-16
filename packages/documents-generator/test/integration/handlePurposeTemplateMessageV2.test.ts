@@ -218,6 +218,84 @@ describe("handlePurposeTemplateMessageV2", () => {
     );
   });
 
+  it("should compose the creator AOO/UO name with its parent and root tenants", async () => {
+    vi.spyOn(pdfGenerator, "generate");
+    const rootTenant: Tenant = { ...getMockTenant(), name: "Comune di Roma" };
+    const aooTenant: Tenant = {
+      ...getMockTenant(),
+      name: "AOO Protocollo",
+      subUnitType: "AOO",
+      parentTenantId: rootTenant.id,
+      rootTenantId: rootTenant.id,
+    };
+    const mockCreator: Tenant = {
+      ...getMockTenant(),
+      kind: "PA",
+      name: "UO Servizi",
+      subUnitType: "UO",
+      parentTenantId: aooTenant.id,
+      rootTenantId: rootTenant.id,
+    };
+
+    const baseRiskAnalysisForm = getMockValidRiskAnalysisFormTemplate("PA");
+    const version = "3.0";
+    const freeTextQuestionIds = new Set(
+      getFormRulesByVersion(TenantKind.Enum.PA, version)
+        ?.questions.filter((q) => q.dataType === dataType.freeText)
+        .map((q) => q.id)
+    );
+    const mockPurposeTemplate: PurposeTemplate = {
+      id: generateId(),
+      purposeTitle: "Mock Purpose Template Title",
+      purposeDescription: "Mock Description",
+      createdAt: new Date(),
+      creatorId: mockCreator.id,
+      state: "Published",
+      purposeRiskAnalysisForm: {
+        ...baseRiskAnalysisForm,
+        version,
+        singleAnswers: baseRiskAnalysisForm.singleAnswers.map((answer) =>
+          freeTextQuestionIds.has(answer.key)
+            ? { ...answer, value: undefined }
+            : answer
+        ),
+      },
+      purposeIsFreeOfCharge: false,
+      targetTenantKind: "PA",
+      targetDescription: "Target Desc",
+      handlesPersonalData: true,
+    };
+
+    await addOneTenant(rootTenant);
+    await addOneTenant(aooTenant);
+    await addOneTenant(mockCreator);
+
+    await handlePurposeTemplateMessageV2(
+      {
+        sequence_num: 1,
+        stream_id: mockPurposeTemplate.id,
+        version: 1,
+        event_version: 2,
+        type: "PurposeTemplatePublished",
+        data: { purposeTemplate: toPurposeTemplateV2(mockPurposeTemplate) },
+        log_date: new Date(),
+      },
+      pdfGenerator,
+      fileManager,
+      readModelService,
+      mockRefreshableToken,
+      clients,
+      genericLogger
+    );
+
+    expect(pdfGenerator.generate).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        creatorName: "UO Servizi - AOO Protocollo - Comune di Roma",
+      })
+    );
+  });
+
   it("should not process events that don't require contract generation and only log an info message", async () => {
     const mockPurposeTemplate: PurposeTemplate = {
       id: generateId(),

@@ -8,6 +8,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   getMockAgreement,
+  getMockDelegation,
   getMockDescriptorPublished,
   getMockEService,
   getMockPurpose,
@@ -17,6 +18,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   CorrelationId,
+  EService,
   EServiceId,
   Purpose,
   PurposeEventEnvelopeV2,
@@ -24,6 +26,8 @@ import {
   TenantId,
   UserId,
   agreementState,
+  delegationKind,
+  delegationState,
   generateId,
   purposeVersionState,
   riskAnalysisReviewMode,
@@ -62,6 +66,7 @@ import {
   addOneEService,
   addOneAgreement,
   addOneTenant,
+  addOneDelegation,
   fileManager,
   readModelService,
 } from "../integrationUtils.js";
@@ -256,6 +261,95 @@ describe("handleDelegationMessageV2", () => {
       })
     );
   });
+  it("should compose AOO/UO names with their parent and root tenants in the risk analysis payload", async () => {
+    vi.spyOn(pdfGenerator, "generate");
+    const rootTenant: Tenant = { ...getMockTenant(), name: "Comune di Roma" };
+    const mockProducer: Tenant = {
+      ...getMockTenant(),
+      kind: "PA",
+      name: "AOO Protocollo",
+      subUnitType: "AOO",
+      parentTenantId: rootTenant.id,
+      rootTenantId: rootTenant.id,
+    };
+    const mockConsumer: Tenant = {
+      ...getMockTenant(),
+      kind: "PA",
+      name: "UO Servizi",
+      subUnitType: "UO",
+      parentTenantId: mockProducer.id,
+      rootTenantId: rootTenant.id,
+    };
+    const mockConsumerDelegate: Tenant = {
+      ...getMockTenant(),
+      name: "AOO Delegata",
+      subUnitType: "AOO",
+      parentTenantId: rootTenant.id,
+      rootTenantId: rootTenant.id,
+    };
+    const mockEService: EService = {
+      ...getMockEService(),
+      producerId: mockProducer.id,
+      descriptors: [getMockDescriptorPublished()],
+    };
+    const mockConsumerDelegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      delegatorId: mockConsumer.id,
+      delegateId: mockConsumerDelegate.id,
+      state: delegationState.active,
+      eserviceId: mockEService.id,
+    });
+    const mockPurpose: Purpose = {
+      ...getMockPurpose(),
+      riskAnalysisForm: getMockValidRiskAnalysisForm("PA"),
+      consumerId: mockConsumer.id,
+      eserviceId: mockEService.id,
+      delegationId: mockConsumerDelegation.id,
+      versions: [
+        {
+          ...getMockPurposeVersion(),
+          state: purposeVersionState.active,
+          stamps: {
+            creation: { who: generateId<UserId>(), when: new Date() },
+          },
+        },
+      ],
+    };
+    await addOnePurpose(mockPurpose);
+    await addOneEService(mockEService);
+    await addOneTenant(rootTenant);
+    await addOneTenant(mockProducer);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockConsumerDelegate);
+    await addOneDelegation(mockConsumerDelegation);
+
+    await handlePurposeMessageV2(
+      {
+        sequence_num: 1,
+        stream_id: mockPurpose.id,
+        version: 1,
+        event_version: 2,
+        type: "PurposeActivated",
+        data: { purpose: toPurposeV2(mockPurpose) },
+        log_date: new Date(),
+      },
+      readModelService,
+      mockRefreshableToken,
+      riskAnalysisContractInstance,
+      clients,
+      genericLogger
+    );
+
+    expect(pdfGenerator.generate).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        producerName: "AOO Protocollo - Comune di Roma",
+        consumerName: "UO Servizi - AOO Protocollo - Comune di Roma",
+        consumerDelegateName: "AOO Delegata - Comune di Roma",
+      })
+    );
+  });
+
   it("should not process events that don't require contract generation and only log an info message", async () => {
     const mockPurpose = {
       ...getMockPurpose(),

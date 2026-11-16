@@ -76,6 +76,7 @@ import {
   addOneTenant,
   addOneAgreement,
   addOneAttribute,
+  addOneDelegation,
 } from "../integrationUtils.js";
 
 const mockAgreementId = generateId<AgreementId>();
@@ -481,6 +482,89 @@ describe("handleAgreementMessageV2", () => {
       })
     );
   });
+  it("should compose AOO/UO names with their parent and root tenants in the contract payload", async () => {
+    const descriptor = getMockDescriptorPublished();
+    const rootTenant = { ...getMockTenant(), name: "Comune di Roma" };
+    const mockProducer: Tenant = {
+      ...getMockTenant(mockProducerId),
+      name: "AOO Protocollo",
+      subUnitType: "AOO",
+      parentTenantId: rootTenant.id,
+      rootTenantId: rootTenant.id,
+    };
+    const mockConsumer: Tenant = {
+      ...getMockTenant(mockConsumerId),
+      name: "UO Servizi",
+      subUnitType: "UO",
+      parentTenantId: mockProducer.id,
+      rootTenantId: rootTenant.id,
+    };
+    const mockConsumerDelegate: Tenant = {
+      ...getMockTenant(),
+      name: "AOO Delegata",
+      subUnitType: "AOO",
+      parentTenantId: rootTenant.id,
+      rootTenantId: rootTenant.id,
+    };
+    const mockAgreement: Agreement = {
+      ...getMockAgreement(mockEServiceId, mockConsumerId, "Active"),
+      producerId: mockProducerId,
+      id: mockAgreementId,
+      descriptorId: descriptor.id,
+      stamps: {
+        submission: { who: generateId<UserId>(), when: new Date() },
+        activation: { who: generateId<UserId>(), when: new Date() },
+      },
+    };
+    await addOneAgreement(mockAgreement);
+    await addOneEService(
+      getMockEService(mockEServiceId, mockProducerId, [descriptor])
+    );
+    await addOneTenant(rootTenant);
+    await addOneTenant(mockProducer);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockConsumerDelegate);
+    await addOneDelegation(
+      getMockDelegation({
+        kind: delegationKind.delegatedConsumer,
+        delegatorId: mockConsumerId,
+        delegateId: mockConsumerDelegate.id,
+        state: delegationState.active,
+        eserviceId: mockEServiceId,
+      })
+    );
+
+    vi.spyOn(pdfGenerator, "generate").mockResolvedValue(
+      Buffer.from("mock pdf content")
+    );
+
+    await handleAgreementMessageV2(
+      {
+        sequence_num: 1,
+        stream_id: mockAgreementId,
+        version: 1,
+        event_version: 2,
+        type: "AgreementActivated",
+        data: { agreement: toAgreementV2(mockAgreement) },
+        log_date: new Date(),
+      },
+      readModelService,
+      mockRefreshableToken,
+      agreementContractInstance,
+      clients,
+      genericLogger
+    );
+
+    expect(pdfGenerator.generate).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        producerName: "AOO Protocollo - Comune di Roma",
+        consumerName: "UO Servizi - AOO Protocollo - Comune di Roma",
+        consumerDelegateName: "AOO Delegata - Comune di Roma",
+      })
+    );
+  });
+
   it("should not process an 'AgreementAdded' event and only log an info message", async () => {
     const mockAgreement = getMockAgreement(mockEServiceId, mockConsumerId);
 
