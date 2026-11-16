@@ -72,6 +72,8 @@ export async function handleMessageV2(
           "ClientPurposeAdded",
           "ClientPurposeRemoved",
           "ProducerKeychainAdded",
+          "ProducerKeychainNameUpdated",
+          "ProducerKeychainDescriptionUpdated",
           "ProducerKeychainUserAdded",
           "ProducerKeychainUserDeleted",
           "ProducerKeychainEServiceAdded",
