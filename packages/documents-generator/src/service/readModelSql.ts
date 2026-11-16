@@ -60,7 +60,7 @@ async function getParentTenantsByTenantId(
 }
 
 // `<ente>`, `<sotto-unità> - <ente>` or `<UO> - <AOO> - <ente>`
-export const formatTenantNameWithHierarchy = (
+const formatTenantNameWithHierarchy = (
   name: string,
   parentTenants: ParentTenant[] | undefined
 ): string => [name, ...(parentTenants ?? []).map((p) => p.name)].join(" - ");
