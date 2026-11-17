@@ -59,7 +59,11 @@ describe("PATCH /templates/{templateId} router test", () => {
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
@@ -76,6 +80,8 @@ describe("PATCH /templates/{templateId} router test", () => {
   it.each([
     {},
     { name: "updated name" },
+    { name: "a".repeat(5) },
+    { name: "a".repeat(45) },
     { description: "updated description" },
     { intendedTarget: "updated intended target" },
     { personalData: null, asyncExchange: null },
@@ -122,6 +128,8 @@ describe("PATCH /templates/{templateId} router test", () => {
   );
 
   it.each([
+    [{ name: "a".repeat(4) }, mockEServiceTemplate.id],
+    [{ name: "a".repeat(46) }, mockEServiceTemplate.id],
     [{ name: 123 }, mockEServiceTemplate.id],
     [{ description: null }, mockEServiceTemplate.id],
     [{ intendedTarget: null }, mockEServiceTemplate.id],
@@ -131,6 +139,9 @@ describe("PATCH /templates/{templateId} router test", () => {
   ])(
     "Should return 400 if passed invalid seed or e-service id (seed #%#)",
     async (body, templateId) => {
+      vi.mocked(
+        eserviceTemplateService.patchUpdateEServiceTemplate
+      ).mockClear();
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(
         token,
@@ -139,6 +150,9 @@ describe("PATCH /templates/{templateId} router test", () => {
       );
 
       expect(res.status).toBe(400);
+      expect(
+        eserviceTemplateService.patchUpdateEServiceTemplate
+      ).not.toHaveBeenCalled();
     }
   );
 

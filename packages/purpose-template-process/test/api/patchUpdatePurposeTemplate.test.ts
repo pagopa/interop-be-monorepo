@@ -70,7 +70,10 @@ describe("PATCH /purposeTemplates/{id} router test", () => {
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
@@ -86,6 +89,13 @@ describe("PATCH /purposeTemplates/{id} router test", () => {
 
   it.each([
     {},
+    { purposeTitle: "updated purpose title" },
+    { purposeDescription: "updated purpose description" },
+    {
+      purposeTitle: "updated purpose title",
+      purposeDescription: "updated purpose description",
+      targetDescription: "updated target description",
+    },
     { targetDescription: "updated target description" },
     {
       targetDescription: "updated target description",
@@ -139,6 +149,13 @@ describe("PATCH /purposeTemplates/{id} router test", () => {
   );
 
   it.each([
+    [{ purposeTitle: "a".repeat(4) }, mockPurposeTemplate.id],
+    [{ purposeTitle: "a".repeat(61) }, mockPurposeTemplate.id],
+    [{ purposeDescription: "a".repeat(9) }, mockPurposeTemplate.id],
+    [{ purposeDescription: "a".repeat(251) }, mockPurposeTemplate.id],
+    [{ targetDescription: "a".repeat(9) }, mockPurposeTemplate.id],
+    [{ targetDescription: "a".repeat(251) }, mockPurposeTemplate.id],
+    [{ ...purposeTemplateSeed, extraField: true }, mockPurposeTemplate.id],
     [{ targetDescription: null }, mockPurposeTemplate.id],
     [{ targetTenantKind: "invalidTenantKind" }, mockPurposeTemplate.id],
     [{ purposeTitle: null }, mockPurposeTemplate.id],
@@ -169,6 +186,23 @@ describe("PATCH /purposeTemplates/{id} router test", () => {
     const res = await makeRequest(token, mockPurposeTemplate.id);
 
     expect(res.status).toBe(HTTP_STATUS_FORBIDDEN);
+  });
+
+  it("Should return the unchanged metadata version for a no-op", async () => {
+    purposeTemplateService.patchUpdatePurposeTemplate = vi
+      .fn()
+      .mockResolvedValueOnce({
+        data: mockPurposeTemplate,
+        metadata: { version: 5 },
+      });
+    const res = await makeRequest(
+      generateToken(authRole.M2M_ADMIN_ROLE),
+      mockPurposeTemplate.id,
+      { purposeTitle: mockPurposeTemplate.purposeTitle }
+    );
+    expect(res.status).toBe(HTTP_STATUS_OK);
+    expect(res.body).toEqual(apiPurposeTemplate);
+    expect(res.headers["x-metadata-version"]).toBe("5");
   });
 
   it.each([

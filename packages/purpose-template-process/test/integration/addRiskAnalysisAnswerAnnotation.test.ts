@@ -8,6 +8,7 @@ import {
   getMockContext,
   getMockPurposeTemplate,
   getMockValidRiskAnalysisFormTemplate,
+  sortPurposeTemplate,
 } from "pagopa-interop-commons-test";
 import {
   PurposeTemplate,
@@ -93,7 +94,10 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
       docs: [],
     });
 
-    expect(writtenPayload).toEqual({
+    expect({
+      ...writtenPayload,
+      purposeTemplate: sortPurposeTemplate(writtenPayload.purposeTemplate),
+    }).toEqual({
       purposeTemplate: {
         ...toPurposeTemplateV2({
           ...mockPurposeTemplate,
@@ -111,7 +115,8 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
             }),
           ]),
           multiAnswers:
-            mockPurposeTemplate.purposeRiskAnalysisForm!.multiAnswers,
+            sortPurposeTemplate(mockPurposeTemplate).purposeRiskAnalysisForm!
+              .multiAnswers,
         }),
       },
     });
