@@ -158,52 +158,6 @@ const getCurrentVersion = (
     .at(-1);
 };
 
-export const sortRiskAnalysisAssignments = (
-  purposes: bffApi.Purpose[],
-  signingStates: bffApi.RiskAnalysisSigningState[],
-  reviewerId: string
-): bffApi.Purpose[] => {
-  const sortByReviewerAssignment = signingStates.every(
-    (state) =>
-      state === bffApi.RiskAnalysisSigningState.Values.ASSIGNED ||
-      state === bffApi.RiskAnalysisSigningState.Values.SUBMITTED
-  );
-  const sortBySignedOrRejected = signingStates.every(
-    (state) =>
-      state === bffApi.RiskAnalysisSigningState.Values.REJECTED ||
-      state === bffApi.RiskAnalysisSigningState.Values.SIGNED
-  );
-
-  if (!sortByReviewerAssignment && !sortBySignedOrRejected) {
-    return purposes;
-  }
-
-  const getSortDate = (purpose: bffApi.Purpose): number | undefined => {
-    const workflow = purpose.reviewerWorkflow;
-    const date = sortByReviewerAssignment
-      ? workflow?.reviewers?.find((reviewer) => reviewer.userId === reviewerId)
-          ?.sentToReviewerAt
-      : sortBySignedOrRejected
-        ? (workflow?.signedAt ?? workflow?.rejectedAt)
-        : undefined;
-
-    return date ? new Date(date).getTime() : undefined;
-  };
-
-  return [...purposes].sort((left, right) => {
-    const leftDate = getSortDate(left);
-    const rightDate = getSortDate(right);
-
-    if (leftDate === undefined) {
-      return rightDate === undefined ? 0 : 1;
-    }
-    if (rightDate === undefined) {
-      return -1;
-    }
-    return rightDate - leftDate;
-  });
-};
-
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function purposeServiceBuilder(
   {
@@ -437,6 +391,7 @@ export function purposeServiceBuilder(
       excludeDraft?: boolean | undefined;
       reviewerId?: string | undefined;
       signingStates?: purposeApi.RiskAnalysisSigningState[] | undefined;
+      sortByRiskAnalysisAssignmentDateDescending?: boolean;
       offset: number;
       limit: number;
     },
@@ -652,6 +607,19 @@ export function purposeServiceBuilder(
         });
       return { id: purposeId };
     },
+    async patchUpdateReversePurpose(
+      id: PurposeId,
+      seed: bffApi.PatchReversePurposeUpdateContent,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> {
+      logger.info(`Partially updating reverse Purpose ${id}`);
+      const updatedPurpose =
+        await purposeProcessClient.patchUpdateReversePurpose(seed, {
+          headers,
+          params: { id },
+        });
+      return { id: updatedPurpose.id };
+    },
     async reversePurposeUpdate(
       id: PurposeId,
       updateSeed: bffApi.ReversePurposeUpdateContent,
@@ -750,10 +718,11 @@ export function purposeServiceBuilder(
       logger.info(
         `Retrieving risk analysis assignments for reviewerId ${authData.userId}, signingState ${signingStates.join(",")}, EServices ${filters.eservicesIds}, offset ${offset}, limit ${limit}`
       );
-      const purposes = await getPurposes(
+      return await getPurposes(
         authData,
         {
           reviewerId: authData.userId,
+          sortByRiskAnalysisAssignmentDateDescending: true,
           consumersIds: [authData.organizationId],
           eservicesIds: filters.eservicesIds,
           signingStates,
@@ -763,15 +732,6 @@ export function purposeServiceBuilder(
         },
         ctx
       );
-
-      return {
-        ...purposes,
-        results: sortRiskAnalysisAssignments(
-          purposes.results,
-          signingStates,
-          authData.userId
-        ),
-      };
     },
     async clonePurpose(
       purposeId: PurposeId,
@@ -963,6 +923,18 @@ export function purposeServiceBuilder(
         },
         headers,
       });
+    },
+    async patchUpdatePurpose(
+      id: PurposeId,
+      seed: bffApi.PatchPurposeUpdateContent,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> {
+      logger.info(`Partially updating Purpose ${id}`);
+      const updatedPurpose = await purposeProcessClient.patchUpdatePurpose(
+        seed,
+        { headers, params: { id } }
+      );
+      return { id: updatedPurpose.id };
     },
     async updatePurpose(
       id: PurposeId,

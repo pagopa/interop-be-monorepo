@@ -10,7 +10,11 @@ import {
   validateAuthorization,
   setMetadataVersionHeader,
 } from "pagopa-interop-commons";
-import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
+import {
+  DelegationId,
+  emptyErrorMapper,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 
 import {
   apiTenantFeatureTypeToTenantFeatureType,
@@ -980,6 +984,9 @@ const tenantsRouter = (
                 tenantId: unsafeBrandId(req.params.tenantId),
                 attributeId: unsafeBrandId(req.body.id),
                 agreementId: unsafeBrandId(req.body.agreementId),
+                delegationId: req.body.delegationId
+                  ? unsafeBrandId<DelegationId>(req.body.delegationId)
+                  : undefined,
                 expirationDate: req.body.expirationDate,
               },
               ctx
@@ -1014,6 +1021,9 @@ const tenantsRouter = (
                 tenantId: unsafeBrandId(req.params.tenantId),
                 attributeId: unsafeBrandId(req.params.attributeId),
                 agreementId: unsafeBrandId(req.query.agreementId),
+                delegationId: req.query.delegationId
+                  ? unsafeBrandId<DelegationId>(req.query.delegationId)
+                  : undefined,
               },
               ctx
             );
