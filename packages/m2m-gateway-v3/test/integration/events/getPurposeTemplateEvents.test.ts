@@ -36,6 +36,29 @@ describe("getPurposeTemplateEvents integration", () => {
     mockGetPurposeTemplateM2MEvents.mockClear();
   });
 
+  it.each([
+    "PURPOSE_TEMPLATE_PURPOSE_TITLE_UPDATED",
+    "PURPOSE_TEMPLATE_PURPOSE_DESCRIPTION_UPDATED",
+    "PURPOSE_TEMPLATE_TARGET_DESCRIPTION_UPDATED",
+  ] as const)("Should expose the metadata event %s", async (eventType) => {
+    const event: m2mEventApi.PurposeTemplateM2MEvent = {
+      id: generateId(),
+      eventTimestamp: new Date().toJSON(),
+      purposeTemplateId: generateId(),
+      eventType,
+    };
+    mockGetPurposeTemplateM2MEvents.mockResolvedValueOnce({ events: [event] });
+
+    const result = await eventService.getPurposeTemplateEvents(
+      { limit: 10 },
+      getMockM2MAdminAppContext()
+    );
+
+    expect(m2mGatewayApiV3.PurposeTemplateEvents.parse(result)).toEqual({
+      events: [event],
+    });
+  });
+
   it.each([generateId(), undefined])(
     "Should succeed and perform API clients calls",
     async (lastEventId) => {

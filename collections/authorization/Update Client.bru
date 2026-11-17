@@ -1,0 +1,23 @@
+meta {
+  name: Update Client
+  type: http
+  seq: 21
+}
+
+patch {
+  url: {{host-authorization}}/clients/{{clientId}}
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "name": "Updated client",
+    "description": "Updated client description"
+  }
+}
