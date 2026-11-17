@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger, fileManagerDeleteError } from "pagopa-interop-commons";
+import { fileManagerDeleteError, genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockContext,
@@ -7,6 +7,7 @@ import {
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
   getMockAuthData,
+  writeInEventstore,
 } from "pagopa-interop-commons-test";
 import {
   EServiceTemplate,
@@ -32,12 +33,99 @@ import {
   eserviceTemplateService,
   fileManager,
   readLastEserviceTemplateEvent,
+  postgresDB,
 } from "../integrationUtils.js";
 
 describe("delete Document", () => {
   const mockEServiceTemplateVersion = getMockEServiceTemplateVersion();
   const mockEServiceTemplate = getMockEServiceTemplate();
   const mockDocument = getMockDocument();
+
+  it.each(["document", "version", "template"] as const)(
+    "should restore files if the event-store rejects the %s deletion",
+    async (kind) => {
+      const document = {
+        ...getMockDocument(),
+        path: "documents/backup-regression.pdf",
+      };
+      const version = {
+        ...getMockEServiceTemplateVersion(),
+        state: eserviceTemplateVersionState.draft,
+        docs: [document],
+      };
+      const template = {
+        ...getMockEServiceTemplate(),
+        versions: [version],
+      };
+      await addOneEServiceTemplate(template);
+      const content = Buffer.from("original document");
+      await fileManager.storeBytesByKey(
+        config.s3Bucket,
+        document.path,
+        content,
+        genericLogger
+      );
+      await writeInEventstore(
+        {
+          stream_id: template.id,
+          version: 1,
+          event: {
+            type: "EServiceTemplateAdded",
+            event_version: 2,
+            data: { eserviceTemplate: toEServiceTemplateV2(template) },
+          },
+        },
+        "eservice_template",
+        postgresDB
+      );
+      const deletion = vi.spyOn(fileManager, "delete");
+      const context = getMockContext({
+        authData: getMockAuthData(template.creatorId),
+      });
+      const deleteResource = () => {
+        if (kind === "document") {
+          return eserviceTemplateService.deleteDocument(
+            template.id,
+            version.id,
+            document.id,
+            context
+          );
+        }
+        if (kind === "version") {
+          return eserviceTemplateService.deleteEServiceTemplateVersion(
+            template.id,
+            version.id,
+            context
+          );
+        }
+        return eserviceTemplateService.deleteEServiceTemplate(
+          template.id,
+          context
+        );
+      };
+
+      await expect(deleteResource()).rejects.toMatchObject({
+        code: "eventConflictError",
+      });
+
+      expect(deletion).toHaveBeenCalledWith(
+        config.s3Bucket,
+        document.path,
+        genericLogger
+      );
+      expect(
+        await fileManager.get(config.s3Bucket, document.path, genericLogger)
+      ).toEqual(new Uint8Array(content));
+      expect((await readLastEserviceTemplateEvent(template.id)).version).toBe(
+        "1"
+      );
+      expect(
+        (await fileManager.listFiles(config.s3Bucket, genericLogger)).filter(
+          (path) => path.startsWith("_delete-backups/")
+        )
+      ).toEqual([]);
+    }
+  );
 
   it.each(
     Object.values(eserviceTemplateVersionState).filter(
@@ -365,10 +453,7 @@ describe("delete Document", () => {
     );
   });
 
-  it("should fail if the file deletion fails", async () => {
-    const originalS3Bucket = config.s3Bucket;
-    config.s3Bucket = "invalid-bucket"; // configure an invalid bucket to force a failure
-
+  it("should fail if the deletion fails, and should not write any events in event store", async () => {
     const eserviceTemplateVersion: EServiceTemplateVersion = {
       ...mockEServiceTemplateVersion,
       state: eserviceTemplateVersionState.draft,
@@ -380,6 +465,24 @@ describe("delete Document", () => {
     };
 
     await addOneEServiceTemplate(eserviceTemplate);
+    const content = Buffer.from("original document");
+    await fileManager.storeBytesByKey(
+      config.s3Bucket,
+      mockDocument.path,
+      content,
+      genericLogger
+    );
+    const deletionError = fileManagerDeleteError(
+      mockDocument.path,
+      config.s3Bucket,
+      new Error("Simulated deletion failure")
+    );
+    const deleteFile = fileManager.delete.bind(fileManager);
+    vi.spyOn(fileManager, "delete").mockImplementationOnce(async (...args) => {
+      await deleteFile(...args);
+      throw deletionError;
+    });
+
     await expect(
       eserviceTemplateService.deleteDocument(
         eserviceTemplate.id,
@@ -389,15 +492,14 @@ describe("delete Document", () => {
           authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
-    ).rejects.toThrowError(
-      fileManagerDeleteError(
-        mockDocument.path,
-        config.s3Bucket,
-        new Error("The specified bucket does not exist")
-      )
-    );
+    ).rejects.toThrow(deletionError);
 
-    config.s3Bucket = originalS3Bucket;
+    expect(
+      await fileManager.get(config.s3Bucket, mockDocument.path, genericLogger)
+    ).toEqual(new Uint8Array(content));
+    expect(
+      (await readLastEserviceTemplateEvent(eserviceTemplate.id)).version
+    ).toBe("0");
   });
 
   it("should write on event-store for the deletion of an asyncExchangeCallbackInterface, and delete the file from the bucket", async () => {

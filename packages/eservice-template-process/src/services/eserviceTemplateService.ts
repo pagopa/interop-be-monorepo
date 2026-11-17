@@ -18,6 +18,7 @@ import {
   Logger,
   RiskAnalysisFormToValidate,
   riskAnalysisValidatedFormToNewRiskAnalysis,
+  deleteFilesWithBackup,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -420,6 +421,15 @@ export function eserviceTemplateServiceBuilder(
     dbInstance,
     eserviceTemplateEventToBinaryDataV2
   );
+  const withFileDeletionBackup = <T>(
+    paths: string[],
+    logger: Logger,
+    operation: () => Promise<T>
+  ): Promise<T> =>
+    deleteFilesWithBackup(
+      { fileManager, bucket: config.s3Bucket, paths, logger },
+      operation
+    );
   return {
     async updateDraftTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,
@@ -972,16 +982,17 @@ export function eserviceTemplateServiceBuilder(
 
       const isLastVersion = eserviceTemplate.data.versions.length === 1;
 
-      await deleteVersionInterfaceAndDocs(version, fileManager, logger);
+      const documentPathsToDelete = getVersionDocumentPaths(version);
 
       if (isLastVersion) {
-        await repository.createEvent(
-          toCreateEventEServiceTemplateDeleted(
-            eserviceTemplate.data.id,
-            eserviceTemplate.metadata.version,
-            eserviceTemplate.data,
-            correlationId
-          )
+        const deletionEvent = toCreateEventEServiceTemplateDeleted(
+          eserviceTemplate.data.id,
+          eserviceTemplate.metadata.version,
+          eserviceTemplate.data,
+          correlationId
+        );
+        await withFileDeletionBackup(documentPathsToDelete, logger, () =>
+          repository.createEvent(deletionEvent)
         );
         return undefined;
       } else {
@@ -992,14 +1003,17 @@ export function eserviceTemplateServiceBuilder(
           ),
         };
 
-        const event = await repository.createEvent(
-          toCreateEventEServiceTemplateDraftVersionDeleted(
-            eserviceTemplate.data.id,
-            eserviceTemplate.metadata.version,
-            eserviceTemplateVersionId,
-            updatedEserviceTemplate,
-            correlationId
-          )
+        const deletionEvent = toCreateEventEServiceTemplateDraftVersionDeleted(
+          eserviceTemplate.data.id,
+          eserviceTemplate.metadata.version,
+          eserviceTemplateVersionId,
+          updatedEserviceTemplate,
+          correlationId
+        );
+        const event = await withFileDeletionBackup(
+          documentPathsToDelete,
+          logger,
+          () => repository.createEvent(deletionEvent)
         );
         return {
           data: updatedEserviceTemplate,
@@ -1525,20 +1539,22 @@ export function eserviceTemplateServiceBuilder(
           eserviceTemplate.data,
           { type: "patch", seed: eserviceTemplateSeed }
         );
-        await deleteEServiceTemplateInterfacesOnTechnologyChange(
-          eserviceTemplate.data,
+        const interfacePathsToDelete =
+          getEServiceTemplateInterfacePathsOnTechnologyChange(
+            eserviceTemplate.data,
+            updatedEServiceTemplate
+          );
+        const updateEvent = toCreateEventEServiceTemplateDraftUpdated(
+          templateId,
+          eserviceTemplate.metadata.version,
           updatedEServiceTemplate,
-          fileManager,
-          ctx.logger
+          ctx.correlationId
         );
 
-        const event = await repository.createEvent(
-          toCreateEventEServiceTemplateDraftUpdated(
-            templateId,
-            eserviceTemplate.metadata.version,
-            updatedEServiceTemplate,
-            ctx.correlationId
-          )
+        const event = await withFileDeletionBackup(
+          interfacePathsToDelete,
+          ctx.logger,
+          () => repository.createEvent(updateEvent)
         );
 
         return {
@@ -2149,8 +2165,6 @@ export function eserviceTemplateServiceBuilder(
         }
       }
 
-      await fileManager.delete(config.s3Bucket, document.path, logger);
-
       const updatedEServiceTemplate = replaceEServiceTemplateVersion(
         eserviceTemplate.data,
         {
@@ -2190,7 +2204,11 @@ export function eserviceTemplateServiceBuilder(
               correlationId
             );
 
-      const createdEvent = await repository.createEvent(event);
+      const createdEvent = await withFileDeletionBackup(
+        [document.path],
+        logger,
+        () => repository.createEvent(event)
+      );
 
       return {
         data: updatedEServiceTemplate,
@@ -2273,12 +2291,6 @@ export function eserviceTemplateServiceBuilder(
           );
         await repository.createEvent(eserviceTemplateDeletionEvent);
       } else {
-        await deleteVersionInterfaceAndDocs(
-          eserviceTemplate.data.versions[0],
-          fileManager,
-          logger
-        );
-
         const eserviceTemplateWithoutVersions: EServiceTemplate = {
           ...eserviceTemplate.data,
           versions: [],
@@ -2298,10 +2310,16 @@ export function eserviceTemplateServiceBuilder(
             eserviceTemplateWithoutVersions,
             correlationId
           );
-        await repository.createEvents([
+        const deletionEvents = [
           versionDeletionEvent,
           eserviceTemplateDeletionEvent,
-        ]);
+        ];
+        const documentPathsToDelete = getVersionDocumentPaths(
+          eserviceTemplate.data.versions[0]
+        );
+        await withFileDeletionBackup(documentPathsToDelete, logger, () =>
+          repository.createEvents(deletionEvents)
+        );
       }
     },
   };
@@ -2384,20 +2402,25 @@ async function updateDraftEServiceTemplate(
     typeAndSeed
   );
 
-  await deleteEServiceTemplateInterfacesOnTechnologyChange(
-    eserviceTemplate.data,
+  const interfacePathsToDelete =
+    getEServiceTemplateInterfacePathsOnTechnologyChange(
+      eserviceTemplate.data,
+      updatedEServiceTemplate
+    );
+  const updateEvent = toCreateEventEServiceTemplateDraftUpdated(
+    eserviceTemplateId,
+    eserviceTemplate.metadata.version,
     updatedEServiceTemplate,
-    fileManager,
-    logger
+    correlationId
   );
-
-  const event = await repository.createEvent(
-    toCreateEventEServiceTemplateDraftUpdated(
-      eserviceTemplateId,
-      eserviceTemplate.metadata.version,
-      updatedEServiceTemplate,
-      correlationId
-    )
+  const event = await deleteFilesWithBackup(
+    {
+      fileManager,
+      bucket: config.s3Bucket,
+      paths: interfacePathsToDelete,
+      logger,
+    },
+    () => repository.createEvent(updateEvent)
   );
   return {
     data: updatedEServiceTemplate,
@@ -2428,32 +2451,18 @@ async function validateEServiceTemplateMetadataUpdate(
   }
 }
 
-async function deleteEServiceTemplateInterfacesOnTechnologyChange(
+function getEServiceTemplateInterfacePathsOnTechnologyChange(
   eserviceTemplate: EServiceTemplate,
-  updatedEServiceTemplate: EServiceTemplate,
-  fileManager: FileManager,
-  logger: Logger
-): Promise<void> {
-  if (updatedEServiceTemplate.technology !== eserviceTemplate.technology) {
-    await Promise.all(
-      eserviceTemplate.versions.map(async (version) => {
-        if (version.interface !== undefined) {
-          await fileManager.delete(
-            config.s3Bucket,
-            version.interface.path,
-            logger
-          );
-        }
-        if (version.asyncExchangeCallbackInterface !== undefined) {
-          await fileManager.delete(
-            config.s3Bucket,
-            version.asyncExchangeCallbackInterface.path,
-            logger
-          );
-        }
-      })
-    );
+  updatedEServiceTemplate: EServiceTemplate
+): string[] {
+  if (updatedEServiceTemplate.technology === eserviceTemplate.technology) {
+    return [];
   }
+  return eserviceTemplate.versions.flatMap((version) =>
+    [version.interface, version.asyncExchangeCallbackInterface].flatMap(
+      (document) => (document ? [document.path] : [])
+    )
+  );
 }
 
 function prepareDraftEServiceTemplateUpdate(
@@ -2735,28 +2744,9 @@ async function updateDraftEServiceTemplateVersion(
   };
 }
 
-const deleteVersionInterfaceAndDocs = async (
-  version: EServiceTemplateVersion,
-  fileManager: FileManager,
-  logger: Logger
-): Promise<void> => {
-  const versionInterface = version.interface;
-  if (versionInterface !== undefined) {
-    await fileManager.delete(config.s3Bucket, versionInterface.path, logger);
-  }
-
-  const asyncExchangeCallbackInterface = version.asyncExchangeCallbackInterface;
-  if (asyncExchangeCallbackInterface !== undefined) {
-    await fileManager.delete(
-      config.s3Bucket,
-      asyncExchangeCallbackInterface.path,
-      logger
-    );
-  }
-
-  const deleteVersionDocs = version.docs.map((doc: Document) =>
-    fileManager.delete(config.s3Bucket, doc.path, logger)
-  );
-
-  await Promise.all(deleteVersionDocs);
-};
+const getVersionDocumentPaths = (version: EServiceTemplateVersion): string[] =>
+  [
+    version.interface,
+    version.asyncExchangeCallbackInterface,
+    ...version.docs,
+  ].flatMap((document) => (document ? [document.path] : []));

@@ -10,6 +10,7 @@ import {
   getMockRiskAnalysisTemplateAnswerAnnotation,
   getMockValidRiskAnalysisFormTemplate,
   sortBy,
+  writeInEventstore,
 } from "pagopa-interop-commons-test";
 import {
   RiskAnalysisFormTemplate,
@@ -38,6 +39,7 @@ import {
   protobufCleanUndefined,
   purposeTemplateService,
   readLastPurposeTemplateEvent,
+  postgresDB,
 } from "../integrationUtils.js";
 
 describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
@@ -71,6 +73,88 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
     ...getMockPurposeTemplate(),
     purposeRiskAnalysisForm: riskAnalysisFormTemplate,
   };
+
+  it.each(["document", "annotation", "template"] as const)(
+    "should restore annotation files if the event-store rejects the %s deletion",
+    async (kind) => {
+      await addOnePurposeTemplate(purposeTemplate);
+      const documents = [annotationDocument1, annotationDocument2];
+      const content = Buffer.from("original annotation document");
+      for (const document of documents) {
+        await fileManager.storeBytesByKey(
+          config.s3Bucket,
+          document.path,
+          content,
+          genericLogger
+        );
+      }
+      await writeInEventstore(
+        {
+          stream_id: purposeTemplate.id,
+          version: 1,
+          event: {
+            type: "PurposeTemplateAdded",
+            event_version: 2,
+            data: { purposeTemplate: toPurposeTemplateV2(purposeTemplate) },
+          },
+        },
+        "purpose_template",
+        postgresDB
+      );
+      const deletion = vi.spyOn(fileManager, "delete");
+      const ctx = getMockContext({
+        authData: getMockAuthData(purposeTemplate.creatorId),
+      });
+      const deleteResource = (): Promise<unknown> => {
+        if (kind === "document") {
+          return purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotationDocument(
+            {
+              purposeTemplateId: purposeTemplate.id,
+              answerId: riskAnalysisFormTemplate.singleAnswers[0].id,
+              documentId: annotationDocument1.id,
+              ctx,
+            }
+          );
+        }
+        if (kind === "annotation") {
+          return purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotation(
+            {
+              purposeTemplateId: purposeTemplate.id,
+              answerId: riskAnalysisFormTemplate.singleAnswers[0].id,
+              ctx,
+            }
+          );
+        }
+        return purposeTemplateService.deletePurposeTemplate(
+          purposeTemplate.id,
+          ctx
+        );
+      };
+
+      await expect(deleteResource()).rejects.toMatchObject({
+        code: "eventConflictError",
+      });
+
+      expect(deletion).toHaveBeenCalledWith(
+        config.s3Bucket,
+        annotationDocument1.path,
+        genericLogger
+      );
+      for (const document of documents) {
+        expect(
+          await fileManager.get(config.s3Bucket, document.path, genericLogger)
+        ).toEqual(new Uint8Array(content));
+      }
+      expect(
+        (await readLastPurposeTemplateEvent(purposeTemplate.id)).version
+      ).toBe("1");
+      expect(
+        (await fileManager.listFiles(config.s3Bucket, genericLogger)).filter(
+          (path) => path.startsWith("_delete-backups/")
+        )
+      ).toEqual([]);
+    }
+  );
 
   it("should write on event-store for the deletion of a risk analysis template answer annotation document", async () => {
     vi.spyOn(fileManager, "delete");

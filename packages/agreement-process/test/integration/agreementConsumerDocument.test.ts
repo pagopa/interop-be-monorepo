@@ -14,6 +14,7 @@ import {
   sortAgreementV2,
   getMockDescriptorPublished,
   sortAgreement,
+  writeInEventstore,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -31,7 +32,7 @@ import {
   toAgreementV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { config } from "../../src/config/config.js";
 import { agreementConsumerDocumentChangeValidStates } from "../../src/model/domain/agreement-validators.js";
@@ -53,6 +54,7 @@ import {
   fileManager,
   readLastAgreementEvent,
   uploadDocument,
+  postgresDB,
 } from "../integrationUtils.js";
 import { getMockConsumerDocument } from "../mockUtils.js";
 
@@ -561,6 +563,61 @@ describe("agreement consumer document", () => {
       await addOneAgreement(agreement1);
     });
 
+    it.each(["document", "agreement"] as const)(
+      "should restore consumer documents if the event-store rejects the %s deletion",
+      async (kind) => {
+        const document = agreement1.consumerDocuments[0];
+        await uploadDocument(agreement1.id, document.id, document.name);
+        const originalContent = await fileManager.get(
+          config.s3Bucket,
+          document.path,
+          genericLogger
+        );
+        await writeInEventstore(
+          {
+            stream_id: agreement1.id,
+            version: 1,
+            event: {
+              type: "AgreementAdded",
+              event_version: 2,
+              data: { agreement: toAgreementV2(agreement1) },
+            },
+          },
+          "agreement",
+          postgresDB
+        );
+        const deletion = vi.spyOn(fileManager, "delete");
+        const context = getMockContext({
+          authData: getMockAuthData(agreement1.consumerId),
+        });
+
+        await expect(
+          kind === "document"
+            ? agreementService.removeAgreementConsumerDocument(
+                agreement1.id,
+                document.id,
+                context
+              )
+            : agreementService.deleteAgreementById(agreement1.id, context)
+        ).rejects.toMatchObject({ code: "eventConflictError" });
+
+        expect(deletion).toHaveBeenCalledWith(
+          config.s3Bucket,
+          document.path,
+          genericLogger
+        );
+        expect(
+          await fileManager.get(config.s3Bucket, document.path, genericLogger)
+        ).toEqual(originalContent);
+        expect((await readLastAgreementEvent(agreement1.id)).version).toBe("1");
+        expect(
+          (await fileManager.listFiles(config.s3Bucket, genericLogger)).filter(
+            (path) => path.startsWith("_delete-backups/")
+          )
+        ).toEqual([]);
+      }
+    );
+
     it("should succeed on happy path when the requester is the consumer", async () => {
       const authData = getMockAuthData(agreement1.consumerId);
       const consumerDocument = agreement1.consumerDocuments[0];
@@ -767,11 +824,29 @@ describe("agreement consumer document", () => {
       );
     });
 
-    it("should fail if the file deletion fails", async () => {
-      // eslint-disable-next-line functional/immutable-data
-      config.s3Bucket = "invalid-bucket"; // configure an invalid bucket to force a failure
+    it("should fail if the deletion fails, and should not write any events in event store", async () => {
       const authData = getMockAuthData(agreement1.consumerId);
       const consumerDocument = agreement1.consumerDocuments[0];
+
+      const content = Buffer.from("original document");
+      await fileManager.storeBytesByKey(
+        config.s3Bucket,
+        consumerDocument.path,
+        content,
+        genericLogger
+      );
+      const deletionError = fileManagerDeleteError(
+        consumerDocument.path,
+        config.s3Bucket,
+        new Error("Simulated deletion failure")
+      );
+      const deleteFile = fileManager.delete.bind(fileManager);
+      vi.spyOn(fileManager, "delete").mockImplementationOnce(
+        async (...args) => {
+          await deleteFile(...args);
+          throw deletionError;
+        }
+      );
 
       await expect(
         agreementService.removeAgreementConsumerDocument(
@@ -779,13 +854,16 @@ describe("agreement consumer document", () => {
           consumerDocument.id,
           getMockContext({ authData })
         )
-      ).rejects.toThrowError(
-        fileManagerDeleteError(
-          agreement1.consumerDocuments[0].path,
+      ).rejects.toThrow(deletionError);
+
+      expect(
+        await fileManager.get(
           config.s3Bucket,
-          new Error("The specified bucket does not exist")
+          consumerDocument.path,
+          genericLogger
         )
-      );
+      ).toEqual(new Uint8Array(content));
+      expect((await readLastAgreementEvent(agreement1.id)).version).toBe("0");
     });
   });
 });
