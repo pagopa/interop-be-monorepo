@@ -25,6 +25,7 @@ import {
   tenantKind,
   tenantUnitType,
 } from "./tenant.js";
+import { assertOpaqueContactId } from "./tenantContact.js";
 
 export function toFeatureV3(feature: TenantFeature): TenantFeatureV3 {
   return match<TenantFeature, TenantFeatureV3>(feature)
@@ -169,6 +170,9 @@ function checkNoLegacyMails(tenant: Tenant): void {
 
 export const toTenantV3 = (tenant: Tenant): TenantV3 => {
   checkNoLegacyMails(tenant);
+  // The ContactId brand can be bypassed (e.g. with unsafeBrandId): validate
+  // the reference before it gets into a V3 payload.
+  assertOpaqueContactId(tenant.contactId);
 
   return {
     id: tenant.id,
