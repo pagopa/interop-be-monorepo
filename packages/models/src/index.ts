@@ -23,6 +23,7 @@ export * from "./email/emailNotificationMessagePayload.js";
 
 export * from "./eservice/eservice.js";
 export * from "./eservice/eserviceEvents.js";
+export * from "./eservice/eserviceInstanceName.js";
 export * from "./eservice/protobufConverterFromV1.js";
 export * from "./eservice/protobufConverterFromV2.js";
 export * from "./eservice/protobufConverterToV2.js";
