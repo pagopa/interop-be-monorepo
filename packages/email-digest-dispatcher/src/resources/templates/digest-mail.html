@@ -671,18 +671,12 @@
                                         {{#if newEservicesSingular}}
                                         È stato pubblicato
                                         <strong>
-                                          un nuovo e-service
-                                        </strong>:
+                                          un nuovo e-service:
+                                        </strong>
                                         {{else}}
                                         Sono stati pubblicati
                                         <strong>{{ newEservices.totalCount
-                                           }} nuovi e-service
-                                        </strong>
-                                          {{#if newEservicesExceededItemsCount }}
-                                          , tra cui:
-                                          {{else}}
-                                            :
-                                          {{/if}}
+                                           }} nuovi e-service</strong>{{#if newEservicesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                         {{/if}}
                                       </p>
 
@@ -761,18 +755,12 @@
                                         {{#if updatedEservicesSingular}}
                                         È stato aggiornato
                                         <strong>
-                                          un e-service di cui sei fruitore
-                                        </strong>:
+                                          un e-service di cui sei fruitore:
+                                        </strong>
                                         {{else}}
                                         Sono stati aggiornati
                                         <strong>{{ updatedEservices.totalCount 
-                                          }} e-service di cui sei fruitore
-                                        </strong>
-                                          {{#if updatedEservicesExceededItemsCount }}
-                                          , tra cui:
-                                          {{else}}
-                                            :
-                                          {{/if}}
+                                          }} e-service di cui sei fruitore</strong>{{#if updatedEservicesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                         {{/if}}
                                       </p>
 
@@ -843,18 +831,12 @@
                                         {{#if updatedEserviceTemplatesSingular}}
                                         È stato aggiornato
                                         <strong>un
-                                          template e-service che hai usato per creare una istanza
-                                        </strong>:
+                                          template e-service che hai usato per creare una istanza:
+                                        </strong>
                                         {{else}}
                                         Sono stati aggiornati
                                         <strong>{{ updatedEserviceTemplates.totalCount }}
-                                          template e-service che hai usato per creare una istanza
-                                        </strong>
-                                          {{#if updatedEserviceTemplatesExceededItemsCount }}
-                                          , tra cui:
-                                          {{else}}
-                                            :
-                                          {{/if}}
+                                          template e-service che hai usato per creare una istanza</strong>{{#if updatedEserviceTemplatesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                         {{/if}}
                                       </p>
 
@@ -939,13 +921,8 @@
                                                 <strong>
                                                   Sono state approvate {{ 
                                                     acceptedSentAgreements.totalCount
-                                                  }} richieste di fruizione per
+                                                  }} richieste di fruizione per:
                                                 </strong>
-                                                {{#if acceptedSentAgreementsExceededItemsCount }}
-                                                , tra cui:
-                                                {{else}}
-                                                  :
-                                                {{/if}}
                                               {{/if}}
                                             </p>
                                             <div class="section-cell">
@@ -1098,13 +1075,7 @@
                                                 {{else}}
                                                 <strong>
                                                   Sono state pubblicate {{ 
-                                                  publishedSentPurposes.totalCount }} finalità
-                                                </strong>
-                                                {{#if publishedSentPurposesExceededItemsCount }}
-                                                , tra cui:
-                                                {{else}}
-                                                  :
-                                                {{/if}}
+                                                  publishedSentPurposes.totalCount }} finalità</strong>{{#if publishedSentPurposesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                               {{/if}}
                                             </p>
                                             <div class="section-cell">
@@ -1144,8 +1115,7 @@
                                               {{else}}
                                               <strong>
                                                 Sono state rifiutate {{ 
-                                                rejectedSentPurposes.totalCount }} finalità:
-                                              </strong>
+                                                rejectedSentPurposes.totalCount }} finalità</strong>{{#if rejectedSentPurposesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                               {{/if}}
                                             </p>
                                             <div class="section-cell">
@@ -1176,9 +1146,8 @@
                                                 una finalità è in attesa di approvazione:
                                                 {{else}}
                                                 {{ waitingForApprovalSentPurposes.totalCount
-                                                }} finalità sono in attesa di approvazione:
+                                                }} finalità sono in attesa di approvazione</strong>{{#if waitingForApprovalSentPurposesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                                 {{/if}}
-                                              </strong>
                                             </p>
                                             <div class="section-cell">
                                               <ul class="list-items">
@@ -1239,13 +1208,7 @@
                                             {{else}}
                                             <strong>
                                               Sono state approvate {{
-                                              approvedRiskAnalysis.totalCount }} analisi del rischio
-                                            </strong>
-                                            {{#if approvedRiskAnalysisExceededItemsCount }}
-                                            , tra cui:
-                                            {{else}}
-                                              :
-                                            {{/if}}
+                                              approvedRiskAnalysis.totalCount }} analisi del rischio</strong>{{#if approvedRiskAnalysisExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                           {{/if}}
                                         </p>
                                         <div class="section-cell">
@@ -1284,13 +1247,7 @@
                                             {{else}}
                                             <strong>
                                               Sono state rifiutate {{
-                                              rejectedRiskAnalysis.totalCount }} analisi del rischio
-                                            </strong>
-                                            {{#if rejectedRiskAnalysisExceededItemsCount }}
-                                            , tra cui:
-                                            {{else}}
-                                              :
-                                            {{/if}}
+                                              rejectedRiskAnalysis.totalCount }} analisi del rischio</strong>{{#if rejectedRiskAnalysisExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                           {{/if}}
                                         </p>
                                         <div class="section-cell">
@@ -1371,8 +1328,7 @@
                                             Ci sono {{ waitingForApprovalReceivedAgreements.totalCount
                                             }} richieste
                                             {{/if}}
-                                            di fruizione in attesa di approvazione:
-                                          </strong>
+                                            di fruizione in attesa di approvazione</strong>{{#if waitingForApprovalReceivedAgreementsExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                         </p>
                                         <div class="section-cell">
                                           <ul class="list-items">
@@ -1448,8 +1404,7 @@
                                               Sono state pubblicate {{
                                               publishedReceivedPurposes.totalCount }} 
                                               {{/if}}
-                                              finalità inoltrate al tuo ente:
-                                            </strong>
+                                              finalità inoltrate al tuo ente</strong>{{#if publishedReceivedPurposesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                           </p>
                                           <div class="section-cell">
                                             <ul class="list-items">
@@ -1486,8 +1441,7 @@
                                             Ci sono {{ waitingForApprovalReceivedPurposes.totalCount
                                             }} finalità
                                             {{/if}}
-                                            in attesa di approvazione:
-                                          </strong>
+                                            in attesa di approvazione</strong>{{#if waitingForApprovalReceivedPurposesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                         </p>
                                         <div class="section-cell">
                                           <ul class="list-items">
@@ -1571,13 +1525,7 @@
                                               Hai ricevuto {{ waitingForApprovalDelegatedEservices.totalCount }}
                                               richieste
                                               {{/if}}
-                                              per pubblicare un e-service o una nuova versione
-                                            </strong>
-                                            {{#if waitingForApprovalDelegatedEservicesExceededItemsCount }}
-                                            , tra cui:
-                                            {{else}}
-                                              :
-                                            {{/if}}
+                                              per pubblicare un e-service o una nuova versione</strong>{{#if waitingForApprovalDelegatedEservicesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                           </p>
                                           <div class="section-cell">
                                             <ul class="list-items">
@@ -1620,13 +1568,7 @@
                                               Hai ricevuto {{ waitingForApprovalReceivedDelegations.totalCount
                                               }} richieste
                                               {{/if}}
-                                              di delega
-                                            </strong>
-                                            {{#if waitingForApprovalReceivedDelegationsExceededItemsCount }}
-                                            , tra cui:
-                                            {{else}}
-                                              :
-                                            {{/if}}
+                                              di delega</strong>{{#if waitingForApprovalReceivedDelegationsExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                           </p>
                                           <div class="section-cell">
                                             <ul class="list-items">
@@ -1665,17 +1607,10 @@
                                         <p class="body-text-no-margin">
                                           <strong>
                                             {{#if archivingRequestsSingular}}
-                                            Hai ricevuto una richiesta di archiviazione
-                                            {{else}}
+                                            Hai ricevuto una richiesta di archiviazione{{else}}
                                             Hai ricevuto {{ archivingRequests.totalCount }} richieste
-                                            di archiviazione
+                                            di archiviazione</strong>{{#if archivingRequestsExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                             {{/if}}
-                                            {{#if archivingRequestsExceededItemsCount }}
-                                            , tra cui:
-                                            {{else}}
-                                              :
-                                            {{/if}}
-                                          </strong>
                                         </p>
                                         <div class="section-cell">
                                           <ul class="list-items">
@@ -1733,16 +1668,9 @@
                                           <strong>
                                             {{#if approvedArchivingRequestsSingular}}
                                             Hai approvato una richiesta di archiviazione:
-                                            {{else}}
-                                            Hai approvato {{ approvedArchivingRequests.totalCount
-                                            }} richieste di archiviazione
+                                            {{else}}Hai approvato {{ approvedArchivingRequests.totalCount
+                                            }} richieste di archiviazione</strong>{{#if approvedArchivingRequestsExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                             {{/if}}
-                                            {{#if approvedArchivingRequestsExceededItemsCount }}
-                                            , tra cui:
-                                            {{else}}
-                                              :
-                                            {{/if}}
-                                          </strong>
                                         </p>
                                         <div class="section-cell">
                                           <ul class="list-items">
@@ -1794,16 +1722,9 @@
                                           <strong>
                                             {{#if rejectedArchivingRequestsSingular}}
                                             Hai rifiutato una richiesta di archiviazione:
-                                            {{else}}
-                                            Hai rifiutato {{ rejectedArchivingRequests.totalCount
-                                            }} richieste di archiviazione
+                                            {{else}}Hai rifiutato {{ rejectedArchivingRequests.totalCount
+                                            }} richieste di archiviazione</strong>{{#if rejectedArchivingRequestsExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                             {{/if}}
-                                            {{#if rejectedArchivingRequestsExceededItemsCount }}
-                                            , tra cui:
-                                            {{else}}
-                                              :
-                                            {{/if}}
-                                          </strong>
                                         </p>
                                         <div class="section-cell">
                                           <ul class="list-items">
@@ -1902,9 +1823,9 @@
                                         {{else}}
                                         Ti sono stati assegnati {{ 
                                         receivedAttributes.totalCount }} nuovi
-                                        attributi:
+                                        attributi</strong>{{#if receivedAttributesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                         {{/if}}
-                                        </strong>
+                                        
                                     </p>
                                     <div class="section-cell">
                                       <ul class="list-items">
@@ -1938,9 +1859,8 @@
                                         Ti è stato revocato un attributo:
                                         {{else}}
                                         Ti sono stati revocati {{ 
-                                        revokedAttributes.totalCount }} attributi:
+                                        revokedAttributes.totalCount }} attributi</strong>{{#if revokedAttributesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                         {{/if}}
-                                      </strong>
                                     </p>
                                     <div class="section-cell">
                                       <ul class="list-items">
@@ -2087,12 +2007,7 @@
                                         {{#if archivingInProgressEservicesSingular}}
                                         C'è <strong>1 versione di e-service o e-service in fase di archiviazione</strong>:
                                         {{else}}
-                                        Ci sono <strong>{{ archivingInProgressEservices.totalCount }} versioni di e-service o e-service in fase di archiviazione</strong>
-                                          {{#if archivingInProgressRemainder }}
-                                            , tra cui:
-                                          {{else}}
-                                            :
-                                          {{/if}}
+                                        Ci sono <strong>{{ archivingInProgressEservices.totalCount }} versioni di e-service o e-service in fase di archiviazione</strong>{{#if archivingInProgressRemainder }}, tra cui:{{else}}:{{/if}}
                                         {{/if}}
                                       </p>
                                       <div class="archiving-box">
@@ -2223,12 +2138,7 @@
                                         {{#if archivingConsumerInProgressEservicesSingular}}
                                         C'è <strong>1 versione di e-service o e-service in fase di archiviazione</strong>:
                                         {{else}}
-                                        Ci sono <strong>{{ archivingConsumerInProgressEservices.totalCount }} versioni di e-service o e-service in fase di archiviazione</strong>
-                                          {{#if archivingConsumerInProgressRemainder }}
-                                            , tra cui:
-                                          {{else}}
-                                            :
-                                          {{/if}}
+                                        Ci sono <strong>{{ archivingConsumerInProgressEservices.totalCount }} versioni di e-service o e-service in fase di archiviazione</strong>{{#if archivingConsumerInProgressRemainder }}, tra cui:{{else}}:{{/if}}
                                         {{/if}}
                                       </p>
                                       <div class="archiving-box">
