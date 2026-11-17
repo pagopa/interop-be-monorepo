@@ -1,0 +1,30 @@
+meta {
+  name: Patch Reverse Purpose
+  type: http
+  seq: 2
+}
+
+patch {
+  url: {{host-bff}}/reverse/purposes/:purposeId
+  body: json
+  auth: none
+}
+
+params:path {
+  purposeId: {{reversePurposeId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "title": "Updated reverse purpose title",
+    "description": "Updated reverse purpose description",
+    "isFreeOfCharge": false,
+    "freeOfChargeReason": null,
+    "dailyCalls": 200
+  }
+}

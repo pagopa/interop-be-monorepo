@@ -17,6 +17,18 @@ describe("GET /producerKeychainEvents router test", () => {
         eventType: "PRODUCER_KEYCHAIN_ADDED",
         producerKeychainId: generateId(),
       },
+      {
+        id: generateId(),
+        eventTimestamp: new Date().toJSON(),
+        eventType: "PRODUCER_KEYCHAIN_NAME_UPDATED",
+        producerKeychainId: generateId(),
+      },
+      {
+        id: generateId(),
+        eventTimestamp: new Date().toJSON(),
+        eventType: "PRODUCER_KEYCHAIN_DESCRIPTION_UPDATED",
+        producerKeychainId: generateId(),
+      },
     ],
   };
 

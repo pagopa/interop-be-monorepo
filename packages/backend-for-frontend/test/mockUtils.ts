@@ -803,7 +803,7 @@ export const getMockBffApiUpdateEServiceTemplateVersionSeed =
 
 export const getMockBffApiMockEServiceTemplateNameUpdateSeed =
   (): bffApi.EServiceTemplateNameUpdateSeed => ({
-    name: generateMock(z.string()),
+    name: generateMock(z.string().min(5).max(45)),
   });
 
 export const getMockBffApiMockEServiceTemplateIntendedTargetUpdateSeed =
@@ -894,6 +894,7 @@ export const getMockBffApiVerifiedTenantAttributeSeed =
   (): bffApi.VerifiedTenantAttributeSeed => ({
     id: generateId(),
     agreementId: generateId(),
+    delegationId: generateId(),
     expirationDate: generateMock(
       z.string().datetime({ offset: true }).optional()
     ),
