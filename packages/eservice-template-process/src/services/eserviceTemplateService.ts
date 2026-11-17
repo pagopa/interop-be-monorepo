@@ -1489,7 +1489,7 @@ export function eserviceTemplateServiceBuilder(
     async patchUpdateEServiceTemplate(
       templateId: EServiceTemplateId,
       eserviceTemplateSeed: eserviceTemplateApi.PatchUpdateEServiceTemplateSeed,
-      ctx: WithLogger<AppContext<M2MAdminAuthData>>
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<EServiceTemplate>> {
       ctx.logger.info(`Partially updating EService Template ${templateId}`);
       const eserviceTemplate = await retrieveEServiceTemplate(

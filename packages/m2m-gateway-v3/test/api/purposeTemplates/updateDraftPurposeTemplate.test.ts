@@ -1,3 +1,4 @@
+import { AxiosError, InternalAxiosRequestConfig } from "axios";
 import {
   m2mGatewayApiV3,
   purposeTemplateApi,
@@ -74,6 +75,8 @@ describe("PATCH /purposeTemplates/:purposeTemplateId router test", () => {
 
   it.each([
     {},
+    { purposeTitle: "updated purpose title" },
+    { purposeDescription: "updated purpose description" },
     { targetDescription: "updated target description" },
     {
       targetDescription: "updated target description",
@@ -133,6 +136,14 @@ describe("PATCH /purposeTemplates/:purposeTemplateId router test", () => {
   });
 
   it.each([
+    { purposeTitle: "a".repeat(4) },
+    { purposeTitle: "a".repeat(61) },
+    { purposeTitle: null },
+    { purposeDescription: null },
+    { purposeDescription: "a".repeat(251) },
+    { targetDescription: "a".repeat(9) },
+    { targetDescription: "a".repeat(251) },
+    { targetDescription: null },
     { invalidParam: "invalidValue" },
     { ...mockUpdateSeed, extraParam: -1 },
     { ...mockUpdateSeed, purposeDescription: "short" },
@@ -146,6 +157,33 @@ describe("PATCH /purposeTemplates/:purposeTemplateId router test", () => {
 
     expect(res.status).toBe(400);
   });
+
+  it.each([400, 403, 404, 409])(
+    "Should propagate purpose-template-process status %s",
+    async (status) => {
+      const problem = {
+        type: "about:blank",
+        title: "Purpose Template update failed",
+        status,
+        detail: "Purpose Template update failed",
+        errors: [{ code: "error", detail: "Purpose Template update failed" }],
+      };
+      mockPurposeTemplateService.updateDraftPurposeTemplate = vi
+        .fn()
+        .mockRejectedValue(
+          new AxiosError(problem.title, undefined, undefined, undefined, {
+            status,
+            data: problem,
+            statusText: problem.title,
+            config: {} as InternalAxiosRequestConfig,
+            headers: {},
+          })
+        );
+      const res = await makeRequest(generateToken(authRole.M2M_ADMIN_ROLE));
+      expect(res.status).toBe(status);
+      expect(res.body.errors).toEqual(problem.errors);
+    }
+  );
 
   it.each([
     missingMetadata(),
