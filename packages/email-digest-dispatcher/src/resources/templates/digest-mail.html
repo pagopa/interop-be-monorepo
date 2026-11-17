@@ -932,15 +932,20 @@
                                           {{#if acceptedSentAgreements.totalCount}}
                                             <p class="body-text-no-margin">
                                               {{#if acceptedSentAgreementsSingular}}
-                                              <strong>
-                                                È stata approvata una richiesta di fruizione per:
-                                              </strong>
-                                              {{else}}
-                                              <strong>
-                                                Sono state approvate {{ 
-                                                  acceptedSentAgreements.totalCount
-                                                }} richieste di fruizione per:
-                                              </strong>
+                                                <strong>
+                                                  È stata approvata una richiesta di fruizione per:
+                                                </strong>
+                                                {{else}}
+                                                <strong>
+                                                  Sono state approvate {{ 
+                                                    acceptedSentAgreements.totalCount
+                                                  }} richieste di fruizione per
+                                                </strong>
+                                                {{#if acceptedSentAgreementsExceededItemsCount }}
+                                                , tra cui:
+                                                {{else}}
+                                                  :
+                                                {{/if}}
                                               {{/if}}
                                             </p>
                                             <div class="section-cell">
@@ -1087,14 +1092,19 @@
                                           {{#if publishedSentPurposes.totalCount}}
                                             <p class="body-text-no-margin">
                                               {{#if publishedSentPurposesSingular}}
-                                              <strong>
-                                                È stata pubblicata una finalità:
-                                              </strong>
-                                              {{else}}
-                                              <strong>
-                                                Sono state pubblicate {{ 
-                                                publishedSentPurposes.totalCount }} finalità:
-                                              </strong>
+                                                <strong>
+                                                  È stata pubblicata una finalità:
+                                                </strong>
+                                                {{else}}
+                                                <strong>
+                                                  Sono state pubblicate {{ 
+                                                  publishedSentPurposes.totalCount }} finalità
+                                                </strong>
+                                                {{#if publishedSentPurposesExceededItemsCount }}
+                                                , tra cui:
+                                                {{else}}
+                                                  :
+                                                {{/if}}
                                               {{/if}}
                                             </p>
                                             <div class="section-cell">
@@ -1561,7 +1571,7 @@
                                               Hai ricevuto {{ waitingForApprovalDelegatedEservices.totalCount }}
                                               richieste
                                               {{/if}}
-                                              per pubblicare un e-service o una nuova versione:
+                                              per pubblicare un e-service o una nuova versione
                                             </strong>
                                             {{#if waitingForApprovalDelegatedEservicesExceededItemsCount }}
                                             , tra cui:
@@ -2075,9 +2085,14 @@
                                       {{#if archivingInProgressEservices.totalCount}}
                                       <p class="body-text-no-margin">
                                         {{#if archivingInProgressEservicesSingular}}
-                                        C'è <strong>1 versione di e-service o e-service in fase di archiviazione</strong>, tra cui:
+                                        C'è <strong>1 versione di e-service o e-service in fase di archiviazione</strong>:
                                         {{else}}
-                                        Ci sono <strong>{{ archivingInProgressEservices.totalCount }} versioni di e-service o e-service in fase di archiviazione</strong>, tra cui:
+                                        Ci sono <strong>{{ archivingInProgressEservices.totalCount }} versioni di e-service o e-service in fase di archiviazione</strong>
+                                          {{#if archivingInProgressRemainder }}
+                                            , tra cui:
+                                          {{else}}
+                                            :
+                                          {{/if}}
                                         {{/if}}
                                       </p>
                                       <div class="archiving-box">
@@ -2206,9 +2221,14 @@
                                       {{#if archivingConsumerInProgressEservices.totalCount}}
                                       <p class="body-text-no-margin">
                                         {{#if archivingConsumerInProgressEservicesSingular}}
-                                        C'è <strong>1 versione di e-service o e-service in fase di archiviazione</strong>, tra cui:
+                                        C'è <strong>1 versione di e-service o e-service in fase di archiviazione</strong>:
                                         {{else}}
-                                        Ci sono <strong>{{ archivingConsumerInProgressEservices.totalCount }} versioni di e-service o e-service in fase di archiviazione</strong>, tra cui:
+                                        Ci sono <strong>{{ archivingConsumerInProgressEservices.totalCount }} versioni di e-service o e-service in fase di archiviazione</strong>
+                                          {{#if archivingConsumerInProgressRemainder }}
+                                            , tra cui:
+                                          {{else}}
+                                            :
+                                          {{/if}}
                                         {{/if}}
                                       </p>
                                       <div class="archiving-box">
