@@ -1,6 +1,6 @@
 import { match } from "ts-pattern";
 
-import { ContactId, DelegationId, unsafeBrandId } from "../brandedIds.js";
+import { DelegationId, unsafeBrandId } from "../brandedIds.js";
 import { genericError } from "../errors.js";
 import {
   TenantAttributeV3,
@@ -27,6 +27,7 @@ import {
   tenantKind,
   tenantUnitType,
 } from "./tenant.js";
+import { assertOpaqueContactId } from "./tenantContact.js";
 
 export const fromTenantKindV3 = (input: TenantKindV3): TenantKind => {
   switch (input) {
@@ -184,6 +185,7 @@ export const fromTenantV3 = (input: TenantV3): Tenant => {
       `Error while deserializing TenantV3 (${input.id}): missing externalId`
     );
   }
+  assertOpaqueContactId(input.contactId);
 
   return {
     id: unsafeBrandId(input.id),
@@ -196,9 +198,7 @@ export const fromTenantV3 = (input: TenantV3): Tenant => {
     // V3 events never carry plain-text mails: the tenant references its
     // contact through `contactId` instead.
     mails: [],
-    contactId: input.contactId
-      ? unsafeBrandId<ContactId>(input.contactId)
-      : undefined,
+    contactId: input.contactId,
     kind: input.kind != null ? fromTenantKindV3(input.kind) : undefined,
     updatedAt: bigIntToDate(input.updatedAt),
     onboardedAt: bigIntToDate(input.onboardedAt),
