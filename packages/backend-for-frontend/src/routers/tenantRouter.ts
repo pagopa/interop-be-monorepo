@@ -3,6 +3,7 @@ import { ZodiosRouter } from "@zodios/express";
 import { bffApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
+  WithLogger,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
@@ -14,9 +15,13 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 
+import {
+  placeholderMapperGenerator,
+  applyPlaceholderToError,
+} from "../model/applyError.js";
 import { makeApiProblem } from "../model/errors.js";
 import { TenantService } from "../services/tenantService.js";
-import { fromBffAppContext } from "../utilities/context.js";
+import { BffAppContext, fromBffAppContext } from "../utilities/context.js";
 
 const tenantRouter = (
   ctx: ZodiosContext,
@@ -25,6 +30,26 @@ const tenantRouter = (
   const tenantRouter = ctx.router(bffApi.tenantsApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
+
+  const commonTenantPlaceholderMapper = async (
+    tenantId: string,
+    attributeId: string,
+    ctx: WithLogger<BffAppContext>
+  ) =>
+    placeholderMapperGenerator(
+      async () =>
+        (
+          await tenantService.getCertifiedAttributes(
+            unsafeBrandId(tenantId),
+            ctx
+          )
+        ).attributes
+          .filter((attr) => attr.id === attributeId)
+          .at(0),
+      (value, message) =>
+        message.replace("{attributeName}", value ? value.name : ""),
+      (error) => ctx.logger.warn(`Error retrieving placeholder data: ${error}`)
+    );
 
   tenantRouter
     .get("/consumers", async (req, res) => {
@@ -126,11 +151,16 @@ const tenantRouter = (
 
         return res.status(204).send();
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          emptyErrorMapper,
-          ctx,
-          `Error adding certified attribute ${req.body.id} to tenant ${req.params.tenantId}`
+        const errorRes = await applyPlaceholderToError(
+          makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error adding certified attribute ${req.body.id} to tenant ${req.params.tenantId}`
+          ),
+          ["{attributeName}"],
+          () =>
+            commonTenantPlaceholderMapper(req.params.tenantId, req.body.id, ctx)
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -150,11 +180,20 @@ const tenantRouter = (
 
           return res.status(204).send();
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            emptyErrorMapper,
-            ctx,
-            `Error adding certified discrete attribute ${req.body.id} to tenant ${req.params.tenantId}`
+          const errorRes = await applyPlaceholderToError(
+            makeApiProblem(
+              error,
+              emptyErrorMapper,
+              ctx,
+              `Error adding certified discrete attribute ${req.body.id} to tenant ${req.params.tenantId}`
+            ),
+            ["{attributeName}"],
+            () =>
+              commonTenantPlaceholderMapper(
+                req.params.tenantId,
+                req.body.id,
+                ctx
+              )
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -377,7 +416,9 @@ const tenantRouter = (
           const attributeId = unsafeBrandId<AttributeId>(
             req.params.attributeId
           );
-          const agreementId = unsafeBrandId<AgreementId>(req.body.agreementId);
+          const agreementId: AgreementId = unsafeBrandId<AgreementId>(
+            req.query.agreementId
+          );
           await tenantService.revokeVerifiedAttribute(
             tenantId,
             attributeId,
