@@ -58,7 +58,10 @@ function getPurposeTemplateM2MEventVisibility(
     .with(
       P.union(
         "PurposeTemplateEServiceLinked",
-        "PurposeTemplateEServiceUnlinked"
+        "PurposeTemplateEServiceUnlinked",
+        "PurposeTemplatePurposeTitleUpdated",
+        "PurposeTemplatePurposeDescriptionUpdated",
+        "PurposeTemplateTargetDescriptionUpdated"
       ),
       () =>
         purposeTemplate.state !== purposeTemplateState.draft

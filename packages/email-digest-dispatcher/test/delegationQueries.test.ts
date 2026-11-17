@@ -7,6 +7,7 @@ import {
   DelegationStamps,
   delegationKind,
   delegationState,
+  descriptorState,
   EService,
   generateId,
   TenantId,
@@ -19,9 +20,11 @@ import {
   addOneEService,
   addOneTenant,
   createMockEService,
+  createMockDescriptor,
   daysAgo,
   readModelDB,
   readModelService,
+  TEST_LIMITS,
   TEST_TIME_WINDOWS,
 } from "./integrationUtils.js";
 
@@ -988,5 +991,141 @@ describe("ReadModelService - getReceivedDelegations", () => {
       expect(results.length).toBe(1);
       expect(results[0].delegationName).toBe(eservice.name);
     });
+  });
+});
+
+describe("ReadModelService - getWaitingForApprovalDelegatedDescriptors", () => {
+  it("should only return waiting descriptors with an active producer delegation for the delegator", async () => {
+    const delegator = getMockTenant();
+    const delegate = getMockTenant();
+    const otherProducer = getMockTenant();
+    await addOneTenant(delegator);
+    await addOneTenant(delegate);
+    await addOneTenant(otherProducer);
+
+    const validEService = createMockEService(delegator.id, {
+      descriptors: [createMockDescriptor(descriptorState.waitingForApproval)],
+    });
+    const draftEService = createMockEService(delegator.id, {
+      descriptors: [createMockDescriptor(descriptorState.draft)],
+    });
+    const noDelegationEService = createMockEService(delegator.id, {
+      descriptors: [createMockDescriptor(descriptorState.waitingForApproval)],
+    });
+    const consumerDelegationEService = createMockEService(delegator.id, {
+      descriptors: [createMockDescriptor(descriptorState.waitingForApproval)],
+    });
+    const otherProducerEService = createMockEService(otherProducer.id, {
+      descriptors: [createMockDescriptor(descriptorState.waitingForApproval)],
+    });
+
+    await Promise.all(
+      [
+        validEService,
+        draftEService,
+        noDelegationEService,
+        consumerDelegationEService,
+        otherProducerEService,
+      ].map(addOneEService)
+    );
+
+    await addOneDelegation(
+      createDelegationWithStamps({
+        delegatorId: delegator.id,
+        delegateId: delegate.id,
+        eservice: validEService,
+        state: delegationState.active,
+        kind: delegationKind.delegatedProducer,
+        actionDate: daysAgo(1),
+      })
+    );
+    await addOneDelegation(
+      createDelegationWithStamps({
+        delegatorId: delegator.id,
+        delegateId: delegate.id,
+        eservice: draftEService,
+        state: delegationState.active,
+        kind: delegationKind.delegatedProducer,
+        actionDate: daysAgo(1),
+      })
+    );
+    await addOneDelegation(
+      createDelegationWithStamps({
+        delegatorId: delegator.id,
+        delegateId: delegate.id,
+        eservice: consumerDelegationEService,
+        state: delegationState.active,
+        kind: delegationKind.delegatedConsumer,
+        actionDate: daysAgo(1),
+      })
+    );
+    await addOneDelegation(
+      createDelegationWithStamps({
+        delegatorId: otherProducer.id,
+        delegateId: delegate.id,
+        eservice: otherProducerEService,
+        state: delegationState.active,
+        kind: delegationKind.delegatedProducer,
+        actionDate: daysAgo(1),
+      })
+    );
+
+    const results =
+      await readModelService.getWaitingForApprovalDelegatedDescriptors(
+        delegator.id
+      );
+
+    expect(results).toHaveLength(1);
+    expect(results[0]).toMatchObject({
+      eserviceId: validEService.id,
+      eserviceName: validEService.name,
+      descriptorId: validEService.descriptors[0].id,
+      delegatedTenantName: delegate.name,
+      totalCount: 1,
+    });
+  });
+
+  it("should separate e-services before applying the limit and calculating totalCount", async () => {
+    const delegator = getMockTenant();
+    await addOneTenant(delegator);
+
+    const eservices = await Promise.all(
+      Array.from({ length: 7 }, async (_, index) => {
+        const delegate = getMockTenant();
+        await addOneTenant(delegate);
+
+        const descriptors = [
+          createMockDescriptor(descriptorState.waitingForApproval),
+          ...(index === 0
+            ? [createMockDescriptor(descriptorState.waitingForApproval)]
+            : []),
+        ];
+        const eservice = createMockEService(delegator.id, { descriptors });
+        await addOneEService(eservice);
+        await addOneDelegation(
+          createDelegationWithStamps({
+            delegatorId: delegator.id,
+            delegateId: delegate.id,
+            eservice,
+            state: delegationState.active,
+            kind: delegationKind.delegatedProducer,
+            actionDate: daysAgo(1),
+          })
+        );
+
+        return eservice;
+      })
+    );
+
+    const results =
+      await readModelService.getWaitingForApprovalDelegatedDescriptors(
+        delegator.id
+      );
+
+    expect(results).toHaveLength(TEST_LIMITS.MAX_LIST_RESULTS);
+    expect(new Set(results.map((result) => result.eserviceId)).size).toBe(5);
+    expect(
+      results.every((result) => result.totalCount === eservices.length)
+    ).toBe(true);
   });
 });

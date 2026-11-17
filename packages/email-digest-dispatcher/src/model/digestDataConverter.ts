@@ -1,3 +1,4 @@
+import { dateAtRomeZone } from "pagopa-interop-commons";
 import {
   AgreementState,
   DelegationKind,
@@ -16,10 +17,16 @@ import {
   buildDelegationLink,
 } from "../services/deeplinkBuilder.js";
 import {
+  ApprovedRiskAnalysisDigest,
+  ArchivingDigest,
+  ReviewerRiskAnalysisDigest,
   AttributeDigest,
   BaseDigest,
+  DelegationArchivingRequestDigest,
+  DelegatedEserviceDigest,
   DelegationDigest,
   ReceivedPurposeDigest,
+  RejectedRiskAnalysisDigest,
 } from "../services/digestDataService.js";
 import {
   NewEservice,
@@ -36,8 +43,13 @@ import {
   SentPurposeState,
   ReceivedPurpose,
   ReceivedPurposeState,
-  SentDelegation,
   ReceivedDelegation,
+  WaitingForApprovalDelegatedDescriptor,
+  ArchivingEservice,
+  DelegatedArchivingRequest,
+  ApprovedRiskAnalysisQueryResult,
+  RejectedRiskAnalysisQueryResult,
+  ReviewerRiskAnalysis,
 } from "../services/readModelService.js";
 
 // Module-level cache for descriptor IDs to avoid repeated readModelService calls
@@ -251,6 +263,68 @@ export async function popularEserviceTemplateToBaseDigest(
     (item) => item.eserviceTemplateCreatorId,
     buildEserviceTemplateLinkToInstantiator
   );
+}
+
+/**
+ * Transforms archiving data (producer or consumer side, in-progress or imminent) into a digest object.
+ */
+export function archivingEservicesToDigest(
+  data: ArchivingEservice[],
+  selfcareId: string | null
+): ArchivingDigest {
+  if (data.length === 0) {
+    return { items: [], totalCount: 0 };
+  }
+
+  return {
+    items: data.map((item) => ({
+      id: item.eserviceId,
+      eserviceName: item.eserviceName,
+      version: item.version,
+      scope: item.scope,
+      isEserviceScope: item.scope === "EService",
+      archivableOn: dateAtRomeZone(new Date(item.archivableOn)),
+      link: buildEserviceLink(item.eserviceId, item.descriptorId, selfcareId),
+    })),
+    totalCount: data[0].totalCount,
+  };
+}
+
+export function reviewerRiskAnalysesToDigest(
+  data: ReviewerRiskAnalysis[],
+  selfcareId: string | null,
+  descriptorIds: Map<EServiceId, DescriptorId> = new Map()
+): ReviewerRiskAnalysisDigest {
+  if (data.length === 0) {
+    return { items: [], totalCount: 0 };
+  }
+
+  return {
+    items: data.map((item) => {
+      const descriptorId = descriptorIds.get(item.eserviceId);
+      return {
+        purposeTitle: item.purposeTitle,
+        purposeLink: buildPurposeLink(item.purposeId, false, selfcareId),
+        eserviceName: item.eserviceName,
+        eserviceLink: descriptorId
+          ? buildEserviceLink(item.eserviceId, descriptorId, selfcareId)
+          : undefined,
+      };
+    }),
+    totalCount: data[0].totalCount,
+  };
+}
+
+export async function reviewerRiskAnalysesWithEserviceLinkToDigest(
+  data: ReviewerRiskAnalysis[],
+  selfcareId: string | null,
+  readModelService: ReadModelService
+): Promise<ReviewerRiskAnalysisDigest> {
+  const descriptorIds = await getCachedDescriptorIds(
+    [...new Set(data.map((item) => item.eserviceId))],
+    readModelService
+  );
+  return reviewerRiskAnalysesToDigest(data, selfcareId, descriptorIds);
 }
 
 /**
@@ -567,30 +641,6 @@ async function delegationsToDigest<T extends DelegationWithIds>(
 }
 
 /**
- * Filters sent delegations by state and transforms to DelegationDigest.
- * Sent delegations show e-service name with link, and delegate name as producerName.
- *
- * @param data - Sent delegation data to filter and transform
- * @param state - The delegation state to filter by
- * @param readModelService - Service for fetching tenant names and descriptor IDs
- * @param selfcareId - The tenant's selfcare ID for deeplink authentication
- */
-export async function sentDelegationsToDigest(
-  data: SentDelegation[],
-  state: DelegationState,
-  readModelService: ReadModelService,
-  selfcareId: string | null
-): Promise<DelegationDigest> {
-  return delegationsToDigest(
-    data,
-    state,
-    (delegation) => delegation.delegateId,
-    readModelService,
-    selfcareId
-  );
-}
-
-/**
  * Filters received delegations by state and transforms to DelegationDigest.
  * Received delegations show e-service name with link, and delegator name as producerName.
  *
@@ -612,4 +662,130 @@ export async function receivedDelegationsToDigest(
     readModelService,
     selfcareId
   );
+}
+
+/**
+ * Filters waiting for approval delegated descriptors and transforms to DelegatedEserviceDigest.
+ * Shows e-service name with link, and delegated tenant name as delegatedName.
+ *
+ * @param data - Waiting for approval delegated descriptor data to filter and transform
+ * @param selfcareId - The tenant's selfcare ID for deeplink authentication
+ */
+export async function waitingForApprovalDelegatedEservicesToDigest(
+  data: WaitingForApprovalDelegatedDescriptor[],
+  selfcareId: string | null
+): Promise<DelegatedEserviceDigest> {
+  if (data.length === 0) {
+    return { items: [], totalCount: 0 };
+  }
+
+  return {
+    items: data.map((item) => ({
+      name: item.eserviceName,
+      delegatedName: item.delegatedTenantName,
+      link: buildEserviceLink(item.eserviceId, item.descriptorId, selfcareId),
+      id: item.eserviceId,
+      producerName: item.delegatedTenantName,
+    })),
+    totalCount: data[0].totalCount,
+  };
+}
+
+/**
+ * Archiving delegation request digest data structure.
+ * Contains the eservice name, descriptor version, request date, and total count.
+ * Used for both eservice and descriptor received delegation archiving requests.
+ *
+ * @param data - The list of received delegation archiving requests to transform into a digest.
+ * @param readModelService - Service for fetching tenant names and descriptor IDs
+ * @param selfcareId - The tenant's selfcare ID for deeplink authentication
+ */
+export async function receivedDelegationArchivingRequestsToDigest(
+  data: DelegatedArchivingRequest[],
+  readModelService: ReadModelService,
+  selfcareId: string | null
+): Promise<DelegationArchivingRequestDigest> {
+  if (data.length === 0) {
+    return { items: [], totalCount: 0 };
+  }
+
+  const enrichedItems = await enrichWithProducerNames(
+    data.map((item) => ({
+      ...item,
+      entityProducerId: item.producerId,
+    })),
+    readModelService
+  );
+
+  return {
+    items: enrichedItems.map((request) => ({
+      eserviceId: request.eserviceId,
+      descriptorId: request.descriptorId,
+      descriptorVersion: request.descriptorVersion,
+      id: request.eserviceId,
+      name: request.eserviceName,
+      producerName: request.entityProducerName,
+      eserviceName: request.eserviceName,
+      link: buildEserviceLink(
+        request.eserviceId,
+        request.descriptorId ?? "",
+        selfcareId
+      ),
+    })),
+    totalCount: data[0].totalCount,
+  };
+}
+
+/**
+ * Purpose of approved Risk Analysis to digest data structure.
+ * Each ordered by signedAt DESC, contains purpose name, purposeId, link and total count.
+ *
+ * @param data - The list of received puposes to transform into a digest, ordered by signedAt DESC.
+ * @param selfcareId - The tenant's selfcare ID for deeplink authentication
+ */
+export async function approvedRiskAnalysisToDigest(
+  data: ApprovedRiskAnalysisQueryResult[],
+  selfcareId: string | null
+): Promise<ApprovedRiskAnalysisDigest> {
+  if (data.length === 0) {
+    return { items: [], totalCount: 0 };
+  }
+
+  return {
+    items: data.map((request) => ({
+      id: request.purposeId,
+      name: request.purposeTitle,
+      producerName: "",
+      signedAt: request.signedAt,
+      link: buildPurposeLink(request.purposeId, false, selfcareId),
+    })),
+    totalCount: data[0].totalCount,
+  };
+}
+
+/**
+ * Purpose of approved Risk Analysis to digest data structure.
+ * Each ordered by rejectedAt DESC, contains purpose name, purposeId, link and total count.
+ *
+ * @param data - The list of received puposes to transform into a digest, ordered by rejectedAt DESC.
+ * @param selfcareId - The tenant's selfcare ID for deeplink authentication
+ */
+export async function rejectedRiskAnalysisToDigest(
+  data: RejectedRiskAnalysisQueryResult[],
+  selfcareId: string | null
+): Promise<RejectedRiskAnalysisDigest> {
+  if (data.length === 0) {
+    return { items: [], totalCount: 0 };
+  }
+
+  return {
+    items: data.map((request) => ({
+      id: request.purposeId,
+      name: request.purposeTitle,
+      producerName: "",
+      rejectedAt: request.rejectedAt,
+      link: buildPurposeLink(request.purposeId, false, selfcareId),
+    })),
+    totalCount: data[0].totalCount,
+  };
 }

@@ -3221,7 +3221,6 @@ components:
     PatchUpdateEServiceSeed:
       type: object
       additionalProperties: false
-      minProperties: 1
       properties:
         name:
           type: string
