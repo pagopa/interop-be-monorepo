@@ -803,7 +803,7 @@ export const getMockBffApiUpdateEServiceTemplateVersionSeed =
 
 export const getMockBffApiMockEServiceTemplateNameUpdateSeed =
   (): bffApi.EServiceTemplateNameUpdateSeed => ({
-    name: generateMock(z.string()),
+    name: generateMock(z.string().min(5).max(45)),
   });
 
 export const getMockBffApiMockEServiceTemplateIntendedTargetUpdateSeed =

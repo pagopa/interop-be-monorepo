@@ -5702,8 +5702,8 @@ importers:
   packages/purpose-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.25
-        version: 1.8.25
+        specifier: 1.8.27
+        version: 1.8.27
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -5943,8 +5943,8 @@ importers:
   packages/purpose-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.25
-        version: 1.8.25
+        specifier: 1.8.27
+        version: 1.8.27
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -8539,6 +8539,9 @@ packages:
 
   '@pagopa/interop-outbound-models@1.8.25':
     resolution: {integrity: sha512-snQ+T6OVErZVEPkS6RPc9envWsLmnofHjuGzLPIy9AZo/VhmIljAJG0SPF0Q5OriFYYq/eNg8bOAfcrkquwCDQ==}
+
+  '@pagopa/interop-outbound-models@1.8.27':
+    resolution: {integrity: sha512-NlAP9fHYvSo84J1uug1LYJ9arulFL6zI7Y13HjF1mOWlAwQheCO6/7ZlMA2ytGxXROZgdFcmfHeEehEtTHe2dg==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -13986,6 +13989,9 @@ packages:
   zod@4.2.1:
     resolution: {integrity: sha512-0wZ1IRqGGhMP76gLqz8EyfBXKk0J2qo2+H3fi4mcUP/KtTocoX08nmIAHl1Z2kJIZbZee8KOpBCSNPRgauucjw==}
 
+  zod@4.6.6:
+    resolution: {integrity: sha512-4UmzQUF5fxvfcYHlbjBmejU+w+hbDnWFx4aS8kBx7nPBHcO2SqPbpAG8snbdg+Xse4pRefR98hgjFgIMCI/UhA==}
+
 snapshots:
 
   '@adobe/css-tools@4.5.0': {}
@@ -16266,6 +16272,12 @@ snapshots:
       '@protobuf-ts/runtime': 2.9.4
       ts-pattern: 5.2.0
       zod: 3.23.8
+
+  '@pagopa/interop-outbound-models@1.8.27':
+    dependencies:
+      '@protobuf-ts/runtime': 2.9.4
+      ts-pattern: 5.2.0
+      zod: 4.6.6
 
   '@pkgjs/parseargs@0.11.0':
     optional: true
@@ -22480,3 +22492,5 @@ snapshots:
   zod@3.23.8: {}
 
   zod@4.2.1: {}
+
+  zod@4.6.6: {}

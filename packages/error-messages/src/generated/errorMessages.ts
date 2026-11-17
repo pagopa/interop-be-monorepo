@@ -83,6 +83,26 @@ export const errorMessages = [
     }
   },
   {
+    "process": "Delegation Process",
+    "error": "incorrectState",
+    "errorCode": "010-0011",
+    "bffEndpoint": "POST /consumers/delegations/:delegationId/reject",
+    "copy": {
+      "it": "Non puoi rifiutare la delega perché non è più in attesa di approvazione. Aggiorna la pagina.",
+      "en": "You can't reject the delegation because it's no longer waiting for approval. Refresh the page."
+    }
+  },
+  {
+    "process": "Delegation Process",
+    "error": "incorrectState",
+    "errorCode": "010-0011",
+    "bffEndpoint": "POST /producers/delegations/:delegationId/reject",
+    "copy": {
+      "it": "Non puoi rifiutare la delega perché non è più in attesa di approvazione. Aggiorna la pagina.",
+      "en": "You can't reject the delegation because it's no longer waiting for approval. Refresh the page."
+    }
+  },
+  {
     "process": "Tenant Process",
     "error": "expirationDateCannotBeInThePast",
     "errorCode": "005-009",
@@ -104,8 +124,8 @@ export const errorMessages = [
   },
   {
     "process": "Tenant Process",
-    "error": "certifiedAttributeAlreadyAssigned",
-    "errorCode": "005-0014",
+    "error": "certifiedDiscreteAttributeAlreadyAssigned",
+    "errorCode": "005-0032",
     "bffEndpoint": "POST /tenants/:tenantId/attributes/certifiedDiscrete",
     "copy": {
       "it": "L’ente possiede già l'attributo certificato {attributeName}. Aggiorna la pagina.",
@@ -290,6 +310,46 @@ export const errorMessages = [
     "copy": {
       "it": "Non puoi inserire un link nella motivazione del rifiuto dell’analisi del rischio. Rimuovi il link e riprova.",
       "en": "You can't include a link in the risk analysis rejection reason. Remove the link and try again."
+    }
+  },
+  {
+    "process": "Purpose Process",
+    "error": "duplicatedPurposeTitle",
+    "errorCode": "004-0016",
+    "bffEndpoint": "PATCH /purposes/:purposeId",
+    "copy": {
+      "it": "Esiste già una finalità con lo stesso nome per questo e-service. Scegli un altro nome.",
+      "en": "There is already a purpose with the same name for this e-service. Choose a different name."
+    }
+  },
+  {
+    "process": "Purpose Process",
+    "error": "hyperlinkDetectionError",
+    "errorCode": "004-10027",
+    "bffEndpoint": "PATCH /purposes/:purposeId",
+    "copy": {
+      "it": "Non puoi inserire un link nel nome o nella descrizione della finalità. Rimuovi il link e riprova.",
+      "en": "You can't include a link in the purpose name or description. Remove the link and try again."
+    }
+  },
+  {
+    "process": "Purpose Process",
+    "error": "duplicatedPurposeTitle",
+    "errorCode": "004-0016",
+    "bffEndpoint": "PATCH /reverse/purposes/:purposeId",
+    "copy": {
+      "it": "Esiste già una finalità con lo stesso nome per questo e-service. Scegli un altro nome.",
+      "en": "There is already a purpose with the same name for this e-service. Choose a different name."
+    }
+  },
+  {
+    "process": "Purpose Process",
+    "error": "hyperlinkDetectionError",
+    "errorCode": "004-10027",
+    "bffEndpoint": "PATCH /reverse/purposes/:purposeId",
+    "copy": {
+      "it": "Non puoi inserire un link nel nome o nella descrizione della finalità. Rimuovi il link e riprova.",
+      "en": "You can't include a link in the purpose name or description. Remove the link and try again."
     }
   },
   {
@@ -853,6 +913,16 @@ export const errorMessages = [
     }
   },
   {
+    "process": "Catalog Process",
+    "error": "riskAnalysisValidationFailed",
+    "errorCode": "001-0016",
+    "bffEndpoint": "POST /eservices/:eServiceId/riskAnalysis",
+    "copy": {
+      "it": "Non puoi inserire un link in una risposta dell’analisi del rischio. Rimuovi il link e riprova.",
+      "en": "You can't include a link in a risk analysis answer. Remove the link and try again."
+    }
+  },
+  {
     "process": "Attribute Registry Process",
     "error": "attributeDuplicate",
     "errorCode": "003-0002",
@@ -1113,6 +1183,46 @@ export const errorMessages = [
     }
   },
   {
+    "process": "Authorization Process",
+    "error": "hyperlinkDetectionError",
+    "errorCode": "006-10027",
+    "bffEndpoint": "PATCH /clients/:clientId",
+    "copy": {
+      "it": "Non puoi inserire un link nel nome o nella descrizione del client. Rimuovi il link e riprova.",
+      "en": "You can't include a link in the client name or description. Remove the link and try again."
+    }
+  },
+  {
+    "process": "Authorization Process",
+    "error": "hyperlinkDetectionError",
+    "errorCode": "006-10027",
+    "bffEndpoint": "PATCH /producerKeychains/:producerKeychainId",
+    "copy": {
+      "it": "Non puoi inserire un link nel nome o nella descrizione del portachiavi. Rimuovi il link e riprova.",
+      "en": "You can't include a link in the keychain name or description. Remove the link and try again."
+    }
+  },
+  {
+    "process": "Authorization Process",
+    "error": "eserviceInArchivedState",
+    "errorCode": "006-0040",
+    "bffEndpoint": "POST /producerKeychains/:producerKeychainId/eservices",
+    "copy": {
+      "it": "Non puoi associare un portachiavi a questo e-service perché è archiviato.",
+      "en": "You can't associate a keychain with this e-service because it is archived."
+    }
+  },
+  {
+    "process": "Authorization Process",
+    "error": "noActiveOrSuspendedPurposeVersionFound",
+    "errorCode": "006-0010",
+    "bffEndpoint": "POST /clients/:clientId/purposes",
+    "copy": {
+      "it": "Non puoi associare il client a questa finalità perché non è attiva. ",
+      "en": "You can't associate the client with this purpose because it isn't active."
+    }
+  },
+  {
     "process": "EService Template Process",
     "error": "eserviceTemplateDuplicate",
     "errorCode": "011-0004",
@@ -1253,6 +1363,36 @@ export const errorMessages = [
     }
   },
   {
+    "process": "EService Template Process",
+    "error": "eserviceTemplateDuplicate",
+    "errorCode": "011-0004",
+    "bffEndpoint": "PATCH /eservices/templates/:eServiceTemplateId",
+    "copy": {
+      "it": "Esiste già un template e-service con lo stesso nome. Scegli un altro nome.",
+      "en": "There is already an e-service template with the same name. Choose a different name."
+    }
+  },
+  {
+    "process": "EService Template Process",
+    "error": "instanceNameConflict",
+    "errorCode": "011-0020",
+    "bffEndpoint": "PATCH /eservices/templates/:eServiceTemplateId",
+    "copy": {
+      "it": "Non puoi usare questo nome perché almeno uno degli e-service creati dal template avrebbe lo stesso nome di un e-service già esistente. Scegli un altro nome.",
+      "en": "You can't use this name because at least one of the e-services created from the template would have the same name as an existing e-service. Choose a different name."
+    }
+  },
+  {
+    "process": "EService Template Process",
+    "error": "hyperlinkDetectionError",
+    "errorCode": "011-10027",
+    "bffEndpoint": "PATCH /eservices/templates/:eServiceTemplateId",
+    "copy": {
+      "it": "Non puoi inserire un link nel nome, nella descrizione o nel campo “A chi è rivolto il template”. Rimuovi il link e riprova.",
+      "en": "You can't include a link in the name, description, or “Who is the template intended for?” field. Remove the link and try again."
+    }
+  },
+  {
     "process": "Purpose Template Process",
     "error": "invalidAssociatedEServiceForPublicationError",
     "errorCode": "015-0023",
@@ -1330,6 +1470,36 @@ export const errorMessages = [
     "copy": {
       "it": "Non puoi scaricare il documento dell’analisi del rischio di questo template finalità con il tuo ruolo. Chiedi a un amministratore del tuo ente di scaricarlo.",
       "en": "You can’t download this purpose template’s risk analysis document with your role. Ask an Administrator in your party to download it."
+    }
+  },
+  {
+    "process": "Purpose Template Process",
+    "error": "purposeTemplateTitleConflict",
+    "errorCode": "015-0002",
+    "bffEndpoint": "PATCH /purposeTemplates/:purposeTemplateId",
+    "copy": {
+      "it": "Esiste già un template finalità con lo stesso nome. Scegli un altro nome.",
+      "en": "There is already a purpose template with the same name. Choose a different name."
+    }
+  },
+  {
+    "process": "Purpose Template Process",
+    "error": "hyperlinkDetectionError",
+    "errorCode": "015-0021",
+    "bffEndpoint": "PATCH /purposeTemplates/:purposeTemplateId",
+    "copy": {
+      "it": "Non puoi inserire un link nei campi di testo del template finalità. Rimuovi il link e riprova.",
+      "en": "You can't include a link in the purpose template text fields. Remove the link and try again."
+    }
+  },
+  {
+    "process": "Purpose Template Process",
+    "error": "associationEServicesForPurposeTemplateFailed",
+    "errorCode": "015-0013",
+    "bffEndpoint": "POST /purposeTemplates/:purposeTemplateId/linkResource",
+    "copy": {
+      "it": "Non puoi aggiungere questo e-service tra quelli suggeriti perché è stato creato da un template e-service.",
+      "en": "You can't add this e-service to the suggested e-services because it was created from an e-service template."
     }
   },
   {
@@ -1830,6 +2000,26 @@ export const errorMessages = [
     "copy": {
       "it": "Non puoi caricare il documento perché il file selezionato non è valido o è in un formato non supportato. Scegli un file valido in formato PDF, JSON, Markdown, YAML, TXT, XSD, WSDL o XML e riprova.",
       "en": "You can't upload the document because the selected file is invalid or its format is not supported. Choose a valid PDF, JSON, Markdown, YAML, TXT, XSD, WSDL, or XML file and try again."
+    }
+  },
+  {
+    "process": "BFF Process",
+    "error": "badRequestError",
+    "errorCode": "008-9999",
+    "bffEndpoint": "PATCH /purposeTemplates/:purposeTemplateId/purposes/:purposeId",
+    "copy": {
+      "it": "La stima delle chiamate API al giorno non può superare 1.000.000.000. Modifica il numero e riprova.",
+      "en": "The estimated number of API calls per day can't exceed 1,000,000,000. Change the value and try again."
+    }
+  },
+  {
+    "process": "BFF Process",
+    "error": "badRequestError",
+    "errorCode": "008-9999",
+    "bffEndpoint": "PUT /purposeTemplates/:purposeTemplateId",
+    "copy": {
+      "it": "Il numero di chiamate API al giorno che suggerisci al fruitore non può superare 1.000.000.000. Modifica il numero e riprova.",
+      "en": "The number of API calls per day you suggest to the consumer can't exceed 1,000,000,000. Change the number and try again."
     }
   }
 ] as const satisfies readonly ErrorMessage[];
