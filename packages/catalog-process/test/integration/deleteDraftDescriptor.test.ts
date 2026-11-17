@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger, fileManagerDeleteError } from "pagopa-interop-commons";
+import { fileManagerDeleteError, genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockContext,
@@ -417,9 +417,7 @@ describe("delete draft descriptor", () => {
     expect(deleteDraftReturn).toEqual(undefined);
   });
 
-  it("should fail if one of the file deletions fails", async () => {
-    config.s3Bucket = "invalid-bucket"; // configure an invalid bucket to force a failure
-
+  it("should fail if the deletion fails, and should not write any events in event store", async () => {
     const publishedDescriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
       version: "1",
@@ -434,6 +432,24 @@ describe("delete draft descriptor", () => {
       descriptors: [publishedDescriptor, descriptorToDelete],
     };
     await addOneEService(eservice);
+    const document = descriptorToDelete.docs[0];
+    const content = Buffer.from("original document");
+    await fileManager.storeBytesByKey(
+      config.s3Bucket,
+      document.path,
+      content,
+      genericLogger
+    );
+    const deletionError = fileManagerDeleteError(
+      document.path,
+      config.s3Bucket,
+      new Error("Simulated deletion failure")
+    );
+    const deleteFile = fileManager.delete.bind(fileManager);
+    vi.spyOn(fileManager, "delete").mockImplementationOnce(async (...args) => {
+      await deleteFile(...args);
+      throw deletionError;
+    });
 
     await expect(
       catalogService.deleteDraftDescriptor(
@@ -441,13 +457,12 @@ describe("delete draft descriptor", () => {
         descriptorToDelete.id,
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
-    ).rejects.toThrowError(
-      fileManagerDeleteError(
-        mockDocument.path,
-        config.s3Bucket,
-        new Error("The specified bucket does not exist")
-      )
-    );
+    ).rejects.toThrow(deletionError);
+
+    expect(
+      await fileManager.get(config.s3Bucket, document.path, genericLogger)
+    ).toEqual(new Uint8Array(content));
+    expect((await readLastEserviceEvent(eservice.id)).version).toBe("0");
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", () => {
