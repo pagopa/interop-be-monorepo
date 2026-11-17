@@ -453,9 +453,6 @@ export function authorizationServiceBuilder(
 
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(authData, client.data);
-      if (!isUiAuthData(authData)) {
-        assertClientIsConsumer(client.data);
-      }
 
       const nameUpdatedClient: Client = {
         ...client.data,
