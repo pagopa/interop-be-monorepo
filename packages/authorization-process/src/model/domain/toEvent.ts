@@ -49,6 +49,40 @@ export function toCreateEventClientDeleted(
   };
 }
 
+export function toCreateEventClientNameUpdated(
+  client: Client,
+  version: number,
+  correlationId: CorrelationId
+): CreateEvent<AuthorizationEventV2> {
+  return {
+    streamId: client.id,
+    version,
+    event: {
+      type: "ClientNameUpdated",
+      event_version: 2,
+      data: { client: toClientV2(client) },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventClientDescriptionUpdated(
+  client: Client,
+  version: number,
+  correlationId: CorrelationId
+): CreateEvent<AuthorizationEventV2> {
+  return {
+    streamId: client.id,
+    version,
+    event: {
+      type: "ClientDescriptionUpdated",
+      event_version: 2,
+      data: { client: toClientV2(client) },
+    },
+    correlationId,
+  };
+}
+
 export function toCreateEventClientUserDeleted(
   client: Client,
   userId: UserId,
@@ -193,6 +227,40 @@ export function toCreateEventKeyAdded(
         client: toClientV2(client),
         kid,
       },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventProducerKeychainNameUpdated(
+  producerKeychain: ProducerKeychain,
+  version: number,
+  correlationId: CorrelationId
+): CreateEvent<AuthorizationEventV2> {
+  return {
+    streamId: producerKeychain.id,
+    version,
+    event: {
+      type: "ProducerKeychainNameUpdated",
+      event_version: 2,
+      data: { producerKeychain: toProducerKeychainV2(producerKeychain) },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventProducerKeychainDescriptionUpdated(
+  producerKeychain: ProducerKeychain,
+  version: number,
+  correlationId: CorrelationId
+): CreateEvent<AuthorizationEventV2> {
+  return {
+    streamId: producerKeychain.id,
+    version,
+    event: {
+      type: "ProducerKeychainDescriptionUpdated",
+      event_version: 2,
+      data: { producerKeychain: toProducerKeychainV2(producerKeychain) },
     },
     correlationId,
   };
