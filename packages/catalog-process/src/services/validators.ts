@@ -66,6 +66,7 @@ import {
   riskAnalysisValidationFailed,
   tenantKindNotFound,
   templateInstanceNotAllowed,
+  templateInstanceAttributesCannotBeChanged,
   eServiceNotAnInstance,
   inconsistentDailyCalls,
   invalidAudience,
@@ -774,7 +775,7 @@ function assertAttributeGroupsUnchanged(
   seedGroups: catalogApi.AttributeSeed[][]
 ): void {
   if (descriptorGroups.length !== seedGroups.length) {
-    throw templateInstanceNotAllowed(eserviceId, templateId);
+    throw templateInstanceAttributesCannotBeChanged(eserviceId, templateId);
   }
 
   for (const descriptorGroup of descriptorGroups) {
@@ -787,7 +788,7 @@ function assertAttributeGroupsUnchanged(
     );
 
     if (!matchingSeedGroup) {
-      throw templateInstanceNotAllowed(eserviceId, templateId);
+      throw templateInstanceAttributesCannotBeChanged(eserviceId, templateId);
     }
 
     for (const descriptorAttr of descriptorGroup) {
@@ -809,7 +810,7 @@ function assertAttributeGroupsUnchanged(
         Boolean(seedAttr.discreteConfig) !==
           (descriptorDiscreteConfig !== undefined)
       ) {
-        throw templateInstanceNotAllowed(eserviceId, templateId);
+        throw templateInstanceAttributesCannotBeChanged(eserviceId, templateId);
       }
     }
   }

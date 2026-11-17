@@ -75,5 +75,6 @@ export const catalogErrorCodes = {
   noActiveDelegationFound: "0075",
   delegatedArchiveRequestForIncorrectDelegateProducer: "0076",
   interfaceDocumentNotUpdatable: "0077",
+  templateInstanceAttributesCannotBeChanged: "0078",
   invalidAudience: "0079",
 };
