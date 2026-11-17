@@ -1,0 +1,45 @@
+# Common errors mapping
+
+> **Not documented** (same for every endpoint, or never surfaced over HTTP):
+> - Authentication: `jwtDecodingError`, `invalidClaim`, `missingHeader`, `tokenVerificationFailed`, `badBearerToken`, `badDPoPToken`.
+> - Middleware-only: `tooManyRequestsError`.
+> - Infrastructure: `authenticationSaslFailed`, `htmlTemplateInterpolationError`, `pdfGenerationError`, `genericError`, `thirdPartyCallError`, `tokenGenerationError`, `missingRSAKey`, `missingKafkaMessageData`, `kafkaMessageProcessError`, `jwksSigningKeyError`, `kafkaApplicationAuditingFailed`, `fallbackApplicationAuditingFailed`, `invalidSqsMessage`, `decodeSQSMessageError`, `pollingMaxRetriesExceeded`.
+>
+> Processes covered: `purpose-process`.
+
+## `unauthorizedError`
+
+The request is unauthorized for the caller's roles.
+
+| Process | BFF endpoint | When it happens | Reachable from the FE? | Steps to reproduce (UI) | Resolution steps |
+| ------- | ------------ | --------------- | ---------------------- | ----------------------- | ---------------- |
+| `purpose-process` | `POST /purposes` | The caller has neither `ADMIN_ROLE` nor `M2M_ADMIN_ROLE` (`validateAuthorization` in `createPurpose`). | Cannot happen — the FE creation route `SUBSCRIBE_PURPOSE_CREATE` admits only `admin` through `AuthGuard`, matching the process role check. | — | — |
+| `purpose-process` | `POST /reverse/purposes/:purposeId` | The caller is not `ADMIN_ROLE` (`validateAuthorization` in `updateReversePurpose`). | Cannot happen — `SUBSCRIBE_PURPOSE_EDIT` admits only `admin`; the reverse-purpose update form is on that route. | — | — |
+| `purpose-process` | `GET /purposes/:purposeId/remainingDailyCalls` | The caller has neither `ADMIN_ROLE` nor `M2M_ADMIN_ROLE` (`validateAuthorization` in `getRemainingDailyCalls`). | Cannot happen —  | — | — |
+| `purpose-process` | `POST /purposes/:purposeId` | The caller is not `ADMIN_ROLE` (`validateAuthorization` in `updatePurpose`). | Cannot happen — the normal draft-edit route `SUBSCRIBE_PURPOSE_EDIT` admits only `admin`. | — | — |
+| `purpose-process` | `DELETE /purposes/:purposeId` | The caller has neither `ADMIN_ROLE` nor `M2M_ADMIN_ROLE` (`validateAuthorization` in `deletePurpose`). | Cannot happen — although the details route admits read roles, `useGetConsumerPurposesActions` returns no actions unless `isAdmin` is true. | — | — |
+| `purpose-process` | `POST /purposes/:purposeId/versions` | The caller has neither `ADMIN_ROLE` nor `M2M_ADMIN_ROLE` (`validateAuthorization` in `createPurposeVersion`). | Cannot happen — the daily-calls change action is shown only to admins; the drawer is used from `SUBSCRIBE_PURPOSE_DETAILS`. | — | — |
+| `purpose-process` | `DELETE /purposes/:purposeId/versions/:versionId` | The caller has neither `ADMIN_ROLE` nor `M2M_ADMIN_ROLE` (`validateAuthorization` in `deletePurposeVersion`). | Cannot happen — `ConsumerPurposeDetailsDailyCallsUpdatePlanCard` returns nothing unless `isAdmin` is true. | — | — |
+| `purpose-process` | `GET /purposes/:purposeId/versions/:versionId/documents/:documentId` | The caller lacks `ADMIN_ROLE`, `SUPPORT_ROLE`, or `VIEWER_ROLE` (`validateAuthorization` in `getRiskAnalysisDocument`). | Cannot happen — the generated FE service helper for this unsigned-document endpoint has no component or hook usage; the purpose detail sections invoke the separate signed-document download instead. | — | — |
+| `purpose-process` | `POST /purposes/:purposeId/versions/:versionId/reject` | The caller is not `ADMIN_ROLE` (`validateAuthorization` in `rejectPurposeVersion`). | Cannot happen — the provider's reject action comes from `useGetProviderPurposesActions`, which returns no actions unless `isAdmin` is true. | — | — |
+| `purpose-process` | `POST /purposes/:purposeId/riskAnalysis/assign` | The caller is not `ADMIN_ROLE` (`validateAuthorization` in `assignRiskAnalysisReviewer`). | Cannot happen — the assignment form is on `SUBSCRIBE_PURPOSE_EDIT`, whose `authLevels` admits only `admin`. | — | — |
+| `purpose-process` | `POST /purposes/:purposeId/riskAnalysis/submit` | The caller is not `ADMIN_ROLE` (`validateAuthorization` in `submitRiskAnalysis`). | Cannot happen — the request-approval form is on `SUBSCRIBE_PURPOSE_EDIT`, whose `authLevels` admits only `admin`. | — | — |
+| `purpose-process` | `POST /purposes/:purposeId/riskAnalysis/sign` | The caller is not `REVIEWER_ROLE` (`validateAuthorization` in `signRiskAnalysis`). | Cannot happen — the approval action is on `SUBSCRIBE_RISK_ANALYSIS_APPROVAL`, whose `authLevels` admits only `reviewer`. | — | — |
+| `purpose-process` | `POST /purposes/:purposeId/riskAnalysis/reject` | The caller is not `REVIEWER_ROLE` (`validateAuthorization` in `rejectRiskAnalysis`). | Cannot happen — the rejection action is on reviewer-only route `SUBSCRIBE_RISK_ANALYSIS_APPROVAL`. | — | — |
+| `purpose-process` | `PUT /purposes/:purposeId/riskAnalysis/form` | The caller is not `REVIEWER_ROLE` (`validateAuthorization` in `editRiskAnalysisForm`). | Cannot happen — the form is on `SUBSCRIBE_RISK_ANALYSIS_COMPILE`, whose `authLevels` admits only `reviewer`. | — | — |
+| `purpose-process` | `POST /purposes/:purposeId/versions/:versionId/activate` | The caller has neither `ADMIN_ROLE` nor `M2M_ADMIN_ROLE` (`validateAuthorization` in `activatePurposeVersion`). | Cannot happen — consumer activation controls are hidden unless `isAdmin` is true; provider controls are likewise gated in `useGetProviderPurposesActions`. | — | — |
+| `purpose-process` | `POST /purposes/:purposeId/clone` | The caller is not `ADMIN_ROLE` (`validateAuthorization` in `clonePurpose`). | Cannot happen — consumer purpose actions, including _Duplica_, are returned only when `isAdmin` is true. | — | — |
+| `purpose-process` | `POST /purposes/:purposeId/versions/:versionId/suspend` | The caller has neither `ADMIN_ROLE` nor `M2M_ADMIN_ROLE` (`validateAuthorization` in `suspendPurposeVersion`). | Cannot happen — consumer and provider suspend actions are gated by their purpose action hooks, both of which require `isAdmin`. | — | — |
+| `purpose-process` | `POST /purposes/:purposeId/versions/:versionId/archive` | The caller has neither `ADMIN_ROLE` nor `M2M_ADMIN_ROLE` (`validateAuthorization` in `archivePurposeVersion`). | Cannot happen — the consumer archive action is available only when `useGetConsumerPurposesActions` confirms `isAdmin`. | — | — |
+| `purpose-process` | `GET /purposes/riskAnalysis/latest` | The caller has none of `ADMIN_ROLE`, `SUPPORT_ROLE`, `API_ROLE`, `SECURITY_ROLE`, `REVIEWER_ROLE`, or `VIEWER_ROLE` (`validateAuthorization` in `retrieveLatestRiskAnalysisConfiguration`). | Cannot happen — FE pages invoking this query admit only roles included in the process allow-list; `AuthGuard` blocks other roles. | — | — |
+| `purpose-process` | `GET /purposes/riskAnalysis/version/:riskAnalysisVersion` | The caller has none of `ADMIN_ROLE`, `SUPPORT_ROLE`, `API_ROLE`, `SECURITY_ROLE`, or `REVIEWER_ROLE` (`validateAuthorization` in `retrieveRiskAnalysisConfigurationByVersion`). | Cannot happen — FE pages invoking this query admit only roles included in the process allow-list; `AuthGuard` blocks other roles. | — | — |
+| `purpose-process` | `POST /purposeTemplates/:purposeTemplateId/purposes` | The caller has neither `ADMIN_ROLE` nor `M2M_ADMIN_ROLE` (`validateAuthorization` in `createPurposeFromTemplate`). | Cannot happen — `SUBSCRIBE_PURPOSE_CREATE_FROM_TEMPLATE` admits only `admin`. | — | — |
+| `purpose-process` | `PATCH /purposeTemplates/:purposeTemplateId/purposes/:purposeId` | The caller has neither `ADMIN_ROLE` nor `M2M_ADMIN_ROLE` (`validateAuthorization` in `patchUpdatePurposeFromTemplate`). | Cannot happen — | — | — |
+
+## `hyperlinkDetectionError`
+
+The text contains a hyperlink, which is not allowed.
+
+| Process | BFF endpoint | When it happens | Reachable from the FE? | Steps to reproduce (UI) | Resolution steps |
+| ------- | ------------ | --------------- | ---------------------- | ----------------------- | ---------------- |
+| `purpose-process` | `POST /purposes/:purposeId/riskAnalysis/reject` | `rejectRiskAnalysis` calls `validateNoHyperlinksSafe(rejectionReason)`, which throws `hyperlinkDetectionError` when the rejection reason contains an `http://`, `https://`, or `www.` link. | **CAN HAPPEN** — `DialogRejectRiskAnalysis` validates only required/minimum length; the FE does not reject hyperlinks in the reason field. | **Data precondition:** purpose P is submitted for review and assigned to reviewer R.<br>1. Sign in as reviewer R and open `/analisi-del-rischio/P/approvazione`.<br>2. Click _Rifiuta con motivazione_.<br>3. Enter at least 10 characters in _Motivo rifiuto approvazione_, including `https://example.test`.<br>4. Click _Rifiuta_. | 🟢 **Easy resolution**<br>1. Remove the URL from the rejection reason.<br>2. Submit _Rifiuta_ again. |
