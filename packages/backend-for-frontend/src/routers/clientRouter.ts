@@ -1,7 +1,12 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { bffApi } from "pagopa-interop-api-clients";
-import { ExpressContext, ZodiosContext } from "pagopa-interop-commons";
+import {
+  authRole,
+  ExpressContext,
+  validateAuthorization,
+  ZodiosContext,
+} from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
 
 import {
@@ -75,6 +80,22 @@ const clientRouter = (
       }
     })
 
+    .patch("/clients/:clientId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [authRole.ADMIN_ROLE]);
+        await clientService.updateClient(req.params.clientId, req.body, ctx);
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error updating client ${req.params.clientId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .delete("/clients/:clientId", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {

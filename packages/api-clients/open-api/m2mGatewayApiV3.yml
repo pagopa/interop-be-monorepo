@@ -2380,6 +2380,48 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+    patch:
+      tags:
+        - producerKeychains
+      summary: Partially update a Producer Keychain
+      description: Partially update a Producer Keychain by its ID
+      operationId: updateProducerKeychain
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: "#/components/schemas/ProducerKeychainUpdateSeed"
+      responses:
+        "200":
+          description: Producer Keychain updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProducerKeychain"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /producerKeychains/{keychainId}/eservices:
     parameters:
       - name: keychainId
@@ -6038,10 +6080,8 @@ paths:
     patch:
       tags:
         - eserviceTemplates
-      summary: Update a Draft E-Service Template
-      description: |
-        Update an E-Service Template in Draft state.
-        The E-Service Template must have a single version, and that version must be in Draft state.
+      summary: Partially update an E-Service Template
+      description: Partially update an E-Service Template
       operationId: updateDraftEServiceTemplate
       requestBody:
         content:
@@ -6051,7 +6091,7 @@ paths:
         required: true
       responses:
         "200":
-          description: Draft E-Service Template updated
+          description: E-Service Template updated
           content:
             application/json:
               schema:
@@ -10113,8 +10153,8 @@ paths:
     patch:
       tags:
         - purposeTemplates
-      summary: Update a Draft Purpose Template
-      description: Update a Purpose Template in Draft state
+      summary: Partially update a Purpose Template
+      description: Partially update a Purpose Template
       operationId: updateDraftPurposeTemplate
       requestBody:
         content:
@@ -10124,7 +10164,7 @@ paths:
         required: true
       responses:
         "200":
-          description: Draft Purpose Template updated
+          description: Purpose Template updated
           content:
             application/json:
               schema:
@@ -10149,7 +10189,7 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
         "409":
-          description: Name Conflict
+          description: Name or state conflict
           content:
             application/problem+json:
               schema:
@@ -12607,6 +12647,8 @@ components:
           enum:
             - PRODUCER_KEYCHAIN_ADDED
             - PRODUCER_KEYCHAIN_DELETED
+            - PRODUCER_KEYCHAIN_NAME_UPDATED
+            - PRODUCER_KEYCHAIN_DESCRIPTION_UPDATED
             - PRODUCER_KEYCHAIN_ESERVICE_ADDED
             - PRODUCER_KEYCHAIN_ESERVICE_REMOVED
         eventTimestamp:
@@ -12714,6 +12756,9 @@ components:
             - PURPOSE_TEMPLATE_ANNOTATION_DOCUMENT_DELETED
             - PURPOSE_TEMPLATE_ANNOTATION_DOCUMENT_UPDATED
             - PURPOSE_TEMPLATE_DRAFT_UPDATED
+            - PURPOSE_TEMPLATE_PURPOSE_TITLE_UPDATED
+            - PURPOSE_TEMPLATE_PURPOSE_DESCRIPTION_UPDATED
+            - PURPOSE_TEMPLATE_TARGET_DESCRIPTION_UPDATED
             - PURPOSE_TEMPLATE_DRAFT_DELETED
             - PURPOSE_TEMPLATE_PUBLISHED
             - PURPOSE_TEMPLATE_SUSPENDED
@@ -13635,6 +13680,35 @@ components:
       required:
         - results
         - pagination
+    ProducerKeychainUpdateSeed:
+      description: Producer keychain update request body
+      anyOf:
+        - type: object
+          additionalProperties: false
+          properties:
+            name:
+              $ref: "#/components/schemas/ProducerKeychainName"
+            description:
+              $ref: "#/components/schemas/ProducerKeychainDescription"
+          required: 
+            - name
+        - type: object
+          additionalProperties: false
+          properties:
+            name:
+              $ref: "#/components/schemas/ProducerKeychainName"
+            description:
+              $ref: "#/components/schemas/ProducerKeychainDescription"
+          required:
+            - description
+    ProducerKeychainName:
+      type: string
+      minLength: 5
+      maxLength: 60
+    ProducerKeychainDescription:
+      type: string
+      minLength: 10
+      maxLength: 250
     ProducerKeychainSeed:
       description: Producer keychain creation request body
       type: object
@@ -14289,7 +14363,7 @@ components:
         name:
           type: string
           minLength: 5
-          maxLength: 60
+          maxLength: 45
       required:
         - name
     EServiceTemplateVersion:
@@ -14453,7 +14527,7 @@ components:
         name:
           type: string
           minLength: 5
-          maxLength: 60
+          maxLength: 45
         intendedTarget:
           type: string
           minLength: 10

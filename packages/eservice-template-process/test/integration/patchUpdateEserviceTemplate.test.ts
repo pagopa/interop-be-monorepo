@@ -55,6 +55,7 @@ describe("update eserviceTemplate", () => {
   };
 
   it.each([
+    {},
     {
       name: "New name",
     },

@@ -86,6 +86,8 @@ import {
   toCreateEventClientAdminRemoved,
   toCreateEventClientAdminRoleRevoked,
   toCreateEventClientDeleted,
+  toCreateEventClientNameUpdated,
+  toCreateEventClientDescriptionUpdated,
   toCreateEventClientKeyDeleted,
   toCreateEventClientPurposeAdded,
   toCreateEventClientPurposeRemoved,
@@ -93,6 +95,8 @@ import {
   toCreateEventClientUserDeleted,
   toCreateEventKeyAdded,
   toCreateEventProducerKeychainAdded,
+  toCreateEventProducerKeychainNameUpdated,
+  toCreateEventProducerKeychainDescriptionUpdated,
   toCreateEventProducerKeychainDeleted,
   toCreateEventProducerKeychainEServiceAdded,
   toCreateEventProducerKeychainEServiceRemoved,
@@ -428,6 +432,71 @@ export function authorizationServiceBuilder(
           limit,
         }
       );
+    },
+    async updateClient(
+      {
+        clientId,
+        seed,
+      }: {
+        clientId: ClientId;
+        seed: authorizationApi.ClientUpdateSeed;
+      },
+      {
+        logger,
+        correlationId,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Client>> {
+      logger.info(`Updating client ${clientId}`);
+      validateNoHyperlinksSafe(seed.name);
+      validateNoHyperlinksSafe(seed.description);
+
+      const client = await retrieveClient(clientId, readModelService);
+      assertOrganizationIsClientConsumer(authData, client.data);
+      if (!isUiAuthData(authData)) {
+        assertClientIsConsumer(client.data);
+      }
+
+      const nameUpdatedClient: Client = {
+        ...client.data,
+        name: seed.name ?? client.data.name,
+      };
+      const updatedClient: Client = {
+        ...nameUpdatedClient,
+        description: seed.description ?? client.data.description,
+      };
+
+      const events = [
+        ...(seed.name !== undefined
+          ? [
+              toCreateEventClientNameUpdated(
+                nameUpdatedClient,
+                client.metadata.version,
+                correlationId
+              ),
+            ]
+          : []),
+        ...(seed.description !== undefined
+          ? [
+              toCreateEventClientDescriptionUpdated(
+                updatedClient,
+                client.metadata.version,
+                correlationId
+              ),
+            ]
+          : []),
+      ].map((event, index) => ({
+        ...event,
+        version: client.metadata.version + index,
+      }));
+
+      const createdEvents = await repository.createEvents(events);
+      return {
+        data: updatedClient,
+        metadata: {
+          version: createdEvents.latestNewVersions.get(updatedClient.id) ?? 0,
+        },
+      };
     },
     async deleteClient(
       {
@@ -1039,6 +1108,76 @@ export function authorizationServiceBuilder(
         jwk,
         kid: key.kid,
         client,
+      };
+    },
+    async updateProducerKeychain(
+      {
+        producerKeychainId,
+        seed,
+      }: {
+        producerKeychainId: ProducerKeychainId;
+        seed: authorizationApi.ProducerKeychainUpdateSeed;
+      },
+      {
+        logger,
+        correlationId,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<ProducerKeychain>> {
+      logger.info(`Updating producer keychain ${producerKeychainId}`);
+      validateNoHyperlinksSafe(seed.name);
+      validateNoHyperlinksSafe(seed.description);
+
+      const producerKeychain = await retrieveProducerKeychain(
+        producerKeychainId,
+        readModelService
+      );
+      assertOrganizationIsProducerKeychainProducer(
+        authData,
+        producerKeychain.data
+      );
+
+      const nameUpdatedProducerKeychain: ProducerKeychain = {
+        ...producerKeychain.data,
+        name: seed.name ?? producerKeychain.data.name,
+      };
+      const updatedProducerKeychain: ProducerKeychain = {
+        ...nameUpdatedProducerKeychain,
+        description: seed.description ?? producerKeychain.data.description,
+      };
+
+      const events = [
+        ...(seed.name !== undefined
+          ? [
+              toCreateEventProducerKeychainNameUpdated(
+                nameUpdatedProducerKeychain,
+                producerKeychain.metadata.version,
+                correlationId
+              ),
+            ]
+          : []),
+        ...(seed.description !== undefined
+          ? [
+              toCreateEventProducerKeychainDescriptionUpdated(
+                updatedProducerKeychain,
+                producerKeychain.metadata.version,
+                correlationId
+              ),
+            ]
+          : []),
+      ].map((event, index) => ({
+        ...event,
+        version: producerKeychain.metadata.version + index,
+      }));
+
+      const createdEvents = await repository.createEvents(events);
+      return {
+        data: updatedProducerKeychain,
+        metadata: {
+          version:
+            createdEvents.latestNewVersions.get(updatedProducerKeychain.id) ??
+            0,
+        },
       };
     },
     async createProducerKeychain(

@@ -26,6 +26,18 @@ export function toApiPurposeTemplateM2MEventType(
       () => "PURPOSE_TEMPLATE_ANNOTATION_DOCUMENT_UPDATED"
     )
     .with("PurposeTemplateDraftUpdated", () => "PURPOSE_TEMPLATE_DRAFT_UPDATED")
+    .with(
+      "PurposeTemplatePurposeTitleUpdated",
+      () => "PURPOSE_TEMPLATE_PURPOSE_TITLE_UPDATED"
+    )
+    .with(
+      "PurposeTemplatePurposeDescriptionUpdated",
+      () => "PURPOSE_TEMPLATE_PURPOSE_DESCRIPTION_UPDATED"
+    )
+    .with(
+      "PurposeTemplateTargetDescriptionUpdated",
+      () => "PURPOSE_TEMPLATE_TARGET_DESCRIPTION_UPDATED"
+    )
     .with("PurposeTemplateDraftDeleted", () => "PURPOSE_TEMPLATE_DRAFT_DELETED")
     .with("PurposeTemplatePublished", () => "PURPOSE_TEMPLATE_PUBLISHED")
     .with("PurposeTemplateSuspended", () => "PURPOSE_TEMPLATE_SUSPENDED")

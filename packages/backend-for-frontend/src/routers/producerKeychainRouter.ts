@@ -1,7 +1,12 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { bffApi } from "pagopa-interop-api-clients";
-import { ExpressContext, ZodiosContext } from "pagopa-interop-commons";
+import {
+  authRole,
+  ExpressContext,
+  validateAuthorization,
+  ZodiosContext,
+} from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
 
 import {
@@ -21,6 +26,26 @@ const producerKeychainRouter = (
   });
 
   producerKeychainRouter
+    .patch("/producerKeychains/:producerKeychainId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [authRole.ADMIN_ROLE]);
+        await producerKeychainService.updateProducerKeychain(
+          req.params.producerKeychainId,
+          req.body,
+          ctx
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error updating producer keychain with id = ${req.params.producerKeychainId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get("/producerKeychains", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
