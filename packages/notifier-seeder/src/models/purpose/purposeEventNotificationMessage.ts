@@ -8,7 +8,12 @@ import { PurposeEventNotification } from "./purposeEventNotification.js";
 const eventV2TypeMapper = (eventType: PurposeEventEnvelopeV2["type"]): string =>
   match(eventType)
     .with("PurposeAdded", "PurposeCloned", () => "purpose_created")
-    .with("DraftPurposeUpdated", () => "purpose_updated")
+    .with(
+      "DraftPurposeUpdated",
+      "PurposeTitleUpdated",
+      "PurposeDescriptionUpdated",
+      () => "purpose_updated"
+    )
     .with(
       "PurposeWaitingForApproval",
       "NewPurposeVersionWaitingForApproval",

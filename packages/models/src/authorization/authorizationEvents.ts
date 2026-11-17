@@ -21,6 +21,8 @@ import {
   ClientAdminRoleRevokedV2,
   ClientAdminRemovedV2,
   ClientDeletedV2,
+  ClientNameUpdatedV2,
+  ClientDescriptionUpdatedV2,
   ClientKeyAddedV2,
   ClientKeyDeletedV2,
   ClientPurposeAddedV2,
@@ -28,6 +30,8 @@ import {
   ClientUserAddedV2,
   ClientUserDeletedV2,
   ProducerKeychainAddedV2,
+  ProducerKeychainNameUpdatedV2,
+  ProducerKeychainDescriptionUpdatedV2,
   ProducerKeychainDeletedV2,
   ProducerKeychainEServiceAddedV2,
   ProducerKeychainEServiceRemovedV2,
@@ -82,6 +86,12 @@ export function authorizationEventToBinaryDataV2(
 ): Uint8Array {
   return match(event)
     .with({ type: "ClientAdded" }, ({ data }) => ClientAddedV2.toBinary(data))
+    .with({ type: "ClientNameUpdated" }, ({ data }) =>
+      ClientNameUpdatedV2.toBinary(data)
+    )
+    .with({ type: "ClientDescriptionUpdated" }, ({ data }) =>
+      ClientDescriptionUpdatedV2.toBinary(data)
+    )
     .with({ type: "ClientDeleted" }, ({ data }) =>
       ClientDeletedV2.toBinary(data)
     )
@@ -114,6 +124,12 @@ export function authorizationEventToBinaryDataV2(
     )
     .with({ type: "ProducerKeychainAdded" }, ({ data }) =>
       ProducerKeychainAddedV2.toBinary(data)
+    )
+    .with({ type: "ProducerKeychainNameUpdated" }, ({ data }) =>
+      ProducerKeychainNameUpdatedV2.toBinary(data)
+    )
+    .with({ type: "ProducerKeychainDescriptionUpdated" }, ({ data }) =>
+      ProducerKeychainDescriptionUpdatedV2.toBinary(data)
     )
     .with({ type: "ProducerKeychainDeleted" }, ({ data }) =>
       ProducerKeychainDeletedV2.toBinary(data)
@@ -201,6 +217,16 @@ export type AuthorizationEventV1 = z.infer<typeof AuthorizationEventV1>;
 export const AuthorizationEventV2 = z.discriminatedUnion("type", [
   z.object({
     event_version: z.literal(2),
+    type: z.literal("ClientNameUpdated"),
+    data: protobufDecoder(ClientNameUpdatedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("ClientDescriptionUpdated"),
+    data: protobufDecoder(ClientDescriptionUpdatedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
     type: z.literal("ClientAdded"),
     data: protobufDecoder(ClientAddedV2),
   }),
@@ -258,6 +284,16 @@ export const AuthorizationEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("ProducerKeychainAdded"),
     data: protobufDecoder(ProducerKeychainAddedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("ProducerKeychainNameUpdated"),
+    data: protobufDecoder(ProducerKeychainNameUpdatedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("ProducerKeychainDescriptionUpdated"),
+    data: protobufDecoder(ProducerKeychainDescriptionUpdatedV2),
   }),
   z.object({
     event_version: z.literal(2),
