@@ -1,6 +1,9 @@
 import { m2mGatewayApiV3, tenantApi } from "pagopa-interop-api-clients";
 import { getMockedApiTenant } from "pagopa-interop-commons-test";
-import { PUBLIC_ADMINISTRATIONS_IDENTIFIER } from "pagopa-interop-models";
+import {
+  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
+  tenantUnitType,
+} from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
@@ -22,7 +25,18 @@ describe("getTenants", () => {
   };
 
   const mockApiTenant1 = getMockedApiTenant();
-  const mockApiTenant2 = getMockedApiTenant();
+  const mockParentTenants = [
+    {
+      id: getMockedApiTenant().id,
+      name: "Tenant AOO",
+      subUnitType: tenantUnitType.AOO,
+    },
+    { id: getMockedApiTenant().id, name: "Tenant root" },
+  ];
+  const mockApiTenant2: tenantApi.Tenant = {
+    ...getMockedApiTenant({ parentTenants: mockParentTenants }),
+    subUnitType: tenantUnitType.UO,
+  };
 
   const mockApiTenants = [mockApiTenant1, mockApiTenant2];
 
@@ -60,6 +74,7 @@ describe("getTenants", () => {
       onboardedAt: mockApiTenant1.onboardedAt,
       subUnitType: mockApiTenant1.subUnitType,
       updatedAt: mockApiTenant1.updatedAt,
+      parentTenants: undefined,
     };
 
     const m2mTenantResponse2: m2mGatewayApiV3.Tenant = {
@@ -74,6 +89,7 @@ describe("getTenants", () => {
       onboardedAt: mockApiTenant2.onboardedAt,
       subUnitType: mockApiTenant2.subUnitType,
       updatedAt: mockApiTenant2.updatedAt,
+      parentTenants: mockParentTenants,
     };
 
     const m2mTenantsResponse: m2mGatewayApiV3.Tenants = {

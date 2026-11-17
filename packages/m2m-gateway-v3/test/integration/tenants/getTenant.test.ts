@@ -3,7 +3,7 @@ import {
   getMockedApiTenant,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { unsafeBrandId } from "pagopa-interop-models";
+import { tenantUnitType, unsafeBrandId } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
@@ -15,7 +15,17 @@ import {
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getTenant", () => {
-  const mockApiTenant = getMockWithMetadata(getMockedApiTenant());
+  const mockParentTenants = [
+    {
+      id: getMockedApiTenant().id,
+      name: "Tenant AOO",
+      subUnitType: tenantUnitType.AOO,
+    },
+    { id: getMockedApiTenant().id, name: "Tenant root" },
+  ];
+  const mockApiTenant = getMockWithMetadata(
+    getMockedApiTenant({ parentTenants: mockParentTenants })
+  );
 
   const mockGetTenant = vi.fn().mockResolvedValue(mockApiTenant);
 
@@ -43,6 +53,7 @@ describe("getTenant", () => {
       onboardedAt: mockApiTenant.data.onboardedAt,
       subUnitType: mockApiTenant.data.subUnitType,
       updatedAt: mockApiTenant.data.updatedAt,
+      parentTenants: mockParentTenants,
     };
 
     const result = await tenantService.getTenant(
