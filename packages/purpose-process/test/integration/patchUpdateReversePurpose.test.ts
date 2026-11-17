@@ -187,13 +187,13 @@ describe("patchUpdateReversePurpose", () => {
         ctx
       );
       const isDraft = state === purposeVersionState.draft;
-      expect(result.data.purpose).toMatchObject({
+      expect(sortPurpose(result.data.purpose)).toMatchObject({
         title: "Updated title",
         description: "Updated description",
         versions: isDraft
           ? [{ ...purpose.versions[0], updatedAt: new Date() }]
           : purpose.versions,
-        riskAnalysisForm: purpose.riskAnalysisForm,
+        riskAnalysisForm: sortPurpose(purpose).riskAnalysisForm,
       });
       expect(result.metadata.version).toBe(isDraft ? 1 : 2);
       await expectWrittenEventAndGetPayload(
