@@ -9,6 +9,7 @@ import {
   getMockDocument,
   getMockValidEServiceTemplateRiskAnalysis,
   readEventByStreamIdAndVersion,
+  sortRiskAnalysisCollections,
 } from "pagopa-interop-commons-test";
 import {
   operationForbidden,
@@ -54,6 +55,7 @@ describe("update eserviceTemplate", () => {
   };
 
   it.each([
+    {},
     {
       name: "New name",
     },
@@ -357,9 +359,12 @@ describe("update eserviceTemplate", () => {
                   ? ["EServiceTemplateIntendedTargetUpdated"]
                   : []),
               ];
-          expect(result).toEqual({
+          expect({
+            ...result,
+            data: sortRiskAnalysisCollections(result.data),
+          }).toEqual({
             data: {
-              ...expected,
+              ...sortRiskAnalysisCollections(expected),
               versions: expect.arrayContaining(template.versions),
             },
             metadata: { version: expectedTypes.length },
@@ -608,9 +613,12 @@ describe("update eserviceTemplate", () => {
                 : (seed.asyncExchange ?? true),
             riskAnalysis: seed.mode === "DELIVER" ? [] : template.riskAnalysis,
           };
-          expect(result).toEqual({
+          expect({
+            ...result,
+            data: sortRiskAnalysisCollections(result.data),
+          }).toEqual({
             data: {
-              ...expected,
+              ...sortRiskAnalysisCollections(expected),
               versions: expect.arrayContaining(template.versions),
             },
             metadata: { version: 1 },

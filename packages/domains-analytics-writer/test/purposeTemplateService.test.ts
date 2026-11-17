@@ -175,7 +175,12 @@ describe("Purpose template messages consumers - handlePurposeTemplateMessageV2",
     );
   });
 
-  it("PurposeTemplateDraftUpdated: updates the purpose template's purposeDescription field", async () => {
+  it.each([
+    "PurposeTemplateDraftUpdated",
+    "PurposeTemplatePurposeTitleUpdated",
+    "PurposeTemplatePurposeDescriptionUpdated",
+    "PurposeTemplateTargetDescriptionUpdated",
+  ] as const)("%s: updates the purpose template snapshot", async (type) => {
     const metadataVersionAdded = 0;
     const payloadPurposeTemplateAdded: PurposeTemplateAddedV2 = {
       purposeTemplate: toPurposeTemplateV2(purposeTemplate),
@@ -193,7 +198,9 @@ describe("Purpose template messages consumers - handlePurposeTemplateMessageV2",
     const metadataVersionUpdated = 1;
     const updatedPurposeTemplate: PurposeTemplate = {
       ...purposeTemplate,
+      purposeTitle: "Updated purpose title",
       purposeDescription: "Updated purpose template description",
+      targetDescription: "Updated target description",
     };
     const payloadPurposeTemplateDraftUpdated: PurposeTemplateDraftUpdatedV2 = {
       purposeTemplate: toPurposeTemplateV2(updatedPurposeTemplate),
@@ -202,7 +209,7 @@ describe("Purpose template messages consumers - handlePurposeTemplateMessageV2",
       sequence_num: 1,
       stream_id: purposeTemplate.id,
       version: metadataVersionUpdated,
-      type: "PurposeTemplateDraftUpdated",
+      type,
       event_version: 2,
       data: payloadPurposeTemplateDraftUpdated,
       log_date: new Date(),
@@ -226,6 +233,12 @@ describe("Purpose template messages consumers - handlePurposeTemplateMessageV2",
     );
     expect(retrievedPurposeTemplate?.purposeDescription).toBe(
       updatedPurposeTemplate.purposeDescription
+    );
+    expect(retrievedPurposeTemplate?.purposeTitle).toBe(
+      updatedPurposeTemplate.purposeTitle
+    );
+    expect(retrievedPurposeTemplate?.targetDescription).toBe(
+      updatedPurposeTemplate.targetDescription
     );
   });
 
