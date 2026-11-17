@@ -13,6 +13,7 @@ import {
   EServiceId,
   AgreementId,
   toAgreementV2,
+  Tenant,
 } from "pagopa-interop-models";
 import {
   getNotificationRecipients,
@@ -212,5 +213,44 @@ describe("handleAgreementManagementToProducer", () => {
     expect(userIds).toContain(users[0].userId);
     expect(userIds).toContain(users[1].userId);
     expect(userIds).toContain(users[2].userId);
+  });
+
+  it("should include the consumer hierarchy without changing recipients", async () => {
+    const root = { ...getMockTenant(), name: "Comune di Roma" };
+    const aoo: Tenant = {
+      ...getMockTenant(),
+      name: "AOO Protocollo",
+      subUnitType: "AOO",
+      parentTenantId: root.id,
+      rootTenantId: root.id,
+    };
+    const consumer: Tenant = {
+      ...consumerTenant,
+      name: "UO Servizi",
+      subUnitType: "UO",
+      parentTenantId: aoo.id,
+      rootTenantId: root.id,
+    };
+    await addOneTenant(root);
+    await addOneTenant(aoo);
+    await addOneTenant(consumer);
+    const recipient = { userId: generateId(), tenantId: producerId };
+    mockGetNotificationRecipients.mockResolvedValue([recipient]);
+
+    const notifications = await handleAgreementManagementToProducer(
+      toAgreementV2(agreement),
+      logger,
+      readModelService,
+      "AgreementActivated"
+    );
+
+    expect(notifications).toEqual([
+      expect.objectContaining({
+        ...recipient,
+        body: expect.stringContaining(
+          "UO Servizi - AOO Protocollo - Comune di Roma"
+        ),
+      }),
+    ]);
   });
 });

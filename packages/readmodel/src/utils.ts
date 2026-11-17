@@ -2,7 +2,7 @@ import { eq, SQL } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { AnyPgTable, AnyPgColumn } from "drizzle-orm/pg-core";
 import { ReadModelSQLDbConfig } from "pagopa-interop-commons";
-import { genericInternalError } from "pagopa-interop-models";
+import { genericInternalError, ParentTenant } from "pagopa-interop-models";
 import {
   DrizzleReturnType,
   DrizzleTransactionType,
@@ -136,3 +136,8 @@ export const throwIfMultiple = <T extends { id: string }>(
     );
   }
 };
+
+export const formatTenantNameWithHierarchy = (
+  name: string,
+  parentTenants: ParentTenant[] | undefined
+): string => [name, ...(parentTenants ?? []).map((p) => p.name)].join(" - ");

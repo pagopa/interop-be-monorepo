@@ -351,4 +351,58 @@ describe("sendAgreementActivatedEmail", () => {
 
     expect(sesEmailManager.send).not.toHaveBeenCalled();
   });
+
+  it("should include tenant hierarchy names and keep the consumer contact email", async () => {
+    vi.spyOn(sesEmailManager, "send");
+    const root = { ...getMockTenant(), name: "Comune di Roma" };
+    const producer: Tenant = {
+      ...getMockTenant(),
+      name: "AOO Protocollo",
+      subUnitType: "AOO",
+      parentTenantId: root.id,
+      rootTenantId: root.id,
+    };
+    const consumerEmail = getMockTenantMail(tenantMailKind.ContactEmail);
+    const consumer: Tenant = {
+      ...getMockTenant(),
+      name: "UO Servizi",
+      subUnitType: "UO",
+      parentTenantId: producer.id,
+      rootTenantId: root.id,
+      mails: [consumerEmail],
+    };
+    await addOneTenant(root);
+    await addOneTenant(producer);
+    await addOneTenant(consumer);
+    const descriptor = getMockDescriptor();
+    const eservice = {
+      ...getMockEService(),
+      producerId: producer.id,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+    const agreement = {
+      ...getMockAgreement(),
+      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
+      producerId: producer.id,
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: consumer.id,
+    };
+
+    await notificationEmailSenderService.sendAgreementActivatedEmail(
+      toAgreementV2(agreement),
+      genericLogger
+    );
+
+    expect(sesEmailManager.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: [consumerEmail.address],
+        html: expect.stringContaining(
+          "UO Servizi - AOO Protocollo - Comune di Roma"
+        ),
+      }),
+      expect.anything()
+    );
+  });
 });

@@ -289,4 +289,59 @@ describe("handleAgreementActivated", async () => {
       expect(message.email.body).toContain(`Visualizza richiesta`);
     });
   });
+
+  it("should include the consumer hierarchy without changing recipients", async () => {
+    const root = { ...getMockTenant(), name: "Comune di Roma" };
+    const aoo: Tenant = {
+      ...getMockTenant(),
+      name: "AOO Protocollo",
+      subUnitType: "AOO",
+      parentTenantId: root.id,
+      rootTenantId: root.id,
+    };
+    const consumer: Tenant = {
+      ...consumerTenant,
+      name: "UO Servizi",
+      subUnitType: "UO",
+      parentTenantId: aoo.id,
+      rootTenantId: root.id,
+    };
+    await addOneTenant(root);
+    await addOneTenant(aoo);
+    await addOneTenant(consumer);
+    const agreement: Agreement = {
+      ...getMockAgreement(),
+      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
+      producerId,
+      descriptorId: descriptor.id,
+      eserviceId,
+      consumerId,
+    };
+
+    const messages = await handleAgreementActivatedToProducer({
+      agreementV2Msg: toAgreementV2(agreement),
+      logger,
+      templateService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+    });
+
+    expect(messages).toHaveLength(2);
+    expect(messages).toEqual(
+      expect.arrayContaining(
+        users.slice(0, 2).map((user) =>
+          expect.objectContaining({
+            type: "User",
+            userId: user.id,
+            tenantId: producerId,
+            email: expect.objectContaining({
+              body: expect.stringContaining(
+                "UO Servizi - AOO Protocollo - Comune di Roma"
+              ),
+            }),
+          })
+        )
+      )
+    );
+  });
 });

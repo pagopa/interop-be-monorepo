@@ -72,7 +72,6 @@ const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
 
 const readModelServiceSQL = readModelServiceBuilderSQL({
-  readModelDB,
   catalogReadModelServiceSQL,
   tenantReadModelServiceSQL,
   agreementReadModelServiceSQL,

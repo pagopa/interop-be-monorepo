@@ -60,16 +60,25 @@ export function readModelServiceBuilderSQL({
       return (await catalogReadModelServiceSQL.getEServiceById(id))?.data;
     },
     async getTenantById(tenantId: TenantId): Promise<Tenant | undefined> {
-      return (await tenantReadModelServiceSQL.getTenantById(tenantId))?.data;
+      const tenant = await tenantReadModelServiceSQL.getTenantById(tenantId);
+      return (
+        tenant &&
+        tenantReadModelServiceSQL.getTenantWithHierarchyName(tenant.data)
+      );
     },
     async getTenantsByIds(tenantIds: TenantId[]): Promise<Tenant[]> {
       if (tenantIds.length === 0) {
         return [];
       }
       return readModelDb.transaction(async (tx) => {
-        const tenantsWithMetadata =
-          await tenantReadModelServiceSQL.getTenantsByIds(tenantIds, tx);
-        return tenantsWithMetadata.map((twm) => twm.data);
+        const tenants = await tenantReadModelServiceSQL.getTenantsByIds(
+          tenantIds,
+          tx
+        );
+        return tenantReadModelServiceSQL.getTenantsWithHierarchyName(
+          tenants.map((tenant) => tenant.data),
+          tx
+        );
       });
     },
     async getAgreementsByEserviceId(
@@ -138,9 +147,12 @@ export function readModelServiceBuilderSQL({
     async getTenantByCertifierId(
       certifierId: string
     ): Promise<Tenant | undefined> {
+      const tenant =
+        await tenantReadModelServiceSQL.getTenantByCertifierId(certifierId);
       return (
-        await tenantReadModelServiceSQL.getTenantByCertifierId(certifierId)
-      )?.data;
+        tenant &&
+        tenantReadModelServiceSQL.getTenantWithHierarchyName(tenant.data)
+      );
     },
   };
 }
