@@ -32,6 +32,7 @@ export function toGetTenantsApiQueryParams(
     externalIdValue: IPACode ?? taxCode,
     name: undefined,
     features: [],
+    tenantIds: [],
     offset: params.offset,
     limit: params.limit,
   };
