@@ -79,7 +79,7 @@ describe("executeTopicHandler", () => {
     expect(mockCatalogV2Handler).toHaveBeenCalledOnce();
   });
 
-  it("should dispatch tenant V1, V2 and V3 events of the same batch, handling V3 last", async () => {
+  it("should dispatch tenant V1, V2 and V3 events of the same batch in order", async () => {
     const executeTopicHandler = await setupHandlerAfterMock();
     await executeTopicHandler(
       mockTenantBatch.messages,
@@ -93,8 +93,43 @@ describe("executeTopicHandler", () => {
     expect(mockTenantV3Handler.mock.calls[0][0]).toEqual([
       { event_version: 3 },
     ]);
+    expect(mockTenantV1Handler.mock.invocationCallOrder[0]).toBeLessThan(
+      mockTenantV2Handler.mock.invocationCallOrder[0]
+    );
     expect(mockTenantV2Handler.mock.invocationCallOrder[0]).toBeLessThan(
       mockTenantV3Handler.mock.invocationCallOrder[0]
+    );
+  });
+
+  it("should dispatch tenant events in Kafka order, one run of consecutive events with the same version at a time", async () => {
+    const executeTopicHandler = await setupHandlerAfterMock();
+    const messages = [
+      { event_version: 2, version: 1 },
+      { event_version: 3, version: 2 },
+      { event_version: 3, version: 3 },
+      { event_version: 2, version: 4 },
+    ].map((value) => ({ value }) as unknown as KafkaMessage);
+
+    await executeTopicHandler(messages, mockTenantBatch.topic, {} as any);
+
+    expect(mockTenantV1Handler).not.toHaveBeenCalled();
+    expect(mockTenantV2Handler).toHaveBeenCalledTimes(2);
+    expect(mockTenantV3Handler).toHaveBeenCalledOnce();
+    expect(mockTenantV2Handler.mock.calls[0][0]).toEqual([
+      { event_version: 2, version: 1 },
+    ]);
+    expect(mockTenantV3Handler.mock.calls[0][0]).toEqual([
+      { event_version: 3, version: 2 },
+      { event_version: 3, version: 3 },
+    ]);
+    expect(mockTenantV2Handler.mock.calls[1][0]).toEqual([
+      { event_version: 2, version: 4 },
+    ]);
+    expect(mockTenantV2Handler.mock.invocationCallOrder[0]).toBeLessThan(
+      mockTenantV3Handler.mock.invocationCallOrder[0]
+    );
+    expect(mockTenantV3Handler.mock.invocationCallOrder[0]).toBeLessThan(
+      mockTenantV2Handler.mock.invocationCallOrder[1]
     );
   });
 

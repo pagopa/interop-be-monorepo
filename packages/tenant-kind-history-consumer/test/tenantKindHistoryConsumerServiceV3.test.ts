@@ -4,17 +4,22 @@ import { getMockTenant } from "pagopa-interop-commons-test";
 import {
   ContactId,
   Tenant,
+  TenantEventEnvelopeV2,
   TenantEventEnvelopeV3,
   TenantOnboardedV3,
   generateId,
   missingKafkaMessageDataError,
   tenantKind,
+  toTenantV2,
   toTenantV3,
 } from "pagopa-interop-models";
 import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
 import { describe, expect, it } from "vitest";
 
-import { handleMessageV3 } from "../src/tenantKindHistoryConsumerService.js";
+import {
+  handleMessageV2,
+  handleMessageV3,
+} from "../src/tenantKindHistoryConsumerService.js";
 import {
   tenantKindHistoryDB,
   tenantKindHistoryWriterService,
@@ -128,6 +133,53 @@ describe("handleMessageV3", () => {
       expect(history).toHaveLength(0);
     }
   );
+
+  it("writes no new entry for a V3 event keeping the kind written by a V2 event, nor for their replay", async () => {
+    const tenant: Tenant = { ...getMockTenant(), kind: tenantKind.PA };
+    const tenantOnboardedV2: TenantEventEnvelopeV2 = {
+      sequence_num: 1,
+      stream_id: tenant.id,
+      version: 1,
+      type: "TenantOnboarded",
+      event_version: 2,
+      data: { tenant: toTenantV2(tenant) },
+      log_date: new Date(),
+    };
+    const detailsUpdatedV3: TenantEventEnvelopeV3 = {
+      sequence_num: 2,
+      stream_id: tenant.id,
+      version: 2,
+      type: "TenantOnboardDetailsUpdated",
+      event_version: 3,
+      data: { tenant: toTenantV3(tenant) },
+      log_date: new Date(),
+    };
+
+    const handleBothEvents = async (): Promise<void> => {
+      await handleMessageV2(
+        tenantOnboardedV2,
+        tenantKindHistoryWriterService,
+        genericLogger
+      );
+      await handleMessageV3(
+        detailsUpdatedV3,
+        tenantKindHistoryWriterService,
+        genericLogger
+      );
+    };
+
+    await handleBothEvents();
+    // Replay
+    await handleBothEvents();
+
+    const history = await getTenantKindHistory(tenant.id);
+    expect(history).toHaveLength(1);
+    expect(history[0]).toMatchObject({
+      tenantId: tenant.id,
+      kind: tenantKind.PA,
+      metadataVersion: 1,
+    });
+  });
 
   it("throws missingKafkaMessageDataError when the tenant is missing", async () => {
     const message: TenantEventEnvelopeV3 = {
