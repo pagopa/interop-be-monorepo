@@ -672,6 +672,13 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: delegationId
+          in: query
+          description: The ID of the producer Delegation
+          required: false
+          schema:
+            type: string
+            format: uuid
       responses:
         "200":
           description: Updated Tenant
@@ -1656,6 +1663,9 @@ components:
           type: string
           format: uuid
         agreementId:
+          type: string
+          format: uuid
+        delegationId:
           type: string
           format: uuid
         expirationDate:
