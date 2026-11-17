@@ -425,6 +425,58 @@ describe("Tenant V3 contact reference validation", () => {
     expect(String(error)).not.toContain(plainTextEmail);
     expect(JSON.stringify(error)).not.toContain(plainTextEmail);
   });
+
+  const nonOpaqueTenantContactIdCases = [
+    { description: "a plain-text email", value: plainTextEmail },
+    { description: "an empty string", value: "" },
+    { description: "a non-UUID identifier", value: "contact-1" },
+  ];
+
+  it.each(nonOpaqueTenantContactIdCases)(
+    "should refuse to convert to TenantV3 a tenant whose contactId is $description",
+    ({ value }) => {
+      // The ContactId brand can be bypassed: the converter must not rely on it.
+      const tenantWithPlainTextContact: Tenant = {
+        ...tenant,
+        contactId: unsafeBrandId<ContactId>(value),
+      };
+
+      expect(() => toTenantV3(tenantWithPlainTextContact)).toThrowError(
+        opaqueContactIdError
+      );
+    }
+  );
+
+  it.each(nonOpaqueTenantContactIdCases)(
+    "should refuse to convert from TenantV3 a tenant whose contactId is $description",
+    ({ value }) => {
+      // Encoded with the bare protobuf codec, i.e. without going through the
+      // V3 event serializer.
+      const protobuf = TenantV3.fromBinary(
+        TenantV3.toBinary({ ...tenantV3, contactId: value })
+      );
+
+      expect(() => fromTenantV3(protobuf)).toThrowError(opaqueContactIdError);
+    }
+  );
+
+  it("should not include the rejected contactId in the converter errors", () => {
+    const toV3Error = captureError(() =>
+      toTenantV3({
+        ...tenant,
+        contactId: unsafeBrandId<ContactId>(plainTextEmail),
+      })
+    );
+    const fromV3Error = captureError(() =>
+      fromTenantV3({ ...tenantV3, contactId: plainTextEmail })
+    );
+
+    [toV3Error, fromV3Error].forEach((error) => {
+      expect(error).toEqual(opaqueContactIdError);
+      expect(String(error)).not.toContain(plainTextEmail);
+      expect(JSON.stringify(error)).not.toContain(plainTextEmail);
+    });
+  });
 });
 
 describe("Tenant legacy events", () => {

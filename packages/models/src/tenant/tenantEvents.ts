@@ -1,8 +1,6 @@
 import { match } from "ts-pattern";
 import { z } from "zod";
 
-import { ContactId } from "../brandedIds.js";
-import { genericError } from "../errors.js";
 import { EventEnvelope } from "../events/events.js";
 import {
   TenantCreatedV1,
@@ -68,6 +66,7 @@ import {
   MaintenanceTenantRemoteIdDeletedV3,
 } from "../gen/v3/tenant/events.js";
 import { protobufDecoder } from "../protobuf/protobuf.js";
+import { assertOpaqueContactId } from "./tenantContact.js";
 
 export function tenantEventToBinaryData(event: TenantEvent): Uint8Array {
   return match(event)
@@ -183,21 +182,9 @@ export function tenantEventToBinaryDataV2(event: TenantEventV2): Uint8Array {
     .exhaustive();
 }
 
-/**
- * V3 events reference the tenant contact only through an opaque CDM
- * identifier: any other value (e.g. a plain-text email address) is rejected
- * before it reaches the event store. The rejected value is deliberately left
- * out of the error, so that it cannot leak into the logs.
- */
-function assertOpaqueContactId(contactId: string | undefined): void {
-  if (contactId !== undefined && !ContactId.safeParse(contactId).success) {
-    throw genericError(
-      "Tenant V3 event rejected: contactId is not an opaque contact identifier"
-    );
-  }
-}
-
 export function tenantEventToBinaryDataV3(event: TenantEventV3): Uint8Array {
+  // Last gate before the event store: event payloads can be built without
+  // toTenantV3, and the event-level contactId never goes through it.
   assertOpaqueContactId(event.data.tenant?.contactId);
 
   return match(event)
