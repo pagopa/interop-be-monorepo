@@ -3,7 +3,6 @@ import {
   TenantCertifiedAttributeSchema,
   TenantDeclaredAttributeSchema,
   TenantFeatureSchema,
-  TenantMailSchema,
   TenantVerifiedAttributeSchema,
   TenantVerifiedAttributeRevokerSchema,
   TenantVerifiedAttributeVerifierSchema,
@@ -32,7 +31,6 @@ export const TenantDbPartialTable = Object.fromEntries(
 
 export const TenantDbTableConfig = {
   tenant: TenantSchema,
-  tenant_mail: TenantMailSchema,
   tenant_certified_attribute: TenantCertifiedAttributeSchema,
   tenant_declared_attribute: TenantDeclaredAttributeSchema,
   tenant_verified_attribute: TenantVerifiedAttributeSchema,

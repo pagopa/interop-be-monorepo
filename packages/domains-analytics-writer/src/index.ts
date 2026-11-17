@@ -91,7 +91,6 @@ await retryConnection(
       DelegationDbTable.delegation_contract_document,
       DelegationDbTable.delegation_signed_contract_document,
       TenantDbTable.tenant,
-      TenantDbTable.tenant_mail,
       TenantDbTable.tenant_certified_attribute,
       TenantDbTable.tenant_declared_attribute,
       TenantDbTable.tenant_verified_attribute,
@@ -132,10 +131,6 @@ await retryConnection(
       {
         name: DeletingDbTable.tenant_deleting_table,
         columns: ["id"],
-      },
-      {
-        name: DeletingDbTable.tenant_mail_deleting_table,
-        columns: ["id", "tenantId"],
       },
       { name: DeletingDbTable.client_deleting_table, columns: ["id"] },
       {

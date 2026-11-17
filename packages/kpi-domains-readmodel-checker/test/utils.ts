@@ -184,7 +184,6 @@ export const addOneTenant = async (
   );
 
   await writeInKpi(TenantDbTable.tenant, [splitResult.tenantSQL]);
-  await writeInKpi(TenantDbTable.tenant_mail, splitResult.mailsSQL);
   await writeInKpi(
     TenantDbTable.tenant_certified_attribute,
     splitResult.certifiedAttributesSQL

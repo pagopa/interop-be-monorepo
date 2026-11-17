@@ -77,7 +77,6 @@ export async function handleTenantMessageV2(
           upsertTenantBatch.push(
             TenantItemsSchema.parse({
               tenantSQL: splitResult.tenantSQL,
-              mailsSQL: splitResult.mailsSQL,
               certifiedAttributesSQL: splitResult.certifiedAttributesSQL,
               declaredAttributesSQL: splitResult.declaredAttributesSQL,
               verifiedAttributesSQL: splitResult.verifiedAttributesSQL,

@@ -69,7 +69,6 @@ export * from "./purposeTemplate/purposeTemplateRiskAnalysisAnswerAnnotationDocu
 
 // Tenant models
 export * from "./tenant/tenant.js";
-export * from "./tenant/tenantMail.js";
 export * from "./tenant/tenantCertifiedAttribute.js";
 export * from "./tenant/tenantDeclaredAttribute.js";
 export * from "./tenant/tenantFeature.js";

@@ -105,7 +105,6 @@ export const tenantTables: TenantDbTable[] = [
   TenantDbTable.tenant_certified_attribute,
   TenantDbTable.tenant_declared_attribute,
   TenantDbTable.tenant_feature,
-  TenantDbTable.tenant_mail,
   TenantDbTable.tenant_verified_attribute,
   TenantDbTable.tenant_verified_attribute_revoker,
   TenantDbTable.tenant_verified_attribute_verifier,
@@ -160,7 +159,6 @@ export const deletingTables: DeletingDbTable[] = [
   DeletingDbTable.catalog_descriptor_interface_deleting_table,
   DeletingDbTable.purpose_deleting_table,
   DeletingDbTable.tenant_deleting_table,
-  DeletingDbTable.tenant_mail_deleting_table,
   DeletingDbTable.client_deleting_table,
   DeletingDbTable.client_purpose_deleting_table,
   DeletingDbTable.client_user_deleting_table,
@@ -196,10 +194,6 @@ export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
   {
     name: DeletingDbTable.tenant_deleting_table,
     columns: ["id"],
-  },
-  {
-    name: DeletingDbTable.tenant_mail_deleting_table,
-    columns: ["id", "tenantId"],
   },
   { name: DeletingDbTable.client_deleting_table, columns: ["id"] },
   {

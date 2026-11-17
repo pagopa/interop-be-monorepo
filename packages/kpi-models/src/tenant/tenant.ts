@@ -6,7 +6,6 @@ import { TenantCertifiedAttributeSchema } from "./tenantCertifiedAttribute.js";
 import { TenantCertifiedDiscreteAttributeSchema } from "./tenantCertifiedDiscreteAttribute.js";
 import { TenantDeclaredAttributeSchema } from "./tenantDeclaredAttribute.js";
 import { TenantFeatureSchema } from "./tenantFeature.js";
-import { TenantMailSchema } from "./tenantMail.js";
 import { TenantRemoteIdSchema } from "./tenantRemoteId.js";
 import { TenantVerifiedAttributeSchema } from "./tenantVerifiedAttribute.js";
 import { TenantVerifiedAttributeRevokerSchema } from "./tenantVerifiedAttributeRevoker.js";
@@ -19,7 +18,6 @@ export type TenantSchema = z.infer<typeof TenantSchema>;
 
 export const TenantItemsSchema = z.object({
   tenantSQL: TenantSchema,
-  mailsSQL: z.array(TenantMailSchema),
   certifiedAttributesSQL: z.array(TenantCertifiedAttributeSchema),
   declaredAttributesSQL: z.array(TenantDeclaredAttributeSchema),
   verifiedAttributesSQL: z.array(TenantVerifiedAttributeSchema),
