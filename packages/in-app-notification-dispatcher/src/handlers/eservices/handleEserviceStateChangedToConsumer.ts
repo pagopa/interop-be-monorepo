@@ -15,6 +15,7 @@ import {
   getNotificationRecipients,
   retrieveLatestDescriptor,
   retrieveTenant,
+  isDescriptorVisibleToConsumers,
 } from "pagopa-interop-notification-commons";
 import { match, P } from "ts-pattern";
 
@@ -62,6 +63,40 @@ export async function handleEserviceStateChangedToConsumer(
   );
 
   const eservice = fromEServiceV2(eserviceV2Msg.data.eservice);
+  const descriptorIdFromEventForGuard = match(eserviceV2Msg)
+    .with(
+      {
+        type: P.union(
+          "EServiceDescriptorAttributesUpdated",
+          "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
+          "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
+          "EServiceDescriptorQuotasUpdated",
+          "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
+          "EServiceDescriptorDocumentAdded",
+          "EServiceDescriptorDocumentUpdated",
+          "EServiceDescriptorDocumentAddedByTemplateUpdate",
+          "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
+          "EServiceDescriptorPublished",
+          "EServiceDescriptorSuspended",
+          "EServiceDescriptorActivated",
+          "EServiceDescriptorArchivingScheduled",
+          "EServiceDescriptorArchivingCanceled",
+          "EServiceDescriptorArchivingCompleted"
+        ),
+      },
+      ({ data: { descriptorId } }) => descriptorId
+    )
+    .otherwise(() => undefined);
+
+  if (
+    descriptorIdFromEventForGuard &&
+    !isDescriptorVisibleToConsumers(eservice, descriptorIdFromEventForGuard)
+  ) {
+    logger.info(
+      `Skipping consumer in-app notification for draft or waiting descriptor ${descriptorIdFromEventForGuard} of EService ${eservice.id}`
+    );
+    return [];
+  }
 
   const producer = await retrieveTenant(eservice.producerId, readModelService);
 

@@ -20,6 +20,7 @@ import {
   retrieveLatestDescriptor,
   retrieveTenant,
   descriptorNotFound,
+  isDescriptorVisibleToConsumers,
 } from "pagopa-interop-notification-commons";
 import { match, P } from "ts-pattern";
 
@@ -65,6 +66,32 @@ export async function handleEserviceStateChanged(
   }
 
   const eservice = fromEServiceV2(eserviceV2Msg);
+  const descriptorIdFromEventForGuard = match(params.payload)
+    .with(
+      {
+        type: P.union(
+          "EServiceDescriptorQuotasUpdated",
+          "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
+          "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
+          "EServiceDescriptorDocumentAdded",
+          "EServiceDescriptorDocumentUpdated",
+          "EServiceDescriptorDocumentAddedByTemplateUpdate",
+          "EServiceDescriptorDocumentUpdatedByTemplateUpdate"
+        ),
+      },
+      ({ data: { descriptorId } }) => descriptorId
+    )
+    .otherwise(() => undefined);
+
+  if (
+    descriptorIdFromEventForGuard &&
+    !isDescriptorVisibleToConsumers(eservice, descriptorIdFromEventForGuard)
+  ) {
+    logger.info(
+      `Skipping consumer notification for draft or waiting descriptor ${descriptorIdFromEventForGuard} of EService ${eservice.id}`
+    );
+    return [];
+  }
 
   const [htmlTemplate, agreements, producer] = await Promise.all([
     retrieveHTMLTemplate(
