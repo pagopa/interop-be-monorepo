@@ -181,7 +181,7 @@ export function eserviceServiceBuilder(
       })),
     ];
 
-    const newAttributes = {
+    const newAttributes: catalogApi.Attributes = {
       ...descriptor.attributes,
       [attributeKind]: newKindAttributeGroups,
     };
@@ -338,11 +338,13 @@ export function eserviceServiceBuilder(
       updatedAttributeGroup,
       ...kindAttributeGroups.slice(groupIndex + 1),
     ];
-    const configOptions = {
+    const configOptions: Parameters<
+      typeof clients.catalogProcessClient.updateDescriptorAttributes
+    >[1] = {
       params: { eServiceId: eserviceId, descriptorId },
       headers,
     };
-    const updatedAttributes = {
+    const updatedAttributes: catalogApi.Attributes = {
       ...descriptor.attributes,
       [attributeKind]: updatedGroups,
     };

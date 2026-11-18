@@ -1,4 +1,4 @@
-import { purposeTemplateApi } from "pagopa-interop-api-clients";
+import { m2mGatewayApi, purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
   getMockedApiEServiceDescriptorPurposeTemplate,
   getMockedApiPurposeTemplate,
@@ -27,7 +27,7 @@ import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 describe("addPurposeTemplateEService", () => {
   const eserviceId1 = generateId<EServiceId>();
   const mockPurposeTemplate = getMockedApiPurposeTemplate();
-  const mockEserviceIdsBody = {
+  const mockEserviceIdsBody: m2mGatewayApi.PurposeTemplateLinkEService = {
     eserviceId: eserviceId1,
   };
 

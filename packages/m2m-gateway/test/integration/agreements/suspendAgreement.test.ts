@@ -31,7 +31,9 @@ describe("suspendAgreement", () => {
       state: agreementApi.AgreementState.Values.PENDING,
     })
   );
-  const mockDelegationRef = { delegationId: generateId() };
+  const mockDelegationRef: m2mGatewayApi.DelegationRef = {
+    delegationId: generateId(),
+  };
 
   const mockSuspendAgreement = vi
     .fn()

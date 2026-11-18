@@ -10,6 +10,7 @@ import {
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import {
+  WithMetadata,
   generateId,
   pollingMaxRetriesExceeded,
   unsafeBrandId,
@@ -256,7 +257,8 @@ describe("createEServiceDescriptorVerifiedAttributesGroup", () => {
     mockGetEServiceById.mockReset();
     mockGetEServiceById.mockResolvedValueOnce(getMockWithMetadata(eservice));
     mockPatchUpdateDescriptor.mockResolvedValueOnce(metadataUpdatedEservice);
-    const nonFinalStateEservice = {
+    const nonFinalStateEservice: WithMetadata<catalogApi.EService> &
+      Pick<catalogApi.EService, "descriptors"> = {
       ...metadataUpdatedEservice,
       descriptors: [
         {

@@ -111,7 +111,9 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/verifiedAttribut
 
   it("Should return 400 if passed invalid attribute IDs", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const invalidBody = { attributeIds: ["not-a-uuid", "also-invalid"] };
+    const invalidBody: m2mGatewayApi.EServiceDescriptorAttributesGroupSeed = {
+      attributeIds: ["not-a-uuid", "also-invalid"],
+    };
     const res = await makeRequest(
       token,
       mockEService.id,

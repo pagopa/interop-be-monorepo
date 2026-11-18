@@ -11,6 +11,7 @@ import {
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import {
+  WithMetadata,
   generateId,
   pollingMaxRetriesExceeded,
   unsafeBrandId,
@@ -276,7 +277,9 @@ describe("createEServiceTemplateVersionVerifiedAttributesGroup", () => {
     mockPatchUpdateDraftTemplateVersion.mockResolvedValueOnce(
       metadataUpdatedEserviceTemplate
     );
-    const nonFinalStateEservice = {
+    const nonFinalStateEservice: WithMetadata<eserviceTemplateApi.EServiceTemplate> & {
+      descriptors: eserviceTemplateApi.EServiceTemplateVersion[];
+    } = {
       ...metadataUpdatedEserviceTemplate,
       descriptors: [
         {

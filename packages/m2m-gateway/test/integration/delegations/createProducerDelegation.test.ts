@@ -3,7 +3,11 @@ import {
   getMockedApiDelegation,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
+import {
+  WithMetadata,
+  generateId,
+  pollingMaxRetriesExceeded,
+} from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
@@ -97,7 +101,7 @@ describe("createProducerDelegation", () => {
   });
 
   it("Should throw unexpectedDelegationKind in case the returned delegation has an unexpected kind", async () => {
-    const mockResponse = {
+    const mockResponse: WithMetadata<delegationApi.Delegation> = {
       ...mockDelegationProcessResponse,
       data: {
         ...mockDelegationProcessResponse.data,

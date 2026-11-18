@@ -34,6 +34,8 @@ describe("replacePurposeTemplateRiskAnalysis", () => {
     tenantKind.PA
   );
 
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const mockRiskAnalysisFormTemplate = {
     version: mockValiRiskAnalysisFormTemplate.version,
     answers: {
@@ -56,7 +58,7 @@ describe("replacePurposeTemplateRiskAnalysis", () => {
     },
   };
 
-  const newAnswer = {
+  const newAnswer: m2mGatewayApi.RiskAnalysisFormTemplateSeed["answers"] = {
     purpose: {
       editable: false,
       values: ["New value"],

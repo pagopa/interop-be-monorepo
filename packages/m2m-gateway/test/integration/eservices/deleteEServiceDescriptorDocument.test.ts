@@ -1,3 +1,4 @@
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   getMockWithMetadata,
   getMockedApiEservice,
@@ -24,7 +25,10 @@ import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("deleteEServiceDescriptorDocument", () => {
   const mockDocument = getMockedApiEserviceDoc();
-  const mockDescriptor = { ...getMockedApiEserviceDescriptor(), docs: [] };
+  const mockDescriptor: catalogApi.EServiceDescriptor = {
+    ...getMockedApiEserviceDescriptor(),
+    docs: [],
+  };
   const mockEService = getMockedApiEservice({
     descriptors: [mockDescriptor],
   });

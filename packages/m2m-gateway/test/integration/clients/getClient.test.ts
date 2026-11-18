@@ -4,7 +4,7 @@ import {
   getMockedApiConsumerPartialClient,
   getMockedApiConsumerFullClient,
 } from "pagopa-interop-commons-test";
-import { unsafeBrandId } from "pagopa-interop-models";
+import { WithMetadata, unsafeBrandId } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
@@ -86,7 +86,7 @@ describe("getClient", () => {
   });
 
   it("Should throw clientNotFound in case the returned client is not an E-Service Client", async () => {
-    const mockResponse = {
+    const mockResponse: WithMetadata<authorizationApi.PartialClient> = {
       ...mockPartialClientFromProcess,
       data: {
         ...mockPartialClientFromProcess.data,
@@ -103,7 +103,7 @@ describe("getClient", () => {
       )
     ).rejects.toThrowError(clientNotFound(mockResponse.data));
 
-    const mockResponsFull = {
+    const mockResponsFull: WithMetadata<authorizationApi.FullClient> = {
       ...mockFullClientFromProcess,
       data: {
         ...mockFullClientFromProcess.data,

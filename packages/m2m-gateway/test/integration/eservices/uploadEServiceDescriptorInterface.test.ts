@@ -209,7 +209,7 @@ servers:
       }
     );
 
-    const invalidFileUpload = {
+    const invalidFileUpload: m2mGatewayApi.FileUploadMultipart = {
       file: invalidFile,
       prettyName: mockFileUpload.prettyName,
     };

@@ -1,3 +1,4 @@
+import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
   getMockedApiEServiceDescriptorPurposeTemplate,
   getMockedApiPurposeTemplate,
@@ -26,11 +27,12 @@ describe("removePurposeTemplateEService", () => {
   const eserviceId1 = generateId<EServiceId>();
   const mockPurposeTemplate = getMockedApiPurposeTemplate();
 
-  const mockApiEServiceDescriptorPurposeTemplate1 = {
-    ...getMockedApiEServiceDescriptorPurposeTemplate(),
-    eserviceId: eserviceId1,
-    purposeTemplateId: mockPurposeTemplate.id,
-  };
+  const mockApiEServiceDescriptorPurposeTemplate1: purposeTemplateApi.EServiceDescriptorPurposeTemplate =
+    {
+      ...getMockedApiEServiceDescriptorPurposeTemplate(),
+      eserviceId: eserviceId1,
+      purposeTemplateId: mockPurposeTemplate.id,
+    };
 
   const mockVersion = 2;
   const mockUnlinkEServicesFromPurposeTemplateResponse = getMockWithMetadata(

@@ -5,6 +5,7 @@ import {
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import {
+  WithMetadata,
   pollingMaxRetriesExceeded,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -106,10 +107,11 @@ describe("unsuspendEServiceTemplateVersion", () => {
       versions: [],
     };
 
-    const templateWithoutVersionResponse = {
-      data: templateWithoutVersion,
-      metadata: { version: 1 },
-    };
+    const templateWithoutVersionResponse: WithMetadata<eserviceTemplateApi.EServiceTemplate> =
+      {
+        data: templateWithoutVersion,
+        metadata: { version: 1 },
+      };
 
     mockActivateTemplateVersion.mockResolvedValue(
       templateWithoutVersionResponse

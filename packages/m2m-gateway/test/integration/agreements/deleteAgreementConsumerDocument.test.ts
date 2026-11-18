@@ -4,6 +4,7 @@ import {
   getMockedApiAgreementDocument,
 } from "pagopa-interop-commons-test";
 import {
+  WithMetadata,
   pollingMaxRetriesExceeded,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -26,7 +27,9 @@ describe("deleteAgreementConsumerDocument", () => {
   const mockAgreement = getMockedApiAgreement({
     consumerDocuments: [mockDocument],
   });
-  const mockRemoveResponse = { metadata: { version: 2 } };
+  const mockRemoveResponse: Pick<WithMetadata<void>, "metadata"> = {
+    metadata: { version: 2 },
+  };
   const mockGetAgreementResponse = getMockWithMetadata(mockAgreement, 2);
 
   const mockDeleteAgreementConsumerDocument = vi

@@ -1,4 +1,4 @@
-import { eserviceTemplateApi } from "pagopa-interop-api-clients";
+import { m2mGatewayApi, eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   getMockedApiEServiceTemplate,
   getMockedApiEserviceTemplateVersion,
@@ -71,7 +71,7 @@ describe("updateDraftEserviceTemplateVersion", () => {
         getMockM2MAdminAppContext()
       );
 
-    const expectedM2MTemplateVersion = {
+    const expectedM2MTemplateVersion: m2mGatewayApi.EServiceTemplateVersion = {
       id: mockTemplateVersion.id,
       state: mockTemplateVersion.state,
       version: mockTemplateVersion.version,

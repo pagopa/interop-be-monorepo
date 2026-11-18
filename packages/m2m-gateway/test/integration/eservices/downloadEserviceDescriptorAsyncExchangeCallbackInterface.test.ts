@@ -1,3 +1,4 @@
+import { catalogApi } from "pagopa-interop-api-clients";
 import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockedApiEservice,
@@ -14,6 +15,7 @@ import {
   eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound,
   eserviceDescriptorNotFound,
 } from "../../../src/model/errors.js";
+import { DownloadedDocument } from "../../../src/utils/fileDownload.js";
 import {
   eserviceService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -38,7 +40,7 @@ describe("downloadEServiceDescriptorAsyncExchangeCallbackInterface", () => {
     interfaceDoc: getMockedApiEserviceDoc(),
   });
   // Add asyncExchangeCallbackInterface to the descriptor
-  const descriptorWithCallbackInterface = {
+  const descriptorWithCallbackInterface: catalogApi.EServiceDescriptor = {
     ...mockCatalogProcessResponseDescriptor,
     asyncExchangeCallbackInterface: mockCallbackInterface,
   };
@@ -89,7 +91,7 @@ describe("downloadEServiceDescriptorAsyncExchangeCallbackInterface", () => {
         getMockM2MAdminAppContext()
       );
 
-    const expectedServiceResponse = {
+    const expectedServiceResponse: DownloadedDocument = {
       id: mockCallbackInterface.id,
       file: new File(
         [Buffer.from(testFileContent)],

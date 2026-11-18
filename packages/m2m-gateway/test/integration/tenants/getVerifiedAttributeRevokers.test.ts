@@ -19,7 +19,7 @@ describe("getTenantVerifiedAttributeRevokers", () => {
   const revoker2Id = generateId();
 
   // Mock response from tenant-process API
-  const mockTenantProcessResponse = {
+  const mockTenantProcessResponse: tenantApi.TenantRevokers = {
     results: [
       getMockedApiVerifiedTenantAttributeRevoker(revoker1Id),
       {

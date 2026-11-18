@@ -31,7 +31,7 @@ describe("POST /purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocum
 
   const answerId = generateId();
 
-  const mockFileUpload = {
+  const mockFileUpload: TestMultipartFileAnnotationDocumentUpload = {
     fileContent: Buffer.from("test content"),
     filename: "test_document.pdf",
     contentType: "application/pdf",
@@ -41,9 +41,9 @@ describe("POST /purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocum
 
   const mockM2MAnswerAnnotationDocumentResponse: m2mGatewayApi.Document = {
     id: generateId(),
-    prettyName: mockFileUpload.prettyName,
+    prettyName: mockFileUpload.prettyName!,
     name: mockFileUpload.filename,
-    contentType: mockFileUpload.contentType,
+    contentType: mockFileUpload.contentType!,
     createdAt: mockDate.toISOString(),
   };
 

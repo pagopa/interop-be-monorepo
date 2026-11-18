@@ -206,7 +206,7 @@ export function eserviceTemplateServiceBuilder(
         explicitAttributeVerification: false,
       })),
     ];
-    const newAttributes = {
+    const newAttributes: eserviceTemplateApi.Attributes = {
       ...version.attributes,
       [attributeKind]: newKindAttributeGroups,
     };
@@ -355,11 +355,13 @@ export function eserviceTemplateServiceBuilder(
       updatedAttributeGroup,
       ...kindAttributeGroups.slice(groupIndex + 1),
     ];
-    const configOptions = {
+    const configOptions: Parameters<
+      typeof clients.eserviceTemplateProcessClient.updateTemplateVersionAttributes
+    >[1] = {
       params: { templateId, templateVersionId: versionId },
       headers,
     };
-    const updatedAttributes = {
+    const updatedAttributes: eserviceTemplateApi.Attributes = {
       ...version.attributes,
       [attributeKind]: updatedGroups,
     };

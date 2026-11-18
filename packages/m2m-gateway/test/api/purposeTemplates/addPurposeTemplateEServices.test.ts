@@ -26,7 +26,7 @@ describe("POST /purposeTemplates/:purposeTemplateId/eservices route test", () =>
     vi.useRealTimers();
   });
 
-  const mockRequestBody = {
+  const mockRequestBody: m2mGatewayApi.PurposeTemplateLinkEService = {
     eserviceId: generateId<EServiceId>(),
   };
 

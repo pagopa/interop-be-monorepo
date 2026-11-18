@@ -1,4 +1,4 @@
-import { eserviceTemplateApi } from "pagopa-interop-api-clients";
+import { eserviceTemplateApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
   getMockWithMetadata,
   getMockedApiEServiceAttribute,
@@ -85,7 +85,7 @@ describe("assignEServiceTemplateVersionVerifiedAttributesToGroup", () => {
         mockPollingResponse(mockGetEServiceTemplateResponse, 2)
       );
 
-      const seed = {
+      const seed: m2mGatewayApi.EServiceTemplateVersionAttributesGroupSeed = {
         attributeIds: [mockNewAttribute1.id, mockNewAttribute2.id],
       };
 
@@ -145,7 +145,7 @@ describe("assignEServiceTemplateVersionVerifiedAttributesToGroup", () => {
       metadata: undefined,
     });
 
-    const seed = {
+    const seed: m2mGatewayApi.EServiceTemplateVersionAttributesGroupSeed = {
       attributeIds: [mockNewAttribute1.id],
     };
 
@@ -169,7 +169,7 @@ describe("assignEServiceTemplateVersionVerifiedAttributesToGroup", () => {
       metadata: undefined,
     });
 
-    const seed = {
+    const seed: m2mGatewayApi.EServiceTemplateVersionAttributesGroupSeed = {
       attributeIds: [mockNewAttribute1.id],
     };
 
@@ -195,7 +195,7 @@ describe("assignEServiceTemplateVersionVerifiedAttributesToGroup", () => {
       )
     );
 
-    const seed = {
+    const seed: m2mGatewayApi.EServiceTemplateVersionAttributesGroupSeed = {
       attributeIds: [mockNewAttribute1.id],
     };
 
@@ -223,7 +223,7 @@ describe("assignEServiceTemplateVersionVerifiedAttributesToGroup", () => {
       mockGetEServiceTemplateResponse
     );
 
-    const seed = {
+    const seed: m2mGatewayApi.EServiceTemplateVersionAttributesGroupSeed = {
       attributeIds: [mockNewAttribute1.id],
     };
 
@@ -251,7 +251,7 @@ describe("assignEServiceTemplateVersionVerifiedAttributesToGroup", () => {
     );
 
     const versionId = generateId();
-    const seed = {
+    const seed: m2mGatewayApi.EServiceTemplateVersionAttributesGroupSeed = {
       attributeIds: [mockNewAttribute1.id],
     };
 

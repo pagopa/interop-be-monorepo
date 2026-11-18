@@ -1,3 +1,4 @@
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   getMockWithMetadata,
   getMockedApiEserviceTemplateVersion,
@@ -24,7 +25,10 @@ import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("deleteEServiceTemplateVersionDocument", () => {
   const mockDocument = getMockedApiEserviceDoc();
-  const mockVersion = { ...getMockedApiEserviceTemplateVersion(), docs: [] };
+  const mockVersion: eserviceTemplateApi.EServiceTemplateVersion = {
+    ...getMockedApiEserviceTemplateVersion(),
+    docs: [],
+  };
   const mockEServiceTemplate = getMockedApiEServiceTemplate({
     versions: [mockVersion],
   });

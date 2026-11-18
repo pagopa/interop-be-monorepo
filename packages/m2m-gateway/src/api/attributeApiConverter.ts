@@ -56,7 +56,7 @@ function convertAttribute(
   try {
     assertAttributeKindIs(attribute, attributeKind);
 
-    const baseFields = {
+    const baseFields: m2mGatewayApi.DeclaredAttribute = {
       id: attribute.id,
       description: attribute.description,
       name: attribute.name,

@@ -1,4 +1,4 @@
-import { purposeApi } from "pagopa-interop-api-clients";
+import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
 import {
   getMockedApiPurpose,
   getMockedApiPurposeVersion,
@@ -43,7 +43,9 @@ describe("approvePurposeVersion", () => {
       versions: [mockApiPurposeVersion1, mockApiPurposeVersion2],
     })
   );
-  const mockDelegationRef = { delegationId: generateId() };
+  const mockDelegationRef: m2mGatewayApi.DelegationRef = {
+    delegationId: generateId(),
+  };
 
   const activatePurposeApiResponse: WithMetadata<purposeApi.PurposeVersion> = {
     data: mockApiPurposeVersion1,

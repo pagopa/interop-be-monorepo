@@ -34,7 +34,9 @@ describe("unsuspendAgreement", () => {
       state: agreementApi.AgreementState.Values.SUSPENDED,
     })
   );
-  const mockDelegationRef = { delegationId: generateId() };
+  const mockDelegationRef: m2mGatewayApi.DelegationRef = {
+    delegationId: generateId(),
+  };
 
   const pollingTentatives = 2;
   const mockUnsuspendAgreement = vi

@@ -6,6 +6,7 @@ import {
   getMockedApiAttribute,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
+import { WithMetadata } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
@@ -59,7 +60,7 @@ describe("getCertifiedAttribute", () => {
   });
 
   it("Should throw attributeNotFound in case the returned attribute has an unexpected kind", async () => {
-    const mockResponse = {
+    const mockResponse: WithMetadata<attributeRegistryApi.Attribute> = {
       ...mockAttributeProcessResponse,
       data: {
         ...mockAttributeProcessResponse.data,
@@ -85,7 +86,7 @@ describe("getCertifiedAttribute", () => {
   ])(
     "Should throw attributeNotFound in case the returned attribute has an undefined origin or code",
     async ({ origin, code }) => {
-      const mockResponse = {
+      const mockResponse: WithMetadata<attributeRegistryApi.Attribute> = {
         ...mockAttributeProcessResponse,
         data: {
           ...mockAttributeProcessResponse.data,

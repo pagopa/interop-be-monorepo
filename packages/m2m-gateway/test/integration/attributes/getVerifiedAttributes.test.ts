@@ -66,7 +66,7 @@ describe("getVerifiedAttributes integration", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    const expectedResponse = {
+    const expectedResponse: m2mGatewayApi.VerifiedAttributes = {
       pagination: {
         limit: 10,
         offset: 0,
@@ -107,7 +107,7 @@ describe("getVerifiedAttributes integration", () => {
     mockInteropBeClients.attributeProcessClient.getAttributes =
       mockGetAttributes.mockResolvedValueOnce(mockPaginatedResponse1);
 
-    const expected1 = {
+    const expected1: m2mGatewayApi.VerifiedAttributes = {
       pagination: {
         offset: 0,
         limit: 2,
@@ -142,7 +142,7 @@ describe("getVerifiedAttributes integration", () => {
     mockInteropBeClients.attributeProcessClient.getAttributes =
       mockGetAttributes.mockResolvedValueOnce(mockPaginatedResponse2);
 
-    const expected2 = {
+    const expected2: m2mGatewayApi.VerifiedAttributes = {
       pagination: {
         offset: 2,
         limit: 2,
@@ -179,7 +179,7 @@ describe("getVerifiedAttributes integration", () => {
     mockInteropBeClients.attributeProcessClient.getAttributes =
       mockGetAttributes.mockResolvedValueOnce(mockEmptyResponse);
 
-    const expectedEmpty = {
+    const expectedEmpty: m2mGatewayApi.VerifiedAttributes = {
       pagination: {
         offset: 0,
         limit: 10,

@@ -192,7 +192,7 @@ describe("createReversePurpose", () => {
 
   it(`Should throw delegationEServiceMismatch if the specified delegation
     is not a delegation for the purpose e-service`, async () => {
-    const mockDelegation = {
+    const mockDelegation: delegationApi.Delegation = {
       ...mockConsumerDelegation,
       eserviceId: generateId(),
     };

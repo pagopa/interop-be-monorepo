@@ -163,11 +163,11 @@ describe("getClients", () => {
   });
 
   it("Should throw unexpectedClientKind in case the returned client has an unexpected kind", async () => {
-    const mockBadClientPartial = {
+    const mockBadClientPartial: authorizationApi.PartialClient = {
       ...mockPartialClient1,
       kind: authorizationApi.ClientKind.Values.API,
     };
-    const mockResponsePartial = {
+    const mockResponsePartial: WithMaybeMetadata<authorizationApi.Clients> = {
       ...mockPartialClientsResponse,
       data: {
         ...mockPartialClientsResponse.data,
@@ -185,11 +185,11 @@ describe("getClients", () => {
       clientService.getClients(mockParams, getMockM2MAdminAppContext())
     ).rejects.toThrowError(unexpectedClientKind(mockBadClientPartial));
 
-    const mockBadClientFull = {
+    const mockBadClientFull: authorizationApi.FullClient = {
       ...mockFullClient1,
       kind: authorizationApi.ClientKind.Values.API,
     };
-    const mockResponseFull = {
+    const mockResponseFull: WithMaybeMetadata<authorizationApi.Clients> = {
       ...mockFullClientsResponse,
       data: {
         ...mockFullClientsResponse.data,

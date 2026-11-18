@@ -1,3 +1,4 @@
+import { purposeApi } from "pagopa-interop-api-clients";
 import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockedApiPurpose,
@@ -18,6 +19,7 @@ import {
   purposeVersionDocumentNotReady,
   purposeVersionNotFound,
 } from "../../../src/model/errors.js";
+import { DownloadedDocument } from "../../../src/utils/fileDownload.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   fileManager,
@@ -35,7 +37,7 @@ On multiple lines.`;
   const mockFileName = "riskAnalysis.txt";
 
   const mockRiskAnalysisId = generateId();
-  const mockPurposeVersionDocument = {
+  const mockPurposeVersionDocument: purposeApi.PurposeVersionDocument = {
     id: mockRiskAnalysisId,
     contentType: "text/plain",
     path: `${config.riskAnalysisDocumentsPath}/${mockRiskAnalysisId}/${mockFileName}`,
@@ -90,7 +92,7 @@ On multiple lines.`;
         getMockM2MAdminAppContext()
       );
 
-    const expectedServiceResponse = {
+    const expectedServiceResponse: DownloadedDocument = {
       id: mockRiskAnalysisId,
       file: new File([Buffer.from(testFileContent)], mockFileName, {
         type: mockPurposeVersionDocument.contentType,

@@ -1,5 +1,5 @@
 import { generateMock } from "@anatine/zod-mock";
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { purposeApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
   getMockedApiPurpose,
   getMockWithMetadata,
@@ -32,7 +32,7 @@ import {
 
 describe("updateDraftPurpose", () => {
   const mockPurposeWithTemplate = getMockedApiPurpose();
-  const mockPurpose = {
+  const mockPurpose: purposeApi.Purpose = {
     ...mockPurposeWithTemplate,
     purposeTemplateId: undefined,
   };

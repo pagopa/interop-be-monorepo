@@ -1,4 +1,4 @@
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { purposeApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
   getMockWithMetadata,
   getMockedApiConsumerFullClient,
@@ -30,7 +30,7 @@ describe("getClientPurposes", () => {
 
   const mockApiPurpose1 = getMockedApiPurpose();
   const mockApiPurpose2 = getMockedApiPurpose();
-  const mockApiPurpose3 = {
+  const mockApiPurpose3: purposeApi.Purpose = {
     ...getMockedApiPurpose({
       versions: [
         getMockedApiPurposeVersion({

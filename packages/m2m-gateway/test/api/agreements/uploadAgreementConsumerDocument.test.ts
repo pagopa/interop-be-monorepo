@@ -25,7 +25,7 @@ describe("POST /agreements/:agreementId/consumerDocuments router test", () => {
     vi.useRealTimers();
   });
 
-  const mockFileUpload = {
+  const mockFileUpload: TestMultipartFileUpload = {
     fileContent: Buffer.from("test content"),
     filename: "test_document.pdf",
     contentType: "application/pdf",
@@ -34,9 +34,9 @@ describe("POST /agreements/:agreementId/consumerDocuments router test", () => {
 
   const mockM2MAgreementDocumentResponse: m2mGatewayApi.Document = {
     id: generateId(),
-    prettyName: mockFileUpload.prettyName,
+    prettyName: mockFileUpload.prettyName!,
     name: mockFileUpload.filename,
-    contentType: mockFileUpload.contentType,
+    contentType: mockFileUpload.contentType!,
     createdAt: mockDate.toISOString(),
   };
 

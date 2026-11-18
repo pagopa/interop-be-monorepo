@@ -33,7 +33,10 @@ describe("getAgreements", () => {
     limit: 10,
   };
 
-  const mockApiAgreement1 = { ...getMockedApiAgreement(), stamps: {} };
+  const mockApiAgreement1: agreementApi.Agreement = {
+    ...getMockedApiAgreement(),
+    stamps: {},
+  };
   const mockApiAgreement2 = getMockedApiAgreement();
 
   const mockApiAgreements = [mockApiAgreement1, mockApiAgreement2];

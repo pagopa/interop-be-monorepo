@@ -14,6 +14,7 @@ import {
   eserviceDescriptorInterfaceNotFound,
   eserviceDescriptorNotFound,
 } from "../../../src/model/errors.js";
+import { DownloadedDocument } from "../../../src/utils/fileDownload.js";
 import {
   eserviceService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -84,7 +85,7 @@ describe("downloadEServiceDescriptorInterface", () => {
       getMockM2MAdminAppContext()
     );
 
-    const expectedServiceResponse = {
+    const expectedServiceResponse: DownloadedDocument = {
       id: mockInterface.id,
       file: new File([Buffer.from(testFileContent)], mockInterface.name, {
         type: mockInterface.contentType,

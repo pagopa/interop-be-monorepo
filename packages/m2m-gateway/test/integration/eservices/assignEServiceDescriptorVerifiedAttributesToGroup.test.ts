@@ -1,4 +1,4 @@
-import { catalogApi } from "pagopa-interop-api-clients";
+import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
   getMockWithMetadata,
   getMockedApiEServiceAttribute,
@@ -78,7 +78,7 @@ describe("assignEServiceDescriptorVerifiedAttributesToGroup", () => {
         mockPollingResponse(mockGetEServiceResponse, 2)
       );
 
-      const seed = {
+      const seed: m2mGatewayApi.EServiceDescriptorAttributesGroupSeed = {
         attributeIds: [mockNewAttribute1.id, mockNewAttribute2.id],
       };
 
@@ -133,7 +133,7 @@ describe("assignEServiceDescriptorVerifiedAttributesToGroup", () => {
       metadata: undefined,
     });
 
-    const seed = {
+    const seed: m2mGatewayApi.EServiceDescriptorAttributesGroupSeed = {
       attributeIds: [mockNewAttribute1.id],
     };
 
@@ -155,7 +155,7 @@ describe("assignEServiceDescriptorVerifiedAttributesToGroup", () => {
       metadata: undefined,
     });
 
-    const seed = {
+    const seed: m2mGatewayApi.EServiceDescriptorAttributesGroupSeed = {
       attributeIds: [mockNewAttribute1.id],
     };
 
@@ -179,7 +179,7 @@ describe("assignEServiceDescriptorVerifiedAttributesToGroup", () => {
       )
     );
 
-    const seed = {
+    const seed: m2mGatewayApi.EServiceDescriptorAttributesGroupSeed = {
       attributeIds: [mockNewAttribute1.id],
     };
 
@@ -205,7 +205,7 @@ describe("assignEServiceDescriptorVerifiedAttributesToGroup", () => {
   it("Should throw eserviceDescriptorAttributeGroupNotFound in case of missing group for the specified group index", async () => {
     mockGetEService.mockResolvedValueOnce(mockGetEServiceResponse);
 
-    const seed = {
+    const seed: m2mGatewayApi.EServiceDescriptorAttributesGroupSeed = {
       attributeIds: [mockNewAttribute1.id],
     };
 
@@ -231,7 +231,7 @@ describe("assignEServiceDescriptorVerifiedAttributesToGroup", () => {
     mockGetEService.mockResolvedValueOnce(mockGetEServiceResponse);
 
     const descriptorId = generateId();
-    const seed = {
+    const seed: m2mGatewayApi.EServiceDescriptorAttributesGroupSeed = {
       attributeIds: [mockNewAttribute1.id],
     };
 

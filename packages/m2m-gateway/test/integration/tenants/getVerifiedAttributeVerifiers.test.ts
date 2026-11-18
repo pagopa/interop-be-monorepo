@@ -15,7 +15,7 @@ describe("getTenantVerifiedAttributeVerifiers", () => {
   const verifier2Id = generateId();
 
   // Mock response from tenant-process API
-  const mockTenantProcessResponse = {
+  const mockTenantProcessResponse: tenantApi.TenantVerifiers = {
     results: [
       getMockedApiVerifiedTenantAttributeVerifier(verifier1Id),
       {

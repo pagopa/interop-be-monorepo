@@ -12,6 +12,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
+import { DownloadedDocument } from "../../../src/utils/fileDownload.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   fileManager,
@@ -79,7 +80,7 @@ describe("downloadRiskAnalysisTemplateAnswerAnnotationDocument", () => {
         getMockM2MAdminAppContext()
       );
 
-    const expectedServiceResponse = {
+    const expectedServiceResponse: DownloadedDocument = {
       id: mockDocument.id,
       file: new File([Buffer.from(testFileContent)], mockDocument.name, {
         type: mockDocument.contentType,
