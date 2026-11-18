@@ -16191,6 +16191,13 @@ paths:
           schema:
             type: string
             format: uuid
+        - in: query
+          required: false
+          name: delegationId
+          description: The ID of the producer Delegation
+          schema:
+            type: string
+            format: uuid
       responses:
         "200":
           description: Verified Attribute revoked
@@ -19892,6 +19899,8 @@ components:
           enum:
             - CLIENT_ADDED
             - CLIENT_DELETED
+            - CLIENT_NAME_UPDATED
+            - CLIENT_DESCRIPTION_UPDATED
             - CLIENT_PURPOSE_ADDED
             - CLIENT_PURPOSE_REMOVED
         eventTimestamp:
@@ -19963,6 +19972,8 @@ components:
           enum:
             - PRODUCER_KEYCHAIN_ADDED
             - PRODUCER_KEYCHAIN_DELETED
+            - PRODUCER_KEYCHAIN_NAME_UPDATED
+            - PRODUCER_KEYCHAIN_DESCRIPTION_UPDATED
             - PRODUCER_KEYCHAIN_ESERVICE_ADDED
             - PRODUCER_KEYCHAIN_ESERVICE_REMOVED
         eventTimestamp:
@@ -22419,6 +22430,9 @@ components:
           type: string
           format: uuid
         agreementId:
+          type: string
+          format: uuid
+        delegationId:
           type: string
           format: uuid
         expirationDate:

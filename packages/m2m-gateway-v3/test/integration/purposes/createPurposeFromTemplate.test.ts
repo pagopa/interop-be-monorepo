@@ -94,8 +94,6 @@ describe("createPurposeFromTemplate", () => {
     updatedAt: mockPurposeProcessGetResponse.data.updatedAt,
     waitingForApprovalVersion: undefined,
     purposeTemplateId: mockPurposeTemplate.id,
-    riskAnalysisReviewMode:
-      mockPurposeProcessGetResponse.data.riskAnalysisReviewMode,
   };
 
   const mockAppContext = getMockM2MAdminAppContext();

@@ -52,9 +52,6 @@ describe("interpolateTemplateApiSpec", async () => {
     });
 
     const wsdlFile: string = await readFileContent("interface-test.wsdl");
-    const expectedFileContent: string = await readFileContent(
-      "interface-test-expected.wsdl"
-    );
 
     const interfaceFileInfoWsdl = {
       id: generateId(),
@@ -67,7 +64,7 @@ describe("interpolateTemplateApiSpec", async () => {
       eservice,
       wsdlFile,
       interfaceFileInfoWsdl,
-      serverUrls,
+      [serverUrls[0]],
       undefined
     );
 
@@ -75,22 +72,9 @@ describe("interpolateTemplateApiSpec", async () => {
     expect(interpolatedFile.name).toBe(interfaceFileInfoWsdl.name);
     expect(interpolatedFile.type).toBe(interfaceFileInfoWsdl.contentType);
 
-    const fileContent = await interpolatedFile.text();
-
-    const normalizedFileContent = fileContent
-      .replace(/\t/g, "") // Remove tabs
-      .replace(/\n/g, "") // Remove newlines
-      .replace(/\s+/g, " ") // Replace multiple spaces with a single space
-      .trim(); // Remove leading and trailing spaces
-
-    const normalizedExpectedContent = expectedFileContent
-      .toString()
-      .replace(/\t/g, "")
-      .replace(/\n/g, "")
-      .replace(/\s+/g, " ")
-      .trim();
-
-    expect(normalizedFileContent).toBe(normalizedExpectedContent);
+    expect(await interpolatedFile.text()).toBe(
+      wsdlFile.replace("https://host.com/TestWS/v1", serverUrls[0].url)
+    );
   });
   it("should inject the per-server description into the REST servers", async () => {
     const serverUrlsWithDescriptions = [
