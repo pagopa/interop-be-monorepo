@@ -11,7 +11,6 @@ import {
   writeInEventstore,
 } from "pagopa-interop-commons-test";
 import {
-  Descriptor,
   descriptorState,
   EService,
   EServiceDescriptorDocumentDeletedV2,
@@ -23,6 +22,7 @@ import {
   delegationKind,
   EServiceTemplateId,
   unsafeBrandId,
+  Descriptor,
 } from "pagopa-interop-models";
 import { vi, expect, describe, it, afterEach } from "vitest";
 
@@ -316,11 +316,11 @@ describe("delete Document", () => {
           path: `documents/${document.id}/${document.name}`,
         })
       );
-      const descriptor = {
+      const descriptor: Descriptor = {
         ...getMockDescriptor(descriptorState.draft),
         docs: documents,
       };
-      const eservice = {
+      const eservice: EService = {
         ...getMockEService(),
         descriptors: [descriptor],
       };

@@ -18,6 +18,7 @@ import {
   eserviceTemplateVersionState,
   operationForbidden,
   toEServiceTemplateV2,
+  Document,
 } from "pagopa-interop-models";
 import { vi, expect, describe, it, afterEach } from "vitest";
 
@@ -48,16 +49,16 @@ describe("delete Document", () => {
   it.each(["document", "version", "template"] as const)(
     "should not delete files if the event-store rejects the %s deletion",
     async (kind) => {
-      const document = {
+      const document: Document = {
         ...getMockDocument(),
         path: "documents/backup-regression.pdf",
       };
-      const version = {
+      const version: EServiceTemplateVersion = {
         ...getMockEServiceTemplateVersion(),
         state: eserviceTemplateVersionState.draft,
         docs: [document],
       };
-      const template = {
+      const template: EServiceTemplate = {
         ...getMockEServiceTemplate(),
         versions: [version],
       };
