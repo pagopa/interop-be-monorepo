@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { authorizationApi } from "pagopa-interop-api-clients";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
@@ -26,7 +27,10 @@ describe("API PATCH /producerKeychains/{producerKeychainId}", () => {
     getMockProducerKeychain({ producerId: mockTokenOrganizationId }),
     2
   );
-  const seed = { name: "Updated name", description: "Updated description" };
+  const seed: authorizationApi.ProducerKeychainUpdateSeed = {
+    name: "Updated name",
+    description: "Updated description",
+  };
   const makeRequest = async (
     role: AuthRole,
     body: object = seed,

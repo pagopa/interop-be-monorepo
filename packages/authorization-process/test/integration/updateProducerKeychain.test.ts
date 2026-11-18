@@ -69,8 +69,14 @@ describe("updateProducerKeychain", () => {
         : getMockContext({
             authData: getMockAuthData(producerKeychain.producerId),
           });
-      const seed = { name: "Updated name", description: "Updated description" };
-      const updatedProducerKeychain = { ...producerKeychain, ...seed };
+      const seed: authorizationApi.ProducerKeychainUpdateSeed = {
+        name: "Updated name",
+        description: "Updated description",
+      };
+      const updatedProducerKeychain: ProducerKeychain = {
+        ...producerKeychain,
+        ...seed,
+      };
       const transactionSpy = vi.spyOn(postgresDB, "tx");
       transactionSpy.mockClear();
       const result = await authorizationService.updateProducerKeychain(
@@ -137,7 +143,7 @@ describe("updateProducerKeychain", () => {
   it.each(changes)(
     "should write events for supplied unchanged values: %s",
     async (seed) => {
-      const producerKeychain = {
+      const producerKeychain: ProducerKeychain = {
         ...getMockProducerKeychain(),
         name: "Updated name",
         description: "Updated description",
@@ -174,7 +180,7 @@ describe("updateProducerKeychain", () => {
   ])(
     "should emit events for changed and unchanged supplied fields: %s",
     async (seed) => {
-      const producerKeychain = {
+      const producerKeychain: ProducerKeychain = {
         ...getMockProducerKeychain(),
         name: "Original name",
         description: "Original description",
@@ -205,7 +211,9 @@ describe("updateProducerKeychain", () => {
     const ctx = getMockContextM2MAdmin({
       organizationId: producerKeychain.producerId,
     });
-    const seed = { name: "Updated name" };
+    const seed: authorizationApi.ProducerKeychainUpdateSeed = {
+      name: "Updated name",
+    };
     const updated = await authorizationService.updateProducerKeychain(
       { producerKeychainId: producerKeychain.id, seed },
       ctx
@@ -239,7 +247,7 @@ describe("updateProducerKeychain", () => {
 
   it("should not require unique names", async () => {
     const producerKeychain = getMockProducerKeychain();
-    const other = {
+    const other: ProducerKeychain = {
       ...getMockProducerKeychain({ producerId: producerKeychain.producerId }),
       name: "Existing name",
     };

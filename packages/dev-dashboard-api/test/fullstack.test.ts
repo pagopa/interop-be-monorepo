@@ -2,6 +2,8 @@ import { createServer, type Server } from "node:http";
 import request from "supertest";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type { IdentityService } from "../src/services/identityService.js";
+
 import { createApp } from "../src/app.js";
 import { SEED_PACKAGES } from "../src/config/constants.js";
 import { frontendServiceBuilder } from "../src/services/frontendService.js";
@@ -104,7 +106,7 @@ async function setup(
       start: async () => ({ pid: 1, stop: async () => undefined }),
     },
   });
-  const identities = {
+  const identities: IdentityService = {
     identities: vi.fn(async () => ({
       ready: true,
       tenants: [

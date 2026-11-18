@@ -23,7 +23,13 @@ describe("local package environment", () => {
     for (const [key, value] of Object.entries(env))
       if (value) vi.stubEnv(key, value);
     const endpoints: string[] = [];
-    const requestHandler = {
+    const requestHandler: {
+      handle: (request: {
+        hostname: string;
+        port?: number;
+        headers: Record<string, string>;
+      }) => Promise<void>;
+    } = {
       handle: async (request: {
         hostname: string;
         port?: number;

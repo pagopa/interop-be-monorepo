@@ -61,7 +61,7 @@ describe("updateClient", () => {
   it.each(callers)(
     "should update $kind with m2m=$m2m atomically",
     async ({ kind, m2m }) => {
-      const client = {
+      const client: Client = {
         ...getMockClient({
           kind,
           users: [generateId()],
@@ -76,8 +76,11 @@ describe("updateClient", () => {
       const ctx = m2m
         ? getMockContextM2MAdmin({ organizationId: client.consumerId })
         : getMockContext({ authData: getMockAuthData(client.consumerId) });
-      const seed = { name: "Updated name", description: "Updated description" };
-      const updatedClient = { ...client, ...seed };
+      const seed: authorizationApi.ClientUpdateSeed = {
+        name: "Updated name",
+        description: "Updated description",
+      };
+      const updatedClient: Client = { ...client, ...seed };
 
       const result = await authorizationService.updateClient(
         { clientId: client.id, seed },
@@ -120,7 +123,7 @@ describe("updateClient", () => {
   );
 
   it.each(changes)("should preserve omitted fields for %s", async (seed) => {
-    const client = {
+    const client: Client = {
       ...getMockClient(),
       name: "Original name",
       description: "Original description",
@@ -141,7 +144,7 @@ describe("updateClient", () => {
   it.each(changes)(
     "should write events for supplied unchanged values: %s",
     async (seed) => {
-      const client = {
+      const client: Client = {
         ...getMockClient(),
         name: "Updated name",
         description: "Updated description",
@@ -168,7 +171,7 @@ describe("updateClient", () => {
   ])(
     "should emit events for changed and unchanged supplied fields: %s",
     async (seed) => {
-      const client = {
+      const client: Client = {
         ...getMockClient(),
         name: "Original name",
         description: "Original description",
@@ -192,12 +195,12 @@ describe("updateClient", () => {
   );
 
   it("should advance the current nonzero version for a repeated M2M update", async () => {
-    const client = { ...getMockClient(), name: "Original name" };
+    const client: Client = { ...getMockClient(), name: "Original name" };
     await addOneClient(client);
     const ctx = getMockContextM2MAdmin({
       organizationId: client.consumerId,
     });
-    const seed = { name: "Updated name" };
+    const seed: authorizationApi.ClientUpdateSeed = { name: "Updated name" };
     const updatedClient = await authorizationService.updateClient(
       { clientId: client.id, seed },
       ctx
@@ -233,7 +236,7 @@ describe("updateClient", () => {
   });
 
   it("should preserve an absent description for a name-only patch", async () => {
-    const client = { ...getMockClient(), description: undefined };
+    const client: Client = { ...getMockClient(), description: undefined };
     await addOneClient(client);
     const result = await authorizationService.updateClient(
       { clientId: client.id, seed: { name: "Updated name" } },
@@ -244,8 +247,8 @@ describe("updateClient", () => {
   });
 
   it("should not require unique client names", async () => {
-    const client = { ...getMockClient(), name: "Original name" };
-    const otherClient = {
+    const client: Client = { ...getMockClient(), name: "Original name" };
+    const otherClient: Client = {
       ...getMockClient({ consumerId: client.consumerId }),
       name: "Existing name",
     };
@@ -308,7 +311,7 @@ describe("updateClient", () => {
   );
 
   it("should reject a stale write without retrying", async () => {
-    const client = { ...getMockClient(), name: "Original name" };
+    const client: Client = { ...getMockClient(), name: "Original name" };
     await addOneClient(client);
     const ctx = getMockContext({
       authData: getMockAuthData(client.consumerId),
@@ -327,7 +330,7 @@ describe("updateClient", () => {
   });
 
   it("should roll back the first event when the second event conflicts", async () => {
-    const client = {
+    const client: Client = {
       ...getMockClient(),
       name: "Original name",
       description: "Original description",

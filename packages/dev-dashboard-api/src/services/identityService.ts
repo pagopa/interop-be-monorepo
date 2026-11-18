@@ -7,6 +7,8 @@ import type {
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
+import type { Command } from "../model/domain/models.js";
+
 import {
   DASHBOARD_PATHS,
   DASHBOARD_TIMING,
@@ -110,7 +112,7 @@ export function identityServiceBuilder(
     const tenant = data.tenants.find((t) => t.key === input.tenantKey);
     if (!data.ready || !tenant?.users.some((u) => u.id === input.userId))
       throw new Error("Unknown or unseeded local identity");
-    const command = {
+    const command: Command = {
       source: LOG_SOURCES.identity,
       executable: "node",
       args: [

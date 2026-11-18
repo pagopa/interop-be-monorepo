@@ -1,3 +1,5 @@
+import type { FrontendStatus } from "pagopa-interop-dev-dashboard-contracts";
+
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { frontendServiceBuilder } from "../src/services/frontendService.js";
@@ -25,7 +27,7 @@ const frontend = () =>
 
 describe("optional frontend observation", () => {
   it("reads validated frontend status and log tails without mutation requests", async () => {
-    const status = {
+    const status: FrontendStatus = {
       available: true,
       running: true,
       mode: "local",
@@ -111,7 +113,7 @@ describe("frontend operation phase planning", () => {
   ])(
     "plans $action.type without reordering phases",
     async ({ action, pending }) => {
-      const runtime = {
+      const runtime: FrontendStatus = {
         available: true,
         running: false,
         state: "pending",

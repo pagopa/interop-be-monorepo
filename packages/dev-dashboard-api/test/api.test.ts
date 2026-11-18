@@ -12,6 +12,7 @@ import request from "supertest";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { Driver } from "../src/model/domain/models.js";
+import type { FrontendService } from "../src/services/frontendService.js";
 
 import { createApp } from "../src/app.js";
 import { supervisorServiceBuilder } from "../src/services/supervisorService.js";
@@ -99,7 +100,7 @@ describe("dashboard HTTP boundary", () => {
   });
 
   it("includes read-only frontend progress only when the integration is configured", async () => {
-    const frontend = {
+    const frontend: FrontendService = {
       status: vi.fn(
         async (): Promise<FrontendStatus> => ({
           available: true,
@@ -140,7 +141,7 @@ describe("dashboard HTTP boundary", () => {
   });
 
   it("reads frontend logs through the configured observer and validates the source", async () => {
-    const frontend = {
+    const frontend: FrontendService = {
       status: vi.fn(
         async (): Promise<FrontendStatus> => ({
           available: false,

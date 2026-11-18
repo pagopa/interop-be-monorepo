@@ -1,3 +1,5 @@
+import type { Preset } from "pagopa-interop-dev-dashboard-contracts";
+
 import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -70,7 +72,7 @@ describe("runnable package catalogue and local boundary", () => {
   it("loads legacy disk presets as package groups without obsolete orchestration flags", async () => {
     const root = await fixture();
     await mkdir(join(root, "docker/local-development"), { recursive: true });
-    const shared = {
+    const shared: Preset & { seed: boolean; fullstack: boolean } = {
       id: "frontend-full",
       name: "Frontend backend",
       source: "shared",
@@ -78,7 +80,7 @@ describe("runnable package catalogue and local boundary", () => {
       seed: true,
       fullstack: true,
     };
-    const personal = {
+    const personal: Preset & { fullstack: boolean } = {
       ...shared,
       id: "mine",
       source: "personal",

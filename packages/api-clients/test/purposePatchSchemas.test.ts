@@ -68,6 +68,8 @@ describe.each([
   { surface: "M2M v3", schema: m2mGatewayApiV3.PurposeDraftUpdateSeed },
 ])("$surface ordinary Purpose risk analysis", ({ schema }) => {
   it("accepts riskAnalysisForm", () => {
+    // TODO REVIEW THIS CHANGE
+    // eslint-disable-next-line interop/require-type-for-object
     const seed = { riskAnalysisForm: { version: "3.0", answers: {} } };
     expect(schema.parse(seed)).toEqual(seed);
   });

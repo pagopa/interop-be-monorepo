@@ -26,7 +26,7 @@ const safeEnvironment = (): NodeJS.ProcessEnv =>
     )
   );
 
-type ManagedProcess = {
+export type ManagedProcess = {
   process: ChildProcess;
   complete: Promise<ProcessExit>;
   output: () => string;
@@ -109,7 +109,7 @@ export function processDriverServiceBuilder(
       child.once("error", reject);
       child.once("close", (code, signal) => resolve({ code, signal }));
     });
-    const managed = { process: child, output, complete };
+    const managed: ManagedProcess = { process: child, output, complete };
     active.add(managed);
     void complete.then(
       () => active.delete(managed),

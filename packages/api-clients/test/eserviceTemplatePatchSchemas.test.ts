@@ -73,6 +73,8 @@ describe.each([
   { surface: "M2M v3", schema: m2mGatewayApiV3.EServiceTemplateNameUpdateSeed },
 ])("$surface legacy template rename schema", ({ schema }) => {
   it.each([5, 45])("accepts a name of %s characters", (length) => {
+    // TODO REVIEW THIS CHANGE
+    // eslint-disable-next-line interop/require-type-for-object
     const seed = { name: "a".repeat(length) };
     expect(schema.parse(seed)).toEqual(seed);
   });
