@@ -7,8 +7,9 @@ import {
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import {
-  AgreementId,
   AttributeId,
+  AgreementId,
+  DelegationId,
   generateId,
   Tenant,
   TenantId,
@@ -32,6 +33,7 @@ import { api, tenantService } from "../vitest.api.setup.js";
 describe("API DELETE /tenants/{tenantId}/attributes/verified/{attributeId} test", () => {
   const tenant: Tenant = getMockTenant();
   const defaultAgreementId: AgreementId = generateId();
+  const defaultDelegationId: DelegationId = generateId();
 
   const apiResponse = tenantApi.Tenant.parse(toApiTenant(tenant));
 
@@ -44,11 +46,12 @@ describe("API DELETE /tenants/{tenantId}/attributes/verified/{attributeId} test"
     token: string,
     tenantId: TenantId = tenant.id,
     attributeId: AttributeId = generateId(),
-    agreementId: AgreementId = defaultAgreementId
+    agreementId: AgreementId = defaultAgreementId,
+    delegationId?: DelegationId
   ) =>
     request(api)
       .delete(`/tenants/${tenantId}/attributes/verified/${attributeId}`)
-      .query({ agreementId })
+      .query({ agreementId, delegationId })
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
 
@@ -72,11 +75,33 @@ describe("API DELETE /tenants/{tenantId}/attributes/verified/{attributeId} test"
           tenantId: tenant.id,
           attributeId,
           agreementId: defaultAgreementId,
+          delegationId: undefined,
         },
         expect.any(Object)
       );
     }
   );
+
+  it("passes an explicit delegationId to the service", async () => {
+    const attributeId: AttributeId = generateId();
+    const res = await makeRequest(
+      generateToken(authRole.ADMIN_ROLE),
+      tenant.id,
+      attributeId,
+      defaultAgreementId,
+      defaultDelegationId
+    );
+    expect(res.status).toBe(200);
+    expect(tenantService.revokeVerifiedAttribute).toHaveBeenLastCalledWith(
+      {
+        tenantId: tenant.id,
+        attributeId,
+        agreementId: defaultAgreementId,
+        delegationId: defaultDelegationId,
+      },
+      expect.any(Object)
+    );
+  });
 
   it.each(
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
@@ -118,17 +143,25 @@ describe("API DELETE /tenants/{tenantId}/attributes/verified/{attributeId} test"
     tenantId?: TenantId;
     attributeId?: AttributeId;
     agreementId?: AgreementId;
+    delegationId?: DelegationId;
   }> = [
     { tenantId: "invalid" as TenantId },
     { attributeId: "invalid" as AttributeId },
     { agreementId: "invalid" as AgreementId },
+    { delegationId: "invalid" as DelegationId },
   ];
 
   it.each(invalidRequests)(
     "Should return 400 if passed invalid data: %s",
-    async ({ tenantId, attributeId, agreementId }) => {
+    async ({ tenantId, attributeId, agreementId, delegationId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, tenantId, attributeId, agreementId);
+      const res = await makeRequest(
+        token,
+        tenantId,
+        attributeId,
+        agreementId,
+        delegationId
+      );
       expect(res.status).toBe(400);
     }
   );
