@@ -17,10 +17,7 @@ import {
 import { makeApiProblem } from "../model/errors.js";
 import { TenantService } from "../services/tenantService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
-import {
-  getTenantsErrorMapper,
-  assignTenantDeclaredAttributeErrorMapper,
-} from "../utils/errorMappers.js";
+import { getTenantsErrorMapper } from "../utils/errorMappers.js";
 
 const tenantRouter = (
   ctx: ZodiosContext,
@@ -113,7 +110,7 @@ const tenantRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          assignTenantDeclaredAttributeErrorMapper,
+          emptyErrorMapper,
           ctx,
           `Error assigning declared attribute to tenant ${req.params.tenantId}`
         );

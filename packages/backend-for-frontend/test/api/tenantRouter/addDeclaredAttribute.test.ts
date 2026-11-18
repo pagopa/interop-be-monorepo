@@ -1,12 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { generateMock } from "@anatine/zod-mock";
-import { bffApi } from "pagopa-interop-api-clients";
+import { bffApi, delegationApi } from "pagopa-interop-api-clients";
 import { authRole } from "pagopa-interop-commons";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockedApiDelegation,
+  mockTokenOrganizationId,
+} from "pagopa-interop-commons-test";
 import { generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { z } from "zod";
 
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, clients } from "../../vitest.api.setup.js";
@@ -14,7 +16,6 @@ import { api, clients } from "../../vitest.api.setup.js";
 describe("API POST /tenants/attributes/declared test", () => {
   const attributeSeed: bffApi.DeclaredTenantAttributeSeed = {
     id: generateId(),
-    delegationId: generateMock(z.string().uuid().optional()),
   };
 
   beforeEach(() => {
@@ -37,6 +38,41 @@ describe("API POST /tenants/attributes/declared test", () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(204);
+    expect(
+      clients.tenantProcessClient.tenantAttribute.addDeclaredAttribute
+    ).toHaveBeenCalledWith(
+      attributeSeed,
+      expect.objectContaining({
+        params: { tenantId: mockTokenOrganizationId },
+      })
+    );
+  });
+
+  it("Should resolve the target tenant from the delegation", async () => {
+    const delegation: delegationApi.Delegation = getMockedApiDelegation();
+    const seed: bffApi.DeclaredTenantAttributeSeed = {
+      id: generateId(),
+      delegationId: delegation.id,
+    };
+    clients.delegationProcessClient.delegation.getDelegation = vi
+      .fn()
+      .mockResolvedValue(delegation);
+
+    const token: string = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, seed);
+
+    expect(res.status).toBe(204);
+    expect(
+      clients.delegationProcessClient.delegation.getDelegation
+    ).toHaveBeenCalledWith(
+      expect.objectContaining({ params: { delegationId: delegation.id } })
+    );
+    expect(
+      clients.tenantProcessClient.tenantAttribute.addDeclaredAttribute
+    ).toHaveBeenCalledWith(
+      seed,
+      expect.objectContaining({ params: { tenantId: delegation.delegatorId } })
+    );
   });
 
   it.each([
