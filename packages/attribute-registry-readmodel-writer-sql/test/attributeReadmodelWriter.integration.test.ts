@@ -2,13 +2,16 @@ import { getMockAttribute } from "pagopa-interop-commons-test";
 import {
   Attribute,
   AttributeAddedV1,
-  AttributeEventEnvelope,
+  AttributeEventEnvelopeV1,
+  AttributeEventEnvelopeV2,
   attributeKind,
   toAttributeV1,
+  toRegistryAttributeV2,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 
 import { handleMessage } from "../src/attributeRegistryConsumerService.js";
+import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import { attributeReadModelService, attributeWriterService } from "./utils.js";
 
 describe("database test", async () => {
@@ -21,7 +24,7 @@ describe("database test", async () => {
       const payload: AttributeAddedV1 = {
         attribute: toAttributeV1(certifiedAttribute),
       };
-      const message: AttributeEventEnvelope = {
+      const message: AttributeEventEnvelopeV1 = {
         sequence_num: 1,
         stream_id: certifiedAttribute.id,
         version: 1,
@@ -45,7 +48,7 @@ describe("database test", async () => {
       const payload: AttributeAddedV1 = {
         attribute: toAttributeV1(declaredAttribute),
       };
-      const message: AttributeEventEnvelope = {
+      const message: AttributeEventEnvelopeV1 = {
         sequence_num: 1,
         stream_id: declaredAttribute.id,
         version: 1,
@@ -68,7 +71,7 @@ describe("database test", async () => {
       const payload: AttributeAddedV1 = {
         attribute: toAttributeV1(verifiedAttribute),
       };
-      const message: AttributeEventEnvelope = {
+      const message: AttributeEventEnvelopeV1 = {
         sequence_num: 1,
         stream_id: verifiedAttribute.id,
         version: 1,
@@ -84,6 +87,38 @@ describe("database test", async () => {
 
       expect(retrievedAttribute?.data).toStrictEqual(verifiedAttribute);
       expect(retrievedAttribute?.metadata).toStrictEqual({ version: 1 });
+    });
+  });
+
+  describe("Events V2", () => {
+    it("AttributeSubunitPropagationUpdated", async () => {
+      const certifiedAttribute: Attribute = {
+        ...getMockAttribute(attributeKind.certified),
+        origin: "certifier-id",
+      };
+      await attributeWriterService.upsertAttribute(certifiedAttribute, 1);
+
+      const updatedAttribute: Attribute = {
+        ...certifiedAttribute,
+        subunitPropagationEnabled: true,
+      };
+      const message: AttributeEventEnvelopeV2 = {
+        sequence_num: 2,
+        stream_id: certifiedAttribute.id,
+        version: 2,
+        type: "AttributeSubunitPropagationUpdated",
+        event_version: 2,
+        data: { attribute: toRegistryAttributeV2(updatedAttribute) },
+        log_date: new Date(),
+      };
+      await handleMessageV2(message, attributeWriterService);
+
+      const retrievedAttribute =
+        await attributeReadModelService.getAttributeById(certifiedAttribute.id);
+      expect(retrievedAttribute).toStrictEqual({
+        data: updatedAttribute,
+        metadata: { version: 2 },
+      });
     });
   });
 });

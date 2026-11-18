@@ -2,8 +2,10 @@ import { genericLogger } from "pagopa-interop-commons";
 import { getMockAttribute } from "pagopa-interop-commons-test";
 import {
   AttributeEventEnvelope,
+  AttributeEventEnvelopeV2,
   toAttributeV1,
-  AttributeEvent,
+  toRegistryAttributeV2,
+  AttributeEventV1,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -24,13 +26,14 @@ describe("handleAttributeEvent test", async () => {
     vi.clearAllMocks();
   });
 
-  it.each(AttributeEvent.options.map((o) => o.shape.type.value))(
+  it.each(AttributeEventV1.options.map((o) => o.shape.type.value))(
     "should write %s M2M event with the right visibility",
-    async (eventType: AttributeEvent["type"]) => {
+    async (eventType: AttributeEventV1["type"]) => {
       const message = {
         ...getMockEventEnvelopeCommons(),
         stream_id: attribute.id,
         type: eventType,
+        event_version: 1,
         data: {
           attribute: toAttributeV1(attribute),
         },
@@ -63,11 +66,35 @@ describe("handleAttributeEvent test", async () => {
     }
   );
 
+  it("should ignore the AttributeSubunitPropagationUpdated event", async () => {
+    const message: AttributeEventEnvelopeV2 = {
+      ...getMockEventEnvelopeCommons(),
+      stream_id: attribute.id,
+      type: "AttributeSubunitPropagationUpdated",
+      event_version: 2,
+      data: {
+        attribute: toRegistryAttributeV2(attribute),
+      },
+    };
+
+    await handleAttributeEvent(
+      message,
+      new Date(),
+      genericLogger,
+      testM2mEventWriterService
+    );
+
+    expect(
+      testM2mEventWriterService.insertAttributeM2MEvent
+    ).not.toHaveBeenCalled();
+  });
+
   it("should not write the event if the same resource version is already present", async () => {
     const message = {
       ...getMockEventEnvelopeCommons(),
       stream_id: attribute.id,
       type: "AttributeAdded",
+      event_version: 1,
       data: {
         attribute: toAttributeV1(attribute),
       },

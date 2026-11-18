@@ -1,0 +1,48 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+/* eslint-disable functional/immutable-data */
+import { AttributeSchema } from "pagopa-interop-kpi-models";
+import {
+  AttributeEventEnvelopeV2,
+  fromRegistryAttributeV2,
+  genericInternalError,
+} from "pagopa-interop-models";
+import { splitAttributeIntoObjectsSQL } from "pagopa-interop-readmodel";
+import { match } from "ts-pattern";
+import { z } from "zod";
+
+import { DBContext } from "../../db/db.js";
+import { attributeServiceBuilder } from "../../service/attributeService.js";
+
+export async function handleAttributeMessageV2(
+  messages: AttributeEventEnvelopeV2[],
+  dbContext: DBContext
+): Promise<void> {
+  const attributeService = attributeServiceBuilder(dbContext);
+
+  const upsertBatch: AttributeSchema[] = [];
+
+  for (const message of messages) {
+    match(message)
+      .with({ type: "AttributeSubunitPropagationUpdated" }, (msg) => {
+        if (!msg.data.attribute) {
+          throw genericInternalError(
+            `Attribute can't be missing in the event message`
+          );
+        }
+        const attribute = splitAttributeIntoObjectsSQL(
+          fromRegistryAttributeV2(msg.data.attribute),
+          msg.version
+        );
+        upsertBatch.push(
+          AttributeSchema.parse(
+            attribute satisfies z.input<typeof AttributeSchema>
+          )
+        );
+      })
+      .exhaustive();
+  }
+
+  if (upsertBatch.length > 0) {
+    await attributeService.upsertBatchAttribute(dbContext, upsertBatch);
+  }
+}
