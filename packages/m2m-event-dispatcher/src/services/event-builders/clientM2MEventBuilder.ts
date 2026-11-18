@@ -33,7 +33,12 @@ function getClientM2MEventVisibility(
 ): ClientM2MEvent["visibility"] {
   return match(eventType)
     .with(
-      P.union("ClientAdded", "ClientDeleted"),
+      P.union(
+        "ClientAdded",
+        "ClientDeleted",
+        "ClientNameUpdated",
+        "ClientDescriptionUpdated"
+      ),
       () => m2mEventVisibility.public
     )
     .with(

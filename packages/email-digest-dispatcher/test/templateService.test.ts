@@ -1,133 +1,623 @@
 import { buildHTMLTemplateService } from "pagopa-interop-commons";
-import { describe, it, expect } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 
+import { TenantDigestData } from "../src/services/digestDataService.js";
 import { digestTemplateServiceBuilder } from "../src/services/templateService.js";
 import { getVisibleSections } from "../src/utils/digestAdmittedRoles.js";
-import { getMockTenantDigestData } from "./mockUtils.js";
+import {
+  getMockReviewerDigestData,
+  getMockSingularReviewerDigestData,
+  getMockSingularTenantDigestData,
+  getMockTenantDigestData,
+} from "./mockUtils.js";
+
+const getRiskAnalysisOnlyDigestData = (
+  data: TenantDigestData
+): TenantDigestData => {
+  const empty = { items: [], totalCount: 0 };
+
+  return {
+    ...data,
+    newEservices: empty,
+    updatedEservices: empty,
+    updatedEserviceTemplates: empty,
+    acceptedSentAgreements: empty,
+    rejectedSentAgreements: empty,
+    suspendedSentAgreements: empty,
+    publishedSentPurposes: empty,
+    rejectedSentPurposes: empty,
+    waitingForApprovalSentPurposes: empty,
+    waitingForApprovalReceivedAgreements: empty,
+    publishedReceivedPurposes: empty,
+    waitingForApprovalReceivedPurposes: empty,
+    waitingForApprovalReceivedDelegations: empty,
+    receivedAttributes: empty,
+    revokedAttributes: empty,
+    archivingImminentEservices: empty,
+    archivingInProgressEservices: empty,
+    archivingConsumerImminentEservices: empty,
+    archivingConsumerInProgressEservices: empty,
+    archivingRequests: empty,
+    approvedArchivingRequests: empty,
+    rejectedArchivingRequests: empty,
+  };
+};
 
 describe("Template Service", () => {
-  it("should compile digest email template with mock data and verify content is present", () => {
-    // Arrange
+  let compiledHtml: string;
+  let compiledText: string;
+
+  beforeAll(() => {
     const htmlTemplateService = buildHTMLTemplateService();
     const digestTemplateService =
       digestTemplateServiceBuilder(htmlTemplateService);
     const mockData = getMockTenantDigestData();
     const visibility = getVisibleSections(["admin"]);
 
-    // Act
-    const compiledHtml = digestTemplateService.compileDigestEmail(
+    compiledHtml = digestTemplateService.compileDigestEmail(
       mockData,
       visibility
     );
+    compiledText = compiledHtml
+      .replace(/<head\b[^>]*>[\s\S]*?<\/head>/gi, " ")
+      .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ")
+      .replace(/<!--[\s\S]*?-->/g, " ")
+      .replace(/<[^>]*>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  });
 
-    // Assert - Verify the HTML was compiled
+  it("Should compile the digest and includes its basic structure", () => {
     expect(compiledHtml).toBeDefined();
     expect(compiledHtml.length).toBeGreaterThan(0);
-
-    // Assert - Verify basic structure
     expect(compiledHtml).toContain("<!DOCTYPE html>");
-    expect(compiledHtml).toContain("PDND Interoperabilità");
-    expect(compiledHtml).toContain("Riepilogo notifiche");
+    expect(compiledText).toContain("PDND Interoperabilità");
+    expect(compiledText).toContain("Il tuo riepilogo settimanale su PDND");
+  });
 
-    // Assert - Verify section headers are present (split across lines in HTML)
-    expect(compiledHtml).toContain("Nuovi e-service");
-    expect(compiledHtml).toContain("E-service");
-    expect(compiledHtml).toContain("aggiornati");
-    expect(compiledHtml).toContain("Richieste di fruizione inoltrate");
-    expect(compiledHtml).toContain("Finalità inoltrate");
-    expect(compiledHtml).toContain("Richieste di fruizione che hai ricevuto");
-    expect(compiledHtml).toContain("Finalità ricevute");
-    expect(compiledHtml).toContain("Richieste di delega");
-    expect(compiledHtml).toContain("inoltrate come delegante");
-    expect(compiledHtml).toContain("ricevute come delegato");
-    expect(compiledHtml).toContain("Attributi");
+  it("Should render new, updated, and template e-services", () => {
+    expect(compiledText).toContain("Nuovi e-service");
+    expect(compiledText).toContain("8 nuovi e-service");
+    expect(compiledText).toContain("Nuovo e-service 1");
 
-    // Assert - Verify new e-services content
-    expect(compiledHtml).toContain("Servizio Anagrafica Nazionale");
-    expect(compiledHtml).toContain("Ministero dell&#x27;Interno");
-    expect(compiledHtml).toContain("API Fatturazione Elettronica");
-    expect(compiledHtml).toContain("Agenzia delle Entrate");
-    expect(compiledHtml).toContain("5");
-    expect(compiledHtml).toContain("nuovi");
+    expect(compiledText).toContain("E-service aggiornati");
+    expect(compiledText).toContain("9 e-service di cui sei fruitore");
+    expect(compiledText).toContain("E-service aggiornato 1");
 
-    // Assert - Verify updated e-services content
-    expect(compiledHtml).toContain("Servizio SPID");
-    expect(compiledHtml).toContain("AgID");
-    expect(compiledHtml).toContain("3");
+    expect(compiledText).toContain("Template e-service aggiornati");
+    expect(compiledText).toContain("10 template e-service");
+    expect(compiledText).toContain("Template aggiornato 1");
 
-    // Assert - Verify accepted agreements content
-    expect(compiledHtml).toContain("Richiesta Dati Anagrafici");
-    expect(compiledHtml).toContain("Comune di Roma");
-    expect(compiledHtml).toContain("Accesso API Pagamenti");
-    expect(compiledHtml).toContain("PagoPA S.p.A.");
-    expect(compiledHtml).toContain("2");
-    expect(compiledHtml).toContain("richieste");
-
-    // Assert - Verify rejected agreements (singular - totalCount: 1)
-    expect(compiledHtml).toContain("Servizio Test Rifiutato");
-    expect(compiledHtml).toContain("Ente Test");
-    expect(compiledHtml).toContain("rifiutata");
-
-    // Assert - Verify suspended agreements (singular - totalCount: 1)
-    expect(compiledHtml).toContain("Servizio Sospeso");
-    expect(compiledHtml).toContain("Ente Sospeso");
-    expect(compiledHtml).toContain("sospesa");
-
-    // Assert - Verify published purposes (singular - totalCount: 1, producerName is not shown for sent purposes)
-    expect(compiledHtml).toContain("Finalità Gestione Utenti");
-    expect(compiledHtml).toContain("pubblicata");
-
-    // Assert - Verify rejected purposes
-    expect(compiledHtml).toContain("Finalità Rifiutata");
-    expect(compiledHtml).toContain("Ente Rifiutante");
-
-    // Assert - Verify waiting for approval received agreements
-    expect(compiledHtml).toContain("Richiesta in Attesa");
-    expect(compiledHtml).toContain("Ente Richiedente");
-
-    // Assert - Verify received purposes
-    expect(compiledHtml).toContain("Finalità Ricevuta");
-    expect(compiledHtml).toContain("Ente Fruitore");
-
-    // Assert - Verify waiting for approval purposes
-    expect(compiledHtml).toContain("Finalità in Attesa di Approvazione");
-    expect(compiledHtml).toContain("Ente in Attesa");
-
-    // Assert - Verify delegations
-    expect(compiledHtml).toContain("Delega Attiva");
-    expect(compiledHtml).toContain("Ente Delegato");
-    expect(compiledHtml).toContain("Delega Rifiutata");
-    expect(compiledHtml).toContain("Delega in Attesa");
-    expect(compiledHtml).toContain("Delega Revocata");
-    expect(compiledHtml).toContain("Ente Revocante");
-
-    // Assert - Verify attributes
-    expect(compiledHtml).toContain("Attributo Certificato Nuovo");
-    expect(compiledHtml).toContain("Ente Certificatore");
-    expect(compiledHtml).toContain("Attributo Revocato");
-    expect(compiledHtml).toContain("Ente Revocatore");
-
-    // Assert - Verify alert boxes are present (text split across lines in HTML)
-    expect(compiledHtml).toContain("Puoi proseguire");
-    expect(compiledHtml).toContain("formulando almeno una finalità");
-    expect(compiledHtml).toContain("ciascuna richiesta accettata");
-    expect(compiledHtml).toContain("associando almeno un client");
-    expect(compiledHtml).toContain("Verifica le");
-    expect(compiledHtml).toContain("richieste per permettere");
-    expect(compiledHtml).toContain("Fruitori di completare");
-    expect(compiledHtml).toContain("finalità per permettere");
-    expect(compiledHtml).toContain("Ricorda che la");
-    expect(compiledHtml).toContain("rimozione di un attributo");
-
-    // Assert - Verify links are present
     expect(compiledHtml).toContain("https://example.com/eservices/new");
     expect(compiledHtml).toContain("https://example.com/eservices/updated");
-    expect(compiledHtml).toContain("https://example.com/agreements/sent");
     expect(compiledHtml).toContain("https://example.com/eservice/1");
-    expect(compiledHtml).toContain("https://example.com/agreement/1");
+  });
 
-    // Assert - Verify "Visualizza" CTAs are present
-    expect(compiledHtml).toContain("Visualizza tutti");
-    expect(compiledHtml).toContain("Visualizza tutte");
+  it("Should render sent agreements and purposes", () => {
+    expect(compiledText).toContain("Richieste di fruizione inoltrate");
+    expect(compiledText).toContain("7 richieste di fruizione per:");
+    expect(compiledText).toContain("Richiesta approvata 1");
+    expect(compiledText).toContain("Sono state rifiutate 8 richieste");
+    expect(compiledText).toContain("Richiesta rifiutata 1");
+    expect(compiledText).toContain(
+      "Sono state sospese 9 richieste di fruizione"
+    );
+    expect(compiledText).toContain("Richiesta sospesa 1");
+
+    expect(compiledText).toContain("Finalità inoltrate");
+    expect(compiledText).toContain("Sono state pubblicate 10 finalità");
+    expect(compiledText).toContain("Finalità pubblicata 1");
+    expect(compiledText).toContain("Sono state rifiutate 11 finalità");
+    expect(compiledText).toContain("Finalità rifiutata 1");
+    expect(compiledText).toContain(
+      "12 finalità sono in attesa di approvazione:"
+    );
+    expect(compiledText).toContain("Finalità in attesa di approvazione 1");
+
+    expect(compiledHtml).toContain("https://example.com/agreements/sent");
+    expect(compiledHtml).toContain("https://example.com/agreement/1");
+  });
+
+  it("renders approved and rejected risk analyses and their links", () => {
+    const service = digestTemplateServiceBuilder(buildHTMLTemplateService());
+    const data = getRiskAnalysisOnlyDigestData(getMockTenantDigestData());
+    const visibility = {
+      ...getVisibleSections(["security"]),
+      sentPurposes: false,
+    };
+    const html = service.compileDigestEmail(data, visibility);
+
+    expect(html).toContain("Analisi del rischio assegnate");
+    expect(html).toContain("Sono state approvate 10 analisi del rischio");
+    expect(html).toContain("Finalità con analisi del rischio approvata 1");
+    expect(html).toContain("https://example.com/purpose/1");
+    expect(html).toContain("https://example.com/purposes/sent");
+    expect(
+      html.match(/href="https:\/\/example\.com\/purpose\/\d+"/g)
+    ).toHaveLength(10);
+
+    expect(html).toContain("Sono state rifiutate 10 analisi del rischio");
+    expect(html).toContain("Finalità con analisi del rischio rifiutata 1");
+    expect(html).toContain("E altre");
+    expect(html).toContain("<strong>5</strong>.");
+  });
+
+  it("renders approved and rejected risk analysis sections independently", () => {
+    const service = digestTemplateServiceBuilder(buildHTMLTemplateService());
+    const data = getRiskAnalysisOnlyDigestData(getMockTenantDigestData());
+    const empty = { items: [], totalCount: 0 };
+    const visibility = getVisibleSections(["security"]);
+
+    const approvedHtml = service.compileDigestEmail(
+      { ...data, rejectedRiskAnalysis: empty },
+      visibility
+    );
+    const rejectedHtml = service.compileDigestEmail(
+      { ...data, approvedRiskAnalysis: empty },
+      visibility
+    );
+
+    expect(approvedHtml).toContain(
+      "Sono state approvate 10 analisi del rischio"
+    );
+    expect(approvedHtml).not.toContain("Sono state rifiutate");
+    expect(rejectedHtml).toContain(
+      "Sono state rifiutate 10 analisi del rischio"
+    );
+    expect(rejectedHtml).not.toContain("Sono state approvate");
+    expect(rejectedHtml).toContain("Analisi del rischio assegnate");
+  });
+
+  it("renders singular copy for one approved and one rejected risk analysis", () => {
+    const service = digestTemplateServiceBuilder(buildHTMLTemplateService());
+    const data = getRiskAnalysisOnlyDigestData(
+      getMockSingularTenantDigestData()
+    );
+    const html = service.compileDigestEmail(
+      data,
+      getVisibleSections(["security"])
+    );
+
+    expect(html).toContain("È approvata un'analisi del rischio");
+    expect(html).toContain("È stata rifiutata una finalità");
+  });
+
+  it("does not render risk analysis sections when their counts are zero", () => {
+    const service = digestTemplateServiceBuilder(buildHTMLTemplateService());
+    const data = getRiskAnalysisOnlyDigestData(getMockTenantDigestData());
+    const empty = { items: [], totalCount: 0 };
+    const html = service.compileDigestEmail(
+      { ...data, approvedRiskAnalysis: empty, rejectedRiskAnalysis: empty },
+      getVisibleSections(["security"])
+    );
+
+    expect(html).not.toContain("Analisi del rischio assegnate");
+    expect(html).not.toContain("Sono state rifiutate");
+  });
+
+  it("Should render received agreements and purposes", () => {
+    expect(compiledText).toContain("Richieste di fruizione ricevute");
+    expect(compiledText).toContain(
+      "Ci sono 7 richieste di fruizione in attesa di approvazione:"
+    );
+    expect(compiledText).toContain("Richiesta ricevuta 1");
+    expect(compiledText).toContain("richiesta da Richiesta ricevuta - Ente 1");
+
+    expect(compiledText).toContain("Finalità ricevute");
+    expect(compiledText).toContain(
+      "Sono state pubblicate 8 finalità inoltrate al tuo ente:"
+    );
+    expect(compiledText).toContain("Finalità ricevuta 1");
+    expect(compiledText).toContain(
+      "Ci sono 9 finalità in attesa di approvazione:"
+    );
+    expect(compiledText).toContain("Finalità ricevuta in attesa 1");
+
+    expect(compiledHtml).toContain("https://example.com/agreements/received");
+    expect(compiledHtml).toContain("https://example.com/purposes/received");
+  });
+
+  it("Should render received delegations awaiting approval", () => {
+    expect(compiledText).toContain("Deleghe");
+    expect(compiledText).toContain("Hai ricevuto 10 richieste");
+    expect(compiledText).toContain("Delega in attesa 1");
+    expect(compiledText).toContain(
+      "delegato all'erogazione da Ente Richiedente 1"
+    );
+  });
+
+  it("Should render assigned and revoked attributes", () => {
+    expect(compiledText).toContain("Attributi");
+    expect(compiledText).toContain(
+      "Ti sono stati assegnati 12 nuovi attributi:"
+    );
+    expect(compiledText).toContain("Attributo assegnato 1");
+    expect(compiledText).toContain("assegnato da Attributo assegnato - Ente 1");
+    expect(compiledText).toContain("Ti sono stati revocati 13 attributi:");
+    expect(compiledText).toContain("Attributo revocato 1");
+  });
+
+  it("Should render the section alert messages", () => {
+    expect(compiledText).toContain("Ora puoi creare almeno una finalità");
+    expect(compiledText).toContain("per ogni richiesta approvata.");
+    expect(compiledText).toContain("permetti agli enti");
+    expect(compiledText).toContain("di attivare la richiesta di fruizione.");
+    expect(compiledText).toContain("Approva le richieste");
+    expect(compiledText).toContain("inizia a gestire");
+    expect(compiledText).toContain("interrompe l'accesso");
+  });
+
+  it("Should render the producer archiving section", () => {
+    expect(compiledText).toContain("In fase di archiviazione - erogazione");
+    expect(compiledText).toContain("1 archiviazioni previste a breve");
+    expect(compiledText).toContain("1 e-service in fase di archiviazione");
+    expect(compiledText).toContain("1 versioni in fase di archiviazione");
+
+    expect(compiledText).toContain("C'è 1 archiviazione prevista a breve");
+    expect(compiledText).toContain(
+      "L'archiviazione della versione 3 dell'e-service Servizio Anagrafica Nazionale avverrà il giorno 05/10/2026"
+    );
+
+    expect(compiledText).toContain(
+      "Ci sono 2 versioni di e-service o e-service in fase di archiviazione"
+    );
+    expect(compiledText).toContain(
+      "L'e-service Servizio Catasto è in fase di archiviazione. L'archiviazione avverrà il giorno 20/10/2026"
+    );
+    expect(compiledText).toContain(
+      "La versione 1 dell'e-service API Fatturazione Elettronica è in fase di archiviazione. L'archiviazione avverrà il giorno 25/10/2026"
+    );
+
+    expect(compiledHtml).toContain("https://example.com/archiving");
+    expect(compiledHtml).toContain("https://example.com/eservice/6");
+  });
+
+  it("should render the consumer archiving section, hiding zero-count stat cards", () => {
+    const htmlTemplateService = buildHTMLTemplateService();
+    const digestTemplateService =
+      digestTemplateServiceBuilder(htmlTemplateService);
+
+    const compiledHtml = digestTemplateService.compileDigestEmail(
+      getMockTenantDigestData(),
+      getVisibleSections(["security"])
+    );
+
+    expect(compiledHtml).toContain("In fase di archiviazione - fruizione");
+    expect(compiledHtml).toContain(
+      "Ci sono <strong>2 archiviazioni previste a breve</strong>"
+    );
+    expect(compiledHtml).toContain("Servizio Pagamenti Fruito");
+    expect(compiledHtml).toContain("Servizio Residenze Fruito");
+    expect(compiledHtml).toContain("06/10/2026");
+    expect(compiledHtml).toContain(
+      "passa a una nuova versione per continuare a scambiare dati"
+    );
+    expect(compiledHtml).toContain(
+      "Ci sono <strong>10 versioni di e-service o e-service in fase di archiviazione</strong>"
+    );
+    expect(compiledHtml).toContain("Servizio Tributi Fruito");
+    expect(compiledHtml).toContain("E altre <strong>5</strong>.");
+    // archivingConsumerEserviceScopeCount is 0: only 2 of the 3 cards are rendered
+    expect(compiledHtml.match(/width="50%"/g)?.length).toBe(2);
+  });
+
+  it("should use singular texts in the consumer archiving section", () => {
+    const htmlTemplateService = buildHTMLTemplateService();
+    const digestTemplateService =
+      digestTemplateServiceBuilder(htmlTemplateService);
+
+    const compiledHtml = digestTemplateService.compileDigestEmail(
+      getMockSingularTenantDigestData(),
+      getVisibleSections(["security"])
+    );
+
+    expect(compiledHtml).toContain(
+      "C'è <strong>1 archiviazione prevista a breve</strong>"
+    );
+    expect(compiledHtml).toContain(
+      "C'è <strong>1 versione di e-service o e-service in fase di archiviazione</strong>"
+    );
+  });
+
+  it("should not render the consumer archiving section for the api role", () => {
+    const htmlTemplateService = buildHTMLTemplateService();
+    const digestTemplateService =
+      digestTemplateServiceBuilder(htmlTemplateService);
+
+    const compiledHtml = digestTemplateService.compileDigestEmail(
+      getMockTenantDigestData(),
+      getVisibleSections(["api"])
+    );
+
+    expect(compiledHtml).not.toContain("In fase di archiviazione - fruizione");
+  });
+
+  it("renders the remainder of imminent archivings beyond the listed items", () => {
+    const mockData = getMockTenantDigestData();
+    const data = {
+      ...mockData,
+      archivingImminentEservices: {
+        items: mockData.archivingImminentEservices?.items ?? [],
+        totalCount: 7,
+      },
+      archivingConsumerImminentEservices: {
+        items: mockData.archivingConsumerImminentEservices?.items ?? [],
+        totalCount: 8,
+      },
+    };
+    const producerItems = data.archivingImminentEservices.items.length;
+    const consumerItems = data.archivingConsumerImminentEservices.items.length;
+
+    const service = digestTemplateServiceBuilder(buildHTMLTemplateService());
+    const producerHtml = service.compileDigestEmail(
+      data,
+      getVisibleSections(["admin"])
+    );
+    const consumerHtml = service.compileDigestEmail(
+      data,
+      getVisibleSections(["security"])
+    );
+
+    expect(producerHtml).toContain(
+      "Ci sono <strong>7 archiviazioni previste a breve</strong>, tra cui:"
+    );
+    expect(producerHtml).toContain(
+      `E altre <strong>${7 - producerItems}</strong>.`
+    );
+    expect(consumerHtml).toContain(
+      "Ci sono <strong>8 archiviazioni previste a breve</strong>, tra cui:"
+    );
+    expect(consumerHtml).toContain(
+      `E altre <strong>${8 - consumerItems}</strong>.`
+    );
+  });
+
+  it("renders sent-agreements heading and link when only rejected items exist", () => {
+    const empty = { items: [], totalCount: 0 };
+
+    // All the other sections are empty, except for rejectedSentAgreements
+    const data = {
+      ...getMockTenantDigestData(),
+      acceptedSentAgreements: empty,
+      suspendedSentAgreements: empty,
+      publishedSentPurposes: empty,
+      rejectedSentPurposes: empty,
+      waitingForApprovalSentPurposes: empty,
+    };
+
+    const service = digestTemplateServiceBuilder(buildHTMLTemplateService());
+    const html = service.compileDigestEmail(
+      data,
+      getVisibleSections(["admin"])
+    );
+    const text = html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ");
+
+    expect(text).toContain("Richieste di fruizione inoltrate");
+    expect(text).toContain("Richiesta rifiutata");
+  });
+
+  it("renders sent-purposes heading and link when only rejected items exist", () => {
+    const empty = { items: [], totalCount: 0 };
+
+    // All the other sections are empty, except for rejectedSentPurposes
+    const data = {
+      ...getMockTenantDigestData(),
+      acceptedSentAgreements: empty,
+      suspendedSentAgreements: empty,
+      rejectedSentAgreements: empty,
+      publishedSentPurposes: empty,
+      waitingForApprovalSentPurposes: empty,
+    };
+
+    const service = digestTemplateServiceBuilder(buildHTMLTemplateService());
+    const html = service.compileDigestEmail(
+      data,
+      getVisibleSections(["admin"])
+    );
+    const text = html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ");
+
+    expect(text).toContain("Finalità inoltrate");
+    expect(text).toContain("Finalità rifiutata");
+  });
+
+  it("renders received-purposes heading and link when only published received purposes items exist", () => {
+    const empty = { items: [], totalCount: 0 };
+
+    // All the other sections are empty, except for waitingForApprovalReceivedPurposes
+    const data = {
+      ...getMockTenantDigestData(),
+      publishedReceivedPurposes: empty,
+    };
+
+    const service = digestTemplateServiceBuilder(buildHTMLTemplateService());
+    const html = service.compileDigestEmail(
+      data,
+      getVisibleSections(["admin"])
+    );
+    const text = html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ");
+
+    expect(text).toContain("Finalità ricevute");
+    expect(text).toContain("Finalità ricevuta in attesa");
+  });
+
+  it("renders delegations heading and link when only waitingForApprovalReceivedDelegations items exist", () => {
+    const empty = { items: [], totalCount: 0 };
+
+    // All the other sections are empty, except for waitingForApprovalReceivedDelegations
+    const data = {
+      ...getMockTenantDigestData(),
+      waitingForApprovalDelegatedEservices: empty,
+    };
+
+    const service = digestTemplateServiceBuilder(buildHTMLTemplateService());
+    const html = service.compileDigestEmail(
+      data,
+      getVisibleSections(["admin"])
+    );
+    const text = html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ");
+
+    expect(text).toContain("Deleghe");
+    expect(text).toContain("Delega in attesa");
+  });
+
+  it("renders delegated e-services awaiting approval with the delegated tenant name", () => {
+    const empty = { items: [], totalCount: 0 };
+    const data = {
+      ...getMockTenantDigestData(),
+      waitingForApprovalReceivedDelegations: empty,
+      waitingForApprovalDelegatedEservices: {
+        items: [
+          {
+            id: "eservice-id",
+            name: "E-service in attesa",
+            producerName: "",
+            delegatedName: "Ente delegato",
+            link: "https://example.com/eservice/1",
+          },
+        ],
+        totalCount: 1,
+      },
+    };
+
+    const service = digestTemplateServiceBuilder(buildHTMLTemplateService());
+    const html = service.compileDigestEmail(
+      data,
+      getVisibleSections(["admin"])
+    );
+    const text = html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ");
+
+    expect(text).toContain("Deleghe");
+    expect(text).toContain("Hai ricevuto una richiesta");
+    expect(text).toContain("E-service in attesa");
+    expect(text).toContain("delegato a Ente delegato");
+    expect(html).toContain('href="https://example.com/eservice/1"');
+  });
+
+  it("renders attributes heading and link when only receivedAttributes items exist", () => {
+    const empty = { items: [], totalCount: 0 };
+
+    // All the other sections are empty, except for receivedAttributes
+    const data = {
+      ...getMockTenantDigestData(),
+      revokedAttributes: empty,
+    };
+
+    const service = digestTemplateServiceBuilder(buildHTMLTemplateService());
+    const html = service.compileDigestEmail(
+      data,
+      getVisibleSections(["admin"])
+    );
+    const text = html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ");
+
+    expect(text).toContain("Attributi");
+    expect(text).toContain("Attributo assegnato");
+  });
+  it("Should render the delegated archiving section for the admin role", () => {
+    const htmlTemplateService = buildHTMLTemplateService();
+    const digestTemplateService =
+      digestTemplateServiceBuilder(htmlTemplateService);
+
+    const compiledHtml = digestTemplateService.compileDigestEmail(
+      getMockTenantDigestData(),
+      getVisibleSections(["admin"])
+    );
+
+    expect(compiledHtml).toContain("Hai ricevuto 6 richieste");
+    expect(compiledHtml).toContain("Richiesta di Archiviazione 3");
+    expect(compiledHtml).toContain("Hai approvato 7 richieste");
+    expect(compiledHtml).toContain("Richiesta accettata 3");
+    expect(compiledHtml).toContain("Hai rifiutato 8 richieste");
+    expect(compiledHtml).toContain("Richiesta rifiutata 3");
+  });
+
+  it("Should use the singular form for the producer delegated archiving section", () => {
+    const htmlTemplateService = buildHTMLTemplateService();
+    const digestTemplateService =
+      digestTemplateServiceBuilder(htmlTemplateService);
+
+    const compiledHtml = digestTemplateService.compileDigestEmail(
+      getMockSingularTenantDigestData(),
+      getVisibleSections(["admin"])
+    );
+
+    expect(compiledHtml).toContain(
+      "Hai ricevuto una richiesta di archiviazione"
+    );
+    expect(compiledHtml).toContain(
+      "Hai approvato una richiesta di archiviazione"
+    );
+    expect(compiledHtml).toContain(
+      "Hai rifiutato una richiesta di archiviazione"
+    );
+  });
+});
+
+describe("Template Service - reviewer digest", () => {
+  const toText = (html: string): string =>
+    html
+      .replace(/<head\b[^>]*>[\s\S]*?<\/head>/gi, " ")
+      .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ")
+      .replace(/<!--[\s\S]*?-->/g, " ")
+      .replace(/<[^>]*>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+  const digestTemplateService = digestTemplateServiceBuilder(
+    buildHTMLTemplateService()
+  );
+
+  it("should render the assigned risk analyses section with all lists", () => {
+    const html = digestTemplateService.compileReviewerDigestEmail(
+      getMockReviewerDigestData()
+    );
+    const text = toText(html);
+
+    expect(text).toContain("Il tuo riepilogo settimanale su PDND");
+    expect(text).toContain("Analisi del rischio assegnate");
+    expect(text).toContain("Hai 7 analisi del rischio da approvare:");
+    expect(text).toContain("e altre 2.");
+    expect(text).toContain("Hai 2 analisi del rischio da compilare:");
+    expect(text).toContain(
+      "Sono state pubblicate 2 finalità con analisi del rischio assegnata a te:"
+    );
+    expect(text).toContain(
+      "Un altro valutatore ha approvato una analisi del rischio assegnata a te:"
+    );
+    expect(text).toContain(
+      "Da approvare - Finalità 1 associata all'e-service E-service 1"
+    );
+    expect(html).toContain("https://example.com/reviewer/purposes");
+    expect(html).toContain("https://example.com/reviewer/purpose/1");
+    expect(html).toContain("https://example.com/eservice/1");
+  });
+
+  it("should use singular texts for the published purposes", () => {
+    const text = toText(
+      digestTemplateService.compileReviewerDigestEmail(
+        getMockSingularReviewerDigestData()
+      )
+    );
+
+    expect(text).toContain(
+      "È stata pubblicata 1 finalità con analisi del rischio assegnata a te:"
+    );
+    expect(text).toContain(
+      "Altri valutatori hanno approvato 3 analisi del rischio assegnate a te:"
+    );
+    expect(text).not.toContain("e altre");
+  });
+
+  it("should not render the section when there is no content", () => {
+    const text = toText(
+      digestTemplateService.compileReviewerDigestEmail({
+        ...getMockReviewerDigestData(),
+        riskAnalysesToApprove: { items: [], totalCount: 0 },
+        riskAnalysesToFill: undefined,
+        publishedReviewerPurposes: undefined,
+        riskAnalysesSignedByOtherReviewer: undefined,
+      })
+    );
+
+    expect(text).not.toContain("Analisi del rischio assegnate");
   });
 });

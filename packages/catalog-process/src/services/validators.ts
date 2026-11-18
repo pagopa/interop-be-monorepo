@@ -64,6 +64,7 @@ import {
   riskAnalysisValidationFailed,
   tenantKindNotFound,
   templateInstanceNotAllowed,
+  templateInstanceAttributesCannotBeChanged,
   eServiceNotAnInstance,
   inconsistentDailyCalls,
   eserviceWithoutValidDescriptors,
@@ -304,14 +305,21 @@ export async function assertNoExistingProducerDelegationForEServiceArchiving(
   }
 }
 
+export function isDraftEservice(eservice: EService): boolean {
+  /**
+   * NB. Empty array still returns true.
+   */
+  return eservice.descriptors.every((d) => d.state === descriptorState.draft);
+}
+
 export function assertIsDraftEservice(eservice: EService): void {
-  if (eservice.descriptors.some((d) => d.state !== descriptorState.draft)) {
+  if (!isDraftEservice(eservice)) {
     throw eserviceNotInDraftState(eservice.id);
   }
 }
 
 export function assertIsNotDraftEservice(eservice: EService): void {
-  if (eservice.descriptors.every((d) => d.state === descriptorState.draft)) {
+  if (isDraftEservice(eservice)) {
     throw eserviceInDraftState(eservice.id);
   }
 }
@@ -751,7 +759,7 @@ function assertAttributeGroupsUnchanged(
   seedGroups: catalogApi.AttributeSeed[][]
 ): void {
   if (descriptorGroups.length !== seedGroups.length) {
-    throw templateInstanceNotAllowed(eserviceId, templateId);
+    throw templateInstanceAttributesCannotBeChanged(eserviceId, templateId);
   }
 
   for (const descriptorGroup of descriptorGroups) {
@@ -764,7 +772,7 @@ function assertAttributeGroupsUnchanged(
     );
 
     if (!matchingSeedGroup) {
-      throw templateInstanceNotAllowed(eserviceId, templateId);
+      throw templateInstanceAttributesCannotBeChanged(eserviceId, templateId);
     }
 
     for (const descriptorAttr of descriptorGroup) {
@@ -786,7 +794,7 @@ function assertAttributeGroupsUnchanged(
         Boolean(seedAttr.discreteConfig) !==
           (descriptorDiscreteConfig !== undefined)
       ) {
-        throw templateInstanceNotAllowed(eserviceId, templateId);
+        throw templateInstanceAttributesCannotBeChanged(eserviceId, templateId);
       }
     }
   }
