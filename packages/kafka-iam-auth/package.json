@@ -10,9 +10,12 @@
     ".": "./dist/index.js"
   },
   "scripts": {
+    "test": "vitest",
+    "test:it": "vitest integration",
     "lint": "eslint .",
     "lint:autofix": "eslint . --fix",
-    "build": "tsc"
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json"
   },
   "dependencies": {
     "aws-msk-iam-sasl-signer-js": "catalog:",
@@ -22,8 +25,11 @@
     "ts-pattern": "catalog:"
   },
   "devDependencies": {
+    "@types/node": "catalog:",
     "eslint": "catalog:",
     "pagopa-interop-eslint-config": "workspace:*",
-    "typescript": "catalog:"
+    "testcontainers": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }
