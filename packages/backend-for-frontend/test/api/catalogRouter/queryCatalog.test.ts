@@ -55,6 +55,23 @@ describe("API POST /catalog", () => {
     expect(res.body).toEqual(mockApiCatalogEServices);
   });
 
+  it.each([undefined, false, true])(
+    "Should forward templateId with onlyTemplateInstances=%s",
+    async (onlyTemplateInstances) => {
+      const body = {
+        ...defaultBody,
+        templateId: generateId(),
+        onlyTemplateInstances,
+      };
+      const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), body);
+
+      expect(res.status).toBe(200);
+      expect(
+        services.catalogService.queryCatalog
+      ).toHaveBeenCalledExactlyOnceWith(expect.anything(), body);
+    }
+  );
+
   it.each([
     {
       error: eserviceRiskNotFound(generateId(), generateId()),
@@ -89,6 +106,7 @@ describe("API POST /catalog", () => {
     { body: { offset: 0, limit: "invalid" } },
     { body: { ...defaultBody, sortBy: "invalid" } },
     { body: { ...defaultBody, producersIds: ["not-a-uuid"] } },
+    { body: { ...defaultBody, templateId: "not-a-uuid" } },
   ])("Should return 400 if passed an invalid body $body", async ({ body }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, body as typeof defaultBody);

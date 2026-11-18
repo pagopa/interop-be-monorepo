@@ -31,6 +31,8 @@ export async function handlePurposeMessageV2(
           type: P.union(
             "PurposeAdded",
             "DraftPurposeUpdated",
+            "PurposeTitleUpdated",
+            "PurposeDescriptionUpdated",
             "PurposeWaitingForApproval",
             "PurposeActivated",
             "PurposeArchived",
@@ -54,7 +56,8 @@ export async function handlePurposeMessageV2(
             "PurposeRiskAnalysisSubmitted",
             "PurposeRiskAnalysisSigned",
             "PurposeRiskAnalysisRejected",
-            "PurposeRiskAnalysisFormEdited"
+            "PurposeRiskAnalysisFormEdited",
+            "MaintenancePurposeRiskAnalysisFixReviewerWorkflow"
           ),
         },
         (msg) => {

@@ -14,6 +14,8 @@ import {
   invalidClaim,
   SelfcareId,
   TenantId,
+  tokenVerificationFailed,
+  UserId,
   userRole,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -33,7 +35,12 @@ const validSelfcareId = generateId<SelfcareId>();
 const selfcareIdNotFound = generateId<SelfcareId>();
 const selfcareIdTokenLoginNotAllowed = generateId<SelfcareId>();
 
+const identityTokenJti = "identity-token-jti";
+const identityTokenUid = generateId<UserId>();
+
 const validIdentityToken = "validIdentityToken";
+const unverifiableIdentityToken = "unverifiableIdentityToken";
+const identityTokenWithForgingClaims = "identityTokenWithForgingClaims";
 
 const identityTokenTenantNotFound = "identityTokenTenantNotFound";
 const identityTokenTenantLoginNotAllowed = "identityTokenTenantLoginNotAllowed";
@@ -66,7 +73,21 @@ const rateLimiterStatus = {
 const verifyJwtTokenMockFn = vi.fn().mockImplementation((token: string) =>
   match(token)
     .with(validIdentityToken, () => ({
-      decoded: getMockSessionClaims([userRole.ADMIN_ROLE], validSelfcareId),
+      decoded: {
+        ...getMockSessionClaims([userRole.ADMIN_ROLE], validSelfcareId),
+        jti: identityTokenJti,
+        uid: identityTokenUid,
+      },
+    }))
+    .with(unverifiableIdentityToken, () =>
+      Promise.reject(tokenVerificationFailed(undefined, undefined))
+    )
+    .with(identityTokenWithForgingClaims, () => ({
+      decoded: {
+        ...getMockSessionClaims([userRole.ADMIN_ROLE], validSelfcareId),
+        jti: `${identityTokenJti}\nForged log line`,
+        uid: identityTokenUid,
+      },
     }))
     .with(identityTokenTenantNotFound, () => ({
       decoded: getMockSessionClaims([userRole.ADMIN_ROLE], selfcareIdNotFound),
@@ -156,6 +177,8 @@ const mockContext = {
 
 afterEach(() => {
   verifyJwtTokenMockFn.mockClear();
+  // The context logger is shared, its spies must not leak into other tests
+  vi.restoreAllMocks();
 });
 
 describe("getSessionToken", async () => {
@@ -221,6 +244,50 @@ describe("getSessionToken", async () => {
       )
     ).rejects.toThrowError(
       tenantLoginNotAllowed(selfcareIdTokenLoginNotAllowed)
+    );
+  });
+
+  it("should log the jti and uid claims of the verified identity token", async () => {
+    const loggerSpy = vi.spyOn(mockContext.logger, "info");
+
+    await authorizationService.getSessionToken(validIdentityToken, mockContext);
+
+    expect(loggerSpy).toHaveBeenCalledWith(
+      expect.stringContaining(
+        `[JTI=${identityTokenJti}][UID=${identityTokenUid}]`
+      )
+    );
+  });
+
+  it("should not log the identity token claims when its verification fails", async () => {
+    const loggerSpy = vi.spyOn(mockContext.logger, "info");
+
+    await expect(
+      authorizationService.getSessionToken(
+        unverifiableIdentityToken,
+        mockContext
+      )
+    ).rejects.toThrowError(tokenVerificationFailed(undefined, undefined));
+
+    expect(loggerSpy).not.toHaveBeenCalledWith(
+      expect.stringContaining("[JTI=")
+    );
+  });
+
+  it("should not log identity token claims that could forge log lines", async () => {
+    const infoSpy = vi.spyOn(mockContext.logger, "info");
+
+    await authorizationService.getSessionToken(
+      identityTokenWithForgingClaims,
+      mockContext
+    );
+
+    // The jti carries a newline, so it is discarded, while the uid is still logged
+    expect(infoSpy).toHaveBeenCalledWith(
+      expect.stringContaining(`[JTI=undefined][UID=${identityTokenUid}]`)
+    );
+    expect(infoSpy).not.toHaveBeenCalledWith(
+      expect.stringContaining("Forged log line")
     );
   });
 });

@@ -30,6 +30,8 @@ export const toPurposeEventNotification = (
     .with(
       { type: "PurposeAdded" },
       { type: "DraftPurposeUpdated" },
+      { type: "PurposeTitleUpdated" },
+      { type: "PurposeDescriptionUpdated" },
       { type: "PurposeWaitingForApproval" },
       { type: "PurposeActivated" },
       { type: "NewPurposeVersionActivated" },
@@ -80,6 +82,7 @@ export const toPurposeEventNotification = (
       { type: "PurposeRiskAnalysisSigned" },
       { type: "PurposeRiskAnalysisRejected" },
       { type: "PurposeRiskAnalysisFormEdited" },
+      { type: "MaintenancePurposeRiskAnalysisFixReviewerWorkflow" },
       () => undefined
     )
     .exhaustive();

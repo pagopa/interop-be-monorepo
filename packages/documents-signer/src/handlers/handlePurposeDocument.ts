@@ -121,6 +121,8 @@ export async function handlePurposeDocument(
           "PurposeActivated",
           "PurposeArchived",
           "DraftPurposeUpdated",
+          "PurposeTitleUpdated",
+          "PurposeDescriptionUpdated",
           "PurposeWaitingForApproval",
           "DraftPurposeDeleted",
           "WaitingForApprovalPurposeDeleted",
@@ -144,7 +146,8 @@ export async function handlePurposeDocument(
           "PurposeRiskAnalysisSubmitted",
           "PurposeRiskAnalysisSigned",
           "PurposeRiskAnalysisRejected",
-          "PurposeRiskAnalysisFormEdited"
+          "PurposeRiskAnalysisFormEdited",
+          "MaintenancePurposeRiskAnalysisFixReviewerWorkflow"
         ),
       },
       () => Promise.resolve()

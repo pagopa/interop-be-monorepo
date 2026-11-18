@@ -14,7 +14,6 @@ import {
   toTenantV2,
   TenantDelegatedProducerFeatureAddedV2,
   TenantId,
-  operationForbidden,
   TenantDelegatedProducerFeatureRemovedV2,
   TenantDelegatedConsumerFeatureRemovedV2,
   TenantDelegatedConsumerFeatureAddedV2,
@@ -22,7 +21,10 @@ import {
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 
 import { config } from "../../src/config/config.js";
-import { tenantNotFound } from "../../src/model/domain/errors.js";
+import {
+  tenantNotAllowedForDelegation,
+  tenantNotFound,
+} from "../../src/model/domain/errors.js";
 import {
   addOneTenant,
   postgresDB,
@@ -373,7 +375,7 @@ describe("updateTenantDelegatedFeatures", async () => {
       )
     ).rejects.toThrowError(tenantNotFound(organizationId));
   });
-  it("Should throw operationForbidden if the requester tenant lacks the required certified attribute", async () => {
+  it("Should throw tenantNotAllowedForDelegation if the requester tenant lacks the required certified attribute", async () => {
     (config as Record<string, unknown>).featureFlagDelegationConstraintSkip =
       false;
 
@@ -391,7 +393,9 @@ describe("updateTenantDelegatedFeatures", async () => {
         },
         getMockContext({ authData: getMockAuthData(tenant.id) })
       )
-    ).rejects.toThrowError(operationForbidden);
+    ).rejects.toThrowError(
+      tenantNotAllowedForDelegation(tenant.id, tenant.externalId.origin)
+    );
 
     (config as Record<string, unknown>).featureFlagDelegationConstraintSkip =
       true;

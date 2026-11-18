@@ -4,13 +4,21 @@ export function delay(ms: number): Promise<void> {
 
 export const retry = async <T>(
   fn: () => Promise<T>,
-  { retries, delay }: { retries: number; delay: number }
+  {
+    retries,
+    delay,
+    shouldRetry = () => true,
+  }: {
+    retries: number;
+    delay: number;
+    shouldRetry?: (error: unknown) => boolean;
+  }
 ): Promise<T> => {
   try {
     return await fn();
   } catch (error) {
-    if (retries <= 1) throw error;
+    if (retries <= 1 || !shouldRetry(error)) throw error;
     await new Promise((resolve) => setTimeout(resolve, delay));
-    return retry(fn, { retries: retries - 1, delay });
+    return retry(fn, { retries: retries - 1, delay, shouldRetry });
   }
 };

@@ -33,6 +33,8 @@ export async function handleMessageV2(
     .with(
       { type: "PurposeAdded" },
       { type: "DraftPurposeUpdated" },
+      { type: "PurposeTitleUpdated" },
+      { type: "PurposeDescriptionUpdated" },
       { type: "NewPurposeVersionActivated" },
       { type: "NewPurposeVersionWaitingForApproval" },
       { type: "PurposeActivated" },
@@ -58,6 +60,7 @@ export async function handleMessageV2(
       { type: "PurposeRiskAnalysisSigned" },
       { type: "PurposeRiskAnalysisRejected" },
       { type: "PurposeRiskAnalysisFormEdited" },
+      { type: "MaintenancePurposeRiskAnalysisFixReviewerWorkflow" },
       async (message) => {
         await purposeWriterService.upsertPurpose(purpose, message.version);
       }

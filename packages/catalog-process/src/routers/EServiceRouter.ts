@@ -53,6 +53,7 @@ import {
   documentGetErrorMapper,
   documentUpdateErrorMapper,
   getEServiceErrorMapper,
+  patchUpdateEServiceErrorMapper,
   publishDescriptorErrorMapper,
   rejectDelegatedEServiceDescriptorErrorMapper,
   suspendDescriptorErrorMapper,
@@ -95,6 +96,7 @@ import {
   approveDelegatedDescriptorArchivingErrorMapper,
   rejectDelegatedDescriptorArchivingErrorMapper,
   internalDeleteDelegatedArchivingRequestErrorMapper,
+  internalRestoreDraftDescriptorAfterDelegationRevokeErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const eservicesRouter = (
@@ -316,7 +318,7 @@ const eservicesRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
         const { data: updatedEService, metadata } =
           await catalogService.patchUpdateEService(
@@ -332,7 +334,11 @@ const eservicesRouter = (
             catalogApi.EService.parse(eServiceToApiEService(updatedEService))
           );
       } catch (error) {
-        const errorRes = makeApiProblem(error, updateEServiceErrorMapper, ctx);
+        const errorRes = makeApiProblem(
+          error,
+          patchUpdateEServiceErrorMapper,
+          ctx
+        );
         return res.status(errorRes.status).send(errorRes);
       }
     })
@@ -1174,6 +1180,30 @@ const eservicesRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .put(
+      "/internal/eservices/:eServiceId/descriptors/:descriptorId/restoreDraft",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+          await catalogService.internalRestoreDraftDescriptorAfterDelegationRevoke(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            internalRestoreDraftDescriptorAfterDelegationRevokeErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .post(
       "/maintenance/eservices/:eServiceId/descriptors/:descriptorId/unarchive",
       async (req, res) => {

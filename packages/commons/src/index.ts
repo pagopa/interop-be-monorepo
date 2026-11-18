@@ -1,6 +1,7 @@
 export * from "./auth/index.js";
 export * from "./config/index.js";
 export * from "./context/index.js";
+export * from "./errors/index.js";
 export * from "./file-manager/index.js";
 export * from "./interop-token/interopTokenService.js";
 export * from "./interop-token/refreshableInteropTokenService.js";
@@ -25,6 +26,7 @@ export * from "./utils/date.js";
 export * from "./utils/tenantMails.js";
 export * from "./utils/fileUtils.js";
 export * from "./utils/job.js";
+export * from "./utils/explicitPropertiesChecker.js";
 export * from "./email-manager/index.js";
 export * from "./rate-limiter/index.js";
 export * from "./eservice-documents/index.js";

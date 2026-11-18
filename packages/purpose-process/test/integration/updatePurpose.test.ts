@@ -1567,8 +1567,8 @@ describe("updatePurpose and updateReversePurpose", () => {
         getMockContext({ authData: getMockAuthData(tenant.id) })
       );
 
-      expect(result.data.purpose.riskAnalysisForm).toEqual(
-        purposeWithFormAndWorkflow.riskAnalysisForm
+      expect(sortPurpose(result.data.purpose).riskAnalysisForm).toEqual(
+        sortPurpose(purposeWithFormAndWorkflow).riskAnalysisForm
       );
 
       vi.useRealTimers();
@@ -1612,8 +1612,8 @@ describe("updatePurpose and updateReversePurpose", () => {
         getMockContextM2MAdmin({ organizationId: tenant.id })
       );
 
-      expect(result.data.purpose.riskAnalysisForm).toEqual(
-        purposeWithFormAndWorkflow.riskAnalysisForm
+      expect(sortPurpose(result.data.purpose).riskAnalysisForm).toEqual(
+        sortPurpose(purposeWithFormAndWorkflow).riskAnalysisForm
       );
 
       vi.useRealTimers();

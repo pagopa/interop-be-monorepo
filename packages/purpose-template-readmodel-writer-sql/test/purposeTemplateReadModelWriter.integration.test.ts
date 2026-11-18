@@ -7,6 +7,7 @@ import {
   getMockRiskAnalysisTemplateAnswerAnnotation,
   getMockRiskAnalysisTemplateAnswerAnnotationDocument,
   getMockValidRiskAnalysisFormTemplate,
+  sortPurposeTemplate,
 } from "pagopa-interop-commons-test";
 import {
   dateToBigInt,
@@ -78,7 +79,12 @@ describe("Integration tests", async () => {
       });
     });
 
-    it("PurposeTemplateDraftUpdated", async () => {
+    it.each([
+      "PurposeTemplateDraftUpdated",
+      "PurposeTemplatePurposeTitleUpdated",
+      "PurposeTemplatePurposeDescriptionUpdated",
+      "PurposeTemplateTargetDescriptionUpdated",
+    ] as const)("%s", async (type) => {
       const metadataVersion = 2;
 
       const purposeTemplateEServiceDescriptor: EServiceDescriptorPurposeTemplate =
@@ -109,7 +115,7 @@ describe("Integration tests", async () => {
         sequence_num: 1,
         stream_id: purposeTemplate.id,
         version: metadataVersion,
-        type: "PurposeTemplateDraftUpdated",
+        type,
         event_version: 2,
         data: payload,
         log_date: new Date(),
@@ -413,8 +419,10 @@ describe("Integration tests", async () => {
           purposeTemplate.id
         );
 
-      expect(retrievedDeletedPurposeTemplate).toStrictEqual({
-        data: purposeTemplateAfterDocDeletion,
+      expect(
+        sortPurposeTemplate(retrievedDeletedPurposeTemplate)
+      ).toStrictEqual({
+        data: sortPurposeTemplate(purposeTemplateAfterDocDeletion),
         metadata: { version: metadataVersion },
       });
     });
@@ -641,8 +649,8 @@ describe("Integration tests", async () => {
           updatedPurposeTemplate.id
         );
 
-      expect(retrievedPurposeTemplate).toStrictEqual({
-        data: updatedPurposeTemplate,
+      expect(sortPurposeTemplate(retrievedPurposeTemplate)).toStrictEqual({
+        data: sortPurposeTemplate(updatedPurposeTemplate),
         metadata: { version: metadataVersion },
       });
     });

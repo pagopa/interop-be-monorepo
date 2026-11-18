@@ -107,6 +107,7 @@ import {
   eserviceDescriptorArchivingScheduleInReadmodelCatalog,
   eserviceDescriptorArchivingRequestInReadmodelCatalog,
   purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
+  eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate,
   purposeTemplateInReadmodelPurposeTemplate,
   tenantCertifiedDiscreteAttributeInReadmodelTenant,
   tenantCertifiedAttributeInReadmodelTenant,
@@ -121,7 +122,6 @@ import {
   EServicesQueryFilters,
   EServiceSortBy,
   producerCategoryAttributeCodes,
-  RequesterDelegationRole,
 } from "../model/domain/models.js";
 import {
   activeDescriptorStates,
@@ -272,39 +272,9 @@ const keywordRelevance = (keyword: string): SQL => {
   return sql`(${fullTextRank} + 0.5 * ${fuzzySimilarity})`;
 };
 
-const producersFilter = (
-  tx: DrizzleTransactionType,
-  producersIds: TenantId[]
-): SQL | undefined =>
+const producersFilter = (producersIds: TenantId[]): SQL | undefined =>
   producersIds.length > 0
-    ? or(
-        inArray(eserviceInReadmodelCatalog.producerId, producersIds),
-        exists(
-          tx
-            .select()
-            .from(delegationInReadmodelDelegation)
-            .where(
-              and(
-                eq(
-                  delegationInReadmodelDelegation.eserviceId,
-                  eserviceInReadmodelCatalog.id
-                ),
-                inArray(
-                  delegationInReadmodelDelegation.delegateId,
-                  producersIds
-                ),
-                eq(
-                  delegationInReadmodelDelegation.state,
-                  delegationState.active
-                ),
-                eq(
-                  delegationInReadmodelDelegation.kind,
-                  delegationKind.delegatedProducer
-                )
-              )
-            )
-        )
-      )
+    ? inArray(eserviceInReadmodelCatalog.producerId, producersIds)
     : undefined;
 
 const newerActiveDescriptor = alias(
@@ -386,47 +356,6 @@ const subscribedByRequesterFilter = (
     : notExists(subscriptionQuery);
 };
 
-const requesterDelegationRolesFilter = (
-  tx: DrizzleTransactionType,
-  requesterId: TenantId,
-  requesterDelegationRoles: RequesterDelegationRole[]
-): SQL | undefined => {
-  if (requesterDelegationRoles.length === 0) {
-    return undefined;
-  }
-  const roleFilter = or(
-    ...requesterDelegationRoles.map((role) =>
-      match(role)
-        .with("DELEGATE", () =>
-          eq(delegationInReadmodelDelegation.delegateId, requesterId)
-        )
-        .with("DELEGATOR", () =>
-          eq(delegationInReadmodelDelegation.delegatorId, requesterId)
-        )
-        .exhaustive()
-    )
-  );
-  return exists(
-    tx
-      .select()
-      .from(delegationInReadmodelDelegation)
-      .where(
-        and(
-          eq(
-            delegationInReadmodelDelegation.eserviceId,
-            eserviceInReadmodelCatalog.id
-          ),
-          eq(
-            delegationInReadmodelDelegation.kind,
-            delegationKind.delegatedProducer
-          ),
-          eq(delegationInReadmodelDelegation.state, delegationState.active),
-          roleFilter
-        )
-      )
-  );
-};
-
 const onlyTemplateInstancesFilter = (
   onlyTemplateInstances: boolean | undefined
 ): SQL | undefined =>
@@ -441,29 +370,57 @@ const hasLinkedPurposeTemplatesFilter = (
   hasLinkedPurposeTemplates: boolean | undefined
 ): SQL | undefined =>
   hasLinkedPurposeTemplates
-    ? exists(
-        tx
-          .select()
-          .from(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
-          .innerJoin(
-            purposeTemplateInReadmodelPurposeTemplate,
-            eq(
-              purposeTemplateInReadmodelPurposeTemplate.id,
-              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId
-            )
-          )
-          .where(
-            and(
+    ? or(
+        exists(
+          tx
+            .select()
+            .from(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
+            .innerJoin(
+              purposeTemplateInReadmodelPurposeTemplate,
               eq(
-                purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
-                eserviceInReadmodelCatalog.id
-              ),
-              eq(
-                purposeTemplateInReadmodelPurposeTemplate.state,
-                purposeTemplateState.published
+                purposeTemplateInReadmodelPurposeTemplate.id,
+                purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId
               )
             )
-          )
+            .where(
+              and(
+                eq(
+                  purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
+                  eserviceInReadmodelCatalog.id
+                ),
+                eq(
+                  purposeTemplateInReadmodelPurposeTemplate.state,
+                  purposeTemplateState.published
+                )
+              )
+            )
+        ),
+        exists(
+          tx
+            .select()
+            .from(
+              eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate
+            )
+            .innerJoin(
+              purposeTemplateInReadmodelPurposeTemplate,
+              eq(
+                purposeTemplateInReadmodelPurposeTemplate.id,
+                eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.purposeTemplateId
+              )
+            )
+            .where(
+              and(
+                eq(
+                  eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.eserviceTemplateId,
+                  eserviceInReadmodelCatalog.templateId
+                ),
+                eq(
+                  purposeTemplateInReadmodelPurposeTemplate.state,
+                  purposeTemplateState.published
+                )
+              )
+            )
+        )
       )
     : undefined;
 
@@ -966,8 +923,8 @@ export function readModelServiceBuilderSQL(
         producersIds,
         onlyActiveEservices,
         subscribedByRequester,
-        requesterDelegationRoles,
         onlyTemplateInstances,
+        templateId,
         hasLinkedPurposeTemplates,
         producerCategories,
         availableForRequester,
@@ -981,19 +938,17 @@ export function readModelServiceBuilderSQL(
         const visibleEservicesFilter = existsCatalogVisibleDescriptor(tx);
 
         const filtersCondition = and(
-          producersFilter(tx, producersIds),
+          producersFilter(producersIds),
           onlyActiveEservicesFilter(tx, onlyActiveEservices),
           subscribedByRequesterFilter(
             tx,
             authData.organizationId,
             subscribedByRequester
           ),
-          requesterDelegationRolesFilter(
-            tx,
-            authData.organizationId,
-            requesterDelegationRoles
-          ),
           onlyTemplateInstancesFilter(onlyTemplateInstances),
+          templateId
+            ? eq(eserviceInReadmodelCatalog.templateId, templateId)
+            : undefined,
           hasLinkedPurposeTemplatesFilter(tx, hasLinkedPurposeTemplates),
           producerCategoriesFilter(tx, producerCategories),
           availableForRequesterFilter(

@@ -23,8 +23,6 @@ export type EServiceSortBy = catalogApi.EServiceSortBy;
 
 export const defaultEServiceSortBy: EServiceSortBy = "CREATED_AT_DESC";
 
-export type RequesterDelegationRole = catalogApi.RequesterDelegationRole;
-
 export type EServiceProducerCategory = catalogApi.EServiceProducerCategory;
 
 // Certified attribute codes of each producer category, from the SRS table
@@ -87,8 +85,8 @@ export type EServicesQueryFilters = {
   producersIds: TenantId[];
   onlyActiveEservices?: boolean;
   subscribedByRequester?: boolean;
-  requesterDelegationRoles: RequesterDelegationRole[];
   onlyTemplateInstances?: boolean;
+  templateId?: EServiceTemplateId;
   hasLinkedPurposeTemplates?: boolean;
   producerCategories: EServiceProducerCategory[];
   availableForRequester?: boolean;

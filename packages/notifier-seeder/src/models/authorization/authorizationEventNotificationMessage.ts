@@ -19,8 +19,12 @@ const eventV2TypeMapper = (
     .with("ClientPurposeRemoved", () => "client-purpose-removed")
     .with(
       "ClientAdminRoleRevoked",
+      "ClientNameUpdated",
+      "ClientDescriptionUpdated",
       "ClientAdminRemoved",
       "ProducerKeychainAdded",
+      "ProducerKeychainNameUpdated",
+      "ProducerKeychainDescriptionUpdated",
       "ProducerKeychainDeleted",
       "ProducerKeychainKeyAdded",
       "ProducerKeychainKeyDeleted",
