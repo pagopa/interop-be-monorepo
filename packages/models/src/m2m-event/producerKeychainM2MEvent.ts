@@ -14,6 +14,8 @@ import {
 export const ProducerKeychainM2MEventType = z.enum([
   "ProducerKeychainAdded",
   "ProducerKeychainDeleted",
+  "ProducerKeychainNameUpdated",
+  "ProducerKeychainDescriptionUpdated",
   "ProducerKeychainEServiceAdded",
   "ProducerKeychainEServiceRemoved",
 ]);

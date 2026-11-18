@@ -6,6 +6,7 @@ import {
 import {
   generateId,
   pollingMaxRetriesExceeded,
+  TenantId,
   unsafeBrandId,
   WithMetadata,
 } from "pagopa-interop-models";
@@ -68,7 +69,9 @@ describe("assignRiskAnalysisReviewer", () => {
     const purpose = await purposeService.assignRiskAnalysisReviewer(
       unsafeBrandId(mockApiPurpose.data.id),
       assignmentSeed,
-      getMockM2MAdminAppContext()
+      getMockM2MAdminAppContext({
+        organizationId: unsafeBrandId<TenantId>(mockApiPurpose.data.consumerId),
+      })
     );
 
     expect(purpose).toStrictEqual(expectedPurpose);

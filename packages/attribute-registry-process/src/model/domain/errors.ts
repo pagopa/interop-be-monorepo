@@ -1,3 +1,4 @@
+import { attributeRegistryErrorCodes } from "pagopa-interop-commons";
 import {
   ApiError,
   AttributeId,
@@ -5,19 +6,11 @@ import {
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
-const errorCodes = {
-  attributeNotFound: "0001",
-  attributeDuplicate: "0002",
-  originNotCompliant: "0003",
-  tenantNotFound: "0004",
-  tenantIsNotACertifier: "0005",
-  attributeSubunitPropagationSelectionNotValid: "0006",
-  attributeNotEligibleForSubunitPropagation: "0007",
-};
+export type ErrorCodes = keyof typeof attributeRegistryErrorCodes;
 
-export type ErrorCodes = keyof typeof errorCodes;
-
-export const makeApiProblem = makeApiProblemBuilder(errorCodes);
+export const makeApiProblem = makeApiProblemBuilder(
+  attributeRegistryErrorCodes
+);
 
 export function attributeNotFound(identifier: string): ApiError<ErrorCodes> {
   return new ApiError({
