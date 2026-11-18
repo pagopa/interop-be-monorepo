@@ -274,7 +274,7 @@ export function toBffApiTenant(
   };
 }
 
-function toBffApiParentTenants(
+export function toBffApiParentTenants(
   parentTenants: tenantApi.ParentTenant[] | undefined
 ): bffApi.ParentTenant[] | undefined {
   return parentTenants?.map(({ id, name, subUnitType }) => ({
