@@ -75,6 +75,18 @@ describe("Template Service", () => {
     expect(compiledText).toContain("Il tuo riepilogo settimanale su PDND");
   });
 
+  it("does not leave whitespace before summary punctuation", () => {
+    const singularHtml = digestTemplateServiceBuilder(
+      buildHTMLTemplateService()
+    ).compileDigestEmail(
+      getMockSingularTenantDigestData(),
+      getVisibleSections(["admin"])
+    );
+
+    expect(compiledHtml).not.toMatch(/\s+, tra cui:/);
+    expect(singularHtml).not.toMatch(/approvazione\s+:/);
+  });
+
   it("Should render new, updated, and template e-services", () => {
     expect(compiledText).toContain("Nuovi e-service");
     expect(compiledText).toContain("8 nuovi e-service");
@@ -95,7 +107,7 @@ describe("Template Service", () => {
 
   it("Should render sent agreements and purposes", () => {
     expect(compiledText).toContain("Richieste di fruizione inoltrate");
-    expect(compiledText).toContain("7 richieste di fruizione per:");
+    expect(compiledText).toContain("7 richieste di fruizione, tra cui:");
     expect(compiledText).toContain("Richiesta approvata 1");
     expect(compiledText).toContain("Sono state rifiutate 8 richieste");
     expect(compiledText).toContain("Richiesta rifiutata 1");
@@ -110,7 +122,7 @@ describe("Template Service", () => {
     expect(compiledText).toContain("Sono state rifiutate 11 finalità");
     expect(compiledText).toContain("Finalità rifiutata 1");
     expect(compiledText).toContain(
-      "12 finalità sono in attesa di approvazione:"
+      "12 finalità sono in attesa di approvazione"
     );
     expect(compiledText).toContain("Finalità in attesa di approvazione 1");
 
@@ -198,18 +210,18 @@ describe("Template Service", () => {
   it("Should render received agreements and purposes", () => {
     expect(compiledText).toContain("Richieste di fruizione ricevute");
     expect(compiledText).toContain(
-      "Ci sono 7 richieste di fruizione in attesa di approvazione:"
+      "Ci sono 7 richieste di fruizione in attesa di approvazione"
     );
     expect(compiledText).toContain("Richiesta ricevuta 1");
     expect(compiledText).toContain("richiesta da Richiesta ricevuta - Ente 1");
 
     expect(compiledText).toContain("Finalità ricevute");
     expect(compiledText).toContain(
-      "Sono state pubblicate 8 finalità inoltrate al tuo ente:"
+      "Sono state pubblicate 8 finalità inoltrate al tuo ente"
     );
     expect(compiledText).toContain("Finalità ricevuta 1");
     expect(compiledText).toContain(
-      "Ci sono 9 finalità in attesa di approvazione:"
+      "Ci sono 9 finalità in attesa di approvazione"
     );
     expect(compiledText).toContain("Finalità ricevuta in attesa 1");
 
@@ -229,11 +241,11 @@ describe("Template Service", () => {
   it("Should render assigned and revoked attributes", () => {
     expect(compiledText).toContain("Attributi");
     expect(compiledText).toContain(
-      "Ti sono stati assegnati 12 nuovi attributi:"
+      "Ti sono stati assegnati 12 nuovi attributi"
     );
     expect(compiledText).toContain("Attributo assegnato 1");
     expect(compiledText).toContain("assegnato da Attributo assegnato - Ente 1");
-    expect(compiledText).toContain("Ti sono stati revocati 13 attributi:");
+    expect(compiledText).toContain("Ti sono stati revocati 13 attributi");
     expect(compiledText).toContain("Attributo revocato 1");
   });
 
