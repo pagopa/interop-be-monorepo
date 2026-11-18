@@ -21,6 +21,7 @@ import {
   isFeatureFlagEnabled,
   ownership,
   validateNoHyperlinksSafe,
+  deleteFiles,
 } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -580,17 +581,22 @@ export function agreementServiceBuilder(
         )
       );
 
-      for (const d of agreement.data.consumerDocuments) {
-        await fileManager.delete(config.s3Bucket, d.path, logger);
-      }
-
-      await repository.createEvent(
-        toCreateEventAgreementDeleted(
-          agreement.data,
-          agreement.metadata.version,
-          correlationId
-        )
+      const documentPathsToDelete = agreement.data.consumerDocuments.map(
+        (document) => document.path
       );
+      const deletionEvent = toCreateEventAgreementDeleted(
+        agreement.data,
+        agreement.metadata.version,
+        correlationId
+      );
+
+      await repository.createEvent(deletionEvent);
+      await deleteFiles({
+        fileManager,
+        bucket: config.s3Bucket,
+        paths: documentPathsToDelete,
+        logger,
+      });
     },
     async internalDeleteAgreementAfterDelegationRevocation(
       agreementId: AgreementId,
@@ -609,18 +615,23 @@ export function agreementServiceBuilder(
         agreementDeletableStates
       );
 
-      for (const d of agreement.data.consumerDocuments) {
-        await fileManager.delete(config.s3Bucket, d.path, logger);
-      }
-
-      await repository.createEvent(
-        toCreateEventAgreementDeletedByRevokedDelegation(
-          agreement.data,
-          delegationId,
-          agreement.metadata.version,
-          correlationId
-        )
+      const documentPathsToDelete = agreement.data.consumerDocuments.map(
+        (document) => document.path
       );
+      const deletionEvent = toCreateEventAgreementDeletedByRevokedDelegation(
+        agreement.data,
+        delegationId,
+        agreement.metadata.version,
+        correlationId
+      );
+
+      await repository.createEvent(deletionEvent);
+      await deleteFiles({
+        fileManager,
+        bucket: config.s3Bucket,
+        paths: documentPathsToDelete,
+        logger,
+      });
     },
     async submitAgreement(
       agreementId: AgreementId,
@@ -1217,8 +1228,6 @@ export function agreementServiceBuilder(
         documentId
       );
 
-      await fileManager.delete(config.s3Bucket, existentDocument.path, logger);
-
       const updatedAgreement = {
         ...agreement.data,
         consumerDocuments: agreement.data.consumerDocuments.filter(
@@ -1226,14 +1235,20 @@ export function agreementServiceBuilder(
         ),
       };
 
-      const createdEvent = await repository.createEvent(
-        toCreateEventAgreementConsumerDocumentRemoved(
-          documentId,
-          updatedAgreement,
-          agreement.metadata.version,
-          correlationId
-        )
+      const removalEvent = toCreateEventAgreementConsumerDocumentRemoved(
+        documentId,
+        updatedAgreement,
+        agreement.metadata.version,
+        correlationId
       );
+
+      const createdEvent = await repository.createEvent(removalEvent);
+      await deleteFiles({
+        fileManager,
+        bucket: config.s3Bucket,
+        paths: [existentDocument.path],
+        logger,
+      });
 
       return {
         data: updatedAgreement,

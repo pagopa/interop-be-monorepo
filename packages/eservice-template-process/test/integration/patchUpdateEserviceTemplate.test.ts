@@ -896,7 +896,7 @@ describe("update eserviceTemplate", () => {
         { technology: "SOAP", name: duplicate.name },
         ctx
       )
-    ).rejects.toThrowError(eserviceTemplateDuplicate(duplicate.name));
+    ).rejects.toThrow(eserviceTemplateDuplicate(duplicate.name));
     expect(deleteSpy).not.toHaveBeenCalled();
     expect((await readLastEserviceTemplateEvent(template.id)).version).toBe(
       "0"
@@ -914,9 +914,18 @@ describe("update eserviceTemplate", () => {
         asyncExchangeCallbackInterface: undefined,
       }))
     );
-    expect(deleteSpy).toHaveBeenCalledTimes(2);
     const files = await fileManager.listFiles(config.s3Bucket, genericLogger);
     template.versions.forEach((version) => {
+      expect(deleteSpy).toHaveBeenCalledWith(
+        config.s3Bucket,
+        version.interface?.path,
+        genericLogger
+      );
+      expect(deleteSpy).toHaveBeenCalledWith(
+        config.s3Bucket,
+        version.asyncExchangeCallbackInterface?.path,
+        genericLogger
+      );
       expect(files).not.toContain(version.interface?.path);
       expect(files).not.toContain(version.asyncExchangeCallbackInterface?.path);
     });

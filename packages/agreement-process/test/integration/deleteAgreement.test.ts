@@ -18,7 +18,7 @@ import {
   generateId,
   TenantId,
 } from "pagopa-interop-models";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { config } from "../../src/config/config.js";
 import { agreementDeletableStates } from "../../src/model/domain/agreement-validators.js";
@@ -39,6 +39,10 @@ import {
 import { getMockConsumerDocument } from "../mockUtils.js";
 
 describe("delete agreement", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it.each(agreementDeletableStates)(
     "should succeed when requester is Consumer and the Agreement is in a deletable state (%s)",
     async (state) => {
@@ -248,10 +252,7 @@ describe("delete agreement", () => {
     );
   });
 
-  it("should fail if the file deletion fails", async () => {
-    // eslint-disable-next-line functional/immutable-data
-    config.s3Bucket = "invalid-bucket"; // configure an invalid bucket to force a failure
-
+  it("should persist the event and log a deletion failure without failing", async () => {
     const agreementId = generateId<AgreementId>();
     const agreement = {
       ...getMockAgreement(),
@@ -260,17 +261,41 @@ describe("delete agreement", () => {
       consumerDocuments: [getMockConsumerDocument(agreementId, "doc1")],
     };
     await addOneAgreement(agreement);
+    const document = agreement.consumerDocuments[0];
+    const content = Buffer.from("original document");
+    await fileManager.storeBytesByKey(
+      config.s3Bucket,
+      document.path,
+      content,
+      genericLogger
+    );
+    const deletionError = fileManagerDeleteError(
+      document.path,
+      config.s3Bucket,
+      new Error("Simulated deletion failure")
+    );
+    vi.spyOn(fileManager, "delete").mockRejectedValueOnce(deletionError);
+    const logError = vi.spyOn(genericLogger, "error").mockReturnThis();
+
     await expect(
       agreementService.deleteAgreementById(
         agreement.id,
         getMockContext({ authData: getMockAuthData(agreement.consumerId) })
       )
-    ).rejects.toThrowError(
-      fileManagerDeleteError(
-        agreement.consumerDocuments[0].path,
-        config.s3Bucket,
-        new Error("The specified bucket does not exist")
-      )
+    ).resolves.toBeUndefined();
+
+    expect(
+      await fileManager.get(config.s3Bucket, document.path, genericLogger)
+    ).toEqual(new Uint8Array(content));
+    expect(await readLastAgreementEvent(agreement.id)).toMatchObject({
+      type: "AgreementDeleted",
+      version: "1",
+    });
+    expect(logError).toHaveBeenCalledWith(
+      expect.stringContaining(`s3://${config.s3Bucket}/${document.path}`)
+    );
+    expect(logError).toHaveBeenCalledWith(
+      expect.stringContaining(deletionError.message)
     );
   });
 });
