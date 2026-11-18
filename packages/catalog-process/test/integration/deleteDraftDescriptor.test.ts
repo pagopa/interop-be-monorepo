@@ -24,7 +24,7 @@ import {
   delegationKind,
   EServiceDocumentId,
 } from "pagopa-interop-models";
-import { vi, expect, describe, it } from "vitest";
+import { vi, expect, describe, it, afterEach } from "vitest";
 
 import { config } from "../../src/config/config.js";
 import {
@@ -42,6 +42,10 @@ import {
 } from "../integrationUtils.js";
 
 describe("delete draft descriptor", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   const mockDocument = getMockDocument();
 
   it("should write on event-store for the deletion of a draft descriptor (no interface nor documents to delete)", async () => {
@@ -446,17 +450,18 @@ describe("delete draft descriptor", () => {
       new Error("Simulated deletion failure")
     );
     vi.spyOn(fileManager, "delete").mockRejectedValueOnce(deletionError);
-    const logError = vi
-      .spyOn(genericLogger, "error")
-      .mockReturnThis()
-      .mockClear();
+    const logError = vi.spyOn(genericLogger, "error").mockReturnThis();
 
-    await catalogService.deleteDraftDescriptor(
+    const response = await catalogService.deleteDraftDescriptor(
       eservice.id,
       descriptorToDelete.id,
       getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
+    expect(response).toEqual({
+      data: { ...eservice, descriptors: [publishedDescriptor] },
+      metadata: { version: 1 },
+    });
     expect(
       await fileManager.get(config.s3Bucket, document.path, genericLogger)
     ).toEqual(new Uint8Array(content));

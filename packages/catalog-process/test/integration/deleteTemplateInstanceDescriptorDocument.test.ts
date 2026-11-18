@@ -14,7 +14,7 @@ import {
   EServiceDescriptorDocumentDeletedByTemplateUpdateV2,
   toEServiceV2,
 } from "pagopa-interop-models";
-import { vi, expect, describe, it } from "vitest";
+import { vi, expect, describe, it, afterEach } from "vitest";
 
 import { config } from "../../src/config/config.js";
 import {
@@ -29,6 +29,10 @@ import {
 } from "../integrationUtils.js";
 
 describe("delete Document", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   const mockDescriptor = getMockDescriptor();
   const mockEService = getMockEService();
   const mockDocument = getMockDocument();
@@ -134,17 +138,16 @@ describe("delete Document", () => {
       new Error("Simulated deletion failure")
     );
     vi.spyOn(fileManager, "delete").mockRejectedValueOnce(deletionError);
-    const logError = vi
-      .spyOn(genericLogger, "error")
-      .mockReturnThis()
-      .mockClear();
+    const logError = vi.spyOn(genericLogger, "error").mockReturnThis();
 
-    await catalogService.internalDeleteTemplateInstanceDescriptorDocument(
-      eservice.id,
-      descriptor.id,
-      mockDocument.id,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
-    );
+    await expect(
+      catalogService.internalDeleteTemplateInstanceDescriptorDocument(
+        eservice.id,
+        descriptor.id,
+        mockDocument.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).resolves.toBeUndefined();
 
     expect(
       await fileManager.get(config.s3Bucket, mockDocument.path, genericLogger)

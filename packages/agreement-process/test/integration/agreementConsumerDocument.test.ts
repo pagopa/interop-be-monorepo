@@ -32,7 +32,7 @@ import {
   toAgreementV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { config } from "../../src/config/config.js";
 import { agreementConsumerDocumentChangeValidStates } from "../../src/model/domain/agreement-validators.js";
@@ -59,6 +59,10 @@ import {
 import { getMockConsumerDocument } from "../mockUtils.js";
 
 describe("agreement consumer document", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   describe("get", () => {
     it("should succeed when the requester is the consumer or producer", async () => {
       const agreement: Agreement = {
@@ -563,9 +567,9 @@ describe("agreement consumer document", () => {
       await addOneAgreement(agreement1);
     });
 
-    it.each(["document", "agreement"] as const)(
-      "should not delete consumer documents if the event-store rejects the %s deletion",
-      async (kind) => {
+    it.each(["document deletion", "agreement deletion"] as const)(
+      "should not delete consumer documents if the event-store rejects the %s",
+      async (operation) => {
         const document = agreement1.consumerDocuments[0];
         await uploadDocument(agreement1.id, document.id, document.name);
         const originalContent = await fileManager.get(
@@ -592,7 +596,7 @@ describe("agreement consumer document", () => {
         });
 
         await expect(
-          kind === "document"
+          operation === "document deletion"
             ? agreementService.removeAgreementConsumerDocument(
                 agreement1.id,
                 document.id,
@@ -832,17 +836,18 @@ describe("agreement consumer document", () => {
         new Error("Simulated deletion failure")
       );
       vi.spyOn(fileManager, "delete").mockRejectedValueOnce(deletionError);
-      const logError = vi
-        .spyOn(genericLogger, "error")
-        .mockReturnThis()
-        .mockClear();
+      const logError = vi.spyOn(genericLogger, "error").mockReturnThis();
 
-      await agreementService.removeAgreementConsumerDocument(
+      const response = await agreementService.removeAgreementConsumerDocument(
         agreement1.id,
         consumerDocument.id,
         getMockContext({ authData })
       );
 
+      expect(sortAgreement(response)).toEqual({
+        data: sortAgreement({ ...agreement1, consumerDocuments: [] }),
+        metadata: { version: 1 },
+      });
       expect(
         await fileManager.get(
           config.s3Bucket,

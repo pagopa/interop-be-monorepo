@@ -19,7 +19,7 @@ import {
   operationForbidden,
   toEServiceTemplateV2,
 } from "pagopa-interop-models";
-import { vi, expect, describe, it } from "vitest";
+import { vi, expect, describe, it, afterEach } from "vitest";
 
 import { config } from "../../src/config/config.js";
 import {
@@ -37,6 +37,10 @@ import {
 } from "../integrationUtils.js";
 
 describe("delete Document", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   const mockEServiceTemplateVersion = getMockEServiceTemplateVersion();
   const mockEServiceTemplate = getMockEServiceTemplate();
   const mockDocument = getMockDocument();
@@ -469,12 +473,9 @@ describe("delete Document", () => {
       new Error("Simulated deletion failure")
     );
     vi.spyOn(fileManager, "delete").mockRejectedValueOnce(deletionError);
-    const logError = vi
-      .spyOn(genericLogger, "error")
-      .mockReturnThis()
-      .mockClear();
+    const logError = vi.spyOn(genericLogger, "error").mockReturnThis();
 
-    await eserviceTemplateService.deleteDocument(
+    const response = await eserviceTemplateService.deleteDocument(
       eserviceTemplate.id,
       eserviceTemplateVersion.id,
       mockDocument.id,
@@ -483,6 +484,13 @@ describe("delete Document", () => {
       })
     );
 
+    expect(response).toEqual({
+      data: {
+        ...eserviceTemplate,
+        versions: [{ ...eserviceTemplateVersion, docs: [] }],
+      },
+      metadata: { version: 1 },
+    });
     expect(
       await fileManager.get(config.s3Bucket, mockDocument.path, genericLogger)
     ).toEqual(new Uint8Array(content));

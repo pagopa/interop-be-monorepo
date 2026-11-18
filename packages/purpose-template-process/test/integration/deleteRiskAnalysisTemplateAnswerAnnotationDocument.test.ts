@@ -24,7 +24,7 @@ import {
   RiskAnalysisMultiAnswerId,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
 } from "pagopa-interop-models";
-import { expect, describe, it, vi } from "vitest";
+import { expect, describe, it, vi, afterEach } from "vitest";
 
 import { config } from "../../src/config/config.js";
 import {
@@ -43,6 +43,10 @@ import {
 } from "../integrationUtils.js";
 
 describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   const mockDocument1 = getMockRiskAnalysisTemplateAnswerAnnotationDocument();
   const mockDocument2 = getMockRiskAnalysisTemplateAnswerAnnotationDocument();
   const annotationDocument1 = {
@@ -162,22 +166,24 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
       new Error("Simulated deletion failure")
     );
     vi.spyOn(fileManager, "delete").mockRejectedValueOnce(deletionError);
-    const logError = vi
-      .spyOn(genericLogger, "error")
-      .mockReturnThis()
-      .mockClear();
+    const logError = vi.spyOn(genericLogger, "error").mockReturnThis();
 
-    await purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotationDocument(
-      {
-        purposeTemplateId: purposeTemplate.id,
-        answerId: riskAnalysisFormTemplate.singleAnswers[0].id,
-        documentId: annotationDocument1.id,
-        ctx: getMockContext({
-          authData: getMockAuthData(purposeTemplate.creatorId),
-        }),
-      }
-    );
+    const response =
+      await purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotationDocument(
+        {
+          purposeTemplateId: purposeTemplate.id,
+          answerId: riskAnalysisFormTemplate.singleAnswers[0].id,
+          documentId: annotationDocument1.id,
+          ctx: getMockContext({
+            authData: getMockAuthData(purposeTemplate.creatorId),
+          }),
+        }
+      );
 
+    expect(response).toEqual({
+      data: annotationDocument1,
+      metadata: { version: 1 },
+    });
     expect(
       await readLastPurposeTemplateEvent(purposeTemplate.id)
     ).toMatchObject({

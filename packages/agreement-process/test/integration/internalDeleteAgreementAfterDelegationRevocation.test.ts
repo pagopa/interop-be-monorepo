@@ -19,7 +19,7 @@ import {
   TenantId,
   toAgreementV2,
 } from "pagopa-interop-models";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { config } from "../../src/config/config.js";
 import { agreementDeletableStates } from "../../src/model/domain/agreement-validators.js";
@@ -38,6 +38,10 @@ import {
 import { getMockConsumerDocument } from "../mockUtils.js";
 
 describe("internal delete agreement", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it.each(agreementDeletableStates)(
     "should succeed the Agreement is in a deletable state (%s)",
     async (state) => {
@@ -202,16 +206,15 @@ describe("internal delete agreement", () => {
       new Error("Simulated deletion failure")
     );
     vi.spyOn(fileManager, "delete").mockRejectedValueOnce(deletionError);
-    const logError = vi
-      .spyOn(genericLogger, "error")
-      .mockReturnThis()
-      .mockClear();
+    const logError = vi.spyOn(genericLogger, "error").mockReturnThis();
 
-    await agreementService.internalDeleteAgreementAfterDelegationRevocation(
-      agreement.id,
-      consumerDelegation.id,
-      getMockContextInternal({})
-    );
+    await expect(
+      agreementService.internalDeleteAgreementAfterDelegationRevocation(
+        agreement.id,
+        consumerDelegation.id,
+        getMockContextInternal({})
+      )
+    ).resolves.toBeUndefined();
 
     expect(
       await fileManager.get(config.s3Bucket, document.path, genericLogger)

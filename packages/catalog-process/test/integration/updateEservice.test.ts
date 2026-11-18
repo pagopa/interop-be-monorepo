@@ -27,7 +27,7 @@ import {
   EServiceTemplate,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { vi, expect, describe, it } from "vitest";
+import { vi, expect, describe, it, afterEach } from "vitest";
 
 import { config } from "../../src/config/config.js";
 import {
@@ -49,6 +49,10 @@ import {
 } from "../integrationUtils.js";
 
 describe("update eService", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   const mockEService = getMockEService();
   const mockDocument = getMockDocument();
   it("should write on event-store for the update of an eService (no technology change)", async () => {
@@ -487,12 +491,9 @@ describe("update eService", () => {
       new Error("Simulated deletion failure")
     );
     vi.spyOn(fileManager, "delete").mockRejectedValueOnce(deletionError);
-    const logError = vi
-      .spyOn(genericLogger, "error")
-      .mockReturnThis()
-      .mockClear();
+    const logError = vi.spyOn(genericLogger, "error").mockReturnThis();
 
-    await catalogService.updateEService(
+    const response = await catalogService.updateEService(
       mockEService.id,
       {
         name: updatedName,
@@ -503,6 +504,21 @@ describe("update eService", () => {
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
+    expect(response).toEqual({
+      data: {
+        ...eservice,
+        name: updatedName,
+        technology: "Soap",
+        descriptors: [
+          {
+            ...descriptor,
+            interface: undefined,
+            serverUrls: [],
+          },
+        ],
+      },
+      metadata: { version: 1 },
+    });
     expect(
       await fileManager.get(config.s3Bucket, mockDocument.path, genericLogger)
     ).toEqual(new Uint8Array(content));
