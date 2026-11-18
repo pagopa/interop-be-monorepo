@@ -1146,8 +1146,9 @@
                                                 una finalità è in attesa di approvazione:
                                                 {{else}}
                                                 {{ waitingForApprovalSentPurposes.totalCount
-                                                }} finalità sono in attesa di approvazione</strong>{{#if waitingForApprovalSentPurposesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
+                                                }} finalità sono in attesa di approvazione{{#if waitingForApprovalSentPurposesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                                 {{/if}}
+                                              </strong>
                                             </p>
                                             <div class="section-cell">
                                               <ul class="list-items">
@@ -1524,9 +1525,9 @@
                                         {{else}}
                                         Ti sono stati assegnati {{ 
                                         receivedAttributes.totalCount }} nuovi
-                                        attributi</strong>{{#if receivedAttributesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
+                                        attributi{{#if receivedAttributesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                         {{/if}}
-                                        
+                                      </strong>
                                     </p>
                                     <div class="section-cell">
                                       <ul class="list-items">
@@ -1560,8 +1561,9 @@
                                         Ti è stato revocato un attributo:
                                         {{else}}
                                         Ti sono stati revocati {{ 
-                                        revokedAttributes.totalCount }} attributi</strong>{{#if revokedAttributesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
+                                        revokedAttributes.totalCount }} attributi{{#if revokedAttributesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                         {{/if}}
+                                      </strong>
                                     </p>
                                     <div class="section-cell">
                                       <ul class="list-items">
@@ -1988,10 +1990,11 @@
                                         <p class="body-text-no-margin">
                                           <strong>
                                             {{#if archivingRequestsSingular}}
-                                            Hai ricevuto una richiesta di archiviazione{{else}}
+                                            Hai ricevuto una richiesta di archiviazione:{{else}}
                                             Hai ricevuto {{ archivingRequests.totalCount }} richieste
-                                            di archiviazione</strong>{{#if archivingRequestsExceededItemsCount }}, tra cui:{{else}}:{{/if}}
-                                            {{/if}}
+                                            di archiviazione
+                                            {{/if}}{{#if archivingRequestsExceededItemsCount }}, tra cui:{{else}}:{{/if}}
+                                          </strong>
                                         </p>
                                         <div class="section-cell">
                                           <ul class="list-items">
@@ -2050,8 +2053,8 @@
                                             {{#if approvedArchivingRequestsSingular}}
                                             Hai approvato una richiesta di archiviazione:
                                             {{else}}Hai approvato {{ approvedArchivingRequests.totalCount
-                                            }} richieste di archiviazione</strong>{{#if approvedArchivingRequestsExceededItemsCount }}, tra cui:{{else}}:{{/if}}
-                                            {{/if}}
+                                            }} richieste di archiviazione{{#if approvedArchivingRequestsExceededItemsCount }}, tra cui:{{else}}:{{/if}}{{/if}}
+                                          </strong>
                                         </p>
                                         <div class="section-cell">
                                           <ul class="list-items">
@@ -2104,8 +2107,8 @@
                                             {{#if rejectedArchivingRequestsSingular}}
                                             Hai rifiutato una richiesta di archiviazione:
                                             {{else}}Hai rifiutato {{ rejectedArchivingRequests.totalCount
-                                            }} richieste di archiviazione</strong>{{#if rejectedArchivingRequestsExceededItemsCount }}, tra cui:{{else}}:{{/if}}
-                                            {{/if}}
+                                            }} richieste di archiviazione{{#if rejectedArchivingRequestsExceededItemsCount }}, tra cui:{{else}}:{{/if}}{{/if}}
+                                          </strong>
                                         </p>
                                         <div class="section-cell">
                                           <ul class="list-items">
