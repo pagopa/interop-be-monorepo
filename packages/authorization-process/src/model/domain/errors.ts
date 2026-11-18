@@ -1,3 +1,4 @@
+import { authorizationErrorCodes } from "pagopa-interop-commons";
 import {
   ApiError,
   ClientId,
@@ -12,51 +13,9 @@ import {
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
-const errorCodes = {
-  clientNotFound: "0001",
-  tenantNotAllowedOnClient: "0002",
-  clientUserIdNotFound: "0003",
-  clientKeyNotFound: "0004",
-  userNotAllowedOnClient: "0005",
-  purposeNotFound: "0006",
-  userWithoutSecurityPrivileges: "0007",
-  clientUserAlreadyAssigned: "0008",
-  eserviceNotFound: "0009",
-  noActiveOrSuspendedPurposeVersionFound: "0010",
-  descriptorNotFound: "0011",
-  noActiveOrSuspendedAgreementFound: "0012",
-  purposeAlreadyLinkedToClient: "0013",
-  tenantNotAllowedOnPurpose: "0014",
-  tooManyKeysPerClient: "0015",
-  userNotFound: "0016",
-  keyAlreadyExists: "0017",
-  producerKeychainNotFound: "0018",
-  tenantNotAllowedOnProducerKeychain: "0019",
-  producerKeychainUserAlreadyAssigned: "0020",
-  producerKeychainUserIdNotFound: "0021",
-  tooManyKeysPerProducerKeychain: "0022",
-  userNotAllowedOnProducerKeychain: "0023",
-  producerKeyNotFound: "0024",
-  tenantNotAllowedOnEService: "0025",
-  eserviceAlreadyLinkedToProducerKeychain: "0026",
-  userNotAllowedToDeleteClientKey: "0027",
-  userNotAllowedToDeleteProducerKeychainKey: "0028",
-  purposeDelegationNotFound: "0029",
-  eserviceNotDelegableForClientAccess: "0030",
-  clientKindNotAllowed: "0031",
-  securityUserNotMember: "0032",
-  clientAdminIdNotFound: "0033",
-  userAlreadyAssignedAsAdmin: "0034",
-  jwkNotFound: "0035",
-  producerJwkNotFound: "0036",
-  tenantNotFound: "0037",
-  missingSelfcareId: "0038",
-  duplicatedMembersInSeed: "0039",
-};
+export type ErrorCodes = keyof typeof authorizationErrorCodes;
 
-export type ErrorCodes = keyof typeof errorCodes;
-
-export const makeApiProblem = makeApiProblemBuilder(errorCodes);
+export const makeApiProblem = makeApiProblemBuilder(authorizationErrorCodes);
 
 export function clientNotFound(clientId: ClientId): ApiError<ErrorCodes> {
   return new ApiError({

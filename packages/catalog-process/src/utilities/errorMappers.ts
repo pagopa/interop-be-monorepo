@@ -87,6 +87,13 @@ export const updateEServiceErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const patchUpdateEServiceErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eserviceNotInDraftState", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => updateEServiceErrorMapper(error));
+
 export const updateEServiceTemplateInstanceErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>

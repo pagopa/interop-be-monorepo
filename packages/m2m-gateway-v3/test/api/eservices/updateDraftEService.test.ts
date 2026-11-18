@@ -1,3 +1,4 @@
+import { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { catalogApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
@@ -73,8 +74,12 @@ describe("PATCH /eservices/:eserviceId router test", () => {
   });
 
   it.each([
-    {},
     { name: "updated name" },
+    { description: "updated description" },
+    { name: "a".repeat(5), description: "a".repeat(10) },
+    { name: "a".repeat(60), description: "a".repeat(400) },
+    { personalData: null },
+    { asyncExchange: null },
     { name: "updated name", description: "updated description" },
     {
       name: "updated name",
@@ -129,7 +134,15 @@ describe("PATCH /eservices/:eserviceId router test", () => {
   });
 
   it.each([
+    {},
     { invalidParam: "invalidValue" },
+    { name: "a".repeat(4) },
+    { name: "a".repeat(61) },
+    { name: null },
+    { description: "a".repeat(401) },
+    { description: null },
+    { technology: "invalid" },
+    { mode: "invalid" },
     { ...mockUpdateSeed, extraParam: -1 },
     { ...mockUpdateSeed, description: "short" },
   ])("Should return 400 if passed invalid seed", async (seed) => {
@@ -142,6 +155,37 @@ describe("PATCH /eservices/:eserviceId router test", () => {
 
     expect(res.status).toBe(400);
   });
+
+  it.each([400, 403, 404, 409])(
+    "Should propagate catalog-process status %s",
+    async (status) => {
+      const problem = {
+        type: "about:blank",
+        title: "Catalog update failed",
+        status,
+        detail: "Catalog update failed",
+        errors: [{ code: "004-0001", detail: "Catalog update failed" }],
+      };
+      mockEserviceService.updateDraftEService = vi.fn().mockRejectedValue(
+        new AxiosError(
+          "Catalog update failed",
+          undefined,
+          undefined,
+          undefined,
+          {
+            status,
+            data: problem,
+            statusText: "Catalog update failed",
+            config: {} as InternalAxiosRequestConfig,
+            headers: {},
+          }
+        )
+      );
+      const res = await makeRequest(generateToken(authRole.M2M_ADMIN_ROLE));
+      expect(res.status).toBe(status);
+      expect(res.body.errors).toEqual(problem.errors);
+    }
+  );
 
   it.each([
     missingMetadata(),

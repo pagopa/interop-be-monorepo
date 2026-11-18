@@ -11,6 +11,8 @@ import {
   EServiceTemplateId,
   generateId,
   operationForbidden,
+  eventConflictError,
+  hyperlinkDetectionError,
 } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi } from "vitest";
@@ -20,6 +22,7 @@ import {
   eserviceTemplateDuplicate,
   eserviceTemplateNotInDraftState,
   eserviceTemplateNotFound,
+  instanceNameConflict,
 } from "../../src/model/domain/errors.js";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 
@@ -73,6 +76,9 @@ describe("PATCH /templates/{templateId} router test", () => {
   it.each([
     {},
     { name: "updated name" },
+    { description: "updated description" },
+    { intendedTarget: "updated intended target" },
+    { personalData: null, asyncExchange: null },
     {
       name: "updated name",
       description: "updated description",
@@ -109,6 +115,9 @@ describe("PATCH /templates/{templateId} router test", () => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token, mockEServiceTemplate.id, seed);
       expect(res.status).toBe(200);
+      expect(
+        eserviceTemplateService.patchUpdateEServiceTemplate
+      ).toHaveBeenCalledWith(mockEServiceTemplate.id, seed, expect.anything());
     }
   );
 
@@ -157,6 +166,18 @@ describe("PATCH /templates/{templateId} router test", () => {
     },
     {
       error: eserviceTemplateNotInDraftState(mockEServiceTemplate.id),
+      expectedStatus: 409,
+    },
+    {
+      error: instanceNameConflict(mockEServiceTemplate.id),
+      expectedStatus: 409,
+    },
+    {
+      error: eventConflictError(),
+      expectedStatus: 409,
+    },
+    {
+      error: hyperlinkDetectionError("https://example.com"),
       expectedStatus: 400,
     },
   ])(
