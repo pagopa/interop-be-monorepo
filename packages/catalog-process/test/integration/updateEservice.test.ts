@@ -25,6 +25,7 @@ import {
   delegationKind,
   EServiceTemplateId,
   EServiceTemplate,
+  Document,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { vi, expect, describe, it } from "vitest";

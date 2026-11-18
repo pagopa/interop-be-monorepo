@@ -7,6 +7,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   EService,
+  Descriptor,
   EServiceId,
   descriptorState,
   generateId,

@@ -10,6 +10,7 @@ import {
 import {
   Descriptor,
   DescriptorId,
+  Document,
   descriptorState,
   EService,
   EServiceId,

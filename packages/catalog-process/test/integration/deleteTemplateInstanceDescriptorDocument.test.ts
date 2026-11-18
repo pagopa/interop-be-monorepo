@@ -12,6 +12,7 @@ import {
   descriptorState,
   EService,
   EServiceDescriptorDocumentDeletedByTemplateUpdateV2,
+  Document,
   toEServiceV2,
 } from "pagopa-interop-models";
 import { vi, expect, describe, it } from "vitest";

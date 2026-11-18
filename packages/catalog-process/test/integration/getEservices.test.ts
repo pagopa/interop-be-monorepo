@@ -15,6 +15,7 @@ import {
 import { getMockDelegation } from "pagopa-interop-commons-test";
 import {
   TenantId,
+  Agreement,
   EService,
   generateId,
   Descriptor,

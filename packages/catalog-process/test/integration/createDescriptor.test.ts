@@ -440,7 +440,7 @@ describe("create descriptor", async () => {
     await addOneAttribute(attribute);
     const notExistingId1 = generateId();
     const notExistingId2 = generateId();
-    const descriptorSeed: Descriptor = {
+    const descriptorSeed: catalogApi.EServiceDescriptorSeed = {
       ...buildCreateDescriptorSeed(getMockDescriptor()),
       attributes: {
         certified: [],

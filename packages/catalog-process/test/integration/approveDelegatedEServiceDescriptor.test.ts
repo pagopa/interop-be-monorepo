@@ -12,6 +12,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
+  Agreement,
   descriptorState,
   EService,
   toEServiceV2,

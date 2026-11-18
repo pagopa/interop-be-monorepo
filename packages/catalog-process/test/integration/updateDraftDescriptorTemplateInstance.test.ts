@@ -386,7 +386,7 @@ describe("update draft descriptor instance", () => {
     };
     await addOneEService(eservice);
 
-    const descriptorSeed: Descriptor = {
+    const descriptorSeed: catalogApi.UpdateEServiceDescriptorSeed = {
       ...buildUpdateDescriptorSeed(mockDescriptor),
     };
 

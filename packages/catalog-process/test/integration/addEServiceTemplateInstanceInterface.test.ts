@@ -108,7 +108,6 @@ const initEserviceTemplateInstance = async (
       generateId<TenantId>(),
       [mockEserviceTemplateVersion]
     ),
-    interface: interfaceDoc,
     technology: technology || "Rest",
   };
 

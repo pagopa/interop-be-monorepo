@@ -8,6 +8,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   agreementState,
+  Agreement,
   Descriptor,
   descriptorState,
   EService,

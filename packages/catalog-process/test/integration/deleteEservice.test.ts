@@ -12,6 +12,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   EService,
+  Document,
   EServiceDeletedV2,
   Descriptor,
   descriptorState,

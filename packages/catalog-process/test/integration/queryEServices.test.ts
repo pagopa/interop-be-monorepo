@@ -2722,15 +2722,15 @@ describe("query eservices", () => {
     });
 
     describe("descriptor selection", () => {
-      const ownedAttribute = {
+      const ownedAttribute: CertifiedTenantAttribute = {
         ...getMockCertifiedTenantAttribute(),
         revocationTimestamp: undefined,
       };
-      const ownedRequirement = {
+      const ownedRequirement: EServiceCertifiedAttribute = {
         id: ownedAttribute.id,
         explicitAttributeVerification: false,
       };
-      const missingRequirement = {
+      const missingRequirement: EServiceCertifiedAttribute = {
         id: generateId<AttributeId>(),
         explicitAttributeVerification: false,
       };
@@ -2871,15 +2871,15 @@ describe("query eservices", () => {
     });
 
     describe("interaction with other query features", () => {
-      const ownedAttribute = {
+      const ownedAttribute: CertifiedTenantAttribute = {
         ...getMockCertifiedTenantAttribute(),
         revocationTimestamp: undefined,
       };
-      const ownedRequirement = {
+      const ownedRequirement: EServiceCertifiedAttribute = {
         id: ownedAttribute.id,
         explicitAttributeVerification: false,
       };
-      const missingRequirement = {
+      const missingRequirement: EServiceCertifiedAttribute = {
         id: generateId<AttributeId>(),
         explicitAttributeVerification: false,
       };
@@ -2981,7 +2981,7 @@ describe("query eservices", () => {
       });
 
       it("should not return duplicate e-services when a descriptor contains multiple satisfied attributes", async () => {
-        const secondAttribute = {
+        const secondAttribute: CertifiedTenantAttribute = {
           ...getMockCertifiedTenantAttribute(),
           revocationTimestamp: undefined,
         };

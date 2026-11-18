@@ -31,6 +31,8 @@ import {
   delegationKind,
   agreementState,
   technology,
+  Agreement,
+  RiskAnalysis,
 } from "pagopa-interop-models";
 import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
 

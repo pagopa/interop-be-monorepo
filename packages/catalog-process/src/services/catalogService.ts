@@ -4354,7 +4354,7 @@ export function catalogServiceBuilder(
         dailyCallsTotal: descriptor.dailyCallsTotal,
       });
 
-      const updatedAttribute: EServiceAttribute = {
+      const updatedAttribute: typeof currentAttribute = {
         ...currentAttribute,
         dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
       };

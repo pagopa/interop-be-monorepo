@@ -33,6 +33,7 @@ import {
   EServiceId,
   EServiceV2,
   TenantId,
+  Document,
 } from "pagopa-interop-models";
 import { upsertEService } from "pagopa-interop-readmodel/testUtils";
 import { match } from "ts-pattern";
@@ -567,7 +568,7 @@ describe("patch update eService", () => {
         descriptors: [{ ...getMockDescriptor(), state }],
       };
       await addOneEService(eservice);
-      const seed = {
+      const seed: { name: string; description: string } = {
         name: "Updated name",
         description: "Updated description",
       };
