@@ -248,7 +248,7 @@ describe("delete agreement", () => {
     );
   });
 
-  it("should fail if the deletion fails, and should not write any events in event store", async () => {
+  it("should persist the event and log a deletion failure without failing", async () => {
     const agreementId = generateId<AgreementId>();
     const agreement = {
       ...getMockAgreement(),
@@ -270,22 +270,29 @@ describe("delete agreement", () => {
       config.s3Bucket,
       new Error("Simulated deletion failure")
     );
-    const deleteFile = fileManager.delete.bind(fileManager);
-    vi.spyOn(fileManager, "delete").mockImplementationOnce(async (...args) => {
-      await deleteFile(...args);
-      throw deletionError;
-    });
+    vi.spyOn(fileManager, "delete").mockRejectedValueOnce(deletionError);
+    const logError = vi
+      .spyOn(genericLogger, "error")
+      .mockReturnThis()
+      .mockClear();
 
-    await expect(
-      agreementService.deleteAgreementById(
-        agreement.id,
-        getMockContext({ authData: getMockAuthData(agreement.consumerId) })
-      )
-    ).rejects.toThrow(deletionError);
+    await agreementService.deleteAgreementById(
+      agreement.id,
+      getMockContext({ authData: getMockAuthData(agreement.consumerId) })
+    );
 
     expect(
       await fileManager.get(config.s3Bucket, document.path, genericLogger)
     ).toEqual(new Uint8Array(content));
-    expect((await readLastAgreementEvent(agreement.id)).version).toBe("0");
+    expect(await readLastAgreementEvent(agreement.id)).toMatchObject({
+      type: "AgreementDeleted",
+      version: "1",
+    });
+    expect(logError).toHaveBeenCalledWith(
+      expect.stringContaining(`s3://${config.s3Bucket}/${document.path}`)
+    );
+    expect(logError).toHaveBeenCalledWith(
+      expect.stringContaining(deletionError.message)
+    );
   });
 });

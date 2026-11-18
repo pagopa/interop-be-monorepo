@@ -21,7 +21,7 @@ import {
   isFeatureFlagEnabled,
   ownership,
   validateNoHyperlinksSafe,
-  deleteFilesWithBackup,
+  deleteFiles,
 } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -238,15 +238,6 @@ export function agreementServiceBuilder(
   fileManager: FileManager
 ) {
   const repository = eventRepository(dbInstance, agreementEventToBinaryData);
-  const withFileDeletionBackup = <T>(
-    paths: string[],
-    logger: Logger,
-    operation: () => Promise<T>
-  ): Promise<T> =>
-    deleteFilesWithBackup(
-      { fileManager, bucket: config.s3Bucket, paths, logger },
-      operation
-    );
 
   const performAgreementActivation = async (
     agreement: WithMetadata<Agreement>,
@@ -599,9 +590,13 @@ export function agreementServiceBuilder(
         correlationId
       );
 
-      await withFileDeletionBackup(documentPathsToDelete, logger, () =>
-        repository.createEvent(deletionEvent)
-      );
+      await repository.createEvent(deletionEvent);
+      await deleteFiles({
+        fileManager,
+        bucket: config.s3Bucket,
+        paths: documentPathsToDelete,
+        logger,
+      });
     },
     async internalDeleteAgreementAfterDelegationRevocation(
       agreementId: AgreementId,
@@ -630,9 +625,13 @@ export function agreementServiceBuilder(
         correlationId
       );
 
-      await withFileDeletionBackup(documentPathsToDelete, logger, () =>
-        repository.createEvent(deletionEvent)
-      );
+      await repository.createEvent(deletionEvent);
+      await deleteFiles({
+        fileManager,
+        bucket: config.s3Bucket,
+        paths: documentPathsToDelete,
+        logger,
+      });
     },
     async submitAgreement(
       agreementId: AgreementId,
@@ -1243,11 +1242,13 @@ export function agreementServiceBuilder(
         correlationId
       );
 
-      const createdEvent = await withFileDeletionBackup(
-        [existentDocument.path],
+      const createdEvent = await repository.createEvent(removalEvent);
+      await deleteFiles({
+        fileManager,
+        bucket: config.s3Bucket,
+        paths: [existentDocument.path],
         logger,
-        () => repository.createEvent(removalEvent)
-      );
+      });
 
       return {
         data: updatedAgreement,

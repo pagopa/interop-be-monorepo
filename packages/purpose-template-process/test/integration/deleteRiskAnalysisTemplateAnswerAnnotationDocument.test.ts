@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
+import { fileManagerDeleteError, genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockContext,
@@ -75,7 +75,7 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
   };
 
   it.each(["document", "annotation", "template"] as const)(
-    "should restore annotation files if the event-store rejects the %s deletion",
+    "should not delete annotation files if the event-store rejects the %s deletion",
     async (kind) => {
       await addOnePurposeTemplate(purposeTemplate);
       const documents = [annotationDocument1, annotationDocument2];
@@ -101,7 +101,7 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
         "purpose_template",
         postgresDB
       );
-      const deletion = vi.spyOn(fileManager, "delete");
+      const deletion = vi.spyOn(fileManager, "delete").mockClear();
       const ctx = getMockContext({
         authData: getMockAuthData(purposeTemplate.creatorId),
       });
@@ -135,11 +135,7 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
         code: "eventConflictError",
       });
 
-      expect(deletion).toHaveBeenCalledWith(
-        config.s3Bucket,
-        annotationDocument1.path,
-        genericLogger
-      );
+      expect(deletion).not.toHaveBeenCalled();
       for (const document of documents) {
         expect(
           await fileManager.get(config.s3Bucket, document.path, genericLogger)
@@ -148,13 +144,62 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
       expect(
         (await readLastPurposeTemplateEvent(purposeTemplate.id)).version
       ).toBe("1");
-      expect(
-        (await fileManager.listFiles(config.s3Bucket, genericLogger)).filter(
-          (path) => path.startsWith("_delete-backups/")
-        )
-      ).toEqual([]);
     }
   );
+
+  it("should persist the event and log a deletion failure without failing", async () => {
+    await addOnePurposeTemplate(purposeTemplate);
+    const content = Buffer.from("original annotation document");
+    await fileManager.storeBytesByKey(
+      config.s3Bucket,
+      annotationDocument1.path,
+      content,
+      genericLogger
+    );
+    const deletionError = fileManagerDeleteError(
+      annotationDocument1.path,
+      config.s3Bucket,
+      new Error("Simulated deletion failure")
+    );
+    vi.spyOn(fileManager, "delete").mockRejectedValueOnce(deletionError);
+    const logError = vi
+      .spyOn(genericLogger, "error")
+      .mockReturnThis()
+      .mockClear();
+
+    await purposeTemplateService.deleteRiskAnalysisTemplateAnswerAnnotationDocument(
+      {
+        purposeTemplateId: purposeTemplate.id,
+        answerId: riskAnalysisFormTemplate.singleAnswers[0].id,
+        documentId: annotationDocument1.id,
+        ctx: getMockContext({
+          authData: getMockAuthData(purposeTemplate.creatorId),
+        }),
+      }
+    );
+
+    expect(
+      await readLastPurposeTemplateEvent(purposeTemplate.id)
+    ).toMatchObject({
+      type: "PurposeTemplateAnnotationDocumentDeleted",
+      version: "1",
+    });
+    expect(
+      await fileManager.get(
+        config.s3Bucket,
+        annotationDocument1.path,
+        genericLogger
+      )
+    ).toEqual(new Uint8Array(content));
+    expect(logError).toHaveBeenCalledWith(
+      expect.stringContaining(
+        `s3://${config.s3Bucket}/${annotationDocument1.path}`
+      )
+    );
+    expect(logError).toHaveBeenCalledWith(
+      expect.stringContaining(deletionError.message)
+    );
+  });
 
   it("should write on event-store for the deletion of a risk analysis template answer annotation document", async () => {
     vi.spyOn(fileManager, "delete");

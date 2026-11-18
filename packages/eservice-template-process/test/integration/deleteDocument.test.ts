@@ -42,7 +42,7 @@ describe("delete Document", () => {
   const mockDocument = getMockDocument();
 
   it.each(["document", "version", "template"] as const)(
-    "should restore files if the event-store rejects the %s deletion",
+    "should not delete files if the event-store rejects the %s deletion",
     async (kind) => {
       const document = {
         ...getMockDocument(),
@@ -78,7 +78,7 @@ describe("delete Document", () => {
         "eservice_template",
         postgresDB
       );
-      const deletion = vi.spyOn(fileManager, "delete");
+      const deletion = vi.spyOn(fileManager, "delete").mockClear();
       const context = getMockContext({
         authData: getMockAuthData(template.creatorId),
       });
@@ -108,22 +108,13 @@ describe("delete Document", () => {
         code: "eventConflictError",
       });
 
-      expect(deletion).toHaveBeenCalledWith(
-        config.s3Bucket,
-        document.path,
-        genericLogger
-      );
+      expect(deletion).not.toHaveBeenCalled();
       expect(
         await fileManager.get(config.s3Bucket, document.path, genericLogger)
       ).toEqual(new Uint8Array(content));
       expect((await readLastEserviceTemplateEvent(template.id)).version).toBe(
         "1"
       );
-      expect(
-        (await fileManager.listFiles(config.s3Bucket, genericLogger)).filter(
-          (path) => path.startsWith("_delete-backups/")
-        )
-      ).toEqual([]);
     }
   );
 
@@ -453,7 +444,7 @@ describe("delete Document", () => {
     );
   });
 
-  it("should fail if the deletion fails, and should not write any events in event store", async () => {
+  it("should persist the event and log a deletion failure without failing", async () => {
     const eserviceTemplateVersion: EServiceTemplateVersion = {
       ...mockEServiceTemplateVersion,
       state: eserviceTemplateVersionState.draft,
@@ -477,29 +468,33 @@ describe("delete Document", () => {
       config.s3Bucket,
       new Error("Simulated deletion failure")
     );
-    const deleteFile = fileManager.delete.bind(fileManager);
-    vi.spyOn(fileManager, "delete").mockImplementationOnce(async (...args) => {
-      await deleteFile(...args);
-      throw deletionError;
-    });
+    vi.spyOn(fileManager, "delete").mockRejectedValueOnce(deletionError);
+    const logError = vi
+      .spyOn(genericLogger, "error")
+      .mockReturnThis()
+      .mockClear();
 
-    await expect(
-      eserviceTemplateService.deleteDocument(
-        eserviceTemplate.id,
-        eserviceTemplateVersion.id,
-        mockDocument.id,
-        getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
-        })
-      )
-    ).rejects.toThrow(deletionError);
+    await eserviceTemplateService.deleteDocument(
+      eserviceTemplate.id,
+      eserviceTemplateVersion.id,
+      mockDocument.id,
+      getMockContext({
+        authData: getMockAuthData(eserviceTemplate.creatorId),
+      })
+    );
 
     expect(
       await fileManager.get(config.s3Bucket, mockDocument.path, genericLogger)
     ).toEqual(new Uint8Array(content));
     expect(
       (await readLastEserviceTemplateEvent(eserviceTemplate.id)).version
-    ).toBe("0");
+    ).toBe("1");
+    expect(logError).toHaveBeenCalledWith(
+      expect.stringContaining(`s3://${config.s3Bucket}/${mockDocument.path}`)
+    );
+    expect(logError).toHaveBeenCalledWith(
+      expect.stringContaining(deletionError.message)
+    );
   });
 
   it("should write on event-store for the deletion of an asyncExchangeCallbackInterface, and delete the file from the bucket", async () => {

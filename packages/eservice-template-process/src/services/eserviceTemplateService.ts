@@ -15,10 +15,9 @@ import {
   retrieveOriginFromAuthData,
   isFeatureFlagEnabled,
   assertFeatureFlagEnabled,
-  Logger,
   RiskAnalysisFormToValidate,
   riskAnalysisValidatedFormToNewRiskAnalysis,
-  deleteFilesWithBackup,
+  deleteFiles,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -421,15 +420,6 @@ export function eserviceTemplateServiceBuilder(
     dbInstance,
     eserviceTemplateEventToBinaryDataV2
   );
-  const withFileDeletionBackup = <T>(
-    paths: string[],
-    logger: Logger,
-    operation: () => Promise<T>
-  ): Promise<T> =>
-    deleteFilesWithBackup(
-      { fileManager, bucket: config.s3Bucket, paths, logger },
-      operation
-    );
   return {
     async updateDraftTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,
@@ -991,9 +981,13 @@ export function eserviceTemplateServiceBuilder(
           eserviceTemplate.data,
           correlationId
         );
-        await withFileDeletionBackup(documentPathsToDelete, logger, () =>
-          repository.createEvent(deletionEvent)
-        );
+        await repository.createEvent(deletionEvent);
+        await deleteFiles({
+          fileManager,
+          bucket: config.s3Bucket,
+          paths: documentPathsToDelete,
+          logger,
+        });
         return undefined;
       } else {
         const updatedEserviceTemplate: EServiceTemplate = {
@@ -1010,11 +1004,13 @@ export function eserviceTemplateServiceBuilder(
           updatedEserviceTemplate,
           correlationId
         );
-        const event = await withFileDeletionBackup(
-          documentPathsToDelete,
+        const event = await repository.createEvent(deletionEvent);
+        await deleteFiles({
+          fileManager,
+          bucket: config.s3Bucket,
+          paths: documentPathsToDelete,
           logger,
-          () => repository.createEvent(deletionEvent)
-        );
+        });
         return {
           data: updatedEserviceTemplate,
           metadata: { version: event.newVersion },
@@ -1551,11 +1547,13 @@ export function eserviceTemplateServiceBuilder(
           ctx.correlationId
         );
 
-        const event = await withFileDeletionBackup(
-          interfacePathsToDelete,
-          ctx.logger,
-          () => repository.createEvent(updateEvent)
-        );
+        const event = await repository.createEvent(updateEvent);
+        await deleteFiles({
+          fileManager,
+          bucket: config.s3Bucket,
+          paths: interfacePathsToDelete,
+          logger: ctx.logger,
+        });
 
         return {
           data: updatedEServiceTemplate,
@@ -2204,11 +2202,13 @@ export function eserviceTemplateServiceBuilder(
               correlationId
             );
 
-      const createdEvent = await withFileDeletionBackup(
-        [document.path],
+      const createdEvent = await repository.createEvent(event);
+      await deleteFiles({
+        fileManager,
+        bucket: config.s3Bucket,
+        paths: [document.path],
         logger,
-        () => repository.createEvent(event)
-      );
+      });
 
       return {
         data: updatedEServiceTemplate,
@@ -2317,9 +2317,13 @@ export function eserviceTemplateServiceBuilder(
         const documentPathsToDelete = getVersionDocumentPaths(
           eserviceTemplate.data.versions[0]
         );
-        await withFileDeletionBackup(documentPathsToDelete, logger, () =>
-          repository.createEvents(deletionEvents)
-        );
+        await repository.createEvents(deletionEvents);
+        await deleteFiles({
+          fileManager,
+          bucket: config.s3Bucket,
+          paths: documentPathsToDelete,
+          logger,
+        });
       }
     },
   };
@@ -2413,15 +2417,13 @@ async function updateDraftEServiceTemplate(
     updatedEServiceTemplate,
     correlationId
   );
-  const event = await deleteFilesWithBackup(
-    {
-      fileManager,
-      bucket: config.s3Bucket,
-      paths: interfacePathsToDelete,
-      logger,
-    },
-    () => repository.createEvent(updateEvent)
-  );
+  const event = await repository.createEvent(updateEvent);
+  await deleteFiles({
+    fileManager,
+    bucket: config.s3Bucket,
+    paths: interfacePathsToDelete,
+    logger,
+  });
   return {
     data: updatedEServiceTemplate,
     metadata: { version: event.newVersion },

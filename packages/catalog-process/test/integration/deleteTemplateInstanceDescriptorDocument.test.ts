@@ -109,7 +109,7 @@ describe("delete Document", () => {
     ).not.toContain(document.path);
   });
 
-  it("should fail if the deletion fails, and should not write any events in event store", async () => {
+  it("should persist the event and log a deletion failure without failing", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.draft,
@@ -133,25 +133,29 @@ describe("delete Document", () => {
       config.s3Bucket,
       new Error("Simulated deletion failure")
     );
-    const deleteFile = fileManager.delete.bind(fileManager);
-    vi.spyOn(fileManager, "delete").mockImplementationOnce(async (...args) => {
-      await deleteFile(...args);
-      throw deletionError;
-    });
+    vi.spyOn(fileManager, "delete").mockRejectedValueOnce(deletionError);
+    const logError = vi
+      .spyOn(genericLogger, "error")
+      .mockReturnThis()
+      .mockClear();
 
-    await expect(
-      catalogService.internalDeleteTemplateInstanceDescriptorDocument(
-        eservice.id,
-        descriptor.id,
-        mockDocument.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
-      )
-    ).rejects.toThrow(deletionError);
+    await catalogService.internalDeleteTemplateInstanceDescriptorDocument(
+      eservice.id,
+      descriptor.id,
+      mockDocument.id,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
 
     expect(
       await fileManager.get(config.s3Bucket, mockDocument.path, genericLogger)
     ).toEqual(new Uint8Array(content));
-    expect((await readLastEserviceEvent(eservice.id)).version).toBe("0");
+    expect((await readLastEserviceEvent(eservice.id)).version).toBe("1");
+    expect(logError).toHaveBeenCalledWith(
+      expect.stringContaining(`s3://${config.s3Bucket}/${mockDocument.path}`)
+    );
+    expect(logError).toHaveBeenCalledWith(
+      expect.stringContaining(deletionError.message)
+    );
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {

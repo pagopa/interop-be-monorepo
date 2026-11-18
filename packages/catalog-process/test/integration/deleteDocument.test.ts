@@ -304,7 +304,7 @@ describe("delete Document", () => {
   });
 
   it.each(["document", "descriptor"] as const)(
-    "should restore S3 files if the event-store rejects the %s deletion",
+    "should not delete S3 files if the event-store rejects the %s deletion",
     async (kind) => {
       const documents = [getMockDocument(), getMockDocument()].map(
         (document) => ({
@@ -342,7 +342,7 @@ describe("delete Document", () => {
         "catalog",
         postgresDB
       );
-      const deletion = vi.spyOn(fileManager, "delete");
+      const deletion = vi.spyOn(fileManager, "delete").mockClear();
       const context = getMockContext({
         authData: getMockAuthData(eservice.producerId),
       });
@@ -367,26 +367,17 @@ describe("delete Document", () => {
           await fileManager.get(config.s3Bucket, document.path, genericLogger)
         ).toEqual(new Uint8Array(Buffer.from(document.id)));
       }
-      expect(deletion).toHaveBeenCalledWith(
-        config.s3Bucket,
-        documents[0].path,
-        genericLogger
-      );
+      expect(deletion).not.toHaveBeenCalled();
       expect(
         await fileManager.listFiles(config.s3Bucket, genericLogger)
       ).toEqual(
         expect.arrayContaining(documents.map((document) => document.path))
       );
-      expect(
-        (await fileManager.listFiles(config.s3Bucket, genericLogger)).filter(
-          (path) => path.startsWith("_delete-backups/")
-        )
-      ).toEqual([]);
       expect((await readLastEserviceEvent(eservice.id)).version).toBe("1");
     }
   );
 
-  it("should fail if the deletion fails, and should not write any events in event store", async () => {
+  it("should persist the event and log a deletion failure without failing", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.draft,
@@ -410,25 +401,29 @@ describe("delete Document", () => {
       config.s3Bucket,
       new Error("Simulated deletion failure")
     );
-    const deleteFile = fileManager.delete.bind(fileManager);
-    vi.spyOn(fileManager, "delete").mockImplementationOnce(async (...args) => {
-      await deleteFile(...args);
-      throw deletionError;
-    });
+    vi.spyOn(fileManager, "delete").mockRejectedValueOnce(deletionError);
+    const logError = vi
+      .spyOn(genericLogger, "error")
+      .mockReturnThis()
+      .mockClear();
 
-    await expect(
-      catalogService.deleteDocument(
-        eservice.id,
-        descriptor.id,
-        mockDocument.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
-      )
-    ).rejects.toThrow(deletionError);
+    await catalogService.deleteDocument(
+      eservice.id,
+      descriptor.id,
+      mockDocument.id,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
 
     expect(
       await fileManager.get(config.s3Bucket, mockDocument.path, genericLogger)
     ).toEqual(new Uint8Array(content));
-    expect((await readLastEserviceEvent(eservice.id)).version).toBe("0");
+    expect((await readLastEserviceEvent(eservice.id)).version).toBe("1");
+    expect(logError).toHaveBeenCalledWith(
+      expect.stringContaining(`s3://${config.s3Bucket}/${mockDocument.path}`)
+    );
+    expect(logError).toHaveBeenCalledWith(
+      expect.stringContaining(deletionError.message)
+    );
   });
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     expect(

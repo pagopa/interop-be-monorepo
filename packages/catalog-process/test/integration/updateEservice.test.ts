@@ -462,7 +462,7 @@ describe("update eService", () => {
     });
   });
 
-  it("should fail if the deletion fails, and should not write any events in event store", async () => {
+  it("should persist the event and log an interface deletion failure without failing on technology change", async () => {
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.draft,
@@ -486,29 +486,36 @@ describe("update eService", () => {
       config.s3Bucket,
       new Error("Simulated deletion failure")
     );
-    const deleteFile = fileManager.delete.bind(fileManager);
-    vi.spyOn(fileManager, "delete").mockImplementationOnce(async (...args) => {
-      await deleteFile(...args);
-      throw deletionError;
-    });
+    vi.spyOn(fileManager, "delete").mockRejectedValueOnce(deletionError);
+    const logError = vi
+      .spyOn(genericLogger, "error")
+      .mockReturnThis()
+      .mockClear();
 
-    await expect(
-      catalogService.updateEService(
-        mockEService.id,
-        {
-          name: updatedName,
-          description: mockEService.description,
-          technology: "SOAP",
-          mode: "DELIVER",
-        },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
-      )
-    ).rejects.toThrow(deletionError);
+    await catalogService.updateEService(
+      mockEService.id,
+      {
+        name: updatedName,
+        description: mockEService.description,
+        technology: "SOAP",
+        mode: "DELIVER",
+      },
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+    );
 
     expect(
       await fileManager.get(config.s3Bucket, mockDocument.path, genericLogger)
     ).toEqual(new Uint8Array(content));
-    expect((await readLastEserviceEvent(eservice.id)).version).toBe("0");
+    expect(await readLastEserviceEvent(eservice.id)).toMatchObject({
+      type: "DraftEServiceUpdated",
+      version: "1",
+    });
+    expect(logError).toHaveBeenCalledWith(
+      expect.stringContaining(`s3://${config.s3Bucket}/${mockDocument.path}`)
+    );
+    expect(logError).toHaveBeenCalledWith(
+      expect.stringContaining(deletionError.message)
+    );
   });
   it("should write on event-store for the update of an eService (update description only)", async () => {
     const updatedDescription = "eservice new description";

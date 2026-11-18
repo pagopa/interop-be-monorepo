@@ -382,7 +382,7 @@ describe("updatePurposeTemplate", () => {
   });
 
   it.each(["template", "risk-analysis"] as const)(
-    "should restore removed-answer documents if the event-store rejects the %s update",
+    "should not delete removed-answer documents if the event-store rejects the %s update",
     async (kind) => {
       const document = getMockRiskAnalysisTemplateAnswerAnnotationDocument();
       const template: PurposeTemplate = {
@@ -428,7 +428,7 @@ describe("updatePurposeTemplate", () => {
         "purpose_template",
         postgresDB
       );
-      const deletion = vi.spyOn(fileManager, "delete");
+      const deletion = vi.spyOn(fileManager, "delete").mockClear();
       const seed = new PurposeTemplateSeedApiBuilder(purposeTemplateSeed)
         .removeAnswer("ruleOfLawText")
         .build();
@@ -449,22 +449,13 @@ describe("updatePurposeTemplate", () => {
         code: "eventConflictError",
       });
 
-      expect(deletion).toHaveBeenCalledWith(
-        config.s3Bucket,
-        document.path,
-        genericLogger
-      );
+      expect(deletion).not.toHaveBeenCalled();
       expect(
         await fileManager.get(config.s3Bucket, document.path, genericLogger)
       ).toEqual(new Uint8Array(content));
       expect((await readLastPurposeTemplateEvent(template.id)).version).toBe(
         "1"
       );
-      expect(
-        (await fileManager.listFiles(config.s3Bucket, genericLogger)).filter(
-          (path) => path.startsWith("_delete-backups/")
-        )
-      ).toEqual([]);
     }
   );
 

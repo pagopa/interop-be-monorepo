@@ -27,7 +27,7 @@ import {
   RiskAnalysisFormToValidate,
   MaintenanceAuthData,
   explicitPropertiesChecker,
-  deleteFilesWithBackup,
+  deleteFiles,
 } from "pagopa-interop-commons";
 import {
   agreementApprovalPolicy,
@@ -994,15 +994,6 @@ export function catalogServiceBuilder(
   fileManager: FileManager
 ) {
   const repository = eventRepository(dbInstance, catalogEventToBinaryData);
-  const withFileDeletionBackup = <T>(
-    paths: string[],
-    logger: Logger,
-    operation: () => Promise<T>
-  ): Promise<T> =>
-    deleteFilesWithBackup(
-      { fileManager, bucket: config.s3Bucket, paths, logger },
-      operation
-    );
   return {
     async getEServiceById(
       eserviceId: EServiceId,
@@ -1304,11 +1295,13 @@ export function catalogServiceBuilder(
           ctx.correlationId
         );
 
-        const event = await withFileDeletionBackup(
-          interfacePathsToDelete,
-          ctx.logger,
-          () => repository.createEvent(updateEvent)
-        );
+        const event = await repository.createEvent(updateEvent);
+        await deleteFiles({
+          fileManager,
+          bucket: config.s3Bucket,
+          paths: interfacePathsToDelete,
+          logger: ctx.logger,
+        });
 
         return {
           data: updatedEservice,
@@ -1478,9 +1471,13 @@ export function catalogServiceBuilder(
         );
         const deletionEvents = [descriptorDeletionEvent, eserviceDeletionEvent];
 
-        await withFileDeletionBackup(documentPathsToDelete, logger, () =>
-          repository.createEvents(deletionEvents)
-        );
+        await repository.createEvents(deletionEvents);
+        await deleteFiles({
+          fileManager,
+          bucket: config.s3Bucket,
+          paths: documentPathsToDelete,
+          logger,
+        });
       }
     },
 
@@ -1523,11 +1520,13 @@ export function catalogServiceBuilder(
         updatedEService,
         correlationId
       );
-      const createdEvent = await withFileDeletionBackup(
-        documentPathsToDelete,
+      const createdEvent = await repository.createEvent(event);
+      await deleteFiles({
+        fileManager,
+        bucket: config.s3Bucket,
+        paths: documentPathsToDelete,
         logger,
-        () => repository.createEvent(event)
-      );
+      });
 
       return {
         data: updatedEService,
@@ -1601,11 +1600,13 @@ export function catalogServiceBuilder(
           correlationId
         );
 
-      const event = await withFileDeletionBackup(
-        documentPathsToDelete,
+      const event = await repository.createEvent(approvalEvent);
+      await deleteFiles({
+        fileManager,
+        bucket: config.s3Bucket,
+        paths: documentPathsToDelete,
         logger,
-        () => repository.createEvent(approvalEvent)
-      );
+      });
       return {
         data: archivableEservice,
         metadata: {
@@ -1812,11 +1813,13 @@ export function catalogServiceBuilder(
               correlationId
             );
 
-      const createdEvent = await withFileDeletionBackup(
-        [document.path],
+      const createdEvent = await repository.createEvent(event);
+      await deleteFiles({
+        fileManager,
+        bucket: config.s3Bucket,
+        paths: [document.path],
         logger,
-        () => repository.createEvent(event)
-      );
+      });
 
       return {
         data: newEservice,
@@ -2141,17 +2144,23 @@ export function catalogServiceBuilder(
         );
         const deletionEvents = [descriptorDeletionEvent, eserviceDeletionEvent];
 
-        await withFileDeletionBackup(documentPathsToDelete, logger, () =>
-          repository.createEvents(deletionEvents)
-        );
+        await repository.createEvents(deletionEvents);
+        await deleteFiles({
+          fileManager,
+          bucket: config.s3Bucket,
+          paths: documentPathsToDelete,
+          logger,
+        });
 
         return undefined;
       } else {
-        const event = await withFileDeletionBackup(
-          documentPathsToDelete,
+        const event = await repository.createEvent(descriptorDeletionEvent);
+        await deleteFiles({
+          fileManager,
+          bucket: config.s3Bucket,
+          paths: documentPathsToDelete,
           logger,
-          () => repository.createEvent(descriptorDeletionEvent)
-        );
+        });
 
         return {
           data: eserviceAfterDescriptorDeletion,
@@ -4682,9 +4691,13 @@ export function catalogServiceBuilder(
           correlationId
         );
 
-      await withFileDeletionBackup([document.path], logger, () =>
-        repository.createEvent(deletionEvent)
-      );
+      await repository.createEvent(deletionEvent);
+      await deleteFiles({
+        fileManager,
+        bucket: config.s3Bucket,
+        paths: [document.path],
+        logger,
+      });
     },
 
     async innerUpdateTemplateInstanceDescriptorDocument(
@@ -6198,15 +6211,13 @@ async function updateDraftEService(
     correlationId
   );
 
-  const event = await deleteFilesWithBackup(
-    {
-      fileManager,
-      bucket: config.s3Bucket,
-      paths: interfacePathsToDelete,
-      logger,
-    },
-    () => repository.createEvent(updateEvent)
-  );
+  const event = await repository.createEvent(updateEvent);
+  await deleteFiles({
+    fileManager,
+    bucket: config.s3Bucket,
+    paths: interfacePathsToDelete,
+    logger,
+  });
   return { data: updatedEService, metadata: { version: event.newVersion } };
 }
 

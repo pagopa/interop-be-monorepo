@@ -9,12 +9,11 @@ import {
   getLatestVersionFormRules,
   M2MAdminAuthData,
   M2MAuthData,
-  Logger,
   riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate,
   riskAnalysisValidatedAnswerToRiskAnalysisAnswer,
   UIAuthData,
   WithLogger,
-  deleteFilesWithBackup,
+  deleteFiles,
 } from "pagopa-interop-commons";
 import {
   DescriptorId,
@@ -740,15 +739,13 @@ async function updateDraftPurposeTemplate(
     correlationId,
     purposeTemplate.metadata.version
   );
-  const event = await deleteFilesWithBackup(
-    {
-      fileManager,
-      bucket: config.s3Bucket,
-      paths: documentPathsToDelete,
-      logger,
-    },
-    () => repository.createEvent(updateEvent)
-  );
+  const event = await repository.createEvent(updateEvent);
+  await deleteFiles({
+    fileManager,
+    bucket: config.s3Bucket,
+    paths: documentPathsToDelete,
+    logger,
+  });
 
   return {
     data: updatedPurposeTemplate,
@@ -915,15 +912,6 @@ export function purposeTemplateServiceBuilder(
     dbInstance,
     purposeTemplateEventToBinaryDataV2
   );
-  const withFileDeletionBackup = <T>(
-    paths: string[],
-    logger: Logger,
-    operation: () => Promise<T>
-  ): Promise<T> =>
-    deleteFilesWithBackup(
-      { fileManager, bucket: config.s3Bucket, paths, logger },
-      operation
-    );
 
   function linkOrUnlinkValidationResultsToEServiceDescriptorsPurposeTemplate(
     purposeTemplateValidationResults: Array<{
@@ -2326,9 +2314,13 @@ export function purposeTemplateServiceBuilder(
         purposeTemplate.metadata.version
       );
 
-      await withFileDeletionBackup(documentPathsToDelete, logger, () =>
-        repository.createEvent(deletionEvent)
-      );
+      await repository.createEvent(deletionEvent);
+      await deleteFiles({
+        fileManager,
+        bucket: config.s3Bucket,
+        paths: documentPathsToDelete,
+        logger,
+      });
     },
     async deleteRiskAnalysisTemplateAnswerAnnotation({
       purposeTemplateId,
@@ -2369,11 +2361,13 @@ export function purposeTemplateServiceBuilder(
         updatedPurposeTemplate.metadata.version
       );
 
-      const event = await withFileDeletionBackup(
-        documentPathsToDelete,
+      const event = await repository.createEvent(updateEvent);
+      await deleteFiles({
+        fileManager,
+        bucket: config.s3Bucket,
+        paths: documentPathsToDelete,
         logger,
-        () => repository.createEvent(updateEvent)
-      );
+      });
 
       return {
         data: updatedAnswer,
@@ -2416,11 +2410,13 @@ export function purposeTemplateServiceBuilder(
           correlationId,
         });
 
-      const event = await withFileDeletionBackup(
-        [removedAnnotationDocument.path],
+      const event = await repository.createEvent(deletionEvent);
+      await deleteFiles({
+        fileManager,
+        bucket: config.s3Bucket,
+        paths: [removedAnnotationDocument.path],
         logger,
-        () => repository.createEvent(deletionEvent)
-      );
+      });
 
       return {
         data: removedAnnotationDocument,
@@ -2512,11 +2508,13 @@ export function purposeTemplateServiceBuilder(
         purposeTemplate.metadata.version
       );
 
-      const event = await withFileDeletionBackup(
-        documentPathsToDelete,
+      const event = await repository.createEvent(updateEvent);
+      await deleteFiles({
+        fileManager,
+        bucket: config.s3Bucket,
+        paths: documentPathsToDelete,
         logger,
-        () => repository.createEvent(updateEvent)
-      );
+      });
 
       return {
         data: purposeRiskAnalysisFormWithDocuments,
