@@ -4,4 +4,6 @@ export const attributeRegistryErrorCodes = {
   originNotCompliant: "0003",
   tenantNotFound: "0004",
   tenantIsNotACertifier: "0005",
+  attributeSubunitPropagationSelectionNotValid: "0006",
+  attributeNotEligibleForSubunitPropagation: "0007",
 };

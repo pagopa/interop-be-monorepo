@@ -9,6 +9,7 @@ type ErrorCodes = LocalErrorCodes | CommonErrorCodes;
 
 const {
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
+  HTTP_STATUS_BAD_REQUEST,
   HTTP_STATUS_FORBIDDEN,
   HTTP_STATUS_NOT_FOUND,
   HTTP_STATUS_CONFLICT,
@@ -33,6 +34,18 @@ export const getAttributeByIdErrorMapper = (
 ): number =>
   match(error.code)
     .with("attributeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updateAttributesSubunitPropagationErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "attributeSubunitPropagationSelectionNotValid",
+      "attributeNotEligibleForSubunitPropagation",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const createDeclaredAttributesErrorMapper = (

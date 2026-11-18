@@ -32,4 +32,5 @@ export const toApiAttribute = (
   creationTime: attribute.creationTime.toJSON(),
   code: attribute.code,
   origin: attribute.origin,
+  subunitPropagationEnabled: attribute.subunitPropagationEnabled,
 });

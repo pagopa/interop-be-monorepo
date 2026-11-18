@@ -8952,6 +8952,46 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  "/attributes/subunitPropagation/update":
+    post:
+      summary: Updates certified attributes propagation to subunits
+      tags:
+        - attributes
+      operationId: updateAttributesSubunitPropagation
+      description: Updates the selection of the certified attributes of the requester extended to its subunits (AOO/UO)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AttributeSubunitPropagationUpdateSeed"
+      responses:
+        "204":
+          description: Attributes propagation updated
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   "/attributes/{attributeId}":
     parameters:
       - schema:
@@ -17707,12 +17747,28 @@ components:
         creationTime:
           type: string
           format: date-time
+        subunitPropagationEnabled:
+          type: boolean
+          description: "whether the certified attribute is extended to the subunits (AOO/UO) of the holder; absent means disabled"
       required:
         - id
         - description
         - kind
         - name
         - creationTime
+    AttributeSubunitPropagationUpdateSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        attributeIds:
+          type: array
+          uniqueItems: true
+          maxItems: 1
+          items:
+            type: string
+            format: uuid
+      required:
+        - attributeIds
     VerifiedAttribute:
       title: VerifiedAttribute
       type: object

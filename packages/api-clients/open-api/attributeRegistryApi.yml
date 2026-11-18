@@ -32,6 +32,30 @@ tags:
       description: Find out more
       url: "http://swagger.io"
 paths:
+  /attributes/subunitPropagation/update:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      tags:
+        - attribute
+      operationId: updateAttributesSubunitPropagation
+      summary: Updates certified attributes propagation to subunits
+      description: Updates the selection of the certified attributes of the requester extended to its subunits (AOO/UO)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AttributeSubunitPropagationUpdateSeed"
+      responses:
+        "204":
+          description: Attributes propagation updated
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   "/certifiedAttributes":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -546,12 +570,28 @@ components:
         creationTime:
           type: string
           format: date-time
+        subunitPropagationEnabled:
+          type: boolean
+          description: "whether the certified attribute is extended to the subunits (AOO/UO) of the holder; absent means disabled"
       required:
         - id
         - description
         - kind
         - name
         - creationTime
+    AttributeSubunitPropagationUpdateSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        attributeIds:
+          type: array
+          uniqueItems: true
+          maxItems: 1
+          items:
+            type: string
+            format: uuid
+      required:
+        - attributeIds
     AttributeKind:
       type: string
       enum:

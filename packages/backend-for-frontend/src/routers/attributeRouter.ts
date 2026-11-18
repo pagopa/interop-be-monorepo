@@ -142,6 +142,27 @@ const attributeRouter = (
       }
     })
 
+    .post("/attributes/subunitPropagation/update", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        await attributeService.updateAttributesSubunitPropagation(
+          req.body,
+          ctx
+        );
+
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error updating subunit propagation of certified attributes ${req.body.attributeIds}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+
     .get("/attributes/:attributeId", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 

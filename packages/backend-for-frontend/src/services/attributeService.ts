@@ -143,6 +143,19 @@ export function attributeServiceBuilder(
         pagination: { offset, limit, totalCount: attributes.totalCount },
       };
     },
+
+    async updateAttributesSubunitPropagation(
+      seed: bffApi.AttributeSubunitPropagationUpdateSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Updating subunit propagation of certified attributes ${seed.attributeIds}`
+      );
+
+      await attributeClient.updateAttributesSubunitPropagation(seed, {
+        headers,
+      });
+    },
   };
 }
 
