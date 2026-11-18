@@ -40,6 +40,37 @@ describe("API POST /eservices/templates/:eServiceTemplateId/name/update", () => 
     expect(res.status).toBe(204);
   });
 
+  it.each([5, 45])("Should accept a name of %s characters", async (length) => {
+    const seed = { name: "a".repeat(length) };
+    const res = await makeRequest(
+      generateToken(authRole.ADMIN_ROLE),
+      mockEServiceTemplateId,
+      seed
+    );
+    expect(res.status).toBe(204);
+    expect(
+      clients.eserviceTemplateProcessClient.updateEServiceTemplateName
+    ).toHaveBeenCalledExactlyOnceWith(seed, {
+      headers: expect.any(Object),
+      params: { templateId: mockEServiceTemplateId },
+    });
+  });
+
+  it.each([4, 46, 60])(
+    "Should reject a name of %s characters",
+    async (length) => {
+      const res = await makeRequest(
+        generateToken(authRole.ADMIN_ROLE),
+        mockEServiceTemplateId,
+        { name: "a".repeat(length) }
+      );
+      expect(res.status).toBe(400);
+      expect(
+        clients.eserviceTemplateProcessClient.updateEServiceTemplateName
+      ).not.toHaveBeenCalled();
+    }
+  );
+
   it.each([
     { eServiceTemplateId: "invalid" as EServiceTemplateId },
     { body: {} },

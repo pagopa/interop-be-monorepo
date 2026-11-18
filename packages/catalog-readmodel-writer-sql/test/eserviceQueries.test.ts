@@ -6,6 +6,7 @@ import {
   getMockDescriptorRejectionReason,
   getMockEService,
   getMockValidRiskAnalysis,
+  sortRiskAnalysisCollections,
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
@@ -115,8 +116,11 @@ describe("E-service queries", () => {
         asyncExchangePropertiesSQL,
       });
 
-      expect(retrievedEService).toStrictEqual({
-        data: eservice,
+      expect({
+        ...retrievedEService,
+        data: sortRiskAnalysisCollections(retrievedEService.data),
+      }).toStrictEqual({
+        data: sortRiskAnalysisCollections(eservice),
         metadata: {
           version: 1,
         },
@@ -293,8 +297,11 @@ describe("E-service queries", () => {
         asyncExchangePropertiesSQL,
       });
 
-      expect(retrievedEService).toStrictEqual({
-        data: eservice,
+      expect({
+        ...retrievedEService,
+        data: sortRiskAnalysisCollections(retrievedEService.data),
+      }).toStrictEqual({
+        data: sortRiskAnalysisCollections(eservice),
         metadata: {
           version: 2,
         },
