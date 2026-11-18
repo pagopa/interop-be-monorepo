@@ -13,6 +13,11 @@ describe("API GET /creators test", () => {
     purposeTemplateApi.CompactOrganization.strip().parse({
       ...getMockTenant(),
       name: "Tenant 1",
+      subUnitType: "UO",
+      parentTenants: [
+        { id: generateId(), name: "Tenant AOO", subUnitType: "AOO" },
+        { id: generateId(), name: "Tenant root" },
+      ],
     });
   const tenant2: purposeTemplateApi.CompactOrganization =
     purposeTemplateApi.CompactOrganization.strip().parse({
