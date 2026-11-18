@@ -66,29 +66,14 @@ export async function handleEserviceStateChanged(
   }
 
   const eservice = fromEServiceV2(eserviceV2Msg);
-  const descriptorIdFromEventForGuard = match(params.payload)
-    .with(
-      {
-        type: P.union(
-          "EServiceDescriptorQuotasUpdated",
-          "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
-          "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
-          "EServiceDescriptorDocumentAdded",
-          "EServiceDescriptorDocumentUpdated",
-          "EServiceDescriptorDocumentAddedByTemplateUpdate",
-          "EServiceDescriptorDocumentUpdatedByTemplateUpdate"
-        ),
-      },
-      ({ data: { descriptorId } }) => descriptorId
-    )
-    .otherwise(() => undefined);
+  const descriptorIdFromEvent = getDescriptorIdFromEvent(params.payload);
 
   if (
-    descriptorIdFromEventForGuard &&
-    !isDescriptorVisibleToConsumers(eservice, descriptorIdFromEventForGuard)
+    descriptorIdFromEvent &&
+    !isDescriptorVisibleToConsumers(eservice, descriptorIdFromEvent)
   ) {
     logger.info(
-      `Skipping consumer notification for draft or waiting descriptor ${descriptorIdFromEventForGuard} of EService ${eservice.id}`
+      `Skipping consumer notification for draft or waiting descriptor ${descriptorIdFromEvent} of EService ${eservice.id}`
     );
     return [];
   }
@@ -124,11 +109,11 @@ export async function handleEserviceStateChanged(
     return [];
   }
 
-  const {
-    copy,
-    descriptorId: descriptorIdFromEvent,
-    title: defaultTitle,
-  } = getCopyAndDescriptorId(params.payload, eservice, producer);
+  const { copy, title: defaultTitle } = getCopy(
+    params.payload,
+    eservice,
+    producer
+  );
 
   const descriptorId = descriptorIdFromEvent
     ? unsafeBrandId<DescriptorId>(descriptorIdFromEvent)
@@ -170,12 +155,45 @@ export async function handleEserviceStateChanged(
   });
 }
 
-function getCopyAndDescriptorId(
+function getDescriptorIdFromEvent(
+  payload: EServiceStateChangedEvent
+): string | undefined {
+  return match(payload)
+    .returnType<string | undefined>()
+    .with(
+      {
+        type: P.union(
+          "EServiceDescriptorQuotasUpdated",
+          "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
+          "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
+          "EServiceDescriptorDocumentAdded",
+          "EServiceDescriptorDocumentUpdated",
+          "EServiceDescriptorDocumentAddedByTemplateUpdate",
+          "EServiceDescriptorDocumentUpdatedByTemplateUpdate"
+        ),
+      },
+      ({ data: { descriptorId } }) => descriptorId
+    )
+    .with(
+      {
+        type: P.union(
+          "EServiceNameUpdated",
+          "EServiceDescriptionUpdated",
+          "EServiceNameUpdatedByTemplateUpdate"
+        ),
+      },
+      () => undefined
+    )
+    .exhaustive();
+}
+
+function getCopy(
   payload: EServiceStateChangedEvent,
   eservice: EService,
   producer: Tenant
-): { copy: string; descriptorId?: string; title?: string } {
+): { copy: string; title?: string } {
   return match(payload)
+    .returnType<{ copy: string; title?: string }>()
     .with(
       {
         type: P.union(
@@ -214,7 +232,6 @@ function getCopyAndDescriptorId(
         );
         return {
           copy: `L'ente erogatore ${producer.name} ha apportato delle modifiche alle soglie di carico nella versione ${descriptor.version} dell'e-service "${eservice.name}" a cui sei iscritto. Ti invitiamo a prendere visione delle variazioni per assicurarti che non impattino la tua operatività.`,
-          descriptorId,
         };
       }
     )
@@ -232,7 +249,6 @@ function getCopyAndDescriptorId(
         );
         return {
           copy: `L'ente erogatore ${producer.name} ha aggiunto un documento nella versione ${descriptor.version} dell'e-service "${eservice.name}" a cui sei iscritto. Ti invitiamo a prendere visione della documentazione integrativa.`,
-          descriptorId,
         };
       }
     )
@@ -250,7 +266,6 @@ function getCopyAndDescriptorId(
         );
         return {
           copy: `L'ente erogatore ${producer.name} ha aggiornato un documento nella versione ${descriptor.version} dell'e-service "${eservice.name}" a cui sei iscritto. Ti invitiamo a prendere visione della documentazione integrativa.`,
-          descriptorId,
         };
       }
     )

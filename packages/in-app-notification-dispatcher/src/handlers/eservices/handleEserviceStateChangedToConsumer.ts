@@ -63,37 +63,14 @@ export async function handleEserviceStateChangedToConsumer(
   );
 
   const eservice = fromEServiceV2(eserviceV2Msg.data.eservice);
-  const descriptorIdFromEventForGuard = match(eserviceV2Msg)
-    .with(
-      {
-        type: P.union(
-          "EServiceDescriptorAttributesUpdated",
-          "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
-          "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
-          "EServiceDescriptorQuotasUpdated",
-          "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
-          "EServiceDescriptorDocumentAdded",
-          "EServiceDescriptorDocumentUpdated",
-          "EServiceDescriptorDocumentAddedByTemplateUpdate",
-          "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
-          "EServiceDescriptorPublished",
-          "EServiceDescriptorSuspended",
-          "EServiceDescriptorActivated",
-          "EServiceDescriptorArchivingScheduled",
-          "EServiceDescriptorArchivingCanceled",
-          "EServiceDescriptorArchivingCompleted"
-        ),
-      },
-      ({ data: { descriptorId } }) => descriptorId
-    )
-    .otherwise(() => undefined);
+  const descriptorIdFromEvent = getDescriptorIdFromEvent(eserviceV2Msg);
 
   if (
-    descriptorIdFromEventForGuard &&
-    !isDescriptorVisibleToConsumers(eservice, descriptorIdFromEventForGuard)
+    descriptorIdFromEvent &&
+    !isDescriptorVisibleToConsumers(eservice, descriptorIdFromEvent)
   ) {
     logger.info(
-      `Skipping consumer in-app notification for draft or waiting descriptor ${descriptorIdFromEventForGuard} of EService ${eservice.id}`
+      `Skipping consumer in-app notification for draft or waiting descriptor ${descriptorIdFromEvent} of EService ${eservice.id}`
     );
     return [];
   }
@@ -120,11 +97,7 @@ export async function handleEserviceStateChangedToConsumer(
     logger
   );
 
-  const { body, descriptorId: descriptorIdFromEvent } = getBodyAndDescriptorId(
-    eserviceV2Msg,
-    eservice,
-    producer.name
-  );
+  const { body } = getBody(eserviceV2Msg, eservice, producer.name);
 
   const descriptorId = descriptorIdFromEvent
     ? unsafeBrandId<DescriptorId>(descriptorIdFromEvent)
@@ -143,6 +116,50 @@ export async function handleEserviceStateChangedToConsumer(
   }));
 }
 
+function getDescriptorIdFromEvent(
+  msg: EServiceStateChangedEvent
+): string | undefined {
+  return match(msg)
+    .returnType<string | undefined>()
+    .with(
+      {
+        type: P.union(
+          "EServiceDescriptorAttributesUpdated",
+          "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
+          "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
+          "EServiceDescriptorQuotasUpdated",
+          "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
+          "EServiceDescriptorDocumentAdded",
+          "EServiceDescriptorDocumentUpdated",
+          "EServiceDescriptorDocumentAddedByTemplateUpdate",
+          "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
+          "EServiceDescriptorPublished",
+          "EServiceDescriptorSuspended",
+          "EServiceDescriptorActivated",
+          "EServiceDescriptorArchivingScheduled",
+          "EServiceDescriptorArchivingCanceled",
+          "EServiceDescriptorArchivingCompleted"
+        ),
+      },
+      ({ data: { descriptorId } }) => descriptorId
+    )
+    .with(
+      {
+        type: P.union(
+          "EServiceNameUpdated",
+          "EServiceDescriptionUpdated",
+          "EServiceNameUpdatedByTemplateUpdate",
+          "EServiceDescriptionUpdatedByTemplateUpdate",
+          "EServiceArchivingScheduled",
+          "EServiceArchivingCanceled",
+          "EServiceArchivingCompleted"
+        ),
+      },
+      () => undefined
+    )
+    .exhaustive();
+}
+
 function getDocumentName(
   eservice: EService,
   descriptorId: string,
@@ -152,15 +169,15 @@ function getDocumentName(
   return descriptor?.docs?.find((d) => d.id === documentId)?.prettyName;
 }
 
-function getBodyAndDescriptorId(
+function getBody(
   msg: EServiceStateChangedEvent,
   eservice: EService,
   producerName: string
 ): {
   body: string;
-  descriptorId?: string | undefined;
 } {
   return match(msg)
+    .returnType<{ body: string }>()
     .with(
       {
         type: P.union(
@@ -198,12 +215,11 @@ function getBodyAndDescriptorId(
           "EServiceDescriptorAttributesUpdatedByTemplateUpdate"
         ),
       },
-      ({ data: { descriptorId } }) => ({
+      () => ({
         body: inAppTemplates.eserviceDescriptorAttributesUpdatedToConsumer(
           eservice.name,
           producerName
         ),
-        descriptorId,
       })
     )
     .with(
@@ -214,7 +230,6 @@ function getBodyAndDescriptorId(
           eservice.descriptors.find((d) => d.id === descriptorId)?.version,
           producerName
         ),
-        descriptorId,
       })
     )
     .with(
@@ -232,7 +247,6 @@ function getBodyAndDescriptorId(
               archivingSchedule.archivableOn,
               archivingSchedule.scope === archivingScope.descriptor
             ),
-            descriptorId,
           };
         } else {
           return {
@@ -241,7 +255,6 @@ function getBodyAndDescriptorId(
               producerName,
               descriptor?.version
             ),
-            descriptorId,
           };
         }
       }
@@ -261,7 +274,6 @@ function getBodyAndDescriptorId(
               archivingSchedule.archivableOn,
               archivingSchedule.scope === archivingScope.eservice
             ),
-            descriptorId,
           };
         } else {
           return {
@@ -270,7 +282,6 @@ function getBodyAndDescriptorId(
               producerName,
               descriptor?.version
             ),
-            descriptorId,
           };
         }
       }
@@ -288,7 +299,6 @@ function getBodyAndDescriptorId(
           eservice.descriptors.find((d) => d.id === descriptorId)?.version,
           producerName
         ),
-        descriptorId,
       })
     )
     .with(
@@ -304,7 +314,6 @@ function getBodyAndDescriptorId(
           eservice.descriptors.find((d) => d.id === descriptorId)?.version,
           producerName
         ),
-        descriptorId,
       })
     )
     .with(
@@ -327,7 +336,6 @@ function getBodyAndDescriptorId(
             eservice.descriptors.find((d) => d.id === descriptorId)?.version,
             producerName
           ),
-          descriptorId,
         };
       }
     )
@@ -345,7 +353,6 @@ function getBodyAndDescriptorId(
       () => ({
         // FIXME these events will be managed with "WORK ITEM 10"
         body: "",
-        descriptorId: undefined,
       })
     )
     .exhaustive();
