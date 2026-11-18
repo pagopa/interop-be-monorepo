@@ -1,4 +1,3 @@
-import { S3ServiceException } from "@aws-sdk/client-s3";
 import { Message } from "@aws-sdk/client-sqs";
 import {
   DocumentSignatureReference,
@@ -102,33 +101,12 @@ async function processMessage(
       signature.fileName
     );
 
-    // immutable s3Key with 409 handling for specific documentTypes
-    const s3Key: string = await (async (): Promise<string> => {
-      try {
-        return await fileManager.resumeOrStoreBytes(
-          { bucket, path: filePath, name: fileName, content: fileContent },
-          logger
-        );
-      } catch (error) {
-        const isConflict =
-          error instanceof S3ServiceException &&
-          (error.$metadata?.httpStatusCode === 409 ||
-            error.name === "Conflict");
-
-        const allowConflictWarning =
-          signatureFileKind === "RISK_ANALYSIS_DOCUMENT" ||
-          signatureFileKind === "RISK_ANALYSIS_TEMPLATE_DOCUMENT" ||
-          signatureFileKind === "AGREEMENT_CONTRACT";
-
-        if (isConflict && allowConflictWarning) {
-          logger.warn(
-            `Conflict (409) uploading s3://${bucket}/${path}/${fileName} — file already exists, continuing`
-          );
-          return `${path}/${fileName}`;
-        }
-        throw error;
-      }
-    })();
+    // resumeOrStoreBytes tolerates an already existing key, so a re-delivered
+    // message reuses the stored file instead of failing on an immutable bucket.
+    const s3Key: string = await fileManager.resumeOrStoreBytes(
+      { bucket, path: filePath, name: fileName, content: fileContent },
+      logger
+    );
 
     logger.info(`File successfully saved in S3 with key: ${s3Key}`);
 
