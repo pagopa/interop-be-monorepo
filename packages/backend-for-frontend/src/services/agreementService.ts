@@ -940,7 +940,6 @@ export async function enrichAgreement(
     suspendedByConsumer: agreement.suspendedByConsumer,
     suspendedByProducer: agreement.suspendedByProducer,
     suspendedByPlatform: agreement.suspendedByPlatform,
-    isContractPresent: agreement.contract !== undefined,
     consumerDocuments: agreement.consumerDocuments.map((doc) =>
       toBffAgreementConsumerDocument(doc)
     ),
