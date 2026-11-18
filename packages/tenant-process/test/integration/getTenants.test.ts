@@ -1,8 +1,20 @@
 import { getMockTenant } from "pagopa-interop-commons-test";
-import { Tenant, tenantFeatureType } from "pagopa-interop-models";
-import { describe, expect, it } from "vitest";
+import {
+  generateId,
+  ParentTenant,
+  Tenant,
+  TenantId,
+  tenantFeatureType,
+} from "pagopa-interop-models";
+import { upsertTenant } from "pagopa-interop-readmodel/testUtils";
+import { match } from "ts-pattern";
+import { describe, expect, it, vi } from "vitest";
 
-import { addOneTenant, readModelService } from "../integrationUtils.js";
+import {
+  addOneTenant,
+  readModelDB,
+  readModelService,
+} from "../integrationUtils.js";
 
 describe("getTenants", () => {
   const tenant1: Tenant = {
@@ -451,5 +463,316 @@ describe("getTenants", () => {
       expect(tenantsByName.results.length).toBe(2);
       expect(tenantsByName.results).toEqual([tenant6, tenant7]);
     });
+  });
+
+  it.each([
+    { direct: true, query: "Tenant UO - Tenant root", matches: true },
+    {
+      direct: true,
+      query: "Tenant UO - Tenant root - Tenant root",
+      matches: false,
+    },
+    {
+      direct: false,
+      query: "Tenant UO - Tenant AOO - Tenant root",
+      matches: true,
+    },
+    {
+      direct: false,
+      query: "Tenant UO - Tenant root",
+      matches: false,
+    },
+  ])(
+    "should search by composed name without duplicating ancestors: %j",
+    async ({ direct, query, matches }) => {
+      const rootTenant = { ...getMockTenant(), name: "Tenant root" };
+      const parentTenant: Tenant = {
+        ...getMockTenant(),
+        name: "Tenant AOO",
+        subUnitType: "AOO",
+      };
+      const targetTenant: Tenant = {
+        ...getMockTenant(),
+        name: "Tenant UO",
+        subUnitType: "UO",
+        parentTenantId: direct ? rootTenant.id : parentTenant.id,
+        rootTenantId: rootTenant.id,
+      };
+      for (const tenant of [rootTenant, parentTenant, targetTenant]) {
+        await upsertTenant(readModelDB, tenant, 0);
+      }
+      const tenantsMatchingQuery = await readModelService.getTenants({
+        name: query,
+        features: [],
+        externalIdOrigin: undefined,
+        externalIdValue: undefined,
+        offset: 0,
+        limit: 50,
+      });
+      expect(tenantsMatchingQuery.results.map((tenant) => tenant.id)).toEqual(
+        matches ? [targetTenant.id] : []
+      );
+      expect(tenantsMatchingQuery.totalCount).toBe(matches ? 1 : 0);
+    }
+  );
+
+  it("should apply name search before pagination and total count", async () => {
+    const rootTenant = { ...getMockTenant(), name: "Tenant root" };
+    const targetTenants: Tenant[] = ["Alpha", "Beta", "Gamma"].map((name) => ({
+      ...getMockTenant(),
+      name,
+      subUnitType: "UO",
+      parentTenantId: rootTenant.id,
+      rootTenantId: rootTenant.id,
+      externalId: { origin: "HIERARCHY", value: name },
+    }));
+    for (const tenant of [rootTenant, ...targetTenants]) {
+      await upsertTenant(readModelDB, tenant, 0);
+    }
+    const paginatedTenants = await readModelService.getTenants({
+      name: "tenant root",
+      features: [],
+      externalIdOrigin: "HIERARCHY",
+      externalIdValue: undefined,
+      offset: 1,
+      limit: 1,
+    });
+    expect(paginatedTenants.totalCount).toBe(3);
+    expect(paginatedTenants.results.map((tenant) => tenant.id)).toEqual([
+      targetTenants[1].id,
+    ]);
+  });
+
+  it.each(["%", "_"])(
+    "should escape %s in ancestor names during name search",
+    async (character) => {
+      const rootTenant = {
+        ...getMockTenant(),
+        name: `Tenant root ${character}`,
+      };
+      const nonMatchingTenant = {
+        ...getMockTenant(),
+        name: "Tenant root X",
+      };
+      const targetTenant: Tenant = {
+        ...getMockTenant(),
+        name: "Tenant UO",
+        parentTenantId: rootTenant.id,
+        rootTenantId: rootTenant.id,
+      };
+      for (const tenant of [rootTenant, nonMatchingTenant, targetTenant]) {
+        await upsertTenant(readModelDB, tenant, 0);
+      }
+      const tenantsMatchingEscapedAncestorName =
+        await readModelService.getTenants({
+          name: `Tenant root ${character}`,
+          features: [],
+          externalIdOrigin: undefined,
+          externalIdValue: undefined,
+          offset: 0,
+          limit: 50,
+        });
+      expect(tenantsMatchingEscapedAncestorName.totalCount).toBe(2);
+      expect(
+        tenantsMatchingEscapedAncestorName.results
+          .map((tenant) => tenant.id)
+          .sort()
+      ).toEqual([rootTenant.id, targetTenant.id].sort());
+    }
+  );
+
+  it.each([
+    "root",
+    "identical parent and root",
+    "parent and root",
+    "missing parent",
+    "missing root",
+    "empty ancestor name",
+  ])(
+    "should map joined parents without a separate query: %s",
+    async (scenario) => {
+      const rootTenant: Tenant = {
+        ...getMockTenant(),
+        name: "Tenant root",
+      };
+      const parentTenant: Tenant = {
+        ...getMockTenant(),
+        name: scenario === "empty ancestor name" ? "" : "Tenant AOO",
+        subUnitType: "AOO",
+      };
+      const targetTenant: Tenant = {
+        ...getMockTenant(),
+        parentTenantId: match(scenario)
+          .with("root", () => undefined)
+          .with("identical parent and root", () => rootTenant.id)
+          .with("missing parent", () => generateId<TenantId>())
+          .otherwise(() => parentTenant.id),
+        rootTenantId: match(scenario)
+          .with("root", () => undefined)
+          .with("missing root", () => generateId<TenantId>())
+          .otherwise(() => rootTenant.id),
+        externalId: { origin: "HIERARCHY", value: "chosen" },
+      };
+      for (const tenant of [rootTenant, parentTenant, targetTenant]) {
+        await upsertTenant(readModelDB, tenant, 0);
+      }
+      const parentTenantSummary: ParentTenant = {
+        id: parentTenant.id,
+        name: parentTenant.name,
+        subUnitType: parentTenant.subUnitType,
+      };
+      const rootTenantSummary: ParentTenant = {
+        id: rootTenant.id,
+        name: rootTenant.name,
+      };
+      const expected = match(scenario)
+        .with("root", "missing parent", () => undefined)
+        .with("identical parent and root", () => [rootTenantSummary])
+        .with("missing root", () => [parentTenantSummary])
+        .otherwise(() => [parentTenantSummary, rootTenantSummary]);
+      const select = vi.spyOn(readModelDB, "select");
+      try {
+        const tenantsWithHierarchy = await readModelService.getTenants({
+          name: undefined,
+          features: [],
+          externalIdOrigin: "HIERARCHY",
+          externalIdValue: "chosen",
+          offset: 0,
+          limit: 1,
+        });
+        expect(tenantsWithHierarchy.totalCount).toBe(1);
+        expect(tenantsWithHierarchy.results).toEqual([
+          {
+            ...targetTenant,
+            ...(expected ? { parentTenants: expected } : {}),
+          },
+        ]);
+        expect(select).not.toHaveBeenCalled();
+      } finally {
+        select.mockRestore();
+      }
+    }
+  );
+
+  it.each([
+    { description: "parent name", query: "Tenant AOO", matches: true },
+    {
+      description: "unmatched name",
+      query: "No matching tenant",
+      matches: false,
+    },
+  ])(
+    "should search by $description with feature, externalId, and selfcareId filters",
+    async ({ query, matches }) => {
+      const rootTenant = {
+        ...getMockTenant(),
+        name: "Tenant root",
+      };
+      const parentTenant = { ...getMockTenant(), name: "Tenant AOO" };
+      const targetTenant: Tenant = {
+        ...getMockTenant(),
+        name: "Tenant UO",
+        parentTenantId: parentTenant.id,
+        rootTenantId: rootTenant.id,
+        externalId: { origin: "HIERARCHY", value: "chosen" },
+        features: [
+          {
+            type: tenantFeatureType.delegatedProducer,
+            availabilityTimestamp: new Date(),
+          },
+        ],
+      };
+      const excluded: Tenant[] = [
+        { ...targetTenant, id: getMockTenant().id, features: [] },
+        {
+          ...targetTenant,
+          id: getMockTenant().id,
+          selfcareId: undefined,
+        },
+        {
+          ...targetTenant,
+          id: getMockTenant().id,
+          externalId: { origin: "OTHER", value: "chosen" },
+        },
+        {
+          ...targetTenant,
+          id: getMockTenant().id,
+          externalId: { origin: "HIERARCHY", value: "other" },
+        },
+        {
+          ...targetTenant,
+          id: getMockTenant().id,
+          name: "Tenant unrelated",
+          parentTenantId: undefined,
+          rootTenantId: undefined,
+        },
+      ];
+      for (const tenant of [
+        rootTenant,
+        parentTenant,
+        targetTenant,
+        ...excluded,
+      ]) {
+        await upsertTenant(readModelDB, tenant, 0);
+      }
+      const tenantsMatchingAllFilters = await readModelService.getTenants({
+        name: query,
+        features: [tenantFeatureType.delegatedProducer],
+        externalIdOrigin: "HIERARCHY",
+        externalIdValue: "chosen",
+        offset: 0,
+        limit: 50,
+      });
+      expect(tenantsMatchingAllFilters.totalCount).toBe(matches ? 1 : 0);
+      expect(
+        tenantsMatchingAllFilters.results.map((tenant) => tenant.id)
+      ).toEqual(matches ? [targetTenant.id] : []);
+      if (matches) {
+        expect(
+          tenantsMatchingAllFilters.results[0].parentTenants?.map(
+            ({ id }) => id
+          )
+        ).toEqual([parentTenant.id, rootTenant.id]);
+      }
+    }
+  );
+
+  it("should search tenant and ancestor names and return parentTenants", async () => {
+    const rootTenant = { ...getMockTenant(), name: "Tenant root" };
+    const parentTenant: Tenant = {
+      ...getMockTenant(),
+      name: "Tenant AOO",
+      subUnitType: "AOO",
+    };
+    const targetTenant: Tenant = {
+      ...getMockTenant(),
+      name: "Tenant UO",
+      parentTenantId: parentTenant.id,
+      rootTenantId: rootTenant.id,
+    };
+    for (const tenant of [rootTenant, parentTenant, targetTenant]) {
+      await upsertTenant(readModelDB, tenant, 0);
+    }
+
+    const tenantsMatchingAncestorName = await readModelService.getTenants({
+      name: "Tenant root",
+      features: [],
+      externalIdOrigin: undefined,
+      externalIdValue: undefined,
+      offset: 0,
+      limit: 10,
+    });
+
+    expect(
+      tenantsMatchingAncestorName.results.map((tenant) => tenant.id)
+    ).toEqual([rootTenant.id, targetTenant.id]);
+    expect(tenantsMatchingAncestorName.results[1].parentTenants).toEqual([
+      {
+        id: parentTenant.id,
+        name: parentTenant.name,
+        subUnitType: "AOO",
+      },
+      { id: rootTenant.id, name: rootTenant.name },
+    ]);
   });
 });

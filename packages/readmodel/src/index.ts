@@ -59,6 +59,8 @@ export * from "./delegation/aggregators.js";
 export * from "./tenant/tenantReadModelService.js";
 export * from "./tenant/splitters.js";
 export * from "./tenant/aggregators.js";
+export * from "./tenant/mappers.js";
+export * from "./tenant/filters.js";
 
 // NOTIFICATION CONFIG
 export * from "./notification-config/notificationConfigReadModelService.js";
