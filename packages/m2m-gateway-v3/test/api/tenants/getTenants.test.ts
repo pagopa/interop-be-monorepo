@@ -6,6 +6,7 @@ import {
   getMockedApiTenant,
   getMockDPoPProof,
 } from "pagopa-interop-commons-test";
+import { tenantUnitType } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi } from "vitest";
 import { z } from "zod";
@@ -16,8 +17,18 @@ import { taxCodeAndIPACodeConflict } from "../../../src/model/errors.js";
 import { api, mockTenantService } from "../../vitest.api.setup.js";
 
 describe("GET /tenants route test", () => {
-  const mockApiTenant1 = getMockedApiTenant();
   const mockApiTenant2 = getMockedApiTenant();
+  const mockParentTenants = [
+    {
+      id: getMockedApiTenant().id,
+      name: "Tenant AOO",
+      subUnitType: tenantUnitType.AOO,
+    },
+    { id: mockApiTenant2.id, name: mockApiTenant2.name },
+  ];
+  const mockApiTenant1 = getMockedApiTenant({
+    parentTenants: mockParentTenants,
+  });
 
   const mockResponse: m2mGatewayApiV3.Tenants = {
     results: [
@@ -94,6 +105,24 @@ describe("GET /tenants route test", () => {
     {
       ...mockResponse,
       results: [{ ...mockResponse.results[0], kind: "INVALID_KIND" }],
+    },
+    {
+      ...mockResponse,
+      results: [
+        {
+          ...mockResponse.results[0],
+          parentTenants: Array(3).fill({ id: mockApiTenant1.id, name: "Root" }),
+        },
+      ],
+    },
+    {
+      ...mockResponse,
+      results: [
+        {
+          ...mockResponse.results[0],
+          parentTenants: [{ id: mockApiTenant1.id, name: "Root", extra: true }],
+        },
+      ],
     },
     {
       ...mockResponse,

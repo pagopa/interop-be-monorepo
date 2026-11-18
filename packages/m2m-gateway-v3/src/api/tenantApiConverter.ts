@@ -15,6 +15,7 @@ export function toM2MGatewayApiTenant(
     kind: tenant.kind,
     onboardedAt: tenant.onboardedAt,
     subUnitType: tenant.subUnitType,
+    parentTenants: tenant.parentTenants,
   };
 }
 
