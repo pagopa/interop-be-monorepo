@@ -65,4 +65,5 @@ export const purposeErrorCodes = {
   riskAnalysisReviewModeNotFound: "0065",
   riskAnalysisAlreadyApproved: "0066",
   riskAnalysisAlreadyRejected: "0067",
+  purposeNotCreatedFromTemplate: "0068",
 };

@@ -28,6 +28,7 @@ import {
   Purpose,
   PurposeId,
   PurposeTemplate,
+  PurposeTemplateId,
   PurposeVersionState,
   purposeVersionState,
   RiskAnalysisFormTemplate,
@@ -43,6 +44,7 @@ import {
   duplicatedPurposeTitle,
   eserviceNotFound,
   purposeDraftVersionNotFound,
+  purposeNotCreatedFromTemplate,
   purposeNotFound,
   purposeTemplateNotFound,
   riskAnalysisAnswerNotInSuggestValues,
@@ -138,16 +140,6 @@ describe("patchUpdatePurposeFromTemplate", () => {
     },
   };
 
-  // ========================
-  // Purpose Seed
-  // ========================
-  const draftPurpose: Purpose = {
-    ...getMockPurpose([getMockPurposeVersion()]),
-    eserviceId: eservice.id,
-    consumerId: consumer.id,
-    riskAnalysisForm: validRiskAnalysis.riskAnalysisForm,
-  };
-
   const updatedSingleAnswersWithFreeText = {
     publicInterestTaskText: ["PublicInterestTaskText2"],
   };
@@ -209,6 +201,17 @@ describe("patchUpdatePurposeFromTemplate", () => {
   const purposeTemplate: PurposeTemplate = {
     ...getMockPurposeTemplate(consumer.id, "Published"),
     purposeRiskAnalysisForm: validRiskAnalysisFormTemplate,
+  };
+
+  // ========================
+  // Purpose Seed
+  // ========================
+  const draftPurpose: Purpose = {
+    ...getMockPurpose([getMockPurposeVersion()]),
+    eserviceId: eservice.id,
+    consumerId: consumer.id,
+    riskAnalysisForm: validRiskAnalysis.riskAnalysisForm,
+    purposeTemplateId: purposeTemplate.id,
   };
 
   it("Should write on event store for the patch update of a purpose updating fields", async () => {
@@ -534,6 +537,66 @@ describe("patchUpdatePurposeFromTemplate", () => {
         })
       )
     ).rejects.toThrowError(tenantIsNotTheConsumer(invalidConsumerId));
+  });
+
+  it("Should throw purposeNotCreatedFromTemplate if the purpose was not created from a purpose template", async () => {
+    const purposeWithoutTemplate: Purpose = {
+      ...draftPurpose,
+      purposeTemplateId: undefined,
+    };
+    await addOnePurpose(purposeWithoutTemplate);
+    await addOneEService(eservice);
+    await addOneTenant(consumer);
+    await addOnePurposeTemplate(purposeTemplate);
+
+    const updateContent: purposeApi.PatchPurposeUpdateFromTemplateContent = {
+      title: "updated title",
+    };
+    await expect(
+      purposeService.patchUpdatePurposeFromTemplate(
+        purposeTemplate.id,
+        purposeWithoutTemplate.id,
+        updateContent,
+        getMockContextM2MAdmin({
+          organizationId: consumer.id,
+        })
+      )
+    ).rejects.toThrowError(
+      purposeNotCreatedFromTemplate(
+        purposeWithoutTemplate.id,
+        purposeTemplate.id
+      )
+    );
+  });
+
+  it("Should throw purposeNotCreatedFromTemplate if the purpose was created from another purpose template", async () => {
+    const purposeFromAnotherTemplate: Purpose = {
+      ...draftPurpose,
+      purposeTemplateId: generateId<PurposeTemplateId>(),
+    };
+    await addOnePurpose(purposeFromAnotherTemplate);
+    await addOneEService(eservice);
+    await addOneTenant(consumer);
+    await addOnePurposeTemplate(purposeTemplate);
+
+    const updateContent: purposeApi.PatchPurposeUpdateFromTemplateContent = {
+      title: "updated title",
+    };
+    await expect(
+      purposeService.patchUpdatePurposeFromTemplate(
+        purposeTemplate.id,
+        purposeFromAnotherTemplate.id,
+        updateContent,
+        getMockContextM2MAdmin({
+          organizationId: consumer.id,
+        })
+      )
+    ).rejects.toThrowError(
+      purposeNotCreatedFromTemplate(
+        purposeFromAnotherTemplate.id,
+        purposeTemplate.id
+      )
+    );
   });
 
   it("Should throw purposeTemplateNotFound if the purpose template does not exist", async () => {
