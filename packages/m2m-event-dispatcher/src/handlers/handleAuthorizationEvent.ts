@@ -58,6 +58,8 @@ async function handleAuthorizationEventV2(
           type: P.union(
             "ClientAdded",
             "ClientDeleted",
+            "ClientNameUpdated",
+            "ClientDescriptionUpdated",
             "ClientPurposeAdded",
             "ClientPurposeRemoved"
           ),
@@ -131,6 +133,8 @@ async function handleAuthorizationEventV2(
           type: P.union(
             "ProducerKeychainAdded",
             "ProducerKeychainDeleted",
+            "ProducerKeychainNameUpdated",
+            "ProducerKeychainDescriptionUpdated",
             "ProducerKeychainEServiceAdded",
             "ProducerKeychainEServiceRemoved"
           ),

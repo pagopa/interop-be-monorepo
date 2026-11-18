@@ -415,3 +415,13 @@ export function duplicatedMembersInSeed(): ApiError<ErrorCodes> {
     title: "Duplicated members in seed",
   });
 }
+
+export function eserviceInArchivedState(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} is in archived state and cannot be used for the requested operation`,
+    code: "eserviceInArchivedState",
+    title: "EService in archived state",
+  });
+}

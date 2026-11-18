@@ -22,6 +22,7 @@ import {
 
 import {
   toBffCatalogApiDescriptorDoc,
+  toCompactCatalogEServicesQueryParams,
   toEserviceCatalogProcessQueryParams,
 } from "../api/catalogApiConverter.js";
 import {
@@ -92,6 +93,28 @@ const catalogRouter = (
           bffGetCatalogErrorMapper,
           ctx,
           "Error retrieving filtered Catalog EServices"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/catalog/eservices", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      const queryParams = toCompactCatalogEServicesQueryParams(req.query);
+      try {
+        const response = await catalogService.getCompactCatalogEServices(
+          ctx,
+          queryParams
+        );
+
+        return res
+          .status(200)
+          .send(bffApi.CompactCatalogEServices.parse(response));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          bffGetCatalogErrorMapper,
+          ctx,
+          "Error retrieving compact Catalog EServices"
         );
         return res.status(errorRes.status).send(errorRes);
       }
