@@ -1,0 +1,33 @@
+meta {
+  name: Patch EService general information
+  type: http
+  seq: 47
+}
+
+patch {
+  url: {{host-bff}}/eservices/:eServiceId
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+}
+
+body:json {
+  {
+    "name": "Updated name",
+    "description": "test eservice updated from BFF",
+    "technology": "REST",
+    "mode": "DELIVER",
+    "isSignalHubEnabled": false,
+    "isConsumerDelegable": false,
+    "isClientAccessDelegable": false,
+    "personalData": false,
+    "asyncExchange": false
+  }
+}

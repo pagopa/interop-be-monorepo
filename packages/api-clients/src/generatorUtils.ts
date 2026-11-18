@@ -1,4 +1,19 @@
+import type { OpenAPIObject } from "openapi3-ts";
 import type { TemplateContext } from "openapi-zod-client";
+
+export function createSchemaRenderer(
+  schemas: NonNullable<OpenAPIObject["components"]>["schemas"]
+): (name: string, generatedSchema: string) => string {
+  return (name, generatedSchema) => {
+    const schema = schemas?.[name];
+    if (!schema || "$ref" in schema || schema.minProperties === undefined) {
+      return generatedSchema;
+    }
+
+    // Zodios unwraps top-level effects when router transformations are disabled.
+    return `${generatedSchema}.refine(value => Object.keys(value).length >= ${schema.minProperties}, { message: "Expected at least ${schema.minProperties} properties" }).and(z.unknown())`;
+  };
+}
 
 type EndpointGroup = TemplateContext["endpointsGroups"][string];
 

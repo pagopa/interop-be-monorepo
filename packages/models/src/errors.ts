@@ -13,6 +13,7 @@ const {
   HTTP_STATUS_FORBIDDEN,
   HTTP_STATUS_BAD_REQUEST,
   HTTP_STATUS_PAYLOAD_TOO_LARGE,
+  HTTP_STATUS_UNSUPPORTED_MEDIA_TYPE,
   HTTP_STATUS_TOO_MANY_REQUESTS,
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
   HTTP_STATUS_NOT_IMPLEMENTED,
@@ -81,7 +82,7 @@ export const ProblemSchema = z.strictObject({
 });
 export type Problem = z.infer<typeof ProblemSchema>;
 
-type MakeApiProblemFn<T extends string> = (
+export type MakeApiProblemFn<T extends string> = (
   error: unknown,
   httpMapper: (apiError: ApiError<T | CommonErrorCodes>) => number,
   context: {
@@ -107,7 +108,7 @@ const makeProblemLogString = (
   return `- title: ${problem.title} - detail: ${problem.detail}${errorsString} - original error: ${originalError}`;
 };
 
-type ProblemBuilderOptions = {
+export type ProblemBuilderOptions = {
   /**
    * If true, allows Problem objects received from downstream services
    * to be passed through directly. If false, they are treated as generic errors.
@@ -317,6 +318,7 @@ export const commonErrorCodes = {
   invalidPdfSignatureError: "10032",
   invalidFileUploadError: "10033",
   eventConflictError: "10034",
+  unsupportedMediaTypeError: "10035",
 } as const;
 
 export type CommonErrorCodes = keyof typeof commonErrorCodes;
@@ -527,6 +529,7 @@ const defaultCommonErrorMapper = (code: CommonErrorCodes): number =>
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("contentTooLargeError", () => HTTP_STATUS_PAYLOAD_TOO_LARGE)
+    .with("unsupportedMediaTypeError", () => HTTP_STATUS_UNSUPPORTED_MEDIA_TYPE)
     .with("tokenVerificationFailed", () => HTTP_STATUS_UNAUTHORIZED)
     .with(
       "unauthorizedError",
@@ -584,6 +587,18 @@ export function contentTooLargeError(
     detail,
     code: "contentTooLargeError",
     title: "Content too large",
+    errors,
+  });
+}
+
+export function unsupportedMediaTypeError(
+  detail: string,
+  errors?: Error[]
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail,
+    code: "unsupportedMediaTypeError",
+    title: "Unsupported media type",
     errors,
   });
 }
@@ -832,7 +847,7 @@ export function interfaceExtractingInfoError(): ApiError<CommonErrorCodes> {
   });
 }
 
-export function interfaceExtractingSoapFiledError(
+export function interfaceExtractingSoapFieldError(
   fieldName: string
 ): ApiError<CommonErrorCodes> {
   return new ApiError({
@@ -903,3 +918,14 @@ export function invalidDocumentDetected(
     title: "Invalid document detected",
   });
 }
+
+export type ErrorMessage = {
+  readonly process: string;
+  readonly error: string;
+  readonly errorCode: string;
+  readonly bffEndpoint: string;
+  readonly copy: {
+    readonly it: string;
+    readonly en: string;
+  };
+};

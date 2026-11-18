@@ -202,9 +202,9 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Partially updates Draft E-Service Template general information
+      summary: Partially updates E-Service Template general information
       operationId: patchUpdateDraftEServiceTemplate
-      description: Partially updates the general information of the specified Draft E-Service Template
+      description: Partially updates the general information of the specified E-Service Template
       requestBody:
         required: true
         content:
@@ -1879,7 +1879,7 @@ components:
         name:
           type: string
           minLength: 5
-          maxLength: 60
+          maxLength: 45
       required:
         - name
     CreatedEServiceTemplateVersion:
