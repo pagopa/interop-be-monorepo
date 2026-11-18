@@ -6,6 +6,7 @@ export * from "./catalogErrors.js";
 export * from "./delegationErrors.js";
 export * from "./eserviceTemplateErrors.js";
 export * from "./notificationConfigErrors.js";
+export * from "./notificationManager.js";
 export * from "./purposeErrors.js";
 export * from "./purposeTemplateErrors.js";
 export * from "./tenantErrors.js";
