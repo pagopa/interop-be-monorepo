@@ -274,15 +274,24 @@ export function readModelServiceBuilderSQL(
       producerId: string;
       offset: number;
       limit: number;
-    }): Promise<ListResult<Tenant>> {
+    }): Promise<ListResult<Tenant & TenantHierarchy>> {
       return await readModelDB.transaction(async (tx) => {
         const queryResult = await tx
-          .select(
-            withTotalCount({
+          .select({
+            ...withTotalCount({
               tenantId: tenantInReadmodelTenant.id,
-            })
-          )
+            }),
+            ...tenantHierarchySelection,
+          })
           .from(tenantInReadmodelTenant)
+          .leftJoin(
+            parentTenantTable,
+            eq(tenantInReadmodelTenant.parentTenantId, parentTenantTable.id)
+          )
+          .leftJoin(
+            rootTenantTable,
+            eq(tenantInReadmodelTenant.rootTenantId, rootTenantTable.id)
+          )
           .innerJoin(
             agreementInReadmodelAgreement,
             and(
@@ -300,15 +309,26 @@ export function readModelServiceBuilderSQL(
           .where(
             and(
               consumerName
-                ? ilikeEscaped(
+                ? getTenantHierarchyNameFilter(
+                    consumerName,
                     tenantInReadmodelTenant.name,
-                    `%${escapeSqlLike(consumerName)}%`
+                    tenantInReadmodelTenant.parentTenantId,
+                    parentTenantTable.name,
+                    tenantInReadmodelTenant.rootTenantId,
+                    rootTenantTable.name
                   )
                 : undefined,
               isNotNull(tenantInReadmodelTenant.selfcareId)
             )
           )
-          .groupBy(tenantInReadmodelTenant.id)
+          .groupBy(
+            tenantInReadmodelTenant.id,
+            parentTenantTable.id,
+            parentTenantTable.name,
+            parentTenantTable.subUnitType,
+            rootTenantTable.id,
+            rootTenantTable.name
+          )
           .orderBy(ascLower(tenantInReadmodelTenant.name))
           .limit(limit)
           .offset(offset);
@@ -318,8 +338,15 @@ export function readModelServiceBuilderSQL(
           tenantIds,
           tx
         );
+        const hierarchyById = getHierarchyByTenantId(queryResult);
         return createListResult(
-          tenants.map((tenantWithMetadata) => tenantWithMetadata.data),
+          tenants.map(({ data }) => {
+            const parentTenants = hierarchyById.get(data.id);
+            return {
+              ...data,
+              ...(parentTenants ? { parentTenants } : {}),
+            };
+          }),
           queryResult[0]?.totalCount
         );
       });

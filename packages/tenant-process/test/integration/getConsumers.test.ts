@@ -474,4 +474,112 @@ describe("getConsumers", () => {
     });
     expect(tenantsByName.results.length).toBe(1);
   });
+
+  it("should search consumer, parent, root and composed names within the producer scope and return parentTenants", async () => {
+    const rootTenant = {
+      ...getMockTenant(),
+      name: "Tenant root",
+    };
+    const parentTenant: Tenant = {
+      ...getMockTenant(),
+      name: "Tenant AOO",
+      subUnitType: "AOO",
+      rootTenantId: rootTenant.id,
+    };
+    const consumerTenant: Tenant = {
+      ...getMockTenant(),
+      name: "Tenant UO",
+      subUnitType: "UO",
+      parentTenantId: parentTenant.id,
+      rootTenantId: rootTenant.id,
+    };
+    const consumerWithAgreementForAnotherProducer: Tenant = {
+      ...getMockTenant(),
+      name: "Tenant UO",
+      subUnitType: "UO",
+      parentTenantId: parentTenant.id,
+      rootTenantId: rootTenant.id,
+    };
+    const otherProducer = getMockTenant();
+    const producerDescriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.published,
+    };
+    const otherProducerDescriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.published,
+    };
+    await addOneTenant(producer);
+    await addOneTenant(rootTenant);
+    await addOneTenant(parentTenant);
+    await addOneTenant(consumerTenant);
+    await addOneTenant(consumerWithAgreementForAnotherProducer);
+    await addOneTenant(otherProducer);
+
+    const producerEService = {
+      ...getMockEService(),
+      descriptors: [producerDescriptor],
+      producerId: producer.id,
+    };
+    const otherProducerEService = {
+      ...getMockEService(),
+      descriptors: [otherProducerDescriptor],
+      producerId: otherProducer.id,
+    };
+    await addOneEService(producerEService);
+    await addOneEService(otherProducerEService);
+    await addOneAgreement(
+      getMockAgreement({
+        eserviceId: producerEService.id,
+        descriptorId: producerEService.descriptors[0].id,
+        producerId: producer.id,
+        consumerId: consumerTenant.id,
+      })
+    );
+    await addOneAgreement(
+      getMockAgreement({
+        eserviceId: producerEService.id,
+        descriptorId: producerEService.descriptors[0].id,
+        producerId: producer.id,
+        consumerId: consumerTenant.id,
+      })
+    );
+    await addOneAgreement(
+      getMockAgreement({
+        eserviceId: otherProducerEService.id,
+        descriptorId: otherProducerEService.descriptors[0].id,
+        producerId: otherProducer.id,
+        consumerId: consumerWithAgreementForAnotherProducer.id,
+      })
+    );
+
+    for (const consumerName of [
+      "Tenant UO",
+      "Tenant AOO",
+      "Tenant root",
+      "Tenant UO - Tenant AOO - Tenant root",
+    ]) {
+      const consumers = await readModelService.getConsumers({
+        consumerName,
+        producerId: producer.id,
+        offset: 0,
+        limit: 50,
+      });
+
+      expect(consumers.totalCount).toBe(1);
+      expect(consumers.results).toEqual([
+        {
+          ...consumerTenant,
+          parentTenants: [
+            {
+              id: parentTenant.id,
+              name: parentTenant.name,
+              subUnitType: "AOO",
+            },
+            { id: rootTenant.id, name: rootTenant.name },
+          ],
+        },
+      ]);
+    }
+  });
 });

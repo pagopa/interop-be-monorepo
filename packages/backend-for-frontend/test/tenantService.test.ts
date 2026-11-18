@@ -423,6 +423,63 @@ describe("tenantServiceBuilder.getProducers", () => {
   });
 });
 
+describe("tenantServiceBuilder.getConsumers", () => {
+  it("should preserve consumer hierarchy from tenant-process", async () => {
+    const consumerId = generateId<TenantId>();
+    const parentTenantId = generateId<TenantId>();
+    const rootTenantId = generateId<TenantId>();
+    const consumer: tenantApi.Tenant = {
+      ...getMockedApiTenant(),
+      id: consumerId,
+      name: "Tenant UO",
+      subUnitType: "UO",
+      parentTenants: [
+        { id: parentTenantId, name: "Tenant AOO", subUnitType: "AOO" },
+        { id: rootTenantId, name: "Tenant root" },
+      ],
+    };
+    const getConsumers = vi.fn().mockResolvedValue({
+      results: [consumer],
+      totalCount: 1,
+    });
+    const service = tenantServiceBuilder(
+      {
+        tenant: { getConsumers },
+      } as never,
+      {} as never,
+      {} as never
+    );
+    const ctx = {
+      headers: {
+        "X-Correlation-Id": generateId(),
+        Authorization: "authorization",
+        "X-Forwarded-For": "x-forwarded-for",
+      },
+      logger: genericLogger,
+    } as WithLogger<BffAppContext>;
+
+    const result = await service.getConsumers("Tenant AOO", 0, 10, ctx);
+    bffApi.CompactOrganizations.parse(result);
+
+    expect(getConsumers).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queries: { name: "Tenant AOO", offset: 0, limit: 10 },
+      })
+    );
+    expect(result.results).toEqual([
+      {
+        id: consumerId,
+        name: "Tenant UO",
+        subUnitType: "UO",
+        parentTenants: [
+          { id: parentTenantId, name: "Tenant AOO", subUnitType: "AOO" },
+          { id: rootTenantId, name: "Tenant root" },
+        ],
+      },
+    ]);
+  });
+});
+
 describe("toBffApiRequesterCertifiedAttributes", () => {
   const testCases: Array<{
     inputKind: tenantApi.CertifiedAttributeKind;
