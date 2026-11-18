@@ -1,7 +1,7 @@
 #default value for compatibility
 ARG NODE_REGISTRY="docker.io"
 
-FROM ${NODE_REGISTRY}/node:20.19.4-slim@sha256:6db5e436948af8f0244488a1f658c2c8e55a3ae51ca2e1686ed042be8f25f70a AS build
+FROM ${NODE_REGISTRY}/node:24.22.1-slim@sha256:be8204d4bd327363357f532187b752ff62759c31bedf98e9e18fc08c9cbd605c AS build
 
 RUN corepack enable
 
@@ -18,6 +18,7 @@ COPY ./packages/api-clients/package.json /app/packages/api-clients/package.json
 COPY ./packages/agreement-lifecycle/package.json /app/packages/agreement-lifecycle/package.json
 COPY ./packages/client-assertion-validation/package.json /app/packages/client-assertion-validation/package.json
 COPY ./packages/dpop-validation/package.json /app/packages/dpop-validation/package.json
+COPY ./packages/error-messages/package.json /app/packages/error-messages/package.json
 COPY ./packages/application-audit/package.json /app/packages/application-audit/package.json
 COPY ./packages/kafka-iam-auth/package.json /app/packages/kafka-iam-auth/package.json
 
@@ -32,6 +33,7 @@ COPY ./packages/api-clients /app/packages/api-clients
 COPY ./packages/agreement-lifecycle /app/packages/agreement-lifecycle
 COPY ./packages/client-assertion-validation /app/packages/client-assertion-validation
 COPY ./packages/dpop-validation /app/packages/dpop-validation
+COPY ./packages/error-messages /app/packages/error-messages
 COPY ./packages/application-audit /app/packages/application-audit
 COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
 
@@ -49,12 +51,14 @@ RUN NODE_OPTIONS="--max-old-space-size=${NODE_HEAP_SIZE}" pnpm build && \
   packages/agreement-lifecycle \
   packages/client-assertion-validation \
   packages/dpop-validation \
+  packages/error-messages \
   packages/application-audit \
   packages/kafka-iam-auth \
+  packages/error-messages \
   packages/backend-for-frontend/dist && \
   find /out -exec touch -h --date=@0 {} \;
 
-FROM ${NODE_REGISTRY}/node:20.19.4-slim@sha256:6db5e436948af8f0244488a1f658c2c8e55a3ae51ca2e1686ed042be8f25f70a AS final
+FROM ${NODE_REGISTRY}/node:24.22.1-slim@sha256:be8204d4bd327363357f532187b752ff62759c31bedf98e9e18fc08c9cbd605c AS final
 
 COPY --from=build /out /app
 

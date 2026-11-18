@@ -296,7 +296,12 @@ describe("handlePurposeTemplateMessageV2", () => {
     );
   });
 
-  it("should not process events that don't require contract generation and only log an info message", async () => {
+  it.each([
+    "PurposeTemplateAdded",
+    "PurposeTemplatePurposeTitleUpdated",
+    "PurposeTemplatePurposeDescriptionUpdated",
+    "PurposeTemplateTargetDescriptionUpdated",
+  ] as const)("should not generate documents for %s", async (type) => {
     const mockPurposeTemplate: PurposeTemplate = {
       id: generateId(),
       purposeTitle: "Mock Purpose Template Title",
@@ -316,7 +321,7 @@ describe("handlePurposeTemplateMessageV2", () => {
       stream_id: mockPurposeTemplate.id,
       version: 1,
       event_version: 2,
-      type: "PurposeTemplateAdded",
+      type,
       data: { purposeTemplate: toPurposeTemplateV2(mockPurposeTemplate) },
       log_date: new Date(),
     };
