@@ -31,7 +31,9 @@ import {
   TenantVerifiedAttributeVerifierSQL,
 } from "pagopa-interop-readmodel-models";
 
+import { formatTenantNameWithHierarchy } from "../utils.js";
 import { aggregateTenant, aggregateTenantArray } from "./aggregators.js";
+import { toParentTenants } from "./mappers.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
@@ -218,6 +220,58 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
         return this.getTenantById(tenantId, tx);
       });
     },
+    /** Returns display-only tenant data; the composed name must not be persisted. */
+    async getTenantWithHierarchyName(tenant: Tenant): Promise<Tenant> {
+      if (tenant.parentTenantId === undefined) {
+        return tenant;
+      }
+      return db.transaction(
+        async (tx) => (await this.getTenantsWithHierarchyName([tenant], tx))[0]
+      );
+    },
+    async getTenantsWithHierarchyName(
+      tenants: Tenant[],
+      tx: DrizzleTransactionType
+    ): Promise<Tenant[]> {
+      const ancestorIds = [
+        ...new Set(
+          tenants.flatMap(({ parentTenantId, rootTenantId }) =>
+            parentTenantId === undefined
+              ? []
+              : [
+                  parentTenantId,
+                  ...(rootTenantId === undefined ? [] : [rootTenantId]),
+                ]
+          )
+        ),
+      ];
+      if (ancestorIds.length === 0) {
+        return tenants;
+      }
+
+      const ancestorsById = await readParentTenantsSQL(ancestorIds, tx);
+      return tenants.map((tenant) => {
+        if (tenant.parentTenantId === undefined) {
+          return tenant;
+        }
+        const parent = ancestorsById.get(tenant.parentTenantId);
+        const root =
+          tenant.rootTenantId === undefined
+            ? undefined
+            : ancestorsById.get(tenant.rootTenantId);
+        const parentTenants = toParentTenants({
+          parentTenantId: parent?.id ?? null,
+          parentTenantName: parent?.name ?? null,
+          parentTenantSubUnitType: parent?.subUnitType ?? null,
+          rootTenantId: root?.id ?? null,
+          rootTenantName: root?.name ?? null,
+        });
+        return {
+          ...tenant,
+          name: formatTenantNameWithHierarchy(tenant.name, parentTenants),
+        };
+      });
+    },
   };
 }
 export type TenantReadModelService = ReturnType<
@@ -314,3 +368,18 @@ const readTenantRemoteIdsSQL = async (
   tx: DrizzleTransactionType
 ): Promise<TenantRemoteIdSQL[]> =>
   await tx.select().from(tenantRemoteIdInReadmodelTenant).where(filter);
+
+async function readParentTenantsSQL(
+  tenantIds: TenantId[],
+  tx: DrizzleTransactionType
+): Promise<Map<string, Pick<TenantSQL, "id" | "name" | "subUnitType">>> {
+  const ancestors = await tx
+    .select({
+      id: tenantInReadmodelTenant.id,
+      name: tenantInReadmodelTenant.name,
+      subUnitType: tenantInReadmodelTenant.subUnitType,
+    })
+    .from(tenantInReadmodelTenant)
+    .where(inArray(tenantInReadmodelTenant.id, tenantIds));
+  return new Map(ancestors.map((ancestor) => [ancestor.id, ancestor]));
+}

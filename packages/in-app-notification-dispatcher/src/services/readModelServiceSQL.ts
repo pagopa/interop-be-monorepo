@@ -63,7 +63,11 @@ export function readModelServiceBuilderSQL({
       return (await catalogReadModelServiceSQL.getEServiceById(id))?.data;
     },
     async getTenantById(tenantId: TenantId): Promise<Tenant | undefined> {
-      return (await tenantReadModelServiceSQL.getTenantById(tenantId))?.data;
+      const tenant = await tenantReadModelServiceSQL.getTenantById(tenantId);
+      return (
+        tenant &&
+        tenantReadModelServiceSQL.getTenantWithHierarchyName(tenant.data)
+      );
     },
     async getAgreementsByEserviceId(
       eserviceId: EServiceId,
@@ -139,9 +143,12 @@ export function readModelServiceBuilderSQL({
     async getTenantByCertifierId(
       certifierId: string
     ): Promise<Tenant | undefined> {
+      const tenant =
+        await tenantReadModelServiceSQL.getTenantByCertifierId(certifierId);
       return (
-        await tenantReadModelServiceSQL.getTenantByCertifierId(certifierId)
-      )?.data;
+        tenant &&
+        tenantReadModelServiceSQL.getTenantWithHierarchyName(tenant.data)
+      );
     },
     async eserviceExistsInOtherProducerKeychains(
       eserviceId: EServiceId,

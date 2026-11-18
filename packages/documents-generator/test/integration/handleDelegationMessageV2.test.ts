@@ -492,6 +492,75 @@ describe("handleDelegationMessageV2", () => {
     );
   });
 
+  it("should compose AOO/UO names with their parent and root tenants in the contract payload", async () => {
+    const mockDelegation = {
+      ...getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        delegatorId: mockDelegatorId,
+        delegateId: mockDelegateId,
+        eserviceId: mockEServiceId,
+        state: delegationState.active,
+        stamps: {
+          submission: { who: generateId<UserId>(), when: new Date() },
+          activation: { who: generateId<UserId>(), when: new Date() },
+        },
+      }),
+      id: mockDelegationId,
+    };
+
+    const rootTenant = { ...getMockTenant(), name: "Comune di Roma" };
+    const mockDelegate = {
+      ...getMockTenant(mockDelegateId),
+      name: "AOO Protocollo",
+      subUnitType: "AOO" as const,
+      parentTenantId: rootTenant.id,
+      rootTenantId: rootTenant.id,
+    };
+    const mockDelegator = {
+      ...getMockTenant(mockDelegatorId),
+      name: "UO Servizi",
+      subUnitType: "UO" as const,
+      parentTenantId: mockDelegate.id,
+      rootTenantId: rootTenant.id,
+    };
+
+    await addOneDelegation(mockDelegation);
+    await addOneTenant(rootTenant);
+    await addOneTenant(mockDelegate);
+    await addOneTenant(mockDelegator);
+    await addOneEService(getMockEService(mockEServiceId, mockDelegatorId, []));
+
+    const generateSpy = vi
+      .spyOn(pdfGenerator, "generate")
+      .mockResolvedValue(Buffer.from("mock pdf content"));
+
+    await handleDelegationMessageV2(
+      {
+        sequence_num: 1,
+        stream_id: mockDelegationId,
+        version: 1,
+        event_version: 2,
+        type: "ProducerDelegationApproved",
+        data: { delegation: toDelegationV2(mockDelegation) },
+        log_date: new Date(),
+      },
+      pdfGenerator,
+      fileManager,
+      readModelService,
+      mockRefreshableToken,
+      clients,
+      genericLogger
+    );
+
+    expect(generateSpy).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        delegatorName: "UO Servizi - AOO Protocollo - Comune di Roma",
+        delegateName: "AOO Protocollo - Comune di Roma",
+      })
+    );
+  });
+
   it("should not process events that don't require contract generation", async () => {
     const mockDelegation = getMockDelegation({
       kind: delegationKind.delegatedProducer,

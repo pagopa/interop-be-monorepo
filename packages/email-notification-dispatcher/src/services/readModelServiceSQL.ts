@@ -70,21 +70,33 @@ export function readModelServiceBuilderSQL({
       return (await catalogReadModelServiceSQL.getEServiceById(id))?.data;
     },
     async getTenantById(tenantId: TenantId): Promise<Tenant | undefined> {
-      return (await tenantReadModelServiceSQL.getTenantById(tenantId))?.data;
+      const tenant = await tenantReadModelServiceSQL.getTenantById(tenantId);
+      return (
+        tenant &&
+        tenantReadModelServiceSQL.getTenantWithHierarchyName(tenant.data)
+      );
     },
     async getTenantByCertifierId(
       certifierId: string
     ): Promise<Tenant | undefined> {
+      const tenant =
+        await tenantReadModelServiceSQL.getTenantByCertifierId(certifierId);
       return (
-        await tenantReadModelServiceSQL.getTenantByCertifierId(certifierId)
-      )?.data;
+        tenant &&
+        tenantReadModelServiceSQL.getTenantWithHierarchyName(tenant.data)
+      );
     },
     async getTenantsById(tenantIds: TenantId[]): Promise<Tenant[]> {
-      return await readModelDB.transaction(async (tx) =>
-        (await tenantReadModelServiceSQL.getTenantsByIds(tenantIds, tx)).map(
-          (tenantWithMetadata) => tenantWithMetadata.data
-        )
-      );
+      return readModelDB.transaction(async (tx) => {
+        const tenants = await tenantReadModelServiceSQL.getTenantsByIds(
+          tenantIds,
+          tx
+        );
+        return tenantReadModelServiceSQL.getTenantsWithHierarchyName(
+          tenants.map((tenant) => tenant.data),
+          tx
+        );
+      });
     },
     async getAgreementsByEserviceId(
       eserviceId: EServiceId,
