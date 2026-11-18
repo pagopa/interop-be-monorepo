@@ -88,6 +88,73 @@ describe("getCertifiedAttributesByCertifier", () => {
     });
   });
 
+  it("should return the parent and root tenants when available", async () => {
+    const certifierId = "test";
+    const tenantCertifier: Tenant = {
+      ...getMockTenant(),
+      features: [{ type: "PersistentCertifier" as const, certifierId }],
+    };
+    const rootTenant: Tenant = {
+      ...getMockTenant(),
+      name: "Tenant root",
+    };
+    const parentTenant: Tenant = {
+      ...getMockTenant(),
+      name: "Tenant AOO",
+      subUnitType: "AOO",
+      rootTenantId: rootTenant.id,
+    };
+    const tenant: Tenant = {
+      ...getMockTenant(),
+      name: "Tenant UO",
+      subUnitType: "UO",
+      parentTenantId: parentTenant.id,
+      rootTenantId: rootTenant.id,
+    };
+    const tenantCertifiedAttribute: TenantAttribute = {
+      ...getMockCertifiedTenantAttribute(),
+      revocationTimestamp: undefined,
+    };
+    const certifiedAttribute: Attribute = {
+      ...getMockAttribute(attributeKind.certified),
+      origin: certifierId,
+      id: tenantCertifiedAttribute.id,
+    };
+
+    await addOneAttribute(certifiedAttribute);
+    await addOneTenant(tenantCertifier);
+    await addOneTenant(rootTenant);
+    await addOneTenant(parentTenant);
+    await addOneTenant({
+      ...tenant,
+      attributes: [tenantCertifiedAttribute],
+    });
+
+    const result = await tenantService.getCertifiedAttributesByCertifier(
+      { offset: 0, limit: 50 },
+      getMockContext({ authData: getMockAuthData(tenantCertifier.id) })
+    );
+
+    expect(result.results).toEqual([
+      {
+        attributeId: certifiedAttribute.id,
+        attributeName: certifiedAttribute.name,
+        id: tenant.id,
+        kind: "CERTIFIED",
+        name: tenant.name,
+        subUnitType: "UO",
+        parentTenants: [
+          {
+            id: parentTenant.id,
+            name: parentTenant.name,
+            subUnitType: "AOO",
+          },
+          { id: rootTenant.id, name: rootTenant.name },
+        ],
+      },
+    ]);
+  });
+
   it("should paginate standard and discrete certified attributes together", async () => {
     const certifierId: string = "test";
     const tenantCertifier: Tenant = {

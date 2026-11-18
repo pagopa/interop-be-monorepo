@@ -549,4 +549,31 @@ describe("toBffApiRequesterCertifiedAttributes", () => {
 
     expect(result.discreteValue).toBe(input.discreteValue);
   });
+
+  it("should propagate the assigned tenant hierarchy", () => {
+    const input: tenantApi.CertifiedAttribute = {
+      id: generateId(),
+      name: "Tenant UO",
+      subUnitType: "UO",
+      parentTenants: [
+        {
+          id: generateId(),
+          name: "Tenant AOO",
+          subUnitType: "AOO",
+        },
+        { id: generateId(), name: "Tenant root" },
+      ],
+      attributeId: generateId(),
+      attributeName: "attribute",
+      kind: "CERTIFIED",
+    };
+
+    const result = toBffApiRequesterCertifiedAttributes(input);
+
+    expect(result).toMatchObject({
+      tenantSubUnitType: "UO",
+      parentTenants: input.parentTenants,
+    });
+    bffApi.RequesterCertifiedAttribute.parse(result);
+  });
 });

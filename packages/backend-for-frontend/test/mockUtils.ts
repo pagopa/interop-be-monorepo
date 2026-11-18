@@ -1008,6 +1008,16 @@ export const getMockBffApiRequesterCertifiedAttribute =
     kind: tenantAttributeKind.certified,
   });
 
+export const getMockBffApiRequesterCertifiedAttributeWithHierarchy =
+  (): bffApi.RequesterCertifiedAttribute => ({
+    ...getMockBffApiRequesterCertifiedAttribute(),
+    tenantSubUnitType: "UO",
+    parentTenants: [
+      { id: generateId(), name: "Tenant AOO", subUnitType: "AOO" },
+      { id: generateId(), name: "Tenant root" },
+    ],
+  });
+
 export const getMockBffApiCompactOrganization =
   (): bffApi.CompactOrganization => ({
     id: generateId(),
