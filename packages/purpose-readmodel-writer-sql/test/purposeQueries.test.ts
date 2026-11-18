@@ -5,6 +5,7 @@ import {
   getMockPurpose,
   getMockValidRiskAnalysisForm,
   getMockPurposeVersionStamps,
+  sortPurpose,
 } from "pagopa-interop-commons-test";
 import {
   PurposeVersion,
@@ -111,8 +112,8 @@ describe("Purpose queries", () => {
         reviewersSQL,
       });
 
-      expect(retrievedPurpose).toStrictEqual({
-        data: purpose,
+      expect(sortPurpose(retrievedPurpose)).toStrictEqual({
+        data: sortPurpose(purpose),
         metadata: { version: 1 },
       });
     });
@@ -252,8 +253,8 @@ describe("Purpose queries", () => {
         reviewersSQL,
       });
 
-      expect(retrievedPurpose).toStrictEqual({
-        data: purpose,
+      expect(sortPurpose(retrievedPurpose)).toStrictEqual({
+        data: sortPurpose(purpose),
         metadata: { version: 2 },
       });
     });

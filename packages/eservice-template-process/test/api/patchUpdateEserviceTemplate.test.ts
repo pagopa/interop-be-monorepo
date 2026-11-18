@@ -11,6 +11,8 @@ import {
   EServiceTemplateId,
   generateId,
   operationForbidden,
+  eventConflictError,
+  hyperlinkDetectionError,
 } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi } from "vitest";
@@ -20,6 +22,7 @@ import {
   eserviceTemplateDuplicate,
   eserviceTemplateNotInDraftState,
   eserviceTemplateNotFound,
+  instanceNameConflict,
 } from "../../src/model/domain/errors.js";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 
@@ -56,7 +59,11 @@ describe("PATCH /templates/{templateId} router test", () => {
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
@@ -73,6 +80,11 @@ describe("PATCH /templates/{templateId} router test", () => {
   it.each([
     {},
     { name: "updated name" },
+    { name: "a".repeat(5) },
+    { name: "a".repeat(45) },
+    { description: "updated description" },
+    { intendedTarget: "updated intended target" },
+    { personalData: null, asyncExchange: null },
     {
       name: "updated name",
       description: "updated description",
@@ -109,10 +121,15 @@ describe("PATCH /templates/{templateId} router test", () => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token, mockEServiceTemplate.id, seed);
       expect(res.status).toBe(200);
+      expect(
+        eserviceTemplateService.patchUpdateEServiceTemplate
+      ).toHaveBeenCalledWith(mockEServiceTemplate.id, seed, expect.anything());
     }
   );
 
   it.each([
+    [{ name: "a".repeat(4) }, mockEServiceTemplate.id],
+    [{ name: "a".repeat(46) }, mockEServiceTemplate.id],
     [{ name: 123 }, mockEServiceTemplate.id],
     [{ description: null }, mockEServiceTemplate.id],
     [{ intendedTarget: null }, mockEServiceTemplate.id],
@@ -122,6 +139,9 @@ describe("PATCH /templates/{templateId} router test", () => {
   ])(
     "Should return 400 if passed invalid seed or e-service id (seed #%#)",
     async (body, templateId) => {
+      vi.mocked(
+        eserviceTemplateService.patchUpdateEServiceTemplate
+      ).mockClear();
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(
         token,
@@ -130,6 +150,9 @@ describe("PATCH /templates/{templateId} router test", () => {
       );
 
       expect(res.status).toBe(400);
+      expect(
+        eserviceTemplateService.patchUpdateEServiceTemplate
+      ).not.toHaveBeenCalled();
     }
   );
 
@@ -157,6 +180,18 @@ describe("PATCH /templates/{templateId} router test", () => {
     },
     {
       error: eserviceTemplateNotInDraftState(mockEServiceTemplate.id),
+      expectedStatus: 409,
+    },
+    {
+      error: instanceNameConflict(mockEServiceTemplate.id),
+      expectedStatus: 409,
+    },
+    {
+      error: eventConflictError(),
+      expectedStatus: 409,
+    },
+    {
+      error: hyperlinkDetectionError("https://example.com"),
       expectedStatus: 400,
     },
   ])(
