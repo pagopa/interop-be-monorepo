@@ -27,7 +27,6 @@ import { upsertClient } from "pagopa-interop-readmodel/testUtils";
 import { describe, expect, it } from "vitest";
 
 import {
-  clientKindNotAllowed,
   clientNotFound,
   tenantNotAllowedOnClient,
 } from "../../src/model/domain/errors.js";
@@ -50,6 +49,7 @@ const callers = [
   { kind: clientKind.consumer, m2m: false },
   { kind: clientKind.api, m2m: false },
   { kind: clientKind.consumer, m2m: true },
+  { kind: clientKind.api, m2m: true },
 ];
 const changes: authorizationApi.ClientUpdateSeed[] = [
   { name: "Updated name" },
@@ -278,18 +278,6 @@ describe("updateClient", () => {
       expect(await readEvents(client)).toHaveLength(1);
     }
   );
-
-  it("should reject an API client via M2M even for unchanged values", async () => {
-    const client = getMockClient({ kind: clientKind.api });
-    await addOneClient(client);
-    await expect(
-      authorizationService.updateClient(
-        { clientId: client.id, seed: { name: client.name } },
-        getMockContextM2MAdmin({ organizationId: client.consumerId })
-      )
-    ).rejects.toThrowError(clientKindNotAllowed(client.id));
-    expect(await readEvents(client)).toHaveLength(1);
-  });
 
   it("should reject a missing client", async () => {
     const clientId = generateId<ClientId>();

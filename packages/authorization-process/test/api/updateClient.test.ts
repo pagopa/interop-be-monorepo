@@ -16,7 +16,6 @@ import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  clientKindNotAllowed,
   clientNotFound,
   tenantNotAllowedOnClient,
 } from "../../src/model/domain/errors.js";
@@ -62,7 +61,15 @@ describe("API PATCH /clients/{clientId}", () => {
     expect(res.headers["x-metadata-version"]).toBe("2");
     expect(authorizationService.updateClient).toHaveBeenCalledExactlyOnceWith(
       { clientId: client.data.id, seed },
-      expect.anything()
+      expect.objectContaining({
+        authData: expect.objectContaining({
+          organizationId: mockTokenOrganizationId,
+          systemRole:
+            role === authRole.M2M_ADMIN_ROLE
+              ? authRole.M2M_ADMIN_ROLE
+              : undefined,
+        }),
+      })
     );
   });
 
@@ -120,7 +127,6 @@ describe("API PATCH /clients/{clientId}", () => {
       error: tenantNotAllowedOnClient(generateId(), client.data.id),
       status: 403,
     },
-    { error: clientKindNotAllowed(client.data.id), status: 403 },
     { error: hyperlinkDetectionError("https://example.com"), status: 400 },
     {
       error: eventConflictError(generateId(), client.data.id, 0),
