@@ -107,7 +107,7 @@ describe("Template Service", () => {
 
   it("Should render sent agreements and purposes", () => {
     expect(compiledText).toContain("Richieste di fruizione inoltrate");
-    expect(compiledText).toContain("7 richieste di fruizione per");
+    expect(compiledText).toContain("7 richieste di fruizione, tra cui:");
     expect(compiledText).toContain("Richiesta approvata 1");
     expect(compiledText).toContain("Sono state rifiutate 8 richieste");
     expect(compiledText).toContain("Richiesta rifiutata 1");
