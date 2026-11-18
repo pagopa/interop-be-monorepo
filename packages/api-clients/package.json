@@ -12,6 +12,7 @@
   "scripts": {
     "lint": "eslint .",
     "lint:openapi": "spectral lint ./open-api/!\\(selfcareV2ClientApi.yml\\|authorizationManagementApi.yaml\\|notifierApi.yml\\|apiGatewayApi.yml\\) --ruleset ../../.spectral.yaml",
+    "check:openapi-additive": "tsx ./scripts/openApiAdditiveCheck.ts",
     "lint:autofix": "eslint . --fix",
     "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
     "build": "tsc",
