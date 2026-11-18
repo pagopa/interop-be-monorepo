@@ -8,7 +8,6 @@ import {
   M2MAuthData,
   InternalAuthData,
   M2MAdminAuthData,
-  containsHyperlink,
   retrieveOriginFromAuthData,
   validateNoHyperlinksSafe,
 } from "pagopa-interop-commons";
@@ -24,7 +23,6 @@ import {
   ListResult,
   TenantFeatureCertifier,
   Tenant,
-  badRequestError,
 } from "pagopa-interop-models";
 
 import { config } from "../config/config.js";
@@ -343,14 +341,7 @@ export function attributeRegistryServiceBuilder(
       logger.info(
         `Creating certified discrete attribute with code ${apiCertifiedDiscreteAttributeSeed.code}`
       );
-
-      for (const field of ["name", "description", "code"] as const) {
-        if (containsHyperlink(apiCertifiedDiscreteAttributeSeed[field])) {
-          throw badRequestError(
-            `The ${field} field must not contain hyperlinks`
-          );
-        }
-      }
+      validateAttributeSeedFields(apiCertifiedDiscreteAttributeSeed);
 
       const certifierId = await getCertifierId(
         authData.organizationId,
