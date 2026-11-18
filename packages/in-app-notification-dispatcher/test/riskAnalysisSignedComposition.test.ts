@@ -13,6 +13,7 @@ import {
   riskAnalysisSigningState,
   toPurposeV2,
   UserId,
+  Purpose,
 } from "pagopa-interop-models";
 import {
   insertTenantNotificationConfig,
@@ -105,7 +106,7 @@ describe("risk analysis signed notification composition", () => {
           1
         );
       }
-      const purpose = {
+      const purpose: Purpose = {
         ...getMockPurpose(),
         consumerId: consumer.id,
         eserviceId: eservice.id,

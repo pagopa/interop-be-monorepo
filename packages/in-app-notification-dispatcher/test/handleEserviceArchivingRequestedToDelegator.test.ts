@@ -17,6 +17,8 @@ import {
   missingKafkaMessageDataError,
   toEServiceV2,
   UserId,
+  Descriptor,
+  EService,
 } from "pagopa-interop-models";
 import {
   archivingRequesterIdNotFound,
@@ -34,7 +36,7 @@ describe("handleEserviceArchivingRequestedToDelegator", () => {
   const userId = generateId<UserId>();
 
   const archivingDescriptorId = generateId<DescriptorId>();
-  const archivingDescriptor = {
+  const archivingDescriptor: Descriptor = {
     ...getMockDescriptor(descriptorState.archiving),
     id: archivingDescriptorId,
     version: "3",
@@ -49,7 +51,6 @@ describe("handleEserviceArchivingRequestedToDelegator", () => {
         requestedAt: new Date("2026-05-01T00:00:00.000Z"),
         requesterId: delegateTenant.id,
         gracePeriodDays: 60 as const,
-        archivingReason: "No longer needed",
       },
     ],
   };
@@ -103,7 +104,7 @@ describe("handleEserviceArchivingRequestedToDelegator", () => {
   });
 
   it("throws archivingRequesterIdNotFound when requesterId is not available in the snapshot (descriptor event)", async () => {
-    const eserviceWithoutRequester = {
+    const eserviceWithoutRequester: EService = {
       ...eservice,
       id: generateId<EServiceId>(),
       descriptors: [
@@ -211,7 +212,7 @@ describe("handleEserviceArchivingRequestedToDelegator", () => {
   });
 
   it("throws archivingRequesterIdNotFound when requesterId is not available in the snapshot (eservice event)", async () => {
-    const eserviceWithoutRequester = {
+    const eserviceWithoutRequester: EService = {
       ...eservice,
       id: generateId<EServiceId>(),
       descriptors: [{ ...archivingDescriptor, id: generateId<DescriptorId>() }],

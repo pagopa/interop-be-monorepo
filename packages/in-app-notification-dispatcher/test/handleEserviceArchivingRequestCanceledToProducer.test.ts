@@ -20,6 +20,8 @@ import {
   missingKafkaMessageDataError,
   toEServiceV2,
   UserId,
+  Descriptor,
+  EService,
 } from "pagopa-interop-models";
 import {
   activeProducerDelegationNotFound,
@@ -42,7 +44,7 @@ describe("handleEserviceArchivingRequestCanceledToProducer", () => {
   const userId = generateId<UserId>();
 
   const descriptorId = generateId<DescriptorId>();
-  const descriptor = {
+  const descriptor: Descriptor = {
     ...getMockDescriptor(descriptorState.archiving),
     id: descriptorId,
     version: "3",
@@ -106,7 +108,7 @@ describe("handleEserviceArchivingRequestCanceledToProducer", () => {
     });
 
     it("throws activeProducerDelegationNotFound when no active delegation exists", async () => {
-      const eserviceWithoutDelegation = {
+      const eserviceWithoutDelegation: EService = {
         ...eservice,
         id: generateId<EServiceId>(),
         descriptors: [{ ...descriptor, id: generateId<DescriptorId>() }],
@@ -244,7 +246,7 @@ describe("handleEserviceArchivingRequestCanceledToProducer", () => {
     });
 
     it("throws activeProducerDelegationNotFound when no active delegation exists", async () => {
-      const eserviceWithoutDelegation = {
+      const eserviceWithoutDelegation: EService = {
         ...eservice,
         id: generateId<EServiceId>(),
         descriptors: [{ ...descriptor, id: generateId<DescriptorId>() }],

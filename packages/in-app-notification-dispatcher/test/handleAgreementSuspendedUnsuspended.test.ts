@@ -14,6 +14,7 @@ import {
   EServiceId,
   AgreementId,
   toAgreementV2,
+  EService,
 } from "pagopa-interop-models";
 import {
   getNotificationRecipients,

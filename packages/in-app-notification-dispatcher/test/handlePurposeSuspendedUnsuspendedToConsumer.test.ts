@@ -15,6 +15,7 @@ import {
   toPurposeV2,
   purposeVersionState,
   EService,
+  Purpose,
 } from "pagopa-interop-models";
 import {
   getNotificationRecipients,
@@ -86,7 +87,7 @@ describe("handlePurposeSuspendedUnsuspendedToConsumer", () => {
 
   it("should throw tenantNotFound when producer tenant is not found", async () => {
     const unknownTenantId = generateId<TenantId>();
-    const eserviceWithUnknownTenant = {
+    const eserviceWithUnknownTenant: EService = {
       ...eservice,
       producerId: unknownTenantId,
     };
@@ -110,7 +111,7 @@ describe("handlePurposeSuspendedUnsuspendedToConsumer", () => {
 
   it("should throw eserviceNotFound when eservice is not found", async () => {
     const unknownEserviceId = generateId<EServiceId>();
-    const purposeWithUnknownEservice = {
+    const purposeWithUnknownEservice: Purpose = {
       ...purpose,
       eserviceId: unknownEserviceId,
     };

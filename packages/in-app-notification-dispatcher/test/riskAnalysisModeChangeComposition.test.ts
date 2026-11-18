@@ -9,6 +9,7 @@ import {
 import {
   generateId,
   Purpose,
+  EService,
   PurposeEventEnvelope,
   UserId,
   riskAnalysisReviewMode,
@@ -31,7 +32,7 @@ vi.unmock("pagopa-interop-notification-commons");
 describe("risk analysis mode change notification composition", () => {
   const consumer = getMockTenant();
   const producer = getMockTenant();
-  const eservice = { ...getMockEService(), producerId: producer.id };
+  const eservice: EService = { ...getMockEService(), producerId: producer.id };
   const kept = generateId<UserId>();
   const added = generateId<UserId>();
   const removed = generateId<UserId>();

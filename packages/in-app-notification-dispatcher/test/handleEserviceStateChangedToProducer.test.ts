@@ -20,8 +20,8 @@ import {
   UserId,
   EServiceDescriptorSuspendedV2,
   EServiceDescriptorActivatedV2,
+  archivingScope,
 } from "pagopa-interop-models";
-import { archivingScope } from "pagopa-interop-models";
 import {
   getNotificationRecipients,
   inAppTemplates,

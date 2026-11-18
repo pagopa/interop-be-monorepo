@@ -16,6 +16,7 @@ import {
   Delegation,
   DelegationState,
   delegationState,
+  EService,
 } from "pagopa-interop-models";
 import {
   activeProducerDelegationNotFound,
@@ -72,7 +73,7 @@ describe("handleEserviceNewVersionSubmittedToDelegator", () => {
   });
 
   it("should throw activeProducerDelegationNotFound when no delegation exists for that eservice", async () => {
-    const eserviceWithoutDelegation = {
+    const eserviceWithoutDelegation: EService = {
       ...eservice,
       id: generateId<EServiceId>(),
     };

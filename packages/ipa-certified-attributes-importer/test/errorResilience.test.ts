@@ -3,6 +3,8 @@ import { tenantApi } from "pagopa-interop-api-clients";
 import { InteropHeaders, Logger } from "pagopa-interop-commons";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { ReadModelServiceSQL } from "../src/services/readModelServiceSQL.js";
+
 const waitForReadModelMetadataVersionMock = vi.fn(
   (): Promise<void> => Promise.resolve()
 );
@@ -62,17 +64,20 @@ describe("IPA importer resilience to per-tenant errors", () => {
   } as unknown as Logger;
 
   const headers = {} as InteropHeaders;
-  const pollingConfig = {
+  const pollingConfig: {
+    defaultPollingMaxRetries: number;
+    defaultPollingRetryDelay: number;
+  } = {
     defaultPollingMaxRetries: 1,
     defaultPollingRetryDelay: 1,
   };
 
-  const readModelServiceSQL = {
+  const readModelServiceSQL: ReadModelServiceSQL = {
     getTenantByExternalIdWithMetadata: vi.fn(async () => ({
       metadata: { version: 5 },
       data: {},
     })),
-  };
+  } as unknown as ReadModelServiceSQL;
 
   const attributesToAssign: tenantApi.InternalTenantSeed[] = [
     {
@@ -98,7 +103,9 @@ describe("IPA importer resilience to per-tenant errors", () => {
     { tOrigin: "IPA", tExternalId: "tenant-3", aOrigin: "IPA", aCode: "A3" },
   ];
 
-  const okResponse = { metadata: { version: 5 } };
+  const okResponse: { metadata: { version: number } } = {
+    metadata: { version: 5 },
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();

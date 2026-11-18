@@ -12,6 +12,8 @@ import {
   toDelegationV2,
   DelegationKind,
   EServiceId,
+  Delegation,
+  EService,
 } from "pagopa-interop-models";
 import {
   tenantNotFound,
@@ -78,7 +80,7 @@ describe("handleDelegationSubmittedRevokedToDelegate", () => {
 
   it("should throw tenantNotFound when delegator tenant is not found", async () => {
     const unknownTenantId = generateId<TenantId>();
-    const delegationWithUnknownDelegator = {
+    const delegationWithUnknownDelegator: Delegation = {
       ...delegation,
       delegatorId: unknownTenantId,
     };

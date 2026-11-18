@@ -2,6 +2,8 @@ import { InteropHeaders, Logger } from "pagopa-interop-commons";
 import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type { ReadModelServiceSQL } from "../src/services/readModelServiceSQL.js";
+
 const internalUpsertTenantMock = vi.fn();
 const internalRevokeCertifiedAttributeMock = vi.fn();
 const waitForReadModelMetadataVersionMock = vi.fn(
@@ -41,22 +43,28 @@ describe("IPA metadata polling", () => {
   } as unknown as Logger;
 
   const headers = {} as InteropHeaders;
-  const pollingConfig = {
+  const pollingConfig: {
+    defaultPollingMaxRetries: number;
+    defaultPollingRetryDelay: number;
+  } = {
     defaultPollingMaxRetries: 1,
     defaultPollingRetryDelay: 1,
   };
 
-  const tenantProcessClient = {
+  const tenantProcessClient: {
+    internalUpsertTenant: typeof internalUpsertTenantMock;
+    internalRevokeCertifiedAttribute: typeof internalRevokeCertifiedAttributeMock;
+  } = {
     internalUpsertTenant: internalUpsertTenantMock,
     internalRevokeCertifiedAttribute: internalRevokeCertifiedAttributeMock,
   };
 
-  const readModelServiceSQL = {
+  const readModelServiceSQL: ReadModelServiceSQL = {
     getTenantByExternalIdWithMetadata: vi.fn(async () => ({
       metadata: { version: 5 },
       data: {},
     })),
-  };
+  } as unknown as ReadModelServiceSQL;
 
   afterEach(() => {
     vi.clearAllMocks();

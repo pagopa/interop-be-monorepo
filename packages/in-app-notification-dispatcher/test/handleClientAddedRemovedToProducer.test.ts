@@ -11,6 +11,8 @@ import {
   TenantId,
   EServiceId,
   PurposeId,
+  EService,
+  Purpose,
 } from "pagopa-interop-models";
 import {
   getNotificationRecipients,
@@ -85,7 +87,7 @@ describe("handleClientAddedRemovedToProducer", () => {
 
   it("should throw eserviceNotFound when eservice is not found", async () => {
     const unknownEserviceId = generateId<EServiceId>();
-    const purposeWithUnknownEservice = {
+    const purposeWithUnknownEservice: Purpose = {
       ...purpose,
       eserviceId: unknownEserviceId,
     };
@@ -110,7 +112,7 @@ describe("handleClientAddedRemovedToProducer", () => {
 
   it("should throw tenantNotFound when consumer tenant is not found", async () => {
     const unknownTenantId = generateId<TenantId>();
-    const purposeWithUnknownTenant = {
+    const purposeWithUnknownTenant: Purpose = {
       ...purpose,
       consumerId: unknownTenantId,
     };

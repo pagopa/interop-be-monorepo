@@ -67,7 +67,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
   });
 
   it("should throw tenantNotFound when producer tenant does not exist", async () => {
-    const eserviceWithNonExistentProducer = {
+    const eserviceWithNonExistentProducer: EService = {
       ...getMockEService(),
       producerId: generateId<TenantId>(),
       descriptors: [
@@ -92,7 +92,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
   });
 
   it("should return empty array when no agreements exist for the eservice", async () => {
-    const eserviceWithoutAgreements = {
+    const eserviceWithoutAgreements: EService = {
       ...getMockEService(),
       producerId: generateId<TenantId>(),
       descriptors: [
@@ -118,7 +118,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
   });
 
   it("should throw tenantNotFound when consumer tenant is not found", async () => {
-    const testEservice = {
+    const testEservice: EService = {
       ...getMockEService(),
       producerId: generateId<TenantId>(),
       descriptors: [
@@ -160,7 +160,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
   ])(
     "should generate notifications for agreement in $state state (shouldNotify: $shouldNotify)",
     async ({ state, shouldNotify }) => {
-      const testEservice = {
+      const testEservice: EService = {
         ...getMockEService(),
         producerId: generateId<TenantId>(),
         descriptors: [
@@ -219,7 +219,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
   );
 
   it("should generate notifications for multiple consumers with active agreements", async () => {
-    const testEservice = {
+    const testEservice: EService = {
       ...getMockEService(),
       producerId: generateId<TenantId>(),
       descriptors: [
@@ -293,7 +293,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
   });
 
   it("should return empty array when no user notification configs exist", async () => {
-    const testEservice = {
+    const testEservice: EService = {
       ...getMockEService(),
       producerId: generateId<TenantId>(),
       descriptors: [
@@ -331,7 +331,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
   });
 
   it("should handle mixed agreement states correctly", async () => {
-    const testEservice = {
+    const testEservice: EService = {
       ...getMockEService(),
       producerId: generateId<TenantId>(),
       descriptors: [

@@ -21,6 +21,8 @@ import {
   GracePeriodDays,
   gracePeriodDays,
   descriptorState,
+  Descriptor,
+  EService,
 } from "pagopa-interop-models";
 import {
   getNotificationRecipients,
@@ -123,11 +125,11 @@ describe("handleEserviceStateChangedToConsumer", async () => {
   it.each([descriptorState.draft, descriptorState.waitingForApproval])(
     "should skip document notifications for descriptor state %s",
     async (state) => {
-      const hiddenDescriptor = {
+      const hiddenDescriptor: Descriptor = {
         ...eservice.descriptors[0],
         state,
       };
-      const hiddenEService = {
+      const hiddenEService: EService = {
         ...eservice,
         descriptors: [hiddenDescriptor],
       };

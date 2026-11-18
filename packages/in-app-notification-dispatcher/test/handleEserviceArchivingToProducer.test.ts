@@ -23,8 +23,8 @@ import {
   missingKafkaMessageDataError,
   toEServiceV2,
   UserId,
+  archivingScope,
 } from "pagopa-interop-models";
-import { archivingScope } from "pagopa-interop-models";
 import {
   getNotificationRecipients,
   inAppTemplates,
