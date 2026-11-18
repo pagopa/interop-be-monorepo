@@ -175,6 +175,14 @@ export function inconsistentDailyCalls(): ApiError<ErrorCodes> {
   });
 }
 
+export function invalidAudience(audience: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Audience ${audience} contains ":" but is not a valid URI`,
+    code: "invalidAudience",
+    title: "Invalid audience",
+  });
+}
+
 export function originNotCompliant(origin: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Requester origin ${origin} is not allowed`,
