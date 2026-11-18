@@ -1,7 +1,10 @@
 import { Logger } from "pagopa-interop-commons";
 import { CorrelationId } from "pagopa-interop-models";
 
-import { TenantDigestData } from "../services/digestDataService.js";
+import {
+  ReviewerDigestData,
+  TenantDigestData,
+} from "../services/digestDataService.js";
 import { DigestTrackingService } from "../services/digestTrackingService.js";
 import {
   createDigestEmailPayload,
@@ -12,7 +15,7 @@ import { ProcessResult } from "./resultsCollector.js";
 
 export const processUserWithTenantData = async (
   user: DigestUser,
-  tenantData: TenantDigestData,
+  tenantData: TenantDigestData | ReviewerDigestData,
   emailBody: string,
   log: Logger,
   trackingService: DigestTrackingService,

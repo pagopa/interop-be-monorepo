@@ -27,6 +27,18 @@ message PurposeTemplateDraftUpdatedV2 {
   PurposeTemplateV2 purposeTemplate = 1;
 }
 
+message PurposeTemplatePurposeTitleUpdatedV2 {
+  PurposeTemplateV2 purposeTemplate = 1;
+}
+
+message PurposeTemplatePurposeDescriptionUpdatedV2 {
+  PurposeTemplateV2 purposeTemplate = 1;
+}
+
+message PurposeTemplateTargetDescriptionUpdatedV2 {
+  PurposeTemplateV2 purposeTemplate = 1;
+}
+
 message PurposeTemplateDraftDeletedV2 {
   PurposeTemplateV2 purposeTemplate = 1;
 }
