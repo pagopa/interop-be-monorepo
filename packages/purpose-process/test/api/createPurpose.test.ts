@@ -15,6 +15,7 @@ import { purposeToApiPurpose } from "../../src/model/domain/apiConverter.js";
 import {
   agreementNotFound,
   duplicatedPurposeTitle,
+  eserviceNotFound,
   missingFreeOfChargeReason,
   tenantIsNotTheConsumer,
   tenantIsNotTheDelegatedConsumer,
@@ -75,6 +76,7 @@ describe("API POST /purposes test", () => {
   });
 
   it.each([
+    { error: eserviceNotFound(mockEService.id), expectedStatus: 404 },
     { error: tenantIsNotTheConsumer(generateId()), expectedStatus: 403 },
     {
       error: tenantIsNotTheDelegatedConsumer(
