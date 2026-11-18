@@ -26,7 +26,10 @@ import {
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 
-import { IPACertifiedAttributesImporterConfig } from "../config/config.js";
+import {
+  config,
+  IPACertifiedAttributesImporterConfig,
+} from "../config/config.js";
 import {
   RegistryData,
   InternalCertifiedAttribute,
@@ -291,40 +294,53 @@ export async function createNewAttributes(
   attributeRegistryUrl: string,
   attributeCreationWaitTime: number,
   maxRetries: number
-): Promise<void> {
+): Promise<number> {
   if (newAttributes.length === 0) {
     loggerInstance.info("No new attributes to create");
-    return;
+    return 0;
   }
 
   const client =
     attributeRegistryApi.createAttributeApiClient(attributeRegistryUrl);
 
+  const createdAttributes: InternalCertifiedAttribute[] = [];
+
   for (const attribute of newAttributes) {
     loggerInstance.info(
       `Creating attribute ${attribute.origin}/${attribute.code}`
     );
-    await client.createInternalCertifiedAttribute(attribute, {
-      headers,
-    });
+    try {
+      await client.createInternalCertifiedAttribute(attribute, {
+        headers,
+      });
+      createdAttributes.push(attribute);
+    } catch (error: unknown) {
+      loggerInstance.warn(
+        `Failed creation of attribute ${attribute.origin}/${attribute.code}. Skipping. ${describeHttpError(error)}`
+      );
+    }
   }
+
+  const failures = newAttributes.length - createdAttributes.length;
 
   // wait until every event reaches the read model store
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     loggerInstance.info("Waiting for attributes to be created");
     await delay(attributeCreationWaitTime);
 
-    if (await checkAttributesPresence(readModelService, newAttributes)) {
-      return;
+    if (await checkAttributesPresence(readModelService, createdAttributes)) {
+      return failures;
     }
   }
 
   loggerInstance.warn(
     `New attributes are not present in the read model after ${maxRetries} attempts. Continuing with the import`
   );
+
+  return failures;
 }
 
-function getAooUoAttributeSeeds(
+function getAooUoAttributes(
   registryData: RegistryData,
   tenantUpsertData: TenantSeed[],
   platformAttributes: Attribute[]
@@ -380,36 +396,51 @@ function getAooUoAttributeSeeds(
     baseSeeds.map((a) => toAttributeKey({ origin: a.origin, code: a.code }))
   );
 
-  const takenNames = new Set([
-    ...platformAttributes
-      .filter(
-        (a) => !seedKeys.has(toAttributeKey({ origin: a.origin, code: a.code }))
-      )
-      .map((a) => a.name),
-    ...registryData.attributes.map((a) => a.name),
-  ]);
+  const normalizeName = (name: string): string => name.trim().toLowerCase();
 
-  const seedsPerName = baseSeeds.reduce(
-    (acc, a) => acc.set(a.name, (acc.get(a.name) ?? 0) + 1),
-    new Map<string, number>()
+  const takenNames = new Set(
+    [
+      ...platformAttributes
+        .filter(
+          (a) =>
+            !seedKeys.has(toAttributeKey({ origin: a.origin, code: a.code }))
+        )
+        .map((a) => a.name),
+      ...registryData.attributes.map((a) => a.name),
+    ].map(normalizeName)
   );
 
-  return baseSeeds.map((a) =>
-    (seedsPerName.get(a.name) ?? 0) > 1 || takenNames.has(a.name)
-      ? {
-          ...a,
-          name: `${a.name} (${a.code})`,
-          description: `${a.description} (${a.code})`,
-        }
-      : a
-  );
+  const seedsPerName = baseSeeds.reduce((acc, a) => {
+    const name = normalizeName(a.name);
+    return acc.set(name, (acc.get(name) ?? 0) + 1);
+  }, new Map<string, number>());
+
+  return baseSeeds.flatMap((a) => {
+    const name = normalizeName(a.name);
+    if ((seedsPerName.get(name) ?? 0) <= 1 && !takenNames.has(name)) {
+      return [a];
+    }
+
+    const suffixedName = `${a.name} (${a.code})`;
+    // skip names that are already taken
+    if (takenNames.has(normalizeName(suffixedName))) {
+      return [];
+    }
+    takenNames.add(normalizeName(suffixedName));
+    return [
+      {
+        ...a,
+        name: suffixedName,
+        description: `${a.description} (${a.code})`,
+      },
+    ];
+  });
 }
 
 export function getNewAttributes(
   registryData: RegistryData,
   tenantUpsertData: TenantSeed[],
-  attributes: Attribute[],
-  aooUoAttributesEnabled: boolean = false
+  attributes: Attribute[]
 ): InternalCertifiedAttribute[] {
   // get a set with all the certified attributes in the platform
   const platformAttributesIndex = new Set(
@@ -426,8 +457,11 @@ export function getNewAttributes(
     )
   );
 
-  const aooUoSeeds = aooUoAttributesEnabled
-    ? getAooUoAttributeSeeds(registryData, tenantUpsertData, attributes)
+  const aooUoAttributes = isFeatureFlagEnabled(
+    config,
+    "featureFlagAooUoAttributes"
+  )
+    ? getAooUoAttributes(registryData, tenantUpsertData, attributes)
     : [];
 
   const seen = new Set<string>();
@@ -435,7 +469,7 @@ export function getNewAttributes(
     ...registryData.attributes.filter((a) =>
       newAttributesIndex.has(toAttributeKey({ origin: a.origin, code: a.code }))
     ),
-    ...aooUoSeeds,
+    ...aooUoAttributes,
   ].filter((a) => {
     const key = toAttributeKey({ origin: a.origin, code: a.code });
     if (platformAttributesIndex.has(key) || seen.has(key)) {

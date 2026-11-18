@@ -1,0 +1,22 @@
+meta {
+  name: Save Preset
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{host-dashboard}}/__local-dashboard/api/presets
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "id": "tenant-development",
+    "name": "Tenant development",
+    "packages": [
+      { "name": "pagopa-interop-tenant-process", "watch": true },
+      { "name": "pagopa-interop-tenant-readmodel-writer-sql", "watch": true }
+    ]
+  }
+}

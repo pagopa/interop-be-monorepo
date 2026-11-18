@@ -41,6 +41,7 @@ import {
   deleteEServiceTemplateVersionErrorMapper,
   createEServiceTemplateErrorMapper,
   updateEServiceTemplateErrorMapper,
+  patchUpdateEServiceTemplateErrorMapper,
   updateDraftTemplateVersionErrorMapper,
   publishEServiceTemplateVersionErrorMapper,
   createEServiceTemplateDocumentErrorMapper,
@@ -279,7 +280,7 @@ const eserviceTemplatesRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
         const { data: updatedEServiceTemplate, metadata } =
           await eserviceTemplateService.patchUpdateEServiceTemplate(
@@ -299,7 +300,7 @@ const eserviceTemplatesRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          updateEServiceTemplateErrorMapper,
+          patchUpdateEServiceTemplateErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);
