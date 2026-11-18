@@ -46,6 +46,17 @@ describe("tenantServiceBuilder.getTenant", () => {
       id: tenantId,
       mails: [],
       features: [],
+      parentTenants: [
+        {
+          id: generateId(),
+          name: "Tenant AOO",
+          subUnitType: "AOO",
+        },
+        {
+          id: generateId(),
+          name: "Tenant root",
+        },
+      ],
     };
 
     const registryCertifiedAttribute: attributeRegistryApi.Attribute = {
@@ -101,6 +112,7 @@ describe("tenantServiceBuilder.getTenant", () => {
 
     const result = await service.getTenant(tenantId, ctx);
 
+    expect(result.parentTenants).toEqual(tenant.parentTenants);
     expect(result.attributes.certified).toStrictEqual([
       {
         kind: tenantAttributeKind.certified,
