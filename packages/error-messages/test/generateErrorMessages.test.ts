@@ -1,3 +1,5 @@
+import type { ErrorMessage } from "pagopa-interop-models";
+
 import { stringify } from "csv-stringify/sync";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -156,7 +158,7 @@ describe("error message generation", () => {
     });
     const exports: { errorMessages?: unknown } = {};
     runInNewContext(result.outputText, { exports });
-    const expected = {
+    const expected: ErrorMessage = {
       process: row[0],
       error: row[1],
       errorCode: "005-0014",

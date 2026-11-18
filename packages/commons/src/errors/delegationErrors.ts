@@ -15,4 +15,4 @@ export const delegationErrorCodes = {
   eserviceNotConsumerDelegable: "0014",
   delegationRelatedAgreementExists: "0015",
   eserviceAlreadyArchived: "0016",
-};
+} as const satisfies Record<string, string>;

@@ -26,7 +26,7 @@ describe("API POST /templates/:templateId/name/update", () => {
   const mockEserviceTemplate = getMockEServiceTemplate();
   const serviceResponse = getMockWithMetadata(mockEserviceTemplate);
 
-  const name = {
+  const name: { name: string } = {
     name: "name to be updated",
   };
 
@@ -73,7 +73,7 @@ describe("API POST /templates/:templateId/name/update", () => {
   });
 
   it.each([5, 45])("Should accept a name of %s characters", async (length) => {
-    const seed = { name: "a".repeat(length) };
+    const seed: typeof name = { name: "a".repeat(length) };
     const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), seed);
     expect(res.status).toBe(200);
     expect(

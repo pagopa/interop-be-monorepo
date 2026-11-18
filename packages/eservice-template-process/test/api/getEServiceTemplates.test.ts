@@ -4,7 +4,12 @@ import {
   generateToken,
   getMockEServiceTemplate,
 } from "pagopa-interop-commons-test";
-import { EServiceTemplateId, generateId } from "pagopa-interop-models";
+import {
+  EServiceTemplate,
+  EServiceTemplateId,
+  generateId,
+  ListResult,
+} from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
@@ -13,14 +18,14 @@ import { eserviceTemplateNotFound } from "../../src/model/domain/errors.js";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 
 describe("API GET /templates", () => {
-  const mockEserviceTemplate = getMockEServiceTemplate();
+  const mockEserviceTemplate: EServiceTemplate = getMockEServiceTemplate();
 
-  const mockEserviceTemplateListResult = {
+  const mockEserviceTemplateListResult: ListResult<EServiceTemplate> = {
     results: [mockEserviceTemplate],
     totalCount: 1,
   };
 
-  const queryParams = {
+  const queryParams: { limit: number; offset: number } = {
     limit: 10,
     offset: 0,
   };
@@ -56,7 +61,12 @@ describe("API GET /templates", () => {
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
-      const expected = {
+      const expected: {
+        results: Array<
+          ReturnType<typeof eserviceTemplateToApiEServiceTemplate>
+        >;
+        totalCount: number;
+      } = {
         results: mockEserviceTemplateListResult.results.map((t) =>
           eserviceTemplateToApiEServiceTemplate(t)
         ),

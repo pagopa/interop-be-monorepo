@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import type { ListResult } from "pagopa-interop-models";
+
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
@@ -14,12 +16,12 @@ describe("API GET /creators", () => {
     CompactOrganization.parse(getMockTenant()),
   ];
 
-  const mockEserviceTemplateCreatorsResult = {
+  const mockEserviceTemplateCreatorsResult: ListResult<CompactOrganization> = {
     results: mockEserviceTemplate,
     totalCount: 1,
   };
 
-  const queryParams = {
+  const queryParams: { limit: number; offset: number } = {
     limit: 10,
     offset: 0,
   };
@@ -53,7 +55,7 @@ describe("API GET /creators", () => {
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
-      const expected = {
+      const expected: ListResult<CompactOrganization> = {
         results: mockEserviceTemplate.map((creator) =>
           eserviceTemplateApi.CompactOrganization.parse(creator)
         ),

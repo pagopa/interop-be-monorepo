@@ -37,7 +37,7 @@ describe("API DELETE /templates/:templateId/versions/:templateVersionId/document
 
   const document: Document = getMockDocument();
 
-  const mockVersion = {
+  const mockVersion: EServiceTemplateVersion = {
     ...getMockEServiceTemplateVersion(),
     docs: [document],
   };

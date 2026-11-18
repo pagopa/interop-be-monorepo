@@ -4,4 +4,4 @@ export const attributeRegistryErrorCodes = {
   originNotCompliant: "0003",
   tenantNotFound: "0004",
   tenantIsNotACertifier: "0005",
-};
+} as const satisfies Record<string, string>;

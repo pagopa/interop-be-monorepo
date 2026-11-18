@@ -28,4 +28,4 @@ export const agreementErrorCodes = {
   tenantIsNotTheProducer: "0029",
   tenantIsNotTheDelegateProducer: "0030",
   tenantIsNotTheDelegate: "0031",
-};
+} as const satisfies Record<string, string>;

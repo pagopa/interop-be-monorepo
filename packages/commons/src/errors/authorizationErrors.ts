@@ -39,4 +39,4 @@ export const authorizationErrorCodes = {
   missingSelfcareId: "0038",
   duplicatedMembersInSeed: "0039",
   eserviceInArchivedState: "0040",
-};
+} as const satisfies Record<string, string>;

@@ -4,4 +4,4 @@ export const notificationConfigErrorCodes = {
   tenantNotificationConfigAlreadyExists: "0003",
   userRoleNotInUserNotificationConfig: "0004",
   notificationConfigNotAllowedForUserRoles: "0005",
-};
+} as const satisfies Record<string, string>;

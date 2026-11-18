@@ -5,11 +5,25 @@ import { describe, expect, it } from "vitest";
 
 import { getMockEService, readFileContent } from "../src/index.js";
 
+type InterfaceFileInfo = {
+  id: string;
+  name: string;
+  contentType: string;
+  prettyName: string;
+};
+
+type EserviceInstanceInterfaceRestData = {
+  contactName: string;
+  contactEmail: string;
+  contactUrl: string;
+  termsAndConditionsUrl: string;
+};
+
 describe("interpolateTemplateApiSpec", async () => {
   const eservice = getMockEService();
   const file: string = await readFileContent("test.openapi.3.0.2.json");
 
-  const interfaceFileInfo = {
+  const interfaceFileInfo: InterfaceFileInfo = {
     id: generateId(),
     name: "json",
     contentType: "application/json",
@@ -21,7 +35,7 @@ describe("interpolateTemplateApiSpec", async () => {
     { url: "http://server2.example.com" },
   ];
 
-  const eserviceInstanceInterfaceRestData = {
+  const eserviceInstanceInterfaceRestData: EserviceInstanceInterfaceRestData = {
     contactName: "Test User",
     contactEmail: "Test email",
     contactUrl: "http://example.com",
@@ -53,7 +67,7 @@ describe("interpolateTemplateApiSpec", async () => {
 
     const wsdlFile: string = await readFileContent("interface-test.wsdl");
 
-    const interfaceFileInfoWsdl = {
+    const interfaceFileInfoWsdl: InterfaceFileInfo = {
       id: generateId(),
       name: "wsdl",
       contentType: "application/wsdl",
@@ -77,7 +91,10 @@ describe("interpolateTemplateApiSpec", async () => {
     );
   });
   it("should inject the per-server description into the REST servers", async () => {
-    const serverUrlsWithDescriptions = [
+    const serverUrlsWithDescriptions: Array<{
+      url: string;
+      description?: string;
+    }> = [
       { url: "http://server1.example.com", description: "Primary server" },
       { url: "http://server2.example.com" },
     ];
@@ -100,7 +117,7 @@ describe("interpolateTemplateApiSpec", async () => {
     ]);
   });
   it("should throw invalidInterfaceData error for unsupported file type", async () => {
-    const interfaceFileInfo = {
+    const interfaceFileInfo: InterfaceFileInfo = {
       id: generateId(),
       name: "txt",
       contentType: "application/json",
