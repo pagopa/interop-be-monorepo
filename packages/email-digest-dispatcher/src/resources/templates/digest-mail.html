@@ -921,7 +921,7 @@
                                                 <strong>
                                                   Sono state approvate {{ 
                                                     acceptedSentAgreements.totalCount
-                                                  }} richieste di fruizione per:
+                                                  }} richieste di fruizione{{#if acceptedSentAgreementsExceededItemsCount }}, tra cui:{{else}} per:{{/if}}
                                                 </strong>
                                               {{/if}}
                                             </p>
@@ -967,7 +967,7 @@
                                               <strong>
                                                 Sono state rifiutate {{ 
                                                 rejectedSentAgreements.totalCount}} richieste
-                                                di fruizione per:
+                                                di fruizione{{#if rejectedSentAgreementsExceededItemsCount }}, tra cui:{{else}} per:{{/if}}
                                               </strong>
                                               {{/if}}
                                             </p>
@@ -1005,7 +1005,7 @@
                                               
                                               <strong>
                                                 Sono state sospese {{ 
-                                                suspendedSentAgreements.totalCount }} richieste di fruizione per:
+                                                suspendedSentAgreements.totalCount }} richieste di fruizione{{#if suspendedSentAgreementsExceededItemsCount }}, tra cui:{{else}} per:{{/if}}
                                               </strong>
                                               {{/if}}
                                             </p>
@@ -1992,7 +1992,7 @@
                                             {{#if archivingRequestsSingular}}
                                             Hai ricevuto una richiesta di archiviazione:{{else}}
                                             Hai ricevuto {{ archivingRequests.totalCount }} richieste
-                                            di archiviazione{{/if}}{{#if archivingRequestsExceededItemsCount }}, tra cui:{{else}}:{{/if}}
+                                            di archiviazione{{#if archivingRequestsExceededItemsCount }}, tra cui:{{else}}:{{/if}}{{/if}}
                                           </strong>
                                         </p>
                                         <div class="section-cell">
