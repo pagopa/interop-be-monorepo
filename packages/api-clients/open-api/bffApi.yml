@@ -1357,7 +1357,7 @@ paths:
             type: integer
             format: int32
             minimum: 1
-            maximum: 200
+            maximum: 50
       responses:
         "200":
           description: A list of EServices
@@ -1425,6 +1425,95 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  "/catalog/eservices":
+    get:
+      tags:
+        - eservices
+      summary: Retrieves a lightweight list of catalog EServices
+      description: Retrieves a lightweight list of catalog EServices, meant to populate selects and autocomplete inputs
+      operationId: getCompactCatalogEServices
+      parameters:
+        - in: query
+          name: q
+          description: Query to filter EServices by name
+          schema:
+            type: string
+        - in: query
+          name: states
+          description: comma separated sequence of states
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/EServiceDescriptorState"
+            default: []
+          explode: false
+        - in: query
+          name: agreementStates
+          description: comma separated sequence of agreement states to filter the response with
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/AgreementState"
+            default: []
+          explode: false
+        - in: query
+          name: mode
+          description: EService Mode filter
+          schema:
+            $ref: "#/components/schemas/EServiceMode"
+        - in: query
+          name: isConsumerDelegable
+          description: EService isConsumerDelegable filter
+          schema:
+            type: boolean
+        - in: query
+          name: personalData
+          description: if "TRUE" only e-services that handle personal data will be returned, if "FALSE" only non-personal data e-services will be returned, if not present all e-services will be returned, if "DEFINED" all e-services with a defined personal data flag will be returned
+          required: false
+          schema:
+            $ref: "#/components/schemas/PersonalDataFilter"
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 200
+      responses:
+        "200":
+          description: A lightweight list of EServices
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompactCatalogEServices"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          $ref: "#/components/responses/BadRequest"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   "/consumers/delegations/delegators":
@@ -3417,6 +3506,43 @@ paths:
           $ref: "#/components/responses/NotFound"
         "400":
           $ref: "#/components/responses/BadRequest"
+    patch:
+      security:
+        - bearerAuth: []
+      tags:
+        - eservices
+      summary: Partially updates E-Service general information
+      description: Partially updates the general information of the specified E-Service
+      operationId: patchUpdateEServiceById
+      parameters:
+        - name: eServiceId
+          in: path
+          description: The E-Service id to update
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchUpdateEServiceSeed"
+      responses:
+        "200":
+          description: E-Service updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatedResource"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /templates/eservices/{eServiceId}:
     post:
       security:
@@ -4299,6 +4425,28 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CreatedEServiceDescriptor"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "403":
           $ref: "#/components/responses/Forbidden"
         "409":
@@ -4908,6 +5056,33 @@ paths:
         schema:
           type: string
           format: uuid
+    patch:
+      tags:
+        - purposes
+      summary: Partially updates a reverse Purpose
+      description: Partially updates a Purpose of an EService with Receive mode
+      operationId: patchUpdateReversePurpose
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchReversePurposeUpdateContent"
+      responses:
+        "200":
+          description: Purpose updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatedResource"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
     post:
       tags:
         - purposes
@@ -6462,6 +6637,33 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /purposes/{purposeId}:
+    patch:
+      tags:
+        - purposes
+      summary: Partially updates a Purpose
+      description: Partially updates a Purpose of an EService with Deliver mode
+      operationId: patchUpdatePurpose
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchPurposeUpdateContent"
+      responses:
+        "200":
+          description: Purpose updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatedResource"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
     parameters:
       - name: purposeId
         in: path
@@ -7255,6 +7457,35 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    patch:
+      tags:
+        - purposeTemplates
+      summary: Partially updates Purpose Template general information
+      operationId: patchUpdatePurposeTemplate
+      description: Partially updates the general information of the specified Purpose Template
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchUpdatePurposeTemplateSeed"
+      responses:
+        "200":
+          description: Purpose Template updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurposeTemplate"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -8385,19 +8616,21 @@ paths:
         - tenants
       operationId: revokeVerifiedAttribute
       description: Revoke a Verified attribute to a Tenant by the requester Tenant
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              additionalProperties: false
-              required:
-                - agreementId
-              properties:
-                agreementId:
-                  type: string
-                  format: uuid
+      parameters:
+        - name: agreementId
+          in: query
+          description: Agreement id related to the Verified attribute revocation
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: delegationId
+          in: query
+          description: The ID of the producer Delegation
+          required: false
+          schema:
+            type: string
+            format: uuid
       responses:
         "204":
           description: Updated Tenant
@@ -9144,6 +9377,55 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /clients/{clientId}:
+    patch:
+      description: Updates a Client
+      tags:
+        - clients
+      summary: Update a Client
+      operationId: updateClient
+      parameters:
+        - name: clientId
+          in: path
+          description: The Client id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClientUpdateSeed"
+      responses:
+        "204":
+          description: Client updated
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
     get:
       description: Retrieves a Client
       tags:
@@ -10429,6 +10711,55 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /producerKeychains/{producerKeychainId}:
+    patch:
+      description: Updates a Producer Keychain
+      tags:
+        - producerKeychain
+      summary: Update a Producer Keychain
+      operationId: updateProducerKeychain
+      parameters:
+        - name: producerKeychainId
+          in: path
+          description: The Producer Keychain id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProducerKeychainUpdateSeed"
+      responses:
+        "204":
+          description: Producer Keychain updated
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
     get:
       description: Retrieves a Producer Keychain
       tags:
@@ -11705,6 +12036,33 @@ paths:
         schema:
           type: string
           format: uuid
+    patch:
+      tags:
+        - eserviceTemplates
+      summary: Partially updates E-Service Template general information
+      description: Partially updates the general information of the specified E-Service Template
+      operationId: patchUpdateEServiceTemplate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchUpdateEServiceTemplateSeed"
+      responses:
+        "200":
+          description: E-Service Template updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatedResource"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
     post:
       tags:
         - eserviceTemplates
@@ -13679,6 +14037,14 @@ paths:
           description: The selfcare ID for the institution (optional, falls back to generic URL if not provided)
           schema:
             type: string
+        - name: states
+          in: query
+          required: false
+          description: Optional purpose state filter for the destination page
+          schema:
+            type: string
+            enum:
+              - DRAFT
       responses:
         "302":
           description: Redirect to the correct deepLink based on notification type and entity id
@@ -14064,6 +14430,35 @@ components:
       required:
         - id
         - value
+    PatchUpdateEServiceSeed:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        name:
+          type: string
+          minLength: 5
+          maxLength: 60
+        description:
+          type: string
+          minLength: 10
+          maxLength: 400
+        technology:
+          $ref: "#/components/schemas/EServiceTechnology"
+        mode:
+          $ref: "#/components/schemas/EServiceMode"
+        isSignalHubEnabled:
+          type: boolean
+        isConsumerDelegable:
+          type: boolean
+        isClientAccessDelegable:
+          type: boolean
+        personalData:
+          type: boolean
+          nullable: true
+        asyncExchange:
+          type: boolean
+          nullable: true
     UpdateEServiceSeed:
       type: object
       additionalProperties: false
@@ -15201,11 +15596,6 @@ components:
         onlySignalHubEnabled:
           type: boolean
           description: If true, returns only e-services with Signal Hub enabled
-        requesterDelegationRoles:
-          type: array
-          description: Filter by the requester role in producer delegations
-          items:
-            $ref: "#/components/schemas/RequesterDelegationRole"
         templateId:
           type: string
           format: uuid
@@ -15224,12 +15614,6 @@ components:
         - NAME_DESC
         - CREATED_AT_ASC
         - CREATED_AT_DESC
-    RequesterDelegationRole:
-      type: string
-      description: Role of the requester in a producer delegation
-      enum:
-        - DELEGATE
-        - DELEGATOR
     EServiceProducerCategory:
       type: string
       description: Producer entity macro-category, resolved backend-side to certified attribute codes
@@ -15444,6 +15828,38 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CompactEService"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
+    CompactCatalogEService:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - producer
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        producer:
+          $ref: "#/components/schemas/CompactOrganization"
+        personalData:
+          type: boolean
+        activeDescriptor:
+          $ref: "#/components/schemas/CompactDescriptor"
+    CompactCatalogEServices:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/CompactCatalogEService"
         pagination:
           $ref: "#/components/schemas/Pagination"
       required:
@@ -16127,6 +16543,38 @@ components:
         - purposeDescription
         - purposeIsFreeOfCharge
         - handlesPersonalData
+    PatchUpdatePurposeTemplateSeed:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        targetDescription:
+          type: string
+          minLength: 10
+          maxLength: 250
+        targetTenantKind:
+          $ref: "#/components/schemas/TargetTenantKind"
+        purposeTitle:
+          type: string
+          minLength: 5
+          maxLength: 60
+        purposeDescription:
+          type: string
+          minLength: 10
+          maxLength: 250
+        purposeIsFreeOfCharge:
+          type: boolean
+        purposeFreeOfChargeReason:
+          type: string
+          nullable: true
+        purposeDailyCalls:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+          nullable: true
+        handlesPersonalData:
+          type: boolean
     RiskAnalysisFormTemplate:
       type: object
       additionalProperties: false
@@ -16509,6 +16957,35 @@ components:
       required:
         - key
         - purposeId
+    ClientUpdateSeed:
+      description: Client update request body
+      anyOf:
+        - type: object
+          additionalProperties: false
+          properties:
+            name:
+              $ref: "#/components/schemas/ClientName"
+            description:
+              $ref: "#/components/schemas/ClientDescription"
+          required: 
+            - name
+        - type: object
+          additionalProperties: false
+          properties:
+            name:
+              $ref: "#/components/schemas/ClientName"
+            description:
+              $ref: "#/components/schemas/ClientDescription"
+          required: 
+            - description
+    ClientName:
+      type: string
+      minLength: 5
+      maxLength: 60
+    ClientDescription:
+      type: string
+      minLength: 10
+      maxLength: 250
     ClientSeed:
       description: Client creation request body
       type: object
@@ -16546,6 +17023,33 @@ components:
         - id
         - name
         - hasKeys
+    ProducerKeychainUpdateSeed:
+      description: Producer keychain update request body
+      anyOf:
+        - type: object
+          additionalProperties: false
+          properties:
+            name:
+              $ref: "#/components/schemas/ProducerKeychainName"
+            description:
+              $ref: "#/components/schemas/ProducerKeychainDescription"
+          required: [name]
+        - type: object
+          additionalProperties: false
+          properties:
+            name:
+              $ref: "#/components/schemas/ProducerKeychainName"
+            description:
+              $ref: "#/components/schemas/ProducerKeychainDescription"
+          required: [description]
+    ProducerKeychainName:
+      type: string
+      minLength: 5
+      maxLength: 60
+    ProducerKeychainDescription:
+      type: string
+      minLength: 10
+      maxLength: 250
     ProducerKeychainSeed:
       description: Producer keychain creation request body
       type: object
@@ -16631,6 +17135,56 @@ components:
           format: uuid
       required:
         - eserviceId
+    PatchPurposeUpdateContent:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        title:
+          type: string
+          minLength: 5
+          maxLength: 60
+        description:
+          type: string
+          minLength: 10
+          maxLength: 250
+        isFreeOfCharge:
+          type: boolean
+        freeOfChargeReason:
+          type: string
+          nullable: true
+        riskAnalysisForm:
+          $ref: "#/components/schemas/RiskAnalysisFormSeed"
+        dailyCalls:
+          description: Maximum number of daily calls that this version can perform
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+    PatchReversePurposeUpdateContent:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        title:
+          type: string
+          minLength: 5
+          maxLength: 60
+        description:
+          type: string
+          minLength: 10
+          maxLength: 250
+        isFreeOfCharge:
+          type: boolean
+        freeOfChargeReason:
+          type: string
+          nullable: true
+        dailyCalls:
+          description: Maximum number of daily calls that this version can perform
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
     PurposeUpdateContent:
       type: object
       additionalProperties: false
@@ -17643,6 +18197,9 @@ components:
         agreementId:
           type: string
           format: uuid
+        delegationId:
+          type: string
+          format: uuid
         expirationDate:
           type: string
           format: date-time
@@ -18179,6 +18736,8 @@ components:
       properties:
         name:
           type: string
+          minLength: 5
+          maxLength: 45
       required:
         - name
     EServiceTemplateDescriptionUpdateSeed:
@@ -18407,6 +18966,35 @@ components:
       required:
         - id
         - versionId
+    PatchUpdateEServiceTemplateSeed:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        name:
+          type: string
+          minLength: 5
+          maxLength: 45
+        intendedTarget:
+          type: string
+          minLength: 10
+          maxLength: 250
+        description:
+          type: string
+          minLength: 10
+          maxLength: 400
+        technology:
+          $ref: "#/components/schemas/EServiceTechnology"
+        mode:
+          $ref: "#/components/schemas/EServiceMode"
+        isSignalHubEnabled:
+          type: boolean
+        personalData:
+          type: boolean
+          nullable: true
+        asyncExchange:
+          type: boolean
+          nullable: true
     UpdateEServiceTemplateSeed:
       type: object
       additionalProperties: false
@@ -18674,6 +19262,8 @@ components:
           minItems: 1
           items:
             $ref: "#/components/schemas/ProblemError"
+        userMessage:
+          type: string
       required:
         - type
         - status
