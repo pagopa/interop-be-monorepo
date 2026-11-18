@@ -17,6 +17,8 @@ import { api, services } from "../../vitest.api.setup.js";
 
 describe("API GET /purposes/{purposeId} test", () => {
   const mockPurpose = getMockBffApiPurpose();
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const serviceResponse = {
     data: mockPurpose,
     metadata: { version: 1 },

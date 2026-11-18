@@ -39,6 +39,8 @@ describe("API POST /eservices/templates/:eServiceTemplateId", () => {
 
   it("Should accept asyncExchange updates", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
+    // TODO REVIEW THIS CHANGE
+    // eslint-disable-next-line interop/require-type-for-object
     const body = {
       ...mockEServiceTemplateUpdateSeed,
       asyncExchange: false,

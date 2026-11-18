@@ -11,10 +11,14 @@ import { getMockAgreementApiCompactOrganization } from "../../mockUtils.js";
 import { api, clients } from "../../vitest.api.setup.js";
 
 describe("API GET /agreements/filter/consumers", () => {
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const defaultQuery = {
     offset: 0,
     limit: 5,
   };
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const mockCompactOrganizations = {
     results: [
       getMockAgreementApiCompactOrganization(),
@@ -23,6 +27,8 @@ describe("API GET /agreements/filter/consumers", () => {
     ],
     totalCount: 3,
   };
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const mockApiCompactOrganizations = {
     results: mockCompactOrganizations.results.map((o) =>
       toBffCompactOrganization(o)

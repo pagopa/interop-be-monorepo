@@ -135,6 +135,8 @@ describe("validateTokenGeneration async validations", () => {
     },
   } as unknown as PagoPAInteropBeClients;
 
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const dynamoDBClient = {
     send: vi.fn(),
   };

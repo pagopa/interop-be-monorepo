@@ -18,6 +18,8 @@ describe("API GET /purposeTemplates/filter/creators test", () => {
     ],
     pagination: { offset: 0, limit: 10, totalCount: 20 },
   };
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const defaultQuery = { offset: 0, limit: 10, q: "" };
 
   beforeEach(() => {

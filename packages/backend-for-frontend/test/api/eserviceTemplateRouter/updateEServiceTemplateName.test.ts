@@ -41,6 +41,8 @@ describe("API POST /eservices/templates/:eServiceTemplateId/name/update", () => 
   });
 
   it.each([5, 45])("Should accept a name of %s characters", async (length) => {
+    // TODO REVIEW THIS CHANGE
+    // eslint-disable-next-line interop/require-type-for-object
     const seed = { name: "a".repeat(length) };
     const res = await makeRequest(
       generateToken(authRole.ADMIN_ROLE),

@@ -118,7 +118,9 @@ describe("Events V2", async () => {
       name: "Updated client name",
       description: "Updated client description",
     };
-    const data = { client: toClientV2(updatedClient) };
+    const data: { client: ReturnType<typeof toClientV2> } = {
+      client: toClientV2(updatedClient),
+    };
 
     await handleMessageV2(
       { ...mockMessage, type: "ClientNameUpdated", data, version: 2 },

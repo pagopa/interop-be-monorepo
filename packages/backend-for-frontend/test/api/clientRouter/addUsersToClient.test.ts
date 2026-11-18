@@ -11,6 +11,8 @@ import { api, clients } from "../../vitest.api.setup.js";
 type AddUsersToClientBody = { userIds: UserId[] };
 
 describe("API POST /clients/:clientId/users", () => {
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const mockUserIds = {
     userIds: [generateId<UserId>()],
   };

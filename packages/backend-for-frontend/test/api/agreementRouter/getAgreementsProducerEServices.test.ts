@@ -13,10 +13,14 @@ import {
 import { api, clients } from "../../vitest.api.setup.js";
 
 describe("API GET /producers/agreements/eservices", () => {
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const defaultQuery = {
     offset: 0,
     limit: 5,
   };
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const mockCompactEServices = {
     results: [
       getMockAgreementApiCompactEService(),
@@ -26,6 +30,8 @@ describe("API GET /producers/agreements/eservices", () => {
     totalCount: 3,
   };
 
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const mockCompactEServicesLight = {
     results: mockCompactEServices.results.map(toBffCompactEServiceLight),
     pagination: {

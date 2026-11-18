@@ -19,6 +19,8 @@ describe("eserviceTemplateApiConverter", () => {
           }),
         ],
       });
+      // TODO REVIEW THIS CHANGE
+      // eslint-disable-next-line interop/require-type-for-object
       const templateWithDistinctDescriptions = {
         ...eserviceTemplate,
         intendedTarget: "template intended target",

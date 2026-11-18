@@ -51,11 +51,15 @@ describe("clientService", () => {
       adminId: undefined,
       purposes: purposeIds.toReversed(),
     } satisfies authorizationApi.FullClient;
+    // TODO REVIEW THIS CHANGE
+    // eslint-disable-next-line interop/require-type-for-object
     const consumer = {
       ...generateMock(tenantApi.Tenant),
       id: consumerId,
       name: "Consumer",
     };
+    // TODO REVIEW THIS CHANGE
+    // eslint-disable-next-line interop/require-type-for-object
     const producer = {
       ...generateMock(tenantApi.Tenant),
       id: producerId,
@@ -133,6 +137,8 @@ describe("clientService", () => {
       adminId: undefined,
       purposes: [],
     } satisfies authorizationApi.FullClient;
+    // TODO REVIEW THIS CHANGE
+    // eslint-disable-next-line interop/require-type-for-object
     const consumer = {
       ...generateMock(tenantApi.Tenant),
       id: consumerId,

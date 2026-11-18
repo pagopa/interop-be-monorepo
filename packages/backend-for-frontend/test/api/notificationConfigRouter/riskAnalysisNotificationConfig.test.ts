@@ -92,6 +92,8 @@ describe("risk analysis notification preference groups", () => {
             false,
           ])
         );
+        // TODO REVIEW THIS CHANGE
+        // eslint-disable-next-line interop/require-type-for-object
         const seed = {
           inAppNotificationPreference: true,
           emailNotificationPreference: true,

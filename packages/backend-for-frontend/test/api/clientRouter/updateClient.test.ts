@@ -11,6 +11,8 @@ import { api, clients } from "../../vitest.api.setup.js";
 
 describe("API PATCH /clients/{clientId}", () => {
   const clientId = generateId();
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const seed = { name: "Updated client", description: "Updated description" };
   const makeRequest = async (
     role: AuthRole,
@@ -92,6 +94,8 @@ describe("API PATCH /clients/{clientId}", () => {
   it.each([400, 403, 404, 409])(
     "should preserve an upstream %s",
     async (status) => {
+      // TODO REVIEW THIS CHANGE
+      // eslint-disable-next-line interop/require-type-for-object
       const upstreamProblem = {
         type: "about:blank",
         title: "Client update failed",

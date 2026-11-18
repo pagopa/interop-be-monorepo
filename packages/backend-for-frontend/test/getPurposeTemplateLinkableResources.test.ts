@@ -102,6 +102,8 @@ describe("getPurposeTemplateLinkableResources (service)", () => {
       descriptorId: descriptor.id,
       createdAt,
     };
+    // TODO REVIEW THIS CHANGE
+    // eslint-disable-next-line interop/require-type-for-object
     const tenant = { ...getMockedApiTenant(), id: eservice.producerId };
     return { link, eservice, descriptor, tenant };
   };
@@ -115,6 +117,8 @@ describe("getPurposeTemplateLinkableResources (service)", () => {
       eserviceTemplateVersionId: version.id,
       createdAt,
     };
+    // TODO REVIEW THIS CHANGE
+    // eslint-disable-next-line interop/require-type-for-object
     const tenant = { ...getMockedApiTenant(), id: eserviceTemplate.creatorId };
     return { link, eserviceTemplate, version, tenant };
   };
@@ -427,6 +431,8 @@ describe("getPurposeTemplateLinkableResources (service)", () => {
 
   it("deduplicates tenants between concrete and template branches", async () => {
     const sharedTenantId = generateId<TenantId>();
+    // TODO REVIEW THIS CHANGE
+    // eslint-disable-next-line interop/require-type-for-object
     const sharedTenant = { ...getMockedApiTenant(), id: sharedTenantId };
     const concrete = buildConcreteFixture("2026-01-01T00:00:00.000Z");
     const template = buildTemplateFixture("2026-02-01T00:00:00.000Z");
@@ -510,6 +516,8 @@ describe("getPurposeTemplateLinkableResources (service)", () => {
 
   it("throws eserviceDescriptorNotFound when the descriptor is missing inside the eservice", async () => {
     const concrete = buildConcreteFixture("2026-01-01T00:00:00.000Z");
+    // TODO REVIEW THIS CHANGE
+    // eslint-disable-next-line interop/require-type-for-object
     const eserviceWithoutDescriptor = {
       ...concrete.eservice,
       descriptors: [],
@@ -566,6 +574,8 @@ describe("getPurposeTemplateLinkableResources (service)", () => {
 
   it("throws eserviceTemplateVersionNotFound when the version is missing inside the template", async () => {
     const template = buildTemplateFixture("2026-01-01T00:00:00.000Z");
+    // TODO REVIEW THIS CHANGE
+    // eslint-disable-next-line interop/require-type-for-object
     const templateWithoutVersion = {
       ...template.eserviceTemplate,
       versions: [],
@@ -602,6 +612,8 @@ describe("getPurposeTemplateLinkableResources (service)", () => {
     const concrete = buildConcreteFixture("2026-01-01T00:00:00.000Z");
     // Process returns a tenant whose id does not match the requested producerId,
     // so the Map.get(producerId) lookup in enrichLinkableResourcePage falls through.
+    // TODO REVIEW THIS CHANGE
+    // eslint-disable-next-line interop/require-type-for-object
     const decoyTenant = { ...getMockedApiTenant() };
 
     const { service } = buildService({

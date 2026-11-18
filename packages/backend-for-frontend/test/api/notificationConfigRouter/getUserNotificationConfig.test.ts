@@ -69,6 +69,8 @@ describe("API GET /userNotificationConfigs", () => {
   }: notificationConfigApi.UserNotificationConfig = generateMock(
     notificationConfigApi.UserNotificationConfig
   );
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const clientResponse = {
     inAppNotificationPreference,
     emailNotificationPreference,

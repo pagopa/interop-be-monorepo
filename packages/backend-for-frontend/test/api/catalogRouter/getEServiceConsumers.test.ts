@@ -14,6 +14,8 @@ import {
 import { api, services } from "../../vitest.api.setup.js";
 
 describe("API GET /eservices/:eServiceId/consumers", () => {
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const mockResponse = {
     filename: "name",
     file: Buffer.from("contents"),

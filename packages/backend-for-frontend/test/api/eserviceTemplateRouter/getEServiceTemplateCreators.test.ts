@@ -12,6 +12,8 @@ import { getMockBffApiCompactOrganization } from "../../mockUtils.js";
 import { api, clients } from "../../vitest.api.setup.js";
 
 describe("API GET /eservices/templates/filter/creators", () => {
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const defaultQuery = {
     offset: 0,
     limit: 5,

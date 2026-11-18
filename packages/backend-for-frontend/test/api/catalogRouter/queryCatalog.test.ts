@@ -15,10 +15,14 @@ import { getMockBffApiCatalogEService } from "../../mockUtils.js";
 import { api, services } from "../../vitest.api.setup.js";
 
 describe("API POST /catalog", () => {
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const defaultBody = {
     offset: 0,
     limit: 5,
   };
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const mockApiCatalogEServices = {
     results: [
       getMockBffApiCatalogEService(),
@@ -58,6 +62,8 @@ describe("API POST /catalog", () => {
   it.each([undefined, false, true])(
     "Should forward templateId with onlyTemplateInstances=%s",
     async (onlyTemplateInstances) => {
+      // TODO REVIEW THIS CHANGE
+      // eslint-disable-next-line interop/require-type-for-object
       const body = {
         ...defaultBody,
         templateId: generateId(),

@@ -271,6 +271,8 @@ describe("exportEServiceDescriptor", () => {
     });
 
     it("should include async exchange configuration and callback interface", async () => {
+      // TODO REVIEW THIS CHANGE
+      // eslint-disable-next-line interop/require-type-for-object
       const callbackInterface = {
         id: "callback-interface-id",
         name: "callback.yaml",
@@ -280,6 +282,8 @@ describe("exportEServiceDescriptor", () => {
         checksum: "callback-checksum",
         uploadDate: new Date(mockDate).toISOString(),
       };
+      // TODO REVIEW THIS CHANGE
+      // eslint-disable-next-line interop/require-type-for-object
       const asyncExchangeProperties = {
         responseTime: 60,
         resourceAvailableTime: 120,

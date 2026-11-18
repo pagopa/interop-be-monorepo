@@ -13,6 +13,8 @@ import { api, clients } from "../../vitest.api.setup.js";
 
 describe("API POST /purposes test", () => {
   const mockPurposeSeed = getMockPurposeSeed();
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const mockCreatedResource = {
     id: generateId(),
   };

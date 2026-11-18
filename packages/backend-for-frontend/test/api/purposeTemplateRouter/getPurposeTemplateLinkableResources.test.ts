@@ -31,6 +31,8 @@ describe("API GET /purposeTemplates/:purposeTemplateId/linkableResources", () =>
     mockPurposeTemplateId
   );
 
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const defaultQuery = {
     q: "test",
     publisherIds: `${generateId()},${generateId()}`,

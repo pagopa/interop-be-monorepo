@@ -15,6 +15,8 @@ import { getMockBffApiPresignedUrl } from "../../mockUtils.js";
 import { api, services } from "../../vitest.api.setup.js";
 
 describe("API GET /import/eservices/presignedUrl", () => {
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const defaultQuery = {
     fileName: "fileName",
   };

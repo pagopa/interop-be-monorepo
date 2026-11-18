@@ -398,6 +398,8 @@ export function purposeServiceBuilder(
     ctx: WithLogger<BffAppContext>
   ): Promise<bffApi.Purposes> => {
     const { headers, correlationId } = ctx;
+    // TODO REVIEW THIS CHANGE
+    // eslint-disable-next-line interop/require-type-for-object
     const queries = {
       ...filters,
       eservicesIds:
