@@ -1,0 +1,36 @@
+{
+  "name": "pagopa-interop-dev-dashboard-contracts",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "license": "MPL-2.0",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "check": "tsc --noEmit -p tsconfig.check.json",
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
+    "lint:openapi": "spectral lint ./open-api/dashboardApi.yml --ruleset ./.spectral.yaml --fail-severity warn",
+    "test": "vitest run",
+    "generate-model": "tsx ./generate.ts"
+  },
+  "dependencies": {
+    "@zodios/core": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@apidevtools/swagger-parser": "catalog:",
+    "@stoplight/spectral-cli": "catalog:",
+    "@types/node": "catalog:",
+    "openapi-zod-client": "catalog:",
+    "openapi3-ts": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "eslint": "catalog:",
+    "pagopa-interop-eslint-config": "workspace:*",
+    "vitest": "catalog:"
+  }
+}

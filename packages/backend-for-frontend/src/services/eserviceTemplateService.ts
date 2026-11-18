@@ -63,6 +63,19 @@ export function eserviceTemplateServiceBuilder(
         headers,
       });
     },
+    patchUpdateEServiceTemplate: async (
+      templateId: EServiceTemplateId,
+      seed: bffApi.PatchUpdateEServiceTemplateSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> => {
+      logger.info(`Partially updating EService template ${templateId}`);
+      const { id } =
+        await eserviceTemplateClient.patchUpdateDraftEServiceTemplate(seed, {
+          headers,
+          params: { templateId },
+        });
+      return { id };
+    },
     updateEServiceTemplate: async (
       templateId: EServiceTemplateId,
       seed: eserviceTemplateApi.UpdateEServiceTemplateSeed,

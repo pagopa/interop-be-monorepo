@@ -846,7 +846,7 @@ describe("Risk Analysis Validation", () => {
 
   it("should fail if version 3.1 PA has expired", () => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-11-01"));
+    vi.setSystemTime(new Date("2027-07-01"));
 
     expect(
       validateRiskAnalysis(
@@ -871,7 +871,7 @@ describe("Risk Analysis Validation", () => {
 
   it("should fail if version 2.0 PRIVATE has expired", () => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-11-01"));
+    vi.setSystemTime(new Date("2027-07-01"));
 
     expect(
       validateRiskAnalysis(

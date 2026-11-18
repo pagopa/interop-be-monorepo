@@ -76,6 +76,17 @@ export function producerKeychainServiceBuilder(
         },
       };
     },
+    async updateProducerKeychain(
+      producerKeychainId: string,
+      seed: bffApi.ProducerKeychainUpdateSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(`Updating producer keychain ${producerKeychainId}`);
+      await authorizationClient.producerKeychain.updateProducerKeychain(seed, {
+        params: { producerKeychainId },
+        headers,
+      });
+    },
     async createProducerKeychain(
       seed: authorizationApi.ProducerKeychainSeed,
       { logger, headers }: WithLogger<BffAppContext>
