@@ -33,7 +33,12 @@ function getProducerKeychainM2MEventVisibility(
 ): ProducerKeychainM2MEvent["visibility"] {
   return match(eventType)
     .with(
-      P.union("ProducerKeychainAdded", "ProducerKeychainDeleted"),
+      P.union(
+        "ProducerKeychainAdded",
+        "ProducerKeychainDeleted",
+        "ProducerKeychainNameUpdated",
+        "ProducerKeychainDescriptionUpdated"
+      ),
       () => m2mEventVisibility.public
     )
     .with(

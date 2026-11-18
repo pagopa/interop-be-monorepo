@@ -51,7 +51,9 @@ describe("API GET /purposes test", () => {
 
   const makeRequest = async (
     token: string,
-    query: typeof defaultQuery = defaultQuery
+    query: typeof defaultQuery & {
+      sortByRiskAnalysisAssignmentDateDescending?: boolean;
+    } = defaultQuery
   ) =>
     request(api)
       .get("/purposes")
@@ -88,6 +90,25 @@ describe("API GET /purposes test", () => {
     expect(res.status).toBe(403);
   });
 
+  it.each([undefined, false, true])(
+    "Should forward the risk analysis date sorting opt-in (%s)",
+    async (sortByRiskAnalysisAssignmentDateDescending) => {
+      const res = await makeRequest(generateToken(authRole.REVIEWER_ROLE), {
+        ...defaultQuery,
+        sortByRiskAnalysisAssignmentDateDescending,
+      });
+
+      expect(res.status).toBe(200);
+      expect(purposeService.getPurposes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sortByRiskAnalysisAssignmentDateDescending,
+        }),
+        { offset: defaultQuery.offset, limit: defaultQuery.limit },
+        expect.anything()
+      );
+    }
+  );
+
   it.each([
     { query: {} },
     { query: { offset: 0 } },
@@ -103,6 +124,12 @@ describe("API GET /purposes test", () => {
     { query: { ...defaultQuery, clientId: `invalid,${generateId()}` } },
     { query: { ...defaultQuery, states: "ACTIVE,invalid" } },
     { query: { ...defaultQuery, excludeDraft: "invalid" } },
+    {
+      query: {
+        ...defaultQuery,
+        sortByRiskAnalysisAssignmentDateDescending: "invalid",
+      },
+    },
   ])("Should return 400 if passed invalid data: %s", async ({ query }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, query as typeof defaultQuery);

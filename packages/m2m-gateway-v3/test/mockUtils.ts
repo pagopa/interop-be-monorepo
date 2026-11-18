@@ -239,7 +239,7 @@ export const testToM2mGatewayApiPurpose = (
   waitingForApprovalVersion,
   rejectedVersion,
   purposeTemplateId: purpose.purposeTemplateId,
-  riskAnalysisReviewMode,
+  ...(riskAnalysisReviewMode ? { riskAnalysisReviewMode } : {}),
 });
 
 const testToM2MJWK = (key: authorizationApi.JWKKey): m2mGatewayApiV3.JWK => ({
