@@ -61,7 +61,6 @@ describe("API POST /catalog authorization test", () => {
     onlyActiveEservices: true,
     producersIds: [producerId],
     producerCategories: [],
-    requesterDelegationRoles: [],
   };
 
   const makeRequest = async (
@@ -351,7 +350,6 @@ describe("API POST /catalog authorization test", () => {
     { ...body, mode: "invalid-mode" },
     { ...body, onlyActiveEservices: "yes" },
     { ...body, producersIds: ["not-a-uuid"] },
-    { ...body, requesterDelegationRoles: ["WRONG"] },
     { ...body, producerCategories: ["NOT_A_CATEGORY"] },
   ])("Should return 400 if passed invalid params: %s", async (payload) => {
     const token = generateToken(authRole.ADMIN_ROLE);

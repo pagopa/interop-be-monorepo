@@ -1252,11 +1252,13 @@ export function tenantServiceBuilder(
         tenantId,
         attributeId,
         agreementId,
+        delegationId,
         expirationDate,
       }: {
         tenantId: TenantId;
         attributeId: AttributeId;
         agreementId: AgreementId;
+        delegationId?: DelegationId;
         expirationDate?: string;
       },
       {
@@ -1291,6 +1293,7 @@ export function tenantServiceBuilder(
       await assertVerifiedAttributeOperationAllowed({
         requesterId: authData.organizationId,
         producerDelegation,
+        delegationId,
         attributeId,
         agreement,
         readModelService,
@@ -1323,13 +1326,13 @@ export function tenantServiceBuilder(
               targetTenant.data.attributes,
               verifiedTenantAttribute,
               verifierId,
-              producerDelegation?.id,
+              delegationId,
               expirationDate
             )
           : assignVerifiedAttribute(
               targetTenant.data.attributes,
               verifierId,
-              producerDelegation?.id,
+              delegationId,
               attributeId,
               expirationDate
             ),
@@ -1356,10 +1359,12 @@ export function tenantServiceBuilder(
         tenantId,
         attributeId,
         agreementId,
+        delegationId,
       }: {
         tenantId: TenantId;
         attributeId: AttributeId;
         agreementId: AgreementId;
+        delegationId?: DelegationId;
       },
       {
         logger,
@@ -1394,6 +1399,7 @@ export function tenantServiceBuilder(
       await assertVerifiedAttributeOperationAllowed({
         requesterId: authData.organizationId,
         producerDelegation,
+        delegationId,
         attributeId,
         agreement,
         readModelService,
@@ -1446,7 +1452,7 @@ export function tenantServiceBuilder(
                   {
                     ...verifier,
                     id: revokerId,
-                    delegationId: producerDelegation?.id,
+                    delegationId,
                     revocationDate: new Date(),
                   },
                 ],

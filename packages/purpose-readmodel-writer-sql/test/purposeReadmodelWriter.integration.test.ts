@@ -565,6 +565,35 @@ describe("Integration tests", async () => {
 
   describe("Events V2", async () => {
     const mockPurpose = getMockPurpose();
+    it.each(["PurposeTitleUpdated", "PurposeDescriptionUpdated"] as const)(
+      "should project the complete snapshot for %s",
+      async (type) => {
+        await purposeWriterService.upsertPurpose(mockPurpose, 1);
+        const updatedPurpose: Purpose = {
+          ...mockPurpose,
+          title: "updated title",
+          description: "updated description",
+          updatedAt: new Date(),
+        };
+        const message: PurposeEventEnvelopeV2 = {
+          sequence_num: 2,
+          stream_id: mockPurpose.id,
+          version: 2,
+          event_version: 2,
+          type,
+          data: { purpose: toPurposeV2(updatedPurpose) },
+          log_date: new Date(),
+        };
+        await handleMessageV2(message, purposeWriterService);
+        expect(
+          await purposeReadModelService.getPurposeById(mockPurpose.id)
+        ).toStrictEqual({
+          data: updatedPurpose,
+          metadata: { version: 2 },
+        });
+      }
+    );
+
     it("DraftPurposeDeleted", async () => {
       await purposeWriterService.upsertPurpose(mockPurpose, 1);
 

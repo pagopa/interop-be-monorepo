@@ -5,9 +5,14 @@ meta {
 }
 
 delete {
-  url: {{host-bff}}/tenants/:tenantId/attributes/verified/:attributeId
+  url: {{host-bff}}/tenants/:tenantId/attributes/verified/:attributeId?agreementId={{agreementId}}&delegationId={{delegationId}}
   body: none
   auth: none
+}
+
+params:query {
+  agreementId: {{agreementId}}
+  delegationId: {{delegationId}}
 }
 
 params:path {
