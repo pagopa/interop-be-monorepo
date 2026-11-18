@@ -128,7 +128,7 @@ export function retrieveLatestDescriptor(eservice: EService): Descriptor {
 
 export function isDescriptorVisibleToConsumers(
   eservice: EService,
-  descriptorId: string
+  descriptorId: DescriptorId
 ): boolean {
   const descriptor = eservice.descriptors.find(
     (candidate) => candidate.id === descriptorId

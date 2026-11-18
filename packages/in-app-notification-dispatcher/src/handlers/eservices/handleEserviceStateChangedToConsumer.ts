@@ -64,13 +64,13 @@ export async function handleEserviceStateChangedToConsumer(
 
   const eservice = fromEServiceV2(eserviceV2Msg.data.eservice);
   const descriptorIdFromEvent = getDescriptorIdFromEvent(eserviceV2Msg);
+  const descriptorId = descriptorIdFromEvent
+    ? unsafeBrandId<DescriptorId>(descriptorIdFromEvent)
+    : retrieveLatestDescriptor(eservice).id;
 
-  if (
-    descriptorIdFromEvent &&
-    !isDescriptorVisibleToConsumers(eservice, descriptorIdFromEvent)
-  ) {
+  if (!isDescriptorVisibleToConsumers(eservice, descriptorId)) {
     logger.info(
-      `Skipping consumer in-app notification for draft or waiting descriptor ${descriptorIdFromEvent} of EService ${eservice.id}`
+      `Skipping consumer in-app notification for draft or waiting descriptor ${descriptorId} of EService ${eservice.id}`
     );
     return [];
   }
@@ -98,10 +98,6 @@ export async function handleEserviceStateChangedToConsumer(
   );
 
   const { body } = getBody(eserviceV2Msg, eservice, producer.name);
-
-  const descriptorId = descriptorIdFromEvent
-    ? unsafeBrandId<DescriptorId>(descriptorIdFromEvent)
-    : retrieveLatestDescriptor(eservice).id;
 
   const entityId = EServiceIdDescriptorId.parse(
     `${eservice.id}/${descriptorId}`

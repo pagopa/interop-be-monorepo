@@ -67,13 +67,13 @@ export async function handleEserviceStateChanged(
 
   const eservice = fromEServiceV2(eserviceV2Msg);
   const descriptorIdFromEvent = getDescriptorIdFromEvent(params.payload);
+  const descriptorId = descriptorIdFromEvent
+    ? unsafeBrandId<DescriptorId>(descriptorIdFromEvent)
+    : retrieveLatestDescriptor(eservice).id;
 
-  if (
-    descriptorIdFromEvent &&
-    !isDescriptorVisibleToConsumers(eservice, descriptorIdFromEvent)
-  ) {
+  if (!isDescriptorVisibleToConsumers(eservice, descriptorId)) {
     logger.info(
-      `Skipping consumer notification for draft or waiting descriptor ${descriptorIdFromEvent} of EService ${eservice.id}`
+      `Skipping consumer notification for draft or waiting descriptor ${descriptorId} of EService ${eservice.id}`
     );
     return [];
   }
@@ -114,10 +114,6 @@ export async function handleEserviceStateChanged(
     eservice,
     producer
   );
-
-  const descriptorId = descriptorIdFromEvent
-    ? unsafeBrandId<DescriptorId>(descriptorIdFromEvent)
-    : retrieveLatestDescriptor(eservice).id;
 
   const title = defaultTitle ?? `Modifiche alla versione di "${eservice.name}"`;
 
