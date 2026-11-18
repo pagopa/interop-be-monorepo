@@ -1393,6 +1393,36 @@ export const errorMessages = [
     }
   },
   {
+    "process": "EService Template Process",
+    "error": "draftEServiceTemplateVersionAlreadyExists",
+    "errorCode": "011-0024",
+    "bffEndpoint": "POST /eservices/templates/:eServiceTemplateId/versions",
+    "copy": {
+      "it": "Non puoi creare una nuova versione in bozza di questo template e-service perché ne esiste già una. Aggiorna la pagina per visualizzarla.",
+      "en": "You can't create a new draft version of this e-service template because one already exists. Refresh the page to view it."
+    }
+  },
+  {
+    "process": "EService Template Process",
+    "error": "notValidEServiceTemplateVersionState",
+    "errorCode": "011-0003",
+    "bffEndpoint": "POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/publish",
+    "copy": {
+      "it": "Non puoi pubblicare questa versione del template e-service perché non è più in bozza. Torna ai template per verificarne lo stato.",
+      "en": "You can't publish this e-service template version because it's no longer a draft. Go back to templates to check its status."
+    }
+  },
+  {
+    "process": "EService Template Process",
+    "error": "missingRiskAnalysis",
+    "errorCode": "011-0019",
+    "bffEndpoint": "POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/publish",
+    "copy": {
+      "it": "Non puoi pubblicare questa versione del template e-service perché manca una finalità. Vai su “Modifica bozza”, aggiungi una finalità e riprova.",
+      "en": "You can't publish this e-service template version because it has no purpose. Select “Edit draft”, add a purpose, and try again."
+    }
+  },
+  {
     "process": "Purpose Template Process",
     "error": "invalidAssociatedEServiceForPublicationError",
     "errorCode": "015-0023",
@@ -1500,6 +1530,26 @@ export const errorMessages = [
     "copy": {
       "it": "Non puoi aggiungere questo e-service tra quelli suggeriti perché è stato creato da un template e-service.",
       "en": "You can't add this e-service to the suggested e-services because it was created from an e-service template."
+    }
+  },
+  {
+    "process": "Purpose Template Process",
+    "error": "associationBetweenEServiceAndPurposeTemplateDoesNotExist",
+    "errorCode": "015-0017",
+    "bffEndpoint": "POST /purposeTemplates/:purposeTemplateId/unlinkResource",
+    "copy": {
+      "it": "Questo e-service non è più collegato al template finalità. Aggiorna la pagina.",
+      "en": "This e-service is no longer linked to the purpose template. Refresh the page."
+    }
+  },
+  {
+    "process": "Purpose Template Process",
+    "error": "associationBetweenEServiceTemplateAndPurposeTemplateDoesNotExist",
+    "errorCode": "015-0033",
+    "bffEndpoint": "POST /purposeTemplates/:purposeTemplateId/unlinkResource",
+    "copy": {
+      "it": "Questo e-service non è più collegato al template finalità. Aggiorna la pagina.",
+      "en": "This e-service is no longer linked to the purpose template. Refresh the page."
     }
   },
   {
