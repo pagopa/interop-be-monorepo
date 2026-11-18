@@ -7,6 +7,7 @@ import {
   asyncExchangeNotAllowed,
   invalidEServiceState,
   invalidAssertionType,
+  invalidKidFormat,
   invalidSignature,
   issuedAtNotFound,
 } from "pagopa-interop-client-assertion-validation";
@@ -92,6 +93,16 @@ import {
   mockProducer,
 } from "../mockUtils.js";
 
+// A real SHA-256 thumbprint that starts with a dash: "-" belongs to the
+// base64url alphabet, so a client key can produce this value.
+const dashLeadingThumbprint = "-jxMDApBd4jRqS2reSCT_WFknFezHr6EnPNpXbNsLBk";
+// The dash-leading kid tests seed no token-generation-states entry, so they
+// expect tokenGenerationStatesEntryNotFound on purpose. generateToken checks
+// the kid format before the table read, so this error proves that the format
+// rule accepts the kid. The primary key in the error proves that the lookup
+// keeps the leading dash. A kid that fails the format rule gets
+// clientAssertionValidationFailed and never reaches the table read.
+
 describe("authorization server tests", () => {
   if (!configTokenGenerationStates) {
     fail();
@@ -175,6 +186,46 @@ describe("authorization server tests", () => {
     );
   });
 
+  it("should throw clientAssertionValidationFailed when the kid is a thumbprint with an extra leading character", async () => {
+    const clientId = generateId<ClientId>();
+    const purposeId = generateId<PurposeId>();
+    // Value seen in production: the caller sends its own thumbprint with an
+    // extra leading "-", so no token-generation-states entry can match it.
+    const malformedKid = "-f9lp2Z7yV6UWp55ZNg-Rv98s0hyDngwmmPGG_axON_c";
+
+    const { jws } = await getMockClientAssertion({
+      standardClaimsOverride: { sub: clientId },
+      customClaims: { purposeId },
+      customHeader: { kid: malformedKid },
+    });
+
+    const mockRequest = await getMockTokenRequest();
+    const request: typeof mockRequest = {
+      headers: mockRequest.headers,
+      body: {
+        ...mockRequest.body,
+        client_assertion: jws,
+        client_id: clientId,
+      },
+    };
+
+    await expect(
+      tokenService.generateToken(
+        request.headers,
+        request.body,
+        () => getMockContext({}),
+        () => {},
+        () => {},
+        () => {}
+      )
+    ).rejects.toThrowError(
+      clientAssertionValidationFailed(
+        clientId,
+        invalidKidFormat(malformedKid).detail
+      )
+    );
+  });
+
   it("should throw tokenGenerationStatesEntryNotFound", async () => {
     const purposeId = generateId<PurposeId>();
     const clientId = generateId<ClientId>();
@@ -198,6 +249,78 @@ describe("authorization server tests", () => {
       kid: clientAssertion.header.kid!,
       purposeId,
     });
+    await expect(
+      tokenService.generateToken(
+        request.headers,
+        request.body,
+        () => getMockContext({}),
+        () => {},
+        () => {},
+        () => {}
+      )
+    ).rejects.toThrowError(tokenGenerationStatesEntryNotFound(entryPK));
+  });
+
+  it("should accept a dash-leading kid and look up the CLIENTKIDPURPOSE entry (not found, no entry seeded)", async () => {
+    const purposeId = generateId<PurposeId>();
+    const clientId = generateId<ClientId>();
+
+    const { jws } = await getMockClientAssertion({
+      standardClaimsOverride: { sub: clientId },
+      customClaims: { purposeId },
+      customHeader: { kid: dashLeadingThumbprint },
+    });
+
+    const mockRequest = await getMockTokenRequest();
+    const request: typeof mockRequest = {
+      headers: mockRequest.headers,
+      body: {
+        ...mockRequest.body,
+        client_assertion: jws,
+        client_id: clientId,
+      },
+    };
+
+    const entryPK = makeTokenGenerationStatesClientKidPurposePK({
+      clientId,
+      kid: dashLeadingThumbprint,
+      purposeId,
+    });
+    await expect(
+      tokenService.generateToken(
+        request.headers,
+        request.body,
+        () => getMockContext({}),
+        () => {},
+        () => {},
+        () => {}
+      )
+    ).rejects.toThrowError(tokenGenerationStatesEntryNotFound(entryPK));
+  });
+
+  it("should keep the leading dash of the kid in the CLIENTKID lookup key (not found, no entry seeded)", async () => {
+    const clientId = generateId<ClientId>();
+
+    const { jws } = await getMockClientAssertion({
+      standardClaimsOverride: { sub: clientId },
+      customHeader: { kid: dashLeadingThumbprint },
+    });
+
+    const mockRequest = await getMockTokenRequest();
+    const request: typeof mockRequest = {
+      headers: mockRequest.headers,
+      body: {
+        ...mockRequest.body,
+        client_assertion: jws,
+        client_id: clientId,
+      },
+    };
+
+    const entryPK = makeTokenGenerationStatesClientKidPK({
+      clientId,
+      kid: dashLeadingThumbprint,
+    });
+    expect(entryPK).toContain(`#${dashLeadingThumbprint}`);
     await expect(
       tokenService.generateToken(
         request.headers,
