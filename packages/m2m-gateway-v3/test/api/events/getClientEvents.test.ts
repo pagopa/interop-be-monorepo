@@ -17,6 +17,18 @@ describe("GET /clientEvents router test", () => {
         eventType: "CLIENT_ADDED",
         clientId: generateId(),
       },
+      {
+        id: generateId(),
+        eventTimestamp: new Date().toJSON(),
+        eventType: "CLIENT_NAME_UPDATED",
+        clientId: generateId(),
+      },
+      {
+        id: generateId(),
+        eventTimestamp: new Date().toJSON(),
+        eventType: "CLIENT_DESCRIPTION_UPDATED",
+        clientId: generateId(),
+      },
     ],
   };
 

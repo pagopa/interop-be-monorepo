@@ -51,7 +51,7 @@ type UserDifferences = {
   }>;
 };
 
-type TenantDiff = {
+export type TenantDiff = {
   tenantId: string;
   tenantName: string;
   selfcareId: string;
@@ -61,7 +61,7 @@ type TenantDiff = {
   hasTenantNotificationConfig: boolean;
 };
 
-type DiffResult = {
+export type DiffResult = {
   tenants: TenantDiff[];
   tenantsMissingNotificationConfig: Array<{
     tenantId: string;
