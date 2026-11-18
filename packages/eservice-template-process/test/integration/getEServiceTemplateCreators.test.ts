@@ -7,8 +7,8 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   EServiceTemplate,
-  eserviceTemplateVersionState,
   Tenant,
+  eserviceTemplateVersionState,
   CompactOrganization,
 } from "pagopa-interop-models";
 import { describe, beforeEach, it, expect } from "vitest";
@@ -125,7 +125,7 @@ describe("getEServiceTemplateCreators", () => {
     });
   });
   it("should not return creators with no published e-service template versions", async () => {
-    const tenant7 = { ...getMockTenant(), name: "Tenant 7" };
+    const tenant7: Tenant = { ...getMockTenant(), name: "Tenant 7" };
 
     const eserviceTemplate6: EServiceTemplate = {
       ...getMockEServiceTemplate(),

@@ -522,7 +522,10 @@ export const templateAttributesSQLtoTemplateAttributes = (
     >
   >();
   attributesSQL.forEach((current) => {
-    const currentAttribute = {
+    // TODO REVIEW THIS CHANGE
+    const currentAttribute:
+      | EServiceTemplateAttribute
+      | EServiceTemplateAttributeCertifiedDiscrete = {
       id: unsafeBrandId<AttributeId>(current.attributeId),
       explicitAttributeVerification: current.explicitAttributeVerification,
       ...(current.threshold != null && current.comparator != null

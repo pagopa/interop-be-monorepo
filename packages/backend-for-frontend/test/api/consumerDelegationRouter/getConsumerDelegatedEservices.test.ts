@@ -10,11 +10,15 @@ import { getMockBffApiCompactEService } from "../../mockUtils.js";
 import { api, services } from "../../vitest.api.setup.js";
 
 describe("API GET /consumers/delegations/eservices", () => {
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const defaultQuery = {
     offset: 0,
     limit: 5,
     delegatorId: generateId(),
   };
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const mockCompactEServices = {
     results: [
       getMockBffApiCompactEService(),

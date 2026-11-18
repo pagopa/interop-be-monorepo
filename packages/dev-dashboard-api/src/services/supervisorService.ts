@@ -60,7 +60,9 @@ export function supervisorServiceBuilder(
   options: SupervisorOptions
 ): Supervisor {
   const logs = logServiceBuilder();
-  let watchPreferences = { ...options.watchPreferences };
+  let watchPreferences: Record<string, boolean> = {
+    ...options.watchPreferences,
+  };
   let watchWrites: Promise<void> = Promise.resolve();
   const watchPath =
     options.watchPath ?? join(options.beRoot, DASHBOARD_PATHS.watchPreferences);
@@ -450,7 +452,10 @@ export function supervisorServiceBuilder(
 
   function setWatchPreference(name: string, watch: boolean): Promise<void> {
     const result = watchWrites.then(async () => {
-      const next = { ...watchPreferences, [name]: watch };
+      const next: Record<string, boolean> = {
+        ...watchPreferences,
+        [name]: watch,
+      };
       await persistWatchPreferences(watchPath, next);
       watchPreferences = next;
       getPackage(name).watch = watch;

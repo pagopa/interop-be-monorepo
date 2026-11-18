@@ -33,6 +33,7 @@ import {
   tenantKind,
   agreementState,
   DelegationId,
+  Tenant,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 
@@ -434,7 +435,7 @@ describe("suspendPurposeVersion", () => {
     vi.setSystemTime(new Date());
 
     const authData = getMockAuthData();
-    const mockEService = {
+    const mockEService: EService = {
       ...getMockEService(),
       producerId: authData.organizationId,
     };
@@ -517,22 +518,22 @@ describe("suspendPurposeVersion", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
-    const producer = {
+    const producer: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
     };
-    const producerDelegate = {
+    const producerDelegate: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
     };
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
     };
-    const consumerDelegate = {
+    const consumerDelegate: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
@@ -647,18 +648,18 @@ describe("suspendPurposeVersion", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
-    const producer = {
+    const producer: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
     };
 
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
     };
-    const consumerDelegate = {
+    const consumerDelegate: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,

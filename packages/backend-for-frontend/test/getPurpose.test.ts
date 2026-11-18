@@ -90,6 +90,8 @@ describe("getPurpose — reviewer enrichment", () => {
   };
 
   const mockPurposeId = generateId<PurposeId>();
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const purposeMetadata = { version: 1 };
   const basePurpose: purposeApi.Purpose = {
     id: mockPurposeId,
@@ -167,6 +169,8 @@ describe("getPurpose — reviewer enrichment", () => {
   it.each([userRole.ADMIN_ROLE, userRole.VIEWER_ROLE, userRole.REVIEWER_ROLE])(
     "should enrich reviewerWorkflow with reviewers for a consumer with role %s",
     async (role) => {
+      // TODO REVIEW THIS CHANGE
+      // eslint-disable-next-line interop/require-type-for-object
       const mockUserInfo = { id: reviewerId, name: "Name", surname: "Surname" };
       mockGetUserInfoUsingGET.mockResolvedValue(mockUserInfo);
 
@@ -348,6 +352,8 @@ describe("getPurpose — reviewer enrichment", () => {
       createdAt: "2026-09-02T00:00:00.000Z",
       dailyCalls: currentVersion.dailyCalls,
     };
+    // TODO REVIEW THIS CHANGE
+    // eslint-disable-next-line interop/require-type-for-object
     const expectedWaitingVersion = {
       id: waitingForApprovalVersion.id,
       state: waitingForApprovalVersion.state,
@@ -425,10 +431,14 @@ describe("getPurpose — reviewer enrichment", () => {
     ])(
       "normalizes matching dailyCalls in $name and retains currentVersion for a dailyCalls change",
       async ({ retrieve, organizationId }) => {
+        // TODO REVIEW THIS CHANGE
+        // eslint-disable-next-line interop/require-type-for-object
         const increasedWaitingVersion = {
           ...waitingForApprovalVersion,
           dailyCalls: currentVersion.dailyCalls + 1,
         };
+        // TODO REVIEW THIS CHANGE
+        // eslint-disable-next-line interop/require-type-for-object
         const purposeWithIncreasedDailyCalls = {
           ...purpose,
           id: generateId<PurposeId>(),

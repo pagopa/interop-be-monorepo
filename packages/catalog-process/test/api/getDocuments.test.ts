@@ -11,6 +11,8 @@ import {
   DescriptorId,
   EService,
   EServiceId,
+  Document,
+  ListResult,
   generateId,
 } from "pagopa-interop-models";
 import request from "supertest";
@@ -37,7 +39,7 @@ describe("API GET /eservices/{eserviceId}/descriptors/{descriptorId}/documents t
     descriptors: [mockDescriptor],
   };
 
-  const mockProcessRespomse = {
+  const mockProcessRespomse: ListResult<Document> = {
     results: [mockDocument1, mockDocument2],
     totalCount: 2,
   };

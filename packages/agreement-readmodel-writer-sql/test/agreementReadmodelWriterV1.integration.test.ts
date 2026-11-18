@@ -25,6 +25,7 @@ import {
   agreementState,
   fromAgreementV1,
   generateId,
+  WithMetadata,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 
@@ -139,7 +140,10 @@ describe("events V1", async () => {
   });
 
   it("should add a consumer document to an agreement", async () => {
-    const agreement = { ...getMockAgreement(), signedContract: undefined };
+    const agreement: Agreement = {
+      ...getMockAgreement(),
+      signedContract: undefined,
+    };
     await agreementWriterService.upsertAgreement(agreement, 1);
     const agreementConsumerDocument = generateMock(AgreementDocument);
 
@@ -163,7 +167,8 @@ describe("events V1", async () => {
     const actualAgreement = await agreementReadModelService.getAgreementById(
       agreement.id
     );
-    const updatedActualAgreement = {
+    // TODO REVIEW THIS CHANGE
+    const updatedActualAgreement: Partial<WithMetadata<Partial<Agreement>>> = {
       ...actualAgreement,
       data: {
         ...actualAgreement?.data,
@@ -184,7 +189,7 @@ describe("events V1", async () => {
 
   it("should remove a consumer document from an agreement", async () => {
     const agreementConsumerDocument = generateMock(AgreementDocument);
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       consumerDocuments: [agreementConsumerDocument],
     };
@@ -247,7 +252,8 @@ describe("events V1", async () => {
       agreement.id
     );
 
-    const updatedActualAgreement = {
+    // TODO REVIEW THIS CHANGE
+    const updatedActualAgreement: Partial<WithMetadata<Partial<Agreement>>> = {
       ...actualAgreement,
       data: {
         ...actualAgreement?.data,
@@ -297,13 +303,15 @@ describe("events V1", async () => {
       agreement.id
     );
 
-    const updatedRetrievedAgreement = {
-      ...retrievedAgreement,
-      data: {
-        ...retrievedAgreement?.data,
-        signedContract: undefined,
-      },
-    };
+    // TODO REVIEW THIS CHANGE
+    const updatedRetrievedAgreement: Partial<WithMetadata<Partial<Agreement>>> =
+      {
+        ...retrievedAgreement,
+        data: {
+          ...retrievedAgreement?.data,
+          signedContract: undefined,
+        },
+      };
 
     expect(updatedRetrievedAgreement).not.toBeNull();
 
@@ -343,13 +351,15 @@ describe("events V1", async () => {
       agreement.id
     );
 
-    const updatedRetrievedAgreement = {
-      ...retrievedAgreement,
-      data: {
-        ...retrievedAgreement?.data,
-        signedContract: undefined,
-      },
-    };
+    // TODO REVIEW THIS CHANGE
+    const updatedRetrievedAgreement: Partial<WithMetadata<Partial<Agreement>>> =
+      {
+        ...retrievedAgreement,
+        data: {
+          ...retrievedAgreement?.data,
+          signedContract: undefined,
+        },
+      };
 
     expect(updatedRetrievedAgreement).not.toBeNull();
     expect(updatedRetrievedAgreement?.data).toStrictEqual(suspendedAgreement);
@@ -387,13 +397,15 @@ describe("events V1", async () => {
     const retrievedAgreement = await agreementReadModelService.getAgreementById(
       agreement.id
     );
-    const updatedRetrievedAgreement = {
-      ...retrievedAgreement,
-      data: {
-        ...retrievedAgreement?.data,
-        signedContract: undefined,
-      },
-    };
+    // TODO REVIEW THIS CHANGE
+    const updatedRetrievedAgreement: Partial<WithMetadata<Partial<Agreement>>> =
+      {
+        ...retrievedAgreement,
+        data: {
+          ...retrievedAgreement?.data,
+          signedContract: undefined,
+        },
+      };
 
     expect(updatedRetrievedAgreement).not.toBeNull();
 
@@ -430,13 +442,15 @@ describe("events V1", async () => {
     const retrievedAgreement = await agreementReadModelService.getAgreementById(
       agreement.id
     );
-    const updatedRetrievedAgreement = {
-      ...retrievedAgreement,
-      data: {
-        ...retrievedAgreement?.data,
-        signedContract: undefined,
-      },
-    };
+    // TODO REVIEW THIS CHANGE
+    const updatedRetrievedAgreement: Partial<WithMetadata<Partial<Agreement>>> =
+      {
+        ...retrievedAgreement,
+        data: {
+          ...retrievedAgreement?.data,
+          signedContract: undefined,
+        },
+      };
 
     expect(updatedRetrievedAgreement).not.toBeNull();
     expect(updatedRetrievedAgreement?.data).toStrictEqual(updatedAgreement);

@@ -25,7 +25,7 @@ describe("formatError", () => {
   });
 
   it("should serialize a plain object", () => {
-    const obj = { foo: "bar" };
+    const obj: Record<string, string> = { foo: "bar" };
     const result = formatError(obj);
 
     expect(result).toBe(JSON.stringify(obj));

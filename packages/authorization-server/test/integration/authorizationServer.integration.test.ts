@@ -888,7 +888,8 @@ describe("authorization server tests", () => {
     });
 
     const mockRequest = await getMockTokenRequest();
-    const request = {
+    // TODO REVIEW THIS CHANGE
+    const request: Awaited<ReturnType<typeof getMockTokenRequest>> = {
       headers: { ...mockRequest.headers, DPoP: dpopProofJWS },
       body: {
         ...mockRequest.body,
@@ -2058,7 +2059,7 @@ describe("calculateDPoPThumbprint", () => {
 
 describe("sortJWK", () => {
   it("should sort keys alphabetically", () => {
-    const unsorted = { z: "last", a: "first", m: "middle" };
+    const unsorted: JsonWebKey = { z: "last", a: "first", m: "middle" };
     const sorted = sortJWK(unsorted);
 
     const keys = Object.keys(sorted);
@@ -2066,7 +2067,7 @@ describe("sortJWK", () => {
   });
 
   it("should return a new object and not mutate the original", () => {
-    const original = { b: 2, a: 1 };
+    const original: JsonWebKey = { b: 2, a: 1 };
     const sorted = sortJWK(original);
 
     expect(sorted).not.toBe(original);

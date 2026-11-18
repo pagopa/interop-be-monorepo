@@ -113,6 +113,8 @@ describe("private-certified-attributes-importer integration tests", () => {
       attributes: [],
     });
 
+    // TODO REVIEW THIS CHANGE
+    // eslint-disable-next-line interop/require-type-for-object
     const tenantProcessMock = {
       internalAssignCertifiedAttribute: vi.fn().mockResolvedValue(undefined),
       internalRevokeCertifiedAttribute: vi.fn(),

@@ -21,6 +21,8 @@ describe("API GET /producers/purposes test", () => {
     results: [getMockBffApiPurpose(), getMockBffApiPurpose()],
     pagination: { offset: 0, limit: 10, totalCount: 20 },
   };
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const defaultQuery = {
     offset: 0,
     limit: 5,

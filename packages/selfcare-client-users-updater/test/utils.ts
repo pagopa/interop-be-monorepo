@@ -2,14 +2,28 @@
 import { EachMessagePayload } from "kafkajs";
 import { InteropInternalToken, userRole } from "pagopa-interop-commons";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-import { Client, generateId, Tenant, UserId } from "pagopa-interop-models";
+import {
+  BaseUsersEventPayload,
+  Client,
+  generateId,
+  Tenant,
+  UserId,
+} from "pagopa-interop-models";
 import { clientReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import { upsertClient, upsertTenant } from "pagopa-interop-readmodel/testUtils";
 import { afterEach, inject } from "vitest";
 
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
-export const correctEventPayload = {
+// TODO REVIEW THIS CHANGE
+type CorrectEventPayload = Omit<BaseUsersEventPayload, "user"> & {
+  onboardingTokenClient: undefined;
+  createdAt: string;
+  updatedAt: string;
+  user: Omit<BaseUsersEventPayload["user"], "userId"> & { userId: UserId };
+};
+
+export const correctEventPayload: CorrectEventPayload = {
   id: "cfb4f57f-8d93-4e30-8c87-37a29c3c6dac",
   institutionId: "b730fbb7-fffe-4090-a3ea-53ee7e07a4b9",
   productId: "test-interop-product-identifier",

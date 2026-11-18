@@ -39,6 +39,7 @@ import {
   tenantKind,
   DelegationId,
   UserId,
+  EService,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
@@ -404,7 +405,7 @@ describe("createPurposeVersion", () => {
       ...mockEServiceDescriptor,
       dailyCallsPerConsumer: 25,
     };
-    const eservice = { ...mockEService, descriptors: [descriptor] };
+    const eservice: EService = { ...mockEService, descriptors: [descriptor] };
 
     await addOnePurpose(mockPurpose);
     await addOneEService(eservice);
@@ -492,7 +493,7 @@ describe("createPurposeVersion", () => {
   });
 
   it("should succeed when requester is Consumer Delegate and the creation of a new purpose version is successful", async () => {
-    const consumerDelegate = {
+    const consumerDelegate: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
@@ -602,22 +603,22 @@ describe("createPurposeVersion", () => {
   });
 
   it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the creation of a new purpose version is successful", async () => {
-    const producer = {
+    const producer: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
     };
-    const producerDelegate = {
+    const producerDelegate: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
     };
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
     };
-    const consumerDelegate = {
+    const consumerDelegate: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
@@ -981,7 +982,7 @@ describe("createPurposeVersion", () => {
   });
   it("should throw tenantIsNotTheDelegatedConsumer when the requester is the Consumer and is creating a purpose version for a purpose created by the delegate", async () => {
     const authData = getMockAuthData();
-    const purpose = {
+    const purpose: Purpose = {
       ...mockPurpose,
       consumerId: authData.organizationId,
       delegationId: generateId<DelegationId>(),

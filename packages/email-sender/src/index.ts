@@ -13,7 +13,8 @@ import {
 import { config } from "./config/config.js";
 import { emailSenderProcessorBuilder } from "./services/emailSenderProcessor.js";
 
-const sesEmailSenderData = {
+// TODO REVIEW THIS CHANGE
+const sesEmailSenderData: { label: string; mail: string } = {
   label: config.senderLabel,
   mail: config.senderMail,
 };

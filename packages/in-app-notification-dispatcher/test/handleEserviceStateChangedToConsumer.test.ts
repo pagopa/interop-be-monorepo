@@ -21,6 +21,8 @@ import {
   GracePeriodDays,
   gracePeriodDays,
   descriptorState,
+  Descriptor,
+  EService,
 } from "pagopa-interop-models";
 import {
   getNotificationRecipients,
@@ -41,7 +43,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
   const producerTenant = getMockTenant();
   const consumerTenant = getMockTenant();
 
-  const eservice = {
+  const eservice: EService = {
     ...getMockEService(),
     producerId: producerTenant.id,
     descriptors: [
@@ -123,11 +125,11 @@ describe("handleEserviceStateChangedToConsumer", async () => {
   it.each([descriptorState.draft, descriptorState.waitingForApproval])(
     "should skip document notifications for descriptor state %s",
     async (state) => {
-      const hiddenDescriptor = {
+      const hiddenDescriptor: Descriptor = {
         ...eservice.descriptors[0],
         state,
       };
-      const hiddenEService = {
+      const hiddenEService: EService = {
         ...eservice,
         descriptors: [hiddenDescriptor],
       };
@@ -208,7 +210,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
   ])(
     "should generate notifications for EServiceDescriptorPublished for agreement in $state state (isNotified: $isNotified)",
     async ({ state, isNotified }) => {
-      const eservice = {
+      const eservice: EService = {
         ...getMockEService(),
         producerId: producerTenant.id,
         descriptors: [

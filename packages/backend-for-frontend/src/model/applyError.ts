@@ -62,6 +62,8 @@ export function applyErrorCopy(
     return problem;
   }
 
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const userMessages = {
     it: copy.copy.it.trim(),
     en: copy.copy.en.trim() || undefined,

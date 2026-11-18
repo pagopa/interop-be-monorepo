@@ -31,6 +31,8 @@ import {
   delegationKind,
   agreementState,
   technology,
+  Agreement,
+  RiskAnalysis,
 } from "pagopa-interop-models";
 import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
 
@@ -103,7 +105,7 @@ describe("publish descriptor", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedEservice = {
+    const expectedEservice: EService = {
       ...eservice,
       descriptors: [
         {
@@ -171,7 +173,7 @@ describe("publish descriptor", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedEservice = {
+    const expectedEservice: EService = {
       ...eservice,
       descriptors: [
         {
@@ -220,7 +222,7 @@ describe("publish descriptor", () => {
       personalData: true,
     };
 
-    const delegate = {
+    const delegate: Tenant = {
       ...getMockTenant(),
       kind: producerTenantKind,
     };
@@ -366,7 +368,7 @@ describe("publish descriptor", () => {
         ...getMockTenant(),
       };
       await addOneTenant(tenant);
-      const agreement = {
+      const agreement: Agreement = {
         ...getMockAgreement(eservice.id, tenant.id, agreementState.active),
         descriptorId: descriptor1.id,
         producerId: eservice.producerId,
@@ -704,7 +706,7 @@ describe("publish descriptor", () => {
     const validRiskAnalysis2 = getMockValidRiskAnalysis(producerTenantKind);
 
     const riskAnalysis1 = validRiskAnalysis;
-    const riskAnalysis2 = {
+    const riskAnalysis2: RiskAnalysis = {
       ...validRiskAnalysis2,
       riskAnalysisForm: {
         ...validRiskAnalysis2.riskAnalysisForm,
@@ -819,7 +821,7 @@ describe("publish descriptor", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedEservice = {
+    const expectedEservice: EService = {
       ...eservice,
       descriptors: [
         {

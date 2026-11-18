@@ -46,6 +46,8 @@ describe("API POST /clientsApi", () => {
   });
 
   it("Should propagate 404 when authorization cannot find a client member", async () => {
+    // TODO REVIEW THIS CHANGE
+    // eslint-disable-next-line interop/require-type-for-object
     const upstreamProblem = {
       type: "about:blank",
       title: "Not Found",

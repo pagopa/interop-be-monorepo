@@ -1,9 +1,11 @@
 /* eslint-disable functional/no-let */
 import type {
   FileManager,
+  InteropHeaders,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
 
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   getMockDescriptor,
   getMockDocument,
@@ -93,7 +95,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     templateId: eserviceTemplate.id,
   };
 
-  const testHeaders = {
+  const testHeaders: InteropHeaders = {
     "X-Correlation-Id": correlationId,
     Authorization: `Bearer ${testToken}`,
   };
@@ -575,7 +577,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       fileManager,
     });
 
-    const expectedDocument = {
+    const expectedDocument: catalogApi.CreateEServiceDescriptorDocumentSeed = {
       documentId: expect.any(String),
       kind: "DOCUMENT",
       contentType: newDocument.contentType,

@@ -24,16 +24,22 @@ import {
 } from "./helpers.js";
 
 describe("ISTAT Certified Discrete Attributes Importer", () => {
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const tenantProcessMock = {
     internalAssignCertifiedDiscreteAttribute: vi.fn(),
     internalRevokeCertifiedDiscreteAttribute: vi.fn(),
     internalUpdateCertifiedDiscreteAttribute: vi.fn(),
   };
 
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const attributeProcessMock = {
     createInternalCertifiedDiscreteAttribute: vi.fn(),
   };
 
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const istatClientMock = {
     downloadNationalDataset: downloadCSVMock,
   };
@@ -66,6 +72,8 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
   });
 
   it("should parse CSV correctly, handle polling via DB, and interact with Real Read Model for assignment and revocation", async () => {
+    // TODO REVIEW THIS CHANGE
+    // eslint-disable-next-line interop/require-type-for-object
     const attributeProcessMock = {
       createInternalCertifiedDiscreteAttribute: vi
         .fn()

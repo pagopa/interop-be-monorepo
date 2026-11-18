@@ -6,6 +6,10 @@ import {
   getMockUserNotificationConfig,
 } from "pagopa-interop-commons-test";
 import {
+  TenantNotificationConfig,
+  UserNotificationConfig,
+} from "pagopa-interop-models";
+import {
   TenantNotificationConfigSQL,
   UserEnabledInAppNotificationSQL,
   UserEnabledEmailNotificationSQL,
@@ -28,7 +32,7 @@ describe("Notification config splitters", () => {
   ])(
     "splitTenantNotificationConfigIntoObjectsSQL should convert a TenantNotificationConfig into a TenantNotificationConfig SQL object%s",
     (_, updatedAt, expectedUpdatedAt) => {
-      const tenantNotificationConfig = {
+      const tenantNotificationConfig: TenantNotificationConfig = {
         ...getMockTenantNotificationConfig(),
         updatedAt,
       };
@@ -59,7 +63,7 @@ describe("Notification config splitters", () => {
   ])(
     "splitUserNotificationConfigIntoObjectsSQL should convert a UserNotificationConfig into a UserNotificationConfig SQL object%s",
     (_, updatedAt, expectedUpdatedAt) => {
-      const userNotificationConfig = {
+      const userNotificationConfig: UserNotificationConfig = {
         ...getMockUserNotificationConfig(),
         updatedAt,
       };

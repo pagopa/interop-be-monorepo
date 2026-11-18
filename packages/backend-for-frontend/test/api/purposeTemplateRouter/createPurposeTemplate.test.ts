@@ -11,6 +11,8 @@ import { api, clients } from "../../vitest.api.setup.js";
 
 describe("API POST /purposeTemplates", () => {
   const mockPurposeTemplate = getMockPurposeTemplateSeed();
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const mockCreatedResource = {
     id: generateId(),
   };

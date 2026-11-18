@@ -9,10 +9,21 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { api, agreementService } from "../vitest.api.setup.js";
 
 describe("API GET /consumers test", () => {
-  const mockConsumer1 = { id: generateId(), name: "Consumer 1" };
-  const mockConsumer2 = { id: generateId(), name: "Consumer 2" };
+  const mockConsumer1: agreementApi.CompactOrganization = {
+    id: generateId(),
+    name: "Consumer 1",
+  };
+  const mockConsumer2: agreementApi.CompactOrganization = {
+    id: generateId(),
+    name: "Consumer 2",
+  };
 
-  const defaultQuery = {
+  // TODO REVIEW THIS CHANGE
+  const defaultQuery: {
+    offset: number;
+    limit: number;
+    consumerName: string;
+  } = {
     offset: 0,
     limit: 10,
     consumerName: "Consumer",

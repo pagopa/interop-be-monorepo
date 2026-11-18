@@ -9,6 +9,7 @@ import {
   getMockAuthData,
 } from "pagopa-interop-commons-test";
 import {
+  Document,
   EServiceTemplate,
   EServiceTemplateVersion,
   EServiceTemplateVersionDocumentDeletedV2,
@@ -48,7 +49,7 @@ describe("delete Document", () => {
     async (state) => {
       vi.spyOn(fileManager, "delete");
 
-      const document = {
+      const document: Document = {
         ...mockDocument,
         path: `${config.eserviceTemplateDocumentsPath}/${mockDocument.id}/${mockDocument.name}`,
       };
@@ -99,7 +100,7 @@ describe("delete Document", () => {
         payload: writtenEvent.data,
       });
 
-      const expectedEserviceTemplate = {
+      const expectedEserviceTemplate: EServiceTemplate = {
         ...eserviceTemplate,
         versions: [
           {
@@ -136,7 +137,7 @@ describe("delete Document", () => {
   it("should write on event-store for the deletion of a document that is the version interface, and delete the file from the bucket", async () => {
     vi.spyOn(fileManager, "delete");
 
-    const interfaceDocument = {
+    const interfaceDocument: Document = {
       ...mockDocument,
       path: `${config.eserviceTemplateDocumentsPath}/${mockDocument.id}/${mockDocument.name}`,
     };
@@ -186,7 +187,7 @@ describe("delete Document", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedEserviceTemplate = {
+    const expectedEserviceTemplate: EServiceTemplate = {
       ...eserviceTemplate,
       versions: [
         {
@@ -403,7 +404,7 @@ describe("delete Document", () => {
   it("should write on event-store for the deletion of an asyncExchangeCallbackInterface, and delete the file from the bucket", async () => {
     vi.spyOn(fileManager, "delete");
 
-    const callbackInterface = {
+    const callbackInterface: Document = {
       ...mockDocument,
       path: `${config.eserviceTemplateDocumentsPath}/${mockDocument.id}/${mockDocument.name}`,
     };
@@ -457,7 +458,7 @@ describe("delete Document", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedEserviceTemplate = {
+    const expectedEserviceTemplate: EServiceTemplate = {
       ...eserviceTemplate,
       versions: [
         {

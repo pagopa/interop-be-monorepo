@@ -65,12 +65,16 @@ describe("tenantServiceBuilder.getTenant", () => {
       id: certifiedDiscreteAttributeId,
     };
 
+    // TODO REVIEW THIS CHANGE
+    // eslint-disable-next-line interop/require-type-for-object
     const tenantProcessClient = {
       tenant: {
         getTenant: vi.fn().mockResolvedValue(tenant),
       },
     };
 
+    // TODO REVIEW THIS CHANGE
+    // eslint-disable-next-line interop/require-type-for-object
     const attributeProcessClient = {
       getBulkedAttributes: vi.fn((attributeIds: string[]) =>
         Promise.resolve({
@@ -153,12 +157,16 @@ describe("tenantServiceBuilder.getTenant", () => {
       id: declaredAttributeId,
     };
 
+    // TODO REVIEW THIS CHANGE
+    // eslint-disable-next-line interop/require-type-for-object
     const tenantProcessClient = {
       tenant: {
         getTenant: vi.fn().mockResolvedValue(tenant),
       },
     };
 
+    // TODO REVIEW THIS CHANGE
+    // eslint-disable-next-line interop/require-type-for-object
     const attributeProcessClient = {
       getBulkedAttributes: vi.fn((attributeIds: string[]) =>
         Promise.resolve({
@@ -233,12 +241,16 @@ describe("tenantServiceBuilder.getTenant", () => {
       id: verifiedAttributeId,
     };
 
+    // TODO REVIEW THIS CHANGE
+    // eslint-disable-next-line interop/require-type-for-object
     const tenantProcessClient = {
       tenant: {
         getTenant: vi.fn().mockResolvedValue(tenant),
       },
     };
 
+    // TODO REVIEW THIS CHANGE
+    // eslint-disable-next-line interop/require-type-for-object
     const attributeProcessClient = {
       getBulkedAttributes: vi.fn((attributeIds: string[]) =>
         Promise.resolve({

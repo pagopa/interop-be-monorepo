@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { Command, Driver } from "../src/model/domain/models.js";
+import type { Container } from "../src/model/domain/models.js";
 
 import { infrastructureServiceBuilder } from "../src/services/infrastructureService.js";
 import { supervisorServiceBuilder } from "../src/services/supervisorService.js";
@@ -50,7 +51,7 @@ describe("compose inventory and log collection", () => {
     async (exitDuringStartup) => {
       const exits: Array<Parameters<Driver["start"]>[2]> = [];
       const stops: number[] = [];
-      const row = { ID: "db1", Service: "db", State: "running" };
+      const row: Container = { ID: "db1", Service: "db", State: "running" };
       const driver: Driver = {
         run: async (command) =>
           command.args.includes("config") ? "db" : JSON.stringify([row]),

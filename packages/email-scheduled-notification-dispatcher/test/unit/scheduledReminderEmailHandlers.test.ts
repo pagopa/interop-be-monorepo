@@ -6,7 +6,9 @@ import {
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
+  Agreement,
   CorrelationId,
+  Descriptor,
   EService,
   EServiceId,
   NotificationType,
@@ -81,7 +83,7 @@ function buildReadModelService({
   producerUserId: UserId;
   consumerUserId: UserId;
 }): ReadModelServiceSQL {
-  const agreement = {
+  const agreement: Agreement = {
     ...getMockAgreement(eservice.id, consumerTenant.id, agreementState.active),
     descriptorId: eservice.descriptors[0].id,
   };
@@ -142,7 +144,7 @@ function buildScenario(scope: "EService" | "Descriptor"): {
   if (baseDescriptor.archivingSchedule === undefined) {
     throw new Error("Expected an archiving descriptor");
   }
-  const descriptor = {
+  const descriptor: Descriptor = {
     ...baseDescriptor,
     archivingSchedule: {
       ...baseDescriptor.archivingSchedule,

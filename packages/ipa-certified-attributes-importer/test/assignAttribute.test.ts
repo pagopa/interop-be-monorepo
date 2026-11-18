@@ -14,7 +14,9 @@ import { attributes } from "./expectation.js";
 describe("GetAttributesToAssign", async () => {
   const mockedDate = new Date("2024-01-01T00:00:00.000Z");
   const config = parseIPACertifiedAttributesImporterConfig(process.env);
-  const enabledConfig = {
+  const enabledConfig: typeof config & {
+    featureFlagAttributeCertifiedDiscrete: boolean;
+  } = {
     ...config,
     featureFlagAttributeCertifiedDiscrete: true,
   };
@@ -322,7 +324,9 @@ describe("GetAttributesToAssign", async () => {
     ]);
   });
   it("should ignore istatCode and NOT assign remoteId if featureFlagAttributeCertifiedDiscrete is OFF", async () => {
-    const disabledConfig = {
+    const disabledConfig: typeof config & {
+      featureFlagAttributeCertifiedDiscrete: boolean;
+    } = {
       ...config,
       featureFlagAttributeCertifiedDiscrete: false,
     };

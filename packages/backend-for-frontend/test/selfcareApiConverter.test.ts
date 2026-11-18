@@ -16,12 +16,18 @@ describe("toApiSelfcareInstitution", () => {
     products: [{ productRole: "ADMIN" }],
   };
 
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const institutionWithoutId = { ...validInstitution };
   delete institutionWithoutId.institutionId;
 
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const institutionWithoutDescription = { ...validInstitution };
   delete institutionWithoutDescription.institutionDescription;
 
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const institutionWithoutProducts = { ...validInstitution };
   delete institutionWithoutProducts.products;
 

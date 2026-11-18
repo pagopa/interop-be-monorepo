@@ -1,6 +1,8 @@
 import axios from "axios";
 import { expect, vi, describe, it, MockedFunction } from "vitest";
 
+import type { OpenDataConfig } from "../src/config/openDataConfig.js";
+
 import {
   getAllCategories,
   getAllInstitutions,
@@ -15,7 +17,7 @@ import { agency, aoo, categories, uo } from "./expectation.js";
 
 vi.mock("axios");
 
-const openDataConfig = {
+const openDataConfig: OpenDataConfig = {
   institutionsUrl: "https://example.test/institutions",
   aooUrl: "https://example.test/aoo",
   uoUrl: "https://example.test/uo",

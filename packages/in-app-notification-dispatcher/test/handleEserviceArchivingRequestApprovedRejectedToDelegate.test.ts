@@ -19,6 +19,8 @@ import {
   missingKafkaMessageDataError,
   toEServiceV2,
   UserId,
+  Descriptor,
+  EService,
 } from "pagopa-interop-models";
 import {
   inAppTemplates,
@@ -36,7 +38,7 @@ describe("handleEserviceArchivingRequestApprovedRejectedToDelegate", () => {
   const userId = generateId<UserId>();
 
   const archivingDescriptorId = generateId<DescriptorId>();
-  const archivingDescriptor = {
+  const archivingDescriptor: Descriptor = {
     ...getMockDescriptor(descriptorState.archiving),
     id: archivingDescriptorId,
     version: "3",
@@ -56,7 +58,7 @@ describe("handleEserviceArchivingRequestApprovedRejectedToDelegate", () => {
     ],
   };
 
-  const eservice = {
+  const eservice: EService = {
     ...getMockEService(generateId<EServiceId>(), delegatorTenant.id),
     name: "Test E-service",
     descriptors: [archivingDescriptor],
@@ -110,7 +112,7 @@ describe("handleEserviceArchivingRequestApprovedRejectedToDelegate", () => {
   });
 
   it("throws archivingRequesterIdNotFound when requesterId is not available in the snapshot (descriptor approved)", async () => {
-    const eserviceWithoutDelegation = {
+    const eserviceWithoutDelegation: EService = {
       ...eservice,
       id: generateId<EServiceId>(),
       descriptors: [

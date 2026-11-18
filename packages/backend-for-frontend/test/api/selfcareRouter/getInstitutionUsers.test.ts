@@ -11,6 +11,8 @@ import { api, services } from "../../vitest.api.setup.js";
 
 describe("GET /tenants/:tenantId/users", () => {
   const validTenantId: TenantId = generateId();
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const defaultQuery = {
     personId: generateId(),
     roles: ["ADMIN_EA"],

@@ -12,6 +12,7 @@ import {
   descriptorState,
   EService,
   EServiceDescriptorDocumentDeletedByTemplateUpdateV2,
+  Document,
   toEServiceV2,
 } from "pagopa-interop-models";
 import { vi, expect, describe, it } from "vitest";
@@ -36,7 +37,7 @@ describe("delete Document", () => {
   it("should write on event-store for the internal deletion of a document, and delete the file from the bucket, for %s descriptor", async () => {
     vi.spyOn(fileManager, "delete");
 
-    const document = {
+    const document: Document = {
       ...mockDocument,
       path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}`,
     };

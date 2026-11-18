@@ -11,6 +11,8 @@ import {
   generateId,
   TenantId,
   EServiceId,
+  Tenant,
+  EService,
 } from "pagopa-interop-models";
 import {
   getNotificationRecipients,
@@ -29,7 +31,7 @@ import {
 } from "./utils.js";
 
 describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
-  const eservice = {
+  const eservice: EService = {
     ...getMockEService(),
     producerId: generateId<TenantId>(),
     descriptors: [
@@ -65,7 +67,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
   });
 
   it("should throw tenantNotFound when producer tenant does not exist", async () => {
-    const eserviceWithNonExistentProducer = {
+    const eserviceWithNonExistentProducer: EService = {
       ...getMockEService(),
       producerId: generateId<TenantId>(),
       descriptors: [
@@ -90,7 +92,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
   });
 
   it("should return empty array when no agreements exist for the eservice", async () => {
-    const eserviceWithoutAgreements = {
+    const eserviceWithoutAgreements: EService = {
       ...getMockEService(),
       producerId: generateId<TenantId>(),
       descriptors: [
@@ -116,7 +118,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
   });
 
   it("should throw tenantNotFound when consumer tenant is not found", async () => {
-    const testEservice = {
+    const testEservice: EService = {
       ...getMockEService(),
       producerId: generateId<TenantId>(),
       descriptors: [
@@ -158,7 +160,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
   ])(
     "should generate notifications for agreement in $state state (shouldNotify: $shouldNotify)",
     async ({ state, shouldNotify }) => {
-      const testEservice = {
+      const testEservice: EService = {
         ...getMockEService(),
         producerId: generateId<TenantId>(),
         descriptors: [
@@ -217,7 +219,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
   );
 
   it("should generate notifications for multiple consumers with active agreements", async () => {
-    const testEservice = {
+    const testEservice: EService = {
       ...getMockEService(),
       producerId: generateId<TenantId>(),
       descriptors: [
@@ -291,7 +293,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
   });
 
   it("should return empty array when no user notification configs exist", async () => {
-    const testEservice = {
+    const testEservice: EService = {
       ...getMockEService(),
       producerId: generateId<TenantId>(),
       descriptors: [
@@ -329,7 +331,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
   });
 
   it("should handle mixed agreement states correctly", async () => {
-    const testEservice = {
+    const testEservice: EService = {
       ...getMockEService(),
       producerId: generateId<TenantId>(),
       descriptors: [
@@ -420,7 +422,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
   });
 
   it("should use correct notification template", async () => {
-    const testEservice = {
+    const testEservice: EService = {
       ...getMockEService(),
       name: "Test E-Service",
       producerId: generateId<TenantId>(),
@@ -432,7 +434,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
         },
       ],
     };
-    const testProducer = {
+    const testProducer: Tenant = {
       ...getMockTenant(testEservice.producerId),
       name: "Test Producer",
     };

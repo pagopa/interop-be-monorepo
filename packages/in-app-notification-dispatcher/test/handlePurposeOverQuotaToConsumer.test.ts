@@ -15,6 +15,9 @@ import {
   toPurposeV2,
   purposeVersionState,
   purposeWaitingForApprovalReason,
+  Descriptor,
+  EService,
+  Purpose,
 } from "pagopa-interop-models";
 import {
   getNotificationRecipients,
@@ -38,12 +41,12 @@ describe("handlePurposeOverQuotaToConsumer", () => {
   const purposeId = generateId<PurposeId>();
 
   const dailyCallsPerConsumer = 1000;
-  const descriptor = {
+  const descriptor: Descriptor = {
     ...getMockDescriptorPublished(),
     dailyCallsPerConsumer,
   };
 
-  const eservice = {
+  const eservice: EService = {
     ...getMockEService(),
     id: eserviceId,
     producerId,
@@ -53,7 +56,7 @@ describe("handlePurposeOverQuotaToConsumer", () => {
   const producerTenant = getMockTenant(producerId);
   const consumerTenant = getMockTenant(consumerId);
 
-  const purpose = {
+  const purpose: Purpose = {
     ...getMockPurpose([
       {
         ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
@@ -94,7 +97,7 @@ describe("handlePurposeOverQuotaToConsumer", () => {
 
   it("should throw eserviceNotFound when eservice is not found", async () => {
     const unknownEserviceId = generateId<EServiceId>();
-    const purposeWithUnknownEservice = {
+    const purposeWithUnknownEservice: Purpose = {
       ...purpose,
       eserviceId: unknownEserviceId,
     };

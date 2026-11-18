@@ -91,6 +91,8 @@ describe("API PATCH /purposes/:purposeId", () => {
   it.each([400, 403, 404, 409])(
     "propagates process status %s without retrying",
     async (status) => {
+      // TODO REVIEW THIS CHANGE
+      // eslint-disable-next-line interop/require-type-for-object
       const problem = {
         type: "about:blank",
         title: "Purpose update failed",

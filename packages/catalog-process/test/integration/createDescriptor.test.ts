@@ -62,7 +62,7 @@ describe("create descriptor", async () => {
     vi.useRealTimers();
   });
   it("should write on event-store for the creation of a descriptor (eservice had no descriptors)", async () => {
-    const mockDescriptor = {
+    const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
       docs: [],
     };
@@ -107,7 +107,7 @@ describe("create descriptor", async () => {
       payload: writtenEvent.data,
     });
 
-    const expectedDescriptor = {
+    const expectedDescriptor: Descriptor = {
       ...mockDescriptor,
       version: "1",
       createdAt: new Date(
@@ -124,7 +124,7 @@ describe("create descriptor", async () => {
       },
     };
 
-    const expectedEservice = {
+    const expectedEservice: EService = {
       ...eservice,
       descriptors: [expectedDescriptor],
     };
@@ -440,7 +440,7 @@ describe("create descriptor", async () => {
     await addOneAttribute(attribute);
     const notExistingId1 = generateId();
     const notExistingId2 = generateId();
-    const descriptorSeed = {
+    const descriptorSeed: catalogApi.EServiceDescriptorSeed = {
       ...buildCreateDescriptorSeed(getMockDescriptor()),
       attributes: {
         certified: [],
@@ -593,7 +593,7 @@ describe("create descriptor", async () => {
   });
 
   it("should write on event-store for the creation of a descriptor with daily calls on certified attribute", async () => {
-    const mockDescriptor = {
+    const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
       docs: [],
     };
@@ -670,7 +670,7 @@ describe("create descriptor", async () => {
       payload: writtenEvent.data,
     });
 
-    const expectedDescriptor = {
+    const expectedDescriptor: Descriptor = {
       ...mockDescriptor,
       version: "1",
       createdAt: new Date(
@@ -700,7 +700,7 @@ describe("create descriptor", async () => {
       },
     };
 
-    const expectedEservice = {
+    const expectedEservice: EService = {
       ...eservice,
       descriptors: [expectedDescriptor],
     };
@@ -761,7 +761,7 @@ describe("create descriptor", async () => {
   });
 
   it("should throw attributeDailyCallsNotAllowed when dailyCalls is on declared attribute", async () => {
-    const mockDescriptor = {
+    const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
       docs: [],
     };
@@ -813,7 +813,7 @@ describe("create descriptor", async () => {
   it.each([attributeKind.declared, attributeKind.verified])(
     "should throw attributeDiscreteConfigNotAllowed when setting discreteConfig on a non-certified attribute",
     async (kind) => {
-      const mockDescriptor = {
+      const mockDescriptor: Descriptor = {
         ...getMockDescriptor(),
         docs: [],
       };
@@ -878,7 +878,7 @@ describe("create descriptor", async () => {
   ])(
     "should throw an error if the eservice is in archiving or archived state, with latest active descriptor in %s state",
     async (state) => {
-      const mockDescriptor = {
+      const mockDescriptor: Descriptor = {
         ...getMockDescriptor(),
         docs: [],
       };

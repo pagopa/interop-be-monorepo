@@ -74,6 +74,7 @@ import {
   AsyncExchangeProperties,
   Technology,
   GracePeriodDays,
+  ArchivingSchedule,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 
@@ -884,7 +885,11 @@ async function innerAddDocumentToEserviceEvent(
     updatedDescriptor
   );
 
-  const eventPayload = {
+  const eventPayload: {
+    descriptorId: DescriptorId;
+    documentId: EServiceDocumentId;
+    eservice: EService;
+  } = {
     descriptorId,
     documentId: unsafeBrandId<EServiceDocumentId>(documentSeed.documentId),
     eservice: updatedEService,
@@ -1774,7 +1779,11 @@ export function catalogServiceBuilder(
         ),
       };
 
-      const eventPayload = {
+      const eventPayload: {
+        descriptorId: DescriptorId;
+        documentId: EServiceDocumentId;
+        eservice: EService;
+      } = {
         descriptorId,
         documentId,
         eservice: newEservice,
@@ -1872,7 +1881,7 @@ export function catalogServiceBuilder(
         );
       }
 
-      const updatedDocument = {
+      const updatedDocument: Document = {
         ...document,
         prettyName: apiEServiceDescriptorDocumentUpdateSeed.prettyName,
       };
@@ -1891,7 +1900,11 @@ export function catalogServiceBuilder(
         ),
       };
 
-      const eventPayload = {
+      const eventPayload: {
+        descriptorId: DescriptorId;
+        documentId: EServiceDocumentId;
+        eservice: EService;
+      } = {
         descriptorId,
         documentId,
         eservice: newEservice,
@@ -4341,7 +4354,7 @@ export function catalogServiceBuilder(
         dailyCallsTotal: descriptor.dailyCallsTotal,
       });
 
-      const updatedAttribute = {
+      const updatedAttribute: typeof currentAttribute = {
         ...currentAttribute,
         dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
       };
@@ -4692,7 +4705,7 @@ export function catalogServiceBuilder(
         return;
       }
 
-      const updatedDocument = {
+      const updatedDocument: Document = {
         ...document,
         prettyName,
       };
@@ -5594,7 +5607,7 @@ async function processDescriptorArchiving(
   scope: ArchivingScope = archivingScope.descriptor,
   requestDate: Date = new Date()
 ): Promise<Descriptor> {
-  const archivingSchedule = {
+  const archivingSchedule: ArchivingSchedule = {
     ...calculateArchivableOn(requestDate, gracePeriodDays),
     scope,
     gracePeriodDays,

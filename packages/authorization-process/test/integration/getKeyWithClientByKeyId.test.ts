@@ -8,7 +8,7 @@ import {
   getMockKey,
   sortClient,
 } from "pagopa-interop-commons-test";
-import { Client } from "pagopa-interop-models";
+import { Client, Key } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 
 import {
@@ -27,7 +27,7 @@ describe("getKeyWithClientByKeyId", async () => {
       key.export({ type: "pkcs1", format: "pem" })
     ).toString("base64url");
 
-    const mockKey1 = { ...getMockKey(), encodedPem: base64Key };
+    const mockKey1: Key = { ...getMockKey(), encodedPem: base64Key };
 
     const jwk: JsonWebKey = createJWK({ pemKeyBase64: base64Key });
 
@@ -47,7 +47,8 @@ describe("getKeyWithClientByKeyId", async () => {
       getMockContext({})
     );
 
-    const expectedResult = {
+    // TODO REVIEW THIS CHANGE
+    const expectedResult: typeof result = {
       client: sortClient(mockClient),
       jwk,
       kid: mockKey1.kid,

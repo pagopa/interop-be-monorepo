@@ -12,7 +12,7 @@ import { api, catalogService } from "../vitest.api.setup.js";
 
 describe("DELETE /maintenance/eservices/:eServiceId/personalDataFlag", () => {
   const defaultEServiceId = generateId<EServiceId>();
-  const defaultBody = {
+  const defaultBody: { currentVersion: number; reason: string } = {
     currentVersion: 1,
     reason: "Reset personalData flag for maintenance",
   };

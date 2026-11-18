@@ -15,6 +15,8 @@ import {
 import {
   Attribute,
   CertifiedTenantAttribute,
+  EServiceCertifiedAttribute,
+  EServiceAttributeCertifiedDiscrete,
   AttributeCertifiedDiscreteComparator,
   AttributeId,
   Descriptor,
@@ -1625,7 +1627,7 @@ describe("query eservices", () => {
     });
 
     describe("when the certified discrete feature flag is disabled", () => {
-      const standardAttribute = {
+      const standardAttribute: CertifiedTenantAttribute = {
         ...getMockCertifiedTenantAttribute(),
         revocationTimestamp: undefined,
       };
@@ -1637,15 +1639,15 @@ describe("query eservices", () => {
       const requesterContext = getMockContext({
         authData: getMockAuthData(requester.id),
       });
-      const ownedStandard = {
+      const ownedStandard: EServiceCertifiedAttribute = {
         id: standardAttribute.id,
         explicitAttributeVerification: false,
       };
-      const missingStandard = {
+      const missingStandard: EServiceCertifiedAttribute = {
         id: generateId<AttributeId>(),
         explicitAttributeVerification: false,
       };
-      const satisfiedDiscrete = {
+      const satisfiedDiscrete: EServiceAttributeCertifiedDiscrete = {
         id: discreteAttribute.id,
         explicitAttributeVerification: false,
         discreteConfig: {
@@ -1653,14 +1655,14 @@ describe("query eservices", () => {
           threshold: discreteAttribute.discreteValue,
         },
       };
-      const unsatisfiedDiscrete = {
+      const unsatisfiedDiscrete: EServiceAttributeCertifiedDiscrete = {
         ...satisfiedDiscrete,
         discreteConfig: {
           ...satisfiedDiscrete.discreteConfig,
           threshold: discreteAttribute.discreteValue + 1,
         },
       };
-      const missingDiscrete = {
+      const missingDiscrete: EServiceAttributeCertifiedDiscrete = {
         ...satisfiedDiscrete,
         id: generateId<AttributeId>(),
       };
@@ -1868,7 +1870,7 @@ describe("query eservices", () => {
     });
 
     describe("standard certified requirements", () => {
-      const certifiedAttribute = {
+      const certifiedAttribute: CertifiedTenantAttribute = {
         ...getMockCertifiedTenantAttribute(),
         revocationTimestamp: undefined,
       };
@@ -2003,19 +2005,19 @@ describe("query eservices", () => {
       }));
       const [attributeA, attributeB, attributeC, attributeD] =
         certifiedAttributes;
-      const requirementA = {
+      const requirementA: EServiceCertifiedAttribute = {
         id: attributeA.id,
         explicitAttributeVerification: false,
       };
-      const requirementB = {
+      const requirementB: EServiceCertifiedAttribute = {
         id: attributeB.id,
         explicitAttributeVerification: false,
       };
-      const requirementC = {
+      const requirementC: EServiceCertifiedAttribute = {
         id: attributeC.id,
         explicitAttributeVerification: false,
       };
-      const requirementD = {
+      const requirementD: EServiceCertifiedAttribute = {
         id: attributeD.id,
         explicitAttributeVerification: false,
       };
@@ -2608,15 +2610,15 @@ describe("query eservices", () => {
     });
 
     describe("when availableForRequester is false", () => {
-      const ownedAttribute = {
+      const ownedAttribute: CertifiedTenantAttribute = {
         ...getMockCertifiedTenantAttribute(),
         revocationTimestamp: undefined,
       };
-      const ownedRequirement = {
+      const ownedRequirement: EServiceCertifiedAttribute = {
         id: ownedAttribute.id,
         explicitAttributeVerification: false,
       };
-      const missingRequirement = {
+      const missingRequirement: EServiceCertifiedAttribute = {
         id: generateId<AttributeId>(),
         explicitAttributeVerification: false,
       };
@@ -2673,7 +2675,7 @@ describe("query eservices", () => {
       });
 
       it("should exclude e-services whose certified groups are all satisfied", async () => {
-        const secondAttribute = {
+        const secondAttribute: CertifiedTenantAttribute = {
           ...getMockCertifiedTenantAttribute(),
           revocationTimestamp: undefined,
         };
@@ -2720,15 +2722,15 @@ describe("query eservices", () => {
     });
 
     describe("descriptor selection", () => {
-      const ownedAttribute = {
+      const ownedAttribute: CertifiedTenantAttribute = {
         ...getMockCertifiedTenantAttribute(),
         revocationTimestamp: undefined,
       };
-      const ownedRequirement = {
+      const ownedRequirement: EServiceCertifiedAttribute = {
         id: ownedAttribute.id,
         explicitAttributeVerification: false,
       };
-      const missingRequirement = {
+      const missingRequirement: EServiceCertifiedAttribute = {
         id: generateId<AttributeId>(),
         explicitAttributeVerification: false,
       };
@@ -2869,15 +2871,15 @@ describe("query eservices", () => {
     });
 
     describe("interaction with other query features", () => {
-      const ownedAttribute = {
+      const ownedAttribute: CertifiedTenantAttribute = {
         ...getMockCertifiedTenantAttribute(),
         revocationTimestamp: undefined,
       };
-      const ownedRequirement = {
+      const ownedRequirement: EServiceCertifiedAttribute = {
         id: ownedAttribute.id,
         explicitAttributeVerification: false,
       };
-      const missingRequirement = {
+      const missingRequirement: EServiceCertifiedAttribute = {
         id: generateId<AttributeId>(),
         explicitAttributeVerification: false,
       };
@@ -2979,7 +2981,7 @@ describe("query eservices", () => {
       });
 
       it("should not return duplicate e-services when a descriptor contains multiple satisfied attributes", async () => {
-        const secondAttribute = {
+        const secondAttribute: CertifiedTenantAttribute = {
           ...getMockCertifiedTenantAttribute(),
           revocationTimestamp: undefined,
         };

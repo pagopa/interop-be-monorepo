@@ -23,6 +23,7 @@ import {
   delegationKind,
   EServiceTemplateId,
   unsafeBrandId,
+  EServiceCertifiedAttribute,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 
@@ -672,7 +673,7 @@ describe("update descriptor", () => {
       };
       await addOneEService(eservice);
 
-      const attributeWithDailyCalls = {
+      const attributeWithDailyCalls: EServiceCertifiedAttribute = {
         id: nonCertifiedAttribute.id,
         explicitAttributeVerification: false,
         dailyCallsPerConsumer: 100,

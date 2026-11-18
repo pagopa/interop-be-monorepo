@@ -34,7 +34,7 @@ import { buildCreateDescriptorSeed } from "../mockUtils.js";
 import { api, catalogService } from "../vitest.api.setup.js";
 
 describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
-  const mockDescriptor = {
+  const mockDescriptor: Descriptor = {
     ...getMockDescriptor(),
     docs: [],
   };

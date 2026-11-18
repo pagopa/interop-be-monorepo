@@ -421,22 +421,22 @@ describe("updatePurpose and updateReversePurpose", () => {
     });
   });
   it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the Purpose is in a updatable state and the e-service is in mode DELIVER", async () => {
-    const producer = {
+    const producer: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantType,
     };
-    const producerDelegate = {
+    const producerDelegate: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantType,
     };
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantType,
     };
-    const consumerDelegate = {
+    const consumerDelegate: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantType,
@@ -488,7 +488,7 @@ describe("updatePurpose and updateReversePurpose", () => {
     await addOneDelegation(consumerDelegation);
     await addSomeRandomDelegations(delegatePurpose, addOneDelegation);
 
-    const updateContentWithoutTitle = {
+    const updateContentWithoutTitle: purposeApi.PurposeUpdateContent = {
       ...purposeUpdateContent,
       title: delegatePurpose.title,
     };
@@ -533,22 +533,22 @@ describe("updatePurpose and updateReversePurpose", () => {
     });
   });
   it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the Purpose is in a updatable state and the e-service is in mode RECEIVE", async () => {
-    const producerDelegator = {
+    const producerDelegator: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantType,
     };
-    const producer = {
+    const producer: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantType,
     };
-    const consumerDelegator = {
+    const consumerDelegator: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantType,
     };
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantType,
@@ -1039,7 +1039,7 @@ describe("updatePurpose and updateReversePurpose", () => {
     ).rejects.toThrowError(tenantNotFound(tenant.id));
   });
   it("Should throw tenantKindNotFound if the tenant kind does not exist", async () => {
-    const mockTenant = {
+    const mockTenant: Tenant = {
       ...tenant,
       kind: undefined,
     };

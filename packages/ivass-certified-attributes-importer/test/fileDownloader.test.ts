@@ -26,7 +26,7 @@ const mockFileManager: FileManager = {
   resumeOrStoreBytes: vi.fn(),
 };
 
-const mockRedirectResponse = {
+const mockRedirectResponse: { headers: Record<string, string> } = {
   headers: {},
 };
 

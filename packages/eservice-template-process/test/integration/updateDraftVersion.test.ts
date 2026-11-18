@@ -204,7 +204,7 @@ describe("update draft version", () => {
     };
     await addOneEServiceTemplate(eserviceTemplate);
 
-    const expectedVersion = {
+    const expectedVersion: EServiceTemplateVersion = {
       ...version,
       dailyCallsTotal: 200,
     };
@@ -261,7 +261,7 @@ describe("update draft version", () => {
       dailyCallsTotal: 50,
     };
 
-    const updatedEserviceTemplate = {
+    const updatedEserviceTemplate: EServiceTemplate = {
       ...expectedEserviceTemplate,
       versions: [expectedVersion],
     };
@@ -321,26 +321,27 @@ describe("update draft version", () => {
     const notExistingId1 = generateId<AttributeId>();
     const notExistingId2 = generateId<AttributeId>();
 
-    const descriptorSeed = {
-      ...buildUpdateVersionSeed(mockVersion),
-      attributes: {
-        certified: [],
-        declared: [
-          [
-            { id: attribute.id, explicitAttributeVerification: false },
-            {
-              id: notExistingId1,
-              explicitAttributeVerification: false,
-            },
-            {
-              id: notExistingId2,
-              explicitAttributeVerification: false,
-            },
+    const descriptorSeed: eserviceTemplateApi.UpdateEServiceTemplateVersionSeed =
+      {
+        ...buildUpdateVersionSeed(mockVersion),
+        attributes: {
+          certified: [],
+          declared: [
+            [
+              { id: attribute.id, explicitAttributeVerification: false },
+              {
+                id: notExistingId1,
+                explicitAttributeVerification: false,
+              },
+              {
+                id: notExistingId2,
+                explicitAttributeVerification: false,
+              },
+            ],
           ],
-        ],
-        verified: [],
-      },
-    };
+          verified: [],
+        },
+      };
 
     await expect(
       eserviceTemplateService.updateDraftTemplateVersion(
@@ -452,7 +453,13 @@ describe("update draft version", () => {
     };
     await addOneEServiceTemplate(eserviceTemplate);
 
-    const asyncExchangeProperties = {
+    const asyncExchangeProperties: {
+      responseTime: number;
+      resourceAvailableTime: number;
+      confirmation: boolean;
+      bulk: boolean;
+      maxResultSet: number;
+    } = {
       responseTime: 3600,
       resourceAvailableTime: 7200,
       confirmation: true,
@@ -552,7 +559,13 @@ describe("update draft version", () => {
     };
     await addOneEServiceTemplate(eserviceTemplate);
 
-    const asyncExchangeProperties = {
+    const asyncExchangeProperties: {
+      responseTime: number;
+      resourceAvailableTime: number;
+      confirmation: boolean;
+      bulk: boolean;
+      maxResultSet: number;
+    } = {
       responseTime: 3600,
       resourceAvailableTime: 7200,
       confirmation: true,

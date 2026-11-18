@@ -12,6 +12,8 @@ import { getMockBffApiCatalogPurposeTemplate } from "../../mockUtils.js";
 import { api, services } from "../../vitest.api.setup.js";
 
 describe("API GET /catalog/purposeTemplates", () => {
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const defaultQuery = {
     q: "title",
     eserviceIds: `${generateId()},${generateId()}`,

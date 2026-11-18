@@ -65,7 +65,7 @@ describe("remove client purpose", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedClient = {
+    const expectedClient: Client = {
       ...mockClient,
       purposes: [purposeIdToNotRemove],
     };

@@ -13,6 +13,8 @@ import {
   toDelegationV2,
   DelegationKind,
   EServiceId,
+  Delegation,
+  EService,
 } from "pagopa-interop-models";
 import {
   tenantNotFound,
@@ -33,7 +35,7 @@ describe("handleDelegationApprovedRejectedToDelegator", () => {
   const delegate = getMockTenant();
   const eserviceId: EServiceId = generateId();
 
-  const eservice = {
+  const eservice: EService = {
     ...getMockEService(eserviceId, delegator.id),
     name: "Test EService",
   };
@@ -72,7 +74,7 @@ describe("handleDelegationApprovedRejectedToDelegator", () => {
 
   it("should throw tenantNotFound when delegate tenant is not found", async () => {
     const unknownTenantId = generateId<TenantId>();
-    const delegationWithUnknownDelegate = {
+    const delegationWithUnknownDelegate: Delegation = {
       ...delegation,
       delegateId: unknownTenantId,
     };

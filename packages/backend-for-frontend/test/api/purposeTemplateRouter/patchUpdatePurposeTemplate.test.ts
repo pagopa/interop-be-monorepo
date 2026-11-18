@@ -55,6 +55,8 @@ describe("API PATCH /purposeTemplates/:purposeTemplateId", () => {
   it.each(["DRAFT", "PUBLISHED", "SUSPENDED", "ARCHIVED"] as const)(
     "Should return the updated template in state %s",
     async (state) => {
+      // TODO REVIEW THIS CHANGE
+      // eslint-disable-next-line interop/require-type-for-object
       const updatedPurposeTemplate = { ...purposeTemplate, state };
       clients.purposeTemplateProcessClient.patchUpdateDraftPurposeTemplateById =
         vi.fn().mockResolvedValue(updatedPurposeTemplate);
@@ -149,6 +151,8 @@ describe("API PATCH /purposeTemplates/:purposeTemplateId", () => {
   it.each([400, 403, 404, 409])(
     "Should propagate process status %s without retrying",
     async (status) => {
+      // TODO REVIEW THIS CHANGE
+      // eslint-disable-next-line interop/require-type-for-object
       const problem = {
         type: "about:blank",
         title: "Purpose Template update failed",

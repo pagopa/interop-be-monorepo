@@ -296,7 +296,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
       creatorId: generateId(),
     };
     await addOneEServiceTemplate(eserviceTemplate);
-    const creator = {
+    const creator: Tenant = {
       ...getMockTenant(eserviceTemplate.creatorId),
       kind: creatorTenantKind,
     };
@@ -352,22 +352,23 @@ describe("createEServiceTemplateRiskAnalysis", () => {
     const riskAnalysisSeed: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed =
       buildRiskAnalysisSeed(mockValidRiskAnalysis);
 
-    const invalidRiskAnalysisSeed = {
-      ...riskAnalysisSeed,
-      riskAnalysisForm: {
-        ...riskAnalysisSeed.riskAnalysisForm,
-        answers: {
-          purpose: ["invalid purpose"], // "purpose" is field expected for all tenant kinds
-          unexpectedField: ["updated other purpose"],
-          /*
+    const invalidRiskAnalysisSeed: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed =
+      {
+        ...riskAnalysisSeed,
+        riskAnalysisForm: {
+          ...riskAnalysisSeed.riskAnalysisForm,
+          answers: {
+            purpose: ["invalid purpose"], // "purpose" is field expected for all tenant kinds
+            unexpectedField: ["updated other purpose"],
+            /*
           This risk analysis form has an unexpected field and an invalid value for the purpose field.
           The validation on create is schemaOnly: it does not check missing required fields or dependencies.
           However, it checks for unexpected fields and invalid values.
           So, the validation should fail with just two errors corresponding to the two invalid fields.
          */
+          },
         },
-      },
-    };
+      };
 
     expect(
       eserviceTemplateService.createRiskAnalysis(

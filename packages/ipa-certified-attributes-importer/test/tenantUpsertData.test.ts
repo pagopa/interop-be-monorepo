@@ -10,6 +10,8 @@ import {
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 
+import type { InternalCertifiedAttribute } from "../src/services/openDataService.js";
+
 import {
   ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY,
   PUBLIC_SERVICES_MANAGERS_TYPOLOGY,
@@ -21,7 +23,10 @@ import { agency, aoo, attributes, uo } from "./expectation.js";
 
 const economicAccountCompaniesAllowlist: string[] = [];
 
-const registryData = {
+const registryData: {
+  institutions: Institution[];
+  attributes: InternalCertifiedAttribute[];
+} = {
   institutions: [...agency, ...aoo, ...uo],
   attributes,
 };
@@ -145,7 +150,10 @@ describe("TenantUpsertData", async () => {
       },
     ];
 
-    const testRegistryData = {
+    const testRegistryData: {
+      institutions: Institution[];
+      attributes: InternalCertifiedAttribute[];
+    } = {
       institutions: [...registryData.institutions, mockInstitution],
       attributes: registryData.attributes,
     };
@@ -201,7 +209,10 @@ describe("TenantUpsertData", async () => {
       },
     ];
 
-    const testRegistryData = {
+    const testRegistryData: {
+      institutions: Institution[];
+      attributes: InternalCertifiedAttribute[];
+    } = {
       institutions: [...registryData.institutions, mockInstitution],
       attributes: registryData.attributes,
     };
@@ -254,7 +265,10 @@ describe("TenantUpsertData", async () => {
       },
     ];
 
-    const testRegistryData = {
+    const testRegistryData: {
+      institutions: Institution[];
+      attributes: InternalCertifiedAttribute[];
+    } = {
       institutions: [...registryData.institutions, mockInstitution],
       attributes: registryData.attributes,
     };
@@ -304,7 +318,10 @@ describe("TenantUpsertData", async () => {
       },
     ];
 
-    const testRegistryData = {
+    const testRegistryData: {
+      institutions: Institution[];
+      attributes: InternalCertifiedAttribute[];
+    } = {
       institutions: [...registryData.institutions, mockInstitution],
       attributes: registryData.attributes,
     };
@@ -360,7 +377,10 @@ describe("TenantUpsertData", async () => {
         },
       ];
 
-      const testRegistryData = {
+      const testRegistryData: {
+        institutions: Institution[];
+        attributes: InternalCertifiedAttribute[];
+      } = {
         institutions: [...registryData.institutions, mockInstitution],
         attributes: registryData.attributes,
       };
@@ -417,7 +437,10 @@ describe("TenantUpsertData", async () => {
         },
       ];
 
-      const testRegistryData = {
+      const testRegistryData: {
+        institutions: Institution[];
+        attributes: InternalCertifiedAttribute[];
+      } = {
         institutions: [...registryData.institutions, mockInstitution],
         attributes: registryData.attributes,
       };
@@ -472,7 +495,10 @@ describe("TenantUpsertData", async () => {
       },
     ];
 
-    const testRegistryData = {
+    const testRegistryData: {
+      institutions: Institution[];
+      attributes: InternalCertifiedAttribute[];
+    } = {
       institutions: [...registryData.institutions, mockInstitution],
       attributes: registryData.attributes,
     };
@@ -500,7 +526,10 @@ describe("TenantUpsertData", async () => {
     ).toBeDefined();
   });
   it("should populate istatCode only if the institution category is L6", async () => {
-    const registryData = {
+    const registryData: {
+      institutions: Institution[];
+      attributes: InternalCertifiedAttribute[];
+    } = {
       institutions: [
         {
           id: "tax-code-1",

@@ -96,13 +96,13 @@ describe("agreement consumer document", () => {
       const producer = getMockTenant();
       const consumer = getMockTenant();
       const authData = getMockAuthData();
-      const eservice = {
+      const eservice: EService = {
         ...getMockEService(),
         producerId: producer.id,
         consumerId: consumer.id,
         descriptors: [getMockDescriptorPublished()],
       };
-      const agreement = {
+      const agreement: Agreement = {
         ...getMockAgreement(eservice.id),
         descriptorId: eservice.descriptors[0].id,
         producerId: producer.id,
@@ -174,7 +174,7 @@ describe("agreement consumer document", () => {
     it("should succeed when the requester is the consumer, even if there is an active consumer delegation", async () => {
       const authData = getMockAuthData();
 
-      const agreement = {
+      const agreement: Agreement = {
         ...getMockAgreement(),
         consumerId: authData.organizationId,
         consumerDocuments: [generateMock(AgreementDocument)],
@@ -204,13 +204,13 @@ describe("agreement consumer document", () => {
       const producer = getMockTenant();
       const consumer = getMockTenant();
       const authData = getMockAuthData(producer.id);
-      const eservice = {
+      const eservice: EService = {
         ...getMockEService(),
         producerId: producer.id,
         consumerId: consumer.id,
         descriptors: [getMockDescriptorPublished()],
       };
-      const agreement = {
+      const agreement: Agreement = {
         ...getMockAgreement(eservice.id),
         descriptorId: eservice.descriptors[0].id,
         producerId: producer.id,
@@ -337,12 +337,12 @@ describe("agreement consumer document", () => {
         payload,
       });
 
-      const expectedConsumerDocument = {
+      const expectedConsumerDocument: AgreementDocument = {
         ...consumerDocument,
         createdAt: returnedConsumerDocument.data.createdAt,
       };
 
-      const expectedAgreement = {
+      const expectedAgreement: Agreement = {
         ...agreement,
         consumerDocuments: [
           ...agreement.consumerDocuments,
@@ -397,12 +397,12 @@ describe("agreement consumer document", () => {
         payload,
       });
 
-      const expectedConsumerDocument = {
+      const expectedConsumerDocument: AgreementDocument = {
         ...consumerDocument,
         createdAt: returnedConsumerDocument.data.createdAt,
       };
 
-      const expectedAgreement = {
+      const expectedAgreement: Agreement = {
         ...agreement,
         consumerDocuments: [
           ...agreement.consumerDocuments,
@@ -590,7 +590,10 @@ describe("agreement consumer document", () => {
         payload,
       });
 
-      const expectedAgreement = { ...agreement1, consumerDocuments: [] };
+      const expectedAgreement: Agreement = {
+        ...agreement1,
+        consumerDocuments: [],
+      };
 
       expect({
         agreement: sortAgreementV2(actualConsumerDocument.agreement),
@@ -648,7 +651,10 @@ describe("agreement consumer document", () => {
         payload,
       });
 
-      const expectedAgreement = { ...agreement1, consumerDocuments: [] };
+      const expectedAgreement: Agreement = {
+        ...agreement1,
+        consumerDocuments: [],
+      };
 
       expect({
         agreement: sortAgreementV2(actualConsumerDocument.agreement),
@@ -730,7 +736,7 @@ describe("agreement consumer document", () => {
       const anotherConsumerDocuments = [
         getMockConsumerDocument(agreementId, "doc2"),
       ];
-      const agreement = {
+      const agreement: Agreement = {
         ...getMockAgreement(),
         id: agreementId,
         state: agreementConsumerDocumentChangeFailureState,

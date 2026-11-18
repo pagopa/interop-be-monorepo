@@ -14,6 +14,8 @@ describe("API POST /producers/delegations test", () => {
     eserviceId: generateId(),
     delegateId: generateId(),
   };
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const mockCreatedResource = {
     id: generateId(),
   };

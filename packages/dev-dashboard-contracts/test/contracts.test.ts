@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { api, schemas } from "../src/index.js";
+import {
+  api,
+  schemas,
+  DashboardStatus,
+  IdentityUser,
+  Operation,
+  Package,
+  Preset,
+  PresetInput,
+} from "../src/index.js";
 
 function logParameter(name: string): ZodType<unknown> {
   const endpoint = api.api.find((item) => item.alias === "getLogs");
@@ -18,7 +27,7 @@ function logParameter(name: string): ZodType<unknown> {
 
 describe("generated dashboard contracts", () => {
   it("preserves successful job completion in status responses", () => {
-    const job = {
+    const job: Package = {
       name: "pagopa-interop-example-job",
       label: "example-job",
       kind: "job",
@@ -32,7 +41,7 @@ describe("generated dashboard contracts", () => {
   it.each([true, false])(
     "preserves the requested watch target %s in operation responses",
     (watch) => {
-      const operation = {
+      const operation: Operation = {
         id: "operation-id",
         kind: "packages.watch",
         watch,
@@ -46,7 +55,7 @@ describe("generated dashboard contracts", () => {
   );
 
   it("accepts existing operation responses without a watch target", () => {
-    const operation = {
+    const operation: Operation = {
       id: "operation-id",
       kind: "package.watch",
       state: "passed",
@@ -58,7 +67,7 @@ describe("generated dashboard contracts", () => {
   });
 
   it("describes backend state without frontend runtime availability", () => {
-    const status = {
+    const status: DashboardStatus = {
       packages: [],
       presets: [],
       infrastructure: [],
@@ -92,14 +101,17 @@ describe("generated dashboard contracts", () => {
   );
 
   it("accepts package-only presets and rejects obsolete orchestration flags", () => {
-    const input = { name: "Backend group", packages: [{ name: "backend" }] };
+    const input: PresetInput = {
+      name: "Backend group",
+      packages: [{ name: "backend" }],
+    };
     expect(schemas.PresetInput.parse(input)).toEqual(input);
     for (const flag of ["seed", "fullstack"]) {
       expect(
         schemas.PresetInput.safeParse({ ...input, [flag]: false }).success
       ).toBe(false);
     }
-    const preset = { ...input, id: "frontend-full", source: "shared" };
+    const preset: Preset = { ...input, id: "frontend-full", source: "shared" };
     expect(schemas.Preset.parse(preset)).toEqual(preset);
     expect(
       schemas.Preset.safeParse({ ...preset, fullstack: true }).success
@@ -132,7 +144,7 @@ describe("generated dashboard contracts", () => {
   });
 
   it("exposes the configured user key while retaining UUID identity input", () => {
-    const user = {
+    const user: IdentityUser = {
       id: "user-id",
       key: "admin",
       name: "User",

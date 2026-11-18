@@ -24,7 +24,7 @@ vi.mock("kafkajs", async (importOriginal) => ({
 }));
 
 const consumer = "pagopa-interop-tenant-readmodel-writer-sql";
-const environment = {
+const environment: Record<string, string> = {
   KAFKA_GROUP_ID: "tenant-group",
   KAFKA_CLIENT_ID: "tenant-writer",
   KAFKA_BROKERS: "localhost:9092",

@@ -39,12 +39,16 @@ import {
 describe("createEServiceDocument", () => {
   const tenantId = generateId<TenantId>();
   const descriptor = getMockCatalogApiEServiceDescriptor();
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const eservice = {
     ...getMockCatalogApiEService(),
     producerId: tenantId,
     technology: "REST" as const,
     descriptors: [descriptor],
   };
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const document = {
     kind: "DOCUMENT" as const,
     prettyName: "Document",

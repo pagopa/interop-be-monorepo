@@ -16,6 +16,8 @@ import { makeUserFacingApiProblemBuilder } from "../src/model/applyError.js";
 import { getMockBffApiProducerEServiceDetails } from "./mockUtils.js";
 import { api, clients, services } from "./vitest.api.setup.js";
 
+// TODO REVIEW THIS CHANGE
+// eslint-disable-next-line interop/require-type-for-object
 export const testErrorCodes = {
   testBadRequestError: "0001",
   testNotFoundError: "0002",

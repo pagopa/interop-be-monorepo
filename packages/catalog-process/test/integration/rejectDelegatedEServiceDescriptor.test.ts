@@ -81,7 +81,7 @@ describe("reject descriptor", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedEservice = {
+    const expectedEservice: EService = {
       ...eservice,
       descriptors: [
         {

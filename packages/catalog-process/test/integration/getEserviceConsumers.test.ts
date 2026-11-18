@@ -8,6 +8,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   agreementState,
+  Agreement,
   Descriptor,
   descriptorState,
   EService,
@@ -39,7 +40,7 @@ describe("get eservice consumers", () => {
     const tenant = getMockTenant();
     await addOneTenant(tenant);
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(eservice1.id, tenant.id, agreementState.active),
       descriptorId: descriptor1.id,
       producerId: eservice1.producerId,

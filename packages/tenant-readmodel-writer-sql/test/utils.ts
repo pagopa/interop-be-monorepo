@@ -120,7 +120,11 @@ export const initMockTenant = ({
   };
   const delegationId = generateId<DelegationId>();
 
-  const tenantVerifierAttributeOptionalProps = {
+  // TODO REVIEW THIS CHANGE
+  const tenantVerifierAttributeOptionalProps: Pick<
+    TenantVerifier,
+    "expirationDate" | "extensionDate" | "delegationId"
+  > = {
     expirationDate: new Date(),
     extensionDate: new Date(),
     delegationId,
@@ -130,7 +134,11 @@ export const initMockTenant = ({
     verificationDate: new Date(),
     ...(isTenantComplete ? tenantVerifierAttributeOptionalProps : {}),
   };
-  const tenantRevokerAttributeOptionalProps = {
+  // TODO REVIEW THIS CHANGE
+  const tenantRevokerAttributeOptionalProps: Pick<
+    TenantRevoker,
+    "expirationDate" | "extensionDate" | "delegationId"
+  > = {
     expirationDate: new Date(),
     extensionDate: new Date(),
     delegationId,
@@ -216,7 +224,16 @@ export const initMockTenant = ({
     value: generateId(),
   };
 
-  const tenantOptionalProps = {
+  // TODO REVIEW THIS CHANGE
+  const tenantOptionalProps: Pick<
+    Tenant,
+    | "kind"
+    | "selfcareId"
+    | "updatedAt"
+    | "onboardedAt"
+    | "subUnitType"
+    | "selfcareInstitutionType"
+  > = {
     kind: tenantKind.PA,
     selfcareId: generateId(),
     updatedAt: new Date(),

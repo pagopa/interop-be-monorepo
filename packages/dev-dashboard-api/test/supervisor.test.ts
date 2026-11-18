@@ -44,7 +44,10 @@ class FakeDriver implements Driver {
     this.commands.push(command);
     if (command.source === this.failStart)
       throw new Error(`Expected ${command.source} startup failure`);
-    const record = { exit, stopped: false };
+    const record: { exit: (result: ProcessExit) => void; stopped: boolean } = {
+      exit,
+      stopped: false,
+    };
     this.children.set(command.source, record);
     if (this.exitOnStart) exit(this.exitOnStart);
     return {

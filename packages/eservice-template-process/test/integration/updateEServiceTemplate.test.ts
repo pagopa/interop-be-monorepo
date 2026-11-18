@@ -20,6 +20,7 @@ import {
   eserviceTemplateVersionState,
   eserviceMode,
   operationForbidden,
+  Document,
   tenantKind,
 } from "pagopa-interop-models";
 import { vi, expect, describe, it } from "vitest";
@@ -97,13 +98,13 @@ describe("update EService template", () => {
   it("should write on event-store for the update of an eService template (technology change: interface has to be deleted)", async () => {
     vi.spyOn(fileManager, "delete");
 
-    const interfaceDocument = {
+    const interfaceDocument: Document = {
       ...mockDocument,
       name: mockDocument.name,
       path: `${config.eserviceTemplateDocumentsPath}/${mockDocument.id}/${mockDocument.name}`,
     };
     const mockAsyncExchangeCallbackInterfaceDocument = getMockDocument();
-    const asyncExchangeCallbackInterfaceDocument = {
+    const asyncExchangeCallbackInterfaceDocument: Document = {
       ...mockAsyncExchangeCallbackInterfaceDocument,
       name: `${mockDocument.name}_callback`,
       path: `${config.eserviceTemplateDocumentsPath}/${mockAsyncExchangeCallbackInterfaceDocument.id}/${mockDocument.name}_callback`,
@@ -320,7 +321,7 @@ describe("update EService template", () => {
   ])(
     "should throw eserviceTemplateNotInDraftState if the eservice template version is in %s state",
     async () => {
-      const eserviceTemplate = {
+      const eserviceTemplate: EServiceTemplate = {
         ...mockEServiceTemplate,
         versions: [
           { ...mockVersion, state: eserviceTemplateVersionState.published },

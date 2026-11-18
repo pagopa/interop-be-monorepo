@@ -2,6 +2,9 @@ import { randomUUID } from "crypto";
 import { Attribute, unsafeBrandId } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 
+import type { Institution } from "../src/services/openDataExtractor.js";
+import type { InternalCertifiedAttribute } from "../src/services/openDataService.js";
+
 import {
   TenantSeed,
   getNewAttributes,
@@ -10,7 +13,10 @@ import { agency, aoo, attributes, uo } from "./expectation.js";
 
 describe("NewAttributes", async () => {
   it("create only attribute that are not present and that will be assigned to a tenant", async () => {
-    const registryData = {
+    const registryData: {
+      institutions: Institution[];
+      attributes: InternalCertifiedAttribute[];
+    } = {
       institutions: [...agency, ...aoo, ...uo],
       attributes,
     };
@@ -47,7 +53,10 @@ describe("NewAttributes", async () => {
   });
 
   it("doesn't create any attribute if already present in the platform", async () => {
-    const registryData = {
+    const registryData: {
+      institutions: Institution[];
+      attributes: InternalCertifiedAttribute[];
+    } = {
       institutions: [...agency, ...aoo, ...uo],
       attributes,
     };
@@ -89,7 +98,10 @@ describe("NewAttributes", async () => {
   });
 
   it("doesn't create any attribute if are not to assign to any tenant", async () => {
-    const registryData = {
+    const registryData: {
+      institutions: Institution[];
+      attributes: InternalCertifiedAttribute[];
+    } = {
       institutions: [...agency, ...aoo, ...uo],
       attributes,
     };

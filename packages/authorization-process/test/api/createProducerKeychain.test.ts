@@ -107,7 +107,7 @@ describe("API /producerKeychains authorization test", () => {
 
   it("Should return 400 if passed duplicated users in body", async () => {
     const userId = generateId();
-    const seed = {
+    const seed: authorizationApi.ProducerKeychainSeed = {
       ...producerKeychainSeed,
       members: [userId, userId, generateId()],
     };

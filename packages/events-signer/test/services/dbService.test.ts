@@ -1,7 +1,11 @@
 /* eslint-disable functional/no-let */
 
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { genericLogger, signatureServiceBuilder } from "pagopa-interop-commons";
+import {
+  genericLogger,
+  SignatureReference,
+  signatureServiceBuilder,
+} from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
@@ -24,7 +28,7 @@ describe("signatureServiceBuilder - Integration Tests", () => {
   it("should successfully save a signature reference and retrieve it", async () => {
     const safeStorageId = generateId();
     const signatureService = signatureServiceBuilder(dynamoDBClient, config);
-    const mockReference = {
+    const mockReference: SignatureReference = {
       safeStorageId,
       fileKind: "INTEROP_LEGAL_FACTS",
       fileName: "multa.pdf",

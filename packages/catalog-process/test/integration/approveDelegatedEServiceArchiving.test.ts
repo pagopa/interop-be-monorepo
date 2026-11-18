@@ -50,7 +50,7 @@ describe("approve delegated EService archiving request", () => {
     ...getMockTenant(),
     kind: producerTenantKind,
   };
-  const mockDelegateTenant = {
+  const mockDelegateTenant: Tenant = {
     ...getMockTenant(),
     kind: producerTenantKind,
   };
@@ -151,7 +151,7 @@ describe("approve delegated EService archiving request", () => {
         },
       };
 
-      const expectedEservice = {
+      const expectedEservice: EService = {
         ...eservice,
         archivingReason: mockEServiceArchivingRequest.archivingReason,
         descriptors: [expectedArchivingDescriptor],

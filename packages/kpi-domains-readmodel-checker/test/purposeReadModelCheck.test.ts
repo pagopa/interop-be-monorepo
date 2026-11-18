@@ -6,6 +6,7 @@ import {
 import {
   generateId,
   Purpose,
+  PurposeVersion,
   WithMetadata,
   purposeVersionState,
   purposeWaitingForApprovalReason,
@@ -102,7 +103,7 @@ describe("Check purpose readmodels", () => {
   );
 
   it("should detect differences if the waiting-for-approval reason is different", async () => {
-    const purposeVersion = {
+    const purposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
       waitingForApprovalReason:
         purposeWaitingForApprovalReason.dailyCallsPerConsumer,

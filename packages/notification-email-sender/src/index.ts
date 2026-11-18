@@ -60,6 +60,7 @@ const readModelServiceSQL = readModelServiceBuilderSQL({
 const templateService = buildHTMLTemplateService();
 const interopFeBaseUrl = config.interopFeBaseUrl;
 
+// eslint-disable-next-line interop/require-type-for-object
 const sesEmailsenderData = {
   label: config.senderLabel,
   mail: config.senderMail,

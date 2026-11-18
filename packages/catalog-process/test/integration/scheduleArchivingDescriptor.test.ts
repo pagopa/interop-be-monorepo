@@ -46,7 +46,7 @@ describe("schedule archiving of a descriptor", () => {
   const mockEService = getMockEService();
   const mockDescriptor = getMockDescriptor();
   const mockDocument = getMockDocument();
-  const mockGracePeriodDays = {
+  const mockGracePeriodDays: { gracePeriodDays: GracePeriodDays } = {
     gracePeriodDays: GracePeriodDays.parse(60),
   };
 

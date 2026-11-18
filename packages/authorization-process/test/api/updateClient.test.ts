@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { authorizationApi } from "pagopa-interop-api-clients";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
@@ -34,7 +35,10 @@ describe("API PATCH /clients/{clientId}", () => {
     },
     2
   );
-  const seed = { name: client.data.name, description: client.data.description };
+  const seed: authorizationApi.ClientUpdateSeed = {
+    name: client.data.name,
+    description: client.data.description,
+  };
   const makeRequest = async (
     role: AuthRole,
     body: object = seed,

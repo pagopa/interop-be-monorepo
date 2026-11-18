@@ -18,6 +18,8 @@ describe("API POST /producerKeychains test", () => {
     description: generateMock(z.string().min(10).max(250)),
     members: generateMock(z.array(z.string().uuid())),
   };
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const mockCreatedResource = {
     id: generateId(),
   };
@@ -46,6 +48,8 @@ describe("API POST /producerKeychains test", () => {
   });
 
   it("Should propagate 404 for a missing producer keychain member", async () => {
+    // TODO REVIEW THIS CHANGE
+    // eslint-disable-next-line interop/require-type-for-object
     const problem = {
       type: "about:blank",
       title: "Not Found",

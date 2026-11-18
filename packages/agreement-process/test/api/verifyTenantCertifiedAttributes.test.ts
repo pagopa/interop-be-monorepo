@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { agreementApi } from "pagopa-interop-api-clients";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
 import {
@@ -20,7 +21,9 @@ import {
 import { api, agreementService } from "../vitest.api.setup.js";
 
 describe("API GET /tenants/{tenantId}/eservices/{eserviceId}/descriptors/{descriptorId}/certifiedAttributes/validate test", () => {
-  const result = { hasCertifiedAttributes: true };
+  const result: agreementApi.HasCertifiedAttributes = {
+    hasCertifiedAttributes: true,
+  };
   const apiResponse = result;
 
   beforeEach(() => {

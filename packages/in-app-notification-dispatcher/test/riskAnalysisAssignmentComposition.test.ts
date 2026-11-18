@@ -9,6 +9,8 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   generateId,
+  EService,
+  Purpose,
   PurposeEventEnvelope,
   riskAnalysisReviewMode,
   riskAnalysisSigningState,
@@ -35,8 +37,8 @@ vi.unmock("pagopa-interop-notification-commons");
 describe("risk analysis assignment notification composition", () => {
   const producer = getMockTenant();
   const consumer = getMockTenant();
-  const eservice = { ...getMockEService(), producerId: producer.id };
-  const purpose = {
+  const eservice: EService = { ...getMockEService(), producerId: producer.id };
+  const purpose: Purpose = {
     ...getMockPurpose(),
     consumerId: consumer.id,
     eserviceId: eservice.id,

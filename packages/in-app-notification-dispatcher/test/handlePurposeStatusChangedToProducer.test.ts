@@ -14,6 +14,8 @@ import {
   PurposeId,
   toPurposeV2,
   purposeVersionState,
+  EService,
+  Purpose,
 } from "pagopa-interop-models";
 import {
   getNotificationRecipients,
@@ -37,7 +39,7 @@ describe("handlePurposeStatusChangedToProducer", () => {
   const eserviceId = generateId<EServiceId>();
   const purposeId = generateId<PurposeId>();
 
-  const eservice = {
+  const eservice: EService = {
     ...getMockEService(),
     id: eserviceId,
     producerId,
@@ -47,7 +49,7 @@ describe("handlePurposeStatusChangedToProducer", () => {
   const producerTenant = getMockTenant(producerId);
   const consumerTenant = getMockTenant(consumerId);
 
-  const purpose = {
+  const purpose: Purpose = {
     ...getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
     id: purposeId,
     eserviceId,
@@ -85,7 +87,7 @@ describe("handlePurposeStatusChangedToProducer", () => {
 
   it("should throw tenantNotFound when consumer tenant is not found", async () => {
     const unknownTenantId = generateId<TenantId>();
-    const purposeWithUnknownTenant = {
+    const purposeWithUnknownTenant: Purpose = {
       ...purpose,
       consumerId: unknownTenantId,
     };
@@ -107,7 +109,7 @@ describe("handlePurposeStatusChangedToProducer", () => {
 
   it("should throw eserviceNotFound when eservice is not found", async () => {
     const unknownEserviceId = generateId<EServiceId>();
-    const purposeWithUnknownEservice = {
+    const purposeWithUnknownEservice: Purpose = {
       ...purpose,
       eserviceId: unknownEserviceId,
     };

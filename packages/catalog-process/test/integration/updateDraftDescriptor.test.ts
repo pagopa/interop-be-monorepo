@@ -484,7 +484,7 @@ describe("updateDraftDescriptor", () => {
     const notExistingId1 = generateId();
     const notExistingId2 = generateId();
 
-    const descriptorSeed = {
+    const descriptorSeed: catalogApi.UpdateEServiceDescriptorSeed = {
       ...buildUpdateDescriptorSeed(mockDescriptor),
       attributes: {
         certified: [],

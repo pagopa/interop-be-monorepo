@@ -7,6 +7,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   EService,
+  Descriptor,
   EServiceId,
   descriptorState,
   generateId,
@@ -22,7 +23,7 @@ import {
 import { api, catalogService } from "../vitest.api.setup.js";
 
 describe("API /eservices/${eServiceId}/scheduleArchive DELETE authorization test", () => {
-  const descriptor = {
+  const descriptor: Descriptor = {
     ...getMockDescriptor(),
     state: descriptorState.archiving,
   };

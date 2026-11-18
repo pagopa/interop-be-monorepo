@@ -387,7 +387,10 @@ export async function getAttributesToAssign(
 
   return tenantSeeds
     .map((seed): tenantApi.InternalTenantSeed | undefined => {
-      const externalId = { origin: seed.origin, value: seed.originId };
+      const externalId: { origin: string; value: string } = {
+        origin: seed.origin,
+        value: seed.originId,
+      };
 
       const tenant = tenantsIndex.get(toTenantKey(externalId));
 

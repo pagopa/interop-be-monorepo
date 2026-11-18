@@ -201,7 +201,7 @@ describe("reject agreement", () => {
         descriptors: [descriptor],
       };
 
-      const agreement = {
+      const agreement: Agreement = {
         ...getMockAgreement(),
         eserviceId: eservice.id,
         producerId: eservice.producerId,
@@ -322,7 +322,7 @@ describe("reject agreement", () => {
   });
 
   it("should throw agreementNotInExpectedState when the agreement is not in a rejectable state", async () => {
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       state: randomArrayItem(
         Object.values(agreementState).filter(
@@ -345,7 +345,7 @@ describe("reject agreement", () => {
 
   it("should throw an eServiceNotFound error when the eService does not exist", async () => {
     await addOneEService(getMockEService());
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       state: randomArrayItem(agreementRejectableStates),
     };
@@ -370,7 +370,7 @@ describe("reject agreement", () => {
       descriptors: [descriptor],
     };
     const consumer = getMockTenant();
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       state: randomArrayItem(agreementRejectableStates),
       eserviceId: eservice.id,
@@ -397,7 +397,7 @@ describe("reject agreement", () => {
       descriptors: [getMockDescriptorPublished()],
     };
     const consumer = getMockTenant();
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       state: randomArrayItem(agreementRejectableStates),
       eserviceId: eservice.id,
@@ -427,7 +427,7 @@ describe("reject agreement", () => {
     };
     const consumer = getMockTenant();
     const delegate = getMockTenant();
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       state: randomArrayItem(agreementRejectableStates),
       eserviceId: eservice.id,
@@ -466,7 +466,7 @@ describe("reject agreement", () => {
       descriptors: [getMockDescriptorPublished()],
     };
     const consumer = getMockTenant();
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       state: randomArrayItem(agreementRejectableStates),
       eserviceId: eservice.id,
@@ -498,7 +498,7 @@ describe("reject agreement", () => {
   });
 
   it("should throw hyperlinkDetectionError when the rejectionReason contains a hyperlink", async () => {
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       state: randomArrayItem(agreementRejectableStates),
     };

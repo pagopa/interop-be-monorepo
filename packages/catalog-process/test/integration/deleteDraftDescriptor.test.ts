@@ -12,6 +12,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
+  Document,
   descriptorState,
   EService,
   EServiceDraftDescriptorDeletedV2,
@@ -81,7 +82,7 @@ describe("delete draft descriptor", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedEservice = {
+    const expectedEservice: EService = {
       ...eservice,
       descriptors: [publishedDescriptor],
     };
@@ -107,26 +108,26 @@ describe("delete draft descriptor", () => {
     const documentId1 = generateId<EServiceDocumentId>();
     const documentId2 = generateId<EServiceDocumentId>();
 
-    const document1 = {
+    const document1: Document = {
       ...mockDocument,
       id: documentId1,
       name: `${mockDocument.name}_1`,
       path: `${config.eserviceDocumentsPath}/${documentId1}/${mockDocument.name}_1`,
     };
-    const document2 = {
+    const document2: Document = {
       ...mockDocument,
       id: documentId2,
       name: `${mockDocument.name}_2`,
       path: `${config.eserviceDocumentsPath}/${documentId2}/${mockDocument.name}_2`,
     };
-    const interfaceDocument = {
+    const interfaceDocument: Document = {
       ...mockDocument,
       name: `${mockDocument.name}_interface`,
       path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}_interface`,
     };
     const asyncExchangeCallbackInterfaceDocumentId =
       generateId<EServiceDocumentId>();
-    const asyncExchangeCallbackInterfaceDocument = {
+    const asyncExchangeCallbackInterfaceDocument: Document = {
       ...mockDocument,
       id: asyncExchangeCallbackInterfaceDocumentId,
       name: `${mockDocument.name}_async_callback`,
@@ -226,7 +227,7 @@ describe("delete draft descriptor", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedEservice = {
+    const expectedEservice: EService = {
       ...eservice,
       descriptors: [publishedDescriptor],
     };

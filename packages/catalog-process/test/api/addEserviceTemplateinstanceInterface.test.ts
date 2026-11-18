@@ -239,7 +239,10 @@ describe("addEServiceTemplateInstanceInterface", () => {
         }
       );
 
-      const defaultBodies = {
+      const defaultBodies: {
+        Rest: catalogApi.TemplateInstanceInterfaceRESTSeed;
+        Soap: catalogApi.TemplateInstanceInterfaceSOAPSeed;
+      } = {
         Rest: restBody,
         Soap: soapBody,
       };

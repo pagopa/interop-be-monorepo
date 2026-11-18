@@ -2,7 +2,9 @@ import { eq } from "drizzle-orm";
 import { logger } from "pagopa-interop-commons";
 import {
   attributeInM2MEvent,
+  AttributeM2MEventSQL,
   tenantInM2MEvent,
+  TenantM2MEventSQL,
 } from "pagopa-interop-m2m-event-db-models";
 import { describe, expect, it, vi } from "vitest";
 
@@ -175,12 +177,12 @@ describe("deleteOldM2MEvents", () => {
   it("should delete m2m events regardless of event type", async () => {
     vi.setSystemTime(new Date("2024-01-15T10:00:00Z"));
 
-    const oldTenantM2MEventTypeCreated = {
+    const oldTenantM2MEventTypeCreated: TenantM2MEventSQL = {
       ...getTenantM2MEventSQLMock(new Date("2023-10-01T10:00:00Z")),
       eventType: "TENANT_CREATED",
     };
 
-    const oldTenantM2MEventTypeUpdated = {
+    const oldTenantM2MEventTypeUpdated: TenantM2MEventSQL = {
       ...getTenantM2MEventSQLMock(new Date("2023-10-05T10:00:00Z")),
       eventType: "TENANT_UPDATED",
     };
@@ -216,7 +218,7 @@ describe("deleteOldM2MEvents", () => {
       new Date("2023-10-05T10:00:00Z")
     );
 
-    const recentAttributeM2MEventUser1 = {
+    const recentAttributeM2MEventUser1: AttributeM2MEventSQL = {
       ...getAttributeM2MEventSQLMock(new Date("2023-12-01T10:00:00Z")),
       attributeId: oldAttributeM2MEventUser1.attributeId,
     };

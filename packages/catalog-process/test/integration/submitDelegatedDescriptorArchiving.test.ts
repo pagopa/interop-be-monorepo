@@ -45,13 +45,13 @@ import {
 
 describe("schedule archiving of an Descriptor with delegation", () => {
   const mockEService = getMockEService();
-  const mockDescriptor = {
+  const mockDescriptor: Descriptor = {
     ...getMockDescriptor(),
     state: descriptorState.deprecated,
     version: "1",
     interface: getMockDocument(),
   };
-  const mockLatestDescriptor = {
+  const mockLatestDescriptor: Descriptor = {
     ...getMockDescriptor(),
     state: descriptorState.published,
     version: "2",
@@ -65,7 +65,7 @@ describe("schedule archiving of an Descriptor with delegation", () => {
     ...getMockTenant(),
     kind: producerTenantKind,
   };
-  const mockDelegateTenant = {
+  const mockDelegateTenant: Tenant = {
     ...getMockTenant(),
     kind: producerTenantKind,
   };

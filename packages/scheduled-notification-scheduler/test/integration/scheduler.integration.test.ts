@@ -15,6 +15,7 @@ import {
 } from "pagopa-interop-scheduled-notification-db-models";
 import { describe, it, expect } from "vitest";
 
+import { ScheduleRemindersParams } from "../../src/services/schedulerService.js";
 import { scheduledNotificationDB, schedulerService } from "./utils.js";
 
 describe("scheduledNotificationScheduler integration", () => {
@@ -25,7 +26,7 @@ describe("scheduledNotificationScheduler integration", () => {
 
     const reminderDays = [7, 3, 1];
     const correlationId = generateId<CorrelationId>();
-    const params = {
+    const params: ScheduleRemindersParams = {
       eserviceId,
       descriptorId,
       archivableOn,

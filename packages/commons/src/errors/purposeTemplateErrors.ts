@@ -33,4 +33,4 @@ export const purposeTemplateErrorCodes = {
   disassociationEServiceTemplatesFromPurposeTemplateFailed: "0032",
   associationBetweenEServiceTemplateAndPurposeTemplateDoesNotExist: "0033",
   eServiceTemplateVersionPurposeTemplateNotFound: "0034",
-};
+} as const satisfies Record<string, string>;

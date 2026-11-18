@@ -289,9 +289,11 @@ describe("createPurposeFromTemplate", () => {
     );
 
     // this answer is editable, if it's set to YES,thirdPartiesRequestDataUsage becomes required and must be provided in request's seed
+    // eslint-disable-next-line interop/require-type-for-object
     const editableAnswer = { isRequestOnBehalfOfThirdParties: ["YES"] };
 
     // thirdPartiesRequestDataUsage depends on isRequestOnBehalfOfThirdParties when it's set to YES
+    // eslint-disable-next-line interop/require-type-for-object
     const dependentAnswer = {
       thirdPartiesRequestDataUsage: ["PA_ONLY"],
     };
@@ -557,7 +559,7 @@ describe("createPurposeFromTemplate", () => {
   });
 
   it("should succeed when requester is Consumer Delegate and the Purpose was created successfully", async () => {
-    const delegateTenant = { ...getMockTenant(), kind: tenantKind.PA };
+    const delegateTenant: Tenant = { ...getMockTenant(), kind: tenantKind.PA };
 
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedConsumer,
@@ -669,13 +671,13 @@ describe("createPurposeFromTemplate", () => {
     });
   });
   it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the Purpose was created successfully", async () => {
-    const producer = {
+    const producer: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
     };
 
-    const producerDelegate = {
+    const producerDelegate: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
@@ -702,13 +704,13 @@ describe("createPurposeFromTemplate", () => {
       state: delegationState.active,
     });
 
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
     };
 
-    const consumerDelegate = {
+    const consumerDelegate: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
@@ -1117,7 +1119,7 @@ describe("createPurposeFromTemplate", () => {
     );
   });
   it("should throw eServiceModeNotAllowed if chosen eservice is in receive mode", async () => {
-    const eservice = {
+    const eservice: EService = {
       ...publishedEservice,
       mode: eserviceMode.receive,
     };
@@ -1140,7 +1142,7 @@ describe("createPurposeFromTemplate", () => {
     );
   });
   it("should throw invalidPurposeTenantKind if purpose tenant kind is different from purpose template target tenant kind", async () => {
-    const privateTenant = {
+    const privateTenant: Tenant = {
       ...tenant,
       kind: tenantKind.PRIVATE,
     };
@@ -1156,7 +1158,7 @@ describe("createPurposeFromTemplate", () => {
       agreementState.active
     );
 
-    const seed = {
+    const seed: purposeApi.PurposeFromTemplateSeed = {
       ...purposeFromTemplateSeed,
       eserviceId: eService.id,
       consumerId: agreementEservice.consumerId,
@@ -1177,7 +1179,7 @@ describe("createPurposeFromTemplate", () => {
       )
     ).rejects.toThrowError(
       invalidPurposeTenantKind(
-        privateTenant.kind,
+        privateTenant.kind!,
         mockPurposeTemplateWithValidRiskAnalysis.targetTenantKind
       )
     );

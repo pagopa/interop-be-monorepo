@@ -65,4 +65,4 @@ export const purposeErrorCodes = {
   riskAnalysisReviewModeNotFound: "0065",
   riskAnalysisAlreadyApproved: "0066",
   riskAnalysisAlreadyRejected: "0067",
-};
+} as const satisfies Record<string, string>;

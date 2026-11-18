@@ -11,10 +11,14 @@ import { getMockBffApiAgreementListEntry } from "../../mockUtils.js";
 import { services, api } from "../../vitest.api.setup.js";
 
 describe("API GET /consumers/agreements", () => {
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const defaultQuery = {
     offset: 0,
     limit: 5,
   };
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const mockAgreements = {
     results: [
       getMockBffApiAgreementListEntry(),

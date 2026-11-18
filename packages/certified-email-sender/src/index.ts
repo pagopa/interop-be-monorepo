@@ -37,7 +37,8 @@ const readModelServiceSQL = readModelServiceBuilderSQL({
 const templateService = buildHTMLTemplateService();
 
 const pecEmailManager: EmailManagerPEC = initPecEmailManager(config);
-const pecEmailSenderData = {
+// TODO REVIEW THIS CHANGE
+const pecEmailSenderData: { label: string; mail: string } = {
   label: config.pecSenderLabel,
   mail: config.pecSenderMail,
 };

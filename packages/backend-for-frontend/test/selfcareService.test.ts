@@ -31,6 +31,8 @@ describe("selfcareService", () => {
 
     const service = selfcareServiceBuilder(clients);
     const authData = getMockAuthData();
+    // TODO REVIEW THIS CHANGE
+    // eslint-disable-next-line interop/require-type-for-object
     const ctx = {
       ...getBffMockContext(getMockContext({ authData })),
       logger: {

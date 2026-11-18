@@ -10,8 +10,10 @@ import {
 } from "../src/utils/digestAdmittedRoles.js";
 import { getMockTenantDigestData } from "./mockUtils.js";
 
+type EmptyDigest = { items: []; totalCount: 0 };
+
 const getRiskAnalysisOnlyDigestData = (): TenantDigestData => {
-  const empty = { items: [], totalCount: 0 };
+  const empty: EmptyDigest = { items: [], totalCount: 0 };
 
   return {
     ...getMockTenantDigestData(),
@@ -162,8 +164,8 @@ describe("hasVisibleDigestContent", () => {
   });
 
   it("should count delegated e-services awaiting approval as delegation content", () => {
-    const empty = { items: [], totalCount: 0 };
-    const data = {
+    const empty: EmptyDigest = { items: [], totalCount: 0 };
+    const data: TenantDigestData = {
       ...getMockTenantDigestData(),
       newEservices: empty,
       updatedEservices: empty,
@@ -210,8 +212,8 @@ describe("hasVisibleDigestContent", () => {
   });
 
   it("should return true when producer archiving data is the only content visible to the role", () => {
-    const empty = { items: [], totalCount: 0 };
-    const archivingOnlyData = {
+    const empty: EmptyDigest = { items: [], totalCount: 0 };
+    const archivingOnlyData: TenantDigestData = {
       ...getMockTenantDigestData(),
       newEservices: empty,
       updatedEservices: empty,

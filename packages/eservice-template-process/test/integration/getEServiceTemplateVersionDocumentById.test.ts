@@ -6,6 +6,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   EServiceTemplateId,
+  EServiceTemplate,
   EServiceTemplateVersion,
   EServiceTemplateVersionId,
   eserviceTemplateVersionState,
@@ -48,7 +49,7 @@ describe("getEServiceTemplateVersionDocumentById", () => {
       },
     };
 
-    const eServiceTemplate = {
+    const eServiceTemplate: EServiceTemplate = {
       ...mockEServiceTemplate,
       versions: [version],
     };
@@ -67,7 +68,7 @@ describe("getEServiceTemplateVersionDocumentById", () => {
     expect(document).toBeDefined();
   });
   it("should throw eServiceTemplate not found", async () => {
-    const eServiceTemplate = {
+    const eServiceTemplate: EServiceTemplate = {
       ...mockEServiceTemplate,
       versions: [mockEServiceTemplateVersion],
     };
@@ -88,7 +89,7 @@ describe("getEServiceTemplateVersionDocumentById", () => {
     ).rejects.toThrowError(eserviceTemplateNotFound(invalidEServiceTemplateId));
   });
   it("should throw eServiceTemplateVersion not found", async () => {
-    const eServiceTemplate = {
+    const eServiceTemplate: EServiceTemplate = {
       ...mockEServiceTemplate,
       versions: [mockEServiceTemplateVersion],
     };
@@ -131,7 +132,7 @@ describe("getEServiceTemplateVersionDocumentById", () => {
       state: "Published",
     };
 
-    const eServiceTemplate = {
+    const eServiceTemplate: EServiceTemplate = {
       ...mockEServiceTemplate,
       versions: [versionDraft, versionPublished],
     };
@@ -163,7 +164,7 @@ describe("getEServiceTemplateVersionDocumentById", () => {
       state: "Published",
     };
 
-    const eServiceTemplate = {
+    const eServiceTemplate: EServiceTemplate = {
       ...mockEServiceTemplate,
       versions: [version],
     };

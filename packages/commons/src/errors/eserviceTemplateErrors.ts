@@ -38,4 +38,4 @@ export const eserviceTemplateErrorCodes = {
   missingAsyncExchangeCallbackInterface: "0039",
   attributeDiscreteConfigNotAllowed: "0040",
   interfaceDocumentNotUpdatable: "0041",
-};
+} as const satisfies Record<string, string>;

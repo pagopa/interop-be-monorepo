@@ -21,6 +21,7 @@ import {
   eserviceTemplateVersionState,
   EServiceTemplateVersionPublishedV2,
   tenantKind,
+  Tenant,
   EServiceTemplateVersionId,
   eserviceMode,
   RiskAnalysis,
@@ -265,7 +266,7 @@ describe("publishEServiceTemplateVersion", () => {
   });
 
   it("should throw missingRiskAnalysis if the eservice template mode is receive and doesn't have any risk analysis", async () => {
-    const tenant = {
+    const tenant: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
@@ -299,13 +300,13 @@ describe("publishEServiceTemplateVersion", () => {
   });
 
   it("should throw riskAnalysisValidationFailed if the eservice template mode is receive doesn't have a valid risk analysis", async () => {
-    const tenant = {
+    const tenant: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
 
     const mockValidRiskAnalysis = getMockValidEServiceTemplateRiskAnalysis(
-      tenant.kind
+      tenantKind.PA
     );
     const invalidRiskAnalysis: RiskAnalysis = {
       ...mockValidRiskAnalysis,
@@ -348,7 +349,7 @@ describe("publishEServiceTemplateVersion", () => {
   });
 
   it("shouldn't throw riskAnalysisValidationFailed if the eservice template mode isn't reveive even if doesn't have any risk analysis", async () => {
-    const tenant = {
+    const tenant: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
@@ -383,15 +384,15 @@ describe("publishEServiceTemplateVersion", () => {
   });
 
   it("shouldn't throw riskAnalysisValidationFailed if the eservice template mode isn't receive even if doesn't have a valid risk analysis", async () => {
-    const tenant = {
+    const tenant: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
 
     const mockValidRiskAnalysis = getMockValidEServiceTemplateRiskAnalysis(
-      tenant.kind
+      tenantKind.PA
     );
-    const invalidRiskAnalysis = {
+    const invalidRiskAnalysis: RiskAnalysis = {
       ...mockValidRiskAnalysis,
       riskAnalysisForm: {
         ...mockValidRiskAnalysis.riskAnalysisForm,

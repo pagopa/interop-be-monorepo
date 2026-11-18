@@ -31,6 +31,7 @@ describe("notificationTenantLifecycleProcessor", async () => {
   const correlationId = generateId<CorrelationId>();
   const mockToken = "mockToken";
 
+  // eslint-disable-next-line interop/require-type-for-object
   const expectedHeaders = {
     "X-Correlation-Id": correlationId,
     Authorization: `Bearer ${mockToken}`,

@@ -12,6 +12,7 @@ import {
 import {
   Descriptor,
   descriptorState,
+  Document,
   EService,
   EServiceDescriptorDocumentDeletedV2,
   toEServiceV2,
@@ -56,7 +57,7 @@ describe("delete Document", () => {
     async (state) => {
       vi.spyOn(fileManager, "delete");
 
-      const document = {
+      const document: Document = {
         ...mockDocument,
         path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}`,
       };
@@ -138,7 +139,7 @@ describe("delete Document", () => {
   it("should write on event-store for the deletion of a document that is the descriptor interface, and delete the file from the bucket", async () => {
     vi.spyOn(fileManager, "delete");
 
-    const interfaceDocument = {
+    const interfaceDocument: Document = {
       ...mockDocument,
       path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}`,
     };
@@ -221,7 +222,7 @@ describe("delete Document", () => {
   it("should write on event-store for the deletion of a document that is the descriptor interface, and delete the file from the bucket (delegate)", async () => {
     vi.spyOn(fileManager, "delete");
 
-    const interfaceDocument = {
+    const interfaceDocument: Document = {
       ...mockDocument,
       path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}`,
     };
@@ -478,12 +479,11 @@ describe("delete Document", () => {
   });
   it("should throw templateInstanceNotAllowed if the templateId is defined and we are deleting a document with kind DOCUMENT", async () => {
     const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
-    const document = { ...mockDocument, kind: "DOCUMENT" };
 
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.draft,
-      docs: [document],
+      docs: [mockDocument],
     };
     const eService: EService = {
       ...mockEService,

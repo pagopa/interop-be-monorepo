@@ -10,6 +10,7 @@ import {
   randomArrayItem,
 } from "pagopa-interop-commons-test";
 import {
+  Agreement,
   AgreementDeletedV2,
   AgreementId,
   agreementState,
@@ -48,7 +49,7 @@ describe("delete agreement", () => {
         getMockConsumerDocument(agreementId, "doc1"),
         getMockConsumerDocument(agreementId, "doc2"),
       ];
-      const agreement = {
+      const agreement: Agreement = {
         ...getMockAgreement(),
         id: agreementId,
         state,
@@ -109,7 +110,7 @@ describe("delete agreement", () => {
       getMockConsumerDocument(agreementId, "doc2"),
     ];
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       id: agreementId,
       state: randomArrayItem(agreementDeletableStates),
@@ -178,7 +179,7 @@ describe("delete agreement", () => {
   it("should throw tenantIsNotTheConsumer when the requester is the Consumer but there is a Consumer Delegation", async () => {
     const authData = getMockAuthData();
 
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       consumerId: authData.organizationId,
     };
@@ -228,7 +229,7 @@ describe("delete agreement", () => {
   });
 
   it("should throw agreementNotInExpectedState when the agreement is not in a deletable state", async () => {
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       state: randomArrayItem(
         Object.values(agreementState).filter(
@@ -253,7 +254,7 @@ describe("delete agreement", () => {
     config.s3Bucket = "invalid-bucket"; // configure an invalid bucket to force a failure
 
     const agreementId = generateId<AgreementId>();
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       id: agreementId,
       state: randomArrayItem(agreementDeletableStates),

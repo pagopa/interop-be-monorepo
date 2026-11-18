@@ -13,6 +13,7 @@ import {
   generateId,
   delegationKind,
   delegationState,
+  Agreement,
   AgreementId,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
@@ -36,13 +37,13 @@ describe("get agreement", () => {
     const consumer = getMockTenant();
     const producerDelegate = getMockTenant();
     const consumerDelegate = getMockTenant();
-    const eservice = {
+    const eservice: EService = {
       ...getMockEService(),
       producerId: producer.id,
       consumerId: consumer.id,
       descriptors: [getMockDescriptorPublished()],
     };
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(eservice.id),
       descriptorId: eservice.descriptors[0].id,
       producerId: producer.id,

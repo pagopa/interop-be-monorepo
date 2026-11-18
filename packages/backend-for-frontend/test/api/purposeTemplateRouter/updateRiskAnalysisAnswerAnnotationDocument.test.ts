@@ -44,6 +44,8 @@ describe("API POST /purposeTemplates/:id/riskAnalysis/answers/:answerId/annotati
       ],
     };
 
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const mockValidRequestParameters = {
     purposeTemplateId: mockPurposeTemplateId,
     answerId: mockAnswerId,

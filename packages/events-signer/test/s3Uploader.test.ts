@@ -16,7 +16,10 @@ describe("uploadPreparedFileToS3", () => {
   });
 
   it("should successfully upload a prepared file to S3 and return its details", async () => {
-    const mockPreparedFile = {
+    // TODO REVIEW THIS CHANGE
+    const mockPreparedFile: Parameters<typeof uploadPreparedFileToS3>[0] & {
+      resourceId: string;
+    } = {
       fileContentBuffer: Buffer.from("test content"),
       fileName: "test-file.ndjson.gz",
       filePath: "path/to",
@@ -53,7 +56,8 @@ describe("uploadPreparedFileToS3", () => {
   });
 
   it("should throw genericInternalError if fileManager.storeBytes fails", async () => {
-    const mockPreparedFile = {
+    // TODO REVIEW THIS CHANGE
+    const mockPreparedFile: Parameters<typeof uploadPreparedFileToS3>[0] = {
       fileContentBuffer: Buffer.from("test content"),
       fileName: "failing-file.ndjson.gz",
       filePath: "path/to",

@@ -11,10 +11,14 @@ import { getMockBffApiDelegationTenant } from "../../mockUtils.js";
 import { api, clients } from "../../vitest.api.setup.js";
 
 describe("API GET /consumers/delegations/delegators", () => {
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const defaultQuery = {
     offset: 0,
     limit: 5,
   };
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const mockClientReponse = {
     results: [
       getMockBffApiDelegationTenant(),

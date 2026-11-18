@@ -43,7 +43,7 @@ describe("Events V1", async () => {
         ...getMockClient(),
         keys: [],
       };
-      const mockKey = { ...getMockKey(), encodedPem: base64Key };
+      const mockKey: Key = { ...getMockKey(), encodedPem: base64Key };
       const jwkKey = keyToClientJWKKey(mockKey, mockClient.id);
 
       await clientJWKKeyWriterService.upsertClientJWKKey(jwkKey, 1);
@@ -92,7 +92,7 @@ describe("Events V1", async () => {
 
   it("KeyDeleted", async () => {
     const clientId: ClientId = generateId();
-    const mockKey = { ...getMockKey(), encodedPem: base64Key };
+    const mockKey: Key = { ...getMockKey(), encodedPem: base64Key };
     const jwkKey = keyToClientJWKKey(mockKey, clientId);
 
     const mockClient: Client = {

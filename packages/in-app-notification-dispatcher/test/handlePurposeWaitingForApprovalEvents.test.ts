@@ -5,9 +5,13 @@ import {
   getMockEService,
 } from "pagopa-interop-commons-test";
 import {
+  Purpose,
+  PurposeVersion,
   generateId,
   toPurposeV2,
   PurposeEventEnvelope,
+  PurposeId,
+  PurposeV2,
   purposeVersionState,
   purposeWaitingForApprovalReason,
 } from "pagopa-interop-models";
@@ -28,8 +32,16 @@ vi.mock(
 );
 
 describe("waiting-for-approval in-app event routing", () => {
+  type EventEnvelopeMetadata = {
+    event_version: 2;
+    stream_id: PurposeId;
+    sequence_num: number;
+    version: number;
+    log_date: Date;
+  };
+
   const eservice = getMockEService();
-  const purpose = { ...getMockPurpose(), eserviceId: eservice.id };
+  const purpose: Purpose = { ...getMockPurpose(), eserviceId: eservice.id };
   const { logger } = getMockContext({});
 
   beforeEach(async () => {
@@ -45,18 +57,18 @@ describe("waiting-for-approval in-app event routing", () => {
     "NewPurposeVersionWaitingForApproval",
     "PurposeVersionOverQuotaUnsuspended",
   ] as const)("forwards the reason for %s", async (type) => {
-    const envelope = {
+    const envelope: EventEnvelopeMetadata = {
       event_version: 2 as const,
       stream_id: purpose.id,
       sequence_num: 1,
       version: 1,
       log_date: new Date(),
     };
-    const waitingVersion = {
+    const waitingVersion: PurposeVersion = {
       ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
       waitingForApprovalReason: purposeWaitingForApprovalReason.dailyCallsTotal,
     };
-    const data = {
+    const data: { purpose: PurposeV2 } = {
       purpose: toPurposeV2({
         ...purpose,
         versions: [
@@ -92,18 +104,18 @@ describe("waiting-for-approval in-app event routing", () => {
     async (type) => {
       const warn = vi.spyOn(logger, "warn");
       warn.mockClear();
-      const envelope = {
+      const envelope: EventEnvelopeMetadata = {
         event_version: 2 as const,
         stream_id: purpose.id,
         sequence_num: 1,
         version: 1,
         log_date: new Date(),
       };
-      const waitingVersion = {
+      const waitingVersion: PurposeVersion = {
         ...getMockPurposeVersion(purposeVersionState.waitingForApproval),
         waitingForApprovalReason: undefined,
       };
-      const data = {
+      const data: { purpose: PurposeV2 } = {
         purpose: toPurposeV2({
           ...purpose,
           versions: [

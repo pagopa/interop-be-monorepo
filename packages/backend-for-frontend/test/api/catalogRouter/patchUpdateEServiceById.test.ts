@@ -116,6 +116,8 @@ describe("API PATCH /eservices/:eServiceId", () => {
   it.each([400, 403, 404, 409])(
     "Should propagate process status %s without retrying",
     async (status) => {
+      // TODO REVIEW THIS CHANGE
+      // eslint-disable-next-line interop/require-type-for-object
       const problem = {
         type: "about:blank",
         title: "Catalog update failed",

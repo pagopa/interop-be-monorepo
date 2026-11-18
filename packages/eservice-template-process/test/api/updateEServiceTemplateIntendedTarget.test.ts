@@ -24,7 +24,7 @@ describe("API POST /templates/:templateId/intendedTarget/update", () => {
   const mockEserviceTemplate = getMockEServiceTemplate();
   const serviceResponse = getMockWithMetadata(mockEserviceTemplate);
 
-  const intendedTarget = {
+  const intendedTarget: { intendedTarget: string } = {
     intendedTarget: "test of the intended target",
   };
 

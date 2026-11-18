@@ -63,6 +63,8 @@ const tenantNotFoundAxiosApiError = new AxiosError(
   }
 );
 
+// TODO REVIEW THIS CHANGE
+// eslint-disable-next-line interop/require-type-for-object
 const rateLimiterStatus = {
   remaining: 100,
   reset: 1000,
@@ -165,11 +167,15 @@ const authorizationService = authorizationServiceBuilder(
 );
 
 const authData = getMockAuthData(generateId<TenantId>());
+// TODO REVIEW THIS CHANGE
+// eslint-disable-next-line interop/require-type-for-object
 const headers = {
   "X-Correlation-Id": generateId<CorrelationId>(),
   "X-Forwarded-For": "test-ip",
   Authorization: `Bearer test-token`,
 };
+// TODO REVIEW THIS CHANGE
+// eslint-disable-next-line interop/require-type-for-object
 const mockContext = {
   ...getMockContext({ authData }),
   headers,

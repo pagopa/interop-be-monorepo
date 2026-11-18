@@ -174,7 +174,10 @@ const setupCallbackScenario = async (overrides?: {
 
   // Override token-generation-states state fields BEFORE callback_invocation
   // (start_interaction needs them ACTIVE; callback_invocation reads them via GSI Purpose)
-  const tokenGenStatesStateOverrides = {
+  // TODO REVIEW THIS CHANGE
+  const tokenGenStatesStateOverrides: Partial<
+    Record<"agreementState" | "purposeState" | "descriptorState", { S: string }>
+  > = {
     ...(overrides?.tokenGenStatesAgreementStateOverride && {
       agreementState: { S: overrides.tokenGenStatesAgreementStateOverride },
     }),

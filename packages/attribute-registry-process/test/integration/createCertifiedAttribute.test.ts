@@ -142,7 +142,7 @@ describe("certified attribute creation", () => {
     });
   });
   it("should throw attributeDuplicate if an attribute with the same name OR code and origin already exists, case insensitive", async () => {
-    const attribute = {
+    const attribute: Attribute = {
       ...mockAttribute,
       code: "123456ab",
     };

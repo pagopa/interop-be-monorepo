@@ -10,6 +10,7 @@ import {
   sortAgreementV2,
 } from "pagopa-interop-commons-test";
 import {
+  Agreement,
   AgreementId,
   DraftAgreementUpdatedV2,
   TenantId,
@@ -37,7 +38,7 @@ import {
 
 describe("update agreement", () => {
   it("should succeed when requester is Consumer and the Agreement is in an updatable state", async () => {
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       state: randomArrayItem(agreementUpdatableStates),
     };
@@ -102,7 +103,7 @@ describe("update agreement", () => {
   });
 
   it("should throw agreementNotInExpectedState when the agreement is not in an updatable state", async () => {
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       state: randomArrayItem(
         Object.values(agreementState).filter(
@@ -125,7 +126,7 @@ describe("update agreement", () => {
 
   it("should succeed when requester is Consumer Delegate and the Agreement is in an updatable state", async () => {
     const authData = getMockAuthData();
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       state: randomArrayItem(agreementUpdatableStates),
     };
@@ -173,7 +174,7 @@ describe("update agreement", () => {
 
   it("should throw tenantIsNotTheDelegateConsumer when the requester is the Consumer but there is a Consumer Delegation", async () => {
     const authData = getMockAuthData();
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       consumerId: authData.organizationId,
     };

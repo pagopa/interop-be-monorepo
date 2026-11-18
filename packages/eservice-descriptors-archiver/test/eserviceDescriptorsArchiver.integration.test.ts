@@ -7,8 +7,12 @@ import {
   getMockEService,
 } from "pagopa-interop-commons-test";
 import {
+  Agreement,
+  ArchivingSchedule,
   CorrelationId,
+  Descriptor,
   DescriptorState,
+  EService,
   EServiceId,
   GracePeriodDays,
   TenantId,
@@ -40,7 +44,10 @@ describe("EService Descriptors Archiver", async () => {
   describe("archiveDescriptorsForArchivedAgreement", async () => {
     const testCorrelationId: CorrelationId = generateId();
     const testToken = "mockToken";
-    const testHeaders = {
+    const testHeaders: {
+      "X-Correlation-Id": CorrelationId;
+      Authorization: string;
+    } = {
       "X-Correlation-Id": testCorrelationId,
       Authorization: `Bearer ${testToken}`,
     };
@@ -67,17 +74,17 @@ describe("EService Descriptors Archiver", async () => {
 
     it("should call archive Descriptor when all Agreements are Archived and the Descriptor is deprecated", async () => {
       const producerId: TenantId = generateId();
-      const descriptor = {
+      const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
         state: descriptorState.deprecated,
       };
 
-      const eservice = {
+      const eservice: EService = {
         ...getMockEService(),
         producerId,
         descriptors: [descriptor],
       };
-      const archivedAgreement = {
+      const archivedAgreement: Agreement = {
         ...getMockAgreement(
           eservice.id,
           generateId<TenantId>(),
@@ -88,7 +95,7 @@ describe("EService Descriptors Archiver", async () => {
       };
 
       // Relating agreements: same descriptor, same eservice, different consumer
-      const otherAgreement1 = {
+      const otherAgreement1: Agreement = {
         ...getMockAgreement(
           eservice.id,
           generateId<TenantId>(),
@@ -98,7 +105,7 @@ describe("EService Descriptors Archiver", async () => {
         producerId,
       };
 
-      const otherAgreement2 = {
+      const otherAgreement2: Agreement = {
         ...getMockAgreement(
           eservice.id,
           generateId<TenantId>(),
@@ -136,17 +143,17 @@ describe("EService Descriptors Archiver", async () => {
 
     it("should not reject when the Descriptor is already archived", async () => {
       const producerId: TenantId = generateId();
-      const descriptor = {
+      const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
         state: descriptorState.deprecated,
       };
 
-      const eservice = {
+      const eservice: EService = {
         ...getMockEService(),
         producerId,
         descriptors: [descriptor],
       };
-      const archivedAgreement = {
+      const archivedAgreement: Agreement = {
         ...getMockAgreement(
           eservice.id,
           generateId<TenantId>(),
@@ -156,7 +163,7 @@ describe("EService Descriptors Archiver", async () => {
         producerId,
       };
 
-      const otherAgreement1 = {
+      const otherAgreement1: Agreement = {
         ...getMockAgreement(
           eservice.id,
           generateId<TenantId>(),
@@ -166,7 +173,7 @@ describe("EService Descriptors Archiver", async () => {
         producerId,
       };
 
-      const otherAgreement2 = {
+      const otherAgreement2: Agreement = {
         ...getMockAgreement(
           eservice.id,
           generateId<TenantId>(),
@@ -209,23 +216,23 @@ describe("EService Descriptors Archiver", async () => {
       "should call archive Descriptor when all Agreements are Archived, the Descriptor is %s, and a newer Descriptor exists",
       async (state) => {
         const producerId: TenantId = generateId();
-        const descriptor = {
+        const descriptor: Descriptor = {
           ...getMockDescriptorPublished(),
           state,
           version: "1",
         };
 
-        const newerDescriptor = {
+        const newerDescriptor: Descriptor = {
           ...getMockDescriptorPublished(),
           version: "2",
         };
 
-        const eservice = {
+        const eservice: EService = {
           ...getMockEService(),
           producerId,
           descriptors: [descriptor, newerDescriptor],
         };
-        const archivedAgreement = {
+        const archivedAgreement: Agreement = {
           ...getMockAgreement(
             eservice.id,
             generateId<TenantId>(),
@@ -236,7 +243,7 @@ describe("EService Descriptors Archiver", async () => {
         };
 
         // Relating agreements: same descriptor, same eservice, different consumer
-        const otherAgreement1 = {
+        const otherAgreement1: Agreement = {
           ...getMockAgreement(
             eservice.id,
             generateId<TenantId>(),
@@ -246,7 +253,7 @@ describe("EService Descriptors Archiver", async () => {
           producerId,
         };
 
-        const otherAgreement2 = {
+        const otherAgreement2: Agreement = {
           ...getMockAgreement(
             eservice.id,
             generateId<TenantId>(),
@@ -287,12 +294,12 @@ describe("EService Descriptors Archiver", async () => {
       const producerId: TenantId = generateId();
       const descriptor = getMockDescriptorPublished();
 
-      const eservice = {
+      const eservice: EService = {
         ...getMockEService(),
         producerId,
         descriptors: [descriptor],
       };
-      const archivedAgreement = {
+      const archivedAgreement: Agreement = {
         ...getMockAgreement(
           eservice.id,
           generateId<TenantId>(),
@@ -303,7 +310,7 @@ describe("EService Descriptors Archiver", async () => {
       };
 
       // Relating agreements: same descriptor, same eservice, different consumer
-      const otherAgreement1 = {
+      const otherAgreement1: Agreement = {
         ...getMockAgreement(
           eservice.id,
           generateId<TenantId>(),
@@ -313,7 +320,7 @@ describe("EService Descriptors Archiver", async () => {
         producerId,
       };
 
-      const otherAgreement2 = {
+      const otherAgreement2: Agreement = {
         ...getMockAgreement(
           eservice.id,
           generateId<TenantId>(),
@@ -356,17 +363,17 @@ describe("EService Descriptors Archiver", async () => {
       "should not call archive Descriptor when the Descriptor is not in a valid state (%s)",
       async (state) => {
         const producerId: TenantId = generateId();
-        const descriptor = {
+        const descriptor: Descriptor = {
           ...getMockDescriptorPublished(),
           state,
         };
 
-        const eservice = {
+        const eservice: EService = {
           ...getMockEService(),
           producerId,
           descriptors: [descriptor],
         };
-        const archivedAgreement = {
+        const archivedAgreement: Agreement = {
           ...getMockAgreement(
             eservice.id,
             generateId<TenantId>(),
@@ -377,7 +384,7 @@ describe("EService Descriptors Archiver", async () => {
         };
 
         // Relating agreements: same descriptor, same eservice, different consumer
-        const otherAgreement1 = {
+        const otherAgreement1: Agreement = {
           ...getMockAgreement(
             eservice.id,
             generateId<TenantId>(),
@@ -387,7 +394,7 @@ describe("EService Descriptors Archiver", async () => {
           producerId,
         };
 
-        const otherAgreement2 = {
+        const otherAgreement2: Agreement = {
           ...getMockAgreement(
             eservice.id,
             generateId<TenantId>(),
@@ -423,18 +430,18 @@ describe("EService Descriptors Archiver", async () => {
       "should not call archive Descriptor when the Descriptor is %s but no newer Descriptor exists",
       async (state) => {
         const producerId: TenantId = generateId();
-        const descriptor = {
+        const descriptor: Descriptor = {
           ...getMockDescriptorPublished(),
           state,
           version: "1",
         };
 
-        const eservice = {
+        const eservice: EService = {
           ...getMockEService(),
           producerId,
           descriptors: [descriptor],
         };
-        const archivedAgreement = {
+        const archivedAgreement: Agreement = {
           ...getMockAgreement(
             eservice.id,
             generateId<TenantId>(),
@@ -445,7 +452,7 @@ describe("EService Descriptors Archiver", async () => {
         };
 
         // Relating agreements: same descriptor, same eservice, different consumer
-        const otherAgreement1 = {
+        const otherAgreement1: Agreement = {
           ...getMockAgreement(
             eservice.id,
             generateId<TenantId>(),
@@ -455,7 +462,7 @@ describe("EService Descriptors Archiver", async () => {
           producerId,
         };
 
-        const otherAgreement2 = {
+        const otherAgreement2: Agreement = {
           ...getMockAgreement(
             eservice.id,
             generateId<TenantId>(),
@@ -495,33 +502,33 @@ describe("EService Descriptors Archiver", async () => {
       async (state, gracePeriodDaysValue) => {
         const producerId: TenantId = generateId();
 
-        const eserviceArchivingSchedule = {
+        const eserviceArchivingSchedule: ArchivingSchedule = {
           startedAt: new Date(),
           archivableOn: new Date(),
           scope: archivingScope.eservice,
           gracePeriodDays: gracePeriodDaysValue,
         };
 
-        const previousDescriptor = {
+        const previousDescriptor: Descriptor = {
           ...getMockDescriptorPublished(),
           state,
           version: "1",
           archivingSchedule: eserviceArchivingSchedule,
         };
 
-        const descriptor = {
+        const descriptor: Descriptor = {
           ...getMockDescriptorPublished(),
           state,
           version: "2",
           archivingSchedule: eserviceArchivingSchedule,
         };
 
-        const eservice = {
+        const eservice: EService = {
           ...getMockEService(),
           descriptors: [previousDescriptor, descriptor],
         };
 
-        const archivedAgreement = {
+        const archivedAgreement: Agreement = {
           ...getMockAgreement(
             eservice.id,
             generateId<TenantId>(),
@@ -572,11 +579,11 @@ describe("EService Descriptors Archiver", async () => {
 
     it("should throw an error when the Descriptor is not found", async () => {
       const producerId: TenantId = generateId();
-      const eservice = {
+      const eservice: EService = {
         ...getMockEService(),
         producerId,
       };
-      const archivedAgreement = {
+      const archivedAgreement: Agreement = {
         ...getMockAgreement(
           eservice.id,
           generateId<TenantId>(),

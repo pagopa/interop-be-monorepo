@@ -58,7 +58,7 @@ describe("updateTenantNotificationConfig", () => {
       messageType: TenantNotificationConfigUpdatedV2,
       payload: writtenEvent.data,
     });
-    const expectedTenantNotificationConfig = {
+    const expectedTenantNotificationConfig: TenantNotificationConfig = {
       id: serviceReturnValue.id,
       tenantId,
       enabled: notificationConfigSeed.enabled,

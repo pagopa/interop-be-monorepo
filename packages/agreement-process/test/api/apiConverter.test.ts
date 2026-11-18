@@ -5,8 +5,8 @@ import {
   getMockAgreementAttribute,
 } from "pagopa-interop-commons-test";
 import {
+  Agreement,
   generateId,
-  unsafeBrandId,
   badRequestError,
   CompactTenant,
   tenantAttributeType,
@@ -185,7 +185,7 @@ describe("fromApiCompactTenant API converter", () => {
 describe("agreementToApiAgreement API converter", () => {
   it("converts certified discrete agreement attributes", () => {
     const certifiedDiscreteAttribute = getMockAgreementAttribute();
-    const agreement = {
+    const agreement: Agreement = {
       ...getMockAgreement(),
       certifiedDiscreteAttributes: [certifiedDiscreteAttribute],
     };

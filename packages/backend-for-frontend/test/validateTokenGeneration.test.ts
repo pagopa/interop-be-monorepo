@@ -28,6 +28,8 @@ describe("validateTokenGeneration", () => {
   const MOCK_DPOP_DURATION_SECONDS = 60;
   const MOCK_KID = "kid123";
   const MOCK_PURPOSE_ID = generateId<PurposeId>();
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const MOCK_JWT_PAYLOAD = {
     sub: MOCK_CLIENT_ID,
     jti: "jti123",

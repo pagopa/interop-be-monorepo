@@ -128,6 +128,8 @@ describe("importEService", () => {
   const zip = new AdmZip();
   const jsonFilename = "configuration.json";
 
+  // TODO REVIEW THIS CHANGE
+  // eslint-disable-next-line interop/require-type-for-object
   const configuration = {
     name: "Test EService",
     description: "Descrizione del test EService",
@@ -195,6 +197,8 @@ describe("importEService", () => {
       const rootFolderName = "myRoot";
       const docPath = "documents/doc1.pdf";
 
+      // TODO REVIEW THIS CHANGE
+      // eslint-disable-next-line interop/require-type-for-object
       const configurationWithDoc = {
         ...configuration,
         descriptor: {
@@ -248,6 +252,8 @@ describe("importEService", () => {
 
     it("should import async exchange configuration and callback interface", async () => {
       const callbackPath = `${ASYNC_EXCHANGE_CALLBACK_INTERFACE_FOLDER}/callback-interface.yaml`;
+      // TODO REVIEW THIS CHANGE
+      // eslint-disable-next-line interop/require-type-for-object
       const asyncExchangeProperties = {
         responseTime: 60,
         resourceAvailableTime: 120,
@@ -255,6 +261,8 @@ describe("importEService", () => {
         bulk: false,
         maxResultSet: 100,
       };
+      // TODO REVIEW THIS CHANGE
+      // eslint-disable-next-line interop/require-type-for-object
       const asyncConfiguration = {
         ...configuration,
         asyncExchange: true,
@@ -387,6 +395,8 @@ describe("importEService", () => {
       fs.unlinkSync(zipPath);
     });
     it("should should throw invalidZipStructure when some docs are undefined", async () => {
+      // TODO REVIEW THIS CHANGE
+      // eslint-disable-next-line interop/require-type-for-object
       const configuration = {
         name: "Test EService",
         description: "Descrizione del test EService",
@@ -437,6 +447,8 @@ describe("importEService", () => {
       fs.unlinkSync(zipPath);
     });
     it("should should throw invalidZipStructure when error during interface reading", async () => {
+      // TODO REVIEW THIS CHANGE
+      // eslint-disable-next-line interop/require-type-for-object
       const configuration = {
         name: "Test EService",
         description: "Descrizione del test EService",
@@ -518,6 +530,8 @@ describe("importEService", () => {
       fs.unlinkSync(zipPath);
     });
     it("should delete created eservice and re-throw error when createRiskAnalysis fails", async () => {
+      // TODO REVIEW THIS CHANGE
+      // eslint-disable-next-line interop/require-type-for-object
       const configurationWithRiskAnalysis = {
         ...configuration,
         riskAnalysis: [

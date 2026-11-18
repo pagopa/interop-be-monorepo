@@ -763,7 +763,7 @@ describe("compute Agreements state by attribute", () => {
       suspendedByPlatform: false,
     };
 
-    const nonUpdatableAgreement = {
+    const nonUpdatableAgreement: Agreement = {
       ...getMockAgreement(
         eservice1.id,
         consumer.id,

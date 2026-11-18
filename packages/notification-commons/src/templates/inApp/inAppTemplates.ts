@@ -17,6 +17,7 @@ export type EserviceNewVersionApprovedRejectedToDelegateEventType =
   | "EServiceDescriptorApprovedByDelegator"
   | "EServiceDescriptorRejectedByDelegator";
 
+// eslint-disable-next-line interop/require-type-for-object
 export const inAppTemplates = {
   purposeRiskAnalysisSignedToAdmin: (
     purposeTitle: string,

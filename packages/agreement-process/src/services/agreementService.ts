@@ -1029,7 +1029,7 @@ export function agreementServiceBuilder(
 
       const newDocument = apiAgreementDocumentToAgreementDocument(documentSeed);
 
-      const updatedAgreement = {
+      const updatedAgreement: Agreement = {
         ...agreement.data,
         consumerDocuments: [...agreement.data.consumerDocuments, newDocument],
       };
@@ -1219,7 +1219,7 @@ export function agreementServiceBuilder(
 
       await fileManager.delete(config.s3Bucket, existentDocument.path, logger);
 
-      const updatedAgreement = {
+      const updatedAgreement: Agreement = {
         ...agreement.data,
         consumerDocuments: agreement.data.consumerDocuments.filter(
           (d) => d.id !== documentId

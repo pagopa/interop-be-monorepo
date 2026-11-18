@@ -92,6 +92,8 @@ export const mockRateLimiter: RateLimiter = {
   getBurstCountByOrganization: vi.fn(),
 };
 
+// TODO REVIEW THIS CHANGE
+// eslint-disable-next-line interop/require-type-for-object
 export const clients = {
   tenantProcessClient: {
     tenant: {},

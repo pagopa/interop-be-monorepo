@@ -25,7 +25,7 @@ describe("API POST /templates/:templateId/description/update", () => {
   const mockEserviceTemplate = getMockEServiceTemplate();
   const serviceResponse = getMockWithMetadata(mockEserviceTemplate);
 
-  const description = {
+  const description: { description: string } = {
     description: "description",
   };
 

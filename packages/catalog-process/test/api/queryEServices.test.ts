@@ -8,6 +8,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   EService,
+  ListResult,
   generateId,
   descriptorState,
   Descriptor,
@@ -41,7 +42,7 @@ describe("API POST /catalog authorization test", () => {
     descriptors: [descriptor2],
   };
 
-  const mockResponse = {
+  const mockResponse: ListResult<EService> = {
     results: [eservice1, eservice2],
     totalCount: 2,
   };
@@ -77,7 +78,7 @@ describe("API POST /catalog authorization test", () => {
     it.each([undefined, false, true])(
       "should accept and forward templateId with onlyTemplateInstances=%s",
       async (onlyTemplateInstances) => {
-        const payload = {
+        const payload: catalogApi.EServicesFilterPayload = {
           ...body,
           templateId: generateId(),
           onlyTemplateInstances,
@@ -151,7 +152,10 @@ describe("API POST /catalog authorization test", () => {
       "should forward availableForRequester to the catalog service (%s)",
       async (availableForRequester) => {
         const token = generateToken(authRole.ADMIN_ROLE);
-        const payload = { ...body, availableForRequester };
+        const payload: catalogApi.EServicesFilterPayload = {
+          ...body,
+          availableForRequester,
+        };
         vi.mocked(catalogService.queryEServices).mockClear();
 
         const res = await makeRequest(token, payload);
@@ -169,7 +173,7 @@ describe("API POST /catalog authorization test", () => {
     it.each(["DELIVER", "RECEIVE"] as const)(
       "should accept and forward mode: %s",
       async (mode) => {
-        const payload = { ...body, mode };
+        const payload: catalogApi.EServicesFilterPayload = { ...body, mode };
         vi.mocked(catalogService.queryEServices).mockClear();
         const res = await makeRequest(
           generateToken(authRole.ADMIN_ROLE),
@@ -216,7 +220,10 @@ describe("API POST /catalog authorization test", () => {
     it.each([true, false])(
       "should accept and forward onlySignalHubEnabled: %s",
       async (onlySignalHubEnabled) => {
-        const payload = { ...body, onlySignalHubEnabled };
+        const payload: catalogApi.EServicesFilterPayload = {
+          ...body,
+          onlySignalHubEnabled,
+        };
         vi.mocked(catalogService.queryEServices).mockClear();
         const res = await makeRequest(
           generateToken(authRole.ADMIN_ROLE),
@@ -262,7 +269,10 @@ describe("API POST /catalog authorization test", () => {
     it.each([true, false])(
       "should accept and forward asyncExchange: %s",
       async (asyncExchange) => {
-        const payload = { ...body, asyncExchange };
+        const payload: catalogApi.EServicesFilterPayload = {
+          ...body,
+          asyncExchange,
+        };
         vi.mocked(catalogService.queryEServices).mockClear();
         const res = await makeRequest(
           generateToken(authRole.ADMIN_ROLE),

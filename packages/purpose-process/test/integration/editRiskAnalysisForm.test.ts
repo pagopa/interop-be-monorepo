@@ -16,6 +16,7 @@ import {
   Purpose,
   PurposeId,
   PurposeRiskAnalysisFormEditedV2,
+  RiskAnalysisForm,
   Tenant,
   TenantId,
   UserId,
@@ -352,7 +353,7 @@ describe("editRiskAnalysisForm", () => {
     await addOneEService(mockEService);
     await addOnePurpose(mockPurpose);
 
-    const invalidRiskAnalysisForm = {
+    const invalidRiskAnalysisForm: RiskAnalysisForm = {
       ...getMockValidRiskAnalysisForm(tenantKind.PA),
       version: "0",
     };

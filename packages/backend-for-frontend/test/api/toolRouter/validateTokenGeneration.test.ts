@@ -108,6 +108,8 @@ describe("API POST /tools/validateTokenGeneration", () => {
 
   it("Should default to sync validation when is_async is not provided", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
+    // TODO REVIEW THIS CHANGE
+    // eslint-disable-next-line interop/require-type-for-object
     const requestWithoutAsyncFlag = {
       client_id: mockRequest.client_id,
       client_assertion: mockRequest.client_assertion,

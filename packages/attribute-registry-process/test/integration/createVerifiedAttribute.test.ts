@@ -111,7 +111,7 @@ describe("verified attribute creation", () => {
     ).rejects.toThrowError(originNotCompliant("not-allowed-origin"));
   });
   it("should throw attributeDuplicate if an attribute with the same name already exists, case insensitive", async () => {
-    const attribute = {
+    const attribute: Attribute = {
       ...mockAttribute,
       name: mockAttribute.name.toUpperCase(),
       kind: attributeKind.verified,
