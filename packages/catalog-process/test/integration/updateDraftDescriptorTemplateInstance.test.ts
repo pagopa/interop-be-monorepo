@@ -42,7 +42,7 @@ import {
   eServiceNotAnInstance,
   attributeDailyCallsNotAllowed,
   attributeDiscreteConfigNotAllowed,
-  templateInstanceNotAllowed,
+  templateInstanceAttributesCannotBeChanged,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -1089,7 +1089,7 @@ describe("update draft descriptor instance", () => {
     }
   );
 
-  it("should throw templateInstanceNotAllowed when changing inherited discreteConfig", async () => {
+  it("should throw templateInstanceAttributesCannotBeChanged when changing inherited discreteConfig", async () => {
     config.featureFlagAttributeCertifiedDiscrete = true;
     const template = getMockEServiceTemplate();
     const certifiedDiscreteAttribute = getMockAttribute(
@@ -1153,7 +1153,121 @@ describe("update draft descriptor instance", () => {
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
-      templateInstanceNotAllowed(eservice.id, template.id)
+      templateInstanceAttributesCannotBeChanged(eservice.id, template.id)
+    );
+  });
+
+  it("should throw templateInstanceAttributesCannotBeChanged when adding an attribute group", async () => {
+    const template = getMockEServiceTemplate();
+    const certifiedAttribute = getMockAttribute(attributeKind.certified);
+
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      attributes: {
+        certified: [
+          [
+            {
+              id: certifiedAttribute.id,
+              explicitAttributeVerification: false,
+            },
+          ],
+        ],
+        declared: [],
+        verified: [],
+      },
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      name: `${template.name} test`,
+      templateId: template.id,
+    };
+
+    await addOneEServiceTemplate(template);
+    await addOneAttribute(certifiedAttribute);
+    await addOneEService(eservice);
+
+    await expect(
+      catalogService.updateDraftDescriptorTemplateInstance(
+        eservice.id,
+        descriptor.id,
+        {
+          ...buildUpdateDescriptorSeed(descriptor),
+          attributes: {
+            certified: [
+              [
+                {
+                  id: certifiedAttribute.id,
+                  explicitAttributeVerification: false,
+                },
+              ],
+            ],
+            declared: [[]],
+            verified: [],
+          },
+        },
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(
+      templateInstanceAttributesCannotBeChanged(eservice.id, template.id)
+    );
+  });
+
+  it("should throw templateInstanceAttributesCannotBeChanged when changing explicitAttributeVerification", async () => {
+    const template = getMockEServiceTemplate();
+    const certifiedAttribute = getMockAttribute(attributeKind.certified);
+
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      attributes: {
+        certified: [
+          [
+            {
+              id: certifiedAttribute.id,
+              explicitAttributeVerification: false,
+            },
+          ],
+        ],
+        declared: [],
+        verified: [],
+      },
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      name: `${template.name} test`,
+      templateId: template.id,
+    };
+
+    await addOneEServiceTemplate(template);
+    await addOneAttribute(certifiedAttribute);
+    await addOneEService(eservice);
+
+    await expect(
+      catalogService.updateDraftDescriptorTemplateInstance(
+        eservice.id,
+        descriptor.id,
+        {
+          ...buildUpdateDescriptorSeed(descriptor),
+          attributes: {
+            certified: [
+              [
+                {
+                  id: certifiedAttribute.id,
+                  explicitAttributeVerification: true,
+                },
+              ],
+            ],
+            declared: [],
+            verified: [],
+          },
+        },
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(
+      templateInstanceAttributesCannotBeChanged(eservice.id, template.id)
     );
   });
 });

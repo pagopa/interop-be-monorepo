@@ -3,7 +3,7 @@
   "name": "root",
   "license": "EUPL-1.2",
   "engines": {
-    "node": ">=20"
+    "node": ">=24"
   },
   "scripts": {
     "start:catalog": "turbo start --filter pagopa-interop-catalog-process",

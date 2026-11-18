@@ -54,6 +54,25 @@ const purposeRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .patch("/reverse/purposes/:purposeId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const result = await purposeService.patchUpdateReversePurpose(
+          unsafeBrandId(req.params.purposeId),
+          req.body,
+          ctx
+        );
+        return res.status(200).send(bffApi.CreatedResource.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error updating reverse Purpose ${req.params.purposeId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post("/reverse/purposes/:purposeId", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
@@ -498,6 +517,25 @@ const purposeRouter = (
           emptyErrorMapper,
           ctx,
           `Error deleting purpose ${req.params.purposeId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .patch("/purposes/:purposeId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const result = await purposeService.patchUpdatePurpose(
+          unsafeBrandId(req.params.purposeId),
+          req.body,
+          ctx
+        );
+        return res.status(200).send(bffApi.CreatedResource.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error updating Purpose ${req.params.purposeId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
