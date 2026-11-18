@@ -8624,6 +8624,13 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: delegationId
+          in: query
+          description: The ID of the producer Delegation
+          required: false
+          schema:
+            type: string
+            format: uuid
       responses:
         "204":
           description: Updated Tenant
@@ -16944,7 +16951,8 @@ components:
               $ref: "#/components/schemas/ClientName"
             description:
               $ref: "#/components/schemas/ClientDescription"
-          required: [name]
+          required: 
+            - name
         - type: object
           additionalProperties: false
           properties:
@@ -16952,7 +16960,8 @@ components:
               $ref: "#/components/schemas/ClientName"
             description:
               $ref: "#/components/schemas/ClientDescription"
-          required: [description]
+          required: 
+            - description
     ClientName:
       type: string
       minLength: 5
@@ -18133,6 +18142,9 @@ components:
           type: string
           format: uuid
         agreementId:
+          type: string
+          format: uuid
+        delegationId:
           type: string
           format: uuid
         expirationDate:
