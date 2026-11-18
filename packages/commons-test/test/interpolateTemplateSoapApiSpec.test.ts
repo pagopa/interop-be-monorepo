@@ -1,7 +1,11 @@
-import { interpolateTemplateSoapApiSpec } from "pagopa-interop-commons";
+import {
+  interpolateTemplateSoapApiSpec,
+  retrieveServerUrlsAPI,
+} from "pagopa-interop-commons";
 import {
   generateId,
   interfaceExtractingInfoError,
+  invalidInterfaceFileDetected,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 
@@ -10,9 +14,6 @@ import { getMockEService, readFileContent } from "../src/index.js";
 describe("interpolateTemplateSoapApiSpec", async () => {
   const eservice = getMockEService();
   const file: string = await readFileContent("interface-test.wsdl");
-  const expectedFileContent: string = await readFileContent(
-    "interface-test-expected.wsdl"
-  );
 
   const interfaceFileInfo = {
     id: generateId(),
@@ -26,42 +27,39 @@ describe("interpolateTemplateSoapApiSpec", async () => {
     contactEmail: "Test email",
     contactUrl: "http://example.com",
     termsAndConditionsUrl: "http://example.com",
-    serverUrls: [
-      { url: "http://server1.example.com" },
-      { url: "http://server2.example.com" },
-    ],
+    serverUrls: [{ url: "http://server1.example.com" }],
   };
 
-  it("should interpolate SOAP API spec", async () => {
-    const result: File = await interpolateTemplateSoapApiSpec(
-      eservice,
-      file,
-      interfaceFileInfo,
-      eserviceInstanceInterfaceData
+  it.each(["wsdl", "xml"])(
+    "should preserve the original %s spec except for location",
+    async (name) => {
+      const fileInfo = { ...interfaceFileInfo, name };
+      const result: File = await interpolateTemplateSoapApiSpec(
+        eservice,
+        file,
+        fileInfo,
+        eserviceInstanceInterfaceData
+      );
+
+      expect(result).toBeInstanceOf(File);
+      expect(result.name).toBe(fileInfo.name);
+      expect(result.type).toBe(interfaceFileInfo.contentType);
+
+      expect(Buffer.from(await result.arrayBuffer())).toEqual(
+        Buffer.from(
+          file.replace(
+            "https://host.com/TestWS/v1",
+            "http://server1.example.com"
+          )
+        )
+      );
+    }
+  );
+  it("should preserve original documentation when server descriptions are provided", async () => {
+    const documentedFile = file.replace(
+      '<wsdl:port name="TestWS" binding="tns:TestWS">',
+      '<wsdl:port name="TestWS" binding="tns:TestWS"><wsdl:documentation>Original documentation</wsdl:documentation>'
     );
-
-    expect(result).toBeInstanceOf(File);
-    expect(result.name).toBe(interfaceFileInfo.name);
-    expect(result.type).toBe(interfaceFileInfo.contentType);
-
-    const fileContent = await result.text();
-
-    const normalizedFileContent = fileContent
-      .replace(/\t/g, "") // Remove tabs
-      .replace(/\n/g, "") // Remove newlines
-      .replace(/\s+/g, " ") // Replace multiple spaces with a single space
-      .trim(); // Remove leading and trailing spaces
-
-    const normalizedExpectedContent = expectedFileContent
-      .toString()
-      .replace(/\t/g, "")
-      .replace(/\n/g, "")
-      .replace(/\s+/g, " ")
-      .trim();
-
-    expect(normalizedFileContent).toBe(normalizedExpectedContent);
-  });
-  it("should interpolate the SOAP API spec adding wsdl:documentation for each server description", async () => {
     const dataWithDescriptions = {
       ...eserviceInstanceInterfaceData,
       serverUrls: [
@@ -69,25 +67,60 @@ describe("interpolateTemplateSoapApiSpec", async () => {
           url: "http://server1.example.com",
           description: "Primary production server",
         },
-        {
-          url: "http://server2.example.com",
-          description: "Secondary production server",
-        },
       ],
     };
 
     const result: File = await interpolateTemplateSoapApiSpec(
       eservice,
-      file,
+      documentedFile,
       interfaceFileInfo,
       dataWithDescriptions
     );
 
-    const fileContent = await result.text();
+    expect(await result.text()).toBe(
+      documentedFile.replace(
+        "https://host.com/TestWS/v1",
+        "http://server1.example.com"
+      )
+    );
+  });
+  it("should reject a URL count that differs from the original SOAP addresses", async () => {
+    await expect(
+      interpolateTemplateSoapApiSpec(eservice, file, interfaceFileInfo, {
+        serverUrls: [],
+      })
+    ).rejects.toThrowError(
+      invalidInterfaceFileDetected({
+        id: eservice.id,
+        isEserviceTemplate: true,
+      })
+    );
+  });
+  it("should validate the interpolated URLs with namespace aliases", async () => {
+    const aliasedFile = file
+      .replaceAll("wsdl:", "w:")
+      .replace("xmlns:wsdl=", "xmlns:w=")
+      .replaceAll("soap:", "s:")
+      .replace("xmlns:soap=", "xmlns:s=");
+    const result = await interpolateTemplateSoapApiSpec(
+      eservice,
+      aliasedFile,
+      interfaceFileInfo,
+      eserviceInstanceInterfaceData
+    );
 
-    expect(fileContent).toContain("wsdl:documentation");
-    expect(fileContent).toContain("Primary production server");
-    expect(fileContent).toContain("Secondary production server");
+    expect(await result.text()).toBe(
+      aliasedFile.replace(
+        "https://host.com/TestWS/v1",
+        "http://server1.example.com"
+      )
+    );
+    await expect(
+      retrieveServerUrlsAPI(result, "INTERFACE", "Soap", {
+        id: eservice.id,
+        isEserviceTemplate: true,
+      })
+    ).resolves.toEqual(["http://server1.example.com"]);
   });
   it("should throw interfaceExtractingInfoError if fileType is not supported", async () => {
     const interfaceFileInfo = {
