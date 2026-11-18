@@ -1,0 +1,33 @@
+meta {
+  name: Patch Update Purpose Template
+  type: http
+  seq: 23
+}
+
+patch {
+  url: {{host-bff}}/purposeTemplates/:purposeTemplateId
+  body: json
+  auth: none
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+}
+
+headers {
+  X-Correlation-Id: {{correlation-id}}
+  Authorization: {{JWT}}
+}
+
+body:json {
+  {
+    "targetDescription": "updated target description",
+    "targetTenantKind": "PRIVATE",
+    "purposeTitle": "updated purpose title",
+    "purposeDescription": "updated purpose description",
+    "purposeIsFreeOfCharge": false,
+    "purposeFreeOfChargeReason": null,
+    "purposeDailyCalls": 10,
+    "handlesPersonalData": true
+  }
+}

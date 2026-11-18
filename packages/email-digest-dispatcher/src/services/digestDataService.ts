@@ -2,6 +2,7 @@ import { Logger } from "pagopa-interop-commons";
 import {
   agreementState,
   TenantId,
+  UserId,
   purposeVersionState,
   delegationState,
 } from "pagopa-interop-models";
@@ -11,26 +12,31 @@ import {
   sentAgreementsToBaseDigest,
   eserviceTemplateToBaseDigest,
   eserviceToBaseDigest,
-  popularEserviceTemplateToBaseDigest,
   verifiedAttributeToDigest,
   certifiedAttributeToDigest,
   combineAttributeDigests,
   sentPurposesToBaseDigest,
   receivedPurposesToBaseDigest,
-  sentDelegationsToDigest,
   receivedDelegationsToDigest,
+  waitingForApprovalDelegatedEservicesToDigest,
+  archivingEservicesToDigest,
+  receivedDelegationArchivingRequestsToDigest,
+  approvedRiskAnalysisToDigest,
+  rejectedRiskAnalysisToDigest,
+  reviewerRiskAnalysesToDigest,
+  reviewerRiskAnalysesWithEserviceLinkToDigest,
 } from "../model/digestDataConverter.js";
 import {
   viewAllNewUpdatedEservicesLink,
   viewAllSentAgreementsLink,
   viewAllSentPurposesLink,
+  viewAllRiskAnalysisPurposesLink,
   viewAllReceivedAgreementsLink,
   viewAllReceivedPurposesLink,
-  viewAllSentDelegationsLink,
   viewAllReceivedDelegationsLink,
   viewAllAttributesLink,
   viewAllUpdatedEserviceTemplatesLink,
-  viewAllPopularEserviceTemplatesLink,
+  viewAllArchivingProducerLink,
   notificationSettingsLink,
 } from "./deeplinkBuilder.js";
 import { NewEservice, ReadModelService } from "./readModelService.js";
@@ -65,10 +71,76 @@ export type AttributeDigest = BaseDigest & {
   }>;
 };
 
+export type DelegatedEserviceDigest = BaseDigest & {
+  items: Array<{
+    delegatedName: string;
+  }>;
+};
+
+type ArchivingItem = {
+  id: string;
+  eserviceName: string;
+  version: string;
+  scope: "Descriptor" | "EService";
+  isEserviceScope: boolean;
+  archivableOn: string;
+  link: string;
+};
+
+export type ArchivingDigest = {
+  items: ArchivingItem[];
+  totalCount: number;
+};
+
+export type DelegationArchivingRequestDigest = BaseDigest & {
+  items: Array<{
+    eserviceName: string;
+    descriptorVersion: string | null;
+    eserviceId: string;
+    descriptorId: string | null;
+  }>;
+  totalCount: number;
+};
+
+export type ApprovedRiskAnalysisDigest = BaseDigest & {
+  items: Array<{
+    signedAt: string;
+  }>;
+};
+
+export type RejectedRiskAnalysisDigest = BaseDigest & {
+  items: Array<{
+    rejectedAt: string;
+  }>;
+};
+
+type ReviewerRiskAnalysisItem = {
+  purposeTitle: string;
+  purposeLink: string;
+  eserviceName: string;
+  eserviceLink?: string;
+};
+
+export type ReviewerRiskAnalysisDigest = {
+  items: ReviewerRiskAnalysisItem[];
+  totalCount: number;
+};
+
+// Built per user, unlike TenantDigestData
+export type ReviewerDigestData = {
+  tenantId: TenantId;
+  tenantName: string;
+  notificationSettingsLink: string;
+  viewAllReviewerPurposesLink: string;
+  riskAnalysesToApprove?: ReviewerRiskAnalysisDigest;
+  riskAnalysesToFill?: ReviewerRiskAnalysisDigest;
+  publishedReviewerPurposes?: ReviewerRiskAnalysisDigest;
+  riskAnalysesSignedByOtherReviewer?: ReviewerRiskAnalysisDigest;
+};
+
 export type TenantDigestData = {
   tenantId: TenantId;
   tenantName: string;
-  timePeriod: string;
   notificationSettingsLink: string;
   viewAllNewEservicesLink: string;
   viewAllUpdatedEservicesLink: string;
@@ -76,15 +148,14 @@ export type TenantDigestData = {
   viewAllSentPurposesLink: string;
   viewAllReceivedAgreementsLink: string;
   viewAllReceivedPurposesLink: string;
-  viewAllSentDelegationsLink: string;
   viewAllReceivedDelegationsLink: string;
   viewAllAttributesLink: string;
   viewAllUpdatedEserviceTemplatesLink: string;
-  viewAllPopularEserviceTemplatesLink: string;
+  viewAllArchivingProducerLink: string;
+  viewAllRiskAnalysisPurposes: string;
   newEservices?: BaseDigest;
   updatedEservices?: BaseDigest;
   updatedEserviceTemplates?: BaseDigest;
-  popularEserviceTemplates?: BaseDigest;
   acceptedSentAgreements?: BaseDigest;
   rejectedSentAgreements?: BaseDigest;
   suspendedSentAgreements?: BaseDigest;
@@ -94,12 +165,23 @@ export type TenantDigestData = {
   waitingForApprovalReceivedAgreements?: BaseDigest;
   publishedReceivedPurposes?: ReceivedPurposeDigest;
   waitingForApprovalReceivedPurposes?: ReceivedPurposeDigest;
-  activeSentDelegations?: DelegationDigest;
-  rejectedSentDelegations?: DelegationDigest;
   waitingForApprovalReceivedDelegations?: DelegationDigest;
-  revokedReceivedDelegations?: DelegationDigest;
+  waitingForApprovalDelegatedEservices?: DelegatedEserviceDigest;
   receivedAttributes?: AttributeDigest;
   revokedAttributes?: AttributeDigest;
+  archivingImminentEservices?: ArchivingDigest;
+  archivingInProgressEservices?: ArchivingDigest;
+  archivingEserviceScopeCount?: number;
+  archivingDescriptorScopeCount?: number;
+  archivingConsumerImminentEservices?: ArchivingDigest;
+  archivingConsumerInProgressEservices?: ArchivingDigest;
+  archivingConsumerEserviceScopeCount?: number;
+  archivingConsumerDescriptorScopeCount?: number;
+  archivingRequests?: DelegationArchivingRequestDigest;
+  approvedArchivingRequests?: DelegationArchivingRequestDigest;
+  rejectedArchivingRequests?: DelegationArchivingRequestDigest;
+  approvedRiskAnalysis?: ApprovedRiskAnalysisDigest;
+  rejectedRiskAnalysis?: RejectedRiskAnalysisDigest;
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -149,33 +231,53 @@ export function digestDataServiceBuilder(
       const [
         updatedEservices,
         updatedEserviceTemplates,
-        popularEserviceTemplates,
         tenantDataMap,
         sentAgreements,
         receivedAgreements,
         sentPurposes,
         receivedPurposes,
-        sentDelegations,
         receivedDelegations,
         verifiedAssignedAttributes,
         verifiedRevokedAttributes,
         certifiedAssignedAttributes,
         certifiedRevokedAttributes,
+        waitingForApprovalDelegatedDescriptors,
+        archivingInProgressEservices,
+        archivingImminentEservices,
+        archivingScopeCounts,
+        archivingConsumerInProgressEservices,
+        archivingConsumerImminentEservices,
+        archivingConsumerScopeCounts,
+        archivingRequests,
+        approvedArchivingRequests,
+        rejectedArchivingRequests,
+        approvedRiskAnalysis,
+        rejectedRiskAnalysis,
       ] = await Promise.all([
         readModelService.getNewVersionEservices(tenantId),
         readModelService.getNewEserviceTemplates(tenantId),
-        readModelService.getPopularEserviceTemplates(tenantId),
         readModelService.getTenantsByIds([tenantId]),
         readModelService.getSentAgreements(tenantId), // tenantId as consumerId
         readModelService.getReceivedAgreements(tenantId), // tenantId as producerId
         readModelService.getSentPurposes(tenantId), // tenantId as consumerId
         readModelService.getReceivedPurposes(tenantId), // tenantId as producerId
-        readModelService.getSentDelegations(tenantId), // tenantId as delegatorId
         readModelService.getReceivedDelegations(tenantId), // tenantId as delegateId
         readModelService.getVerifiedAssignedAttributes(tenantId),
         readModelService.getVerifiedRevokedAttributes(tenantId),
         readModelService.getCertifiedAssignedAttributes(tenantId),
         readModelService.getCertifiedRevokedAttributes(tenantId),
+        readModelService.getWaitingForApprovalDelegatedDescriptors(tenantId), // tenantId as delegatorId
+        readModelService.getArchivingInProgressEservices(tenantId), // tenantId as producerId
+        readModelService.getArchivingImminentEservices(tenantId), // tenantId as producerId
+        readModelService.getArchivingScopeCounts(tenantId), // tenantId as producerId
+        readModelService.getConsumerArchivingInProgressEservices(tenantId), // tenantId as consumerId
+        readModelService.getConsumerArchivingImminentEservices(tenantId), // tenantId as consumerId
+        readModelService.getConsumerArchivingScopeCounts(tenantId), // tenantId as consumerId
+        readModelService.getReceivedDelegationArchivingRequests(tenantId),
+        readModelService.getApprovedDelegationArchivingRequests(tenantId),
+        readModelService.getRejectedDelegationArchivingRequests(tenantId),
+        readModelService.getApprovedRiskAnalysis(tenantId),
+        readModelService.getRejectedRiskAnalysis(tenantId),
       ]);
 
       const tenantData = tenantDataMap.get(tenantId);
@@ -188,10 +290,31 @@ export function digestDataServiceBuilder(
         selfcareId
       );
 
+      const [
+        archivingRequestsDigest,
+        approvedArchivingRequestsDigest,
+        rejectedArchivingRequestsDigest,
+      ] = await Promise.all([
+        receivedDelegationArchivingRequestsToDigest(
+          archivingRequests,
+          readModelService,
+          selfcareId
+        ),
+        receivedDelegationArchivingRequestsToDigest(
+          approvedArchivingRequests,
+          readModelService,
+          selfcareId
+        ),
+        receivedDelegationArchivingRequestsToDigest(
+          rejectedArchivingRequests,
+          readModelService,
+          selfcareId
+        ),
+      ]);
+
       return {
         tenantId,
         tenantName,
-        timePeriod: "Time Period Placeholder",
         notificationSettingsLink: notificationSettingsLink(selfcareId),
         viewAllNewEservicesLink: viewAllNewUpdatedEservicesLink(selfcareId),
         viewAllUpdatedEservicesLink: viewAllNewUpdatedEservicesLink(selfcareId),
@@ -200,15 +323,15 @@ export function digestDataServiceBuilder(
         viewAllReceivedAgreementsLink:
           viewAllReceivedAgreementsLink(selfcareId),
         viewAllReceivedPurposesLink: viewAllReceivedPurposesLink(selfcareId),
-        viewAllSentDelegationsLink: viewAllSentDelegationsLink(selfcareId),
         viewAllReceivedDelegationsLink:
           viewAllReceivedDelegationsLink(selfcareId),
         viewAllAttributesLink: viewAllAttributesLink(selfcareId),
         viewAllUpdatedEserviceTemplatesLink:
           viewAllUpdatedEserviceTemplatesLink(selfcareId),
-        viewAllPopularEserviceTemplatesLink:
-          viewAllPopularEserviceTemplatesLink(selfcareId),
+        viewAllArchivingProducerLink: viewAllArchivingProducerLink(selfcareId),
         newEservices,
+        viewAllRiskAnalysisPurposes:
+          viewAllRiskAnalysisPurposesLink(selfcareId),
         updatedEservices: await eserviceToBaseDigest(
           updatedEservices,
           readModelService,
@@ -216,11 +339,6 @@ export function digestDataServiceBuilder(
         ),
         updatedEserviceTemplates: await eserviceTemplateToBaseDigest(
           updatedEserviceTemplates,
-          readModelService,
-          selfcareId
-        ),
-        popularEserviceTemplates: await popularEserviceTemplateToBaseDigest(
-          popularEserviceTemplates,
           readModelService,
           selfcareId
         ),
@@ -273,18 +391,6 @@ export function digestDataServiceBuilder(
           purposeVersionState.waitingForApproval,
           selfcareId
         ),
-        activeSentDelegations: await sentDelegationsToDigest(
-          sentDelegations,
-          delegationState.active,
-          readModelService,
-          selfcareId
-        ),
-        rejectedSentDelegations: await sentDelegationsToDigest(
-          sentDelegations,
-          delegationState.rejected,
-          readModelService,
-          selfcareId
-        ),
         waitingForApprovalReceivedDelegations:
           await receivedDelegationsToDigest(
             receivedDelegations,
@@ -292,12 +398,11 @@ export function digestDataServiceBuilder(
             readModelService,
             selfcareId
           ),
-        revokedReceivedDelegations: await receivedDelegationsToDigest(
-          receivedDelegations,
-          delegationState.revoked,
-          readModelService,
-          selfcareId
-        ),
+        waitingForApprovalDelegatedEservices:
+          await waitingForApprovalDelegatedEservicesToDigest(
+            waitingForApprovalDelegatedDescriptors,
+            selfcareId
+          ),
         receivedAttributes: combineAttributeDigests(
           await verifiedAttributeToDigest(
             verifiedAssignedAttributes,
@@ -312,7 +417,104 @@ export function digestDataServiceBuilder(
           ),
           certifiedAttributeToDigest(certifiedRevokedAttributes)
         ),
+        archivingInProgressEservices: archivingEservicesToDigest(
+          archivingInProgressEservices,
+          selfcareId
+        ),
+        archivingImminentEservices: archivingEservicesToDigest(
+          archivingImminentEservices,
+          selfcareId
+        ),
+        archivingEserviceScopeCount: archivingScopeCounts.eserviceScopeCount,
+        archivingDescriptorScopeCount:
+          archivingScopeCounts.descriptorScopeCount,
+        archivingConsumerInProgressEservices: archivingEservicesToDigest(
+          archivingConsumerInProgressEservices,
+          selfcareId
+        ),
+        archivingConsumerImminentEservices: archivingEservicesToDigest(
+          archivingConsumerImminentEservices,
+          selfcareId
+        ),
+        archivingConsumerEserviceScopeCount:
+          archivingConsumerScopeCounts.eserviceScopeCount,
+        archivingConsumerDescriptorScopeCount:
+          archivingConsumerScopeCounts.descriptorScopeCount,
+        archivingRequests: archivingRequestsDigest,
+        approvedArchivingRequests: approvedArchivingRequestsDigest,
+        rejectedArchivingRequests: rejectedArchivingRequestsDigest,
+        approvedRiskAnalysis: await approvedRiskAnalysisToDigest(
+          approvedRiskAnalysis,
+          selfcareId
+        ),
+        rejectedRiskAnalysis: await rejectedRiskAnalysisToDigest(
+          rejectedRiskAnalysis,
+          selfcareId
+        ),
       };
+    },
+
+    async getReviewerDigestData(
+      tenantId: TenantId,
+      reviewerId: UserId
+    ): Promise<ReviewerDigestData> {
+      logger.info(
+        `Retrieving reviewer digest data for user ${reviewerId} of tenant ${tenantId}`
+      );
+
+      const [
+        tenantDataMap,
+        riskAnalysesToApproveRows,
+        riskAnalysesToFillRows,
+        publishedReviewerPurposesRows,
+        riskAnalysesSignedByOtherReviewerRows,
+      ] = await Promise.all([
+        readModelService.getTenantsByIds([tenantId]),
+        readModelService.getReviewerRiskAnalysesToApprove(tenantId, reviewerId),
+        readModelService.getReviewerRiskAnalysesToFill(tenantId, reviewerId),
+        readModelService.getReviewerPublishedPurposes(tenantId, reviewerId),
+        readModelService.getReviewerRiskAnalysesSignedByOthers(
+          tenantId,
+          reviewerId
+        ),
+      ]);
+
+      const tenantData = tenantDataMap.get(tenantId);
+      const selfcareId = tenantData?.selfcareId ?? null;
+
+      return {
+        tenantId,
+        tenantName: tenantData?.name ?? "Tenant Name Placeholder",
+        notificationSettingsLink: notificationSettingsLink(selfcareId),
+        viewAllReviewerPurposesLink: viewAllSentPurposesLink(selfcareId),
+        riskAnalysesToApprove:
+          await reviewerRiskAnalysesWithEserviceLinkToDigest(
+            riskAnalysesToApproveRows,
+            selfcareId,
+            readModelService
+          ),
+        riskAnalysesToFill: reviewerRiskAnalysesToDigest(
+          riskAnalysesToFillRows,
+          selfcareId
+        ),
+        publishedReviewerPurposes: reviewerRiskAnalysesToDigest(
+          publishedReviewerPurposesRows,
+          selfcareId
+        ),
+        riskAnalysesSignedByOtherReviewer: reviewerRiskAnalysesToDigest(
+          riskAnalysesSignedByOtherReviewerRows,
+          selfcareId
+        ),
+      };
+    },
+
+    hasReviewerDigestContent(data: ReviewerDigestData): boolean {
+      return Boolean(
+        data.riskAnalysesToApprove?.totalCount ||
+        data.riskAnalysesToFill?.totalCount ||
+        data.publishedReviewerPurposes?.totalCount ||
+        data.riskAnalysesSignedByOtherReviewer?.totalCount
+      );
     },
 
     hasDigestContent(data: TenantDigestData): boolean {
@@ -320,7 +522,6 @@ export function digestDataServiceBuilder(
         data.newEservices?.totalCount ||
         data.updatedEservices?.totalCount ||
         data.updatedEserviceTemplates?.totalCount ||
-        data.popularEserviceTemplates?.totalCount ||
         data.acceptedSentAgreements?.totalCount ||
         data.rejectedSentAgreements?.totalCount ||
         data.suspendedSentAgreements?.totalCount ||
@@ -330,12 +531,20 @@ export function digestDataServiceBuilder(
         data.waitingForApprovalReceivedAgreements?.totalCount ||
         data.publishedReceivedPurposes?.totalCount ||
         data.waitingForApprovalReceivedPurposes?.totalCount ||
-        data.activeSentDelegations?.totalCount ||
-        data.rejectedSentDelegations?.totalCount ||
         data.waitingForApprovalReceivedDelegations?.totalCount ||
-        data.revokedReceivedDelegations?.totalCount ||
+        data.waitingForApprovalDelegatedEservices?.totalCount ||
         data.receivedAttributes?.totalCount ||
-        data.revokedAttributes?.totalCount
+        data.revokedAttributes?.totalCount ||
+        data.archivingInProgressEservices?.totalCount ||
+        data.archivingImminentEservices?.totalCount ||
+        data.archivingConsumerInProgressEservices?.totalCount ||
+        data.archivingConsumerImminentEservices?.totalCount ||
+        data.archivingRequests?.totalCount ||
+        data.approvedArchivingRequests?.totalCount ||
+        data.rejectedArchivingRequests?.totalCount ||
+        data.approvedRiskAnalysis?.totalCount ||
+        data.rejectedRiskAnalysis?.totalCount ||
+        data.archivingConsumerImminentEservices?.totalCount
       );
     },
   };

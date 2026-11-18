@@ -10,6 +10,7 @@ import {
   getMockEService,
   getMockEServiceTemplate,
   getMockContextM2MAdmin,
+  sortRiskAnalysisCollections,
   getMockContext,
   getMockAuthData,
   ReadEvent,
@@ -30,6 +31,7 @@ import {
   EServiceDescriptionUpdatedV2,
   EServiceEvent,
   EServiceId,
+  EServiceV2,
   TenantId,
 } from "pagopa-interop-models";
 import { upsertEService } from "pagopa-interop-readmodel/testUtils";
@@ -62,7 +64,9 @@ import {
   readModelDB,
 } from "../integrationUtils.js";
 
-function decodeEServicePatchEvent(event: ReadEvent<EServiceEvent>): unknown {
+function decodeEServicePatchEvent(
+  event: ReadEvent<EServiceEvent>
+): EServiceV2 | undefined {
   return match(event.type)
     .with(
       "EServiceNameUpdated",
@@ -413,10 +417,10 @@ describe("patch update eService", () => {
         seed,
         ctx
       );
-      expect(result).toEqual({
-        data: eservice,
-        metadata: { version: expectedTypes.length },
-      });
+      expect(result.metadata).toEqual({ version: expectedTypes.length });
+      expect(sortRiskAnalysisCollections(result.data)).toEqual(
+        sortRiskAnalysisCollections(eservice)
+      );
       const events = await readPatchEvents(eservice.id);
       expect(events.map((event) => event.type)).toEqual(expectedTypes);
       expect(events.map((event) => event.version)).toEqual(
@@ -424,7 +428,9 @@ describe("patch update eService", () => {
       );
       for (const event of events) {
         expect(event.correlation_id).toBe(ctx.correlationId);
-        expect(decodeEServicePatchEvent(event)).toEqual(toEServiceV2(eservice));
+        expect(
+          sortRiskAnalysisCollections(decodeEServicePatchEvent(event))
+        ).toEqual(sortRiskAnalysisCollections(toEServiceV2(eservice)));
       }
       expect(deleteSpy).not.toHaveBeenCalled();
     }
@@ -771,6 +777,7 @@ describe("patch update eService", () => {
   });
 
   it.each([
+    {},
     {
       name: "New name",
     },
@@ -890,13 +897,18 @@ describe("patch update eService", () => {
         event_version: 2,
       });
 
-      expect(decodeEServicePatchEvent(writtenEvent)).toEqual(
-        toEServiceV2(expectedEService)
-      );
-      expect(updateEServiceReturn).toEqual({
-        data: expectedEService,
-        metadata: { version: 1 },
+      const writtenPayload = decodeProtobufPayload({
+        messageType: DraftEServiceUpdatedV2,
+        payload: writtenEvent.data,
       });
+
+      expect(sortRiskAnalysisCollections(writtenPayload.eservice)).toEqual(
+        sortRiskAnalysisCollections(toEServiceV2(expectedEService))
+      );
+      expect(updateEServiceReturn.metadata).toEqual({ version: 1 });
+      expect(sortRiskAnalysisCollections(updateEServiceReturn.data)).toEqual(
+        sortRiskAnalysisCollections(expectedEService)
+      );
     }
   );
 

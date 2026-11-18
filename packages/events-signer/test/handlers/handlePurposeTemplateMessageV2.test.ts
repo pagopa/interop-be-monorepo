@@ -151,7 +151,12 @@ describe("handlePurposeTemplateMessageV2 - Integration Test", () => {
     expect(retrievedReference).toBeDefined();
   });
 
-  it("should not process a PurposeTemplateDraftUpdated event", async () => {
+  it.each([
+    "PurposeTemplateDraftUpdated",
+    "PurposeTemplatePurposeTitleUpdated",
+    "PurposeTemplatePurposeDescriptionUpdated",
+    "PurposeTemplateTargetDescriptionUpdated",
+  ] as const)("should not process a %s event", async (type) => {
     const mockTemplate = getMockPurposeTemplate();
 
     const message: PurposeTemplateEventEnvelopeV2 = {
@@ -159,10 +164,10 @@ describe("handlePurposeTemplateMessageV2 - Integration Test", () => {
       stream_id: mockTemplate.id,
       version: 1,
       event_version: 2,
-      type: "PurposeTemplateDraftUpdated",
+      type,
       data: {
         purposeTemplate: toPurposeTemplateV2(mockTemplate),
-      } as any,
+      },
       log_date: new Date(),
     };
 

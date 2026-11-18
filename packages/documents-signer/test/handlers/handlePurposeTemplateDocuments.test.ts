@@ -108,8 +108,16 @@ describe("handlePurposeTemplateDocument", () => {
     ).not.toHaveBeenCalled();
   });
 
-  it("should not log info for irrelevant events", async () => {
-    const event = makePurposeTemplatePublishedEvent({ correlationId });
+  it.each([
+    "PurposeTemplatePublished",
+    "PurposeTemplatePurposeTitleUpdated",
+    "PurposeTemplatePurposeDescriptionUpdated",
+    "PurposeTemplateTargetDescriptionUpdated",
+  ] as const)("should ignore %s events", async (type) => {
+    const event = {
+      ...makePurposeTemplatePublishedEvent({ correlationId }),
+      type,
+    };
 
     await handlePurposeTemplateDocument(
       event,

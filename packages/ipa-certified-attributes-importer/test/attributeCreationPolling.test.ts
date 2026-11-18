@@ -108,3 +108,108 @@ describe("Attribute creation polling", () => {
     expect(logger.warn).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("Attribute creation errors", () => {
+  const logger = {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+  } as unknown as Logger;
+
+  const headers = {} as InteropHeaders;
+  const attributeRegistryUrl = "http://attribute-registry";
+  const waitTime = 0;
+
+  const newAttributes = [
+    {
+      code: "A1",
+      description: "attribute 1",
+      origin: "IPA",
+      name: "attribute 1",
+    },
+    {
+      code: "A2",
+      description: "attribute 2",
+      origin: "IPA",
+      name: "attribute 2",
+    },
+  ];
+
+  const getAttributes = vi.fn(async () => [
+    {
+      id: "attribute-id",
+      name: "attribute 2",
+      code: "A2",
+      origin: "IPA",
+      kind: "Certified",
+      description: "attribute 2",
+      creationTime: new Date(),
+    },
+  ]);
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    createInternalCertifiedAttributeMock.mockRejectedValueOnce(
+      new Error("An attribute with name attribute 1 already exists")
+    );
+  });
+
+  it("should create the next attributes after a failed creation", async () => {
+    await createNewAttributes(
+      newAttributes,
+      { getAttributes } as never,
+      headers,
+      logger,
+      attributeRegistryUrl,
+      waitTime,
+      5
+    );
+
+    expect(createInternalCertifiedAttributeMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("should return the number of failed creations", async () => {
+    const failures = await createNewAttributes(
+      newAttributes,
+      { getAttributes } as never,
+      headers,
+      logger,
+      attributeRegistryUrl,
+      waitTime,
+      5
+    );
+
+    expect(failures).toBe(1);
+  });
+
+  it("should wait only for the created attributes", async () => {
+    await createNewAttributes(
+      newAttributes,
+      { getAttributes } as never,
+      headers,
+      logger,
+      attributeRegistryUrl,
+      waitTime,
+      5
+    );
+
+    expect(getAttributes).toHaveBeenCalledTimes(1);
+  });
+
+  it("should log a warning for a failed creation", async () => {
+    await createNewAttributes(
+      newAttributes,
+      { getAttributes } as never,
+      headers,
+      logger,
+      attributeRegistryUrl,
+      waitTime,
+      5
+    );
+
+    expect(logger.warn).toHaveBeenCalledWith(
+      "Failed creation of attribute IPA/A1. Skipping. Error: An attribute with name attribute 1 already exists"
+    );
+  });
+});
