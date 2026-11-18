@@ -16072,6 +16072,7 @@ paths:
       summary: |
         Assign a Verified Attribute to a Tenant with yourself as verifier.
         If the attribute is already assigned, you will be added to the list of verifiers.
+        If you are already a verifier, the request will fail with a conflict response.
       description: Assign a Verified Attribute to a Tenant
       operationId: assignTenantVerifiedAttribute
       requestBody:
@@ -16135,6 +16136,19 @@ paths:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "404":
           description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Attribute already verified for the Tenant
           content:
             application/problem+json:
               schema:
