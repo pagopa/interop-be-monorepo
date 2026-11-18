@@ -671,18 +671,12 @@
                                         {{#if newEservicesSingular}}
                                         È stato pubblicato
                                         <strong>
-                                          un nuovo e-service
-                                        </strong>:
+                                          un nuovo e-service:
+                                        </strong>
                                         {{else}}
                                         Sono stati pubblicati
                                         <strong>{{ newEservices.totalCount
-                                           }} nuovi e-service
-                                        </strong>
-                                          {{#if newEservicesExceededItemsCount }}
-                                          , tra cui:
-                                          {{else}}
-                                            :
-                                          {{/if}}
+                                           }} nuovi e-service</strong>{{#if newEservicesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                         {{/if}}
                                       </p>
 
@@ -761,18 +755,12 @@
                                         {{#if updatedEservicesSingular}}
                                         È stato aggiornato
                                         <strong>
-                                          un e-service di cui sei fruitore
-                                        </strong>:
+                                          un e-service di cui sei fruitore:
+                                        </strong>
                                         {{else}}
                                         Sono stati aggiornati
                                         <strong>{{ updatedEservices.totalCount 
-                                          }} e-service di cui sei fruitore
-                                        </strong>
-                                          {{#if updatedEservicesExceededItemsCount }}
-                                          , tra cui:
-                                          {{else}}
-                                            :
-                                          {{/if}}
+                                          }} e-service di cui sei fruitore</strong>{{#if updatedEservicesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                         {{/if}}
                                       </p>
 
@@ -843,18 +831,12 @@
                                         {{#if updatedEserviceTemplatesSingular}}
                                         È stato aggiornato
                                         <strong>un
-                                          template e-service che hai usato per creare una istanza
-                                        </strong>:
+                                          template e-service che hai usato per creare una istanza:
+                                        </strong>
                                         {{else}}
                                         Sono stati aggiornati
                                         <strong>{{ updatedEserviceTemplates.totalCount }}
-                                          template e-service che hai usato per creare una istanza
-                                        </strong>
-                                          {{#if updatedEserviceTemplatesExceededItemsCount }}
-                                          , tra cui:
-                                          {{else}}
-                                            :
-                                          {{/if}}
+                                          template e-service che hai usato per creare una istanza</strong>{{#if updatedEserviceTemplatesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                         {{/if}}
                                       </p>
 
@@ -932,15 +914,15 @@
                                           {{#if acceptedSentAgreements.totalCount}}
                                             <p class="body-text-no-margin">
                                               {{#if acceptedSentAgreementsSingular}}
-                                              <strong>
-                                                È stata approvata una richiesta di fruizione per:
-                                              </strong>
-                                              {{else}}
-                                              <strong>
-                                                Sono state approvate {{ 
-                                                  acceptedSentAgreements.totalCount
-                                                }} richieste di fruizione per:
-                                              </strong>
+                                                <strong>
+                                                  È stata approvata una richiesta di fruizione per:
+                                                </strong>
+                                                {{else}}
+                                                <strong>
+                                                  Sono state approvate {{ 
+                                                    acceptedSentAgreements.totalCount
+                                                  }} richieste di fruizione{{#if acceptedSentAgreementsExceededItemsCount }}, tra cui:{{else}} per:{{/if}}
+                                                </strong>
                                               {{/if}}
                                             </p>
                                             <div class="section-cell">
@@ -985,7 +967,7 @@
                                               <strong>
                                                 Sono state rifiutate {{ 
                                                 rejectedSentAgreements.totalCount}} richieste
-                                                di fruizione per:
+                                                di fruizione{{#if rejectedSentAgreementsExceededItemsCount }}, tra cui:{{else}} per:{{/if}}
                                               </strong>
                                               {{/if}}
                                             </p>
@@ -1023,7 +1005,7 @@
                                               
                                               <strong>
                                                 Sono state sospese {{ 
-                                                suspendedSentAgreements.totalCount }} richieste di fruizione per:
+                                                suspendedSentAgreements.totalCount }} richieste di fruizione{{#if suspendedSentAgreementsExceededItemsCount }}, tra cui:{{else}} per:{{/if}}
                                               </strong>
                                               {{/if}}
                                             </p>
@@ -1087,14 +1069,13 @@
                                           {{#if publishedSentPurposes.totalCount}}
                                             <p class="body-text-no-margin">
                                               {{#if publishedSentPurposesSingular}}
-                                              <strong>
-                                                È stata pubblicata una finalità:
-                                              </strong>
-                                              {{else}}
-                                              <strong>
-                                                Sono state pubblicate {{ 
-                                                publishedSentPurposes.totalCount }} finalità:
-                                              </strong>
+                                                <strong>
+                                                  È stata pubblicata una finalità:
+                                                </strong>
+                                                {{else}}
+                                                <strong>
+                                                  Sono state pubblicate {{ 
+                                                  publishedSentPurposes.totalCount }} finalità</strong>{{#if publishedSentPurposesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                               {{/if}}
                                             </p>
                                             <div class="section-cell">
@@ -1134,8 +1115,7 @@
                                               {{else}}
                                               <strong>
                                                 Sono state rifiutate {{ 
-                                                rejectedSentPurposes.totalCount }} finalità:
-                                              </strong>
+                                                rejectedSentPurposes.totalCount }} finalità</strong>{{#if rejectedSentPurposesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                               {{/if}}
                                             </p>
                                             <div class="section-cell">
@@ -1166,7 +1146,7 @@
                                                 una finalità è in attesa di approvazione:
                                                 {{else}}
                                                 {{ waitingForApprovalSentPurposes.totalCount
-                                                }} finalità sono in attesa di approvazione:
+                                                }} finalità sono in attesa di approvazione{{#if waitingForApprovalSentPurposesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                                 {{/if}}
                                               </strong>
                                             </p>
@@ -1229,13 +1209,7 @@
                                             {{else}}
                                             <strong>
                                               Sono state approvate {{
-                                              approvedRiskAnalysis.totalCount }} analisi del rischio
-                                            </strong>
-                                            {{#if approvedRiskAnalysisExceededItemsCount }}
-                                            , tra cui:
-                                            {{else}}
-                                              :
-                                            {{/if}}
+                                              approvedRiskAnalysis.totalCount }} analisi del rischio</strong>{{#if approvedRiskAnalysisExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                           {{/if}}
                                         </p>
                                         <div class="section-cell">
@@ -1274,13 +1248,7 @@
                                             {{else}}
                                             <strong>
                                               Sono state rifiutate {{
-                                              rejectedRiskAnalysis.totalCount }} analisi del rischio
-                                            </strong>
-                                            {{#if rejectedRiskAnalysisExceededItemsCount }}
-                                            , tra cui:
-                                            {{else}}
-                                              :
-                                            {{/if}}
+                                              rejectedRiskAnalysis.totalCount }} analisi del rischio</strong>{{#if rejectedRiskAnalysisExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                           {{/if}}
                                         </p>
                                         <div class="section-cell">
@@ -1312,6 +1280,7 @@
                                         </div>
                                       </div>
                                     {{/if}}
+                                    </div>
                                   </td>
                                 </tr>
                                 {{/if}}
@@ -1361,8 +1330,7 @@
                                             Ci sono {{ waitingForApprovalReceivedAgreements.totalCount
                                             }} richieste
                                             {{/if}}
-                                            di fruizione in attesa di approvazione:
-                                          </strong>
+                                            di fruizione in attesa di approvazione</strong>{{#if waitingForApprovalReceivedAgreementsExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                         </p>
                                         <div class="section-cell">
                                           <ul class="list-items">
@@ -1438,8 +1406,7 @@
                                               Sono state pubblicate {{
                                               publishedReceivedPurposes.totalCount }} 
                                               {{/if}}
-                                              finalità inoltrate al tuo ente:
-                                            </strong>
+                                              finalità inoltrate al tuo ente</strong>{{#if publishedReceivedPurposesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                           </p>
                                           <div class="section-cell">
                                             <ul class="list-items">
@@ -1476,8 +1443,7 @@
                                             Ci sono {{ waitingForApprovalReceivedPurposes.totalCount
                                             }} finalità
                                             {{/if}}
-                                            in attesa di approvazione:
-                                          </strong>
+                                            in attesa di approvazione</strong>{{#if waitingForApprovalReceivedPurposesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                         </p>
                                         <div class="section-cell">
                                           <ul class="list-items">
@@ -1516,339 +1482,6 @@
                                     {{/if}}
                                   </td>
                                 </tr>
-                                {{/if}}
-                                <!-- Deleghe -->
-                                {{#if hasDelegationsContent}}
-                                {{#if showDelegations}}
-                                <tr>
-                                  <td
-                                    align="left"
-                                    class="mobile-padding content-wrapper"
-                                  >
-                                    <div>
-                                      <table
-                                        class="section-header-table" role="presentation"
-                                        width="100%"
-                                        cellpadding="0"
-                                        cellspacing="0"
-                                        border="0"
-                                      >
-                                        <tr>
-                                          <td valign="middle">
-                                            <h2 class="h2-title">
-                                              Deleghe
-                                            </h2>
-                                          </td>
-                                          {{#if viewAllReceivedDelegationsLink}}
-                                          <td valign="middle" align="right" style="white-space: nowrap;">
-                                            <a
-                                              href="{{viewAllReceivedDelegationsLink}}"
-                                              class="link-primary" style="color: #0073e6;"
-                                              aria-label="Visualizza tutte le deleghe ricevute"
-                                              >Visualizza tutte</a
-                                            >
-                                          </td>
-                                          {{/if}}
-                                        </tr>
-                                      </table>
-                                      <div class="section-divider">
-                                        {{#if waitingForApprovalDelegatedEservices.totalCount}}
-                                          <p class="body-text-no-margin">
-                                            <strong>
-                                              {{#if waitingForApprovalDelegatedEservicesSingular}}
-                                              Hai ricevuto una richiesta
-                                              {{else}}
-                                              Hai ricevuto {{ waitingForApprovalDelegatedEservices.totalCount }}
-                                              richieste
-                                              {{/if}}
-                                              per pubblicare un e-service o una nuova versione:
-                                            </strong>
-                                            {{#if waitingForApprovalDelegatedEservicesExceededItemsCount }}
-                                            , tra cui:
-                                            {{else}}
-                                              :
-                                            {{/if}}
-                                          </p>
-                                          <div class="section-cell">
-                                            <ul class="list-items">
-                                              {{#each
-                                              waitingForApprovalDelegatedEservices.items}}
-                                              <ul class="list-item">
-                                                <a
-                                                  href="{{ link }}"
-                                                  class="link-primary" style="color: #0073e6;"
-                                                  >{{ name }}</a
-                                                >
-                                                <span class="list-item-secondary"
-                                                  >delegato a {{delegatedName}}</span
-                                                >
-                                              </ul>
-                                              {{/each}}
-                                              {{#if waitingForApprovalDelegatedEservicesExceededItemsCount }}
-                                              <ul class="list-item">
-                                                E altre
-                                                <strong>{{ waitingForApprovalDelegatedEservicesExceededItemsCount }}</strong>.
-                                              </ul>
-                                              {{/if}}
-                                            </ul>
-                                            <!-- Yellow Alert -->
-                                            <div class="alert-warning" role="note">
-                                              <p class="alert-text">
-                                                Approva le richieste e permetti
-                                                agli enti di continuare a scambiare dati.
-                                              </p>
-                                            </div>
-                                          </div>
-                                        {{/if}} 
-                                        {{#if
-                                        waitingForApprovalReceivedDelegations.totalCount}}
-                                          <p class="body-text-no-margin">
-                                            <strong>
-                                              {{#if waitingForApprovalReceivedDelegationsSingular}}
-                                              Hai ricevuto una richiesta
-                                              {{else}}
-                                              Hai ricevuto {{ waitingForApprovalReceivedDelegations.totalCount
-                                              }} richieste
-                                              {{/if}}
-                                              di delega
-                                            </strong>
-                                            {{#if waitingForApprovalReceivedDelegationsExceededItemsCount }}
-                                            , tra cui:
-                                            {{else}}
-                                              :
-                                            {{/if}}
-                                          </p>
-                                          <div class="section-cell">
-                                            <ul class="list-items">
-                                              {{#each
-                                              waitingForApprovalReceivedDelegations.items}}
-                                              <ul class="list-item">
-                                                <a
-                                                  href="{{ link }}"
-                                                  class="link-primary" style="color: #0073e6;"
-                                                  >{{ name }}</a
-                                                >
-                                                <span class="list-item-secondary"
-                                                  >delegato all'{{delegationKind}} da {{producerName}}</span
-                                                >
-                                              </ul>
-                                              {{/each}}
-                                              {{#if waitingForApprovalReceivedDelegationsExceededItemsCount }}
-                                              <ul class="list-item">
-                                                E altre
-                                                <strong>{{ waitingForApprovalReceivedDelegationsExceededItemsCount }}</strong>.
-                                              </ul>
-                                              {{/if}}
-                                            </ul>
-                                            <!-- Yellow Alert -->
-                                            <div class="alert-warning" role="note">
-                                              <p class="alert-text">
-                                                Approva le richieste e inizia a gestire
-                                                gli e-service ricevuti in delega.
-                                              </p>
-                                            </div>
-                                          </div>
-                                        {{/if}}
-                                      </div>
-                                      {{#if archivingRequests.totalCount}}
-                                      <div class="section-divider">
-                                        <p class="body-text-no-margin">
-                                          <strong>
-                                            {{#if archivingRequestsSingular}}
-                                            Hai ricevuto una richiesta di archiviazione
-                                            {{else}}
-                                            Hai ricevuto {{ archivingRequests.totalCount }} richieste
-                                            di archiviazione
-                                            {{/if}}
-                                            {{#if archivingRequestsExceededItemsCount }}
-                                            , tra cui:
-                                            {{else}}
-                                              :
-                                            {{/if}}
-                                          </strong>
-                                        </p>
-                                        <div class="section-cell">
-                                          <ul class="list-items">
-                                            {{#each archivingRequests.items}}
-                                              {{#if descriptorVersion}}
-                                              <ul class="list-item">
-                                                Versione
-                                                <a href="{{ link }}"
-                                                  class="link-primary" style="color: #0073e6;">
-                                                  {{ descriptorVersion }}
-                                                </a> 
-                                                di
-                                                <a href="{{ link }}"
-                                                  class="link-primary" style="color: #0073e6;">
-                                                {{ name }}
-                                                </a>
-                                                <span class="list-item-secondary"
-                                                  >delegato a {{ producerName }}</span
-                                                >
-                                              </ul>
-                                              {{else}}
-                                              <ul class="list-item">
-                                                <a
-                                                  href="{{ link }}"
-                                                  class="link-primary" style="color: #0073e6;"
-                                                  >{{ name }}</a
-                                                >
-                                                <span class="list-item-secondary"
-                                                  >delegato a {{ producerName }}</span
-                                                >
-                                              </ul>
-                                              {{/if}}
-                                            {{/each}}
-                                            {{#if archivingRequestsExceededItemsCount }}
-                                            <ul class="list-item">
-                                              E altre
-                                              <strong>{{ archivingRequestsExceededItemsCount }}</strong>.
-                                            </ul>
-                                            {{/if}}
-                                          </ul>
-                                          <!-- Yellow Alert -->
-                                          <div class="alert-warning" role="note">
-                                            <p class="alert-text">
-                                              Approva le richieste
-                                              per iniziare la fase di archiviazione.
-                                            </p>
-                                          </div>
-                                        </div>
-                                      </div>
-                                      {{/if}} 
-                                      {{#if
-                                      approvedArchivingRequests.totalCount}}
-                                      <div>
-                                        <p class="body-text-no-margin">
-                                          <strong>
-                                            {{#if approvedArchivingRequestsSingular}}
-                                            Hai approvato una richiesta di archiviazione:
-                                            {{else}}
-                                            Hai approvato {{ approvedArchivingRequests.totalCount
-                                            }} richieste di archiviazione
-                                            {{/if}}
-                                            {{#if approvedArchivingRequestsExceededItemsCount }}
-                                            , tra cui:
-                                            {{else}}
-                                              :
-                                            {{/if}}
-                                          </strong>
-                                        </p>
-                                        <div class="section-cell">
-                                          <ul class="list-items">
-                                            {{#each approvedArchivingRequests.items}}
-                                              {{#if descriptorVersion}}
-                                              <ul class="list-item">
-                                                Versione
-                                                <a
-                                                  href="{{ link }}"
-                                                  class="link-primary" style="color: #0073e6;"
-                                                  >{{ descriptorVersion }}</a
-                                                > di
-                                                <a
-                                                  href="{{ link }}"
-                                                  class="link-primary" style="color: #0073e6;"
-                                                  >{{ name }}</a
-                                                >
-                                                <span class="list-item-secondary"
-                                                  >delegato a {{ producerName }}</span
-                                                >
-                                              </ul>
-                                              {{else}}
-                                              <ul class="list-item">
-                                                <a
-                                                  href="{{ link }}"
-                                                  class="link-primary" style="color: #0073e6;"
-                                                  >{{ name }}</a
-                                                >
-                                                <span class="list-item-secondary"
-                                                  >delegato a {{ producerName }}</span
-                                                >
-                                              </ul>
-                                              {{/if}}
-                                            {{/each}}
-                                            {{#if approvedArchivingRequestsExceededItemsCount }}
-                                            <ul class="list-item">
-                                              E altre
-                                              <strong>{{ approvedArchivingRequestsExceededItemsCount }}</strong>.
-                                            </ul>
-                                            {{/if}}
-                                          </ul>
-                                        </div>
-                                      </div>
-                                      {{/if}}
-                                      {{#if
-                                      rejectedArchivingRequests.totalCount}}
-                                      <div>
-                                        <p class="body-text-no-margin">
-                                          <strong>
-                                            {{#if rejectedArchivingRequestsSingular}}
-                                            Hai rifiutato una richiesta di archiviazione:
-                                            {{else}}
-                                            Hai rifiutato {{ rejectedArchivingRequests.totalCount
-                                            }} richieste di archiviazione
-                                            {{/if}}
-                                            {{#if rejectedArchivingRequestsExceededItemsCount }}
-                                            , tra cui:
-                                            {{else}}
-                                              :
-                                            {{/if}}
-                                          </strong>
-                                        </p>
-                                        <div class="section-cell">
-                                          <ul class="list-items">
-                                            {{#each rejectedArchivingRequests.items}}
-                                              {{#if descriptorVersion}}
-                                              <ul class="list-item">
-                                                Versione
-                                                <a
-                                                  href="{{ link }}"
-                                                  class="link-primary" style="color: #0073e6;"
-                                                  >{{ descriptorVersion }}</a
-                                                > di
-                                                <a
-                                                  href="{{ link }}"
-                                                  class="link-primary" style="color: #0073e6;"
-                                                  >{{ name }}</a
-                                                >
-                                                <span class="list-item-secondary"
-                                                  >delegato a {{ producerName }}</span
-                                                >
-                                              </ul>
-                                              {{else}}
-                                              <ul class="list-item">
-                                                <a
-                                                  href="{{ link }}"
-                                                  class="link-primary" style="color: #0073e6;"
-                                                  >{{ name }}</a
-                                                >
-                                                <span class="list-item-secondary"
-                                                  >delegato a {{ producerName }}</span
-                                                >
-                                              </ul>
-                                              {{/if}}
-                                            {{/each}}
-                                            {{#if rejectedArchivingRequestsExceededItemsCount }}
-                                            <ul class="list-item">
-                                              E altre
-                                              <strong>{{ rejectedArchivingRequestsExceededItemsCount }}</strong>.
-                                            </ul>
-                                            {{/if}}
-                                          </ul>
-                                          <!-- Yellow Alert -->
-                                          <div class="alert-warning" role="note">
-                                            <p class="alert-text">
-                                              Leggi la motivazione
-                                              condivisa dall'ente delegante.
-                                            </p>
-                                          </div>
-                                        </div>
-                                      </div>
-                                      {{/if}}
-                                    </div>
-                                  </td>
-                                </tr>
-                                {{/if}}
                                 {{/if}}
                                 <!-- Attributi -->
                                 {{#if hasAttributesContent}}
@@ -1892,9 +1525,9 @@
                                         {{else}}
                                         Ti sono stati assegnati {{ 
                                         receivedAttributes.totalCount }} nuovi
-                                        attributi:
+                                        attributi{{#if receivedAttributesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                         {{/if}}
-                                        </strong>
+                                      </strong>
                                     </p>
                                     <div class="section-cell">
                                       <ul class="list-items">
@@ -1928,7 +1561,7 @@
                                         Ti è stato revocato un attributo:
                                         {{else}}
                                         Ti sono stati revocati {{ 
-                                        revokedAttributes.totalCount }} attributi:
+                                        revokedAttributes.totalCount }} attributi{{#if revokedAttributesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                         {{/if}}
                                       </strong>
                                     </p>
@@ -2075,9 +1708,9 @@
                                       {{#if archivingInProgressEservices.totalCount}}
                                       <p class="body-text-no-margin">
                                         {{#if archivingInProgressEservicesSingular}}
-                                        C'è <strong>1 versione di e-service o e-service in fase di archiviazione</strong>, tra cui:
+                                        C'è <strong>1 versione di e-service o e-service in fase di archiviazione</strong>:
                                         {{else}}
-                                        Ci sono <strong>{{ archivingInProgressEservices.totalCount }} versioni di e-service o e-service in fase di archiviazione</strong>, tra cui:
+                                        Ci sono <strong>{{ archivingInProgressEservices.totalCount }} versioni di e-service o e-service in fase di archiviazione</strong>{{#if archivingInProgressRemainder }}, tra cui:{{else}}:{{/if}}
                                         {{/if}}
                                       </p>
                                       <div class="archiving-box">
@@ -2206,9 +1839,9 @@
                                       {{#if archivingConsumerInProgressEservices.totalCount}}
                                       <p class="body-text-no-margin">
                                         {{#if archivingConsumerInProgressEservicesSingular}}
-                                        C'è <strong>1 versione di e-service o e-service in fase di archiviazione</strong>, tra cui:
+                                        C'è <strong>1 versione di e-service o e-service in fase di archiviazione</strong>:
                                         {{else}}
-                                        Ci sono <strong>{{ archivingConsumerInProgressEservices.totalCount }} versioni di e-service o e-service in fase di archiviazione</strong>, tra cui:
+                                        Ci sono <strong>{{ archivingConsumerInProgressEservices.totalCount }} versioni di e-service o e-service in fase di archiviazione</strong>{{#if archivingConsumerInProgressRemainder }}, tra cui:{{else}}:{{/if}}
                                         {{/if}}
                                       </p>
                                       <div class="archiving-box">
@@ -2230,6 +1863,306 @@
                                     {{/if}}
                                   </td>
                                 </tr>
+                                {{/if}}
+                                <!-- Deleghe -->
+                                {{#if hasDelegationsContent}}
+                                {{#if showDelegations}}
+                                <tr>
+                                  <td
+                                    align="left"
+                                    class="mobile-padding content-wrapper"
+                                  >
+                                    <div>
+                                      <table
+                                        class="section-header-table" role="presentation"
+                                        width="100%"
+                                        cellpadding="0"
+                                        cellspacing="0"
+                                        border="0"
+                                      >
+                                        <tr>
+                                          <td valign="middle">
+                                            <h2 class="h2-title">
+                                              Deleghe
+                                            </h2>
+                                          </td>
+                                          {{#if viewAllReceivedDelegationsLink}}
+                                          <td valign="middle" align="right" style="white-space: nowrap;">
+                                            <a
+                                              href="{{viewAllReceivedDelegationsLink}}"
+                                              class="link-primary" style="color: #0073e6;"
+                                              aria-label="Visualizza tutte le deleghe ricevute"
+                                              >Visualizza tutte</a
+                                            >
+                                          </td>
+                                          {{/if}}
+                                        </tr>
+                                      </table>
+                                      <div class="section-divider">
+                                        {{#if waitingForApprovalDelegatedEservices.totalCount}}
+                                          <p class="body-text-no-margin">
+                                            <strong>
+                                              {{#if waitingForApprovalDelegatedEservicesSingular}}
+                                              Hai ricevuto una richiesta
+                                              {{else}}
+                                              Hai ricevuto {{ waitingForApprovalDelegatedEservices.totalCount }}
+                                              richieste
+                                              {{/if}}
+                                              per pubblicare un e-service o una nuova versione</strong>{{#if waitingForApprovalDelegatedEservicesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
+                                          </p>
+                                          <div class="section-cell">
+                                            <ul class="list-items">
+                                              {{#each
+                                              waitingForApprovalDelegatedEservices.items}}
+                                              <ul class="list-item">
+                                                <a
+                                                  href="{{ link }}"
+                                                  class="link-primary" style="color: #0073e6;"
+                                                  >{{ name }}</a
+                                                >
+                                                <span class="list-item-secondary"
+                                                  >delegato a {{delegatedName}}</span
+                                                >
+                                              </ul>
+                                              {{/each}}
+                                              {{#if waitingForApprovalDelegatedEservicesExceededItemsCount }}
+                                              <ul class="list-item">
+                                                E altre
+                                                <strong>{{ waitingForApprovalDelegatedEservicesExceededItemsCount }}</strong>.
+                                              </ul>
+                                              {{/if}}
+                                            </ul>
+                                            <!-- Yellow Alert -->
+                                            <div class="alert-warning" role="note">
+                                              <p class="alert-text">
+                                                Approva le richieste e permetti
+                                                agli enti di continuare a scambiare dati.
+                                              </p>
+                                            </div>
+                                          </div>
+                                        {{/if}} 
+                                        {{#if
+                                        waitingForApprovalReceivedDelegations.totalCount}}
+                                          <p class="body-text-no-margin">
+                                            <strong>
+                                              {{#if waitingForApprovalReceivedDelegationsSingular}}
+                                              Hai ricevuto una richiesta
+                                              {{else}}
+                                              Hai ricevuto {{ waitingForApprovalReceivedDelegations.totalCount
+                                              }} richieste
+                                              {{/if}}
+                                              di delega</strong>{{#if waitingForApprovalReceivedDelegationsExceededItemsCount }}, tra cui:{{else}}:{{/if}}
+                                          </p>
+                                          <div class="section-cell">
+                                            <ul class="list-items">
+                                              {{#each
+                                              waitingForApprovalReceivedDelegations.items}}
+                                              <ul class="list-item">
+                                                <a
+                                                  href="{{ link }}"
+                                                  class="link-primary" style="color: #0073e6;"
+                                                  >{{ name }}</a
+                                                >
+                                                <span class="list-item-secondary"
+                                                  >delegato all'{{delegationKind}} da {{producerName}}</span
+                                                >
+                                              </ul>
+                                              {{/each}}
+                                              {{#if waitingForApprovalReceivedDelegationsExceededItemsCount }}
+                                              <ul class="list-item">
+                                                E altre
+                                                <strong>{{ waitingForApprovalReceivedDelegationsExceededItemsCount }}</strong>.
+                                              </ul>
+                                              {{/if}}
+                                            </ul>
+                                            <!-- Yellow Alert -->
+                                            <div class="alert-warning" role="note">
+                                              <p class="alert-text">
+                                                Approva le richieste e inizia a gestire
+                                                gli e-service ricevuti in delega.
+                                              </p>
+                                            </div>
+                                          </div>
+                                        {{/if}}
+                                      </div>
+                                      {{#if archivingRequests.totalCount}}
+                                      <div class="section-divider">
+                                        <p class="body-text-no-margin">
+                                          <strong>
+                                            {{#if archivingRequestsSingular}}
+                                            Hai ricevuto una richiesta di archiviazione:{{else}}
+                                            Hai ricevuto {{ archivingRequests.totalCount }} richieste
+                                            di archiviazione{{#if archivingRequestsExceededItemsCount }}, tra cui:{{else}}:{{/if}}{{/if}}
+                                          </strong>
+                                        </p>
+                                        <div class="section-cell">
+                                          <ul class="list-items">
+                                            {{#each archivingRequests.items}}
+                                              {{#if descriptorVersion}}
+                                              <ul class="list-item">
+                                                Versione
+                                                <a href="{{ link }}"
+                                                  class="link-primary" style="color: #0073e6;">
+                                                  {{ descriptorVersion }}
+                                                </a> 
+                                                di
+                                                <a href="{{ link }}"
+                                                  class="link-primary" style="color: #0073e6;">
+                                                {{ name }}
+                                                </a>
+                                                <span class="list-item-secondary"
+                                                  >delegato a {{ producerName }}</span
+                                                >
+                                              </ul>
+                                              {{else}}
+                                              <ul class="list-item">
+                                                <a
+                                                  href="{{ link }}"
+                                                  class="link-primary" style="color: #0073e6;"
+                                                  >{{ name }}</a
+                                                >
+                                                <span class="list-item-secondary"
+                                                  >delegato a {{ producerName }}</span
+                                                >
+                                              </ul>
+                                              {{/if}}
+                                            {{/each}}
+                                            {{#if archivingRequestsExceededItemsCount }}
+                                            <ul class="list-item">
+                                              E altre
+                                              <strong>{{ archivingRequestsExceededItemsCount }}</strong>.
+                                            </ul>
+                                            {{/if}}
+                                          </ul>
+                                          <!-- Yellow Alert -->
+                                          <div class="alert-warning" role="note">
+                                            <p class="alert-text">
+                                              Approva le richieste
+                                              per iniziare la fase di archiviazione.
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      {{/if}} 
+                                      {{#if
+                                      approvedArchivingRequests.totalCount}}
+                                      <div>
+                                        <p class="body-text-no-margin">
+                                          <strong>
+                                            {{#if approvedArchivingRequestsSingular}}
+                                            Hai approvato una richiesta di archiviazione:
+                                            {{else}}Hai approvato {{ approvedArchivingRequests.totalCount
+                                            }} richieste di archiviazione{{#if approvedArchivingRequestsExceededItemsCount }}, tra cui:{{else}}:{{/if}}{{/if}}
+                                          </strong>
+                                        </p>
+                                        <div class="section-cell">
+                                          <ul class="list-items">
+                                            {{#each approvedArchivingRequests.items}}
+                                              {{#if descriptorVersion}}
+                                              <ul class="list-item">
+                                                Versione
+                                                <a
+                                                  href="{{ link }}"
+                                                  class="link-primary" style="color: #0073e6;"
+                                                  >{{ descriptorVersion }}</a
+                                                > di
+                                                <a
+                                                  href="{{ link }}"
+                                                  class="link-primary" style="color: #0073e6;"
+                                                  >{{ name }}</a
+                                                >
+                                                <span class="list-item-secondary"
+                                                  >delegato a {{ producerName }}</span
+                                                >
+                                              </ul>
+                                              {{else}}
+                                              <ul class="list-item">
+                                                <a
+                                                  href="{{ link }}"
+                                                  class="link-primary" style="color: #0073e6;"
+                                                  >{{ name }}</a
+                                                >
+                                                <span class="list-item-secondary"
+                                                  >delegato a {{ producerName }}</span
+                                                >
+                                              </ul>
+                                              {{/if}}
+                                            {{/each}}
+                                            {{#if approvedArchivingRequestsExceededItemsCount }}
+                                            <ul class="list-item">
+                                              E altre
+                                              <strong>{{ approvedArchivingRequestsExceededItemsCount }}</strong>.
+                                            </ul>
+                                            {{/if}}
+                                          </ul>
+                                        </div>
+                                      </div>
+                                      {{/if}}
+                                      {{#if
+                                      rejectedArchivingRequests.totalCount}}
+                                      <div>
+                                        <p class="body-text-no-margin">
+                                          <strong>
+                                            {{#if rejectedArchivingRequestsSingular}}
+                                            Hai rifiutato una richiesta di archiviazione:
+                                            {{else}}Hai rifiutato {{ rejectedArchivingRequests.totalCount
+                                            }} richieste di archiviazione{{#if rejectedArchivingRequestsExceededItemsCount }}, tra cui:{{else}}:{{/if}}{{/if}}
+                                          </strong>
+                                        </p>
+                                        <div class="section-cell">
+                                          <ul class="list-items">
+                                            {{#each rejectedArchivingRequests.items}}
+                                              {{#if descriptorVersion}}
+                                              <ul class="list-item">
+                                                Versione
+                                                <a
+                                                  href="{{ link }}"
+                                                  class="link-primary" style="color: #0073e6;"
+                                                  >{{ descriptorVersion }}</a
+                                                > di
+                                                <a
+                                                  href="{{ link }}"
+                                                  class="link-primary" style="color: #0073e6;"
+                                                  >{{ name }}</a
+                                                >
+                                                <span class="list-item-secondary"
+                                                  >delegato a {{ producerName }}</span
+                                                >
+                                              </ul>
+                                              {{else}}
+                                              <ul class="list-item">
+                                                <a
+                                                  href="{{ link }}"
+                                                  class="link-primary" style="color: #0073e6;"
+                                                  >{{ name }}</a
+                                                >
+                                                <span class="list-item-secondary"
+                                                  >delegato a {{ producerName }}</span
+                                                >
+                                              </ul>
+                                              {{/if}}
+                                            {{/each}}
+                                            {{#if rejectedArchivingRequestsExceededItemsCount }}
+                                            <ul class="list-item">
+                                              E altre
+                                              <strong>{{ rejectedArchivingRequestsExceededItemsCount }}</strong>.
+                                            </ul>
+                                            {{/if}}
+                                          </ul>
+                                          <!-- Yellow Alert -->
+                                          <div class="alert-warning" role="note">
+                                            <p class="alert-text">
+                                              Leggi la motivazione
+                                              condivisa dall'ente delegante.
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      {{/if}}
+                                    </div>
+                                  </td>
+                                </tr>
+                                {{/if}}
                                 {{/if}}
                                 <tr>
                                   <td
