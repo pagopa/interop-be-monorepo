@@ -18,6 +18,18 @@ describe("getProducerKeychainEvents integration", () => {
       eventType: "PRODUCER_KEYCHAIN_ADDED",
       producerKeychainId: generateId(),
     },
+    {
+      id: generateId(),
+      eventTimestamp: new Date().toJSON(),
+      eventType: "PRODUCER_KEYCHAIN_NAME_UPDATED",
+      producerKeychainId: generateId(),
+    },
+    {
+      id: generateId(),
+      eventTimestamp: new Date().toJSON(),
+      eventType: "PRODUCER_KEYCHAIN_DESCRIPTION_UPDATED",
+      producerKeychainId: generateId(),
+    },
   ];
   const mockEventManagerResponse: m2mEventApi.ProducerKeychainM2MEvents = {
     events,

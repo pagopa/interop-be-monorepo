@@ -7,21 +7,17 @@ import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockBffApiCompactOrganization } from "../../mockUtils.js";
+import {
+  getMockBffApiCompactOrganization,
+  getMockBffApiCompactOrganizationWithHierarchy,
+} from "../../mockUtils.js";
 import { api, services } from "../../vitest.api.setup.js";
 
 describe("API GET /producers test", () => {
   const mockProducers: bffApi.CompactOrganizations = {
     results: [
       getMockBffApiCompactOrganization(),
-      {
-        ...getMockBffApiCompactOrganization(),
-        subUnitType: "UO",
-        parentTenants: [
-          { id: generateId(), name: "Tenant AOO", subUnitType: "AOO" },
-          { id: generateId(), name: "Tenant root" },
-        ],
-      },
+      getMockBffApiCompactOrganizationWithHierarchy(),
     ],
     pagination: { offset: 0, limit: 10, totalCount: 20 },
   };
