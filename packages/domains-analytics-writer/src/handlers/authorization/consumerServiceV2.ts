@@ -39,6 +39,8 @@ export async function handleAuthorizationEventMessageV2(
         {
           type: P.union(
             "ClientAdded",
+            "ClientNameUpdated",
+            "ClientDescriptionUpdated",
             "ClientKeyAdded",
             "ClientAdminSet",
             "ClientKeyDeleted",
@@ -93,6 +95,8 @@ export async function handleAuthorizationEventMessageV2(
         {
           type: P.union(
             "ProducerKeychainAdded",
+            "ProducerKeychainNameUpdated",
+            "ProducerKeychainDescriptionUpdated",
             "ProducerKeychainKeyAdded",
             "ProducerKeychainKeyDeleted",
             "ProducerKeychainUserAdded",

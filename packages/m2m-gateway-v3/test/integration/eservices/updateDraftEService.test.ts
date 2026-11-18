@@ -91,6 +91,7 @@ describe("updateDraftEService", () => {
   });
 
   it.each([
+    {},
     { name: "Updated metadata name" },
     { description: "Updated metadata description" },
     { name: mockEService.name, description: mockEService.description },

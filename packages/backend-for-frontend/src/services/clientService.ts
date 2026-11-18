@@ -118,6 +118,18 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
         .exhaustive();
     },
 
+    async updateClient(
+      clientId: string,
+      seed: bffApi.ClientUpdateSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(`Updating client ${clientId}`);
+      await authorizationClient.client.updateClient(seed, {
+        params: { clientId },
+        headers,
+      });
+    },
+
     async deleteClient(
       clientId: string,
       { logger, headers }: WithLogger<BffAppContext>

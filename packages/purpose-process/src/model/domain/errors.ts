@@ -679,6 +679,26 @@ export function purposeMetadataVersionMismatch(
   });
 }
 
+export function riskAnalysisAlreadyApproved(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The risk analysis for purpose ${purposeId} has already been approved`,
+    code: "riskAnalysisAlreadyApproved",
+    title: "Risk analysis already approved",
+  });
+}
+
+export function riskAnalysisAlreadyRejected(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The risk analysis for purpose ${purposeId} has already been rejected`,
+    code: "riskAnalysisAlreadyRejected",
+    title: "Risk analysis already rejected",
+  });
+}
+
 export function riskAnalysisReviewModeNotFound(
   purposeId: PurposeId
 ): ApiError<ErrorCodes> {

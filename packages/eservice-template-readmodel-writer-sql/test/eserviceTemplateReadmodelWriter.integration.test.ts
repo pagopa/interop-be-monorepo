@@ -3,6 +3,7 @@ import {
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
   getMockDocument,
+  sortRiskAnalysisCollections,
 } from "pagopa-interop-commons-test";
 import {
   Document,
@@ -736,8 +737,11 @@ describe("database test", async () => {
           mockEServiceTemplate.id
         );
 
-      expect(retrievedEservice).toStrictEqual({
-        data: updatedEServiceTemplate,
+      expect({
+        ...retrievedEservice,
+        data: sortRiskAnalysisCollections(retrievedEservice?.data),
+      }).toStrictEqual({
+        data: sortRiskAnalysisCollections(updatedEServiceTemplate),
         metadata: { version: 2 },
       });
     });
@@ -792,8 +796,11 @@ describe("database test", async () => {
           mockEServiceTemplate.id
         );
 
-      expect(retrievedEservice).toStrictEqual({
-        data: updatedEServiceTemplate,
+      expect({
+        ...retrievedEservice,
+        data: sortRiskAnalysisCollections(retrievedEservice?.data),
+      }).toStrictEqual({
+        data: sortRiskAnalysisCollections(updatedEServiceTemplate),
         metadata: { version: 2 },
       });
     });

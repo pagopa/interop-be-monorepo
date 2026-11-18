@@ -38,4 +38,5 @@ export const authorizationErrorCodes = {
   tenantNotFound: "0037",
   missingSelfcareId: "0038",
   duplicatedMembersInSeed: "0039",
+  eserviceInArchivedState: "0040",
 };

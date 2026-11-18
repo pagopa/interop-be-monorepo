@@ -10,6 +10,7 @@ import {
 import {
   AgreementId,
   AttributeId,
+  DelegationId,
   TenantId,
   emptyErrorMapper,
   unsafeBrandId,
@@ -416,11 +417,17 @@ const tenantRouter = (
           const attributeId = unsafeBrandId<AttributeId>(
             req.params.attributeId
           );
-          const agreementId = unsafeBrandId<AgreementId>(req.body.agreementId);
+          const agreementId: AgreementId = unsafeBrandId<AgreementId>(
+            req.query.agreementId
+          );
+          const delegationId = req.query.delegationId
+            ? unsafeBrandId<DelegationId>(req.query.delegationId)
+            : undefined;
           await tenantService.revokeVerifiedAttribute(
             tenantId,
             attributeId,
             agreementId,
+            delegationId,
             ctx
           );
 
