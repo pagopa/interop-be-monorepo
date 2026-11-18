@@ -9,6 +9,7 @@ import {
   isFeatureFlagEnabled,
   Logger,
   WithLogger,
+  CORRELATION_ID_HEADER,
 } from "pagopa-interop-commons";
 import {
   AgreementId,
@@ -70,7 +71,7 @@ export function tenantServiceBuilder(
             id: selfcareId,
           },
           headers: {
-            "X-Correlation-Id": correlationId,
+            [CORRELATION_ID_HEADER]: correlationId,
           },
         });
 

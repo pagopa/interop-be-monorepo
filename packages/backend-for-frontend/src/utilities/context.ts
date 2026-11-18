@@ -4,13 +4,14 @@ import {
   UIAuthData,
   WithLogger,
   logger,
+  CORRELATION_ID_HEADER,
 } from "pagopa-interop-commons";
 import { CorrelationId } from "pagopa-interop-models";
 
 import type { UserFacingLanguage } from "../model/types.js";
 
 export type Headers = {
-  "X-Correlation-Id": CorrelationId;
+  [CORRELATION_ID_HEADER]: CorrelationId;
   Authorization: string | undefined;
   "X-Forwarded-For": string | undefined;
 };
@@ -31,7 +32,7 @@ export function fromBffAppContext(
   return {
     ...ctx,
     headers: {
-      "X-Correlation-Id": ctx.correlationId,
+      [CORRELATION_ID_HEADER]: ctx.correlationId,
       Authorization: headers.authorization,
       "X-Forwarded-For": headers["x-forwarded-for"],
     },
