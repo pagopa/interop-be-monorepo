@@ -1,4 +1,5 @@
 import { and, eq, inArray } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { delegationApi } from "pagopa-interop-api-clients";
 import {
   createListResult,
@@ -30,6 +31,8 @@ import {
   DelegationReadModelService,
   TenantReadModelService,
   toDelegationAggregatorArray,
+  getTenantHierarchyNameFilter,
+  toParentTenants,
 } from "pagopa-interop-readmodel";
 import {
   agreementInReadmodelAgreement,
@@ -42,6 +45,9 @@ import {
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
 import { z } from "zod";
+
+const parentTenantTable = alias(tenantInReadmodelTenant, "parentTenantTable");
+const rootTenantTable = alias(tenantInReadmodelTenant, "rootTenantTable");
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
@@ -221,9 +227,23 @@ export function readModelServiceBuilderSQL({
           withTotalCount({
             id: tenantInReadmodelTenant.id,
             name: tenantInReadmodelTenant.name,
+            subUnitType: tenantInReadmodelTenant.subUnitType,
+            parentTenantId: parentTenantTable.id,
+            parentTenantName: parentTenantTable.name,
+            parentTenantSubUnitType: parentTenantTable.subUnitType,
+            rootTenantId: rootTenantTable.id,
+            rootTenantName: rootTenantTable.name,
           })
         )
         .from(tenantInReadmodelTenant)
+        .leftJoin(
+          parentTenantTable,
+          eq(tenantInReadmodelTenant.parentTenantId, parentTenantTable.id)
+        )
+        .leftJoin(
+          rootTenantTable,
+          eq(tenantInReadmodelTenant.rootTenantId, rootTenantTable.id)
+        )
         .innerJoin(
           delegationInReadmodelDelegation,
           eq(
@@ -247,22 +267,30 @@ export function readModelServiceBuilderSQL({
                 )
               : undefined,
             // TENANT FILTERS
-            filters.delegatorName
-              ? ilikeEscaped(
-                  tenantInReadmodelTenant.name,
-                  `%${escapeSqlLike(filters.delegatorName)}%`
-                )
-              : undefined
+            getTenantHierarchyNameFilter(
+              filters.delegatorName,
+              tenantInReadmodelTenant.name,
+              tenantInReadmodelTenant.parentTenantId,
+              parentTenantTable.name,
+              tenantInReadmodelTenant.rootTenantId,
+              rootTenantTable.name
+            )
           )
         )
-        .groupBy(tenantInReadmodelTenant.id)
+        .groupBy(
+          tenantInReadmodelTenant.id,
+          parentTenantTable.id,
+          rootTenantTable.id
+        )
         .orderBy(tenantInReadmodelTenant.name)
         .limit(filters.limit)
         .offset(filters.offset);
 
-      const data: delegationApi.CompactTenant[] = queryResult.map((d) => ({
+      const data = queryResult.map((d) => ({
         id: d.id,
         name: d.name,
+        subUnitType: d.subUnitType ?? undefined,
+        parentTenants: toParentTenants(d),
       }));
 
       const result = z.array(delegationApi.CompactTenant).safeParse(data);
@@ -288,9 +316,23 @@ export function readModelServiceBuilderSQL({
           withTotalCount({
             id: tenantInReadmodelTenant.id,
             name: tenantInReadmodelTenant.name,
+            subUnitType: tenantInReadmodelTenant.subUnitType,
+            parentTenantId: parentTenantTable.id,
+            parentTenantName: parentTenantTable.name,
+            parentTenantSubUnitType: parentTenantTable.subUnitType,
+            rootTenantId: rootTenantTable.id,
+            rootTenantName: rootTenantTable.name,
           })
         )
         .from(tenantInReadmodelTenant)
+        .leftJoin(
+          parentTenantTable,
+          eq(tenantInReadmodelTenant.parentTenantId, parentTenantTable.id)
+        )
+        .leftJoin(
+          rootTenantTable,
+          eq(tenantInReadmodelTenant.rootTenantId, rootTenantTable.id)
+        )
         .innerJoin(
           delegationInReadmodelDelegation,
           eq(
@@ -332,22 +374,30 @@ export function readModelServiceBuilderSQL({
             ),
             eq(agreementInReadmodelAgreement.state, agreementState.active),
             // TENANT FILTERS
-            filters.delegatorName
-              ? ilikeEscaped(
-                  tenantInReadmodelTenant.name,
-                  `%${escapeSqlLike(filters.delegatorName)}%`
-                )
-              : undefined
+            getTenantHierarchyNameFilter(
+              filters.delegatorName,
+              tenantInReadmodelTenant.name,
+              tenantInReadmodelTenant.parentTenantId,
+              parentTenantTable.name,
+              tenantInReadmodelTenant.rootTenantId,
+              rootTenantTable.name
+            )
           )
         )
-        .groupBy(tenantInReadmodelTenant.id)
+        .groupBy(
+          tenantInReadmodelTenant.id,
+          parentTenantTable.id,
+          rootTenantTable.id
+        )
         .orderBy(tenantInReadmodelTenant.name)
         .limit(filters.limit)
         .offset(filters.offset);
 
-      const data: delegationApi.CompactTenant[] = queryResult.map((d) => ({
+      const data = queryResult.map((d) => ({
         id: d.id,
         name: d.name,
+        subUnitType: d.subUnitType ?? undefined,
+        parentTenants: toParentTenants(d),
       }));
 
       const result = z.array(delegationApi.CompactTenant).safeParse(data);
