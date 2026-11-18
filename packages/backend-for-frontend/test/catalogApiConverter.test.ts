@@ -15,6 +15,8 @@ import {
   toBffCatalogApiDescriptorAttributes,
   toBffCatalogApiEService,
   toBffCatalogTenant,
+  toBffCatalogDescriptorEService,
+  toCompactEservice,
 } from "../src/api/catalogApiConverter.js";
 import { attributeNotExists } from "../src/model/errors.js";
 
@@ -232,6 +234,65 @@ describe("catalogApiConverter", () => {
         },
         isMine: true,
         hasUnreadNotifications: true,
+      });
+    });
+  });
+
+  describe("toBffCatalogDescriptorEService", () => {
+    it("should return the producer parent and root tenants when available", async () => {
+      const producer = {
+        ...getMockedApiTenant(),
+        subUnitType: "UO" as const,
+        parentTenants: [
+          { id: generateId(), name: "Tenant AOO", subUnitType: "AOO" as const },
+          { id: generateId(), name: "Tenant root" },
+        ],
+      };
+      const eservice = {
+        ...getMockedApiEservice(),
+        producerId: producer.id,
+        riskAnalysis: [],
+      };
+      const descriptor = eservice.descriptors[0];
+      const details = await toBffCatalogDescriptorEService(
+        eservice,
+        descriptor,
+        producer,
+        [],
+        getMockedApiTenant(),
+        [],
+        false,
+        false
+      );
+      expect(bffApi.CompactOrganization.parse(details.producer)).toMatchObject({
+        id: producer.id,
+        name: producer.name,
+        subUnitType: "UO",
+        parentTenants: producer.parentTenants,
+      });
+    });
+  });
+
+  describe("toCompactEservice", () => {
+    it("should return the producer parent and root tenants when available", () => {
+      const producer = {
+        ...getMockedApiTenant(),
+        subUnitType: "UO" as const,
+        parentTenants: [
+          { id: generateId(), name: "Tenant AOO", subUnitType: "AOO" as const },
+          { id: generateId(), name: "Tenant root" },
+        ],
+      };
+      const eservice = {
+        ...getMockedApiEservice(),
+        producerId: producer.id,
+      };
+      const compact = toCompactEservice(eservice, producer);
+      expect(bffApi.CompactOrganization.parse(compact.producer)).toMatchObject({
+        id: producer.id,
+        name: producer.name,
+        subUnitType: "UO",
+        parentTenants: producer.parentTenants,
       });
     });
   });

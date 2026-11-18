@@ -6,6 +6,7 @@ import {
 } from "pagopa-interop-api-clients";
 
 import { isAgreementUpgradable } from "../services/validators.js";
+import { toBffApiParentTenants } from "./tenantApiConverter.js";
 
 export function toBffCompactOrganization(
   organization: agreementApi.CompactOrganization,
@@ -15,6 +16,8 @@ export function toBffCompactOrganization(
     id: organization.id,
     name: organization.name,
     hasUnreadNotifications: hasNotifications || false,
+    subUnitType: organization.subUnitType,
+    parentTenants: toBffApiParentTenants(organization.parentTenants),
   };
 }
 

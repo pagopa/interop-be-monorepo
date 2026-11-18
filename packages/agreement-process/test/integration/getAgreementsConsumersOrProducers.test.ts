@@ -14,6 +14,7 @@ import {
   delegationState,
   generateId,
   CompactOrganization,
+  TenantId,
 } from "pagopa-interop-models";
 import { describe, beforeEach, it, expect } from "vitest";
 
@@ -581,4 +582,235 @@ describe("get agreements consumers / producers", () => {
       });
     });
   });
+
+  it.each(["producer", "consumer"] as const)(
+    "should return the parent and root tenants when available for agreements %s",
+    async (kind) => {
+      const rootTenant = { ...getMockTenant(), name: "Tenant root" };
+      const parentTenant: Tenant = {
+        ...getMockTenant(),
+        name: "Tenant AOO",
+        subUnitType: "AOO",
+        parentTenantId: rootTenant.id,
+        rootTenantId: rootTenant.id,
+      };
+      const targetTenant: Tenant = {
+        ...getMockTenant(),
+        name: "Tenant UO",
+        subUnitType: "UO",
+        parentTenantId: parentTenant.id,
+        rootTenantId: rootTenant.id,
+      };
+      const requesterTenant = getMockTenant();
+      const hiddenTenant: Tenant = {
+        ...getMockTenant(),
+        name: "Tenant hidden UO",
+        subUnitType: "UO",
+        parentTenantId: parentTenant.id,
+        rootTenantId: rootTenant.id,
+      };
+      for (const tenant of [
+        rootTenant,
+        parentTenant,
+        targetTenant,
+        requesterTenant,
+        hiddenTenant,
+      ]) {
+        await addOneTenant(tenant);
+      }
+      const agreement = {
+        ...getMockAgreement(),
+        producerId: kind === "producer" ? targetTenant.id : requesterTenant.id,
+        consumerId: kind === "consumer" ? targetTenant.id : requesterTenant.id,
+      };
+      await addOneAgreement(agreement);
+      await addOneAgreement({
+        ...agreement,
+        id: generateId(),
+        consumerDocuments: [],
+      });
+      await addOneAgreement({
+        ...getMockAgreement(),
+        producerId: kind === "producer" ? hiddenTenant.id : tenant1.id,
+        consumerId: kind === "consumer" ? hiddenTenant.id : tenant1.id,
+      });
+      const getOrganizations =
+        kind === "producer"
+          ? agreementService.getAgreementsProducers
+          : agreementService.getAgreementsConsumers;
+      const result = await getOrganizations(
+        undefined,
+        10,
+        0,
+        getMockContext({ authData: getMockAuthData(requesterTenant.id) })
+      );
+      expect(result).toEqual({
+        totalCount: 1,
+        results: [
+          {
+            id: targetTenant.id,
+            name: targetTenant.name,
+            subUnitType: "UO",
+            parentTenants: [
+              {
+                id: parentTenant.id,
+                name: parentTenant.name,
+                subUnitType: "AOO",
+              },
+              { id: rootTenant.id, name: rootTenant.name },
+            ],
+          },
+        ],
+      });
+    }
+  );
+
+  it.each(["producer", "consumer"] as const)(
+    "should return the %s when its parent cannot be resolved",
+    async (kind) => {
+      const targetTenant: Tenant = {
+        ...getMockTenant(),
+        name: "Tenant UO",
+        subUnitType: "UO",
+        parentTenantId: generateId<TenantId>(),
+        rootTenantId: generateId<TenantId>(),
+      };
+      await addOneTenant(targetTenant);
+      await addOneAgreement({
+        ...getMockAgreement(),
+        producerId: kind === "producer" ? targetTenant.id : tenant1.id,
+        consumerId: kind === "consumer" ? targetTenant.id : tenant1.id,
+      });
+      const getOrganizations =
+        kind === "producer"
+          ? agreementService.getAgreementsProducers
+          : agreementService.getAgreementsConsumers;
+      const result = await getOrganizations(
+        targetTenant.name,
+        10,
+        0,
+        getMockContext({ authData: getMockAuthData(tenant1.id) })
+      );
+      expect(result).toEqual({
+        totalCount: 1,
+        results: [
+          {
+            id: targetTenant.id,
+            name: targetTenant.name,
+            subUnitType: "UO",
+            parentTenants: undefined,
+          },
+        ],
+      });
+    }
+  );
+
+  it.each(
+    (["producer", "consumer"] as const).flatMap((kind) =>
+      [
+        { direct: true, query: "Tenant UO - Tenant root", matches: true },
+        {
+          direct: true,
+          query: "Tenant UO - Tenant root - Tenant root",
+          matches: false,
+        },
+        {
+          direct: false,
+          query: "Tenant UO - Tenant AOO - Tenant root",
+          matches: true,
+        },
+        { direct: false, query: "Tenant UO - Tenant root", matches: false },
+        { direct: false, query: "Tenant AOO", matches: true },
+        { direct: false, query: "Tenant root", matches: true },
+      ].map((scenario) => ({ kind, ...scenario }))
+    )
+  )(
+    "should search by composed name without duplicating ancestors: %j",
+    async ({ kind, direct, query, matches }) => {
+      const rootTenant = { ...getMockTenant(), name: "Tenant root" };
+      const parentTenant: Tenant = {
+        ...getMockTenant(),
+        name: "Tenant AOO",
+        subUnitType: "AOO",
+      };
+      const targetTenant: Tenant = {
+        ...getMockTenant(),
+        name: "Tenant UO",
+        subUnitType: "UO",
+        parentTenantId: direct ? rootTenant.id : parentTenant.id,
+        rootTenantId: rootTenant.id,
+      };
+      for (const tenant of [rootTenant, parentTenant, targetTenant]) {
+        await addOneTenant(tenant);
+      }
+      await addOneAgreement({
+        ...getMockAgreement(),
+        producerId: kind === "producer" ? targetTenant.id : tenant1.id,
+        consumerId: kind === "consumer" ? targetTenant.id : tenant1.id,
+      });
+      const getOrganizations =
+        kind === "producer"
+          ? agreementService.getAgreementsProducers
+          : agreementService.getAgreementsConsumers;
+      const result = await getOrganizations(
+        query,
+        50,
+        0,
+        getMockContext({ authData: getMockAuthData(tenant1.id) })
+      );
+      expect(result.results.map((tenant) => tenant.id)).toEqual(
+        matches ? [targetTenant.id] : []
+      );
+      expect(result.totalCount).toBe(matches ? 1 : 0);
+    }
+  );
+
+  it.each(["producer", "consumer"] as const)(
+    "should apply agreements %s name search before pagination and total count",
+    async (kind) => {
+      const rootTenant = { ...getMockTenant(), name: "Tenant root" };
+      const targetTenant: Tenant = {
+        ...getMockTenant(),
+        name: "Tenant UO 1",
+        subUnitType: "UO",
+        parentTenantId: rootTenant.id,
+        rootTenantId: rootTenant.id,
+      };
+      const secondTenant: Tenant = {
+        ...targetTenant,
+        id: generateId<TenantId>(),
+        name: "Tenant UO 2",
+      };
+      for (const tenant of [rootTenant, targetTenant, secondTenant]) {
+        await addOneTenant(tenant);
+      }
+      for (const tenant of [targetTenant, secondTenant]) {
+        const agreement = {
+          ...getMockAgreement(),
+          producerId: kind === "producer" ? tenant.id : tenant1.id,
+          consumerId: kind === "consumer" ? tenant.id : tenant1.id,
+        };
+        await addOneAgreement(agreement);
+        await addOneAgreement({
+          ...agreement,
+          id: generateId(),
+          consumerDocuments: [],
+        });
+      }
+      const getOrganizations =
+        kind === "producer"
+          ? agreementService.getAgreementsProducers
+          : agreementService.getAgreementsConsumers;
+      const result = await getOrganizations(
+        rootTenant.name,
+        1,
+        1,
+        getMockContext({ authData: getMockAuthData(tenant1.id) })
+      );
+      expect(result.results.map((tenant) => tenant.id)).toEqual([
+        secondTenant.id,
+      ]);
+      expect(result.totalCount).toBe(2);
+    }
+  );
 });

@@ -31,6 +31,7 @@ import {
   toCompactEservice,
   toCompactDescriptor,
 } from "../api/catalogApiConverter.js";
+import { toBffApiParentTenants } from "../api/tenantApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import {
@@ -802,6 +803,8 @@ async function enrichAgreementListEntry(
         id: consumer.id,
         name: consumer.name,
         kind: consumer.kind,
+        subUnitType: consumer.subUnitType,
+        parentTenants: toBffApiParentTenants(consumer.parentTenants),
       },
       eservice: toCompactEservice(eservice, producer),
       descriptor: toCompactDescriptor(currentDescriptor),
@@ -818,12 +821,16 @@ async function enrichAgreementListEntry(
                 name: delegate.name,
                 kind: delegate.kind,
                 contactMail: getLatestTenantContactEmail(delegate),
+                subUnitType: delegate.subUnitType,
+                parentTenants: toBffApiParentTenants(delegate.parentTenants),
               },
               delegator: {
                 id: delegation.delegatorId,
                 name: consumer.name,
                 kind: consumer.kind,
                 contactMail: getLatestTenantContactEmail(consumer),
+                subUnitType: consumer.subUnitType,
+                parentTenants: toBffApiParentTenants(consumer.parentTenants),
               },
             }
           : undefined,
@@ -897,6 +904,8 @@ export async function enrichAgreement(
           name: tenant.name,
           kind: tenant.kind,
           contactMail: getLatestTenantContactEmail(tenant),
+          subUnitType: tenant.subUnitType,
+          parentTenants: toBffApiParentTenants(tenant.parentTenants),
         },
       };
     });
@@ -910,6 +919,8 @@ export async function enrichAgreement(
       name: producer.name,
       kind: producer.kind,
       contactMail: getLatestTenantContactEmail(producer),
+      subUnitType: producer.subUnitType,
+      parentTenants: toBffApiParentTenants(producer.parentTenants),
     },
     consumer: {
       id: agreement.consumerId,
@@ -921,6 +932,8 @@ export async function enrichAgreement(
       attributes: tenantAttributes,
       contactMail: getLatestTenantContactEmail(consumer),
       features: consumer.features,
+      subUnitType: consumer.subUnitType,
+      parentTenants: toBffApiParentTenants(consumer.parentTenants),
     },
     eservice: {
       id: agreement.eserviceId,
