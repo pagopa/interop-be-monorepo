@@ -6,7 +6,6 @@ import {
 import { P, match } from "ts-pattern";
 
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { handleEserviceTemplateNameChangedToInstantiator } from "./handleEserviceTemplateNameChangedToInstantiator.js";
 import { handleEserviceTemplateStatusChangedToInstantiator } from "./handleEserviceTemplateStatusChangedToInstantiator.js";
 import { handleNewEserviceTemplateVersionToInstantiator } from "./handleNewEserviceTemplateVersionToInstantiator.js";
 import { handleTemplateStatusChangedToProducer } from "./handleTemplateStatusChangedToProducer.js";
@@ -52,20 +51,14 @@ export async function handleEServiceTemplateEvent(
     )
     .with(
       {
-        type: "EServiceTemplateNameUpdated",
-      },
-      ({ data: { eserviceTemplate, oldName } }) =>
-        handleEserviceTemplateNameChangedToInstantiator(
-          eserviceTemplate,
-          oldName,
-          logger,
-          readModelService
-        )
-    )
-    .with(
-      {
         type: P.union(
           "EServiceTemplateAdded",
+          /**
+           * The instantiators are notified of the rename on the eservice event
+           * `EServiceNameUpdatedByTemplateUpdate`, which carries the actual old
+           * and new names of each instance.
+           */
+          "EServiceTemplateNameUpdated",
           "EServiceTemplateRiskAnalysisAdded",
           "EServiceTemplateRiskAnalysisDeleted",
           "EServiceTemplateRiskAnalysisUpdated",
