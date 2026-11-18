@@ -85,7 +85,7 @@ describe("publish descriptor (after delegator's approval)", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedEservice = {
+    const expectedEservice: EService = {
       ...eservice,
       descriptors: [
         {
@@ -201,7 +201,7 @@ describe("publish descriptor (after delegator's approval)", () => {
         ...getMockTenant(),
       };
       await addOneTenant(tenant);
-      const agreement = {
+      const agreement: Agreement = {
         ...getMockAgreement(eservice.id),
         descriptorId: descriptor1.id,
         producerId: eservice.producerId,

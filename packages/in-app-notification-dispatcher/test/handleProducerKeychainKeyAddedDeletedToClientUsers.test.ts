@@ -5,6 +5,8 @@ import {
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
+  Key,
+  ProducerKeychain,
   generateId,
   TenantId,
   ProducerKeychainId,
@@ -29,25 +31,25 @@ describe("handleProducerKeychainKeyAddedDeletedToClientUsers", () => {
   const userId2 = generateId<UserId>();
   const userId3 = generateId<UserId>();
 
-  const key1 = {
+  const key1: Key = {
     ...getMockKey(),
     userId: userId1,
     kid: "key1-kid",
   };
 
-  const key2 = {
+  const key2: Key = {
     ...getMockKey(),
     userId: userId2,
     kid: "key2-kid",
   };
 
-  const key3 = {
+  const key3: Key = {
     ...getMockKey(),
     userId: userId3,
     kid: "key3-kid",
   };
 
-  const producerKeychain = {
+  const producerKeychain: ProducerKeychain = {
     ...getMockProducerKeychain({ producerId }),
     id: producerKeychainId,
     name: "Test Producer Keychain",
@@ -216,7 +218,7 @@ describe("handleProducerKeychainKeyAddedDeletedToClientUsers", () => {
   describe("ProducerKeychainKeyDeleted event", () => {
     it("should generate notifications for remaining producerKeychain users after deletion", async () => {
       // key1 has been deleted, so producerKeychain only has key2 and key3
-      const producerKeychainAfterDeletion = {
+      const producerKeychainAfterDeletion: ProducerKeychain = {
         ...producerKeychain,
         users: [userId2, userId3],
         keys: [key2, key3],
@@ -289,7 +291,7 @@ describe("handleProducerKeychainKeyAddedDeletedToClientUsers", () => {
 
     it("should only notify users who still are part of producerKeychain after deletion", async () => {
       // key3 has been deleted, so producerKeychain only has key1 and key2
-      const producerKeychainAfterDeletion = {
+      const producerKeychainAfterDeletion: ProducerKeychain = {
         ...producerKeychain,
         keys: [key1, key2],
       };
@@ -502,7 +504,7 @@ describe("handleProducerKeychainKeyAddedDeletedToClientUsers", () => {
 
     it("should use correct template for ProducerKeychainKeyDeleted", async () => {
       // key1 has been deleted, so producerKeychain only has key2 and key3
-      const producerKeychainAfterDeletion = {
+      const producerKeychainAfterDeletion: ProducerKeychain = {
         ...producerKeychain,
         keys: [key2, key3],
       };

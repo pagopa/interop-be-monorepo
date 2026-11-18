@@ -276,7 +276,7 @@ describe("update eService", () => {
   it("should write on event-store for the update of an eService (technology change: interface has to be deleted)", async () => {
     vi.spyOn(fileManager, "delete");
 
-    const interfaceDocument = {
+    const interfaceDocument: Document = {
       ...mockDocument,
       name: `${mockDocument.name}`,
       path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}`,

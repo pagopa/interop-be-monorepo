@@ -7,6 +7,7 @@ import {
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
+  EServiceTemplate,
   descriptorState,
   EServiceId,
   generateId,
@@ -65,7 +66,7 @@ describe("handleEserviceTemplateStatusChangedToInstantiator", async () => {
     await addOneTenant(creatorTenant);
 
     // Set up the eserviceTemplate with the creatorId
-    const updatedEServiceTemplate = {
+    const updatedEServiceTemplate: EServiceTemplate = {
       ...eserviceTemplate,
       creatorId,
     };
@@ -104,7 +105,7 @@ describe("handleEserviceTemplateStatusChangedToInstantiator", async () => {
     await addOneTenant(producerTenant);
 
     // Set up the eserviceTemplate with the creatorId
-    const updatedEServiceTemplate = {
+    const updatedEServiceTemplate: EServiceTemplate = {
       ...eserviceTemplate,
       creatorId,
     };

@@ -70,7 +70,7 @@ describe("suspend descriptor", () => {
         payload: writtenEvent.data,
       });
 
-      const expectedEservice = {
+      const expectedEservice: EService = {
         ...eservice,
         descriptors: [
           {
@@ -127,7 +127,7 @@ describe("suspend descriptor", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedEservice = {
+    const expectedEservice: EService = {
       ...eservice,
       descriptors: [
         {

@@ -58,7 +58,7 @@ describe("schedule archiving of an EService with delegation", () => {
     ...getMockTenant(),
     kind: producerTenantKind,
   };
-  const mockDelegateTenant = {
+  const mockDelegateTenant: Tenant = {
     ...getMockTenant(),
     kind: producerTenantKind,
   };

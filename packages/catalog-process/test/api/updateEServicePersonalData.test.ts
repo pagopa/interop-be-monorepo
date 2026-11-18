@@ -14,6 +14,7 @@ import {
   EServiceId,
   generateId,
   operationForbidden,
+  WithMetadata,
 } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi } from "vitest";
@@ -36,7 +37,7 @@ describe("API /eservices/{eServiceId}/personalDataFlag authorization test", () =
     descriptors: [descriptor],
   };
 
-  const serviceResponse = {
+  const serviceResponse: WithMetadata<EService> = {
     data: mockEService,
     metadata: { version: 1 },
   };

@@ -59,7 +59,7 @@ describe("delete risk analysis", () => {
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
-    const expectedEservice = {
+    const expectedEservice: EService = {
       ...eservice,
       riskAnalysis: eservice.riskAnalysis.filter(
         (r) => r.id !== riskAnalysis.id
@@ -109,7 +109,7 @@ describe("delete risk analysis", () => {
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
-    const expectedEservice = {
+    const expectedEservice: EService = {
       ...eservice,
       riskAnalysis: eservice.riskAnalysis.filter(
         (r) => r.id !== riskAnalysis.id
@@ -152,7 +152,7 @@ describe("delete risk analysis", () => {
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
-    const expectedEservice = {
+    const expectedEservice: EService = {
       ...eservice,
       riskAnalysis: eservice.riskAnalysis.filter(
         (r) => r.id !== riskAnalysis.id

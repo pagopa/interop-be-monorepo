@@ -240,7 +240,7 @@ describe("createEServiceTemplateVersion", async () => {
     await addOneAttribute(attribute);
     const notExistingId1 = generateId<AttributeId>();
     const notExistingId2 = generateId<AttributeId>();
-    const versionSeed = {
+    const versionSeed: eserviceTemplateApi.EServiceTemplateVersionSeed = {
       ...buildCreateVersionSeed(getMockEServiceTemplateVersion()),
       attributes: {
         certified: [],

@@ -46,14 +46,14 @@ import {
 
 describe("cancel archiving request of an E-service with delegation", () => {
   const mockEService = getMockEService();
-  const mockDescriptor = {
+  const mockDescriptor: Descriptor = {
     ...getMockDescriptor(),
     state: descriptorState.deprecated,
     version: "1",
     interface: getMockDocument(),
   };
   const mockArchivingReason = "Test reason";
-  const mockLatestDescriptor = {
+  const mockLatestDescriptor: Descriptor = {
     ...getMockDescriptor(),
     state: descriptorState.published,
     version: "2",
@@ -67,7 +67,7 @@ describe("cancel archiving request of an E-service with delegation", () => {
     ...getMockTenant(),
     kind: producerTenantKind,
   };
-  const mockDelegateTenant = {
+  const mockDelegateTenant: Tenant = {
     ...getMockTenant(),
     kind: producerTenantKind,
   };
@@ -413,7 +413,7 @@ describe("cancel archiving request of an E-service with delegation", () => {
   );
 
   it("Should throw delegatedArchiveRequestForIncorrectDelegateProducer", async () => {
-    const existingArchivingRequest = {
+    const existingArchivingRequest: DelegatedEServiceArchivingRequest = {
       ...getExistingArchivingRequest("pending"),
       requesterId: generateId<TenantId>(),
     };

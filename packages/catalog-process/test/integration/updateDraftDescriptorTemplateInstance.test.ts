@@ -285,7 +285,7 @@ describe("update draft descriptor instance", () => {
     await addOneEServiceTemplate(template);
     await addOneEService(eservice);
 
-    const expectedDescriptor = {
+    const expectedDescriptor: Descriptor = {
       ...descriptor,
       dailyCallsTotal: 200,
     };
@@ -324,7 +324,7 @@ describe("update draft descriptor instance", () => {
 
     await addOneDelegation(delegation);
 
-    const expectedDescriptor = {
+    const expectedDescriptor: Descriptor = {
       ...descriptor,
       dailyCallsTotal: 200,
     };
@@ -386,7 +386,7 @@ describe("update draft descriptor instance", () => {
     };
     await addOneEService(eservice);
 
-    const descriptorSeed = {
+    const descriptorSeed: Descriptor = {
       ...buildUpdateDescriptorSeed(mockDescriptor),
     };
 

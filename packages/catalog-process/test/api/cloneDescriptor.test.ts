@@ -32,17 +32,17 @@ import { api, catalogService } from "../vitest.api.setup.js";
 describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/clone authorization test", () => {
   const mockDocument = getMockDocument();
 
-  const document1 = {
+  const document1: Document = {
     ...mockDocument,
     name: `${mockDocument.name}_1`,
     path: `Path/${mockDocument.id}/${mockDocument.name}_1`,
   };
-  const document2 = {
+  const document2: Document = {
     ...mockDocument,
     name: `${mockDocument.name}_2`,
     path: `Path/${mockDocument.id}/${mockDocument.name}_2`,
   };
-  const interfaceDocument = {
+  const interfaceDocument: Document = {
     ...mockDocument,
     name: `${mockDocument.name}_interface`,
     path: `Path/${mockDocument.id}/${mockDocument.name}_interface`,

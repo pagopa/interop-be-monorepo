@@ -10,10 +10,14 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   agreementState,
+  Agreement,
+  AgreementState,
   Descriptor,
+  DescriptorState,
   descriptorState,
   EService,
   EServiceId,
+  ListResult,
   generateId,
 } from "pagopa-interop-models";
 import request from "supertest";
@@ -37,13 +41,19 @@ describe("API /eservices/{eServiceId}/consumers authorization test", () => {
 
   const tenant = getMockTenant();
 
-  const agreement = {
+  const agreement: Agreement = {
     ...getMockAgreement(eservice.id, tenant.id, agreementState.active),
     descriptorId: descriptor.id,
     producerId: eservice.producerId,
   };
 
-  const mockResponse = {
+  const mockResponse: ListResult<{
+    descriptorVersion: string;
+    descriptorState: DescriptorState;
+    agreementState: AgreementState;
+    consumerName: string;
+    consumerExternalId: string;
+  }> = {
     results: [
       {
         descriptorVersion: descriptor.version,
@@ -71,7 +81,10 @@ describe("API /eservices/{eServiceId}/consumers authorization test", () => {
 
   catalogService.getEServiceConsumers = vi.fn().mockResolvedValue(mockResponse);
 
-  const queryParams = { offset: 0, limit: 10 };
+  const queryParams: { offset: number; limit: number } = {
+    offset: 0,
+    limit: 10,
+  };
 
   const makeRequest = async (
     token: string,

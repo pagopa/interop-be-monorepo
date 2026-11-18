@@ -102,7 +102,7 @@ const initEserviceTemplateInstance = async (
         : undefined,
   };
 
-  const mockEServiceTemplate = {
+  const mockEServiceTemplate: EServiceTemplate = {
     ...getMockEServiceTemplate(
       generateId<EServiceTemplateId>(),
       generateId<TenantId>(),
@@ -112,7 +112,7 @@ const initEserviceTemplateInstance = async (
     technology: technology || "Rest",
   };
 
-  const mockDescriptor = {
+  const mockDescriptor: Descriptor = {
     ...getMockDescriptor(eserviceDescriptorState),
     templateVersionRef: {
       id: mockEServiceTemplate.versions[0].id,
@@ -148,7 +148,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
 
   describe("Invalid data input (Rest/Soap)", () => {
     it("should throw an eserviceTemplateInterfaceTechnologyMismatch when adding a SOAP interface to a REST template instance", async () => {
-      const interfaceDocumentFile = {
+      const interfaceDocumentFile: Document = {
         ...getMockDocument(),
         name: "test.openapi.3.0.2.yaml",
         contentType: "yaml",
@@ -177,7 +177,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
     });
 
     it("should throw an eserviceTemplateInterfaceTechnologyMismatch when adding a REST interface to a SOAP template instance", async () => {
-      const interfaceDocumentFile = {
+      const interfaceDocumentFile: Document = {
         ...getMockDocument(),
         name: "interface-test.wsdl",
         contentType: "wsdl",
@@ -273,7 +273,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
         genericLogger
       );
 
-      const mockEserviceTemplateVersion = {
+      const mockEserviceTemplateVersion: EServiceTemplateVersion = {
         ...getMockEServiceTemplateVersion(
           generateId<EServiceTemplateVersionId>(),
           eserviceTemplateVersionState.published
@@ -281,14 +281,14 @@ describe("addEServiceTemplateInstanceInterface", () => {
         interface: { ...interfaceDoc, path: interfacePath },
       };
 
-      const mockEServiceTemplate = {
+      const mockEServiceTemplate: EServiceTemplate = {
         ...getMockEServiceTemplate(
           generateId<EServiceTemplateId>(),
           generateId<TenantId>(),
           [mockEserviceTemplateVersion]
         ),
       };
-      const mockDescriptor = {
+      const mockDescriptor: Descriptor = {
         ...getMockDescriptor(),
         templateVersionRef: {
           id: mockEServiceTemplate.versions[0].id,
@@ -376,7 +376,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
         genericLogger
       );
 
-      const mockEserviceTemplateVersion = {
+      const mockEserviceTemplateVersion: EServiceTemplateVersion = {
         ...getMockEServiceTemplateVersion(
           generateId<EServiceTemplateVersionId>(),
           eserviceTemplateVersionState.published
@@ -384,14 +384,14 @@ describe("addEServiceTemplateInstanceInterface", () => {
         interface: { ...interfaceDoc, path: interfacePath },
       };
 
-      const mockEServiceTemplate = {
+      const mockEServiceTemplate: EServiceTemplate = {
         ...getMockEServiceTemplate(
           generateId<EServiceTemplateId>(),
           generateId<TenantId>(),
           [mockEserviceTemplateVersion]
         ),
       };
-      const mockDescriptor = {
+      const mockDescriptor: Descriptor = {
         ...getMockDescriptor(),
         templateVersionRef: {
           id: mockEServiceTemplate.versions[0].id,
@@ -428,7 +428,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
       const authData = getMockAuthData();
       const eserviceId = generateId<EServiceId>();
 
-      const mockEserviceTemplateVersion = {
+      const mockEserviceTemplateVersion: EServiceTemplateVersion = {
         ...getMockEServiceTemplateVersion(
           generateId<EServiceTemplateVersionId>(),
           eserviceTemplateVersionState.published
@@ -436,14 +436,14 @@ describe("addEServiceTemplateInstanceInterface", () => {
         interface: undefined,
       };
 
-      const mockEServiceTemplate = {
+      const mockEServiceTemplate: EServiceTemplate = {
         ...getMockEServiceTemplate(
           generateId<EServiceTemplateId>(),
           generateId<TenantId>(),
           [mockEserviceTemplateVersion]
         ),
       };
-      const mockDescriptor = {
+      const mockDescriptor: Descriptor = {
         ...getMockDescriptor(),
         templateVersionRef: {
           id: mockEServiceTemplate.versions[0].id,
@@ -499,7 +499,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
         },
         genericLogger
       );
-      const mockEserviceTemplateVersion = {
+      const mockEserviceTemplateVersion: EServiceTemplateVersion = {
         ...getMockEServiceTemplateVersion(
           generateId<EServiceTemplateVersionId>(),
           eserviceTemplateVersionState.published
@@ -507,14 +507,14 @@ describe("addEServiceTemplateInstanceInterface", () => {
         interface: { ...interfaceDoc, path: interfacePath },
       };
 
-      const mockEServiceTemplate = {
+      const mockEServiceTemplate: EServiceTemplate = {
         ...getMockEServiceTemplate(
           generateId<EServiceTemplateId>(),
           generateId<TenantId>(),
           [mockEserviceTemplateVersion]
         ),
       };
-      const mockDescriptor = {
+      const mockDescriptor: Descriptor = {
         ...getMockDescriptor(),
         templateVersionRef: {
           id: mockEServiceTemplate.versions[0].id,
@@ -629,7 +629,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
   });
   describe("API REST", () => {
     it("should add interface REST interface to eservice template instance", async () => {
-      const interfaceDocumentFile = {
+      const interfaceDocumentFile: Document = {
         ...getMockDocument(),
         name: "test.openapi.3.0.2.yaml",
         contentType: "yaml",
@@ -738,7 +738,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
     });
 
     it("should add interface REST interface to eservice template instance without optional params", async () => {
-      const interfaceDocumentFile = {
+      const interfaceDocumentFile: Document = {
         ...getMockDocument(),
         name: "test.openapi.3.0.2.yaml",
         contentType: "yaml",
@@ -836,7 +836,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
 
   describe("API SOAP", () => {
     it("should add SOAP interface to eservice template instance", async () => {
-      const interfaceDocumentFile = {
+      const interfaceDocumentFile: Document = {
         ...getMockDocument(),
         name: "interface-test.wsdl",
         contentType: "wsdl",
@@ -917,7 +917,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
     });
 
     it("should add SOAP interface to eservice template instance persisting server descriptions", async () => {
-      const interfaceDocumentFile = {
+      const interfaceDocumentFile: Document = {
         ...getMockDocument(),
         name: "interface-test.wsdl",
         contentType: "wsdl",

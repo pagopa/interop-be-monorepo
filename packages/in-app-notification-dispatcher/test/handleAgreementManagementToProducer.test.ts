@@ -6,6 +6,7 @@ import {
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
+  Agreement,
   agreementState,
   generateId,
   missingKafkaMessageDataError,
@@ -46,7 +47,7 @@ describe("handleAgreementManagementToProducer", () => {
   const producerTenant = getMockTenant(producerId);
   const consumerTenant = getMockTenant(consumerId);
 
-  const agreement = {
+  const agreement: Agreement = {
     ...getMockAgreement(eserviceId, consumerId, agreementState.active),
     id: agreementId,
     producerId,
@@ -79,7 +80,7 @@ describe("handleAgreementManagementToProducer", () => {
 
   it("should throw tenantNotFound when consumer tenant is not found", async () => {
     const unknownTenantId = generateId<TenantId>();
-    const agreementWithUnknownTenant = {
+    const agreementWithUnknownTenant: Agreement = {
       ...agreement,
       consumerId: unknownTenantId,
     };
@@ -101,7 +102,7 @@ describe("handleAgreementManagementToProducer", () => {
 
   it("should throw eserviceNotFound when eservice is not found", async () => {
     const unknownEserviceId = generateId<EServiceId>();
-    const agreementWithUnknownEservice = {
+    const agreementWithUnknownEservice: Agreement = {
       ...agreement,
       eserviceId: unknownEserviceId,
     };
@@ -167,7 +168,10 @@ describe("handleAgreementManagementToProducer", () => {
     expect(notifications).toHaveLength(producerUsers.length);
 
     // Use the same template function as the implementation for each event type
-    const templateMap = {
+    const templateMap: Record<
+      "AgreementActivated" | "AgreementSubmitted" | "AgreementUpgraded",
+      (consumerName: string, eserviceName: string) => string
+    > = {
       AgreementActivated: inAppTemplates.agreementActivatedToProducer,
       AgreementSubmitted: inAppTemplates.agreementSubmittedToProducer,
       AgreementUpgraded: inAppTemplates.agreementUpgradedToProducer,

@@ -97,7 +97,7 @@ describe("activate descriptor", () => {
         payload: writtenEvent.data,
       });
 
-      const expectedEservice = {
+      const expectedEservice: EService = {
         ...eservice,
         descriptors: [expectedDescriptor, ...moreRecentDescriptors],
       };
@@ -140,7 +140,7 @@ describe("activate descriptor", () => {
       getMockContext({ authData: delegate })
     );
 
-    const expectedDescriptor = {
+    const expectedDescriptor: Descriptor = {
       ...descriptor,
       state: descriptorState.published,
     };
@@ -155,7 +155,7 @@ describe("activate descriptor", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedEservice = {
+    const expectedEservice: EService = {
       ...eservice,
       descriptors: [expectedDescriptor],
     };

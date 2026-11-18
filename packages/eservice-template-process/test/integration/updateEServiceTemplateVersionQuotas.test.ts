@@ -70,7 +70,7 @@ describe("updateEServiceTemplateVersionQuotas", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedEServiceTemplate = {
+    const expectedEServiceTemplate: EServiceTemplate = {
       ...eserviceTemplate,
       versions: [
         {

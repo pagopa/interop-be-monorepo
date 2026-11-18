@@ -450,7 +450,7 @@ describe("create risk analysis", () => {
       ...buildRiskAnalysisSeed(mockValidRiskAnalysis),
     };
 
-    const invalidRiskAnalysisSeed = {
+    const invalidRiskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed = {
       ...riskAnalysisSeed,
       riskAnalysisForm: {
         ...riskAnalysisSeed.riskAnalysisForm,

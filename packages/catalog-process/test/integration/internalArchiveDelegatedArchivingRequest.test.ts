@@ -82,7 +82,7 @@ describe("internal archive delegated archiving request", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedEservice = {
+    const expectedEservice: EService = {
       ...eservice,
       descriptors: [
         {
@@ -131,7 +131,7 @@ describe("internal archive delegated archiving request", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedEservice = {
+    const expectedEservice: EService = {
       ...eservice,
       delegatedArchivingRequest: undefined,
     };

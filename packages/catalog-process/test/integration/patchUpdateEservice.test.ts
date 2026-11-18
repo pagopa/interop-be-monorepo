@@ -316,7 +316,7 @@ describe("patch update eService", () => {
       const isDraft = descriptors.every(
         (descriptor) => descriptor.state === descriptorState.draft
       );
-      const expectedEService = {
+      const expectedEService: EService = {
         ...before!.data,
         name: "Updated name",
         description: "Updated description",
@@ -653,7 +653,7 @@ describe("patch update eService", () => {
   ])(
     "should reject mixed operational updates atomically with any non-Draft descriptor (case #%#)",
     async (...descriptors) => {
-      const eservice = { ...mockEService, descriptors };
+      const eservice: EService = { ...mockEService, descriptors };
       await addOneEService(eservice);
       const deleteSpy = vi.spyOn(fileManager, "delete");
       await expect(
@@ -993,13 +993,13 @@ describe("patch update eService", () => {
   it("should delete interface on technology change)", async () => {
     vi.spyOn(fileManager, "delete");
 
-    const interfaceDocument = {
+    const interfaceDocument: Document = {
       ...mockDocument,
       name: `${mockDocument.name}`,
       path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}`,
     };
     const mockAsyncExchangeCallbackInterfaceDocument = getMockDocument();
-    const asyncExchangeCallbackInterfaceDocument = {
+    const asyncExchangeCallbackInterfaceDocument: Document = {
       ...mockAsyncExchangeCallbackInterfaceDocument,
       name: `${mockDocument.name}_callback`,
       path: `${config.eserviceDocumentsPath}/${mockAsyncExchangeCallbackInterfaceDocument.id}/${mockDocument.name}_callback`,

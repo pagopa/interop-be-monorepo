@@ -13,6 +13,7 @@ import {
   EServiceDocumentId,
   EServiceTemplate,
   EServiceTemplateId,
+  EServiceTemplateVersion,
   EServiceTemplateVersionId,
   eserviceTemplateVersionState,
   generateId,

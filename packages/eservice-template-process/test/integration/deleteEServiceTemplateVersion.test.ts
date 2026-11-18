@@ -14,6 +14,7 @@ import {
   toEServiceTemplateV2,
   operationForbidden,
   generateId,
+  Document,
   EServiceTemplate,
   EServiceTemplateVersion,
   eserviceTemplateVersionState,
@@ -41,23 +42,23 @@ describe("deleteEServiceTemplateVersion", () => {
     vi.spyOn(fileManager, "delete");
 
     const mockInterface = getMockDocument();
-    const interfaceDoc = {
+    const interfaceDoc: Document = {
       ...mockInterface,
       name: `${mockInterface.name}_interface`,
       path: `${config.eserviceTemplateDocumentsPath}/${mockInterface.id}/${mockInterface.name}_interface`,
     };
     const mockDoc1 = getMockDocument();
-    const doc1 = {
+    const doc1: Document = {
       ...mockDoc1,
       path: `${config.eserviceTemplateDocumentsPath}/${mockDoc1.id}/${mockDoc1.name}`,
     };
     const mockDoc2 = getMockDocument();
-    const doc2 = {
+    const doc2: Document = {
       ...mockDoc2,
       path: `${config.eserviceTemplateDocumentsPath}/${mockDoc2.id}/${mockDoc2.name}`,
     };
     const mockAsyncCallback = getMockDocument();
-    const asyncExchangeCallbackInterfaceDoc = {
+    const asyncExchangeCallbackInterfaceDoc: Document = {
       ...mockAsyncCallback,
       name: `${mockAsyncCallback.name}_async_callback`,
       path: `${config.eserviceTemplateDocumentsPath}/${mockAsyncCallback.id}/${mockAsyncCallback.name}_async_callback`,
@@ -193,24 +194,24 @@ describe("deleteEServiceTemplateVersion", () => {
     vi.spyOn(fileManager, "delete");
 
     const mockInterface = getMockDocument();
-    const interfaceDoc = {
+    const interfaceDoc: Document = {
       ...mockInterface,
       name: `${mockInterface.name}_interface`,
       path: `${config.eserviceTemplateDocumentsPath}/${mockInterface.id}/${mockInterface.name}_interface`,
     };
     const mockDoc1 = getMockDocument();
-    const doc1 = {
+    const doc1: Document = {
       ...mockDoc1,
       path: `${config.eserviceTemplateDocumentsPath}/${mockDoc1.id}/${mockDoc1.name}`,
     };
     const mockDoc2 = getMockDocument();
-    const doc2 = {
+    const doc2: Document = {
       ...mockDoc2,
       path: `${config.eserviceTemplateDocumentsPath}/${mockDoc2.id}/${mockDoc2.name}`,
     };
 
     const mockAsyncCallback = getMockDocument();
-    const asyncExchangeCallbackInterfaceDoc = {
+    const asyncExchangeCallbackInterfaceDoc: Document = {
       ...mockAsyncCallback,
       name: `${mockAsyncCallback.name}_async_callback`,
       path: `${config.eserviceTemplateDocumentsPath}/${mockAsyncCallback.id}/${mockAsyncCallback.name}_async_callback`,

@@ -387,7 +387,7 @@ describe("upload Document", () => {
   });
 
   it("should throw checksumDuplicate if the checksum is already present in the version", async () => {
-    const document = {
+    const document: Document = {
       ...getMockDocument(),
       prettyName: "First doc",
       checksum: "checksum",

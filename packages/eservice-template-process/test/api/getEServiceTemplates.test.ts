@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
@@ -62,9 +63,7 @@ describe("API GET /templates", () => {
       const token = generateToken(role);
       const res = await makeRequest(token);
       const expected: {
-        results: Array<
-          ReturnType<typeof eserviceTemplateToApiEServiceTemplate>
-        >;
+        results: Array<eserviceTemplateApi.EServiceTemplate>;
         totalCount: number;
       } = {
         results: mockEserviceTemplateListResult.results.map((t) =>

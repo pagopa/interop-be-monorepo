@@ -23,6 +23,7 @@ import {
   EServiceTemplateVersionState,
   eventConflictError,
   hyperlinkDetectionError,
+  EService,
 } from "pagopa-interop-models";
 import { upsertEServiceTemplate } from "pagopa-interop-readmodel/testUtils";
 import { expect, describe, it, vi } from "vitest";
@@ -49,7 +50,7 @@ import {
 } from "../integrationUtils.js";
 
 describe("update eserviceTemplate", () => {
-  const mockEServiceTemplate = {
+  const mockEServiceTemplate: EServiceTemplate = {
     ...getMockEServiceTemplate(),
     isSignalHubEnabled: false,
   };
@@ -713,7 +714,11 @@ describe("update eserviceTemplate", () => {
             ),
           };
           await addOneEServiceTemplate(template);
-          const metadataSeed = {
+          const metadataSeed: {
+            name: string;
+            description: string;
+            intendedTarget: string;
+          } = {
             name: hasMetadataChanges ? "Updated template name" : template.name,
             description: hasMetadataChanges
               ? "Updated template description"
@@ -822,7 +827,7 @@ describe("update eserviceTemplate", () => {
     "should reject a rename conflicting with an instance name (label: %s)",
     async (instanceLabel) => {
       const template = getMockEServiceTemplate();
-      const instance = {
+      const instance: EService = {
         ...getMockEService(undefined, undefined, [], template.id),
         instanceLabel,
       };
@@ -881,7 +886,7 @@ describe("update eserviceTemplate", () => {
         );
       })
     );
-    const duplicate = {
+    const duplicate: EServiceTemplate = {
       ...getMockEServiceTemplate(),
       name: "Another template name",
     };

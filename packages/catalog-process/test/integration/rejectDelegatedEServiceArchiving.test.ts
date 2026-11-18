@@ -50,14 +50,14 @@ describe("reject delegated EService archiving request", () => {
     ...getMockTenant(),
     kind: producerTenantKind,
   };
-  const mockDelegateTenant = {
+  const mockDelegateTenant: Tenant = {
     ...getMockTenant(),
     kind: producerTenantKind,
   };
   const disallowedDelegationStates = Object.values(delegationState).filter(
     (ds) => ds !== delegationState.active
   );
-  const mockRejectionReason = {
+  const mockRejectionReason: { rejectionReason: string } = {
     rejectionReason: "Not needed",
   };
 
@@ -123,7 +123,7 @@ describe("reject delegated EService archiving request", () => {
       rejectionReason: mockRejectionReason.rejectionReason,
     };
 
-    const expectedEservice = {
+    const expectedEservice: EService = {
       ...eservice,
       delegatedArchivingRequest: [expectedRejectedRequest],
     };

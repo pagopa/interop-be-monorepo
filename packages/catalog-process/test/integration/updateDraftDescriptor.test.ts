@@ -484,7 +484,7 @@ describe("updateDraftDescriptor", () => {
     const notExistingId1 = generateId();
     const notExistingId2 = generateId();
 
-    const descriptorSeed = {
+    const descriptorSeed: Descriptor = {
       ...buildUpdateDescriptorSeed(mockDescriptor),
       attributes: {
         certified: [],

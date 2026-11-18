@@ -107,7 +107,7 @@ describe("getEServiceTemplateById", () => {
   });
 
   it("should throw eserviceTemplateNotFound if there is only a draft version (requester is not the creator)", async () => {
-    const eserviceTemplateVersion = {
+    const eserviceTemplateVersion: EServiceTemplateVersion = {
       ...mockEServiceTemplateVersion,
       state: eserviceTemplateVersionState.draft,
     };
@@ -125,7 +125,7 @@ describe("getEServiceTemplateById", () => {
   });
 
   it("should throw eserviceTemplateNotFound if there is only a draft version (requester is the creator, but user role is 'security')", async () => {
-    const eserviceTemplateVersion = {
+    const eserviceTemplateVersion: EServiceTemplateVersion = {
       ...mockEServiceTemplateVersion,
       state: eserviceTemplateVersionState.draft,
     };

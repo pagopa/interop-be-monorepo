@@ -532,7 +532,7 @@ describe("upgrade eservice template instance", () => {
     ).toContain(expectedDocument2.path);
   });
   it("should fail if one of the file copy fails", async () => {
-    const document1 = {
+    const document1: Document = {
       ...mockDocument,
       name: `${mockDocument.name}_1`,
       path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}_1`,

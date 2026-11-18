@@ -73,18 +73,18 @@ describe("delete eservice", () => {
 
     const mockDocument = getMockDocument();
     const mockInterface = getMockDocument();
-    const document = {
+    const document: Document = {
       ...mockDocument,
       name: `${mockDocument.name}`,
       path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}`,
     };
-    const interfaceDocument = {
+    const interfaceDocument: Document = {
       ...mockInterface,
       name: `${mockDocument.name}_interface`,
       path: `${config.eserviceDocumentsPath}/${mockInterface.id}/${mockInterface.name}_interface`,
     };
     const mockAsyncCallback = getMockDocument();
-    const asyncExchangeCallbackInterfaceDocument = {
+    const asyncExchangeCallbackInterfaceDocument: Document = {
       ...mockAsyncCallback,
       name: `${mockDocument.name}_async_callback`,
       path: `${config.eserviceDocumentsPath}/${mockAsyncCallback.id}/${mockAsyncCallback.name}_async_callback`,

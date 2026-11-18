@@ -166,19 +166,19 @@ describe("get eservices", () => {
       id: organizationId3,
     };
     await addOneTenant(tenant);
-    const agreement1 = {
+    const agreement1: Agreement = {
       ...getMockAgreement(eservice1.id, tenant.id, agreementState.active),
       descriptorId: descriptor1.id,
       producerId: eservice1.producerId,
     };
     await addOneAgreement(agreement1);
-    const agreement2 = {
+    const agreement2: Agreement = {
       ...getMockAgreement(eservice3.id, tenant.id, agreementState.active),
       descriptorId: descriptor3.id,
       producerId: eservice3.producerId,
     };
     await addOneAgreement(agreement2);
-    const agreement3 = {
+    const agreement3: Agreement = {
       ...getMockAgreement(eservice4.id, tenant.id, agreementState.draft),
       descriptorId: descriptor4.id,
       producerId: eservice4.producerId,

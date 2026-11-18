@@ -100,7 +100,7 @@ describe("get eservice by id", () => {
   it.each([descriptorState.draft, descriptorState.waitingForApproval])(
     "should throw eServiceNotFound if there is only a %s descriptor (requester is not the producer)",
     async (state) => {
-      const descriptor = {
+      const descriptor: Descriptor = {
         ...mockDescriptor,
         state,
       };
@@ -117,7 +117,7 @@ describe("get eservice by id", () => {
   it.each([descriptorState.draft, descriptorState.waitingForApproval])(
     "should throw eServiceNotFound if there is only a %s descriptor (requester is the producer, but user role is 'security')",
     async (state) => {
-      const descriptor = {
+      const descriptor: Descriptor = {
         ...mockDescriptor,
         state,
       };
@@ -151,7 +151,7 @@ describe("get eservice by id", () => {
   });
 
   it("should throw eServiceNotFound if there are no descriptors (requester is the producer, but user role is 'security')", async () => {
-    const descriptor = {
+    const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.draft,
     };

@@ -55,7 +55,10 @@ describe("API GET /creators", () => {
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
-      const expected: ListResult<CompactOrganization> = {
+      const expected: {
+        results: Array<{ name: string; id: string }>;
+        totalCount: number;
+      } = {
         results: mockEserviceTemplate.map((creator) =>
           eserviceTemplateApi.CompactOrganization.parse(creator)
         ),

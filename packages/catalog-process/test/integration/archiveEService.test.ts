@@ -79,7 +79,7 @@ describe("archiveEService", () => {
       });
 
       const expectedDescriptors = descriptors.map((descriptor, idx) => {
-        const expectedDescriptor = {
+        const expectedDescriptor: Descriptor = {
           ...descriptor,
           state: descriptorState.archived,
           archivedAt: new Date(

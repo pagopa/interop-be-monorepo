@@ -524,7 +524,7 @@ describe("create eService from template", () => {
     const documentId1 = generateId<EServiceDocumentId>();
     const documentId2 = generateId<EServiceDocumentId>();
 
-    const document1 = {
+    const document1: Document = {
       ...mockDocument,
       id: documentId1,
       name: `${mockDocument.name}_1`,
@@ -532,7 +532,7 @@ describe("create eService from template", () => {
       path: `${config.eserviceDocumentsPath}/${documentId1}/${mockDocument.name}_1`,
       checksum: "checksum1",
     };
-    const document2 = {
+    const document2: Document = {
       ...mockDocument,
       id: documentId2,
       name: `${mockDocument.name}_2`,

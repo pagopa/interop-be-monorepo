@@ -8,6 +8,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   EService,
+  ListResult,
   generateId,
   descriptorState,
   Descriptor,
@@ -47,7 +48,7 @@ describe("API /eservices authorization test", () => {
     descriptors: [descriptor2],
   };
 
-  const mockResponse = {
+  const mockResponse: ListResult<EService> = {
     results: [eservice1, eservice2],
     totalCount: 2,
   };

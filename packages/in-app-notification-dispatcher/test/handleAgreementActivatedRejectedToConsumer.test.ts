@@ -6,6 +6,8 @@ import {
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
+  Agreement,
+  EService,
   agreementState,
   generateId,
   missingKafkaMessageDataError,
@@ -47,7 +49,7 @@ describe("handleAgreementActivatedRejectedToConsumer", () => {
   const consumerTenant = getMockTenant(consumerId);
   const producerTenant = getMockTenant(producerId);
 
-  const agreement = {
+  const agreement: Agreement = {
     ...getMockAgreement(eserviceId, consumerId, agreementState.active),
     id: agreementId,
     producerId,
@@ -93,7 +95,7 @@ describe("handleAgreementActivatedRejectedToConsumer", () => {
 
   it("should throw tenantNotFound when consumer tenant is not found", async () => {
     const unknownTenantId = generateId<TenantId>();
-    const agreementWithUnknownTenant = {
+    const agreementWithUnknownTenant: Agreement = {
       ...agreement,
       producerId: unknownTenantId,
     };
@@ -115,7 +117,7 @@ describe("handleAgreementActivatedRejectedToConsumer", () => {
 
   it("should throw eserviceNotFound when eservice is not found", async () => {
     const unknownEserviceId = generateId<EServiceId>();
-    const agreementWithUnknownEservice = {
+    const agreementWithUnknownEservice: Agreement = {
       ...agreement,
       eserviceId: unknownEserviceId,
     };

@@ -11,6 +11,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   EServiceTemplate,
+  Document,
   EServiceTemplateVersion,
   eserviceTemplateVersionState,
   operationForbidden,
@@ -69,18 +70,18 @@ describe("delete eserviceTemplate", () => {
 
     const mockDocument = getMockDocument();
     const mockInterface = getMockDocument();
-    const document = {
+    const document: Document = {
       ...mockDocument,
       name: `${mockDocument.name}`,
       path: `${config.eserviceTemplateDocumentsPath}/${mockDocument.id}/${mockDocument.name}`,
     };
-    const interfaceDocument = {
+    const interfaceDocument: Document = {
       ...mockInterface,
       name: `${mockDocument.name}_interface`,
       path: `${config.eserviceTemplateDocumentsPath}/${mockInterface.id}/${mockInterface.name}_interface`,
     };
     const mockAsyncCallback = getMockDocument();
-    const asyncExchangeCallbackInterfaceDocument = {
+    const asyncExchangeCallbackInterfaceDocument: Document = {
       ...mockAsyncCallback,
       name: `${mockAsyncCallback.name}_async_callback`,
       path: `${config.eserviceTemplateDocumentsPath}/${mockAsyncCallback.id}/${mockAsyncCallback.name}_async_callback`,

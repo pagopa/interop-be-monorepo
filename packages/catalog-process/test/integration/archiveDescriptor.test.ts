@@ -68,7 +68,7 @@ describe("archive descriptor", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedDescriptor = {
+    const expectedDescriptor: Descriptor = {
       ...descriptor,
       state: descriptorState.archived,
       archivedAt: new Date(
