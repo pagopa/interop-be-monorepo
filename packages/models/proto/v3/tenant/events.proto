@@ -1,0 +1,122 @@
+syntax = "proto3";
+
+package tenant.v3;
+
+import "v3/tenant/tenant.proto";
+
+message TenantOnboardedV3 {
+  TenantV3 tenant = 1;
+}
+
+message TenantOnboardDetailsUpdatedV3 {
+  TenantV3 tenant = 1;
+}
+
+message TenantCertifiedAttributeAssignedV3 {
+  string attributeId = 1;
+  TenantV3 tenant = 2;
+}
+
+message TenantCertifiedAttributeRevokedV3 {
+  string attributeId = 1;
+  TenantV3 tenant = 2;
+}
+
+message TenantCertifiedDiscreteAttributeAssignedV3 {
+  string attributeId = 1;
+  TenantV3 tenant = 2;
+}
+
+message TenantCertifiedDiscreteAttributeRevokedV3 {
+  string attributeId = 1;
+  TenantV3 tenant = 2;
+}
+
+message TenantCertifiedDiscreteAttributeUpdatedV3 {
+  string attributeId = 1;
+  TenantV3 tenant = 2;
+  int32 previousValue = 3;
+  int32 newValue = 4;
+}
+
+message TenantDeclaredAttributeAssignedV3 {
+  string attributeId = 1;
+  TenantV3 tenant = 2;
+}
+
+message TenantDeclaredAttributeRevokedV3 {
+  string attributeId = 1;
+  TenantV3 tenant = 2;
+}
+
+message TenantVerifiedAttributeAssignedV3 {
+  string attributeId = 1;
+  TenantV3 tenant = 2;
+}
+
+message TenantVerifiedAttributeRevokedV3 {
+  string attributeId = 1;
+  TenantV3 tenant = 2;
+}
+
+message TenantVerifiedAttributeExpirationUpdatedV3 {
+  string attributeId = 1;
+  TenantV3 tenant = 2;
+}
+
+message TenantVerifiedAttributeExtensionUpdatedV3 {
+  string attributeId = 1;
+  TenantV3 tenant = 2;
+}
+
+message MaintenanceTenantDeletedV3 {
+  string tenantId = 1;
+  TenantV3 tenant = 2;
+}
+
+message MaintenanceTenantUpdatedV3 {
+  TenantV3 tenant = 1;
+}
+
+message TenantContactAddedV3 {
+  string contactId = 1;
+  TenantV3 tenant = 2;
+}
+
+message TenantKindUpdatedV3 {
+  optional TenantKindV3 oldKind = 1;
+  TenantV3 tenant = 2;
+}
+
+message TenantContactDeletedV3 {
+  string contactId = 1;
+  TenantV3 tenant = 2;
+}
+
+message MaintenanceTenantPromotedToCertifierV3 {
+  TenantV3 tenant = 1;
+}
+
+message TenantDelegatedProducerFeatureAddedV3 {
+  TenantV3 tenant = 1;
+}
+
+message TenantDelegatedProducerFeatureRemovedV3 {
+  TenantV3 tenant = 1;
+}
+
+message TenantDelegatedConsumerFeatureAddedV3 {
+  TenantV3 tenant = 1;
+}
+
+message TenantDelegatedConsumerFeatureRemovedV3 {
+  TenantV3 tenant = 1;
+}
+
+message TenantRemoteIdAssignedV3 {
+  TenantV3 tenant = 1;
+}
+
+message MaintenanceTenantRemoteIdDeletedV3 {
+  TenantV3 tenant = 1;
+}
