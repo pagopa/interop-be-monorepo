@@ -447,18 +447,6 @@ CREATE TABLE IF NOT EXISTS domains.tenant_remote_id (
   PRIMARY KEY (tenant_id, origin)
 );
 
-CREATE TABLE IF NOT EXISTS domains.tenant_mail (
-  id VARCHAR(2048),
-  tenant_id VARCHAR(36) NOT NULL REFERENCES domains.tenant (id),
-  metadata_version INTEGER NOT NULL,
-  kind VARCHAR(2048) NOT NULL,
-  address VARCHAR(2048) NOT NULL,
-  description VARCHAR(2048) NULL,
-  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  deleted BOOLEAN,
-  PRIMARY KEY (id, tenant_id, created_at)
-);
-
 CREATE TABLE IF NOT EXISTS domains.tenant_certified_attribute (
   attribute_id VARCHAR(36) NOT NULL,
   tenant_id VARCHAR(36) NOT NULL REFERENCES domains.tenant (id),
