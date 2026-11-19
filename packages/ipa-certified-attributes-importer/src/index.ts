@@ -66,7 +66,8 @@ try {
   const tenantUpsertData = getTenantUpsertData(
     registryData,
     tenants,
-    config.economicAccountCompaniesAllowlist
+    config.economicAccountCompaniesAllowlist,
+    attributes
   );
 
   loggerInstance.info("Creating new attributes");
