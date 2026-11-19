@@ -7,7 +7,6 @@ import {
   setMetadataVersionHeader,
   validateAuthorization,
   ZodiosContext,
-  zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import {
   DelegationId,
@@ -15,7 +14,10 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 
-import { makeApiProblem } from "../model/errors.js";
+import {
+  makeApiProblem,
+  zodiosValidationErrorToApiProblem,
+} from "../model/errors.js";
 import { PurposeService } from "../services/purposeService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {

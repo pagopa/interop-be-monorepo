@@ -6,10 +6,12 @@ import {
   ExpressContext,
   validateAuthorization,
   ZodiosContext,
-  zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 
-import { makeApiProblem } from "../model/errors.js";
+import {
+  makeApiProblem,
+  zodiosValidationErrorToApiProblem,
+} from "../model/errors.js";
 import { ToolsService } from "../services/toolService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import { toolsErrorMapper } from "../utilities/errorMappers.js";

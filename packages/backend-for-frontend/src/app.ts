@@ -17,7 +17,7 @@ import {
   FileManager,
   fromFilesToBodyMiddleware,
   multerMiddleware,
-  errorsToApiProblemsMiddleware,
+  errorsToApiProblemsMiddlewareBuilder,
   healthRouter,
 } from "pagopa-interop-commons";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
@@ -25,6 +25,7 @@ import { serviceName as modelsServiceName } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "./clients/clientsProvider.js";
 import { appBasePath } from "./config/appBasePath.js";
 import { config } from "./config/config.js";
+import { makeApiProblem } from "./model/errors.js";
 import agreementRouter from "./routers/agreementRouter.js";
 import attributeRouter from "./routers/attributeRouter.js";
 import authorizationRouter from "./routers/authorizationRouter.js";
@@ -291,7 +292,7 @@ export async function createApp(
     toolRouter(zodiosCtx, services.toolsService)
   );
 
-  app.use(errorsToApiProblemsMiddleware);
+  app.use(errorsToApiProblemsMiddlewareBuilder(makeApiProblem));
 
   return app;
 }

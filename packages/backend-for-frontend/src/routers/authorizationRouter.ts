@@ -5,7 +5,6 @@ import { bffApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
   ZodiosContext,
-  zodiosValidationErrorToApiProblem,
   rateLimiterHeadersFromStatus,
 } from "pagopa-interop-commons";
 import {
@@ -15,7 +14,10 @@ import {
 } from "pagopa-interop-models";
 
 import { config } from "../config/config.js";
-import { makeApiProblem } from "../model/errors.js";
+import {
+  makeApiProblem,
+  zodiosValidationErrorToApiProblem,
+} from "../model/errors.js";
 import { AuthorizationService } from "../services/authorizationService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import { getSessionTokenErrorMapper } from "../utilities/errorMappers.js";

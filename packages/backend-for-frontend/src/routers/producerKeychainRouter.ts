@@ -6,11 +6,13 @@ import {
   ExpressContext,
   validateAuthorization,
   ZodiosContext,
-  zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
 
-import { makeApiProblem } from "../model/errors.js";
+import {
+  makeApiProblem,
+  zodiosValidationErrorToApiProblem,
+} from "../model/errors.js";
 import { ProducerKeychainService } from "../services/producerKeychainService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import { getProducerKeychainUsersErrorMapper } from "../utilities/errorMappers.js";
