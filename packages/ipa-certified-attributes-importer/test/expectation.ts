@@ -86,6 +86,7 @@ export const aoo: Institution[] = [
     istatCode: "045067",
     subUnit: {
       entityName: "Scuola Primaria Giovanni Pascoli",
+      entityIpaCode: "Z1234ABC",
       name: "SCPGI",
     },
   },
@@ -100,6 +101,7 @@ export const aoo: Institution[] = [
     istatCode: "056078",
     subUnit: {
       entityName: "Istituto Comprensivo G. Marconi",
+      entityIpaCode: "Z5678DEF",
       name: "ICMAR",
     },
   },
@@ -114,6 +116,7 @@ export const aoo: Institution[] = [
     istatCode: "078045",
     subUnit: {
       entityName: "Scuola Secondaria di I Grado Alighieri",
+      entityIpaCode: "Z9123GHI",
       name: "SSAL",
     },
   },
@@ -128,6 +131,7 @@ export const aoo: Institution[] = [
     istatCode: "089123",
     subUnit: {
       entityName: "Istituto Tecnico Leonardo da Vinci",
+      entityIpaCode: "Z3456JKL",
       name: "ITLDV",
     },
   },
@@ -142,6 +146,7 @@ export const aoo: Institution[] = [
     istatCode: "098765",
     subUnit: {
       entityName: "Liceo Classico Virgilio",
+      entityIpaCode: "Z6789MNO",
       name: "LCVIR",
     },
   },
@@ -161,6 +166,7 @@ export const uo: Institution[] = [
     subUnit: {
       aooCode: "NRKL78D",
       entityName: "AZIENDA SANITARIA LOCALE ROMA 1",
+      entityIpaCode: "Z1234ABC",
       name: "Ufficio per la transizione al Digitale",
     },
   },
@@ -177,6 +183,7 @@ export const uo: Institution[] = [
     subUnit: {
       aooCode: "UYFT4AH",
       entityName: "LICEO SCIENTIFICO STATALE GALILEO GALILEI",
+      entityIpaCode: "Z5678DEF",
       name: "Ufficio per la transizione al Digitale",
     },
   },
@@ -193,6 +200,7 @@ export const uo: Institution[] = [
     subUnit: {
       aooCode: "BGJPH34",
       entityName: "ISTITUTO TECNICO INDUSTRIALE STATALE LEONARDO DA VINCI",
+      entityIpaCode: "Z9123GHI",
       name: "Ufficio per la transizione al Digitale",
     },
   },
@@ -208,6 +216,7 @@ export const uo: Institution[] = [
     subUnit: {
       aooCode: "KH7JLN3",
       entityName: "AZIENDA OSPEDALIERA POLICLINICO",
+      entityIpaCode: "Z3456JKL",
       name: "Ufficio Amministrativo",
     },
   },
@@ -223,6 +232,7 @@ export const uo: Institution[] = [
     subUnit: {
       aooCode: "XJPL29R",
       entityName: "COMUNE DI NAPOLI",
+      entityIpaCode: "Z6789MNO",
       name: "Ufficio Tecnico",
     },
   },
