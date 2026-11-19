@@ -1550,4 +1550,151 @@ describe("Tenant messages consumers - handleTenantMessageV3", () => {
     expect(stored?.contactId).toBe(newerContactId);
     expect(stored?.metadataVersion).toBe(3);
   });
+
+  describe("mixed event versions and replays", () => {
+    const getLegacyTenantOnboardedMessageV2 = (
+      tenant: Tenant
+    ): TenantEventEnvelopeV2 => ({
+      sequence_num: 1,
+      stream_id: tenant.id,
+      version: 1,
+      type: "TenantOnboarded",
+      event_version: 2,
+      data: {
+        tenant: toTenantV2({ ...tenant, mails: [getMockTenantMail()] }),
+      },
+      log_date: new Date(),
+    });
+
+    const getContactAddedMessageV3 = (
+      tenant: Tenant,
+      contactId: ContactId
+    ): TenantEventEnvelopeV3 => ({
+      sequence_num: 2,
+      stream_id: tenant.id,
+      version: 2,
+      type: "TenantContactAdded",
+      event_version: 3,
+      data: { contactId, tenant: toTenantV3({ ...tenant, contactId }) },
+      log_date: new Date(),
+    });
+
+    const expectTenantWithContactAndNoMails = async (
+      tenant: Tenant,
+      contactId: ContactId
+    ) => {
+      const stored = await getOneFromDb(dbContext, TenantDbTable.tenant, {
+        id: tenant.id,
+      });
+      expect(stored?.contactId).toBe(contactId);
+      expect(stored?.metadataVersion).toBe(2);
+
+      const mails = await getManyFromDb(dbContext, TenantDbTable.tenant_mail, {
+        tenantId: tenant.id,
+      });
+      expect(mails).toHaveLength(0);
+    };
+
+    it("does not restore the legacy mails nor override the tenant when a V2 event is replayed after a V3 event", async () => {
+      const mockTenant = getMockTenant();
+      const contactId = generateId<ContactId>();
+      const tenantOnboardedV2 = getLegacyTenantOnboardedMessageV2(mockTenant);
+
+      await handleTenantMessageV2([tenantOnboardedV2], dbContext);
+      await handleTenantMessageV3(
+        [getContactAddedMessageV3(mockTenant, contactId)],
+        dbContext
+      );
+      await handleTenantMessageV2([tenantOnboardedV2], dbContext);
+
+      await expectTenantWithContactAndNoMails(mockTenant, contactId);
+    });
+
+    it("ends in the same state when V2 and V3 events already applied are replayed in order", async () => {
+      const mockTenant = getMockTenant();
+      const contactId = generateId<ContactId>();
+      const tenantOnboardedV2 = getLegacyTenantOnboardedMessageV2(mockTenant);
+      const contactAddedV3 = getContactAddedMessageV3(mockTenant, contactId);
+
+      await handleTenantMessageV2([tenantOnboardedV2], dbContext);
+      await handleTenantMessageV3([contactAddedV3], dbContext);
+      // Replay
+      await handleTenantMessageV2([tenantOnboardedV2], dbContext);
+      await handleTenantMessageV3([contactAddedV3], dbContext);
+
+      await expectTenantWithContactAndNoMails(mockTenant, contactId);
+    });
+
+    it("does not restore the attributes removed by a newer V2 event when an older V3 event is applied after it", async () => {
+      // A V2 event can follow a V3 event if the tenant events V3 feature flag
+      // is turned off again.
+      const mockTenant: Tenant = {
+        ...getMockTenant(),
+        attributes: [getMockCertifiedTenantAttribute()],
+      };
+      const tenantOnboardedV3 = getTenantOnboardedMessageV3(mockTenant);
+      const attributeRemovedV2: TenantEventEnvelopeV2 = {
+        sequence_num: 2,
+        stream_id: mockTenant.id,
+        version: 2,
+        type: "MaintenanceTenantUpdated",
+        event_version: 2,
+        data: { tenant: toTenantV2({ ...mockTenant, attributes: [] }) },
+        log_date: new Date(),
+      };
+
+      await handleTenantMessageV3([tenantOnboardedV3], dbContext);
+      await handleTenantMessageV2([attributeRemovedV2], dbContext);
+      await handleTenantMessageV3([tenantOnboardedV3], dbContext);
+
+      const stored = await getOneFromDb(dbContext, TenantDbTable.tenant, {
+        id: mockTenant.id,
+      });
+      expect(stored?.metadataVersion).toBe(2);
+
+      const attributes = await getManyFromDb(
+        dbContext,
+        TenantDbTable.tenant_certified_attribute,
+        { tenantId: mockTenant.id }
+      );
+      expect(attributes).toHaveLength(0);
+    });
+
+    it("MaintenanceTenantDeleted as the first V3 event marks the legacy mails as deleted, without removing them", async () => {
+      const mockTenant = getMockTenant();
+
+      await handleTenantMessageV2(
+        [getLegacyTenantOnboardedMessageV2(mockTenant)],
+        dbContext
+      );
+      await handleTenantMessageV3(
+        [
+          {
+            sequence_num: 2,
+            stream_id: mockTenant.id,
+            version: 2,
+            type: "MaintenanceTenantDeleted",
+            event_version: 3,
+            data: {
+              tenantId: mockTenant.id,
+              tenant: toTenantV3(mockTenant),
+            },
+            log_date: new Date(),
+          },
+        ],
+        dbContext
+      );
+
+      const storedTenant = await getOneFromDb(dbContext, TenantDbTable.tenant, {
+        id: mockTenant.id,
+      });
+      expect(storedTenant?.deleted).toBe(true);
+
+      const mails = await getManyFromDb(dbContext, TenantDbTable.tenant_mail, {
+        tenantId: mockTenant.id,
+      });
+      expect(mails).toHaveLength(1);
+      expect(mails[0].deleted).toBe(true);
+    });
+  });
 });
