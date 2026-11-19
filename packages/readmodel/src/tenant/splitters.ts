@@ -43,6 +43,8 @@ export const splitTenantIntoObjectsSQL = (
     name,
     onboardedAt,
     subUnitType,
+    parentTenantId,
+    rootTenantId,
     selfcareInstitutionType,
     remoteIds,
     ...rest
@@ -64,6 +66,8 @@ export const splitTenantIntoObjectsSQL = (
     name,
     onboardedAt: dateToString(onboardedAt),
     subUnitType: subUnitType || null,
+    parentTenantId: parentTenantId || null,
+    rootTenantId: rootTenantId || null,
   };
 
   const mailsSQL: TenantMailSQL[] = mails.map((mail) =>
