@@ -100,6 +100,11 @@ type EntityWithEService = {
   eserviceId: EServiceId;
 };
 
+type AgreementDigestReadModelService = Pick<
+  ReadModelService,
+  "getEServicesByIds" | "getTenantsByIds"
+>;
+
 /**
  * Enriches items with producer names by batching tenant lookups.
  */
@@ -126,7 +131,7 @@ async function enrichWithProducerNames<T extends EntityWithProducer>(
  */
 async function enrichWithEServiceNames<T extends EntityWithEService>(
   items: T[],
-  readModelService: ReadModelService
+  readModelService: Pick<ReadModelService, "getEServicesByIds">
 ): Promise<Array<T & { eserviceName: string }>> {
   if (items.length === 0) {
     return [];
@@ -342,13 +347,15 @@ type AgreementWithIds = EntityWithEService & {
  *
  * @param data - Agreement data to transform
  * @param getTenantId - Function to extract the relevant tenant ID (producer or consumer)
+ * @param isProducerView - Whether links should open the producer's agreement view
  * @param readModelService - Service for fetching names
  * @param selfcareId - The tenant's selfcare ID for deeplink authentication
  */
 async function agreementsToBaseDigest<T extends AgreementWithIds>(
   data: T[],
   getTenantId: (agreement: T) => TenantId,
-  readModelService: ReadModelService,
+  isProducerView: boolean,
+  readModelService: AgreementDigestReadModelService,
   selfcareId: string | null
 ): Promise<BaseDigest> {
   if (data.length === 0) {
@@ -372,7 +379,7 @@ async function agreementsToBaseDigest<T extends AgreementWithIds>(
         tenantDataMap.get(getTenantId(agreement))?.name ?? UNKNOWN_NAME,
       link: buildAgreementLink(
         agreement.agreementId,
-        getTenantId(agreement) === agreement.producerId,
+        isProducerView,
         selfcareId
       ),
     })),
@@ -393,13 +400,14 @@ async function agreementsToBaseDigest<T extends AgreementWithIds>(
 export async function sentAgreementsToBaseDigest(
   data: SentAgreement[],
   state: AgreementState,
-  readModelService: ReadModelService,
+  readModelService: AgreementDigestReadModelService,
   selfcareId: string | null
 ): Promise<BaseDigest> {
   const filteredData = data.filter((a) => a.state === state);
   return agreementsToBaseDigest(
     filteredData,
     (agreement) => agreement.producerId,
+    false,
     readModelService,
     selfcareId
   );
@@ -416,12 +424,13 @@ export async function sentAgreementsToBaseDigest(
  */
 export async function receivedAgreementsToBaseDigest(
   data: ReceivedAgreement[],
-  readModelService: ReadModelService,
+  readModelService: AgreementDigestReadModelService,
   selfcareId: string | null
 ): Promise<BaseDigest> {
   return agreementsToBaseDigest(
     data,
     (agreement) => agreement.consumerId,
+    true,
     readModelService,
     selfcareId
   );
