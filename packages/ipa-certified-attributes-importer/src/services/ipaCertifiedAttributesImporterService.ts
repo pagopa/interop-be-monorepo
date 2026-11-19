@@ -30,6 +30,7 @@ import {
   config,
   IPACertifiedAttributesImporterConfig,
 } from "../config/config.js";
+import { Institution } from "./openDataExtractor.js";
 import {
   RegistryData,
   InternalCertifiedAttribute,
@@ -166,11 +167,47 @@ async function checkAttributesPresence(
   return missingAttributes.length === 0;
 }
 
+function getAooNames(registryData: RegistryData): Map<string, string> {
+  return new Map(
+    registryData.institutions
+      .filter((i) => i.classification === "AOO" && i.subUnit)
+      .flatMap((i) => (i.subUnit ? [[i.originId, i.subUnit.name]] : []))
+  );
+}
+
+// A UO referring to an AOO that is not in the dataset is not eligible
+function isSubUnitEligible(
+  subUnit: NonNullable<Institution["subUnit"]>,
+  aooNames: Map<string, string>
+): boolean {
+  return !subUnit.aooCode || aooNames.has(subUnit.aooCode);
+}
+
 export function getTenantUpsertData(
   registryData: RegistryData,
   platformTenants: Tenant[],
-  economicAccountCompaniesAllowlist: string[]
+  economicAccountCompaniesAllowlist: string[],
+  platformAttributes: Attribute[] = []
 ): TenantSeed[] {
+  const aooUoAttributesEnabled = isFeatureFlagEnabled(
+    config,
+    "featureFlagAooUoAttributes"
+  );
+  const aooNames = getAooNames(registryData);
+
+  // Codes of the main entity attributes whose propagation to subunits is enabled
+  const propagatingEntityCodes = new Set(
+    platformAttributes
+      .filter(
+        (a) =>
+          a.kind === attributeKind.certified &&
+          a.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER &&
+          a.code &&
+          a.subunitPropagationEnabled === true
+      )
+      .map((a) => a.code)
+  );
+
   // Create a set of all existing tenant external IDs for quick lookup.
   // This is used to filter out institutions from the registry that don't
   // have a corresponding tenant in the platform.
@@ -187,6 +224,25 @@ export function getTenantUpsertData(
         toTenantKey({ origin: i.origin, value: i.originId })
       )
   );
+
+  const getSubUnitAttributes = (
+    i: Institution
+  ): Array<{ origin: string; code: string }> => {
+    if (
+      !aooUoAttributesEnabled ||
+      !i.subUnit ||
+      !isSubUnitEligible(i.subUnit, aooNames)
+    ) {
+      return [];
+    }
+
+    return [
+      ...(propagatingEntityCodes.has(i.subUnit.entityIpaCode)
+        ? [{ origin: i.origin, code: i.subUnit.entityIpaCode }]
+        : []),
+      { origin: i.origin, code: i.originId },
+    ];
+  };
 
   // Map each institution to a "TenantSeed" object, which contains all the attributes
   // that should be assigned to the corresponding tenant in the platform.
@@ -224,12 +280,14 @@ export function getTenantUpsertData(
           code: i.originId,
         },
       ])
-      // AOO/UO -> Assign category attribute only
+      // AOO/UO -> Assign category attribute, plus the subunit attribute and the
+      // main entity attribute (if propagated) when the feature flag is enabled
       .otherwise(() => [
         {
           origin: i.origin,
           code: i.category,
         },
+        ...getSubUnitAttributes(i),
       ]);
 
     // This block handles the assignment of the "Gestore di Pubblico Servizio" (GPS) attribute (L37).
@@ -351,11 +409,7 @@ function getAooUoAttributes(
     )
   );
 
-  const aooNames = new Map(
-    registryData.institutions
-      .filter((i) => i.classification === "AOO" && i.subUnit)
-      .map((i) => [i.originId, i.subUnit?.name])
-  );
+  const aooNames = getAooNames(registryData);
 
   const baseSeeds = registryData.institutions
     .filter(
@@ -371,11 +425,12 @@ function getAooUoAttributes(
         return [];
       }
 
-      const { name, entityName, aooCode } = i.subUnit;
-      const aooName = aooCode ? aooNames.get(aooCode) : undefined;
-      if (aooCode && !aooName) {
+      if (!isSubUnitEligible(i.subUnit, aooNames)) {
         return [];
       }
+
+      const { name, entityName, aooCode } = i.subUnit;
+      const aooName = aooCode ? aooNames.get(aooCode) : undefined;
 
       const fullName = aooName
         ? `${name} di ${aooName} di ${entityName}`
