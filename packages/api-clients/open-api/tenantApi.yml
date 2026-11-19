@@ -1094,8 +1094,12 @@ paths:
       responses:
         "204":
           description: Tenant Updated
+        "400":
+          $ref: "#/components/responses/BadRequest"
         "404":
           $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
       requestBody:
         content:
           application/json:
@@ -1263,6 +1267,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         "409":
           $ref: "#/components/responses/Conflict"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   /tenants/{tenantId}/contact/{contactId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1300,6 +1306,8 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   /tenants/delegatedFeatures/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1357,6 +1365,12 @@ components:
             $ref: "#/components/schemas/Problem"
     Conflict:
       description: Conflict
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    NotImplemented:
+      description: Not Implemented
       content:
         application/problem+json:
           schema:
@@ -1900,10 +1914,7 @@ components:
           type: string
           minLength: 1
           maxLength: 1000
-        # Deprecated and ignored: kept only so that the tenant-process and the
-        # selfcare-onboarding-consumer can be released in any order.
-        # To be removed in the next release.
-        digitalAddress:
+        digitalAddress: # Deprecated and ignored, to be removed in the next release
           $ref: "#/components/schemas/MailSeed"
         onboardedAt:
           type: string
