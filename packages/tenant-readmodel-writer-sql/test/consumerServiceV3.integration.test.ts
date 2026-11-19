@@ -350,6 +350,42 @@ describe("Tenant Events V3", async () => {
     warn.mockRestore();
   });
 
+  it("ignores a V2 event older than the V3 event already projected", async () => {
+    const contactId = generateId<ContactId>();
+    const currentTenant: Tenant = { ...mockTenant, contactId };
+    const contactAdded: TenantEventEnvelopeV3 = {
+      ...mockMessage,
+      type: "TenantContactAdded",
+      data: { contactId, tenant: toTenantV3(currentTenant) },
+      version: 3,
+    };
+    await handleMessageV3(contactAdded, tenantWriterService);
+
+    // A stale V2 event, carrying legacy mails and no contact reference.
+    const staleV2Message: TenantEventEnvelopeV2 = {
+      ...mockMessage,
+      event_version: 2,
+      type: "TenantOnboardDetailsUpdated",
+      data: {
+        tenant: toTenantV2({ ...mockTenant, mails: [getMockTenantMail()] }),
+      },
+      version: 2,
+    };
+    const warn = vi.spyOn(genericLogger, "warn");
+
+    await handleMessageV2(staleV2Message, tenantWriterService);
+
+    const retrievedTenant = await tenantReadModelService.getTenantById(
+      mockTenant.id
+    );
+
+    expect(retrievedTenant?.data).toStrictEqual(currentTenant);
+    expect(retrievedTenant?.data.mails).toEqual([]);
+    expect(retrievedTenant?.metadata).toStrictEqual({ version: 3 });
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
   it("handles an event replayed at the same version idempotently", async () => {
     await tenantWriterService.upsertTenant(mockTenant, 1);
 
