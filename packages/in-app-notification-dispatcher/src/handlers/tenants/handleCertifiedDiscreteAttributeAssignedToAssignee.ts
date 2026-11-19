@@ -1,10 +1,9 @@
 import { Logger } from "pagopa-interop-commons";
 import {
   AttributeId,
-  fromTenantV2,
   missingKafkaMessageDataError,
   NewNotification,
-  TenantV2,
+  Tenant,
 } from "pagopa-interop-models";
 import {
   getNotificationRecipients,
@@ -19,22 +18,20 @@ import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 const IMPORTED_ATTRIBUTE_ORIGINS = ["ISTAT"];
 
 export async function handleCertifiedDiscreteAttributeAssignedToAssignee(
-  tenantV2Msg: TenantV2 | undefined,
+  tenant: Tenant | undefined,
   attributeId: AttributeId,
   logger: Logger,
   readModelService: ReadModelServiceSQL
 ): Promise<NewNotification[]> {
-  if (!tenantV2Msg) {
+  if (!tenant) {
     throw missingKafkaMessageDataError(
       "tenant",
       "TenantCertifiedDiscreteAttributeAssigned"
     );
   }
   logger.info(
-    `Sending in-app notification for handleCertifiedDiscreteAttributeAssignedToAssignee - entityId: ${tenantV2Msg.id}, eventType: TenantCertifiedDiscreteAttributeAssigned`
+    `Sending in-app notification for handleCertifiedDiscreteAttributeAssignedToAssignee - entityId: ${tenant.id}, eventType: TenantCertifiedDiscreteAttributeAssigned`
   );
-
-  const tenant = fromTenantV2(tenantV2Msg);
 
   const usersWithNotifications = await getNotificationRecipients(
     [tenant.id],

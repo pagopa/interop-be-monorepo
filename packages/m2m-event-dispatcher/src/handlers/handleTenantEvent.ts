@@ -1,10 +1,11 @@
 import { Logger } from "pagopa-interop-commons";
 import {
   fromTenantV2,
-  genericInternalError,
+  fromTenantV3,
   missingKafkaMessageDataError,
   TenantEventEnvelope,
   TenantEventEnvelopeV2,
+  TenantEventEnvelopeV3,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 
@@ -23,11 +24,9 @@ export async function handleTenantEvent(
     .with({ event_version: 2 }, (msg) =>
       handleTenantEventV2(msg, eventTimestamp, logger, m2mEventWriterService)
     )
-    .with({ event_version: 3 }, (msg) => {
-      throw genericInternalError(
-        `Tenant event V3 not supported yet: ${msg.type}`
-      );
-    })
+    .with({ event_version: 3 }, (msg) =>
+      handleTenantEventV3(msg, eventTimestamp, logger, m2mEventWriterService)
+    )
     .exhaustive();
 }
 
@@ -90,5 +89,74 @@ async function handleTenantEventV2(
       }
     )
     .with({ type: "MaintenanceTenantRemoteIdDeleted" }, () => Promise.resolve())
+    .exhaustive();
+}
+
+async function handleTenantEventV3(
+  decodedMessage: TenantEventEnvelopeV3,
+  eventTimestamp: Date,
+  logger: Logger,
+  m2mEventWriterService: M2MEventWriterServiceSQL
+): Promise<void> {
+  return match(decodedMessage)
+    .with(
+      {
+        type: P.union(
+          "TenantOnboarded",
+          "TenantOnboardDetailsUpdated",
+          "TenantCertifiedAttributeAssigned",
+          "TenantCertifiedAttributeRevoked",
+          "TenantCertifiedDiscreteAttributeAssigned",
+          "TenantCertifiedDiscreteAttributeRevoked",
+          "TenantCertifiedDiscreteAttributeUpdated",
+          "TenantDeclaredAttributeAssigned",
+          "TenantDeclaredAttributeRevoked",
+          "TenantVerifiedAttributeAssigned",
+          "TenantVerifiedAttributeRevoked",
+          "TenantVerifiedAttributeExpirationUpdated",
+          "MaintenanceTenantDeleted",
+          "TenantVerifiedAttributeExtensionUpdated",
+          "MaintenanceTenantPromotedToCertifier",
+          "TenantKindUpdated",
+          "TenantDelegatedProducerFeatureAdded",
+          "TenantDelegatedProducerFeatureRemoved",
+          "MaintenanceTenantUpdated",
+          "TenantDelegatedConsumerFeatureAdded",
+          "TenantDelegatedConsumerFeatureRemoved",
+          "TenantRemoteIdAssigned"
+        ),
+      },
+      async (event) => {
+        if (!event.data.tenant) {
+          throw missingKafkaMessageDataError("tenant", event.type);
+        }
+        const tenant = fromTenantV3(event.data.tenant);
+
+        logger.info(
+          `Creating Tenant M2M Event - type ${event.type}, tenantId ${tenant.id}`
+        );
+
+        const m2mEvent = createTenantM2MEvent(
+          tenant,
+          event.version,
+          event.type,
+          eventTimestamp
+        );
+
+        await m2mEventWriterService.insertTenantM2MEvent(
+          toTenantM2MEventSQL(m2mEvent)
+        );
+      }
+    )
+    .with(
+      {
+        type: P.union(
+          "MaintenanceTenantRemoteIdDeleted",
+          "TenantContactAdded",
+          "TenantContactDeleted"
+        ),
+      },
+      () => Promise.resolve()
+    )
     .exhaustive();
 }
