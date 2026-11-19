@@ -344,6 +344,16 @@ export const errorMessages = [
   },
   {
     "process": "Purpose Process",
+    "error": "duplicatedPurposeTitle",
+    "errorCode": "004-0016",
+    "bffEndpoint": "POST /reverse/purposes/:purposeId",
+    "copy": {
+      "it": "Esiste già una finalità con lo stesso nome per questo e-service. Scegli un altro nome.",
+      "en": "There is already a purpose with the same name for this e-service. Choose a different name."
+    }
+  },
+  {
+    "process": "Purpose Process",
     "error": "hyperlinkDetectionError",
     "errorCode": "004-10027",
     "bffEndpoint": "PATCH /reverse/purposes/:purposeId",
@@ -1393,6 +1403,76 @@ export const errorMessages = [
     }
   },
   {
+    "process": "EService Template Process",
+    "error": "operationForbidden",
+    "errorCode": "011-9989",
+    "bffEndpoint": "POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/suspend",
+    "copy": {
+      "it": "Non puoi sospendere questa versione del template e-service. Può farlo solo l’ente che ha creato il template.",
+      "en": "You can't suspend this e-service template version. Only the party that created the template can suspend it."
+    }
+  },
+  {
+    "process": "EService Template Process",
+    "error": "operationForbidden",
+    "errorCode": "011-9989",
+    "bffEndpoint": "POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/activate",
+    "copy": {
+      "it": "Non puoi riattivare questa versione del template e-service. Può farlo solo l’ente che ha creato il template.",
+      "en": "You can't reactivate this e-service template version. Only the party that created the template can reactivate it."
+    }
+  },
+  {
+    "process": "EService Template Process",
+    "error": "riskAnalysisValidationFailed",
+    "errorCode": "011-0007",
+    "bffEndpoint": "POST /eservices/templates/:eServiceTemplateId/riskAnalysis/:riskAnalysisId",
+    "copy": {
+      "it": "Non è stato possibile salvare le modifiche alla finalità. Controlla le risposte dell’analisi del rischio e rimuovi eventuali link prima di riprovare.",
+      "en": "The changes to this purpose couldn't be saved. Check the risk analysis answers and remove any links before trying again."
+    }
+  },
+  {
+    "process": "EService Template Process",
+    "error": "riskAnalysisNotFound",
+    "errorCode": "011-0026",
+    "bffEndpoint": "DELETE /eservices/templates/:eServiceTemplateId/riskAnalysis/:riskAnalysisId",
+    "copy": {
+      "it": "Non puoi eliminare questa finalità perché non è più presente nel template e-service. Aggiorna la pagina.",
+      "en": "You can't delete this purpose because it's no longer in the e-service template. Refresh the page."
+    }
+  },
+  {
+    "process": "EService Template Process",
+    "error": "draftEServiceTemplateVersionAlreadyExists",
+    "errorCode": "011-0024",
+    "bffEndpoint": "POST /eservices/templates/:eServiceTemplateId/versions",
+    "copy": {
+      "it": "Non puoi creare una nuova versione in bozza di questo template e-service perché ne esiste già una. Aggiorna la pagina per visualizzarla.",
+      "en": "You can't create a new draft version of this e-service template because one already exists. Refresh the page to view it."
+    }
+  },
+  {
+    "process": "EService Template Process",
+    "error": "notValidEServiceTemplateVersionState",
+    "errorCode": "011-0003",
+    "bffEndpoint": "POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/publish",
+    "copy": {
+      "it": "Non puoi pubblicare questa versione del template e-service perché non è più in bozza. Torna ai template per verificarne lo stato.",
+      "en": "You can't publish this e-service template version because it's no longer a draft. Go back to templates to check its status."
+    }
+  },
+  {
+    "process": "EService Template Process",
+    "error": "missingRiskAnalysis",
+    "errorCode": "011-0019",
+    "bffEndpoint": "POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/publish",
+    "copy": {
+      "it": "Non puoi pubblicare questa versione del template e-service perché manca una finalità. Vai su “Modifica bozza”, aggiungi una finalità e riprova.",
+      "en": "You can't publish this e-service template version because it has no purpose. Select “Edit draft”, add a purpose, and try again."
+    }
+  },
+  {
     "process": "Purpose Template Process",
     "error": "invalidAssociatedEServiceForPublicationError",
     "errorCode": "015-0023",
@@ -1500,6 +1580,26 @@ export const errorMessages = [
     "copy": {
       "it": "Non puoi aggiungere questo e-service tra quelli suggeriti perché è stato creato da un template e-service.",
       "en": "You can't add this e-service to the suggested e-services because it was created from an e-service template."
+    }
+  },
+  {
+    "process": "Purpose Template Process",
+    "error": "associationBetweenEServiceAndPurposeTemplateDoesNotExist",
+    "errorCode": "015-0017",
+    "bffEndpoint": "POST /purposeTemplates/:purposeTemplateId/unlinkResource",
+    "copy": {
+      "it": "Questo e-service non è più collegato al template finalità. Aggiorna la pagina.",
+      "en": "This e-service is no longer linked to the purpose template. Refresh the page."
+    }
+  },
+  {
+    "process": "Purpose Template Process",
+    "error": "associationBetweenEServiceTemplateAndPurposeTemplateDoesNotExist",
+    "errorCode": "015-0033",
+    "bffEndpoint": "POST /purposeTemplates/:purposeTemplateId/unlinkResource",
+    "copy": {
+      "it": "Questo e-service non è più collegato al template finalità. Aggiorna la pagina.",
+      "en": "This e-service is no longer linked to the purpose template. Refresh the page."
     }
   },
   {
@@ -2020,6 +2120,36 @@ export const errorMessages = [
     "copy": {
       "it": "Il numero di chiamate API al giorno che suggerisci al fruitore non può superare 1.000.000.000. Modifica il numero e riprova.",
       "en": "The number of API calls per day you suggest to the consumer can't exceed 1,000,000,000. Change the number and try again."
+    }
+  },
+  {
+    "process": "inApp Notification Manager",
+    "error": "notificationNotFound",
+    "errorCode": "013-0001",
+    "bffEndpoint": "DELETE /inAppNotifications/:notificationId",
+    "copy": {
+      "it": "Questa notifica non è più disponibile. Aggiorna la pagina.",
+      "en": "This notification is no longer available. Refresh the page."
+    }
+  },
+  {
+    "process": "inApp Notification Manager",
+    "error": "notificationNotFound",
+    "errorCode": "013-0001",
+    "bffEndpoint": "POST /inAppNotifications/:notificationId/markAsRead",
+    "copy": {
+      "it": "Questa notifica non è più disponibile. Aggiorna la pagina.",
+      "en": "This notification is no longer available. Refresh the page."
+    }
+  },
+  {
+    "process": "inApp Notification Manager",
+    "error": "notificationNotFound",
+    "errorCode": "013-0001",
+    "bffEndpoint": "POST /inAppNotifications/:notificationId/markAsUnread",
+    "copy": {
+      "it": "Questa notifica non è più disponibile. Aggiorna la pagina.",
+      "en": "This notification is no longer available. Refresh the page."
     }
   }
 ] as const satisfies readonly ErrorMessage[];
