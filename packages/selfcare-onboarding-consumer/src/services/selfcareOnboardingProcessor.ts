@@ -82,11 +82,6 @@ export function selfcareOnboardingProcessorBuilder(
           selfcareId: eventPayload.institutionId,
           name: institution.description,
           onboardedAt: eventPayload.createdAt,
-          digitalAddress: {
-            kind: tenantApi.MailKind.Values.DIGITAL_ADDRESS,
-            description: "Domicilio digitale",
-            address: institution.digitalAddress,
-          },
           subUnitType: institution.subUnitType || undefined,
           selfcareInstitutionType: institution.institutionType,
         };

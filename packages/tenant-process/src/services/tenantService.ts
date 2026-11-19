@@ -15,6 +15,7 @@ import {
   isUiAuthData,
   M2MAdminAuthData,
   validateNoHyperlinksSafe,
+  assertFeatureFlagEnabled,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -36,7 +37,6 @@ import {
   unsafeBrandId,
   TenantMail,
   TenantEvent,
-  tenantMailKind,
   TenantFeatureCertifier,
   CorrelationId,
   tenantKind,
@@ -45,10 +45,12 @@ import {
   AgreementState,
   DelegationId,
   TenantRevoker,
+  ContactId,
 } from "pagopa-interop-models";
 import { ExternalId } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 
+import { config } from "../config/config.js";
 import { fromApiTenantFeature } from "../model/domain/apiConverter.js";
 import {
   attributeAlreadyRevoked,
@@ -76,6 +78,8 @@ import {
   certifiedDiscreteAttributeAlreadyAssigned,
   tenantNotFoundByRemoteId,
   tenantUpdateVersionMismatch,
+  tenantContactAlreadyAssigned,
+  tenantContactNotFound,
 } from "../model/domain/errors.js";
 import { ApiGetTenantsFilters } from "../model/domain/models.js";
 import {
@@ -91,6 +95,8 @@ import {
   toCreateEventTenantCertifiedAttributeRevoked,
   toCreateEventTenantMailDeleted,
   toCreateEventTenantMailAdded,
+  toCreateEventTenantContactAdded,
+  toCreateEventTenantContactDeleted,
   toCreateEventTenantVerifiedAttributeAssigned,
   toCreateEventMaintenanceTenantPromotedToCertifier,
   toCreateEventTenantVerifiedAttributeRevoked,
@@ -120,6 +126,7 @@ import {
   assertTenantAllowedForDelegation,
   getTenantKind,
   isFeatureAssigned,
+  assertTenantMailsAllowed,
 } from "./validators.js";
 
 const retrieveTenant = async (
@@ -472,7 +479,7 @@ export function tenantServiceBuilder(
           attributes: [],
           externalId: tenantSeed.externalId,
           features: [],
-          mails: formatTenantMail(tenantSeed.digitalAddress),
+          mails: [],
           selfcareId: tenantSeed.selfcareId,
           onboardedAt: new Date(tenantSeed.onboardedAt),
           subUnitType: tenantSeed.subUnitType,
@@ -2044,6 +2051,20 @@ export function tenantServiceBuilder(
     ): Promise<void> {
       logger.info(`Maintenance update Tenant ${tenantId}`);
 
+      const {
+        features: apiFeatures,
+        contactId,
+        ...restTenantUpdate
+      } = tenantUpdate;
+
+      if (restTenantUpdate.mails.length > 0) {
+        assertTenantMailsAllowed(tenantId);
+      }
+
+      if (contactId !== undefined) {
+        assertFeatureFlagEnabled(config, "featureFlagTenantEventsV3");
+      }
+
       const tenant = await retrieveTenant(tenantId, readModelService);
 
       if (version !== tenant.metadata.version) {
@@ -2053,8 +2074,6 @@ export function tenantServiceBuilder(
           version
         );
       }
-
-      const { features: apiFeatures, ...restTenantUpdate } = tenantUpdate;
 
       const convertedTenantUpdate = {
         ...restTenantUpdate,
@@ -2072,6 +2091,9 @@ export function tenantServiceBuilder(
         selfcareInstitutionType: convertedTenantUpdate.selfcareInstitutionType,
         ...(apiFeatures !== undefined && {
           features: apiFeatures.map(fromApiTenantFeature),
+        }),
+        ...(contactId !== undefined && {
+          contactId: unsafeBrandId<ContactId>(contactId),
         }),
         updatedAt: new Date(),
       };
@@ -2096,6 +2118,8 @@ export function tenantServiceBuilder(
       { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(`Deleting mail ${mailId} to Tenant ${tenantId}`);
+
+      assertTenantMailsAllowed(tenantId);
 
       await assertRequesterAllowed(tenantId, authData);
 
@@ -2132,6 +2156,8 @@ export function tenantServiceBuilder(
       { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(`Adding mail of kind ${mailSeed.kind} to Tenant ${tenantId}`);
+
+      assertTenantMailsAllowed(tenantId);
 
       validateNoHyperlinksSafe(mailSeed.description);
 
@@ -2177,6 +2203,101 @@ export function tenantServiceBuilder(
           correlationId
         )
       );
+    },
+
+    async addTenantContact(
+      {
+        tenantId,
+        contactId,
+      }: {
+        tenantId: TenantId;
+        contactId: ContactId;
+      },
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Tenant>> {
+      logger.info(`Adding contact ${contactId} to Tenant ${tenantId}`);
+
+      assertFeatureFlagEnabled(config, "featureFlagTenantEventsV3");
+
+      await assertRequesterAllowed(tenantId, authData);
+
+      const tenant = await retrieveTenant(tenantId, readModelService);
+
+      if (tenant.data.contactId === contactId) {
+        throw tenantContactAlreadyAssigned(tenantId, contactId);
+      }
+
+      // A single contact per tenant: adding a new one replaces the current one
+      const updatedTenant: Tenant = {
+        ...tenant.data,
+        contactId,
+        updatedAt: new Date(),
+      };
+
+      const { newVersion } = await repository.createEvent(
+        toCreateEventTenantContactAdded(
+          tenant.metadata.version,
+          updatedTenant,
+          contactId,
+          correlationId
+        )
+      );
+
+      return {
+        data: updatedTenant,
+        metadata: { version: newVersion },
+      };
+    },
+
+    async deleteTenantContact(
+      {
+        tenantId,
+        contactId,
+      }: {
+        tenantId: TenantId;
+        contactId: ContactId;
+      },
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Tenant>> {
+      logger.info(`Deleting contact ${contactId} from Tenant ${tenantId}`);
+
+      assertFeatureFlagEnabled(config, "featureFlagTenantEventsV3");
+
+      await assertRequesterAllowed(tenantId, authData);
+
+      const tenant = await retrieveTenant(tenantId, readModelService);
+
+      if (tenant.data.contactId !== contactId) {
+        throw tenantContactNotFound(tenantId, contactId);
+      }
+
+      const updatedTenant: Tenant = {
+        ...tenant.data,
+        contactId: undefined,
+        updatedAt: new Date(),
+      };
+
+      const { newVersion } = await repository.createEvent(
+        toCreateEventTenantContactDeleted(
+          tenant.metadata.version,
+          updatedTenant,
+          contactId,
+          correlationId
+        )
+      );
+
+      return {
+        data: updatedTenant,
+        metadata: { version: newVersion },
+      };
     },
 
     async getProducers(
@@ -3186,24 +3307,6 @@ function validateAddress(address: string): string {
     throw notValidMailAddress();
   }
   return sanitizedMail;
-}
-
-function formatTenantMail(
-  digitalAddress: tenantApi.MailSeed | undefined
-): TenantMail[] {
-  if (!digitalAddress) {
-    return [];
-  }
-  const validatedAddress = validateAddress(digitalAddress.address);
-  return [
-    {
-      id: crypto.createHash("sha256").update(validatedAddress).digest("hex"),
-      kind: tenantMailKind.DigitalAddress,
-      address: validatedAddress,
-      description: digitalAddress.description,
-      createdAt: new Date(),
-    },
-  ];
 }
 
 export type TenantService = ReturnType<typeof tenantServiceBuilder>;

@@ -146,6 +146,7 @@ export function toApiTenant(tenant: Tenant): tenantApi.Tenant {
     createdAt: tenant.createdAt.toJSON(),
     updatedAt: tenant.updatedAt?.toJSON(),
     mails: tenant.mails.map(toApiMail),
+    contactId: tenant.contactId,
     name: tenant.name,
     onboardedAt: tenant.onboardedAt?.toJSON(),
     subUnitType: tenant.subUnitType,
