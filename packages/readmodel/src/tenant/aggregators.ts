@@ -2,6 +2,7 @@ import {
   AttributeId,
   CertifiedDiscreteTenantAttribute,
   CertifiedTenantAttribute,
+  ContactId,
   DeclaredTenantAttribute,
   DelegationId,
   genericInternalError,
@@ -131,6 +132,9 @@ export const aggregateTenant = ({
     },
     features,
     mails,
+    ...(tenantSQL.contactId
+      ? { contactId: unsafeBrandId<ContactId>(tenantSQL.contactId) }
+      : {}),
     ...(remoteIdsSQL.length > 0
       ? {
           remoteIds: remoteIdsSQL.map(
