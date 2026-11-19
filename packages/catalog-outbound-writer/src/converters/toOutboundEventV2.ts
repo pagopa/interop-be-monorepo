@@ -33,8 +33,8 @@ function toOutboundTemplateInstanceInterfaceMetadataV2(
   TemplateInstanceInterfaceMetadataV2
 > {
   return {
-    contactEmail: interfaceMetadata.contactEmail,
-    contactName: interfaceMetadata.contactName,
+    contactEmail: undefined,
+    contactName: undefined,
     contactUrl: interfaceMetadata.contactUrl,
     termsAndConditionsUrl: interfaceMetadata.termsAndConditionsUrl,
   };
