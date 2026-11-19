@@ -1,6 +1,216 @@
 import { generateId } from "pagopa-interop-models";
 
-import { TenantDigestData } from "../src/services/digestDataService.js";
+import {
+  ReviewerDigestData,
+  ReviewerRiskAnalysisDigest,
+  TenantDigestData,
+} from "../src/services/digestDataService.js";
+
+const CARDS_LIMIT = 6;
+const LISTS_LIMIT = 5;
+
+/**
+ * Returns mock eservices data with the specified number of items
+ */
+function generateNewEservices(
+  itemsNumber: number,
+  sectionLabel: string,
+  isTemplate: boolean = false
+): TenantDigestData["newEservices"] {
+  const items = Array.from(
+    { length: itemsNumber > CARDS_LIMIT ? CARDS_LIMIT : itemsNumber },
+    (_, index) => ({
+      name: `${sectionLabel} ${index + 1}`,
+      producerName: `${sectionLabel} - Ente ${index + 1}`,
+      link: `https://example.com/eservice${isTemplate ? "-template" : ""}/${index + 1}`,
+    })
+  );
+  return {
+    items,
+    totalCount: itemsNumber,
+  };
+}
+
+/**
+ * Returns mock digest data for agreements or purposes with the specified number of items
+ */
+function generateAgreementOrPurposeItems(
+  itemsNumber: number,
+  type: "agreement" | "purpose",
+  sectionLabel: string
+): TenantDigestData["acceptedSentAgreements"] {
+  const items = Array.from(
+    { length: itemsNumber > LISTS_LIMIT ? LISTS_LIMIT : itemsNumber },
+    (_, index) => ({
+      name: `${sectionLabel} ${index + 1}`,
+      producerName: `${sectionLabel} - Ente ${index + 1}`,
+      link: `https://example.com/${type}/${index + 1}`,
+    })
+  );
+  return {
+    items,
+    totalCount: itemsNumber,
+  };
+}
+
+function generateApprovedRiskAnalysisPurposes(
+  itemsNumber: number,
+  sectionLabel: string
+): TenantDigestData["approvedRiskAnalysis"] {
+  const items = generateAgreementOrPurposeItems(
+    itemsNumber,
+    "purpose",
+    sectionLabel
+  )!.items.map((item) => ({
+    ...item,
+    id: generateId(),
+    signedAt: new Date().toISOString(),
+  }));
+  return {
+    items,
+    totalCount: itemsNumber,
+  };
+}
+
+function generateRejectedRiskAnalysisPurposes(
+  itemsNumber: number,
+  sectionLabel: string
+): TenantDigestData["rejectedRiskAnalysis"] {
+  const items = generateAgreementOrPurposeItems(
+    itemsNumber,
+    "purpose",
+    sectionLabel
+  )!.items.map((item) => ({
+    ...item,
+    id: generateId(),
+    rejectedAt: new Date().toISOString(),
+  }));
+  return {
+    items,
+    totalCount: itemsNumber,
+  };
+}
+
+/**
+ * Returns mock digest data for received purposes with the specified number of items
+ */
+function generateReceivedPurposes(
+  itemsNumber: number,
+  sectionLabel: string
+): TenantDigestData["publishedReceivedPurposes"] {
+  const items = Array.from(
+    { length: itemsNumber > LISTS_LIMIT ? LISTS_LIMIT : itemsNumber },
+    (_, index) => ({
+      name: `${sectionLabel} ${index + 1}`,
+      producerName: `${sectionLabel} - Ente ${index + 1}`,
+      link: `https://example.com/purpose/${index + 1}`,
+      consumerName: `Ente Consumatore ${index + 1}`,
+    })
+  );
+  return {
+    items,
+    totalCount: itemsNumber,
+  };
+}
+
+/**
+ * Returns mock digest data for received delegations with the specified number of items
+ */
+function generateReceivedDelegations(
+  itemsNumber: number,
+  sectionLabel: string
+): TenantDigestData["waitingForApprovalReceivedDelegations"] {
+  const items = Array.from(
+    { length: itemsNumber > LISTS_LIMIT ? LISTS_LIMIT : itemsNumber },
+    (_, index) => ({
+      name: `${sectionLabel} ${index + 1}`,
+      producerName: `Ente Richiedente ${index + 1}`,
+      link: `https://example.com/delegation/${index + 1}`,
+      delegationKind: (index % 2 === 0 ? "erogazione" : "fruizione") as
+        | "erogazione"
+        | "fruizione",
+    })
+  );
+  return {
+    items,
+    totalCount: itemsNumber,
+  };
+}
+
+function generateDelegatedEservices(
+  itemsNumber: number,
+  sectionLabel: string
+): TenantDigestData["waitingForApprovalDelegatedEservices"] {
+  const items = Array.from(
+    { length: itemsNumber > LISTS_LIMIT ? LISTS_LIMIT : itemsNumber },
+    (_, index) => ({
+      name: `${sectionLabel} ${index + 1}`,
+      delegatedName: `Ente Delegato ${index + 1}`,
+      link: `https://example.com/delegated-eservice/${index + 1}`,
+      eserviceId: generateId(),
+      descriptorId: generateId(),
+      producerName: `Ente Erogatore ${index + 1}`,
+    })
+  );
+  return {
+    items,
+    totalCount: itemsNumber,
+  };
+}
+
+/**
+ * Returns mock digest data for Attributes with the specified number of items
+ */
+function generateAttributes(
+  itemsNumber: number,
+  sectionLabel: string
+): TenantDigestData["receivedAttributes"] {
+  const items = Array.from(
+    { length: itemsNumber > LISTS_LIMIT ? LISTS_LIMIT : itemsNumber },
+    (_, index) => ({
+      name: `${sectionLabel} ${index + 1}`,
+      producerName: `${sectionLabel} - Ente ${index + 1}`,
+      link: `https://example.com/attribute/${index + 1}`,
+      attributeKind:
+        index % 2 === 0
+          ? "certified"
+          : ("verified" as "certified" | "verified"),
+      attributeKindLabel: index % 2 === 0 ? "(certificato)" : "(verificato)",
+    })
+  );
+  return {
+    items,
+    totalCount: itemsNumber,
+  };
+}
+
+/**
+ * Returns mock digest data for archiving requests with the specified number of items
+ */
+function generateArchivingRequest(
+  itemsNumber: number,
+  sectionLabel: string
+): TenantDigestData["archivingRequests"] {
+  const items = Array.from(
+    { length: itemsNumber > LISTS_LIMIT ? LISTS_LIMIT : itemsNumber },
+    (_, index) => ({
+      name: `${sectionLabel} ${index + 1}`,
+      producerName: `${sectionLabel} - Ente ${index + 1}`,
+      link: `https://example.com/archiving-request/${index + 1}`,
+      eserviceName: `${sectionLabel} - Servizio ${index + 1}`,
+      descriptorVersion: index % 2 !== 0 ? `${index + 1}` : null,
+      eserviceId: generateId(),
+      descriptorId: index % 2 !== 0 ? generateId() : null,
+      requestedAt: new Date().toISOString(),
+      acceptedAt: null,
+      rejectedAt: null,
+    })
+  );
+  return {
+    items,
+    totalCount: itemsNumber,
+  };
+}
 
 /**
  * Returns mock digest data with all sections populated (full data)
@@ -9,7 +219,6 @@ export function getMockTenantDigestData(): TenantDigestData {
   return {
     tenantId: generateId(),
     tenantName: "Mock Tenant Organization",
-    timePeriod: "1-15 Dicembre 2025",
     notificationSettingsLink: "https://example.com/notification-settings",
     viewAllNewEservicesLink: "https://example.com/eservices/new",
     viewAllUpdatedEservicesLink: "https://example.com/eservices/updated",
@@ -17,238 +226,463 @@ export function getMockTenantDigestData(): TenantDigestData {
     viewAllSentPurposesLink: "https://example.com/purposes/sent",
     viewAllReceivedAgreementsLink: "https://example.com/agreements/received",
     viewAllReceivedPurposesLink: "https://example.com/purposes/received",
-    viewAllSentDelegationsLink: "https://example.com/delegations/sent",
     viewAllReceivedDelegationsLink: "https://example.com/delegations/received",
     viewAllAttributesLink: "https://example.com/attributes",
     viewAllUpdatedEserviceTemplatesLink:
       "https://example.com/eservice-templates/updated",
-    viewAllPopularEserviceTemplatesLink:
-      "https://example.com/eservice-templates/popular",
-    newEservices: {
+    viewAllRiskAnalysisPurposes: "https://example.com/purposes/sent",
+    newEservices: generateNewEservices(8, "Nuovo e-service"),
+    updatedEservices: generateNewEservices(9, "E-service aggiornato"),
+    updatedEserviceTemplates: generateNewEservices(
+      10,
+      "Template aggiornato",
+      true
+    ),
+    acceptedSentAgreements: generateAgreementOrPurposeItems(
+      7,
+      "agreement",
+      "Richiesta approvata"
+    ),
+    rejectedSentAgreements: generateAgreementOrPurposeItems(
+      8,
+      "agreement",
+      "Richiesta rifiutata"
+    ),
+    suspendedSentAgreements: generateAgreementOrPurposeItems(
+      9,
+      "agreement",
+      "Richiesta sospesa"
+    ),
+    publishedSentPurposes: generateAgreementOrPurposeItems(
+      10,
+      "purpose",
+      "Finalità pubblicata"
+    ),
+    rejectedSentPurposes: generateAgreementOrPurposeItems(
+      11,
+      "purpose",
+      "Finalità rifiutata"
+    ),
+    waitingForApprovalSentPurposes: generateAgreementOrPurposeItems(
+      12,
+      "purpose",
+      "Finalità in attesa di approvazione"
+    ),
+    waitingForApprovalReceivedAgreements: generateAgreementOrPurposeItems(
+      7,
+      "agreement",
+      "Richiesta ricevuta"
+    ),
+    publishedReceivedPurposes: generateReceivedPurposes(8, "Finalità ricevuta"),
+    waitingForApprovalReceivedPurposes: generateReceivedPurposes(
+      9,
+      "Finalità ricevuta in attesa"
+    ),
+    waitingForApprovalReceivedDelegations: generateReceivedDelegations(
+      10,
+      "Delega in attesa"
+    ),
+    waitingForApprovalDelegatedEservices: generateDelegatedEservices(
+      11,
+      "Versione o E-service in attesa di approvazione"
+    ),
+    receivedAttributes: generateAttributes(12, "Attributo assegnato"),
+    revokedAttributes: generateAttributes(13, "Attributo revocato"),
+    viewAllArchivingProducerLink: "https://example.com/archiving",
+    archivingImminentEservices: {
       items: [
         {
-          name: "Servizio Anagrafica Nazionale",
-          producerName: "Ministero dell'Interno",
+          id: "eservice-1",
+          eserviceName: "Servizio Anagrafica Nazionale",
+          version: "3",
+          scope: "Descriptor",
+          isEserviceScope: false,
+          archivableOn: "05/10/2026",
           link: "https://example.com/eservice/1",
         },
+      ],
+      totalCount: 1,
+    },
+    archivingInProgressEservices: {
+      items: [
         {
-          name: "API Fatturazione Elettronica",
-          producerName: "Agenzia delle Entrate",
+          id: "eservice-6",
+          eserviceName: "Servizio Catasto",
+          version: "1",
+          scope: "EService",
+          isEserviceScope: true,
+          archivableOn: "20/10/2026",
+          link: "https://example.com/eservice/6",
+        },
+        {
+          id: "eservice-2",
+          eserviceName: "API Fatturazione Elettronica",
+          version: "1",
+          scope: "Descriptor",
+          isEserviceScope: false,
+          archivableOn: "25/10/2026",
           link: "https://example.com/eservice/2",
-        },
-      ],
-      totalCount: 5,
-    },
-    updatedEservices: {
-      items: [
-        {
-          name: "Servizio SPID",
-          producerName: "AgID",
-          link: "https://example.com/eservice/3",
-        },
-      ],
-      totalCount: 3,
-    },
-    updatedEserviceTemplates: {
-      items: [
-        {
-          name: "Template Anagrafe Nazionale",
-          producerName: "Ministero dell'Interno",
-          link: "https://example.com/eservice-template/1",
-        },
-        {
-          name: "Template Fatturazione PA",
-          producerName: "Agenzia delle Entrate",
-          link: "https://example.com/eservice-template/2",
-        },
-      ],
-      totalCount: 4,
-    },
-    popularEserviceTemplates: {
-      items: [
-        {
-          name: "Template Gestione Documenti",
-          producerName: "Mock Tenant Organization",
-          link: "https://example.com/eservice-template/3",
-        },
-        {
-          name: "Template Servizi Pagamento",
-          producerName: "Mock Tenant Organization",
-          link: "https://example.com/eservice-template/4",
-        },
-        {
-          name: "Template API Certificati",
-          producerName: "Mock Tenant Organization",
-          link: "https://example.com/eservice-template/5",
-        },
-      ],
-      totalCount: 7,
-    },
-    acceptedSentAgreements: {
-      items: [
-        {
-          name: "Richiesta Dati Anagrafici",
-          producerName: "Comune di Roma",
-          link: "https://example.com/agreement/1",
-        },
-        {
-          name: "Accesso API Pagamenti",
-          producerName: "PagoPA S.p.A.",
-          link: "https://example.com/agreement/2",
         },
       ],
       totalCount: 2,
     },
-    rejectedSentAgreements: {
+    archivingEserviceScopeCount: 1,
+    archivingDescriptorScopeCount: 1,
+    archivingConsumerImminentEservices: {
       items: [
         {
-          name: "Servizio Test Rifiutato",
-          producerName: "Ente Test",
-          link: "https://example.com/agreement/3",
+          id: "eservice-7",
+          eserviceName: "Servizio Pagamenti Fruito",
+          version: "2",
+          scope: "Descriptor",
+          isEserviceScope: false,
+          archivableOn: "06/10/2026",
+          link: "https://example.com/eservice/7",
+        },
+        {
+          id: "eservice-8",
+          eserviceName: "Servizio Residenze Fruito",
+          version: "1",
+          scope: "EService",
+          isEserviceScope: true,
+          archivableOn: "07/10/2026",
+          link: "https://example.com/eservice/8",
+        },
+      ],
+      totalCount: 2,
+    },
+    archivingConsumerInProgressEservices: {
+      items: [
+        {
+          id: "eservice-9",
+          eserviceName: "Servizio Tributi Fruito",
+          version: "4",
+          scope: "Descriptor",
+          isEserviceScope: false,
+          archivableOn: "30/10/2026",
+          link: "https://example.com/eservice/9",
+        },
+        {
+          id: "eservice-10",
+          eserviceName: "Servizio Anagrafe Fruito",
+          version: "2",
+          scope: "Descriptor",
+          isEserviceScope: false,
+          archivableOn: "31/10/2026",
+          link: "https://example.com/eservice/10",
+        },
+        {
+          id: "eservice-11",
+          eserviceName: "Servizio Catasto Fruito",
+          version: "3",
+          scope: "Descriptor",
+          isEserviceScope: false,
+          archivableOn: "02/11/2026",
+          link: "https://example.com/eservice/11",
+        },
+        {
+          id: "eservice-12",
+          eserviceName: "Servizio Protocollo Fruito",
+          version: "1",
+          scope: "Descriptor",
+          isEserviceScope: false,
+          archivableOn: "04/11/2026",
+          link: "https://example.com/eservice/12",
+        },
+        {
+          id: "eservice-13",
+          eserviceName: "Servizio Notifiche Fruito",
+          version: "1",
+          scope: "EService",
+          isEserviceScope: true,
+          archivableOn: "06/11/2026",
+          link: "https://example.com/eservice/13",
+        },
+      ],
+      totalCount: 10,
+    },
+    archivingConsumerEserviceScopeCount: 0,
+    archivingConsumerDescriptorScopeCount: 10,
+    archivingRequests: generateArchivingRequest(
+      6,
+      "Richiesta di Archiviazione"
+    ),
+    approvedArchivingRequests: generateArchivingRequest(
+      7,
+      "Richiesta accettata"
+    ),
+    rejectedArchivingRequests: generateArchivingRequest(
+      8,
+      "Richiesta rifiutata"
+    ),
+    approvedRiskAnalysis: generateApprovedRiskAnalysisPurposes(
+      10,
+      "Finalità con analisi del rischio approvata"
+    ),
+    rejectedRiskAnalysis: generateRejectedRiskAnalysisPurposes(
+      10,
+      "Finalità con analisi del rischio rifiutata"
+    ),
+  };
+}
+
+/**
+ * Returns mock digest data with all sections populated but no extra data (limited data)
+ */
+export function getMockLimitedTenantDigestData(): TenantDigestData {
+  return {
+    tenantId: generateId(),
+    tenantName: "Mock Tenant Organization",
+    notificationSettingsLink: "https://example.com/notification-settings",
+    viewAllNewEservicesLink: "https://example.com/eservices/new",
+    viewAllUpdatedEservicesLink: "https://example.com/eservices/updated",
+    viewAllSentAgreementsLink: "https://example.com/agreements/sent",
+    viewAllSentPurposesLink: "https://example.com/purposes/sent",
+    viewAllReceivedAgreementsLink: "https://example.com/agreements/received",
+    viewAllReceivedPurposesLink: "https://example.com/purposes/received",
+    viewAllReceivedDelegationsLink: "https://example.com/delegations/received",
+    viewAllAttributesLink: "https://example.com/attributes",
+    viewAllUpdatedEserviceTemplatesLink:
+      "https://example.com/eservice-templates/updated",
+    viewAllRiskAnalysisPurposes: "https://example.com/purposes/sent",
+    newEservices: generateNewEservices(6, "Nuovo e-service"),
+    updatedEservices: generateNewEservices(6, "E-service aggiornato"),
+    updatedEserviceTemplates: generateNewEservices(
+      6,
+      "Template aggiornato",
+      true
+    ),
+    acceptedSentAgreements: generateAgreementOrPurposeItems(
+      5,
+      "agreement",
+      "Richiesta approvata"
+    ),
+    rejectedSentAgreements: generateAgreementOrPurposeItems(
+      5,
+      "agreement",
+      "Richiesta rifiutata"
+    ),
+    suspendedSentAgreements: generateAgreementOrPurposeItems(
+      5,
+      "agreement",
+      "Richiesta sospesa"
+    ),
+    publishedSentPurposes: generateAgreementOrPurposeItems(
+      5,
+      "purpose",
+      "Finalità pubblicata"
+    ),
+    rejectedSentPurposes: generateAgreementOrPurposeItems(
+      5,
+      "purpose",
+      "Finalità rifiutata"
+    ),
+    waitingForApprovalSentPurposes: generateAgreementOrPurposeItems(
+      5,
+      "purpose",
+      "Finalità in attesa di approvazione"
+    ),
+    waitingForApprovalReceivedAgreements: generateAgreementOrPurposeItems(
+      5,
+      "agreement",
+      "Richiesta ricevuta"
+    ),
+    publishedReceivedPurposes: generateReceivedPurposes(5, "Finalità ricevuta"),
+    waitingForApprovalReceivedPurposes: generateReceivedPurposes(
+      5,
+      "Finalità ricevuta in attesa"
+    ),
+    waitingForApprovalReceivedDelegations: generateReceivedDelegations(
+      5,
+      "Delega in attesa"
+    ),
+    waitingForApprovalDelegatedEservices: generateDelegatedEservices(
+      5,
+      "Versione o E-service in attesa di approvazione"
+    ),
+    receivedAttributes: generateAttributes(5, "Attributo assegnato"),
+    revokedAttributes: generateAttributes(5, "Attributo revocato"),
+    viewAllArchivingProducerLink: "https://example.com/archiving",
+    archivingRequests: generateArchivingRequest(
+      5,
+      "Richiesta di Archiviazione"
+    ),
+    approvedArchivingRequests: generateArchivingRequest(
+      5,
+      "Richiesta accettata"
+    ),
+    rejectedArchivingRequests: generateArchivingRequest(
+      5,
+      "Richiesta rifiutata"
+    ),
+    approvedRiskAnalysis: generateApprovedRiskAnalysisPurposes(
+      5,
+      "Finalità con analisi del rischio approvata"
+    ),
+    rejectedRiskAnalysis: generateRejectedRiskAnalysisPurposes(
+      5,
+      "Finalità con analisi del rischio rifiutata"
+    ),
+  };
+}
+
+/**
+ * Returns mock digest data with only one item per sections populated (Singular Data)
+ */
+export function getMockSingularTenantDigestData(): TenantDigestData {
+  return {
+    tenantId: generateId(),
+    tenantName: "Mock Tenant Organization",
+    notificationSettingsLink: "https://example.com/notification-settings",
+    viewAllNewEservicesLink: "https://example.com/eservices/new",
+    viewAllUpdatedEservicesLink: "https://example.com/eservices/updated",
+    viewAllSentAgreementsLink: "https://example.com/agreements/sent",
+    viewAllSentPurposesLink: "https://example.com/purposes/sent",
+    viewAllReceivedAgreementsLink: "https://example.com/agreements/received",
+    viewAllReceivedPurposesLink: "https://example.com/purposes/received",
+    viewAllReceivedDelegationsLink: "https://example.com/delegations/received",
+    viewAllAttributesLink: "https://example.com/attributes",
+    viewAllUpdatedEserviceTemplatesLink:
+      "https://example.com/eservice-templates/updated",
+    viewAllRiskAnalysisPurposes: "https://example.com/purposes/sent",
+    newEservices: generateNewEservices(1, "Nuovo e-service"),
+    updatedEservices: generateNewEservices(1, "E-service aggiornato"),
+    updatedEserviceTemplates: generateNewEservices(
+      1,
+      "Template aggiornato",
+      true
+    ),
+    acceptedSentAgreements: generateAgreementOrPurposeItems(
+      1,
+      "agreement",
+      "Richiesta approvata"
+    ),
+    rejectedSentAgreements: generateAgreementOrPurposeItems(
+      1,
+      "agreement",
+      "Richiesta rifiutata"
+    ),
+    suspendedSentAgreements: generateAgreementOrPurposeItems(
+      1,
+      "agreement",
+      "Richiesta sospesa"
+    ),
+    publishedSentPurposes: generateAgreementOrPurposeItems(
+      1,
+      "purpose",
+      "Finalità pubblicata"
+    ),
+    rejectedSentPurposes: generateAgreementOrPurposeItems(
+      1,
+      "purpose",
+      "Finalità rifiutata"
+    ),
+    waitingForApprovalSentPurposes: generateAgreementOrPurposeItems(
+      1,
+      "purpose",
+      "Finalità in attesa di approvazione"
+    ),
+    waitingForApprovalReceivedAgreements: generateAgreementOrPurposeItems(
+      1,
+      "agreement",
+      "Richiesta ricevuta"
+    ),
+    publishedReceivedPurposes: generateReceivedPurposes(1, "Finalità ricevuta"),
+    waitingForApprovalReceivedPurposes: generateReceivedPurposes(
+      1,
+      "Finalità ricevuta in attesa"
+    ),
+    waitingForApprovalReceivedDelegations: generateReceivedDelegations(
+      1,
+      "Delega in attesa"
+    ),
+    waitingForApprovalDelegatedEservices: generateDelegatedEservices(
+      1,
+      "Versione o E-service in attesa di approvazione"
+    ),
+    receivedAttributes: generateAttributes(1, "Attributo assegnato"),
+    revokedAttributes: generateAttributes(1, "Attributo revocato"),
+    viewAllArchivingProducerLink: "https://example.com/archiving",
+    archivingImminentEservices: {
+      items: [
+        {
+          id: "eservice-1",
+          eserviceName: "Servizio Anagrafica Nazionale",
+          version: "3",
+          scope: "Descriptor",
+          isEserviceScope: false,
+          archivableOn: "05/10/2026",
+          link: "https://example.com/eservice/1",
         },
       ],
       totalCount: 1,
     },
-    suspendedSentAgreements: {
+    archivingInProgressEservices: {
       items: [
         {
-          name: "Servizio Sospeso",
-          producerName: "Ente Sospeso",
-          link: "https://example.com/agreement/4",
+          id: "eservice-6",
+          eserviceName: "Servizio Catasto",
+          version: "1",
+          scope: "EService",
+          isEserviceScope: true,
+          archivableOn: "20/10/2026",
+          link: "https://example.com/eservice/6",
         },
       ],
       totalCount: 1,
     },
-    publishedSentPurposes: {
+    archivingEserviceScopeCount: 1,
+    archivingDescriptorScopeCount: 1,
+    archivingConsumerImminentEservices: {
       items: [
         {
-          name: "Finalità Gestione Utenti",
-          producerName: "Sistema Centrale",
-          link: "https://example.com/purpose/1",
+          id: "eservice-7",
+          eserviceName: "Servizio Pagamenti Fruito",
+          version: "2",
+          scope: "Descriptor",
+          isEserviceScope: false,
+          archivableOn: "06/10/2026",
+          link: "https://example.com/eservice/7",
         },
       ],
       totalCount: 1,
     },
-    rejectedSentPurposes: {
+    archivingConsumerInProgressEservices: {
       items: [
         {
-          name: "Finalità Rifiutata",
-          producerName: "Ente Rifiutante",
-          link: "https://example.com/purpose/2",
+          id: "eservice-7",
+          eserviceName: "Servizio Pagamenti Fruito",
+          version: "2",
+          scope: "Descriptor",
+          isEserviceScope: false,
+          archivableOn: "06/10/2026",
+          link: "https://example.com/eservice/7",
         },
       ],
       totalCount: 1,
     },
-    waitingForApprovalSentPurposes: {
-      items: [
-        {
-          name: "Finalità In Attesa",
-          producerName: "Ente Erogatore",
-          link: "https://example.com/purpose/3",
-        },
-      ],
-      totalCount: 1,
-    },
-    waitingForApprovalReceivedAgreements: {
-      items: [
-        {
-          name: "Richiesta in Attesa",
-          producerName: "Ente Richiedente",
-          link: "https://example.com/agreement/5",
-        },
-      ],
-      totalCount: 1,
-    },
-    publishedReceivedPurposes: {
-      items: [
-        {
-          name: "Finalità Ricevuta",
-          producerName: "Ente Fruitore",
-          link: "https://example.com/purpose/4",
-          consumerName: "Ente Fruitore",
-        },
-      ],
-      totalCount: 1,
-    },
-    waitingForApprovalReceivedPurposes: {
-      items: [
-        {
-          name: "Finalità in Attesa di Approvazione",
-          producerName: "Ente in Attesa",
-          link: "https://example.com/purpose/5",
-          consumerName: "Ente in Attesa",
-        },
-      ],
-      totalCount: 1,
-    },
-    activeSentDelegations: {
-      items: [
-        {
-          name: "Delega Attiva",
-          producerName: "Ente Delegato",
-          link: "https://example.com/delegation/1",
-          delegationKind: "erogazione",
-        },
-      ],
-      totalCount: 1,
-    },
-    rejectedSentDelegations: {
-      items: [
-        {
-          name: "Delega Rifiutata",
-          producerName: "Ente Rifiutante",
-          link: "https://example.com/delegation/2",
-          delegationKind: "fruizione",
-        },
-      ],
-      totalCount: 1,
-    },
-    waitingForApprovalReceivedDelegations: {
-      items: [
-        {
-          name: "Delega in Attesa",
-          producerName: "Ente Richiedente Delega",
-          link: "https://example.com/delegation/3",
-          delegationKind: "erogazione",
-        },
-      ],
-      totalCount: 1,
-    },
-    revokedReceivedDelegations: {
-      items: [
-        {
-          name: "Delega Revocata",
-          producerName: "Ente Revocante",
-          link: "https://example.com/delegation/4",
-          delegationKind: "fruizione",
-        },
-      ],
-      totalCount: 1,
-    },
-    receivedAttributes: {
-      items: [
-        {
-          name: "Attributo Certificato Nuovo",
-          producerName: "Ente Certificatore",
-          link: "https://example.com/attribute/1",
-          attributeKind: "certified",
-          attributeKindLabel: "(certificato)",
-        },
-      ],
-      totalCount: 1,
-    },
-    revokedAttributes: {
-      items: [
-        {
-          name: "Attributo Revocato",
-          producerName: "Ente Revocatore",
-          link: "https://example.com/attribute/2",
-          attributeKind: "verified",
-          attributeKindLabel: "(verificato)",
-        },
-      ],
-      totalCount: 1,
-    },
+    archivingConsumerEserviceScopeCount: 0,
+    archivingConsumerDescriptorScopeCount: 1,
+    archivingRequests: generateArchivingRequest(
+      1,
+      "Richiesta di Archiviazione"
+    ),
+    approvedArchivingRequests: generateArchivingRequest(
+      1,
+      "Richiesta accettata"
+    ),
+    rejectedArchivingRequests: generateArchivingRequest(
+      1,
+      "Richiesta rifiutata"
+    ),
+    approvedRiskAnalysis: generateApprovedRiskAnalysisPurposes(
+      1,
+      "Finalità con analisi del rischio approvata"
+    ),
+    rejectedRiskAnalysis: generateRejectedRiskAnalysisPurposes(
+      1,
+      "Finalità con analisi del rischio rifiutata"
+    ),
   };
 }
 
@@ -260,7 +694,6 @@ export function getMockPartialDigestData(): TenantDigestData {
   return {
     tenantId: generateId(),
     tenantName: "Mock Tenant Organization",
-    timePeriod: "1-15 Dicembre 2025",
     notificationSettingsLink: "https://example.com/notification-settings",
     viewAllNewEservicesLink: "https://example.com/eservices/new",
     viewAllUpdatedEservicesLink: "https://example.com/eservices/updated",
@@ -268,81 +701,119 @@ export function getMockPartialDigestData(): TenantDigestData {
     viewAllSentPurposesLink: "https://example.com/purposes/sent",
     viewAllReceivedAgreementsLink: "https://example.com/agreements/received",
     viewAllReceivedPurposesLink: "https://example.com/purposes/received",
-    viewAllSentDelegationsLink: "https://example.com/delegations/sent",
     viewAllReceivedDelegationsLink: "https://example.com/delegations/received",
     viewAllAttributesLink: "https://example.com/attributes",
+    viewAllRiskAnalysisPurposes: "https://example.com/purposes/sent",
     viewAllUpdatedEserviceTemplatesLink:
       "https://example.com/eservice-templates/updated",
-    viewAllPopularEserviceTemplatesLink:
-      "https://example.com/eservice-templates/popular",
+    viewAllArchivingProducerLink: "https://example.com/archiving",
     // E-services section - populated
-    newEservices: {
-      items: [
-        {
-          name: "Servizio Anagrafica Nazionale",
-          producerName: "Ministero dell'Interno",
-          link: "https://example.com/eservice/1",
-        },
-        {
-          name: "API Fatturazione Elettronica",
-          producerName: "Agenzia delle Entrate",
-          link: "https://example.com/eservice/2",
-        },
-      ],
-      totalCount: 5,
-    },
-    updatedEservices: {
-      items: [
-        {
-          name: "Servizio SPID",
-          producerName: "AgID",
-          link: "https://example.com/eservice/3",
-        },
-      ],
-      totalCount: 3,
-    },
+    newEservices: generateNewEservices(2, "Nuovo e-service"),
+    updatedEservices: generateNewEservices(2, "E-service aggiornato"),
     updatedEserviceTemplates: { items: [], totalCount: 0 },
-    popularEserviceTemplates: { items: [], totalCount: 0 },
     // Sent Items section - empty
     acceptedSentAgreements: { items: [], totalCount: 0 },
     rejectedSentAgreements: { items: [], totalCount: 0 },
     suspendedSentAgreements: { items: [], totalCount: 0 },
     publishedSentPurposes: { items: [], totalCount: 0 },
     rejectedSentPurposes: { items: [], totalCount: 0 },
-    waitingForApprovalSentPurposes: { items: [], totalCount: 0 },
+    waitingForApprovalSentPurposes: {
+      items: [],
+      totalCount: 0,
+    },
     // Received Items section - empty
-    waitingForApprovalReceivedAgreements: { items: [], totalCount: 0 },
+    waitingForApprovalReceivedAgreements: {
+      items: [],
+      totalCount: 0,
+    },
     publishedReceivedPurposes: { items: [], totalCount: 0 },
-    waitingForApprovalReceivedPurposes: { items: [], totalCount: 0 },
+    waitingForApprovalReceivedPurposes: {
+      items: [],
+      totalCount: 0,
+    },
     // Delegations section - empty
-    activeSentDelegations: { items: [], totalCount: 0 },
-    rejectedSentDelegations: { items: [], totalCount: 0 },
-    waitingForApprovalReceivedDelegations: { items: [], totalCount: 0 },
-    revokedReceivedDelegations: { items: [], totalCount: 0 },
+    waitingForApprovalReceivedDelegations: {
+      items: [],
+      totalCount: 0,
+    },
+    waitingForApprovalDelegatedEservices: { items: [], totalCount: 0 },
     // Attributes section - populated
-    receivedAttributes: {
-      items: [
-        {
-          name: "Attributo Certificato Nuovo",
-          producerName: "Ente Certificatore",
-          link: "https://example.com/attribute/1",
-          attributeKind: "certified",
-          attributeKindLabel: "(certificato)",
-        },
-      ],
-      totalCount: 1,
-    },
-    revokedAttributes: {
-      items: [
-        {
-          name: "Attributo Revocato",
-          producerName: "Ente Revocatore",
-          link: "https://example.com/attribute/2",
-          attributeKind: "verified",
-          attributeKindLabel: "(verificato)",
-        },
-      ],
-      totalCount: 1,
-    },
+    receivedAttributes: generateAttributes(1, "Attributo assegnato"),
+    revokedAttributes: generateAttributes(1, "Attributo revocato"),
+  };
+}
+
+/**
+ * Generates mock reviewer risk analysis items, limited to LISTS_LIMIT.
+ */
+function generateReviewerRiskAnalyses(
+  itemsNumber: number,
+  sectionLabel: string,
+  withEserviceLink: boolean
+): ReviewerRiskAnalysisDigest {
+  const items = Array.from(
+    { length: itemsNumber > LISTS_LIMIT ? LISTS_LIMIT : itemsNumber },
+    (_, index) => ({
+      purposeTitle: `${sectionLabel} - Finalità ${index + 1}`,
+      purposeLink: `https://example.com/reviewer/purpose/${index + 1}`,
+      eserviceName: `E-service ${index + 1}`,
+      eserviceLink: withEserviceLink
+        ? `https://example.com/eservice/${index + 1}`
+        : undefined,
+    })
+  );
+  return { items, totalCount: itemsNumber };
+}
+
+/**
+ * Returns mock reviewer digest data matching the Figma "Digest_valutatore" frame
+ */
+export function getMockReviewerDigestData(): ReviewerDigestData {
+  return {
+    tenantId: generateId(),
+    tenantName: "Comune di Test",
+    notificationSettingsLink: "https://example.com/notifications/settings",
+    viewAllReviewerPurposesLink: "https://example.com/reviewer/purposes",
+    riskAnalysesToApprove: generateReviewerRiskAnalyses(
+      7,
+      "Da approvare",
+      true
+    ),
+    riskAnalysesToFill: generateReviewerRiskAnalyses(2, "Da compilare", false),
+    publishedReviewerPurposes: generateReviewerRiskAnalyses(
+      2,
+      "Pubblicata",
+      false
+    ),
+    riskAnalysesSignedByOtherReviewer: generateReviewerRiskAnalyses(
+      1,
+      "Approvata da altro valutatore",
+      false
+    ),
+  };
+}
+
+/**
+ * Returns mock reviewer digest data with a single item per section
+ */
+export function getMockSingularReviewerDigestData(): ReviewerDigestData {
+  return {
+    ...getMockReviewerDigestData(),
+    riskAnalysesToApprove: generateReviewerRiskAnalyses(
+      1,
+      "Da approvare",
+      true
+    ),
+    riskAnalysesToFill: generateReviewerRiskAnalyses(1, "Da compilare", false),
+    publishedReviewerPurposes: generateReviewerRiskAnalyses(
+      1,
+      "Pubblicata",
+      false
+    ),
+    riskAnalysesSignedByOtherReviewer: generateReviewerRiskAnalyses(
+      3,
+      "Approvata da altro valutatore",
+      false
+    ),
   };
 }

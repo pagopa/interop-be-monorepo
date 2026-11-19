@@ -1,6 +1,7 @@
 export * from "./auth/index.js";
 export * from "./config/index.js";
 export * from "./context/index.js";
+export * from "./errors/index.js";
 export * from "./file-manager/index.js";
 export * from "./interop-token/interopTokenService.js";
 export * from "./interop-token/refreshableInteropTokenService.js";
