@@ -1914,10 +1914,7 @@ components:
           type: string
           minLength: 1
           maxLength: 1000
-        # Deprecated and ignored: kept only so that the tenant-process and the
-        # selfcare-onboarding-consumer can be released in any order.
-        # To be removed in the next release.
-        digitalAddress:
+        digitalAddress: # Deprecated and ignored, to be removed in the next release
           $ref: "#/components/schemas/MailSeed"
         onboardedAt:
           type: string
