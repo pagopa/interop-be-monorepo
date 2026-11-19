@@ -5661,6 +5661,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
       requestBody:
         content:
           application/json:
@@ -7467,6 +7469,35 @@ paths:
           $ref: "#/components/responses/Conflict"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+    patch:
+      tags:
+        - purposeTemplates
+      summary: Partially updates Purpose Template general information
+      operationId: patchUpdatePurposeTemplate
+      description: Partially updates the general information of the specified Purpose Template
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchUpdatePurposeTemplateSeed"
+      responses:
+        "200":
+          description: Purpose Template updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurposeTemplate"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
     delete:
       tags:
         - purposeTemplates
@@ -8595,6 +8626,13 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: delegationId
+          in: query
+          description: The ID of the producer Delegation
+          required: false
+          schema:
+            type: string
+            format: uuid
       responses:
         "204":
           description: Updated Tenant
@@ -9341,6 +9379,55 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /clients/{clientId}:
+    patch:
+      description: Updates a Client
+      tags:
+        - clients
+      summary: Update a Client
+      operationId: updateClient
+      parameters:
+        - name: clientId
+          in: path
+          description: The Client id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClientUpdateSeed"
+      responses:
+        "204":
+          description: Client updated
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
     get:
       description: Retrieves a Client
       tags:
@@ -10626,6 +10713,55 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /producerKeychains/{producerKeychainId}:
+    patch:
+      description: Updates a Producer Keychain
+      tags:
+        - producerKeychain
+      summary: Update a Producer Keychain
+      operationId: updateProducerKeychain
+      parameters:
+        - name: producerKeychainId
+          in: path
+          description: The Producer Keychain id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProducerKeychainUpdateSeed"
+      responses:
+        "204":
+          description: Producer Keychain updated
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
     get:
       description: Retrieves a Producer Keychain
       tags:
@@ -16393,6 +16529,38 @@ components:
         - purposeDescription
         - purposeIsFreeOfCharge
         - handlesPersonalData
+    PatchUpdatePurposeTemplateSeed:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        targetDescription:
+          type: string
+          minLength: 10
+          maxLength: 250
+        targetTenantKind:
+          $ref: "#/components/schemas/TargetTenantKind"
+        purposeTitle:
+          type: string
+          minLength: 5
+          maxLength: 60
+        purposeDescription:
+          type: string
+          minLength: 10
+          maxLength: 250
+        purposeIsFreeOfCharge:
+          type: boolean
+        purposeFreeOfChargeReason:
+          type: string
+          nullable: true
+        purposeDailyCalls:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+          nullable: true
+        handlesPersonalData:
+          type: boolean
     RiskAnalysisFormTemplate:
       type: object
       additionalProperties: false
@@ -16775,6 +16943,35 @@ components:
       required:
         - key
         - purposeId
+    ClientUpdateSeed:
+      description: Client update request body
+      anyOf:
+        - type: object
+          additionalProperties: false
+          properties:
+            name:
+              $ref: "#/components/schemas/ClientName"
+            description:
+              $ref: "#/components/schemas/ClientDescription"
+          required: 
+            - name
+        - type: object
+          additionalProperties: false
+          properties:
+            name:
+              $ref: "#/components/schemas/ClientName"
+            description:
+              $ref: "#/components/schemas/ClientDescription"
+          required: 
+            - description
+    ClientName:
+      type: string
+      minLength: 5
+      maxLength: 60
+    ClientDescription:
+      type: string
+      minLength: 10
+      maxLength: 250
     ClientSeed:
       description: Client creation request body
       type: object
@@ -16812,6 +17009,33 @@ components:
         - id
         - name
         - hasKeys
+    ProducerKeychainUpdateSeed:
+      description: Producer keychain update request body
+      anyOf:
+        - type: object
+          additionalProperties: false
+          properties:
+            name:
+              $ref: "#/components/schemas/ProducerKeychainName"
+            description:
+              $ref: "#/components/schemas/ProducerKeychainDescription"
+          required: [name]
+        - type: object
+          additionalProperties: false
+          properties:
+            name:
+              $ref: "#/components/schemas/ProducerKeychainName"
+            description:
+              $ref: "#/components/schemas/ProducerKeychainDescription"
+          required: [description]
+    ProducerKeychainName:
+      type: string
+      minLength: 5
+      maxLength: 60
+    ProducerKeychainDescription:
+      type: string
+      minLength: 10
+      maxLength: 250
     ProducerKeychainSeed:
       description: Producer keychain creation request body
       type: object
@@ -17920,6 +18144,9 @@ components:
           type: string
           format: uuid
         agreementId:
+          type: string
+          format: uuid
+        delegationId:
           type: string
           format: uuid
         expirationDate:
