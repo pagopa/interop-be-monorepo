@@ -1146,6 +1146,41 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+  /producers/eservices/{eserviceId}/descriptors/{descriptorId}/monitoring/purposes:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: eserviceId
+        in: path
+        description: The identifier of the e-service
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: descriptorId
+        in: path
+        description: The identifier of the descriptor
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - purpose
+      operationId: getProducerEServiceMonitoringPurposes
+      description: Retrieves the purposes monitoring data of the given e-service descriptor
+      responses:
+        "200":
+          description: Purposes monitoring data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProducerEServiceMonitoringPurposes"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /templates/{purposeTemplateId}/purposes:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -2067,6 +2102,31 @@ components:
       required:
         - remainingDailyCallsPerConsumer
         - remainingDailyCallsTotal
+    ProducerEServiceMonitoringPurposes:
+      type: object
+      additionalProperties: false
+      properties:
+        approvedDailyCalls:
+          type: integer
+          format: int64
+        dailyCallsTotal:
+          type: integer
+          format: int64
+        percentage:
+          type: integer
+          format: int32
+        waitingForApprovalNewPurposes:
+          type: integer
+          format: int32
+        waitingForApprovalQuotaChanges:
+          type: integer
+          format: int32
+      required:
+        - approvedDailyCalls
+        - dailyCallsTotal
+        - percentage
+        - waitingForApprovalNewPurposes
+        - waitingForApprovalQuotaChanges
     CreatedPurposeVersion:
       type: object
       additionalProperties: false

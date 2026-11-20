@@ -1,0 +1,21 @@
+meta {
+  name: Get Producer EService Monitoring Purposes
+  type: http
+  seq: 24
+}
+
+get {
+  url: {{host-purpose}}/producers/eservices/:eserviceId/descriptors/:descriptorId/monitoring/purposes
+  body: none
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

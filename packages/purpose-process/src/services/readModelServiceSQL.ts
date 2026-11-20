@@ -98,6 +98,45 @@ const activeConsumerDelegations = alias(
 );
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const addActiveVersionsDailyCallsJoinsAndFilters = <T extends PgSelect>(
+  query: T,
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+) =>
+  query
+    .innerJoin(
+      purposeVersionInReadmodelPurpose,
+      eq(
+        purposeVersionInReadmodelPurpose.purposeId,
+        purposeInReadmodelPurpose.id
+      )
+    )
+    .innerJoin(
+      agreementInReadmodelAgreement,
+      and(
+        eq(
+          agreementInReadmodelAgreement.eserviceId,
+          purposeInReadmodelPurpose.eserviceId
+        ),
+        eq(
+          agreementInReadmodelAgreement.consumerId,
+          purposeInReadmodelPurpose.consumerId
+        ),
+        inArray(agreementInReadmodelAgreement.state, [
+          agreementState.active,
+          agreementState.suspended,
+        ])
+      )
+    )
+    .where(
+      and(
+        eq(purposeInReadmodelPurpose.eserviceId, eserviceId),
+        eq(agreementInReadmodelAgreement.descriptorId, descriptorId),
+        eq(purposeVersionInReadmodelPurpose.state, purposeVersionState.active)
+      )
+    );
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const addDelegationJoins = <T extends PgSelect>(query: T) =>
   query
     .leftJoin(
@@ -524,57 +563,50 @@ export function readModelServiceBuilderSQL({
       // and the amount attributable to the requesting consumer.
       // This avoids loading every purpose of the e-service into memory (which,
       // for e-services with many purposes, could exhaust the heap and lead to OOM).
-      const [result] = await readModelDB
-        .select({
-          totalDailyCalls:
-            sql`COALESCE(SUM(${purposeVersionInReadmodelPurpose.dailyCalls}), 0)`.mapWith(
-              Number
-            ),
-          consumerDailyCalls:
-            sql`COALESCE(SUM(${purposeVersionInReadmodelPurpose.dailyCalls}) FILTER (WHERE ${purposeInReadmodelPurpose.consumerId} = ${consumerId}), 0)`.mapWith(
-              Number
-            ),
-        })
-        .from(purposeInReadmodelPurpose)
-        .innerJoin(
-          purposeVersionInReadmodelPurpose,
-          eq(
-            purposeVersionInReadmodelPurpose.purposeId,
-            purposeInReadmodelPurpose.id
-          )
-        )
-        .innerJoin(
-          agreementInReadmodelAgreement,
-          and(
-            eq(
-              agreementInReadmodelAgreement.eserviceId,
-              purposeInReadmodelPurpose.eserviceId
-            ),
-            eq(
-              agreementInReadmodelAgreement.consumerId,
-              purposeInReadmodelPurpose.consumerId
-            ),
-            inArray(agreementInReadmodelAgreement.state, [
-              agreementState.active,
-              agreementState.suspended,
-            ])
-          )
-        )
-        .where(
-          and(
-            eq(purposeInReadmodelPurpose.eserviceId, eserviceId),
-            eq(agreementInReadmodelAgreement.descriptorId, descriptorId),
-            eq(
-              purposeVersionInReadmodelPurpose.state,
-              purposeVersionState.active
-            )
-          )
-        );
+      const [result] = await addActiveVersionsDailyCallsJoinsAndFilters(
+        readModelDB
+          .select({
+            totalDailyCalls:
+              sql`COALESCE(SUM(${purposeVersionInReadmodelPurpose.dailyCalls}), 0)`.mapWith(
+                Number
+              ),
+            consumerDailyCalls:
+              sql`COALESCE(SUM(${purposeVersionInReadmodelPurpose.dailyCalls}) FILTER (WHERE ${purposeInReadmodelPurpose.consumerId} = ${consumerId}), 0)`.mapWith(
+                Number
+              ),
+          })
+          .from(purposeInReadmodelPurpose)
+          .$dynamic(),
+        eserviceId,
+        descriptorId
+      );
 
       return {
         consumerDailyCalls: result?.consumerDailyCalls ?? 0,
         totalDailyCalls: result?.totalDailyCalls ?? 0,
       };
+    },
+    async getDescriptorActiveDailyCalls(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId
+    ): Promise<number> {
+      // Total daily calls of the Active purpose versions across all the
+      // consumers with an Active or Suspended agreement on the given descriptor.
+      const [result] = await addActiveVersionsDailyCallsJoinsAndFilters(
+        readModelDB
+          .select({
+            totalDailyCalls:
+              sql`COALESCE(SUM(${purposeVersionInReadmodelPurpose.dailyCalls}), 0)`.mapWith(
+                Number
+              ),
+          })
+          .from(purposeInReadmodelPurpose)
+          .$dynamic(),
+        eserviceId,
+        descriptorId
+      );
+
+      return result?.totalDailyCalls ?? 0;
     },
     async getActiveProducerDelegationByEserviceId(
       eserviceId: EServiceId
@@ -648,6 +680,90 @@ export function readModelServiceBuilderSQL({
       id: ClientId
     ): Promise<WithMetadata<Client> | undefined> {
       return clientReadModelServiceSQL.getClientById(id);
+    },
+    async getWaitingForApprovalPurposesCounts(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId
+    ): Promise<{ newPurposes: number; quotaChanges: number }> {
+      // A purpose waiting for approval is "new" if it has no Active/Suspended version,
+      // a "quota change" otherwise. Each purpose is counted once.
+      const waitingVersion = alias(
+        purposeVersionInReadmodelPurpose,
+        "waiting_version"
+      );
+      const approvedVersion = alias(
+        purposeVersionInReadmodelPurpose,
+        "approved_version"
+      );
+      const hasApprovedVersion = exists(
+        readModelDB
+          .select({ one: sql`1` })
+          .from(approvedVersion)
+          .where(
+            and(
+              eq(approvedVersion.purposeId, purposeInReadmodelPurpose.id),
+              inArray(approvedVersion.state, [
+                purposeVersionState.active,
+                purposeVersionState.suspended,
+              ])
+            )
+          )
+      );
+
+      const [result] = await readModelDB
+        .select({
+          newPurposes:
+            sql`COUNT(DISTINCT ${purposeInReadmodelPurpose.id}) FILTER (WHERE NOT ${hasApprovedVersion})`.mapWith(
+              Number
+            ),
+          quotaChanges:
+            sql`COUNT(DISTINCT ${purposeInReadmodelPurpose.id}) FILTER (WHERE ${hasApprovedVersion})`.mapWith(
+              Number
+            ),
+        })
+        .from(purposeInReadmodelPurpose)
+        .innerJoin(
+          agreementInReadmodelAgreement,
+          and(
+            eq(
+              agreementInReadmodelAgreement.eserviceId,
+              purposeInReadmodelPurpose.eserviceId
+            ),
+            eq(
+              agreementInReadmodelAgreement.consumerId,
+              purposeInReadmodelPurpose.consumerId
+            ),
+            inArray(agreementInReadmodelAgreement.state, [
+              agreementState.active,
+              agreementState.suspended,
+            ])
+          )
+        )
+        .where(
+          and(
+            eq(purposeInReadmodelPurpose.eserviceId, eserviceId),
+            eq(agreementInReadmodelAgreement.descriptorId, descriptorId),
+            exists(
+              readModelDB
+                .select({ one: sql`1` })
+                .from(waitingVersion)
+                .where(
+                  and(
+                    eq(waitingVersion.purposeId, purposeInReadmodelPurpose.id),
+                    eq(
+                      waitingVersion.state,
+                      purposeVersionState.waitingForApproval
+                    )
+                  )
+                )
+            )
+          )
+        );
+
+      return {
+        newPurposes: result?.newPurposes ?? 0,
+        quotaChanges: result?.quotaChanges ?? 0,
+      };
     },
   };
 }

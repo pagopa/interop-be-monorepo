@@ -375,6 +375,19 @@ export const getRemainingDailyCallsErrorMapper = (
     .with("agreementNotFound", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const getProducerEServiceMonitoringPurposesErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eserviceNotFound", "descriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "tenantIsNotTheProducer",
+      "tenantIsNotTheDelegatedProducer",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const assignRiskAnalysisReviewerErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
