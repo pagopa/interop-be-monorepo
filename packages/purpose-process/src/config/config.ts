@@ -10,6 +10,7 @@ import {
   FeatureFlagTenantKindInRiskAnalysisConfig,
   FeatureFlagNewOperatorsConfig,
   FeatureFlagAttributeCertifiedDiscreteConfig,
+  FeatureFlagProducerDashboardConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -31,7 +32,8 @@ const PurposeProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
   )
   .and(ApplicationAuditProducerConfig)
   .and(FeatureFlagNewOperatorsConfig)
-  .and(FeatureFlagAttributeCertifiedDiscreteConfig);
+  .and(FeatureFlagAttributeCertifiedDiscreteConfig)
+  .and(FeatureFlagProducerDashboardConfig);
 type PurposeProcessConfig = z.infer<typeof PurposeProcessConfig>;
 
 export const config: PurposeProcessConfig = PurposeProcessConfig.parse(
