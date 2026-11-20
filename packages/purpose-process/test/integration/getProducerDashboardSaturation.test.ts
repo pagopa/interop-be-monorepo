@@ -27,6 +27,7 @@ import {
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { config } from "../../src/config/config.js";
+import { producerDashboardNearThresholdPercentage } from "../../src/services/readModelServiceSQL.js";
 import {
   addOneAgreement,
   addOneDelegation,
@@ -95,7 +96,6 @@ describe("getProducerDashboardSaturation", () => {
 
   afterEach(() => {
     config.featureFlagProducerDashboard = false;
-    config.producerDashboardNearThresholdPercentage = 80;
   });
 
   it("should compute the load per version without summing over the whole e-service", async () => {
@@ -192,8 +192,8 @@ describe("getProducerDashboardSaturation", () => {
     );
     const eservice = makeEService("Anagrafe", descriptors);
     await addOneEService(eservice);
-    // 1000 (=100%, near), 1001 (>100%, over), 800 (=80%, neither), 801 (near), 0
-    const loads = [1000, 1001, 800, 801];
+    // 1000 (=100%, near), 1001 (>100%, over), 900 (=90%, neither), 901 (near), 0
+    const loads = [1000, 1001, 900, 901];
     for (const [i, calls] of loads.entries()) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       await addLoad(eservice, descriptors[i]!, [
@@ -213,16 +213,18 @@ describe("getProducerDashboardSaturation", () => {
     });
   });
 
-  it("should use the configured near threshold and exclude its exact boundary", async () => {
-    config.producerDashboardNearThresholdPercentage = 70;
-
+  it("should use the near threshold constant and exclude its exact boundary", async () => {
     const descriptors = ["1", "2", "3"].map((version) =>
       makeDescriptor(version, 100)
     );
     const eservice = makeEService("Anagrafe", descriptors);
     await addOneEService(eservice);
 
-    for (const [index, dailyCalls] of [70, 71, 101].entries()) {
+    for (const [index, dailyCalls] of [
+      producerDashboardNearThresholdPercentage,
+      producerDashboardNearThresholdPercentage + 1,
+      101,
+    ].entries()) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       await addLoad(eservice, descriptors[index]!, [
         [purposeVersionState.active, dailyCalls],
@@ -314,7 +316,7 @@ describe("getProducerDashboardSaturation", () => {
     await addOneEService(anagrafe);
     await addOneEService(catasto);
     await addLoad(anagrafe, a, [[purposeVersionState.active, 150]]);
-    await addLoad(catasto, b, [[purposeVersionState.active, 90]]);
+    await addLoad(catasto, b, [[purposeVersionState.active, 95]]);
 
     const result = await purposeService.getProducerDashboardSaturation(
       { ...defaultQuery, q: "catas" },

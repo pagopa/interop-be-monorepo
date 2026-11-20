@@ -82,7 +82,7 @@ import {
 import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
 import { match } from "ts-pattern";
 
-import { config } from "../config/config.js";
+export const producerDashboardNearThresholdPercentage = 90;
 
 export type GetPurposesFilters = {
   title?: string;
@@ -452,7 +452,7 @@ const buildProducerDashboardSaturationQuery = (
   const approved = sql`COALESCE(${load.approvedDailyCalls}, 0)`;
   const percentage = sql`CASE WHEN ${scope.dailyCallsTotal} > 0 THEN ${approved} * 100.0 / ${scope.dailyCallsTotal} ELSE 0 END`;
   const isOver = sql`(${scope.dailyCallsTotal} > 0 AND ${approved} > ${scope.dailyCallsTotal})`;
-  const isNear = sql`(NOT ${isOver} AND ${percentage} > ${config.producerDashboardNearThresholdPercentage})`;
+  const isNear = sql`(NOT ${isOver} AND ${percentage} > ${producerDashboardNearThresholdPercentage})`;
 
   return { scope, load, approved, percentage, isOver, isNear };
 };
