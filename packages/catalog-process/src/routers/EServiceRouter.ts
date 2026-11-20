@@ -120,6 +120,28 @@ const eservicesRouter = (
   } = authRole;
 
   eservicesRouter
+    .get("/producers/dashboard/eservices", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      try {
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          SUPPORT_ROLE,
+          API_ROLE,
+          SECURITY_ROLE,
+          VIEWER_ROLE,
+        ]);
+        const dashboardEServices =
+          await catalogService.getProducerDashboardEServices(ctx);
+        return res
+          .status(200)
+          .send(
+            catalogApi.ProducerDashboardEServices.parse(dashboardEServices)
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get("/eservices", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
