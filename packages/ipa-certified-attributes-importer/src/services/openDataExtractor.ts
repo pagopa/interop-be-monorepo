@@ -8,7 +8,7 @@ import { z } from "zod";
 
 import type { OpenDataConfig } from "../config/openDataConfig.js";
 
-type Classification = "Agency" | "AOO" | "UO";
+export type Classification = "Agency" | "AOO" | "UO";
 
 type InstitutionKind = "Agency" | "AOO" | "UO";
 

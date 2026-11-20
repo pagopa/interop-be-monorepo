@@ -3,7 +3,10 @@ import { getMockAttribute } from "pagopa-interop-commons-test";
 import { Attribute, unsafeBrandId } from "pagopa-interop-models";
 import { expect, describe, it, beforeEach } from "vitest";
 
-import type { Institution } from "../src/services/openDataExtractor.js";
+import type {
+  Classification,
+  Institution,
+} from "../src/services/openDataExtractor.js";
 
 import { config } from "../src/config/config.js";
 import {
@@ -15,7 +18,7 @@ import { agency, aoo, attributes, uo } from "./expectation.js";
 describe("NewAttributes", async () => {
   const getMockInstitution = (
     originId: string,
-    classification: "AOO" | "UO",
+    classification: Classification,
     subUnit: { name: string; entityName: string; aooCode?: string },
     category = "L6"
   ): Institution => ({
@@ -30,14 +33,23 @@ describe("NewAttributes", async () => {
   });
 
   const aooUoInstitutions = [
-    getMockInstitution("A001", "AOO", { name: "AOO One", entityName: "Ente" }),
+    getMockInstitution("A001", "AOO", {
+      name: "AOO One",
+      entityName: "Ente",
+    }),
     getMockInstitution("U001", "UO", {
       name: "UO One",
       entityName: "Ente",
       aooCode: "A001",
     }),
-    getMockInstitution("U002", "UO", { name: "UO Two", entityName: "Ente" }),
-    getMockInstitution("U003", "UO", { name: "UO Two", entityName: "Ente" }),
+    getMockInstitution("U002", "UO", {
+      name: "UO Two",
+      entityName: "Ente",
+    }),
+    getMockInstitution("U003", "UO", {
+      name: "UO Two",
+      entityName: "Ente",
+    }),
     getMockInstitution(
       "U004",
       "UO",
