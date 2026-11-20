@@ -295,6 +295,12 @@ export async function createNewAttributes(
   attributeCreationWaitTime: number,
   maxRetries: number
 ): Promise<number> {
+  // TODO(WI 11, PIN-11248): If the registry rejects an A4 creation because its
+  // suffixed name is already in use, count and report that A4 as failed and
+  // exclude it from tenant assignment, so the job exits with failure and the
+  // conflicting registry entry can be resolved manually before a rerun.
+  // Current IPA datasets have no such name collision; it may still occur if
+  // the conflicting registry state is not visible when computing new attributes.
   if (newAttributes.length === 0) {
     loggerInstance.info("No new attributes to create");
     return 0;
@@ -422,7 +428,6 @@ function getAooUoAttributes(
     }
 
     const suffixedName = `${a.name} (${a.code})`;
-    // skip names that are already taken
     if (takenNames.has(normalizeName(suffixedName))) {
       return [];
     }
