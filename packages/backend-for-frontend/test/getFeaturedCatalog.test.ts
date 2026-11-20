@@ -79,6 +79,7 @@ describe("getFeaturedCatalog", () => {
       {
         offset: 0,
         limit: 12,
+        onlyActiveEservices: true,
         availableForRequester: true,
         subscribedByRequester: false,
         sortBy: "CREATED_AT_DESC",

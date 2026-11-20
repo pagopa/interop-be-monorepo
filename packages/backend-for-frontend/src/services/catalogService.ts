@@ -434,6 +434,7 @@ export function catalogServiceBuilder(
           {
             offset: 0,
             limit: featuredEServicesLimit,
+            onlyActiveEservices: true,
             availableForRequester: true,
             subscribedByRequester: false,
             sortBy: "CREATED_AT_DESC",
