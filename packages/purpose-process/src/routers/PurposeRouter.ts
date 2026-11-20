@@ -249,7 +249,12 @@ const purposeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          SUPPORT_ROLE,
+          API_ROLE,
+          VIEWER_ROLE,
+        ]);
 
         const result = await purposeService.getProducerDashboardSaturation(
           {
