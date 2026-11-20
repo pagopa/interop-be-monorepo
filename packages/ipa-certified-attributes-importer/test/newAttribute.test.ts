@@ -179,26 +179,25 @@ describe("NewAttributes", async () => {
   });
 
   it("should return AOO/UO attributes with composed names, handling collisions and excluding SCEC", () => {
+    const aooAttributeName = "SCPGI di Scuola Primaria Giovanni Pascoli";
+    const uoWithAooAttributeName =
+      "Ufficio per la transizione al Digitale di SCPGI di Scuola Primaria Giovanni Pascoli";
+    const uoWithoutAooAttributeName =
+      "Ufficio per la transizione al Digitale di LICEO SCIENTIFICO STATALE GALILEO GALILEI";
+
     config.featureFlagAooUoAttributes = true;
     const result = getNewAttributes(aooUoRegistryData, aooUoSeeds, []);
     expect(result.map((a) => [a.code, a.name])).toEqual([
-      ["A001", "SCPGI di Scuola Primaria Giovanni Pascoli"],
-      [
-        "U001",
-        "Ufficio per la transizione al Digitale di SCPGI di Scuola Primaria Giovanni Pascoli",
-      ],
-      [
-        "U002",
-        "Ufficio per la transizione al Digitale di LICEO SCIENTIFICO STATALE GALILEO GALILEI (U002)",
-      ],
-      [
-        "U003",
-        "Ufficio per la transizione al Digitale di LICEO SCIENTIFICO STATALE GALILEO GALILEI (U003)",
-      ],
+      ["A001", aooAttributeName],
+      ["U001", uoWithAooAttributeName],
+      ["U002", `${uoWithoutAooAttributeName} (U002)`],
+      ["U003", `${uoWithoutAooAttributeName} (U003)`],
     ]);
   });
 
   it("should return AOO/UO attributes idempotently and suffix names already in the platform", () => {
+    const uoWithAooAttributeName =
+      "Ufficio per la transizione al Digitale di SCPGI di Scuola Primaria Giovanni Pascoli";
     const platform = [
       {
         ...getMockAttribute(),
@@ -210,30 +209,37 @@ describe("NewAttributes", async () => {
         ...getMockAttribute(),
         origin: "IPA",
         code: "Z",
-        name: "Ufficio per la transizione al Digitale di SCPGI di Scuola Primaria Giovanni Pascoli",
+        name: uoWithAooAttributeName,
       },
     ];
     config.featureFlagAooUoAttributes = true;
     const result = getNewAttributes(aooUoRegistryData, aooUoSeeds, platform);
     expect(result.map((a) => a.code)).toEqual(["U001", "U002", "U003"]);
-    expect(result[0].name).toBe(
-      "Ufficio per la transizione al Digitale di SCPGI di Scuola Primaria Giovanni Pascoli (U001)"
-    );
+    expect(result[0].name).toBe(`${uoWithAooAttributeName} (U001)`);
   });
 
   it("should return AOO/UO attributes case-insensitively and avoid suffixed name collisions", () => {
+    const aooAttributeName = "SCPGI di Scuola Primaria Giovanni Pascoli";
+    const uoWithAooAttributeName =
+      "Ufficio per la transizione al Digitale di SCPGI di Scuola Primaria Giovanni Pascoli";
+    const uoWithoutAooAttributeName =
+      "Ufficio per la transizione al Digitale di LICEO SCIENTIFICO STATALE GALILEO GALILEI";
+    const uoWithoutAooAttributeNameWithCode = `${uoWithoutAooAttributeName} (U002)`;
+    const lowercaseUoWithAooAttributeName =
+      "ufficio per la transizione al digitale di scpgi di scuola primaria giovanni pascoli";
+
     const platform = [
       {
         ...getMockAttribute(),
         origin: "IPA",
         code: "Z",
-        name: "ufficio per la transizione al digitale di scpgi di scuola primaria giovanni pascoli",
+        name: lowercaseUoWithAooAttributeName,
       },
       {
         ...getMockAttribute(),
         origin: "IPA",
         code: "Y",
-        name: "Ufficio per la transizione al Digitale di LICEO SCIENTIFICO STATALE GALILEO GALILEI (U002)",
+        name: uoWithoutAooAttributeNameWithCode,
       },
     ];
     config.featureFlagAooUoAttributes = true;
@@ -243,15 +249,9 @@ describe("NewAttributes", async () => {
       platform
     );
     expect(result.map((a) => [a.code, a.name])).toEqual([
-      ["A001", "SCPGI di Scuola Primaria Giovanni Pascoli"],
-      [
-        "U001",
-        "Ufficio per la transizione al Digitale di SCPGI di Scuola Primaria Giovanni Pascoli (U001)",
-      ],
-      [
-        "U003",
-        "Ufficio per la transizione al Digitale di LICEO SCIENTIFICO STATALE GALILEO GALILEI (U003)",
-      ],
+      ["A001", aooAttributeName],
+      ["U001", `${uoWithAooAttributeName} (U001)`],
+      ["U003", `${uoWithoutAooAttributeName} (U003)`],
     ]);
   });
 });
