@@ -39,7 +39,8 @@ export function getAooUoAttributes(
   );
 
   // This list feeds seed generation with AOO/UO institutions whose tenants are
-  // included in the upsert data; it excludes SCEC and UOs with an unknown AOO.
+  // included in the upsert data; it excludes SCEC and sub-units with an AOO
+  // code missing from the IPA registry.
   const aooUoInstitutionsForAttributeCreation =
     registryData.institutions.filter((institution) => {
       const institutionIsAooOrUo =
