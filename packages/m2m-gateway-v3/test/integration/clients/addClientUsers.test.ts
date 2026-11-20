@@ -1,4 +1,4 @@
-import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import { authorizationApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   getMockedApiConsumerFullClient,
   getMockWithMetadata,
@@ -12,7 +12,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
-import { missingMetadata } from "../../../src/model/errors.js";
+import { clientNotFound, missingMetadata } from "../../../src/model/errors.js";
 import {
   clientService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -48,9 +48,13 @@ describe("addClientUsers", () => {
   } as unknown as PagoPAInteropBeClients["authorizationClient"];
 
   beforeEach(() => {
-    // Clear mock counters and call information before each test
     mockAddClientUsers.mockClear();
-    mockGetClient.mockClear();
+    mockGetClient
+      .mockReset()
+      .mockResolvedValueOnce(mockAuthorizationProcessResponse)
+      .mockImplementation(
+        mockPollingResponse(mockAuthorizationProcessResponse, 2)
+      );
   });
 
   it("Should succeed and perform API clients calls", async () => {
@@ -74,7 +78,24 @@ describe("addClientUsers", () => {
     });
     expect(
       mockInteropBeClients.authorizationClient.client.getClient
-    ).toHaveBeenCalledTimes(2);
+    ).toHaveBeenCalledTimes(3);
+  });
+
+  it("Should reject an API client before adding a user", async () => {
+    const apiClient = getMockedApiConsumerFullClient({
+      kind: authorizationApi.ClientKind.Values.API,
+    });
+    mockGetClient.mockReset().mockResolvedValue(getMockWithMetadata(apiClient));
+
+    await expect(
+      clientService.addClientUsers(
+        unsafeBrandId(apiClient.id),
+        linkUser.userId,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(clientNotFound(apiClient));
+
+    expect(mockAddClientUsers).not.toHaveBeenCalled();
   });
 
   it("Should throw missingMetadata in case the client returned by the addClientUsers POST call has no metadata", async () => {
@@ -93,10 +114,13 @@ describe("addClientUsers", () => {
   });
 
   it("Should throw missingMetadata in case the client returned by the polling GET call has no metadata", async () => {
-    mockGetClient.mockResolvedValueOnce({
-      ...mockAuthorizationProcessResponse,
-      metadata: undefined,
-    });
+    mockGetClient
+      .mockReset()
+      .mockResolvedValueOnce(mockAuthorizationProcessResponse)
+      .mockResolvedValueOnce({
+        ...mockAuthorizationProcessResponse,
+        metadata: undefined,
+      });
 
     await expect(
       clientService.addClientUsers(
@@ -108,12 +132,15 @@ describe("addClientUsers", () => {
   });
 
   it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
-    mockGetClient.mockImplementation(
-      mockPollingResponse(
-        mockAuthorizationProcessResponse,
-        config.defaultPollingMaxRetries + 1
-      )
-    );
+    mockGetClient
+      .mockReset()
+      .mockResolvedValueOnce(mockAuthorizationProcessResponse)
+      .mockImplementation(
+        mockPollingResponse(
+          mockAuthorizationProcessResponse,
+          config.defaultPollingMaxRetries + 1
+        )
+      );
 
     await expect(
       clientService.addClientUsers(
@@ -128,7 +155,7 @@ describe("addClientUsers", () => {
       )
     );
     expect(mockGetClient).toHaveBeenCalledTimes(
-      config.defaultPollingMaxRetries
+      config.defaultPollingMaxRetries + 1
     );
   });
 });

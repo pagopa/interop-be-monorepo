@@ -1,4 +1,4 @@
-import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import { authorizationApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   getMockWithMetadata,
   getMockedApiConsumerFullClient,
@@ -9,6 +9,7 @@ import { unsafeBrandId } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { clientNotFound } from "../../../src/model/errors.js";
 import {
   clientService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -143,8 +144,31 @@ describe("getClientPurposes", () => {
   };
 
   beforeEach(() => {
-    mockGetClient.mockClear();
+    mockGetClient
+      .mockReset()
+      .mockImplementation(({ params: { clientId } }) =>
+        getMockWithMetadata(
+          mockApiConsumerClients.find((client) => client.id === clientId)
+        )
+      );
     mockGetPurposes.mockClear();
+  });
+
+  it("Should reject an API client before retrieving purposes", async () => {
+    const apiClient = getMockedApiConsumerFullClient({
+      kind: authorizationApi.ClientKind.Values.API,
+    });
+    mockGetClient.mockReset().mockResolvedValue(getMockWithMetadata(apiClient));
+
+    await expect(
+      clientService.getClientPurposes(
+        unsafeBrandId(apiClient.id),
+        mockParams,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(clientNotFound(apiClient));
+
+    expect(mockGetPurposes).not.toHaveBeenCalled();
   });
 
   it("Should succeed and perform API clients calls", async () => {

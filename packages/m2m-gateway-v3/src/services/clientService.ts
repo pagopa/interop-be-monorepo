@@ -15,14 +15,17 @@ import {
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { config } from "../config/config.js";
-import { clientAdminIdNotFound, clientNotFound } from "../model/errors.js";
+import { clientAdminIdNotFound } from "../model/errors.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import {
   isPolledVersionAtLeastResponseVersion,
   pollResourceUntilDeletion,
   pollResourceWithMetadata,
 } from "../utils/polling.js";
-import { assertClientVisibilityIsFull } from "../utils/validators/clientValidators.js";
+import {
+  assertClientIsConsumer,
+  assertClientVisibilityIsFull,
+} from "../utils/validators/clientValidators.js";
 import { assertTenantHasSelfcareId } from "../utils/validators/tenantValidators.js";
 import { getSelfcareUserById } from "./userService.js";
 
@@ -90,11 +93,9 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<m2mGatewayApiV3.Client> {
       logger.info(`Retrieving client with id ${clientId}`);
 
-      const client = await retrieveClientById(clientId, headers);
-      if (client.data.kind === authorizationApi.ClientKind.Values.API) {
-        throw clientNotFound(client.data);
-      }
-      return toM2MGatewayApiConsumerClient(client.data);
+      const { data: client } = await retrieveClientById(clientId, headers);
+      assertClientIsConsumer(client);
+      return toM2MGatewayApiConsumerClient(client);
     },
     async getClients(
       params: m2mGatewayApiV3.GetClientsQueryParams,
@@ -130,6 +131,9 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
         `Adding purpose ${seed.purposeId} to client with id ${clientId}`
       );
 
+      const { data: client } = await retrieveClientById(clientId, headers);
+      assertClientIsConsumer(client);
+
       const response =
         await clients.authorizationClient.client.addClientPurpose(seed, {
           params: { clientId },
@@ -151,6 +155,7 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
       logger.info(`Retrieving purposes for client with id ${clientId}`);
 
       const { data: client } = await retrieveClientById(clientId, headers);
+      assertClientIsConsumer(client);
 
       assertClientVisibilityIsFull(client);
 
@@ -202,6 +207,9 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
         `Removing purpose ${purposeId} from client with id ${clientId}`
       );
 
+      const { data: client } = await retrieveClientById(clientId, headers);
+      assertClientIsConsumer(client);
+
       const response =
         await clients.authorizationClient.client.removeClientPurpose(
           undefined,
@@ -219,6 +227,9 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.JWKs> {
       logger.info(`Retrieving keys for client with id ${clientId}`);
+
+      const { data: client } = await retrieveClientById(clientId, headers);
+      assertClientIsConsumer(client);
 
       const {
         data: { keys, totalCount },
@@ -256,6 +267,7 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
       logger.info(`Create a new key for client with id ${clientId}`);
 
       const { data: client } = await retrieveClientById(clientId, headers);
+      assertClientIsConsumer(client);
 
       const { data: key, metadata } =
         await clients.authorizationClient.client.createKey(seed, {
@@ -288,6 +300,9 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
         `Deleting key for client with id ${clientId} and its keyId ${keyId}`
       );
 
+      const { data: client } = await retrieveClientById(clientId, headers);
+      assertClientIsConsumer(client);
+
       const { data, metadata } =
         await clients.authorizationClient.client.deleteClientKeyById(
           undefined,
@@ -305,6 +320,12 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
       { limit, offset }: m2mGatewayApiV3.GetClientUsersQueryParams
     ): Promise<m2mGatewayApiV3.Users> {
       ctx.logger.info(`Retrieving users for client ${clientId}`);
+
+      const { data: client } = await retrieveClientById(
+        unsafeBrandId(clientId),
+        ctx.headers
+      );
+      assertClientIsConsumer(client);
 
       const { data: tenant } =
         await clients.tenantProcessClient.tenant.getTenant({
@@ -353,6 +374,9 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<void> {
       logger.info(`Adding user ${userId} to client with id ${clientId}`);
 
+      const { data: client } = await retrieveClientById(clientId, headers);
+      assertClientIsConsumer(client);
+
       const response = await clients.authorizationClient.client.addUsers(
         { userIds: [userId] },
         {
@@ -369,6 +393,9 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<void> {
       logger.info(`Removing user ${userId} from client ${clientId}`);
+
+      const { data: client } = await retrieveClientById(clientId, headers);
+      assertClientIsConsumer(client);
 
       const response = await clients.authorizationClient.client.removeUser(
         undefined,
@@ -408,10 +435,7 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
         clientId,
         headers
       );
-
-      if (currentClient.kind === authorizationApi.ClientKind.Values.API) {
-        throw clientNotFound(currentClient);
-      }
+      assertClientIsConsumer(currentClient);
 
       const response = await clients.authorizationClient.client.updateClient(
         seed,
@@ -427,6 +451,9 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<void> {
       logger.info(`Deleting client with id ${clientId}`);
+
+      const { data: client } = await retrieveClientById(clientId, headers);
+      assertClientIsConsumer(client);
 
       await clients.authorizationClient.client.deleteClient(undefined, {
         params: { clientId },

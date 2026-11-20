@@ -5,10 +5,11 @@ import {
   getMockedApiConsumerFullClient,
   getMockedApiKey,
 } from "pagopa-interop-commons-test";
-import { ClientId, generateId } from "pagopa-interop-models";
+import { ClientId, generateId, unsafeBrandId } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { clientNotFound } from "../../../src/model/errors.js";
 import {
   clientService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -86,6 +87,24 @@ describe("createClientKey", () => {
   beforeEach(() => {
     mockCreateClientKey.mockClear();
     mockGetJWKByKid.mockClear();
+    mockGetClient.mockReset().mockResolvedValue(mockApiClientWithMetadata);
+  });
+
+  it("Should reject an API client before creating a key", async () => {
+    const apiClient = getMockedApiConsumerFullClient({
+      kind: authorizationApi.ClientKind.Values.API,
+    });
+    mockGetClient.mockReset().mockResolvedValue(getMockWithMetadata(apiClient));
+
+    await expect(
+      clientService.createClientKey(
+        unsafeBrandId(apiClient.id),
+        keySeed,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(clientNotFound(apiClient));
+
+    expect(mockCreateClientKey).not.toHaveBeenCalled();
   });
 
   it("Should succeed and perform API clients calls", async () => {

@@ -118,7 +118,7 @@ const clientRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          updateClientErrorMapper,
           ctx,
           `Error deleting client with id ${req.params.clientId}`
         );
@@ -140,7 +140,7 @@ const clientRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          getClientErrorMapper,
           ctx,
           `Error retrieving purposes for client with id ${req.params.clientId}`
         );
@@ -162,7 +162,7 @@ const clientRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          updateClientErrorMapper,
           ctx,
           `Error adding purpose to client with id ${req.params.clientId}`
         );
@@ -184,7 +184,7 @@ const clientRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          updateClientErrorMapper,
           ctx,
           `Error removing purpose with id ${req.params.purposeId} from client with id ${req.params.clientId}`
         );
@@ -206,7 +206,7 @@ const clientRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          getClientErrorMapper,
           ctx,
           `Error retrieving keys for client with id ${req.params.clientId}`
         );
@@ -227,7 +227,7 @@ const clientRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          updateClientErrorMapper,
           ctx,
           `Error creating key for client with id ${req.params.clientId}`
         );
@@ -248,7 +248,7 @@ const clientRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          updateClientErrorMapper,
           ctx,
           `Error deleting key with id ${req.params.keyId} for client with id ${req.params.clientId}`
         );
@@ -270,7 +270,7 @@ const clientRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          getClientErrorMapper,
           ctx,
           `Error retrieving users of client ${req.params.clientId}`
         );
@@ -292,7 +292,7 @@ const clientRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          updateClientErrorMapper,
           ctx,
           `Error adding user to client with id ${req.params.clientId}`
         );
@@ -313,7 +313,7 @@ const clientRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          updateClientErrorMapper,
           ctx,
           `Error removing user ${req.params.userId} from client ${req.params.clientId}`
         );

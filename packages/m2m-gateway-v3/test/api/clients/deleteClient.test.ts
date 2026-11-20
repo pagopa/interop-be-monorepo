@@ -1,11 +1,17 @@
+import { authorizationApi } from "pagopa-interop-api-clients";
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockDPoPProof,
+  getMockedApiConsumerFullClient,
+} from "pagopa-interop-commons-test";
 import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi } from "vitest";
 
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { config } from "../../../src/config/config.js";
+import { clientNotFound } from "../../../src/model/errors.js";
 import { api, mockClientService } from "../../vitest.api.setup.js";
 
 describe("DELETE /clients/:clientId router test", () => {
@@ -48,6 +54,21 @@ describe("DELETE /clients/:clientId router test", () => {
     const token = generateToken(role);
     const res = await makeRequest(token, generateId());
     expect(res.status).toBe(403);
+  });
+
+  it("Should return 404 for an API client", async () => {
+    const client = getMockedApiConsumerFullClient({
+      kind: authorizationApi.ClientKind.Values.API,
+    });
+    const error = clientNotFound(client);
+    mockClientService.deleteClient = vi.fn().mockRejectedValue(error);
+
+    const res = await makeRequest(
+      generateToken(authRole.M2M_ADMIN_ROLE),
+      client.id
+    );
+
+    expect(res.status).toBe(404);
   });
 
   it("Should return 500 in case of pollingMaxRetriesExceeded error", async () => {

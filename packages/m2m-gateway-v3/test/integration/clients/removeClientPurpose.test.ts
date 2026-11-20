@@ -1,3 +1,4 @@
+import { authorizationApi } from "pagopa-interop-api-clients";
 import {
   getMockedApiConsumerFullClient,
   getMockWithMetadata,
@@ -11,7 +12,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
-import { missingMetadata } from "../../../src/model/errors.js";
+import { clientNotFound, missingMetadata } from "../../../src/model/errors.js";
 import {
   clientService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -42,9 +43,13 @@ describe("removeClientPurpose", () => {
   } as unknown as PagoPAInteropBeClients["authorizationClient"];
 
   beforeEach(() => {
-    // Clear mock counters and call information before each test
     mockRemoveClientPurpose.mockClear();
-    mockGetClient.mockClear();
+    mockGetClient
+      .mockReset()
+      .mockResolvedValueOnce(mockAuthorizationProcessResponse)
+      .mockImplementation(
+        mockPollingResponse(mockAuthorizationProcessResponse, 2)
+      );
   });
 
   it("Should succeed and perform API clients calls", async () => {
@@ -70,7 +75,24 @@ describe("removeClientPurpose", () => {
     });
     expect(
       mockInteropBeClients.authorizationClient.client.getClient
-    ).toHaveBeenCalledTimes(2);
+    ).toHaveBeenCalledTimes(3);
+  });
+
+  it("Should reject an API client before removing a purpose", async () => {
+    const apiClient = getMockedApiConsumerFullClient({
+      kind: authorizationApi.ClientKind.Values.API,
+    });
+    mockGetClient.mockReset().mockResolvedValue(getMockWithMetadata(apiClient));
+
+    await expect(
+      clientService.removeClientPurpose(
+        unsafeBrandId(apiClient.id),
+        generateId(),
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(clientNotFound(apiClient));
+
+    expect(mockRemoveClientPurpose).not.toHaveBeenCalled();
   });
 
   it("Should throw missingMetadata in case the client returned by the removeClientPurpose POST call has no metadata", async () => {
@@ -89,10 +111,13 @@ describe("removeClientPurpose", () => {
   });
 
   it("Should throw missingMetadata in case the client returned by the polling GET call has no metadata", async () => {
-    mockGetClient.mockResolvedValueOnce({
-      ...mockAuthorizationProcessResponse,
-      metadata: undefined,
-    });
+    mockGetClient
+      .mockReset()
+      .mockResolvedValueOnce(mockAuthorizationProcessResponse)
+      .mockResolvedValueOnce({
+        ...mockAuthorizationProcessResponse,
+        metadata: undefined,
+      });
 
     await expect(
       clientService.removeClientPurpose(
@@ -104,12 +129,15 @@ describe("removeClientPurpose", () => {
   });
 
   it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
-    mockGetClient.mockImplementation(
-      mockPollingResponse(
-        mockAuthorizationProcessResponse,
-        config.defaultPollingMaxRetries + 1
-      )
-    );
+    mockGetClient
+      .mockReset()
+      .mockResolvedValueOnce(mockAuthorizationProcessResponse)
+      .mockImplementation(
+        mockPollingResponse(
+          mockAuthorizationProcessResponse,
+          config.defaultPollingMaxRetries + 1
+        )
+      );
 
     await expect(
       clientService.removeClientPurpose(
@@ -124,7 +152,7 @@ describe("removeClientPurpose", () => {
       )
     );
     expect(mockGetClient).toHaveBeenCalledTimes(
-      config.defaultPollingMaxRetries
+      config.defaultPollingMaxRetries + 1
     );
   });
 });
