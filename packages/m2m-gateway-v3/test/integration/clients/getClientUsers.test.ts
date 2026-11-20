@@ -1,11 +1,14 @@
+import { authorizationApi } from "pagopa-interop-api-clients";
 import {
   getMockTenant,
   getMockWithMetadata,
+  getMockedApiConsumerFullClient,
 } from "pagopa-interop-commons-test";
 import { TenantId, generateId } from "pagopa-interop-models";
 import { describe, it, vi, beforeEach, expect } from "vitest";
 
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { clientNotFound } from "../../../src/model/errors.js";
 import {
   mockInteropBeClients,
   expectApiClientGetToHaveBeenCalledWith,
@@ -41,12 +44,14 @@ describe("getClientUsers", () => {
   };
 
   const mockGetClientUsers = vi.fn();
+  const mockGetClient = vi.fn();
   const mockGetTenant = vi.fn();
   const mockGetUserInfoUsingGET = vi.fn();
 
   mockInteropBeClients.authorizationClient = {
     client: {
       getClientUsers: mockGetClientUsers,
+      getClient: mockGetClient,
     },
   } as unknown as PagoPAInteropBeClients["authorizationClient"];
 
@@ -72,6 +77,27 @@ describe("getClientUsers", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGetClient.mockResolvedValue(
+      getMockWithMetadata(getMockedApiConsumerFullClient())
+    );
+  });
+
+  it("Should reject an API client before retrieving users", async () => {
+    const apiClient = getMockedApiConsumerFullClient({
+      kind: authorizationApi.ClientKind.Values.API,
+    });
+    mockGetClient.mockReset().mockResolvedValue(getMockWithMetadata(apiClient));
+
+    await expect(
+      clientService.getClientUsers(
+        apiClient.id,
+        getMockM2MAdminAppContext({ organizationId: tenantId }),
+        { limit: 10, offset: 0 }
+      )
+    ).rejects.toThrowError(clientNotFound(apiClient));
+
+    expect(mockGetClientUsers).not.toHaveBeenCalled();
+    expect(mockGetTenant).not.toHaveBeenCalled();
   });
 
   it("Should succeed and return a list of users", async () => {
