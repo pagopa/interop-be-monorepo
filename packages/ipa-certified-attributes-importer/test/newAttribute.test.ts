@@ -1,11 +1,18 @@
 import { randomUUID } from "crypto";
 import { getMockAttribute } from "pagopa-interop-commons-test";
-import { Attribute, unsafeBrandId } from "pagopa-interop-models";
+import {
+  Attribute,
+  ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER,
+  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
+  PUBLIC_ADMINISTRATIONS_TYPOLOGY,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { expect, describe, it, beforeEach } from "vitest";
 
 import type {
   Classification,
   Institution,
+  SubUnit,
 } from "../src/services/openDataExtractor.js";
 
 import { config } from "../src/config/config.js";
@@ -19,46 +26,69 @@ describe("NewAttributes", async () => {
   const getMockInstitution = (
     originId: string,
     classification: Classification,
-    subUnit: { name: string; entityName: string; aooCode?: string },
-    category = "L6"
+    subUnit: SubUnit,
+    category: string
   ): Institution => ({
     id: `tax-${originId}`,
     originId,
     category,
     description: subUnit.name,
-    origin: "IPA",
-    kind: "Pubbliche Amministrazioni",
+    origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
+    kind: PUBLIC_ADMINISTRATIONS_TYPOLOGY,
     classification,
     subUnit,
   });
 
   const aooUoInstitutions = [
-    getMockInstitution("A001", "AOO", {
-      name: "SCPGI",
-      entityName: "Scuola Primaria Giovanni Pascoli",
-    }),
-    getMockInstitution("U001", "UO", {
-      name: "Ufficio per la transizione al Digitale",
-      entityName: "Scuola Primaria Giovanni Pascoli",
-      aooCode: "A001",
-    }),
-    getMockInstitution("U002", "UO", {
-      name: "Ufficio per la transizione al Digitale",
-      entityName: "LICEO SCIENTIFICO STATALE GALILEO GALILEI",
-    }),
-    getMockInstitution("U003", "UO", {
-      name: "Ufficio per la transizione al Digitale",
-      entityName: "LICEO SCIENTIFICO STATALE GALILEO GALILEI",
-    }),
+    getMockInstitution(
+      "A001",
+      "AOO",
+      {
+        name: "SCPGI",
+        entityName: "Scuola Primaria Giovanni Pascoli",
+      },
+      "SA"
+    ),
+    getMockInstitution(
+      "U001",
+      "UO",
+      {
+        name: "Ufficio per la transizione al Digitale",
+        entityName: "Scuola Primaria Giovanni Pascoli",
+        aooCode: "A001",
+      },
+      "SA"
+    ),
+    getMockInstitution(
+      "U002",
+      "UO",
+      {
+        name: "Ufficio per la transizione al Digitale",
+        entityName: "LICEO SCIENTIFICO STATALE GALILEO GALILEI",
+      },
+      "L33"
+    ),
+    getMockInstitution(
+      "U003",
+      "UO",
+      {
+        name: "Ufficio per la transizione al Digitale",
+        entityName: "LICEO SCIENTIFICO STATALE GALILEO GALILEI",
+      },
+      "L33"
+    ),
     getMockInstitution(
       "U004",
       "UO",
-      { name: "Ufficio Tecnico", entityName: "COMUNE DI NAPOLI" },
-      "S01G"
+      {
+        name: "Ufficio Tecnico",
+        entityName: "Fondazione di partecipazione Casa dell'Ospitalità",
+      },
+      ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER
     ),
   ];
   const aooUoSeeds: TenantSeed[] = aooUoInstitutions.map((i) => ({
-    origin: "IPA",
+    origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
     originId: i.originId,
     description: i.description,
     attributes: [],
@@ -79,16 +109,16 @@ describe("NewAttributes", async () => {
 
     const tenantSeed: TenantSeed[] = [
       {
-        origin: "IPA",
+        origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
         originId: "1",
         description: "tenant1",
         attributes: [
           {
-            origin: "IPA",
+            origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
             code: assignedAttributes[0].code,
           },
           {
-            origin: "IPA",
+            origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
             code: assignedAttributes[1].code,
           },
         ],
@@ -116,16 +146,16 @@ describe("NewAttributes", async () => {
 
     const tenantSeed: TenantSeed[] = [
       {
-        origin: "IPA",
+        origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
         originId: "1",
         description: "tenant1",
         attributes: [
           {
-            origin: "IPA",
+            origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
             code: assignedAttributes[0].code,
           },
           {
-            origin: "IPA",
+            origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
             code: assignedAttributes[1].code,
           },
         ],
@@ -156,7 +186,7 @@ describe("NewAttributes", async () => {
 
     const tenantSeed: TenantSeed[] = [
       {
-        origin: "IPA",
+        origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
         originId: "1",
         description: "tenant1",
         attributes: [],
@@ -201,13 +231,13 @@ describe("NewAttributes", async () => {
     const platform = [
       {
         ...getMockAttribute(),
-        origin: "IPA",
+        origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
         code: "A001",
         name: "x",
       },
       {
         ...getMockAttribute(),
-        origin: "IPA",
+        origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
         code: "Z",
         name: uoWithAooAttributeName,
       },
@@ -231,13 +261,13 @@ describe("NewAttributes", async () => {
     const platform = [
       {
         ...getMockAttribute(),
-        origin: "IPA",
+        origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
         code: "Z",
         name: lowercaseUoWithAooAttributeName,
       },
       {
         ...getMockAttribute(),
-        origin: "IPA",
+        origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
         code: "Y",
         name: uoWithoutAooAttributeNameWithCode,
       },
