@@ -23,12 +23,17 @@ import {
 import { agency, aoo, attributes, uo } from "./expectation.js";
 
 describe("NewAttributes", async () => {
-  const getMockInstitution = (
-    originId: string,
-    classification: Classification,
-    subUnit: SubUnit,
-    category: string
-  ): Institution => ({
+  const getMockInstitution = ({
+    originId,
+    classification,
+    subUnit,
+    category,
+  }: {
+    originId: string;
+    classification: Classification;
+    subUnit: SubUnit;
+    category: string;
+  }): Institution => ({
     id: `tax-${originId}`,
     originId,
     category,
@@ -40,52 +45,52 @@ describe("NewAttributes", async () => {
   });
 
   const aooUoInstitutions = [
-    getMockInstitution(
-      "A001",
-      "AOO",
-      {
+    getMockInstitution({
+      originId: "A001",
+      classification: "AOO",
+      subUnit: {
         name: "SCPGI",
         entityName: "Scuola Primaria Giovanni Pascoli",
       },
-      "SA"
-    ),
-    getMockInstitution(
-      "U001",
-      "UO",
-      {
+      category: "SA",
+    }),
+    getMockInstitution({
+      originId: "U001",
+      classification: "UO",
+      subUnit: {
         name: "Ufficio per la transizione al Digitale",
         entityName: "Scuola Primaria Giovanni Pascoli",
         aooCode: "A001",
       },
-      "SA"
-    ),
-    getMockInstitution(
-      "U002",
-      "UO",
-      {
+      category: "SA",
+    }),
+    getMockInstitution({
+      originId: "U002",
+      classification: "UO",
+      subUnit: {
         name: "Ufficio per la transizione al Digitale",
         entityName: "LICEO SCIENTIFICO STATALE GALILEO GALILEI",
       },
-      "L33"
-    ),
-    getMockInstitution(
-      "U003",
-      "UO",
-      {
+      category: "L33",
+    }),
+    getMockInstitution({
+      originId: "U003",
+      classification: "UO",
+      subUnit: {
         name: "Ufficio per la transizione al Digitale",
         entityName: "LICEO SCIENTIFICO STATALE GALILEO GALILEI",
       },
-      "L33"
-    ),
-    getMockInstitution(
-      "U004",
-      "UO",
-      {
+      category: "L33",
+    }),
+    getMockInstitution({
+      originId: "U004",
+      classification: "UO",
+      subUnit: {
         name: "Ufficio Tecnico",
         entityName: "Fondazione di partecipazione Casa dell'Ospitalità",
       },
-      ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER
-    ),
+      category: ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER,
+    }),
   ];
   const aooUoSeeds: TenantSeed[] = aooUoInstitutions.map((i) => ({
     origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
