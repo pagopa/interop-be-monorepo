@@ -11,6 +11,7 @@ import {
   FeatureFlagDpopClientAssertionDebuggerConfig,
   FeatureFlagUseSignedDocumentConfig,
   FeatureFlagNewOperatorsConfig,
+  FeatureFlagAooUoAttributesForcedPropagationConfig,
   FileManagerConfig,
   RedisRateLimiterConfig,
   SelfCareClientConfig,
@@ -351,6 +352,7 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(FeatureFlagDelegationConstraintSkipConfig)
   .and(FeatureFlagAttributeCertifiedDiscreteConfig)
   .and(FeatureFlagNewOperatorsConfig)
+  .and(FeatureFlagAooUoAttributesForcedPropagationConfig)
   .and(
     z
       .object({
