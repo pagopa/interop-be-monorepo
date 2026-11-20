@@ -52,7 +52,12 @@ describe("API GET /producers/eservices/{eserviceId}/descriptors/{descriptorId}/m
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.SUPPORT_ROLE,
+    authRole.API_ROLE,
+    authRole.VIEWER_ROLE,
+  ];
 
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
