@@ -13768,6 +13768,22 @@ paths:
       summary: Retrieves the e-services and versions being archived
       description: Retrieves the producer e-services and descriptors in archiving
       operationId: getProducerDashboardArchiving
+      parameters:
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
       responses:
         "200":
           description: Array of e-services and descriptors in archiving by version
@@ -14022,6 +14038,21 @@ paths:
           schema:
             type: string
             format: uuid
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
       responses:
         "200":
           description: Array of monitoring archiving e-services and descriptors by version
@@ -19884,8 +19915,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/MonitoringArchivingRow"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
       required:
         - results
+        - pagination
     MonitoringSelectableVersion:
       type: object
       additionalProperties: false
@@ -20358,10 +20392,6 @@ components:
           $ref: "#/components/schemas/CompactEServiceLight"
         version:
           type: string
-        otherVersions:
-          type: array
-          items:
-            $ref: "#/components/schemas/MonitoringSelectableVersion"
         consumer:
           allOf:
             - $ref: "#/components/schemas/CompactOrganization"
@@ -20380,6 +20410,9 @@ components:
         percentage:
           type: integer
           format: int32
+        waitingForApprovalPurposes:
+          type: integer
+          format: int32
         results:
           type: array
           items:
@@ -20389,10 +20422,10 @@ components:
       required:
         - eservice
         - version
-        - otherVersions
         - dailyCallsPerConsumer
         - approvedDailyCalls
         - percentage
+        - waitingForApprovalPurposes
         - results
         - pagination
   securitySchemes:
