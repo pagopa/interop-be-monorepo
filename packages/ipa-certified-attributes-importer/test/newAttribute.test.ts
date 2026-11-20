@@ -34,26 +34,26 @@ describe("NewAttributes", async () => {
 
   const aooUoInstitutions = [
     getMockInstitution("A001", "AOO", {
-      name: "AOO One",
-      entityName: "Ente",
+      name: "SCPGI",
+      entityName: "Scuola Primaria Giovanni Pascoli",
     }),
     getMockInstitution("U001", "UO", {
-      name: "UO One",
-      entityName: "Ente",
+      name: "Ufficio per la transizione al Digitale",
+      entityName: "Scuola Primaria Giovanni Pascoli",
       aooCode: "A001",
     }),
     getMockInstitution("U002", "UO", {
-      name: "UO Two",
-      entityName: "Ente",
+      name: "Ufficio per la transizione al Digitale",
+      entityName: "LICEO SCIENTIFICO STATALE GALILEO GALILEI",
     }),
     getMockInstitution("U003", "UO", {
-      name: "UO Two",
-      entityName: "Ente",
+      name: "Ufficio per la transizione al Digitale",
+      entityName: "LICEO SCIENTIFICO STATALE GALILEO GALILEI",
     }),
     getMockInstitution(
       "U004",
       "UO",
-      { name: "UO Scec", entityName: "Ente" },
+      { name: "Ufficio Tecnico", entityName: "COMUNE DI NAPOLI" },
       "S01G"
     ),
   ];
@@ -182,10 +182,19 @@ describe("NewAttributes", async () => {
     config.featureFlagAooUoAttributes = true;
     const result = getNewAttributes(aooUoRegistryData, aooUoSeeds, []);
     expect(result.map((a) => [a.code, a.name])).toEqual([
-      ["A001", "AOO One di Ente"],
-      ["U001", "UO One di AOO One di Ente"],
-      ["U002", "UO Two di Ente (U002)"],
-      ["U003", "UO Two di Ente (U003)"],
+      ["A001", "SCPGI di Scuola Primaria Giovanni Pascoli"],
+      [
+        "U001",
+        "Ufficio per la transizione al Digitale di SCPGI di Scuola Primaria Giovanni Pascoli",
+      ],
+      [
+        "U002",
+        "Ufficio per la transizione al Digitale di LICEO SCIENTIFICO STATALE GALILEO GALILEI (U002)",
+      ],
+      [
+        "U003",
+        "Ufficio per la transizione al Digitale di LICEO SCIENTIFICO STATALE GALILEO GALILEI (U003)",
+      ],
     ]);
   });
 
@@ -201,13 +210,15 @@ describe("NewAttributes", async () => {
         ...getMockAttribute(),
         origin: "IPA",
         code: "Z",
-        name: "UO One di AOO One di Ente",
+        name: "Ufficio per la transizione al Digitale di SCPGI di Scuola Primaria Giovanni Pascoli",
       },
     ];
     config.featureFlagAooUoAttributes = true;
     const result = getNewAttributes(aooUoRegistryData, aooUoSeeds, platform);
     expect(result.map((a) => a.code)).toEqual(["U001", "U002", "U003"]);
-    expect(result[0].name).toBe("UO One di AOO One di Ente (U001)");
+    expect(result[0].name).toBe(
+      "Ufficio per la transizione al Digitale di SCPGI di Scuola Primaria Giovanni Pascoli (U001)"
+    );
   });
 
   it("should return AOO/UO attributes case-insensitively and avoid suffixed name collisions", () => {
@@ -216,13 +227,13 @@ describe("NewAttributes", async () => {
         ...getMockAttribute(),
         origin: "IPA",
         code: "Z",
-        name: "uo one DI aoo one di ente",
+        name: "ufficio per la transizione al digitale di scpgi di scuola primaria giovanni pascoli",
       },
       {
         ...getMockAttribute(),
         origin: "IPA",
         code: "Y",
-        name: "UO Two di Ente (U002)",
+        name: "Ufficio per la transizione al Digitale di LICEO SCIENTIFICO STATALE GALILEO GALILEI (U002)",
       },
     ];
     config.featureFlagAooUoAttributes = true;
@@ -232,9 +243,15 @@ describe("NewAttributes", async () => {
       platform
     );
     expect(result.map((a) => [a.code, a.name])).toEqual([
-      ["A001", "AOO One di Ente"],
-      ["U001", "UO One di AOO One di Ente (U001)"],
-      ["U003", "UO Two di Ente (U003)"],
+      ["A001", "SCPGI di Scuola Primaria Giovanni Pascoli"],
+      [
+        "U001",
+        "Ufficio per la transizione al Digitale di SCPGI di Scuola Primaria Giovanni Pascoli (U001)",
+      ],
+      [
+        "U003",
+        "Ufficio per la transizione al Digitale di LICEO SCIENTIFICO STATALE GALILEO GALILEI (U003)",
+      ],
     ]);
   });
 });
