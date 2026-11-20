@@ -37,6 +37,7 @@ import eserviceTemplateRouter from "./routers/eserviceTemplateRouter.js";
 import inAppNotificationRouter from "./routers/inAppNotificationRouter.js";
 import notificationConfigRouter from "./routers/notificationConfigRouter.js";
 import privacyNoticeRouter from "./routers/privacyNoticeRouter.js";
+import producerDashboardRouter from "./routers/producerDashboardRouter.js";
 import producerDelegationRouter from "./routers/producerDelegationRouter.js";
 import producerKeychainRouter from "./routers/producerKeychainRouter.js";
 import purposeRouter from "./routers/purposeRouter.js";
@@ -88,6 +89,10 @@ import {
 } from "./services/privacyNoticeService.js";
 import { privacyNoticeStorageServiceBuilder } from "./services/privacyNoticeStorage.js";
 import {
+  ProducerDashboardService,
+  producerDashboardServiceBuilder,
+} from "./services/producerDashboardService.js";
+import {
   ProducerKeychainService,
   producerKeychainServiceBuilder,
 } from "./services/producerKeychainService.js";
@@ -122,6 +127,7 @@ type BFFServices = {
   inAppNotificationService: InAppNotificationService;
   eServiceTemplateService: EServiceTemplateService;
   privacyNoticeService: PrivacyNoticeService;
+  producerDashboardService: ProducerDashboardService;
   producerKeychainService: ProducerKeychainService;
   purposeService: PurposeService;
   purposeTemplateService: PurposeTemplateService;
@@ -206,6 +212,7 @@ export async function createServices(
       fileManager,
       consentTypeMap
     ),
+    producerDashboardService: producerDashboardServiceBuilder(clients),
     producerKeychainService: producerKeychainServiceBuilder(clients),
     purposeService: purposeServiceBuilder(clients, fileManager),
     purposeTemplateService: purposeTemplateServiceBuilder(
@@ -277,6 +284,7 @@ export async function createApp(
     notificationConfigRouter(zodiosCtx, services.notificationConfigService),
     inAppNotificationRouter(zodiosCtx, services.inAppNotificationService),
     privacyNoticeRouter(zodiosCtx, services.privacyNoticeService),
+    producerDashboardRouter(zodiosCtx, services.producerDashboardService),
     producerDelegationRouter(zodiosCtx, services.delegationService),
     producerKeychainRouter(zodiosCtx, services.producerKeychainService),
     purposeRouter(zodiosCtx, services.purposeService),

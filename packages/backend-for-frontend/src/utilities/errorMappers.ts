@@ -330,3 +330,10 @@ export const addPurposeTemplateAnnotationDocumentErrorMapper = (
   match(error.code)
     .with("invalidContentTypeDetected", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getProducerDashboardSaturationErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

@@ -1146,6 +1146,50 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+  /producers/dashboard/saturation:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    get:
+      tags:
+        - purpose
+      operationId: getProducerDashboardSaturation
+      description: Retrieves the daily calls saturation by descriptor of the producer e-services
+      parameters:
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+        - in: query
+          name: q
+          description: Query to filter e-services by name
+          schema:
+            type: string
+        - in: query
+          name: sortBy
+          schema:
+            $ref: "#/components/schemas/SaturationSortBy"
+      responses:
+        "200":
+          description: Summary and saturation by descriptor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProducerDashboardSaturation"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
   /producers/eservices/{eserviceId}/descriptors/{descriptorId}/monitoring/purposes:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -2102,6 +2146,105 @@ components:
       required:
         - remainingDailyCallsPerConsumer
         - remainingDailyCallsTotal
+    SaturationSortBy:
+      type: string
+      default: PERCENTAGE_DESC
+      enum:
+        - PERCENTAGE_DESC
+        - PERCENTAGE_ASC
+        - NAME_ASC
+        - NAME_DESC
+    ProducerDashboardSaturationItem:
+      type: object
+      additionalProperties: false
+      properties:
+        eservice:
+          type: object
+          additionalProperties: false
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+          required:
+            - id
+            - name
+        descriptorId:
+          type: string
+          format: uuid
+        version:
+          type: string
+        activePurposesCount:
+          type: integer
+          format: int32
+        approvedDailyCalls:
+          type: integer
+          format: int64
+        dailyCallsTotal:
+          type: integer
+          format: int64
+        percentage:
+          type: integer
+          format: int32
+        waitingForApprovalDailyCalls:
+          type: integer
+          format: int64
+      required:
+        - eservice
+        - descriptorId
+        - version
+        - activePurposesCount
+        - approvedDailyCalls
+        - dailyCallsTotal
+        - percentage
+        - waitingForApprovalDailyCalls
+    ProducerDashboardSaturation:
+      type: object
+      additionalProperties: false
+      properties:
+        summary:
+          type: object
+          additionalProperties: false
+          properties:
+            overThreshold:
+              type: integer
+              format: int32
+            nearThreshold:
+              type: integer
+              format: int32
+            total:
+              type: integer
+              format: int32
+          required:
+            - overThreshold
+            - nearThreshold
+            - total
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProducerDashboardSaturationItem"
+        pagination:
+          type: object
+          additionalProperties: false
+          properties:
+            offset:
+              type: integer
+              format: int32
+            limit:
+              type: integer
+              format: int32
+            totalCount:
+              type: integer
+              format: int32
+          required:
+            - offset
+            - limit
+            - totalCount
+      required:
+        - summary
+        - results
+        - pagination
     ProducerEServiceMonitoringPurposes:
       type: object
       additionalProperties: false

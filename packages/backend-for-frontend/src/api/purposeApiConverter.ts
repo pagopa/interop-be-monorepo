@@ -50,3 +50,22 @@ export function toBffApiPurposeVersion(
       toBffApiPurposeVersionSignedDocument(purposeVersion.signedContract),
   };
 }
+
+export function toBffProducerDashboardSaturation(
+  saturation: purposeApi.ProducerDashboardSaturation
+): bffApi.ProducerDashboardSaturation {
+  return {
+    summary: saturation.summary,
+    results: saturation.results.map((r) => ({
+      eservice: { id: r.eservice.id, name: r.eservice.name },
+      descriptorId: r.descriptorId,
+      version: r.version,
+      activePurposesCount: r.activePurposesCount,
+      approvedDailyCalls: r.approvedDailyCalls,
+      dailyCallsTotal: r.dailyCallsTotal,
+      percentage: r.percentage,
+      waitingForApprovalDailyCalls: r.waitingForApprovalDailyCalls,
+    })),
+    pagination: saturation.pagination,
+  };
+}

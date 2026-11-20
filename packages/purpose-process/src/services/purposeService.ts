@@ -312,6 +312,14 @@ const retrieveRiskAnalysis = (
   return riskAnalysis;
 };
 
+const computeSaturationPercentage = (
+  approvedDailyCalls: number,
+  dailyCallsTotal: number
+): number =>
+  dailyCallsTotal > 0
+    ? Math.round((approvedDailyCalls / dailyCallsTotal) * 100)
+    : 0;
+
 async function retrieveTenantKind(
   tenantId: TenantId,
   readModelService: ReadModelServiceSQL
@@ -2609,6 +2617,51 @@ export function purposeServiceBuilder(
         remainingDailyCallsTotal,
       };
     },
+    async getProducerDashboardSaturation(
+      {
+        q,
+        sortBy,
+        offset,
+        limit,
+      }: {
+        q: string | undefined;
+        sortBy: purposeApi.SaturationSortBy;
+        offset: number;
+        limit: number;
+      },
+      { authData, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<purposeApi.ProducerDashboardSaturation> {
+      logger.info(
+        `Retrieving producer dashboard saturation for q ${q}, sortBy ${sortBy}, offset ${offset}, limit ${limit}`
+      );
+
+      assertFeatureFlagEnabled(config, "featureFlagProducerDashboard");
+
+      const { results, totalCount, summary } =
+        await readModelService.getProducerDashboardSaturation(
+          authData.organizationId,
+          { q, sortBy },
+          { offset, limit }
+        );
+
+      return {
+        summary,
+        results: results.map((r) => ({
+          eservice: { id: r.eserviceId, name: r.eserviceName },
+          descriptorId: r.descriptorId,
+          version: r.version,
+          activePurposesCount: r.activePurposesCount,
+          approvedDailyCalls: r.approvedDailyCalls,
+          dailyCallsTotal: r.dailyCallsTotal,
+          percentage: computeSaturationPercentage(
+            r.approvedDailyCalls,
+            r.dailyCallsTotal
+          ),
+          waitingForApprovalDailyCalls: r.waitingForApprovalDailyCalls,
+        })),
+        pagination: { offset, limit, totalCount },
+      };
+    },
     async getProducerEServiceMonitoringPurposes(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -2651,12 +2704,10 @@ export function purposeServiceBuilder(
       return {
         approvedDailyCalls,
         dailyCallsTotal: descriptor.dailyCallsTotal,
-        percentage:
-          descriptor.dailyCallsTotal > 0
-            ? Math.round(
-                (approvedDailyCalls / descriptor.dailyCallsTotal) * 100
-              )
-            : 0,
+        percentage: computeSaturationPercentage(
+          approvedDailyCalls,
+          descriptor.dailyCallsTotal
+        ),
         waitingForApprovalNewPurposes: waitingCounts.newPurposes,
         waitingForApprovalQuotaChanges: waitingCounts.quotaChanges,
       };
