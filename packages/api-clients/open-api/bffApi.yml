@@ -13761,6 +13761,45 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /producers/dashboard/export:
+    get:
+      tags:
+        - producersDashboard
+      summary: Exports the producer dashboard
+      description: |
+        Downloads a ZIP archive containing three CSV files: the producer dashboard
+        summary (P1-P6), the complete e-service version saturation table (P7),
+        and the complete archiving table (P8).
+        Tables are exported in full, independently of pagination and preview limits,
+        with no maximum number of rows.
+      operationId: exportProducerDashboard
+      responses:
+        "200":
+          description: ZIP archive containing the producer dashboard CSV files
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+          headers:
+            "Content-Disposition":
+              description: Attachment disposition with the ZIP archive filename
+              schema:
+                type: string
+            "X-Rate-Limit-Limit":
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            "X-Rate-Limit-Remaining":
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            "X-Rate-Limit-Interval":
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /producers/dashboard/archiving:
     get:
       tags:
@@ -13860,6 +13899,61 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /producers/dashboard/saturation/export:
+    get:
+      tags:
+        - producersDashboard
+      summary: Exports the producer e-services saturation
+      description: |
+        Downloads the complete e-service version saturation table (P10) as a CSV.
+        Preserves only the requested sorting, without search or page filters,
+        pagination or a maximum number of rows.
+        Uses the same CSV structure as P7 in the dashboard export.
+      operationId: exportProducerDashboardSaturation
+      parameters:
+        - in: query
+          name: sortBy
+          schema:
+            $ref: "#/components/schemas/SaturationSortBy"
+      responses:
+        "200":
+          description: CSV containing the e-service version saturation table
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+          headers:
+            "Content-Disposition":
+              description: Attachment disposition with the CSV filename
+              schema:
+                type: string
+            "X-Rate-Limit-Limit":
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            "X-Rate-Limit-Remaining":
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            "X-Rate-Limit-Interval":
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          description: An error occurred while retrieving or exporting the saturation data
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "501":
+          description: The producer dashboard feature flag is not enabled
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /producers/dashboard/consumers:
     get:
       tags:
@@ -13900,6 +13994,48 @@ paths:
               schema:
                 $ref: "#/components/schemas/ProducerDashboardConsumers"
           headers:
+            "X-Rate-Limit-Limit":
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            "X-Rate-Limit-Remaining":
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            "X-Rate-Limit-Interval":
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /producers/dashboard/consumers/export:
+    get:
+      tags:
+        - producersDashboard
+      summary: Exports the producer consumers
+      description: |
+        Downloads the complete producer consumers table (P11) as a CSV, without
+        summary data. Preserves only the requested sorting, without search or
+        page filters, pagination or a maximum number of rows.
+      operationId: exportProducerDashboardConsumers
+      parameters:
+        - in: query
+          name: sortBy
+          schema:
+            $ref: "#/components/schemas/ProducerConsumersSortBy"
+      responses:
+        "200":
+          description: CSV containing the producer consumers table
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+          headers:
+            "Content-Disposition":
+              description: Attachment disposition with the CSV filename
+              schema:
+                type: string
             "X-Rate-Limit-Limit":
               $ref: "#/components/headers/RateLimitLimitHeader"
             "X-Rate-Limit-Remaining":
@@ -13977,6 +14113,57 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /producers/dashboard/consumers/{consumerId}/export:
+    get:
+      tags:
+        - producersDashboard
+      summary: Exports a consumer's e-services of the producer
+      description: |
+        Downloads the complete e-services table for the given consumer (P9) as a
+        CSV, without summary data. Preserves only the requested sorting, without
+        search or page filters, pagination or a maximum number of rows.
+      operationId: exportProducerDashboardConsumer
+      parameters:
+        - name: consumerId
+          in: path
+          description: The identifier of the consumer
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: sortBy
+          schema:
+            $ref: "#/components/schemas/ConsumerEServicesSortBy"
+      responses:
+        "200":
+          description: CSV containing the consumer's e-services table
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+          headers:
+            "Content-Disposition":
+              description: Attachment disposition with the CSV filename
+              schema:
+                type: string
+            "X-Rate-Limit-Limit":
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            "X-Rate-Limit-Remaining":
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            "X-Rate-Limit-Interval":
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /producers/eservices/{eserviceId}/descriptors/{descriptorId}/monitoring:
     get:
       tags:
@@ -14007,6 +14194,62 @@ paths:
               schema:
                 $ref: "#/components/schemas/ProducerEServiceMonitoring"
           headers:
+            "X-Rate-Limit-Limit":
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            "X-Rate-Limit-Remaining":
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            "X-Rate-Limit-Interval":
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /producers/eservices/{eserviceId}/descriptors/{descriptorId}/monitoring/export:
+    get:
+      tags:
+        - producersDashboard
+      summary: Exports the monitoring data of an e-service
+      description: |
+        Downloads a ZIP archive containing three CSV files: the monitoring summary
+        (D1-D3, D5-D7), the complete consumer saturation table for the selected
+        descriptor (D4), and the complete archiving table of the e-service (D8).
+        Tables are exported in full, independently of pagination and preview limits,
+        with no maximum number of rows.
+      operationId: exportProducerEServiceMonitoring
+      parameters:
+        - name: eserviceId
+          in: path
+          description: The identifier of the e-service
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: The identifier of the descriptor
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: ZIP archive containing the e-service monitoring CSV files
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+          headers:
+            "Content-Disposition":
+              description: Attachment disposition with the ZIP archive filename
+              schema:
+                type: string
             "X-Rate-Limit-Limit":
               $ref: "#/components/headers/RateLimitLimitHeader"
             "X-Rate-Limit-Remaining":
@@ -14147,6 +14390,77 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /producers/eservices/{eserviceId}/descriptors/{descriptorId}/monitoring/saturation/export:
+    get:
+      tags:
+        - producersDashboard
+      summary: Exports the consumers saturation of a descriptor
+      description: |
+        Downloads the complete consumer saturation table for the selected descriptor
+        (D9) as a CSV, without summary data. Preserves only the requested sorting,
+        without search or page filters, pagination or a maximum number of rows.
+        Uses the same CSV structure as D4 in the monitoring export.
+      operationId: exportProducerEServiceMonitoringSaturation
+      parameters:
+        - name: eserviceId
+          in: path
+          description: The identifier of the e-service
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: The identifier of the descriptor
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: sortBy
+          schema:
+            $ref: "#/components/schemas/SaturationSortBy"
+      responses:
+        "200":
+          description: CSV containing the consumer saturation table
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+          headers:
+            "Content-Disposition":
+              description: Attachment disposition with the CSV filename
+              schema:
+                type: string
+            "X-Rate-Limit-Limit":
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            "X-Rate-Limit-Remaining":
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            "X-Rate-Limit-Interval":
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          description: An error occurred while retrieving or exporting the consumer saturation data
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "501":
+          description: The producer dashboard feature flag is not enabled
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /producers/eservices/{eserviceId}/descriptors/{descriptorId}/monitoring/archivingAgreements:
     get:
       tags:
@@ -14201,6 +14515,64 @@ paths:
               schema:
                 $ref: "#/components/schemas/ProducerEServiceMonitoringArchivingAgreements"
           headers:
+            "X-Rate-Limit-Limit":
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            "X-Rate-Limit-Remaining":
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            "X-Rate-Limit-Interval":
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /producers/eservices/{eserviceId}/descriptors/{descriptorId}/monitoring/archivingAgreements/export:
+    get:
+      tags:
+        - producersDashboard
+      summary: Exports the consumers of a descriptor being archived
+      description: |
+        Downloads the complete consumers table for the selected descriptor being
+        archived (D10) as a CSV, without summary data. Preserves only the requested
+        sorting, without search or page filters, pagination or a maximum number of rows.
+      operationId: exportProducerEServiceMonitoringArchivingAgreements
+      parameters:
+        - name: eserviceId
+          in: path
+          description: The identifier of the e-service
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: The identifier of the descriptor
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: sortBy
+          schema:
+            $ref: "#/components/schemas/DateNameSortBy"
+      responses:
+        "200":
+          description: CSV containing the consumers table of the descriptor being archived
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+          headers:
+            "Content-Disposition":
+              description: Attachment disposition with the CSV filename
+              schema:
+                type: string
             "X-Rate-Limit-Limit":
               $ref: "#/components/headers/RateLimitLimitHeader"
             "X-Rate-Limit-Remaining":
@@ -14292,6 +14664,72 @@ paths:
               schema:
                 $ref: "#/components/schemas/ProducerEServiceMonitoringConsumerPurposes"
           headers:
+            "X-Rate-Limit-Limit":
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            "X-Rate-Limit-Remaining":
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            "X-Rate-Limit-Interval":
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /producers/eservices/{eserviceId}/descriptors/{descriptorId}/monitoring/consumers/{consumerId}/purposes/export:
+    get:
+      tags:
+        - producersDashboard
+      summary: Exports the purposes of a consumer on a descriptor
+      description: |
+        Downloads the complete purposes table for the given consumer on the selected
+        descriptor (D11) as a CSV, without summary data. Preserves only the requested
+        sorting, without search or page filters, pagination or a maximum number of rows.
+        Includes all purpose version states and archived purposes.
+      operationId: exportProducerEServiceMonitoringConsumerPurposes
+      parameters:
+        - name: eserviceId
+          in: path
+          description: The identifier of the e-service
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: The identifier of the descriptor
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: consumerId
+          in: path
+          description: The identifier of the consumer
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: sortBy
+          schema:
+            $ref: "#/components/schemas/DateNameSortBy"
+      responses:
+        "200":
+          description: CSV containing the consumer purposes table
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+          headers:
+            "Content-Disposition":
+              description: Attachment disposition with the CSV filename
+              schema:
+                type: string
             "X-Rate-Limit-Limit":
               $ref: "#/components/headers/RateLimitLimitHeader"
             "X-Rate-Limit-Remaining":
