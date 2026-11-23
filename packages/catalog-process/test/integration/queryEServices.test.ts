@@ -424,9 +424,10 @@ describe("query eservices", () => {
     ].map(unsafeBrandId<EServiceId>);
     const sortedIds = unorderedIds.toSorted();
 
-    const equalEServices = unorderedIds.map((id) =>
-      buildEService("Same name", sameCreatedAt, id)
-    );
+    const equalEServices = unorderedIds.map((id) => ({
+      ...buildEService("Same name", sameCreatedAt, id),
+      description: "Same description",
+    }));
 
     beforeEach(async () => {
       for (const eservice of equalEServices) {
@@ -444,6 +445,17 @@ describe("query eservices", () => {
         expect(pages.flatMap(idsOf)).toEqual(sortedIds);
       }
     );
+
+    it("should paginate equal relevance and creation dates by id", async () => {
+      const pages = await Promise.all(
+        equalEServices.map((_, offset) =>
+          queryEServices("RELEVANCE", offset, 1, "same")
+        )
+      );
+
+      expect(pages.map((page) => page.totalCount)).toEqual([3, 3, 3]);
+      expect(pages.flatMap(idsOf)).toEqual(sortedIds);
+    });
   });
 
   describe("keyword", () => {
@@ -517,6 +529,16 @@ describe("query eservices", () => {
       }
     );
 
+    it.each([undefined, "", " ", "   "])(
+      "should use the default order for relevance without a keyword (%s)",
+      async (keyword) => {
+        const result = await search(keyword, "RELEVANCE");
+
+        expect(result.totalCount).toBe(4);
+        expect(idsOf(result)).toEqual(allEServicesMostRecentFirst);
+      }
+    );
+
     it("should match the keyword on the e-service name", async () => {
       const result = await search("anagrafe");
 
@@ -580,13 +602,24 @@ describe("query eservices", () => {
     });
 
     it("should order the e-services by relevance first: producer name matches before e-service name matches", async () => {
-      const result = await search("milano");
+      const result = await search("milano", "RELEVANCE");
 
       expect(result.totalCount).toBe(3);
       expect(idsOf(result)).toEqual([
         eserviceTributi.id,
         eserviceAnagrafe.id,
         eserviceMilanoServizi.id,
+      ]);
+    });
+
+    it("should use the default order when sortBy is omitted with a keyword", async () => {
+      const result = await search("milano");
+
+      expect(result.totalCount).toBe(3);
+      expect(idsOf(result)).toEqual([
+        eserviceMilanoServizi.id,
+        eserviceTributi.id,
+        eserviceAnagrafe.id,
       ]);
     });
 
@@ -597,9 +630,9 @@ describe("query eservices", () => {
       {
         sortBy: "CREATED_AT_DESC",
         expected: () => [
+          eserviceMilanoServizi.id,
           eserviceTributi.id,
           eserviceAnagrafe.id,
-          eserviceMilanoServizi.id,
         ],
       },
       {
@@ -614,20 +647,20 @@ describe("query eservices", () => {
         sortBy: "NAME_ASC",
         expected: () => [
           eserviceAnagrafe.id,
-          eserviceTributi.id,
           eserviceMilanoServizi.id,
+          eserviceTributi.id,
         ],
       },
       {
         sortBy: "NAME_DESC",
         expected: () => [
           eserviceTributi.id,
-          eserviceAnagrafe.id,
           eserviceMilanoServizi.id,
+          eserviceAnagrafe.id,
         ],
       },
     ])(
-      "should apply sortBy as secondary criterion among e-services with the same relevance (sortBy: $sortBy)",
+      "should apply sortBy before relevance (sortBy: $sortBy)",
       async ({ sortBy, expected }) => {
         const result = await search("milano", sortBy);
 
@@ -637,7 +670,7 @@ describe("query eservices", () => {
 
     it("should keep the relevance order across pages", async () => {
       const pages = await Promise.all(
-        [0, 1, 2].map((offset) => search("milano", undefined, offset, 1))
+        [0, 1, 2].map((offset) => search("milano", "RELEVANCE", offset, 1))
       );
 
       expect(pages.map((page) => page.totalCount)).toEqual([3, 3, 3]);

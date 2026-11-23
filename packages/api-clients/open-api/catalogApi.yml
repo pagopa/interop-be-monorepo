@@ -4068,12 +4068,13 @@ components:
             format: uuid
     EServiceSortBy:
       type: string
-      description: Sort criteria for the e-service query
+      description: Sort criteria for the e-service query; defaults to CREATED_AT_DESC, including RELEVANCE without a non-empty keyword
       enum:
         - NAME_ASC
         - NAME_DESC
         - CREATED_AT_ASC
         - CREATED_AT_DESC
+        - RELEVANCE
     EServiceProducerCategory:
       type: string
       description: Producer entity macro-category, resolved backend-side to certified attribute codes

@@ -179,6 +179,7 @@ const getEServicesOrderBy = (sortBy: EServiceSortBy): SQL[] => [
     .with("NAME_DESC", () => descLower(eserviceInReadmodelCatalog.name))
     .with("CREATED_AT_ASC", () => asc(eserviceInReadmodelCatalog.createdAt))
     .with("CREATED_AT_DESC", () => desc(eserviceInReadmodelCatalog.createdAt))
+    .with("RELEVANCE", () => desc(eserviceInReadmodelCatalog.createdAt))
     .exhaustive(),
   asc(eserviceInReadmodelCatalog.id),
 ];
@@ -968,9 +969,9 @@ export function readModelServiceBuilderSQL(
           await keywordFilter(tx, keyword, baseCondition)
         );
         const orderBy =
-          keyword === undefined
-            ? getEServicesOrderBy(sortBy)
-            : [desc(keywordRelevance(keyword)), ...getEServicesOrderBy(sortBy)];
+          sortBy === "RELEVANCE" && keyword !== undefined
+            ? [desc(keywordRelevance(keyword)), ...getEServicesOrderBy(sortBy)]
+            : getEServicesOrderBy(sortBy);
 
         const [pageIds, totalCount] = await Promise.all([
           tx
