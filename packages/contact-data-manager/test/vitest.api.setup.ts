@@ -54,6 +54,7 @@ export function spyOnLogs(): MockInstance<typeof winston.Logger.prototype.log> {
 }
 
 export const contactService = {
+  getContact: vi.fn<ContactService["getContact"]>(),
   createContact: vi.fn<ContactService["createContact"]>(),
 };
 
