@@ -233,7 +233,7 @@ describe("NewAttributes", async () => {
   it("should return AOO/UO attributes idempotently and suffix names already in the platform", () => {
     const uoWithAooAttributeName =
       "Ufficio per la transizione al Digitale di SCPGI di Scuola Primaria Giovanni Pascoli";
-    const platform = [
+    const platformAttributes = [
       {
         ...getMockAttribute(),
         origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
@@ -248,7 +248,11 @@ describe("NewAttributes", async () => {
       },
     ];
     config.featureFlagAooUoAttributes = true;
-    const result = getNewAttributes(aooUoRegistryData, aooUoSeeds, platform);
+    const result = getNewAttributes(
+      aooUoRegistryData,
+      aooUoSeeds,
+      platformAttributes
+    );
     expect(result.map((a) => a.code)).toEqual(["U001", "U002", "U003"]);
     expect(result[0].name).toBe(`${uoWithAooAttributeName} (U001)`);
   });
@@ -263,7 +267,7 @@ describe("NewAttributes", async () => {
     const lowercaseUoWithAooAttributeName =
       "ufficio per la transizione al digitale di scpgi di scuola primaria giovanni pascoli";
 
-    const platform = [
+    const platformAttributes = [
       {
         ...getMockAttribute(),
         origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
@@ -281,7 +285,7 @@ describe("NewAttributes", async () => {
     const result = getNewAttributes(
       { institutions: aooUoInstitutions, attributes: [] },
       aooUoSeeds,
-      platform
+      platformAttributes
     );
     expect(result.map((a) => [a.code, a.name])).toEqual([
       ["A001", aooAttributeName],

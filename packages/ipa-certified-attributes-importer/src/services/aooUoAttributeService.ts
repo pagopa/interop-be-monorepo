@@ -193,7 +193,7 @@ function getDuplicateAttributeNames(
 // Resolves name collisions for generated AOO/UO attributes, both among themselves
 // and against names already used by attributes in the platform or registry.
 // Conflicting names are suffixed with the institution code (e.g. "Name (code)").
-// If the suffixed name is also taken, the attribute is reported and counted as
+// TODO(WI 11, PIN-11248): If the suffixed name is also taken, the attribute is reported and counted as
 // failed, then omitted from creation.
 function resolveAooUoAttributeNameCollisions(
   attributes: InternalCertifiedAttribute[],
