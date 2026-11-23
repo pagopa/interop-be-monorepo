@@ -121,6 +121,8 @@ export async function handlePurposeDocument(
           "PurposeActivated",
           "PurposeArchived",
           "DraftPurposeUpdated",
+          "PurposeTitleUpdated",
+          "PurposeDescriptionUpdated",
           "PurposeWaitingForApproval",
           "DraftPurposeDeleted",
           "WaitingForApprovalPurposeDeleted",

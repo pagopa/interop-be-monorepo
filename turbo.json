@@ -36,6 +36,42 @@
         "dist/**"
       ]
     },
+    "pagopa-interop-error-messages#build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**",
+        "src/generated/**"
+      ]
+    },
+    "pagopa-interop-error-messages#check": {
+      "dependsOn": [
+        "^build",
+        "^check"
+      ],
+      "outputs": [
+        "src/generated/**"
+      ]
+    },
+    "generate-error-messages": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "src/generated/**"
+      ]
+    },
+    "validate-error-messages": {
+      "dependsOn": [
+        "generate-error-messages"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/packages/backend-for-frontend/src/routers/**"
+      ],
+      "outputs": []
+    },
     "check": {
       "dependsOn": [
         "generate-model",
@@ -85,6 +121,19 @@
       "dependsOn": [
         "build",
         "^lint"
+      ],
+      "outputs": [
+        ".eslintcache"
+      ]
+    },
+    "pagopa-interop-error-messages#lint": {
+      "dependsOn": [
+        "build",
+        "^lint"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/packages/backend-for-frontend/src/routers/**"
       ],
       "outputs": [
         ".eslintcache"

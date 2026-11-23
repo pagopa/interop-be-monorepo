@@ -14,6 +14,7 @@ import {
   eserviceMode,
   generateId,
   tenantKind,
+  eventConflictError,
 } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -74,7 +75,10 @@ describe("API PATCH /purposes/{purposeId} test", () => {
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
@@ -129,7 +133,8 @@ describe("API PATCH /purposes/{purposeId} test", () => {
     },
     { error: missingFreeOfChargeReason(), expectedStatus: 400 },
     { error: riskAnalysisValidationFailed([]), expectedStatus: 400 },
-    { error: purposeNotInDraftState(mockPurpose.id), expectedStatus: 400 },
+    { error: purposeNotInDraftState(mockPurpose.id), expectedStatus: 409 },
+    { error: eventConflictError(generateId()), expectedStatus: 409 },
     {
       error: invalidFreeOfChargeReason(false, "Some reason"),
       expectedStatus: 400,
@@ -180,6 +185,7 @@ describe("API PATCH /purposes/{purposeId} test", () => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token, mockPurpose.id, seed);
       expect(res.status).toBe(400);
+      expect(purposeService.patchUpdatePurpose).not.toHaveBeenCalled();
     }
   );
 });

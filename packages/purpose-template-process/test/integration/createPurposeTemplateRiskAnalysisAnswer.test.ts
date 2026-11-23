@@ -12,6 +12,7 @@ import {
   getMockContext,
   getMockPurposeTemplate,
   getMockValidRiskAnalysisFormTemplate,
+  sortPurposeTemplate,
 } from "pagopa-interop-commons-test";
 import {
   PurposeTemplate,
@@ -100,7 +101,10 @@ describe("createPurposeTemplateRiskAnalysisAnswer", () => {
       annotation: validRiskAnalysisAnswerRequest.answerData.annotation,
     });
 
-    expect(writtenPayload).toEqual({
+    expect({
+      ...writtenPayload,
+      purposeTemplate: sortPurposeTemplate(writtenPayload.purposeTemplate),
+    }).toEqual({
       purposeTemplate: {
         ...toPurposeTemplateV2({
           ...mockPurposeTemplate,
@@ -122,7 +126,8 @@ describe("createPurposeTemplateRiskAnalysisAnswer", () => {
             }),
           ]),
           multiAnswers:
-            mockPurposeTemplate.purposeRiskAnalysisForm!.multiAnswers,
+            sortPurposeTemplate(mockPurposeTemplate).purposeRiskAnalysisForm!
+              .multiAnswers,
         }),
       },
     });

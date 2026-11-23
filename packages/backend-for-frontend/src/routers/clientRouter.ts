@@ -2,12 +2,18 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { bffApi } from "pagopa-interop-api-clients";
 import {
+  authRole,
   ExpressContext,
+  validateAuthorization,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
 
+import {
+  placeholderMapperGenerator,
+  applyPlaceholderToError,
+} from "../model/applyError.js";
 import { makeApiProblem } from "../model/errors.js";
 import { ClientService } from "../services/clientService.js";
 import { fromBffAppContext } from "../utilities/context.js";
@@ -72,6 +78,22 @@ const clientRouter = (
       }
     })
 
+    .patch("/clients/:clientId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [authRole.ADMIN_ROLE]);
+        await clientService.updateClient(req.params.clientId, req.body, ctx);
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error updating client ${req.params.clientId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .delete("/clients/:clientId", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
@@ -142,11 +164,28 @@ const clientRouter = (
 
         return res.status(204).send();
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          emptyErrorMapper,
-          ctx,
-          `Error deleting key ${req.params.keyId} of client ${req.params.clientId}`
+        const errorRes = await applyPlaceholderToError(
+          makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error deleting key ${req.params.keyId} of client ${req.params.clientId}`
+          ),
+          ["{keyName}"],
+          () =>
+            placeholderMapperGenerator(
+              async () =>
+                await clientService.getClientKeyById(
+                  req.params.clientId,
+                  req.params.keyId,
+                  ctx
+                ),
+              (value, message) => message.replace("{keyName}", value.name),
+              (placeholderError) =>
+                ctx.logger.warn(
+                  `Error retrieving client key placeholder data: ${placeholderError}`
+                )
+            )
         );
         return res.status(errorRes.status).send(errorRes);
       }
