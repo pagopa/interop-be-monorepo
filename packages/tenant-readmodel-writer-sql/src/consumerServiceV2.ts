@@ -1,3 +1,4 @@
+import { genericLogger, Logger } from "pagopa-interop-commons";
 import {
   TenantEventEnvelopeV2,
   fromTenantV2,
@@ -10,7 +11,8 @@ import { TenantWriterService } from "./tenantWriterService.js";
 
 export async function handleMessageV2(
   message: TenantEventEnvelopeV2,
-  tenantWriterService: TenantWriterService
+  tenantWriterService: TenantWriterService,
+  logger: Logger = genericLogger
 ): Promise<void> {
   await match(message)
     .with({ type: "MaintenanceTenantDeleted" }, async (message) => {
@@ -53,10 +55,17 @@ export async function handleMessageV2(
           throw missingKafkaMessageDataError("tenant", message.type);
         }
 
-        await tenantWriterService.upsertTenant(
-          fromTenantV2(message.data.tenant),
+        const tenant = fromTenantV2(message.data.tenant);
+        const replacedContactId = await tenantWriterService.upsertTenant(
+          tenant,
           message.version
         );
+        // V2 events carry no contact reference: after a V3 event they drop it.
+        if (replacedContactId !== undefined) {
+          logger.warn(
+            `Tenant ${tenant.id} lost its contact reference ${replacedContactId}: V2 event ${message.type} carries no contact`
+          );
+        }
       }
     )
     .exhaustive();

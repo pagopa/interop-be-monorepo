@@ -14,6 +14,7 @@ import { match } from "ts-pattern";
 import { config } from "./config/config.js";
 import { handleMessageV1 } from "./consumerServiceV1.js";
 import { handleMessageV2 } from "./consumerServiceV2.js";
+import { handleMessageV3 } from "./consumerServiceV3.js";
 import { tenantWriterServiceBuilder } from "./tenantWriterService.js";
 
 const db = makeDrizzleConnection(config);
@@ -41,7 +42,10 @@ async function processMessage({
       handleMessageV1(msg, tenantWriterService)
     )
     .with({ event_version: 2 }, (msg) =>
-      handleMessageV2(msg, tenantWriterService)
+      handleMessageV2(msg, tenantWriterService, loggerInstance)
+    )
+    .with({ event_version: 3 }, (msg) =>
+      handleMessageV3(msg, tenantWriterService)
     )
     .with({ event_version: 3 }, (msg) => {
       throw genericInternalError(

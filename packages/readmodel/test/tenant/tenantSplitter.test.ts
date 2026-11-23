@@ -12,6 +12,7 @@ import {
 import {
   CertifiedDiscreteTenantAttribute,
   CertifiedTenantAttribute,
+  ContactId,
   DeclaredTenantAttribute,
   DelegationId,
   ExternalId,
@@ -129,6 +130,7 @@ describe("Tenant splitters", () => {
         externalId,
         updatedAt: new Date(),
         mails: [tenantMail],
+        contactId: generateId<ContactId>(),
         attributes: [
           tenantCertifiedAttribute,
           tenantCertifiedDiscreteAttribute,
@@ -169,6 +171,7 @@ describe("Tenant splitters", () => {
         externalIdOrigin: externalId.origin,
         externalIdValue: externalId.value,
         selfcareInstitutionType: tenant.selfcareInstitutionType || null,
+        contactId: tenant.contactId!,
       };
 
       const expectedTenantMailSQL: TenantMailSQL = {
@@ -410,6 +413,7 @@ describe("Tenant splitters", () => {
         externalIdOrigin: externalId.origin,
         externalIdValue: externalId.value,
         selfcareInstitutionType: tenant.selfcareInstitutionType || null,
+        contactId: null,
       };
 
       const expectedTenantMailSQL: TenantMailSQL = {
