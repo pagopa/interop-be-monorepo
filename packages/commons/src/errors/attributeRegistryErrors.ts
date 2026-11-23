@@ -6,4 +6,5 @@ export const attributeRegistryErrorCodes = {
   tenantIsNotACertifier: "0005",
   attributeSubunitPropagationSelectionNotValid: "0006",
   attributeNotEligibleForSubunitPropagation: "0007",
+  manualSubunitPropagationUpdateDisabled: "0008",
 };

@@ -77,6 +77,15 @@ export function attributeSubunitPropagationSelectionNotValid(): ApiError<ErrorCo
   });
 }
 
+export function manualSubunitPropagationUpdateDisabled(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail:
+      "Manual update of subunit propagation is disabled because propagation to subunits is forced",
+    code: "manualSubunitPropagationUpdateDisabled",
+    title: "Manual subunit propagation update disabled",
+  });
+}
+
 export function attributeNotEligibleForSubunitPropagation(
   attributeId: AttributeId,
   tenantId: TenantId

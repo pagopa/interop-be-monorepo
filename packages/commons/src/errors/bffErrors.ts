@@ -50,4 +50,5 @@ export const bffErrorCodes = {
   noVersionInEServiceTemplate: "0049",
   delegationContractNotFound: "0050",
   clientNotFound: "0051",
+  manualSubunitPropagationUpdateDisabled: "0052",
 };
