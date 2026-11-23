@@ -1,7 +1,12 @@
-import { ContactDataDBConfig } from "pagopa-interop-commons";
+import {
+  ContactDataDBConfig,
+  ReadModelSQLDbConfig,
+} from "pagopa-interop-commons";
 import { z } from "zod";
 
 export const ContactDataCleanerConfig = ContactDataDBConfig.and(
+  ReadModelSQLDbConfig
+).and(
   z
     .object({
       // The job must not run without a validated period. At most one week:

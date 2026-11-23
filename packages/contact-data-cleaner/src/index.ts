@@ -1,10 +1,11 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { logger } from "pagopa-interop-commons";
+import { makeDrizzleConnectionWithCleanup } from "pagopa-interop-readmodel";
 import pg from "pg";
 
 import { config } from "./config/config.js";
 import { runContactDataCleaner } from "./contactDataCleaner.js";
-import { contactReferenceChecker } from "./contactReferenceChecker.js";
+import { tenantReadmodelReferenceCheckerBuilder } from "./tenantReadmodelReferenceChecker.js";
 import { describeError } from "./utilities/errors.js";
 
 const loggerInstance = logger({ serviceName: "contact-data-cleaner" });
@@ -18,6 +19,9 @@ const pool = new pg.Pool({
   ssl: config.contactDataDBUseSSL ? { rejectUnauthorized: false } : undefined,
 });
 
+const { db: readmodelDB, cleanup: closeReadmodelDB } =
+  makeDrizzleConnectionWithCleanup(config);
+
 try {
   const { failedContacts } = await runContactDataCleaner({
     db: drizzle({ client: pool }),
@@ -26,7 +30,7 @@ try {
     now: new Date(),
     pageSize: config.contactScanPageSize,
     protectionPeriodHours: config.contactProtectionPeriodHours,
-    referenceChecker: contactReferenceChecker,
+    referenceChecker: tenantReadmodelReferenceCheckerBuilder(readmodelDB),
   });
   // Failed contacts are retried by the next run; report this run as failed.
   if (failedContacts > 0) {
@@ -36,5 +40,5 @@ try {
   loggerInstance.error(`Contact data cleaner failed: ${describeError(error)}`);
   process.exitCode = 1;
 } finally {
-  await pool.end();
+  await Promise.all([pool.end(), closeReadmodelDB()]);
 }

@@ -16,6 +16,8 @@ COPY ./packages/contact-data-cleaner/package.json /app/packages/contact-data-cle
 COPY ./packages/commons/package.json /app/packages/commons/package.json
 COPY ./packages/models/package.json /app/packages/models/package.json
 COPY ./packages/contact-data-db-models/package.json /app/packages/contact-data-db-models/package.json
+COPY ./packages/readmodel/package.json /app/packages/readmodel/package.json
+COPY ./packages/readmodel-models/package.json /app/packages/readmodel-models/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
@@ -25,6 +27,8 @@ COPY ./packages/contact-data-cleaner /app/packages/contact-data-cleaner
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
 COPY ./packages/contact-data-db-models /app/packages/contact-data-db-models
+COPY ./packages/readmodel /app/packages/readmodel
+COPY ./packages/readmodel-models /app/packages/readmodel-models
 
 ARG NODE_HEAP_SIZE=4096
 RUN NODE_OPTIONS="--max-old-space-size=${NODE_HEAP_SIZE}" pnpm build && \
@@ -37,6 +41,8 @@ RUN NODE_OPTIONS="--max-old-space-size=${NODE_HEAP_SIZE}" pnpm build && \
   packages/commons \
   packages/models \
   packages/contact-data-db-models \
+  packages/readmodel \
+  packages/readmodel-models \
   packages/contact-data-cleaner/dist && \
   find /out -exec touch -h --date=@0 {} \;
 

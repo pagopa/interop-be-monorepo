@@ -30,6 +30,8 @@
     "drizzle-orm": "catalog:",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-contact-data-db-models": "workspace:*",
+    "pagopa-interop-readmodel": "workspace:*",
+    "pagopa-interop-readmodel-models": "workspace:*",
     "pg": "catalog:",
     "zod": "catalog:"
   }

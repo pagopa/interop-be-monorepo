@@ -10,11 +10,14 @@ import {
 } from "../src/contactDataCleaner.js";
 import { ContactReferenceChecker } from "../src/contactReferenceChecker.js";
 import { getProtectionCutoff } from "../src/contactScanner.js";
+import { tenantReadmodelReferenceCheckerBuilder } from "../src/tenantReadmodelReferenceChecker.js";
 import {
   addContacts,
   addMilliseconds,
+  addTenant,
   db,
   getContactIds,
+  readmodelDB,
   TEST_EMAIL_DOMAIN,
 } from "./utils.js";
 
@@ -37,7 +40,7 @@ const referenceCheckerFor = (
 });
 
 const runCleaner = (
-  referenceChecker: ContactReferenceChecker | undefined,
+  referenceChecker: ContactReferenceChecker,
   { deletionEnabled = true, pageSize = 10 } = {}
 ): Promise<ContactDataCleanerResult> =>
   runContactDataCleaner({
@@ -137,31 +140,6 @@ describe("runContactDataCleaner", () => {
     expect(error).toHaveBeenCalledWith(
       "Preserving 2 contacts whose references could not be verified: readmodel unavailable"
     );
-  });
-
-  it("skips the run without reading the contacts while references cannot be verified, then deletes the orphans in a later run", async () => {
-    await addContactsPastProtection(2);
-    const select = vi.spyOn(db, "select");
-    const warn = vi.spyOn(loggerInstance, "warn");
-
-    const skippedRun = await runCleaner(undefined);
-
-    expect(skippedRun).toEqual({
-      cutoff,
-      scannedContacts: 0,
-      verifiedContacts: 0,
-      orphanContacts: 0,
-      deletedContacts: 0,
-      failedContacts: 0,
-    });
-    expect(select).not.toHaveBeenCalled();
-    expect(warn).toHaveBeenCalledOnce();
-    expect(await getContactIds()).toHaveLength(2);
-
-    const laterRun = await runCleaner(referenceCheckerFor([]));
-
-    expect(laterRun).toMatchObject({ deletedContacts: 2, failedContacts: 0 });
-    expect(await getContactIds()).toEqual([]);
   });
 
   it("preserves the orphans whose deletion fails, logging only the cause", async () => {
@@ -272,12 +250,84 @@ describe("runContactDataCleaner", () => {
         Promise.reject(new Error("readmodel unavailable")),
     };
 
-    await runCleaner(undefined);
     await runCleaner(unavailableReferenceChecker, { pageSize: 2 });
     await runCleaner(referenceCheckerFor([]));
 
     expect(JSON.stringify(logs.map((log) => log.mock.calls))).not.toContain(
       TEST_EMAIL_DOMAIN
     );
+  });
+});
+
+describe("runContactDataCleaner with the tenant readmodel", () => {
+  const tenantReadmodelReferenceChecker =
+    tenantReadmodelReferenceCheckerBuilder(readmodelDB);
+
+  it("deletes only the contacts that no tenant references", async () => {
+    const [referencedId] = await addContactsPastProtection(2);
+    await addTenant(referencedId);
+    await addTenant();
+
+    const result = await runCleaner(tenantReadmodelReferenceChecker);
+
+    expect(result).toMatchObject({
+      verifiedContacts: 2,
+      orphanContacts: 1,
+      deletedContacts: 1,
+      failedContacts: 0,
+    });
+    expect(await getContactIds()).toEqual([referencedId]);
+  });
+
+  it("preserves a contact associated with a tenant while the run is in progress", async () => {
+    const [associatedId] = await addContactsPastProtection(2);
+    await addTenant();
+    // The association reaches the readmodel after the contacts are read and
+    // before their references are verified.
+    const referenceChecker: ContactReferenceChecker = {
+      findReferencedContactIds: async (ids) => {
+        await addTenant(associatedId);
+        return tenantReadmodelReferenceChecker.findReferencedContactIds(ids);
+      },
+    };
+
+    const result = await runCleaner(referenceChecker);
+
+    expect(result).toMatchObject({
+      orphanContacts: 1,
+      deletedContacts: 1,
+      failedContacts: 0,
+    });
+    expect(await getContactIds()).toEqual([associatedId]);
+  });
+
+  it("preserves every contact while the tenant readmodel is empty, then deletes the orphans in a later run", async () => {
+    const [referencedId, ...orphanIds] = await addContactsPastProtection(3);
+    const error = vi.spyOn(loggerInstance, "error");
+
+    const emptyReadmodelRun = await runCleaner(
+      tenantReadmodelReferenceChecker,
+      { pageSize: 2 }
+    );
+
+    expect(emptyReadmodelRun).toMatchObject({
+      scannedContacts: 3,
+      verifiedContacts: 0,
+      orphanContacts: 0,
+      deletedContacts: 0,
+      failedContacts: 3,
+    });
+    expect(new Set(await getContactIds())).toEqual(
+      new Set([referencedId, ...orphanIds])
+    );
+    expect(error).toHaveBeenCalledWith(
+      "Preserving 2 contacts whose references could not be verified: Tenant readmodel is empty: contact references cannot be verified"
+    );
+
+    await addTenant(referencedId);
+    const laterRun = await runCleaner(tenantReadmodelReferenceChecker);
+
+    expect(laterRun).toMatchObject({ deletedContacts: 2, failedContacts: 0 });
+    expect(await getContactIds()).toEqual([referencedId]);
   });
 });
