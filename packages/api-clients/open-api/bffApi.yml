@@ -5661,6 +5661,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
       requestBody:
         content:
           application/json:
@@ -8621,6 +8623,13 @@ paths:
           in: query
           description: Agreement id related to the Verified attribute revocation
           required: true
+          schema:
+            type: string
+            format: uuid
+        - name: delegationId
+          in: query
+          description: The ID of the producer Delegation
+          required: false
           schema:
             type: string
             format: uuid
@@ -18132,6 +18141,9 @@ components:
           type: string
           format: uuid
         agreementId:
+          type: string
+          format: uuid
+        delegationId:
           type: string
           format: uuid
         expirationDate:
