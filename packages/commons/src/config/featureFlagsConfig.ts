@@ -248,6 +248,22 @@ export type FeatureFlagAooUoAttributesConfig = z.infer<
   typeof FeatureFlagAooUoAttributesConfig
 >;
 
+export const FeatureFlagAooUoAttributesForcedPropagationConfig = z
+  .object({
+    FEATURE_FLAG_AOO_UO_ATTRIBUTES_FORCED_PROPAGATION: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagAooUoAttributesForcedPropagation:
+      c.FEATURE_FLAG_AOO_UO_ATTRIBUTES_FORCED_PROPAGATION ?? false,
+  }));
+export type FeatureFlagAooUoAttributesForcedPropagationConfig = z.infer<
+  typeof FeatureFlagAooUoAttributesForcedPropagationConfig
+>;
+
 type FeatureFlags = FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagApplicationAuditStrictConfig &
   FeatureFlagImprovedProducerVerificationClaimsConfig &
@@ -262,7 +278,8 @@ type FeatureFlags = FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagAttributeCertifiedDiscreteConfig &
   FeatureFlagTenantKindInRiskAnalysisConfig &
   FeatureFlagNewOperatorsConfig &
-  FeatureFlagAooUoAttributesConfig;
+  FeatureFlagAooUoAttributesConfig &
+  FeatureFlagAooUoAttributesForcedPropagationConfig;
 
 export type FeatureFlagKeys = keyof FeatureFlags & `featureFlag${string}`;
 
