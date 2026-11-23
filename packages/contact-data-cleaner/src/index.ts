@@ -4,8 +4,6 @@ import pg from "pg";
 
 import { config } from "./config/config.js";
 import { runContactDataCleaner } from "./contactDataCleaner.js";
-import { contactReferenceChecker } from "./contactReferenceChecker.js";
-import { describeError } from "./utilities/errors.js";
 
 const loggerInstance = logger({ serviceName: "contact-data-cleaner" });
 
@@ -19,21 +17,19 @@ const pool = new pg.Pool({
 });
 
 try {
-  const { failedContacts } = await runContactDataCleaner({
+  await runContactDataCleaner({
     db: drizzle({ client: pool }),
-    deletionEnabled: config.contactDeletionEnabled,
     logger: loggerInstance,
     now: new Date(),
     pageSize: config.contactScanPageSize,
     protectionPeriodHours: config.contactProtectionPeriodHours,
-    referenceChecker: contactReferenceChecker,
   });
-  // Failed contacts are retried by the next run; report this run as failed.
-  if (failedContacts > 0) {
-    process.exitCode = 1;
-  }
 } catch (error) {
-  loggerInstance.error(`Contact data cleaner failed: ${describeError(error)}`);
+  loggerInstance.error(
+    `Contact data cleaner failed: ${
+      error instanceof Error ? error.message : String(error)
+    }`
+  );
   process.exitCode = 1;
 } finally {
   await pool.end();

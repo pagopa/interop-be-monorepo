@@ -39,8 +39,5 @@ export const addContacts = async (
   return contacts.map(({ id }) => id);
 };
 
-export const getContactIds = async (): Promise<Array<ContactDB["id"]>> =>
-  (await db.select({ id: contact.id }).from(contact)).map(({ id }) => id);
-
 export const addMilliseconds = (date: Date, milliseconds: number): Date =>
   new Date(date.getTime() + milliseconds);
