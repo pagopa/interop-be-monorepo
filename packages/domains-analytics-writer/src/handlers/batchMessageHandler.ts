@@ -23,6 +23,8 @@ import {
   DelegationEvent,
   EServiceTemplateEventEnvelopeV2,
   EServiceTemplateEvent,
+  PurposeTemplateEventEnvelope,
+  PurposeTemplateEvent,
   genericInternalError,
   AttributeEventEnvelope,
 } from "pagopa-interop-models";
@@ -39,6 +41,7 @@ import { handleCatalogMessageV1 } from "./catalog/consumerServiceV1.js";
 import { handleCatalogMessageV2 } from "./catalog/consumerServiceV2.js";
 import { handleDelegationMessageV2 } from "./delegation/consumerServiceV2.js";
 import { handleEserviceTemplateMessageV2 } from "./eservice-template/consumerServiceV2.js";
+import { handlePurposeTemplateMessageV2 } from "./purpose-template/consumerServiceV2.js";
 import { handlePurposeMessageV1 } from "./purpose/consumerServiceV1.js";
 import { handlePurposeMessageV2 } from "./purpose/consumerServiceV2.js";
 import { handleTenantMessageV1 } from "./tenant/consumerServiceV1.js";
@@ -194,6 +197,20 @@ export async function executeTopicHandler(
       }
       if (templateV2.length > 0) {
         await handleEserviceTemplateMessageV2(templateV2, dbContext);
+      }
+    })
+    .with(config.purposeTemplateTopic, async () => {
+      const purposeTemplateV2: PurposeTemplateEventEnvelope[] = [];
+      const decodedMessages = kafkaMessages.map((message) =>
+        decodeKafkaMessage(message, PurposeTemplateEvent)
+      );
+      for (const decoded of decodedMessages) {
+        match(decoded)
+          .with({ event_version: 2 }, (msg) => purposeTemplateV2.push(msg))
+          .exhaustive();
+      }
+      if (purposeTemplateV2.length > 0) {
+        await handlePurposeTemplateMessageV2(purposeTemplateV2, dbContext);
       }
     })
     .otherwise(() => {
