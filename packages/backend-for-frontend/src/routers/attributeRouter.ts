@@ -11,6 +11,7 @@ import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { AttributeService } from "../services/attributeService.js";
 import { fromBffAppContext } from "../utilities/context.js";
+import { updateAttributesSubunitPropagationErrorMapper } from "../utilities/errorMappers.js";
 
 const attributeRouter = (
   ctx: ZodiosContext,
@@ -155,7 +156,7 @@ const attributeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          updateAttributesSubunitPropagationErrorMapper,
           ctx,
           `Error updating subunit propagation of certified attributes ${req.body.attributeIds}`
         );

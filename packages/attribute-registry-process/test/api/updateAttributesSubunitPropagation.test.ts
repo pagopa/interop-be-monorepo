@@ -9,6 +9,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   attributeNotEligibleForSubunitPropagation,
   attributeSubunitPropagationSelectionNotValid,
+  manualSubunitPropagationUpdateDisabled,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
 import { api, attributeRegistryService } from "../vitest.api.setup.js";
@@ -77,6 +78,7 @@ describe("API POST /attributes/subunitPropagation/update", () => {
       expectedStatus: 400,
     },
     { error: tenantNotFound(generateId<TenantId>()), expectedStatus: 404 },
+    { error: manualSubunitPropagationUpdateDisabled(), expectedStatus: 403 },
   ])(
     "Should return $expectedStatus if the service throws $error.code",
     async ({ error, expectedStatus }) => {

@@ -7,6 +7,7 @@ import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { config } from "../../../src/config/config.js";
 import { api, clients } from "../../vitest.api.setup.js";
 
 describe("API POST /attributes/subunitPropagation/update", () => {
@@ -33,6 +34,19 @@ describe("API POST /attributes/subunitPropagation/update", () => {
     expect(
       clients.attributeProcessClient.updateAttributesSubunitPropagation
     ).toHaveBeenCalledWith(seed, expect.anything());
+  });
+
+  it("Should return 403 and not call the process if the forced propagation feature flag is enabled", async () => {
+    config.featureFlagAooUoAttributesForcedPropagation = true;
+    try {
+      const res = await makeRequest(generateToken(authRole.ADMIN_ROLE));
+      expect(res.status).toBe(403);
+    } finally {
+      config.featureFlagAooUoAttributesForcedPropagation = false;
+    }
+    expect(
+      clients.attributeProcessClient.updateAttributesSubunitPropagation
+    ).not.toHaveBeenCalled();
   });
 
   it.each([

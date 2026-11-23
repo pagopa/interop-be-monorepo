@@ -17,9 +17,11 @@ import {
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 
+import { config } from "../../src/config/config.js";
 import {
   attributeNotEligibleForSubunitPropagation,
   attributeSubunitPropagationSelectionNotValid,
+  manualSubunitPropagationUpdateDisabled,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
 import {
@@ -169,6 +171,27 @@ describe("updateAttributesSubunitPropagation", () => {
         subunit.id
       )
     );
+  });
+
+  it("should throw manualSubunitPropagationUpdateDisabled and write no event if the forced propagation feature flag is enabled", async () => {
+    const eligibleAttribute = getEligibleAttribute();
+    await addOneTenant(tenant);
+    await addOneAttribute(eligibleAttribute);
+
+    config.featureFlagAooUoAttributesForcedPropagation = true;
+    try {
+      await expect(
+        attributeRegistryService.updateAttributesSubunitPropagation(
+          { attributeIds: [eligibleAttribute.id] },
+          ctx
+        )
+      ).rejects.toThrowError(manualSubunitPropagationUpdateDisabled());
+    } finally {
+      config.featureFlagAooUoAttributesForcedPropagation = false;
+    }
+
+    const event = await readLastAttributeEvent(eligibleAttribute.id);
+    expect(event.version).toBe("0");
   });
 
   it("should throw tenantNotFound if the requester tenant does not exist", async () => {

@@ -10,6 +10,7 @@ import {
   M2MAdminAuthData,
   retrieveOriginFromAuthData,
   validateNoHyperlinksSafe,
+  isFeatureFlagEnabled,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -36,6 +37,7 @@ import {
   attributeDuplicateByCodeOriginOrName,
   attributeSubunitPropagationSelectionNotValid,
   attributeNotEligibleForSubunitPropagation,
+  manualSubunitPropagationUpdateDisabled,
 } from "../model/domain/errors.js";
 import {
   toCreateEventAttributeAdded,
@@ -499,6 +501,15 @@ export function attributeRegistryServiceBuilder(
       logger.info(
         `Updating subunit propagation of certified attributes of tenant ${authData.organizationId}, selected attributes: ${attributeIds}`
       );
+
+      if (
+        isFeatureFlagEnabled(
+          config,
+          "featureFlagAooUoAttributesForcedPropagation"
+        )
+      ) {
+        throw manualSubunitPropagationUpdateDisabled();
+      }
 
       if (attributeIds.length > 1) {
         throw attributeSubunitPropagationSelectionNotValid();
