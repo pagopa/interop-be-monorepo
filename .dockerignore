@@ -20,3 +20,10 @@
 **/kubernetes
 **/test
 Dockerfile
+
+# Development runtime image includes its bootstrap only. Application sources
+# are mounted from the checkout at runtime.
+!docker/
+docker/**
+!docker/dev-dashboard/
+!docker/dev-dashboard/**

@@ -72,6 +72,32 @@ describe("API POST /templates/:templateId/name/update", () => {
     expect(res.status).toBe(403);
   });
 
+  it.each([5, 45])("Should accept a name of %s characters", async (length) => {
+    const seed = { name: "a".repeat(length) };
+    const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), seed);
+    expect(res.status).toBe(200);
+    expect(
+      eserviceTemplateService.updateEServiceTemplateName
+    ).toHaveBeenCalledWith(
+      mockEserviceTemplate.id,
+      seed.name,
+      expect.anything()
+    );
+  });
+
+  it.each([4, 46, 60])(
+    "Should reject a name of %s characters",
+    async (length) => {
+      const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), {
+        name: "a".repeat(length),
+      });
+      expect(res.status).toBe(400);
+      expect(
+        eserviceTemplateService.updateEServiceTemplateName
+      ).not.toHaveBeenCalled();
+    }
+  );
+
   it.each([
     {
       templateId: mockEserviceTemplate.id,
