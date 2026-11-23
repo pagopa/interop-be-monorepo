@@ -4,7 +4,6 @@ import { logger, decodeKafkaMessage } from "pagopa-interop-commons";
 import {
   CorrelationId,
   generateId,
-  genericInternalError,
   TenantEvent,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -47,11 +46,6 @@ async function processMessage({
     .with({ event_version: 3 }, (msg) =>
       handleMessageV3(msg, tenantWriterService)
     )
-    .with({ event_version: 3 }, (msg) => {
-      throw genericInternalError(
-        `Tenant event V3 not supported yet: ${msg.type}`
-      );
-    })
     .exhaustive();
   loggerInstance.info(
     `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
