@@ -9,9 +9,13 @@ import { makeApiProblem } from "../model/errors.js";
 
 // Validation errors may include fragments of the request.
 export const contactValidationErrorToApiProblem: typeof zodiosValidationErrorToApiProblem =
-  (_error, req, res, _next) => {
+  (error, req, res, _next) => {
     const problem = makeApiProblem(
-      badRequestError("Invalid request body"),
+      badRequestError(
+        error.context === "path.contactId"
+          ? "Invalid contact ID"
+          : "Invalid request body"
+      ),
       () => 400,
       fromAppContext(req.ctx)
     );
