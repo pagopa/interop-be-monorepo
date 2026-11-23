@@ -2143,26 +2143,6 @@ describe("query eservices", () => {
         }
       );
 
-      it("should return the single e-services with requesterDelegationRoles", async () => {
-        for (const eservice of visibleEServices) {
-          await addOneDelegation(
-            getMockDelegation({
-              kind: delegationKind.delegatedProducer,
-              state: delegationState.active,
-              eserviceId: eservice.id,
-              delegateId: requesterId,
-            })
-          );
-        }
-
-        expectSingleEServices(
-          await groupedEServices(
-            { requesterDelegationRoles: ["DELEGATE"] },
-            requesterContext
-          )
-        );
-      });
-
       it("should return the single e-services with producerCategories", async () => {
         const attributeComune: Attribute = {
           ...getMockAttribute(),

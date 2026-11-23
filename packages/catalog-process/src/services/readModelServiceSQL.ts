@@ -236,7 +236,6 @@ const isTemplateGroupingCompatible = ({
   subscribedByRequester,
   hasLinkedPurposeTemplates,
   onlySignalHubEnabled,
-  requesterDelegationRoles,
   producersIds,
   producerCategories,
   templateId,
@@ -246,7 +245,6 @@ const isTemplateGroupingCompatible = ({
   | "subscribedByRequester"
   | "hasLinkedPurposeTemplates"
   | "onlySignalHubEnabled"
-  | "requesterDelegationRoles"
   | "producersIds"
   | "producerCategories"
   | "templateId"
@@ -255,7 +253,6 @@ const isTemplateGroupingCompatible = ({
   subscribedByRequester === undefined &&
   !hasLinkedPurposeTemplates &&
   onlySignalHubEnabled === undefined &&
-  requesterDelegationRoles.length === 0 &&
   producersIds.length === 0 &&
   producerCategories.length === 0 &&
   templateId === undefined;
@@ -1132,7 +1129,6 @@ export function readModelServiceBuilderSQL(
             subscribedByRequester,
             hasLinkedPurposeTemplates,
             onlySignalHubEnabled,
-            requesterDelegationRoles,
             producersIds,
             producerCategories,
             templateId,
