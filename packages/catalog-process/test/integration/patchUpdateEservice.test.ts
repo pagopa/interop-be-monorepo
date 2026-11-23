@@ -36,7 +36,7 @@ import {
 } from "pagopa-interop-models";
 import { upsertEService } from "pagopa-interop-readmodel/testUtils";
 import { match } from "ts-pattern";
-import { vi, expect, describe, it } from "vitest";
+import { afterEach, vi, expect, describe, it } from "vitest";
 
 import { config } from "../../src/config/config.js";
 import {
@@ -113,6 +113,10 @@ describe("patch update eService", () => {
     isSignalHubEnabled: false,
   };
   const mockDocument = getMockDocument();
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
 
   it.each([userRole.ADMIN_ROLE, userRole.API_ROLE])(
     "should atomically update metadata with UI role %s",
@@ -1095,34 +1099,51 @@ describe("patch update eService", () => {
     });
   });
 
-  it("should not persist an update when interface deletion fails", async () => {
+  it("should persist an update even when interface deletion fails", async () => {
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.draft,
+      interface: mockDocument,
+    };
     const eservice: EService = {
       ...mockEService,
       technology: "Rest",
-      descriptors: [
-        {
-          ...getMockDescriptor(),
-          state: descriptorState.draft,
-          interface: mockDocument,
-        },
-      ],
+      descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    const deletionError = new Error("Interface deletion failed");
     const deleteSpy = vi
       .spyOn(fileManager, "delete")
-      .mockRejectedValueOnce(deletionError);
+      .mockRejectedValueOnce(new Error("Interface deletion failed"));
+    const name = "Updated name";
 
-    await expect(
-      catalogService.patchUpdateEService(
-        eservice.id,
-        { name: "Updated name", technology: "SOAP" },
-        getMockContextM2MAdmin({ organizationId: eservice.producerId })
-      )
-    ).rejects.toThrow(deletionError);
+    const response = await catalogService.patchUpdateEService(
+      eservice.id,
+      { name, technology: "SOAP" },
+      getMockContextM2MAdmin({ organizationId: eservice.producerId })
+    );
 
-    expect(await readPatchEvents(eservice.id)).toEqual([]);
-    deleteSpy.mockRestore();
+    const expectedEService: EService = {
+      ...eservice,
+      name,
+      technology: "Soap",
+      descriptors: [{ ...descriptor, interface: undefined, serverUrls: [] }],
+    };
+    expect(response).toEqual({
+      data: expectedEService,
+      metadata: { version: 1 },
+    });
+    const events = await readPatchEvents(eservice.id);
+    expect(events).toMatchObject([
+      { type: "DraftEServiceUpdated", version: "1" },
+    ]);
+    expect(events.map(decodeEServicePatchEvent)).toEqual([
+      toEServiceV2(expectedEService),
+    ]);
+    expect(deleteSpy).toHaveBeenCalledWith(
+      config.s3Bucket,
+      mockDocument.path,
+      genericLogger
+    );
   });
 
   it("should write on event-store for the update of an e-service (delegate)", async () => {

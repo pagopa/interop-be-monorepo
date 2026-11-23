@@ -1,7 +1,6 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
 import {
-  fileManagerCopyError,
   fileManagerGetError,
   genericLogger,
   streamToString,
@@ -241,23 +240,21 @@ describe("FileManager tests", async () => {
     });
 
     it("should fail if the file to copy does not exist", async () => {
+      const missingPath = "test/test/missing";
       await expect(
         fileManager.copy(
           s3Bucket,
-          "test/test/test",
+          missingPath,
           "test",
           "test",
           "testCopy",
           genericLogger
         )
-      ).rejects.toThrowError(
-        fileManagerCopyError(
-          "test/test/test",
-          "test/test/testCopy",
-          s3Bucket,
-          new Error("The specified key does not exist.")
-        )
-      );
+      ).rejects.toMatchObject({
+        code: "fileManagerCopyError",
+        detail: `Error copying file ${missingPath} to test/test/testCopy in bucket ${s3Bucket}: The specified key does not exist.`,
+        cause: { name: "NoSuchKey" },
+      });
     });
   });
 });
