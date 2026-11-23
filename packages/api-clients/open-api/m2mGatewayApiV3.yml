@@ -4,7 +4,7 @@ info:
   description: PDND Interoperability API for machine-to-machine interaction with
     interoperability features
   x-summary: PDND Interoperability API
-  version: "3.2.2"
+  version: "3.3.0"
   contact:
     name: API Support
     url: "https://github.com/pagopa/pdnd-interop-frontend/issues"
@@ -1928,6 +1928,48 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+    patch:
+      tags:
+        - clients
+      summary: Partially update a Consumer Client
+      description: Partially update a Consumer Client by its ID
+      operationId: updateClient
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: "#/components/schemas/ClientUpdateSeed"
+      responses:
+        "200":
+          description: Consumer Client updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /clients/{clientId}/purposes:
     parameters:
       - name: clientId
@@ -2378,6 +2420,48 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    patch:
+      tags:
+        - producerKeychains
+      summary: Partially update a Producer Keychain
+      description: Partially update a Producer Keychain by its ID
+      operationId: updateProducerKeychain
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: "#/components/schemas/ProducerKeychainUpdateSeed"
+      responses:
+        "200":
+          description: Producer Keychain updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProducerKeychain"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /producerKeychains/{keychainId}/eservices:
@@ -6038,10 +6122,8 @@ paths:
     patch:
       tags:
         - eserviceTemplates
-      summary: Update a Draft E-Service Template
-      description: |
-        Update an E-Service Template in Draft state.
-        The E-Service Template must have a single version, and that version must be in Draft state.
+      summary: Partially update an E-Service Template
+      description: Partially update an E-Service Template
       operationId: updateDraftEServiceTemplate
       requestBody:
         content:
@@ -6051,7 +6133,7 @@ paths:
         required: true
       responses:
         "200":
-          description: Draft E-Service Template updated
+          description: E-Service Template updated
           content:
             application/json:
               schema:
@@ -8333,10 +8415,8 @@ paths:
     patch:
       tags:
         - purposes
-      summary: Update a Draft Purpose
-      description: |
-        Update a Purpose in Draft state.
-        The Purpose must have a single version, and that version must be in Draft state.
+      summary: Partially update a Purpose
+      description: Partially update a Purpose
       operationId: updateDraftPurpose
       requestBody:
         content:
@@ -8755,6 +8835,57 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /purposes/{purposeId}/reject:
+    parameters:
+      - name: purposeId
+        description: The ID of the Purpose to reject
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/PurposeId"
+    post:
+      tags:
+        - purposes
+      summary: Reject a Purpose in Waiting for Approval state
+      description: Reject the latest version of a Purpose that is in Waiting for
+        Approval state, transitioning it to Rejected state
+      operationId: rejectPurpose
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PurposeRejection"
+        required: true
+      responses:
+        "200":
+          description: Purpose rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /purposes/{purposeId}/suspend:
     parameters:
       - name: purposeId
@@ -8909,10 +9040,8 @@ paths:
     patch:
       tags:
         - purposes
-      summary: Update a Draft reverse Purpose
-      description: |
-        Update a Purpose in Draft state for an E-Service in receive mode.
-        The Purpose must have a single version, and that version must be in Draft state.
+      summary: Partially update a reverse Purpose
+      description: Partially update a Purpose for an E-Service in receive mode
       operationId: updateDraftReversePurpose
       requestBody:
         content:
@@ -9755,6 +9884,13 @@ paths:
           schema:
             type: string
             format: uuid
+        - in: query
+          required: false
+          name: delegationId
+          description: The ID of the producer Delegation
+          schema:
+            type: string
+            format: uuid
       responses:
         "200":
           description: Verified Attribute revoked
@@ -10066,8 +10202,8 @@ paths:
     patch:
       tags:
         - purposeTemplates
-      summary: Update a Draft Purpose Template
-      description: Update a Purpose Template in Draft state
+      summary: Partially update a Purpose Template
+      description: Partially update a Purpose Template
       operationId: updateDraftPurposeTemplate
       requestBody:
         content:
@@ -10077,7 +10213,7 @@ paths:
         required: true
       responses:
         "200":
-          description: Draft Purpose Template updated
+          description: Purpose Template updated
           content:
             application/json:
               schema:
@@ -10102,7 +10238,7 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
         "409":
-          description: Name Conflict
+          description: Name or state conflict
           content:
             application/problem+json:
               schema:
@@ -12491,6 +12627,8 @@ components:
           enum:
             - CLIENT_ADDED
             - CLIENT_DELETED
+            - CLIENT_NAME_UPDATED
+            - CLIENT_DESCRIPTION_UPDATED
             - CLIENT_PURPOSE_ADDED
             - CLIENT_PURPOSE_REMOVED
         eventTimestamp:
@@ -12560,6 +12698,8 @@ components:
           enum:
             - PRODUCER_KEYCHAIN_ADDED
             - PRODUCER_KEYCHAIN_DELETED
+            - PRODUCER_KEYCHAIN_NAME_UPDATED
+            - PRODUCER_KEYCHAIN_DESCRIPTION_UPDATED
             - PRODUCER_KEYCHAIN_ESERVICE_ADDED
             - PRODUCER_KEYCHAIN_ESERVICE_REMOVED
         eventTimestamp:
@@ -12667,6 +12807,9 @@ components:
             - PURPOSE_TEMPLATE_ANNOTATION_DOCUMENT_DELETED
             - PURPOSE_TEMPLATE_ANNOTATION_DOCUMENT_UPDATED
             - PURPOSE_TEMPLATE_DRAFT_UPDATED
+            - PURPOSE_TEMPLATE_PURPOSE_TITLE_UPDATED
+            - PURPOSE_TEMPLATE_PURPOSE_DESCRIPTION_UPDATED
+            - PURPOSE_TEMPLATE_TARGET_DESCRIPTION_UPDATED
             - PURPOSE_TEMPLATE_DRAFT_DELETED
             - PURPOSE_TEMPLATE_PUBLISHED
             - PURPOSE_TEMPLATE_SUSPENDED
@@ -13508,6 +13651,35 @@ components:
           $ref: "#/components/schemas/PurposeId"
       required:
         - purposeId
+    ClientUpdateSeed:
+      description: Client update request body
+      anyOf:
+        - type: object
+          additionalProperties: false
+          properties:
+            name:
+              $ref: "#/components/schemas/ClientName"
+            description:
+              $ref: "#/components/schemas/ClientDescription"
+          required: 
+            - name
+        - type: object
+          additionalProperties: false
+          properties:
+            name:
+              $ref: "#/components/schemas/ClientName"
+            description:
+              $ref: "#/components/schemas/ClientDescription"
+          required: 
+            - description
+    ClientName:
+      type: string
+      minLength: 5
+      maxLength: 60
+    ClientDescription:
+      type: string
+      minLength: 10
+      maxLength: 250
     ClientSeed:
       description: Client creation request body
       type: object
@@ -13588,6 +13760,35 @@ components:
       required:
         - results
         - pagination
+    ProducerKeychainUpdateSeed:
+      description: Producer keychain update request body
+      anyOf:
+        - type: object
+          additionalProperties: false
+          properties:
+            name:
+              $ref: "#/components/schemas/ProducerKeychainName"
+            description:
+              $ref: "#/components/schemas/ProducerKeychainDescription"
+          required: 
+            - name
+        - type: object
+          additionalProperties: false
+          properties:
+            name:
+              $ref: "#/components/schemas/ProducerKeychainName"
+            description:
+              $ref: "#/components/schemas/ProducerKeychainDescription"
+          required:
+            - description
+    ProducerKeychainName:
+      type: string
+      minLength: 5
+      maxLength: 60
+    ProducerKeychainDescription:
+      type: string
+      minLength: 10
+      maxLength: 250
     ProducerKeychainSeed:
       description: Producer keychain creation request body
       type: object
@@ -13802,7 +14003,6 @@ components:
     EServiceDraftUpdateSeed:
       type: object
       additionalProperties: false
-      minProperties: 1
       properties:
         name:
           type: string
@@ -14243,7 +14443,7 @@ components:
         name:
           type: string
           minLength: 5
-          maxLength: 60
+          maxLength: 45
       required:
         - name
     EServiceTemplateVersion:
@@ -14407,7 +14607,7 @@ components:
         name:
           type: string
           minLength: 5
-          maxLength: 60
+          maxLength: 45
         intendedTarget:
           type: string
           minLength: 10
@@ -14823,6 +15023,8 @@ components:
           $ref: "#/components/schemas/PurposeTemplateId"
         riskAnalysisReviewMode:
           $ref: "#/components/schemas/RiskAnalysisReviewMode"
+        reviewerWorkflow:
+          $ref: "#/components/schemas/ReviewerWorkflow"
       required:
         - id
         - eserviceId
@@ -14833,11 +15035,60 @@ components:
         - isFreeOfCharge
     RiskAnalysisReviewMode:
       type: string
-      description: Risk analysis review mode
+      description: Risk analysis review mode. Visible only to the consumer of the Purpose.
       enum:
         - ADMIN_WRITES_ADMIN_SIGNS
         - ADMIN_WRITES_REVIEWER_SIGNS
         - REVIEWER_WRITES_REVIEWER_SIGNS
+    RiskAnalysisSigningState:
+      type: string
+      description: Risk analysis signing state
+      enum:
+        - DRAFT
+        - ASSIGNED
+        - SUBMITTED
+        - SIGNED
+        - REJECTED
+    RiskAnalysisReviewer:
+      type: object
+      additionalProperties: false
+      description: A reviewer designated for a purpose risk analysis
+      properties:
+        userId:
+          type: string
+          format: uuid
+        sentToReviewerAt:
+          type: string
+          format: date-time
+      required:
+        - userId
+    ReviewerWorkflow:
+      type: object
+      additionalProperties: false
+      description: Reviewer workflow state for a purpose risk analysis. Returned only to the consumer of the Purpose.
+      properties:
+        reviewers:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskAnalysisReviewer"
+        signingState:
+          $ref: "#/components/schemas/RiskAnalysisSigningState"
+        signedBy:
+          type: string
+          format: uuid
+        signedAt:
+          type: string
+          format: date-time
+        rejectedBy:
+          type: string
+          format: uuid
+        rejectedAt:
+          type: string
+          format: date-time
+        rejectionReason:
+          type: string
+      required:
+        - signingState
     RiskAnalysisAssignmentSeed:
       type: object
       additionalProperties: false
@@ -15033,6 +15284,17 @@ components:
           format: int32
           minimum: 1
           maximum: 1000000000
+    PurposeRejection:
+      type: object
+      additionalProperties: false
+      description: contains the information for purpose rejection
+      properties:
+        rejectionReason:
+          type: string
+          minLength: 10
+          maxLength: 250
+      required:
+        - rejectionReason
     PurposeVersionState:
       type: string
       description: Purpose State
@@ -15454,6 +15716,8 @@ components:
           format: uuid
         agreementId:
           $ref: "#/components/schemas/AgreementId"
+        delegationId:
+          $ref: "#/components/schemas/DelegationId"
         expirationDate:
           type: string
           format: date-time
