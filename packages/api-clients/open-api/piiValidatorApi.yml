@@ -1,0 +1,199 @@
+openapi: 3.0.3
+info:
+  title: PII Validator API
+  description: Stateless boundary for deterministic PII validation
+  version: 1.0.0
+  contact:
+    name: API Support
+    url: "http://www.example.com/support"
+    email: support@example.com
+servers:
+  - url: "/"
+    description: PII validator service
+security:
+  - bearerAuth: []
+tags:
+  - name: detection
+    description: PII detection boundary
+  - name: health
+    description: Service health
+paths:
+  /detect:
+    post:
+      tags:
+        - detection
+      summary: Detect supported PII categories in text
+      description: Validates text against the configured PII detection service.
+      operationId: detectPii
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DetectionRequest"
+      responses:
+        "200":
+          description: Detection completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetectionResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /status:
+    get:
+      security: []
+      tags:
+        - health
+      summary: Health status endpoint
+      description: Returns the standard service health status.
+      operationId: getStatus
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    CorrelationIdHeader:
+      in: header
+      name: X-Correlation-Id
+      required: true
+      schema:
+        type: string
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    NotImplemented:
+      description: Detection is not implemented
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+  schemas:
+    DetectionRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        text:
+          type: string
+          minLength: 1
+      required:
+        - text
+    DetectionResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        detectedCategories:
+          $ref: "#/components/schemas/DetectedCategories"
+      required:
+        - detectedCategories
+    DetectedCategories:
+      type: object
+      additionalProperties: false
+      properties:
+        EMAIL_ADDRESS:
+          type: boolean
+        IT_FISCAL_CODE:
+          type: boolean
+        IT_VAT_CODE:
+          type: boolean
+        IBAN_CODE:
+          type: boolean
+        CREDIT_CARD:
+          type: boolean
+        PHONE_NUMBER:
+          type: boolean
+        IT_IDENTITY_CARD:
+          type: boolean
+        IT_DRIVER_LICENSE:
+          type: boolean
+      required:
+        - EMAIL_ADDRESS
+        - IT_FISCAL_CODE
+        - IT_VAT_CODE
+        - IBAN_CODE
+        - CREDIT_CARD
+        - PHONE_NUMBER
+        - IT_IDENTITY_CARD
+        - IT_DRIVER_LICENSE
+    Problem:
+      type: object
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+          description: URI reference of type definition
+        status:
+          type: integer
+          format: int32
+          minimum: 100
+          maximum: 600
+          description: HTTP status code
+        title:
+          type: string
+          maxLength: 64
+          description: Short problem summary
+        correlationId:
+          type: string
+          maxLength: 64
+          description: Request correlation identifier
+        detail:
+          type: string
+          maxLength: 4096
+          description: Human-readable problem explanation
+        errors:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/ProblemError"
+      required:
+        - type
+        - status
+        - title
+    ProblemError:
+      type: object
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+          minLength: 8
+          maxLength: 8
+          pattern: "^[0-9]{3}-[0-9]{4}$"
+        detail:
+          type: string
+          maxLength: 4096
+      required:
+        - code
+        - detail
