@@ -2,11 +2,16 @@
 import { tenantApi } from "pagopa-interop-api-clients";
 import { authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
-import { generateId, TenantId } from "pagopa-interop-models";
+import {
+  featureFlagNotEnabled,
+  generateId,
+  TenantId,
+} from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import {
+  tenantMailsNotAllowed,
   tenantNotFound,
   tenantUpdateVersionMismatch,
 } from "../../src/model/domain/errors.js";
@@ -70,6 +75,24 @@ describe("API POST /maintenance/tenants/{tenantId} test", () => {
     expect(res.status).toBe(400);
   });
 
+  it("Should return 400 for tenantMailsNotAllowed", async () => {
+    tenantService.maintenanceTenantUpdate = vi
+      .fn()
+      .mockRejectedValue(tenantMailsNotAllowed(defaultTenantId));
+    const token = generateToken(authRole.MAINTENANCE_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(400);
+  });
+
+  it("Should return 501 for featureFlagNotEnabled", async () => {
+    tenantService.maintenanceTenantUpdate = vi
+      .fn()
+      .mockRejectedValue(featureFlagNotEnabled("featureFlagTenantEventsV3"));
+    const token = generateToken(authRole.MAINTENANCE_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(501);
+  });
+
   it.each([
     { tenantId: "invalid" as TenantId },
     { body: {} },
@@ -85,6 +108,12 @@ describe("API POST /maintenance/tenants/{tenantId} test", () => {
       body: {
         ...defaultBody,
         tenant: { ...defaultBody.tenant, extraField: "1" },
+      },
+    },
+    {
+      body: {
+        ...defaultBody,
+        tenant: { ...defaultBody.tenant, contactId: "invalid" },
       },
     },
   ])(

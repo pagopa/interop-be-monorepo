@@ -12,6 +12,7 @@ import {
   CorrelationId,
   fromTenantV2,
   generateId,
+  genericInternalError,
   missingKafkaMessageDataError,
   TenantEvent,
   unsafeBrandId,
@@ -149,6 +150,11 @@ async function processMessage({
       () => Promise.resolve()
     )
     .with({ event_version: 1 }, () => Promise.resolve())
+    .with({ event_version: 3 }, (msg) => {
+      throw genericInternalError(
+        `Tenant event V3 not supported yet: ${msg.type}`
+      );
+    })
     .exhaustive();
 }
 

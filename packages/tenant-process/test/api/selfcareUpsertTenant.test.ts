@@ -89,6 +89,19 @@ describe("API POST /selfcare/tenants test", () => {
     }
   );
 
+  it("Should return 200 with the deprecated digitalAddress", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, {
+      ...tenantSeed,
+      digitalAddress: {
+        kind: tenantApi.MailKind.Values.DIGITAL_ADDRESS,
+        description: "Domicilio digitale",
+        address: "tenant@pec.example.com",
+      },
+    });
+    expect(res.status).toBe(200);
+  });
+
   it.each([
     { body: {} },
     { body: { ...tenantSeed, externalId: { origin: "IPA" } } },
