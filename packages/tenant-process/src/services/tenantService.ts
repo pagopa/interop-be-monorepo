@@ -46,6 +46,7 @@ import {
   DelegationId,
   TenantRevoker,
   tenantUnitType,
+  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
 } from "pagopa-interop-models";
 import { ExternalId } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
@@ -158,6 +159,24 @@ const retrieveTenantByExternalId = async ({
     throw tenantNotFoundByExternalId(tenantOrigin, tenantExternalId);
   }
   return tenant;
+};
+
+const retrieveSelfcareParentTenantId = async (
+  tenantSeed: tenantApi.SelfcareTenantSeed,
+  readModelService: ReadModelServiceSQL
+): Promise<TenantId | undefined> => {
+  if (
+    tenantSeed.externalId.origin !== PUBLIC_ADMINISTRATIONS_IDENTIFIER ||
+    tenantSeed.subUnitType !== tenantUnitType.AOO ||
+    !tenantSeed.parentExternalId
+  ) {
+    return undefined;
+  }
+
+  const parent = await readModelService.getTenantByExternalId(
+    tenantSeed.parentExternalId
+  );
+  return parent?.data.id;
 };
 
 const retrieveTenantByRemoteId = async ({
@@ -474,6 +493,11 @@ export function tenantServiceBuilder(
           `Creating tenant with external id ${tenantSeed.externalId} via SelfCare request"`
         );
 
+        const parentTenantId = await retrieveSelfcareParentTenantId(
+          tenantSeed,
+          readModelService
+        );
+
         const newTenant: Tenant = {
           id: generateId(),
           name: tenantSeed.name,
@@ -500,6 +524,8 @@ export function tenantServiceBuilder(
             .with(tenantKind.SCP, tenantKind.PRIVATE, (kind) => kind)
             .with(tenantKind.GSP, tenantKind.PA, () => undefined)
             .exhaustive(),
+          parentTenantId,
+          rootTenantId: parentTenantId,
         };
         await repository.createEvent(
           toCreateEventTenantOnboarded(newTenant, correlationId)
