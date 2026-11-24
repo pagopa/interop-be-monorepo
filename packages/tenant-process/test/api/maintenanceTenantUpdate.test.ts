@@ -2,11 +2,7 @@
 import { tenantApi } from "pagopa-interop-api-clients";
 import { authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
-import {
-  featureFlagNotEnabled,
-  generateId,
-  TenantId,
-} from "pagopa-interop-models";
+import { generateId, TenantId } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
@@ -82,15 +78,6 @@ describe("API POST /maintenance/tenants/{tenantId} test", () => {
     const token = generateToken(authRole.MAINTENANCE_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(400);
-  });
-
-  it("Should return 501 for featureFlagNotEnabled", async () => {
-    tenantService.maintenanceTenantUpdate = vi
-      .fn()
-      .mockRejectedValue(featureFlagNotEnabled("featureFlagTenantEventsV3"));
-    const token = generateToken(authRole.MAINTENANCE_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(501);
   });
 
   it.each([

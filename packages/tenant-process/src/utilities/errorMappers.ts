@@ -13,7 +13,6 @@ const {
   HTTP_STATUS_FORBIDDEN,
   HTTP_STATUS_BAD_REQUEST,
   HTTP_STATUS_CONFLICT,
-  HTTP_STATUS_NOT_IMPLEMENTED,
 } = constants;
 
 export const getTenantByIdErrorMapper = (error: ApiError<ErrorCodes>): number =>
@@ -174,7 +173,6 @@ export const maintenanceTenantUpdatedErrorMapper = (
       "tenantMailsNotAllowed",
       () => HTTP_STATUS_BAD_REQUEST
     )
-    .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const maintenanceTenantDeleteRemoteIdErrorMapper = (
@@ -246,7 +244,6 @@ export const addTenantContactErrorMapper = (
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("tenantContactAlreadyAssigned", () => HTTP_STATUS_CONFLICT)
-    .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const deleteTenantContactErrorMapper = (
@@ -259,7 +256,6 @@ export const deleteTenantContactErrorMapper = (
       "tenantContactNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const internalUpsertTenantErrorMapper = (

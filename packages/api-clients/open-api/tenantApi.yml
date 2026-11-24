@@ -1098,8 +1098,6 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "404":
           $ref: "#/components/responses/NotFound"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
       requestBody:
         content:
           application/json:
@@ -1267,8 +1265,6 @@ paths:
           $ref: "#/components/responses/NotFound"
         "409":
           $ref: "#/components/responses/Conflict"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
   /tenants/{tenantId}/contact/{contactId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1306,8 +1302,6 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
   /tenants/delegatedFeatures/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1365,12 +1359,6 @@ components:
             $ref: "#/components/schemas/Problem"
     Conflict:
       description: Conflict
-      content:
-        application/problem+json:
-          schema:
-            $ref: "#/components/schemas/Problem"
-    NotImplemented:
-      description: Not Implemented
       content:
         application/problem+json:
           schema:

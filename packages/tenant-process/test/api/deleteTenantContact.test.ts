@@ -8,7 +8,6 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   ContactId,
-  featureFlagNotEnabled,
   generateId,
   operationForbidden,
   Tenant,
@@ -81,10 +80,6 @@ describe("API DELETE /tenants/{tenantId}/contact/{contactId} test", () => {
     {
       error: tenantContactNotFound(tenant.id, contactId),
       expectedStatus: 404,
-    },
-    {
-      error: featureFlagNotEnabled("featureFlagTenantEventsV3"),
-      expectedStatus: 501,
     },
   ])(
     "Should return $expectedStatus for $error.code",

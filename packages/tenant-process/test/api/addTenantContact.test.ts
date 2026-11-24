@@ -8,7 +8,6 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   ContactId,
-  featureFlagNotEnabled,
   generateId,
   operationForbidden,
   Tenant,
@@ -80,10 +79,6 @@ describe("API POST /tenants/{tenantId}/contact test", () => {
     {
       error: tenantContactAlreadyAssigned(tenant.id, contactId),
       expectedStatus: 409,
-    },
-    {
-      error: featureFlagNotEnabled("featureFlagTenantEventsV3"),
-      expectedStatus: 501,
     },
   ])(
     "Should return $expectedStatus for $error.code",
