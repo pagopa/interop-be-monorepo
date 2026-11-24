@@ -20864,6 +20864,7 @@ components:
       additionalProperties: false
       properties:
         rejectionReason:
+          minLength: 1
           type: string
       required:
         - rejectionReason

@@ -72,19 +72,21 @@ describe("POST /consumerDelegations/:delegationId/reject router test", () => {
     expect(res.status).toBe(400);
   });
 
-  it.each([{ invalidParam: "invalidValue" }, {}, { rejectionReason: 42 }])(
-    "Should return 400 if passed an invalid body: %s",
-    async (body) => {
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(
-        token,
-        mockApiDelegation.id,
-        body as unknown as m2mGatewayApi.DelegationRejection
-      );
+  it.each([
+    { invalidParam: "invalidValue" },
+    {},
+    { rejectionReason: 42 },
+    { rejectionReason: "" },
+  ])("Should return 400 if passed an invalid body: %s", async (body) => {
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(
+      token,
+      mockApiDelegation.id,
+      body as unknown as m2mGatewayApi.DelegationRejection
+    );
 
-      expect(res.status).toBe(400);
-    }
-  );
+    expect(res.status).toBe(400);
+  });
 
   it.each([
     { ...mockM2MDelegationResponse, kind: "invalidKind" },
