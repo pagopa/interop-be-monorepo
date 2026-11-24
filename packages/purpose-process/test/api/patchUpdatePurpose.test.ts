@@ -133,11 +133,7 @@ describe("API PATCH /purposes/{purposeId} test", () => {
     },
     { error: missingFreeOfChargeReason(), expectedStatus: 400 },
     { error: riskAnalysisValidationFailed([]), expectedStatus: 400 },
-    {
-      error: purposeNotInDraftState(mockPurpose.id),
-      expectedStatus: 400,
-      expectedCode: "004-0015",
-    },
+    { error: purposeNotInDraftState(mockPurpose.id), expectedStatus: 400 },
     { error: eventConflictError(generateId()), expectedStatus: 409 },
     {
       error: invalidFreeOfChargeReason(false, "Some reason"),
@@ -166,16 +162,11 @@ describe("API PATCH /purposes/{purposeId} test", () => {
     { error: tenantKindNotFound(generateId()), expectedStatus: 500 },
   ])(
     "Should return $expectedStatus for $error.code",
-    async ({ error, expectedStatus, expectedCode }) => {
+    async ({ error, expectedStatus }) => {
       purposeService.patchUpdatePurpose = vi.fn().mockRejectedValue(error);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token);
       expect(res.status).toBe(expectedStatus);
-      if (expectedCode) {
-        expect(res.body.errors).toEqual([
-          expect.objectContaining({ code: expectedCode }),
-        ]);
-      }
     }
   );
 

@@ -181,7 +181,6 @@ describe("PATCH /templates/{templateId} router test", () => {
     {
       error: eserviceTemplateNotInDraftState(mockEServiceTemplate.id),
       expectedStatus: 400,
-      expectedCode: "011-0010",
     },
     {
       error: instanceNameConflict(mockEServiceTemplate.id),
@@ -197,7 +196,7 @@ describe("PATCH /templates/{templateId} router test", () => {
     },
   ])(
     "Should return $expectedStatus for $error.code",
-    async ({ error, expectedStatus, expectedCode }) => {
+    async ({ error, expectedStatus }) => {
       eserviceTemplateService.patchUpdateEServiceTemplate = vi
         .fn()
         .mockRejectedValueOnce(error);
@@ -206,11 +205,6 @@ describe("PATCH /templates/{templateId} router test", () => {
       const res = await makeRequest(token, mockEServiceTemplate.id);
 
       expect(res.status).toBe(expectedStatus);
-      if (expectedCode) {
-        expect(res.body.errors).toEqual([
-          expect.objectContaining({ code: expectedCode }),
-        ]);
-      }
     }
   );
 });

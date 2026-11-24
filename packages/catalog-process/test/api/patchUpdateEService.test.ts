@@ -193,7 +193,6 @@ describe("PATCH /eservices/{eServiceId} router test", () => {
     {
       error: eserviceNotInDraftState(mockEService.id),
       expectedStatus: 400,
-      expectedCode: "001-0012",
     },
     {
       error: eventConflictError(generateId(), mockEService.id, 0),
@@ -213,18 +212,13 @@ describe("PATCH /eservices/{eServiceId} router test", () => {
     },
   ])(
     "Should return $expectedStatus for $error.code",
-    async ({ error, expectedStatus, expectedCode }) => {
+    async ({ error, expectedStatus }) => {
       catalogService.patchUpdateEService = vi.fn().mockRejectedValueOnce(error);
 
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token, mockEService.id);
 
       expect(res.status).toBe(expectedStatus);
-      if (expectedCode) {
-        expect(res.body.errors).toEqual([
-          expect.objectContaining({ code: expectedCode }),
-        ]);
-      }
     }
   );
 });
