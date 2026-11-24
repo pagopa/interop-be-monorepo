@@ -122,6 +122,7 @@ import {
   EServiceSortBy,
   producerCategoryAttributeCodes,
   RequesterDelegationRole,
+  EServiceMonitoringAgreementsCounters,
 } from "../model/domain/models.js";
 import {
   activeDescriptorStates,
@@ -129,6 +130,14 @@ import {
   catalogVisibleDescriptorStates,
 } from "./descriptorStates.js";
 import { hasRoleToAccessInactiveDescriptors } from "./validators.js";
+
+const monitoredDescriptorStates: DescriptorState[] = [
+  descriptorState.published,
+  descriptorState.deprecated,
+  descriptorState.suspended,
+  descriptorState.archiving,
+  descriptorState.archivingSuspended,
+];
 
 const existsValidDescriptor = (
   readmodelDB: DrizzleTransactionType
@@ -357,7 +366,7 @@ const subscribedByRequesterFilter = (
 };
 
 const requesterDelegationRolesFilter = (
-  tx: DrizzleTransactionType,
+  tx: DrizzleReturnType | DrizzleTransactionType,
   requesterId: TenantId,
   requesterDelegationRoles: RequesterDelegationRole[]
 ): SQL | undefined => {
@@ -1082,6 +1091,171 @@ export function readModelServiceBuilderSQL(
         .limit(1);
       return result?.kind ? TenantKind.parse(result.kind) : undefined;
     },
+    async getProducerEServiceMonitoringAgreements(
+      eserviceId: EServiceId
+    ): Promise<EServiceMonitoringAgreementsCounters> {
+      const descriptor = eserviceDescriptorInReadmodelCatalog;
+      const agreement = agreementInReadmodelAgreement;
+      const stamp = agreementStampInReadmodelAgreement;
+      const tenant = tenantInReadmodelTenant;
+
+      const versions = readmodelDB.$with("monitoring_versions").as(
+        readmodelDB
+          .select({
+            id: descriptor.id,
+            version: descriptor.version,
+            publishedAt: descriptor.publishedAt,
+            position:
+              sql<number>`row_number() over (order by ${descriptor.version}::integer desc)`
+                .mapWith(Number)
+                .as("position"),
+          })
+          .from(descriptor)
+          .where(
+            and(
+              eq(descriptor.eserviceId, eserviceId),
+              inArray(descriptor.state, monitoredDescriptorStates)
+            )
+          )
+      );
+      const activeAgreements = readmodelDB
+        .$with("monitoring_active_agreements")
+        .as(
+          readmodelDB
+            .select({
+              id: agreement.id,
+              descriptorId: agreement.descriptorId,
+              consumerId: agreement.consumerId,
+            })
+            .from(agreement)
+            .where(
+              and(
+                eq(agreement.eserviceId, eserviceId),
+                eq(agreement.state, agreementState.active)
+              )
+            )
+        );
+      const versionCounts = readmodelDB.$with("monitoring_version_counts").as(
+        readmodelDB
+          .select({
+            descriptorId: sql<string>`${versions.id}`.as("descriptor_id"),
+            version: sql<string>`${versions.version}`.as("descriptor_version"),
+            position: sql<number>`${versions.position}`
+              .mapWith(Number)
+              .as("descriptor_position"),
+            consumersCount:
+              sql<number>`count(distinct ${activeAgreements.consumerId})`
+                .mapWith(Number)
+                .as("consumers_count"),
+          })
+          .from(versions)
+          .leftJoin(
+            activeAgreements,
+            eq(activeAgreements.descriptorId, versions.id)
+          )
+          .groupBy(versions.id, versions.version, versions.position)
+      );
+      const kinds = readmodelDB.$with("monitoring_consumer_kinds").as(
+        readmodelDB
+          .select({
+            total: sql<number>`count(distinct ${activeAgreements.consumerId})`
+              .mapWith(Number)
+              .as("consumers_total"),
+            pa: sql<number>`count(distinct ${activeAgreements.consumerId}) filter (where ${tenant.kind} = ${tenantKind.PA})`
+              .mapWith(Number)
+              .as("consumers_pa"),
+            gspScp:
+              sql<number>`count(distinct ${activeAgreements.consumerId}) filter (where ${tenant.kind} in (${tenantKind.GSP}, ${tenantKind.SCP}))`
+                .mapWith(Number)
+                .as("consumers_gsp_scp"),
+            private:
+              sql<number>`count(distinct ${activeAgreements.consumerId}) filter (where ${tenant.kind} = ${tenantKind.PRIVATE})`
+                .mapWith(Number)
+                .as("consumers_private"),
+          })
+          .from(activeAgreements)
+          .leftJoin(tenant, eq(tenant.id, activeAgreements.consumerId))
+      );
+      const median = readmodelDB.$with("monitoring_median_upgrade").as(
+        readmodelDB
+          .select({
+            medianUpgradeDays: sql<
+              number | null
+            >`round((percentile_cont(0.5) within group (order by extract(epoch from (${stamp.when} - ${versions.publishedAt})) / 86400))::numeric)`
+              .mapWith(Number)
+              .as("median_upgrade_days"),
+          })
+          .from(activeAgreements)
+          .innerJoin(
+            versions,
+            and(
+              eq(versions.id, activeAgreements.descriptorId),
+              eq(versions.position, 1)
+            )
+          )
+          .innerJoin(
+            stamp,
+            and(
+              eq(stamp.agreementId, activeAgreements.id),
+              eq(stamp.kind, AgreementStampKind.enum.upgrade)
+            )
+          )
+      );
+      const pending = readmodelDB.$with("monitoring_pending_agreements").as(
+        readmodelDB
+          .select({ count: count().as("pending_agreements") })
+          .from(agreement)
+          .where(
+            and(
+              eq(agreement.eserviceId, eserviceId),
+              eq(agreement.state, agreementState.pending)
+            )
+          )
+      );
+
+      const rows = await readmodelDB
+        .with(versions, activeAgreements, versionCounts, kinds, median, pending)
+        .select({
+          consumersTotal: kinds.total,
+          pa: kinds.pa,
+          gspScp: kinds.gspScp,
+          private: kinds.private,
+          medianUpgradeDays: median.medianUpgradeDays,
+          pendingAgreements: pending.count,
+          descriptorId: versionCounts.descriptorId,
+          version: versionCounts.version,
+          consumersCount: versionCounts.consumersCount,
+        })
+        .from(kinds)
+        .innerJoin(median, sql`true`)
+        .innerJoin(pending, sql`true`)
+        .leftJoin(versionCounts, sql`true`)
+        .orderBy(asc(versionCounts.position));
+
+      const [first] = rows;
+      return {
+        versions: rows.flatMap((r) =>
+          r.descriptorId !== null && r.version !== null
+            ? [
+                {
+                  descriptorId: unsafeBrandId<DescriptorId>(r.descriptorId),
+                  version: r.version,
+                  consumersCount: r.consumersCount ?? 0,
+                },
+              ]
+            : []
+        ),
+        consumersByKind: {
+          total: first.consumersTotal,
+          pa: first.pa,
+          gspScp: first.gspScp,
+          private: first.private,
+        },
+        medianUpgradeDays: first.medianUpgradeDays ?? undefined,
+        pendingAgreements: first.pendingAgreements,
+      };
+    },
+
     async getEServiceConsumers(
       eserviceId: EServiceId,
       offset: number,

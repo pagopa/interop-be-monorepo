@@ -19,6 +19,19 @@ import { z } from "zod";
 
 export type PersonalDataFilter = bffApi.PersonalDataFilter | undefined;
 
+export type ProducerEServiceMonitoringAgreements =
+  catalogApi.ProducerEServiceMonitoringAgreements;
+
+export type EServiceMonitoringAgreementsCounters = {
+  versions: Array<{
+    descriptorId: DescriptorId;
+    version: string;
+    consumersCount: number;
+  }>;
+  consumersByKind: ProducerEServiceMonitoringAgreements["consumersByKind"];
+  medianUpgradeDays: number | undefined;
+  pendingAgreements: number;
+};
 export type EServiceSortBy = catalogApi.EServiceSortBy;
 
 export const defaultEServiceSortBy: EServiceSortBy = "CREATED_AT_DESC";

@@ -134,6 +134,7 @@ import {
   ApiGetEServicesFilters,
   Consumer,
   defaultEServiceSortBy,
+  ProducerEServiceMonitoringAgreements,
 } from "../model/domain/models.js";
 import {
   toCreateEventClonedEServiceAdded,
@@ -1123,6 +1124,47 @@ export function catalogServiceBuilder(
         offset,
         limit
       );
+    },
+
+    async getProducerEServiceMonitoringAgreements(
+      eserviceId: EServiceId,
+      { authData, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<ProducerEServiceMonitoringAgreements> {
+      logger.info(
+        `Retrieving agreements monitoring for e-service ${eserviceId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
+
+      const {
+        versions,
+        consumersByKind,
+        medianUpgradeDays,
+        pendingAgreements,
+      } =
+        await readModelService.getProducerEServiceMonitoringAgreements(
+          eserviceId
+        );
+
+      const hasOlderVersions = versions.length > 3;
+      return {
+        consumersByVersion: {
+          total: consumersByKind.total,
+          versions: hasOlderVersions ? versions.slice(0, 2) : versions,
+          olderVersionsConsumersCount: hasOlderVersions
+            ? versions.slice(2).reduce((acc, v) => acc + v.consumersCount, 0)
+            : undefined,
+          medianUpgradeDays,
+        },
+        consumersByKind,
+        pendingAgreements,
+      };
     },
 
     async getDocumentById(
