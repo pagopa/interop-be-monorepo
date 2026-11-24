@@ -8,7 +8,7 @@ import { z } from "zod";
 
 import type { OpenDataConfig } from "../config/openDataConfig.js";
 
-type Classification = "Agency" | "AOO" | "UO";
+export type Classification = "Agency" | "AOO" | "UO";
 
 type InstitutionKind = "Agency" | "AOO" | "UO";
 
@@ -24,6 +24,13 @@ export type Institution = {
   rootOriginId?: string | undefined;
   aooOriginId?: string | undefined;
   parentOriginId?: string | undefined;
+  subUnit?: SubUnit;
+};
+
+export type SubUnit = {
+  name: string;
+  entityName: string;
+  aooCode?: string;
 };
 
 export type Category = {
@@ -244,6 +251,23 @@ export async function getAllInstitutions(
     const parentOriginId =
       institutionKind === "Agency" ? undefined : aooOriginId || rootOriginId;
 
+    const subUnit = match(institutionKind)
+      .with("Agency", () => undefined)
+      .with("AOO", (): SubUnit | undefined => {
+        const name = extractor("Denominazione_aoo", z.string());
+        const entityName = extractor("Denominazione_ente", z.string());
+        return name && entityName ? { name, entityName } : undefined;
+      })
+      .with("UO", (): SubUnit | undefined => {
+        const name = extractor("Descrizione_uo", z.string());
+        const entityName = extractor("Denominazione_ente", z.string());
+        const aooCode = extractor("Codice_uni_aoo", z.string())?.trim();
+        return name && entityName
+          ? { name, entityName, aooCode: aooCode || undefined }
+          : undefined;
+      })
+      .exhaustive();
+
     // eslint-disable-next-line functional/immutable-data
     accumulator.push({
       id: taxCode,
@@ -256,6 +280,7 @@ export async function getAllInstitutions(
       rootOriginId,
       aooOriginId,
       parentOriginId,
+      ...(subUnit ? { subUnit } : {}),
       classification: match<InstitutionKind, Classification>(institutionKind)
         .with("Agency", () => "Agency")
         .with("AOO", () => "AOO")

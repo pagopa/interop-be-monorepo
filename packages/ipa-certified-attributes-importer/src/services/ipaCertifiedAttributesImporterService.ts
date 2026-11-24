@@ -27,7 +27,15 @@ import {
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 
-import { IPACertifiedAttributesImporterConfig } from "../config/config.js";
+import {
+  config,
+  IPACertifiedAttributesImporterConfig,
+} from "../config/config.js";
+import {
+  toAttributeKey,
+  toTenantKey,
+} from "../utils/tenantAndAttributeKeySerialization.js";
+import { getAooUoAttributes } from "./aooUoAttributeService.js";
 import {
   RegistryData,
   InternalCertifiedAttribute,
@@ -70,22 +78,8 @@ export type TenantSeed = {
   istatCode?: string;
 };
 
-function toTenantKey(key: {
-  origin: string | undefined;
-  value: string | undefined;
-}): string {
-  return JSON.stringify({ origin: key.origin, value: key.value });
-}
-
 export function buildTenantsIndex(tenants: Tenant[]): Map<string, Tenant> {
   return new Map(tenants.map((t) => [toTenantKey(t.externalId), t]));
-}
-
-function toAttributeKey(key: {
-  origin: string | undefined;
-  code: string | undefined;
-}): string {
-  return JSON.stringify({ origin: key.origin, code: key.code });
 }
 
 function describeHttpError(error: unknown): string {
@@ -297,6 +291,12 @@ export async function createNewAttributes(
   attributeCreationWaitTime: number,
   maxRetries: number
 ): Promise<number> {
+  // TODO(WI 11, PIN-11248): If the registry rejects an AOO/UO attribute because
+  // its suffixed name is already in use, count and report it as failed and exclude
+  // it from tenant assignment, so the job exits with failure and the conflicting
+  // registry entry can be resolved manually before a rerun.
+  // Current IPA datasets have no such name collision; it may still occur if
+  // the conflicting registry state is not visible when computing new attributes.
   if (newAttributes.length === 0) {
     loggerInstance.info("No new attributes to create");
     return 0;
@@ -354,23 +354,31 @@ export function getNewAttributes(
       .map((a) => toAttributeKey({ origin: a.origin, code: a.code }))
   );
 
-  const newAttributesIndex = new Set(
-    tenantUpsertData.flatMap((t) =>
-      t.attributes.map((a) =>
-        toAttributeKey({ origin: a.origin, code: a.code })
-      )
-    )
+  const attributeKeysFromTenantsToUpsert = new Set(
+    tenantUpsertData.flatMap((tenant) => tenant.attributes.map(toAttributeKey))
   );
 
-  return registryData.attributes.filter(
-    (a) =>
-      newAttributesIndex.has(
-        toAttributeKey({ origin: a.origin, code: a.code })
-      ) &&
-      !platformAttributesIndex.has(
-        toAttributeKey({ origin: a.origin, code: a.code })
-      )
-  );
+  const newRegistryAttributes = registryData.attributes.filter((attribute) => {
+    const key = toAttributeKey(attribute);
+
+    return (
+      attributeKeysFromTenantsToUpsert.has(key) &&
+      !platformAttributesIndex.has(key)
+    );
+  });
+
+  if (isFeatureFlagEnabled(config, "featureFlagAooUoAttributes")) {
+    const aooUoAttributes = getAooUoAttributes(
+      registryData,
+      tenantUpsertData,
+      attributes,
+      newRegistryAttributes
+    );
+
+    newRegistryAttributes.push(...aooUoAttributes);
+  }
+
+  return newRegistryAttributes;
 }
 
 export async function getAttributesToAssign(
