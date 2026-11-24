@@ -192,7 +192,7 @@ describe("PATCH /eservices/{eServiceId} router test", () => {
     },
     {
       error: eserviceNotInDraftState(mockEService.id),
-      expectedStatus: 409,
+      expectedStatus: 400,
     },
     {
       error: eventConflictError(generateId(), mockEService.id, 0),
