@@ -180,7 +180,7 @@ describe("PATCH /templates/{templateId} router test", () => {
     },
     {
       error: eserviceTemplateNotInDraftState(mockEServiceTemplate.id),
-      expectedStatus: 409,
+      expectedStatus: 400,
     },
     {
       error: instanceNameConflict(mockEServiceTemplate.id),

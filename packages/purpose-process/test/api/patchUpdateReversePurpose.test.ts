@@ -134,7 +134,7 @@ describe("API PATCH /reverse/purposes/{purposeId} test", () => {
     },
 
     { error: tenantIsNotTheConsumer(generateId()), expectedStatus: 403 },
-    { error: purposeNotInDraftState(mockPurpose.id), expectedStatus: 409 },
+    { error: purposeNotInDraftState(mockPurpose.id), expectedStatus: 400 },
     { error: eventConflictError(generateId()), expectedStatus: 409 },
     {
       error: tenantIsNotTheDelegatedConsumer(
