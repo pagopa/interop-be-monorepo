@@ -56,17 +56,6 @@ export function toDelegationKind(
     .exhaustive();
 }
 
-function toBffDelegationApiDelegationDoc(
-  document: delegationApi.DelegationContractDocument
-): bffApi.Document {
-  return {
-    id: document.id,
-    name: document.name,
-    contentType: document.contentType,
-    prettyName: document.prettyName,
-    createdAt: document.createdAt,
-  };
-}
 function toBffDelegationApiDelegationSignedDoc(
   document: delegationApi.DelegationSignedContractDocument
 ): bffApi.SignedDocument {
@@ -113,12 +102,6 @@ export function toBffDelegationApiDelegation(
       id: delegator.id,
       name: delegator.name,
     },
-    activationContract: delegation.activationContract
-      ? toBffDelegationApiDelegationDoc(delegation.activationContract)
-      : undefined,
-    revocationContract: delegation.revocationContract
-      ? toBffDelegationApiDelegationDoc(delegation.revocationContract)
-      : undefined,
     createdAt: delegation.createdAt,
     updatedAt: delegation.updatedAt,
     rejectionReason: delegation.rejectionReason,

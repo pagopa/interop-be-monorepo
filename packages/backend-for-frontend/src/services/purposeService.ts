@@ -776,31 +776,6 @@ export function purposeServiceBuilder(
         versionId: createdVersionId,
       };
     },
-    async getRiskAnalysisDocument(
-      purposeId: PurposeId,
-      versionId: PurposeVersionId,
-      documentId: PurposeVersionDocumentId,
-      { headers, logger }: WithLogger<BffAppContext>
-    ): Promise<Uint8Array> {
-      logger.info(
-        `Downloading risk analysis document ${documentId} from purpose ${purposeId} with version ${versionId}`
-      );
-
-      const document = await purposeProcessClient.getRiskAnalysisDocument({
-        params: {
-          purposeId,
-          versionId,
-          documentId,
-        },
-        headers,
-      });
-
-      return await fileManager.get(
-        config.riskAnalysisDocumentsContainer,
-        document.path,
-        logger
-      );
-    },
     async rejectPurposeVersion(
       purposeId: PurposeId,
       versionId: PurposeVersionId,

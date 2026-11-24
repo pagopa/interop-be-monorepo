@@ -304,31 +304,6 @@ export function delegationServiceBuilder(
         },
       };
     },
-    async getDelegationContract(
-      delegationId: DelegationId,
-      contractId: DelegationContractId,
-      { headers, logger }: WithLogger<BffAppContext>
-    ): Promise<Buffer> {
-      logger.info(
-        `Retrieving delegation contract ${contractId} from delegation ${delegationId}`
-      );
-
-      const contract = await delegationClients.delegation.getDelegationContract(
-        {
-          params: { delegationId, contractId },
-          headers,
-        }
-      );
-
-      const contractBytes = await fileManager.get(
-        config.delegationContractsContainer,
-        contract.path,
-        logger
-      );
-
-      return Buffer.from(contractBytes);
-    },
-
     async getDelegationSignedContract(
       delegationId: DelegationId,
       contractId: DelegationContractId,

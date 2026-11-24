@@ -262,31 +262,6 @@ const purposeRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get(
-      "/purposes/:purposeId/versions/:versionId/documents/:documentId",
-      async (req, res) => {
-        const ctx = fromBffAppContext(req.ctx, req.headers);
-
-        try {
-          const result = await purposeService.getRiskAnalysisDocument(
-            unsafeBrandId(req.params.purposeId),
-            unsafeBrandId(req.params.versionId),
-            unsafeBrandId(req.params.documentId),
-            ctx
-          );
-
-          return res.status(200).send(Buffer.from(result));
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            emptyErrorMapper,
-            ctx,
-            `Error downloading risk analysis document ${req.params.documentId} from purpose ${req.params.purposeId} with version ${req.params.versionId}`
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
     .post(
       "/purposes/:purposeId/versions/:versionId/reject",
       async (req, res) => {
