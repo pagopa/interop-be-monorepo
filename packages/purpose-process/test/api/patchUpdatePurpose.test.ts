@@ -133,7 +133,7 @@ describe("API PATCH /purposes/{purposeId} test", () => {
     },
     { error: missingFreeOfChargeReason(), expectedStatus: 400 },
     { error: riskAnalysisValidationFailed([]), expectedStatus: 400 },
-    { error: purposeNotInDraftState(mockPurpose.id), expectedStatus: 409 },
+    { error: purposeNotInDraftState(mockPurpose.id), expectedStatus: 400 },
     { error: eventConflictError(generateId()), expectedStatus: 409 },
     {
       error: invalidFreeOfChargeReason(false, "Some reason"),
