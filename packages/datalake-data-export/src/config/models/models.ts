@@ -40,6 +40,8 @@ export const ExportedTenant = Tenant.pick({
   createdAt: true,
   onboardedAt: true,
   name: true,
+  parentTenantId: true,
+  rootTenantId: true,
 } satisfies StrictPick<Tenant>);
 export type ExportedTenant = z.infer<typeof ExportedTenant>;
 
