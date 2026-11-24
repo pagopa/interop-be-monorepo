@@ -74,7 +74,7 @@ export async function handleEserviceDescriptorSubmittedByDelegate(
       body: templateService.compileHtml(htmlTemplate, {
         title: `Richiesta di approvazione per una nuova versione`,
         notificationType,
-        entityId: eservice.id,
+        entityId: delegation.id,
         ...(t.type === "Tenant" ? { recipientName: delegator.name } : {}),
         delegateName: delegate.name,
         eserviceName: eservice.name,
