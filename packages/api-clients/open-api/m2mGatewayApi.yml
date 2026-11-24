@@ -20865,6 +20865,7 @@ components:
       properties:
         rejectionReason:
           type: string
+          maxLength: 2000
       required:
         - rejectionReason
     DelegationSeed:
