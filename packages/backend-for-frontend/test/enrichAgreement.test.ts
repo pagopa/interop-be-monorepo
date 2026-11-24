@@ -48,6 +48,9 @@ describe("enrichAgreement", () => {
         description: "tenant certified description",
       }),
       id: tenantCertifiedAttributeId,
+      origin: "IPA",
+      code: "ipa-code",
+      subunitPropagationEnabled: true,
     };
     const tenantCertifiedDiscreteRegistryAttribute: attributeRegistryApi.Attribute =
       {
@@ -102,6 +105,8 @@ describe("enrichAgreement", () => {
         ],
       }),
       id: consumerId,
+      externalId: { origin: "IPA", value: "ipa-code" },
+      subUnitType: undefined,
       mails: [],
       features: [],
     };
@@ -196,6 +201,8 @@ describe("enrichAgreement", () => {
         description: tenantCertifiedRegistryAttribute.description,
         assignmentTimestamp: certifiedAssignmentTimestamp,
         revocationTimestamp: undefined,
+        isEligibleForSubunitPropagation: true,
+        subunitPropagationEnabled: true,
       },
       {
         kind: tenantAttributeKind.certifiedDiscrete,
@@ -204,6 +211,8 @@ describe("enrichAgreement", () => {
         description: tenantCertifiedDiscreteRegistryAttribute.description,
         assignmentTimestamp: certifiedDiscreteAssignmentTimestamp,
         revocationTimestamp: undefined,
+        isEligibleForSubunitPropagation: false,
+        subunitPropagationEnabled: undefined,
         discreteValue: 42,
       },
     ]);

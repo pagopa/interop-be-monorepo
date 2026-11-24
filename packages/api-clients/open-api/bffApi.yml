@@ -18249,12 +18249,19 @@ components:
         revocationTimestamp:
           type: string
           format: date-time
+        isEligibleForSubunitPropagation:
+          type: boolean
+          description: Indicates if the attribute can be selected for propagation to subunits
+        subunitPropagationEnabled:
+          type: boolean
+          description: Indicates if propagation to subunits is enabled. If absent, propagation is disabled. Assignments to subunits are aligned by the next ipa-certified-attributes-importer run.
       required:
         - kind
         - id
         - name
         - description
         - assignmentTimestamp
+        - isEligibleForSubunitPropagation
     CertifiedDiscreteTenantAttribute:
       type: object
       additionalProperties: false
@@ -18280,6 +18287,12 @@ components:
           format: int32
           minimum: 1
           maximum: 1000000000
+        isEligibleForSubunitPropagation:
+          type: boolean
+          description: Indicates if the attribute can be selected for propagation to subunits
+        subunitPropagationEnabled:
+          type: boolean
+          description: Indicates if propagation to subunits is enabled. If absent, propagation is disabled. Assignments to subunits are aligned by the next ipa-certified-attributes-importer run.
       required:
         - kind
         - id
@@ -18287,6 +18300,7 @@ components:
         - description
         - assignmentTimestamp
         - discreteValue
+        - isEligibleForSubunitPropagation
     TenantRemoteId:
       type: object
       additionalProperties: false
