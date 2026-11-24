@@ -526,7 +526,7 @@ export function delegationServiceBuilder(
     },
     async getConsumerDelegatedEservices(
       filters: bffApi.BffgetConsumerDelegatedEservicesQueryParam,
-      { headers, logger }: WithLogger<BffAppContext>
+      { headers, logger, correlationId }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactEServices> {
       logger.info(
         `Retrieving consumer delegated eservices with filters ${JSON.stringify(
@@ -553,6 +553,10 @@ export function delegationServiceBuilder(
               headers,
             });
 
+            const producerContactMail = await tenantContacts.resolve(
+              producer,
+              correlationId
+            );
             return {
               id: eservice.id,
               name: eservice.name,
@@ -560,10 +564,7 @@ export function delegationServiceBuilder(
                 id: eservice.producerId,
                 name: producer.name,
                 kind: producer.kind,
-                contactMail: await tenantContacts.resolve(
-                  producer,
-                  headers["X-Correlation-Id"]
-                ),
+                contactMail: producerContactMail,
               },
             };
           })

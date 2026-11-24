@@ -120,6 +120,33 @@ describe("API POST /tenants/{tenantId}/contact test", () => {
     ).toHaveBeenCalledTimes(1);
   });
 
+  it("rejects a viewer before creating a contact", async () => {
+    const response = await makeRequest(generateToken(authRole.VIEWER_ROLE));
+    expect(response.status).toBe(403);
+    expect(createContact).not.toHaveBeenCalled();
+  });
+
+  it("forwards a CDM Problem without associating a contact", async () => {
+    const problem = {
+      type: "about:blank",
+      status: 400,
+      title: "Bad request",
+      detail: "Invalid contact",
+      errors: [{ code: "test", detail: "Invalid contact" }],
+    };
+    createContact.mockRejectedValueOnce({
+      isAxiosError: true,
+      message: mailSeed.address,
+      response: { status: 400, data: problem },
+    });
+    const response = await makeRequest(generateToken(authRole.ADMIN_ROLE));
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual(problem);
+    expect(
+      clients.tenantProcessClient.tenant.addTenantContact
+    ).not.toHaveBeenCalled();
+  });
+
   it("rejects writes for another tenant before creating a contact", async () => {
     const response = await makeRequest(
       generateToken(authRole.ADMIN_ROLE),

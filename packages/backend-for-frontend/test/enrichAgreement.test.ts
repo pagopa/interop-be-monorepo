@@ -10,7 +10,7 @@ import {
   getMockedApiAttribute,
   getMockedApiTenant,
 } from "pagopa-interop-commons-test";
-import { AttributeId, generateId } from "pagopa-interop-models";
+import { AttributeId, CorrelationId, generateId } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 
 import { tenantAttributeKind } from "../src/api/tenantApiConverter.js";
@@ -184,10 +184,12 @@ describe("enrichAgreement", () => {
       { get: vi.fn().mockResolvedValue({ serialized: "internal" }) }
     );
 
+    const correlationId = generateId<CorrelationId>();
     const ctx: WithLogger<BffAppContext> = {
+      correlationId,
       authData: { organizationId: consumerId },
       headers: {
-        "X-Correlation-Id": generateId(),
+        "X-Correlation-Id": correlationId,
         Authorization: "authorization",
         "X-Forwarded-For": "x-forwarded-for",
       },

@@ -1,33 +1,9 @@
 import {
-  WithLogger,
   errorsToApiProblemsMiddleware,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { emptyErrorMapper } from "pagopa-interop-models";
 
 import { appBasePath } from "../config/appBasePath.js";
-import { makeApiProblem } from "../model/errors.js";
-import { BffAppContext } from "./context.js";
-
-// Downstream errors can contain request data. Preserve the HTTP mapping and
-// log only the tenant and the outcome, with the request's correlation ID.
-export function contactOperationProblem(
-  error: unknown,
-  ctx: WithLogger<BffAppContext>,
-  tenantId: string
-) {
-  return makeApiProblem(error, emptyErrorMapper, {
-    ...ctx,
-    logger: {
-      warn: () =>
-        ctx.logger.warn(`Contact operation failed for tenant ${tenantId}`),
-      error: () =>
-        ctx.logger.error(
-          `Contact operation unconfirmed for tenant ${tenantId}`
-        ),
-    },
-  });
-}
 
 // Contact validation issues may include the submitted address.
 export const tenantValidationErrorToApiProblem: typeof zodiosValidationErrorToApiProblem =

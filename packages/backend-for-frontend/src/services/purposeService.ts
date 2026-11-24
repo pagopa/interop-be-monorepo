@@ -60,7 +60,8 @@ const enrichPurposeDelegation = async (
   delegationId: string,
   delegationProcessClient: DelegationProcessClient,
   tenantProcessClient: TenantProcessClient,
-  headers: Headers
+  headers: Headers,
+  correlationId: CorrelationId
 ): Promise<bffApi.DelegationWithCompactTenants> => {
   const delegation = await delegationProcessClient.delegation.getDelegation({
     headers,
@@ -85,24 +86,22 @@ const enrichPurposeDelegation = async (
     throw tenantNotFound(delegation.delegatorId);
   }
 
+  const [delegateContactMail, delegatorContactMail] = await Promise.all([
+    tenantContacts.resolve(delegate, correlationId),
+    tenantContacts.resolve(delegator, correlationId),
+  ]);
   return {
     id: delegationId,
     delegate: {
       id: delegate.id,
       name: delegate.name,
-      contactMail: await tenantContacts.resolve(
-        delegate,
-        headers["X-Correlation-Id"]
-      ),
+      contactMail: delegateContactMail,
       kind: delegate.kind,
     },
     delegator: {
       id: delegator.id,
       name: delegator.name,
-      contactMail: await tenantContacts.resolve(
-        delegator,
-        headers["X-Correlation-Id"]
-      ),
+      contactMail: delegatorContactMail,
       kind: delegator.kind,
     },
   };
@@ -313,7 +312,8 @@ export function purposeServiceBuilder(
           purpose.delegationId,
           delegationProcessClient,
           tenantProcessClient,
-          headers
+          headers,
+          correlationId
         )
       : undefined;
 
@@ -357,6 +357,10 @@ export function purposeServiceBuilder(
       }
     }
 
+    const consumerContactMail = await tenantContacts.resolve(
+      consumer,
+      correlationId
+    );
     return {
       id: purpose.id,
       title: purpose.title,
@@ -366,10 +370,7 @@ export function purposeServiceBuilder(
         id: consumer.id,
         name: consumer.name,
         kind: consumer.kind,
-        contactMail: await tenantContacts.resolve(
-          consumer,
-          headers["X-Correlation-Id"]
-        ),
+        contactMail: consumerContactMail,
       },
       riskAnalysisForm:
         purpose.riskAnalysisForm &&

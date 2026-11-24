@@ -805,6 +805,13 @@ async function enrichAgreementListEntry(
         )))
       : undefined;
 
+    const [delegateContactMail, consumerContactMail] =
+      delegation && delegate
+        ? await Promise.all([
+            tenantContacts.resolve(delegate, ctx.correlationId),
+            tenantContacts.resolve(consumer, ctx.correlationId),
+          ])
+        : [];
     agreementsResult.push({
       id: agreement.id,
       state: agreement.state,
@@ -827,19 +834,13 @@ async function enrichAgreementListEntry(
                 id: delegation.delegateId,
                 name: delegate.name,
                 kind: delegate.kind,
-                contactMail: await tenantContacts.resolve(
-                  delegate,
-                  ctx.headers["X-Correlation-Id"]
-                ),
+                contactMail: delegateContactMail,
               },
               delegator: {
                 id: delegation.delegatorId,
                 name: consumer.name,
                 kind: consumer.kind,
-                contactMail: await tenantContacts.resolve(
-                  consumer,
-                  ctx.headers["X-Correlation-Id"]
-                ),
+                contactMail: consumerContactMail,
               },
             }
           : undefined,
@@ -907,20 +908,25 @@ export async function enrichAgreement(
         headers: ctx.headers,
       });
 
+      const tenantContactMail = await tenantContacts.resolve(
+        tenant,
+        ctx.correlationId
+      );
       return {
         id: delegation.id,
         delegate: {
           id: tenant.id,
           name: tenant.name,
           kind: tenant.kind,
-          contactMail: await tenantContacts.resolve(
-            tenant,
-            ctx.headers["X-Correlation-Id"]
-          ),
+          contactMail: tenantContactMail,
         },
       };
     });
 
+  const [producerContactMail, consumerContactMail] = await Promise.all([
+    tenantContacts.resolve(producer, ctx.correlationId),
+    tenantContacts.resolve(consumer, ctx.correlationId),
+  ]);
   return {
     id: agreement.id,
     descriptorId: agreement.descriptorId,
@@ -929,10 +935,7 @@ export async function enrichAgreement(
       id: agreement.producerId,
       name: producer.name,
       kind: producer.kind,
-      contactMail: await tenantContacts.resolve(
-        producer,
-        ctx.headers["X-Correlation-Id"]
-      ),
+      contactMail: producerContactMail,
     },
     consumer: {
       id: agreement.consumerId,
@@ -942,10 +945,7 @@ export async function enrichAgreement(
       updatedAt: consumer.updatedAt,
       name: consumer.name,
       attributes: tenantAttributes,
-      contactMail: await tenantContacts.resolve(
-        consumer,
-        ctx.headers["X-Correlation-Id"]
-      ),
+      contactMail: consumerContactMail,
       features: consumer.features,
     },
     eservice: {

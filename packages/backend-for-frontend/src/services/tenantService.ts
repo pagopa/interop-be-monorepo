@@ -5,15 +5,12 @@ import {
   SelfcareV2InstitutionClient,
 } from "pagopa-interop-api-clients";
 import {
-  authRole,
-  validateAuthorization,
   isDefined,
   isFeatureFlagEnabled,
   Logger,
   WithLogger,
 } from "pagopa-interop-commons";
 import {
-  operationForbidden,
   AgreementId,
   AttributeId,
   CorrelationId,
@@ -90,7 +87,7 @@ export function tenantServiceBuilder(
   return {
     async getTenant(
       tenantId: TenantId,
-      { headers, logger }: WithLogger<BffAppContext>
+      { headers, logger, correlationId }: WithLogger<BffAppContext>
     ): Promise<bffApi.Tenant> {
       logger.info(`Getting tenant with id ${tenantId}`);
       const tenant = await tenantProcessClient.tenant.getTenant({
@@ -127,13 +124,17 @@ export function tenantServiceBuilder(
         headers
       );
 
+      const tenantContactMail = await tenantContacts.resolve(
+        tenant,
+        correlationId
+      );
       return toBffApiTenant(
         tenant,
         certifiedAttributes,
         declaredAttributes,
         verifiedAttributes,
         registryAttributesMap,
-        await tenantContacts.resolve(tenant, headers["X-Correlation-Id"])
+        tenantContactMail
       );
     },
     async getTenants(
@@ -489,10 +490,6 @@ export function tenantServiceBuilder(
       { address }: bffApi.TenantContactSeed,
       ctx: WithLogger<BffAppContext>
     ): Promise<void> {
-      validateAuthorization(ctx, [authRole.ADMIN_ROLE]);
-      if (ctx.authData.organizationId !== tenantId) {
-        throw operationForbidden;
-      }
       const contactId = await tenantContacts.create(address, ctx.correlationId);
       await tenantProcessClient.tenant.addTenantContact(
         { contactId },

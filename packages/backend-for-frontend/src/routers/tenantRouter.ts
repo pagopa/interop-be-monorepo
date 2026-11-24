@@ -1,21 +1,24 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { bffApi } from "pagopa-interop-api-clients";
-import { ExpressContext, ZodiosContext } from "pagopa-interop-commons";
+import {
+  authRole,
+  validateAuthorization,
+  ExpressContext,
+  ZodiosContext,
+} from "pagopa-interop-commons";
 import {
   AgreementId,
   AttributeId,
   TenantId,
+  operationForbidden,
   emptyErrorMapper,
   unsafeBrandId,
 } from "pagopa-interop-models";
 
 import { makeApiProblem } from "../model/errors.js";
 import { TenantService } from "../services/tenantService.js";
-import {
-  contactOperationProblem,
-  tenantValidationErrorToApiProblem,
-} from "../utilities/contactErrorHandlers.js";
+import { tenantValidationErrorToApiProblem } from "../utilities/contactErrorHandlers.js";
 import { fromBffAppContext } from "../utilities/context.js";
 
 const tenantRouter = (
@@ -419,13 +422,18 @@ const tenantRouter = (
 
       try {
         const tenantId = unsafeBrandId<TenantId>(req.params.tenantId);
+        validateAuthorization(ctx, [authRole.ADMIN_ROLE]);
+        if (ctx.authData.organizationId !== tenantId) {
+          throw operationForbidden;
+        }
         await tenantService.setTenantContact(tenantId, req.body, ctx);
         return res.status(204).send();
       } catch (error) {
-        const errorRes = contactOperationProblem(
+        const errorRes = makeApiProblem(
           error,
+          emptyErrorMapper,
           ctx,
-          req.params.tenantId
+          `Unable to confirm contact operation for tenant ${req.params.tenantId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -438,10 +446,11 @@ const tenantRouter = (
         await tenantService.deleteTenantContact(tenantId, ctx);
         return res.status(204).send();
       } catch (error) {
-        const errorRes = contactOperationProblem(
+        const errorRes = makeApiProblem(
           error,
+          emptyErrorMapper,
           ctx,
-          req.params.tenantId
+          `Unable to confirm contact operation for tenant ${req.params.tenantId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }

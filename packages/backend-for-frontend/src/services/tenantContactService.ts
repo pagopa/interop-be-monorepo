@@ -1,7 +1,7 @@
-import { isAxiosError } from "axios";
+import { AxiosError, isAxiosError } from "axios";
 import { bffApi, contactDataApi, tenantApi } from "pagopa-interop-api-clients";
 import { logger, RefreshableInteropToken } from "pagopa-interop-commons";
-import { CorrelationId } from "pagopa-interop-models";
+import { CorrelationId, genericError } from "pagopa-interop-models";
 
 import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
 
@@ -25,13 +25,26 @@ export function tenantContactServiceBuilder(
       address: string,
       correlationId: CorrelationId
     ): Promise<string> {
-      const { id } = await client.createContact(
-        { email: address },
-        {
-          headers: await internalHeaders(correlationId),
+      const headers = await internalHeaders(correlationId);
+      try {
+        const { id } = await client.createContact(
+          { email: address },
+          { headers }
+        );
+        return id;
+      } catch (error) {
+        // Forward the CDM response for the standard Problem mapping. Discard the client error message, which may include the address.
+        if (isAxiosError(error) && error.response) {
+          throw new AxiosError(
+            "Contact creation failed",
+            undefined,
+            undefined,
+            undefined,
+            error.response
+          );
         }
-      );
-      return id;
+        throw genericError("Contact creation failed");
+      }
     },
 
     async resolve(
