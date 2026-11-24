@@ -49,16 +49,16 @@ const catalogRouter = (
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  const commonCatalogProducerPlaceholderMapper = async (
-    usedFor: "EService" | "Template",
-    id: string,
+  const commonCatalogProducerEservicePlaceholderMapper = async (
+    eserviceId: string,
     ctx: WithLogger<BffAppContext>
   ) =>
     placeholderMapperGenerator(
       async () =>
-        usedFor === "Template"
-          ? catalogService.getEserviceTemplateById(unsafeBrandId(id), ctx)
-          : catalogService.getProducerEServiceDetails(unsafeBrandId(id), ctx),
+        catalogService.getProducerEServiceDetails(
+          unsafeBrandId(eserviceId),
+          ctx
+        ),
       (value, message) => message.replace("{identifyingWord}", value.name),
       (error) => ctx.logger.warn(`Error retrieving placeholder data: ${error}`)
     );
@@ -237,10 +237,14 @@ const catalogRouter = (
           ),
           ["{identifyingWord}"],
           () =>
-            commonCatalogProducerPlaceholderMapper(
-              "Template",
-              req.params.templateId,
-              ctx
+            placeholderMapperGenerator(
+              () => req.body.instanceLabel,
+              (instanceLabel, message) =>
+                instanceLabel === undefined
+                  ? undefined
+                  : message.replace("{identifyingWord}", () => instanceLabel),
+              (error) =>
+                ctx.logger.warn(`Error retrieving placeholder data: ${error}`)
             )
         );
         return res.status(errorRes.status).send(errorRes);
@@ -968,8 +972,7 @@ const catalogRouter = (
           ),
           ["{identifyingWord}"],
           () =>
-            commonCatalogProducerPlaceholderMapper(
-              "EService",
+            commonCatalogProducerEservicePlaceholderMapper(
               req.params.eServiceId,
               ctx
             )
@@ -1500,8 +1503,7 @@ const catalogRouter = (
             ),
             ["{identifyingWord}"],
             () =>
-              commonCatalogProducerPlaceholderMapper(
-                "EService",
+              commonCatalogProducerEservicePlaceholderMapper(
                 req.params.eServiceId,
                 ctx
               )
