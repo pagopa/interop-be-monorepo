@@ -82,8 +82,14 @@ export const aoo: Institution[] = [
     description: "SCPGI - Scuola Primaria Giovanni Pascoli",
     origin: "IPA",
     kind: "Stazioni Appaltanti",
+    rootOriginId: "Z1234ABC",
+    parentOriginId: "Z1234ABC",
     classification: "AOO",
     istatCode: "045067",
+    subUnit: {
+      entityName: "Scuola Primaria Giovanni Pascoli",
+      name: "SCPGI",
+    },
   },
   {
     id: "90098765432",
@@ -92,8 +98,14 @@ export const aoo: Institution[] = [
     description: "ICMAR - Istituto Comprensivo G. Marconi",
     origin: "IPA",
     kind: "Gestori di Pubblici Servizi",
+    rootOriginId: "Z5678DEF",
+    parentOriginId: "Z5678DEF",
     classification: "AOO",
     istatCode: "056078",
+    subUnit: {
+      entityName: "Istituto Comprensivo G. Marconi",
+      name: "ICMAR",
+    },
   },
   {
     id: "90123456789",
@@ -102,8 +114,14 @@ export const aoo: Institution[] = [
     description: "SSAL - Scuola Secondaria di I Grado Alighieri",
     origin: "IPA",
     kind: "Pubbliche Amministrazioni",
+    rootOriginId: "Z9123GHI",
+    parentOriginId: "Z9123GHI",
     classification: "AOO",
     istatCode: "078045",
+    subUnit: {
+      entityName: "Scuola Secondaria di I Grado Alighieri",
+      name: "SSAL",
+    },
   },
   {
     id: "90234567890",
@@ -112,8 +130,14 @@ export const aoo: Institution[] = [
     description: "ITLDV - Istituto Tecnico Leonardo da Vinci",
     origin: "IPA",
     kind: "Stazioni Appaltanti",
+    rootOriginId: "Z3456JKL",
+    parentOriginId: "Z3456JKL",
     classification: "AOO",
     istatCode: "089123",
+    subUnit: {
+      entityName: "Istituto Tecnico Leonardo da Vinci",
+      name: "ITLDV",
+    },
   },
   {
     id: "90345678901",
@@ -122,8 +146,14 @@ export const aoo: Institution[] = [
     description: "LCVIR - Liceo Classico Virgilio",
     origin: "IPA",
     kind: "Gestori di Pubblici Servizi",
+    rootOriginId: "Z6789MNO",
+    parentOriginId: "Z6789MNO",
     classification: "AOO",
     istatCode: "098765",
+    subUnit: {
+      entityName: "Liceo Classico Virgilio",
+      name: "LCVIR",
+    },
   },
 ];
 
@@ -136,8 +166,16 @@ export const uo: Institution[] = [
       "Ufficio per la transizione al Digitale - AZIENDA SANITARIA LOCALE ROMA 1",
     origin: "IPA",
     kind: "Stazioni Appaltanti",
+    rootOriginId: "Z1234ABC",
+    aooOriginId: "NRKL78D",
+    parentOriginId: "NRKL78D",
     classification: "UO",
     istatCode: "055012",
+    subUnit: {
+      aooCode: "NRKL78D",
+      entityName: "AZIENDA SANITARIA LOCALE ROMA 1",
+      name: "Ufficio per la transizione al Digitale",
+    },
   },
   {
     id: "91045670482",
@@ -147,8 +185,16 @@ export const uo: Institution[] = [
       "Ufficio per la transizione al Digitale - LICEO SCIENTIFICO STATALE GALILEO GALILEI",
     origin: "IPA",
     kind: "Gestori di Pubblici Servizi",
+    rootOriginId: "Z5678DEF",
+    aooOriginId: "UYFT4AH",
+    parentOriginId: "UYFT4AH",
     classification: "UO",
     istatCode: "055012",
+    subUnit: {
+      aooCode: "UYFT4AH",
+      entityName: "LICEO SCIENTIFICO STATALE GALILEO GALILEI",
+      name: "Ufficio per la transizione al Digitale",
+    },
   },
   {
     id: "92067380495",
@@ -158,8 +204,16 @@ export const uo: Institution[] = [
       "Ufficio per la transizione al Digitale - ISTITUTO TECNICO INDUSTRIALE STATALE LEONARDO DA VINCI",
     origin: "IPA",
     kind: "Pubbliche Amministrazioni",
+    rootOriginId: "Z9123GHI",
+    aooOriginId: "BGJPH34",
+    parentOriginId: "BGJPH34",
     classification: "UO",
     istatCode: "120056",
+    subUnit: {
+      aooCode: "BGJPH34",
+      entityName: "ISTITUTO TECNICO INDUSTRIALE STATALE LEONARDO DA VINCI",
+      name: "Ufficio per la transizione al Digitale",
+    },
   },
   {
     id: "80234560327",
@@ -168,8 +222,16 @@ export const uo: Institution[] = [
     description: "Ufficio Amministrativo - AZIENDA OSPEDALIERA POLICLINICO",
     origin: "IPA",
     kind: "Stazioni Appaltanti",
+    rootOriginId: "Z3456JKL",
+    aooOriginId: "KH7JLN3",
+    parentOriginId: "KH7JLN3",
     classification: "UO",
     istatCode: "045002",
+    subUnit: {
+      aooCode: "KH7JLN3",
+      entityName: "AZIENDA OSPEDALIERA POLICLINICO",
+      name: "Ufficio Amministrativo",
+    },
   },
   {
     id: "12345678901",
@@ -178,8 +240,16 @@ export const uo: Institution[] = [
     description: "Ufficio Tecnico - COMUNE DI NAPOLI",
     origin: "IPA",
     kind: "Gestori di Pubblici Servizi",
+    rootOriginId: "Z6789MNO",
+    aooOriginId: "XJPL29R",
+    parentOriginId: "XJPL29R",
     classification: "UO",
     istatCode: "062010",
+    subUnit: {
+      aooCode: "XJPL29R",
+      entityName: "COMUNE DI NAPOLI",
+      name: "Ufficio Tecnico",
+    },
   },
 ];
 
