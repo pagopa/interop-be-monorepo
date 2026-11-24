@@ -75,7 +75,6 @@ const delegationRouter = (
         kind,
       } = req.query;
 
-      
       try {
         validateAuthorization(ctx, [
           ADMIN_ROLE,
