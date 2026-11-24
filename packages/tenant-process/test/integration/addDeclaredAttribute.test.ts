@@ -14,9 +14,9 @@ import {
   Tenant,
   unsafeBrandId,
   protobufDecoder,
-  fromTenantKindV2,
-  toTenantV2,
-  TenantDeclaredAttributeAssignedV2,
+  fromTenantKindV3,
+  toTenantV3,
+  TenantDeclaredAttributeAssignedV3,
   tenantAttributeType,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
@@ -75,10 +75,10 @@ describe("addDeclaredAttribute", async () => {
       stream_id: tenantWithoutDeclaredAttribute.id,
       version: "1",
       type: "TenantDeclaredAttributeAssigned",
-      event_version: 2,
+      event_version: 3,
     });
     const writtenPayload = protobufDecoder(
-      TenantDeclaredAttributeAssignedV2
+      TenantDeclaredAttributeAssignedV3
     ).parse(writtenEvent?.data);
 
     const updatedTenant: Tenant = {
@@ -90,11 +90,11 @@ describe("addDeclaredAttribute", async () => {
           assignmentTimestamp: new Date(),
         },
       ],
-      kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
+      kind: fromTenantKindV3(writtenPayload.tenant!.kind!),
       updatedAt: new Date(),
     };
     expect(writtenPayload).toEqual({
-      tenant: toTenantV2(updatedTenant),
+      tenant: toTenantV3(updatedTenant),
       attributeId: declaredAttribute.id,
     });
     expect(addDeclaredAttrReturn).toEqual({
@@ -134,10 +134,10 @@ describe("addDeclaredAttribute", async () => {
       stream_id: tenantWithAttributeRevoked.id,
       version: "1",
       type: "TenantDeclaredAttributeAssigned",
-      event_version: 2,
+      event_version: 3,
     });
     const writtenPayload = protobufDecoder(
-      TenantDeclaredAttributeAssignedV2
+      TenantDeclaredAttributeAssignedV3
     ).parse(writtenEvent?.data);
 
     const updatedTenant: Tenant = {
@@ -149,11 +149,11 @@ describe("addDeclaredAttribute", async () => {
           assignmentTimestamp: new Date(),
         },
       ],
-      kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
+      kind: fromTenantKindV3(writtenPayload.tenant!.kind!),
       updatedAt: new Date(),
     };
     expect(writtenPayload).toEqual({
-      tenant: toTenantV2(updatedTenant),
+      tenant: toTenantV3(updatedTenant),
       attributeId: declaredAttribute.id,
     });
     expect(addDeclaredAttrReturn).toEqual({
@@ -208,10 +208,10 @@ describe("addDeclaredAttribute", async () => {
       stream_id: delegatorWithoutDeclaredAttribute.id,
       version: "1",
       type: "TenantDeclaredAttributeAssigned",
-      event_version: 2,
+      event_version: 3,
     });
     const writtenPayload = protobufDecoder(
-      TenantDeclaredAttributeAssignedV2
+      TenantDeclaredAttributeAssignedV3
     ).parse(writtenEvent?.data);
 
     const updatedTenant: Tenant = {
@@ -224,11 +224,11 @@ describe("addDeclaredAttribute", async () => {
           delegationId,
         },
       ],
-      kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
+      kind: fromTenantKindV3(writtenPayload.tenant!.kind!),
       updatedAt: new Date(),
     };
     expect(writtenPayload).toEqual({
-      tenant: toTenantV2(updatedTenant),
+      tenant: toTenantV3(updatedTenant),
       attributeId: declaredAttribute.id,
     });
     expect(addDeclaredAttrReturn).toEqual({
@@ -286,10 +286,10 @@ describe("addDeclaredAttribute", async () => {
       stream_id: delegatorWithAttributeRevoked.id,
       version: "1",
       type: "TenantDeclaredAttributeAssigned",
-      event_version: 2,
+      event_version: 3,
     });
     const writtenPayload = protobufDecoder(
-      TenantDeclaredAttributeAssignedV2
+      TenantDeclaredAttributeAssignedV3
     ).parse(writtenEvent?.data);
 
     const updatedTenant: Tenant = {
@@ -302,11 +302,11 @@ describe("addDeclaredAttribute", async () => {
           delegationId,
         },
       ],
-      kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
+      kind: fromTenantKindV3(writtenPayload.tenant!.kind!),
       updatedAt: new Date(),
     };
     expect(writtenPayload).toEqual({
-      tenant: toTenantV2(updatedTenant),
+      tenant: toTenantV3(updatedTenant),
       attributeId: declaredAttribute.id,
     });
     expect(addDeclaredAttrReturn).toEqual({

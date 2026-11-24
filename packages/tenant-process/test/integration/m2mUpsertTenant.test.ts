@@ -11,9 +11,9 @@ import {
   tenantKind,
   protobufDecoder,
   Tenant,
-  toTenantV2,
+  toTenantV3,
   Attribute,
-  TenantCertifiedAttributeAssignedV2,
+  TenantCertifiedAttributeAssignedV3,
   tenantAttributeType,
 } from "pagopa-interop-models";
 import { describe, it, expect, afterAll, beforeAll, vi } from "vitest";
@@ -116,8 +116,8 @@ describe("m2mUpsertTenant", async () => {
       type: "TenantCertifiedAttributeAssigned",
     });
 
-    const writtenPayload: TenantCertifiedAttributeAssignedV2 | undefined =
-      protobufDecoder(TenantCertifiedAttributeAssignedV2).parse(
+    const writtenPayload: TenantCertifiedAttributeAssignedV3 | undefined =
+      protobufDecoder(TenantCertifiedAttributeAssignedV3).parse(
         writtenEvent?.data
       );
 
@@ -137,7 +137,7 @@ describe("m2mUpsertTenant", async () => {
 
     expect(writtenPayload).toEqual({
       attributeId: attribute.id,
-      tenant: toTenantV2(expectedTenant),
+      tenant: toTenantV3(expectedTenant),
     });
 
     const writtenEvent2 = await readEventByStreamIdAndVersion(
@@ -155,8 +155,8 @@ describe("m2mUpsertTenant", async () => {
       type: "TenantCertifiedAttributeAssigned",
     });
 
-    const writtenPayload2: TenantCertifiedAttributeAssignedV2 | undefined =
-      protobufDecoder(TenantCertifiedAttributeAssignedV2).parse(
+    const writtenPayload2: TenantCertifiedAttributeAssignedV3 | undefined =
+      protobufDecoder(TenantCertifiedAttributeAssignedV3).parse(
         writtenEvent2?.data
       );
 
@@ -182,7 +182,7 @@ describe("m2mUpsertTenant", async () => {
 
     expect(writtenPayload2).toEqual({
       attributeId: attribute2.id,
-      tenant: toTenantV2(expectedTenant2),
+      tenant: toTenantV3(expectedTenant2),
     });
     expect(returnedTenant).toEqual(expectedTenant2);
   });
@@ -260,8 +260,8 @@ describe("m2mUpsertTenant", async () => {
       version: "2",
       type: "TenantCertifiedAttributeAssigned",
     });
-    const writtenPayload: TenantCertifiedAttributeAssignedV2 | undefined =
-      protobufDecoder(TenantCertifiedAttributeAssignedV2).parse(
+    const writtenPayload: TenantCertifiedAttributeAssignedV3 | undefined =
+      protobufDecoder(TenantCertifiedAttributeAssignedV3).parse(
         writtenEvent?.data
       );
 
@@ -287,7 +287,7 @@ describe("m2mUpsertTenant", async () => {
 
     expect(writtenPayload).toEqual({
       attributeId: attribute2.id,
-      tenant: toTenantV2(expectedTenant),
+      tenant: toTenantV3(expectedTenant),
     });
     expect(returnedTenant).toEqual(expectedTenant);
   });

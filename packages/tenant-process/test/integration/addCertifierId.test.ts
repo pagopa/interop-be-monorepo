@@ -7,11 +7,11 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   Attribute,
-  MaintenanceTenantPromotedToCertifierV2,
+  MaintenanceTenantPromotedToCertifierV3,
   Tenant,
   generateId,
   protobufDecoder,
-  toTenantV2,
+  toTenantV3,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
 
@@ -59,11 +59,11 @@ describe("addCertifierId", async () => {
       stream_id: mockTenant.id,
       version: "1",
       type: "MaintenanceTenantPromotedToCertifier",
-      event_version: 2,
+      event_version: 3,
     });
 
-    const writtenPayload: MaintenanceTenantPromotedToCertifierV2 | undefined =
-      protobufDecoder(MaintenanceTenantPromotedToCertifierV2).parse(
+    const writtenPayload: MaintenanceTenantPromotedToCertifierV3 | undefined =
+      protobufDecoder(MaintenanceTenantPromotedToCertifierV3).parse(
         writtenEvent.data
       );
 
@@ -79,7 +79,7 @@ describe("addCertifierId", async () => {
     };
 
     expect(writtenPayload).toEqual({
-      tenant: toTenantV2(expectedTenant),
+      tenant: toTenantV3(expectedTenant),
     });
     expect(returnedTenant).toEqual(expectedTenant);
   });

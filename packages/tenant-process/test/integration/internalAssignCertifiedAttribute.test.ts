@@ -11,10 +11,10 @@ import {
   Tenant,
   unsafeBrandId,
   protobufDecoder,
-  TenantCertifiedAttributeAssignedV2,
+  TenantCertifiedAttributeAssignedV3,
   tenantAttributeType,
-  fromTenantKindV2,
-  toTenantV2,
+  fromTenantKindV3,
+  toTenantV3,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 
@@ -70,11 +70,11 @@ describe("internalAssignCertifiedAttributes", async () => {
       stream_id: targetTenant.id,
       version: "1",
       type: "TenantCertifiedAttributeAssigned",
-      event_version: 2,
+      event_version: 3,
     });
 
     const writtenPayload = protobufDecoder(
-      TenantCertifiedAttributeAssignedV2
+      TenantCertifiedAttributeAssignedV3
     ).parse(writtenEvent?.data);
 
     const updatedTenant: Tenant = {
@@ -86,12 +86,12 @@ describe("internalAssignCertifiedAttributes", async () => {
           assignmentTimestamp: new Date(),
         },
       ],
-      kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
+      kind: fromTenantKindV3(writtenPayload.tenant!.kind!),
       updatedAt: new Date(),
     };
     expect(writtenPayload).toEqual({
       attributeId: certifiedAttribute.id,
-      tenant: toTenantV2(updatedTenant),
+      tenant: toTenantV3(updatedTenant),
     });
   });
   it("Should re-assign the attribute if it was revoked", async () => {
@@ -129,11 +129,11 @@ describe("internalAssignCertifiedAttributes", async () => {
       stream_id: tenantWithCertifiedAttribute.id,
       version: "1",
       type: "TenantCertifiedAttributeAssigned",
-      event_version: 2,
+      event_version: 3,
     });
 
     const writtenPayload = protobufDecoder(
-      TenantCertifiedAttributeAssignedV2
+      TenantCertifiedAttributeAssignedV3
     ).parse(writtenEvent?.data);
 
     const updatedTenant: Tenant = {
@@ -145,12 +145,12 @@ describe("internalAssignCertifiedAttributes", async () => {
           assignmentTimestamp: new Date(),
         },
       ],
-      kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
+      kind: fromTenantKindV3(writtenPayload.tenant!.kind!),
       updatedAt: new Date(),
     };
     expect(writtenPayload).toEqual({
       attributeId: certifiedAttribute.id,
-      tenant: toTenantV2(updatedTenant),
+      tenant: toTenantV3(updatedTenant),
     });
   });
   it("Should throw certifiedAttributeAlreadyAssigned if the attribute was already assigned", async () => {

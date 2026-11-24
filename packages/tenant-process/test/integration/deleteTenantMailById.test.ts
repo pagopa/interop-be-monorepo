@@ -1,203 +1,41 @@
-/* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
   getMockAuthData,
   getMockContext,
   getMockTenant,
+  getMockTenantMail,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
-import {
-  generateId,
-  Tenant,
-  protobufDecoder,
-  toTenantV2,
-  operationForbidden,
-  TenantMailDeletedV2,
-  TenantId,
-} from "pagopa-interop-models";
-import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
+import { Tenant } from "pagopa-interop-models";
+import { describe, expect, it } from "vitest";
 
-import { config } from "../../src/config/config.js";
-import {
-  mailNotFound,
-  tenantMailsNotAllowed,
-  tenantNotFound,
-} from "../../src/model/domain/errors.js";
+import { tenantMailsNotAllowed } from "../../src/model/domain/errors.js";
 import {
   addOneTenant,
+  contactDataManagerService,
   postgresDB,
   tenantService,
 } from "../integrationUtils.js";
 
 describe("deleteTenantMailById", async () => {
-  const mailId = generateId();
-  const notDeletedMailId = generateId();
-
-  beforeAll(() => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date());
-  });
-
-  afterAll(() => {
-    vi.useRealTimers();
-  });
-  it("Should delete the mail with the required mailId if it exist ", async () => {
-    const tenant: Tenant = {
-      ...getMockTenant(),
-      mails: [
-        {
-          id: mailId,
-          createdAt: new Date(),
-          kind: "CONTACT_EMAIL",
-          address: "testMail@test.it",
-        },
-        {
-          id: notDeletedMailId,
-          createdAt: new Date(),
-          kind: "CONTACT_EMAIL",
-          address: "testMail2@test.it",
-        },
-      ],
-    };
-
-    await addOneTenant(tenant);
-    await tenantService.deleteTenantMailById(
-      {
-        tenantId: tenant.id,
-        mailId,
-      },
-      getMockContext({
-        authData: getMockAuthData(tenant.id),
-      })
-    );
-    const writtenEvent = await readLastEventByStreamId(
-      tenant.id,
-      "tenant",
-      postgresDB
-    );
-
-    expect(writtenEvent).toMatchObject({
-      stream_id: tenant.id,
-      version: "1",
-      type: "TenantMailDeleted",
-      event_version: 2,
-    });
-
-    const writtenPayload: TenantMailDeletedV2 | undefined = protobufDecoder(
-      TenantMailDeletedV2
-    ).parse(writtenEvent.data);
-
-    const updatedTenant: Tenant = {
-      ...tenant,
-      mails: [
-        {
-          id: notDeletedMailId,
-          createdAt: new Date(),
-          kind: "CONTACT_EMAIL",
-          address: "testMail2@test.it",
-        },
-      ],
-      updatedAt: new Date(),
-    };
-    expect(writtenPayload).toEqual({
-      mailId,
-      tenant: toTenantV2(updatedTenant),
-    });
-  });
-  it("Should throw tenantNotFound if the tenant doesn't exists", async () => {
-    await addOneTenant(getMockTenant());
-    const tenantId: TenantId = generateId();
-    expect(
-      tenantService.deleteTenantMailById(
-        {
-          tenantId,
-          mailId,
-        },
-        getMockContext({
-          authData: getMockAuthData(tenantId),
-        })
-      )
-    ).rejects.toThrowError(tenantNotFound(tenantId));
-  });
-  it("Should throw operationForbidden when tenantId is not the organizationId", async () => {
-    const tenant: Tenant = {
-      ...getMockTenant(),
-      mails: [
-        {
-          id: mailId,
-          createdAt: new Date(),
-          kind: "CONTACT_EMAIL",
-          address: "testMail@test.it",
-        },
-      ],
-    };
-
-    await addOneTenant(tenant);
-    expect(
-      tenantService.deleteTenantMailById(
-        {
-          tenantId: tenant.id,
-          mailId,
-        },
-        getMockContext({})
-      )
-    ).rejects.toThrowError(operationForbidden);
-  });
-  it("Should throw mailNotFound if that mail doesn't exist in the tenant", async () => {
-    const tenant: Tenant = {
-      ...getMockTenant(),
-      mails: [
-        {
-          id: mailId,
-          createdAt: new Date(),
-          kind: "CONTACT_EMAIL",
-          address: "testMail@test.it",
-        },
-      ],
-    };
-    await addOneTenant(tenant);
-    const mailIdNotInTenant = generateId();
-    expect(
-      tenantService.deleteTenantMailById(
-        {
-          tenantId: tenant.id,
-          mailId: mailIdNotInTenant,
-        },
-        getMockContext({
-          authData: getMockAuthData(tenant.id),
-        })
-      )
-    ).rejects.toThrowError(mailNotFound(mailIdNotInTenant));
-  });
-
-  it("Should throw tenantMailsNotAllowed when tenant events V3 are enabled", async () => {
-    (config as Record<string, unknown>).featureFlagTenantEventsV3 = true;
-
-    const tenant: Tenant = {
-      ...getMockTenant(),
-      mails: [
-        {
-          id: mailId,
-          createdAt: new Date(),
-          kind: "CONTACT_EMAIL",
-          address: "testMail@test.it",
-        },
-      ],
-    };
+  it("Should throw tenantMailsNotAllowed even for a mail of the tenant, without writing events", async () => {
+    const mail = getMockTenantMail();
+    const tenant: Tenant = { ...getMockTenant(), mails: [mail] };
     await addOneTenant(tenant);
 
     await expect(
       tenantService.deleteTenantMailById(
-        {
-          tenantId: tenant.id,
-          mailId,
-        },
-        getMockContext({
-          authData: getMockAuthData(tenant.id),
-        })
+        { tenantId: tenant.id, mailId: mail.id },
+        getMockContext({ authData: getMockAuthData(tenant.id) })
       )
     ).rejects.toThrowError(tenantMailsNotAllowed(tenant.id));
 
-    (config as Record<string, unknown>).featureFlagTenantEventsV3 = false;
+    const lastEvent = await readLastEventByStreamId(
+      tenant.id,
+      "tenant",
+      postgresDB
+    );
+    expect(lastEvent).toMatchObject({ version: "0", type: "TenantOnboarded" });
+    expect(contactDataManagerService.createContact).not.toHaveBeenCalled();
   });
 });

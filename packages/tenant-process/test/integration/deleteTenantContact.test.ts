@@ -11,24 +11,13 @@ import {
   ContactId,
   Tenant,
   TenantContactDeletedV3,
-  featureFlagNotEnabled,
   generateId,
   operationForbidden,
   protobufDecoder,
   toTenantV3,
 } from "pagopa-interop-models";
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { config } from "../../src/config/config.js";
 import {
   tenantContactNotFound,
   tenantNotFound,
@@ -47,14 +36,6 @@ describe("deleteTenantContact", async () => {
 
   afterAll(() => {
     vi.useRealTimers();
-  });
-
-  beforeEach(() => {
-    (config as Record<string, unknown>).featureFlagTenantEventsV3 = true;
-  });
-
-  afterEach(() => {
-    (config as Record<string, unknown>).featureFlagTenantEventsV3 = false;
   });
 
   it("Should delete the tenant contact", async () => {
@@ -177,20 +158,5 @@ describe("deleteTenantContact", async () => {
         getMockContext({ authData: getMockAuthData() })
       )
     ).rejects.toThrowError(operationForbidden);
-  });
-
-  it("Should throw featureFlagNotEnabled if tenant events V3 are disabled", async () => {
-    (config as Record<string, unknown>).featureFlagTenantEventsV3 = false;
-
-    const contactId = generateId<ContactId>();
-    const tenant: Tenant = { ...getMockTenant(), contactId };
-    await addOneTenant(tenant);
-
-    await expect(
-      tenantService.deleteTenantContact(
-        { tenantId: tenant.id, contactId },
-        getMockContext({ authData: getMockAuthData(tenant.id) })
-      )
-    ).rejects.toThrowError(featureFlagNotEnabled("featureFlagTenantEventsV3"));
   });
 });

@@ -6,12 +6,12 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   generateId,
-  MaintenanceTenantRemoteIdDeletedV2,
+  MaintenanceTenantRemoteIdDeletedV3,
   protobufDecoder,
   TenantEvent,
   Tenant,
   TenantId,
-  toTenantV2,
+  toTenantV3,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
 
@@ -67,11 +67,11 @@ describe("maintenanceTenantDeleteRemoteId", async () => {
       stream_id: tenant.id,
       version: "1",
       type: "MaintenanceTenantRemoteIdDeleted",
-      event_version: 2,
+      event_version: 3,
     });
 
     const writtenPayload = protobufDecoder(
-      MaintenanceTenantRemoteIdDeletedV2
+      MaintenanceTenantRemoteIdDeletedV3
     ).parse(writtenEvent.data);
 
     const updatedTenant: Tenant = {
@@ -80,7 +80,7 @@ describe("maintenanceTenantDeleteRemoteId", async () => {
       updatedAt: new Date(),
     };
     expect(writtenPayload).toEqual({
-      tenant: toTenantV2(updatedTenant),
+      tenant: toTenantV3(updatedTenant),
     });
   });
 

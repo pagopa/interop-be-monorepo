@@ -9,9 +9,9 @@ import {
   generateId,
   Tenant,
   protobufDecoder,
-  toTenantV2,
+  toTenantV3,
   AttributeId,
-  TenantDeclaredAttributeRevokedV2,
+  TenantDeclaredAttributeRevokedV3,
   tenantAttributeType,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
@@ -70,11 +70,11 @@ describe("revokeDeclaredAttribute", async () => {
       stream_id: tenant.id,
       version: "1",
       type: "TenantDeclaredAttributeRevoked",
-      event_version: 2,
+      event_version: 3,
     });
 
     const writtenPayload = protobufDecoder(
-      TenantDeclaredAttributeRevokedV2
+      TenantDeclaredAttributeRevokedV3
     ).parse(writtenEvent?.data);
 
     const updatedTenant: Tenant = {
@@ -89,7 +89,7 @@ describe("revokeDeclaredAttribute", async () => {
       updatedAt: new Date(),
     };
     expect(writtenPayload).toEqual({
-      tenant: toTenantV2(updatedTenant),
+      tenant: toTenantV3(updatedTenant),
       attributeId,
     });
     expect(revokeDeclaredAttrReturn).toEqual({

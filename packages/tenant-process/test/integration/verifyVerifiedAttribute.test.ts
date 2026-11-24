@@ -14,10 +14,10 @@ import {
   Tenant,
   unsafeBrandId,
   protobufDecoder,
-  toTenantV2,
+  toTenantV3,
   Descriptor,
   EService,
-  TenantVerifiedAttributeAssignedV2,
+  TenantVerifiedAttributeAssignedV3,
   descriptorState,
   tenantAttributeType,
   Attribute,
@@ -149,10 +149,10 @@ describe("verifyVerifiedAttribute", async () => {
         stream_id: targetTenant.id,
         version: "1",
         type: "TenantVerifiedAttributeAssigned",
-        event_version: 2,
+        event_version: 3,
       });
       const writtenPayload = protobufDecoder(
-        TenantVerifiedAttributeAssignedV2
+        TenantVerifiedAttributeAssignedV3
       ).parse(writtenEvent?.data);
 
       const updatedTenant: Tenant = {
@@ -177,7 +177,7 @@ describe("verifyVerifiedAttribute", async () => {
         updatedAt: new Date(),
       };
       expect(writtenPayload).toEqual({
-        tenant: toTenantV2(updatedTenant),
+        tenant: toTenantV3(updatedTenant),
         attributeId: tenantAttributeSeedId,
       });
       expect(verifyVerifiedAttrReturn).toEqual({
@@ -256,10 +256,10 @@ describe("verifyVerifiedAttribute", async () => {
         stream_id: tenantWithVerifiedAttribute.id,
         version: "1",
         type: "TenantVerifiedAttributeAssigned",
-        event_version: 2,
+        event_version: 3,
       });
       const writtenPayload = protobufDecoder(
-        TenantVerifiedAttributeAssignedV2
+        TenantVerifiedAttributeAssignedV3
       ).parse(writtenEvent?.data);
 
       const updatedTenant: Tenant = {
@@ -285,7 +285,7 @@ describe("verifyVerifiedAttribute", async () => {
       };
 
       expect(writtenPayload).toEqual({
-        tenant: toTenantV2(updatedTenant),
+        tenant: toTenantV3(updatedTenant),
         attributeId: tenantAttributeSeedId,
       });
       expect(verifyVerifiedAttrReturn).toEqual({

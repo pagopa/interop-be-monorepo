@@ -4,6 +4,7 @@ import {
   getMockAuthData,
   getMockContext,
   getMockTenant,
+  getMockTenantMail,
   readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test";
 import {
@@ -12,17 +13,14 @@ import {
   CorrelationId,
   Tenant,
   TenantEvent,
-  TenantEventV2,
   TenantEventV3,
   generateId,
   tenantEventToBinaryData,
   tenantKind,
 } from "pagopa-interop-models";
 import { upsertTenant } from "pagopa-interop-readmodel/testUtils";
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
-import { config } from "../../src/config/config.js";
-import { tenantContactRequiresEventsV3 } from "../../src/model/domain/errors.js";
 import {
   toCreateEventMaintenanceTenantDeleted,
   toCreateEventMaintenanceTenantPromotedToCertifier,
@@ -42,8 +40,6 @@ import {
   toCreateEventTenantDelegatedProducerFeatureAdded,
   toCreateEventTenantDelegatedProducerFeatureRemoved,
   toCreateEventTenantKindUpdated,
-  toCreateEventTenantMailAdded,
-  toCreateEventTenantMailDeleted,
   toCreateEventTenantOnboardDetailsUpdated,
   toCreateEventTenantOnboarded,
   toCreateEventTenantRemoteIdAssigned,
@@ -59,22 +55,22 @@ import {
   tenantService,
 } from "../integrationUtils.js";
 
-const setTenantEventsV3 = (enabled: boolean): void => {
-  (config as Record<string, unknown>).featureFlagTenantEventsV3 = enabled;
-};
-
 describe("Tenant events version", () => {
   const tenantWithContact: Tenant = {
     ...getMockTenant(),
     contactId: generateId<ContactId>(),
   };
   const tenantWithoutContact = getMockTenant();
+  const tenantWithMails: Tenant = {
+    ...getMockTenant(),
+    mails: [getMockTenantMail()],
+  };
   const attributeId = generateId<AttributeId>();
   const correlationId = generateId<CorrelationId>();
 
   type EventBuilder = [TenantEvent["type"], () => CreateEvent<TenantEvent>];
 
-  const switchableBuilders = (tenant: Tenant): EventBuilder[] => [
+  const builders = (tenant: Tenant): EventBuilder[] => [
     [
       "TenantOnboarded",
       () => toCreateEventTenantOnboarded(tenant, correlationId),
@@ -272,43 +268,9 @@ describe("Tenant events version", () => {
     ],
   ];
 
-  afterEach(() => {
-    setTenantEventsV3(false);
-  });
-
-  it.each(switchableBuilders(tenantWithoutContact))(
-    "Should build %s as V2 when tenant events V3 are disabled",
+  it.each(builders(tenantWithContact))(
+    "Should build %s as V3 with the contact reference",
     (type, build) => {
-      setTenantEventsV3(false);
-
-      const { event } = build();
-
-      expect(event).toMatchObject({ type, event_version: 2 });
-      const decoded = TenantEventV2.parse({
-        type,
-        event_version: 2,
-        data: tenantEventToBinaryData(event),
-      });
-      expect(decoded.type).toBe(type);
-    }
-  );
-
-  it.each(switchableBuilders(tenantWithContact))(
-    "Should refuse to build %s as V2 for a tenant with a contact",
-    (_type, build) => {
-      setTenantEventsV3(false);
-
-      expect(build).toThrow(
-        tenantContactRequiresEventsV3(tenantWithContact.id)
-      );
-    }
-  );
-
-  it.each(switchableBuilders(tenantWithContact))(
-    "Should build %s as V3 with the contact reference when tenant events V3 are enabled",
-    (type, build) => {
-      setTenantEventsV3(true);
-
       const { event } = build();
 
       expect(event).toMatchObject({ type, event_version: 3 });
@@ -322,87 +284,60 @@ describe("Tenant events version", () => {
     }
   );
 
-  it.each([false, true])(
-    "Should always build the mail events as V2 (tenant events V3 enabled: %s)",
-    (enabled) => {
-      setTenantEventsV3(enabled);
+  it.each(builders(tenantWithoutContact))(
+    "Should build %s as V3 for a tenant without a contact",
+    (type, build) => {
+      const { event } = build();
 
-      expect(
-        toCreateEventTenantMailAdded(
-          1,
-          tenantWithoutContact,
-          generateId(),
-          correlationId
-        ).event
-      ).toMatchObject({ type: "TenantMailAdded", event_version: 2 });
-      expect(
-        toCreateEventTenantMailDeleted(
-          1,
-          tenantWithoutContact,
-          generateId(),
-          correlationId
-        ).event
-      ).toMatchObject({ type: "TenantMailDeleted", event_version: 2 });
+      expect(event).toMatchObject({ type, event_version: 3 });
+      const decoded = TenantEventV3.parse({
+        type,
+        event_version: 3,
+        data: tenantEventToBinaryData(event),
+      });
+      expect(decoded.data.tenant?.contactId).toBeUndefined();
     }
   );
 
-  it("Should refuse to build the mail events for a tenant with a contact", () => {
-    const error = tenantContactRequiresEventsV3(tenantWithContact.id);
+  it.each(builders(tenantWithMails))(
+    "Should refuse to build %s for a tenant that still has legacy mails",
+    (_type, build) => {
+      expect(build).toThrow(
+        `Tenant ${tenantWithMails.id} has legacy mails and cannot be serialized to V3`
+      );
+    }
+  );
 
-    expect(() =>
-      toCreateEventTenantMailAdded(
+  it("Should build the contact events as V3", () => {
+    const contactId = generateId<ContactId>();
+
+    expect(
+      toCreateEventTenantContactAdded(
         1,
         tenantWithContact,
-        generateId(),
+        contactId,
         correlationId
-      )
-    ).toThrow(error);
-    expect(() =>
-      toCreateEventTenantMailDeleted(
+      ).event
+    ).toMatchObject({
+      type: "TenantContactAdded",
+      event_version: 3,
+      data: { contactId },
+    });
+    expect(
+      toCreateEventTenantContactDeleted(
         1,
         tenantWithContact,
-        generateId(),
+        contactId,
         correlationId
-      )
-    ).toThrow(error);
+      ).event
+    ).toMatchObject({
+      type: "TenantContactDeleted",
+      event_version: 3,
+      data: { contactId },
+    });
   });
 
-  it.each([false, true])(
-    "Should always build the contact events as V3 (tenant events V3 enabled: %s)",
-    (enabled) => {
-      setTenantEventsV3(enabled);
-      const contactId = generateId<ContactId>();
-
-      expect(
-        toCreateEventTenantContactAdded(
-          1,
-          tenantWithContact,
-          contactId,
-          correlationId
-        ).event
-      ).toMatchObject({
-        type: "TenantContactAdded",
-        event_version: 3,
-        data: { contactId },
-      });
-      expect(
-        toCreateEventTenantContactDeleted(
-          1,
-          tenantWithContact,
-          contactId,
-          correlationId
-        ).event
-      ).toMatchObject({
-        type: "TenantContactDeleted",
-        event_version: 3,
-        data: { contactId },
-      });
-    }
-  );
-
   it("Should continue a V2 tenant stream with V3 events and contiguous versions", async () => {
-    setTenantEventsV3(true);
-
     const streamTenant = getMockTenant();
     await addOneTenant(streamTenant);
 

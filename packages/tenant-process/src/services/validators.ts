@@ -42,7 +42,6 @@ import {
   eServiceNotFound,
   descriptorNotFoundInEservice,
   tenantNotAllowedForDelegation,
-  tenantMailsNotAllowed,
 } from "../model/domain/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -157,12 +156,6 @@ export async function assertRequesterAllowed(
 ): Promise<void> {
   if (tenantId !== authData.organizationId) {
     throw operationForbidden;
-  }
-}
-
-export function assertTenantMailsAllowed(tenantId: TenantId): void {
-  if (isFeatureFlagEnabled(config, "featureFlagTenantEventsV3")) {
-    throw tenantMailsNotAllowed(tenantId);
   }
 }
 

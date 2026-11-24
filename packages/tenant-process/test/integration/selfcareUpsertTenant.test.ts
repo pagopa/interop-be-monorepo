@@ -7,18 +7,20 @@ import {
   getMockContext,
   getMockTenant,
   getMockAuthData,
+  getMockTenantMail,
+  readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test";
 import {
+  ContactId,
   generateId,
   Tenant,
+  TenantContactAddedV3,
   protobufDecoder,
   operationForbidden,
   tenantKind,
   unsafeBrandId,
-  TenantOnboardDetailsUpdatedV2,
-  TenantOnboardedV2,
+  TenantOnboardDetailsUpdatedV3,
   TenantOnboardedV3,
-  toTenantV2,
   toTenantV3,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   SCP,
@@ -26,10 +28,11 @@ import {
 import { match } from "ts-pattern";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 
-import { config } from "../../src/config/config.js";
 import { selfcareIdConflict } from "../../src/model/domain/errors.js";
 import {
   addOneTenant,
+  contactDataManagerService,
+  postgresDB,
   readLastTenantEvent,
   tenantService,
 } from "../integrationUtils.js";
@@ -73,9 +76,10 @@ describe("selfcareUpsertTenant", async () => {
       stream_id: mockTenant.id,
       version: "1",
       type: "TenantOnboardDetailsUpdated",
+      event_version: 3,
     });
-    const writtenPayload: TenantOnboardDetailsUpdatedV2 | undefined =
-      protobufDecoder(TenantOnboardDetailsUpdatedV2).parse(writtenEvent?.data);
+    const writtenPayload: TenantOnboardDetailsUpdatedV3 | undefined =
+      protobufDecoder(TenantOnboardDetailsUpdatedV3).parse(writtenEvent?.data);
 
     const updatedTenant: Tenant = {
       ...mockTenant,
@@ -85,7 +89,7 @@ describe("selfcareUpsertTenant", async () => {
     };
 
     expect(writtenPayload).toEqual({
-      tenant: toTenantV2(updatedTenant),
+      tenant: toTenantV3(updatedTenant),
     });
   });
   it.each([
@@ -118,8 +122,8 @@ describe("selfcareUpsertTenant", async () => {
         fail("Creation failed: tenant not found in event-store");
       }
 
-      const writtenPayload: TenantOnboardedV2 | undefined = protobufDecoder(
-        TenantOnboardedV2
+      const writtenPayload: TenantOnboardedV3 | undefined = protobufDecoder(
+        TenantOnboardedV3
       ).parse(writtenEvent.data);
 
       const expectedTenant: Tenant = {
@@ -141,7 +145,7 @@ describe("selfcareUpsertTenant", async () => {
       };
 
       expect(writtenPayload).toEqual({
-        tenant: toTenantV2(expectedTenant),
+        tenant: toTenantV3(expectedTenant),
       });
     }
   );
@@ -168,15 +172,16 @@ describe("selfcareUpsertTenant", async () => {
     );
 
     const writtenEvent = await readLastTenantEvent(unsafeBrandId(id));
-    const writtenPayload = protobufDecoder(TenantOnboardedV2).parse(
+    const writtenPayload = protobufDecoder(TenantOnboardedV3).parse(
       writtenEvent.data
     );
 
     expect(writtenEvent).toMatchObject({
       type: "TenantOnboarded",
-      event_version: 2,
+      event_version: 3,
     });
-    expect(writtenPayload.tenant?.mails).toEqual([]);
+    expect(writtenPayload.tenant?.contactId).toBeUndefined();
+    expect(contactDataManagerService.createContact).not.toHaveBeenCalled();
   });
   it("should throw operation forbidden if role isn't internal and the requester is another tenant", async () => {
     await addOneTenant(mockTenant);
@@ -222,56 +227,106 @@ describe("selfcareUpsertTenant", async () => {
       })
     );
   });
-  it("Should create the tenant with a V3 event and without mails when tenant events V3 are enabled", async () => {
-    (config as Record<string, unknown>).featureFlagTenantEventsV3 = true;
-
+  it("Should convert a legacy tenant when updating it: TenantContactAdded, then TenantOnboardDetailsUpdated", async () => {
+    const contactEmail = getMockTenantMail();
+    const legacyTenant: Tenant = {
+      ...getMockTenant(),
+      mails: [contactEmail],
+    };
+    await addOneTenant(legacyTenant);
+    const contactId = generateId<ContactId>();
+    contactDataManagerService.createContact.mockResolvedValueOnce({
+      type: "created",
+      contactId,
+    });
     const tenantSeed: tenantApi.SelfcareTenantSeed = {
-      externalId: {
-        origin: "PRV",
-        value: generateId(),
-      },
-      name: "A tenant",
-      selfcareId: generateId(),
-      onboardedAt: mockTenant.onboardedAt!.toISOString(),
-      selfcareInstitutionType: "PRV",
+      externalId: legacyTenant.externalId,
+      name: legacyTenant.name,
+      selfcareId: legacyTenant.selfcareId!,
+      onboardedAt: legacyTenant.onboardedAt!.toISOString(),
+      selfcareInstitutionType: legacyTenant.selfcareInstitutionType,
+      subUnitType: legacyTenant.subUnitType,
     };
 
-    const id = await tenantService.selfcareUpsertTenant(
+    await tenantService.selfcareUpsertTenant(
       tenantSeed,
-      getMockContext({})
+      getMockContext({ authData: getMockAuthData(legacyTenant.id) })
     );
 
-    const writtenEvent = await readLastTenantEvent(unsafeBrandId(id));
+    expect(contactDataManagerService.createContact).toHaveBeenCalledWith(
+      contactEmail.address,
+      expect.anything()
+    );
 
-    expect(writtenEvent).toMatchObject({
-      stream_id: id,
-      version: "0",
-      type: "TenantOnboarded",
+    const contactEvent = await readEventByStreamIdAndVersion(
+      legacyTenant.id,
+      1,
+      "tenant",
+      postgresDB
+    );
+    expect(contactEvent).toMatchObject({
+      type: "TenantContactAdded",
       event_version: 3,
     });
-
-    const writtenPayload: TenantOnboardedV3 | undefined = protobufDecoder(
-      TenantOnboardedV3
-    ).parse(writtenEvent.data);
-
-    const expectedTenant: Tenant = {
-      externalId: tenantSeed.externalId,
-      id: unsafeBrandId(id),
-      kind: tenantKind.PRIVATE,
-      selfcareId: tenantSeed.selfcareId,
-      onboardedAt: mockTenant.onboardedAt!,
-      selfcareInstitutionType: tenantSeed.selfcareInstitutionType,
-      createdAt: new Date(),
-      name: tenantSeed.name,
-      attributes: [],
-      features: [],
-      mails: [],
-    };
-
-    expect(writtenPayload).toEqual({
-      tenant: toTenantV3(expectedTenant),
+    expect(
+      protobufDecoder(TenantContactAddedV3).parse(contactEvent.data)
+    ).toEqual({
+      contactId,
+      tenant: toTenantV3({
+        ...legacyTenant,
+        mails: [],
+        contactId,
+        updatedAt: new Date(),
+      }),
     });
 
-    (config as Record<string, unknown>).featureFlagTenantEventsV3 = false;
+    const writtenEvent = await readLastTenantEvent(legacyTenant.id);
+    expect(writtenEvent).toMatchObject({
+      version: "2",
+      type: "TenantOnboardDetailsUpdated",
+      event_version: 3,
+    });
+    expect(
+      protobufDecoder(TenantOnboardDetailsUpdatedV3).parse(writtenEvent.data)
+    ).toEqual({
+      tenant: toTenantV3({
+        ...legacyTenant,
+        mails: [],
+        contactId,
+        kind: tenantKind.PA,
+        updatedAt: new Date(),
+      }),
+    });
+  });
+  it("Should not create a contact for a legacy tenant when the update is rejected", async () => {
+    const legacyTenant: Tenant = {
+      ...getMockTenant(),
+      mails: [getMockTenantMail()],
+    };
+    await addOneTenant(legacyTenant);
+    const newSelfcareId = generateId();
+
+    await expect(
+      tenantService.selfcareUpsertTenant(
+        {
+          externalId: legacyTenant.externalId,
+          name: legacyTenant.name,
+          selfcareId: newSelfcareId,
+          onboardedAt: legacyTenant.onboardedAt!.toISOString(),
+          selfcareInstitutionType: legacyTenant.selfcareInstitutionType,
+        },
+        getMockContext({ authData: getMockAuthData(legacyTenant.id) })
+      )
+    ).rejects.toThrowError(
+      selfcareIdConflict({
+        tenantId: legacyTenant.id,
+        existingSelfcareId: legacyTenant.selfcareId!,
+        newSelfcareId,
+      })
+    );
+
+    expect(contactDataManagerService.createContact).not.toHaveBeenCalled();
+    const lastEvent = await readLastTenantEvent(legacyTenant.id);
+    expect(lastEvent.version).toBe("0");
   });
 });

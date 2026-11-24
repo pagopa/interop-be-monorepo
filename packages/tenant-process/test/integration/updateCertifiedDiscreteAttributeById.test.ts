@@ -16,9 +16,9 @@ import {
   Tenant,
   Attribute,
   protobufDecoder,
-  fromTenantKindV2,
-  toTenantV2,
-  TenantCertifiedDiscreteAttributeUpdatedV2,
+  fromTenantKindV3,
+  toTenantV3,
+  TenantCertifiedDiscreteAttributeUpdatedV3,
   attributeKind,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
@@ -105,10 +105,10 @@ describe("updateCertifiedDiscreteAttributeById", async () => {
       stream_id: updateCertifiedDiscreteAttributeByIdResponse.data.id,
       version: "1",
       type: "TenantCertifiedDiscreteAttributeUpdated",
-      event_version: 2,
+      event_version: 3,
     });
     const writtenPayload = protobufDecoder(
-      TenantCertifiedDiscreteAttributeUpdatedV2
+      TenantCertifiedDiscreteAttributeUpdatedV3
     ).parse(writtenEvent?.data);
 
     const updatedTenant: Tenant = {
@@ -120,12 +120,12 @@ describe("updateCertifiedDiscreteAttributeById", async () => {
           discreteValue: tenantAttributeSeed.certifiedDiscreteValue,
         },
       ],
-      kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
+      kind: fromTenantKindV3(writtenPayload.tenant!.kind!),
       updatedAt: new Date(),
     };
     expect(writtenPayload).toEqual({
       attributeId: attribute.id,
-      tenant: toTenantV2(updatedTenant),
+      tenant: toTenantV3(updatedTenant),
       previousValue: 1000,
       newValue: tenantAttributeSeed.certifiedDiscreteValue,
     });

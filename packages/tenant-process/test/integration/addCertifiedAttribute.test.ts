@@ -20,9 +20,9 @@ import {
   unsafeBrandId,
   attributeKind,
   protobufDecoder,
-  TenantCertifiedAttributeAssignedV2,
-  fromTenantKindV2,
-  toTenantV2,
+  TenantCertifiedAttributeAssignedV3,
+  fromTenantKindV3,
+  toTenantV3,
   tenantAttributeType,
   tenantKind,
 } from "pagopa-interop-models";
@@ -98,10 +98,10 @@ describe("addCertifiedAttribute", async () => {
       stream_id: addCertifiedAttributeReponse.data.id,
       version: "1",
       type: "TenantCertifiedAttributeAssigned",
-      event_version: 2,
+      event_version: 3,
     });
     const writtenPayload = protobufDecoder(
-      TenantCertifiedAttributeAssignedV2
+      TenantCertifiedAttributeAssignedV3
     ).parse(writtenEvent?.data);
 
     const updatedTenant: Tenant = {
@@ -113,12 +113,12 @@ describe("addCertifiedAttribute", async () => {
           assignmentTimestamp: new Date(),
         },
       ],
-      kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
+      kind: fromTenantKindV3(writtenPayload.tenant!.kind!),
       updatedAt: new Date(),
     };
     expect(writtenPayload).toEqual({
       attributeId: tenantAttributeSeed.id,
-      tenant: toTenantV2(updatedTenant),
+      tenant: toTenantV3(updatedTenant),
     });
     expect(addCertifiedAttributeReponse).toEqual({
       data: updatedTenant,
@@ -164,14 +164,14 @@ describe("addCertifiedAttribute", async () => {
       stream_id: tenantWithRevaluatedKind.id,
       version: "1",
       type: "TenantCertifiedAttributeAssigned",
-      event_version: 2,
+      event_version: 3,
     });
 
     expect(writtenEventTenantKindUpdated).toMatchObject({
       stream_id: tenantWithRevaluatedKind.id,
       version: "2",
       type: "TenantKindUpdated",
-      event_version: 2,
+      event_version: 3,
     });
 
     const updatedTenant: Tenant = {
@@ -227,10 +227,10 @@ describe("addCertifiedAttribute", async () => {
       stream_id: addCertifiedAttributeReponse.data.id,
       version: "1",
       type: "TenantCertifiedAttributeAssigned",
-      event_version: 2,
+      event_version: 3,
     });
     const writtenPayload = protobufDecoder(
-      TenantCertifiedAttributeAssignedV2
+      TenantCertifiedAttributeAssignedV3
     ).parse(writtenEvent?.data);
 
     const updatedTenant: Tenant = {
@@ -242,12 +242,12 @@ describe("addCertifiedAttribute", async () => {
           assignmentTimestamp: new Date(),
         },
       ],
-      kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
+      kind: fromTenantKindV3(writtenPayload.tenant!.kind!),
       updatedAt: new Date(),
     };
     expect(writtenPayload).toEqual({
       attributeId: tenantAttributeSeed.id,
-      tenant: toTenantV2(updatedTenant),
+      tenant: toTenantV3(updatedTenant),
     });
     expect(addCertifiedAttributeReponse).toEqual({
       data: updatedTenant,

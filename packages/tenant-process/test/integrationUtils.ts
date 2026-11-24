@@ -7,7 +7,9 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
+  ContactId,
   EService,
+  generateId,
   Tenant,
   TenantEvent,
   TenantId,
@@ -33,8 +35,12 @@ import {
   upsertEService,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
-import { inject, afterEach } from "vitest";
+import { inject, afterEach, vi } from "vitest";
 
+import {
+  ContactCreationResult,
+  ContactDataManagerService,
+} from "../src/services/contactDataManagerService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 import { tenantServiceBuilder } from "../src/services/tenantService.js";
 
@@ -48,7 +54,24 @@ export const { cleanup, postgresDB, readModelDB } =
     inject("readModelSQLConfig")
   );
 
+/**
+ * Fake Contact Data Manager: by default every contact is created with a new
+ * id. Tests override it with mockResolvedValueOnce / mockRejectedValueOnce.
+ */
+const createContactDefault = (): Promise<ContactCreationResult> =>
+  Promise.resolve({ type: "created", contactId: generateId<ContactId>() });
+
+export const contactDataManagerService = {
+  createContact:
+    vi.fn<ContactDataManagerService["createContact"]>(createContactDefault),
+} satisfies ContactDataManagerService;
+
 afterEach(async () => {
+  contactDataManagerService.createContact.mockReset();
+  contactDataManagerService.createContact.mockImplementation(
+    createContactDefault
+  );
+
   await readModelDB.delete(tenantVerifiedAttributeVerifierInReadmodelTenant);
   await readModelDB.delete(tenantVerifiedAttributeRevokerInReadmodelTenant);
 
@@ -73,7 +96,11 @@ export const readModelService = readModelServiceBuilderSQL(
   delegationReadModelServiceSQL
 );
 
-export const tenantService = tenantServiceBuilder(postgresDB, readModelService);
+export const tenantService = tenantServiceBuilder(
+  postgresDB,
+  readModelService,
+  contactDataManagerService
+);
 
 const writeTenantInEventstore = async (tenant: Tenant): Promise<void> => {
   const tenantEvent: TenantEvent = {

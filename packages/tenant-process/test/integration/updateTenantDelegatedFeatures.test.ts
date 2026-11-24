@@ -11,12 +11,12 @@ import {
   generateId,
   Tenant,
   protobufDecoder,
-  toTenantV2,
-  TenantDelegatedProducerFeatureAddedV2,
+  toTenantV3,
+  TenantDelegatedProducerFeatureAddedV3,
   TenantId,
-  TenantDelegatedProducerFeatureRemovedV2,
-  TenantDelegatedConsumerFeatureRemovedV2,
-  TenantDelegatedConsumerFeatureAddedV2,
+  TenantDelegatedProducerFeatureRemovedV3,
+  TenantDelegatedConsumerFeatureRemovedV3,
+  TenantDelegatedConsumerFeatureAddedV3,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 
@@ -65,11 +65,11 @@ describe("updateTenantDelegatedFeatures", async () => {
       stream_id: mockTenant.id,
       version: "1",
       type: "TenantDelegatedConsumerFeatureAdded",
-      event_version: 2,
+      event_version: 3,
     });
 
     const writtenPayload = protobufDecoder(
-      TenantDelegatedConsumerFeatureAddedV2
+      TenantDelegatedConsumerFeatureAddedV3
     ).parse(writtenEvent.data);
 
     const updatedTenant: Tenant = {
@@ -84,7 +84,7 @@ describe("updateTenantDelegatedFeatures", async () => {
       updatedAt: new Date(),
     };
 
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    expect(writtenPayload.tenant).toEqual(toTenantV3(updatedTenant));
   });
 
   it("Should correctly add Producer feature", async () => {
@@ -111,11 +111,11 @@ describe("updateTenantDelegatedFeatures", async () => {
       stream_id: mockTenant.id,
       version: "1",
       type: "TenantDelegatedProducerFeatureAdded",
-      event_version: 2,
+      event_version: 3,
     });
 
     const writtenPayload = protobufDecoder(
-      TenantDelegatedProducerFeatureAddedV2
+      TenantDelegatedProducerFeatureAddedV3
     ).parse(writtenEvent.data);
 
     const updatedTenant: Tenant = {
@@ -130,7 +130,7 @@ describe("updateTenantDelegatedFeatures", async () => {
       updatedAt: new Date(),
     };
 
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    expect(writtenPayload.tenant).toEqual(toTenantV3(updatedTenant));
   });
 
   it("Should correctly remove Consumer feature", async () => {
@@ -165,11 +165,11 @@ describe("updateTenantDelegatedFeatures", async () => {
       stream_id: mockTenant.id,
       version: "1",
       type: "TenantDelegatedConsumerFeatureRemoved",
-      event_version: 2,
+      event_version: 3,
     });
 
     const writtenPayload = protobufDecoder(
-      TenantDelegatedConsumerFeatureRemovedV2
+      TenantDelegatedConsumerFeatureRemovedV3
     ).parse(writtenEvent.data);
 
     const updatedTenant: Tenant = {
@@ -178,7 +178,7 @@ describe("updateTenantDelegatedFeatures", async () => {
       updatedAt: new Date(),
     };
 
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    expect(writtenPayload.tenant).toEqual(toTenantV3(updatedTenant));
   });
 
   it("Should correctly remove Producer feature", async () => {
@@ -213,11 +213,11 @@ describe("updateTenantDelegatedFeatures", async () => {
       stream_id: mockTenant.id,
       version: "1",
       type: "TenantDelegatedProducerFeatureRemoved",
-      event_version: 2,
+      event_version: 3,
     });
 
     const writtenPayload = protobufDecoder(
-      TenantDelegatedProducerFeatureRemovedV2
+      TenantDelegatedProducerFeatureRemovedV3
     ).parse(writtenEvent.data);
 
     const updatedTenant: Tenant = {
@@ -226,7 +226,7 @@ describe("updateTenantDelegatedFeatures", async () => {
       updatedAt: new Date(),
     };
 
-    expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    expect(writtenPayload.tenant).toEqual(toTenantV3(updatedTenant));
   });
 
   it("Should correctly add both Consumer and Producer features", async () => {
@@ -254,7 +254,7 @@ describe("updateTenantDelegatedFeatures", async () => {
       stream_id: mockTenant.id,
       version: "1",
       type: "TenantDelegatedConsumerFeatureAdded",
-      event_version: 2,
+      event_version: 3,
     });
 
     const producerEvent = await readEventByStreamIdAndVersion(
@@ -268,11 +268,11 @@ describe("updateTenantDelegatedFeatures", async () => {
       stream_id: mockTenant.id,
       version: "2",
       type: "TenantDelegatedProducerFeatureAdded",
-      event_version: 2,
+      event_version: 3,
     });
 
     const lastUpdatedPayload = protobufDecoder(
-      TenantDelegatedProducerFeatureAddedV2
+      TenantDelegatedProducerFeatureAddedV3
     ).parse(producerEvent.data);
 
     const updatedTenant: Tenant = {
@@ -291,7 +291,7 @@ describe("updateTenantDelegatedFeatures", async () => {
       updatedAt: new Date(),
     };
 
-    expect(lastUpdatedPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    expect(lastUpdatedPayload.tenant).toEqual(toTenantV3(updatedTenant));
   });
 
   it("Should correctly remove both Consumer and Producer features", async () => {
@@ -331,7 +331,7 @@ describe("updateTenantDelegatedFeatures", async () => {
       stream_id: mockTenant.id,
       version: "1",
       type: "TenantDelegatedConsumerFeatureRemoved",
-      event_version: 2,
+      event_version: 3,
     });
 
     const producerEvent = await readEventByStreamIdAndVersion(
@@ -345,11 +345,11 @@ describe("updateTenantDelegatedFeatures", async () => {
       stream_id: mockTenant.id,
       version: "2",
       type: "TenantDelegatedProducerFeatureRemoved",
-      event_version: 2,
+      event_version: 3,
     });
 
     const lastUpdatedPayload = protobufDecoder(
-      TenantDelegatedProducerFeatureRemovedV2
+      TenantDelegatedProducerFeatureRemovedV3
     ).parse(producerEvent.data);
 
     const updatedTenant: Tenant = {
@@ -358,7 +358,7 @@ describe("updateTenantDelegatedFeatures", async () => {
       updatedAt: new Date(),
     };
 
-    expect(lastUpdatedPayload.tenant).toEqual(toTenantV2(updatedTenant));
+    expect(lastUpdatedPayload.tenant).toEqual(toTenantV3(updatedTenant));
   });
 
   it("Should throw tenantNotFound if the requester tenant doesn't exist", async () => {

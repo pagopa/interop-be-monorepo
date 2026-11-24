@@ -11,9 +11,9 @@ import {
   Tenant,
   unsafeBrandId,
   protobufDecoder,
-  fromTenantKindV2,
-  toTenantV2,
-  TenantCertifiedAttributeRevokedV2,
+  fromTenantKindV3,
+  toTenantV3,
+  TenantCertifiedAttributeRevokedV3,
   tenantAttributeType,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
@@ -90,10 +90,10 @@ describe("testInternalRevokeCertifiedAttribute", async () => {
       stream_id: tenantWithCertifiedAttribute.id,
       version: "1",
       type: "TenantCertifiedAttributeRevoked",
-      event_version: 2,
+      event_version: 3,
     });
     const writtenPayload = protobufDecoder(
-      TenantCertifiedAttributeRevokedV2
+      TenantCertifiedAttributeRevokedV3
     ).parse(writtenEvent?.data);
 
     const updatedTenant: Tenant = {
@@ -106,12 +106,12 @@ describe("testInternalRevokeCertifiedAttribute", async () => {
           revocationTimestamp: new Date(),
         },
       ],
-      kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
+      kind: fromTenantKindV3(writtenPayload.tenant!.kind!),
       updatedAt: new Date(),
     };
     expect(writtenPayload).toEqual({
       attributeId: mockAttribute.id,
-      tenant: toTenantV2(updatedTenant),
+      tenant: toTenantV3(updatedTenant),
     });
   });
   it("should throw tenantNotFoundByExternalId if the target tenant doesn't exist", async () => {

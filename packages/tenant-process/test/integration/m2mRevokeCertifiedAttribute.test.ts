@@ -8,12 +8,12 @@ import {
 import {
   Attribute,
   Tenant,
-  TenantDeclaredAttributeRevokedV2,
+  TenantDeclaredAttributeRevokedV3,
   generateId,
   protobufDecoder,
   tenantAttributeType,
   tenantKind,
-  toTenantV2,
+  toTenantV3,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
@@ -84,7 +84,7 @@ describe("m2mRevokeCertifiedAttribute", () => {
     expect(writtenEvent.type).toBe("TenantCertifiedAttributeRevoked");
 
     const writtenPayload = protobufDecoder(
-      TenantDeclaredAttributeRevokedV2
+      TenantDeclaredAttributeRevokedV3
     ).parse(writtenEvent?.data);
 
     const updatedTenant: Tenant = {
@@ -101,7 +101,7 @@ describe("m2mRevokeCertifiedAttribute", () => {
     };
     expect(writtenPayload).toEqual({
       attributeId: mockAttribute.id,
-      tenant: toTenantV2(updatedTenant),
+      tenant: toTenantV3(updatedTenant),
     });
   });
   it("should throw tenantNotFound if the requester tenant doesn't exist", async () => {

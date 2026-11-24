@@ -11,10 +11,10 @@ import {
   Tenant,
   unsafeBrandId,
   protobufDecoder,
-  fromTenantKindV2,
-  toTenantV2,
+  fromTenantKindV3,
+  toTenantV3,
   tenantAttributeType,
-  TenantCertifiedDiscreteAttributeRevokedV2,
+  TenantCertifiedDiscreteAttributeRevokedV3,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
 
@@ -100,11 +100,11 @@ describe("testInternalRevokeCertifiedDiscreteAttribute", async () => {
       stream_id: tenantWithCertifiedAttribute.id,
       version: "1",
       type: "TenantCertifiedDiscreteAttributeRevoked",
-      event_version: 2,
+      event_version: 3,
     });
 
     const writtenPayload = protobufDecoder(
-      TenantCertifiedDiscreteAttributeRevokedV2
+      TenantCertifiedDiscreteAttributeRevokedV3
     ).parse(writtenEvent?.data);
 
     const updatedTenant: Tenant = {
@@ -118,17 +118,17 @@ describe("testInternalRevokeCertifiedDiscreteAttribute", async () => {
           discreteValue: mockPopulationValue,
         },
       ],
-      kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
+      kind: fromTenantKindV3(writtenPayload.tenant!.kind!),
       updatedAt: new Date(),
     };
 
-    const expectedTenantV2 = toTenantV2(updatedTenant);
+    const expectedTenantV3 = toTenantV3(updatedTenant);
 
-    expectedTenantV2.updatedAt = writtenPayload.tenant!.updatedAt;
+    expectedTenantV3.updatedAt = writtenPayload.tenant!.updatedAt;
 
     expect(writtenPayload).toEqual({
       attributeId: mockAttribute.id,
-      tenant: expectedTenantV2,
+      tenant: expectedTenantV3,
     });
   });
 

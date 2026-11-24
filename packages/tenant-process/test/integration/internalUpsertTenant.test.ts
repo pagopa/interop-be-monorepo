@@ -12,10 +12,10 @@ import {
   tenantKind,
   protobufDecoder,
   Tenant,
-  toTenantV2,
+  toTenantV3,
   Attribute,
   unsafeBrandId,
-  TenantCertifiedAttributeAssignedV2,
+  TenantCertifiedAttributeAssignedV3,
   tenantAttributeType,
 } from "pagopa-interop-models";
 import { describe, it, expect, afterAll, beforeAll, vi } from "vitest";
@@ -92,8 +92,8 @@ describe("internalUpsertTenant", async () => {
       version: "1",
       type: "TenantCertifiedAttributeAssigned",
     });
-    const writtenPayload: TenantCertifiedAttributeAssignedV2 | undefined =
-      protobufDecoder(TenantCertifiedAttributeAssignedV2).parse(
+    const writtenPayload: TenantCertifiedAttributeAssignedV3 | undefined =
+      protobufDecoder(TenantCertifiedAttributeAssignedV3).parse(
         writtenEvent?.data
       );
 
@@ -113,7 +113,7 @@ describe("internalUpsertTenant", async () => {
 
     expect(writtenPayload).toEqual({
       attributeId: attribute1.id,
-      tenant: toTenantV2(expectedTenant),
+      tenant: toTenantV3(expectedTenant),
     });
     expect(returnedTenant.data).toEqual(expectedTenant);
     expect(returnedTenant.metadata.version).toBe(1);
@@ -184,8 +184,8 @@ describe("internalUpsertTenant", async () => {
       version: "2",
       type: "TenantCertifiedAttributeAssigned",
     });
-    const writtenPayload: TenantCertifiedAttributeAssignedV2 | undefined =
-      protobufDecoder(TenantCertifiedAttributeAssignedV2).parse(
+    const writtenPayload: TenantCertifiedAttributeAssignedV3 | undefined =
+      protobufDecoder(TenantCertifiedAttributeAssignedV3).parse(
         writtenEvent?.data
       );
 
@@ -209,12 +209,12 @@ describe("internalUpsertTenant", async () => {
       ],
     };
 
-    const tenantV2 = toTenantV2(expectedTenant);
+    const tenantV3 = toTenantV3(expectedTenant);
     expect(writtenPayload).toEqual({
       attributeId: attribute2.id,
       tenant: {
-        ...tenantV2,
-        attributes: expect.arrayContaining(tenantV2.attributes),
+        ...tenantV3,
+        attributes: expect.arrayContaining(tenantV3.attributes),
       },
     });
     expect(sortTenant(returnedTenant.data)).toEqual(sortTenant(expectedTenant));

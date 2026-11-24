@@ -1,41 +1,21 @@
-import { CreateEvent, isFeatureFlagEnabled } from "pagopa-interop-commons";
+import { CreateEvent } from "pagopa-interop-commons";
 import {
   Tenant,
   TenantEvent,
   AttributeId,
   ContactId,
-  toTenantV2,
   toTenantV3,
   TenantKind,
-  TenantV2,
-  toTenantKindV2,
   toTenantKindV3,
   CorrelationId,
 } from "pagopa-interop-models";
 
-import { config } from "../../config/config.js";
-import { tenantContactRequiresEventsV3 } from "./errors.js";
-
 /**
- * When the flag is enabled every tenant event is written as V3, where the
- * tenant references its contact by contactId and carries no mails.
- * The mail events are V2 only: the mail operations are not allowed in V3 mode.
+ * Every tenant event is written as V3, where the tenant references its contact
+ * by contactId and carries no mails. A tenant that still holds legacy mails is
+ * converted before being written (see legacyTenantConversion.ts): toTenantV3
+ * refuses to serialize it, so that no mail is silently lost.
  */
-const isTenantEventsV3Enabled = (): boolean =>
-  isFeatureFlagEnabled(config, "featureFlagTenantEventsV3");
-
-/**
- * V2 events carry no contact reference: writing a tenant with a contact as V2,
- * e.g. after the flag is turned off again, would silently drop the contact.
- * Used only where the flag selects V2 (and by the V2-only mail events), so it
- * goes away together with the flag.
- */
-const toTenantV2WithoutContact = (tenant: Tenant): TenantV2 => {
-  if (tenant.contactId !== undefined) {
-    throw tenantContactRequiresEventsV3(tenant.id);
-  }
-  return toTenantV2(tenant);
-};
 
 export const toCreateEventTenantOnboarded = (
   tenant: Tenant,
@@ -43,17 +23,11 @@ export const toCreateEventTenantOnboarded = (
 ): CreateEvent<TenantEvent> => ({
   streamId: tenant.id,
   version: undefined,
-  event: isTenantEventsV3Enabled()
-    ? {
-        event_version: 3,
-        type: "TenantOnboarded",
-        data: { tenant: toTenantV3(tenant) },
-      }
-    : {
-        event_version: 2,
-        type: "TenantOnboarded",
-        data: { tenant: toTenantV2WithoutContact(tenant) },
-      },
+  event: {
+    event_version: 3,
+    type: "TenantOnboarded",
+    data: { tenant: toTenantV3(tenant) },
+  },
   correlationId,
 });
 
@@ -65,17 +39,11 @@ export const toCreateEventTenantOnboardDetailsUpdated = (
 ): CreateEvent<TenantEvent> => ({
   streamId,
   version,
-  event: isTenantEventsV3Enabled()
-    ? {
-        event_version: 3,
-        type: "TenantOnboardDetailsUpdated",
-        data: { tenant: toTenantV3(updatedTenant) },
-      }
-    : {
-        event_version: 2,
-        type: "TenantOnboardDetailsUpdated",
-        data: { tenant: toTenantV2WithoutContact(updatedTenant) },
-      },
+  event: {
+    event_version: 3,
+    type: "TenantOnboardDetailsUpdated",
+    data: { tenant: toTenantV3(updatedTenant) },
+  },
   correlationId,
 });
 
@@ -88,17 +56,11 @@ export const toCreateEventTenantVerifiedAttributeExtensionUpdated = (
 ): CreateEvent<TenantEvent> => ({
   streamId,
   version,
-  event: isTenantEventsV3Enabled()
-    ? {
-        event_version: 3,
-        type: "TenantVerifiedAttributeExtensionUpdated",
-        data: { attributeId, tenant: toTenantV3(updatedTenant) },
-      }
-    : {
-        event_version: 2,
-        type: "TenantVerifiedAttributeExtensionUpdated",
-        data: { attributeId, tenant: toTenantV2WithoutContact(updatedTenant) },
-      },
+  event: {
+    event_version: 3,
+    type: "TenantVerifiedAttributeExtensionUpdated",
+    data: { attributeId, tenant: toTenantV3(updatedTenant) },
+  },
   correlationId,
 });
 
@@ -111,17 +73,11 @@ export const toCreateEventTenantVerifiedAttributeExpirationUpdated = (
 ): CreateEvent<TenantEvent> => ({
   streamId,
   version,
-  event: isTenantEventsV3Enabled()
-    ? {
-        event_version: 3,
-        type: "TenantVerifiedAttributeExpirationUpdated",
-        data: { attributeId, tenant: toTenantV3(updatedTenant) },
-      }
-    : {
-        event_version: 2,
-        type: "TenantVerifiedAttributeExpirationUpdated",
-        data: { attributeId, tenant: toTenantV2WithoutContact(updatedTenant) },
-      },
+  event: {
+    event_version: 3,
+    type: "TenantVerifiedAttributeExpirationUpdated",
+    data: { attributeId, tenant: toTenantV3(updatedTenant) },
+  },
   correlationId,
 });
 
@@ -133,17 +89,11 @@ export const toCreateEventTenantCertifiedAttributeAssigned = (
 ): CreateEvent<TenantEvent> => ({
   streamId: updatedTenant.id,
   version,
-  event: isTenantEventsV3Enabled()
-    ? {
-        event_version: 3,
-        type: "TenantCertifiedAttributeAssigned",
-        data: { attributeId, tenant: toTenantV3(updatedTenant) },
-      }
-    : {
-        event_version: 2,
-        type: "TenantCertifiedAttributeAssigned",
-        data: { attributeId, tenant: toTenantV2WithoutContact(updatedTenant) },
-      },
+  event: {
+    event_version: 3,
+    type: "TenantCertifiedAttributeAssigned",
+    data: { attributeId, tenant: toTenantV3(updatedTenant) },
+  },
   correlationId,
 });
 
@@ -155,23 +105,14 @@ export const toCreateEventTenantKindUpdated = (
 ): CreateEvent<TenantEvent> => ({
   streamId: updatedTenant.id,
   version,
-  event: isTenantEventsV3Enabled()
-    ? {
-        event_version: 3,
-        type: "TenantKindUpdated",
-        data: {
-          oldKind: oldKind ? toTenantKindV3(oldKind) : undefined,
-          tenant: toTenantV3(updatedTenant),
-        },
-      }
-    : {
-        event_version: 2,
-        type: "TenantKindUpdated",
-        data: {
-          oldKind: oldKind ? toTenantKindV2(oldKind) : undefined,
-          tenant: toTenantV2WithoutContact(updatedTenant),
-        },
-      },
+  event: {
+    event_version: 3,
+    type: "TenantKindUpdated",
+    data: {
+      oldKind: oldKind ? toTenantKindV3(oldKind) : undefined,
+      tenant: toTenantV3(updatedTenant),
+    },
+  },
   correlationId,
 });
 
@@ -183,17 +124,11 @@ export const toCreateEventTenantCertifiedAttributeRevoked = (
 ): CreateEvent<TenantEvent> => ({
   streamId: updatedTenant.id,
   version,
-  event: isTenantEventsV3Enabled()
-    ? {
-        event_version: 3,
-        type: "TenantCertifiedAttributeRevoked",
-        data: { attributeId, tenant: toTenantV3(updatedTenant) },
-      }
-    : {
-        event_version: 2,
-        type: "TenantCertifiedAttributeRevoked",
-        data: { attributeId, tenant: toTenantV2WithoutContact(updatedTenant) },
-      },
+  event: {
+    event_version: 3,
+    type: "TenantCertifiedAttributeRevoked",
+    data: { attributeId, tenant: toTenantV3(updatedTenant) },
+  },
   correlationId,
 });
 
@@ -205,17 +140,11 @@ export const toCreateEventTenantDeclaredAttributeAssigned = (
 ): CreateEvent<TenantEvent> => ({
   streamId: updatedTenant.id,
   version,
-  event: isTenantEventsV3Enabled()
-    ? {
-        event_version: 3,
-        type: "TenantDeclaredAttributeAssigned",
-        data: { attributeId, tenant: toTenantV3(updatedTenant) },
-      }
-    : {
-        event_version: 2,
-        type: "TenantDeclaredAttributeAssigned",
-        data: { attributeId, tenant: toTenantV2WithoutContact(updatedTenant) },
-      },
+  event: {
+    event_version: 3,
+    type: "TenantDeclaredAttributeAssigned",
+    data: { attributeId, tenant: toTenantV3(updatedTenant) },
+  },
   correlationId,
 });
 
@@ -226,17 +155,11 @@ export const toCreateEventMaintenanceTenantDeleted = (
 ): CreateEvent<TenantEvent> => ({
   streamId: tenant.id,
   version,
-  event: isTenantEventsV3Enabled()
-    ? {
-        event_version: 3,
-        type: "MaintenanceTenantDeleted",
-        data: { tenantId: tenant.id, tenant: toTenantV3(tenant) },
-      }
-    : {
-        event_version: 2,
-        type: "MaintenanceTenantDeleted",
-        data: { tenantId: tenant.id, tenant: toTenantV2WithoutContact(tenant) },
-      },
+  event: {
+    event_version: 3,
+    type: "MaintenanceTenantDeleted",
+    data: { tenantId: tenant.id, tenant: toTenantV3(tenant) },
+  },
   correlationId,
 });
 
@@ -247,17 +170,11 @@ export const toCreateEventMaintenanceTenantUpdated = (
 ): CreateEvent<TenantEvent> => ({
   streamId: tenant.id,
   version,
-  event: isTenantEventsV3Enabled()
-    ? {
-        event_version: 3,
-        type: "MaintenanceTenantUpdated",
-        data: { tenant: toTenantV3(tenant) },
-      }
-    : {
-        event_version: 2,
-        type: "MaintenanceTenantUpdated",
-        data: { tenant: toTenantV2WithoutContact(tenant) },
-      },
+  event: {
+    event_version: 3,
+    type: "MaintenanceTenantUpdated",
+    data: { tenant: toTenantV3(tenant) },
+  },
   correlationId,
 });
 
@@ -269,17 +186,11 @@ export const toCreateEventTenantVerifiedAttributeAssigned = (
 ): CreateEvent<TenantEvent> => ({
   streamId: updatedTenant.id,
   version,
-  event: isTenantEventsV3Enabled()
-    ? {
-        event_version: 3,
-        type: "TenantVerifiedAttributeAssigned",
-        data: { attributeId, tenant: toTenantV3(updatedTenant) },
-      }
-    : {
-        event_version: 2,
-        type: "TenantVerifiedAttributeAssigned",
-        data: { attributeId, tenant: toTenantV2WithoutContact(updatedTenant) },
-      },
+  event: {
+    event_version: 3,
+    type: "TenantVerifiedAttributeAssigned",
+    data: { attributeId, tenant: toTenantV3(updatedTenant) },
+  },
   correlationId,
 });
 
@@ -291,17 +202,11 @@ export const toCreateEventTenantVerifiedAttributeRevoked = (
 ): CreateEvent<TenantEvent> => ({
   streamId: updatedTenant.id,
   version,
-  event: isTenantEventsV3Enabled()
-    ? {
-        event_version: 3,
-        type: "TenantVerifiedAttributeRevoked",
-        data: { attributeId, tenant: toTenantV3(updatedTenant) },
-      }
-    : {
-        event_version: 2,
-        type: "TenantVerifiedAttributeRevoked",
-        data: { attributeId, tenant: toTenantV2WithoutContact(updatedTenant) },
-      },
+  event: {
+    event_version: 3,
+    type: "TenantVerifiedAttributeRevoked",
+    data: { attributeId, tenant: toTenantV3(updatedTenant) },
+  },
   correlationId,
 });
 
@@ -313,54 +218,10 @@ export const toCreateEventTenantDeclaredAttributeRevoked = (
 ): CreateEvent<TenantEvent> => ({
   streamId: updatedTenant.id,
   version,
-  event: isTenantEventsV3Enabled()
-    ? {
-        event_version: 3,
-        type: "TenantDeclaredAttributeRevoked",
-        data: { attributeId, tenant: toTenantV3(updatedTenant) },
-      }
-    : {
-        event_version: 2,
-        type: "TenantDeclaredAttributeRevoked",
-        data: { attributeId, tenant: toTenantV2WithoutContact(updatedTenant) },
-      },
-  correlationId,
-});
-
-export const toCreateEventTenantMailDeleted = (
-  version: number,
-  updatedTenant: Tenant,
-  mailId: string,
-  correlationId: CorrelationId
-): CreateEvent<TenantEvent> => ({
-  streamId: updatedTenant.id,
-  version,
   event: {
-    event_version: 2,
-    type: "TenantMailDeleted",
-    data: {
-      mailId,
-      tenant: toTenantV2WithoutContact(updatedTenant),
-    },
-  },
-  correlationId,
-});
-
-export const toCreateEventTenantMailAdded = (
-  version: number,
-  updatedTenant: Tenant,
-  mailId: string,
-  correlationId: CorrelationId
-): CreateEvent<TenantEvent> => ({
-  streamId: updatedTenant.id,
-  version,
-  event: {
-    event_version: 2,
-    type: "TenantMailAdded",
-    data: {
-      mailId,
-      tenant: toTenantV2WithoutContact(updatedTenant),
-    },
+    event_version: 3,
+    type: "TenantDeclaredAttributeRevoked",
+    data: { attributeId, tenant: toTenantV3(updatedTenant) },
   },
   correlationId,
 });
@@ -410,17 +271,11 @@ export const toCreateEventMaintenanceTenantPromotedToCertifier = (
 ): CreateEvent<TenantEvent> => ({
   streamId: tenant.id,
   version,
-  event: isTenantEventsV3Enabled()
-    ? {
-        event_version: 3,
-        type: "MaintenanceTenantPromotedToCertifier",
-        data: { tenant: toTenantV3(tenant) },
-      }
-    : {
-        event_version: 2,
-        type: "MaintenanceTenantPromotedToCertifier",
-        data: { tenant: toTenantV2WithoutContact(tenant) },
-      },
+  event: {
+    event_version: 3,
+    type: "MaintenanceTenantPromotedToCertifier",
+    data: { tenant: toTenantV3(tenant) },
+  },
   correlationId,
 });
 
@@ -431,17 +286,11 @@ export const toCreateEventTenantDelegatedProducerFeatureAdded = (
 ): CreateEvent<TenantEvent> => ({
   streamId: updatedTenant.id,
   version,
-  event: isTenantEventsV3Enabled()
-    ? {
-        event_version: 3,
-        type: "TenantDelegatedProducerFeatureAdded",
-        data: { tenant: toTenantV3(updatedTenant) },
-      }
-    : {
-        event_version: 2,
-        type: "TenantDelegatedProducerFeatureAdded",
-        data: { tenant: toTenantV2WithoutContact(updatedTenant) },
-      },
+  event: {
+    event_version: 3,
+    type: "TenantDelegatedProducerFeatureAdded",
+    data: { tenant: toTenantV3(updatedTenant) },
+  },
   correlationId,
 });
 
@@ -452,17 +301,11 @@ export const toCreateEventTenantDelegatedProducerFeatureRemoved = (
 ): CreateEvent<TenantEvent> => ({
   streamId: updatedTenant.id,
   version,
-  event: isTenantEventsV3Enabled()
-    ? {
-        event_version: 3,
-        type: "TenantDelegatedProducerFeatureRemoved",
-        data: { tenant: toTenantV3(updatedTenant) },
-      }
-    : {
-        event_version: 2,
-        type: "TenantDelegatedProducerFeatureRemoved",
-        data: { tenant: toTenantV2WithoutContact(updatedTenant) },
-      },
+  event: {
+    event_version: 3,
+    type: "TenantDelegatedProducerFeatureRemoved",
+    data: { tenant: toTenantV3(updatedTenant) },
+  },
   correlationId,
 });
 
@@ -473,17 +316,11 @@ export const toCreateEventTenantDelegatedConsumerFeatureAdded = (
 ): CreateEvent<TenantEvent> => ({
   streamId: updatedTenant.id,
   version,
-  event: isTenantEventsV3Enabled()
-    ? {
-        event_version: 3,
-        type: "TenantDelegatedConsumerFeatureAdded",
-        data: { tenant: toTenantV3(updatedTenant) },
-      }
-    : {
-        event_version: 2,
-        type: "TenantDelegatedConsumerFeatureAdded",
-        data: { tenant: toTenantV2WithoutContact(updatedTenant) },
-      },
+  event: {
+    event_version: 3,
+    type: "TenantDelegatedConsumerFeatureAdded",
+    data: { tenant: toTenantV3(updatedTenant) },
+  },
   correlationId,
 });
 
@@ -494,17 +331,11 @@ export const toCreateEventTenantDelegatedConsumerFeatureRemoved = (
 ): CreateEvent<TenantEvent> => ({
   streamId: updatedTenant.id,
   version,
-  event: isTenantEventsV3Enabled()
-    ? {
-        event_version: 3,
-        type: "TenantDelegatedConsumerFeatureRemoved",
-        data: { tenant: toTenantV3(updatedTenant) },
-      }
-    : {
-        event_version: 2,
-        type: "TenantDelegatedConsumerFeatureRemoved",
-        data: { tenant: toTenantV2WithoutContact(updatedTenant) },
-      },
+  event: {
+    event_version: 3,
+    type: "TenantDelegatedConsumerFeatureRemoved",
+    data: { tenant: toTenantV3(updatedTenant) },
+  },
   correlationId,
 });
 
@@ -515,17 +346,11 @@ export const toCreateEventTenantRemoteIdAssigned = (
 ): CreateEvent<TenantEvent> => ({
   streamId: updatedTenant.id,
   version,
-  event: isTenantEventsV3Enabled()
-    ? {
-        event_version: 3,
-        type: "TenantRemoteIdAssigned",
-        data: { tenant: toTenantV3(updatedTenant) },
-      }
-    : {
-        event_version: 2,
-        type: "TenantRemoteIdAssigned",
-        data: { tenant: toTenantV2WithoutContact(updatedTenant) },
-      },
+  event: {
+    event_version: 3,
+    type: "TenantRemoteIdAssigned",
+    data: { tenant: toTenantV3(updatedTenant) },
+  },
   correlationId,
 });
 
@@ -537,17 +362,11 @@ export const toCreateEventTenantCertifiedDiscreteAttributeAssigned = (
 ): CreateEvent<TenantEvent> => ({
   streamId: updatedTenant.id,
   version,
-  event: isTenantEventsV3Enabled()
-    ? {
-        event_version: 3,
-        type: "TenantCertifiedDiscreteAttributeAssigned",
-        data: { attributeId, tenant: toTenantV3(updatedTenant) },
-      }
-    : {
-        event_version: 2,
-        type: "TenantCertifiedDiscreteAttributeAssigned",
-        data: { attributeId, tenant: toTenantV2WithoutContact(updatedTenant) },
-      },
+  event: {
+    event_version: 3,
+    type: "TenantCertifiedDiscreteAttributeAssigned",
+    data: { attributeId, tenant: toTenantV3(updatedTenant) },
+  },
   correlationId,
 });
 
@@ -559,17 +378,11 @@ export const toCreateEventTenantCertifiedDiscreteAttributeRevoked = (
 ): CreateEvent<TenantEvent> => ({
   streamId: updatedTenant.id,
   version,
-  event: isTenantEventsV3Enabled()
-    ? {
-        event_version: 3,
-        type: "TenantCertifiedDiscreteAttributeRevoked",
-        data: { attributeId, tenant: toTenantV3(updatedTenant) },
-      }
-    : {
-        event_version: 2,
-        type: "TenantCertifiedDiscreteAttributeRevoked",
-        data: { attributeId, tenant: toTenantV2WithoutContact(updatedTenant) },
-      },
+  event: {
+    event_version: 3,
+    type: "TenantCertifiedDiscreteAttributeRevoked",
+    data: { attributeId, tenant: toTenantV3(updatedTenant) },
+  },
   correlationId,
 });
 
@@ -583,27 +396,16 @@ export const toCreateEventTenantCertifiedDiscreteAttributeUpdated = (
 ): CreateEvent<TenantEvent> => ({
   streamId: updatedTenant.id,
   version,
-  event: isTenantEventsV3Enabled()
-    ? {
-        event_version: 3,
-        type: "TenantCertifiedDiscreteAttributeUpdated",
-        data: {
-          attributeId,
-          tenant: toTenantV3(updatedTenant),
-          previousValue,
-          newValue,
-        },
-      }
-    : {
-        event_version: 2,
-        type: "TenantCertifiedDiscreteAttributeUpdated",
-        data: {
-          attributeId,
-          tenant: toTenantV2WithoutContact(updatedTenant),
-          previousValue,
-          newValue,
-        },
-      },
+  event: {
+    event_version: 3,
+    type: "TenantCertifiedDiscreteAttributeUpdated",
+    data: {
+      attributeId,
+      tenant: toTenantV3(updatedTenant),
+      previousValue,
+      newValue,
+    },
+  },
   correlationId,
 });
 
@@ -615,17 +417,11 @@ export function toCreateEventMaintenanceTenantRemoteIdDeleted(
   return {
     streamId: tenant.id,
     version,
-    event: isTenantEventsV3Enabled()
-      ? {
-          event_version: 3,
-          type: "MaintenanceTenantRemoteIdDeleted",
-          data: { tenant: toTenantV3(tenant) },
-        }
-      : {
-          event_version: 2,
-          type: "MaintenanceTenantRemoteIdDeleted",
-          data: { tenant: toTenantV2WithoutContact(tenant) },
-        },
+    event: {
+      event_version: 3,
+      type: "MaintenanceTenantRemoteIdDeleted",
+      data: { tenant: toTenantV3(tenant) },
+    },
     correlationId,
   };
 }

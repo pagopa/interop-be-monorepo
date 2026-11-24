@@ -1,4 +1,10 @@
-import { initDB, startServer } from "pagopa-interop-commons";
+import { contactDataApi } from "pagopa-interop-api-clients";
+import {
+  initDB,
+  InteropTokenGenerator,
+  RefreshableInteropToken,
+  startServer,
+} from "pagopa-interop-commons";
 import {
   agreementReadModelServiceBuilder,
   attributeReadModelServiceBuilder,
@@ -10,6 +16,7 @@ import {
 
 import { createApp } from "./app.js";
 import { config } from "./config/config.js";
+import { contactDataManagerServiceBuilder } from "./services/contactDataManagerService.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 import { tenantServiceBuilder } from "./services/tenantService.js";
 
@@ -29,6 +36,16 @@ const readModelServiceSQL = readModelServiceBuilderSQL(
   delegationReadModelServiceSQL
 );
 
+const refreshableToken = new RefreshableInteropToken(
+  new InteropTokenGenerator(config)
+);
+await refreshableToken.init();
+
+const contactDataManagerService = contactDataManagerServiceBuilder(
+  contactDataApi.createContactApiClient(config.contactDataManagerUrl),
+  refreshableToken
+);
+
 const service = tenantServiceBuilder(
   initDB({
     username: config.eventStoreDbUsername,
@@ -39,7 +56,8 @@ const service = tenantServiceBuilder(
     schema: config.eventStoreDbSchema,
     useSSL: config.eventStoreDbUseSSL,
   }),
-  readModelServiceSQL
+  readModelServiceSQL,
+  contactDataManagerService
 );
 
 startServer(await createApp(service), config);

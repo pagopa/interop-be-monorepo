@@ -14,9 +14,9 @@ import {
   Tenant,
   Attribute,
   protobufDecoder,
-  fromTenantKindV2,
-  toTenantV2,
-  TenantCertifiedAttributeRevokedV2,
+  fromTenantKindV3,
+  toTenantV3,
+  TenantCertifiedAttributeRevokedV3,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 
@@ -96,10 +96,10 @@ describe("revokeCertifiedAttributeById", async () => {
       stream_id: revokeCertifiedAttributeByIdResponse.data.id,
       version: "1",
       type: "TenantCertifiedAttributeRevoked",
-      event_version: 2,
+      event_version: 3,
     });
     const writtenPayload = protobufDecoder(
-      TenantCertifiedAttributeRevokedV2
+      TenantCertifiedAttributeRevokedV3
     ).parse(writtenEvent?.data);
 
     const updatedTenant: Tenant = {
@@ -112,12 +112,12 @@ describe("revokeCertifiedAttributeById", async () => {
           revocationTimestamp: new Date(),
         },
       ],
-      kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
+      kind: fromTenantKindV3(writtenPayload.tenant!.kind!),
       updatedAt: new Date(),
     };
     expect(writtenPayload).toEqual({
       attributeId: attribute.id,
-      tenant: toTenantV2(updatedTenant),
+      tenant: toTenantV3(updatedTenant),
     });
 
     expect(revokeCertifiedAttributeByIdResponse).toEqual({

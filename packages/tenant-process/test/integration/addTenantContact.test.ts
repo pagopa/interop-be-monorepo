@@ -12,30 +12,20 @@ import {
   ContactId,
   Tenant,
   TenantContactAddedV3,
-  featureFlagNotEnabled,
   generateId,
   operationForbidden,
   protobufDecoder,
   toTenantV3,
 } from "pagopa-interop-models";
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { config } from "../../src/config/config.js";
 import {
   tenantContactAlreadyAssigned,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
 import {
   addOneTenant,
+  contactDataManagerService,
   postgresDB,
   tenantService,
 } from "../integrationUtils.js";
@@ -48,14 +38,6 @@ describe("addTenantContact", async () => {
 
   afterAll(() => {
     vi.useRealTimers();
-  });
-
-  beforeEach(() => {
-    (config as Record<string, unknown>).featureFlagTenantEventsV3 = true;
-  });
-
-  afterEach(() => {
-    (config as Record<string, unknown>).featureFlagTenantEventsV3 = false;
   });
 
   it("Should add the contact to a tenant without a contact", async () => {
@@ -208,41 +190,51 @@ describe("addTenantContact", async () => {
     ).rejects.toThrowError(operationForbidden);
   });
 
-  it("Should throw featureFlagNotEnabled if tenant events V3 are disabled", async () => {
-    (config as Record<string, unknown>).featureFlagTenantEventsV3 = false;
-
-    const tenant: Tenant = getMockTenant();
-    await addOneTenant(tenant);
-
-    await expect(
-      tenantService.addTenantContact(
-        { tenantId: tenant.id, contactId: generateId<ContactId>() },
-        getMockContext({ authData: getMockAuthData(tenant.id) })
-      )
-    ).rejects.toThrowError(featureFlagNotEnabled("featureFlagTenantEventsV3"));
-  });
-
-  it("Should fail without writing events if the tenant still has legacy mails", async () => {
+  it("Should replace the legacy mails of the tenant with the contact, without creating another contact", async () => {
     const tenant: Tenant = {
       ...getMockTenant(),
       mails: [getMockTenantMail()],
     };
+    const contactId = generateId<ContactId>();
     await addOneTenant(tenant);
 
-    await expect(
-      tenantService.addTenantContact(
-        { tenantId: tenant.id, contactId: generateId<ContactId>() },
-        getMockContext({ authData: getMockAuthData(tenant.id) })
-      )
-    ).rejects.toThrowError(
-      `Tenant ${tenant.id} has legacy mails and cannot be serialized to V3`
+    const returnedTenant = await tenantService.addTenantContact(
+      { tenantId: tenant.id, contactId },
+      getMockContext({ authData: getMockAuthData(tenant.id) })
     );
 
-    const lastEvent = await readLastEventByStreamId(
+    const writtenEvent = await readLastEventByStreamId(
       tenant.id,
       "tenant",
       postgresDB
     );
-    expect(lastEvent).toMatchObject({ version: "0", type: "TenantOnboarded" });
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: tenant.id,
+      version: "1",
+      type: "TenantContactAdded",
+      event_version: 3,
+    });
+
+    const writtenPayload: TenantContactAddedV3 | undefined = protobufDecoder(
+      TenantContactAddedV3
+    ).parse(writtenEvent.data);
+
+    const expectedTenant: Tenant = {
+      ...tenant,
+      mails: [],
+      contactId,
+      updatedAt: new Date(),
+    };
+
+    expect(writtenPayload).toEqual({
+      contactId,
+      tenant: toTenantV3(expectedTenant),
+    });
+    expect(returnedTenant).toEqual({
+      data: expectedTenant,
+      metadata: { version: 1 },
+    });
+    expect(contactDataManagerService.createContact).not.toHaveBeenCalled();
   });
 });

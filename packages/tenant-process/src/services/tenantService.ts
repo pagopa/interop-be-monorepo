@@ -1,4 +1,3 @@
-import crypto from "crypto";
 import { bffApi, tenantApi } from "pagopa-interop-api-clients";
 import {
   DB,
@@ -7,15 +6,12 @@ import {
   WithLogger,
   AppContext,
   CreateEvent,
-  getLatestTenantMailOfKind,
   UIAuthData,
   InternalAuthData,
   MaintenanceAuthData,
   M2MAuthData,
   isUiAuthData,
   M2MAdminAuthData,
-  validateNoHyperlinksSafe,
-  assertFeatureFlagEnabled,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -35,7 +31,6 @@ import {
   tenantAttributeType,
   tenantEventToBinaryData,
   unsafeBrandId,
-  TenantMail,
   TenantEvent,
   TenantFeatureCertifier,
   CorrelationId,
@@ -50,7 +45,6 @@ import {
 import { ExternalId } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 
-import { config } from "../config/config.js";
 import { fromApiTenantFeature } from "../model/domain/apiConverter.js";
 import {
   attributeAlreadyRevoked,
@@ -62,8 +56,6 @@ import {
   certifiedAttributeAlreadyAssigned,
   certifiedDiscreteAttributeRevoked,
   certifierWithExistingAttributes,
-  mailAlreadyExists,
-  mailNotFound,
   tenantIsNotACertifier,
   tenantNotFoundByExternalId,
   tenantNotFoundBySelfcareId,
@@ -71,7 +63,6 @@ import {
   tenantIsAlreadyACertifier,
   verifiedAttributeSelfRevocationNotAllowed,
   agreementNotFound,
-  notValidMailAddress,
   delegationNotFound,
   operationRestrictedToDelegate,
   verifiedAttributeSelfVerificationNotAllowed,
@@ -80,6 +71,7 @@ import {
   tenantUpdateVersionMismatch,
   tenantContactAlreadyAssigned,
   tenantContactNotFound,
+  tenantMailsNotAllowed,
 } from "../model/domain/errors.js";
 import { ApiGetTenantsFilters } from "../model/domain/models.js";
 import {
@@ -93,8 +85,6 @@ import {
   toCreateEventTenantKindUpdated,
   toCreateEventTenantDeclaredAttributeRevoked,
   toCreateEventTenantCertifiedAttributeRevoked,
-  toCreateEventTenantMailDeleted,
-  toCreateEventTenantMailAdded,
   toCreateEventTenantContactAdded,
   toCreateEventTenantContactDeleted,
   toCreateEventTenantVerifiedAttributeAssigned,
@@ -111,6 +101,12 @@ import {
   toCreateEventMaintenanceTenantRemoteIdDeleted,
   toCreateEventTenantCertifiedDiscreteAttributeAssigned,
 } from "../model/domain/toEvent.js";
+import { ContactDataManagerService } from "./contactDataManagerService.js";
+import {
+  convertLegacyTenant,
+  LegacyTenantConversion,
+  noLegacyTenantConversion,
+} from "./legacyTenantConversion.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
@@ -126,7 +122,6 @@ import {
   assertTenantAllowedForDelegation,
   getTenantKind,
   isFeatureAssigned,
-  assertTenantMailsAllowed,
 } from "./validators.js";
 
 const retrieveTenant = async (
@@ -267,9 +262,39 @@ function isActiveCertifiedDiscreteTenantAttribute(
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelServiceSQL,
+  contactDataManagerService: ContactDataManagerService
 ) {
   const repository = eventRepository(dbInstance, tenantEventToBinaryData);
+
+  /**
+   * Converts the tenant to write when it still holds legacy mails (see
+   * legacyTenantConversion.ts). Called once the operation passed its
+   * validations, right before building its events.
+   */
+  const convertTenantToWrite = (
+    tenant: WithMetadata<Tenant>,
+    ctx: { correlationId: CorrelationId; logger: Logger }
+  ): Promise<LegacyTenantConversion> =>
+    convertLegacyTenant(tenant, contactDataManagerService, ctx);
+
+  /**
+   * Writes the conversion events and the operation events in one transaction
+   * and returns the new version of the tenant.
+   */
+  const createTenantEvents = async (
+    conversion: LegacyTenantConversion,
+    events: Array<CreateEvent<TenantEvent>>
+  ): Promise<number> => {
+    const { latestNewVersions } = await repository.createEvents([
+      ...conversion.events,
+      ...events,
+    ]);
+    return (
+      latestNewVersions.get(conversion.tenant.data.id) ??
+      conversion.tenant.metadata.version
+    );
+  };
   return {
     async updateVerifiedAttributeExtensionDate(
       tenantId: TenantId,
@@ -327,23 +352,28 @@ export function tenantServiceBuilder(
         ),
       };
 
-      const updatedTenant: Tenant = {
+      const conversion = await convertTenantToWrite(tenant, {
+        correlationId,
+        logger,
+      });
+
+      const updatedTenant: Tenant = conversion.convert({
         ...tenant.data,
         attributes: [
           updatedAttribute,
           ...tenant.data.attributes.filter((a) => a.id !== updatedAttribute.id),
         ],
         updatedAt: new Date(),
-      };
+      });
 
       const event = toCreateEventTenantVerifiedAttributeExtensionUpdated(
         tenant.data.id,
-        tenant.metadata.version,
+        conversion.tenant.metadata.version,
         updatedTenant,
         attributeId,
         correlationId
       );
-      await repository.createEvent(event);
+      await createTenantEvents(conversion, [event]);
       return updatedTenant;
     },
 
@@ -388,22 +418,27 @@ export function tenantServiceBuilder(
         ),
       };
 
-      const updatedTenant: Tenant = {
+      const conversion = await convertTenantToWrite(tenant, {
+        correlationId,
+        logger,
+      });
+
+      const updatedTenant: Tenant = conversion.convert({
         ...tenant.data,
         attributes: [
           updatedAttribute,
           ...tenant.data.attributes.filter((a) => a.id !== updatedAttribute.id),
         ],
         updatedAt: new Date(),
-      };
+      });
       const event = toCreateEventTenantVerifiedAttributeExpirationUpdated(
         tenant.data.id,
-        tenant.metadata.version,
+        conversion.tenant.metadata.version,
         updatedTenant,
         attributeId,
         correlationId
       );
-      await repository.createEvent(event);
+      await createTenantEvents(conversion, [event]);
       return updatedTenant;
     },
 
@@ -447,26 +482,31 @@ export function tenantServiceBuilder(
           existingTenant.data.selfcareInstitutionType
         );
 
-        const updatedTenant: Tenant = {
+        const conversion = await convertTenantToWrite(existingTenant, {
+          correlationId,
+          logger,
+        });
+
+        const updatedTenant: Tenant = conversion.convert({
           ...existingTenant.data,
           kind: tenantKind,
           selfcareId: tenantSeed.selfcareId,
           onboardedAt: new Date(tenantSeed.onboardedAt),
           selfcareInstitutionType: tenantSeed.selfcareInstitutionType,
           updatedAt: new Date(),
-        };
+        });
 
         logger.info(
           `Creating tenant with external id ${tenantSeed.externalId} via SelfCare request"`
         );
-        await repository.createEvent(
+        await createTenantEvents(conversion, [
           toCreateEventTenantOnboardDetailsUpdated(
             existingTenant.data.id,
-            existingTenant.metadata.version,
+            conversion.tenant.metadata.version,
             updatedTenant,
             correlationId
-          )
-        );
+          ),
+        ]);
         return existingTenant.data.id;
       } else {
         logger.info(
@@ -532,7 +572,12 @@ export function tenantServiceBuilder(
         throw attributeNotFound(attributeId);
       }
 
-      const updatedTenant: Tenant = {
+      const conversion = await convertTenantToWrite(requesterTenant, {
+        correlationId,
+        logger,
+      });
+
+      const updatedTenant: Tenant = conversion.convert({
         ...requesterTenant.data,
         updatedAt: new Date(),
         attributes: requesterTenant.data.attributes.map((declaredAttribute) =>
@@ -543,19 +588,19 @@ export function tenantServiceBuilder(
               }
             : declaredAttribute
         ),
-      };
+      });
 
-      const event = await repository.createEvent(
+      const newVersion = await createTenantEvents(conversion, [
         toCreateEventTenantDeclaredAttributeRevoked(
-          requesterTenant.metadata.version,
+          conversion.tenant.metadata.version,
           updatedTenant,
           unsafeBrandId(attributeId),
           correlationId
-        )
-      );
+        ),
+      ]);
       return {
         data: updatedTenant,
-        metadata: { version: event.newVersion },
+        metadata: { version: newVersion },
       };
     },
 
@@ -603,14 +648,23 @@ export function tenantServiceBuilder(
 
       const targetTenant = await retrieveTenant(tenantId, readModelService);
 
-      const tenantWithNewAttribute = assignCertifiedAttribute({
+      // Assigning an attribute already assigned fails: the conversion follows
+      const tenantWithAssignedAttribute = assignCertifiedAttribute({
         targetTenant: targetTenant.data,
         attribute,
       });
 
+      const conversion = await convertTenantToWrite(targetTenant, {
+        correlationId,
+        logger,
+      });
+      const tenantWithNewAttribute = conversion.convert(
+        tenantWithAssignedAttribute
+      );
+
       const tenantCertifiedAttributeAssignedEvent =
         toCreateEventTenantCertifiedAttributeAssigned(
-          targetTenant.metadata.version,
+          conversion.tenant.metadata.version,
           tenantWithNewAttribute,
           attribute.id,
           correlationId
@@ -630,27 +684,25 @@ export function tenantServiceBuilder(
 
       if (tenantWithNewAttribute.kind !== tenantKind) {
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
-          targetTenant.metadata.version + 1,
+          conversion.tenant.metadata.version + 1,
           targetTenant.data.kind,
           updatedTenant,
           correlationId
         );
 
-        const createdEvents = await repository.createEvents([
+        const newVersion = await createTenantEvents(conversion, [
           tenantCertifiedAttributeAssignedEvent,
           tenantKindUpdatedEvent,
         ]);
 
         return {
           data: updatedTenant,
-          metadata: {
-            version: createdEvents.latestNewVersions.get(updatedTenant.id) ?? 0,
-          },
+          metadata: { version: newVersion },
         };
       }
-      const { newVersion } = await repository.createEvent(
-        tenantCertifiedAttributeAssignedEvent
-      );
+      const newVersion = await createTenantEvents(conversion, [
+        tenantCertifiedAttributeAssignedEvent,
+      ]);
       return {
         data: updatedTenant,
         metadata: { version: newVersion },
@@ -749,11 +801,20 @@ export function tenantServiceBuilder(
         );
       };
 
-      const tenantWithNewAttribute = buildTenantWithNewAttribute();
+      // Assigning an attribute already assigned fails: the conversion follows
+      const tenantWithAssignedAttribute = buildTenantWithNewAttribute();
+
+      const conversion = await convertTenantToWrite(targetTenant, {
+        correlationId,
+        logger,
+      });
+      const tenantWithNewAttribute = conversion.convert(
+        tenantWithAssignedAttribute
+      );
 
       const tenantCertifiedDiscreteAttributeAssignedEvent =
         toCreateEventTenantCertifiedDiscreteAttributeAssigned(
-          targetTenant.metadata.version,
+          conversion.tenant.metadata.version,
           tenantWithNewAttribute,
           attribute.id,
           correlationId
@@ -773,28 +834,26 @@ export function tenantServiceBuilder(
 
       if (tenantWithNewAttribute.kind !== tenantKind) {
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
-          targetTenant.metadata.version + 1,
+          conversion.tenant.metadata.version + 1,
           targetTenant.data.kind,
           updatedTenant,
           correlationId
         );
 
-        const createdEvents = await repository.createEvents([
+        const newVersion = await createTenantEvents(conversion, [
           tenantCertifiedDiscreteAttributeAssignedEvent,
           tenantKindUpdatedEvent,
         ]);
 
         return {
           data: updatedTenant,
-          metadata: {
-            version: createdEvents.latestNewVersions.get(updatedTenant.id) ?? 0,
-          },
+          metadata: { version: newVersion },
         };
       }
 
-      const { newVersion } = await repository.createEvent(
-        tenantCertifiedDiscreteAttributeAssignedEvent
-      );
+      const newVersion = await createTenantEvents(conversion, [
+        tenantCertifiedDiscreteAttributeAssignedEvent,
+      ]);
       return {
         data: updatedTenant,
         metadata: { version: newVersion },
@@ -863,7 +922,12 @@ export function tenantServiceBuilder(
           attr.type === tenantAttributeType.DECLARED && attr.id === attribute.id
       );
 
-      const updatedTenant: Tenant = {
+      const conversion = await convertTenantToWrite(tenant, {
+        correlationId,
+        logger,
+      });
+
+      const updatedTenant: Tenant = conversion.convert({
         ...tenant.data,
         attributes: declaredTenantAttribute
           ? reassignDeclaredAttribute(
@@ -877,20 +941,20 @@ export function tenantServiceBuilder(
               delegationId
             ),
         updatedAt: new Date(),
-      };
+      });
 
-      const event = await repository.createEvent(
+      const newVersion = await createTenantEvents(conversion, [
         toCreateEventTenantDeclaredAttributeAssigned(
-          tenant.metadata.version,
+          conversion.tenant.metadata.version,
           updatedTenant,
           unsafeBrandId(tenantAttributeSeed.id),
           correlationId
-        )
-      );
+        ),
+      ]);
 
       return {
         data: updatedTenant,
-        metadata: { version: event.newVersion },
+        metadata: { version: newVersion },
       };
     },
 
@@ -951,14 +1015,18 @@ export function tenantServiceBuilder(
         );
       }
 
-      const tenantWithRevokedAttribute: Tenant = await revokeCertifiedAttribute(
-        targetTenant.data,
-        attributeId
+      const conversion = await convertTenantToWrite(targetTenant, {
+        correlationId,
+        logger,
+      });
+
+      const tenantWithRevokedAttribute: Tenant = conversion.convert(
+        await revokeCertifiedAttribute(targetTenant.data, attributeId)
       );
 
       const tenantCertifiedAttributeRevokedEvent =
         toCreateEventTenantCertifiedAttributeRevoked(
-          targetTenant.metadata.version,
+          conversion.tenant.metadata.version,
           tenantWithRevokedAttribute,
           attributeId,
           correlationId
@@ -978,28 +1046,26 @@ export function tenantServiceBuilder(
         };
 
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
-          targetTenant.metadata.version + 1,
+          conversion.tenant.metadata.version + 1,
           targetTenant.data.kind,
           updatedTenant,
           correlationId
         );
 
-        const createdEvents = await repository.createEvents([
+        const newVersion = await createTenantEvents(conversion, [
           tenantCertifiedAttributeRevokedEvent,
           tenantKindUpdatedEvent,
         ]);
 
         return {
           data: updatedTenant,
-          metadata: {
-            version: createdEvents.latestNewVersions.get(updatedTenant.id) ?? 0,
-          },
+          metadata: { version: newVersion },
         };
       }
 
-      const { newVersion } = await repository.createEvent(
-        tenantCertifiedAttributeRevokedEvent
-      );
+      const newVersion = await createTenantEvents(conversion, [
+        tenantCertifiedAttributeRevokedEvent,
+      ]);
       return {
         data: tenantWithRevokedAttribute,
         metadata: { version: newVersion },
@@ -1063,14 +1129,18 @@ export function tenantServiceBuilder(
         );
       }
 
-      const tenantWithRevokedAttribute: Tenant = await revokeCertifiedAttribute(
-        targetTenant.data,
-        attributeId
+      const conversion = await convertTenantToWrite(targetTenant, {
+        correlationId,
+        logger,
+      });
+
+      const tenantWithRevokedAttribute: Tenant = conversion.convert(
+        await revokeCertifiedAttribute(targetTenant.data, attributeId)
       );
 
       const tenantCertifiedAttributeRevokedEvent =
         toCreateEventTenantCertifiedDiscreteAttributeRevoked(
-          targetTenant.metadata.version,
+          conversion.tenant.metadata.version,
           tenantWithRevokedAttribute,
           attributeId,
           correlationId
@@ -1090,28 +1160,26 @@ export function tenantServiceBuilder(
         };
 
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
-          targetTenant.metadata.version + 1,
+          conversion.tenant.metadata.version + 1,
           targetTenant.data.kind,
           updatedTenant,
           correlationId
         );
 
-        const createdEvents = await repository.createEvents([
+        const newVersion = await createTenantEvents(conversion, [
           tenantCertifiedAttributeRevokedEvent,
           tenantKindUpdatedEvent,
         ]);
 
         return {
           data: updatedTenant,
-          metadata: {
-            version: createdEvents.latestNewVersions.get(updatedTenant.id) ?? 0,
-          },
+          metadata: { version: newVersion },
         };
       }
 
-      const { newVersion } = await repository.createEvent(
-        tenantCertifiedAttributeRevokedEvent
-      );
+      const newVersion = await createTenantEvents(conversion, [
+        tenantCertifiedAttributeRevokedEvent,
+      ]);
 
       return {
         data: tenantWithRevokedAttribute,
@@ -1192,15 +1260,20 @@ export function tenantServiceBuilder(
           : a
       );
 
-      const tenantWithUpdatedAttribute: Tenant = {
+      const conversion = await convertTenantToWrite(targetTenant, {
+        correlationId,
+        logger,
+      });
+
+      const tenantWithUpdatedAttribute: Tenant = conversion.convert({
         ...targetTenant.data,
         attributes: updatedAttributes,
         updatedAt: new Date(),
-      };
+      });
 
       const tenantCertifiedDiscreteAttributeUpdatedEvent =
         toCreateEventTenantCertifiedDiscreteAttributeUpdated(
-          targetTenant.metadata.version,
+          conversion.tenant.metadata.version,
           tenantWithUpdatedAttribute,
           attributeId,
           previousValue,
@@ -1222,28 +1295,26 @@ export function tenantServiceBuilder(
         };
 
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
-          targetTenant.metadata.version + 1,
+          conversion.tenant.metadata.version + 1,
           targetTenant.data.kind,
           updatedTenant,
           correlationId
         );
 
-        const createdEvents = await repository.createEvents([
+        const newVersion = await createTenantEvents(conversion, [
           tenantCertifiedDiscreteAttributeUpdatedEvent,
           tenantKindUpdatedEvent,
         ]);
 
         return {
           data: updatedTenant,
-          metadata: {
-            version: createdEvents.latestNewVersions.get(updatedTenant.id) ?? 0,
-          },
+          metadata: { version: newVersion },
         };
       }
 
-      const { newVersion } = await repository.createEvent(
-        tenantCertifiedDiscreteAttributeUpdatedEvent
-      );
+      const newVersion = await createTenantEvents(conversion, [
+        tenantCertifiedDiscreteAttributeUpdatedEvent,
+      ]);
 
       return {
         data: tenantWithUpdatedAttribute,
@@ -1320,7 +1391,8 @@ export function tenantServiceBuilder(
           attr.type === tenantAttributeType.VERIFIED && attr.id === attribute.id
       );
 
-      const updatedTenant: Tenant = {
+      // An expiration date in the past fails: the conversion follows
+      const tenantWithVerifiedAttribute: Tenant = {
         ...targetTenant.data,
         attributes: verifiedTenantAttribute
           ? reassignVerifiedAttribute(
@@ -1341,17 +1413,23 @@ export function tenantServiceBuilder(
         updatedAt: new Date(),
       };
 
-      const event = await repository.createEvent(
+      const conversion = await convertTenantToWrite(targetTenant, {
+        correlationId,
+        logger,
+      });
+      const updatedTenant = conversion.convert(tenantWithVerifiedAttribute);
+
+      const newVersion = await createTenantEvents(conversion, [
         toCreateEventTenantVerifiedAttributeAssigned(
-          targetTenant.metadata.version,
+          conversion.tenant.metadata.version,
           updatedTenant,
           attributeId,
           correlationId
-        )
-      );
+        ),
+      ]);
       return {
         data: updatedTenant,
-        metadata: { version: event.newVersion },
+        metadata: { version: newVersion },
       };
     },
 
@@ -1435,7 +1513,12 @@ export function tenantServiceBuilder(
         throw attributeAlreadyRevoked(tenantId, revokerId, attributeId);
       }
 
-      const updatedTenant: Tenant = {
+      const conversion = await convertTenantToWrite(targetTenant, {
+        correlationId,
+        logger,
+      });
+
+      const updatedTenant: Tenant = conversion.convert({
         ...targetTenant.data,
         updatedAt: new Date(),
         attributes: targetTenant.data.attributes.map((attr) =>
@@ -1457,20 +1540,20 @@ export function tenantServiceBuilder(
               } satisfies VerifiedTenantAttribute)
             : attr
         ),
-      };
+      });
 
-      const event = await repository.createEvent(
+      const newVersion = await createTenantEvents(conversion, [
         toCreateEventTenantVerifiedAttributeRevoked(
-          targetTenant.metadata.version,
+          conversion.tenant.metadata.version,
           updatedTenant,
           attributeId,
           correlationId
-        )
-      );
+        ),
+      ]);
 
       return {
         data: updatedTenant,
-        metadata: { version: event.newVersion },
+        metadata: { version: newVersion },
       };
     },
 
@@ -1504,14 +1587,23 @@ export function tenantServiceBuilder(
         readModelService,
       });
 
-      const tenantWithNewAttribute = assignCertifiedAttribute({
+      // Assigning an attribute already assigned fails: the conversion follows
+      const tenantWithAssignedAttribute = assignCertifiedAttribute({
         targetTenant: tenantToModify.data,
         attribute: attributeToAssign,
       });
 
+      const conversion = await convertTenantToWrite(tenantToModify, {
+        correlationId,
+        logger,
+      });
+      const tenantWithNewAttribute = conversion.convert(
+        tenantWithAssignedAttribute
+      );
+
       const tenantCertifiedAttributeAssignedEvent =
         toCreateEventTenantCertifiedAttributeAssigned(
-          tenantToModify.metadata.version,
+          conversion.tenant.metadata.version,
           tenantWithNewAttribute,
           attributeToAssign.id,
           correlationId
@@ -1531,24 +1623,22 @@ export function tenantServiceBuilder(
         };
 
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
-          tenantToModify.metadata.version + 1,
+          conversion.tenant.metadata.version + 1,
           tenantToModify.data.kind,
           updatedTenant,
           correlationId
         );
 
-        const createdEvents = await repository.createEvents([
+        const newVersion = await createTenantEvents(conversion, [
           tenantCertifiedAttributeAssignedEvent,
           tenantKindUpdatedEvent,
         ]);
-        return {
-          version: createdEvents.latestNewVersions.get(updatedTenant.id) ?? 0,
-        };
+        return { version: newVersion };
       } else {
-        const event = await repository.createEvent(
-          tenantCertifiedAttributeAssignedEvent
-        );
-        return { version: event.newVersion };
+        const newVersion = await createTenantEvents(conversion, [
+          tenantCertifiedAttributeAssignedEvent,
+        ]);
+        return { version: newVersion };
       }
     },
 
@@ -1595,14 +1685,21 @@ export function tenantServiceBuilder(
         );
       }
 
-      const tenantWithRevokedAttribute = await revokeCertifiedAttribute(
-        tenantToModify.data,
-        attributeToRevoke.id
+      const conversion = await convertTenantToWrite(tenantToModify, {
+        correlationId,
+        logger,
+      });
+
+      const tenantWithRevokedAttribute = conversion.convert(
+        await revokeCertifiedAttribute(
+          tenantToModify.data,
+          attributeToRevoke.id
+        )
       );
 
       const tenantCertifiedAttributeRevokedEvent =
         toCreateEventTenantCertifiedAttributeRevoked(
-          tenantToModify.metadata.version,
+          conversion.tenant.metadata.version,
           tenantWithRevokedAttribute,
           attributeToRevoke.id,
           correlationId
@@ -1621,24 +1718,22 @@ export function tenantServiceBuilder(
           kind: tenantKind,
         };
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
-          tenantToModify.metadata.version + 1,
+          conversion.tenant.metadata.version + 1,
           tenantToModify.data.kind,
           updatedTenant,
           correlationId
         );
 
-        const createdEvents = await repository.createEvents([
+        const newVersion = await createTenantEvents(conversion, [
           tenantCertifiedAttributeRevokedEvent,
           tenantKindUpdatedEvent,
         ]);
-        return {
-          version: createdEvents.latestNewVersions.get(updatedTenant.id) ?? 0,
-        };
+        return { version: newVersion };
       } else {
-        const event = await repository.createEvent(
-          tenantCertifiedAttributeRevokedEvent
-        );
-        return { version: event.newVersion };
+        const newVersion = await createTenantEvents(conversion, [
+          tenantCertifiedAttributeRevokedEvent,
+        ]);
+        return { version: newVersion };
       }
     },
     async internalAssignCertifiedDiscreteAttribute(
@@ -1697,15 +1792,20 @@ export function tenantServiceBuilder(
         },
       ];
 
-      const tenantWithNewAttribute: Tenant = {
+      const conversion = await convertTenantToWrite(tenantToModify, {
+        correlationId,
+        logger,
+      });
+
+      const tenantWithNewAttribute: Tenant = conversion.convert({
         ...tenantToModify.data,
         attributes: newAttributes,
         updatedAt: new Date(),
-      };
+      });
 
       const primaryEvent =
         toCreateEventTenantCertifiedDiscreteAttributeAssigned(
-          tenantToModify.metadata.version,
+          conversion.tenant.metadata.version,
           tenantWithNewAttribute,
           attributeToAssign.id,
           correlationId
@@ -1725,22 +1825,20 @@ export function tenantServiceBuilder(
         };
 
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
-          tenantToModify.metadata.version + 1,
+          conversion.tenant.metadata.version + 1,
           tenantToModify.data.kind,
           updatedTenant,
           correlationId
         );
 
-        const createdEvents = await repository.createEvents([
+        const newVersion = await createTenantEvents(conversion, [
           primaryEvent,
           tenantKindUpdatedEvent,
         ]);
-        return {
-          version: createdEvents.latestNewVersions.get(updatedTenant.id) ?? 0,
-        };
+        return { version: newVersion };
       } else {
-        const event = await repository.createEvent(primaryEvent);
-        return { version: event.newVersion };
+        const newVersion = await createTenantEvents(conversion, [primaryEvent]);
+        return { version: newVersion };
       }
     },
 
@@ -1815,14 +1913,19 @@ export function tenantServiceBuilder(
           : a
       );
 
-      const tenantWithUpdatedAttribute: Tenant = {
+      const conversion = await convertTenantToWrite(tenantToModify, {
+        correlationId,
+        logger,
+      });
+
+      const tenantWithUpdatedAttribute: Tenant = conversion.convert({
         ...tenantToModify.data,
         attributes: newAttributes,
         updatedAt: new Date(),
-      };
+      });
 
       const updateEvent = toCreateEventTenantCertifiedDiscreteAttributeUpdated(
-        tenantToModify.metadata.version,
+        conversion.tenant.metadata.version,
         tenantWithUpdatedAttribute,
         attributeToUpdate.id,
         previousValue,
@@ -1844,22 +1947,20 @@ export function tenantServiceBuilder(
         };
 
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
-          tenantToModify.metadata.version + 1,
+          conversion.tenant.metadata.version + 1,
           tenantToModify.data.kind,
           updatedTenant,
           correlationId
         );
 
-        const createdEvents = await repository.createEvents([
+        const newVersion = await createTenantEvents(conversion, [
           updateEvent,
           tenantKindUpdatedEvent,
         ]);
-        return {
-          version: createdEvents.latestNewVersions.get(updatedTenant.id) ?? 0,
-        };
+        return { version: newVersion };
       } else {
-        const event = await repository.createEvent(updateEvent);
-        return { version: event.newVersion };
+        const newVersion = await createTenantEvents(conversion, [updateEvent]);
+        return { version: newVersion };
       }
     },
 
@@ -1904,14 +2005,21 @@ export function tenantServiceBuilder(
         );
       }
 
-      const tenantWithRevokedAttribute = await revokeCertifiedAttribute(
-        tenantToModify.data,
-        attributeToRevoke.id
+      const conversion = await convertTenantToWrite(tenantToModify, {
+        correlationId,
+        logger,
+      });
+
+      const tenantWithRevokedAttribute = conversion.convert(
+        await revokeCertifiedAttribute(
+          tenantToModify.data,
+          attributeToRevoke.id
+        )
       );
 
       const tenantCertifiedAttributeRevokedEvent =
         toCreateEventTenantCertifiedDiscreteAttributeRevoked(
-          tenantToModify.metadata.version,
+          conversion.tenant.metadata.version,
           tenantWithRevokedAttribute,
           attributeToRevoke.id,
           correlationId
@@ -1930,24 +2038,22 @@ export function tenantServiceBuilder(
           kind: tenantKind,
         };
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
-          tenantToModify.metadata.version + 1,
+          conversion.tenant.metadata.version + 1,
           tenantToModify.data.kind,
           updatedTenant,
           correlationId
         );
 
-        const createdEvents = await repository.createEvents([
+        const newVersion = await createTenantEvents(conversion, [
           tenantCertifiedAttributeRevokedEvent,
           tenantKindUpdatedEvent,
         ]);
-        return {
-          version: createdEvents.latestNewVersions.get(updatedTenant.id) ?? 0,
-        };
+        return { version: newVersion };
       } else {
-        const event = await repository.createEvent(
-          tenantCertifiedAttributeRevokedEvent
-        );
-        return { version: event.newVersion };
+        const newVersion = await createTenantEvents(conversion, [
+          tenantCertifiedAttributeRevokedEvent,
+        ]);
+        return { version: newVersion };
       }
     },
     async getCertifiedAttributesByCertifier(
@@ -1991,10 +2097,12 @@ export function tenantServiceBuilder(
 
       const tenant = await retrieveTenant(tenantId, readModelService);
 
+      // The tenant is deleted: its legacy mails, if any, are dropped without
+      // creating a contact
       await repository.createEvent(
         toCreateEventMaintenanceTenantDeleted(
           version,
-          tenant.data,
+          { ...tenant.data, mails: [] },
           correlationId
         )
       );
@@ -2020,21 +2128,26 @@ export function tenantServiceBuilder(
         return;
       }
 
-      const updatedTenant: Tenant = {
+      const conversion = await convertTenantToWrite(tenant, {
+        correlationId,
+        logger,
+      });
+
+      const updatedTenant: Tenant = conversion.convert({
         ...tenant.data,
         remoteIds: (tenant.data.remoteIds ?? []).filter(
           (r) => r.origin !== origin
         ),
         updatedAt: new Date(),
-      };
+      });
 
-      await repository.createEvent(
+      await createTenantEvents(conversion, [
         toCreateEventMaintenanceTenantRemoteIdDeleted(
-          tenant.metadata.version,
+          conversion.tenant.metadata.version,
           updatedTenant,
           correlationId
-        )
-      );
+        ),
+      ]);
     },
 
     async maintenanceTenantUpdate(
@@ -2057,12 +2170,9 @@ export function tenantServiceBuilder(
         ...restTenantUpdate
       } = tenantUpdate;
 
+      // The tenant contact is managed by contactId: V3 events carry no mails
       if (restTenantUpdate.mails.length > 0) {
-        assertTenantMailsAllowed(tenantId);
-      }
-
-      if (contactId !== undefined) {
-        assertFeatureFlagEnabled(config, "featureFlagTenantEventsV3");
+        throw tenantMailsNotAllowed(tenantId);
       }
 
       const tenant = await retrieveTenant(tenantId, readModelService);
@@ -2075,17 +2185,21 @@ export function tenantServiceBuilder(
         );
       }
 
+      // A contact set by the update replaces the legacy mails, if any: no
+      // contact is created from them
+      const conversion =
+        contactId === undefined
+          ? await convertTenantToWrite(tenant, { correlationId, logger })
+          : noLegacyTenantConversion(tenant);
+
       const convertedTenantUpdate = {
         ...restTenantUpdate,
-        mails: restTenantUpdate.mails.map((mail) => ({
-          ...mail,
-          createdAt: new Date(mail.createdAt),
-        })),
+        mails: [],
         onboardedAt: new Date(restTenantUpdate.onboardedAt),
       };
 
       const updatedTenant: Tenant = {
-        ...tenant.data,
+        ...conversion.tenant.data,
         ...convertedTenantUpdate,
         subUnitType: convertedTenantUpdate.subUnitType,
         selfcareInstitutionType: convertedTenantUpdate.selfcareInstitutionType,
@@ -2098,13 +2212,13 @@ export function tenantServiceBuilder(
         updatedAt: new Date(),
       };
 
-      await repository.createEvent(
+      await createTenantEvents(conversion, [
         toCreateEventMaintenanceTenantUpdated(
-          version,
+          conversion.tenant.metadata.version,
           updatedTenant,
           correlationId
-        )
-      );
+        ),
+      ]);
     },
 
     async deleteTenantMailById(
@@ -2115,34 +2229,12 @@ export function tenantServiceBuilder(
         tenantId: TenantId;
         mailId: string;
       },
-      { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
+      { logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(`Deleting mail ${mailId} to Tenant ${tenantId}`);
 
-      assertTenantMailsAllowed(tenantId);
-
-      await assertRequesterAllowed(tenantId, authData);
-
-      const tenant = await retrieveTenant(tenantId, readModelService);
-
-      if (!tenant.data.mails.find((m) => m.id === mailId)) {
-        throw mailNotFound(mailId);
-      }
-
-      const updatedTenant: Tenant = {
-        ...tenant.data,
-        mails: tenant.data.mails.filter((mail) => mail.id !== mailId),
-        updatedAt: new Date(),
-      };
-
-      await repository.createEvent(
-        toCreateEventTenantMailDeleted(
-          tenant.metadata.version,
-          updatedTenant,
-          mailId,
-          correlationId
-        )
-      );
+      // The tenant contact is managed by contactId: V3 events carry no mails
+      throw tenantMailsNotAllowed(tenantId);
     },
 
     async addTenantMail(
@@ -2153,56 +2245,12 @@ export function tenantServiceBuilder(
         tenantId: TenantId;
         mailSeed: tenantApi.MailSeed;
       },
-      { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
+      { logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(`Adding mail of kind ${mailSeed.kind} to Tenant ${tenantId}`);
 
-      assertTenantMailsAllowed(tenantId);
-
-      validateNoHyperlinksSafe(mailSeed.description);
-
-      await assertRequesterAllowed(tenantId, authData);
-
-      const tenant = await retrieveTenant(tenantId, readModelService);
-
-      const validatedAddress = validateAddress(mailSeed.address);
-
-      // could be simplified when the tenants will have only one mail of each kind
-      const latestMail = getLatestTenantMailOfKind(
-        tenant.data.mails,
-        mailSeed.kind
-      );
-
-      if (latestMail?.address === validatedAddress) {
-        throw mailAlreadyExists();
-      }
-
-      const filteredMails = tenant.data.mails.filter(
-        (mail) => mail.kind !== mailSeed.kind
-      );
-
-      const newMail: TenantMail = {
-        kind: mailSeed.kind,
-        address: validatedAddress,
-        description: mailSeed.description,
-        id: crypto.createHash("sha256").update(validatedAddress).digest("hex"),
-        createdAt: new Date(),
-      };
-
-      const updatedTenant: Tenant = {
-        ...tenant.data,
-        mails: [...filteredMails, newMail],
-        updatedAt: new Date(),
-      };
-
-      await repository.createEvent(
-        toCreateEventTenantMailAdded(
-          tenant.metadata.version,
-          updatedTenant,
-          newMail.id,
-          correlationId
-        )
-      );
+      // The tenant contact is managed by contactId: V3 events carry no mails
+      throw tenantMailsNotAllowed(tenantId);
     },
 
     async addTenantContact(
@@ -2221,8 +2269,6 @@ export function tenantServiceBuilder(
     ): Promise<WithMetadata<Tenant>> {
       logger.info(`Adding contact ${contactId} to Tenant ${tenantId}`);
 
-      assertFeatureFlagEnabled(config, "featureFlagTenantEventsV3");
-
       await assertRequesterAllowed(tenantId, authData);
 
       const tenant = await retrieveTenant(tenantId, readModelService);
@@ -2231,9 +2277,11 @@ export function tenantServiceBuilder(
         throw tenantContactAlreadyAssigned(tenantId, contactId);
       }
 
-      // A single contact per tenant: adding a new one replaces the current one
+      // A single contact per tenant: adding a new one replaces the current one.
+      // It replaces the legacy mails too, with no contact created from them.
       const updatedTenant: Tenant = {
         ...tenant.data,
+        mails: [],
         contactId,
         updatedAt: new Date(),
       };
@@ -2268,8 +2316,6 @@ export function tenantServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Tenant>> {
       logger.info(`Deleting contact ${contactId} from Tenant ${tenantId}`);
-
-      assertFeatureFlagEnabled(config, "featureFlagTenantEventsV3");
 
       await assertRequesterAllowed(tenantId, authData);
 
@@ -2434,39 +2480,26 @@ export function tenantServiceBuilder(
         }
       });
 
-      const { events: attributeEvents, tenantWithNewAttributes } =
-        existingAttributes.reduce(
-          (
-            acc: {
-              events: Array<CreateEvent<TenantEvent>>;
-              tenantWithNewAttributes: Tenant;
-            },
-            attribute: Attribute,
-            index
-          ) => {
-            const tenantWithNewAttribute = assignCertifiedAttribute({
-              targetTenant: acc.tenantWithNewAttributes,
-              attribute,
-            });
-
-            const version = existingTenant.metadata.version + index;
-            const attributeAssignmentEvent =
-              toCreateEventTenantCertifiedAttributeAssigned(
-                version,
-                tenantWithNewAttribute,
-                attribute.id,
-                correlationId
-              );
-            return {
-              events: [...acc.events, attributeAssignmentEvent],
-              tenantWithNewAttributes: tenantWithNewAttribute,
-            };
-          },
+      // The tenant after each assignment. The events are built afterwards: the
+      // assignments are validated first, then a legacy tenant is converted.
+      const tenantsWithNewAttribute = existingAttributes.reduce(
+        (
+          acc: Array<{ attributeId: AttributeId; tenant: Tenant }>,
+          attribute: Attribute
+        ) => [
+          ...acc,
           {
-            events: [],
-            tenantWithNewAttributes: existingTenant.data,
-          }
-        );
+            attributeId: attribute.id,
+            tenant: assignCertifiedAttribute({
+              targetTenant: acc.at(-1)?.tenant ?? existingTenant.data,
+              attribute,
+            }),
+          },
+        ],
+        []
+      );
+      const tenantWithNewAttributes =
+        tenantsWithNewAttribute.at(-1)?.tenant ?? existingTenant.data;
 
       const newRemoteIds = (internalTenantSeed.remoteIds ?? []).filter(
         (seedRemoteId) =>
@@ -2477,44 +2510,31 @@ export function tenantServiceBuilder(
           )
       );
 
-      const { events: remoteIdEvents, tenantWithRemoteIds } =
-        newRemoteIds.reduce(
-          (acc, remoteId, index) => {
-            const domainRemoteId = {
-              ...remoteId,
-              assignmentTimestamp: new Date(remoteId.assignmentTimestamp),
-            };
+      const tenantsWithNewRemoteId = newRemoteIds.reduce(
+        (acc: Tenant[], remoteId) => {
+          const previousTenant = acc.at(-1) ?? tenantWithNewAttributes;
+          const domainRemoteId = {
+            ...remoteId,
+            assignmentTimestamp: new Date(remoteId.assignmentTimestamp),
+          };
 
-            const updatedTenant: Tenant = {
-              ...acc.tenantWithRemoteIds,
+          return [
+            ...acc,
+            {
+              ...previousTenant,
               remoteIds: [
-                ...(acc.tenantWithRemoteIds.remoteIds ?? []).filter(
+                ...(previousTenant.remoteIds ?? []).filter(
                   (existing) => existing.origin !== domainRemoteId.origin
                 ),
                 domainRemoteId,
               ],
-            };
-
-            const version =
-              existingTenant.metadata.version + attributeEvents.length + index;
-            const remoteIdAssignedEvent = toCreateEventTenantRemoteIdAssigned(
-              version,
-              updatedTenant,
-              correlationId
-            );
-
-            return {
-              events: [...acc.events, remoteIdAssignedEvent],
-              tenantWithRemoteIds: updatedTenant,
-            };
-          },
-          {
-            events: [] as Array<CreateEvent<TenantEvent>>,
-            tenantWithRemoteIds: tenantWithNewAttributes,
-          }
-        );
-
-      const allEvents = [...attributeEvents, ...remoteIdEvents];
+            },
+          ];
+        },
+        []
+      );
+      const tenantWithRemoteIds =
+        tenantsWithNewRemoteId.at(-1) ?? tenantWithNewAttributes;
 
       const tenantKind = await getTenantKindLoadingCertifiedAttributes(
         readModelService,
@@ -2527,24 +2547,60 @@ export function tenantServiceBuilder(
         ...tenantWithRemoteIds,
         kind: tenantKind,
       };
+      const isKindUpdated = existingTenant.data.kind !== tenantKind;
 
-      if (existingTenant.data.kind !== tenantKind) {
-        const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
-          existingTenant.metadata.version + allEvents.length,
-          existingTenant.data.kind,
-          tenantWithUpdatedKind,
-          correlationId
-        );
-        allEvents.push(tenantKindUpdatedEvent);
+      if (
+        tenantsWithNewAttribute.length === 0 &&
+        tenantsWithNewRemoteId.length === 0 &&
+        !isKindUpdated
+      ) {
+        return {
+          data: tenantWithUpdatedKind,
+          metadata: { version: existingTenant.metadata.version },
+        };
       }
 
-      await repository.createEvents(allEvents);
+      const conversion = await convertTenantToWrite(existingTenant, {
+        correlationId,
+        logger,
+      });
+      const version = conversion.tenant.metadata.version;
+
+      const events: Array<CreateEvent<TenantEvent>> = [
+        ...tenantsWithNewAttribute.map(({ attributeId, tenant }, index) =>
+          toCreateEventTenantCertifiedAttributeAssigned(
+            version + index,
+            conversion.convert(tenant),
+            attributeId,
+            correlationId
+          )
+        ),
+        ...tenantsWithNewRemoteId.map((tenant, index) =>
+          toCreateEventTenantRemoteIdAssigned(
+            version + tenantsWithNewAttribute.length + index,
+            conversion.convert(tenant),
+            correlationId
+          )
+        ),
+        ...(isKindUpdated
+          ? [
+              toCreateEventTenantKindUpdated(
+                version +
+                  tenantsWithNewAttribute.length +
+                  tenantsWithNewRemoteId.length,
+                existingTenant.data.kind,
+                conversion.convert(tenantWithUpdatedKind),
+                correlationId
+              ),
+            ]
+          : []),
+      ];
+
+      const newVersion = await createTenantEvents(conversion, events);
 
       return {
-        data: tenantWithUpdatedKind,
-        metadata: {
-          version: existingTenant.metadata.version + allEvents.length,
-        },
+        data: conversion.convert(tenantWithUpdatedKind),
+        metadata: { version: newVersion },
       };
     },
     async m2mUpsertTenant(
@@ -2594,38 +2650,26 @@ export function tenantServiceBuilder(
           );
         }
       });
-      const { events, tenantWithNewAttributes } = existingAttributes.reduce(
+      // The tenant after each assignment. The events are built afterwards: the
+      // assignments are validated first, then a legacy tenant is converted.
+      const tenantsWithNewAttribute = existingAttributes.reduce(
         (
-          accumulator: {
-            events: Array<CreateEvent<TenantEvent>>;
-            tenantWithNewAttributes: Tenant;
+          accumulator: Array<{ attributeId: AttributeId; tenant: Tenant }>,
+          attribute: Attribute
+        ) => [
+          ...accumulator,
+          {
+            attributeId: attribute.id,
+            tenant: assignCertifiedAttribute({
+              targetTenant: accumulator.at(-1)?.tenant ?? existingTenant.data,
+              attribute,
+            }),
           },
-          attribute: Attribute,
-          index
-        ) => {
-          const tenantWithNewAttribute = assignCertifiedAttribute({
-            targetTenant: accumulator.tenantWithNewAttributes,
-            attribute,
-          });
-
-          const version = existingTenant.metadata.version + index;
-          const attributeAssignmentEvent =
-            toCreateEventTenantCertifiedAttributeAssigned(
-              version,
-              tenantWithNewAttribute,
-              attribute.id,
-              correlationId
-            );
-          return {
-            events: [...accumulator.events, attributeAssignmentEvent],
-            tenantWithNewAttributes: tenantWithNewAttribute,
-          };
-        },
-        {
-          events: [],
-          tenantWithNewAttributes: existingTenant.data,
-        }
+        ],
+        []
       );
+      const tenantWithNewAttributes =
+        tenantsWithNewAttribute.at(-1)?.tenant ?? existingTenant.data;
 
       const tenantKind = await getTenantKindLoadingCertifiedAttributes(
         readModelService,
@@ -2638,20 +2682,42 @@ export function tenantServiceBuilder(
         ...tenantWithNewAttributes,
         kind: tenantKind,
       };
+      const isKindUpdated = existingTenant.data.kind !== tenantKind;
 
-      if (existingTenant.data.kind !== tenantKind) {
-        const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
-          existingTenant.metadata.version + events.length,
-          existingTenant.data.kind,
-          tenantWithUpdatedKind,
-          correlationId
-        );
-        // eslint-disable-next-line functional/immutable-data
-        events.push(tenantKindUpdatedEvent);
+      if (tenantsWithNewAttribute.length === 0 && !isKindUpdated) {
+        return tenantWithUpdatedKind;
       }
-      await repository.createEvents(events);
 
-      return tenantWithUpdatedKind;
+      const conversion = await convertTenantToWrite(existingTenant, {
+        correlationId,
+        logger,
+      });
+      const version = conversion.tenant.metadata.version;
+
+      const events: Array<CreateEvent<TenantEvent>> = [
+        ...tenantsWithNewAttribute.map(({ attributeId, tenant }, index) =>
+          toCreateEventTenantCertifiedAttributeAssigned(
+            version + index,
+            conversion.convert(tenant),
+            attributeId,
+            correlationId
+          )
+        ),
+        ...(isKindUpdated
+          ? [
+              toCreateEventTenantKindUpdated(
+                version + tenantsWithNewAttribute.length,
+                existingTenant.data.kind,
+                conversion.convert(tenantWithUpdatedKind),
+                correlationId
+              ),
+            ]
+          : []),
+      ];
+
+      await createTenantEvents(conversion, events);
+
+      return conversion.convert(tenantWithUpdatedKind);
     },
 
     async addCertifierId(
@@ -2689,7 +2755,12 @@ export function tenantServiceBuilder(
         }
       }
 
-      const updatedTenant: Tenant = {
+      const conversion = await convertTenantToWrite(tenant, {
+        correlationId,
+        logger,
+      });
+
+      const updatedTenant: Tenant = conversion.convert({
         ...tenant.data,
         features: [
           ...tenant.data.features.filter(
@@ -2701,15 +2772,15 @@ export function tenantServiceBuilder(
           },
         ],
         updatedAt: new Date(),
-      };
+      });
 
-      await repository.createEvent(
+      await createTenantEvents(conversion, [
         toCreateEventMaintenanceTenantPromotedToCertifier(
-          tenant.metadata.version,
+          conversion.tenant.metadata.version,
           updatedTenant,
           correlationId
-        )
-      );
+        ),
+      ]);
       return updatedTenant;
     },
     async m2mRevokeCertifiedAttribute(
@@ -2764,14 +2835,18 @@ export function tenantServiceBuilder(
         );
       }
 
-      const tenantWithAttributeRevoked = await revokeCertifiedAttribute(
-        targetTenant.data,
-        attributeToRevoke.id
+      const conversion = await convertTenantToWrite(targetTenant, {
+        correlationId,
+        logger,
+      });
+
+      const tenantWithAttributeRevoked = conversion.convert(
+        await revokeCertifiedAttribute(targetTenant.data, attributeToRevoke.id)
       );
 
       const attributeAssignmentEvent =
         toCreateEventTenantCertifiedAttributeRevoked(
-          targetTenant.metadata.version,
+          conversion.tenant.metadata.version,
           tenantWithAttributeRevoked,
           attributeToRevoke.id,
           correlationId
@@ -2790,18 +2865,18 @@ export function tenantServiceBuilder(
           kind: updatedTenantKind,
         };
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
-          targetTenant.metadata.version + 1,
+          conversion.tenant.metadata.version + 1,
           tenantWithAttributeRevoked.kind,
           tenantWithUpdatedKind,
           correlationId
         );
 
-        await repository.createEvents([
+        await createTenantEvents(conversion, [
           attributeAssignmentEvent,
           tenantKindUpdatedEvent,
         ]);
       } else {
-        await repository.createEvent(attributeAssignmentEvent);
+        await createTenantEvents(conversion, [attributeAssignmentEvent]);
       }
     },
     async updateTenantDelegatedFeatures(
@@ -2823,19 +2898,40 @@ export function tenantServiceBuilder(
 
       assertTenantAllowedForDelegation(requesterTenant.data);
 
+      const isDelegatedConsumerFeatureChanged =
+        tenantFeatures.isDelegatedConsumerFeatureEnabled !==
+        isFeatureAssigned(requesterTenant.data, "DelegatedConsumer");
+      const isDelegatedProducerFeatureChanged =
+        tenantFeatures.isDelegatedProducerFeatureEnabled !==
+        isFeatureAssigned(requesterTenant.data, "DelegatedProducer");
+
+      // Nothing to write: a legacy tenant is not converted
+      if (
+        !isDelegatedConsumerFeatureChanged &&
+        !isDelegatedProducerFeatureChanged
+      ) {
+        return;
+      }
+
+      const conversion = await convertTenantToWrite(requesterTenant, {
+        correlationId,
+        logger,
+      });
+      const tenantToUpdate = conversion.tenant;
+
       const delegatedConsumerEvent = match(
         tenantFeatures.isDelegatedConsumerFeatureEnabled
       )
         .with(true, () =>
           assignTenantDelegatedConsumerFeature({
-            tenant: requesterTenant,
+            tenant: tenantToUpdate,
             correlationId,
             logger,
           })
         )
         .with(false, () =>
           removeTenantDelegatedConsumerFeature({
-            tenant: requesterTenant,
+            tenant: tenantToUpdate,
             correlationId,
             logger,
           })
@@ -2844,12 +2940,12 @@ export function tenantServiceBuilder(
 
       const updatedTenant: WithMetadata<Tenant> = delegatedConsumerEvent
         ? {
-            ...requesterTenant,
+            ...tenantToUpdate,
             data: {
               ...delegatedConsumerEvent.updatedTenant,
             },
           }
-        : requesterTenant;
+        : tenantToUpdate;
 
       const delegatedProducerEvent = match(
         tenantFeatures.isDelegatedProducerFeatureEnabled
@@ -2874,19 +2970,19 @@ export function tenantServiceBuilder(
         .with(
           [P.nonNullable, P.nonNullable],
           async ([delegatedConsumerEvent, delegatedProducerEvent]) =>
-            repository.createEvents([
+            createTenantEvents(conversion, [
               delegatedConsumerEvent.event,
               {
                 ...delegatedProducerEvent.event,
-                version: requesterTenant.metadata.version + 1,
+                version: tenantToUpdate.metadata.version + 1,
               },
             ])
         )
         .with([P.nonNullable, P.nullish], async ([delegatedConsumerEvent, _]) =>
-          repository.createEvent(delegatedConsumerEvent.event)
+          createTenantEvents(conversion, [delegatedConsumerEvent.event])
         )
         .with([P.nullish, P.nonNullable], async ([_, delegatedProducerEvent]) =>
-          repository.createEvent(delegatedProducerEvent.event)
+          createTenantEvents(conversion, [delegatedProducerEvent.event])
         )
         .with([P.nullish, P.nullish], () => Promise.resolve())
         .exhaustive();
@@ -3284,29 +3380,6 @@ async function revokeCertifiedAttribute(
 function validateExpirationDate(expirationDate: Date): Date {
   assertValidExpirationDate(expirationDate);
   return expirationDate;
-}
-function validateAddress(address: string): string {
-  // Here I am removing the non-printing control characters
-  const removeNonPrintingcontrolCharacters = address.replace(
-    // eslint-disable-next-line no-control-regex
-    /[\x00-\x1F\x7F]/g,
-    ""
-  );
-
-  // Here I am removing the extra spaces and tabs
-  const sanitizedMail = removeNonPrintingcontrolCharacters
-    .replace(/\s+/g, "")
-    .trim();
-
-  // same path used by the frontend
-  // Taken from HTML spec: https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address
-  const emailPattern =
-    // eslint-disable-next-line no-useless-escape
-    /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-  if (!emailPattern.test(sanitizedMail)) {
-    throw notValidMailAddress();
-  }
-  return sanitizedMail;
 }
 
 export type TenantService = ReturnType<typeof tenantServiceBuilder>;

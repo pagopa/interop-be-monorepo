@@ -12,12 +12,12 @@ import {
   generateId,
   Tenant,
   protobufDecoder,
-  toTenantV2,
+  toTenantV3,
   Descriptor,
   EService,
   descriptorState,
   tenantAttributeType,
-  TenantVerifiedAttributeRevokedV2,
+  TenantVerifiedAttributeRevokedV3,
   Agreement,
   delegationState,
   delegationKind,
@@ -154,11 +154,11 @@ describe("revokeVerifiedAttribute", async () => {
         stream_id: tenantWithVerifiedAttribute.id,
         version: "1",
         type: "TenantVerifiedAttributeRevoked",
-        event_version: 2,
+        event_version: 3,
       });
 
       const writtenPayload = protobufDecoder(
-        TenantVerifiedAttributeRevokedV2
+        TenantVerifiedAttributeRevokedV3
       ).parse(writtenEvent?.data);
 
       const updatedTenant: Tenant = {
@@ -183,7 +183,7 @@ describe("revokeVerifiedAttribute", async () => {
       };
 
       expect(writtenPayload).toEqual({
-        tenant: toTenantV2(updatedTenant),
+        tenant: toTenantV3(updatedTenant),
         attributeId: verifiedAttribute.id,
       });
       expect(revokeVerifiedAttrReturn).toEqual({

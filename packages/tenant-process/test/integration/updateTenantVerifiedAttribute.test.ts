@@ -10,8 +10,8 @@ import {
   Tenant,
   generateId,
   protobufDecoder,
-  toTenantV2,
-  TenantVerifiedAttributeExpirationUpdatedV2,
+  toTenantV3,
+  TenantVerifiedAttributeExpirationUpdatedV3,
   TenantVerifier,
   TenantId,
 } from "pagopa-interop-models";
@@ -91,14 +91,14 @@ describe("updateTenantVerifiedAttribute", async () => {
     expect(writtenEvent.version).toBe("1");
     expect(writtenEvent.type).toBe("TenantVerifiedAttributeExpirationUpdated");
     const writtenPayload:
-      | TenantVerifiedAttributeExpirationUpdatedV2
+      | TenantVerifiedAttributeExpirationUpdatedV3
       | undefined = protobufDecoder(
-      TenantVerifiedAttributeExpirationUpdatedV2
+      TenantVerifiedAttributeExpirationUpdatedV3
     ).parse(writtenEvent.data);
 
     if (!writtenPayload) {
       fail(
-        "impossible to decode TenantVerifiedAttributeExpirationUpdatedV2 data"
+        "impossible to decode TenantVerifiedAttributeExpirationUpdatedV3 data"
       );
     }
 
@@ -109,7 +109,7 @@ describe("updateTenantVerifiedAttribute", async () => {
 
     expect(writtenPayload).toEqual({
       attributeId,
-      tenant: toTenantV2(updatedTenant),
+      tenant: toTenantV3(updatedTenant),
     });
     expect(returnedTenant).toEqual(updatedTenant);
   });
