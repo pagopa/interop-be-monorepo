@@ -2,19 +2,19 @@
 /* eslint-disable functional/immutable-data */
 import { AttributeSchema } from "pagopa-interop-kpi-models";
 import {
-  AttributeEventEnvelopeV1,
+  AttributeEventEnvelope,
   fromAttributeV1,
   genericInternalError,
 } from "pagopa-interop-models";
 import { splitAttributeIntoObjectsSQL } from "pagopa-interop-readmodel";
-import { match } from "ts-pattern";
+import { P, match } from "ts-pattern";
 import { z } from "zod";
 
 import { DBContext } from "../../db/db.js";
 import { attributeServiceBuilder } from "../../service/attributeService.js";
 
 export async function handleAttributeMessageV1(
-  messages: AttributeEventEnvelopeV1[],
+  messages: AttributeEventEnvelope[],
   dbContext: DBContext
 ): Promise<void> {
   const attributeService = attributeServiceBuilder(dbContext);
@@ -23,22 +23,27 @@ export async function handleAttributeMessageV1(
 
   for (const message of messages) {
     match(message)
-      .with({ type: "AttributeAdded" }, (msg) => {
-        if (!msg.data.attribute) {
-          throw genericInternalError(
-            `Attribute can't be missing in the event message`
+      .with(
+        {
+          type: P.union("AttributeAdded", "AttributeSubunitPropagationUpdated"),
+        },
+        (msg) => {
+          if (!msg.data.attribute) {
+            throw genericInternalError(
+              `Attribute can't be missing in the event message`
+            );
+          }
+          const attribute = splitAttributeIntoObjectsSQL(
+            fromAttributeV1(msg.data.attribute),
+            msg.version
+          );
+          upsertBatch.push(
+            AttributeSchema.parse(
+              attribute satisfies z.input<typeof AttributeSchema>
+            )
           );
         }
-        const attribute = splitAttributeIntoObjectsSQL(
-          fromAttributeV1(msg.data.attribute),
-          msg.version
-        );
-        upsertBatch.push(
-          AttributeSchema.parse(
-            attribute satisfies z.input<typeof AttributeSchema>
-          )
-        );
-      })
+      )
       .exhaustive();
   }
 
