@@ -120,14 +120,6 @@ export const getAgreementByIdErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const getAgreementContractErrorMapper = (
-  error: ApiError<ErrorCodes>
-): number =>
-  match(error.code)
-    .with("contractException", () => HTTP_STATUS_SERVICE_UNAVAILABLE)
-    .with("contractNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
 export const getAgreementSignedContractErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>

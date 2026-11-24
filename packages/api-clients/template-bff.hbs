@@ -68,19 +68,13 @@ export type {{@key}} = z.infer<typeof {{@key}}>;
 			response: z.instanceof(Buffer),
 		{{else if (and (eq method "get") (eq path "/privacyNotices/:consentType"))}}
 			response: z.instanceof(Buffer),
-		{{else if (and (eq method "get") (eq path "/purposes/:purposeId/versions/:versionId/documents/:documentId"))}}
-			response: z.instanceof(Buffer),
 		{{else if (and (eq method "get") (eq path "/eservices/:eServiceId/consumers"))}}
 			response: z.instanceof(Buffer),
 		{{else if (and (eq method "post") (eq path "/agreements/:agreementId/consumer-documents"))}}
 			response: z.instanceof(Buffer),
 		{{else if (and (eq method "get") (eq path "/agreements/:agreementId/consumer-documents"))}}
 			response: z.instanceof(Buffer),
-		{{else if (and (eq method "get") (eq path "/agreements/:agreementId/contract"))}}
-			response: z.instanceof(Buffer),
 		{{else if (and (eq method "get") (eq path "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId"))}}
-			response: z.instanceof(Buffer),
-		{{else if (and (eq method "get") (eq path "/delegations/:delegationId/contracts/:contractId"))}}
 			response: z.instanceof(Buffer),
         {{else if (and (eq method "get") (eq path "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents/:documentId"))}}
             response: z.instanceof(Buffer),
@@ -91,8 +85,6 @@ export type {{@key}} = z.infer<typeof {{@key}}>;
 		{{else if (and (eq method "get") (eq path "/delegations/:delegationId/signedContract/:contractId"))}}
             response: z.instanceof(Buffer),
 		{{else if (and (eq method "get") (eq path "/purposes/:purposeId/versions/:versionId/signedDocuments/:documentId"))}}
-            response: z.instanceof(Buffer),
-		{{else if (and (eq method "get") (eq path "/purposeTemplates/:purposeTemplateId/riskAnalysisDocument"))}}
             response: z.instanceof(Buffer),
 		{{else if (and (eq method "get") (eq path "/purposeTemplates/:purposeTemplateId/riskAnalysisDocument/signed"))}}
             response: z.instanceof(Buffer),

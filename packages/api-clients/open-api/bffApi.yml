@@ -828,51 +828,6 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
-  "/agreements/{agreementId}/contract":
-    parameters:
-      - name: agreementId
-        in: path
-        description: The identifier of the agreement
-        required: true
-        schema:
-          type: string
-          format: uuid
-    get:
-      tags:
-        - agreements
-      summary: retrieves the agreement contract
-      description: returns the agreement contract for a given agreementId
-      operationId: getAgreementContract
-      responses:
-        "200":
-          description: Agreement contract retrieved
-          content:
-            application/octet-stream:
-              schema:
-                type: string
-                format: binary
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "429":
-          $ref: "#/components/responses/TooManyRequests"
   "/agreements/{agreementId}/submit":
     post:
       tags:
@@ -5997,67 +5952,6 @@ paths:
           $ref: "#/components/responses/NotFound"
         "409":
           $ref: "#/components/responses/Conflict"
-  /purposes/{purposeId}/versions/{versionId}/documents/{documentId}:
-    get:
-      security:
-        - bearerAuth: []
-      tags:
-        - purposes
-      summary: Get an Risk Analysis document
-      description: Get a Risk Analysis document
-      operationId: getRiskAnalysisDocument
-      parameters:
-        - name: purposeId
-          in: path
-          description: the purpose id
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: versionId
-          in: path
-          description: the version Id
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: documentId
-          in: path
-          description: the document id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        "200":
-          description: Risk Analysis document retrieved
-          content:
-            application/octet-stream:
-              schema:
-                type: string
-                format: binary
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "429":
-          $ref: "#/components/responses/TooManyRequests"
   /purposes/{purposeId}/versions/{versionId}/signedDocuments/{documentId}:
     get:
       security:
@@ -7529,51 +7423,6 @@ paths:
           $ref: "#/components/responses/NotFound"
         "409":
           $ref: "#/components/responses/Conflict"
-  /purposeTemplates/{purposeTemplateId}/riskAnalysisDocument:
-    parameters:
-      - name: purposeTemplateId
-        in: path
-        description: The identifier of the Purpose Template
-        required: true
-        schema:
-          type: string
-          format: uuid
-    get:
-      tags:
-        - purposeTemplates
-      summary: Downloads the unsigned Risk Analysis Template document
-      description: Returns the unsigned Risk Analysis Template document file for a given purposeTemplateId
-      operationId: getRiskAnalysisTemplateDocument
-      responses:
-        "200":
-          description: Risk Analysis Template unsigned document retrieved
-          content:
-            application/octet-stream:
-              schema:
-                type: string
-                format: binary
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "429":
-          $ref: "#/components/responses/TooManyRequests"
   /purposeTemplates/{purposeTemplateId}/riskAnalysisDocument/signed:
     parameters:
       - name: purposeTemplateId
@@ -11884,56 +11733,6 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-  "/delegations/{delegationId}/contracts/{contractId}":
-    parameters:
-      - name: delegationId
-        in: path
-        schema:
-          type: string
-          format: uuid
-        required: true
-      - name: contractId
-        in: path
-        schema:
-          type: string
-          format: uuid
-        required: true
-    get:
-      tags:
-        - delegations
-      summary: Retrieve a contract of a delegation
-      description: Retrieve a contract of a delegation
-      operationId: getDelegationContract
-      responses:
-        "200":
-          description: Contract retrieved
-          content:
-            application/octet-stream:
-              schema:
-                type: string
-                format: binary
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "429":
-          $ref: "#/components/responses/TooManyRequests"
   /delegations/{delegationId}/signedContract/{contractId}:
     parameters:
       - name: delegationId

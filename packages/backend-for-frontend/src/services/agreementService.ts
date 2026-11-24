@@ -269,36 +269,6 @@ export function agreementServiceBuilder(
       return Buffer.from(documentBytes);
     },
 
-    async getAgreementContract(
-      agreementId: string,
-      { headers, logger }: WithLogger<BffAppContext>
-    ): Promise<Buffer> {
-      logger.info(`Retrieving contract for agreement ${agreementId}`);
-
-      const agreement = await agreementProcessClient.getAgreementById({
-        params: { agreementId },
-        headers,
-      });
-
-      if (!agreement.contract) {
-        if (
-          agreement.state === agreementApi.AgreementState.Values.ACTIVE ||
-          agreement.state === agreementApi.AgreementState.Values.SUSPENDED ||
-          agreement.state === agreementApi.AgreementState.Values.ARCHIVED
-        ) {
-          throw contractException(agreementId);
-        }
-        throw contractNotFound(agreementId);
-      }
-
-      const documentBytes = await fileManager.get(
-        config.consumerDocumentsContainer,
-        agreement.contract.path,
-        logger
-      );
-
-      return Buffer.from(documentBytes);
-    },
     async getAgreementSignedContract(
       agreementId: string,
       { headers, logger }: WithLogger<BffAppContext>

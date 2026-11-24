@@ -15,7 +15,6 @@ import {
   approveAgreementErrorMapper,
   unsuspendAgreementErrorMapper,
   getAgreementByIdErrorMapper,
-  getAgreementContractErrorMapper,
   getAgreementSignedContractErrorMapper,
   getAgreementsErrorMapper,
 } from "../utilities/errorMappers.js";
@@ -390,26 +389,6 @@ const agreementRouter = (
       }
     )
 
-    .get("/agreements/:agreementId/contract", async (req, res) => {
-      const ctx = fromBffAppContext(req.ctx, req.headers);
-
-      try {
-        const result = await agreementService.getAgreementContract(
-          req.params.agreementId,
-          ctx
-        );
-
-        return res.status(200).send(result);
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          getAgreementContractErrorMapper,
-          ctx,
-          `Error downloading contract for agreement ${req.params.agreementId}`
-        );
-        return res.status(errorRes.status).send(errorRes);
-      }
-    })
     .get("/agreements/:agreementId/signedContract", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 

@@ -784,28 +784,6 @@ export function purposeTemplateServiceBuilder(
         logger
       );
     },
-    async getRiskAnalysisTemplateDocument(
-      purposeTemplateId: PurposeTemplateId,
-      { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<Uint8Array> {
-      logger.info(
-        `Downloading risk analysis template document from purpose template ${purposeTemplateId}`
-      );
-
-      const unsignedDocument =
-        await purposeTemplateClient.getRiskAnalysisTemplateDocument({
-          params: {
-            purposeTemplateId,
-          },
-          headers,
-        });
-
-      return await fileManager.get(
-        config.riskAnalysisTemplateDocumentsContainer,
-        unsignedDocument.path,
-        logger
-      );
-    },
     async getRiskAnalysisTemplateSignedDocument(
       purposeTemplateId: PurposeTemplateId,
       { logger, headers }: WithLogger<BffAppContext>
