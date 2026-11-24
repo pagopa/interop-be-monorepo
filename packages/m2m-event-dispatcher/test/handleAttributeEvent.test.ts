@@ -2,10 +2,8 @@ import { genericLogger } from "pagopa-interop-commons";
 import { getMockAttribute } from "pagopa-interop-commons-test";
 import {
   AttributeEventEnvelope,
-  AttributeEventEnvelopeV2,
   toAttributeV1,
-  toRegistryAttributeV2,
-  AttributeEventV1,
+  AttributeEvent,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -26,9 +24,13 @@ describe("handleAttributeEvent test", async () => {
     vi.clearAllMocks();
   });
 
-  it.each(AttributeEventV1.options.map((o) => o.shape.type.value))(
+  it.each(
+    AttributeEvent.options
+      .map((o) => o.shape.type.value)
+      .filter((type) => type !== "AttributeSubunitPropagationUpdated")
+  )(
     "should write %s M2M event with the right visibility",
-    async (eventType: AttributeEventV1["type"]) => {
+    async (eventType: AttributeEvent["type"]) => {
       const message = {
         ...getMockEventEnvelopeCommons(),
         stream_id: attribute.id,
@@ -67,13 +69,13 @@ describe("handleAttributeEvent test", async () => {
   );
 
   it("should ignore the AttributeSubunitPropagationUpdated event", async () => {
-    const message: AttributeEventEnvelopeV2 = {
+    const message: AttributeEventEnvelope = {
       ...getMockEventEnvelopeCommons(),
       stream_id: attribute.id,
       type: "AttributeSubunitPropagationUpdated",
-      event_version: 2,
+      event_version: 1,
       data: {
-        attribute: toRegistryAttributeV2(attribute),
+        attribute: toAttributeV1(attribute),
       },
     };
 

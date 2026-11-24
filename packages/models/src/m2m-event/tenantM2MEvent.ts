@@ -28,6 +28,7 @@ export const TenantM2MEventType = z.enum([
   "TenantDelegatedConsumerFeatureAdded",
   "TenantDelegatedConsumerFeatureRemoved",
   "TenantRemoteIdAssigned",
+  "TenantParentUpdated",
 ]);
 export type TenantM2MEventType = z.infer<typeof TenantM2MEventType>;
 

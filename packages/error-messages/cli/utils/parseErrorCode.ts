@@ -10,6 +10,7 @@ import {
   purposeErrorCodes,
   purposeTemplateErrorCodes,
   tenantErrorCodes,
+  notificationManagerErrorCodes,
 } from "pagopa-interop-commons";
 import {
   commonErrorCodes,
@@ -44,6 +45,10 @@ const processErrors = [
     errors: purposeTemplateErrorCodes,
   },
   { service: serviceName.TENANT_PROCESS, errors: tenantErrorCodes },
+  {
+    service: serviceName.IN_APP_NOTIFICATION_MANAGER,
+    errors: notificationManagerErrorCodes,
+  },
 ];
 
 function normalizeProcess(process: string): string {

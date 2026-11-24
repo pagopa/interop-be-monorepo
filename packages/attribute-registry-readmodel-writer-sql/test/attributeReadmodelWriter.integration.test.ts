@@ -2,16 +2,13 @@ import { getMockAttribute } from "pagopa-interop-commons-test";
 import {
   Attribute,
   AttributeAddedV1,
-  AttributeEventEnvelopeV1,
-  AttributeEventEnvelopeV2,
+  AttributeEventEnvelope,
   attributeKind,
   toAttributeV1,
-  toRegistryAttributeV2,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 
 import { handleMessage } from "../src/attributeRegistryConsumerService.js";
-import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import { attributeReadModelService, attributeWriterService } from "./utils.js";
 
 describe("database test", async () => {
@@ -24,7 +21,7 @@ describe("database test", async () => {
       const payload: AttributeAddedV1 = {
         attribute: toAttributeV1(certifiedAttribute),
       };
-      const message: AttributeEventEnvelopeV1 = {
+      const message: AttributeEventEnvelope = {
         sequence_num: 1,
         stream_id: certifiedAttribute.id,
         version: 1,
@@ -48,7 +45,7 @@ describe("database test", async () => {
       const payload: AttributeAddedV1 = {
         attribute: toAttributeV1(declaredAttribute),
       };
-      const message: AttributeEventEnvelopeV1 = {
+      const message: AttributeEventEnvelope = {
         sequence_num: 1,
         stream_id: declaredAttribute.id,
         version: 1,
@@ -71,7 +68,7 @@ describe("database test", async () => {
       const payload: AttributeAddedV1 = {
         attribute: toAttributeV1(verifiedAttribute),
       };
-      const message: AttributeEventEnvelopeV1 = {
+      const message: AttributeEventEnvelope = {
         sequence_num: 1,
         stream_id: verifiedAttribute.id,
         version: 1,
@@ -90,7 +87,7 @@ describe("database test", async () => {
     });
   });
 
-  describe("Events V2", () => {
+  describe("AttributeSubunitPropagationUpdated", () => {
     it("AttributeSubunitPropagationUpdated", async () => {
       const certifiedAttribute: Attribute = {
         ...getMockAttribute(attributeKind.certified),
@@ -102,16 +99,16 @@ describe("database test", async () => {
         ...certifiedAttribute,
         subunitPropagationEnabled: true,
       };
-      const message: AttributeEventEnvelopeV2 = {
+      const message: AttributeEventEnvelope = {
         sequence_num: 2,
         stream_id: certifiedAttribute.id,
         version: 2,
         type: "AttributeSubunitPropagationUpdated",
-        event_version: 2,
-        data: { attribute: toRegistryAttributeV2(updatedAttribute) },
+        event_version: 1,
+        data: { attribute: toAttributeV1(updatedAttribute) },
         log_date: new Date(),
       };
-      await handleMessageV2(message, attributeWriterService);
+      await handleMessage(message, attributeWriterService);
 
       const retrievedAttribute =
         await attributeReadModelService.getAttributeById(certifiedAttribute.id);
