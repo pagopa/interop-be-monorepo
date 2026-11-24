@@ -1,7 +1,10 @@
 import { AxiosError, AxiosHeaders } from "axios";
 import { tenantApi } from "pagopa-interop-api-clients";
 import { InteropHeaders, Logger } from "pagopa-interop-commons";
+import { Tenant } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import type { TenantParentUpdate } from "../src/services/ipaCertifiedAttributesImporterService.js";
 
 const waitForReadModelMetadataVersionMock = vi.fn(
   (): Promise<void> => Promise.resolve()
@@ -16,7 +19,7 @@ vi.mock("pagopa-interop-commons", async () => {
   };
 });
 
-const { assignNewAttributes, revokeAttributes } =
+const { assignNewAttributes, revokeAttributes, updateTenantsParent } =
   await import("../src/services/ipaCertifiedAttributesImporterService.js");
 
 function problemError(status: number, code: string, title: string): AxiosError {
@@ -98,6 +101,14 @@ describe("IPA importer resilience to per-tenant errors", () => {
     { tOrigin: "IPA", tExternalId: "tenant-3", aOrigin: "IPA", aCode: "A3" },
   ];
 
+  const parentUpdates = ["tenant-1", "tenant-2", "tenant-3"].map(
+    (value): TenantParentUpdate => ({
+      tenant: { externalId: { origin: "IPA", value } } as Tenant,
+      parentTenantId: null,
+      rootTenantId: null,
+    })
+  );
+
   const okResponse = { metadata: { version: 5 } };
 
   beforeEach(() => {
@@ -165,5 +176,48 @@ describe("IPA importer resilience to per-tenant errors", () => {
 
     expect(internalRevokeCertifiedAttribute).toHaveBeenCalledTimes(3);
     expect(failures).toBe(1);
+  });
+
+  it("should update the parent of every tenant even when one of them fails", async () => {
+    const internalUpdateTenantParent = vi
+      .fn()
+      .mockResolvedValueOnce(okResponse)
+      .mockRejectedValueOnce(eventStoreVersionConflict)
+      .mockResolvedValueOnce(okResponse);
+
+    const failures = await updateTenantsParent(
+      parentUpdates,
+      { internalUpdateTenantParent } as never,
+      readModelServiceSQL as never,
+      headers,
+      logger,
+      pollingConfig
+    );
+
+    expect(internalUpdateTenantParent).toHaveBeenCalledTimes(3);
+    expect(failures).toBe(1);
+  });
+
+  it("should log the failed parent update with tenant, status and error code", async () => {
+    const internalUpdateTenantParent = vi
+      .fn()
+      .mockRejectedValue(eventStoreVersionConflict);
+
+    const failures = await updateTenantsParent(
+      [parentUpdates[0]],
+      { internalUpdateTenantParent } as never,
+      readModelServiceSQL as never,
+      headers,
+      logger,
+      pollingConfig
+    );
+
+    expect(failures).toBe(1);
+    expect(logger.error).toHaveBeenCalledWith(
+      expect.stringContaining("tenant-1")
+    );
+    expect(logger.error).toHaveBeenCalledWith(
+      expect.stringContaining("005-9991")
+    );
   });
 });
