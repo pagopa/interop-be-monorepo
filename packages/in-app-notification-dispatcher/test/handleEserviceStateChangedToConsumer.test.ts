@@ -20,6 +20,7 @@ import {
   archivingScope,
   GracePeriodDays,
   gracePeriodDays,
+  descriptorState,
 } from "pagopa-interop-models";
 import {
   getNotificationRecipients,
@@ -118,6 +119,37 @@ describe("handleEserviceStateChangedToConsumer", async () => {
       missingKafkaMessageDataError("eservice", "EServiceDescriptorPublished")
     );
   });
+
+  it.each([descriptorState.draft, descriptorState.waitingForApproval])(
+    "should skip document notifications for descriptor state %s",
+    async (state) => {
+      const hiddenDescriptor = {
+        ...eservice.descriptors[0],
+        state,
+      };
+      const hiddenEService = {
+        ...eservice,
+        descriptors: [hiddenDescriptor],
+      };
+      const msg: EServiceEventV2 = {
+        event_version: 2,
+        type: "EServiceDescriptorDocumentAdded",
+        data: {
+          eservice: toEServiceV2(hiddenEService),
+          descriptorId: hiddenDescriptor.id,
+          documentId: hiddenDescriptor.docs[0].id,
+        },
+      };
+
+      const notifications = await handleEserviceStateChangedToConsumer(
+        msg,
+        logger,
+        readModelService
+      );
+
+      expect(notifications).toHaveLength(0);
+    }
+  );
 
   it("should return empty array when no agreements exist for the eservice", async () => {
     await addOneTenant(producerTenant);
