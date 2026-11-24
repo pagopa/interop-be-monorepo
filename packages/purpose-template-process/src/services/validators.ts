@@ -244,6 +244,12 @@ export function validateAndTransformRiskAnalysisTemplate(
     return undefined;
   }
 
+  Object.values(riskAnalysisFormTemplate.answers).forEach((answer) => {
+    if (answer.annotation) {
+      validateRiskAnalysisAnswerAnnotationOrThrow(answer.annotation.text);
+    }
+  });
+
   const validatedForm = validateRiskAnalysisTemplateOrThrow({
     riskAnalysisFormTemplate,
     targetTenantKind,

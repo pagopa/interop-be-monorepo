@@ -19,6 +19,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   generateId,
+  hyperlinkDetectionError,
   PurposeTemplate,
   PurposeTemplateAddedV2,
   purposeTemplateState,
@@ -353,6 +354,37 @@ describe("updatePurposeTemplate", () => {
       ).rejects.toThrowError(missingFreeOfChargeReason());
     }
   );
+
+  it("Should throw hyperlinkDetectionError if an answer annotation contains a hyperlink", async () => {
+    await addOnePurposeTemplate(existingPurposeTemplate);
+
+    const hyperlinkText = "Visit https://evil.example.com now";
+    const answers = {
+      ...purposeTemplateSeed.purposeRiskAnalysisForm!.answers,
+      purpose: {
+        editable: false,
+        values: ["INSTITUTIONAL"],
+        suggestedValues: [],
+        annotation: { text: hyperlinkText },
+      },
+    };
+
+    await expect(
+      purposeTemplateService.updatePurposeTemplate(
+        existingPurposeTemplate.id,
+        {
+          ...purposeTemplateSeed,
+          purposeRiskAnalysisForm: {
+            ...purposeTemplateSeed.purposeRiskAnalysisForm!,
+            answers,
+          },
+        },
+        getMockContext({
+          authData: getMockAuthData(existingPurposeTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrow(hyperlinkDetectionError(hyperlinkText));
+  });
 
   it("Should not trigger duplicate title check when updating with case-insensitive same title", async () => {
     const purposeTemplateWithTitle: PurposeTemplate = {
