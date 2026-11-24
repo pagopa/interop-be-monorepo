@@ -49,6 +49,7 @@ const errorCodes = {
   tenantContactNotFound: "0038",
   tenantMailsNotAllowed: "0039",
   tenantContactRequiresEventsV3: "0040",
+  contactCreationFailed: "0041",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -438,5 +439,13 @@ export function tenantContactRequiresEventsV3(
     detail: `Tenant ${tenantId} has a contact, which V2 events cannot carry: tenant events V3 must be enabled`,
     code: "tenantContactRequiresEventsV3",
     title: "Tenant contact requires tenant events V3",
+  });
+}
+
+export function contactCreationFailed(reason: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Error creating a contact in the Contact Data Manager: ${reason}`,
+    code: "contactCreationFailed",
+    title: "Contact creation failed",
   });
 }
