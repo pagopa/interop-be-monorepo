@@ -258,8 +258,8 @@ export const patchUpdateEServiceTemplateErrorMapper = (
   match(error.code)
     .with("eserviceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with("eserviceTemplateNotInDraftState", () => HTTP_STATUS_BAD_REQUEST)
     .with(
-      "eserviceTemplateNotInDraftState",
       "eserviceTemplateDuplicate",
       "instanceNameConflict",
       () => HTTP_STATUS_CONFLICT
