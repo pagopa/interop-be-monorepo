@@ -106,7 +106,7 @@ describe("revokeVerifiedAttribute", async () => {
     },
   ])(
     "Should revoke the VerifiedAttribute if it exists $desc",
-    async (hasDelegation) => {
+    async ({ hasDelegation }) => {
       const mockVerifiedBy = getMockVerifiedBy();
       const tenantWithVerifiedAttribute: Tenant = {
         ...targetTenant,

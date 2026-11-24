@@ -198,7 +198,7 @@ describe("verifyVerifiedAttribute", async () => {
     },
   ])(
     "Should verify the VerifiedAttribute if verifiedTenantAttribute exist $desc",
-    async (hasDelegation) => {
+    async ({ hasDelegation }) => {
       const mockVerifier = getMockTenant();
       const mockRevoker = getMockTenant();
       const mockVerifiedBy: TenantVerifier = {
