@@ -1,0 +1,20 @@
+meta {
+  name: Get producer e-service monitoring agreements
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-catalog}}/producers/eservices/:eserviceId/monitoring/agreements
+  body: none
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
