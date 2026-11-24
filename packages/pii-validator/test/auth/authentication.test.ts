@@ -15,6 +15,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createApp } from "../../src/app.js";
 import { config } from "../../src/config/config.js";
 import { DetectionService } from "../../src/services/detectionService.js";
+import { logCapture } from "../logCapture.js";
 
 const correlationId = generateId<CorrelationId>();
 const audience = "dev.interop.pagopa.it/ui";
@@ -61,10 +62,10 @@ afterAll(async () => {
   await jwksServer.close();
 });
 
-const postDetect = async (authorization?: string) => {
+const postDetect = async (authorization?: string, path = "/detect") => {
   const api = await createApp(fakeService);
   const call = request(api)
-    .post("/detect")
+    .post(path)
     .set("X-Correlation-Id", correlationId)
     .send({ text: "synthetic neutral text" });
 
@@ -74,6 +75,23 @@ const postDetect = async (authorization?: string) => {
 };
 
 describe("POST /detect authentication boundary", () => {
+  it("redacts query-string values when the bearer header is malformed", async () => {
+    const sentinel = "QUERY_LOG_TEST_001";
+    logCapture.entries.splice(0);
+
+    const response = await postDetect(
+      "Basic malformed",
+      `/detect?probe=${sentinel}`
+    );
+
+    expect(response.status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+    expect(response.headers["content-type"]).toMatch(
+      /^application\/problem\+json\b/
+    );
+    expect(JSON.stringify(response.body)).not.toContain(sentinel);
+    expect(logCapture.entries.join("\n")).not.toContain(sentinel);
+  });
+
   it("returns 400 when the authorization header is missing", async () => {
     const response = await postDetect();
 
