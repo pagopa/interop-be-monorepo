@@ -436,4 +436,42 @@ describe("Message processor", () => {
     expect(refreshableInternalTokenSpy).toBeCalledTimes(0);
     expect(selfcareUpsertTenantSpy).toBeCalledTimes(0);
   });
+
+  it.each([
+    {
+      origin: "IPA",
+      subUnitType: "AOO",
+      expectedParent: { origin: "IPA", value: "ipa_123" },
+    },
+    { origin: "IPA", subUnitType: "UO", expectedParent: undefined },
+    { origin: "IPA", subUnitType: null, expectedParent: undefined },
+    { origin: "ANAC", subUnitType: "AOO", expectedParent: undefined },
+  ])(
+    "should set parentExternalId only for IPA AOO ($origin, $subUnitType)",
+    async ({ origin, subUnitType, expectedParent }) => {
+      await selfcareOnboardingProcessor.processMessage({
+        ...kafkaMessagePayload,
+        message: {
+          ...kafkaMessagePayload.message,
+          value: Buffer.from(
+            JSON.stringify({
+              ...correctEventPayload,
+              institution: {
+                ...correctInstitutionEventField,
+                origin,
+                originId: "ipa_123",
+                subUnitType,
+                subUnitCode: "subunit_456",
+              },
+            })
+          ),
+        },
+      });
+
+      expect(selfcareUpsertTenantSpy).toHaveBeenCalledOnce();
+      expect(selfcareUpsertTenantSpy.mock.calls[0][0].parentExternalId).toEqual(
+        expectedParent
+      );
+    }
+  );
 });
