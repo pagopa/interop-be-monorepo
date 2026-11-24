@@ -13,6 +13,7 @@ import {
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
 import {
+  AttributeId,
   attributeKind,
   ContactId,
   CorrelationId,
@@ -23,7 +24,9 @@ import {
   TenantCertifiedAttributeAssignedV3,
   TenantContactAddedV3,
   TenantDeclaredAttributeAssignedV3,
+  TenantDelegatedProducerFeatureAddedV3,
   TenantEvent,
+  TenantId,
   TenantKindUpdatedV3,
   tenantKind,
   TenantMail,
@@ -34,8 +37,10 @@ import {
 import { afterAll, beforeAll, describe, expect, it, Mock, vi } from "vitest";
 
 import {
+  attributeNotFound,
   certifiedAttributeAlreadyAssigned,
   contactCreationFailed,
+  invalidTenantFeature,
 } from "../../src/model/domain/errors.js";
 import { ContactDataManagerService } from "../../src/services/contactDataManagerService.js";
 import { convertLegacyTenant } from "../../src/services/legacyTenantConversion.js";
@@ -46,6 +51,7 @@ import {
   postgresDB,
   tenantService,
 } from "../integrationUtils.js";
+import { getMockMaintenanceTenantUpdate } from "../mockUtils.js";
 
 const mailOfKind = (
   kind: TenantMail["kind"],
@@ -389,6 +395,265 @@ describe("Legacy tenant conversion", () => {
       );
       expect(lastEvent.version).toBe("3");
     });
+    it("Should not create a contact when the tenant kind cannot be computed", async () => {
+      // A certified attribute missing from the readmodel fails the kind
+      const missingAttributeId = generateId<AttributeId>();
+      const legacyTenant: Tenant = {
+        ...getMockTenant(),
+        attributes: [
+          {
+            id: missingAttributeId,
+            type: tenantAttributeType.CERTIFIED,
+            assignmentTimestamp: new Date(),
+          },
+        ],
+        mails: [getMockTenantMail(tenantMailKind.ContactEmail)],
+      };
+      await addOneAttribute(certifiedAttribute);
+      await addOneTenant(legacyTenant);
+
+      await expect(
+        tenantService.internalAssignCertifiedAttribute(
+          {
+            tenantOrigin: legacyTenant.externalId.origin,
+            tenantExternalId: legacyTenant.externalId.value,
+            attributeOrigin: certifiedAttribute.origin!,
+            attributeExternalId: certifiedAttribute.code!,
+          },
+          getMockContextInternal({})
+        )
+      ).rejects.toThrowError(attributeNotFound(missingAttributeId));
+
+      expect(contactDataManagerService.createContact).not.toHaveBeenCalled();
+    });
+
+    it("Should not create a contact when a feature of the maintenance update is invalid", async () => {
+      const legacyTenant: Tenant = {
+        ...getMockTenant(),
+        mails: [getMockTenantMail(tenantMailKind.ContactEmail)],
+      };
+      await addOneTenant(legacyTenant);
+
+      await expect(
+        tenantService.maintenanceTenantUpdate(
+          {
+            tenantId: legacyTenant.id,
+            tenantUpdate: {
+              ...getMockMaintenanceTenantUpdate(),
+              features: [{}],
+            },
+            version: 0,
+          },
+          getMockContextMaintenance({})
+        )
+      ).rejects.toThrowError(invalidTenantFeature());
+
+      expect(contactDataManagerService.createContact).not.toHaveBeenCalled();
+    });
+
+    describe("operations that write nothing", () => {
+      const expectNothingWritten = async (
+        tenantId: TenantId
+      ): Promise<void> => {
+        expect(contactDataManagerService.createContact).not.toHaveBeenCalled();
+        const lastEvent = await readLastEventByStreamId(
+          tenantId,
+          "tenant",
+          postgresDB
+        );
+        expect(lastEvent.version).toBe("0");
+      };
+
+      it("Should not create a contact when the delegated features do not change", async () => {
+        const legacyTenant: Tenant = {
+          ...getMockTenant(),
+          features: [],
+          mails: [getMockTenantMail(tenantMailKind.ContactEmail)],
+        };
+        await addOneTenant(legacyTenant);
+
+        await tenantService.updateTenantDelegatedFeatures(
+          {
+            tenantFeatures: {
+              isDelegatedConsumerFeatureEnabled: false,
+              isDelegatedProducerFeatureEnabled: false,
+            },
+          },
+          getMockContext({ authData: getMockAuthData(legacyTenant.id) })
+        );
+
+        await expectNothingWritten(legacyTenant.id);
+      });
+
+      it("Should not create a contact when the internal upsert changes nothing", async () => {
+        const legacyTenant: Tenant = {
+          ...getMockTenant(),
+          externalId: { origin: "IPA", value: generateId() },
+          selfcareInstitutionType: undefined,
+          kind: tenantKind.PA,
+          mails: [getMockTenantMail(tenantMailKind.ContactEmail)],
+        };
+        await addOneTenant(legacyTenant);
+
+        await tenantService.internalUpsertTenant(
+          {
+            externalId: legacyTenant.externalId,
+            name: legacyTenant.name,
+            certifiedAttributes: [],
+          },
+          getMockContextInternal({})
+        );
+
+        await expectNothingWritten(legacyTenant.id);
+      });
+
+      it("Should not create a contact when the discrete value does not change", async () => {
+        const discreteAttribute = getMockAttribute(attributeKind.certified);
+        const remoteId = { origin: "ISTAT", value: generateId() };
+        const legacyTenant: Tenant = {
+          ...getMockTenant(),
+          remoteIds: [{ ...remoteId, assignmentTimestamp: new Date() }],
+          attributes: [
+            {
+              id: discreteAttribute.id,
+              type: tenantAttributeType.CERTIFIED_DISCRETE,
+              assignmentTimestamp: new Date(),
+              discreteValue: 1000,
+              revocationTimestamp: undefined,
+            },
+          ],
+          mails: [getMockTenantMail(tenantMailKind.ContactEmail)],
+        };
+        await addOneAttribute(discreteAttribute);
+        await addOneTenant(legacyTenant);
+
+        await tenantService.internalUpdateCertifiedDiscreteAttribute(
+          {
+            tenantOrigin: remoteId.origin,
+            tenantRemoteId: remoteId.value,
+            attributeOrigin: discreteAttribute.origin!,
+            attributeExternalId: discreteAttribute.code!,
+            value: 1000,
+          },
+          getMockContextInternal({})
+        );
+
+        await expectNothingWritten(legacyTenant.id);
+      });
+    });
+
+    describe("operations that write more events", () => {
+      const expectEventsAfterOnboarding = async (
+        tenantId: TenantId,
+        types: Array<TenantEvent["type"]>
+      ): Promise<void> => {
+        const events = await Promise.all(
+          types.map((_, index) =>
+            readEventByStreamIdAndVersion(
+              tenantId,
+              index + 1,
+              "tenant",
+              postgresDB
+            )
+          )
+        );
+        expect(events).toMatchObject(
+          types.map((type) => ({ type, event_version: 3 }))
+        );
+        const lastEvent = await readLastEventByStreamId(
+          tenantId,
+          "tenant",
+          postgresDB
+        );
+        expect(lastEvent.version).toBe(String(types.length));
+      };
+
+      it("Should keep the versions contiguous when both delegated features are added", async () => {
+        const legacyTenant: Tenant = {
+          ...getMockTenant(),
+          features: [],
+          mails: [getMockTenantMail(tenantMailKind.ContactEmail)],
+        };
+        await addOneTenant(legacyTenant);
+        const contactId = generateId<ContactId>();
+        contactDataManagerService.createContact.mockResolvedValueOnce({
+          type: "created",
+          contactId,
+        });
+
+        await tenantService.updateTenantDelegatedFeatures(
+          {
+            tenantFeatures: {
+              isDelegatedConsumerFeatureEnabled: true,
+              isDelegatedProducerFeatureEnabled: true,
+            },
+          },
+          getMockContext({ authData: getMockAuthData(legacyTenant.id) })
+        );
+
+        await expectEventsAfterOnboarding(legacyTenant.id, [
+          "TenantContactAdded",
+          "TenantDelegatedConsumerFeatureAdded",
+          "TenantDelegatedProducerFeatureAdded",
+        ]);
+        const producerEvent = await readEventByStreamIdAndVersion(
+          legacyTenant.id,
+          3,
+          "tenant",
+          postgresDB
+        );
+        const producerPayload = protobufDecoder(
+          TenantDelegatedProducerFeatureAddedV3
+        ).parse(producerEvent.data);
+        expect(producerPayload.tenant?.contactId).toBe(contactId);
+      });
+
+      it("Should keep the versions contiguous when the internal upsert writes more events", async () => {
+        // No kind: the upsert writes TenantKindUpdated too
+        const legacyTenant: Tenant = {
+          ...getMockTenant(),
+          externalId: { origin: "IPA", value: generateId() },
+          selfcareInstitutionType: undefined,
+          kind: undefined,
+          mails: [getMockTenantMail(tenantMailKind.ContactEmail)],
+        };
+        await addOneAttribute(certifiedAttribute);
+        await addOneTenant(legacyTenant);
+        contactDataManagerService.createContact.mockResolvedValueOnce({
+          type: "created",
+          contactId: generateId<ContactId>(),
+        });
+
+        const returnedTenant = await tenantService.internalUpsertTenant(
+          {
+            externalId: legacyTenant.externalId,
+            name: legacyTenant.name,
+            certifiedAttributes: [
+              {
+                origin: certifiedAttribute.origin!,
+                code: certifiedAttribute.code!,
+              },
+            ],
+            remoteIds: [
+              {
+                origin: "ISTAT",
+                value: generateId(),
+                assignmentTimestamp: new Date().toISOString(),
+              },
+            ],
+          },
+          getMockContextInternal({})
+        );
+
+        await expectEventsAfterOnboarding(legacyTenant.id, [
+          "TenantContactAdded",
+          "TenantCertifiedAttributeAssigned",
+          "TenantRemoteIdAssigned",
+          "TenantKindUpdated",
+        ]);
+        expect(returnedTenant.metadata.version).toBe(4);
+      });
+    });
   });
 
   describe("convertLegacyTenant", () => {
@@ -499,6 +764,35 @@ describe("Legacy tenant conversion", () => {
         data: { ...tenant.data, mails: [] },
         metadata: { version: 2 },
       });
+    });
+
+    it("Should log the created contact, never the email, when the events cannot be written", async () => {
+      const service = fakeContactDataManager();
+      const contactId = generateId<ContactId>();
+      service.createContact.mockResolvedValueOnce({
+        type: "created",
+        contactId,
+      });
+      const contactEmail = getMockTenantMail(tenantMailKind.ContactEmail);
+      const tenant = {
+        data: { ...getMockTenant(), mails: [contactEmail] },
+        metadata: { version: 4 },
+      };
+      const logger = { ...genericLogger, error: vi.fn() };
+
+      const conversion = await convertLegacyTenant(tenant, service, {
+        ...ctx,
+        logger,
+      });
+      conversion.onWriteFailure();
+
+      expect(logger.error).toHaveBeenCalledOnce();
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.stringContaining(contactId)
+      );
+      expect(JSON.stringify(logger.error.mock.calls)).not.toContain(
+        contactEmail.address
+      );
     });
   });
 });

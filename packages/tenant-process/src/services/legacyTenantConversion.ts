@@ -42,6 +42,12 @@ export type LegacyTenantConversion = {
    * Applies the conversion to a tenant built from the original one.
    */
   convert: (tenant: Tenant) => Tenant;
+  /**
+   * Called when the events could not be written: the contact created by the
+   * conversion, if any, is left without references until the contact cleaner
+   * removes it.
+   */
+  onWriteFailure: () => void;
 };
 
 /**
@@ -54,6 +60,7 @@ export const noLegacyTenantConversion = (
   tenant,
   events: [],
   convert: (t) => t,
+  onWriteFailure: () => undefined,
 });
 
 async function createContactFromLegacyMails(
@@ -129,6 +136,7 @@ export async function convertLegacyTenant(
       tenant: { data: convert(tenant.data), metadata: tenant.metadata },
       events: [],
       convert,
+      onWriteFailure: () => undefined,
     };
   }
 
@@ -151,5 +159,9 @@ export async function convertLegacyTenant(
       ),
     ],
     convert,
+    onWriteFailure: () =>
+      ctx.logger.error(
+        `Contact ${newContactId} was created for tenant ${tenant.data.id}, but the events were not written: the contact has no references`
+      ),
   };
 }

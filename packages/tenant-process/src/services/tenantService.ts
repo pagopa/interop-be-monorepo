@@ -269,8 +269,9 @@ export function tenantServiceBuilder(
 
   /**
    * Converts the tenant to write when it still holds legacy mails (see
-   * legacyTenantConversion.ts). Called once the operation passed its
-   * validations, right before building its events.
+   * legacyTenantConversion.ts). Everything that can fail (validations, the
+   * tenant kind) runs before it: a contact created for a request that then
+   * fails is left without references.
    */
   const convertTenantToWrite = (
     tenant: WithMetadata<Tenant>,
@@ -286,14 +287,19 @@ export function tenantServiceBuilder(
     conversion: LegacyTenantConversion,
     events: Array<CreateEvent<TenantEvent>>
   ): Promise<number> => {
-    const { latestNewVersions } = await repository.createEvents([
-      ...conversion.events,
-      ...events,
-    ]);
-    return (
-      latestNewVersions.get(conversion.tenant.data.id) ??
-      conversion.tenant.metadata.version
-    );
+    try {
+      const { latestNewVersions } = await repository.createEvents([
+        ...conversion.events,
+        ...events,
+      ]);
+      return (
+        latestNewVersions.get(conversion.tenant.data.id) ??
+        conversion.tenant.metadata.version
+      );
+    } catch (error) {
+      conversion.onWriteFailure();
+      throw error;
+    }
   };
   return {
     async updateVerifiedAttributeExtensionDate(
@@ -654,6 +660,13 @@ export function tenantServiceBuilder(
         attribute,
       });
 
+      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        tenantWithAssignedAttribute.attributes,
+        tenantWithAssignedAttribute.externalId,
+        tenantWithAssignedAttribute.selfcareInstitutionType
+      );
+
       const conversion = await convertTenantToWrite(targetTenant, {
         correlationId,
         logger,
@@ -669,13 +682,6 @@ export function tenantServiceBuilder(
           attribute.id,
           correlationId
         );
-
-      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
-        readModelService,
-        tenantWithNewAttribute.attributes,
-        tenantWithNewAttribute.externalId,
-        tenantWithNewAttribute.selfcareInstitutionType
-      );
 
       const updatedTenant = {
         ...tenantWithNewAttribute,
@@ -804,6 +810,13 @@ export function tenantServiceBuilder(
       // Assigning an attribute already assigned fails: the conversion follows
       const tenantWithAssignedAttribute = buildTenantWithNewAttribute();
 
+      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        tenantWithAssignedAttribute.attributes,
+        tenantWithAssignedAttribute.externalId,
+        tenantWithAssignedAttribute.selfcareInstitutionType
+      );
+
       const conversion = await convertTenantToWrite(targetTenant, {
         correlationId,
         logger,
@@ -819,13 +832,6 @@ export function tenantServiceBuilder(
           attribute.id,
           correlationId
         );
-
-      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
-        readModelService,
-        tenantWithNewAttribute.attributes,
-        tenantWithNewAttribute.externalId,
-        tenantWithNewAttribute.selfcareInstitutionType
-      );
 
       const updatedTenant = {
         ...tenantWithNewAttribute,
@@ -1015,13 +1021,25 @@ export function tenantServiceBuilder(
         );
       }
 
+      const tenantAfterRevocation = await revokeCertifiedAttribute(
+        targetTenant.data,
+        attributeId
+      );
+
+      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        tenantAfterRevocation.attributes,
+        tenantAfterRevocation.externalId,
+        tenantAfterRevocation.selfcareInstitutionType
+      );
+
       const conversion = await convertTenantToWrite(targetTenant, {
         correlationId,
         logger,
       });
 
       const tenantWithRevokedAttribute: Tenant = conversion.convert(
-        await revokeCertifiedAttribute(targetTenant.data, attributeId)
+        tenantAfterRevocation
       );
 
       const tenantCertifiedAttributeRevokedEvent =
@@ -1031,13 +1049,6 @@ export function tenantServiceBuilder(
           attributeId,
           correlationId
         );
-
-      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
-        readModelService,
-        tenantWithRevokedAttribute.attributes,
-        tenantWithRevokedAttribute.externalId,
-        tenantWithRevokedAttribute.selfcareInstitutionType
-      );
 
       if (tenantWithRevokedAttribute.kind !== tenantKind) {
         const updatedTenant = {
@@ -1129,13 +1140,25 @@ export function tenantServiceBuilder(
         );
       }
 
+      const tenantAfterRevocation = await revokeCertifiedAttribute(
+        targetTenant.data,
+        attributeId
+      );
+
+      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        tenantAfterRevocation.attributes,
+        tenantAfterRevocation.externalId,
+        tenantAfterRevocation.selfcareInstitutionType
+      );
+
       const conversion = await convertTenantToWrite(targetTenant, {
         correlationId,
         logger,
       });
 
       const tenantWithRevokedAttribute: Tenant = conversion.convert(
-        await revokeCertifiedAttribute(targetTenant.data, attributeId)
+        tenantAfterRevocation
       );
 
       const tenantCertifiedAttributeRevokedEvent =
@@ -1145,13 +1168,6 @@ export function tenantServiceBuilder(
           attributeId,
           correlationId
         );
-
-      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
-        readModelService,
-        tenantWithRevokedAttribute.attributes,
-        tenantWithRevokedAttribute.externalId,
-        tenantWithRevokedAttribute.selfcareInstitutionType
-      );
 
       if (tenantWithRevokedAttribute.kind !== tenantKind) {
         const updatedTenant = {
@@ -1260,6 +1276,13 @@ export function tenantServiceBuilder(
           : a
       );
 
+      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        updatedAttributes,
+        targetTenant.data.externalId,
+        targetTenant.data.selfcareInstitutionType
+      );
+
       const conversion = await convertTenantToWrite(targetTenant, {
         correlationId,
         logger,
@@ -1280,13 +1303,6 @@ export function tenantServiceBuilder(
           newValue,
           correlationId
         );
-
-      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
-        readModelService,
-        tenantWithUpdatedAttribute.attributes,
-        tenantWithUpdatedAttribute.externalId,
-        tenantWithUpdatedAttribute.selfcareInstitutionType
-      );
 
       if (tenantWithUpdatedAttribute.kind !== tenantKind) {
         const updatedTenant = {
@@ -1593,6 +1609,13 @@ export function tenantServiceBuilder(
         attribute: attributeToAssign,
       });
 
+      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        tenantWithAssignedAttribute.attributes,
+        tenantWithAssignedAttribute.externalId,
+        tenantWithAssignedAttribute.selfcareInstitutionType
+      );
+
       const conversion = await convertTenantToWrite(tenantToModify, {
         correlationId,
         logger,
@@ -1608,13 +1631,6 @@ export function tenantServiceBuilder(
           attributeToAssign.id,
           correlationId
         );
-
-      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
-        readModelService,
-        tenantWithNewAttribute.attributes,
-        tenantWithNewAttribute.externalId,
-        tenantWithNewAttribute.selfcareInstitutionType
-      );
 
       if (tenantWithNewAttribute.kind !== tenantKind) {
         const updatedTenant: Tenant = {
@@ -1685,16 +1701,25 @@ export function tenantServiceBuilder(
         );
       }
 
+      const tenantAfterRevocation = await revokeCertifiedAttribute(
+        tenantToModify.data,
+        attributeToRevoke.id
+      );
+
+      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        tenantAfterRevocation.attributes,
+        tenantAfterRevocation.externalId,
+        tenantAfterRevocation.selfcareInstitutionType
+      );
+
       const conversion = await convertTenantToWrite(tenantToModify, {
         correlationId,
         logger,
       });
 
       const tenantWithRevokedAttribute = conversion.convert(
-        await revokeCertifiedAttribute(
-          tenantToModify.data,
-          attributeToRevoke.id
-        )
+        tenantAfterRevocation
       );
 
       const tenantCertifiedAttributeRevokedEvent =
@@ -1704,13 +1729,6 @@ export function tenantServiceBuilder(
           attributeToRevoke.id,
           correlationId
         );
-
-      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
-        readModelService,
-        tenantWithRevokedAttribute.attributes,
-        tenantWithRevokedAttribute.externalId,
-        tenantWithRevokedAttribute.selfcareInstitutionType
-      );
 
       if (tenantWithRevokedAttribute.kind !== tenantKind) {
         const updatedTenant: Tenant = {
@@ -1792,6 +1810,13 @@ export function tenantServiceBuilder(
         },
       ];
 
+      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        newAttributes,
+        tenantToModify.data.externalId,
+        tenantToModify.data.selfcareInstitutionType
+      );
+
       const conversion = await convertTenantToWrite(tenantToModify, {
         correlationId,
         logger,
@@ -1810,13 +1835,6 @@ export function tenantServiceBuilder(
           attributeToAssign.id,
           correlationId
         );
-
-      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
-        readModelService,
-        tenantWithNewAttribute.attributes,
-        tenantWithNewAttribute.externalId,
-        tenantWithNewAttribute.selfcareInstitutionType
-      );
 
       if (tenantWithNewAttribute.kind !== tenantKind) {
         const updatedTenant: Tenant = {
@@ -1913,6 +1931,13 @@ export function tenantServiceBuilder(
           : a
       );
 
+      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        newAttributes,
+        tenantToModify.data.externalId,
+        tenantToModify.data.selfcareInstitutionType
+      );
+
       const conversion = await convertTenantToWrite(tenantToModify, {
         correlationId,
         logger,
@@ -1931,13 +1956,6 @@ export function tenantServiceBuilder(
         previousValue,
         value,
         correlationId
-      );
-
-      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
-        readModelService,
-        tenantWithUpdatedAttribute.attributes,
-        tenantWithUpdatedAttribute.externalId,
-        tenantWithUpdatedAttribute.selfcareInstitutionType
       );
 
       if (tenantWithUpdatedAttribute.kind !== tenantKind) {
@@ -2005,16 +2023,25 @@ export function tenantServiceBuilder(
         );
       }
 
+      const tenantAfterRevocation = await revokeCertifiedAttribute(
+        tenantToModify.data,
+        attributeToRevoke.id
+      );
+
+      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        tenantAfterRevocation.attributes,
+        tenantAfterRevocation.externalId,
+        tenantAfterRevocation.selfcareInstitutionType
+      );
+
       const conversion = await convertTenantToWrite(tenantToModify, {
         correlationId,
         logger,
       });
 
       const tenantWithRevokedAttribute = conversion.convert(
-        await revokeCertifiedAttribute(
-          tenantToModify.data,
-          attributeToRevoke.id
-        )
+        tenantAfterRevocation
       );
 
       const tenantCertifiedAttributeRevokedEvent =
@@ -2024,13 +2051,6 @@ export function tenantServiceBuilder(
           attributeToRevoke.id,
           correlationId
         );
-
-      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
-        readModelService,
-        tenantWithRevokedAttribute.attributes,
-        tenantWithRevokedAttribute.externalId,
-        tenantWithRevokedAttribute.selfcareInstitutionType
-      );
 
       if (tenantWithRevokedAttribute.kind !== tenantKind) {
         const updatedTenant: Tenant = {
@@ -2185,6 +2205,9 @@ export function tenantServiceBuilder(
         );
       }
 
+      // The features are validated before the conversion
+      const features = apiFeatures?.map(fromApiTenantFeature);
+
       // A contact set by the update replaces the legacy mails, if any: no
       // contact is created from them
       const conversion =
@@ -2203,9 +2226,7 @@ export function tenantServiceBuilder(
         ...convertedTenantUpdate,
         subUnitType: convertedTenantUpdate.subUnitType,
         selfcareInstitutionType: convertedTenantUpdate.selfcareInstitutionType,
-        ...(apiFeatures !== undefined && {
-          features: apiFeatures.map(fromApiTenantFeature),
-        }),
+        ...(features !== undefined && { features }),
         ...(contactId !== undefined && {
           contactId: unsafeBrandId<ContactId>(contactId),
         }),
@@ -2325,8 +2346,11 @@ export function tenantServiceBuilder(
         throw tenantContactNotFound(tenantId, contactId);
       }
 
+      // Not expected, but a tenant with a contact and legacy mails would not
+      // be serializable as V3: its mails are removed too
       const updatedTenant: Tenant = {
         ...tenant.data,
+        mails: [],
         contactId: undefined,
         updatedAt: new Date(),
       };
@@ -2835,13 +2859,25 @@ export function tenantServiceBuilder(
         );
       }
 
+      const tenantAfterRevocation = await revokeCertifiedAttribute(
+        targetTenant.data,
+        attributeToRevoke.id
+      );
+
+      const updatedTenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        tenantAfterRevocation.attributes,
+        tenantAfterRevocation.externalId,
+        tenantAfterRevocation.selfcareInstitutionType
+      );
+
       const conversion = await convertTenantToWrite(targetTenant, {
         correlationId,
         logger,
       });
 
       const tenantWithAttributeRevoked = conversion.convert(
-        await revokeCertifiedAttribute(targetTenant.data, attributeToRevoke.id)
+        tenantAfterRevocation
       );
 
       const attributeAssignmentEvent =
@@ -2851,13 +2887,6 @@ export function tenantServiceBuilder(
           attributeToRevoke.id,
           correlationId
         );
-
-      const updatedTenantKind = await getTenantKindLoadingCertifiedAttributes(
-        readModelService,
-        tenantWithAttributeRevoked.attributes,
-        tenantWithAttributeRevoked.externalId,
-        tenantWithAttributeRevoked.selfcareInstitutionType
-      );
 
       if (updatedTenantKind !== tenantWithAttributeRevoked.kind) {
         const tenantWithUpdatedKind: Tenant = {
