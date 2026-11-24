@@ -15,6 +15,7 @@ import {
   agreementState,
   CorrelationId,
   Descriptor,
+  descriptorState,
   EService,
   EServiceId,
   generateId,
@@ -116,6 +117,38 @@ describe("handleEserviceStateChanged", async () => {
     });
     expect(messages.length).toEqual(0);
   });
+
+  it.each([descriptorState.draft, descriptorState.waitingForApproval])(
+    "should skip document notifications for descriptor state %s",
+    async (state) => {
+      const hiddenDescriptor: Descriptor = {
+        ...descriptor,
+        state,
+      };
+      const hiddenEService: EService = {
+        ...eservice,
+        descriptors: [hiddenDescriptor],
+      };
+
+      const messages = await handleEserviceStateChanged({
+        payload: {
+          data: {
+            eservice: toEServiceV2(hiddenEService),
+            descriptorId: hiddenDescriptor.id,
+            documentId: hiddenDescriptor.docs[0].id,
+          },
+          event_version: 2,
+          type: "EServiceDescriptorDocumentAdded",
+        },
+        logger,
+        templateService,
+        readModelService,
+        correlationId: generateId<CorrelationId>(),
+      });
+
+      expect(messages).toHaveLength(0);
+    }
+  );
 
   it("should generate one message per user of the consumers of the eservice", async () => {
     const agreements: Agreement[] = consumerTenants.map((consumerTenant) => ({

@@ -211,6 +211,7 @@ export const createPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
       "riskAnalysisTenantKindMismatch",
       () => HTTP_STATUS_BAD_REQUEST
     )
+    .with("eserviceNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("duplicatedPurposeTitle", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
