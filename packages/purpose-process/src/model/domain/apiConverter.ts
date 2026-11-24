@@ -11,6 +11,8 @@ import {
   ValidationOption,
 } from "pagopa-interop-commons";
 import {
+  AttributeKind,
+  attributeKind,
   Purpose,
   PurposeRiskAnalysisForm,
   PurposeVersion,
@@ -72,7 +74,7 @@ const riskAnalysisFormToApiRiskAnalysisForm = (
   };
 };
 
-const purposeVersionStateToApiPurposeVersionState = (
+export const purposeVersionStateToApiPurposeVersionState = (
   state: PurposeVersionState
 ): purposeApi.PurposeVersionState =>
   match<PurposeVersionState, purposeApi.PurposeVersionState>(state)
@@ -82,6 +84,16 @@ const purposeVersionStateToApiPurposeVersionState = (
     .with(purposeVersionState.rejected, () => "REJECTED")
     .with(purposeVersionState.suspended, () => "SUSPENDED")
     .with(purposeVersionState.waitingForApproval, () => "WAITING_FOR_APPROVAL")
+    .exhaustive();
+
+export const attributeKindToApiAttributeKind = (
+  kind: AttributeKind
+): purposeApi.AttributeKind =>
+  match<AttributeKind, purposeApi.AttributeKind>(kind)
+    .with(attributeKind.certified, () => "CERTIFIED")
+    .with(attributeKind.certifiedDiscrete, () => "CERTIFIED_DISCRETE")
+    .with(attributeKind.declared, () => "DECLARED")
+    .with(attributeKind.verified, () => "VERIFIED")
     .exhaustive();
 
 export const apiPurposeVersionStateToPurposeVersionState = (

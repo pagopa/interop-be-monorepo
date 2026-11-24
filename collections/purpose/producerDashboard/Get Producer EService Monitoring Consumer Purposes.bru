@@ -1,0 +1,31 @@
+meta {
+  name: Get Producer EService Monitoring Consumer Purposes
+  type: http
+  seq: 27
+}
+
+get {
+  url: {{host-purpose}}/producers/eservices/:eserviceId/descriptors/:descriptorId/monitoring/consumers/:consumerId/purposes?offset=0&limit=10&sortBy=DATE_DESC
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+  sortBy: DATE_DESC
+  ~q:
+  ~states:
+  ~includeArchived: false
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
+  consumerId: {{tenantId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

@@ -399,6 +399,10 @@ export const getProducerEServiceMonitoringPurposesErrorMapper = (
 export const getProducerEServiceMonitoringSaturationErrorMapper =
   getProducerEServiceMonitoringPurposesErrorMapper;
 
+/** @alias */
+export const getProducerEServiceMonitoringConsumerPurposesErrorMapper =
+  getProducerEServiceMonitoringPurposesErrorMapper;
+
 export const assignRiskAnalysisReviewerErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>

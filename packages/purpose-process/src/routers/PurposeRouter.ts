@@ -59,6 +59,7 @@ import {
   getRemainingDailyCallsErrorMapper,
   getProducerEServiceMonitoringPurposesErrorMapper,
   getProducerEServiceMonitoringSaturationErrorMapper,
+  getProducerEServiceMonitoringConsumerPurposesErrorMapper,
   getProducerDashboardSaturationErrorMapper,
   rejectPurposeVersionErrorMapper,
   retrieveLatestRiskAnalysisConfigurationErrorMapper,
@@ -347,6 +348,54 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             getProducerEServiceMonitoringSaturationErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/producers/eservices/:eserviceId/descriptors/:descriptorId/monitoring/consumers/:consumerId/purposes",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [
+            ADMIN_ROLE,
+            SUPPORT_ROLE,
+            API_ROLE,
+            VIEWER_ROLE,
+          ]);
+
+          const result =
+            await purposeService.getProducerEServiceMonitoringConsumerPurposes(
+              unsafeBrandId<EServiceId>(req.params.eserviceId),
+              unsafeBrandId<DescriptorId>(req.params.descriptorId),
+              unsafeBrandId<TenantId>(req.params.consumerId),
+              {
+                q: req.query.q,
+                sortBy: req.query.sortBy,
+                states: req.query.states.map(
+                  apiPurposeVersionStateToPurposeVersionState
+                ),
+                includeArchived: req.query.includeArchived,
+                offset: req.query.offset,
+                limit: req.query.limit,
+              },
+              ctx
+            );
+
+          return res
+            .status(200)
+            .send(
+              purposeApi.ProducerEServiceMonitoringConsumerPurposes.parse(
+                result
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getProducerEServiceMonitoringConsumerPurposesErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);

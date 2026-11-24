@@ -9,6 +9,7 @@ import {
 } from "../api/catalogApiConverter.js";
 import {
   toBffProducerDashboardSaturation,
+  toBffProducerEServiceMonitoringConsumerPurposes,
   toBffProducerEServiceMonitoringSaturation,
 } from "../api/purposeApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
@@ -107,6 +108,35 @@ export function producerDashboardServiceBuilder({
       });
 
       return toBffProducerDashboardConsumer(result);
+    },
+    async getProducerEServiceMonitoringConsumerPurposes(
+      eserviceId: string,
+      descriptorId: string,
+      consumerId: string,
+      queries: {
+        offset: number;
+        limit: number;
+        q?: string | undefined;
+        sortBy?: bffApi.DateNameSortBy | undefined;
+        states?: bffApi.PurposeVersionState[] | undefined;
+        includeArchived?: boolean | undefined;
+      },
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.ProducerEServiceMonitoringConsumerPurposes> {
+      logger.info(
+        `Retrieving purposes of consumer ${consumerId} for e-service ${eserviceId}, descriptor ${descriptorId}, q ${queries.q}, sortBy ${queries.sortBy}, states ${queries.states}, includeArchived ${queries.includeArchived}, offset ${queries.offset}, limit ${queries.limit}`
+      );
+
+      const result =
+        await purposeProcessClient.getProducerEServiceMonitoringConsumerPurposes(
+          {
+            params: { eserviceId, descriptorId, consumerId },
+            queries,
+            headers,
+          }
+        );
+
+      return toBffProducerEServiceMonitoringConsumerPurposes(result);
     },
   };
 }

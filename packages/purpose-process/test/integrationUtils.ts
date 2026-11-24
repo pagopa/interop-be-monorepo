@@ -9,6 +9,7 @@ import {
   writeInEventstore,
 } from "pagopa-interop-commons-test";
 import {
+  Attribute,
   EService,
   Purpose,
   PurposeEvent,
@@ -39,6 +40,7 @@ import {
 } from "pagopa-interop-readmodel";
 import {
   upsertAgreement,
+  upsertAttribute,
   upsertClient,
   upsertDelegation,
   upsertEService,
@@ -125,6 +127,10 @@ export const addOneTenant = async (tenant: Tenant): Promise<void> => {
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
   await upsertAgreement(readModelDB, agreement, 0);
+};
+
+export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
+  await upsertAttribute(readModelDB, attribute, 0);
 };
 
 export const addOneDelegation = async (
