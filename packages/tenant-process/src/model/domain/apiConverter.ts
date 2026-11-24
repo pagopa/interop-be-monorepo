@@ -163,6 +163,8 @@ export function toApiTenant(
     onboardedAt: tenant.onboardedAt?.toJSON(),
     subUnitType: tenant.subUnitType,
     parentTenants: toApiParentTenants(tenant.parentTenants),
+    parentTenantId: tenant.parentTenantId,
+    rootTenantId: tenant.rootTenantId,
     remoteIds: tenant.remoteIds?.map((remoteId) => ({
       origin: remoteId.origin,
       value: remoteId.value,
