@@ -214,7 +214,6 @@ export const sortRiskAnalysisAssignments = (
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function purposeServiceBuilder(
   {
-    tenantContacts,
     purposeProcessClient,
     purposeProcessClientWithMetadata,
     purposeTemplateProcessClient,
@@ -226,7 +225,8 @@ export function purposeServiceBuilder(
     selfcareV2UserClient,
     inAppNotificationManagerClient,
   }: PagoPAInteropBeClients,
-  fileManager: FileManager
+  fileManager: FileManager,
+  tenantContacts: TenantContactService
 ) {
   // eslint-disable-next-line complexity
   const enhancePurpose = async (

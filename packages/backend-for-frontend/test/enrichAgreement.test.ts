@@ -169,19 +169,20 @@ describe("enrichAgreement", () => {
           })
         ),
       },
-      tenantContacts: tenantContactServiceBuilder(
-        {
-          createContact: vi.fn(),
-          getContact: vi.fn(async ({ params }) => {
-            if (params.contactId === producer.contactId) {
-              throw { isAxiosError: true, response: { status: 404 } };
-            }
-            return { id: params.contactId, email: "consumer@example.org" };
-          }),
-        },
-        { get: vi.fn().mockResolvedValue({ serialized: "internal" }) }
-      ),
     } as unknown as PagoPAInteropBeClients;
+
+    const tenantContacts = tenantContactServiceBuilder(
+      {
+        createContact: vi.fn(),
+        getContact: vi.fn(async ({ params }) => {
+          if (params.contactId === producer.contactId) {
+            throw { isAxiosError: true, response: { status: 404 } };
+          }
+          return { id: params.contactId, email: "consumer@example.org" };
+        }),
+      },
+      { get: vi.fn().mockResolvedValue({ serialized: "internal" }) }
+    );
 
     const ctx: WithLogger<BffAppContext> = {
       authData: { organizationId: consumerId },
@@ -193,7 +194,12 @@ describe("enrichAgreement", () => {
       logger: genericLogger,
     } as WithLogger<BffAppContext>;
 
-    const actualAgreement = await enrichAgreement(agreement, clients, ctx);
+    const actualAgreement = await enrichAgreement(
+      agreement,
+      clients,
+      tenantContacts,
+      ctx
+    );
 
     expect(actualAgreement.producer.contactMail).toBeUndefined();
     expect(actualAgreement.consumer.contactMail).toEqual({

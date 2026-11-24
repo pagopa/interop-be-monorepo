@@ -1,6 +1,6 @@
 import { isAxiosError } from "axios";
 import { bffApi, contactDataApi, tenantApi } from "pagopa-interop-api-clients";
-import { logger } from "pagopa-interop-commons";
+import { logger, RefreshableInteropToken } from "pagopa-interop-commons";
 import { CorrelationId } from "pagopa-interop-models";
 
 import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
@@ -10,7 +10,7 @@ export function tenantContactServiceBuilder(
     contactDataApi.ContactDataManagerClient,
     "createContact" | "getContact"
   >,
-  token: { get(): Promise<{ serialized: string }> }
+  token: Pick<RefreshableInteropToken, "get">
 ) {
   async function internalHeaders(correlationId: CorrelationId) {
     const { serialized } = await token.get();

@@ -3,6 +3,7 @@ import { bffApi, tenantApi } from "pagopa-interop-api-clients";
 import {
   DB,
   eventRepository,
+  getLatestEventAfterVersion,
   Logger,
   WithLogger,
   AppContext,
@@ -152,14 +153,10 @@ async function retrieveTenantForContactRemoval(
   eventStore: DB
 ): Promise<WithMetadata<Tenant>> {
   const projected = await retrieveTenant(tenantId, readModel);
-  const latest = await eventStore.oneOrNone<{
-    version: string;
-    type: string;
-    event_version: number;
-    data: Buffer;
-  }>(
-    "SELECT version, type, event_version, data FROM events WHERE stream_id = $1 AND version > $2 ORDER BY version DESC LIMIT 1",
-    [tenantId, projected.metadata.version]
+  const latest = await getLatestEventAfterVersion(
+    eventStore,
+    tenantId,
+    projected.metadata.version
   );
   if (!latest) {
     return projected;

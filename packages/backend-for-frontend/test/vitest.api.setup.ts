@@ -2,8 +2,6 @@
 import { Request, Response, NextFunction } from "express";
 import { vi } from "vitest";
 
-import { mockTenantContacts } from "./mockTenantContacts.js";
-
 vi.mock("pagopa-interop-application-audit", async () => ({
   applicationAuditBeginMiddleware: vi.fn(
     async () => (_req: Request, _res: Response, next: NextFunction) => next()
@@ -52,6 +50,7 @@ vi.mock("pagopa-interop-commons", async () => {
 });
 
 import {
+  contactDataApi,
   agreementApi,
   attributeRegistryApi,
   catalogApi,
@@ -95,7 +94,10 @@ export const mockRateLimiter: RateLimiter = {
 };
 
 export const clients = {
-  tenantContacts: mockTenantContacts,
+  contactDataManagerClient: {
+    createContact: vi.fn(),
+    getContact: vi.fn(),
+  } as unknown as contactDataApi.ContactDataManagerClient,
   tenantProcessClient: {
     tenant: {},
     tenantAttribute: {},

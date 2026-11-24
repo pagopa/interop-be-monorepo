@@ -43,6 +43,7 @@ import { BffAppContext, Headers } from "../utilities/context.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 import { getTenantById } from "./delegationService.js";
+import { TenantContactService } from "./tenantContactService.js";
 import { enhanceTenantAttributes } from "./tenantService.js";
 import { isAgreementUpgradable } from "./validators.js";
 
@@ -67,7 +68,8 @@ export async function getAllAgreements(
 
 export function agreementServiceBuilder(
   clients: PagoPAInteropBeClients,
-  fileManager: FileManager
+  fileManager: FileManager,
+  tenantContacts: TenantContactService
 ) {
   const { agreementProcessClient } = clients;
   return {
@@ -120,7 +122,12 @@ export function agreementServiceBuilder(
           headers: ctx.headers,
         });
 
-      const agreements = await enrichAgreementListEntry(results, clients, ctx);
+      const agreements = await enrichAgreementListEntry(
+        results,
+        clients,
+        tenantContacts,
+        ctx
+      );
       return {
         pagination: {
           limit,
@@ -166,7 +173,12 @@ export function agreementServiceBuilder(
           headers: ctx.headers,
         });
 
-      const agreements = await enrichAgreementListEntry(results, clients, ctx);
+      const agreements = await enrichAgreementListEntry(
+        results,
+        clients,
+        tenantContacts,
+        ctx
+      );
 
       return {
         pagination: {
@@ -188,7 +200,7 @@ export function agreementServiceBuilder(
         headers: ctx.headers,
       });
 
-      return enrichAgreement(agreement, clients, ctx);
+      return enrichAgreement(agreement, clients, tenantContacts, ctx);
     },
 
     async addAgreementConsumerDocument(
@@ -353,7 +365,7 @@ export function agreementServiceBuilder(
         headers: ctx.headers,
       });
 
-      return enrichAgreement(agreement, clients, ctx);
+      return enrichAgreement(agreement, clients, tenantContacts, ctx);
     },
 
     async suspendAgreement(
@@ -374,7 +386,7 @@ export function agreementServiceBuilder(
         }
       );
 
-      return enrichAgreement(agreement, clients, ctx);
+      return enrichAgreement(agreement, clients, tenantContacts, ctx);
     },
 
     async rejectAgreement(
@@ -388,7 +400,7 @@ export function agreementServiceBuilder(
         headers: ctx.headers,
       });
 
-      return enrichAgreement(agreement, clients, ctx);
+      return enrichAgreement(agreement, clients, tenantContacts, ctx);
     },
 
     async archiveAgreement(
@@ -413,7 +425,7 @@ export function agreementServiceBuilder(
         headers: ctx.headers,
       });
 
-      return enrichAgreement(agreement, clients, ctx);
+      return enrichAgreement(agreement, clients, tenantContacts, ctx);
     },
 
     async upgradeAgreement(
@@ -428,7 +440,7 @@ export function agreementServiceBuilder(
           headers: ctx.headers,
         }
       );
-      return enrichAgreement(agreement, clients, ctx);
+      return enrichAgreement(agreement, clients, tenantContacts, ctx);
     },
 
     async deleteAgreement(
@@ -459,7 +471,7 @@ export function agreementServiceBuilder(
           headers: ctx.headers,
         }
       );
-      return enrichAgreement(agreement, clients, ctx);
+      return enrichAgreement(agreement, clients, tenantContacts, ctx);
     },
     async unsuspendAgreement(
       agreementId: string,
@@ -478,7 +490,7 @@ export function agreementServiceBuilder(
           headers: ctx.headers,
         }
       );
-      return enrichAgreement(agreement, clients, ctx);
+      return enrichAgreement(agreement, clients, tenantContacts, ctx);
     },
 
     async cloneAgreement(
@@ -759,6 +771,7 @@ export const getLatestAgreement = async (
 async function enrichAgreementListEntry(
   agreements: agreementApi.Agreement[],
   clients: PagoPAInteropBeClients,
+  tenantContacts: TenantContactService,
   ctx: WithLogger<BffAppContext>
 ): Promise<bffApi.AgreementListEntry[]> {
   const cachedTenants = new Map<string, tenantApi.Tenant>();
@@ -814,7 +827,7 @@ async function enrichAgreementListEntry(
                 id: delegation.delegateId,
                 name: delegate.name,
                 kind: delegate.kind,
-                contactMail: await clients.tenantContacts.resolve(
+                contactMail: await tenantContacts.resolve(
                   delegate,
                   ctx.headers["X-Correlation-Id"]
                 ),
@@ -823,7 +836,7 @@ async function enrichAgreementListEntry(
                 id: delegation.delegatorId,
                 name: consumer.name,
                 kind: consumer.kind,
-                contactMail: await clients.tenantContacts.resolve(
+                contactMail: await tenantContacts.resolve(
                   consumer,
                   ctx.headers["X-Correlation-Id"]
                 ),
@@ -843,6 +856,7 @@ async function enrichAgreementListEntry(
 export async function enrichAgreement(
   agreement: agreementApi.Agreement,
   clients: PagoPAInteropBeClients,
+  tenantContacts: TenantContactService,
   ctx: WithLogger<BffAppContext>
 ): Promise<bffApi.Agreement> {
   const { consumer, producer, eservice, delegation } =
@@ -899,7 +913,7 @@ export async function enrichAgreement(
           id: tenant.id,
           name: tenant.name,
           kind: tenant.kind,
-          contactMail: await clients.tenantContacts.resolve(
+          contactMail: await tenantContacts.resolve(
             tenant,
             ctx.headers["X-Correlation-Id"]
           ),
@@ -915,7 +929,7 @@ export async function enrichAgreement(
       id: agreement.producerId,
       name: producer.name,
       kind: producer.kind,
-      contactMail: await clients.tenantContacts.resolve(
+      contactMail: await tenantContacts.resolve(
         producer,
         ctx.headers["X-Correlation-Id"]
       ),
@@ -928,7 +942,7 @@ export async function enrichAgreement(
       updatedAt: consumer.updatedAt,
       name: consumer.name,
       attributes: tenantAttributes,
-      contactMail: await clients.tenantContacts.resolve(
+      contactMail: await tenantContacts.resolve(
         consumer,
         ctx.headers["X-Correlation-Id"]
       ),

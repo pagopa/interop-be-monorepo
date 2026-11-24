@@ -16,16 +16,8 @@ import {
   inAppNotificationApi,
   purposeTemplateApi,
 } from "pagopa-interop-api-clients";
-import {
-  InteropTokenGenerator,
-  RefreshableInteropToken,
-} from "pagopa-interop-commons";
 
 import { config } from "../config/config.js";
-import {
-  TenantContactService,
-  tenantContactServiceBuilder,
-} from "../services/tenantContactService.js";
 
 export type TenantProcessClient = Pick<
   tenantApi.TenantProcessClient,
@@ -44,7 +36,7 @@ export type DelegationProcessClient = Pick<
 
 export type PagoPAInteropBeClients = {
   tenantProcessClient: TenantProcessClient;
-  tenantContacts: TenantContactService;
+  contactDataManagerClient: contactDataApi.ContactDataManagerClient;
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient;
   catalogProcessClient: catalogApi.CatalogProcessClient;
   agreementProcessClient: agreementApi.AgreementProcessClient;
@@ -62,11 +54,11 @@ export type PagoPAInteropBeClients = {
 
 export function getInteropBeClients(): PagoPAInteropBeClients {
   return {
-    tenantContacts: tenantContactServiceBuilder(
-      contactDataApi.createContactApiClient(config.contactDataManagerUrl, {
+    contactDataManagerClient: contactDataApi.createContactApiClient(
+      config.contactDataManagerUrl,
+      {
         axiosConfig: { timeout: config.tenantContactRequestTimeoutMs },
-      }),
-      new RefreshableInteropToken(new InteropTokenGenerator(config))
+      }
     ),
     tenantProcessClient: {
       tenant: tenantApi.createTenantApiClient(config.tenantProcessUrl),

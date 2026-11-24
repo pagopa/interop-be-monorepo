@@ -16,8 +16,17 @@ import { api, clients } from "../../vitest.api.setup.js";
 describe("API POST /tenants/{tenantId}/contact test", () => {
   const mailSeed = { address: "contact@example.com" };
 
+  const createContact = vi.mocked(
+    clients.contactDataManagerClient.createContact
+  );
+
   beforeEach(() => {
-    clients.tenantContacts.create.mockReset().mockResolvedValue(generateId());
+    vi.mocked(vi.spyOn(commons.RefreshableInteropToken.prototype, "get"), {
+      partial: true,
+    }).mockResolvedValue({ serialized: "internal-token" });
+    createContact
+      .mockReset()
+      .mockResolvedValue({ id: generateId(), email: mailSeed.address });
     clients.tenantProcessClient.tenant.addTenantContact = vi
       .fn()
       .mockResolvedValue(undefined);
@@ -42,9 +51,9 @@ describe("API POST /tenants/{tenantId}/contact test", () => {
 
   it("creates and associates a fresh reference on each submission of the same address", async () => {
     const ids = [generateId(), generateId()] as const;
-    clients.tenantContacts.create
-      .mockResolvedValueOnce(ids[0])
-      .mockResolvedValueOnce(ids[1]);
+    createContact
+      .mockResolvedValueOnce({ id: ids[0], email: mailSeed.address })
+      .mockResolvedValueOnce({ id: ids[1], email: mailSeed.address });
     const token = generateToken(authRole.ADMIN_ROLE);
     for (const contactId of ids) {
       expect((await makeRequest(token)).status).toBe(204);
@@ -57,12 +66,12 @@ describe("API POST /tenants/{tenantId}/contact test", () => {
         })
       );
     }
-    expect(clients.tenantContacts.create).toHaveBeenCalledTimes(2);
-    expect(clients.tenantContacts.resolve).not.toHaveBeenCalled();
+    expect(createContact).toHaveBeenCalledTimes(2);
+    expect(clients.contactDataManagerClient.getContact).not.toHaveBeenCalled();
   });
 
   it("stops before association on a CDM timeout", async () => {
-    clients.tenantContacts.create.mockRejectedValueOnce(new Error("timeout"));
+    createContact.mockRejectedValueOnce(new Error("timeout"));
     const response = await makeRequest(generateToken(authRole.ADMIN_ROLE));
     expect(response.status).toBe(500);
     expect(
@@ -87,12 +96,15 @@ describe("API POST /tenants/{tenantId}/contact test", () => {
     const response = await makeRequest(generateToken(authRole.ADMIN_ROLE));
     expect(response.status).toBe(403);
     expect(response.body).toEqual(problem);
-    expect(clients.tenantContacts.create).toHaveBeenCalledTimes(1);
+    expect(createContact).toHaveBeenCalledTimes(1);
   });
 
   it("preserves the association if the tenant-process saves it but its response is lost", async () => {
     const contactId = generateId();
-    clients.tenantContacts.create.mockResolvedValueOnce(contactId);
+    createContact.mockResolvedValueOnce({
+      id: contactId,
+      email: mailSeed.address,
+    });
     const associations = new Map<string, string>();
     vi.mocked(
       clients.tenantProcessClient.tenant.addTenantContact
@@ -114,7 +126,7 @@ describe("API POST /tenants/{tenantId}/contact test", () => {
       generateId<TenantId>()
     );
     expect(response.status).toBe(403);
-    expect(clients.tenantContacts.create).not.toHaveBeenCalled();
+    expect(createContact).not.toHaveBeenCalled();
   });
 
   it("keeps the email out of request logs on success, failure and malformed input", async () => {
@@ -129,9 +141,7 @@ describe("API POST /tenants/{tenantId}/contact test", () => {
     try {
       const token = generateToken(authRole.ADMIN_ROLE);
       expect((await makeRequest(token)).status).toBe(204);
-      clients.tenantContacts.create.mockRejectedValueOnce(
-        new Error(mailSeed.address)
-      );
+      createContact.mockRejectedValueOnce(new Error(mailSeed.address));
       expect((await makeRequest(token)).status).toBe(500);
       const invalid = await request(api)
         .post(`${appBasePath}/tenants/${mockTokenOrganizationId}/contact`)

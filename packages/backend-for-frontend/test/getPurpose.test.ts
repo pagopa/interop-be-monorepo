@@ -142,9 +142,9 @@ describe("getPurpose — reviewer enrichment", () => {
       inAppNotificationManagerClient: {
         filterUnreadNotifications: vi.fn().mockResolvedValue([]),
       },
-      tenantContacts: mockTenantContacts,
     } as unknown as PagoPAInteropBeClients,
-    fileManager
+    fileManager,
+    mockTenantContacts
   );
 
   beforeEach(() => {
