@@ -19,7 +19,6 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   generateId,
-  hyperlinkDetectionError,
   PurposeTemplate,
   PurposeTemplateAddedV2,
   purposeTemplateState,
@@ -45,6 +44,7 @@ import {
 
 import { config } from "../../src/config/config.js";
 import {
+  hyperlinkDetectionError,
   invalidFreeOfChargeReason,
   missingFreeOfChargeReason,
   purposeTemplateNotFound,
