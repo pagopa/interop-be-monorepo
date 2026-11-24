@@ -11,11 +11,14 @@ describe("contactDataManagerService", () => {
   const email = "contact@test.it";
   const correlationId = generateId<CorrelationId>();
 
-  const setup = (createContact: () => Promise<unknown>) => {
+  const defaultToken = () => Promise.resolve({ serialized: "token" });
+
+  const setup = (
+    createContact: () => Promise<unknown>,
+    getToken: () => Promise<unknown> = defaultToken
+  ) => {
     const client = { createContact: vi.fn(createContact) };
-    const refreshableToken = {
-      get: vi.fn().mockResolvedValue({ serialized: "token" }),
-    };
+    const refreshableToken = { get: vi.fn(getToken) };
     const logger = {
       debug: vi.fn(),
       error: vi.fn(),
@@ -33,19 +36,22 @@ describe("contactDataManagerService", () => {
     JSON.stringify(Object.values(logger).map((fn) => fn.mock.calls));
 
   // The request config of an axios error carries the email address
-  const axiosError = (status: number): AxiosError => {
-    const config = {
-      headers: new AxiosHeaders(),
-      data: JSON.stringify({ email }),
-    };
-    return new AxiosError(
+  const requestConfig = {
+    headers: new AxiosHeaders(),
+    data: JSON.stringify({ email }),
+  };
+
+  const axiosError = (status: number): AxiosError =>
+    new AxiosError(
       `Request failed with status code ${status}`,
       AxiosError.ERR_BAD_RESPONSE,
-      config,
+      requestConfig,
       undefined,
-      { status, statusText: "", headers: {}, config, data: {} }
+      { status, statusText: "", headers: {}, config: requestConfig, data: {} }
     );
-  };
+
+  const axiosErrorWithoutResponse = (code: string): AxiosError =>
+    new AxiosError(`connect ${code}`, code, requestConfig);
 
   it("Should return the id of the created contact", async () => {
     const contactId = generateId<ContactId>();
@@ -91,10 +97,46 @@ describe("contactDataManagerService", () => {
       })
       .catch((e: unknown) => e);
 
-    expect(error).toEqual(contactCreationFailed("status 503"));
+    expect(error).toEqual(
+      contactCreationFailed({ type: "errorResponse", status: 503 })
+    );
     expect(JSON.stringify(error)).not.toContain(email);
     expect(String(error)).not.toContain(email);
     expect(loggedText(logger)).not.toContain(email);
+  });
+
+  it("Should throw contactCreationFailed with the error code when there is no response", async () => {
+    const { service, logger } = setup(() =>
+      Promise.reject(axiosErrorWithoutResponse("ECONNABORTED"))
+    );
+
+    const error = await service
+      .createContact(email, {
+        correlationId,
+        logger: logger as unknown as Logger,
+      })
+      .catch((e: unknown) => e);
+
+    expect(error).toEqual(
+      contactCreationFailed({ type: "noResponse", code: "ECONNABORTED" })
+    );
+    expect(JSON.stringify(error)).not.toContain(email);
+    expect(loggedText(logger)).not.toContain(email);
+  });
+
+  it("Should throw contactCreationFailed when the token cannot be generated", async () => {
+    const { service, client, logger } = setup(
+      () => Promise.resolve({ id: generateId<ContactId>(), email }),
+      () => Promise.reject(new Error("KMS unavailable"))
+    );
+
+    await expect(
+      service.createContact(email, {
+        correlationId,
+        logger: logger as unknown as Logger,
+      })
+    ).rejects.toThrowError(contactCreationFailed({ type: "unexpectedError" }));
+    expect(client.createContact).not.toHaveBeenCalled();
   });
 
   it("Should throw contactCreationFailed for a non-axios error", async () => {
@@ -107,7 +149,7 @@ describe("contactDataManagerService", () => {
         correlationId,
         logger: logger as unknown as Logger,
       })
-    ).rejects.toThrowError(contactCreationFailed("unexpected error"));
+    ).rejects.toThrowError(contactCreationFailed({ type: "unexpectedError" }));
     expect(loggedText(logger)).not.toContain(email);
   });
 });

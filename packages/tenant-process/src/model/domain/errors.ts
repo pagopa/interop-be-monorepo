@@ -7,6 +7,7 @@ import {
   TenantId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 
 const errorCodes = {
   attributeNotFound: "0001",
@@ -431,9 +432,22 @@ export function tenantMailsNotAllowed(
   });
 }
 
-export function contactCreationFailed(reason: string): ApiError<ErrorCodes> {
+export type ContactCreationFailureReason =
+  | { type: "errorResponse"; status: number }
+  // Network error or timeout, identified by the axios error code
+  | { type: "noResponse"; code: string }
+  | { type: "unexpectedError" };
+
+export function contactCreationFailed(
+  reason: ContactCreationFailureReason
+): ApiError<ErrorCodes> {
+  const cause = match(reason)
+    .with({ type: "errorResponse" }, ({ status }) => `status ${status}`)
+    .with({ type: "noResponse" }, ({ code }) => `no response (${code})`)
+    .with({ type: "unexpectedError" }, () => "unexpected error")
+    .exhaustive();
   return new ApiError({
-    detail: `Error creating a contact in the Contact Data Manager: ${reason}`,
+    detail: `Error creating a contact in the Contact Data Manager: ${cause}`,
     code: "contactCreationFailed",
     title: "Contact creation failed",
   });

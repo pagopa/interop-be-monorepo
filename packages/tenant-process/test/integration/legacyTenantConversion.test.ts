@@ -246,7 +246,10 @@ describe("Legacy tenant conversion", () => {
       };
       await addOneAttribute(declaredAttribute);
       await addOneTenant(legacyTenant);
-      const error = contactCreationFailed("status 503");
+      const error = contactCreationFailed({
+        type: "errorResponse",
+        status: 503,
+      });
       contactDataManagerService.createContact.mockRejectedValueOnce(error);
 
       await expect(addDeclaredAttribute(legacyTenant)).rejects.toThrowError(

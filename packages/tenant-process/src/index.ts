@@ -42,7 +42,9 @@ const refreshableToken = new RefreshableInteropToken(
 await refreshableToken.init();
 
 const contactDataManagerService = contactDataManagerServiceBuilder(
-  contactDataApi.createContactApiClient(config.contactDataManagerUrl),
+  contactDataApi.createContactApiClient(config.contactDataManagerUrl, {
+    axiosConfig: { timeout: config.contactDataManagerTimeoutMs },
+  }),
   refreshableToken
 );
 

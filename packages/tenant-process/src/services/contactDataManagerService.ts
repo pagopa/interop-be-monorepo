@@ -7,7 +7,10 @@ import {
 } from "pagopa-interop-commons";
 import { ContactId, CorrelationId, unsafeBrandId } from "pagopa-interop-models";
 
-import { contactCreationFailed } from "../model/domain/errors.js";
+import {
+  contactCreationFailed,
+  ContactCreationFailureReason,
+} from "../model/domain/errors.js";
 
 export type ContactCreationResult =
   | { type: "created"; contactId: ContactId }
@@ -32,9 +35,8 @@ export function contactDataManagerServiceBuilder(
 ): ContactDataManagerService {
   return {
     async createContact(email, { correlationId, logger }) {
-      const token = (await refreshableToken.get()).serialized;
-
       try {
+        const token = (await refreshableToken.get()).serialized;
         const contact = await contactDataManagerClient.createContact(
           { email },
           { headers: getInteropHeaders({ token, correlationId }) }
@@ -48,12 +50,28 @@ export function contactDataManagerServiceBuilder(
           return { type: "invalidEmail" };
         }
 
-        const reason = isAxiosError(error)
-          ? `status ${error.response?.status ?? error.code ?? "unknown"}`
-          : "unexpected error";
-        logger.error(`Contact Data Manager createContact failed: ${reason}`);
-        throw contactCreationFailed(reason);
+        const failure = contactCreationFailed(
+          contactCreationFailureReason(error)
+        );
+        logger.error(failure.detail);
+        throw failure;
       }
     },
   };
+}
+
+/**
+ * Only the status or the axios error code are kept: the error itself, whose
+ * request config contains the email address, is discarded.
+ */
+function contactCreationFailureReason(
+  error: unknown
+): ContactCreationFailureReason {
+  if (!isAxiosError(error)) {
+    return { type: "unexpectedError" };
+  }
+  if (error.response !== undefined) {
+    return { type: "errorResponse", status: error.response.status };
+  }
+  return { type: "noResponse", code: error.code ?? "unknown" };
 }

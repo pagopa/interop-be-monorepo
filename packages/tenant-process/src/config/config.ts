@@ -18,10 +18,12 @@ const TenantProcessConfig = CommonHTTPServiceConfig.and(EventStoreConfig)
       .object({
         DELEGATIONS_ALLOWED_ATTRIBUTE_ID: z.string().uuid(),
         CONTACT_DATA_MANAGER_URL: z.string(),
+        CONTACT_DATA_MANAGER_TIMEOUT_MS: z.coerce.number().int().default(5000),
       })
       .transform((c) => ({
         delegationsAllowedAttributeId: c.DELEGATIONS_ALLOWED_ATTRIBUTE_ID,
         contactDataManagerUrl: c.CONTACT_DATA_MANAGER_URL,
+        contactDataManagerTimeoutMs: c.CONTACT_DATA_MANAGER_TIMEOUT_MS,
       }))
   )
   .and(ApplicationAuditProducerConfig);
