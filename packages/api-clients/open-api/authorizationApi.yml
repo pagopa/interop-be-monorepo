@@ -2001,6 +2001,7 @@ components:
           $ref: "#/components/schemas/KeyUse"
         alg:
           type: string
+          maxLength: 20
           description: "The algorithm type of the key."
         name:
           type: string

@@ -179,6 +179,7 @@ describe("API /clients/{clientId}/keys authorization test", () => {
     [{ ...keySeed, name: undefined }, mockClient.data.id],
     [{ ...keySeed, use: undefined }, mockClient.data.id],
     [{ ...keySeed, alg: undefined }, mockClient.data.id],
+    [{ ...keySeed, alg: "a".repeat(21) }, mockClient.data.id],
     [{ ...keySeed, key: undefined }, mockClient.data.id],
     [{ ...keySeed }, "invalidId"],
   ])(
