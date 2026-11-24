@@ -10,15 +10,6 @@ export function toBffApiRiskAnalysisForm(
   };
 }
 
-function toBffApiPurposeVersionDocument(
-  riskAnalysis: purposeApi.PurposeVersionDocument
-): bffApi.PurposeVersionDocument {
-  return {
-    id: riskAnalysis.id,
-    contentType: riskAnalysis.contentType,
-    createdAt: riskAnalysis.createdAt,
-  };
-}
 function toBffApiPurposeVersionSignedDocument(
   signedContract: purposeApi.PurposeVersionSignedDocument
 ): bffApi.PurposeVersionSignedDocument {
@@ -41,9 +32,6 @@ export function toBffApiPurposeVersion(
     updatedAt: purposeVersion.updatedAt,
     firstActivationAt: purposeVersion.firstActivationAt,
     dailyCalls: purposeVersion.dailyCalls,
-    riskAnalysisDocument:
-      purposeVersion.riskAnalysis &&
-      toBffApiPurposeVersionDocument(purposeVersion.riskAnalysis),
     rejectionReason: purposeVersion.rejectionReason,
     signedContract:
       purposeVersion.signedContract &&

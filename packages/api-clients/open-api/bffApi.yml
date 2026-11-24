@@ -17087,8 +17087,6 @@ components:
           format: int32
           minimum: 1
           maximum: 1000000000
-        riskAnalysisDocument:
-          $ref: "#/components/schemas/PurposeVersionDocument"
         rejectionReason:
           type: string
         signedContract:
@@ -17099,22 +17097,6 @@ components:
         - dailyCalls
         - createdAt
       description: business representation of a purpose version
-    PurposeVersionDocument:
-      type: object
-      additionalProperties: false
-      required:
-        - id
-        - contentType
-        - createdAt
-      properties:
-        id:
-          type: string
-          format: uuid
-        contentType:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
     PurposeVersionResource:
       type: object
       additionalProperties: false
@@ -18371,10 +18353,6 @@ components:
           $ref: "#/components/schemas/DelegationTenant"
         delegator:
           $ref: "#/components/schemas/DelegationTenant"
-        activationContract:
-          $ref: "#/components/schemas/Document"
-        revocationContract:
-          $ref: "#/components/schemas/Document"
         createdAt:
           type: string
           format: date-time

@@ -35,8 +35,6 @@ export const getMockBffApiDelegation = (): bffApi.Delegation & {
   eservice: generateMock(bffApi.DelegationEService.optional()),
   delegate: generateMock(bffApi.DelegationTenant),
   delegator: generateMock(bffApi.DelegationTenant),
-  activationContract: generateMock(bffApi.Document.optional()),
-  revocationContract: generateMock(bffApi.Document.optional()),
   createdAt: generateMock(z.string().datetime({ offset: true })),
   updatedAt: generateMock(z.string().datetime({ offset: true }).optional()),
   state: generateMock(bffApi.DelegationState),
