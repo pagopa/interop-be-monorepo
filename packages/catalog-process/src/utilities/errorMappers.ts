@@ -87,6 +87,7 @@ export const updateEServiceErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+/** @alias */
 export const patchUpdateEServiceErrorMapper = updateEServiceErrorMapper;
 
 export const updateEServiceTemplateInstanceErrorMapper = (
