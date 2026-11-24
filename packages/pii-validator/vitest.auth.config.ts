@@ -10,5 +10,8 @@ export default defineConfig({
     fileParallelism: false,
     pool: "forks",
     reporters: ["verbose"],
+    env: {
+      NODE_ENV: "development",
+    },
   },
 });

@@ -48,8 +48,12 @@ export async function createApp(
     options.auditEndMiddleware ??
       (await applicationAuditEndMiddleware(serviceName, config))
   );
-  app.use("/detect", (_req, res, next) => {
+  app.use("/detect", (req, res, next) => {
     res.type("application/problem+json");
+    // The shared authentication middleware logs req.url for malformed tokens.
+    // This endpoint has no query-string contract, so remove it before auth.
+    // eslint-disable-next-line functional/immutable-data
+    req.url = req.path;
     next();
   });
   app.use(authenticationMiddleware(config));
