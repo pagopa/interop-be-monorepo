@@ -10,6 +10,7 @@ import {
   purposeErrorCodes,
   purposeTemplateErrorCodes,
   tenantErrorCodes,
+  notificationManagerErrorCodes,
 } from "pagopa-interop-commons";
 import { commonErrorCodes } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -26,6 +27,7 @@ type ErrorName =
   | keyof typeof delegationErrorCodes
   | keyof typeof eserviceTemplateErrorCodes
   | keyof typeof notificationConfigErrorCodes
+  | keyof typeof notificationManagerErrorCodes
   | keyof typeof purposeErrorCodes
   | keyof typeof purposeTemplateErrorCodes
   | keyof typeof tenantErrorCodes;
@@ -48,6 +50,7 @@ function getProcessName(processName: string): ProcessName | undefined {
     .with("015", () => "purposeTemplate")
     .with("005", () => "tenant")
     .with("008", () => "bff")
+    .with("013", () => "notificationManager")
     .otherwise(() => undefined);
 }
 
@@ -81,6 +84,9 @@ export function getErrorCodeAndProcessCode(
     .with("purposeTemplate", () => findErrorName(purposeTemplateErrorCodes))
     .with("tenant", () => findErrorName(tenantErrorCodes))
     .with("bff", () => findErrorName(bffErrorCodes))
+    .with("notificationManager", () =>
+      findErrorName(notificationManagerErrorCodes)
+    )
     .exhaustive();
 
   const errorName: ErrorName | undefined =
