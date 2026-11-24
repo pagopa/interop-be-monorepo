@@ -1185,15 +1185,15 @@ paths:
       tags:
         - tenant
       summary: Delete a tenant mail
-      description: Deletes a mail from the specified tenant
+      description: Always rejected with 400, the tenant contact is managed through /tenants/{tenantId}/contact
       operationId: deleteTenantMail
       responses:
         "204":
           description: Tenant Mail Deleted
+        "400":
+          $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
   /tenants/{tenantId}/mails:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1208,7 +1208,7 @@ paths:
       tags:
         - tenant
       summary: Add a tenant mail
-      description: Adds a mail to the specified tenant
+      description: Always rejected with 400, the tenant contact is managed through /tenants/{tenantId}/contact
       operationId: addTenantMail
       requestBody:
         required: true
@@ -1223,8 +1223,6 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
   /tenants/{tenantId}/contact:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"

@@ -224,16 +224,12 @@ export const deleteTenantMailErrorMapper = (
 ): number =>
   match(error.code)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
-    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("mailNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("tenantMailsNotAllowed", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const addTenantMailErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
-    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("mailAlreadyExists", () => HTTP_STATUS_CONFLICT)
     .with("tenantMailsNotAllowed", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 

@@ -11,11 +11,7 @@ import {
 import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import {
-  mailAlreadyExists,
-  tenantMailsNotAllowed,
-  tenantNotFound,
-} from "../../src/model/domain/errors.js";
+import { tenantMailsNotAllowed } from "../../src/model/domain/errors.js";
 import { api, tenantService } from "../vitest.api.setup.js";
 
 describe("API POST /tenants/{tenantId}/mails test", () => {
@@ -56,9 +52,7 @@ describe("API POST /tenants/{tenantId}/mails test", () => {
   });
 
   it.each([
-    { error: tenantNotFound(tenant.id), expectedStatus: 404 },
     { error: operationForbidden, expectedStatus: 403 },
-    { error: mailAlreadyExists(), expectedStatus: 409 },
     { error: tenantMailsNotAllowed(tenant.id), expectedStatus: 400 },
   ])(
     "Should return $expectedStatus for $error.code",

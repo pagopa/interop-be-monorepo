@@ -26,8 +26,6 @@ const errorCodes = {
   certifiedAttributeAlreadyAssigned: "0014",
   attributeVerificationNotAllowed: "0015",
   verifiedAttributeSelfVerificationNotAllowed: "0016",
-  mailNotFound: "0017",
-  mailAlreadyExists: "0018",
   attributeAlreadyRevoked: "0019",
   attributeRevocationNotAllowed: "0020",
   verifiedAttributeSelfRevocationNotAllowed: "0021",
@@ -35,7 +33,6 @@ const errorCodes = {
   certifierWithExistingAttributes: "0023",
   attributeNotFoundInTenant: "0024",
   tenantNotFoundByExternalId: "0025",
-  notValidMailAddress: "0026",
   agreementNotFound: "0027",
   descriptorNotFoundInEservice: "0028",
   delegationNotFound: "0029",
@@ -286,22 +283,6 @@ export function certifiedDiscreteAttributeRevoked(
     title: "Certified discrete attribute revoked",
   });
 }
-export function mailNotFound(mailId: string): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Mail ${mailId} not found`,
-    code: "mailNotFound",
-    title: "Mail not found",
-  });
-}
-
-export function mailAlreadyExists(): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Mail already exists`,
-    code: "mailAlreadyExists",
-    title: "Mail already exists",
-  });
-}
-
 export function tenantIsAlreadyACertifier(
   tenantId: TenantId,
   certifierId: string
@@ -351,14 +332,6 @@ export function descriptorNotFoundInEservice(
     detail: `Descriptor ${descriptorId} not found in EService ${eserviceId}`,
     code: "descriptorNotFoundInEservice",
     title: "Descriptor not found in EService",
-  });
-}
-
-export function notValidMailAddress(): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Mail address not valid`,
-    code: "notValidMailAddress",
-    title: "Not valid mail address",
   });
 }
 

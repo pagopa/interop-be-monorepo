@@ -9,11 +9,7 @@ import {
 import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import {
-  mailNotFound,
-  tenantMailsNotAllowed,
-  tenantNotFound,
-} from "../../src/model/domain/errors.js";
+import { tenantMailsNotAllowed } from "../../src/model/domain/errors.js";
 import { api, tenantService } from "../vitest.api.setup.js";
 
 describe("API DELETE /tenants/{tenantId}/mails/{mailId} test", () => {
@@ -49,9 +45,7 @@ describe("API DELETE /tenants/{tenantId}/mails/{mailId} test", () => {
   });
 
   it.each([
-    { error: tenantNotFound(mockTenantId), expectedStatus: 404 },
     { error: operationForbidden, expectedStatus: 403 },
-    { error: mailNotFound(mockMailId), expectedStatus: 404 },
     { error: tenantMailsNotAllowed(mockTenantId), expectedStatus: 400 },
   ])(
     "Should return $expectedStatus for $error.code",
