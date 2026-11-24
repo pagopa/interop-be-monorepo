@@ -100,6 +100,8 @@ import {
   isInvalidDescriptor,
 } from "./validators.js";
 
+const featuredEServicesLimit = 12;
+
 const isCatalogEventConflict = (error: unknown): boolean =>
   isAxiosError<Problem>(error) &&
   error.response?.status === 409 &&
@@ -422,6 +424,32 @@ export function catalogServiceBuilder(
           totalCount: eservicesResponse.totalCount,
         },
       };
+    },
+    getFeaturedCatalog: async (
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.CatalogEService[]> => {
+      ctx.logger.info("Retrieving featured EServices catalog");
+      const requesterId = ctx.authData.organizationId;
+      const eservicesResponse: catalogApi.EServices =
+        await catalogProcessClient.queryEServices(
+          {
+            offset: 0,
+            limit: featuredEServicesLimit,
+            onlyActiveEservices: true,
+            availableForRequester: true,
+            subscribedByRequester: false,
+            sortBy: "CREATED_AT_DESC",
+          },
+          { headers: ctx.headers }
+        );
+
+      return enhanceCatalogEservices(
+        eservicesResponse.results,
+        tenantProcessClient,
+        inAppNotificationManagerClient,
+        ctx,
+        requesterId
+      );
     },
     getCompactCatalogEServices: async (
       ctx: WithLogger<BffAppContext>,
