@@ -18,6 +18,7 @@ describe("getErrorCode", () => {
     ["Purpose-template Process", "015"],
     ["BFF Process", "008"],
     ["Backend for frontend Process", "008"],
+    ["inApp Notification Manager", "013"],
   ])("resolves common errors for %s", (process, prefix) => {
     expect(getErrorCode(process, "genericError")).toBe(`${prefix}-9991`);
   });
