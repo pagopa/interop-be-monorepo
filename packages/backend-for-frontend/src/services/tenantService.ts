@@ -5,12 +5,15 @@ import {
   SelfcareV2InstitutionClient,
 } from "pagopa-interop-api-clients";
 import {
+  authRole,
+  validateAuthorization,
   isDefined,
   isFeatureFlagEnabled,
   Logger,
   WithLogger,
 } from "pagopa-interop-commons";
 import {
+  operationForbidden,
   AgreementId,
   AttributeId,
   CorrelationId,
@@ -32,6 +35,7 @@ import { TenantProcessClient } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import { BffAppContext } from "../utilities/context.js";
 import { getAllBulkAttributes } from "./attributeService.js";
+import { TenantContactService } from "./tenantContactService.js";
 
 async function getRegistryAttributesMap(
   tenantAttributesIds: string[],
@@ -49,6 +53,7 @@ async function getRegistryAttributesMap(
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder(
+  tenantContacts: TenantContactService,
   tenantProcessClient: TenantProcessClient,
   attributeRegistryProcessClient: attributeRegistryApi.AttributeProcessClient,
   selfcareV2InstitutionClient: SelfcareV2InstitutionClient
@@ -127,7 +132,8 @@ export function tenantServiceBuilder(
         certifiedAttributes,
         declaredAttributes,
         verifiedAttributes,
-        registryAttributesMap
+        registryAttributesMap,
+        await tenantContacts.resolve(tenant, headers["X-Correlation-Id"])
       );
     },
     async getTenants(
@@ -478,26 +484,33 @@ export function tenantServiceBuilder(
         }
       );
     },
-    async addTenantMail(
+    async setTenantContact(
       tenantId: TenantId,
-      seed: bffApi.MailSeed,
-      { logger, headers }: WithLogger<BffAppContext>
+      { address }: bffApi.TenantContactSeed,
+      ctx: WithLogger<BffAppContext>
     ): Promise<void> {
-      logger.info(`Adding mail ${seed.address} to tenant ${tenantId}`);
-      await tenantProcessClient.tenant.addTenantMail(seed, {
+      validateAuthorization(ctx, [authRole.ADMIN_ROLE]);
+      if (ctx.authData.organizationId !== tenantId) {
+        throw operationForbidden;
+      }
+      const contactId = await tenantContacts.create(address, ctx.correlationId);
+      await tenantProcessClient.tenant.addTenantContact(
+        { contactId },
+        {
+          params: { tenantId },
+          headers: ctx.headers,
+          timeout: config.tenantContactRequestTimeoutMs,
+        }
+      );
+    },
+    async deleteTenantContact(
+      tenantId: TenantId,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      await tenantProcessClient.tenant.deleteTenantContact(undefined, {
         params: { tenantId },
         headers,
-      });
-    },
-    async deleteTenantMail(
-      tenantId: TenantId,
-      mailId: string,
-      { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<void> {
-      logger.info(`Deleting mail ${mailId} from tenant ${tenantId}`);
-      await tenantProcessClient.tenant.deleteTenantMail(undefined, {
-        params: { tenantId, mailId },
-        headers,
+        timeout: config.tenantContactRequestTimeoutMs,
       });
     },
     async updateTenantDelegatedFeatures(

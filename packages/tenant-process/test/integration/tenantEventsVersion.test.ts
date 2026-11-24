@@ -415,7 +415,7 @@ describe("Tenant events version", () => {
     await upsertTenant(readModelDB, tenantWithContact, metadata.version);
 
     await tenantService.deleteTenantContact(
-      { tenantId: streamTenant.id, contactId },
+      streamTenant.id,
       getMockContext({ authData: getMockAuthData(streamTenant.id) })
     );
 

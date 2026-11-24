@@ -34,6 +34,7 @@ describe("GET /tenants/:tenantId route test", () => {
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual(mockResponse);
+      expect(res.body).not.toHaveProperty("mails");
     }
   );
 

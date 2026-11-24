@@ -47,15 +47,16 @@ import {
   purposeNotFound,
   tenantNotFound,
 } from "../model/errors.js";
-import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { getLatestAgreement } from "./agreementService.js";
 import { getAllClients } from "./clientService.js";
 import { getSelfcareCompactUserById } from "./selfcareService.js";
+import { TenantContactService } from "./tenantContactService.js";
 import { isAgreementUpgradable } from "./validators.js";
 
 const enrichPurposeDelegation = async (
+  tenantContacts: TenantContactService,
   delegationId: string,
   delegationProcessClient: DelegationProcessClient,
   tenantProcessClient: TenantProcessClient,
@@ -89,13 +90,19 @@ const enrichPurposeDelegation = async (
     delegate: {
       id: delegate.id,
       name: delegate.name,
-      contactMail: getLatestTenantContactEmail(delegate),
+      contactMail: await tenantContacts.resolve(
+        delegate,
+        headers["X-Correlation-Id"]
+      ),
       kind: delegate.kind,
     },
     delegator: {
       id: delegator.id,
       name: delegator.name,
-      contactMail: getLatestTenantContactEmail(delegator),
+      contactMail: await tenantContacts.resolve(
+        delegator,
+        headers["X-Correlation-Id"]
+      ),
       kind: delegator.kind,
     },
   };
@@ -207,6 +214,7 @@ export const sortRiskAnalysisAssignments = (
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function purposeServiceBuilder(
   {
+    tenantContacts,
     purposeProcessClient,
     purposeProcessClientWithMetadata,
     purposeTemplateProcessClient,
@@ -301,6 +309,7 @@ export function purposeServiceBuilder(
 
     const delegation = purpose.delegationId
       ? await enrichPurposeDelegation(
+          tenantContacts,
           purpose.delegationId,
           delegationProcessClient,
           tenantProcessClient,
@@ -357,7 +366,10 @@ export function purposeServiceBuilder(
         id: consumer.id,
         name: consumer.name,
         kind: consumer.kind,
-        contactMail: getLatestTenantContactEmail(consumer),
+        contactMail: await tenantContacts.resolve(
+          consumer,
+          headers["X-Correlation-Id"]
+        ),
       },
       riskAnalysisForm:
         purpose.riskAnalysisForm &&

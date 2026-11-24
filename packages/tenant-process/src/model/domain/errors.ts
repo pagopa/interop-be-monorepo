@@ -46,7 +46,6 @@ const errorCodes = {
   tenantNotAllowedForDelegation: "0035",
   tenantUpdateVersionMismatch: "0036",
   tenantContactAlreadyAssigned: "0037",
-  tenantContactNotFound: "0038",
   tenantMailsNotAllowed: "0039",
   tenantContactRequiresEventsV3: "0040",
 };
@@ -407,17 +406,6 @@ export function tenantContactAlreadyAssigned(
     detail: `Contact ${contactId} is already assigned to tenant ${tenantId}`,
     code: "tenantContactAlreadyAssigned",
     title: "Tenant contact already assigned",
-  });
-}
-
-export function tenantContactNotFound(
-  tenantId: TenantId,
-  contactId: ContactId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Contact ${contactId} not found in tenant ${tenantId}`,
-    code: "tenantContactNotFound",
-    title: "Tenant contact not found",
   });
 }
 

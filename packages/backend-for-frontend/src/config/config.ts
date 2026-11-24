@@ -24,9 +24,17 @@ import { TokenGenerationValidationConfig } from "./tokenGenerationValidationConf
 const TenantProcessServerConfig = z
   .object({
     TENANT_PROCESS_URL: APIEndpoint,
+    CONTACT_DATA_MANAGER_URL: APIEndpoint,
+    TENANT_CONTACT_REQUEST_TIMEOUT_MS: z.coerce
+      .number()
+      .int()
+      .positive()
+      .default(5000),
   })
   .transform((c) => ({
     tenantProcessUrl: c.TENANT_PROCESS_URL,
+    contactDataManagerUrl: c.CONTACT_DATA_MANAGER_URL,
+    tenantContactRequestTimeoutMs: c.TENANT_CONTACT_REQUEST_TIMEOUT_MS,
   }));
 type TenantProcessServerConfig = z.infer<typeof TenantProcessServerConfig>;
 

@@ -169,6 +169,7 @@ export async function createServices(
       redisRateLimiter
     ),
     catalogService: catalogServiceBuilder(
+      clients.tenantContacts,
       clients.catalogProcessClient,
       clients.tenantProcessClient,
       clients.agreementProcessClient,
@@ -182,6 +183,7 @@ export async function createServices(
     ),
     clientService: clientServiceBuilder(clients),
     delegationService: delegationServiceBuilder(
+      clients.tenantContacts,
       clients.delegationProcessClient,
       clients.tenantProcessClient,
       clients.catalogProcessClient,
@@ -217,6 +219,7 @@ export async function createServices(
     ),
     selfcareService: selfcareServiceBuilder(clients),
     tenantService: tenantServiceBuilder(
+      clients.tenantContacts,
       clients.tenantProcessClient,
       clients.attributeProcessClient,
       clients.selfcareV2InstitutionClient
@@ -287,7 +290,26 @@ export async function createApp(
     toolRouter(zodiosCtx, services.toolsService)
   );
 
-  app.use(errorsToApiProblemsMiddleware);
+  // JSON parser errors can contain a fragment of the submitted address.
+  const handleError: typeof errorsToApiProblemsMiddleware = (
+    error,
+    req,
+    res,
+    next
+  ) => {
+    const malformedContact =
+      error instanceof SyntaxError &&
+      /^\/tenants\/[^/]+\/contact\/?$/.test(req.path.slice(appBasePath.length));
+    errorsToApiProblemsMiddleware(
+      malformedContact
+        ? new SyntaxError("Invalid contact request body")
+        : error,
+      req,
+      res,
+      next
+    );
+  };
+  app.use(handleError);
 
   return app;
 }

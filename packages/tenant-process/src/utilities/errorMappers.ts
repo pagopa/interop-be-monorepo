@@ -254,11 +254,7 @@ export const deleteTenantContactErrorMapper = (
 ): number =>
   match(error.code)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
-    .with(
-      "tenantNotFound",
-      "tenantContactNotFound",
-      () => HTTP_STATUS_NOT_FOUND
-    )
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 

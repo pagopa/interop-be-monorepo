@@ -21,7 +21,6 @@ import { attributeNotExists } from "../model/errors.js";
 import {
   getLastArchivingRequest,
   getLatestActiveDescriptor,
-  getLatestTenantContactEmail,
   getValidDescriptor,
 } from "../model/modelMappingUtils.js";
 import { ConfigurationRiskAnalysis } from "../model/types.js";
@@ -104,7 +103,8 @@ export async function toBffCatalogDescriptorEService(
   requesterTenant: tenantApi.Tenant,
   consumerDelegators: tenantApi.Tenant[],
   hasProducerKeychain: boolean,
-  hasProducerKeychainKeys: boolean
+  hasProducerKeychainKeys: boolean,
+  mail: bffApi.Mail | undefined
 ): Promise<bffApi.CatalogDescriptorEService> {
   const activeDescriptor = getLatestActiveDescriptor(eservice);
   return {
@@ -135,7 +135,7 @@ export async function toBffCatalogDescriptorEService(
     activeDescriptor: activeDescriptor
       ? toCompactDescriptor(activeDescriptor)
       : undefined,
-    mail: getLatestTenantContactEmail(producerTenant),
+    mail,
     mode: eservice.mode,
     riskAnalysis: eservice.riskAnalysis.map((ra) =>
       toBffCatalogApiEserviceRiskAnalysis(ra, undefined)
@@ -289,10 +289,9 @@ export async function enhanceEServiceToBffCatalogApiProducerDescriptorEService(
   eservice: catalogApi.EService,
   producer: tenantApi.Tenant,
   hasProducerKeychain: boolean,
-  hasProducerKeychainKeys: boolean
+  hasProducerKeychainKeys: boolean,
+  producerMail: bffApi.Mail | undefined
 ): Promise<bffApi.ProducerDescriptorEService> {
-  const producerMail = getLatestTenantContactEmail(producer);
-
   const notDraftDecriptors = eservice.descriptors
     .filter(isValidDescriptor)
     .map(toCompactDescriptor);

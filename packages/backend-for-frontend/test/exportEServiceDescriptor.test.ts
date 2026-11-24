@@ -32,6 +32,7 @@ import {
 } from "../src/model/errors.js";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import * as delegationService from "../src/services/delegationService.js";
+import { mockTenantContacts } from "./mockTenantContacts.js";
 import { fileManager, getBffMockContext } from "./utils.js";
 
 describe("exportEServiceDescriptor", () => {
@@ -117,6 +118,7 @@ describe("exportEServiceDescriptor", () => {
 
     return {
       service: catalogServiceBuilder(
+        mockTenantContacts,
         mockCatalogProcessClient,
         mockTenantProcessClient,
         mockAgreementProcessClient,

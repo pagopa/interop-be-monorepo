@@ -1269,28 +1269,11 @@ paths:
           $ref: "#/components/responses/Conflict"
         "501":
           $ref: "#/components/responses/NotImplemented"
-  /tenants/{tenantId}/contact/{contactId}:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
-      - name: tenantId
-        in: path
-        description: the tenant id
-        required: true
-        schema:
-          type: string
-          format: uuid
-      - name: contactId
-        in: path
-        description: the contact id
-        required: true
-        schema:
-          type: string
-          format: uuid
     delete:
       tags:
         - tenant
       summary: Delete the tenant contact
-      description: Removes the contact from the specified tenant
+      description: Removes the current contact if present
       operationId: deleteTenantContact
       responses:
         "200":

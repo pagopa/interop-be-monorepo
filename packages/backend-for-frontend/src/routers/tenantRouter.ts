@@ -10,6 +10,7 @@ import {
   AgreementId,
   AttributeId,
   TenantId,
+  badRequestError,
   emptyErrorMapper,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -18,12 +19,42 @@ import { makeApiProblem } from "../model/errors.js";
 import { TenantService } from "../services/tenantService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 
+// Downstream errors can contain request data. Preserve the HTTP mapping and
+// log only the tenant and the outcome, with the request's correlation ID.
+function contactOperationProblem(
+  error: unknown,
+  ctx: ReturnType<typeof fromBffAppContext>,
+  tenantId: string
+) {
+  return makeApiProblem(error, emptyErrorMapper, {
+    ...ctx,
+    logger: {
+      warn: () =>
+        ctx.logger.warn(`Contact operation failed for tenant ${tenantId}`),
+      error: () =>
+        ctx.logger.error(
+          `Contact operation unconfirmed for tenant ${tenantId}`
+        ),
+    },
+  });
+}
+
 const tenantRouter = (
   ctx: ZodiosContext,
   tenantService: TenantService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const tenantRouter = ctx.router(bffApi.tenantsApi.api, {
-    validationErrorHandler: zodiosValidationErrorToApiProblem,
+    validationErrorHandler: (error, req, res, next) => {
+      if (req.route?.path === "/tenants/:tenantId/contact") {
+        const problem = makeApiProblem(
+          badRequestError("Invalid tenant contact request"),
+          () => 400,
+          fromBffAppContext(req.ctx, req.headers)
+        );
+        return res.status(problem.status).send(problem);
+      }
+      return zodiosValidationErrorToApiProblem(error, req, res, next);
+    },
   });
 
   tenantRouter
@@ -414,40 +445,6 @@ const tenantRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .post("/tenants/:tenantId/mails", async (req, res) => {
-      const ctx = fromBffAppContext(req.ctx, req.headers);
-
-      try {
-        const tenantId = unsafeBrandId<TenantId>(req.params.tenantId);
-        await tenantService.addTenantMail(tenantId, req.body, ctx);
-        return res.status(204).send();
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          emptyErrorMapper,
-          ctx,
-          `Error adding mail to tenant ${req.params.tenantId}`
-        );
-        return res.status(errorRes.status).send(errorRes);
-      }
-    })
-    .delete("/tenants/:tenantId/mails/:mailId", async (req, res) => {
-      const ctx = fromBffAppContext(req.ctx, req.headers);
-
-      try {
-        const tenantId = unsafeBrandId<TenantId>(req.params.tenantId);
-        await tenantService.deleteTenantMail(tenantId, req.params.mailId, ctx);
-        return res.status(204).send();
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          emptyErrorMapper,
-          ctx,
-          `Error deleting mail ${req.params.mailId} from tenant ${req.params.tenantId}`
-        );
-        return res.status(errorRes.status).send(errorRes);
-      }
-    })
     .get("/tenants", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
@@ -507,6 +504,39 @@ const tenantRouter = (
       }
     });
 
+  tenantRouter
+    .post("/tenants/:tenantId/contact", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const tenantId = unsafeBrandId<TenantId>(req.params.tenantId);
+        await tenantService.setTenantContact(tenantId, req.body, ctx);
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = contactOperationProblem(
+          error,
+          ctx,
+          req.params.tenantId
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .delete("/tenants/:tenantId/contact", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const tenantId = unsafeBrandId<TenantId>(req.params.tenantId);
+        await tenantService.deleteTenantContact(tenantId, ctx);
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = contactOperationProblem(
+          error,
+          ctx,
+          req.params.tenantId
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    });
   return tenantRouter;
 };
 

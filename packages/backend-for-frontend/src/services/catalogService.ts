@@ -1,7 +1,7 @@
+import AdmZip from "adm-zip";
 /* eslint-disable max-params */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
-import AdmZip from "adm-zip";
 import { isAxiosError } from "axios";
 import { randomUUID } from "crypto";
 import {
@@ -75,7 +75,6 @@ import {
 import {
   getLastArchivingRequest,
   getLatestActiveDescriptor,
-  getLatestTenantContactEmail,
 } from "../model/modelMappingUtils.js";
 import { ConfigurationEservice } from "../model/types.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
@@ -91,6 +90,7 @@ import {
   getTenantsFromDelegation,
 } from "./delegationService.js";
 import { retrieveEServiceTemplate } from "./eserviceTemplateService.js";
+import { TenantContactService } from "./tenantContactService.js";
 import {
   assertEServiceNotTemplateInstance,
   assertNotDelegatedEservice,
@@ -193,14 +193,16 @@ const checkNewTemplateVersionAvailable = (
   );
 };
 
-const enhanceProducerEService = (
+const enhanceProducerEService = async (
+  tenantContacts: TenantContactService,
+  headers: Headers,
   eservice: catalogApi.EService,
   requesterId: TenantId,
   delegations: delegationApi.Delegation[],
   delegationTenants: Map<string, tenantApi.Tenant>,
   eserviceTemplates: eserviceTemplateApi.EServiceTemplate[],
   hasNotifications: boolean
-): bffApi.ProducerEService => {
+): Promise<bffApi.ProducerEService> => {
   const activeDescriptor = getLatestActiveDescriptor(eservice, true);
   const draftDescriptor = eservice.descriptors.find(isInvalidDescriptor);
 
@@ -246,13 +248,19 @@ const enhanceProducerEService = (
               id: delegator.id,
               name: delegator.name,
               kind: delegator.kind,
-              contactMail: getLatestTenantContactEmail(delegator),
+              contactMail: await tenantContacts.resolve(
+                delegator,
+                headers["X-Correlation-Id"]
+              ),
             },
             delegate: {
               id: delegate.id,
               name: delegate.name,
               kind: delegate.kind,
-              contactMail: getLatestTenantContactEmail(delegate),
+              contactMail: await tenantContacts.resolve(
+                delegate,
+                headers["X-Correlation-Id"]
+              ),
             },
           }
         : undefined,
@@ -338,6 +346,7 @@ const getProducerKeychainFlagsByEService = async (
   });
 
 export function catalogServiceBuilder(
+  tenantContacts: TenantContactService,
   catalogProcessClient: catalogApi.CatalogProcessClient,
   tenantProcessClient: TenantProcessClient,
   agreementProcessClient: agreementApi.AgreementProcessClient,
@@ -522,7 +531,11 @@ export function catalogServiceBuilder(
           eservice,
           producerTenant,
           hasProducerKeychain,
-          hasProducerKeychainKeys
+          hasProducerKeychainKeys,
+          await tenantContacts.resolve(
+            producerTenant,
+            headers["X-Correlation-Id"]
+          )
         );
 
       return {
@@ -579,13 +592,19 @@ export function catalogServiceBuilder(
                   id: delegate.id,
                   name: delegate.name,
                   kind: delegate.kind,
-                  contactMail: getLatestTenantContactEmail(delegate),
+                  contactMail: await tenantContacts.resolve(
+                    delegate,
+                    headers["X-Correlation-Id"]
+                  ),
                 },
                 delegator: {
                   id: producerTenant.id,
                   name: producerTenant.name,
                   kind: producerTenant.kind,
-                  contactMail: getLatestTenantContactEmail(producerTenant),
+                  contactMail: await tenantContacts.resolve(
+                    producerTenant,
+                    headers["X-Correlation-Id"]
+                  ),
                 },
               }
             : undefined,
@@ -958,14 +977,18 @@ export function catalogServiceBuilder(
       );
 
       return {
-        results: results.map((result) =>
-          enhanceProducerEService(
-            result,
-            requesterId,
-            delegations,
-            delegationTenants,
-            eserviceTemplates,
-            notifications.includes(result.id)
+        results: await Promise.all(
+          results.map((result) =>
+            enhanceProducerEService(
+              tenantContacts,
+              headers,
+              result,
+              requesterId,
+              delegations,
+              delegationTenants,
+              eserviceTemplates,
+              notifications.includes(result.id)
+            )
           )
         ),
         pagination: {
@@ -1099,7 +1122,11 @@ export function catalogServiceBuilder(
           requesterTenant,
           consumerDelegators,
           hasProducerKeychain,
-          hasProducerKeychainKeys
+          hasProducerKeychainKeys,
+          await tenantContacts.resolve(
+            producerTenant,
+            headers["X-Correlation-Id"]
+          )
         ),
         archivingSchedule: descriptor.archivingSchedule,
         templateRef:

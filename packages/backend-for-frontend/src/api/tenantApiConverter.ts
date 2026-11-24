@@ -17,8 +17,6 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 
-import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
-
 export const tenantAttributeKind = {
   certified: "CERTIFIED",
   certifiedDiscrete: "CERTIFIED_DISCRETE",
@@ -236,7 +234,8 @@ export function toBffApiTenant(
   certifiedAttributes: tenantApi.CertifiedTenantAttribute[],
   declaredAttributes: tenantApi.DeclaredTenantAttribute[],
   verifiedAttributes: tenantApi.VerifiedTenantAttribute[],
-  registryAttributesMap: RegistryAttributesMap
+  registryAttributesMap: RegistryAttributesMap,
+  contactMail: bffApi.Mail | undefined
 ): bffApi.Tenant {
   const certifiedDiscreteAttributes: tenantApi.CertifiedDiscreteTenantAttribute[] =
     tenant.attributes.flatMap((attribute) =>
@@ -256,7 +255,7 @@ export function toBffApiTenant(
     subUnitType: tenant.subUnitType,
     remoteIds: tenant.remoteIds,
     selfcareInstitutionType: tenant.selfcareInstitutionType,
-    contactMail: getLatestTenantContactEmail(tenant),
+    contactMail,
     attributes: {
       certified: toBffApiCertifiedTenantAttributes(
         [...certifiedAttributes, ...certifiedDiscreteAttributes],

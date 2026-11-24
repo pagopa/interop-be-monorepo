@@ -38,10 +38,7 @@ import {
   contractException,
   contractNotFound,
 } from "../model/errors.js";
-import {
-  getLatestActiveDescriptor,
-  getLatestTenantContactEmail,
-} from "../model/modelMappingUtils.js";
+import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { getAllBulkAttributes } from "./attributeService.js";
@@ -817,13 +814,19 @@ async function enrichAgreementListEntry(
                 id: delegation.delegateId,
                 name: delegate.name,
                 kind: delegate.kind,
-                contactMail: getLatestTenantContactEmail(delegate),
+                contactMail: await clients.tenantContacts.resolve(
+                  delegate,
+                  ctx.headers["X-Correlation-Id"]
+                ),
               },
               delegator: {
                 id: delegation.delegatorId,
                 name: consumer.name,
                 kind: consumer.kind,
-                contactMail: getLatestTenantContactEmail(consumer),
+                contactMail: await clients.tenantContacts.resolve(
+                  consumer,
+                  ctx.headers["X-Correlation-Id"]
+                ),
               },
             }
           : undefined,
@@ -896,7 +899,10 @@ export async function enrichAgreement(
           id: tenant.id,
           name: tenant.name,
           kind: tenant.kind,
-          contactMail: getLatestTenantContactEmail(tenant),
+          contactMail: await clients.tenantContacts.resolve(
+            tenant,
+            ctx.headers["X-Correlation-Id"]
+          ),
         },
       };
     });
@@ -909,7 +915,10 @@ export async function enrichAgreement(
       id: agreement.producerId,
       name: producer.name,
       kind: producer.kind,
-      contactMail: getLatestTenantContactEmail(producer),
+      contactMail: await clients.tenantContacts.resolve(
+        producer,
+        ctx.headers["X-Correlation-Id"]
+      ),
     },
     consumer: {
       id: agreement.consumerId,
@@ -919,7 +928,10 @@ export async function enrichAgreement(
       updatedAt: consumer.updatedAt,
       name: consumer.name,
       attributes: tenantAttributes,
-      contactMail: getLatestTenantContactEmail(consumer),
+      contactMail: await clients.tenantContacts.resolve(
+        consumer,
+        ctx.headers["X-Correlation-Id"]
+      ),
       features: consumer.features,
     },
     eservice: {

@@ -8850,7 +8850,7 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
-  /tenants/{tenantId}/mails:
+  /tenants/{tenantId}/contact:
     parameters:
       - name: tenantId
         in: path
@@ -8862,18 +8862,18 @@ paths:
     post:
       tags:
         - tenants
-      summary: Add a tenant mail
-      description: Add a tenant mail
-      operationId: addTenantMail
+      summary: Set or replace the current tenant contact
+      description: Creates a new contact and assigns it to the tenant, including when the same address is submitted again.
+      operationId: setTenantContact
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/MailSeed"
+              $ref: "#/components/schemas/TenantContactSeed"
       responses:
         "204":
-          description: Tenant Mail Added
+          description: Tenant contact assigned
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -8896,30 +8896,21 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-  /tenants/{tenantId}/mails/{mailId}:
-    parameters:
-      - name: tenantId
-        in: path
-        description: the tenant id
-        required: true
-        schema:
-          type: string
-          format: uuid
-      - name: mailId
-        in: path
-        description: the mail id
-        required: true
-        schema:
-          type: string
+        default:
+          description: Downstream error or unconfirmed operation
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
     delete:
       tags:
         - tenants
-      summary: Delete a tenant mail
-      description: Delete a tenant mail
-      operationId: deleteTenantMail
+      summary: Remove the current tenant contact if present
+      description: Removes the current association and succeeds even when the tenant already has no contact.
+      operationId: deleteTenantContact
       responses:
         "204":
-          description: Tenant Mail Deleted
+          description: Tenant contact absent
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -8940,6 +8931,12 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        default:
+          description: Downstream error or unconfirmed operation
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   "/tenants":
     parameters:
       - in: query
@@ -17362,25 +17359,15 @@ components:
       required:
         - url
         - filename
-    MailKind:
-      type: string
-      enum:
-        - CONTACT_EMAIL
-        - DIGITAL_ADDRESS
-    MailSeed:
-      description: A specific kind of mail
+    TenantContactSeed:
       type: object
       additionalProperties: false
+      required:
+        - address
       properties:
-        kind:
-          $ref: "#/components/schemas/MailKind"
         address:
           type: string
-        description:
-          type: string
-      required:
-        - kind
-        - address
+          format: email
     Tenants:
       title: Tenants
       type: object

@@ -16,6 +16,7 @@ import { describe, expect, it, vi } from "vitest";
 import { tenantAttributeKind } from "../src/api/tenantApiConverter.js";
 import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
 import { enrichAgreement } from "../src/services/agreementService.js";
+import { tenantContactServiceBuilder } from "../src/services/tenantContactService.js";
 import { BffAppContext } from "../src/utilities/context.js";
 import {
   getMockCatalogApiEService,
@@ -102,12 +103,14 @@ describe("enrichAgreement", () => {
         ],
       }),
       id: consumerId,
+      contactId: generateId(),
       mails: [],
       features: [],
     };
     const producer: tenantApi.Tenant = {
       ...getMockedApiTenant({ attributes: [] }),
       id: producerId,
+      contactId: generateId(),
       mails: [],
       features: [],
     };
@@ -166,6 +169,18 @@ describe("enrichAgreement", () => {
           })
         ),
       },
+      tenantContacts: tenantContactServiceBuilder(
+        {
+          createContact: vi.fn(),
+          getContact: vi.fn(async ({ params }) => {
+            if (params.contactId === producer.contactId) {
+              throw { isAxiosError: true, response: { status: 404 } };
+            }
+            return { id: params.contactId, email: "consumer@example.org" };
+          }),
+        },
+        { get: vi.fn().mockResolvedValue({ serialized: "internal" }) }
+      ),
     } as unknown as PagoPAInteropBeClients;
 
     const ctx: WithLogger<BffAppContext> = {
@@ -180,6 +195,10 @@ describe("enrichAgreement", () => {
 
     const actualAgreement = await enrichAgreement(agreement, clients, ctx);
 
+    expect(actualAgreement.producer.contactMail).toBeUndefined();
+    expect(actualAgreement.consumer.contactMail).toEqual({
+      address: "consumer@example.org",
+    });
     expect(actualAgreement.certifiedDiscreteAttributes).toStrictEqual([
       {
         id: agreementCertifiedDiscreteAttributeId,

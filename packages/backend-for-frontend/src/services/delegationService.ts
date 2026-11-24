@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { isAxiosError } from "axios";
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import {
   bffApi,
   catalogApi,
@@ -29,9 +29,9 @@ import {
   delegationContractNotFound,
   delegationNotFound,
 } from "../model/errors.js";
-import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
+import { TenantContactService } from "./tenantContactService.js";
 
 // eslint-disable-next-line max-params
 async function enhanceDelegation<
@@ -202,6 +202,7 @@ export async function getAllDelegations(
 }
 
 export function delegationServiceBuilder(
+  tenantContacts: TenantContactService,
   delegationClients: DelegationProcessClient,
   tenantClient: TenantProcessClient,
   catalogClient: catalogApi.CatalogProcessClient,
@@ -559,7 +560,10 @@ export function delegationServiceBuilder(
                 id: eservice.producerId,
                 name: producer.name,
                 kind: producer.kind,
-                contactMail: getLatestTenantContactEmail(producer),
+                contactMail: await tenantContacts.resolve(
+                  producer,
+                  headers["X-Correlation-Id"]
+                ),
               },
             };
           })

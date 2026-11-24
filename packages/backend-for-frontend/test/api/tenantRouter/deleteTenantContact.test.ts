@@ -8,20 +8,19 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, clients } from "../../vitest.api.setup.js";
 
-describe("API DELETE /tenants/{tenantId}/mails/{mailId} test", () => {
+describe("API DELETE /tenants/{tenantId}/contact test", () => {
   beforeEach(() => {
-    clients.tenantProcessClient.tenant.deleteTenantMail = vi
+    clients.tenantProcessClient.tenant.deleteTenantContact = vi
       .fn()
       .mockResolvedValue(undefined);
   });
 
   const makeRequest = async (
     token: string,
-    tenantId: TenantId = generateId(),
-    mailId: string = generateId()
+    tenantId: TenantId = generateId()
   ) =>
     request(api)
-      .delete(`${appBasePath}/tenants/${tenantId}/mails/${mailId}`)
+      .delete(`${appBasePath}/tenants/${tenantId}/contact`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
 
@@ -33,7 +32,7 @@ describe("API DELETE /tenants/{tenantId}/mails/{mailId} test", () => {
 
   it("Should return 400 if passed an invalid tenant id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid" as TenantId, generateId());
+    const res = await makeRequest(token, "invalid" as TenantId);
     expect(res.status).toBe(400);
   });
 });

@@ -514,21 +514,15 @@ const tenantsRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .delete("/tenants/:tenantId/contact/:contactId", async (req, res) => {
+    .delete("/tenants/:tenantId/contact", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const { tenantId, contactId } = req.params;
+        const { tenantId } = req.params;
         const { data: tenant, metadata } =
-          await tenantService.deleteTenantContact(
-            {
-              tenantId: unsafeBrandId(tenantId),
-              contactId: unsafeBrandId(contactId),
-            },
-            ctx
-          );
+          await tenantService.deleteTenantContact(unsafeBrandId(tenantId), ctx);
 
         setMetadataVersionHeader(res, metadata);
 

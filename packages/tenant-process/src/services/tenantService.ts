@@ -37,6 +37,10 @@ import {
   unsafeBrandId,
   TenantMail,
   TenantEvent,
+  TenantEventV3,
+  fromTenantV3,
+  eventConflictError,
+  genericInternalError,
   TenantFeatureCertifier,
   CorrelationId,
   tenantKind,
@@ -79,7 +83,7 @@ import {
   tenantNotFoundByRemoteId,
   tenantUpdateVersionMismatch,
   tenantContactAlreadyAssigned,
-  tenantContactNotFound,
+  tenantMailsNotAllowed,
 } from "../model/domain/errors.js";
 import { ApiGetTenantsFilters } from "../model/domain/models.js";
 import {
@@ -139,6 +143,44 @@ const retrieveTenant = async (
   }
   return tenant;
 };
+
+// The projection can still show "no contact" just after a successful POST,
+// or the previous contact just after a successful DELETE.
+async function retrieveTenantForContactRemoval(
+  tenantId: TenantId,
+  readModel: ReadModelServiceSQL,
+  eventStore: DB
+): Promise<WithMetadata<Tenant>> {
+  const projected = await retrieveTenant(tenantId, readModel);
+  const latest = await eventStore.oneOrNone<{
+    version: string;
+    type: string;
+    event_version: number;
+    data: Buffer;
+  }>(
+    "SELECT version, type, event_version, data FROM events WHERE stream_id = $1 AND version > $2 ORDER BY version DESC LIMIT 1",
+    [tenantId, projected.metadata.version]
+  );
+  if (!latest) {
+    return projected;
+  }
+  if (latest.event_version !== 3) {
+    throw eventConflictError(undefined, tenantId, projected.metadata.version);
+  }
+  const event = TenantEventV3.parse(latest);
+  if (event.type === "MaintenanceTenantDeleted") {
+    throw tenantNotFound(tenantId);
+  }
+  if (!event.data.tenant) {
+    throw genericInternalError(
+      `Missing tenant in ${event.type} event for ${tenantId}`
+    );
+  }
+  return {
+    data: fromTenantV3(event.data.tenant),
+    metadata: { version: Number(latest.version) },
+  };
+}
 
 const retrieveTenantByExternalId = async ({
   tenantOrigin,
@@ -2254,29 +2296,31 @@ export function tenantServiceBuilder(
     },
 
     async deleteTenantContact(
-      {
-        tenantId,
-        contactId,
-      }: {
-        tenantId: TenantId;
-        contactId: ContactId;
-      },
+      tenantId: TenantId,
       {
         authData,
         logger,
         correlationId,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Tenant>> {
-      logger.info(`Deleting contact ${contactId} from Tenant ${tenantId}`);
+      logger.info(`Deleting current contact from Tenant ${tenantId}`);
 
       assertFeatureFlagEnabled(config, "featureFlagTenantEventsV3");
 
       await assertRequesterAllowed(tenantId, authData);
 
-      const tenant = await retrieveTenant(tenantId, readModelService);
+      const tenant = await retrieveTenantForContactRemoval(
+        tenantId,
+        readModelService,
+        dbInstance
+      );
 
-      if (tenant.data.contactId !== contactId) {
-        throw tenantContactNotFound(tenantId, contactId);
+      const { contactId } = tenant.data;
+      if (!contactId) {
+        if (tenant.data.mails.length > 0) {
+          throw tenantMailsNotAllowed(tenantId);
+        }
+        return tenant;
       }
 
       const updatedTenant: Tenant = {

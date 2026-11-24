@@ -866,12 +866,6 @@ export const getMockBffApiEServiceTemplateRiskAnalysisSeed =
     tenantKind: generateMock(bffApi.TenantKind),
   });
 
-export const getMockBffApiMailSeed = (): bffApi.MailSeed => ({
-  kind: generateMock(bffApi.MailKind),
-  address: generateMock(z.string()),
-  description: generateMock(z.string().optional()),
-});
-
 export const getMockBffApiTenantDelegatedFeaturesFlagsUpdateSeed =
   (): bffApi.TenantDelegatedFeaturesFlagsUpdateSeed => ({
     isDelegatedConsumerFeatureEnabled: generateMock(z.boolean()),
