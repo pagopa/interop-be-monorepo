@@ -10,6 +10,7 @@ import {
   DelegationId,
   generateId,
   Tenant,
+  TenantId,
   tenantFeatureType,
   tenantKind,
   TenantRevoker,
@@ -57,6 +58,8 @@ describe("Tenant Queries", () => {
           onboardedAt: new Date(),
           subUnitType: tenantUnitType.AOO,
           selfcareInstitutionType: "SCP",
+          parentTenantId: generateId<TenantId>(),
+          rootTenantId: generateId<TenantId>(),
           mails: [getMockTenantMail(), getMockTenantMail()],
           features: [
             {
