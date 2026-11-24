@@ -225,6 +225,29 @@ paths:
             schema:
               $ref: "#/components/schemas/InternalCertifiedAttributeSeed"
         description: Contains the attribute data to save.
+  "/internal/certifiedAttributes/{attributeId}/subunitPropagation/enable":
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - schema:
+          type: string
+          format: uuid
+        name: attributeId
+        in: path
+        required: true
+        description: identifier of the certified attribute to enable subunit propagation for.
+    post:
+      summary: Enables subunit propagation of a certified attribute for internal user
+      tags:
+        - attribute
+      operationId: enableInternalAttributeSubunitPropagation
+      description: Sets the subunit propagation of the certified attribute to enabled. No event is produced if it is already enabled.
+      responses:
+        "204":
+          description: Subunit propagation enabled
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   "/internal/certifiedDiscreteAttributes":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"

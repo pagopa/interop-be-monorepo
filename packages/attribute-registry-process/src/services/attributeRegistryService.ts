@@ -556,6 +556,30 @@ export function attributeRegistryServiceBuilder(
         await repository.createEvents(events);
       }
     },
+
+    async internalEnableAttributeSubunitPropagation(
+      attributeId: AttributeId,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<void> {
+      logger.info(
+        `Enabling subunit propagation of attribute ${attributeId} - Internal Request`
+      );
+
+      const attribute = await readModelService.getAttributeById(attributeId);
+      if (!attribute) {
+        throw attributeNotFound(attributeId);
+      }
+
+      if (attribute.data.subunitPropagationEnabled !== true) {
+        await repository.createEvent(
+          toCreateEventAttributeSubunitPropagationUpdated(
+            { ...attribute.data, subunitPropagationEnabled: true },
+            attribute.metadata.version,
+            correlationId
+          )
+        );
+      }
+    },
   };
 }
 

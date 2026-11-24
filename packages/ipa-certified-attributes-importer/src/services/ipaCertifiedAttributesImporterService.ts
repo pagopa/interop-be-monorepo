@@ -183,11 +183,136 @@ function isSubUnitEligible(
   return !subUnit.aooCode || aooNames.has(subUnit.aooCode);
 }
 
+// Codes of the main entities having at least one eligible subunit (AOO/UO) onboarded on the platform
+function getEntityCodesWithEligibleSubUnits(
+  registryData: RegistryData,
+  platformTenants: Tenant[]
+): Set<string> {
+  const platformTenantsIndex = new Set(
+    platformTenants.map((t) => toTenantKey(t.externalId))
+  );
+  const aooNames = getAooNames(registryData);
+
+  return new Set(
+    registryData.institutions.flatMap((i) =>
+      i.subUnit &&
+      i.classification !== AGENCY_CLASSIFICATION &&
+      i.category !== ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER &&
+      isSubUnitEligible(i.subUnit, aooNames) &&
+      platformTenantsIndex.has(
+        toTenantKey({ origin: i.origin, value: i.originId })
+      )
+        ? [i.subUnit.entityIpaCode]
+        : []
+    )
+  );
+}
+
+/**
+ * Forced propagation: enables the subunit propagation of the main entity attributes
+ * that have eligible subunits, then waits for the read model to confirm it.
+ * Attributes that cannot be enabled or confirmed are returned as suspended, so that
+ * their assignments are neither added nor revoked in the current run.
+ */
+export async function enableSubunitPropagation(
+  registryData: RegistryData,
+  platformTenants: Tenant[],
+  platformAttributes: Attribute[],
+  readModelService: ReadModelServiceSQL,
+  headers: InteropHeaders,
+  loggerInstance: Logger,
+  attributeRegistryUrl: string,
+  pollingConfig: PollingConfig
+): Promise<{
+  attributes: Attribute[];
+  suspendedAttributeIds: Set<string>;
+  failures: number;
+}> {
+  const entityCodes = getEntityCodesWithEligibleSubUnits(
+    registryData,
+    platformTenants
+  );
+
+  const attributesToEnable = platformAttributes.filter(
+    (a) =>
+      a.kind === attributeKind.certified &&
+      a.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER &&
+      a.code !== undefined &&
+      entityCodes.has(a.code) &&
+      a.subunitPropagationEnabled !== true
+  );
+
+  if (attributesToEnable.length === 0) {
+    loggerInstance.info("No subunit propagation to enable");
+    return {
+      attributes: platformAttributes,
+      suspendedAttributeIds: new Set(),
+      failures: 0,
+    };
+  }
+
+  const client =
+    attributeRegistryApi.createAttributeApiClient(attributeRegistryUrl);
+
+  const requested: Attribute[] = [];
+  const suspendedAttributeIds = new Set<string>();
+
+  for (const attribute of attributesToEnable) {
+    loggerInstance.info(
+      `Enabling subunit propagation of attribute ${attribute.origin}/${attribute.code}`
+    );
+    try {
+      await client.enableInternalAttributeSubunitPropagation(undefined, {
+        params: { attributeId: attribute.id },
+        headers,
+      });
+      requested.push(attribute);
+    } catch (error: unknown) {
+      loggerInstance.error(
+        `Failed to enable subunit propagation of attribute ${attribute.origin}/${attribute.code}. Suspending it for this run. ${describeHttpError(error)}`
+      );
+      suspendedAttributeIds.add(attribute.id);
+    }
+  }
+
+  let currentAttributes = platformAttributes;
+  let unconfirmed = requested;
+
+  for (
+    let attempt = 0;
+    unconfirmed.length > 0 && attempt < pollingConfig.defaultPollingMaxRetries;
+    attempt++
+  ) {
+    await delay(pollingConfig.defaultPollingRetryDelay);
+    currentAttributes = await readModelService.getAttributes();
+    const enabledIds = new Set(
+      currentAttributes
+        .filter((a) => a.subunitPropagationEnabled === true)
+        .map((a) => a.id)
+    );
+    unconfirmed = unconfirmed.filter((a) => !enabledIds.has(a.id));
+  }
+
+  for (const attribute of unconfirmed) {
+    loggerInstance.error(
+      `Subunit propagation of attribute ${attribute.origin}/${attribute.code} not confirmed by the read model. Suspending it for this run`
+    );
+    suspendedAttributeIds.add(attribute.id);
+  }
+
+  return {
+    attributes: currentAttributes,
+    suspendedAttributeIds,
+    failures: suspendedAttributeIds.size,
+  };
+}
+
 export function getTenantUpsertData(
   registryData: RegistryData,
   platformTenants: Tenant[],
   economicAccountCompaniesAllowlist: string[],
-  platformAttributes: Attribute[] = []
+  platformAttributes: Attribute[] = [],
+  suspendedAttributeIds: Set<string> = new Set()
 ): TenantSeed[] {
   const aooUoAttributesEnabled = isFeatureFlagEnabled(
     config,
@@ -203,7 +328,8 @@ export function getTenantUpsertData(
           a.kind === attributeKind.certified &&
           a.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER &&
           a.code &&
-          a.subunitPropagationEnabled === true
+          a.subunitPropagationEnabled === true &&
+          !suspendedAttributeIds.has(a.id)
       )
       .map((a) => a.code)
   );
@@ -666,7 +792,8 @@ export async function assignNewAttributes(
 export async function getAttributesToRevoke(
   tenantSeeds: TenantSeed[],
   platformTenants: Tenant[],
-  platformAttributes: Attribute[]
+  platformAttributes: Attribute[],
+  suspendedAttributeIds: Set<string> = new Set()
 ): Promise<
   Array<{
     tOrigin: string;
@@ -727,6 +854,7 @@ export async function getAttributesToRevoke(
         (a): a is NonNullable<typeof a & { origin: string; code: string }> =>
           a?.origin !== undefined && a?.code !== undefined
       )
+      .filter((a) => !suspendedAttributeIds.has(a.id))
       .filter((a) =>
         canBeRevoked(
           {

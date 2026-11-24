@@ -697,6 +697,32 @@ describe("TenantUpsertData", async () => {
       expect(aooCodes).toEqual([]);
     });
 
+    it("should not assign the entity attribute if it is suspended, even if the propagation is enabled", () => {
+      const entityAttribute = getEntityAttribute(true);
+
+      const platformTenants: Tenant[] = [
+        {
+          ...getMockTenant(),
+          externalId: {
+            origin: aooInstitution.origin,
+            value: aooInstitution.originId,
+          },
+        },
+      ];
+
+      const upsertData = getTenantUpsertData(
+        { institutions: [aooInstitution], attributes },
+        platformTenants,
+        economicAccountCompaniesAllowlist,
+        [entityAttribute],
+        new Set([entityAttribute.id])
+      );
+
+      expect(upsertData[0].attributes.map((a) => a.code)).not.toContain(
+        entityIpaCode
+      );
+    });
+
     it("should assign the attributes even if the entity is not onboarded in the platform", () => {
       const platformTenants: Tenant[] = [
         {

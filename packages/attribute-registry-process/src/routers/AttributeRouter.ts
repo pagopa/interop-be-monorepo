@@ -414,6 +414,30 @@ const attributeRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post(
+      "/internal/certifiedAttributes/:attributeId/subunitPropagation/enable",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+          await attributeRegistryService.internalEnableAttributeSubunitPropagation(
+            unsafeBrandId(req.params.attributeId),
+            ctx
+          );
+
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getAttributeByIdErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .post("/attributes/subunitPropagation/update", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 

@@ -179,5 +179,14 @@ describe("GetAttributesToRevoke", async () => {
         aCode: entityAttribute.code,
       },
     ]);
+
+    const attributesToRevokeWhenSuspended = await getAttributesToRevoke(
+      tenantSeed,
+      [subUnitTenant],
+      [entityAttribute],
+      new Set([entityAttribute.id])
+    );
+
+    expect(attributesToRevokeWhenSuspended).toEqual([]);
   });
 });
