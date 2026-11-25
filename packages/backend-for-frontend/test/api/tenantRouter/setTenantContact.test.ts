@@ -156,7 +156,7 @@ describe("API POST /tenants/{tenantId}/contact test", () => {
     expect(createContact).not.toHaveBeenCalled();
   });
 
-  it("keeps the email out of request logs on success, failure and malformed input", async () => {
+  it("keeps the email out of request logs on success, failure and validation errors", async () => {
     const record = vi.fn();
     const spy = vi.spyOn(commons, "logger").mockReturnValue({
       ...commons.genericLogger,
@@ -175,17 +175,39 @@ describe("API POST /tenants/{tenantId}/contact test", () => {
         .set("Authorization", `Bearer ${token}`)
         .send({ [mailSeed.address]: true });
       expect(invalid.status).toBe(400);
-      const malformed = await request(api)
-        .post(`${appBasePath}/tenants/${mockTokenOrganizationId}/contact`)
-        .set("Authorization", `Bearer ${token}`)
-        .type("json")
-        .send(mailSeed.address);
-      expect(malformed.status).toBe(400);
       expect(record).toHaveBeenCalled();
       expect(JSON.stringify(record.mock.calls)).not.toContain(mailSeed.address);
     } finally {
       spy.mockRestore();
     }
+  });
+
+  it.each(["contact", "mails"])(
+    "redacts malformed JSON on /%s before the global error handler",
+    async (path) => {
+      const response = await request(api)
+        .post(`${appBasePath}/tenants/${mockTokenOrganizationId}/${path}`)
+        .type("json")
+        .send(mailSeed.address);
+      expect(response.status).toBe(400);
+      const error = vi.mocked(commons.errorsToApiProblemsMiddleware).mock
+        .lastCall?.[0];
+      expect(error).toBeInstanceOf(SyntaxError);
+      expect(error).toHaveProperty("message", "Invalid contact request body");
+      expect(error).not.toHaveProperty("body");
+    }
+  );
+
+  it("preserves the parser error on an unrelated tenant route", async () => {
+    const response = await request(api)
+      .post(`${appBasePath}/tenants/delegatedFeatures/update`)
+      .type("json")
+      .send("malformed");
+    expect(response.status).toBe(400);
+    const error = vi.mocked(commons.errorsToApiProblemsMiddleware).mock
+      .lastCall?.[0];
+    expect(error).toBeInstanceOf(SyntaxError);
+    expect(error).toHaveProperty("body", "malformed");
   });
 
   it.each([

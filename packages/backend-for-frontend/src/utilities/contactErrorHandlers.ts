@@ -1,9 +1,6 @@
-import {
-  errorsToApiProblemsMiddleware,
-  zodiosValidationErrorToApiProblem,
-} from "pagopa-interop-commons";
+import type { ErrorRequestHandler } from "express";
 
-import { appBasePath } from "../config/appBasePath.js";
+import { zodiosValidationErrorToApiProblem } from "pagopa-interop-commons";
 
 // Contact validation issues may include the submitted address.
 export const tenantValidationErrorToApiProblem: typeof zodiosValidationErrorToApiProblem =
@@ -18,21 +15,15 @@ export const tenantValidationErrorToApiProblem: typeof zodiosValidationErrorToAp
       next
     );
 
-// JSON parser errors can contain a fragment of the submitted address.
-export const contactBodyErrorHandler: typeof errorsToApiProblemsMiddleware = (
+// Express strips the mount path. Only redact malformed bodies at the endpoint itself.
+export const contactBodyErrorHandler: ErrorRequestHandler = (
   error,
   req,
-  res,
+  _res,
   next
 ) =>
-  errorsToApiProblemsMiddleware(
-    error instanceof SyntaxError &&
-      /^\/tenants\/[^/]+\/(?:contact|mails)\/?$/i.test(
-        req.path.slice(appBasePath.length)
-      )
+  next(
+    req.path === "/" && error instanceof SyntaxError
       ? new SyntaxError("Invalid contact request body")
-      : error,
-    req,
-    res,
-    next
+      : error
   );

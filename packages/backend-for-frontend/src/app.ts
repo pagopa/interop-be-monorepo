@@ -8,6 +8,7 @@ import {
 } from "pagopa-interop-application-audit";
 import {
   authenticationMiddleware,
+  errorsToApiProblemsMiddleware,
   contextMiddleware,
   loggerMiddleware,
   zodiosCtx,
@@ -246,7 +247,17 @@ export async function createApp(
   services: BFFServices,
   rateLimiterMiddleware: RateLimiterMiddleware
 ) {
-  const app = zodiosCtx.app();
+  const expressApp = express();
+  const app = zodiosCtx.app(undefined, { express: expressApp });
+
+  // Zodios installs the JSON parser before the application routers.
+  expressApp.use(
+    [
+      `${appBasePath}/tenants/:tenantId/contact`,
+      `${appBasePath}/tenants/:tenantId/mails`,
+    ],
+    contactBodyErrorHandler
+  );
 
   // Disable the "X-Powered-By: Express" HTTP header for security reasons.
   // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
@@ -300,7 +311,7 @@ export async function createApp(
     toolRouter(zodiosCtx, services.toolsService)
   );
 
-  app.use(contactBodyErrorHandler);
+  app.use(errorsToApiProblemsMiddleware);
 
   return app;
 }
