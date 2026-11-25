@@ -1,13 +1,17 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { bffApi } from "pagopa-interop-api-clients";
-import { WithLogger } from "pagopa-interop-commons";
+import { assertFeatureFlagEnabled, WithLogger } from "pagopa-interop-commons";
+import { EServiceId } from "pagopa-interop-models";
 
+import { toBffMonitoringArchiving } from "../api/catalogApiConverter.js";
 import { toBffProducerDashboardSaturation } from "../api/purposeApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { config } from "../config/config.js";
 import { BffAppContext } from "../utilities/context.js";
 
 export function producerDashboardServiceBuilder({
   purposeProcessClient,
+  catalogProcessClient,
 }: PagoPAInteropBeClients) {
   return {
     async getProducerDashboardSaturation(
@@ -29,6 +33,26 @@ export function producerDashboardServiceBuilder({
       });
 
       return toBffProducerDashboardSaturation(result);
+    },
+    async getProducerEServiceMonitoringArchiving(
+      eserviceId: EServiceId,
+      queries: { offset: number; limit: number },
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.MonitoringArchiving> {
+      assertFeatureFlagEnabled(config, "featureFlagProducerDashboard");
+
+      logger.info(
+        `Retrieving archiving monitoring for e-service ${eserviceId}, offset ${queries.offset}, limit ${queries.limit}`
+      );
+
+      const result =
+        await catalogProcessClient.getProducerEServiceMonitoringArchiving({
+          params: { eserviceId },
+          queries,
+          headers,
+        });
+
+      return toBffMonitoringArchiving(result);
     },
   };
 }

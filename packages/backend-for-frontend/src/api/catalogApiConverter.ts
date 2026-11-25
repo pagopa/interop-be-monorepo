@@ -501,3 +501,18 @@ export function apiTechnologyToTechnology(
     .with("SOAP", () => technology.soap)
     .exhaustive();
 }
+
+export function toBffMonitoringArchiving(
+  archiving: catalogApi.MonitoringArchiving
+): bffApi.MonitoringArchiving {
+  return {
+    results: archiving.results.map((r) => ({
+      eservice: { id: r.eservice.id, name: r.eservice.name },
+      descriptorId: r.descriptorId,
+      version: r.version,
+      consumersCount: r.consumersCount,
+      archivableOn: r.archivableOn,
+    })),
+    pagination: archiving.pagination,
+  };
+}
