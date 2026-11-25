@@ -116,12 +116,19 @@ export function isEligibleForSubunitPropagation(
   tenant: tenantApi.Tenant,
   attribute: attributeRegistryApi.Attribute
 ): boolean {
+  const isMainTenant = tenant.subUnitType === undefined;
+  const hasIpaExternalId =
+    tenant.externalId.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER;
+  const isCertifiedAttribute = attribute.kind === tenantAttributeKind.certified;
+  const isIpaAttribute = attribute.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER;
+  const matchesTenantIpaCode = attribute.code === tenant.externalId.value;
+
   return (
-    tenant.subUnitType === undefined &&
-    tenant.externalId.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER &&
-    attribute.kind === tenantAttributeKind.certified &&
-    attribute.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER &&
-    attribute.code === tenant.externalId.value
+    isMainTenant &&
+    hasIpaExternalId &&
+    isCertifiedAttribute &&
+    isIpaAttribute &&
+    matchesTenantIpaCode
   );
 }
 
