@@ -10,6 +10,7 @@ export const splitAttributeIntoObjectsSQL = (
     creationTime,
     origin,
     code,
+    subunitPropagationEnabled,
     ...rest
   }: Attribute,
   metadataVersion: number
@@ -24,5 +25,6 @@ export const splitAttributeIntoObjectsSQL = (
     creationTime: dateToString(creationTime),
     origin: origin || null,
     code: code || null,
+    subunitPropagationEnabled: subunitPropagationEnabled ?? null,
   };
 };
