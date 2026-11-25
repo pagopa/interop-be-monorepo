@@ -3013,6 +3013,84 @@ paths:
           $ref: "#/components/responses/NotFound"
         "403":
           $ref: "#/components/responses/Forbidden"
+  /producers/eservices/{eserviceId}/monitoring/agreements:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: eserviceId
+        in: path
+        description: The identifier of the e-service
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - process
+      summary: Retrieve the agreements monitoring counters of an e-service
+      description: Retrieves consumers by version, consumers by kind and pending agreements of the given e-service
+      operationId: getProducerEServiceMonitoringAgreements
+      responses:
+        "200":
+          description: Agreements monitoring counters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProducerEServiceMonitoringAgreements"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /producers/eservices/{eserviceId}/monitoring/archiving:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: eserviceId
+        in: path
+        description: The identifier of the e-service
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - process
+      summary: Retrieve the archiving rows of an e-service
+      description: Retrieves one row per descriptor being archived for the given e-service
+      operationId: getProducerEServiceMonitoringArchiving
+      parameters:
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Archiving rows of the e-service
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonitoringArchiving"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /maintenance/eservices/{eServiceId}/personalDataFlag:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -4702,6 +4780,135 @@ components:
       required:
         - code
         - detail
+    ProducerEServiceMonitoringAgreements:
+      type: object
+      additionalProperties: false
+      properties:
+        consumersByVersion:
+          type: object
+          additionalProperties: false
+          properties:
+            total:
+              type: integer
+              format: int32
+            versions:
+              type: array
+              items:
+                type: object
+                additionalProperties: false
+                properties:
+                  descriptorId:
+                    type: string
+                    format: uuid
+                  version:
+                    type: string
+                  consumersCount:
+                    type: integer
+                    format: int32
+                required:
+                  - descriptorId
+                  - version
+                  - consumersCount
+            olderVersionsConsumersCount:
+              type: integer
+              format: int32
+              description: present only if the e-service has more than 3 versions
+            medianUpgradeDays:
+              type: integer
+              format: int32
+              description: absent if there are no upgrades
+          required:
+            - total
+            - versions
+        consumersByKind:
+          type: object
+          additionalProperties: false
+          properties:
+            total:
+              type: integer
+              format: int32
+            pa:
+              type: integer
+              format: int32
+            gspScp:
+              type: integer
+              format: int32
+            private:
+              type: integer
+              format: int32
+          required:
+            - total
+            - pa
+            - gspScp
+            - private
+        pendingAgreements:
+          type: integer
+          format: int32
+      required:
+        - consumersByVersion
+        - consumersByKind
+        - pendingAgreements
+    MonitoringArchivingRow:
+      type: object
+      additionalProperties: false
+      properties:
+        eservice:
+          type: object
+          additionalProperties: false
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+          required:
+            - id
+            - name
+        descriptorId:
+          type: string
+          format: uuid
+          description: absent if the whole e-service is being archived
+        version:
+          type: string
+          description: absent if the whole e-service is being archived
+        consumersCount:
+          type: integer
+          format: int32
+        archivableOn:
+          type: string
+          format: date-time
+      required:
+        - eservice
+        - consumersCount
+        - archivableOn
+    MonitoringArchiving:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/MonitoringArchivingRow"
+        pagination:
+          type: object
+          additionalProperties: false
+          properties:
+            offset:
+              type: integer
+              format: int32
+            limit:
+              type: integer
+              format: int32
+            totalCount:
+              type: integer
+              format: int32
+          required:
+            - offset
+            - limit
+            - totalCount
+      required:
+        - results
+        - pagination
     MaintenanceResetEServicePersonalDataFlagPayload:
       description: Maintenance payload to reset personalData flag
       type: object

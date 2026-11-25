@@ -18,6 +18,8 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
+import { ArchivingRow } from "./models.js";
+
 export function technologyToApiTechnology(
   input: Technology
 ): catalogApi.EServiceTechnology {
@@ -276,3 +278,15 @@ export const eServiceToApiEService = (
         }))
       : undefined,
 });
+
+export function archivingRowToApiMonitoringArchivingRow(
+  row: ArchivingRow
+): catalogApi.MonitoringArchivingRow {
+  return {
+    eservice: { id: row.eserviceId, name: row.eserviceName },
+    descriptorId: row.descriptorId,
+    version: row.version,
+    consumersCount: row.consumersCount,
+    archivableOn: row.archivableOn.toJSON(),
+  };
+}

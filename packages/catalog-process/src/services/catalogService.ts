@@ -132,8 +132,10 @@ import {
 } from "../model/domain/errors.js";
 import {
   ApiGetEServicesFilters,
+  ArchivingRow,
   Consumer,
   defaultEServiceSortBy,
+  ProducerEServiceMonitoringAgreements,
 } from "../model/domain/models.js";
 import {
   toCreateEventClonedEServiceAdded,
@@ -1122,6 +1124,71 @@ export function catalogServiceBuilder(
         eserviceId,
         offset,
         limit
+      );
+    },
+
+    async getProducerEServiceMonitoringAgreements(
+      eserviceId: EServiceId,
+      { authData, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<ProducerEServiceMonitoringAgreements> {
+      logger.info(
+        `Retrieving agreements monitoring for e-service ${eserviceId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
+
+      const {
+        versions,
+        consumersByKind,
+        medianUpgradeDays,
+        pendingAgreements,
+      } =
+        await readModelService.getProducerEServiceMonitoringAgreements(
+          eserviceId
+        );
+
+      const hasOlderVersions = versions.length > 3;
+      return {
+        consumersByVersion: {
+          total: consumersByKind.total,
+          versions: hasOlderVersions ? versions.slice(0, 2) : versions,
+          olderVersionsConsumersCount: hasOlderVersions
+            ? versions.slice(2).reduce((acc, v) => acc + v.consumersCount, 0)
+            : undefined,
+          medianUpgradeDays,
+        },
+        consumersByKind,
+        pendingAgreements,
+      };
+    },
+
+    async getProducerEServiceMonitoringArchiving(
+      eserviceId: EServiceId,
+      { offset, limit }: { offset: number; limit: number },
+      { authData, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<ListResult<ArchivingRow>> {
+      logger.info(
+        `Retrieving archiving monitoring for e-service ${eserviceId}, offset ${offset}, limit ${limit}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
+
+      return await readModelService.getArchivingRows(
+        authData.organizationId,
+        { eserviceId, collapseEServiceScope: false },
+        { offset, limit }
       );
     },
 

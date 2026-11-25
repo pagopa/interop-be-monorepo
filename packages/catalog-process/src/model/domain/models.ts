@@ -2,6 +2,7 @@ import { bffApi, catalogApi } from "pagopa-interop-api-clients";
 import {
   CONTRACT_AUTHORITY_PUBLIC_SERVICES_MANAGERS,
   DescriptorState,
+  DescriptorId,
   AgreementState,
   EServiceId,
   EServiceMode,
@@ -18,6 +19,29 @@ import {
 import { z } from "zod";
 
 export type PersonalDataFilter = bffApi.PersonalDataFilter | undefined;
+
+export type ProducerEServiceMonitoringAgreements =
+  catalogApi.ProducerEServiceMonitoringAgreements;
+
+export type EServiceMonitoringAgreementsCounters = {
+  versions: Array<{
+    descriptorId: DescriptorId;
+    version: string;
+    consumersCount: number;
+  }>;
+  consumersByKind: ProducerEServiceMonitoringAgreements["consumersByKind"];
+  medianUpgradeDays: number | undefined;
+  pendingAgreements: number;
+};
+
+export type ArchivingRow = {
+  eserviceId: EServiceId;
+  eserviceName: string;
+  descriptorId: DescriptorId | undefined;
+  version: string | undefined;
+  consumersCount: number;
+  archivableOn: Date;
+};
 
 export type EServiceSortBy = catalogApi.EServiceSortBy;
 

@@ -6,12 +6,15 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { emptyErrorMapper } from "pagopa-interop-models";
+import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 
 import { makeApiProblem } from "../model/errors.js";
 import { ProducerDashboardService } from "../services/producerDashboardService.js";
 import { fromBffAppContext } from "../utilities/context.js";
-import { getProducerDashboardSaturationErrorMapper } from "../utilities/errorMappers.js";
+import {
+  getProducerDashboardSaturationErrorMapper,
+  getProducerEServiceMonitoringArchivingErrorMapper,
+} from "../utilities/errorMappers.js";
 
 const producerDashboardRouter = (
   ctx: ZodiosContext,
@@ -42,6 +45,32 @@ const producerDashboardRouter = (
           getProducerDashboardSaturationErrorMapper,
           ctx,
           `Error retrieving producer dashboard saturation for q ${req.query.q}, sortBy ${req.query.sortBy}, offset ${req.query.offset}, limit ${req.query.limit}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    }
+  );
+
+  producerDashboardRouter.get(
+    "/producers/eservices/:eserviceId/monitoring/archiving",
+    async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result =
+          await producerDashboardService.getProducerEServiceMonitoringArchiving(
+            unsafeBrandId(req.params.eserviceId),
+            req.query,
+            ctx
+          );
+
+        return res.status(200).send(bffApi.MonitoringArchiving.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getProducerEServiceMonitoringArchivingErrorMapper,
+          ctx,
+          `Error retrieving archiving monitoring for e-service ${req.params.eserviceId}, offset ${req.query.offset}, limit ${req.query.limit}`
         );
         return res.status(errorRes.status).send(errorRes);
       }

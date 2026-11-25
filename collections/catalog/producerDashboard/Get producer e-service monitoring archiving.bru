@@ -1,0 +1,25 @@
+meta {
+  name: Get producer e-service monitoring archiving
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{host-catalog}}/producers/eservices/:eserviceId/monitoring/archiving?offset=0&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
