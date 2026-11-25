@@ -40,7 +40,7 @@ describe("API POST /catalog", () => {
 
   const makeRequest = async (
     token: string,
-    body: typeof defaultBody = defaultBody
+    body: typeof defaultBody & { sortBy?: string } = defaultBody
   ) =>
     request(api)
       .post(`${appBasePath}/catalog`)
@@ -53,6 +53,14 @@ describe("API POST /catalog", () => {
     const res = await makeRequest(token);
     expect(res.status).toBe(200);
     expect(res.body).toEqual(mockApiCatalogEServices);
+  });
+
+  it("Should accept RELEVANCE as sortBy", async () => {
+    const body = { ...defaultBody, sortBy: "RELEVANCE" };
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, body);
+
+    expect(res.status).toBe(200);
   });
 
   it.each([undefined, false, true])(

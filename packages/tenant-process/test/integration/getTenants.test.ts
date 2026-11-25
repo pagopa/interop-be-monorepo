@@ -583,7 +583,7 @@ describe("getTenants", () => {
       {
         ...targetTenant,
         parentTenants: [
-          { id: parentTenant.id, name: "", subUnitType: "AOO" },
+          { id: parentTenant.id, name: "", subUnitType: tenantUnitType.AOO },
           { id: rootTenant.id, name: rootTenant.name },
         ],
       },
@@ -845,7 +845,7 @@ describe("getTenants", () => {
       {
         id: parentTenant.id,
         name: parentTenant.name,
-        subUnitType: "AOO",
+        subUnitType: tenantUnitType.AOO,
       },
       { id: rootTenant.id, name: rootTenant.name },
     ]);
