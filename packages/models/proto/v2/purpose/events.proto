@@ -12,6 +12,14 @@ message DraftPurposeUpdatedV2 {
   PurposeV2 purpose = 1;
 }
 
+message PurposeTitleUpdatedV2 {
+  PurposeV2 purpose = 1;
+}
+
+message PurposeDescriptionUpdatedV2 {
+  PurposeV2 purpose = 1;
+}
+
 message PurposeWaitingForApprovalV2 {
   PurposeV2 purpose = 1;
 }
@@ -147,4 +155,8 @@ message PurposeRiskAnalysisSelfAssignedV2 {
   PurposeV2 purpose = 1;
   repeated RiskAnalysisReviewerV2 removedReviewers = 2;
   optional RiskAnalysisReviewModeV2 previousRiskAnalysisReviewMode = 3;
+}
+
+message MaintenancePurposeRiskAnalysisFixReviewerWorkflowV2 {
+  PurposeV2 purpose = 1;
 }

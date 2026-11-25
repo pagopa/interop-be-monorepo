@@ -1,12 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { create as createContentDisposition } from "content-disposition";
 import { constants } from "http2";
 import { bffApi } from "pagopa-interop-api-clients";
 import {
   authRole,
   ExpressContext,
   validateAuthorization,
+  WithLogger,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
@@ -17,14 +19,20 @@ import {
   unsafeBrandId,
   emptyErrorMapper,
 } from "pagopa-interop-models";
+import { z } from "zod";
 
 import {
   toBffCatalogApiDescriptorDoc,
+  toCompactCatalogEServicesQueryParams,
   toEserviceCatalogProcessQueryParams,
 } from "../api/catalogApiConverter.js";
+import {
+  placeholderMapperGenerator,
+  applyPlaceholderToError,
+} from "../model/applyError.js";
 import { makeApiProblem } from "../model/errors.js";
 import { CatalogService } from "../services/catalogService.js";
-import { fromBffAppContext } from "../utilities/context.js";
+import { BffAppContext, fromBffAppContext } from "../utilities/context.js";
 import {
   addEServiceInterfaceByTemplateErrorMapper,
   bffGetCatalogErrorMapper,
@@ -42,6 +50,20 @@ const catalogRouter = (
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
+  const commonCatalogProducerPlaceholderMapper = async (
+    usedFor: "EService" | "Template",
+    id: string,
+    ctx: WithLogger<BffAppContext>
+  ) =>
+    placeholderMapperGenerator(
+      async () =>
+        usedFor === "Template"
+          ? catalogService.getEserviceTemplateById(unsafeBrandId(id), ctx)
+          : catalogService.getProducerEServiceDetails(unsafeBrandId(id), ctx),
+      (value, message) => message.replace("{identifyingWord}", value.name),
+      (error) => ctx.logger.warn(`Error retrieving placeholder data: ${error}`)
+    );
+
   catalogRouter
     .get("/catalog", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
@@ -56,6 +78,80 @@ const catalogRouter = (
           bffGetCatalogErrorMapper,
           ctx,
           "Error retrieving Catalog EServices"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/catalog", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const response = await catalogService.queryCatalog(ctx, req.body);
+
+        return res.status(200).send(bffApi.CatalogQueryResults.parse(response));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          bffGetCatalogErrorMapper,
+          ctx,
+          "Error retrieving filtered Catalog EServices"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/catalog/featured", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const response = await catalogService.getFeaturedCatalog(ctx);
+
+        return res
+          .status(200)
+          .send(z.array(bffApi.CatalogEService).parse(response));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          bffGetCatalogErrorMapper,
+          ctx,
+          "Error retrieving featured Catalog EServices"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/catalog/use-cases", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const response = await catalogService.getCatalogUseCases(ctx);
+
+        return res
+          .status(200)
+          .send(z.array(bffApi.CatalogUseCase).parse(response));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          bffGetCatalogErrorMapper,
+          ctx,
+          "Error retrieving Catalog use cases"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/catalog/eservices", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      const queryParams = toCompactCatalogEServicesQueryParams(req.query);
+      try {
+        const response = await catalogService.getCompactCatalogEServices(
+          ctx,
+          queryParams
+        );
+
+        return res
+          .status(200)
+          .send(bffApi.CompactCatalogEServices.parse(response));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          bffGetCatalogErrorMapper,
+          ctx,
+          "Error retrieving compact Catalog EServices"
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -169,11 +265,20 @@ const catalogRouter = (
           .status(200)
           .send(bffApi.CreatedEServiceDescriptor.parse(response));
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          emptyErrorMapper,
-          ctx,
-          `Error creating EService instance from template ${req.params.templateId}`
+        const errorRes = await applyPlaceholderToError(
+          makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error creating EService instance from template ${req.params.templateId}`
+          ),
+          ["{identifyingWord}"],
+          () =>
+            commonCatalogProducerPlaceholderMapper(
+              "Template",
+              req.params.templateId,
+              ctx
+            )
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -186,11 +291,10 @@ const catalogRouter = (
           ctx
         );
 
+        const filename = response.filename.replace(/[\\/]/g, "_");
+
         return res
-          .header(
-            "Content-Disposition",
-            `attachment; filename=${response.filename}`
-          )
+          .header("Content-Disposition", createContentDisposition(filename))
           .header("Content-Type", "application/octet-stream")
           .send(response.file);
       } catch (error) {
@@ -837,6 +941,27 @@ const catalogRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .patch("/eservices/:eServiceId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const createdResource = await catalogService.patchUpdateEServiceById(
+          unsafeBrandId(req.params.eServiceId),
+          req.body,
+          ctx
+        );
+        return res
+          .status(200)
+          .send(bffApi.CreatedResource.parse(createdResource));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error updating EService ${req.params.eServiceId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .put("/eservices/:eServiceId", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
@@ -871,11 +996,20 @@ const catalogRouter = (
           .status(200)
           .send(bffApi.CreatedResource.parse(createdResource));
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          emptyErrorMapper,
-          ctx,
-          `Error updating EService ${req.params.eServiceId} template instance`
+        const errorRes = await applyPlaceholderToError(
+          makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error updating EService ${req.params.eServiceId} template instance`
+          ),
+          ["{identifyingWord}"],
+          () =>
+            commonCatalogProducerPlaceholderMapper(
+              "EService",
+              req.params.eServiceId,
+              ctx
+            )
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -1394,11 +1528,20 @@ const catalogRouter = (
           );
           return res.status(200).send(bffApi.CreatedResource.parse(result));
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            emptyErrorMapper,
-            ctx,
-            `Error updating instance label for eservice with Id: ${req.params.eServiceId}`
+          const errorRes = await applyPlaceholderToError(
+            makeApiProblem(
+              error,
+              emptyErrorMapper,
+              ctx,
+              `Error updating instance label for eservice with Id: ${req.params.eServiceId}`
+            ),
+            ["{identifyingWord}"],
+            () =>
+              commonCatalogProducerPlaceholderMapper(
+                "EService",
+                req.params.eServiceId,
+                ctx
+              )
           );
           return res.status(errorRes.status).send(errorRes);
         }

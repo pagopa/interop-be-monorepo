@@ -167,6 +167,8 @@ export async function handleMessageV2(
       { type: "WaitingForApprovalPurposeDeleted" },
       { type: "PurposeAdded" },
       { type: "DraftPurposeUpdated" },
+      { type: "PurposeTitleUpdated" },
+      { type: "PurposeDescriptionUpdated" },
       { type: "NewPurposeVersionWaitingForApproval" },
       { type: "PurposeVersionOverQuotaUnsuspended" },
       { type: "PurposeVersionRejected" },
@@ -184,6 +186,7 @@ export async function handleMessageV2(
       { type: "PurposeRiskAnalysisSigned" },
       { type: "PurposeRiskAnalysisRejected" },
       { type: "PurposeRiskAnalysisFormEdited" },
+      { type: "MaintenancePurposeRiskAnalysisFixReviewerWorkflow" },
       () => Promise.resolve()
     )
     .exhaustive();

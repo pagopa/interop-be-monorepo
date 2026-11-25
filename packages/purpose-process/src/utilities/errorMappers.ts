@@ -100,6 +100,17 @@ export const updatePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
 /** @alias */
 export const updateReversePurposeErrorMapper = updatePurposeErrorMapper;
 
+export const patchUpdatePurposeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("purposeNotInDraftState", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => updatePurposeErrorMapper(error));
+
+/** @alias */
+export const patchUpdateReversePurposeErrorMapper =
+  patchUpdatePurposeErrorMapper;
+
 export const maintenanceFixRiskAnalysisErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -109,6 +120,17 @@ export const maintenanceFixRiskAnalysisErrorMapper = (
       "eserviceNotFound",
       "tenantKindNotFound",
       "unableToDetermineTenantKind",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const maintenanceFixReviewerWorkflowErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "purposeNotFound",
+      "riskAnalysisReviewModeNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -189,6 +211,7 @@ export const createPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
       "riskAnalysisTenantKindMismatch",
       () => HTTP_STATUS_BAD_REQUEST
     )
+    .with("eserviceNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("duplicatedPurposeTitle", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -370,12 +393,15 @@ export const assignRiskAnalysisReviewerErrorMapper = (
   match(error.code)
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("tenantIsNotTheConsumer", () => HTTP_STATUS_FORBIDDEN)
-    .with("reviewerWorkflowConflict", () => HTTP_STATUS_CONFLICT)
     .with(
-      "userWithoutReviewerPrivileges",
+      "reviewerWorkflowConflict",
+      "purposeNotInDraftState",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .with(
+      "userNotFoundOrWithoutReviewerPrivileges",
       "duplicatedReviewersInSeed",
       "purposeFromTemplateCannotBeModified",
-      "purposeNotInDraftState",
       "reviewerWorkflowNotAllowedForDelegatedPurpose",
       "reviewerWorkflowNotAllowedForReceiveMode",
       "missingReviewers",
@@ -428,6 +454,8 @@ export const signRiskAnalysisErrorMapper = (
     .with(
       "reviewerWorkflowNotInSignableState",
       "purposeMetadataVersionMismatch",
+      "riskAnalysisAlreadyApproved",
+      "riskAnalysisAlreadyRejected",
       () => HTTP_STATUS_CONFLICT
     )
     .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
@@ -445,7 +473,12 @@ export const rejectRiskAnalysisErrorMapper = (
       "tenantIsNotTheDelegatedConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
-    .with("reviewerWorkflowNotInSubmittedState", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "reviewerWorkflowNotInSubmittedState",
+      "riskAnalysisAlreadyApproved",
+      "riskAnalysisAlreadyRejected",
+      () => HTTP_STATUS_CONFLICT
+    )
     .with("rejectNotAllowedInCurrentMode", () => HTTP_STATUS_CONFLICT)
     .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -464,6 +497,8 @@ export const editRiskAnalysisFormErrorMapper = (
     .with(
       "editNotAllowedForReviewMode",
       "reviewerWorkflowNotEditable",
+      "riskAnalysisAlreadyApproved",
+      "riskAnalysisAlreadyRejected",
       () => HTTP_STATUS_CONFLICT
     )
     .with("riskAnalysisValidationFailed", () => HTTP_STATUS_BAD_REQUEST)

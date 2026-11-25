@@ -513,4 +513,21 @@ describe("createKey", () => {
       )
     ).rejects.toThrowError(hyperlinkDetectionError(nameWithHyperlink));
   });
+
+  it("should throw hyperlinkDetectionError when the key alg contains a hyperlink", async () => {
+    const algWithHyperlink = "A URL injected http://injected.example.test";
+    const seedWithHyperlink: authorizationApi.KeySeed = {
+      ...keySeed,
+      alg: algWithHyperlink,
+    };
+    await expect(
+      authorizationService.createKey(
+        {
+          clientId: mockClient.id,
+          keySeed: seedWithHyperlink,
+        },
+        getMockContext({ authData: mockAuthData })
+      )
+    ).rejects.toThrowError(hyperlinkDetectionError(algWithHyperlink));
+  });
 });

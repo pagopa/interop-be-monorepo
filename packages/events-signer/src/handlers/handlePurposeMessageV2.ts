@@ -140,6 +140,8 @@ export const handlePurposeMessageV2 = async (
         {
           type: P.union(
             "DraftPurposeUpdated",
+            "PurposeTitleUpdated",
+            "PurposeDescriptionUpdated",
             "PurposeWaitingForApproval",
             "DraftPurposeDeleted",
             "WaitingForApprovalPurposeDeleted",
@@ -154,7 +156,8 @@ export const handlePurposeMessageV2 = async (
             "PurposeRiskAnalysisSubmitted",
             "PurposeRiskAnalysisSigned",
             "PurposeRiskAnalysisRejected",
-            "PurposeRiskAnalysisFormEdited"
+            "PurposeRiskAnalysisFormEdited",
+            "MaintenancePurposeRiskAnalysisFixReviewerWorkflow"
           ),
         },
         (event) => {

@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
 import AdmZip from "adm-zip";
+import { isAxiosError } from "axios";
 import { randomUUID } from "crypto";
 import {
   agreementApi,
@@ -21,6 +22,9 @@ import {
   formatDateyyyyMMddTHHmmss,
   getAllFromPaginated,
   getRulesetExpiration,
+  isDefined,
+  removeDuplicates,
+  retry,
   verifyAndCreateDocument,
   verifyAndCreateImportedDocument,
 } from "pagopa-interop-commons";
@@ -30,10 +34,12 @@ import {
   EServiceId,
   EServiceTemplateId,
   genericInternalError,
+  Problem,
   RiskAnalysisId,
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 
 import {
   apiTechnologyToTechnology,
@@ -44,7 +50,9 @@ import {
   toBffCatalogApiEserviceRiskAnalysisSeed,
   toBffCatalogDescriptorEService,
   toBffEServiceTemplateInstance,
+  toBffCatalogQueryTemplateInstancesGroup,
   toCatalogCreateEServiceSeed,
+  toCompactCatalogEService,
   toCompactProducerDescriptor,
   enhanceEServiceToBffCatalogApiProducerDescriptorEService,
   enhanceEServiceRiskAnalysisArray,
@@ -55,7 +63,12 @@ import {
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
 import { BffProcessConfig, config } from "../config/config.js";
-import { ASYNC_EXCHANGE_CALLBACK_INTERFACE_FOLDER } from "../config/constants.js";
+import {
+  ASYNC_EXCHANGE_CALLBACK_INTERFACE_FOLDER,
+  CATALOG_EVENT_CONFLICT_CODE,
+  EVENT_CONFLICT_MAX_ATTEMPTS,
+  EVENT_CONFLICT_RETRY_DELAY_MS,
+} from "../config/constants.js";
 import {
   eserviceDescriptorNotFound,
   eserviceRiskNotFound,
@@ -76,7 +89,11 @@ import {
   createDescriptorDocumentZipFile,
 } from "../utilities/fileUtils.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
-import { getLatestAgreementsOnDescriptor } from "./agreementService.js";
+import { getUseCases } from "../utilities/useCasesUtils.js";
+import {
+  getAllAgreements,
+  getLatestAgreementsOnDescriptor,
+} from "./agreementService.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 import {
   getAllDelegations,
@@ -88,8 +105,18 @@ import {
   assertNotDelegatedEservice,
   assertRequesterCanActAsProducer,
   assertRequesterIsProducer,
+  isAgreementSubscribed,
   isInvalidDescriptor,
 } from "./validators.js";
+
+const featuredEServicesLimit = 12;
+
+const isCatalogEventConflict = (error: unknown): boolean =>
+  isAxiosError<Problem>(error) &&
+  error.response?.status === 409 &&
+  error.response.data.errors?.some(
+    ({ code }) => code === CATALOG_EVENT_CONFLICT_CODE
+  ) === true;
 
 const enhanceCatalogEservices = async (
   eservices: catalogApi.EService[],
@@ -157,6 +184,50 @@ const enhanceCatalogEservices = async (
   return await Promise.all(
     eservices.map(enhanceEService(requesterId, notifications))
   );
+};
+
+const getUseCasesEservices = async (
+  eserviceIds: EServiceId[],
+  catalogProcessClient: catalogApi.CatalogProcessClient,
+  agreementProcessClient: agreementApi.AgreementProcessClient,
+  tenantProcessClient: TenantProcessClient,
+  inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient,
+  ctx: WithLogger<BffAppContext>
+): Promise<{
+  eservices: bffApi.CatalogEService[];
+  subscribedEserviceIds: Set<string>;
+}> => {
+  if (eserviceIds.length === 0) {
+    return { eservices: [], subscribedEserviceIds: new Set() };
+  }
+
+  const [eservices, agreements] = await Promise.all([
+    getAllFromPaginated((offset, limit) =>
+      catalogProcessClient.getEServices({
+        headers: ctx.headers,
+        queries: { offset, limit, eservicesIds: eserviceIds },
+      })
+    ),
+    getAllAgreements(agreementProcessClient, ctx.headers, {
+      consumersIds: [ctx.authData.organizationId],
+      eservicesIds: eserviceIds,
+    }),
+  ]);
+
+  return {
+    eservices: await enhanceCatalogEservices(
+      eservices,
+      tenantProcessClient,
+      inAppNotificationManagerClient,
+      ctx,
+      ctx.authData.organizationId
+    ),
+    subscribedEserviceIds: new Set(
+      agreements
+        .filter((agreement) => isAgreementSubscribed(agreement))
+        .map((agreement) => agreement.eserviceId)
+    ),
+  };
 };
 
 const checkNewTemplateVersionAvailable = (
@@ -377,6 +448,193 @@ export function catalogServiceBuilder(
         },
       };
       return response;
+    },
+    queryCatalog: async (
+      ctx: WithLogger<BffAppContext>,
+      filters: bffApi.CatalogFilterPayload
+    ): Promise<bffApi.CatalogQueryResults> => {
+      ctx.logger.info(
+        `Querying EServices catalog, offset = ${filters.offset}, limit = ${filters.limit}, groupByTemplate = ${filters.groupByTemplate}`
+      );
+      const requesterId = ctx.authData.organizationId;
+      const queryResponse: catalogApi.CatalogQueryResults =
+        await catalogProcessClient.queryEServices(filters, {
+          headers: ctx.headers,
+        });
+
+      const eservices = queryResponse.results.flatMap((result) =>
+        result.resultType === "eservice" ? [result] : []
+      );
+      const enhancedEServices = new Map(
+        (
+          await enhanceCatalogEservices(
+            eservices,
+            tenantProcessClient,
+            inAppNotificationManagerClient,
+            ctx,
+            requesterId
+          )
+        ).map((eservice) => [eservice.id, eservice])
+      );
+
+      const results = queryResponse.results.flatMap(
+        (result): bffApi.CatalogQueryResult[] =>
+          match(result)
+            .with({ resultType: "eservice" }, ({ id }) => {
+              const eservice = enhancedEServices.get(id);
+              return eservice
+                ? [{ ...eservice, resultType: "eservice" as const }]
+                : [];
+            })
+            .with({ resultType: "template" }, (group) => [
+              toBffCatalogQueryTemplateInstancesGroup(group),
+            ])
+            .exhaustive()
+      );
+
+      return {
+        results,
+        pagination: {
+          offset: filters.offset,
+          limit: filters.limit,
+          totalCount: queryResponse.totalCount,
+        },
+      };
+    },
+    getFeaturedCatalog: async (
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.CatalogEService[]> => {
+      ctx.logger.info("Retrieving featured EServices catalog");
+      const requesterId = ctx.authData.organizationId;
+      const eservicesResponse: catalogApi.CatalogQueryResults =
+        await catalogProcessClient.queryEServices(
+          {
+            offset: 0,
+            limit: featuredEServicesLimit,
+            onlyActiveEservices: true,
+            availableForRequester: true,
+            subscribedByRequester: false,
+            sortBy: "CREATED_AT_DESC",
+            groupByTemplate: false,
+          },
+          { headers: ctx.headers }
+        );
+
+      const eservices = eservicesResponse.results.map((result) => {
+        if (result.resultType !== "eservice") {
+          throw genericInternalError(
+            "Unexpected template group in featured catalog"
+          );
+        }
+        return result;
+      });
+
+      return enhanceCatalogEservices(
+        eservices,
+        tenantProcessClient,
+        inAppNotificationManagerClient,
+        ctx,
+        requesterId
+      );
+    },
+    getCompactCatalogEServices: async (
+      ctx: WithLogger<BffAppContext>,
+      queries: catalogApi.GetEServicesQueryParams
+    ): Promise<bffApi.CompactCatalogEServices> => {
+      const {
+        offset,
+        limit,
+        states,
+        name,
+        mode,
+        agreementStates,
+        isConsumerDelegable,
+        personalData,
+      } = queries;
+      ctx.logger.info(
+        `Retrieving compact catalog EServices for name = ${name}, states = ${states}, agreementStates = ${agreementStates}, isConsumerDelegable = ${isConsumerDelegable}, mode = ${mode}, personalData = ${personalData}, offset = ${offset}, limit = ${limit}`
+      );
+
+      const eservicesResponse: catalogApi.EServices =
+        await catalogProcessClient.getEServices({
+          headers: ctx.headers,
+          queries,
+        });
+
+      const producersIds = new Set(
+        eservicesResponse.results.map((e) => e.producerId)
+      );
+      const producers = new Map(
+        await Promise.all(
+          Array.from(producersIds).map(
+            async (producerId): Promise<[string, tenantApi.Tenant]> => [
+              producerId,
+              await tenantProcessClient.tenant.getTenant({
+                headers: ctx.headers,
+                params: { id: producerId },
+              }),
+            ]
+          )
+        )
+      );
+
+      return {
+        results: eservicesResponse.results.map((eservice) => {
+          const producer = producers.get(eservice.producerId);
+          if (!producer) {
+            throw tenantNotFound(unsafeBrandId<TenantId>(eservice.producerId));
+          }
+          return toCompactCatalogEService(
+            eservice,
+            producer,
+            getLatestActiveDescriptor(eservice)
+          );
+        }),
+        pagination: {
+          offset,
+          limit,
+          totalCount: eservicesResponse.totalCount,
+        },
+      };
+    },
+    getCatalogUseCases: async (
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.CatalogUseCase[]> => {
+      ctx.logger.info(`Retrieving catalog use cases, locale = ${ctx.locale}`);
+
+      const useCases = await getUseCases(
+        fileManager,
+        bffConfig,
+        ctx.locale,
+        ctx.logger
+      );
+      const { eservices, subscribedEserviceIds } = await getUseCasesEservices(
+        removeDuplicates(useCases.flatMap((useCase) => useCase.eserviceIds)),
+        catalogProcessClient,
+        agreementProcessClient,
+        tenantProcessClient,
+        inAppNotificationManagerClient,
+        ctx
+      );
+      const eservicesById = new Map(
+        eservices.map((eservice) => [eservice.id, eservice])
+      );
+
+      return useCases.map(({ eserviceIds, ...useCase }) => {
+        const useCaseEservices = removeDuplicates(eserviceIds)
+          .map((eserviceId) => eservicesById.get(eserviceId))
+          .filter(isDefined);
+
+        return {
+          ...useCase,
+          subscribedEservices: useCaseEservices.filter((eservice) =>
+            subscribedEserviceIds.has(eservice.id)
+          ),
+          unsubscribedEservices: useCaseEservices.filter(
+            (eservice) => !subscribedEserviceIds.has(eservice.id)
+          ),
+        };
+      });
     },
     getProducerEServiceDescriptor: async (
       eserviceId: EServiceId,
@@ -698,6 +956,18 @@ export function catalogServiceBuilder(
       );
       return { id, descriptorId: descriptors[0].id };
     },
+    patchUpdateEServiceById: async (
+      eServiceId: EServiceId,
+      seed: bffApi.PatchUpdateEServiceSeed,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> => {
+      logger.info(`Partially updating EService ${eServiceId}`);
+      const { id } = await catalogProcessClient.patchUpdateDraftEServiceById(
+        seed,
+        { headers, params: { eServiceId } }
+      );
+      return { id };
+    },
     updateEServiceById: async (
       eServiceId: EServiceId,
       updateEServiceSeed: bffApi.UpdateEServiceSeed,
@@ -804,23 +1074,31 @@ export function catalogServiceBuilder(
           contentType,
           checksum
         ) => {
-          await catalogProcessClient.createEServiceDocument(
+          await retry(
+            () =>
+              catalogProcessClient.createEServiceDocument(
+                {
+                  documentId,
+                  prettyName,
+                  fileName,
+                  filePath,
+                  kind,
+                  contentType,
+                  checksum,
+                  serverUrls,
+                },
+                {
+                  headers: ctx.headers,
+                  params: {
+                    eServiceId: eService.id,
+                    descriptorId,
+                  },
+                }
+              ),
             {
-              documentId,
-              prettyName,
-              fileName,
-              filePath,
-              kind,
-              contentType,
-              checksum,
-              serverUrls,
-            },
-            {
-              headers: ctx.headers,
-              params: {
-                eServiceId: eService.id,
-                descriptorId,
-              },
+              retries: EVENT_CONFLICT_MAX_ATTEMPTS,
+              delay: EVENT_CONFLICT_RETRY_DELAY_MS,
+              shouldRetry: isCatalogEventConflict,
             }
           );
         },
@@ -2397,6 +2675,18 @@ export function catalogServiceBuilder(
           }
         );
       return { id: eservice.id };
+    },
+    getEserviceTemplateById: async (
+      templateId: EServiceTemplateId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<eserviceTemplateApi.EServiceTemplate> => {
+      logger.info(`Retrieving e-service template with id = ${templateId}`);
+      return await eserviceTemplateProcessClient.getEServiceTemplateById({
+        headers,
+        params: {
+          templateId,
+        },
+      });
     },
   };
 }

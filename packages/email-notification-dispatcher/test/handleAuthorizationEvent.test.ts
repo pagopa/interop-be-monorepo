@@ -112,6 +112,35 @@ describe("handleAuthorizationEvent", () => {
       ]);
   });
 
+  it.each([
+    "ProducerKeychainNameUpdated",
+    "ProducerKeychainDescriptionUpdated",
+  ] as const)(
+    "%s should not produce operational notifications",
+    async (type) => {
+      expect(
+        await handleAuthorizationEvent({
+          decodedMessage: {
+            ...decodedMessage,
+            event_version: 2,
+            type,
+            data: {
+              producerKeychain: toProducerKeychainV2(
+                producerKeychainAfterDeletion
+              ),
+            },
+          },
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })
+      ).toEqual([]);
+      expect(readModelService.getTenantById).not.toHaveBeenCalled();
+      expect(readModelService.getEServiceById).not.toHaveBeenCalled();
+    }
+  );
+
   it("should return both existing and async-eservice email notifications for ProducerKeychainKeyDeleted", async () => {
     const messages = await handleAuthorizationEvent({
       decodedMessage,

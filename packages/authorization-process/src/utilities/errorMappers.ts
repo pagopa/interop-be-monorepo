@@ -48,6 +48,20 @@ export const deleteClientErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with("tenantNotAllowedOnClient", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const updateClientErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("tenantNotAllowedOnClient", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updateProducerKeychainErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("producerKeychainNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("tenantNotAllowedOnProducerKeychain", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const removeClientUserErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -215,6 +229,7 @@ export const createProducerKeychainErrorMapper = (
 ): number =>
   match(error.code)
     .with("duplicatedMembersInSeed", () => HTTP_STATUS_BAD_REQUEST)
+    .with("userNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getProducerKeychainsErrorMapper = (
@@ -325,6 +340,7 @@ export const addProducerKeychainEServiceErrorMapper = (
     .with(
       "tenantNotAllowedOnProducerKeychain",
       "tenantNotAllowedOnEService",
+      "eserviceInArchivedState",
       () => HTTP_STATUS_FORBIDDEN
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

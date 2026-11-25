@@ -25,6 +25,7 @@ import {
   EService,
   WithMetadata,
   EServiceId,
+  DescriptorId,
   TenantId,
   Tenant,
   Purpose,
@@ -45,6 +46,7 @@ import {
   Client,
   UserId,
   RiskAnalysisSigningState,
+  riskAnalysisSigningState,
   TenantKind,
 } from "pagopa-interop-models";
 import {
@@ -85,6 +87,7 @@ export type GetPurposesFilters = {
   excludeDraft: boolean | undefined;
   reviewerId?: UserId;
   signingStates?: RiskAnalysisSigningState[];
+  sortByRiskAnalysisAssignmentDateDescending?: boolean;
 };
 
 const activeProducerDelegations = alias(
@@ -355,6 +358,60 @@ export function readModelServiceBuilderSQL({
     ): Promise<ListResult<Purpose>> {
       const { producersIds, consumersIds, purposesIds, ...otherFilters } =
         filters;
+      const {
+        reviewerId,
+        signingStates,
+        sortByRiskAnalysisAssignmentDateDescending,
+      } = otherFilters;
+      const orderBy = [
+        ascLower(purposeInReadmodelPurpose.title),
+        asc(purposeInReadmodelPurpose.id),
+      ];
+
+      if (
+        sortByRiskAnalysisAssignmentDateDescending === true &&
+        reviewerId &&
+        signingStates &&
+        signingStates.length > 0
+      ) {
+        if (
+          signingStates.every(
+            (state) =>
+              state === riskAnalysisSigningState.assigned ||
+              state === riskAnalysisSigningState.submitted
+          )
+        ) {
+          const assignmentDate = readModelDB
+            .select({
+              sentToReviewerAt:
+                riskAnalysisReviewerInReadmodelPurpose.sentToReviewerAt,
+            })
+            .from(riskAnalysisReviewerInReadmodelPurpose)
+            .where(
+              and(
+                eq(
+                  riskAnalysisReviewerInReadmodelPurpose.purposeId,
+                  purposeInReadmodelPurpose.id
+                ),
+                eq(
+                  riskAnalysisReviewerInReadmodelPurpose.reviewerId,
+                  reviewerId
+                )
+              )
+            );
+          orderBy.unshift(sql`(${assignmentDate}) desc nulls last`);
+        } else if (
+          signingStates.every(
+            (state) =>
+              state === riskAnalysisSigningState.signed ||
+              state === riskAnalysisSigningState.rejected
+          )
+        ) {
+          orderBy.unshift(
+            sql`coalesce(${purposeInReadmodelPurpose.reviewerWorkflowSignedAt}, ${purposeInReadmodelPurpose.reviewerWorkflowRejectedAt}) desc nulls last`
+          );
+        }
+      }
 
       const subquery = addDelegationJoins(
         readModelDB
@@ -388,10 +445,7 @@ export function readModelServiceBuilderSQL({
             )
           )
           .groupBy(purposeInReadmodelPurpose.id)
-          .orderBy(
-            ascLower(purposeInReadmodelPurpose.title),
-            asc(purposeInReadmodelPurpose.id)
-          )
+          .orderBy(...orderBy)
           .limit(limit)
           .offset(offset)
           .$dynamic()
@@ -485,10 +539,7 @@ export function readModelServiceBuilderSQL({
             eserviceInReadmodelCatalog.id
           )
         )
-        .orderBy(
-          ascLower(purposeInReadmodelPurpose.title),
-          asc(purposeInReadmodelPurpose.id)
-        );
+        .orderBy(...orderBy);
 
       const purposes = aggregatePurposeArray(
         toPurposeAggregatorArray(queryResult)
@@ -514,11 +565,13 @@ export function readModelServiceBuilderSQL({
     },
     async getActiveVersionsDailyCalls(
       eserviceId: EServiceId,
-      consumerId: TenantId
+      consumerId: TenantId,
+      descriptorId: DescriptorId
     ): Promise<{ consumerDailyCalls: number; totalDailyCalls: number }> {
       // Aggregates the daily calls of the Active purpose versions for the given
       // e-service directly in the DB, returning both the total across all
-      // consumers and the amount attributable to the requesting consumer.
+      // consumers with an Active or Suspended agreement on the given descriptor
+      // and the amount attributable to the requesting consumer.
       // This avoids loading every purpose of the e-service into memory (which,
       // for e-services with many purposes, could exhaust the heap and lead to OOM).
       const [result] = await readModelDB
@@ -540,9 +593,27 @@ export function readModelServiceBuilderSQL({
             purposeInReadmodelPurpose.id
           )
         )
+        .innerJoin(
+          agreementInReadmodelAgreement,
+          and(
+            eq(
+              agreementInReadmodelAgreement.eserviceId,
+              purposeInReadmodelPurpose.eserviceId
+            ),
+            eq(
+              agreementInReadmodelAgreement.consumerId,
+              purposeInReadmodelPurpose.consumerId
+            ),
+            inArray(agreementInReadmodelAgreement.state, [
+              agreementState.active,
+              agreementState.suspended,
+            ])
+          )
+        )
         .where(
           and(
             eq(purposeInReadmodelPurpose.eserviceId, eserviceId),
+            eq(agreementInReadmodelAgreement.descriptorId, descriptorId),
             eq(
               purposeVersionInReadmodelPurpose.state,
               purposeVersionState.active

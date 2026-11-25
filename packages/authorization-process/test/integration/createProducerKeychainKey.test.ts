@@ -28,6 +28,7 @@ import {
   Client,
   notAnRSAKey,
   invalidPublicKey,
+  hyperlinkDetectionError,
 } from "pagopa-interop-models";
 import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
 
@@ -438,5 +439,22 @@ describe("createProducerKeychainKey", () => {
         getMockContext({ authData: mockAuthData })
       )
     ).rejects.toThrowError(invalidKeyLength(1024, 2048));
+  });
+
+  it("should throw hyperlinkDetectionError when the key alg contains a hyperlink", async () => {
+    const algWithHyperlink = "A URL injected http://injected.example.test";
+    const seedWithHyperlink: authorizationApi.KeySeed = {
+      ...keySeed,
+      alg: algWithHyperlink,
+    };
+    await expect(
+      authorizationService.createProducerKeychainKey(
+        {
+          producerKeychainId: mockProducerKeychain.id,
+          keySeed: seedWithHyperlink,
+        },
+        getMockContext({ authData: mockAuthData })
+      )
+    ).rejects.toThrowError(hyperlinkDetectionError(algWithHyperlink));
   });
 });

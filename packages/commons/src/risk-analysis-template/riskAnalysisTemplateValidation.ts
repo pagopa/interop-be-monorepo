@@ -9,11 +9,11 @@ import {
   buildValidationRules,
   getLatestVersionFormRules,
 } from "../risk-analysis/riskAnalysisValidation.js";
+import { containsUnexpectedRiskAnalysisHyperlink } from "../risk-analysis/riskAnalysisValidationUtils.js";
 import {
   buildLabel,
   formRules,
 } from "../risk-analysis/rules/riskAnalysisFormRulesProvider.js";
-import { containsHyperlink } from "../utils/regexpUtils.js";
 import {
   RiskAnalysisFormTemplateToValidate,
   RiskAnalysisTemplateAnswerToValidate,
@@ -340,7 +340,9 @@ function validateFreeTextAnswerSuggestionsHaveNoHyperlinks(
   rule: ValidationRule,
   suggestedValues: string[]
 ): RiskAnalysisTemplateValidationIssue[] {
-  return suggestedValues.some(containsHyperlink)
+  return suggestedValues.some((value) =>
+    containsUnexpectedRiskAnalysisHyperlink(rule.fieldName, value)
+  )
     ? [unexpectedRiskAnalysisTemplateFieldHyperlinkError(rule.fieldName)]
     : [];
 }

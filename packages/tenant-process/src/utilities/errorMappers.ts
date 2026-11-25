@@ -167,7 +167,11 @@ export const maintenanceTenantUpdatedErrorMapper = (
 ): number =>
   match(error.code)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("invalidTenantFeature", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "invalidTenantFeature",
+      "tenantUpdateVersionMismatch",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const maintenanceTenantDeleteRemoteIdErrorMapper = (
@@ -286,6 +290,7 @@ export const updateTenantDelegatedFeaturesErrorMapper = (
 ): number =>
   match(error.code)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with("tenantNotAllowedForDelegation", () => HTTP_STATUS_FORBIDDEN)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 

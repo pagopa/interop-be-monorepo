@@ -6,3 +6,14 @@ export const activeDescriptorStates: DescriptorState[] = [
   descriptorState.deprecated,
   descriptorState.archived,
 ];
+
+export const catalogVisibleDescriptorStates: DescriptorState[] = [
+  descriptorState.published,
+  descriptorState.suspended,
+];
+
+export const catalogRelevantDescriptorStates: DescriptorState[] = [
+  descriptorState.published,
+  descriptorState.suspended,
+  descriptorState.deprecated,
+];

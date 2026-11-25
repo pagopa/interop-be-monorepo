@@ -150,8 +150,15 @@ async function handlePurposeEventV2(
            */
           type: P.union(
             "RiskAnalysisDocumentGenerated",
-            "MaintenancePurposeRiskAnalysisSetTenantKind"
+            "MaintenancePurposeRiskAnalysisSetTenantKind",
+            "MaintenancePurposeRiskAnalysisFixReviewerWorkflow"
           ),
+        },
+        () => Promise.resolve(void 0)
+      )
+      .with(
+        {
+          type: P.union("PurposeTitleUpdated", "PurposeDescriptionUpdated"),
         },
         () => Promise.resolve(void 0)
       )

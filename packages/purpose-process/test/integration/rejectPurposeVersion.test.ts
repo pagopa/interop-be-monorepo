@@ -6,10 +6,12 @@ import {
   getMockDelegation,
   getMockAuthData,
   getMockContext,
+  getMockContextM2MAdmin,
   getMockEService,
 } from "pagopa-interop-commons-test";
 import {
   purposeVersionState,
+  purposeWaitingForApprovalReason,
   Purpose,
   generateId,
   PurposeVersionRejectedV2,
@@ -41,7 +43,113 @@ import {
 } from "../integrationUtils.js";
 
 describe("rejectPurposeVersion", () => {
-  it("should write on event-store for the rejection of a purpose version ", async () => {
+  it.each(Object.values(purposeWaitingForApprovalReason))(
+    "clears quota reason %s when rejecting a purpose version",
+    async (waitingForApprovalReason) => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date());
+
+      const mockEService = getMockEService();
+      const mockPurposeVersion = {
+        ...getMockPurposeVersion(),
+        state: purposeVersionState.waitingForApproval,
+        waitingForApprovalReason,
+      };
+      const mockPurpose: Purpose = {
+        ...getMockPurpose(),
+        eserviceId: mockEService.id,
+        versions: [mockPurposeVersion],
+      };
+
+      await addOnePurpose(mockPurpose);
+      await addOneEService(mockEService);
+
+      await purposeService.rejectPurposeVersion(
+        {
+          purposeId: mockPurpose.id,
+          versionId: mockPurposeVersion.id,
+          rejectionReason: "test",
+        },
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      );
+
+      const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
+
+      expect(writtenEvent).toMatchObject({
+        stream_id: mockPurpose.id,
+        version: "1",
+        type: "PurposeVersionRejected",
+        event_version: 2,
+      });
+
+      const writtenPayload = decodeProtobufPayload({
+        messageType: PurposeVersionRejectedV2,
+        payload: writtenEvent.data,
+      });
+
+      const expectedPurposeVersion: PurposeVersion = {
+        ...mockPurposeVersion,
+        state: purposeVersionState.rejected,
+        waitingForApprovalReason: undefined,
+        rejectionReason: "test",
+        updatedAt: new Date(),
+      };
+      const expectedPurpose: Purpose = {
+        ...mockPurpose,
+        versions: [expectedPurposeVersion],
+        updatedAt: new Date(),
+      };
+
+      expect(writtenPayload).toEqual({
+        purpose: toPurposeV2(expectedPurpose),
+        versionId: mockPurposeVersion.id,
+      });
+
+      vi.useRealTimers();
+    }
+  );
+  it("should return the rejected purpose version with metadata", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+
+    const mockEService = getMockEService();
+    const mockPurposeVersion = {
+      ...getMockPurposeVersion(),
+      state: purposeVersionState.waitingForApproval,
+    };
+    const mockPurpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: mockEService.id,
+      versions: [mockPurposeVersion],
+    };
+
+    await addOnePurpose(mockPurpose);
+    await addOneEService(mockEService);
+
+    const rejectResponse = await purposeService.rejectPurposeVersion(
+      {
+        purposeId: mockPurpose.id,
+        versionId: mockPurposeVersion.id,
+        rejectionReason: "test",
+      },
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+    );
+
+    const expectedPurposeVersion: PurposeVersion = {
+      ...mockPurposeVersion,
+      state: purposeVersionState.rejected,
+      rejectionReason: "test",
+      updatedAt: new Date(),
+    };
+
+    expect(rejectResponse).toEqual({
+      data: expectedPurposeVersion,
+      metadata: { version: 1 },
+    });
+
+    vi.useRealTimers();
+  });
+  it("should write on event-store for the rejection of a purpose version when the requester is the producer with M2M admin role", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
@@ -65,7 +173,7 @@ describe("rejectPurposeVersion", () => {
         versionId: mockPurposeVersion.id,
         rejectionReason: "test",
       },
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      getMockContextM2MAdmin({ organizationId: mockEService.producerId })
     );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);

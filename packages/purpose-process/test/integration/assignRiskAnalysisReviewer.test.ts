@@ -10,6 +10,7 @@ import {
   getMockContext,
   getMockTenant,
   getMockValidRiskAnalysisForm,
+  sortPurpose,
 } from "pagopa-interop-commons-test";
 import {
   Purpose,
@@ -43,7 +44,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   purposeNotFound,
   tenantIsNotTheConsumer,
-  userWithoutReviewerPrivileges,
+  userNotFoundOrWithoutReviewerPrivileges,
   missingSelfcareId,
   missingReviewers,
   reviewersNotAllowedForReviewMode,
@@ -907,8 +908,8 @@ describe("assignRiskAnalysisReviewer", () => {
         );
 
       expect(updatedPurpose.riskAnalysisReviewMode).toBe(requestedReviewMode);
-      expect(updatedPurpose.riskAnalysisForm).toEqual(
-        shouldResetForm ? undefined : riskAnalysisForm
+      expect(sortPurpose(updatedPurpose).riskAnalysisForm).toEqual(
+        shouldResetForm ? undefined : sortPurpose(mockPurpose).riskAnalysisForm
       );
 
       expect(updatedPurpose.reviewerWorkflow?.signingState, description).toBe(
@@ -1189,7 +1190,7 @@ describe("assignRiskAnalysisReviewer", () => {
     ).rejects.toThrow(missingSelfcareId(mockTenant.id));
   });
 
-  it("should throw userWithoutReviewerPrivileges if the reviewer is not a reviewer in selfcare", async () => {
+  it("should throw userNotFoundOrWithoutReviewerPrivileges when Selfcare returns no reviewer", async () => {
     const mockEService = getMockEService();
     const mockTenant = getMockTenant();
     const mockPurpose: Purpose = {
@@ -1206,7 +1207,7 @@ describe("assignRiskAnalysisReviewer", () => {
 
     mockSelfcareV2ClientCall([]);
 
-    expect(
+    await expect(
       purposeService.assignRiskAnalysisReviewer(
         mockPurpose.id,
         {
@@ -1215,7 +1216,9 @@ describe("assignRiskAnalysisReviewer", () => {
         },
         getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       )
-    ).rejects.toThrow(userWithoutReviewerPrivileges(mockTenant.id, reviewerId));
+    ).rejects.toThrow(
+      userNotFoundOrWithoutReviewerPrivileges(mockTenant.id, reviewerId)
+    );
   });
 
   it("should throw purposeFromTemplateCannotBeModified if the purpose is from a template", async () => {

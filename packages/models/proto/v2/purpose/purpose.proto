@@ -25,6 +25,13 @@ message PurposeV2 {
   optional RiskAnalysisReviewModeV2 riskAnalysisReviewMode = 18;
 }
 
+enum PurposeWaitingForApprovalReasonV2 {
+  PURPOSE_WAITING_FOR_APPROVAL_REASON_UNSPECIFIED = 0;
+  PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_PER_CONSUMER = 1;
+  PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_TOTAL = 2;
+  PURPOSE_WAITING_FOR_APPROVAL_REASON_DAILY_CALLS_PER_CONSUMER_AND_TOTAL = 3;
+}
+
 message PurposeVersionV2 {
   string id = 1;
   PurposeStateV2 state = 2;
@@ -37,6 +44,8 @@ message PurposeVersionV2 {
   optional string rejectionReason = 9;
   optional PurposeVersionStampsV2 stamps = 10;
   optional PurposeVersionSignedDocumentV2 signedContract = 11;
+  // Quota decision while waiting for approval, cleared on rejection or activation.
+  optional PurposeWaitingForApprovalReasonV2 waitingForApprovalReason = 12;
 }
 
 enum PurposeStateV2 {

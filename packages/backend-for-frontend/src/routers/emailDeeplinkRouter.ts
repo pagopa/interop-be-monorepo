@@ -76,7 +76,7 @@ const emailDeeplinkRouters = (
     "/emailDeepLink/:digestNotificationType",
     async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
-      const { entityId, selfcareId } = req.query;
+      const { entityId, selfcareId, states } = req.query;
 
       try {
         const parseResult = DigestNotificationType.safeParse(
@@ -90,7 +90,14 @@ const emailDeeplinkRouters = (
         const notificationType = parseResult.data;
         const section = digestNotificationTypeToUiSection[notificationType];
         const redirectPath = entityId ? `${section}/${entityId}` : section;
-        const redirectUrl = buildTokenExchangeUrl(selfcareId, redirectPath);
+        const uiUrl = new URL(redirectPath, config.frontendBaseUrl);
+        if (states) {
+          uiUrl.searchParams.set("states", states);
+        }
+        const redirectUrl = buildTokenExchangeUrl(
+          selfcareId,
+          `${uiUrl.pathname}${uiUrl.search}`
+        );
 
         return res.redirect(redirectUrl ?? config.frontendBaseUrl);
       } catch (error) {
