@@ -5,6 +5,7 @@ import {
   getMockContext,
   getMockContextM2MAdmin,
   getMockTenant,
+  getMockTenantMail,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
 import {
@@ -30,7 +31,7 @@ import {
 
 import { config } from "../../src/config/config.js";
 import {
-  tenantContactNotFound,
+  tenantLegacyMailsNotMigrated,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
 import {
@@ -63,7 +64,7 @@ describe("deleteTenantContact", async () => {
     await addOneTenant(tenant);
 
     const returnedTenant = await tenantService.deleteTenantContact(
-      { tenantId: tenant.id, contactId },
+      tenant.id,
       getMockContext({ authData: getMockAuthData(tenant.id) })
     );
 
@@ -107,7 +108,7 @@ describe("deleteTenantContact", async () => {
     await addOneTenant(tenant);
 
     const returnedTenant = await tenantService.deleteTenantContact(
-      { tenantId: tenant.id, contactId },
+      tenant.id,
       getMockContextM2MAdmin({ organizationId: tenant.id })
     );
 
@@ -126,33 +127,38 @@ describe("deleteTenantContact", async () => {
     expect(returnedTenant.data.contactId).toBeUndefined();
   });
 
-  it("Should throw tenantContactNotFound if the contact is not the tenant contact", async () => {
-    const tenant: Tenant = {
-      ...getMockTenant(),
-      contactId: generateId<ContactId>(),
-    };
-    const otherContactId = generateId<ContactId>();
+  it("removes the latest association and permits an immediate retry before projection", async () => {
+    const tenant = getMockTenant();
     await addOneTenant(tenant);
-
-    await expect(
-      tenantService.deleteTenantContact(
-        { tenantId: tenant.id, contactId: otherContactId },
-        getMockContext({ authData: getMockAuthData(tenant.id) })
-      )
-    ).rejects.toThrowError(tenantContactNotFound(tenant.id, otherContactId));
+    const ctx = getMockContext({ authData: getMockAuthData(tenant.id) });
+    await tenantService.addTenantContact(
+      { tenantId: tenant.id, contactId: generateId<ContactId>() },
+      ctx
+    );
+    const removed = await tenantService.deleteTenantContact(tenant.id, ctx);
+    const repeated = await tenantService.deleteTenantContact(tenant.id, ctx);
+    expect(removed.metadata.version).toBe(2);
+    expect(repeated.metadata.version).toBe(2);
+    expect(repeated.data.contactId).toBeUndefined();
+    expect(
+      (await readLastEventByStreamId(tenant.id, "tenant", postgresDB)).type
+    ).toBe("TenantContactDeleted");
   });
 
-  it("Should throw tenantContactNotFound if the tenant has no contact", async () => {
-    const tenant: Tenant = getMockTenant();
-    const contactId = generateId<ContactId>();
+  it("Should preserve the stream version on repeated removals of an absent contact", async () => {
+    const tenant = getMockTenant();
     await addOneTenant(tenant);
-
-    await expect(
-      tenantService.deleteTenantContact(
-        { tenantId: tenant.id, contactId },
-        getMockContext({ authData: getMockAuthData(tenant.id) })
-      )
-    ).rejects.toThrowError(tenantContactNotFound(tenant.id, contactId));
+    const ctx = getMockContext({ authData: getMockAuthData(tenant.id) });
+    const first = await tenantService.deleteTenantContact(tenant.id, ctx);
+    const second = await tenantService.deleteTenantContact(tenant.id, ctx);
+    expect(first.metadata.version).toBe(0);
+    expect(second).toEqual(first);
+    const lastEvent = await readLastEventByStreamId(
+      tenant.id,
+      "tenant",
+      postgresDB
+    );
+    expect(lastEvent.version).toBe("0");
   });
 
   it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
@@ -160,10 +166,29 @@ describe("deleteTenantContact", async () => {
 
     await expect(
       tenantService.deleteTenantContact(
-        { tenantId: tenant.id, contactId: generateId<ContactId>() },
+        tenant.id,
         getMockContext({ authData: getMockAuthData(tenant.id) })
       )
     ).rejects.toThrowError(tenantNotFound(tenant.id));
+  });
+
+  it("Should reject a tenant with legacy mails without writing an event", async () => {
+    const tenant: Tenant = { ...getMockTenant(), mails: [getMockTenantMail()] };
+    await addOneTenant(tenant);
+
+    await expect(
+      tenantService.deleteTenantContact(
+        tenant.id,
+        getMockContext({ authData: getMockAuthData(tenant.id) })
+      )
+    ).rejects.toThrowError(tenantLegacyMailsNotMigrated(tenant.id));
+
+    const lastEvent = await readLastEventByStreamId(
+      tenant.id,
+      "tenant",
+      postgresDB
+    );
+    expect(lastEvent.version).toBe("0");
   });
 
   it("Should throw operationForbidden if the requester is another tenant", async () => {
@@ -173,7 +198,7 @@ describe("deleteTenantContact", async () => {
 
     await expect(
       tenantService.deleteTenantContact(
-        { tenantId: tenant.id, contactId },
+        tenant.id,
         getMockContext({ authData: getMockAuthData() })
       )
     ).rejects.toThrowError(operationForbidden);
@@ -188,7 +213,7 @@ describe("deleteTenantContact", async () => {
 
     await expect(
       tenantService.deleteTenantContact(
-        { tenantId: tenant.id, contactId },
+        tenant.id,
         getMockContext({ authData: getMockAuthData(tenant.id) })
       )
     ).rejects.toThrowError(featureFlagNotEnabled("featureFlagTenantEventsV3"));

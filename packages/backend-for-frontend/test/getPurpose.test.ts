@@ -23,6 +23,7 @@ import type {
 } from "../src/clients/clientsProvider.js";
 
 import { purposeServiceBuilder } from "../src/services/purposeService.js";
+import { mockTenantContacts } from "./mockTenantContacts.js";
 import { fileManager, getBffMockContext } from "./utils.js";
 
 describe("getPurpose — reviewer enrichment", () => {
@@ -142,7 +143,8 @@ describe("getPurpose — reviewer enrichment", () => {
         filterUnreadNotifications: vi.fn().mockResolvedValue([]),
       },
     } as unknown as PagoPAInteropBeClients,
-    fileManager
+    fileManager,
+    mockTenantContacts
   );
 
   beforeEach(() => {

@@ -25,6 +25,7 @@ import type {
 
 import { config } from "../src/config/config.js";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
+import { mockTenantContacts } from "./mockTenantContacts.js";
 import {
   getMockCatalogApiEServiceDoc,
   getMockDelegationApiDelegation,
@@ -127,6 +128,7 @@ describe("getProducerEServiceDescriptor", () => {
     {} as unknown as inAppNotificationApi.InAppNotificationManagerClient;
 
   const catalogService = catalogServiceBuilder(
+    mockTenantContacts,
     mockCatalogProcessClient,
     mockTenantProcessClient,
     mockAgreementProcessClient,

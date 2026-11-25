@@ -1,5 +1,6 @@
 import {
   tenantApi,
+  contactDataApi,
   attributeRegistryApi,
   catalogApi,
   agreementApi,
@@ -35,6 +36,7 @@ export type DelegationProcessClient = Pick<
 
 export type PagoPAInteropBeClients = {
   tenantProcessClient: TenantProcessClient;
+  contactDataManagerClient: contactDataApi.ContactDataManagerClient;
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient;
   catalogProcessClient: catalogApi.CatalogProcessClient;
   agreementProcessClient: agreementApi.AgreementProcessClient;
@@ -52,6 +54,9 @@ export type PagoPAInteropBeClients = {
 
 export function getInteropBeClients(): PagoPAInteropBeClients {
   return {
+    contactDataManagerClient: contactDataApi.createContactApiClient(
+      config.contactDataManagerUrl
+    ),
     tenantProcessClient: {
       tenant: tenantApi.createTenantApiClient(config.tenantProcessUrl),
       tenantAttribute: tenantApi.createTenantAttributeApiClient(

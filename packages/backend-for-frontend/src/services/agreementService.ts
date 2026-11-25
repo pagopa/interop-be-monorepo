@@ -38,14 +38,12 @@ import {
   contractException,
   contractNotFound,
 } from "../model/errors.js";
-import {
-  getLatestActiveDescriptor,
-  getLatestTenantContactEmail,
-} from "../model/modelMappingUtils.js";
+import { getLatestActiveDescriptor } from "../model/modelMappingUtils.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 import { getTenantById } from "./delegationService.js";
+import { TenantContactService } from "./tenantContactService.js";
 import { enhanceTenantAttributes } from "./tenantService.js";
 import { isAgreementUpgradable } from "./validators.js";
 
@@ -70,7 +68,8 @@ export async function getAllAgreements(
 
 export function agreementServiceBuilder(
   clients: PagoPAInteropBeClients,
-  fileManager: FileManager
+  fileManager: FileManager,
+  tenantContacts: TenantContactService
 ) {
   const { agreementProcessClient } = clients;
   return {
@@ -123,7 +122,12 @@ export function agreementServiceBuilder(
           headers: ctx.headers,
         });
 
-      const agreements = await enrichAgreementListEntry(results, clients, ctx);
+      const agreements = await enrichAgreementListEntry(
+        results,
+        clients,
+        tenantContacts,
+        ctx
+      );
       return {
         pagination: {
           limit,
@@ -169,7 +173,12 @@ export function agreementServiceBuilder(
           headers: ctx.headers,
         });
 
-      const agreements = await enrichAgreementListEntry(results, clients, ctx);
+      const agreements = await enrichAgreementListEntry(
+        results,
+        clients,
+        tenantContacts,
+        ctx
+      );
 
       return {
         pagination: {
@@ -191,7 +200,7 @@ export function agreementServiceBuilder(
         headers: ctx.headers,
       });
 
-      return enrichAgreement(agreement, clients, ctx);
+      return enrichAgreement(agreement, clients, tenantContacts, ctx);
     },
 
     async addAgreementConsumerDocument(
@@ -356,7 +365,7 @@ export function agreementServiceBuilder(
         headers: ctx.headers,
       });
 
-      return enrichAgreement(agreement, clients, ctx);
+      return enrichAgreement(agreement, clients, tenantContacts, ctx);
     },
 
     async suspendAgreement(
@@ -377,7 +386,7 @@ export function agreementServiceBuilder(
         }
       );
 
-      return enrichAgreement(agreement, clients, ctx);
+      return enrichAgreement(agreement, clients, tenantContacts, ctx);
     },
 
     async rejectAgreement(
@@ -391,7 +400,7 @@ export function agreementServiceBuilder(
         headers: ctx.headers,
       });
 
-      return enrichAgreement(agreement, clients, ctx);
+      return enrichAgreement(agreement, clients, tenantContacts, ctx);
     },
 
     async archiveAgreement(
@@ -416,7 +425,7 @@ export function agreementServiceBuilder(
         headers: ctx.headers,
       });
 
-      return enrichAgreement(agreement, clients, ctx);
+      return enrichAgreement(agreement, clients, tenantContacts, ctx);
     },
 
     async upgradeAgreement(
@@ -431,7 +440,7 @@ export function agreementServiceBuilder(
           headers: ctx.headers,
         }
       );
-      return enrichAgreement(agreement, clients, ctx);
+      return enrichAgreement(agreement, clients, tenantContacts, ctx);
     },
 
     async deleteAgreement(
@@ -462,7 +471,7 @@ export function agreementServiceBuilder(
           headers: ctx.headers,
         }
       );
-      return enrichAgreement(agreement, clients, ctx);
+      return enrichAgreement(agreement, clients, tenantContacts, ctx);
     },
     async unsuspendAgreement(
       agreementId: string,
@@ -481,7 +490,7 @@ export function agreementServiceBuilder(
           headers: ctx.headers,
         }
       );
-      return enrichAgreement(agreement, clients, ctx);
+      return enrichAgreement(agreement, clients, tenantContacts, ctx);
     },
 
     async cloneAgreement(
@@ -762,6 +771,7 @@ export const getLatestAgreement = async (
 async function enrichAgreementListEntry(
   agreements: agreementApi.Agreement[],
   clients: PagoPAInteropBeClients,
+  tenantContacts: TenantContactService,
   ctx: WithLogger<BffAppContext>
 ): Promise<bffApi.AgreementListEntry[]> {
   const cachedTenants = new Map<string, tenantApi.Tenant>();
@@ -795,6 +805,13 @@ async function enrichAgreementListEntry(
         )))
       : undefined;
 
+    const [delegateContactMail, consumerContactMail] =
+      delegation && delegate
+        ? await Promise.all([
+            tenantContacts.resolve(delegate, ctx.correlationId),
+            tenantContacts.resolve(consumer, ctx.correlationId),
+          ])
+        : [];
     agreementsResult.push({
       id: agreement.id,
       state: agreement.state,
@@ -817,13 +834,13 @@ async function enrichAgreementListEntry(
                 id: delegation.delegateId,
                 name: delegate.name,
                 kind: delegate.kind,
-                contactMail: getLatestTenantContactEmail(delegate),
+                contactMail: delegateContactMail,
               },
               delegator: {
                 id: delegation.delegatorId,
                 name: consumer.name,
                 kind: consumer.kind,
-                contactMail: getLatestTenantContactEmail(consumer),
+                contactMail: consumerContactMail,
               },
             }
           : undefined,
@@ -840,6 +857,7 @@ async function enrichAgreementListEntry(
 export async function enrichAgreement(
   agreement: agreementApi.Agreement,
   clients: PagoPAInteropBeClients,
+  tenantContacts: TenantContactService,
   ctx: WithLogger<BffAppContext>
 ): Promise<bffApi.Agreement> {
   const { consumer, producer, eservice, delegation } =
@@ -890,17 +908,25 @@ export async function enrichAgreement(
         headers: ctx.headers,
       });
 
+      const tenantContactMail = await tenantContacts.resolve(
+        tenant,
+        ctx.correlationId
+      );
       return {
         id: delegation.id,
         delegate: {
           id: tenant.id,
           name: tenant.name,
           kind: tenant.kind,
-          contactMail: getLatestTenantContactEmail(tenant),
+          contactMail: tenantContactMail,
         },
       };
     });
 
+  const [producerContactMail, consumerContactMail] = await Promise.all([
+    tenantContacts.resolve(producer, ctx.correlationId),
+    tenantContacts.resolve(consumer, ctx.correlationId),
+  ]);
   return {
     id: agreement.id,
     descriptorId: agreement.descriptorId,
@@ -909,7 +935,7 @@ export async function enrichAgreement(
       id: agreement.producerId,
       name: producer.name,
       kind: producer.kind,
-      contactMail: getLatestTenantContactEmail(producer),
+      contactMail: producerContactMail,
     },
     consumer: {
       id: agreement.consumerId,
@@ -919,7 +945,7 @@ export async function enrichAgreement(
       updatedAt: consumer.updatedAt,
       name: consumer.name,
       attributes: tenantAttributes,
-      contactMail: getLatestTenantContactEmail(consumer),
+      contactMail: consumerContactMail,
       features: consumer.features,
     },
     eservice: {

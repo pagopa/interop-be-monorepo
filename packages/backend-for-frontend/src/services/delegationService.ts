@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { isAxiosError } from "axios";
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import {
   bffApi,
   catalogApi,
@@ -29,9 +29,9 @@ import {
   delegationContractNotFound,
   delegationNotFound,
 } from "../model/errors.js";
-import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
+import { TenantContactService } from "./tenantContactService.js";
 
 // eslint-disable-next-line max-params
 async function enhanceDelegation<
@@ -202,6 +202,7 @@ export async function getAllDelegations(
 }
 
 export function delegationServiceBuilder(
+  tenantContacts: TenantContactService,
   delegationClients: DelegationProcessClient,
   tenantClient: TenantProcessClient,
   catalogClient: catalogApi.CatalogProcessClient,
@@ -525,7 +526,7 @@ export function delegationServiceBuilder(
     },
     async getConsumerDelegatedEservices(
       filters: bffApi.BffgetConsumerDelegatedEservicesQueryParam,
-      { headers, logger }: WithLogger<BffAppContext>
+      { headers, logger, correlationId }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactEServices> {
       logger.info(
         `Retrieving consumer delegated eservices with filters ${JSON.stringify(
@@ -552,6 +553,10 @@ export function delegationServiceBuilder(
               headers,
             });
 
+            const producerContactMail = await tenantContacts.resolve(
+              producer,
+              correlationId
+            );
             return {
               id: eservice.id,
               name: eservice.name,
@@ -559,7 +564,7 @@ export function delegationServiceBuilder(
                 id: eservice.producerId,
                 name: producer.name,
                 kind: producer.kind,
-                contactMail: getLatestTenantContactEmail(producer),
+                contactMail: producerContactMail,
               },
             };
           })

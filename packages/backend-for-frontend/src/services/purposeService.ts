@@ -47,19 +47,21 @@ import {
   purposeNotFound,
   tenantNotFound,
 } from "../model/errors.js";
-import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { getLatestAgreement } from "./agreementService.js";
 import { getAllClients } from "./clientService.js";
 import { getSelfcareCompactUserById } from "./selfcareService.js";
+import { TenantContactService } from "./tenantContactService.js";
 import { isAgreementUpgradable } from "./validators.js";
 
 const enrichPurposeDelegation = async (
+  tenantContacts: TenantContactService,
   delegationId: string,
   delegationProcessClient: DelegationProcessClient,
   tenantProcessClient: TenantProcessClient,
-  headers: Headers
+  headers: Headers,
+  correlationId: CorrelationId
 ): Promise<bffApi.DelegationWithCompactTenants> => {
   const delegation = await delegationProcessClient.delegation.getDelegation({
     headers,
@@ -84,18 +86,22 @@ const enrichPurposeDelegation = async (
     throw tenantNotFound(delegation.delegatorId);
   }
 
+  const [delegateContactMail, delegatorContactMail] = await Promise.all([
+    tenantContacts.resolve(delegate, correlationId),
+    tenantContacts.resolve(delegator, correlationId),
+  ]);
   return {
     id: delegationId,
     delegate: {
       id: delegate.id,
       name: delegate.name,
-      contactMail: getLatestTenantContactEmail(delegate),
+      contactMail: delegateContactMail,
       kind: delegate.kind,
     },
     delegator: {
       id: delegator.id,
       name: delegator.name,
-      contactMail: getLatestTenantContactEmail(delegator),
+      contactMail: delegatorContactMail,
       kind: delegator.kind,
     },
   };
@@ -218,7 +224,8 @@ export function purposeServiceBuilder(
     selfcareV2UserClient,
     inAppNotificationManagerClient,
   }: PagoPAInteropBeClients,
-  fileManager: FileManager
+  fileManager: FileManager,
+  tenantContacts: TenantContactService
 ) {
   // eslint-disable-next-line complexity
   const enhancePurpose = async (
@@ -301,10 +308,12 @@ export function purposeServiceBuilder(
 
     const delegation = purpose.delegationId
       ? await enrichPurposeDelegation(
+          tenantContacts,
           purpose.delegationId,
           delegationProcessClient,
           tenantProcessClient,
-          headers
+          headers,
+          correlationId
         )
       : undefined;
 
@@ -348,6 +357,10 @@ export function purposeServiceBuilder(
       }
     }
 
+    const consumerContactMail = await tenantContacts.resolve(
+      consumer,
+      correlationId
+    );
     return {
       id: purpose.id,
       title: purpose.title,
@@ -357,7 +370,7 @@ export function purposeServiceBuilder(
         id: consumer.id,
         name: consumer.name,
         kind: consumer.kind,
-        contactMail: getLatestTenantContactEmail(consumer),
+        contactMail: consumerContactMail,
       },
       riskAnalysisForm:
         purpose.riskAnalysisForm &&

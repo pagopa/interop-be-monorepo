@@ -58,6 +58,9 @@ describe("GET /tenants route test", () => {
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual(mockResponse);
+      for (const tenant of res.body.results) {
+        expect(tenant).not.toHaveProperty("mails");
+      }
     }
   );
 

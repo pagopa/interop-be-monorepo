@@ -7,6 +7,7 @@ import { describe, expect, it, vi } from "vitest";
 import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
 import { config } from "../src/config/config.js";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
+import { mockTenantContacts } from "./mockTenantContacts.js";
 import { fileManager, getBffMockContext } from "./utils.js";
 
 describe("addAgreementConsumerDocument", () => {
@@ -38,7 +39,11 @@ describe("addAgreementConsumerDocument", () => {
 
     vi.spyOn(fileManager, "storeBytes");
 
-    const agreementService = agreementServiceBuilder(mockClients, fileManager);
+    const agreementService = agreementServiceBuilder(
+      mockClients,
+      fileManager,
+      mockTenantContacts
+    );
 
     const bffMockContext = getBffMockContext(getMockContext({ authData }));
     const result = await agreementService.addAgreementConsumerDocument(
@@ -84,7 +89,11 @@ describe("addAgreementConsumerDocument", () => {
       },
     } as unknown as PagoPAInteropBeClients;
 
-    const agreementService = agreementServiceBuilder(mockClients, fileManager);
+    const agreementService = agreementServiceBuilder(
+      mockClients,
+      fileManager,
+      mockTenantContacts
+    );
 
     const bffMockContext = getBffMockContext(getMockContext({ authData }));
 

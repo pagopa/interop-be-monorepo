@@ -15385,7 +15385,6 @@ components:
         - externalId
         - attributes
         - createdAt
-        - mails
         - name
     TargetTenantKind:
       type: string

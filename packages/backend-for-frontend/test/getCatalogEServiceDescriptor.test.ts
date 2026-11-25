@@ -30,6 +30,7 @@ import * as agreementService from "../src/services/agreementService.js";
 import * as attributeService from "../src/services/attributeService.js";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import * as delegationService from "../src/services/delegationService.js";
+import { mockTenantContacts } from "./mockTenantContacts.js";
 import { getMockCatalogApiEServiceDoc, toApiEServiceDoc } from "./mockUtils.js";
 import { fileManager, getBffMockContext } from "./utils.js";
 
@@ -219,6 +220,7 @@ describe("getCatalogEServiceDescriptor", () => {
       getTenant: vi.fn().mockResolvedValue({
         id: tenantId,
         name: tenantName,
+        mails: [],
         attributes: [],
       }),
     },
@@ -326,6 +328,7 @@ describe("getCatalogEServiceDescriptor", () => {
   ).mockReturnValue(Promise.resolve(catalogDescriptorEService));
 
   const catalogService = catalogServiceBuilder(
+    mockTenantContacts,
     mockCatalogProcessClient,
     mockTenantProcessClient,
     mockAgreementProcessClient,
@@ -397,7 +400,8 @@ describe("getCatalogEServiceDescriptor", () => {
       expect.anything(),
       expect.anything(),
       true,
-      true
+      true,
+      undefined
     );
   });
 

@@ -32,6 +32,7 @@ import { TenantProcessClient } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import { BffAppContext } from "../utilities/context.js";
 import { getAllBulkAttributes } from "./attributeService.js";
+import { TenantContactService } from "./tenantContactService.js";
 
 async function getRegistryAttributesMap(
   tenantAttributesIds: string[],
@@ -49,6 +50,7 @@ async function getRegistryAttributesMap(
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder(
+  tenantContacts: TenantContactService,
   tenantProcessClient: TenantProcessClient,
   attributeRegistryProcessClient: attributeRegistryApi.AttributeProcessClient,
   selfcareV2InstitutionClient: SelfcareV2InstitutionClient
@@ -85,7 +87,7 @@ export function tenantServiceBuilder(
   return {
     async getTenant(
       tenantId: TenantId,
-      { headers, logger }: WithLogger<BffAppContext>
+      { headers, logger, correlationId }: WithLogger<BffAppContext>
     ): Promise<bffApi.Tenant> {
       logger.info(`Getting tenant with id ${tenantId}`);
       const tenant = await tenantProcessClient.tenant.getTenant({
@@ -122,12 +124,17 @@ export function tenantServiceBuilder(
         headers
       );
 
+      const tenantContactMail = await tenantContacts.resolve(
+        tenant,
+        correlationId
+      );
       return toBffApiTenant(
         tenant,
         certifiedAttributes,
         declaredAttributes,
         verifiedAttributes,
-        registryAttributesMap
+        registryAttributesMap,
+        tenantContactMail
       );
     },
     async getTenants(
@@ -483,7 +490,7 @@ export function tenantServiceBuilder(
       seed: bffApi.MailSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
-      logger.info(`Adding mail ${seed.address} to tenant ${tenantId}`);
+      logger.info(`Adding mail of kind ${seed.kind} to tenant ${tenantId}`);
       await tenantProcessClient.tenant.addTenantMail(seed, {
         params: { tenantId },
         headers,
@@ -494,9 +501,32 @@ export function tenantServiceBuilder(
       mailId: string,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
-      logger.info(`Deleting mail ${mailId} from tenant ${tenantId}`);
+      logger.info(`Deleting mail from tenant ${tenantId}`);
       await tenantProcessClient.tenant.deleteTenantMail(undefined, {
         params: { tenantId, mailId },
+        headers,
+      });
+    },
+    async setTenantContact(
+      tenantId: TenantId,
+      { address }: bffApi.TenantContactSeed,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<void> {
+      const contactId = await tenantContacts.create(address, ctx.correlationId);
+      await tenantProcessClient.tenant.addTenantContact(
+        { contactId },
+        {
+          params: { tenantId },
+          headers: ctx.headers,
+        }
+      );
+    },
+    async deleteTenantContact(
+      tenantId: TenantId,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      await tenantProcessClient.tenant.deleteTenantContact(undefined, {
+        params: { tenantId },
         headers,
       });
     },

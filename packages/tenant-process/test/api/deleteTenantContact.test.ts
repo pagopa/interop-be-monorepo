@@ -7,7 +7,6 @@ import {
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import {
-  ContactId,
   featureFlagNotEnabled,
   generateId,
   operationForbidden,
@@ -19,14 +18,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { toApiTenant } from "../../src/model/domain/apiConverter.js";
 import {
-  tenantContactNotFound,
-  tenantNotFound,
   tenantLegacyMailsNotMigrated,
+  tenantNotFound,
 } from "../../src/model/domain/errors.js";
 import { api, tenantService } from "../vitest.api.setup.js";
 
-describe("API DELETE /tenants/{tenantId}/contact/{contactId} test", () => {
-  const contactId = generateId<ContactId>();
+describe("API DELETE /tenants/{tenantId}/contact test", () => {
   const tenant: Tenant = getMockTenant();
 
   const serviceResponse = getMockWithMetadata(tenant);
@@ -43,13 +40,9 @@ describe("API DELETE /tenants/{tenantId}/contact/{contactId} test", () => {
     authRole.M2M_ADMIN_ROLE,
   ];
 
-  const makeRequest = async (
-    token: string,
-    tenantId: TenantId = tenant.id,
-    contactIdParam: string = contactId
-  ) =>
+  const makeRequest = async (token: string, tenantId: TenantId = tenant.id) =>
     request(api)
-      .delete(`/tenants/${tenantId}/contact/${contactIdParam}`)
+      .delete(`/tenants/${tenantId}/contact`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send();
@@ -80,10 +73,6 @@ describe("API DELETE /tenants/{tenantId}/contact/{contactId} test", () => {
     { error: tenantNotFound(tenant.id), expectedStatus: 404 },
     { error: operationForbidden, expectedStatus: 403 },
     {
-      error: tenantContactNotFound(tenant.id, contactId),
-      expectedStatus: 404,
-    },
-    {
       error: featureFlagNotEnabled("featureFlagTenantEventsV3"),
       expectedStatus: 501,
     },
@@ -98,11 +87,11 @@ describe("API DELETE /tenants/{tenantId}/contact/{contactId} test", () => {
     }
   );
 
-  it.each([{ tenantId: "invalid" as TenantId }, { contactIdParam: "invalid" }])(
+  it.each([{ tenantId: "invalid" as TenantId }])(
     "Should return 400 if passed invalid data: %s",
-    async ({ tenantId, contactIdParam }) => {
+    async ({ tenantId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, tenantId, contactIdParam);
+      const res = await makeRequest(token, tenantId);
       expect(res.status).toBe(400);
     }
   );

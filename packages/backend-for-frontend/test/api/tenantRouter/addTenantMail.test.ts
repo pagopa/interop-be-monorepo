@@ -34,6 +34,15 @@ describe("API POST /tenants/{tenantId}/mails test", () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(204);
+    expect(
+      clients.tenantProcessClient.tenant.addTenantMail
+    ).toHaveBeenCalledWith(
+      mailSeed,
+      expect.objectContaining({ params: { tenantId: expect.any(String) } })
+    );
+    expect(
+      clients.contactDataManagerClient.createContact
+    ).not.toHaveBeenCalled();
   });
 
   it.each([

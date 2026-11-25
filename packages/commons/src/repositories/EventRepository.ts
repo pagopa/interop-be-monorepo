@@ -16,6 +16,17 @@ export interface Event {
   readonly event_version: number;
 }
 
+export function getLatestEventAfterVersion(
+  db: DB,
+  streamId: string,
+  version: number
+): Promise<(Event & { version: string; data: Buffer }) | null> {
+  return db.oneOrNone(sql.getLatestEventAfterVersion, {
+    stream_id: streamId,
+    version,
+  });
+}
+
 export type CreateEvent<T extends Event> = {
   readonly streamId: string;
   readonly correlationId: CorrelationId;
