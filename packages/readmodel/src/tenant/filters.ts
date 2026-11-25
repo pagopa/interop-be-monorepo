@@ -2,6 +2,11 @@ import { SQL, sql } from "drizzle-orm";
 import { PgColumn } from "drizzle-orm/pg-core";
 import { escapeSqlLike, ilikeEscaped } from "pagopa-interop-commons";
 
+/**
+ * Searches the tenant's composed name, including resolved ancestors.
+ * The root is included only when the parent is resolved, and only once
+ * when the parent and root are the same tenant.
+ */
 export function getTenantHierarchyNameFilter(
   name: string | undefined,
   tenantName: PgColumn,
@@ -20,6 +25,7 @@ export function getTenantHierarchyNameFilter(
       ${parentTenantName},
       CASE
         WHEN ${parentTenantId} IS NOT NULL
+          AND ${parentTenantName} IS NOT NULL
           AND ${rootTenantId} <> ${parentTenantId}
         THEN ${rootTenantName}
       END
