@@ -405,9 +405,13 @@ describe("tenantServiceBuilder.getProducers", () => {
       ...getMockedApiTenant(),
       id: producerId,
       name: "Tenant UO",
-      subUnitType: "UO",
+      subUnitType: tenantUnitType.UO,
       parentTenants: [
-        { id: parentTenantId, name: "Tenant AOO", subUnitType: "AOO" },
+        {
+          id: parentTenantId,
+          name: "Tenant AOO",
+          subUnitType: tenantUnitType.AOO,
+        },
         { id: rootTenantId, name: "Tenant root" },
       ],
     };
@@ -439,9 +443,13 @@ describe("tenantServiceBuilder.getProducers", () => {
       {
         id: producerId,
         name: "Tenant UO",
-        subUnitType: "UO",
+        subUnitType: tenantUnitType.UO,
         parentTenants: [
-          { id: parentTenantId, name: "Tenant AOO", subUnitType: "AOO" },
+          {
+            id: parentTenantId,
+            name: "Tenant AOO",
+            subUnitType: tenantUnitType.AOO,
+          },
           { id: rootTenantId, name: "Tenant root" },
         ],
       },
@@ -458,9 +466,13 @@ describe("tenantServiceBuilder.getConsumers", () => {
       ...getMockedApiTenant(),
       id: consumerId,
       name: "Tenant UO",
-      subUnitType: "UO",
+      subUnitType: tenantUnitType.UO,
       parentTenants: [
-        { id: parentTenantId, name: "Tenant AOO", subUnitType: "AOO" },
+        {
+          id: parentTenantId,
+          name: "Tenant AOO",
+          subUnitType: tenantUnitType.AOO,
+        },
         { id: rootTenantId, name: "Tenant root" },
       ],
     };
@@ -496,9 +508,13 @@ describe("tenantServiceBuilder.getConsumers", () => {
       {
         id: consumerId,
         name: "Tenant UO",
-        subUnitType: "UO",
+        subUnitType: tenantUnitType.UO,
         parentTenants: [
-          { id: parentTenantId, name: "Tenant AOO", subUnitType: "AOO" },
+          {
+            id: parentTenantId,
+            name: "Tenant AOO",
+            subUnitType: tenantUnitType.AOO,
+          },
           { id: rootTenantId, name: "Tenant root" },
         ],
       },
