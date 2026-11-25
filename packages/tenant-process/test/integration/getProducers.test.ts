@@ -8,6 +8,7 @@ import {
   EService,
   Tenant,
   descriptorState,
+  tenantUnitType,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 
@@ -318,13 +319,13 @@ describe("getProducers", () => {
     const parentTenant: Tenant = {
       ...getMockTenant(),
       name: "Tenant AOO",
-      subUnitType: "AOO",
+      subUnitType: tenantUnitType.AOO,
       rootTenantId: rootTenant.id,
     };
     const producerTenant: Tenant = {
       ...getMockTenant(),
       name: "Tenant UO",
-      subUnitType: "UO",
+      subUnitType: tenantUnitType.UO,
       parentTenantId: parentTenant.id,
       rootTenantId: rootTenant.id,
     };

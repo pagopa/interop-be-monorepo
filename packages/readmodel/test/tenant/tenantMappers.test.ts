@@ -1,4 +1,4 @@
-import { generateId } from "pagopa-interop-models";
+import { generateId, tenantUnitType } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 
 import { toParentTenants } from "../../src/tenant/mappers.js";
@@ -9,7 +9,7 @@ describe("Tenant mappers", () => {
   const row = {
     parentTenantId: parentId,
     parentTenantName: "Tenant AOO",
-    parentTenantSubUnitType: "AOO",
+    parentTenantSubUnitType: tenantUnitType.AOO,
     rootTenantId: rootId,
     rootTenantName: "Tenant root",
   };
