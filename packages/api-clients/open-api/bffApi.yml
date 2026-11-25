@@ -8988,12 +8988,6 @@ paths:
           $ref: "#/components/responses/NotFound"
         "409":
           $ref: "#/components/responses/Conflict"
-        "500":
-          description: Internal error or unconfirmed operation
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
     delete:
       tags:
         - tenants
@@ -9025,12 +9019,6 @@ paths:
           $ref: "#/components/responses/NotFound"
         "409":
           $ref: "#/components/responses/Conflict"
-        "500":
-          description: Internal error or unconfirmed operation
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
   "/tenants":
     parameters:
       - in: query
