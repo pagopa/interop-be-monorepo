@@ -485,6 +485,28 @@ export function tenantServiceBuilder(
         }
       );
     },
+    async addTenantMail(
+      tenantId: TenantId,
+      seed: bffApi.MailSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(`Adding mail of kind ${seed.kind} to tenant ${tenantId}`);
+      await tenantProcessClient.tenant.addTenantMail(seed, {
+        params: { tenantId },
+        headers,
+      });
+    },
+    async deleteTenantMail(
+      tenantId: TenantId,
+      mailId: string,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(`Deleting mail from tenant ${tenantId}`);
+      await tenantProcessClient.tenant.deleteTenantMail(undefined, {
+        params: { tenantId, mailId },
+        headers,
+      });
+    },
     async setTenantContact(
       tenantId: TenantId,
       { address }: bffApi.TenantContactSeed,

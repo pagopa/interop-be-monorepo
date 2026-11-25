@@ -9,7 +9,8 @@ import { appBasePath } from "../config/appBasePath.js";
 export const tenantValidationErrorToApiProblem: typeof zodiosValidationErrorToApiProblem =
   (error, req, res, next) =>
     zodiosValidationErrorToApiProblem(
-      req.route?.path === "/tenants/:tenantId/contact"
+      req.route?.path === "/tenants/:tenantId/contact" ||
+        req.route?.path === "/tenants/:tenantId/mails"
         ? { ...error, error: [] }
         : error,
       req,
@@ -26,7 +27,9 @@ export const contactBodyErrorHandler: typeof errorsToApiProblemsMiddleware = (
 ) =>
   errorsToApiProblemsMiddleware(
     error instanceof SyntaxError &&
-      /^\/tenants\/[^/]+\/contact\/?$/i.test(req.path.slice(appBasePath.length))
+      /^\/tenants\/[^/]+\/(?:contact|mails)\/?$/i.test(
+        req.path.slice(appBasePath.length)
+      )
       ? new SyntaxError("Invalid contact request body")
       : error,
     req,

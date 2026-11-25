@@ -8850,6 +8850,96 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /tenants/{tenantId}/mails:
+    parameters:
+      - name: tenantId
+        in: path
+        description: the tenant id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - tenants
+      summary: Add a tenant mail
+      description: Add a tenant mail
+      operationId: addTenantMail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MailSeed"
+      responses:
+        "204":
+          description: Tenant Mail Added
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /tenants/{tenantId}/mails/{mailId}:
+    parameters:
+      - name: tenantId
+        in: path
+        description: the tenant id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: mailId
+        in: path
+        description: the mail id
+        required: true
+        schema:
+          type: string
+    delete:
+      tags:
+        - tenants
+      summary: Delete a tenant mail
+      description: Delete a tenant mail
+      operationId: deleteTenantMail
+      responses:
+        "204":
+          description: Tenant Mail Deleted
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /tenants/{tenantId}/contact:
     parameters:
       - name: tenantId
@@ -17359,6 +17449,25 @@ components:
       required:
         - url
         - filename
+    MailKind:
+      type: string
+      enum:
+        - CONTACT_EMAIL
+        - DIGITAL_ADDRESS
+    MailSeed:
+      description: A specific kind of mail
+      type: object
+      additionalProperties: false
+      properties:
+        kind:
+          $ref: "#/components/schemas/MailKind"
+        address:
+          type: string
+        description:
+          type: string
+      required:
+        - kind
+        - address
     TenantContactSeed:
       type: object
       additionalProperties: false

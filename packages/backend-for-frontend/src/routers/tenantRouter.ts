@@ -417,6 +417,40 @@ const tenantRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post("/tenants/:tenantId/mails", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const tenantId = unsafeBrandId<TenantId>(req.params.tenantId);
+        await tenantService.addTenantMail(tenantId, req.body, ctx);
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error adding mail to tenant ${req.params.tenantId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .delete("/tenants/:tenantId/mails/:mailId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const tenantId = unsafeBrandId<TenantId>(req.params.tenantId);
+        await tenantService.deleteTenantMail(tenantId, req.params.mailId, ctx);
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error deleting mail from tenant ${req.params.tenantId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post("/tenants/:tenantId/contact", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
