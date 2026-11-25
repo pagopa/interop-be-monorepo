@@ -48,7 +48,11 @@ import {
   resetTargetTables,
   tenantTables,
 } from "./utils.js";
-import { getMockVerifiedBy, getMockRevokedBy } from "./utilsTenant.js";
+import {
+  countTenantMailRows,
+  getMockVerifiedBy,
+  getMockRevokedBy,
+} from "./utilsTenant.js";
 
 describe("Tenant messages consumers - handleTenantMessageV1", () => {
   beforeEach(async () => {
@@ -134,6 +138,7 @@ describe("Tenant messages consumers - handleTenantMessageV1", () => {
     expect(storedTenant?.id).toBe(mockTenant.id);
     expect(storedTenant?.onboardedAt).toStrictEqual(mockTenant.createdAt);
     expect(storedTenant?.metadataVersion).toBe(1);
+    expect(await countTenantMailRows(mockTenant.id)).toBe(0);
 
     const storedDeclaredTenantAttributes = await getManyFromDb(
       dbContext,
@@ -379,6 +384,7 @@ describe("Tenant messages consumers - handleTenantMessageV1", () => {
 
     expect(storedTenant?.id).toBe(mockTenant.id);
     expect(storedTenant?.metadataVersion).toBe(2);
+    expect(await countTenantMailRows(mockTenant.id)).toBe(0);
   });
 
   it("SelfcareMappingCreated: adds selfcare id mapping with metadata_version 3", async () => {
@@ -591,6 +597,8 @@ describe("Tenant messages consumers - handleTenantMessageV2", () => {
     expect(storedTenant?.id).toBe(mockTenant.id);
     expect(storedTenant?.onboardedAt).toStrictEqual(mockTenant.createdAt);
     expect(storedTenant?.metadataVersion).toBe(1);
+    expect(storedTenant?.contactId).toBeNull();
+    expect(await countTenantMailRows(mockTenant.id)).toBe(0);
 
     const storedDeclaredTenantAttributes = await getManyFromDb(
       dbContext,
@@ -736,6 +744,7 @@ describe("Tenant messages consumers - handleTenantMessageV2", () => {
 
     expect(storedTenant?.id).toBe(mockTenant.id);
     expect(storedTenant?.metadataVersion).toBe(2);
+    expect(await countTenantMailRows(mockTenant.id)).toBe(0);
   });
 
   it("TenantMailDeleted: updates tenant metadata version", async () => {

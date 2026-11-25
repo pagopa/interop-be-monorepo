@@ -1,5 +1,6 @@
 import {
   isFeatureFlagEnabled,
+  M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
 } from "pagopa-interop-commons";
@@ -41,6 +42,7 @@ import {
   eServiceNotFound,
   descriptorNotFoundInEservice,
   tenantNotAllowedForDelegation,
+  tenantMailsNotAllowed,
 } from "../model/domain/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -151,10 +153,16 @@ export function getTenantKind(
 
 export async function assertRequesterAllowed(
   tenantId: TenantId,
-  authData: UIAuthData | M2MAuthData
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): Promise<void> {
   if (tenantId !== authData.organizationId) {
     throw operationForbidden;
+  }
+}
+
+export function assertTenantMailsAllowed(tenantId: TenantId): void {
+  if (isFeatureFlagEnabled(config, "featureFlagTenantEventsV3")) {
+    throw tenantMailsNotAllowed(tenantId);
   }
 }
 

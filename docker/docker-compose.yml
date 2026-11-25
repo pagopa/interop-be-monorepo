@@ -7,6 +7,7 @@ volumes:
   event-store-data:
   readmodel-sql-data:
   in-app-notification-manager-sql-data:
+  contact-data-manager-sql-data:
   domains-analytics-sql-data:
   m2m-event-sql-data:
   digest-tracking-sql-data:
@@ -78,6 +79,24 @@ services:
     image: postgres:14
     ports:
       - 6004:5433
+    environment:
+      PGPORT: 5433
+      POSTGRES_DB: root
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+
+  # Contact data manager database
+  contact-data-manager-sql:
+    read_only: true
+    tmpfs:
+      - /var/run/postgresql
+      - /tmp
+    volumes:
+      - ./contact-data-db:/docker-entrypoint-initdb.d
+      - contact-data-manager-sql-data:/var/lib/postgresql/data
+    image: postgres:14
+    ports:
+      - 6010:5433
     environment:
       PGPORT: 5433
       POSTGRES_DB: root

@@ -13,6 +13,7 @@ import {
   TenantKindHistoryDBConfig,
   S3Config,
   ScheduledNotificationDBConfig,
+  ContactDataDBConfig,
 } from "pagopa-interop-commons";
 import { GenericContainer } from "testcontainers";
 
@@ -267,6 +268,23 @@ export const inAppNotificationDBContainer = (
       },
     ])
     .withExposedPorts(TEST_IN_APP_NOTIFICATION_DB_PORT);
+
+export const contactDataDBContainer = (
+  config: ContactDataDBConfig
+): GenericContainer =>
+  new GenericContainer(TEST_POSTGRES_DB_IMAGE)
+    .withEnvironment({
+      POSTGRES_DB: config.contactDataDBName,
+      POSTGRES_USER: config.contactDataDBUsername,
+      POSTGRES_PASSWORD: config.contactDataDBPassword,
+    })
+    .withCopyDirectoriesToContainer([
+      {
+        source: "../../docker/contact-data-db",
+        target: "/docker-entrypoint-initdb.d",
+      },
+    ])
+    .withExposedPorts(TEST_POSTGRES_DB_PORT);
 
 export const m2mEventDBContainer = (
   config: M2MEventSQLDbConfig

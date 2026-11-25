@@ -1,12 +1,19 @@
 import { genericLogger } from "pagopa-interop-commons";
 import { getMockTenant, getMockTenantMail } from "pagopa-interop-commons-test";
-import { Tenant, WithMetadata, tenantKind } from "pagopa-interop-models";
+import {
+  ContactId,
+  Tenant,
+  WithMetadata,
+  generateId,
+  tenantKind,
+} from "pagopa-interop-models";
 import { upsertTenant } from "pagopa-interop-readmodel/testUtils";
 import { describe, expect, it } from "vitest";
 
 import { compare } from "../src/utils.js";
 import {
   addOneTenant,
+  addOneTenantMailInKpi,
   readModelServiceKPI,
   readModelServiceSQL,
   readModelDB,
@@ -60,12 +67,20 @@ describe("Check tenant readmodels", () => {
   });
 
   it("should detect no differences ignoring tenant mails", async () => {
+    const tenantMail = getMockTenantMail();
     const tenant: WithMetadata<Tenant> = {
-      data: { ...getMockTenant(), mails: [getMockTenantMail()] },
+      data: { ...getMockTenant(), mails: [tenantMail] },
       metadata: { version: 1 },
     };
 
+    // Both sides hold the mail: a historical row in the Analytics tenant_mail
+    // table and the read model mail written by upsertTenant.
     await addOneTenant(tenant);
+    await addOneTenantMailInKpi(
+      tenant.data.id,
+      tenantMail,
+      tenant.metadata.version
+    );
 
     await upsertTenant(readModelDB, tenant.data, tenant.metadata.version);
 
@@ -159,6 +174,63 @@ describe("Check tenant readmodels", () => {
         ...tenant1.data,
         kind: tenantKind.GSP,
       },
+      metadata: tenant1.metadata,
+    };
+
+    await addOneTenant(tenant1);
+
+    await upsertTenant(
+      readModelDB,
+      tenant1InPostgresDb.data,
+      tenant1InPostgresDb.metadata.version
+    );
+
+    const tenants = await readModelServiceKPI.getAllTenants();
+
+    const postgresTenants = await readModelServiceSQL.getAllTenants();
+
+    const res = compare({
+      kpiItems: tenants,
+      postgresItems: postgresTenants,
+      schema: "tenant",
+      loggerInstance: genericLogger,
+    });
+
+    expect(res).toEqual(1);
+  });
+
+  it("should detect no differences if the items reference the same contact", async () => {
+    const tenant: WithMetadata<Tenant> = {
+      data: { ...getMockTenant(), contactId: generateId<ContactId>() },
+      metadata: { version: 1 },
+    };
+
+    await addOneTenant(tenant);
+
+    await upsertTenant(readModelDB, tenant.data, tenant.metadata.version);
+
+    const tenants = await readModelServiceKPI.getAllTenants();
+
+    const postgresTenants = await readModelServiceSQL.getAllTenants();
+
+    const res = compare({
+      kpiItems: tenants,
+      postgresItems: postgresTenants,
+      schema: "tenant",
+      loggerInstance: genericLogger,
+    });
+
+    expect(res).toEqual(0);
+  });
+
+  it("should detect differences if the items reference different contacts", async () => {
+    const tenant1: WithMetadata<Tenant> = {
+      data: { ...getMockTenant(), contactId: generateId<ContactId>() },
+      metadata: { version: 1 },
+    };
+
+    const tenant1InPostgresDb: WithMetadata<Tenant> = {
+      data: { ...tenant1.data, contactId: generateId<ContactId>() },
       metadata: tenant1.metadata,
     };
 

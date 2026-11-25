@@ -31,6 +31,9 @@ export type DescriptorId = z.infer<typeof DescriptorId>;
 export const TenantId = z.string().uuid().brand("TenantId");
 export type TenantId = z.infer<typeof TenantId>;
 
+export const ContactId = z.string().uuid().brand("ContactId");
+export type ContactId = z.infer<typeof ContactId>;
+
 export const UserId = z.string().uuid().brand("UserId");
 export type UserId = z.infer<typeof UserId>;
 
@@ -401,6 +404,7 @@ export const IDS = z.union([
   TenantM2MEventId,
   RiskAnalysisTemplateDocumentId,
   PurposeTemplateM2MEventId,
+  ContactId,
 ]);
 export type IDS = z.infer<typeof IDS>;
 

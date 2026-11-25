@@ -33,6 +33,7 @@ import {
   Purpose,
   PurposeTemplate,
   Tenant,
+  TenantMail,
   WithMetadata,
 } from "pagopa-interop-models";
 import {
@@ -51,6 +52,7 @@ import { IMain, ColumnSet, IColumnDescriptor } from "pg-promise";
 import { afterEach, inject } from "vitest";
 import { z } from "zod";
 
+import { config } from "../src/configs/config.js";
 import { DomainDbTable, DomainDbTableSchemas } from "../src/model/db/index.js";
 import {
   DBContext,
@@ -205,6 +207,30 @@ export const addOneTenant = async (
     splitResult.verifiedAttributeRevokersSQL
   );
   await writeInKpi(TenantDbTable.tenant_feature, splitResult.featuresSQL);
+};
+
+// tenant_mail is no longer part of the Analytics models, but the table is
+// still in the schema until it is dropped (PIN-11292): it is written directly,
+// to check that its historical rows are not read.
+export const addOneTenantMailInKpi = async (
+  tenantId: Tenant["id"],
+  mail: TenantMail,
+  metadataVersion: number
+): Promise<void> => {
+  await dbContext.conn.none(
+    `INSERT INTO ${config.dbSchemaName}.tenant_mail
+      (id, tenant_id, metadata_version, kind, address, description, created_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+    [
+      mail.id,
+      tenantId,
+      metadataVersion,
+      mail.kind,
+      mail.address,
+      mail.description ?? null,
+      mail.createdAt,
+    ]
+  );
 };
 
 export const addOnePurpose = async (
