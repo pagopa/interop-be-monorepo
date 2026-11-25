@@ -8,3 +8,6 @@ message AttributeAddedV1 {
   required AttributeV1 attribute = 1;
 }
 
+message AttributeSubunitPropagationUpdatedV1 {
+  required AttributeV1 attribute = 1;
+}

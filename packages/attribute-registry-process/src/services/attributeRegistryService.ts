@@ -349,6 +349,8 @@ export function attributeRegistryServiceBuilder(
       logger.info(
         `Creating certified discrete attribute with code ${apiCertifiedDiscreteAttributeSeed.code}`
       );
+      validateAttributeSeedFields(apiCertifiedDiscreteAttributeSeed);
+
       const certifierId = await getCertifierId(
         authData.organizationId,
         readModelService
@@ -535,12 +537,14 @@ export function attributeRegistryServiceBuilder(
         );
       }
 
+      const isPropagationChanged = (attribute: Attribute): boolean => {
+        const isCurrentlyEnabled = attribute.subunitPropagationEnabled ?? false;
+        const isSelected = attributeIds.includes(attribute.id);
+        return isCurrentlyEnabled !== isSelected;
+      };
+
       const events = eligibleAttributes
-        .filter(
-          ({ data }) =>
-            (data.subunitPropagationEnabled ?? false) !==
-            attributeIds.includes(data.id)
-        )
+        .filter(({ data }) => isPropagationChanged(data))
         .map(({ data, metadata }) =>
           toCreateEventAttributeSubunitPropagationUpdated(
             {

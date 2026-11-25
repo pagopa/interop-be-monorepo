@@ -8,7 +8,7 @@ import { z } from "zod";
 
 import type { OpenDataConfig } from "../config/openDataConfig.js";
 
-type Classification = "Agency" | "AOO" | "UO";
+export type Classification = "Agency" | "AOO" | "UO";
 
 type InstitutionKind = "Agency" | "AOO" | "UO";
 
@@ -24,7 +24,7 @@ export type Institution = {
   subUnit?: SubUnit;
 };
 
-type SubUnit = {
+export type SubUnit = {
   name: string;
   entityName: string;
   entityIpaCode: string;

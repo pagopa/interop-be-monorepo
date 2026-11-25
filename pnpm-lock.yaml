@@ -6644,8 +6644,8 @@ importers:
   packages/tenant-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.25
-        version: 1.8.25
+        specifier: 1.8.27-gestione.aoo.uo.1
+        version: 1.8.27-gestione.aoo.uo.1
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -8542,6 +8542,9 @@ packages:
 
   '@pagopa/interop-outbound-models@1.8.27':
     resolution: {integrity: sha512-NlAP9fHYvSo84J1uug1LYJ9arulFL6zI7Y13HjF1mOWlAwQheCO6/7ZlMA2ytGxXROZgdFcmfHeEehEtTHe2dg==}
+
+  '@pagopa/interop-outbound-models@1.8.27-gestione.aoo.uo.1':
+    resolution: {integrity: sha512-ObSi+NZdFJQ9/o9xvfW8+mz4cI9L9vVbC8yeJSPjmdQXnJgHpZH5RaXVl3c8cU1bfWrSeBB9lDpykZASdqtf/w==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -16274,6 +16277,12 @@ snapshots:
       zod: 3.23.8
 
   '@pagopa/interop-outbound-models@1.8.27':
+    dependencies:
+      '@protobuf-ts/runtime': 2.9.4
+      ts-pattern: 5.2.0
+      zod: 4.6.6
+
+  '@pagopa/interop-outbound-models@1.8.27-gestione.aoo.uo.1':
     dependencies:
       '@protobuf-ts/runtime': 2.9.4
       ts-pattern: 5.2.0
