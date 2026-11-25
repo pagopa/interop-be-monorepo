@@ -132,6 +132,7 @@ import {
 } from "../model/domain/errors.js";
 import {
   ApiGetEServicesFilters,
+  ArchivingRow,
   Consumer,
   defaultEServiceSortBy,
   ProducerEServiceMonitoringAgreements,
@@ -1165,6 +1166,30 @@ export function catalogServiceBuilder(
         consumersByKind,
         pendingAgreements,
       };
+    },
+
+    async getProducerEServiceMonitoringArchiving(
+      eserviceId: EServiceId,
+      { offset, limit }: { offset: number; limit: number },
+      { authData, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<ListResult<ArchivingRow>> {
+      logger.info(
+        `Retrieving archiving monitoring for e-service ${eserviceId}, offset ${offset}, limit ${limit}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
+
+      return await readModelService.getArchivingRows(
+        authData.organizationId,
+        { eserviceId, collapseEServiceScope: false },
+        { offset, limit }
+      );
     },
 
     async getDocumentById(

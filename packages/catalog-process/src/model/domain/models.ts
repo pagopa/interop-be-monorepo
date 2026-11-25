@@ -2,6 +2,7 @@ import { bffApi, catalogApi } from "pagopa-interop-api-clients";
 import {
   CONTRACT_AUTHORITY_PUBLIC_SERVICES_MANAGERS,
   DescriptorState,
+  DescriptorId,
   AgreementState,
   EServiceId,
   EServiceMode,
@@ -32,6 +33,16 @@ export type EServiceMonitoringAgreementsCounters = {
   medianUpgradeDays: number | undefined;
   pendingAgreements: number;
 };
+
+export type ArchivingRow = {
+  eserviceId: EServiceId;
+  eserviceName: string;
+  descriptorId: DescriptorId | undefined;
+  version: string | undefined;
+  consumersCount: number;
+  archivableOn: Date;
+};
+
 export type EServiceSortBy = catalogApi.EServiceSortBy;
 
 export const defaultEServiceSortBy: EServiceSortBy = "CREATED_AT_DESC";

@@ -26,6 +26,7 @@ import {
   apiDescriptorStateToDescriptorState,
   apiEServiceModeToEServiceMode,
   apiTechnologyToTechnology,
+  archivingRowToApiMonitoringArchivingRow,
   descriptorStateToApiEServiceDescriptorState,
   descriptorToApiDescriptor,
   documentToApiDocument,
@@ -97,6 +98,7 @@ import {
   internalDeleteDelegatedArchivingRequestErrorMapper,
   internalRestoreDraftDescriptorAfterDelegationRevokeErrorMapper,
   getProducerEServiceMonitoringAgreementsErrorMapper,
+  getProducerEServiceMonitoringArchivingErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const eservicesRouter = (
@@ -526,6 +528,45 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             getProducerEServiceMonitoringAgreementsErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/producers/eservices/:eserviceId/monitoring/archiving",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          validateAuthorization(ctx, [
+            ADMIN_ROLE,
+            SUPPORT_ROLE,
+            API_ROLE,
+            VIEWER_ROLE,
+          ]);
+          const result =
+            await catalogService.getProducerEServiceMonitoringArchiving(
+              unsafeBrandId(req.params.eserviceId),
+              { offset: req.query.offset, limit: req.query.limit },
+              ctx
+            );
+          return res.status(200).send(
+            catalogApi.MonitoringArchiving.parse({
+              results: result.results.map(
+                archivingRowToApiMonitoringArchivingRow
+              ),
+              pagination: {
+                offset: req.query.offset,
+                limit: req.query.limit,
+                totalCount: result.totalCount,
+              },
+            })
+          );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getProducerEServiceMonitoringArchivingErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);

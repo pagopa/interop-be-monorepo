@@ -65,6 +65,9 @@ import {
   attributeCertifiedDiscreteComparator,
   attributeKind,
   EServiceMode,
+  AgreementStampKind,
+  archivingScope,
+  tenantKind,
 } from "pagopa-interop-models";
 import {
   aggregateAgreementArray,
@@ -122,6 +125,7 @@ import {
   EServiceSortBy,
   producerCategoryAttributeCodes,
   RequesterDelegationRole,
+  ArchivingRow,
   EServiceMonitoringAgreementsCounters,
 } from "../model/domain/models.js";
 import {
@@ -131,6 +135,7 @@ import {
 } from "./descriptorStates.js";
 import { hasRoleToAccessInactiveDescriptors } from "./validators.js";
 
+// Descriptors counted as versions of an e-service in the monitoring tab.
 const monitoredDescriptorStates: DescriptorState[] = [
   descriptorState.published,
   descriptorState.deprecated,
@@ -1254,6 +1259,119 @@ export function readModelServiceBuilderSQL(
         medianUpgradeDays: first.medianUpgradeDays ?? undefined,
         pendingAgreements: first.pendingAgreements,
       };
+    },
+
+    async getArchivingRows(
+      requesterId: TenantId,
+      filters: { eserviceId?: EServiceId; collapseEServiceScope: boolean },
+      { offset, limit }: { offset: number; limit: number }
+    ): Promise<ListResult<ArchivingRow>> {
+      const eservice = eserviceInReadmodelCatalog;
+      const descriptor = eserviceDescriptorInReadmodelCatalog;
+      const schedule = eserviceDescriptorArchivingScheduleInReadmodelCatalog;
+      const agreement = agreementInReadmodelAgreement;
+
+      const rowKey = (value: Column): SQL =>
+        filters.collapseEServiceScope
+          ? sql`case when ${schedule.scope} = ${archivingScope.eservice} then null else ${value} end`
+          : sql`${value}`;
+
+      const scheduled = readmodelDB.$with("archiving_scheduled_descriptors").as(
+        readmodelDB
+          .select({
+            eserviceId: sql<string>`${eservice.id}`.as("scheduled_eservice_id"),
+            eserviceName: sql<string>`${eservice.name}`.as(
+              "scheduled_eservice_name"
+            ),
+            descriptorId: sql<string>`${descriptor.id}`.as(
+              "scheduled_descriptor_id"
+            ),
+            rowDescriptorId: sql<string | null>`${rowKey(descriptor.id)}`.as(
+              "scheduled_row_descriptor_id"
+            ),
+            rowVersion: sql<string | null>`${rowKey(descriptor.version)}`.as(
+              "scheduled_row_version"
+            ),
+            archivableOn: sql<string>`${schedule.archivableOn}`.as(
+              "scheduled_archivable_on"
+            ),
+          })
+          .from(descriptor)
+          .innerJoin(eservice, eq(eservice.id, descriptor.eserviceId))
+          .innerJoin(schedule, eq(schedule.descriptorId, descriptor.id))
+          .where(
+            and(
+              inArray(descriptor.state, [
+                descriptorState.archiving,
+                descriptorState.archivingSuspended,
+              ]),
+              gt(schedule.archivableOn, sql`now()`),
+              filters.eserviceId
+                ? eq(eservice.id, filters.eserviceId)
+                : or(
+                    eq(eservice.producerId, requesterId),
+                    requesterDelegationRolesFilter(readmodelDB, requesterId, [
+                      "DELEGATE",
+                    ])
+                  )
+            )
+          )
+      );
+
+      const archivableOn = sql<string>`min(${scheduled.archivableOn})`;
+      const rows = await readmodelDB
+        .with(scheduled)
+        .select(
+          withTotalCount({
+            eserviceId: scheduled.eserviceId,
+            eserviceName: scheduled.eserviceName,
+            descriptorId: scheduled.rowDescriptorId,
+            version: scheduled.rowVersion,
+            archivableOn: archivableOn.as("row_archivable_on"),
+            consumersCount: sql<number>`count(distinct ${agreement.consumerId})`
+              .mapWith(Number)
+              .as("consumers_count"),
+          })
+        )
+        .from(scheduled)
+        .leftJoin(
+          agreement,
+          and(
+            eq(agreement.descriptorId, scheduled.descriptorId),
+            inArray(agreement.state, [
+              agreementState.active,
+              agreementState.suspended,
+            ])
+          )
+        )
+        .groupBy(
+          scheduled.eserviceId,
+          scheduled.eserviceName,
+          scheduled.rowDescriptorId,
+          scheduled.rowVersion
+        )
+        .orderBy(
+          asc(archivableOn),
+          asc(scheduled.eserviceName),
+          asc(sql`${scheduled.rowVersion}::integer`),
+          asc(scheduled.eserviceId)
+        )
+        .limit(limit)
+        .offset(offset);
+
+      return createListResult(
+        rows.map((r) => ({
+          eserviceId: unsafeBrandId<EServiceId>(r.eserviceId),
+          eserviceName: r.eserviceName,
+          descriptorId: r.descriptorId
+            ? unsafeBrandId<DescriptorId>(r.descriptorId)
+            : undefined,
+          version: r.version ?? undefined,
+          consumersCount: r.consumersCount,
+          archivableOn: stringToDate(r.archivableOn),
+        })),
+        rows[0]?.totalCount
+      );
     },
 
     async getEServiceConsumers(
