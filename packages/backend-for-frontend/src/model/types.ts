@@ -2,6 +2,7 @@ import type { ErrorMessage } from "pagopa-interop-models";
 import type { Problem, MakeApiProblemFn } from "pagopa-interop-models";
 
 import { agreementApi, bffApi, catalogApi } from "pagopa-interop-api-clients";
+import { EServiceId } from "pagopa-interop-models";
 import { z } from "zod";
 
 const Conditions = z.object({
@@ -208,6 +209,17 @@ export const ConfigurationEservice = z.object({
   isClientAccessDelegable: z.boolean().optional(),
 });
 export type ConfigurationEservice = z.infer<typeof ConfigurationEservice>;
+
+export const UseCasesFile = z.array(
+  z.object({
+    name: z.string(),
+    description: z.string().optional(),
+    slug: z.string(),
+    fieldId: bffApi.CatalogUseCaseField,
+    eserviceIds: z.array(EServiceId),
+  })
+);
+export type UseCasesFile = z.infer<typeof UseCasesFile>;
 
 export type UserFacingProblem = Problem & {
   userMessage?: string;

@@ -13,9 +13,20 @@ CREATE TABLE IF NOT EXISTS readmodel_eservice_template.eservice_template (
   is_signal_hub_enabled BOOLEAN,
   personal_data BOOLEAN,
   async_exchange BOOLEAN,
+  search_vector TSVECTOR GENERATED ALWAYS AS (
+    setweight(to_tsvector('public.italian_unaccent', public.normalize_text(name)), 'A') ||
+    setweight(to_tsvector('public.italian_unaccent', public.normalize_text(description)), 'B')
+  ) STORED,
   PRIMARY KEY (id),
   CONSTRAINT eservice_template_id_metadata_version_unique UNIQUE (id, metadata_version)
 );
+
+CREATE INDEX IF NOT EXISTS eservice_template_search_vector_gin
+  ON readmodel_eservice_template.eservice_template USING GIN (search_vector);
+CREATE INDEX IF NOT EXISTS eservice_template_name_trgm
+  ON readmodel_eservice_template.eservice_template USING GIN (public.normalize_text(name) public.gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS eservice_template_description_trgm
+  ON readmodel_eservice_template.eservice_template USING GIN (public.normalize_text(description) public.gin_trgm_ops);
 
 CREATE TABLE IF NOT EXISTS readmodel_eservice_template.eservice_template_version (
   id UUID,
