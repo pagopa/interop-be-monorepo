@@ -1,6 +1,7 @@
 import {
   and,
   asc,
+  Column,
   count,
   countDistinct,
   desc,
@@ -118,8 +119,10 @@ import {
   ApiGetEServicesFilters,
   Consumer,
   EServiceProducerCategory,
+  EServiceQueryResult,
   EServicesQueryFilters,
   EServiceSortBy,
+  minTemplateInstancesGroupSize,
   producerCategoryAttributeCodes,
 } from "../model/domain/models.js";
 import {
@@ -131,6 +134,8 @@ import {
   eserviceKeywordFilter,
   eserviceKeywordRelevance,
   eserviceProducerJoin,
+  eserviceTemplateKeywordFilter,
+  eserviceTemplateKeywordRelevance,
 } from "./keywordSearch.js";
 import { hasRoleToAccessInactiveDescriptors } from "./validators.js";
 
@@ -200,17 +205,238 @@ export const existsAvailableTemplateInstance = (
   );
 
 // The id tie-break keeps pagination deterministic on equal names or dates.
-const getEServicesOrderBy = (sortBy: EServiceSortBy): SQL[] => [
+// The query grouped by template sorts on the columns of its UNION ALL result.
+const getEServicesOrderBy = (
+  sortBy: EServiceSortBy,
+  {
+    name,
+    createdAt,
+    id,
+  }: {
+    name: Column;
+    createdAt: Column;
+    id: Column;
+  } = eserviceInReadmodelCatalog
+): SQL[] => [
   match(sortBy)
-    .with("NAME_ASC", () => ascLower(eserviceInReadmodelCatalog.name))
-    .with("NAME_DESC", () => descLower(eserviceInReadmodelCatalog.name))
-    .with("CREATED_AT_ASC", () => asc(eserviceInReadmodelCatalog.createdAt))
-    .with("CREATED_AT_DESC", "RELEVANCE", () =>
-      desc(eserviceInReadmodelCatalog.createdAt)
-    )
+    .with("NAME_ASC", () => ascLower(name))
+    .with("NAME_DESC", () => descLower(name))
+    .with("CREATED_AT_ASC", () => asc(createdAt))
+    .with("CREATED_AT_DESC", "RELEVANCE", () => desc(createdAt))
     .exhaustive(),
-  asc(eserviceInReadmodelCatalog.id),
+  asc(id),
 ];
+
+/**
+ * Instance-specific filters disable grouping; templateId opens a collection
+ * and lists its individual instances.
+ */
+const isTemplateGroupingCompatible = ({
+  onlyActiveEservices,
+  subscribedByRequester,
+  hasLinkedPurposeTemplates,
+  onlySignalHubEnabled,
+  producersIds,
+  producerCategories,
+  templateId,
+}: Pick<
+  EServicesQueryFilters,
+  | "onlyActiveEservices"
+  | "subscribedByRequester"
+  | "hasLinkedPurposeTemplates"
+  | "onlySignalHubEnabled"
+  | "producersIds"
+  | "producerCategories"
+  | "templateId"
+>): boolean =>
+  !onlyActiveEservices &&
+  subscribedByRequester === undefined &&
+  !hasLinkedPurposeTemplates &&
+  onlySignalHubEnabled === undefined &&
+  producersIds.length === 0 &&
+  producerCategories.length === 0 &&
+  templateId === undefined;
+
+/**
+ * Count filtered instances without the keyword. The inner join leaves instances
+ * of missing templates as single e-services.
+ */
+const getTemplateInstanceCounts = (
+  tx: DrizzleTransactionType,
+  instancesCondition: SQL | undefined
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+) =>
+  tx
+    .select({
+      templateId: eserviceInReadmodelCatalog.templateId,
+      numInstances: count(eserviceInReadmodelCatalog.id).as("numInstances"),
+    })
+    .from(eserviceInReadmodelCatalog)
+    .innerJoin(
+      eserviceTemplateInReadmodelEserviceTemplate,
+      eq(
+        eserviceTemplateInReadmodelEserviceTemplate.id,
+        eserviceInReadmodelCatalog.templateId
+      )
+    )
+    .where(instancesCondition)
+    .groupBy(eserviceInReadmodelCatalog.templateId)
+    .as("template_instances");
+
+const buildSingleEServicesQuery = (
+  tx: DrizzleTransactionType,
+  keyword: string | undefined
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+) =>
+  tx
+    .select({
+      resultType: sql<EServiceQueryResult["resultType"]>`'eservice'`.as(
+        "resultType"
+      ),
+      id: eserviceInReadmodelCatalog.id,
+      name: eserviceInReadmodelCatalog.name,
+      createdAt: eserviceInReadmodelCatalog.createdAt,
+      relevance: sql<number>`${
+        keyword === undefined ? sql`0` : eserviceKeywordRelevance(keyword)
+      }`.as("relevance"),
+      numInstances: sql<number>`0`.as("numInstances"),
+    })
+    .from(eserviceInReadmodelCatalog)
+    .leftJoin(tenantInReadmodelTenant, eserviceProducerJoin);
+
+const buildTemplateGroupsQuery = (
+  tx: DrizzleTransactionType,
+  keyword: string | undefined,
+  templateInstanceCounts: ReturnType<typeof getTemplateInstanceCounts>
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+) =>
+  tx
+    .select({
+      resultType: sql<EServiceQueryResult["resultType"]>`'template'`.as(
+        "resultType"
+      ),
+      id: eserviceTemplateInReadmodelEserviceTemplate.id,
+      name: eserviceTemplateInReadmodelEserviceTemplate.name,
+      createdAt: eserviceTemplateInReadmodelEserviceTemplate.createdAt,
+      relevance: sql<number>`${
+        keyword === undefined
+          ? sql`0`
+          : eserviceTemplateKeywordRelevance(keyword)
+      }`.as("relevance"),
+      numInstances: templateInstanceCounts.numInstances,
+    })
+    .from(eserviceTemplateInReadmodelEserviceTemplate)
+    .innerJoin(
+      templateInstanceCounts,
+      eq(
+        templateInstanceCounts.templateId,
+        eserviceTemplateInReadmodelEserviceTemplate.id
+      )
+    );
+
+type GroupedCatalogPageRow = {
+  resultType: EServiceQueryResult["resultType"];
+  id: string;
+  numInstances: number;
+};
+
+const getGroupedCatalogPage = async (
+  tx: DrizzleTransactionType,
+  singleEServices: ReturnType<
+    ReturnType<typeof buildSingleEServicesQuery>["where"]
+  >,
+  templateGroups: ReturnType<
+    ReturnType<typeof buildTemplateGroupsQuery>["where"]
+  >,
+  {
+    keyword,
+    sortBy,
+    offset,
+    limit,
+  }: Pick<EServicesQueryFilters, "keyword" | "sortBy" | "offset" | "limit">
+): Promise<{
+  pageResults: GroupedCatalogPageRow[];
+  groupedTotalCount: { count: number }[];
+}> => {
+  const queryResults = singleEServices
+    .unionAll(templateGroups)
+    .as("catalog_query_results");
+
+  const groupedOrderBy =
+    keyword === undefined
+      ? getEServicesOrderBy(sortBy, queryResults)
+      : [
+          desc(queryResults.relevance),
+          ...getEServicesOrderBy(sortBy, queryResults),
+        ];
+
+  const [pageResults, groupedTotalCount] = await Promise.all([
+    tx
+      .select({
+        resultType: queryResults.resultType,
+        id: queryResults.id,
+        numInstances: sql<number>`${queryResults.numInstances}`.mapWith(Number),
+      })
+      .from(queryResults)
+      .orderBy(...groupedOrderBy)
+      .limit(limit)
+      .offset(offset),
+    tx.select({ count: count() }).from(queryResults),
+  ]);
+
+  return { pageResults, groupedTotalCount };
+};
+
+const loadAndOrderGroupedDetails = async (
+  pageResults: GroupedCatalogPageRow[],
+  catalogReadModelService: CatalogReadModelService,
+  eserviceTemplateReadModelService: EServiceTemplateReadModelService
+): Promise<EServiceQueryResult[]> => {
+  const eserviceIds = pageResults
+    .filter((r) => r.resultType === "eservice")
+    .map((r) => r.id);
+
+  const eserviceTemplateIds = pageResults
+    .filter((r) => r.resultType === "template")
+    .map((r) => r.id);
+
+  const [eservices, eserviceTemplates] = await Promise.all([
+    eserviceIds.length > 0
+      ? catalogReadModelService.getEServicesByFilter(
+          inArray(eserviceInReadmodelCatalog.id, eserviceIds)
+        )
+      : [],
+    eserviceTemplateIds.length > 0
+      ? eserviceTemplateReadModelService.getEServiceTemplatesByFilter(
+          inArray(
+            eserviceTemplateInReadmodelEserviceTemplate.id,
+            eserviceTemplateIds
+          )
+        )
+      : [],
+  ]);
+
+  return pageResults
+    .map((r): EServiceQueryResult | undefined =>
+      match(r.resultType)
+        .with("eservice", () => {
+          const eservice = eservices.find((e) => e.id === r.id);
+          return eservice && { ...eservice, resultType: "eservice" as const };
+        })
+        .with("template", () => {
+          const eserviceTemplate = eserviceTemplates.find((t) => t.id === r.id);
+          return (
+            eserviceTemplate && {
+              ...eserviceTemplate,
+              resultType: "template" as const,
+              numInstances: r.numInstances,
+            }
+          );
+        })
+        .exhaustive()
+    )
+    .filter((r): r is EServiceQueryResult => r !== undefined);
+};
 
 const producersFilter = (producersIds: TenantId[]): SQL | undefined =>
   producersIds.length > 0
@@ -861,9 +1087,10 @@ export function readModelServiceBuilderSQL(
         onlySignalHubEnabled,
         asyncExchange,
         isConsumerDelegable,
+        groupByTemplate,
       }: EServicesQueryFilters,
       certifiedDiscreteEnabled: boolean
-    ): Promise<ListResult<EService>> {
+    ): Promise<ListResult<EServiceQueryResult>> {
       return await readmodelDB.transaction(async (tx) => {
         const visibleEservicesFilter = existsCatalogVisibleDescriptor(tx);
 
@@ -894,10 +1121,113 @@ export function readModelServiceBuilderSQL(
         );
 
         const baseCondition = and(visibleEservicesFilter, filtersCondition);
+
+        if (
+          groupByTemplate &&
+          isTemplateGroupingCompatible({
+            onlyActiveEservices,
+            subscribedByRequester,
+            hasLinkedPurposeTemplates,
+            onlySignalHubEnabled,
+            producersIds,
+            producerCategories,
+            templateId,
+          })
+        ) {
+          /**
+           * Both UNION ALL branches share sorting and pagination; each template
+           * collection counts as one result.
+           */
+          const templateInstanceCounts = getTemplateInstanceCounts(
+            tx,
+            baseCondition
+          );
+
+          const meetsGroupSize = gte(
+            templateInstanceCounts.numInstances,
+            minTemplateInstancesGroupSize
+          );
+
+          const singleEServicesCondition = and(
+            baseCondition,
+            notExists(
+              tx
+                .select()
+                .from(templateInstanceCounts)
+                .where(
+                  and(
+                    eq(
+                      templateInstanceCounts.templateId,
+                      eserviceInReadmodelCatalog.templateId
+                    ),
+                    meetsGroupSize
+                  )
+                )
+            )
+          );
+
+          const templateGroupsCondition = exists(
+            tx
+              .select()
+              .from(templateInstanceCounts)
+              .where(
+                and(
+                  eq(
+                    templateInstanceCounts.templateId,
+                    eserviceTemplateInReadmodelEserviceTemplate.id
+                  ),
+                  meetsGroupSize
+                )
+              )
+          );
+
+          /**
+           * Keyword matching uses e-service data for singles and template data for groups.
+           */
+          const singleEServices = buildSingleEServicesQuery(tx, keyword).where(
+            and(
+              singleEServicesCondition,
+              await eserviceKeywordFilter(tx, keyword, singleEServicesCondition)
+            )
+          );
+
+          const templateGroups = buildTemplateGroupsQuery(
+            tx,
+            keyword,
+            templateInstanceCounts
+          ).where(
+            and(
+              meetsGroupSize,
+              await eserviceTemplateKeywordFilter(
+                tx,
+                keyword,
+                templateGroupsCondition
+              )
+            )
+          );
+
+          const { pageResults, groupedTotalCount } =
+            await getGroupedCatalogPage(tx, singleEServices, templateGroups, {
+              keyword,
+              sortBy,
+              offset,
+              limit,
+            });
+
+          const orderedResults = await loadAndOrderGroupedDetails(
+            pageResults,
+            catalogReadModelService,
+            eserviceTemplateReadModelService
+          );
+
+          return createListResult(orderedResults, groupedTotalCount[0]?.count);
+        }
+
         const condition = and(
           baseCondition,
           await eserviceKeywordFilter(tx, keyword, baseCondition)
         );
+
         const orderBy =
           sortBy === "RELEVANCE" && keyword !== undefined
             ? [
@@ -932,7 +1262,13 @@ export function readModelServiceBuilderSQL(
 
         const orderedEservices = ids
           .map((id) => eservices.find((e) => e.id === id))
-          .filter((e): e is EService => e !== undefined);
+          .filter((e): e is EService => e !== undefined)
+          .map(
+            (eservice): EServiceQueryResult => ({
+              ...eservice,
+              resultType: "eservice",
+            })
+          );
 
         return createListResult(orderedEservices, totalCount[0]?.count);
       });
