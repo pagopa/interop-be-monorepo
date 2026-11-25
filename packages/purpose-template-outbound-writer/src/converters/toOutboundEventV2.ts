@@ -121,6 +121,9 @@ export function toOutboundEventV2(
       { type: "PurposeTemplateArchived" },
       { type: "RiskAnalysisTemplateDocumentGenerated" },
       { type: "RiskAnalysisTemplateSignedDocumentGenerated" },
+      { type: "PurposeTemplatePurposeTitleUpdated" },
+      { type: "PurposeTemplatePurposeDescriptionUpdated" },
+      { type: "PurposeTemplateTargetDescriptionUpdated" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,

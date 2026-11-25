@@ -32,6 +32,7 @@ import {
   agreementApprovalPolicy,
   agreementState,
   AttributeId,
+  buildEServiceInstanceName,
   catalogEventToBinaryData,
   Delegation,
   delegationKind,
@@ -58,6 +59,7 @@ import {
   generateId,
   ListResult,
   operationForbidden,
+  parseEServiceInstanceLabel,
   RiskAnalysis,
   RiskAnalysisId,
   Tenant,
@@ -133,6 +135,7 @@ import {
 } from "../model/domain/errors.js";
 import {
   ApiGetEServicesFilters,
+  CatalogQueryResult,
   Consumer,
   defaultEServiceSortBy,
 } from "../model/domain/models.js";
@@ -1056,7 +1059,7 @@ export function catalogServiceBuilder(
         authData,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
-    ): Promise<ListResult<EService>> {
+    ): Promise<ListResult<CatalogQueryResult>> {
       const sortBy = filters.sortBy ?? defaultEServiceSortBy;
       const trimmedKeyword = filters.keyword?.trim();
       const keyword = trimmedKeyword === "" ? undefined : trimmedKeyword;
@@ -1064,17 +1067,16 @@ export function catalogServiceBuilder(
         unsafeBrandId
       );
       const availableForRequester = filters.availableForRequester;
-      const requesterDelegationRoles = filters.requesterDelegationRoles ?? [];
       const producerCategories = filters.producerCategories ?? [];
       logger.info(
-        `Querying EServices, limit = ${filters.limit}, offset = ${filters.offset}, sortBy = ${sortBy}, keyword = ${keyword}, producersIds = ${producersIds}, onlyActiveEservices = ${filters.onlyActiveEservices}, subscribedByRequester = ${filters.subscribedByRequester}, requesterDelegationRoles = ${requesterDelegationRoles}, onlyTemplateInstances = ${filters.onlyTemplateInstances}, templateId = ${filters.templateId}, hasLinkedPurposeTemplates = ${filters.hasLinkedPurposeTemplates}, producerCategories = ${producerCategories}, availableForRequester = ${availableForRequester}`
+        `Querying EServices, limit = ${filters.limit}, offset = ${filters.offset}, sortBy = ${sortBy}, keyword = ${keyword}, producersIds = ${producersIds}, onlyActiveEservices = ${filters.onlyActiveEservices}, subscribedByRequester = ${filters.subscribedByRequester}, onlyTemplateInstances = ${filters.onlyTemplateInstances}, templateId = ${filters.templateId}, hasLinkedPurposeTemplates = ${filters.hasLinkedPurposeTemplates}, producerCategories = ${producerCategories}, availableForRequester = ${availableForRequester}, isConsumerDelegable = ${filters.isConsumerDelegable}, groupByTemplate = ${filters.groupByTemplate}`
       );
       const certifiedDiscreteEnabled = isFeatureFlagEnabled(
         config,
         "featureFlagAttributeCertifiedDiscrete"
       );
 
-      const eservicesList = await readModelService.queryEServices(
+      const queryResults = await readModelService.queryEServices(
         authData,
         {
           offset: filters.offset,
@@ -1084,7 +1086,6 @@ export function catalogServiceBuilder(
           producersIds,
           onlyActiveEservices: filters.onlyActiveEservices,
           subscribedByRequester: filters.subscribedByRequester,
-          requesterDelegationRoles,
           onlyTemplateInstances: filters.onlyTemplateInstances,
           templateId: filters.templateId
             ? unsafeBrandId<EServiceTemplateId>(filters.templateId)
@@ -1097,19 +1098,38 @@ export function catalogServiceBuilder(
             : undefined,
           onlySignalHubEnabled: filters.onlySignalHubEnabled,
           asyncExchange: filters.asyncExchange,
+          isConsumerDelegable: filters.isConsumerDelegable,
+          groupByTemplate: filters.groupByTemplate,
         },
         certifiedDiscreteEnabled
       );
 
-      const eservicesToReturn = await Promise.all(
-        eservicesList.results.map((eservice) =>
-          applyVisibilityToEService(eservice, authData, readModelService)
+      const results = await Promise.all(
+        queryResults.results.map(
+          async (result): Promise<CatalogQueryResult> =>
+            match(result)
+              .with({ resultType: "eservice" }, async (eservice) => ({
+                ...(await applyVisibilityToEService(
+                  eservice,
+                  authData,
+                  readModelService
+                )),
+                resultType: "eservice" as const,
+              }))
+              .with({ resultType: "template" }, (eserviceTemplate) => ({
+                id: eserviceTemplate.id,
+                name: eserviceTemplate.name,
+                description: eserviceTemplate.description,
+                numInstances: eserviceTemplate.numInstances,
+                resultType: "template" as const,
+              }))
+              .exhaustive()
         )
       );
 
       return {
-        results: eservicesToReturn,
-        totalCount: eservicesList.totalCount,
+        results,
+        totalCount: queryResults.totalCount,
       };
     },
 
@@ -1373,11 +1393,13 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      const { parsedInstanceLabel, instanceName: updatedInstanceName } =
-        buildInstanceName({
-          templateName: template.name,
-          instanceLabel: eserviceSeed.instanceLabel,
-        });
+      const parsedInstanceLabel = parseEServiceInstanceLabel(
+        eserviceSeed.instanceLabel
+      );
+      const updatedInstanceName = buildEServiceInstanceName({
+        templateName: template.name,
+        instanceLabel: parsedInstanceLabel,
+      });
 
       if (updatedInstanceName !== eservice.data.name) {
         await assertEServiceNameAvailableForProducer(
@@ -4398,7 +4420,7 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      const { instanceName: updatedInstanceName } = buildInstanceName({
+      const updatedInstanceName = buildEServiceInstanceName({
         templateName: updatedTemplateName,
         instanceLabel: eservice.data.instanceLabel,
       });
@@ -4840,9 +4862,12 @@ export function catalogServiceBuilder(
         .with({ mode: eserviceMode.deliver }, () => Promise.resolve([]))
         .exhaustive();
 
-      const { parsedInstanceLabel, instanceName } = buildInstanceName({
+      const parsedInstanceLabel = parseEServiceInstanceLabel(
+        seed.instanceLabel
+      );
+      const instanceName = buildEServiceInstanceName({
         templateName: template.name,
-        instanceLabel: seed.instanceLabel,
+        instanceLabel: parsedInstanceLabel,
       });
 
       const instanceAsyncExchange =
@@ -5326,11 +5351,11 @@ export function catalogServiceBuilder(
 
       assertEServiceUpdatableAfterPublish(eservice.data);
 
-      const { parsedInstanceLabel, instanceName: updatedInstanceName } =
-        buildInstanceName({
-          templateName: template.name,
-          instanceLabel,
-        });
+      const parsedInstanceLabel = parseEServiceInstanceLabel(instanceLabel);
+      const updatedInstanceName = buildEServiceInstanceName({
+        templateName: template.name,
+        instanceLabel: parsedInstanceLabel,
+      });
 
       if (updatedInstanceName !== eservice.data.name) {
         await assertEServiceNameAvailableForProducer(
@@ -6465,31 +6490,4 @@ async function updateDraftDescriptor(
   };
 }
 
-/**
- * Builds the instance name from the template name and optional instance label.
- * - templateName: maxLength 45
- * - separator " - ": 3 characters
- * - instanceLabel: maxLength 12
- * - eservice name (result): maxLength 60
- *
- * Also, empty spaces are removed, and an empty string is treated as undefined
- */
-const buildInstanceName = ({
-  templateName,
-  instanceLabel,
-}: {
-  templateName: string;
-  instanceLabel: string | undefined;
-}): { parsedInstanceLabel?: string; instanceName: string } => {
-  const trimmedInstanceLabel = instanceLabel?.trim();
-  const parsedInstanceLabel =
-    trimmedInstanceLabel && trimmedInstanceLabel.length > 0
-      ? trimmedInstanceLabel
-      : undefined;
-
-  const instanceName = parsedInstanceLabel
-    ? `${templateName} - ${parsedInstanceLabel}`
-    : templateName;
-  return { parsedInstanceLabel, instanceName };
-};
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
