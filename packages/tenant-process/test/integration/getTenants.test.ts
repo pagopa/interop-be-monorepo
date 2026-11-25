@@ -5,6 +5,7 @@ import {
   Tenant,
   TenantId,
   tenantFeatureType,
+  tenantUnitType,
 } from "pagopa-interop-models";
 import { upsertTenant } from "pagopa-interop-readmodel/testUtils";
 import { match } from "ts-pattern";
@@ -489,12 +490,12 @@ describe("getTenants", () => {
       const parentTenant: Tenant = {
         ...getMockTenant(),
         name: "Tenant AOO",
-        subUnitType: "AOO",
+        subUnitType: tenantUnitType.AOO,
       };
       const targetTenant: Tenant = {
         ...getMockTenant(),
         name: "Tenant UO",
-        subUnitType: "UO",
+        subUnitType: tenantUnitType.UO,
         parentTenantId: direct ? rootTenant.id : parentTenant.id,
         rootTenantId: rootTenant.id,
       };
@@ -521,7 +522,7 @@ describe("getTenants", () => {
     const targetTenants: Tenant[] = ["Alpha", "Beta", "Gamma"].map((name) => ({
       ...getMockTenant(),
       name,
-      subUnitType: "UO",
+      subUnitType: tenantUnitType.UO,
       parentTenantId: rootTenant.id,
       rootTenantId: rootTenant.id,
       externalId: { origin: "HIERARCHY", value: name },
@@ -598,7 +599,7 @@ describe("getTenants", () => {
       const parentTenant: Tenant = {
         ...getMockTenant(),
         name: scenario === "empty ancestor name" ? "" : "Tenant AOO",
-        subUnitType: "AOO",
+        subUnitType: tenantUnitType.AOO,
       };
       const targetTenant: Tenant = {
         ...getMockTenant(),
@@ -742,7 +743,7 @@ describe("getTenants", () => {
     const parentTenant: Tenant = {
       ...getMockTenant(),
       name: "Tenant AOO",
-      subUnitType: "AOO",
+      subUnitType: tenantUnitType.AOO,
     };
     const targetTenant: Tenant = {
       ...getMockTenant(),
