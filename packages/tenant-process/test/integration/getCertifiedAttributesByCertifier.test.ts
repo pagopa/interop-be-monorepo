@@ -90,7 +90,7 @@ describe("getCertifiedAttributesByCertifier", () => {
   });
 
   it("should return the parent and root tenants when available", async () => {
-    const certifierId = "test";
+    const certifierId: string = "test";
     const tenantCertifier: Tenant = {
       ...getMockTenant(),
       features: [{ type: "PersistentCertifier" as const, certifierId }],
