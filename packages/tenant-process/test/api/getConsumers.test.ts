@@ -2,7 +2,7 @@
 import { tenantApi } from "pagopa-interop-api-clients";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
-import { generateId, Tenant } from "pagopa-interop-models";
+import { generateId, Tenant, tenantUnitType } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
@@ -14,9 +14,9 @@ describe("API GET /consumers test", () => {
   const tenant1: Tenant & TenantHierarchy = {
     ...getMockTenant(),
     name: "Tenant 1",
-    subUnitType: "UO",
+    subUnitType: tenantUnitType.UO,
     parentTenants: [
-      { id: generateId(), name: "Tenant AOO", subUnitType: "AOO" },
+      { id: generateId(), name: "Tenant AOO", subUnitType: tenantUnitType.AOO },
       { id: generateId(), name: "Tenant root" },
     ],
   };
