@@ -11,6 +11,8 @@ import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import {
+  tenantContactRequiresEventsV3,
+  tenantLegacyMailsNotMigrated,
   tenantMailsNotAllowed,
   tenantNotFound,
   tenantUpdateVersionMismatch,
@@ -64,6 +66,16 @@ describe("API POST /maintenance/tenants/{tenantId} test", () => {
     const token = generateToken(authRole.MAINTENANCE_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
+  });
+
+  it.each([
+    tenantContactRequiresEventsV3(defaultTenantId),
+    tenantLegacyMailsNotMigrated(defaultTenantId),
+  ])("Should return 409 for $code", async (error) => {
+    tenantService.maintenanceTenantUpdate = vi.fn().mockRejectedValue(error);
+    const token = generateToken(authRole.MAINTENANCE_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(409);
   });
 
   it("Should return 400 for tenantUpdateVersionMismatch", async () => {

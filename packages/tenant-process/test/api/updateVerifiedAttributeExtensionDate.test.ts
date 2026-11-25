@@ -21,6 +21,8 @@ import {
   tenantNotFoundInVerifiers,
   tenantNotFound,
   verifiedAttributeNotFoundInTenant,
+  tenantContactRequiresEventsV3,
+  tenantLegacyMailsNotMigrated,
 } from "../../src/model/domain/errors.js";
 import { currentDate, getMockVerifiedBy } from "../mockUtils.js";
 import { api, tenantService } from "../vitest.api.setup.js";
@@ -106,6 +108,8 @@ describe("API POST /tenants/{tenantId}/attributes/verified/{attributeId}/verifie
       expectedStatus: 400,
     },
     { error: tenantNotFound(tenant.id), expectedStatus: 404 },
+    { error: tenantContactRequiresEventsV3(generateId()), expectedStatus: 409 },
+    { error: tenantLegacyMailsNotMigrated(generateId()), expectedStatus: 409 },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {

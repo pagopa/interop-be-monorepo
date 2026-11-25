@@ -6,7 +6,11 @@ import { generateId, operationForbidden } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { selfcareIdConflict } from "../../src/model/domain/errors.js";
+import {
+  selfcareIdConflict,
+  tenantContactRequiresEventsV3,
+  tenantLegacyMailsNotMigrated,
+} from "../../src/model/domain/errors.js";
 import { api, tenantService } from "../vitest.api.setup.js";
 
 describe("API POST /selfcare/tenants test", () => {
@@ -79,6 +83,8 @@ describe("API POST /selfcare/tenants test", () => {
       }),
       expectedStatus: 409,
     },
+    { error: tenantContactRequiresEventsV3(generateId()), expectedStatus: 409 },
+    { error: tenantLegacyMailsNotMigrated(generateId()), expectedStatus: 409 },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
