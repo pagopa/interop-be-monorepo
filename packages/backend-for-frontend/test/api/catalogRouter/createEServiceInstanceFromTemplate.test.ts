@@ -113,7 +113,7 @@ describe("API POST /templates/:templateId/eservices", () => {
 
     it("Should replace {identifyingWord} with the instanceLabel of the request", async () => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, generateId(), {
+      const res = await makeRequest(token, generateId<EServiceTemplateId>(), {
         ...mockInstanceEServiceSeed,
         instanceLabel: "MyLabel",
       });
@@ -125,7 +125,7 @@ describe("API POST /templates/:templateId/eservices", () => {
 
     it("Should not interpret special replacement patterns contained in the instanceLabel", async () => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, generateId(), {
+      const res = await makeRequest(token, generateId<EServiceTemplateId>(), {
         ...mockInstanceEServiceSeed,
         instanceLabel: "$&$1$$",
       });
@@ -137,7 +137,7 @@ describe("API POST /templates/:templateId/eservices", () => {
 
     it("Should replace {identifyingWord} with an empty string if no instanceLabel is provided", async () => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, generateId(), {
+      const res = await makeRequest(token, generateId<EServiceTemplateId>(), {
         ...mockInstanceEServiceSeed,
         instanceLabel: undefined,
       });
