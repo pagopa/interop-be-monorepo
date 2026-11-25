@@ -9,11 +9,7 @@ import {
 import { badRequestError } from "pagopa-interop-models";
 
 import { DetectionRequest, DetectionResponse } from "../model/contracts.js";
-import {
-  detectionFailed,
-  isDetectionError,
-  makeApiProblem,
-} from "../model/errors.js";
+import { detectionFailed, makeApiProblem } from "../model/errors.js";
 import {
   DetectionService,
   detectionService as defaultDetectionService,
@@ -65,10 +61,9 @@ const detectionRouter = (
         throw detectionFailed();
       }
       return res.type("application/json").status(200).send(response);
-    } catch (error) {
-      const safeError = isDetectionError(error) ? error : detectionFailed();
+    } catch {
       const problem = makeApiProblem(
-        safeError,
+        detectionFailed(),
         detectionErrorMapper,
         appContext
       );

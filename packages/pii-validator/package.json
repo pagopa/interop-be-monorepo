@@ -18,8 +18,10 @@
   "keywords": [],
   "devDependencies": {
     "@types/express": "catalog:",
+    "@types/moo": "catalog:",
     "@types/node": "catalog:",
     "@types/supertest": "catalog:",
+    "@types/validator": "catalog:",
     "eslint": "catalog:",
     "jose": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
@@ -35,11 +37,12 @@
     "axios": "catalog:",
     "dotenv-flow": "catalog:",
     "express": "catalog:",
+    "moo": "catalog:",
     "pagopa-interop-api-clients": "workspace:*",
     "pagopa-interop-application-audit": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
-    "ts-pattern": "catalog:",
+    "validator": "catalog:",
     "zod": "catalog:"
   }
 }

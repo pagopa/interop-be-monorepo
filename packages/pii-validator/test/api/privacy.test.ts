@@ -1,11 +1,13 @@
 /* eslint-disable functional/immutable-data */
 import { Application } from "express";
 import { constants } from "http2";
+import moo from "moo";
 import { authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
 import { CorrelationId, generateId, serviceName } from "pagopa-interop-models";
 import request from "supertest";
-import { beforeEach, describe, expect, it } from "vitest";
+import validator from "validator";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   applicationAuditBeginMiddleware,
@@ -13,7 +15,10 @@ import {
 } from "../../../application-audit/src/middlewares.js";
 import { createApp } from "../../src/app.js";
 import { config } from "../../src/config/config.js";
-import { DetectionService } from "../../src/services/detectionService.js";
+import {
+  DetectionService,
+  detectionService,
+} from "../../src/services/detectionService.js";
 import { auditCapture } from "../auditCapture.js";
 import { logCapture } from "../logCapture.js";
 
@@ -117,13 +122,98 @@ describe("privacy-safe HTTP boundary", () => {
     await assertPrivacyBoundary(response);
   });
 
-  it("redacts the request text from default 501 logs and real audit payloads", async () => {
+  it("redacts an exception thrown by a checker at the recognizer boundary", async () => {
+    const checker = vi.spyOn(validator, "isEmail");
+    checker.mockImplementation(() => {
+      throw new Error(`checker failed: ${sentinel}`, {
+        cause: new Error(`checker cause: ${sentinel}`),
+      });
+    });
+    try {
+      const error = await detectionService
+        .detect({
+          fields: [
+            { fieldId: "title", text: `Contatto: ${sentinel}@example.com` },
+          ],
+        })
+        .catch((failure: unknown) => failure);
+      expect(error).toBeInstanceOf(Error);
+      if (!(error instanceof Error))
+        throw new Error("Expected a sanitized error");
+      expect(
+        JSON.stringify({
+          message: error.message,
+          cause: error.cause,
+          stack: error.stack,
+        })
+      ).not.toContain(sentinel);
+      const api = await createPrivacyApp();
+      const response = await authenticatedRequest(api).send({
+        fields: [
+          { fieldId: "title", text: `Contatto: ${sentinel}@example.com` },
+        ],
+      });
+      expect(checker).toHaveBeenCalled();
+      expect(response.status).toBe(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR);
+      await assertPrivacyBoundary(response);
+    } finally {
+      checker.mockRestore();
+    }
+  });
+
+  it("sanitizes a lexer exception before the mapper and at the actual HTTP boundary", async () => {
+    const lexer = vi.spyOn(moo, "compile").mockImplementation(() => {
+      throw new Error(`Moo failed: ${sentinel}`, {
+        cause: new Error(`raw source: ${sentinel}`),
+      });
+    });
+    try {
+      const input = `qa@${sentinel}.com`;
+      const error = await detectionService
+        .detect({ fields: [{ fieldId: "title", text: input }] })
+        .catch((failure: unknown) => failure);
+      expect(lexer).toHaveBeenCalled();
+      expect(error).toBeInstanceOf(Error);
+      if (!(error instanceof Error))
+        throw new Error("Expected a sanitized error");
+      expect(
+        JSON.stringify({
+          message: error.message,
+          cause: error.cause,
+          stack: error.stack,
+        })
+      ).not.toContain(sentinel);
+      const api = await createPrivacyApp();
+      const response = await authenticatedRequest(api).send({
+        fields: [{ fieldId: "title", text: input }],
+      });
+      expect(response.status).toBe(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR);
+      await assertPrivacyBoundary(response);
+    } finally {
+      lexer.mockRestore();
+    }
+  });
+
+  it("redacts an email candidate from production response, logs and audit", async () => {
+    const api = await createPrivacyApp();
+    const response = await authenticatedRequest(api).send({
+      fields: [{ fieldId: "title", text: `Contatto: ${sentinel}@example.com` }],
+    });
+
+    expect(response.status).toBe(constants.HTTP_STATUS_OK);
+    expect(response.body.results).toEqual([
+      { fieldId: "title", detectedCategories: ["EMAIL_ADDRESS"] },
+    ]);
+    await assertPrivacyBoundary(response);
+  });
+
+  it("redacts the request text from production success logs and real audit payloads", async () => {
     const api = await createPrivacyApp();
     const response = await authenticatedRequest(api).send({
       fields: [{ fieldId: "title", text: sentinel }],
     });
 
-    expect(response.status).toBe(constants.HTTP_STATUS_NOT_IMPLEMENTED);
+    expect(response.status).toBe(constants.HTTP_STATUS_OK);
     await assertPrivacyBoundary(response);
   });
 

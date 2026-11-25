@@ -46,8 +46,6 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "500":
           $ref: "#/components/responses/InternalServerError"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
   /status:
     get:
       security: []
@@ -91,12 +89,6 @@ components:
             $ref: "#/components/schemas/Problem"
     InternalServerError:
       description: Internal Server Error
-      content:
-        application/problem+json:
-          schema:
-            $ref: "#/components/schemas/Problem"
-    NotImplemented:
-      description: Detection is not implemented
       content:
         application/problem+json:
           schema:

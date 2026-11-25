@@ -166,19 +166,18 @@ describe("API POST /detect batch contract", () => {
     expect(response.body).not.toHaveProperty("results");
   });
 
-  it("keeps the production scaffold at a redacted 501", async () => {
+  it("detects independent categories across fields through the production route", async () => {
     const response = await postDetect(await createApp(), { fields });
-    expect(response.status).toBe(constants.HTTP_STATUS_NOT_IMPLEMENTED);
-    expect(response.headers["content-type"]).toMatch(
-      /^application\/problem\+json\b/
-    );
-    expect(response.body).toMatchObject({
-      type: "about:blank",
-      status: constants.HTTP_STATUS_NOT_IMPLEMENTED,
-      title: "Detection not implemented",
-      correlationId,
+    expect(response.status).toBe(constants.HTTP_STATUS_OK);
+    expect(response.headers["content-type"]).toMatch(/^application\/json\b/);
+    expect(response.body).toEqual({
+      results: [
+        { fieldId: "title", detectedCategories: ["EMAIL_ADDRESS"] },
+        { fieldId: "description", detectedCategories: ["CREDIT_CARD"] },
+        { fieldId: "empty", detectedCategories: [] },
+      ],
     });
-    expect(response.body).not.toHaveProperty("results");
     expect(JSON.stringify(response.body)).not.toContain("qa@example.com");
+    expect(JSON.stringify(response.body)).not.toContain("4111111111111111");
   });
 });
