@@ -137,6 +137,7 @@ describe("API /producerKeychains/{producerKeychainId}/keys authorization test", 
     [{ ...keySeed, name: undefined }, mockProducerKeychain.data.id],
     [{ ...keySeed, use: undefined }, mockProducerKeychain.data.id],
     [{ ...keySeed, alg: undefined }, mockProducerKeychain.data.id],
+    [{ ...keySeed, alg: "a".repeat(21) }, mockProducerKeychain.data.id],
     [{ ...keySeed, key: undefined }, mockProducerKeychain.data.id],
     [{ ...keySeed }, "invalidId"],
   ])(

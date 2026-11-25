@@ -15,7 +15,7 @@ describe("API POST /producerKeychains/{producerKeychainId}/keys test", () => {
   const defaultBody: bffApi.KeySeed = {
     key: generateMock(z.string()),
     use: generateMock(bffApi.KeyUse),
-    alg: generateMock(z.string()),
+    alg: generateMock(z.string().max(20)),
     name: generateMock(z.string().min(5).max(60)),
   };
 
@@ -49,6 +49,7 @@ describe("API POST /producerKeychains/{producerKeychainId}/keys test", () => {
     { body: { ...defaultBody, use: "invalid" } },
     { body: { ...defaultBody, name: "min" } },
     { body: { ...defaultBody, extraField: 1 } },
+    { body: { ...defaultBody, alg: "a".repeat(21) } },
   ])(
     "Should return 400 if passed invalid data: %s",
     async ({ producerKeychainId, body }) => {

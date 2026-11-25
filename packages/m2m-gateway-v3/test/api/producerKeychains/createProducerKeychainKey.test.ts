@@ -75,6 +75,7 @@ describe("POST /producerKeychains/:keychainId/keys router test", () => {
     { ...keySeed, name: 1 },
     { ...keySeed, key: 7 },
     { ...keySeed, alg: 9 },
+    { ...keySeed, alg: "a".repeat(21) },
     {},
   ])("Should return 400 if passed invalid body", async (seed) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
