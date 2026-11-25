@@ -20,6 +20,7 @@ export const aggregateAttribute = ({
   creationTime,
   origin,
   code,
+  subunitPropagationEnabled,
   ...rest
 }: AttributeSQL): WithMetadata<Attribute> => {
   void (rest satisfies Record<string, never>);
@@ -33,6 +34,9 @@ export const aggregateAttribute = ({
       creationTime: stringToDate(creationTime),
       ...(origin ? { origin } : {}),
       ...(code ? { code } : {}),
+      ...(subunitPropagationEnabled !== null
+        ? { subunitPropagationEnabled }
+        : {}),
     },
     metadata: { version: metadataVersion },
   };
