@@ -1,8 +1,8 @@
 import { DrizzleQueryError, eq } from "drizzle-orm";
+import { describeError } from "pagopa-interop-commons";
 import { contact } from "pagopa-interop-contact-data-db-models";
 import { describe, expect, it } from "vitest";
 
-import { describeError } from "../src/utilities/errors.js";
 import { db } from "./utils.js";
 
 describe("describeError", () => {

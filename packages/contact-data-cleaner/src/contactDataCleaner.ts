@@ -1,4 +1,4 @@
-import { Logger } from "pagopa-interop-commons";
+import { describeError, Logger } from "pagopa-interop-commons";
 import { ContactDB } from "pagopa-interop-contact-data-db-models";
 
 import { deleteContactsPastProtectionPeriod } from "./contactDeletion.js";
@@ -8,7 +8,6 @@ import {
   getProtectionCutoff,
   scanContactIdsPastProtectionPeriod,
 } from "./contactScanner.js";
-import { describeError } from "./utilities/errors.js";
 
 export interface ContactDataCleanerResult {
   cutoff: Date;

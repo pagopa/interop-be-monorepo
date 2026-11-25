@@ -1,12 +1,11 @@
 import { drizzle } from "drizzle-orm/node-postgres";
-import { logger } from "pagopa-interop-commons";
+import { describeError, logger } from "pagopa-interop-commons";
 import { makeDrizzleConnectionWithCleanup } from "pagopa-interop-readmodel";
 import pg from "pg";
 
 import { config } from "./config/config.js";
 import { runContactDataCleaner } from "./contactDataCleaner.js";
 import { tenantReadmodelReferenceCheckerBuilder } from "./tenantReadmodelReferenceChecker.js";
-import { describeError } from "./utilities/errors.js";
 
 const loggerInstance = logger({ serviceName: "contact-data-cleaner" });
 
