@@ -10,6 +10,7 @@ import {
   Attribute,
   attributeKind,
   CertifiedDiscreteTenantAttribute,
+  generateId,
   Tenant,
   TenantAttribute,
   tenantUnitType,
@@ -90,7 +91,7 @@ describe("getCertifiedAttributesByCertifier", () => {
   });
 
   it("should return the parent and root tenants when available", async () => {
-    const certifierId: string = "test";
+    const certifierId = generateId();
     const tenantCertifier: Tenant = {
       ...getMockTenant(),
       features: [{ type: "PersistentCertifier" as const, certifierId }],
