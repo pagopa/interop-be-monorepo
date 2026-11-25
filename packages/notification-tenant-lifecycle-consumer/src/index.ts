@@ -9,6 +9,7 @@ import {
 import {
   CorrelationId,
   generateId,
+  genericInternalError,
   TenantEvent,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -67,6 +68,11 @@ async function processMessage({
         loggerInstance
       )
     )
+    .with({ event_version: 3 }, (msg) => {
+      throw genericInternalError(
+        `Tenant event V3 not supported yet: ${msg.type}`
+      );
+    })
     .exhaustive();
 }
 

@@ -4,12 +4,14 @@ import {
   ApplicationAuditProducerConfig,
   ReadModelSQLDbConfig,
   FeatureFlagDelegationConstraintSkipConfig,
+  FeatureFlagTenantEventsV3Config,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
 const TenantProcessConfig = CommonHTTPServiceConfig.and(EventStoreConfig)
   .and(ReadModelSQLDbConfig)
   .and(FeatureFlagDelegationConstraintSkipConfig)
+  .and(FeatureFlagTenantEventsV3Config)
   .and(
     z
       .object({
