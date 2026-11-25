@@ -1012,9 +1012,9 @@ export const getMockBffApiRequesterCertifiedAttribute =
 export const getMockBffApiRequesterCertifiedAttributeWithHierarchy =
   (): bffApi.RequesterCertifiedAttribute => ({
     ...getMockBffApiRequesterCertifiedAttribute(),
-    tenantSubUnitType: "UO",
+    tenantSubUnitType: tenantUnitType.UO,
     parentTenants: [
-      { id: generateId(), name: "Tenant AOO", subUnitType: "AOO" },
+      { id: generateId(), name: "Tenant AOO", subUnitType: tenantUnitType.AOO },
       { id: generateId(), name: "Tenant root" },
     ],
   });

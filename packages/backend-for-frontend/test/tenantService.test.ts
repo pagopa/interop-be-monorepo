@@ -581,17 +581,19 @@ describe("toBffApiRequesterCertifiedAttributes", () => {
   });
 
   it("should propagate the assigned tenant hierarchy", () => {
+    const parentTenantId = generateId<TenantId>();
+    const rootTenantId = generateId<TenantId>();
     const input: tenantApi.CertifiedAttribute = {
       id: generateId(),
       name: "Tenant UO",
-      subUnitType: "UO",
+      subUnitType: tenantUnitType.UO,
       parentTenants: [
         {
-          id: generateId(),
+          id: parentTenantId,
           name: "Tenant AOO",
-          subUnitType: "AOO",
+          subUnitType: tenantUnitType.AOO,
         },
-        { id: generateId(), name: "Tenant root" },
+        { id: rootTenantId, name: "Tenant root" },
       ],
       attributeId: generateId(),
       attributeName: "attribute",
@@ -601,8 +603,15 @@ describe("toBffApiRequesterCertifiedAttributes", () => {
     const result = toBffApiRequesterCertifiedAttributes(input);
 
     expect(result).toMatchObject({
-      tenantSubUnitType: "UO",
-      parentTenants: input.parentTenants,
+      tenantSubUnitType: tenantUnitType.UO,
+      parentTenants: [
+        {
+          id: parentTenantId,
+          name: "Tenant AOO",
+          subUnitType: tenantUnitType.AOO,
+        },
+        { id: rootTenantId, name: "Tenant root" },
+      ],
     });
     bffApi.RequesterCertifiedAttribute.parse(result);
   });
