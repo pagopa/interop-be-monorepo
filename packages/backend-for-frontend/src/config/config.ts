@@ -218,6 +218,19 @@ const AllowListConfig = z
   }));
 type AllowListConfig = z.infer<typeof AllowListConfig>;
 
+const UseCasesConfig = z
+  .object({
+    USE_CASES_CONTAINER: z.string(),
+    USE_CASES_PATH: z.string(),
+    USE_CASES_FILE_NAME: z.string(),
+  })
+  .transform((c) => ({
+    useCasesContainer: c.USE_CASES_CONTAINER,
+    useCasesPath: c.USE_CASES_PATH,
+    useCasesFileName: c.USE_CASES_FILE_NAME,
+  }));
+type UseCasesConfig = z.infer<typeof UseCasesConfig>;
+
 const ExportFileConfig = z
   .object({
     EXPORT_ESERVICE_CONTAINER: z.string(),
@@ -328,6 +341,7 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(SessionTokenGenerationConfig)
   .and(FileManagerConfig)
   .and(AllowListConfig)
+  .and(UseCasesConfig)
   .and(PrivacyNoticeConfig)
   .and(S3PrivacyNoticeConfig)
   .and(ExportFileConfig)
