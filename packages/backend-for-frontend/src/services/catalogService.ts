@@ -506,7 +506,7 @@ export function catalogServiceBuilder(
     ): Promise<bffApi.CatalogEService[]> => {
       ctx.logger.info("Retrieving featured EServices catalog");
       const requesterId = ctx.authData.organizationId;
-      const eservicesResponse: catalogApi.EServices =
+      const eservicesResponse: catalogApi.CatalogQueryResults =
         await catalogProcessClient.queryEServices(
           {
             offset: 0,
@@ -515,12 +515,22 @@ export function catalogServiceBuilder(
             availableForRequester: true,
             subscribedByRequester: false,
             sortBy: "CREATED_AT_DESC",
+            groupByTemplate: false,
           },
           { headers: ctx.headers }
         );
 
+      const eservices = eservicesResponse.results.map((result) => {
+        if (result.resultType !== "eservice") {
+          throw genericInternalError(
+            "Unexpected template group in featured catalog"
+          );
+        }
+        return result;
+      });
+
       return enhanceCatalogEservices(
-        eservicesResponse.results,
+        eservices,
         tenantProcessClient,
         inAppNotificationManagerClient,
         ctx,

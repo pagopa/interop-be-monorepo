@@ -31,9 +31,19 @@ describe("getFeaturedCatalog", () => {
   };
   const bffMockContext = getBffMockContext(getMockContext({ authData }));
 
-  const eservices: catalogApi.EService[] = [
-    { ...getMockCatalogApiEService(), producerId, descriptors: [] },
-    { ...getMockCatalogApiEService(), producerId, descriptors: [] },
+  const eservices: catalogApi.CatalogQueryEService[] = [
+    {
+      ...getMockCatalogApiEService(),
+      producerId,
+      descriptors: [],
+      resultType: "eservice",
+    },
+    {
+      ...getMockCatalogApiEService(),
+      producerId,
+      descriptors: [],
+      resultType: "eservice",
+    },
   ];
 
   const tenants: Record<string, { id: string; name: string }> = {
@@ -83,6 +93,7 @@ describe("getFeaturedCatalog", () => {
         availableForRequester: true,
         subscribedByRequester: false,
         sortBy: "CREATED_AT_DESC",
+        groupByTemplate: false,
       },
       { headers: bffMockContext.headers }
     );
@@ -109,5 +120,24 @@ describe("getFeaturedCatalog", () => {
     queryEServices.mockResolvedValue({ results: [], totalCount: 0 });
 
     expect(await catalogService.getFeaturedCatalog(bffMockContext)).toEqual([]);
+  });
+
+  it("should reject an unexpected template group", async () => {
+    queryEServices.mockResolvedValue({
+      results: [
+        {
+          id: generateId(),
+          name: "Template",
+          description: "Template description",
+          numInstances: 2,
+          resultType: "template",
+        },
+      ],
+      totalCount: 1,
+    } satisfies catalogApi.CatalogQueryResults);
+
+    await expect(
+      catalogService.getFeaturedCatalog(bffMockContext)
+    ).rejects.toThrow("Unexpected template group in featured catalog");
   });
 });
