@@ -18663,6 +18663,7 @@ components:
       properties:
         rejectionReason:
           type: string
+          maxLength: 250
       required:
         - rejectionReason
     EServiceTemplateNameUpdateSeed:

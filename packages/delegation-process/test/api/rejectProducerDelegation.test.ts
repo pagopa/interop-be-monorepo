@@ -115,6 +115,7 @@ describe("API POST /producer/delegations/:delegationId/reject test", () => {
     { delegationId: "invalid" as DelegationId },
     { body: {} },
     { body: { rejectionReason: 1 } },
+    { body: { rejectionReason: "a".repeat(251) } },
     { body: { ...defaultBody, extraField: 1 } },
   ])(
     "Should return 400 if passed invalid data: %s",
