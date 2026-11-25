@@ -127,6 +127,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /internal/origin/{tOrigin}/remoteId/{tRemoteId}/certifiedDiscreteAttributes/origin/{aOrigin}/externalId/{aExternalId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -208,6 +210,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
     delete:
       tags:
         - internal
@@ -220,6 +224,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /m2m/tenants:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -241,6 +247,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
       requestBody:
         content:
           application/json:
@@ -282,6 +290,8 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /selfcare/tenants:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -576,6 +586,8 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /tenants/attributes/declared/{attributeId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -605,6 +617,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /tenants/{tenantId}/attributes/verified:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -640,6 +654,8 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /tenants/{tenantId}/attributes/verified/{attributeId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -715,6 +731,8 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /tenants/{tenantId}/attributes/verified/{attributeId}/verifier/{verifierId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -757,6 +775,8 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /tenants/{tenantId}/attributes/verified/{attributeId}/verifiers:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -894,6 +914,8 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /tenants/{tenantId}/attributes/certified/{attributeId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -930,6 +952,8 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /tenants/{tenantId}/attributes/certifiedDiscrete:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1071,6 +1095,8 @@ paths:
           description: Tenant Deleted
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
       requestBody:
         content:
           application/json:
@@ -1098,6 +1124,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
         "501":
           $ref: "#/components/responses/NotImplemented"
       requestBody:
@@ -1136,6 +1164,8 @@ paths:
                 $ref: "#/components/schemas/Tenant"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /maintenance/tenants/{tenantId}/remoteIds/{origin}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1167,6 +1197,8 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /tenants/{tenantId}/mails/{mailId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1196,6 +1228,8 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /tenants/{tenantId}/mails:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1227,6 +1261,8 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /tenants/{tenantId}/contact:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1306,6 +1342,8 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
         "501":
           $ref: "#/components/responses/NotImplemented"
   /tenants/delegatedFeatures/update:
@@ -1328,6 +1366,8 @@ paths:
           description: Delegated features updated
         "403":
           $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /status:
     get:
       security: []
