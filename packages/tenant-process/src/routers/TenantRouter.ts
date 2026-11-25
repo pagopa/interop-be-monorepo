@@ -10,7 +10,11 @@ import {
   validateAuthorization,
   setMetadataVersionHeader,
 } from "pagopa-interop-commons";
-import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
+import {
+  DelegationId,
+  emptyErrorMapper,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 
 import {
   apiTenantFeatureTypeToTenantFeatureType,
@@ -52,6 +56,7 @@ import {
   internalRevokeCertifiedDiscreteAttributeErrorMapper,
   internalUpdateCertifiedDiscreteAttributeErrorMapper,
   updateCertifiedDiscreteAttributeErrorMapper,
+  internalUpdateTenantParentErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const tenantsRouter = (
@@ -706,6 +711,37 @@ const tenantsRouter = (
       }
     })
     .post(
+      "/internal/origin/:tOrigin/externalId/:tExternalId/parent",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+          const { tOrigin, tExternalId } = req.params;
+          const { metadata } = await tenantService.internalUpdateTenantParent(
+            {
+              tenantOrigin: tOrigin,
+              tenantExternalId: tExternalId,
+              parentTenantId: req.body.parentTenantId,
+              rootTenantId: req.body.rootTenantId,
+            },
+            ctx
+          );
+
+          setMetadataVersionHeader(res, metadata);
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            internalUpdateTenantParentErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
       "/internal/origin/:tOrigin/externalId/:tExternalId/attributes/origin/:aOrigin/externalId/:aExternalId",
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
@@ -979,6 +1015,9 @@ const tenantsRouter = (
                 tenantId: unsafeBrandId(req.params.tenantId),
                 attributeId: unsafeBrandId(req.body.id),
                 agreementId: unsafeBrandId(req.body.agreementId),
+                delegationId: req.body.delegationId
+                  ? unsafeBrandId<DelegationId>(req.body.delegationId)
+                  : undefined,
                 expirationDate: req.body.expirationDate,
               },
               ctx
@@ -1012,7 +1051,10 @@ const tenantsRouter = (
               {
                 tenantId: unsafeBrandId(req.params.tenantId),
                 attributeId: unsafeBrandId(req.params.attributeId),
-                agreementId: unsafeBrandId(req.body.agreementId),
+                agreementId: unsafeBrandId(req.query.agreementId),
+                delegationId: req.query.delegationId
+                  ? unsafeBrandId<DelegationId>(req.query.delegationId)
+                  : undefined,
               },
               ctx
             );

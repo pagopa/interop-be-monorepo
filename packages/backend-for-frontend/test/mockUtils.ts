@@ -22,6 +22,7 @@ import {
   PurposeId,
   PurposeVersionId,
   PurposeTemplateId,
+  tenantUnitType,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
@@ -155,6 +156,18 @@ export const getMockBffApiCatalogEService = (): bffApi.CatalogEService => ({
   isMine: generateMock(z.boolean()),
   activeDescriptor: generateMock(bffApi.CompactDescriptor.optional()),
 });
+
+export const getMockBffApiCompactCatalogEService =
+  (): bffApi.CompactCatalogEService => ({
+    id: generateId(),
+    name: generateMock(z.string()),
+    producer: {
+      id: generateId(),
+      name: generateMock(z.string()),
+    },
+    personalData: generateMock(z.boolean().optional()),
+    activeDescriptor: generateMock(bffApi.CompactDescriptor.optional()),
+  });
 
 export const getMockBffApiProducerEServiceDescriptor =
   (): bffApi.ProducerEServiceDescriptor => ({
@@ -791,7 +804,7 @@ export const getMockBffApiUpdateEServiceTemplateVersionSeed =
 
 export const getMockBffApiMockEServiceTemplateNameUpdateSeed =
   (): bffApi.EServiceTemplateNameUpdateSeed => ({
-    name: generateMock(z.string()),
+    name: generateMock(z.string().min(5).max(45)),
   });
 
 export const getMockBffApiMockEServiceTemplateIntendedTargetUpdateSeed =
@@ -882,6 +895,7 @@ export const getMockBffApiVerifiedTenantAttributeSeed =
   (): bffApi.VerifiedTenantAttributeSeed => ({
     id: generateId(),
     agreementId: generateId(),
+    delegationId: generateId(),
     expirationDate: generateMock(
       z.string().datetime({ offset: true }).optional()
     ),
@@ -912,9 +926,9 @@ export const getMockBffApiCompactTenant = (): bffApi.CompactTenant => ({
 export const getMockBffApiCompactTenantWithHierarchy =
   (): bffApi.CompactTenant => ({
     ...getMockBffApiCompactTenant(),
-    subUnitType: "UO",
+    subUnitType: tenantUnitType.UO,
     parentTenants: [
-      { id: generateId(), name: "Tenant AOO", subUnitType: "AOO" },
+      { id: generateId(), name: "Tenant AOO", subUnitType: tenantUnitType.AOO },
       { id: generateId(), name: "Tenant root" },
     ],
   });
@@ -1006,9 +1020,9 @@ export const getMockBffApiCompactOrganization =
 export const getMockBffApiCompactOrganizationWithHierarchy =
   (): bffApi.CompactOrganization => ({
     ...getMockBffApiCompactOrganization(),
-    subUnitType: "UO",
+    subUnitType: tenantUnitType.UO,
     parentTenants: [
-      { id: generateId(), name: "Tenant AOO", subUnitType: "AOO" },
+      { id: generateId(), name: "Tenant AOO", subUnitType: tenantUnitType.AOO },
       { id: generateId(), name: "Tenant root" },
     ],
   });

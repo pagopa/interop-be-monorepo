@@ -107,6 +107,7 @@ import {
   eserviceDescriptorArchivingScheduleInReadmodelCatalog,
   eserviceDescriptorArchivingRequestInReadmodelCatalog,
   purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
+  eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate,
   purposeTemplateInReadmodelPurposeTemplate,
   tenantCertifiedDiscreteAttributeInReadmodelTenant,
   tenantCertifiedAttributeInReadmodelTenant,
@@ -121,7 +122,6 @@ import {
   EServicesQueryFilters,
   EServiceSortBy,
   producerCategoryAttributeCodes,
-  RequesterDelegationRole,
 } from "../model/domain/models.js";
 import {
   activeDescriptorStates,
@@ -356,47 +356,6 @@ const subscribedByRequesterFilter = (
     : notExists(subscriptionQuery);
 };
 
-const requesterDelegationRolesFilter = (
-  tx: DrizzleTransactionType,
-  requesterId: TenantId,
-  requesterDelegationRoles: RequesterDelegationRole[]
-): SQL | undefined => {
-  if (requesterDelegationRoles.length === 0) {
-    return undefined;
-  }
-  const roleFilter = or(
-    ...requesterDelegationRoles.map((role) =>
-      match(role)
-        .with("DELEGATE", () =>
-          eq(delegationInReadmodelDelegation.delegateId, requesterId)
-        )
-        .with("DELEGATOR", () =>
-          eq(delegationInReadmodelDelegation.delegatorId, requesterId)
-        )
-        .exhaustive()
-    )
-  );
-  return exists(
-    tx
-      .select()
-      .from(delegationInReadmodelDelegation)
-      .where(
-        and(
-          eq(
-            delegationInReadmodelDelegation.eserviceId,
-            eserviceInReadmodelCatalog.id
-          ),
-          eq(
-            delegationInReadmodelDelegation.kind,
-            delegationKind.delegatedProducer
-          ),
-          eq(delegationInReadmodelDelegation.state, delegationState.active),
-          roleFilter
-        )
-      )
-  );
-};
-
 const onlyTemplateInstancesFilter = (
   onlyTemplateInstances: boolean | undefined
 ): SQL | undefined =>
@@ -411,29 +370,57 @@ const hasLinkedPurposeTemplatesFilter = (
   hasLinkedPurposeTemplates: boolean | undefined
 ): SQL | undefined =>
   hasLinkedPurposeTemplates
-    ? exists(
-        tx
-          .select()
-          .from(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
-          .innerJoin(
-            purposeTemplateInReadmodelPurposeTemplate,
-            eq(
-              purposeTemplateInReadmodelPurposeTemplate.id,
-              purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId
-            )
-          )
-          .where(
-            and(
+    ? or(
+        exists(
+          tx
+            .select()
+            .from(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
+            .innerJoin(
+              purposeTemplateInReadmodelPurposeTemplate,
               eq(
-                purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
-                eserviceInReadmodelCatalog.id
-              ),
-              eq(
-                purposeTemplateInReadmodelPurposeTemplate.state,
-                purposeTemplateState.published
+                purposeTemplateInReadmodelPurposeTemplate.id,
+                purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.purposeTemplateId
               )
             )
-          )
+            .where(
+              and(
+                eq(
+                  purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
+                  eserviceInReadmodelCatalog.id
+                ),
+                eq(
+                  purposeTemplateInReadmodelPurposeTemplate.state,
+                  purposeTemplateState.published
+                )
+              )
+            )
+        ),
+        exists(
+          tx
+            .select()
+            .from(
+              eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate
+            )
+            .innerJoin(
+              purposeTemplateInReadmodelPurposeTemplate,
+              eq(
+                purposeTemplateInReadmodelPurposeTemplate.id,
+                eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.purposeTemplateId
+              )
+            )
+            .where(
+              and(
+                eq(
+                  eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.eserviceTemplateId,
+                  eserviceInReadmodelCatalog.templateId
+                ),
+                eq(
+                  purposeTemplateInReadmodelPurposeTemplate.state,
+                  purposeTemplateState.published
+                )
+              )
+            )
+        )
       )
     : undefined;
 
@@ -580,18 +567,7 @@ export function readModelServiceBuilderSQL(
                   .with(undefined, () => undefined)
                   .exhaustive(),
                 // isConsumerDelegable filter
-                match(isConsumerDelegable)
-                  .with(true, () =>
-                    eq(eserviceInReadmodelCatalog.isConsumerDelegable, true)
-                  )
-                  .with(false, () =>
-                    or(
-                      isNull(eserviceInReadmodelCatalog.isConsumerDelegable),
-                      eq(eserviceInReadmodelCatalog.isConsumerDelegable, false)
-                    )
-                  )
-                  .with(undefined, () => undefined)
-                  .exhaustive(),
+                eserviceConsumerDelegableFilter(isConsumerDelegable),
                 // templateIds filter
                 templatesIds.length > 0
                   ? inArray(eserviceInReadmodelCatalog.templateId, templatesIds)
@@ -936,7 +912,6 @@ export function readModelServiceBuilderSQL(
         producersIds,
         onlyActiveEservices,
         subscribedByRequester,
-        requesterDelegationRoles,
         onlyTemplateInstances,
         templateId,
         hasLinkedPurposeTemplates,
@@ -945,6 +920,7 @@ export function readModelServiceBuilderSQL(
         mode,
         onlySignalHubEnabled,
         asyncExchange,
+        isConsumerDelegable,
       }: EServicesQueryFilters,
       certifiedDiscreteEnabled: boolean
     ): Promise<ListResult<EService>> {
@@ -958,11 +934,6 @@ export function readModelServiceBuilderSQL(
             tx,
             authData.organizationId,
             subscribedByRequester
-          ),
-          requesterDelegationRolesFilter(
-            tx,
-            authData.organizationId,
-            requesterDelegationRoles
           ),
           onlyTemplateInstancesFilter(onlyTemplateInstances),
           templateId
@@ -978,7 +949,8 @@ export function readModelServiceBuilderSQL(
           ),
           eserviceModeFilter(mode),
           eserviceSignalHubEnabledFilter(onlySignalHubEnabled),
-          eserviceAsyncExchangeFilter(asyncExchange)
+          eserviceAsyncExchangeFilter(asyncExchange),
+          eserviceConsumerDelegableFilter(isConsumerDelegable)
         );
 
         const baseCondition = and(visibleEservicesFilter, filtersCondition);
@@ -1403,6 +1375,21 @@ function eserviceAsyncExchangeFilter(asyncExchange: boolean | undefined) {
       or(
         isNull(eserviceInReadmodelCatalog.asyncExchange),
         eq(eserviceInReadmodelCatalog.asyncExchange, false)
+      )
+    )
+    .with(undefined, () => undefined)
+    .exhaustive();
+}
+
+function eserviceConsumerDelegableFilter(
+  isConsumerDelegable: boolean | undefined
+) {
+  return match(isConsumerDelegable)
+    .with(true, () => eq(eserviceInReadmodelCatalog.isConsumerDelegable, true))
+    .with(false, () =>
+      or(
+        isNull(eserviceInReadmodelCatalog.isConsumerDelegable),
+        eq(eserviceInReadmodelCatalog.isConsumerDelegable, false)
       )
     )
     .with(undefined, () => undefined)

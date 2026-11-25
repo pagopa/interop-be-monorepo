@@ -17,6 +17,7 @@ import {
   ApiError,
   attributeKind,
   Tenant,
+  TenantId,
   Attribute,
   tenantAttributeType,
   ProblemSchema,
@@ -26,7 +27,15 @@ import {
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 
-import { IPACertifiedAttributesImporterConfig } from "../config/config.js";
+import {
+  config,
+  IPACertifiedAttributesImporterConfig,
+} from "../config/config.js";
+import {
+  toAttributeKey,
+  toTenantKey,
+} from "../utils/tenantAndAttributeKeySerialization.js";
+import { getAooUoAttributes } from "./aooUoAttributeService.js";
 import {
   RegistryData,
   InternalCertifiedAttribute,
@@ -69,18 +78,8 @@ export type TenantSeed = {
   istatCode?: string;
 };
 
-function toTenantKey(key: {
-  origin: string | undefined;
-  value: string | undefined;
-}): string {
-  return JSON.stringify({ origin: key.origin, value: key.value });
-}
-
-function toAttributeKey(key: {
-  origin: string | undefined;
-  code: string | undefined;
-}): string {
-  return JSON.stringify({ origin: key.origin, code: key.code });
+export function buildTenantsIndex(tenants: Tenant[]): Map<string, Tenant> {
+  return new Map(tenants.map((t) => [toTenantKey(t.externalId), t]));
 }
 
 function describeHttpError(error: unknown): string {
@@ -291,37 +290,56 @@ export async function createNewAttributes(
   attributeRegistryUrl: string,
   attributeCreationWaitTime: number,
   maxRetries: number
-): Promise<void> {
+): Promise<number> {
+  // TODO(WI 11, PIN-11248): If the registry rejects an AOO/UO attribute because
+  // its suffixed name is already in use, count and report it as failed and exclude
+  // it from tenant assignment, so the job exits with failure and the conflicting
+  // registry entry can be resolved manually before a rerun.
+  // Current IPA datasets have no such name collision; it may still occur if
+  // the conflicting registry state is not visible when computing new attributes.
   if (newAttributes.length === 0) {
     loggerInstance.info("No new attributes to create");
-    return;
+    return 0;
   }
 
   const client =
     attributeRegistryApi.createAttributeApiClient(attributeRegistryUrl);
 
+  const createdAttributes: InternalCertifiedAttribute[] = [];
+
   for (const attribute of newAttributes) {
     loggerInstance.info(
       `Creating attribute ${attribute.origin}/${attribute.code}`
     );
-    await client.createInternalCertifiedAttribute(attribute, {
-      headers,
-    });
+    try {
+      await client.createInternalCertifiedAttribute(attribute, {
+        headers,
+      });
+      createdAttributes.push(attribute);
+    } catch (error: unknown) {
+      loggerInstance.warn(
+        `Failed creation of attribute ${attribute.origin}/${attribute.code}. Skipping. ${describeHttpError(error)}`
+      );
+    }
   }
+
+  const failures = newAttributes.length - createdAttributes.length;
 
   // wait until every event reaches the read model store
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     loggerInstance.info("Waiting for attributes to be created");
     await delay(attributeCreationWaitTime);
 
-    if (await checkAttributesPresence(readModelService, newAttributes)) {
-      return;
+    if (await checkAttributesPresence(readModelService, createdAttributes)) {
+      return failures;
     }
   }
 
   loggerInstance.warn(
     `New attributes are not present in the read model after ${maxRetries} attempts. Continuing with the import`
   );
+
+  return failures;
 }
 
 export function getNewAttributes(
@@ -336,36 +354,40 @@ export function getNewAttributes(
       .map((a) => toAttributeKey({ origin: a.origin, code: a.code }))
   );
 
-  const newAttributesIndex = new Set(
-    tenantUpsertData.flatMap((t) =>
-      t.attributes.map((a) =>
-        toAttributeKey({ origin: a.origin, code: a.code })
-      )
-    )
+  const attributeKeysFromTenantsToUpsert = new Set(
+    tenantUpsertData.flatMap((tenant) => tenant.attributes.map(toAttributeKey))
   );
 
-  return registryData.attributes.filter(
-    (a) =>
-      newAttributesIndex.has(
-        toAttributeKey({ origin: a.origin, code: a.code })
-      ) &&
-      !platformAttributesIndex.has(
-        toAttributeKey({ origin: a.origin, code: a.code })
-      )
-  );
+  const newRegistryAttributes = registryData.attributes.filter((attribute) => {
+    const key = toAttributeKey(attribute);
+
+    return (
+      attributeKeysFromTenantsToUpsert.has(key) &&
+      !platformAttributesIndex.has(key)
+    );
+  });
+
+  if (isFeatureFlagEnabled(config, "featureFlagAooUoAttributes")) {
+    const aooUoAttributes = getAooUoAttributes(
+      registryData,
+      tenantUpsertData,
+      attributes,
+      newRegistryAttributes
+    );
+
+    newRegistryAttributes.push(...aooUoAttributes);
+  }
+
+  return newRegistryAttributes;
 }
 
 export async function getAttributesToAssign(
-  platformTenants: Tenant[],
+  tenantsIndex: Map<string, Tenant>,
   platformAttributes: Attribute[],
   tenantSeeds: TenantSeed[],
   config: IPACertifiedAttributesImporterConfig,
   loggerInstance: Logger
 ): Promise<tenantApi.InternalTenantSeed[]> {
-  const tenantsIndex = new Map(
-    platformTenants.map((t) => [toTenantKey(t.externalId), t])
-  );
-
   const certifiedAttributes = new Map(
     platformAttributes
       .filter((a) => a.kind === attributeKind.certified && a.origin && a.code)
@@ -609,6 +631,95 @@ export async function revokeAttributes(
 
     if (!succeeded) {
       failures += 1;
+    }
+  }
+
+  return failures;
+}
+
+export type TenantParentUpdate = {
+  tenant: Tenant;
+  parentTenantId: TenantId | null;
+  rootTenantId: TenantId | null;
+};
+
+export function getTenantParentUpdates(
+  registryData: RegistryData,
+  tenantsIndex: Map<string, Tenant>
+): TenantParentUpdate[] {
+  const updates: TenantParentUpdate[] = [];
+
+  for (const institution of registryData.institutions) {
+    if (institution.classification === AGENCY_CLASSIFICATION) {
+      continue;
+    }
+
+    const tenant = tenantsIndex.get(
+      toTenantKey({ origin: institution.origin, value: institution.originId })
+    );
+    if (!tenant) {
+      continue;
+    }
+
+    const parent = tenantsIndex.get(
+      toTenantKey({
+        origin: institution.origin,
+        value: institution.parentOriginId,
+      })
+    );
+    const root = tenantsIndex.get(
+      toTenantKey({
+        origin: institution.origin,
+        value: institution.rootOriginId,
+      })
+    );
+
+    updates.push({
+      tenant,
+      parentTenantId: parent && root ? parent.id : null,
+      rootTenantId: parent && root ? root.id : null,
+    });
+  }
+
+  return updates;
+}
+
+export async function updateTenantsParent(
+  updates: TenantParentUpdate[],
+  tenantClient: TenantProcessClient,
+  readModelServiceSQL: ReadModelServiceSQL,
+  headers: InteropHeaders,
+  loggerInstance: Logger,
+  pollingConfig: PollingConfig
+): Promise<number> {
+  let failures = 0;
+
+  for (const { tenant, parentTenantId, rootTenantId } of updates) {
+    const { origin: tOrigin, value: tExternalId } = tenant.externalId;
+    const details = `tenant ${tOrigin}/${tExternalId} with parentTenantId ${parentTenantId}, rootTenantId ${rootTenantId}`;
+
+    const succeeded = await runTenantOperation({
+      description: `parent update of ${details}`,
+      startMessage: `Updating parent of ${details}`,
+      command: () =>
+        tenantClient.internalUpdateTenantParent(
+          { parentTenantId, rootTenantId },
+          { params: { tOrigin, tExternalId }, headers }
+        ),
+      pollReadModel: (version) =>
+        waitForReadModelMetadataVersion(
+          () =>
+            readModelServiceSQL.getTenantByExternalIdWithMetadata(
+              tenant.externalId
+            ),
+          version,
+          pollingConfig
+        ),
+      loggerInstance,
+    });
+
+    if (!succeeded) {
+      failures++;
     }
   }
 

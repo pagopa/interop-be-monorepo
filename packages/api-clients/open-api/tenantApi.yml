@@ -220,6 +220,42 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "404":
           $ref: "#/components/responses/NotFound"
+  /internal/origin/{tOrigin}/externalId/{tExternalId}/parent:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tOrigin
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: tExternalId
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      tags:
+        - internal
+      operationId: internalUpdateTenantParent
+      description: Updates or clears the parent and root tenant references for an AOO/UO tenant.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TenantParentSeed"
+      responses:
+        "204":
+          description: Updated Tenant parent
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /m2m/tenants:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -662,19 +698,21 @@ paths:
         - tenantAttribute
       operationId: revokeVerifiedAttribute
       description: Revoke a Verified attribute to a Tenant by the requester Tenant
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              additionalProperties: false
-              required:
-                - agreementId
-              properties:
-                agreementId:
-                  type: string
-                  format: uuid
+      parameters:
+        - name: agreementId
+          in: query
+          description: Agreement id related to the Verified attribute revocation
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: delegationId
+          in: query
+          description: The ID of the producer Delegation
+          required: false
+          schema:
+            type: string
+            format: uuid
       responses:
         "200":
           description: Updated Tenant
@@ -1434,6 +1472,12 @@ components:
           description: Parent tenants, from the immediate parent up to the root, when available. Omitted when none are resolved.
           items:
             $ref: "#/components/schemas/ParentTenant"
+        parentTenantId:
+          type: string
+          format: uuid
+        rootTenantId:
+          type: string
+          format: uuid
         remoteIds:
           type: array
           items:
@@ -1682,6 +1726,9 @@ components:
         agreementId:
           type: string
           format: uuid
+        delegationId:
+          type: string
+          format: uuid
         expirationDate:
           type: string
           format: date-time
@@ -1809,6 +1856,21 @@ components:
         - externalId
         - certifiedAttributes
         - name
+    TenantParentSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        parentTenantId:
+          type: string
+          format: uuid
+          nullable: true
+        rootTenantId:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+        - parentTenantId
+        - rootTenantId
     M2MTenantSeed:
       description: Tenant Seed model
       type: object
@@ -1850,6 +1912,8 @@ components:
           $ref: "#/components/schemas/TenantUnitType"
         selfcareInstitutionType:
           type: string
+        parentExternalId:
+          $ref: "#/components/schemas/ExternalId"
       required:
         - externalId
         - selfcareId

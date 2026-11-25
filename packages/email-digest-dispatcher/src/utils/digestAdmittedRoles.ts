@@ -1,14 +1,15 @@
 import { UserRole, userRole } from "pagopa-interop-commons";
 
-import { BaseDigest, TenantDigestData } from "../services/digestDataService.js";
+import { TenantDigestData } from "../services/digestDataService.js";
 
 /**
- * Keys of TenantDigestData whose values extend BaseDigest | undefined.
- * This excludes string metadata fields (tenantId, tenantName, links, etc.).
+ * Keys of TenantDigestData whose values are digest objects carrying a totalCount
+ * (BaseDigest and its variants, e.g. ArchivingDigest). This excludes
+ * string metadata fields (tenantId, tenantName, links, etc.) and plain numbers.
  */
 type DigestDataField = {
   [K in keyof TenantDigestData]-?: TenantDigestData[K] extends
-    | BaseDigest
+    | { totalCount: number }
     | undefined
     ? K
     : never;
@@ -27,13 +28,16 @@ export type DigestSection =
   | "newEservices"
   | "updatedEservices"
   | "updatedEserviceTemplates"
-  | "popularEserviceTemplates"
   | "sentAgreements"
   | "receivedAgreements"
   | "sentPurposes"
   | "receivedPurposes"
   | "delegations"
-  | "attributes";
+  | "attributes"
+  | "archivingProducer"
+  | "archivingConsumer"
+  | "approvedRiskAnalysis"
+  | "rejectedRiskAnalysis";
 
 /**
  * Which roles can see each digest section.
@@ -56,14 +60,6 @@ export const digestAdmittedRoles = {
     [VIEWER_ROLE]: false,
   },
   updatedEserviceTemplates: {
-    [ADMIN_ROLE]: true,
-    [API_ROLE]: true,
-    [SECURITY_ROLE]: false,
-    [SUPPORT_ROLE]: false,
-    [REVIEWER_ROLE]: false,
-    [VIEWER_ROLE]: false,
-  },
-  popularEserviceTemplates: {
     [ADMIN_ROLE]: true,
     [API_ROLE]: true,
     [SECURITY_ROLE]: false,
@@ -119,6 +115,42 @@ export const digestAdmittedRoles = {
     [REVIEWER_ROLE]: false,
     [VIEWER_ROLE]: false,
   },
+  // Same visibility as updatedEservices: producer-facing e-service lifecycle info.
+  archivingProducer: {
+    [ADMIN_ROLE]: true,
+    [API_ROLE]: true,
+    [SECURITY_ROLE]: true,
+    [SUPPORT_ROLE]: false,
+    [REVIEWER_ROLE]: false,
+    [VIEWER_ROLE]: false,
+  },
+  // Same visibility as eserviceStateChangedToConsumer notification: consumer-facing
+  // e-service lifecycle info.
+  archivingConsumer: {
+    [ADMIN_ROLE]: true,
+    [API_ROLE]: false,
+    [SECURITY_ROLE]: true,
+    [SUPPORT_ROLE]: false,
+    [REVIEWER_ROLE]: false,
+    [VIEWER_ROLE]: false,
+  },
+  // Same visibility as sentPurposes: producer-facing risk analysis info.
+  approvedRiskAnalysis: {
+    [ADMIN_ROLE]: true,
+    [API_ROLE]: false,
+    [SECURITY_ROLE]: true,
+    [SUPPORT_ROLE]: false,
+    [REVIEWER_ROLE]: false,
+    [VIEWER_ROLE]: false,
+  },
+  rejectedRiskAnalysis: {
+    [ADMIN_ROLE]: true,
+    [API_ROLE]: false,
+    [SECURITY_ROLE]: true,
+    [SUPPORT_ROLE]: false,
+    [REVIEWER_ROLE]: false,
+    [VIEWER_ROLE]: false,
+  },
 } as const satisfies Record<DigestSection, Record<UserRole, boolean>> &
   Record<DigestSection, Record<typeof SUPPORT_ROLE, false>>;
 
@@ -157,7 +189,6 @@ const digestSectionFields: Record<DigestSection, DigestDataField[]> = {
   newEservices: ["newEservices"],
   updatedEservices: ["updatedEservices"],
   updatedEserviceTemplates: ["updatedEserviceTemplates"],
-  popularEserviceTemplates: ["popularEserviceTemplates"],
   sentAgreements: [
     "acceptedSentAgreements",
     "rejectedSentAgreements",
@@ -174,12 +205,23 @@ const digestSectionFields: Record<DigestSection, DigestDataField[]> = {
     "waitingForApprovalReceivedPurposes",
   ],
   delegations: [
-    "activeSentDelegations",
-    "rejectedSentDelegations",
     "waitingForApprovalReceivedDelegations",
-    "revokedReceivedDelegations",
+    "archivingRequests",
+    "approvedArchivingRequests",
+    "rejectedArchivingRequests",
+    "waitingForApprovalDelegatedEservices",
   ],
   attributes: ["receivedAttributes", "revokedAttributes"],
+  archivingProducer: [
+    "archivingImminentEservices",
+    "archivingInProgressEservices",
+  ],
+  archivingConsumer: [
+    "archivingConsumerImminentEservices",
+    "archivingConsumerInProgressEservices",
+  ],
+  approvedRiskAnalysis: ["approvedRiskAnalysis"],
+  rejectedRiskAnalysis: ["rejectedRiskAnalysis"],
 };
 
 /**
@@ -214,12 +256,22 @@ const digestGroups: Record<string, DigestSection[]> = {
     "newEservices",
     "updatedEservices",
     "updatedEserviceTemplates",
-    "popularEserviceTemplates",
   ],
-  hasSentItemsContent: ["sentAgreements", "sentPurposes"],
+  hasSentItemsContent: [
+    "sentAgreements",
+    "sentPurposes",
+    "approvedRiskAnalysis",
+    "rejectedRiskAnalysis",
+  ],
+  hasSentAgreementsContent: ["sentAgreements"],
+  hasSentPurposesContent: ["sentPurposes"],
+  hasReceivedPurposesContent: ["receivedPurposes"],
   hasReceivedItemsContent: ["receivedAgreements", "receivedPurposes"],
   hasDelegationsContent: ["delegations"],
   hasAttributesContent: ["attributes"],
+  hasArchivingProducerContent: ["archivingProducer"],
+  hasArchivingConsumerContent: ["archivingConsumer"],
+  hasRiskAnalysisContent: ["approvedRiskAnalysis", "rejectedRiskAnalysis"],
 };
 
 /**
@@ -239,3 +291,16 @@ export function computeGroupFlags(
     ])
   );
 }
+
+const reviewerDigestAdmittedRoles = {
+  [ADMIN_ROLE]: false,
+  [API_ROLE]: false,
+  [SECURITY_ROLE]: false,
+  [SUPPORT_ROLE]: false,
+  [REVIEWER_ROLE]: true,
+  [VIEWER_ROLE]: false,
+} as const satisfies Record<UserRole, boolean> &
+  Record<typeof SUPPORT_ROLE, false>;
+
+export const canReceiveReviewerDigest = (roles: UserRole[]): boolean =>
+  roles.some((role) => reviewerDigestAdmittedRoles[role]);

@@ -384,9 +384,13 @@ describe("tenantServiceBuilder.getProducers", () => {
       ...getMockedApiTenant(),
       id: producerId,
       name: "Tenant UO",
-      subUnitType: "UO",
+      subUnitType: tenantUnitType.UO,
       parentTenants: [
-        { id: parentTenantId, name: "Tenant AOO", subUnitType: "AOO" },
+        {
+          id: parentTenantId,
+          name: "Tenant AOO",
+          subUnitType: tenantUnitType.AOO,
+        },
         { id: rootTenantId, name: "Tenant root" },
       ],
     };
