@@ -51,6 +51,13 @@ describe("handleAttributeEvent test", async () => {
           resourceVersion: message.version,
           attributeId: attribute.id,
         }))
+        .with("AttributeSubunitPropagationUpdated", async () => ({
+          id: expect.any(String),
+          eventType,
+          eventTimestamp,
+          resourceVersion: message.version,
+          attributeId: attribute.id,
+        }))
         .exhaustive();
 
       await handleAttributeEvent(
