@@ -5,11 +5,11 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   Attribute,
-  AttributeSubunitPropagationUpdatedV2,
+  AttributeSubunitPropagationUpdatedV1,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   attributeKind,
   generateId,
-  toRegistryAttributeV2,
+  toAttributeV1,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 
@@ -47,15 +47,15 @@ describe("internalEnableAttributeSubunitPropagation", () => {
         stream_id: attribute.id,
         version: "1",
         type: "AttributeSubunitPropagationUpdated",
-        event_version: 2,
+        event_version: 1,
       });
       expect(
         decodeProtobufPayload({
-          messageType: AttributeSubunitPropagationUpdatedV2,
+          messageType: AttributeSubunitPropagationUpdatedV1,
           payload: event.data,
         }).attribute
       ).toEqual(
-        toRegistryAttributeV2({ ...attribute, subunitPropagationEnabled: true })
+        toAttributeV1({ ...attribute, subunitPropagationEnabled: true })
       );
     }
   );
