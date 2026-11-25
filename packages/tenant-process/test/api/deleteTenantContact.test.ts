@@ -17,7 +17,10 @@ import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { toApiTenant } from "../../src/model/domain/apiConverter.js";
-import { tenantNotFound } from "../../src/model/domain/errors.js";
+import {
+  tenantLegacyMailsNotMigrated,
+  tenantNotFound,
+} from "../../src/model/domain/errors.js";
 import { api, tenantService } from "../vitest.api.setup.js";
 
 describe("API DELETE /tenants/{tenantId}/contact test", () => {
@@ -73,6 +76,7 @@ describe("API DELETE /tenants/{tenantId}/contact test", () => {
       error: featureFlagNotEnabled("featureFlagTenantEventsV3"),
       expectedStatus: 501,
     },
+    { error: tenantLegacyMailsNotMigrated(generateId()), expectedStatus: 409 },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {

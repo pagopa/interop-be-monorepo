@@ -48,6 +48,7 @@ const errorCodes = {
   tenantContactAlreadyAssigned: "0037",
   tenantMailsNotAllowed: "0039",
   tenantContactRequiresEventsV3: "0040",
+  tenantLegacyMailsNotMigrated: "0041",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -426,5 +427,15 @@ export function tenantContactRequiresEventsV3(
     detail: `Tenant ${tenantId} has a contact, which V2 events cannot carry: tenant events V3 must be enabled`,
     code: "tenantContactRequiresEventsV3",
     title: "Tenant contact requires tenant events V3",
+  });
+}
+
+export function tenantLegacyMailsNotMigrated(
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} still has legacy mails, which V3 events cannot carry: the tenant must be migrated to a contact first`,
+    code: "tenantLegacyMailsNotMigrated",
+    title: "Tenant legacy mails not migrated",
   });
 }

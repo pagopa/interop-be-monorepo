@@ -5,6 +5,7 @@ import {
   getMockContext,
   getMockContextM2MAdmin,
   getMockTenant,
+  getMockTenantMail,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
 import {
@@ -29,7 +30,10 @@ import {
 } from "vitest";
 
 import { config } from "../../src/config/config.js";
-import { tenantNotFound } from "../../src/model/domain/errors.js";
+import {
+  tenantLegacyMailsNotMigrated,
+  tenantNotFound,
+} from "../../src/model/domain/errors.js";
 import {
   addOneTenant,
   postgresDB,
@@ -166,6 +170,25 @@ describe("deleteTenantContact", async () => {
         getMockContext({ authData: getMockAuthData(tenant.id) })
       )
     ).rejects.toThrowError(tenantNotFound(tenant.id));
+  });
+
+  it("Should reject a tenant with legacy mails without writing an event", async () => {
+    const tenant: Tenant = { ...getMockTenant(), mails: [getMockTenantMail()] };
+    await addOneTenant(tenant);
+
+    await expect(
+      tenantService.deleteTenantContact(
+        tenant.id,
+        getMockContext({ authData: getMockAuthData(tenant.id) })
+      )
+    ).rejects.toThrowError(tenantLegacyMailsNotMigrated(tenant.id));
+
+    const lastEvent = await readLastEventByStreamId(
+      tenant.id,
+      "tenant",
+      postgresDB
+    );
+    expect(lastEvent.version).toBe("0");
   });
 
   it("Should throw operationForbidden if the requester is another tenant", async () => {

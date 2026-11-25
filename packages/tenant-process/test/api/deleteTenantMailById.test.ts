@@ -13,6 +13,7 @@ import {
   mailNotFound,
   tenantMailsNotAllowed,
   tenantNotFound,
+  tenantContactRequiresEventsV3,
 } from "../../src/model/domain/errors.js";
 import { api, tenantService } from "../vitest.api.setup.js";
 
@@ -53,6 +54,7 @@ describe("API DELETE /tenants/{tenantId}/mails/{mailId} test", () => {
     { error: operationForbidden, expectedStatus: 403 },
     { error: mailNotFound(mockMailId), expectedStatus: 404 },
     { error: tenantMailsNotAllowed(mockTenantId), expectedStatus: 400 },
+    { error: tenantContactRequiresEventsV3(generateId()), expectedStatus: 409 },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {

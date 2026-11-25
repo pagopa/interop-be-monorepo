@@ -84,7 +84,7 @@ import {
   tenantNotFoundByRemoteId,
   tenantUpdateVersionMismatch,
   tenantContactAlreadyAssigned,
-  tenantMailsNotAllowed,
+  tenantLegacyMailsNotMigrated,
 } from "../model/domain/errors.js";
 import { ApiGetTenantsFilters } from "../model/domain/models.js";
 import {
@@ -2315,7 +2315,7 @@ export function tenantServiceBuilder(
       const { contactId } = tenant.data;
       if (!contactId) {
         if (tenant.data.mails.length > 0) {
-          throw tenantMailsNotAllowed(tenantId);
+          throw tenantLegacyMailsNotMigrated(tenantId);
         }
         return tenant;
       }

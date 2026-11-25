@@ -32,6 +32,7 @@ import {
 import { config } from "../../src/config/config.js";
 import {
   tenantContactAlreadyAssigned,
+  tenantLegacyMailsNotMigrated,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
 import {
@@ -234,9 +235,7 @@ describe("addTenantContact", async () => {
         { tenantId: tenant.id, contactId: generateId<ContactId>() },
         getMockContext({ authData: getMockAuthData(tenant.id) })
       )
-    ).rejects.toThrowError(
-      `Tenant ${tenant.id} has legacy mails and cannot be serialized to V3`
-    );
+    ).rejects.toThrowError(tenantLegacyMailsNotMigrated(tenant.id));
 
     const lastEvent = await readLastEventByStreamId(
       tenant.id,

@@ -3,7 +3,9 @@ import { CreateEvent } from "pagopa-interop-commons";
 import {
   getMockAuthData,
   getMockContext,
+  getMockContextMaintenance,
   getMockTenant,
+  getMockTenantMail,
   readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test";
 import {
@@ -22,7 +24,10 @@ import { upsertTenant } from "pagopa-interop-readmodel/testUtils";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { config } from "../../src/config/config.js";
-import { tenantContactRequiresEventsV3 } from "../../src/model/domain/errors.js";
+import {
+  tenantContactRequiresEventsV3,
+  tenantLegacyMailsNotMigrated,
+} from "../../src/model/domain/errors.js";
 import {
   toCreateEventMaintenanceTenantDeleted,
   toCreateEventMaintenanceTenantPromotedToCertifier,
@@ -55,6 +60,7 @@ import {
 import {
   addOneTenant,
   postgresDB,
+  readLastTenantEvent,
   readModelDB,
   tenantService,
 } from "../integrationUtils.js";
@@ -69,6 +75,10 @@ describe("Tenant events version", () => {
     contactId: generateId<ContactId>(),
   };
   const tenantWithoutContact = getMockTenant();
+  const tenantWithLegacyMails: Tenant = {
+    ...getMockTenant(),
+    mails: [getMockTenantMail()],
+  };
   const attributeId = generateId<AttributeId>();
   const correlationId = generateId<CorrelationId>();
 
@@ -304,6 +314,43 @@ describe("Tenant events version", () => {
     }
   );
 
+  it.each(switchableBuilders(tenantWithLegacyMails))(
+    "Should build %s as V2 with the legacy mails when tenant events V3 are disabled",
+    (type, build) => {
+      setTenantEventsV3(false);
+
+      const { event } = build();
+
+      expect(event).toMatchObject({ type, event_version: 2 });
+      const decoded = TenantEventV2.parse({
+        type,
+        event_version: 2,
+        data: tenantEventToBinaryData(event),
+      });
+      expect(decoded).toMatchObject({
+        data: {
+          tenant: {
+            mails: tenantWithLegacyMails.mails.map(({ id, address }) => ({
+              id,
+              address,
+            })),
+          },
+        },
+      });
+    }
+  );
+
+  it.each(switchableBuilders(tenantWithLegacyMails))(
+    "Should refuse to build %s as V3 for a tenant with legacy mails",
+    (_type, build) => {
+      setTenantEventsV3(true);
+
+      expect(build).toThrow(
+        tenantLegacyMailsNotMigrated(tenantWithLegacyMails.id)
+      );
+    }
+  );
+
   it.each(switchableBuilders(tenantWithContact))(
     "Should build %s as V3 with the contact reference when tenant events V3 are enabled",
     (type, build) => {
@@ -362,6 +409,28 @@ describe("Tenant events version", () => {
         1,
         tenantWithContact,
         generateId(),
+        correlationId
+      )
+    ).toThrow(error);
+  });
+
+  it("Should refuse to build the contact events for a tenant with legacy mails", () => {
+    const error = tenantLegacyMailsNotMigrated(tenantWithLegacyMails.id);
+    const contactId = generateId<ContactId>();
+
+    expect(() =>
+      toCreateEventTenantContactAdded(
+        1,
+        tenantWithLegacyMails,
+        contactId,
+        correlationId
+      )
+    ).toThrow(error);
+    expect(() =>
+      toCreateEventTenantContactDeleted(
+        1,
+        tenantWithLegacyMails,
+        contactId,
         correlationId
       )
     ).toThrow(error);
@@ -457,6 +526,50 @@ describe("Tenant events version", () => {
       version: "2",
       type: "TenantContactDeleted",
       event_version: 3,
+    });
+  });
+
+  it("Should refuse to write a V3 event for a tenant read with legacy mails, without writing events", async () => {
+    setTenantEventsV3(true);
+
+    const tenant: Tenant = {
+      ...getMockTenant(),
+      mails: [getMockTenantMail()],
+    };
+    await addOneTenant(tenant);
+
+    await expect(
+      tenantService.maintenanceTenantDelete(
+        { tenantId: tenant.id, version: 0 },
+        getMockContextMaintenance({})
+      )
+    ).rejects.toThrowError(tenantLegacyMailsNotMigrated(tenant.id));
+
+    expect(await readLastTenantEvent(tenant.id)).toMatchObject({
+      version: "0",
+      type: "TenantOnboarded",
+    });
+  });
+
+  it("Should refuse to write a V2 event for a tenant read with a contact, without writing events", async () => {
+    setTenantEventsV3(false);
+
+    const tenant: Tenant = {
+      ...getMockTenant(),
+      contactId: generateId<ContactId>(),
+    };
+    await addOneTenant(tenant);
+
+    await expect(
+      tenantService.maintenanceTenantDelete(
+        { tenantId: tenant.id, version: 0 },
+        getMockContextMaintenance({})
+      )
+    ).rejects.toThrowError(tenantContactRequiresEventsV3(tenant.id));
+
+    expect(await readLastTenantEvent(tenant.id)).toMatchObject({
+      version: "0",
+      type: "TenantOnboarded",
     });
   });
 });
