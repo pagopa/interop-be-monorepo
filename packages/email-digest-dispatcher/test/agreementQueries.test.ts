@@ -7,17 +7,25 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
+  AgreementId,
   AgreementStamp,
   AgreementStamps,
   agreementState,
   descriptorState,
   EService,
+  EServiceId,
   generateId,
   TenantId,
+  unsafeBrandId,
   UserId,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 
+import {
+  receivedAgreementsToBaseDigest,
+  sentAgreementsToBaseDigest,
+} from "../src/model/digestDataConverter.js";
+import { ReadModelService } from "../src/services/readModelService.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -1032,5 +1040,63 @@ describe("ReadModelService - getReceivedAgreements", () => {
       // Total count should reflect the database count before filtering
       expect(results[0].totalCount).toBeGreaterThanOrEqual(3);
     });
+  });
+});
+
+describe("DigestDataConverter - Agreement digest links", () => {
+  const agreementId = unsafeBrandId<AgreementId>("agreement-id");
+  const eserviceId = unsafeBrandId<EServiceId>("eservice-id");
+  const consumerId = unsafeBrandId<TenantId>("consumer-id");
+  const producerId = unsafeBrandId<TenantId>("producer-id");
+  const selfcareId = "test-selfcare-id";
+
+  const agreement = {
+    agreementId,
+    eserviceId,
+    consumerId,
+    producerId,
+    actionDate: "2025-01-01T00:00:00.000Z",
+    totalCount: 1,
+  };
+
+  const readModelService: Pick<
+    ReadModelService,
+    "getEServicesByIds" | "getTenantsByIds"
+  > = {
+    getEServicesByIds: async () => new Map([[eserviceId, "Test e-service"]]),
+    getTenantsByIds: async () =>
+      new Map([
+        [consumerId, { name: "Consumer", selfcareId: null }],
+        [producerId, { name: "Producer", selfcareId: null }],
+      ]),
+  };
+
+  it("Should link sent agreements to the consumer view", async () => {
+    const [item] = (
+      await sentAgreementsToBaseDigest(
+        [{ ...agreement, state: agreementState.active }],
+        agreementState.active,
+        readModelService,
+        selfcareId
+      )
+    ).items;
+
+    const url = new URL(item.link);
+    expect(url.pathname).toBe("/emailDeepLink/agreementToConsumer");
+    expect(url.searchParams.get("entityId")).toBe(agreementId);
+  });
+
+  it("Should link received agreements to the producer view", async () => {
+    const [item] = (
+      await receivedAgreementsToBaseDigest(
+        [agreement],
+        readModelService,
+        selfcareId
+      )
+    ).items;
+
+    const url = new URL(item.link);
+    expect(url.pathname).toBe("/emailDeepLink/agreementToProducer");
+    expect(url.searchParams.get("entityId")).toBe(agreementId);
   });
 });

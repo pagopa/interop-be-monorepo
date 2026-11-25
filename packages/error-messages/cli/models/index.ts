@@ -20,6 +20,7 @@ export const ProcessName = z.enum([
   "purposeTemplate",
   "tenant",
   "bff",
+  "notificationManager",
 ]);
 
 export type ProcessName = z.infer<typeof ProcessName>;

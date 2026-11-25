@@ -349,6 +349,8 @@ export function attributeRegistryServiceBuilder(
       logger.info(
         `Creating certified discrete attribute with code ${apiCertifiedDiscreteAttributeSeed.code}`
       );
+      validateAttributeSeedFields(apiCertifiedDiscreteAttributeSeed);
+
       const certifierId = await getCertifierId(
         authData.organizationId,
         readModelService
