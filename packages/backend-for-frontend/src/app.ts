@@ -110,7 +110,6 @@ import {
   tenantServiceBuilder,
 } from "./services/tenantService.js";
 import { ToolsService, toolsServiceBuilder } from "./services/toolService.js";
-import { contactBodyErrorHandler } from "./utilities/contactErrorHandlers.js";
 import { uiAuthDataValidationMiddleware } from "./utilities/middlewares.js";
 
 type BFFServices = {
@@ -247,17 +246,7 @@ export async function createApp(
   services: BFFServices,
   rateLimiterMiddleware: RateLimiterMiddleware
 ) {
-  const expressApp = express();
-  const app = zodiosCtx.app(undefined, { express: expressApp });
-
-  // Zodios installs the JSON parser before the application routers.
-  expressApp.use(
-    [
-      `${appBasePath}/tenants/:tenantId/contact`,
-      `${appBasePath}/tenants/:tenantId/mails`,
-    ],
-    contactBodyErrorHandler
-  );
+  const app = zodiosCtx.app();
 
   // Disable the "X-Powered-By: Express" HTTP header for security reasons.
   // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16

@@ -182,34 +182,6 @@ describe("API POST /tenants/{tenantId}/contact test", () => {
     }
   });
 
-  it.each(["contact", "mails"])(
-    "redacts malformed JSON on /%s before the global error handler",
-    async (path) => {
-      const response = await request(api)
-        .post(`${appBasePath}/tenants/${mockTokenOrganizationId}/${path}`)
-        .type("json")
-        .send(mailSeed.address);
-      expect(response.status).toBe(400);
-      const error = vi.mocked(commons.errorsToApiProblemsMiddleware).mock
-        .lastCall?.[0];
-      expect(error).toBeInstanceOf(SyntaxError);
-      expect(error).toHaveProperty("message", "Invalid contact request body");
-      expect(error).not.toHaveProperty("body");
-    }
-  );
-
-  it("preserves the parser error on an unrelated tenant route", async () => {
-    const response = await request(api)
-      .post(`${appBasePath}/tenants/delegatedFeatures/update`)
-      .type("json")
-      .send("malformed");
-    expect(response.status).toBe(400);
-    const error = vi.mocked(commons.errorsToApiProblemsMiddleware).mock
-      .lastCall?.[0];
-    expect(error).toBeInstanceOf(SyntaxError);
-    expect(error).toHaveProperty("body", "malformed");
-  });
-
   it.each([
     { tenantId: "invalid" },
     { body: {} },

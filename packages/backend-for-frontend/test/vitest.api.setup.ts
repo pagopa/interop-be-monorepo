@@ -20,7 +20,6 @@ vi.mock("pagopa-interop-commons", async () => {
   );
   return {
     ...actual,
-    errorsToApiProblemsMiddleware: vi.fn(actual.errorsToApiProblemsMiddleware),
     authenticationMiddleware: vi.fn(
       () =>
         async (
