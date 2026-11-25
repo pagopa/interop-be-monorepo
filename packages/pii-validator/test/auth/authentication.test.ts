@@ -20,17 +20,8 @@ import { logCapture } from "../logCapture.js";
 const correlationId = generateId<CorrelationId>();
 const audience = "dev.interop.pagopa.it/ui";
 const fakeService: DetectionService = {
-  detect: async () => ({
-    detectedCategories: {
-      EMAIL_ADDRESS: false,
-      IT_FISCAL_CODE: false,
-      IT_VAT_CODE: false,
-      IBAN_CODE: false,
-      CREDIT_CARD: false,
-      PHONE_NUMBER: false,
-      IT_IDENTITY_CARD: false,
-      IT_DRIVER_LICENSE: false,
-    },
+  detect: async ({ fields }) => ({
+    results: fields.map(({ fieldId }) => ({ fieldId, detectedCategories: [] })),
   }),
 };
 
@@ -67,7 +58,7 @@ const postDetect = async (authorization?: string, path = "/detect") => {
   const call = request(api)
     .post(path)
     .set("X-Correlation-Id", correlationId)
-    .send({ text: "synthetic neutral text" });
+    .send({ fields: [{ fieldId: "title", text: "synthetic neutral text" }] });
 
   return authorization == null
     ? call

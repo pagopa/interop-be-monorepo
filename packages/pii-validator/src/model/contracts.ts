@@ -1,17 +1,41 @@
 import { z } from "zod";
 
-import { DetectedCategories } from "./categories.js";
+import { piiCategories } from "./categories.js";
+
+const DetectionField = z
+  .object({
+    fieldId: z.string().min(1),
+    text: z.string(),
+  })
+  .strict();
 
 export const DetectionRequest = z
   .object({
-    text: z.string().min(1),
+    fields: z.array(DetectionField).min(1).max(10),
+  })
+  .strict()
+  .refine(
+    ({ fields }) =>
+      new Set(fields.map(({ fieldId }) => fieldId)).size === fields.length,
+    "Duplicate field ID"
+  );
+export type DetectionRequest = z.infer<typeof DetectionRequest>;
+
+const DetectionResult = z
+  .object({
+    fieldId: z.string().min(1),
+    detectedCategories: z
+      .array(z.enum(piiCategories))
+      .refine(
+        (categories) => new Set(categories).size === categories.length,
+        "Duplicate category"
+      ),
   })
   .strict();
-export type DetectionRequest = z.infer<typeof DetectionRequest>;
 
 export const DetectionResponse = z
   .object({
-    detectedCategories: DetectedCategories,
+    results: z.array(DetectionResult),
   })
   .strict();
 export type DetectionResponse = z.infer<typeof DetectionResponse>;

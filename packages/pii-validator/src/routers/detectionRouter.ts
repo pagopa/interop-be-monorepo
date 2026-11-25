@@ -5,10 +5,10 @@ import {
   ExpressContext,
   ZodiosContext,
   fromAppContext,
-  zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
+import { badRequestError } from "pagopa-interop-models";
 
-import { DetectionResponse } from "../model/contracts.js";
+import { DetectionRequest, DetectionResponse } from "../model/contracts.js";
 import {
   detectionFailed,
   isDetectionError,
@@ -25,18 +25,46 @@ const detectionRouter = (
   detectionService: DetectionService = defaultDetectionService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const router = ctx.router(piiValidatorApi.detectionApi.api, {
-    validationErrorHandler: zodiosValidationErrorToApiProblem,
+    validationErrorHandler: (_error, req, res, _next) =>
+      res
+        .status(400)
+        .send(
+          makeApiProblem(
+            badRequestError("Invalid detection request"),
+            () => 400,
+            fromAppContext(req.ctx)
+          )
+        ),
   });
 
   router.post("/detect", async (req, res) => {
     const appContext = fromAppContext(req.ctx);
 
+    const parsedRequest = DetectionRequest.safeParse(req.body);
+    if (!parsedRequest.success) {
+      const problem = makeApiProblem(
+        badRequestError("Invalid detection request"),
+        () => 400,
+        appContext
+      );
+      return res.status(400).send(problem);
+    }
     try {
-      const response = await detectionService.detect(req.body);
-      return res
-        .type("application/json")
-        .status(200)
-        .send(DetectionResponse.parse(response));
+      const response = DetectionResponse.parse(
+        await detectionService.detect(parsedRequest.data)
+      );
+      if (
+        response.results.length !== parsedRequest.data.fields.length ||
+        response.results.some(
+          (result, index) =>
+            result.fieldId !== parsedRequest.data.fields[index].fieldId ||
+            (parsedRequest.data.fields[index].text === "" &&
+              result.detectedCategories.length > 0)
+        )
+      ) {
+        throw detectionFailed();
+      }
+      return res.type("application/json").status(200).send(response);
     } catch (error) {
       const safeError = isDetectionError(error) ? error : detectionFailed();
       const problem = makeApiProblem(

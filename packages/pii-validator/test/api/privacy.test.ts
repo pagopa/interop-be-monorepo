@@ -22,17 +22,8 @@ const token = generateToken(authRole.INTERNAL_ROLE);
 const sentinel = "SENSITIVE_SENTINEL_9f7b";
 
 const successfulService: DetectionService = {
-  detect: async () => ({
-    detectedCategories: {
-      EMAIL_ADDRESS: false,
-      IT_FISCAL_CODE: false,
-      IT_VAT_CODE: false,
-      IBAN_CODE: false,
-      CREDIT_CARD: false,
-      PHONE_NUMBER: false,
-      IT_IDENTITY_CARD: false,
-      IT_DRIVER_LICENSE: false,
-    },
+  detect: async ({ fields }) => ({
+    results: fields.map(({ fieldId }) => ({ fieldId, detectedCategories: [] })),
   }),
 };
 
@@ -100,7 +91,7 @@ describe("privacy-safe HTTP boundary", () => {
     const response = await authenticatedRequest(
       api,
       `/detect?probe=${sentinel}`
-    ).send({ text: "synthetic neutral text" });
+    ).send({ fields: [{ fieldId: "title", text: "synthetic neutral text" }] });
 
     expect(response.status).toBe(constants.HTTP_STATUS_OK);
     await assertPrivacyBoundary(response);
@@ -115,7 +106,9 @@ describe("privacy-safe HTTP boundary", () => {
       },
     };
     const api = await createPrivacyApp(failingService);
-    const response = await authenticatedRequest(api).send({ text: sentinel });
+    const response = await authenticatedRequest(api).send({
+      fields: [{ fieldId: "title", text: sentinel }],
+    });
 
     expect(response.status).toBe(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR);
     expect(response.headers["content-type"]).toMatch(
@@ -126,7 +119,9 @@ describe("privacy-safe HTTP boundary", () => {
 
   it("redacts the request text from default 501 logs and real audit payloads", async () => {
     const api = await createPrivacyApp();
-    const response = await authenticatedRequest(api).send({ text: sentinel });
+    const response = await authenticatedRequest(api).send({
+      fields: [{ fieldId: "title", text: sentinel }],
+    });
 
     expect(response.status).toBe(constants.HTTP_STATUS_NOT_IMPLEMENTED);
     await assertPrivacyBoundary(response);
@@ -135,13 +130,48 @@ describe("privacy-safe HTTP boundary", () => {
   it("redacts invalid request values from validation logs and real audit payloads", async () => {
     const api = await createPrivacyApp(successfulService);
     const response = await authenticatedRequest(api).send({
-      text: [sentinel],
+      fields: [{ fieldId: "title", text: [sentinel] }],
     });
 
     expect(response.status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
-    expect(response.headers["content-type"]).toMatch(
-      /^application\/problem\+json\b/
-    );
+    await assertPrivacyBoundary(response);
+  });
+
+  it.each([
+    [
+      "unknown nested key",
+      { fields: [{ fieldId: "title", text: "", [sentinel]: true }] },
+    ],
+    [
+      "unknown top-level key",
+      { fields: [{ fieldId: "title", text: "" }], [sentinel]: true },
+    ],
+    [
+      "duplicate field ID",
+      {
+        fields: [
+          { fieldId: sentinel, text: "" },
+          { fieldId: sentinel, text: "" },
+        ],
+      },
+    ],
+  ])("redacts %s from 400, logs and audit", async (_case, body) => {
+    const api = await createPrivacyApp(successfulService);
+    const response = await authenticatedRequest(api).send(body);
+    expect(response.status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+    await assertPrivacyBoundary(response);
+  });
+
+  it("redacts malformed service output with a sensitive field ID", async () => {
+    const api = await createPrivacyApp({
+      detect: async () => ({
+        results: [{ fieldId: sentinel, detectedCategories: [] }],
+      }),
+    });
+    const response = await authenticatedRequest(api).send({
+      fields: [{ fieldId: "title", text: "" }],
+    });
+    expect(response.status).toBe(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR);
     await assertPrivacyBoundary(response);
   });
 });

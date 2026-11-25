@@ -22,8 +22,8 @@ paths:
     post:
       tags:
         - detection
-      summary: Detect supported PII categories in text
-      description: Validates text against the configured PII detection service.
+      summary: Detect supported PII categories in up to ten text fields
+      description: Validates each field independently. Results correspond to request fields in order; failures reject the entire batch without partial results.
       operationId: detectPii
       parameters:
         - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -106,40 +106,59 @@ components:
       type: object
       additionalProperties: false
       properties:
-        text:
+        fields:
+          type: array
+          minItems: 1
+          maxItems: 10
+          description: Field IDs must be unique within the batch. Text may be empty.
+          items:
+            $ref: "#/components/schemas/DetectionField"
+      required:
+        - fields
+    DetectionField:
+      type: object
+      additionalProperties: false
+      properties:
+        fieldId:
           type: string
           minLength: 1
+        text:
+          type: string
       required:
+        - fieldId
         - text
     DetectionResponse:
       type: object
       additionalProperties: false
       properties:
-        detectedCategories:
-          $ref: "#/components/schemas/DetectedCategories"
+        results:
+          type: array
+          description: One result per requested field, in the same order and with the same fieldId. No partial results are returned.
+          minItems: 1
+          maxItems: 10
+          items:
+            $ref: "#/components/schemas/DetectionResult"
       required:
-        - detectedCategories
-    DetectedCategories:
+        - results
+    DetectionResult:
       type: object
       additionalProperties: false
       properties:
-        EMAIL_ADDRESS:
-          type: boolean
-        IT_FISCAL_CODE:
-          type: boolean
-        IT_VAT_CODE:
-          type: boolean
-        IBAN_CODE:
-          type: boolean
-        CREDIT_CARD:
-          type: boolean
-        PHONE_NUMBER:
-          type: boolean
-        IT_IDENTITY_CARD:
-          type: boolean
-        IT_DRIVER_LICENSE:
-          type: boolean
+        fieldId:
+          type: string
+          minLength: 1
+        detectedCategories:
+          type: array
+          uniqueItems: true
+          description: Only detected categories; an empty array means none detected.
+          items:
+            $ref: "#/components/schemas/PiiCategory"
       required:
+        - fieldId
+        - detectedCategories
+    PiiCategory:
+      type: string
+      enum:
         - EMAIL_ADDRESS
         - IT_FISCAL_CODE
         - IT_VAT_CODE

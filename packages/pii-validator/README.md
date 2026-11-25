@@ -5,8 +5,9 @@ Interop HTTP service scaffold for the future deterministic validation of support
 ## Current behavior
 
 - `GET /status` exposes the standard service health endpoint.
-- Authenticated `POST /detect` validates the transport contract and returns a redacted `501 Not Implemented` response in production.
-- Tests inject a fake `DetectionService` only to verify the future `200` response schema. The production service never returns a fabricated all-false result.
+- Authenticated `POST /detect` accepts only `{ "fields": [{ "fieldId": "title", "text": "..." }] }`: 1–10 fields, unique nonempty caller-provided `fieldId`, and `text` may be empty. Duplicate IDs or the retired single-text request receive a redacted `400`.
+- A future successful response has `{ "results": [{ "fieldId": "title", "detectedCategories": ["EMAIL_ADDRESS"] }] }`: exactly one ordered result per field, with only detected categories from the closed vocabulary; empty text or no findings yields `[]`. Technical failures return no partial results. Text and candidates are never returned.
+- The production service remains a scaffold and returns a redacted `501 Not Implemented` for valid batches. Tests inject a fake `DetectionService` only to verify the future `200` response schema; the production service never fabricates detections.
 
 The closed API vocabulary contains:
 
