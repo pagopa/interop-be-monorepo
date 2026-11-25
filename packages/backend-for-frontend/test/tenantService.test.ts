@@ -8,7 +8,12 @@ import {
   getMockedApiAttribute,
   getMockedApiTenant,
 } from "pagopa-interop-commons-test";
-import { AttributeId, TenantId, generateId } from "pagopa-interop-models";
+import {
+  AttributeId,
+  TenantId,
+  generateId,
+  tenantUnitType,
+} from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -23,6 +28,8 @@ describe("tenantServiceBuilder.getTenant", () => {
     const tenantId = generateId<TenantId>();
     const certifiedAttributeId = generateId<AttributeId>();
     const certifiedDiscreteAttributeId = generateId<AttributeId>();
+    const parentTenantId = generateId<TenantId>();
+    const rootTenantId = generateId<TenantId>();
     const assignmentTimestamp = new Date().toISOString();
 
     const tenant: tenantApi.Tenant = {
@@ -48,12 +55,12 @@ describe("tenantServiceBuilder.getTenant", () => {
       features: [],
       parentTenants: [
         {
-          id: generateId(),
+          id: parentTenantId,
           name: "Tenant AOO",
-          subUnitType: "AOO",
+          subUnitType: tenantUnitType.AOO,
         },
         {
-          id: generateId(),
+          id: rootTenantId,
           name: "Tenant root",
         },
       ],
@@ -112,7 +119,14 @@ describe("tenantServiceBuilder.getTenant", () => {
 
     const result = await service.getTenant(tenantId, ctx);
 
-    expect(result.parentTenants).toEqual(tenant.parentTenants);
+    expect(result.parentTenants).toEqual([
+      {
+        id: parentTenantId,
+        name: "Tenant AOO",
+        subUnitType: tenantUnitType.AOO,
+      },
+      { id: rootTenantId, name: "Tenant root" },
+    ]);
     expect(result.attributes.certified).toStrictEqual([
       {
         kind: tenantAttributeKind.certified,
