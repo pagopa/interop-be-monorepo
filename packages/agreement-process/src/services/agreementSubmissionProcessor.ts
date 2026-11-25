@@ -34,6 +34,9 @@ export const validateConsumerEmail = async (
 ): Promise<void> => {
   // A tenant written by V3 events references its contact by contactId and
   // carries no mails; a tenant not yet migrated still has the legacy mail.
+  // The reference is enough, as the legacy mail was: the contactId is set only
+  // after the Contact Data Manager has created the contact, which requires a
+  // valid email.
   const hasContactEmail =
     consumer.contactId !== undefined ||
     consumer.mails.some((mail) => mail.kind === tenantMailKind.ContactEmail);

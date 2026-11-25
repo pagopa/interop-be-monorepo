@@ -418,7 +418,10 @@ describe("submit agreement", () => {
     );
   });
 
-  it("should submit the agreement when the consumer references its contact by contactId and has no mails", async () => {
+  it("should submit the agreement when the consumer has a contactId and no mails, without resolving the contact", async () => {
+    // Any contactId is enough: the agreement-process does not resolve the
+    // contact, because a contactId is set only after the Contact Data Manager
+    // has created the contact, which requires a valid email.
     const consumer = {
       ...getMockTenant(),
       contactId: generateId<ContactId>(),
