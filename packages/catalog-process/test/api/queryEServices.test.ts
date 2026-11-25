@@ -383,6 +383,13 @@ describe("API POST /catalog authorization test", () => {
     expect(res.status).toBe(403);
   });
 
+  it("Should accept RELEVANCE as sortBy", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, { ...body, sortBy: "RELEVANCE" });
+
+    expect(res.status).toBe(200);
+  });
+
   it.each([
     {},
     { ...body, offset: undefined },
