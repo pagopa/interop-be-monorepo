@@ -13943,7 +13943,7 @@ components:
       properties:
         rejectionReason:
           type: string
-          maxLength: 2000
+          maxLength: 250
       required:
         - rejectionReason
     DelegationSeed:
