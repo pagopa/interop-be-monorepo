@@ -71,6 +71,7 @@ describe("API POST /clients/:clientId/keys", () => {
     { body: { ...mockKeySeed, use: "invalid" } },
     { body: { ...mockKeySeed, name: "a".repeat(4) } },
     { body: { ...mockKeySeed, name: "a".repeat(61) } },
+    { body: { ...mockKeySeed, alg: "a".repeat(21) } },
   ])(
     "Should return 400 if passed an invalid data: %s",
     async ({ clientId, body }) => {
