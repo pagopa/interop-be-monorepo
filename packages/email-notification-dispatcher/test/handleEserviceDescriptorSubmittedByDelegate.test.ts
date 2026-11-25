@@ -342,7 +342,7 @@ describe("handleEServiceDescriptorSubmittedByDelegate", async () => {
           expect(message.email.body).toContain("{{ recipientName }}");
         })
         .exhaustive();
-      expect(message.email.body).toContain(eservice.name);
+      expect(message.email.body).toContain(delegation.id);
     });
   });
 });
