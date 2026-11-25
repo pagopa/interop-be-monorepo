@@ -8,7 +8,12 @@ import {
   getMockedApiAttribute,
   getMockedApiTenant,
 } from "pagopa-interop-commons-test";
-import { AttributeId, TenantId, generateId } from "pagopa-interop-models";
+import {
+  AttributeId,
+  TenantId,
+  generateId,
+  tenantUnitType,
+} from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -379,9 +384,13 @@ describe("tenantServiceBuilder.getProducers", () => {
       ...getMockedApiTenant(),
       id: producerId,
       name: "Tenant UO",
-      subUnitType: "UO",
+      subUnitType: tenantUnitType.UO,
       parentTenants: [
-        { id: parentTenantId, name: "Tenant AOO", subUnitType: "AOO" },
+        {
+          id: parentTenantId,
+          name: "Tenant AOO",
+          subUnitType: tenantUnitType.AOO,
+        },
         { id: rootTenantId, name: "Tenant root" },
       ],
     };

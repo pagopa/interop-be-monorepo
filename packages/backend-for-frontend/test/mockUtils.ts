@@ -1020,9 +1020,9 @@ export const getMockBffApiCompactOrganization =
 export const getMockBffApiCompactOrganizationWithHierarchy =
   (): bffApi.CompactOrganization => ({
     ...getMockBffApiCompactOrganization(),
-    subUnitType: "UO",
+    subUnitType: tenantUnitType.UO,
     parentTenants: [
-      { id: generateId(), name: "Tenant AOO", subUnitType: "AOO" },
+      { id: generateId(), name: "Tenant AOO", subUnitType: tenantUnitType.AOO },
       { id: generateId(), name: "Tenant root" },
     ],
   });
