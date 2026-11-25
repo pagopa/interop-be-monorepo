@@ -69,3 +69,26 @@ export function toBffProducerDashboardSaturation(
     pagination: saturation.pagination,
   };
 }
+
+export function toBffProducerEServiceMonitoringSaturation(
+  saturation: purposeApi.ProducerEServiceMonitoringSaturation
+): bffApi.ProducerEServiceMonitoringSaturation {
+  return {
+    eservice: saturation.eservice,
+    version: saturation.version,
+    otherVersions: saturation.otherVersions,
+    dailyCallsPerConsumer: saturation.dailyCallsPerConsumer,
+    dailyCallsTotal: saturation.dailyCallsTotal,
+    customizedQuotaConsumers: saturation.customizedQuotaConsumers,
+    activeConsumers: saturation.activeConsumers,
+    results: saturation.results.map((result) => ({
+      consumer: result.consumer,
+      activePurposesCount: result.activePurposesCount,
+      approvedDailyCalls: result.approvedDailyCalls,
+      dailyCallsPerConsumer: result.dailyCallsPerConsumer,
+      percentage: result.percentage,
+      waitingForApprovalDailyCalls: result.waitingForApprovalDailyCalls,
+    })),
+    pagination: saturation.pagination,
+  };
+}

@@ -58,6 +58,7 @@ import {
   getRiskAnalysisDocumentErrorMapper,
   getRemainingDailyCallsErrorMapper,
   getProducerEServiceMonitoringPurposesErrorMapper,
+  getProducerEServiceMonitoringSaturationErrorMapper,
   getProducerDashboardSaturationErrorMapper,
   rejectPurposeVersionErrorMapper,
   retrieveLatestRiskAnalysisConfigurationErrorMapper,
@@ -305,6 +306,47 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             getProducerEServiceMonitoringPurposesErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/producers/eservices/:eserviceId/descriptors/:descriptorId/monitoring/saturation",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [
+            ADMIN_ROLE,
+            SUPPORT_ROLE,
+            API_ROLE,
+            VIEWER_ROLE,
+          ]);
+
+          const result =
+            await purposeService.getProducerEServiceMonitoringSaturation(
+              unsafeBrandId<EServiceId>(req.params.eserviceId),
+              unsafeBrandId<DescriptorId>(req.params.descriptorId),
+              {
+                q: req.query.q,
+                sortBy: req.query.sortBy,
+                offset: req.query.offset,
+                limit: req.query.limit,
+              },
+              ctx
+            );
+
+          return res
+            .status(200)
+            .send(
+              purposeApi.ProducerEServiceMonitoringSaturation.parse(result)
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getProducerEServiceMonitoringSaturationErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);

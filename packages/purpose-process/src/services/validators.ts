@@ -1,4 +1,3 @@
-import { matchesCertifiedDescriptorAttribute } from "pagopa-interop-agreement-lifecycle";
 import {
   purposeApi,
   SelfcareV2InstitutionClient,
@@ -76,6 +75,7 @@ import {
   userNotFoundOrWithoutReviewerPrivileges,
 } from "../model/domain/errors.js";
 import { UpdatedQuotas } from "../model/domain/models.js";
+import { getEffectiveDailyCallsPerConsumer } from "./customizedQuotaRules.js";
 import {
   retrieveActiveAgreement,
   retrievePurposeDelegation,
@@ -344,20 +344,11 @@ export async function getUpdatedQuotas(
     "featureFlagAttributeCertifiedDiscrete"
   );
 
-  const maxDailyCallsPerConsumer =
-    currentDescriptor.attributes.certified.flat().reduce((max, current) => {
-      if (!current.dailyCallsPerConsumer) {
-        return max;
-      }
-      if (
-        !matchesCertifiedDescriptorAttribute(current, tenant.attributes, {
-          certifiedDiscreteEnabled,
-        })
-      ) {
-        return max;
-      }
-      return Math.max(max, current.dailyCallsPerConsumer);
-    }, 0) || currentDescriptor.dailyCallsPerConsumer;
+  const maxDailyCallsPerConsumer = getEffectiveDailyCallsPerConsumer(
+    currentDescriptor,
+    tenant.attributes,
+    certifiedDiscreteEnabled
+  );
 
   const maxDailyCallsTotal = currentDescriptor.dailyCallsTotal;
 

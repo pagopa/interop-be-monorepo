@@ -1,0 +1,28 @@
+meta {
+  name: Get Producer EService Monitoring Saturation
+  type: http
+  seq: 26
+}
+
+get {
+  url: {{host-purpose}}/producers/eservices/:eserviceId/descriptors/:descriptorId/monitoring/saturation?offset=0&limit=10&sortBy=PERCENTAGE_DESC
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+  sortBy: PERCENTAGE_DESC
+  ~q: 
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

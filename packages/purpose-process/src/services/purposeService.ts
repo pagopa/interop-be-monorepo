@@ -145,9 +145,11 @@ import {
   toCreateEventPurposeRiskAnalysisRejected,
   toCreateEventPurposeRiskAnalysisFormEdited,
 } from "../model/domain/toEvent.js";
+import { toCustomizedQuotaRules } from "./customizedQuotaRules.js";
 import {
   GetPurposesFilters as ReadModelGetPurposesFilters,
   ReadModelServiceSQL,
+  producerDashboardDescriptorStates,
 } from "./readModelServiceSQL.js";
 import { assignRiskAnalysisReviewerLogic } from "./workflowReviewerProcessor.js";
 
@@ -2710,6 +2712,98 @@ export function purposeServiceBuilder(
         ),
         waitingForApprovalNewPurposes: waitingCounts.newPurposes,
         waitingForApprovalQuotaChanges: waitingCounts.quotaChanges,
+      };
+    },
+    async getProducerEServiceMonitoringSaturation(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      {
+        q,
+        sortBy,
+        offset,
+        limit,
+      }: {
+        q: string | undefined;
+        sortBy: purposeApi.SaturationSortBy;
+        offset: number;
+        limit: number;
+      },
+      { authData, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<purposeApi.ProducerEServiceMonitoringSaturation> {
+      logger.info(
+        `Retrieving consumer saturation for e-service ${eserviceId}, descriptor ${descriptorId}, q ${q}, sortBy ${sortBy}, offset ${offset}, limit ${limit}`
+      );
+
+      assertFeatureFlagEnabled(config, "featureFlagProducerDashboard");
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertRequesterCanActAsProducer(
+        eservice,
+        authData,
+        await readModelService.getActiveProducerDelegationByEserviceId(
+          eserviceId
+        )
+      );
+
+      const descriptor = eservice.descriptors.find(
+        (d) => d.id === descriptorId
+      );
+      if (!descriptor) {
+        throw descriptorNotFound(eserviceId, descriptorId);
+      }
+
+      const customizedQuotaRules = toCustomizedQuotaRules(
+        descriptor,
+        isFeatureFlagEnabled(config, "featureFlagAttributeCertifiedDiscrete")
+      );
+
+      const saturation =
+        await readModelService.getProducerEServiceMonitoringSaturation(
+          eserviceId,
+          descriptorId,
+          {
+            defaultDailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+            customizedQuotaRules,
+          },
+          { q, sortBy },
+          { offset, limit }
+        );
+
+      const otherVersions = eservice.descriptors
+        .filter(
+          (otherDescriptor) =>
+            otherDescriptor.id !== descriptorId &&
+            producerDashboardDescriptorStates.includes(otherDescriptor.state)
+        )
+        .sort((a, b) => Number(a.version) - Number(b.version))
+        .map(({ id, version }) => ({ descriptorId: id, version }));
+
+      return {
+        eservice: { id: eservice.id, name: eservice.name },
+        version: descriptor.version,
+        otherVersions,
+        dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+        dailyCallsTotal: descriptor.dailyCallsTotal,
+        customizedQuotaConsumers: saturation.customizedQuotaConsumers,
+        activeConsumers: saturation.activeConsumers,
+        results: saturation.results.map((consumer) => ({
+          consumer: {
+            id: consumer.consumerId,
+            name: consumer.consumerName,
+            ...(consumer.consumerKind ? { kind: consumer.consumerKind } : {}),
+          },
+          activePurposesCount: consumer.activePurposesCount,
+          approvedDailyCalls: consumer.approvedDailyCalls,
+          dailyCallsPerConsumer: consumer.dailyCallsPerConsumer,
+          percentage: Math.round(consumer.percentage),
+          waitingForApprovalDailyCalls: consumer.waitingForApprovalDailyCalls,
+        })),
+        pagination: {
+          offset,
+          limit,
+          totalCount: saturation.totalCount,
+        },
       };
     },
   };
