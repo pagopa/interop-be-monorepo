@@ -12,6 +12,7 @@ import {
   buildPurposeLink,
   buildDelegationLink,
   viewAllNewUpdatedEservicesLink,
+  viewAllRiskAnalysisPurposesLink,
   notificationSettingsLink,
 } from "../src/services/deeplinkBuilder.js";
 
@@ -55,6 +56,15 @@ describe("deeplinkBuilder - base path preservation", () => {
     expect(url.pathname).toBe(
       "/0.0/backend-for-frontend/emailDeepLink/eserviceCatalog"
     );
+  });
+
+  it("should include the draft state filter in the view all risk analysis link", () => {
+    const url = new URL(viewAllRiskAnalysisPurposesLink(selfcareId));
+    expect(url.pathname).toBe(
+      "/0.0/backend-for-frontend/emailDeepLink/purposeToConsumer"
+    );
+    expect(url.searchParams.get("states")).toBe("DRAFT");
+    expect(url.searchParams.get("selfcareId")).toBe(selfcareId);
   });
 
   it("should preserve BFF_URL base path in notification settings link", () => {

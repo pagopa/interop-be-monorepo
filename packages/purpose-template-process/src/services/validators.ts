@@ -20,6 +20,7 @@ import {
   EService,
   EServiceDescriptorPurposeTemplate,
   EServiceId,
+  eserviceMode,
   EServiceTemplate,
   EServiceTemplateId,
   EServiceTemplateVersionId,
@@ -44,6 +45,7 @@ import { match } from "ts-pattern";
 import { config } from "../config/config.js";
 import {
   eserviceAlreadyAssociatedError,
+  eserviceInReceiveMode,
   eserviceIsInstanceOfEServiceTemplateError,
   eserviceNotAssociatedError,
   eserviceNotFound,
@@ -241,6 +243,12 @@ export function validateAndTransformRiskAnalysisTemplate(
   if (!riskAnalysisFormTemplate) {
     return undefined;
   }
+
+  Object.values(riskAnalysisFormTemplate.answers).forEach((answer) => {
+    if (answer.annotation) {
+      validateRiskAnalysisAnswerAnnotationOrThrow(answer.annotation.text);
+    }
+  });
 
   const validatedForm = validateRiskAnalysisTemplateOrThrow({
     riskAnalysisFormTemplate,
@@ -481,6 +489,16 @@ async function validateEServiceExistence(
                   res.value,
                   purposeTemplate
                 ),
+              ],
+            };
+          }
+
+          if (res.value.mode === eserviceMode.receive) {
+            return {
+              ...acc,
+              validationIssues: [
+                ...acc.validationIssues,
+                eserviceInReceiveMode(res.value.id),
               ],
             };
           }

@@ -1,0 +1,24 @@
+meta {
+  name: Start Seed Packages
+  type: http
+  seq: 23
+}
+
+post {
+  url: {{host-dashboard}}/__local-dashboard/api/actions
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "type": "seed.prepare"
+  }
+}
+
+tests {
+  test("Seed packages startup operation was accepted", function () {
+    expect(res.getStatus()).to.equal(202);
+    expect(res.getBody().operationId).to.be.a("string");
+  });
+}

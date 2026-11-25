@@ -87,6 +87,9 @@ export const updateEServiceErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+/** @alias */
+export const patchUpdateEServiceErrorMapper = updateEServiceErrorMapper;
+
 export const updateEServiceTemplateInstanceErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -263,7 +266,7 @@ export const updateDraftDescriptorTemplateInstanceErrorMapper = (
       "attributeNotFound",
       "eServiceNotAnInstance",
       "attributeDiscreteConfigNotAllowed",
-      "templateInstanceNotAllowed",
+      "templateInstanceAttributesCannotBeChanged",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -692,6 +695,7 @@ export const addEServiceTemplateInstanceInterfaceErrorMapper = (
       "documentPrettyNameDuplicate",
       "notValidDescriptor",
       "openapiVersionNotRecognized",
+      "invalidEserviceInterfaceData",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
@@ -749,7 +753,7 @@ export const updateTemplateInstanceDescriptorErrorMapper = (
       "inconsistentDailyCalls",
       "attributeDailyCallsNotAllowed",
       "attributeDiscreteConfigNotAllowed",
-      "templateInstanceNotAllowed",
+      "templateInstanceAttributesCannotBeChanged",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
