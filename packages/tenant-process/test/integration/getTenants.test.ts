@@ -5,6 +5,7 @@ import {
   Tenant,
   TenantId,
   tenantFeatureType,
+  tenantUnitType,
 } from "pagopa-interop-models";
 import { upsertTenant } from "pagopa-interop-readmodel/testUtils";
 import { match } from "ts-pattern";
@@ -489,12 +490,12 @@ describe("getTenants", () => {
       const parentTenant: Tenant = {
         ...getMockTenant(),
         name: "Tenant AOO",
-        subUnitType: "AOO",
+        subUnitType: tenantUnitType.AOO,
       };
       const targetTenant: Tenant = {
         ...getMockTenant(),
         name: "Tenant UO",
-        subUnitType: "UO",
+        subUnitType: tenantUnitType.UO,
         parentTenantId: direct ? rootTenant.id : parentTenant.id,
         rootTenantId: rootTenant.id,
       };
@@ -516,12 +517,86 @@ describe("getTenants", () => {
     }
   );
 
+  it("should not search by root name when the parent is missing", async () => {
+    const rootTenant = { ...getMockTenant(), name: "Tenant root" };
+    const targetTenant: Tenant = {
+      ...getMockTenant(),
+      name: "Tenant UO",
+      subUnitType: tenantUnitType.UO,
+      parentTenantId: generateId<TenantId>(),
+      rootTenantId: rootTenant.id,
+      externalId: { origin: "HIERARCHY", value: "chosen" },
+    };
+    await upsertTenant(readModelDB, rootTenant, 0);
+    await upsertTenant(readModelDB, targetTenant, 0);
+
+    const filters = {
+      features: [],
+      externalIdOrigin: "HIERARCHY",
+      externalIdValue: "chosen",
+      offset: 0,
+      limit: 10,
+    };
+    const byRoot = await readModelService.getTenants({
+      ...filters,
+      name: rootTenant.name,
+    });
+    expect(byRoot.results).toEqual([]);
+    expect(byRoot.totalCount).toBe(0);
+
+    const byTenant = await readModelService.getTenants({
+      ...filters,
+      name: targetTenant.name,
+    });
+    expect(byTenant.results).toEqual([targetTenant]);
+    expect(byTenant.totalCount).toBe(1);
+  });
+
+  it("should search by root name when the parent name is empty", async () => {
+    const rootTenant = { ...getMockTenant(), name: "Tenant root" };
+    const parentTenant: Tenant = {
+      ...getMockTenant(),
+      name: "",
+      subUnitType: tenantUnitType.AOO,
+    };
+    const targetTenant: Tenant = {
+      ...getMockTenant(),
+      name: "Tenant UO",
+      subUnitType: tenantUnitType.UO,
+      parentTenantId: parentTenant.id,
+      rootTenantId: rootTenant.id,
+      externalId: { origin: "HIERARCHY", value: "chosen" },
+    };
+    for (const tenant of [rootTenant, parentTenant, targetTenant]) {
+      await upsertTenant(readModelDB, tenant, 0);
+    }
+
+    const byRoot = await readModelService.getTenants({
+      name: rootTenant.name,
+      features: [],
+      externalIdOrigin: "HIERARCHY",
+      externalIdValue: "chosen",
+      offset: 0,
+      limit: 10,
+    });
+    expect(byRoot.results).toEqual([
+      {
+        ...targetTenant,
+        parentTenants: [
+          { id: parentTenant.id, name: "", subUnitType: "AOO" },
+          { id: rootTenant.id, name: rootTenant.name },
+        ],
+      },
+    ]);
+    expect(byRoot.totalCount).toBe(1);
+  });
+
   it("should apply name search before pagination and total count", async () => {
     const rootTenant = { ...getMockTenant(), name: "Tenant root" };
     const targetTenants: Tenant[] = ["Alpha", "Beta", "Gamma"].map((name) => ({
       ...getMockTenant(),
       name,
-      subUnitType: "UO",
+      subUnitType: tenantUnitType.UO,
       parentTenantId: rootTenant.id,
       rootTenantId: rootTenant.id,
       externalId: { origin: "HIERARCHY", value: name },
@@ -598,7 +673,7 @@ describe("getTenants", () => {
       const parentTenant: Tenant = {
         ...getMockTenant(),
         name: scenario === "empty ancestor name" ? "" : "Tenant AOO",
-        subUnitType: "AOO",
+        subUnitType: tenantUnitType.AOO,
       };
       const targetTenant: Tenant = {
         ...getMockTenant(),
@@ -742,7 +817,7 @@ describe("getTenants", () => {
     const parentTenant: Tenant = {
       ...getMockTenant(),
       name: "Tenant AOO",
-      subUnitType: "AOO",
+      subUnitType: tenantUnitType.AOO,
     };
     const targetTenant: Tenant = {
       ...getMockTenant(),
