@@ -240,9 +240,7 @@ const catalogRouter = (
             placeholderMapperGenerator(
               () => req.body.instanceLabel,
               (instanceLabel, message) =>
-                instanceLabel === undefined
-                  ? undefined
-                  : message.replace("{identifyingWord}", () => instanceLabel),
+                message.replace("{identifyingWord}", () => instanceLabel ?? ""),
               (error) =>
                 ctx.logger.warn(`Error retrieving placeholder data: ${error}`)
             )

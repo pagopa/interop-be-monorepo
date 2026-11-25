@@ -135,7 +135,7 @@ describe("API POST /templates/:templateId/eservices", () => {
       expect(res.body.userMessage).not.toContain("{identifyingWord}");
     });
 
-    it("Should return the problem without userMessage if no instanceLabel is provided", async () => {
+    it("Should replace {identifyingWord} with an empty string if no instanceLabel is provided", async () => {
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(token, generateId(), {
         ...mockInstanceEServiceSeed,
@@ -144,8 +144,8 @@ describe("API POST /templates/:templateId/eservices", () => {
 
       expect(res.status).toBe(409);
       expect(res.body.errors).toEqual(duplicateNameProblem.errors);
-      expect(res.body.userMessage).toBeUndefined();
-      expect(JSON.stringify(res.body)).not.toContain("{identifyingWord}");
+      expect(res.body.userMessage).toContain("parola identificativa");
+      expect(res.body.userMessage).not.toContain("{identifyingWord}");
     });
   });
 });

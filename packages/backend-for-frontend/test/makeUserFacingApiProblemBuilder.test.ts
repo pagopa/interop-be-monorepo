@@ -11,14 +11,8 @@ import { generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, expect, it, vi } from "vitest";
 
-import type { UserFacingProblem } from "../src/model/types.js";
-
 import { appBasePath } from "../src/config/appBasePath.js";
-import {
-  applyPlaceholderToError,
-  makeUserFacingApiProblemBuilder,
-  placeholderMapperGenerator,
-} from "../src/model/applyError.js";
+import { makeUserFacingApiProblemBuilder } from "../src/model/applyError.js";
 import { getMockBffApiProducerEServiceDetails } from "./mockUtils.js";
 import { api, clients, services } from "./vitest.api.setup.js";
 
@@ -237,85 +231,4 @@ describe("makeUserFacingApiProblemBuilder", () => {
       expect(body.userMessage).toEqual(expectedDetailMessage);
     }
   );
-
-  describe("placeholder replacement", () => {
-    const placeholder = "{identifyingWord}";
-    const problem: Problem = {
-      type: "about:blank",
-      status: 409,
-      title: "Conflict",
-      detail: "Detail message",
-      correlationId: "correlationId",
-      errors: [{ code: "001-007", detail: "Detail message" }],
-    };
-    const errorWithPlaceholder: UserFacingProblem = {
-      ...problem,
-      userMessage: `Word ${placeholder} is already in use`,
-    };
-
-    const generate = (value: string | undefined) =>
-      placeholderMapperGenerator(
-        () => value,
-        (v, message) =>
-          v === undefined ? undefined : message.replace(placeholder, () => v),
-        vi.fn()
-      );
-
-    it("should replace the placeholder in the userMessage", async () => {
-      const result = await applyPlaceholderToError(
-        errorWithPlaceholder,
-        [placeholder],
-        () => generate("abc")
-      );
-
-      expect(result).toEqual({
-        ...errorWithPlaceholder,
-        userMessage: "Word abc is already in use",
-      });
-    });
-
-    it("should drop the userMessage, keeping the rest of the problem, if replace returns undefined", async () => {
-      const result = await applyPlaceholderToError(
-        errorWithPlaceholder,
-        [placeholder],
-        () => generate(undefined)
-      );
-
-      expect(result).toEqual(problem);
-      expect("userMessage" in result).toBe(false);
-    });
-
-    it("should leave the error unchanged and call onError if the callback throws", async () => {
-      const onError = vi.fn();
-      const result = await applyPlaceholderToError(
-        errorWithPlaceholder,
-        [placeholder],
-        () =>
-          placeholderMapperGenerator(
-            async () => {
-              throw new Error("boom");
-            },
-            (_, message) => message,
-            onError
-          )
-      );
-
-      expect(result).toEqual(errorWithPlaceholder);
-      expect(onError).toHaveBeenCalledOnce();
-    });
-
-    it("should not call the generator if the userMessage has no placeholder", async () => {
-      const generator = vi.fn();
-      const error: UserFacingProblem = { ...problem, userMessage: "No info" };
-
-      const result = await applyPlaceholderToError(
-        error,
-        [placeholder],
-        generator
-      );
-
-      expect(result).toEqual(error);
-      expect(generator).not.toHaveBeenCalled();
-    });
-  });
 });
