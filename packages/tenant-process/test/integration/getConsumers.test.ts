@@ -575,7 +575,7 @@ describe("getConsumers", () => {
             {
               id: parentTenant.id,
               name: parentTenant.name,
-              subUnitType: "AOO",
+              subUnitType: tenantUnitType.AOO,
             },
             { id: rootTenant.id, name: rootTenant.name },
           ],

@@ -16,14 +16,14 @@ describe("Tenant mappers", () => {
 
   it("should map the parent and root with their original names", () => {
     expect(toParentTenants(row)).toEqual([
-      { id: parentId, name: "Tenant AOO", subUnitType: "AOO" },
+      { id: parentId, name: "Tenant AOO", subUnitType: tenantUnitType.AOO },
       { id: rootId, name: "Tenant root" },
     ]);
   });
 
   it("should not duplicate an identical parent and root", () => {
     expect(toParentTenants({ ...row, rootTenantId: parentId })).toEqual([
-      { id: parentId, name: "Tenant AOO", subUnitType: "AOO" },
+      { id: parentId, name: "Tenant AOO", subUnitType: tenantUnitType.AOO },
     ]);
   });
 
@@ -38,7 +38,7 @@ describe("Tenant mappers", () => {
     "should preserve the parent when %s is missing",
     (field) => {
       expect(toParentTenants({ ...row, [field]: null })).toEqual([
-        { id: parentId, name: "Tenant AOO", subUnitType: "AOO" },
+        { id: parentId, name: "Tenant AOO", subUnitType: tenantUnitType.AOO },
       ]);
     }
   );
