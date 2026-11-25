@@ -92,8 +92,8 @@ export function toBffCatalogTenant(
 }
 
 export const toBffCatalogQueryTemplateInstancesGroup = (
-  group: catalogApi.CatalogQueryTemplateInstancesGroup
-): bffApi.CatalogQueryTemplateInstancesGroup => ({
+  group: catalogApi.CatalogTemplateInstancesGroupQueryResult
+): bffApi.CatalogTemplateInstancesGroupQueryResult => ({
   id: group.id,
   name: group.name,
   description: group.description,

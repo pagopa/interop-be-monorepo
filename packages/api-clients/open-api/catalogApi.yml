@@ -4088,14 +4088,14 @@ components:
         - totalCount
     CatalogQueryResult:
       oneOf:
-        - $ref: "#/components/schemas/CatalogQueryEService"
-        - $ref: "#/components/schemas/CatalogQueryTemplateInstancesGroup"
+        - $ref: "#/components/schemas/CatalogEServiceQueryResult"
+        - $ref: "#/components/schemas/CatalogTemplateInstancesGroupQueryResult"
       discriminator:
         propertyName: resultType
         mapping:
-          eservice: "#/components/schemas/CatalogQueryEService"
-          template: "#/components/schemas/CatalogQueryTemplateInstancesGroup"
-    CatalogQueryEService:
+          eservice: "#/components/schemas/CatalogEServiceQueryResult"
+          template: "#/components/schemas/CatalogTemplateInstancesGroupQueryResult"
+    CatalogEServiceQueryResult:
       type: object
       additionalProperties: false
       required:
@@ -4156,7 +4156,7 @@ components:
             $ref: "#/components/schemas/DelegatedEServiceArchivingRequest"
         asyncExchange:
           type: boolean
-    CatalogQueryTemplateInstancesGroup:
+    CatalogTemplateInstancesGroupQueryResult:
       type: object
       additionalProperties: false
       description: The catalog instances of an e-service template, shown as a single result

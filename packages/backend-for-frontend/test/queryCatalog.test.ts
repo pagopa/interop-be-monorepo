@@ -56,17 +56,17 @@ describe("queryCatalog", () => {
     config
   );
 
-  const firstEService: catalogApi.CatalogQueryEService = {
+  const firstEService: catalogApi.CatalogEServiceQueryResult = {
     ...getMockCatalogApiEService(),
     descriptors: [],
     resultType: "eservice",
   };
-  const secondEService: catalogApi.CatalogQueryEService = {
+  const secondEService: catalogApi.CatalogEServiceQueryResult = {
     ...getMockCatalogApiEService(),
     descriptors: [],
     resultType: "eservice",
   };
-  const templateInstancesGroup: catalogApi.CatalogQueryTemplateInstancesGroup =
+  const templateInstancesGroup: catalogApi.CatalogTemplateInstancesGroupQueryResult =
     {
       id: generateId(),
       name: "Template name",

@@ -31,7 +31,7 @@ describe("getFeaturedCatalog", () => {
   };
   const bffMockContext = getBffMockContext(getMockContext({ authData }));
 
-  const eservices: catalogApi.CatalogQueryEService[] = [
+  const eservices: catalogApi.CatalogEServiceQueryResult[] = [
     {
       ...getMockCatalogApiEService(),
       producerId,

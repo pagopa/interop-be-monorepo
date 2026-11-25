@@ -285,14 +285,14 @@ export const catalogQueryResultToApiCatalogQueryResult = (
   match(result)
     .with(
       { resultType: "eservice" },
-      (eservice): catalogApi.CatalogQueryEService => ({
+      (eservice): catalogApi.CatalogEServiceQueryResult => ({
         ...eServiceToApiEService(eservice),
         resultType: "eservice",
       })
     )
     .with(
       { resultType: "template" },
-      (group): catalogApi.CatalogQueryTemplateInstancesGroup => ({
+      (group): catalogApi.CatalogTemplateInstancesGroupQueryResult => ({
         id: group.id,
         name: group.name,
         description: group.description,
