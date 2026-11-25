@@ -55,10 +55,7 @@ export type PagoPAInteropBeClients = {
 export function getInteropBeClients(): PagoPAInteropBeClients {
   return {
     contactDataManagerClient: contactDataApi.createContactApiClient(
-      config.contactDataManagerUrl,
-      {
-        axiosConfig: { timeout: config.tenantContactRequestTimeoutMs },
-      }
+      config.contactDataManagerUrl
     ),
     tenantProcessClient: {
       tenant: tenantApi.createTenantApiClient(config.tenantProcessUrl),

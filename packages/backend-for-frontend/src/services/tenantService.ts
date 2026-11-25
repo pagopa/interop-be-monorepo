@@ -518,7 +518,6 @@ export function tenantServiceBuilder(
         {
           params: { tenantId },
           headers: ctx.headers,
-          timeout: config.tenantContactRequestTimeoutMs,
         }
       );
     },
@@ -529,7 +528,6 @@ export function tenantServiceBuilder(
       await tenantProcessClient.tenant.deleteTenantContact(undefined, {
         params: { tenantId },
         headers,
-        timeout: config.tenantContactRequestTimeoutMs,
       });
     },
     async updateTenantDelegatedFeatures(
