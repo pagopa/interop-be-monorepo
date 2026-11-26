@@ -1003,10 +1003,12 @@ export const getMockBffApiCertifiedAttributesResponse =
   });
 
 export const getMockBffApiRequesterCertifiedAttribute = ({
-  populateHierarchy,
-}: GetMockTenantHierarchyParams = {}): bffApi.RequesterCertifiedAttribute => {
+  populateTenantHierarchy,
+}: {
+  populateTenantHierarchy?: boolean;
+} = {}): bffApi.RequesterCertifiedAttribute => {
   const { subUnitType, parentTenants } = getMockTenantHierarchy({
-    populateHierarchy,
+    populateHierarchy: populateTenantHierarchy,
   });
   return {
     tenantId: generateId(),
