@@ -6,35 +6,45 @@ const categories = async (text: string) =>
   (await detectionService.detect({ fields: [{ fieldId: "example", text }] }))
     .results[0].detectedCategories;
 
-describe("Moo literal/fallback detection policy", () => {
-  it("keeps fiscal code and identity card inactive while recognizing both license prefixes", async () => {
+describe("Moo candidate detection policy", () => {
+  it("keeps fiscal code and deferred documents inactive", async () => {
     const result = await categories(
       "RSSMRA80A01H501U CA12345AA U1T86I309C 71C68F093D"
     );
-    expect(result).toContain("IT_DRIVER_LICENSE");
+    expect(result).not.toContain("IT_DRIVER_LICENSE");
     expect(result).not.toContain("IT_FISCAL_CODE");
     expect(result).not.toContain("IT_IDENTITY_CARD");
   });
 
   it.each([
+    ["EMAIL_ADDRESS", "foo!bar@example.com", true],
+    ["EMAIL_ADDRESS", "a#b@example.com", true],
+    ["EMAIL_ADDRESS", "é@example.com", true],
     ["IBAN_CODE", "IT60X0542811101000000123456", true],
     ["IBAN_CODE", "IT60X0542811101000000123456A", false],
     ["IBAN_CODE", "IT60 X054 2811 1010 0000 0123 456", false],
     ["CREDIT_CARD", "4111111111111111", true],
     ["CREDIT_CARD", "41111111111111112", false],
-    ["CREDIT_CARD", "4111 1111 1111 1111", false],
+    ["CREDIT_CARD", "4111 1111 1111 1111", true],
+    ["PHONE_NUMBER", "349 409 6457", true],
+    ["PHONE_NUMBER", "+39  349 409 6457", true],
     ["PHONE_NUMBER", "3494096457", true],
     ["PHONE_NUMBER", "+39 3494096457", true],
     ["PHONE_NUMBER", "+39-3494096457", false],
     ["PHONE_NUMBER", "349-4096457", false],
     ["PHONE_NUMBER", "34940964571", false],
-    ["IT_DRIVER_LICENSE", "U1T86I309C", true],
-    ["IT_DRIVER_LICENSE", "71C68F093D", true],
-    ["IT_DRIVER_LICENSE", "U1T86I309CA", false],
-    ["IT_DRIVER_LICENSE", "71C68F0930", false],
     ["IT_VAT_CODE", "IT12345678901", true],
     ["IT_VAT_CODE", "12345678901", true],
-    ["IT_VAT_CODE", "a12345678901b", true],
+    ["IT_VAT_CODE", "a12345678901b", false],
+    ["IT_VAT_CODE", "123 456 78901", true],
+    ["IT_VAT_CODE", "IT123 456 78901", true],
+    ["IT_VAT_CODE", "é12345678901", false],
+    ["IT_VAT_CODE", "12345678901é", false],
+    ["IT_VAT_CODE", "IT12345678901A", false],
+    ["IT_VAT_CODE", "12345678901 2", false],
+    ["IT_VAT_CODE", "12345678901-2", false],
+    ["IT_VAT_CODE", "12345678901/2", false],
+    ["IT_VAT_CODE", "+12345678901", false],
     ["IT_VAT_CODE", "123456789012", false],
   ] as const)("sets %s=%s for %s", async (category, text, expected) => {
     expect((await categories(text)).includes(category)).toBe(expected);
@@ -52,6 +62,17 @@ describe("Moo literal/fallback detection policy", () => {
     }
   );
 
+  it.each([
+    ["PHONE_NUMBER", "é123456 3494096457"],
+    ["CREDIT_CARD", "Ω123456 4111111111111111"],
+    ["PHONE_NUMBER", "1: +39 3494096457"],
+  ] as const)(
+    "preserves %s after unrelated context: %s",
+    async (category, text) => {
+      expect(await categories(text)).toContain(category);
+    }
+  );
+
   it("classifies overlapping categories independently", async () => {
     const result = await categories(
       "qa@example.com 4111111111111111 IT60X0542811101000000123456 3494096457 U1T86I309C"
@@ -61,12 +82,10 @@ describe("Moo literal/fallback detection policy", () => {
       "IBAN_CODE",
       "CREDIT_CARD",
       "PHONE_NUMBER",
-      "IT_DRIVER_LICENSE",
     ]);
   });
 
   it.each([
-    "+39  3494096457",
     "+39\t3494096457",
     "+39-3494096457",
     "+39\n3494096457",
@@ -86,7 +105,6 @@ describe("Moo literal/fallback detection policy", () => {
 
   it.each([
     ["IBAN_CODE", "éIT60X0542811101000000123456"],
-    ["IT_DRIVER_LICENSE", "éU1T86I309C"],
     ["CREDIT_CARD", "é4111111111111111"],
     ["PHONE_NUMBER", "é3494096457"],
   ] as const)(

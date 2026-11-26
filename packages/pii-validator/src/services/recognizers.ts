@@ -1,55 +1,68 @@
-import validator from "validator";
-
 import { piiCategories } from "../model/categories.js";
-import { candidateSpans, CandidateSpan } from "./candidateSpans.js";
+import {
+  Candidate,
+  CandidateExtractor,
+  extractEmailCandidates,
+  extractIbanCandidates,
+  extractNumericCandidates,
+} from "./candidateExtractors.js";
+import {
+  isCardCandidate,
+  isEmailCandidate,
+  isIbanCandidate,
+  isPhoneCandidate,
+  isVatCandidate,
+} from "./categoryValidators.js";
 
-function recognize(
-  text: string,
-  spans: Iterable<CandidateSpan>,
-  check: (candidate: string) => boolean
-): boolean {
-  try {
-    for (const [start, end] of spans) {
-      if (check(text.slice(start, end))) return true;
-    }
-    return false;
-  } catch {
-    // Checker errors may embed the candidate, even in nested causes.
-    throw new Error("PII recognition failed");
-  }
-}
+type Category = (typeof piiCategories)[number];
+type CategoryValidator = Readonly<{
+  category: Category;
+  check: (candidate: Candidate, source: string) => boolean;
+}>;
 
-const strategies: Partial<
-  Record<(typeof piiCategories)[number], (text: string) => boolean>
-> = {
-  EMAIL_ADDRESS: (text) =>
-    recognize(text, candidateSpans.email(text), (candidate) =>
-      validator.isEmail(candidate)
-    ),
-  IT_VAT_CODE: (text) =>
-    recognize(text, candidateSpans.vat(text), (candidate) =>
-      validator.isVAT(candidate, "IT")
-    ),
-  IBAN_CODE: (text) =>
-    recognize(text, candidateSpans.iban(text), (candidate) =>
-      validator.isIBAN(candidate)
-    ),
-  CREDIT_CARD: (text) =>
-    recognize(text, candidateSpans.cards(text), (candidate) =>
-      validator.isCreditCard(candidate)
-    ),
-  PHONE_NUMBER: (text) =>
-    recognize(text, candidateSpans.phones(text), (candidate) =>
-      validator.isMobilePhone(candidate, "it-IT")
-    ),
-  IT_DRIVER_LICENSE: (text) =>
-    recognize(text, candidateSpans.licenses(text), () => true),
-};
+type RecognitionFamily = Readonly<{
+  extract: CandidateExtractor;
+  validators: readonly CategoryValidator[];
+}>;
+
+const recognitionFamilies: readonly RecognitionFamily[] = [
+  {
+    extract: extractEmailCandidates,
+    validators: [{ category: "EMAIL_ADDRESS", check: isEmailCandidate }],
+  },
+  {
+    extract: extractNumericCandidates,
+    validators: [
+      { category: "IT_VAT_CODE", check: isVatCandidate },
+      { category: "CREDIT_CARD", check: isCardCandidate },
+      { category: "PHONE_NUMBER", check: isPhoneCandidate },
+    ],
+  },
+  {
+    extract: extractIbanCandidates,
+    validators: [{ category: "IBAN_CODE", check: isIbanCandidate }],
+  },
+];
 
 export function detectCategories(
-  text: string
-): (typeof piiCategories)[number][] {
-  return piiCategories.filter(
-    (category) => strategies[category]?.(text) ?? false
-  );
+  text: string,
+  families: readonly RecognitionFamily[] = recognitionFamilies
+): Category[] {
+  const detected = new Set<Category>();
+  try {
+    for (const family of families) {
+      // Invocation, lazy iteration and category checks share the privacy boundary.
+      for (const candidate of family.extract(text)) {
+        for (const { category, check } of family.validators) {
+          if (!detected.has(category) && check(candidate, text)) {
+            detected.add(category);
+          }
+        }
+      }
+    }
+    return piiCategories.filter((category) => detected.has(category));
+  } catch {
+    // Dependency errors may contain source text, stacks and nested causes.
+    throw new Error("PII recognition failed");
+  }
 }

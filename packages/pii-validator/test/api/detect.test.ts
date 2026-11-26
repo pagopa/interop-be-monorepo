@@ -36,6 +36,36 @@ const fakeService = (returned: unknown = { results }): DetectionService => ({
 });
 
 describe("API POST /detect batch contract", () => {
+  it("exposes five active categories while keeping deferred categories inactive", async () => {
+    const response = await postDetect(await createApp(), {
+      fields: [
+        {
+          fieldId: "active",
+          text: "qa@example.com; IT12345678901; IT60X0542811101000000123456; 4111111111111111; +39 3494096457",
+        },
+        {
+          fieldId: "inactive",
+          text: "RSSMRA80A01H501U CA12345AA U1T86I309C 71C68F093D",
+        },
+      ],
+    });
+    expect(response.status).toBe(constants.HTTP_STATUS_OK);
+    expect(response.body).toEqual({
+      results: [
+        {
+          fieldId: "active",
+          detectedCategories: [
+            "EMAIL_ADDRESS",
+            "IT_VAT_CODE",
+            "IBAN_CODE",
+            "CREDIT_CARD",
+            "PHONE_NUMBER",
+          ],
+        },
+        { fieldId: "inactive", detectedCategories: [] },
+      ],
+    });
+  });
   it("returns categories per field in input order, including an empty field", async () => {
     const response = await postDetect(await createApp(fakeService()), {
       fields,

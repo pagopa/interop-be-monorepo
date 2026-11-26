@@ -122,17 +122,22 @@ describe("privacy-safe HTTP boundary", () => {
     await assertPrivacyBoundary(response);
   });
 
-  it("redacts an exception thrown by a checker at the recognizer boundary", async () => {
+  it("redacts a second-field checker failure without returning the first result", async () => {
+    const isEmail = validator.isEmail;
     const checker = vi.spyOn(validator, "isEmail");
-    checker.mockImplementation(() => {
-      throw new Error(`checker failed: ${sentinel}`, {
-        cause: new Error(`checker cause: ${sentinel}`),
-      });
+    checker.mockImplementation((candidate) => {
+      if (candidate.includes(sentinel)) {
+        throw new Error(`checker failed: ${sentinel}`, {
+          cause: new Error(`checker cause: ${sentinel}`),
+        });
+      }
+      return isEmail(candidate);
     });
     try {
       const error = await detectionService
         .detect({
           fields: [
+            { fieldId: "first", text: "qa@example.com" },
             { fieldId: "title", text: `Contatto: ${sentinel}@example.com` },
           ],
         })
@@ -147,52 +152,71 @@ describe("privacy-safe HTTP boundary", () => {
           stack: error.stack,
         })
       ).not.toContain(sentinel);
+      expect(error.message).toBe("PII recognition failed");
+      expect(error.cause).toBeUndefined();
       const api = await createPrivacyApp();
       const response = await authenticatedRequest(api).send({
         fields: [
+          { fieldId: "first", text: "qa@example.com" },
           { fieldId: "title", text: `Contatto: ${sentinel}@example.com` },
         ],
       });
-      expect(checker).toHaveBeenCalled();
+      expect(checker).toHaveBeenNthCalledWith(1, "qa@example.com");
+      expect(checker).toHaveBeenNthCalledWith(2, `${sentinel}@example.com`);
       expect(response.status).toBe(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR);
+      expect(response.body).not.toHaveProperty("results");
       await assertPrivacyBoundary(response);
     } finally {
       checker.mockRestore();
     }
   });
 
-  it("sanitizes a lexer exception before the mapper and at the actual HTTP boundary", async () => {
-    const lexer = vi.spyOn(moo, "compile").mockImplementation(() => {
-      throw new Error(`Moo failed: ${sentinel}`, {
-        cause: new Error(`raw source: ${sentinel}`),
+  it.each(["creation", "iteration"])(
+    "sanitizes lexer %s exceptions before the mapper and at the actual HTTP boundary",
+    async (stage) => {
+      const compile = moo.compile;
+      const lexer = vi.spyOn(moo, "compile").mockImplementation((rules) => {
+        const fail = () => {
+          throw new Error(`Moo failed: ${sentinel}`, {
+            cause: new Error(`raw source: ${sentinel}`),
+          });
+        };
+        if (stage === "creation") return fail();
+        const result = compile(rules);
+        result.next = fail;
+        return result;
       });
-    });
-    try {
-      const input = `qa@${sentinel}.com`;
-      const error = await detectionService
-        .detect({ fields: [{ fieldId: "title", text: input }] })
-        .catch((failure: unknown) => failure);
-      expect(lexer).toHaveBeenCalled();
-      expect(error).toBeInstanceOf(Error);
-      if (!(error instanceof Error))
-        throw new Error("Expected a sanitized error");
-      expect(
-        JSON.stringify({
-          message: error.message,
-          cause: error.cause,
-          stack: error.stack,
-        })
-      ).not.toContain(sentinel);
-      const api = await createPrivacyApp();
-      const response = await authenticatedRequest(api).send({
-        fields: [{ fieldId: "title", text: input }],
-      });
-      expect(response.status).toBe(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR);
-      await assertPrivacyBoundary(response);
-    } finally {
-      lexer.mockRestore();
+      try {
+        const input = `qa@${sentinel}.com`;
+        const error = await detectionService
+          .detect({ fields: [{ fieldId: "title", text: input }] })
+          .catch((failure: unknown) => failure);
+        expect(lexer).toHaveBeenCalled();
+        expect(error).toBeInstanceOf(Error);
+        if (!(error instanceof Error))
+          throw new Error("Expected a sanitized error");
+        expect(
+          JSON.stringify({
+            message: error.message,
+            cause: error.cause,
+            stack: error.stack,
+          })
+        ).not.toContain(sentinel);
+        expect(error.message).toBe("PII recognition failed");
+        expect(error.cause).toBeUndefined();
+        const api = await createPrivacyApp();
+        const response = await authenticatedRequest(api).send({
+          fields: [{ fieldId: "title", text: input }],
+        });
+        expect(response.status).toBe(
+          constants.HTTP_STATUS_INTERNAL_SERVER_ERROR
+        );
+        await assertPrivacyBoundary(response);
+      } finally {
+        lexer.mockRestore();
+      }
     }
-  });
+  );
 
   it("redacts an email candidate from production response, logs and audit", async () => {
     const api = await createPrivacyApp();

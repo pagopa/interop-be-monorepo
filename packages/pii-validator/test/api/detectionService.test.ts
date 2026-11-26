@@ -32,8 +32,6 @@ describe("deterministic detection", () => {
     ["IT_VAT_CODE", "partita IVA 12345678901."],
     ["IBAN_CODE", "IBAN IT60X0542811101000000123456"],
     ["CREDIT_CARD", "carta 4111111111111111."],
-    ["IT_DRIVER_LICENSE", "patente U1T86I309C."],
-    ["IT_DRIVER_LICENSE", "patente 71C68F093D."],
   ] as const)("recognizes %s within a description", async (category, text) => {
     expect(await categories(text)).toContain(category);
   });
@@ -79,9 +77,7 @@ describe("deterministic detection", () => {
     ["IT_FISCAL_CODE", "RSSMRA80A01H501U"],
     ["IBAN_CODE", "IT60 X054 2811 1010 0000 0123 456"],
     ["IBAN_CODE", "IT60-X054-2811-1010-0000-0123-456"],
-    ["CREDIT_CARD", "4111 1111 1111 1111"],
     ["PHONE_NUMBER", "+39-3494096457"],
-    ["PHONE_NUMBER", "333 123 4567"],
     ["CREDIT_CARD", "4111 1111 1111 1111 2222"],
     ["IT_FISCAL_CODE", "RSSMRA80A01H501Z"],
     ["IT_FISCAL_CODE", "RSSMRA80 A01H501U"],
@@ -91,7 +87,6 @@ describe("deterministic detection", () => {
     ["CREDIT_CARD", "4111 1111 1111 1112"],
     ["PHONE_NUMBER", "telefono fisso 0612345678"],
     ["IT_IDENTITY_CARD", "CA12345AA"],
-    ["IT_DRIVER_LICENSE", "AB1234567C"],
   ] as const)("rejects %s for nonmatching input", async (category, text) => {
     expect(await categories(text)).not.toContain(category);
   });
