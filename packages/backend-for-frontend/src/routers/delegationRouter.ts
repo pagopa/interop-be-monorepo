@@ -2,9 +2,7 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { bffApi } from "pagopa-interop-api-clients";
 import {
-  authRole,
   ExpressContext,
-  validateAuthorization,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
@@ -30,14 +28,6 @@ const delegationRouter = (
     .get("/delegations", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
-        validateAuthorization(ctx, [
-          authRole.ADMIN_ROLE,
-          authRole.SECURITY_ROLE,
-          authRole.SUPPORT_ROLE,
-          authRole.REVIEWER_ROLE,
-          authRole.VIEWER_ROLE,
-        ]);
-
         const {
           limit,
           offset,
