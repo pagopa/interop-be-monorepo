@@ -21,6 +21,7 @@ import {
   discreteConfigToInterval,
   getCustomizedDailyCallsPerConsumer,
   getEffectiveDailyCallsPerConsumer,
+  getEffectiveQuota,
   isWithinDiscreteValueInterval,
   matchesCustomizedQuotaRule,
   toCustomizedQuotaRules,
@@ -378,5 +379,127 @@ describe("effective limit rule alignment", () => {
         []
       )
     ).toBeUndefined();
+  });
+
+  describe("getEffectiveQuota", () => {
+    const quotaAttribute = (
+      dailyCallsPerConsumer: number
+    ): EServiceAttributeCertified => ({
+      id: generateId<AttributeId>(),
+      explicitAttributeVerification: false,
+      dailyCallsPerConsumer,
+    });
+
+    it("returns the descriptor quota and no attributes when no rule is satisfied", () => {
+      const descriptor = descriptorWith([[quotaAttribute(2000)]], 1000);
+      expect(getEffectiveQuota(descriptor, [], true)).toEqual({
+        dailyCallsPerConsumer: 1000,
+        customizedByAttributeIds: [],
+      });
+    });
+
+    it("returns the highest satisfied quota and the attribute determining it", () => {
+      const low = quotaAttribute(2000);
+      const high = quotaAttribute(5000);
+      const notOwned = quotaAttribute(9000);
+      const descriptor = descriptorWith([[low, high], [notOwned]], 1000);
+      expect(
+        getEffectiveQuota(
+          descriptor,
+          [certifiedTenantAttribute(low.id), certifiedTenantAttribute(high.id)],
+          true
+        )
+      ).toEqual({
+        dailyCallsPerConsumer: 5000,
+        customizedByAttributeIds: [high.id],
+      });
+    });
+
+    it("returns every attribute determining the quota on ties, once", () => {
+      const first = quotaAttribute(5000);
+      const second = quotaAttribute(5000);
+      const descriptor = descriptorWith(
+        [[first, second], [first], [quotaAttribute(2000)]],
+        1000
+      );
+      const quota = getEffectiveQuota(
+        descriptor,
+        [
+          certifiedTenantAttribute(first.id),
+          certifiedTenantAttribute(second.id),
+        ],
+        true
+      );
+      expect(quota.dailyCallsPerConsumer).toBe(5000);
+      expect(quota.customizedByAttributeIds).toHaveLength(2);
+      expect(quota.customizedByAttributeIds).toEqual(
+        expect.arrayContaining([first.id, second.id])
+      );
+    });
+
+    it("ignores revoked attributes", () => {
+      const revoked = quotaAttribute(5000);
+      const descriptor = descriptorWith([[revoked]], 1000);
+      expect(
+        getEffectiveQuota(
+          descriptor,
+          [certifiedTenantAttribute(revoked.id, revokedAt)],
+          true
+        )
+      ).toEqual({ dailyCallsPerConsumer: 1000, customizedByAttributeIds: [] });
+    });
+
+    it.each([true, false])(
+      "applies discrete rules only with featureFlagAttributeCertifiedDiscrete enabled (%s)",
+      (certifiedDiscreteEnabled) => {
+        const discrete: EServiceAttributeCertifiedDiscrete = {
+          id: generateId<AttributeId>(),
+          explicitAttributeVerification: false,
+          dailyCallsPerConsumer: 4000,
+          discreteConfig: {
+            threshold,
+            comparator: attributeCertifiedDiscreteComparator.GTE,
+          },
+        };
+        const descriptor = descriptorWith([[discrete]], 1000);
+        expect(
+          getEffectiveQuota(
+            descriptor,
+            [discreteTenantAttribute(discrete.id, threshold)],
+            certifiedDiscreteEnabled
+          )
+        ).toEqual(
+          certifiedDiscreteEnabled
+            ? {
+                dailyCallsPerConsumer: 4000,
+                customizedByAttributeIds: [discrete.id],
+              }
+            : { dailyCallsPerConsumer: 1000, customizedByAttributeIds: [] }
+        );
+      }
+    );
+
+    it("is consistent with getEffectiveDailyCallsPerConsumer", () => {
+      const first = quotaAttribute(3000);
+      const second = quotaAttribute(7000);
+      const descriptor = descriptorWith([[first], [second]], 1000);
+      const tenants: TenantAttribute[][] = [
+        [],
+        [certifiedTenantAttribute(first.id)],
+        [certifiedTenantAttribute(second.id)],
+        [
+          certifiedTenantAttribute(first.id),
+          certifiedTenantAttribute(second.id),
+        ],
+      ];
+      for (const tenantAttributes of tenants) {
+        expect(
+          getEffectiveQuota(descriptor, tenantAttributes, true)
+            .dailyCallsPerConsumer
+        ).toBe(
+          getEffectiveDailyCallsPerConsumer(descriptor, tenantAttributes, true)
+        );
+      }
+    });
   });
 });

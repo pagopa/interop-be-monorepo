@@ -23,7 +23,9 @@ import { match } from "ts-pattern";
 //
 // This is the single source of the effective limit rule: getUpdatedQuotas
 // (validators.ts) evaluates it in TypeScript through
-// getEffectiveDailyCallsPerConsumer, the producer dashboard evaluates it in SQL
+// getEffectiveDailyCallsPerConsumer, the producer dashboard consumer detail
+// evaluates it in TypeScript through getEffectiveQuota, the producer dashboard
+// saturation evaluates it in SQL
 // (readModelServiceSQL.ts, customizedDailyCallsPerConsumer). Equivalence with
 // matchesCertifiedDescriptorAttribute and between the TypeScript and SQL
 // evaluations is enforced by customizedQuotaRules.test.ts and by the
@@ -169,25 +171,74 @@ export const matchesCustomizedQuotaRule = (
     return false;
   });
 
+// Highest customized quota among the satisfied rules, together with the
+// attributes of the rules that determine it (more than one on ties),
+// undefined when no rule is satisfied
+const getSatisfiedCustomizedQuota = (
+  rules: CustomizedQuotaRule[],
+  tenantAttributes: TenantAttribute[]
+):
+  | { dailyCallsPerConsumer: number; attributeIds: AttributeId[] }
+  | undefined => {
+  const satisfiedRules = rules.filter((rule) =>
+    matchesCustomizedQuotaRule(rule, tenantAttributes)
+  );
+  if (satisfiedRules.length === 0) {
+    return undefined;
+  }
+  const dailyCallsPerConsumer = Math.max(
+    ...satisfiedRules.map((rule) => rule.dailyCallsPerConsumer)
+  );
+  const attributeIds = [
+    ...new Set(
+      satisfiedRules
+        .filter((rule) => rule.dailyCallsPerConsumer === dailyCallsPerConsumer)
+        .map((rule) => rule.attributeId)
+    ),
+  ];
+  return { dailyCallsPerConsumer, attributeIds };
+};
+
 // Highest customized quota among the satisfied rules, undefined when none is satisfied
 export const getCustomizedDailyCallsPerConsumer = (
   rules: CustomizedQuotaRule[],
   tenantAttributes: TenantAttribute[]
 ): number | undefined =>
-  rules
-    .filter((rule) => matchesCustomizedQuotaRule(rule, tenantAttributes))
-    .reduce<
-      number | undefined
-    >((max, rule) => Math.max(max ?? 0, rule.dailyCallsPerConsumer), undefined);
+  getSatisfiedCustomizedQuota(rules, tenantAttributes)?.dailyCallsPerConsumer;
+
+type EffectiveQuota = {
+  dailyCallsPerConsumer: number;
+  // attributes determining the customized quota, empty when the descriptor
+  // quota applies
+  customizedByAttributeIds: AttributeId[];
+};
 
 // Effective daily calls per consumer of a descriptor for a consumer:
 // the highest satisfied customized quota, falling back to the descriptor quota.
+export const getEffectiveQuota = (
+  descriptor: Descriptor,
+  tenantAttributes: TenantAttribute[],
+  certifiedDiscreteEnabled: boolean
+): EffectiveQuota => {
+  const customizedQuota = getSatisfiedCustomizedQuota(
+    toCustomizedQuotaRules(descriptor, certifiedDiscreteEnabled),
+    tenantAttributes
+  );
+  return customizedQuota
+    ? {
+        dailyCallsPerConsumer: customizedQuota.dailyCallsPerConsumer,
+        customizedByAttributeIds: customizedQuota.attributeIds,
+      }
+    : {
+        dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+        customizedByAttributeIds: [],
+      };
+};
+
 export const getEffectiveDailyCallsPerConsumer = (
   descriptor: Descriptor,
   tenantAttributes: TenantAttribute[],
   certifiedDiscreteEnabled: boolean
 ): number =>
-  getCustomizedDailyCallsPerConsumer(
-    toCustomizedQuotaRules(descriptor, certifiedDiscreteEnabled),
-    tenantAttributes
-  ) ?? descriptor.dailyCallsPerConsumer;
+  getEffectiveQuota(descriptor, tenantAttributes, certifiedDiscreteEnabled)
+    .dailyCallsPerConsumer;

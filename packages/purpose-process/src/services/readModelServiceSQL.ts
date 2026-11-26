@@ -25,6 +25,9 @@ import {
   withTotalCount,
 } from "pagopa-interop-commons";
 import {
+  Attribute,
+  AttributeId,
+  attributeKind,
   EService,
   WithMetadata,
   EServiceId,
@@ -55,6 +58,7 @@ import {
   DescriptorState,
 } from "pagopa-interop-models";
 import {
+  aggregateAttributeArray,
   aggregatePurposeArray,
   AgreementReadModelService,
   CatalogReadModelService,
@@ -67,6 +71,7 @@ import {
 } from "pagopa-interop-readmodel";
 import {
   agreementInReadmodelAgreement,
+  attributeInReadmodelAttribute,
   delegationInReadmodelDelegation,
   DrizzleReturnType,
   eserviceInReadmodelCatalog,
@@ -120,6 +125,7 @@ const activeConsumerDelegations = alias(
 const approvedLoadVersionState = purposeVersionState.active;
 const waitingForApprovalLoadVersionState =
   purposeVersionState.waitingForApproval;
+const loadAgreementStates = [agreementState.active, agreementState.suspended];
 
 const purposeAgreementLoadCondition = (): SQL | undefined =>
   and(
@@ -131,10 +137,7 @@ const purposeAgreementLoadCondition = (): SQL | undefined =>
       agreementInReadmodelAgreement.consumerId,
       purposeInReadmodelPurpose.consumerId
     ),
-    inArray(agreementInReadmodelAgreement.state, [
-      agreementState.active,
-      agreementState.suspended,
-    ])
+    inArray(agreementInReadmodelAgreement.state, loadAgreementStates)
   );
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -157,6 +160,74 @@ const addActiveVersionsDailyCallsJoinsAndFilters = <T extends PgSelect>(
         eq(purposeInReadmodelPurpose.eserviceId, eserviceId),
         eq(agreementInReadmodelAgreement.descriptorId, descriptorId),
         eq(purposeVersionInReadmodelPurpose.state, approvedLoadVersionState)
+      )
+    );
+
+// Version rules of the purposes waiting for approval, shared by the D2/D3
+// counters and the producer dashboard consumer detail: a purpose is waiting
+// for approval if it has a WaitingForApproval version; it is a quota change
+// if it also has an Active or Suspended version, a new purpose otherwise.
+const quotaChangeApprovedVersionStates: PurposeVersionState[] = [
+  purposeVersionState.active,
+  purposeVersionState.suspended,
+];
+
+const purposeHasVersionInStates = (
+  readModelDB: DrizzleReturnType,
+  states: PurposeVersionState[],
+  aliasName: string
+): SQL => {
+  const version = alias(purposeVersionInReadmodelPurpose, aliasName);
+  return exists(
+    readModelDB
+      .select({ one: sql`1` })
+      .from(version)
+      .where(
+        and(
+          eq(version.purposeId, purposeInReadmodelPurpose.id),
+          inArray(version.state, states)
+        )
+      )
+  );
+};
+
+const purposeHasWaitingForApprovalVersion = (
+  readModelDB: DrizzleReturnType
+): SQL =>
+  purposeHasVersionInStates(
+    readModelDB,
+    [waitingForApprovalLoadVersionState],
+    "waiting_version"
+  );
+
+const purposeHasApprovedVersion = (readModelDB: DrizzleReturnType): SQL =>
+  purposeHasVersionInStates(
+    readModelDB,
+    quotaChangeApprovedVersionStates,
+    "approved_version"
+  );
+
+// Rule of the purposes waiting for approval on a descriptor, shared by the
+// D2/D3 counters and the consumer detail: purposes with a WaitingForApproval
+// version whose consumer has an Active or Suspended agreement on the descriptor
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const addWaitingForApprovalPurposesJoinsAndFilters = <T extends PgSelect>(
+  readModelDB: DrizzleReturnType,
+  query: T,
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId,
+  consumerId?: TenantId
+) =>
+  query
+    .innerJoin(agreementInReadmodelAgreement, purposeAgreementLoadCondition())
+    .where(
+      and(
+        eq(purposeInReadmodelPurpose.eserviceId, eserviceId),
+        eq(agreementInReadmodelAgreement.descriptorId, descriptorId),
+        consumerId
+          ? eq(purposeInReadmodelPurpose.consumerId, consumerId)
+          : undefined,
+        purposeHasWaitingForApprovalVersion(readModelDB)
       )
     );
 
@@ -208,6 +279,32 @@ type ProducerEServiceMonitoringSaturationResult = {
   activeConsumers: number;
   customizedQuotaConsumers: number;
 };
+
+type DateNameSortBy = "DATE_DESC" | "DATE_ASC" | "NAME_ASC" | "NAME_DESC";
+
+type ProducerEServiceMonitoringConsumerPurpose = {
+  purposeId: PurposeId;
+  title: string;
+  dailyCalls: number;
+  state: PurposeVersionState;
+  suspendedByConsumer: boolean | undefined;
+  suspendedByProducer: boolean | undefined;
+  updatedAt: Date;
+  hasPendingQuotaChange: boolean;
+};
+
+// Version displayed for each purpose in the producer dashboard consumer detail:
+// the latest Active, Suspended or Archived version, otherwise the
+// WaitingForApproval version (new purpose), otherwise the latest Rejected one.
+// Draft versions are never displayed, so draft purposes are not listed.
+// The states of the quota change rule must be included: hasPendingQuotaChange
+// is computed on the versions selected with these states.
+const consumerPurposeDisplayableVersionStates: PurposeVersionState[] = [
+  ...quotaChangeApprovedVersionStates,
+  purposeVersionState.archived,
+  waitingForApprovalLoadVersionState,
+  purposeVersionState.rejected,
+];
 
 const discreteValueWithinRule = (
   discreteValue: Column,
@@ -1302,83 +1399,266 @@ export function readModelServiceBuilderSQL({
     ): Promise<{ newPurposes: number; quotaChanges: number }> {
       // A purpose waiting for approval is "new" if it has no Active/Suspended version,
       // a "quota change" otherwise. Each purpose is counted once.
-      const waitingVersion = alias(
-        purposeVersionInReadmodelPurpose,
-        "waiting_version"
-      );
-      const approvedVersion = alias(
-        purposeVersionInReadmodelPurpose,
-        "approved_version"
-      );
-      const hasApprovedVersion = exists(
-        readModelDB
-          .select({ one: sql`1` })
-          .from(approvedVersion)
-          .where(
-            and(
-              eq(approvedVersion.purposeId, purposeInReadmodelPurpose.id),
-              inArray(approvedVersion.state, [
-                purposeVersionState.active,
-                purposeVersionState.suspended,
-              ])
-            )
-          )
-      );
+      const hasApprovedVersion = purposeHasApprovedVersion(readModelDB);
 
-      const [result] = await readModelDB
-        .select({
-          newPurposes:
-            sql`COUNT(DISTINCT ${purposeInReadmodelPurpose.id}) FILTER (WHERE NOT ${hasApprovedVersion})`.mapWith(
-              Number
-            ),
-          quotaChanges:
-            sql`COUNT(DISTINCT ${purposeInReadmodelPurpose.id}) FILTER (WHERE ${hasApprovedVersion})`.mapWith(
-              Number
-            ),
-        })
-        .from(purposeInReadmodelPurpose)
-        .innerJoin(
-          agreementInReadmodelAgreement,
-          and(
-            eq(
-              agreementInReadmodelAgreement.eserviceId,
-              purposeInReadmodelPurpose.eserviceId
-            ),
-            eq(
-              agreementInReadmodelAgreement.consumerId,
-              purposeInReadmodelPurpose.consumerId
-            ),
-            inArray(agreementInReadmodelAgreement.state, [
-              agreementState.active,
-              agreementState.suspended,
-            ])
-          )
-        )
-        .where(
-          and(
-            eq(purposeInReadmodelPurpose.eserviceId, eserviceId),
-            eq(agreementInReadmodelAgreement.descriptorId, descriptorId),
-            exists(
-              readModelDB
-                .select({ one: sql`1` })
-                .from(waitingVersion)
-                .where(
-                  and(
-                    eq(waitingVersion.purposeId, purposeInReadmodelPurpose.id),
-                    eq(
-                      waitingVersion.state,
-                      purposeVersionState.waitingForApproval
-                    )
-                  )
-                )
-            )
-          )
-        );
+      const [result] = await addWaitingForApprovalPurposesJoinsAndFilters(
+        readModelDB,
+        readModelDB
+          .select({
+            newPurposes:
+              sql`COUNT(DISTINCT ${purposeInReadmodelPurpose.id}) FILTER (WHERE NOT ${hasApprovedVersion})`.mapWith(
+                Number
+              ),
+            quotaChanges:
+              sql`COUNT(DISTINCT ${purposeInReadmodelPurpose.id}) FILTER (WHERE ${hasApprovedVersion})`.mapWith(
+                Number
+              ),
+          })
+          .from(purposeInReadmodelPurpose)
+          .$dynamic(),
+        eserviceId,
+        descriptorId
+      );
 
       return {
         newPurposes: result?.newPurposes ?? 0,
         quotaChanges: result?.quotaChanges ?? 0,
       };
+    },
+    async getConsumerWaitingForApprovalPurposesCount(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      consumerId: TenantId
+    ): Promise<number> {
+      // Same rule of getWaitingForApprovalPurposesCounts restricted to a consumer:
+      // new purposes and quota changes are disjoint, so their sum is the number
+      // of distinct purposes waiting for approval
+      const [result] = await addWaitingForApprovalPurposesJoinsAndFilters(
+        readModelDB,
+        readModelDB
+          .select({
+            waitingForApprovalPurposes:
+              sql`COUNT(DISTINCT ${purposeInReadmodelPurpose.id})`.mapWith(
+                Number
+              ),
+          })
+          .from(purposeInReadmodelPurpose)
+          .$dynamic(),
+        eserviceId,
+        descriptorId,
+        consumerId
+      );
+
+      return result?.waitingForApprovalPurposes ?? 0;
+    },
+    async hasLoadAgreementOnDescriptor(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      consumerId: TenantId
+    ): Promise<boolean> {
+      // Same agreement states of the descriptor load (purposeAgreementLoadCondition):
+      // the consumer has an Active or Suspended agreement on the descriptor
+      const [result] = await readModelDB
+        .select({ id: agreementInReadmodelAgreement.id })
+        .from(agreementInReadmodelAgreement)
+        .where(
+          and(
+            eq(agreementInReadmodelAgreement.eserviceId, eserviceId),
+            eq(agreementInReadmodelAgreement.descriptorId, descriptorId),
+            eq(agreementInReadmodelAgreement.consumerId, consumerId),
+            inArray(agreementInReadmodelAgreement.state, loadAgreementStates)
+          )
+        )
+        .limit(1);
+      return result !== undefined;
+    },
+    async getProducerEServiceMonitoringConsumerPurposes(
+      eserviceId: EServiceId,
+      consumerId: TenantId,
+      {
+        q,
+        sortBy,
+        states,
+        includeArchived,
+      }: {
+        q: string | undefined;
+        sortBy: DateNameSortBy;
+        states: PurposeVersionState[];
+        includeArchived: boolean;
+      },
+      { offset, limit }: { offset: number; limit: number }
+    ): Promise<ListResult<ProducerEServiceMonitoringConsumerPurpose>> {
+      const displayedVersionPriority = sql`CASE
+        WHEN ${inArray(purposeVersionInReadmodelPurpose.state, [
+          purposeVersionState.active,
+          purposeVersionState.suspended,
+          purposeVersionState.archived,
+        ])} THEN 0
+        WHEN ${eq(
+          purposeVersionInReadmodelPurpose.state,
+          purposeVersionState.waitingForApproval
+        )} THEN 1
+        ELSE 2
+      END`;
+
+      const displayedVersion = readModelDB
+        .$with("consumer_purposes_displayed_version")
+        .as(
+          readModelDB
+            .selectDistinctOn([purposeVersionInReadmodelPurpose.purposeId], {
+              purposeId:
+                sql<string>`${purposeVersionInReadmodelPurpose.purposeId}`.as(
+                  "consumer_purposes_displayed_version_purpose_id"
+                ),
+              state: sql<string>`${purposeVersionInReadmodelPurpose.state}`.as(
+                "consumer_purposes_displayed_version_state"
+              ),
+              dailyCalls:
+                sql<number>`${purposeVersionInReadmodelPurpose.dailyCalls}`.as(
+                  "consumer_purposes_displayed_version_daily_calls"
+                ),
+              // Same quota change rule of the D3 counter, evaluated on all the
+              // versions of the purpose: window functions are computed before
+              // DISTINCT ON discards the versions not displayed
+              hasPendingQuotaChange: sql<boolean>`(bool_or(${eq(
+                purposeVersionInReadmodelPurpose.state,
+                waitingForApprovalLoadVersionState
+              )}) OVER (PARTITION BY ${purposeVersionInReadmodelPurpose.purposeId}) AND bool_or(${inArray(
+                purposeVersionInReadmodelPurpose.state,
+                quotaChangeApprovedVersionStates
+              )}) OVER (PARTITION BY ${purposeVersionInReadmodelPurpose.purposeId}))`.as(
+                "consumer_purposes_displayed_version_has_pending_quota_change"
+              ),
+            })
+            .from(purposeVersionInReadmodelPurpose)
+            .innerJoin(
+              purposeInReadmodelPurpose,
+              eq(
+                purposeInReadmodelPurpose.id,
+                purposeVersionInReadmodelPurpose.purposeId
+              )
+            )
+            .where(
+              and(
+                eq(purposeInReadmodelPurpose.eserviceId, eserviceId),
+                eq(purposeInReadmodelPurpose.consumerId, consumerId),
+                inArray(
+                  purposeVersionInReadmodelPurpose.state,
+                  consumerPurposeDisplayableVersionStates
+                )
+              )
+            )
+            .orderBy(
+              purposeVersionInReadmodelPurpose.purposeId,
+              displayedVersionPriority,
+              desc(purposeVersionInReadmodelPurpose.createdAt)
+            )
+        );
+
+      // states and includeArchived are applied in AND to the displayed version
+      const filters = and(
+        q
+          ? ilikeEscaped(
+              purposeInReadmodelPurpose.title,
+              `%${escapeSqlLike(q)}%`
+            )
+          : undefined,
+        states.length > 0 ? inArray(displayedVersion.state, states) : undefined,
+        includeArchived
+          ? undefined
+          : ne(displayedVersion.state, purposeVersionState.archived)
+      );
+
+      const updatedAt = sql`COALESCE(${purposeInReadmodelPurpose.updatedAt}, ${purposeInReadmodelPurpose.createdAt})`;
+      const titleLower = sql`lower(${purposeInReadmodelPurpose.title})`;
+      // The purpose id is always the last tie-breaker, ascending
+      const orderBy = match(sortBy)
+        .with("DATE_DESC", () => desc(updatedAt))
+        .with("DATE_ASC", () => asc(updatedAt))
+        .with("NAME_ASC", () => asc(titleLower))
+        .with("NAME_DESC", () => desc(titleLower))
+        .exhaustive();
+
+      const rows = await readModelDB
+        .with(displayedVersion)
+        .select({
+          purposeId: purposeInReadmodelPurpose.id,
+          title: purposeInReadmodelPurpose.title,
+          suspendedByConsumer: purposeInReadmodelPurpose.suspendedByConsumer,
+          suspendedByProducer: purposeInReadmodelPurpose.suspendedByProducer,
+          createdAt: purposeInReadmodelPurpose.createdAt,
+          updatedAt: purposeInReadmodelPurpose.updatedAt,
+          state: displayedVersion.state,
+          dailyCalls: sql<number>`${displayedVersion.dailyCalls}`.mapWith(
+            Number
+          ),
+          hasPendingQuotaChange: displayedVersion.hasPendingQuotaChange,
+          totalCount: sql<number>`COUNT(*) OVER ()`.mapWith(Number),
+        })
+        .from(purposeInReadmodelPurpose)
+        .innerJoin(
+          displayedVersion,
+          eq(displayedVersion.purposeId, purposeInReadmodelPurpose.id)
+        )
+        .where(filters)
+        .orderBy(orderBy, asc(purposeInReadmodelPurpose.id))
+        .limit(limit)
+        .offset(offset);
+
+      const results = rows.map((row) => ({
+        purposeId: unsafeBrandId<PurposeId>(row.purposeId),
+        title: row.title,
+        dailyCalls: row.dailyCalls,
+        state: row.state as PurposeVersionState,
+        suspendedByConsumer: row.suspendedByConsumer ?? undefined,
+        suspendedByProducer: row.suspendedByProducer ?? undefined,
+        updatedAt: new Date(row.updatedAt ?? row.createdAt),
+        hasPendingQuotaChange: row.hasPendingQuotaChange,
+      }));
+
+      const [firstRow] = rows;
+      if (firstRow) {
+        return createListResult(results, firstRow.totalCount);
+      }
+
+      // The window value is absent when the requested page has no rows:
+      // compute the filtered count independently
+      const [emptyPageCount] = await readModelDB
+        .with(displayedVersion)
+        .select({ totalCount: sql<number>`COUNT(*)`.mapWith(Number) })
+        .from(purposeInReadmodelPurpose)
+        .innerJoin(
+          displayedVersion,
+          eq(displayedVersion.purposeId, purposeInReadmodelPurpose.id)
+        )
+        .where(filters);
+
+      return createListResult(results, emptyPageCount?.totalCount);
+    },
+    async getCertifiedAttributesByIds(
+      attributeIds: AttributeId[]
+    ): Promise<Attribute[]> {
+      if (attributeIds.length === 0) {
+        return [];
+      }
+      const res = await readModelDB
+        .select()
+        .from(attributeInReadmodelAttribute)
+        .where(
+          and(
+            inArray(attributeInReadmodelAttribute.id, attributeIds),
+            inArray(attributeInReadmodelAttribute.kind, [
+              attributeKind.certified,
+              attributeKind.certifiedDiscrete,
+            ])
+          )
+        )
+        .orderBy(
+          attributeInReadmodelAttribute.name,
+          attributeInReadmodelAttribute.id
+        );
+
+      return aggregateAttributeArray(res).map((attribute) => attribute.data);
     },
   };
 }

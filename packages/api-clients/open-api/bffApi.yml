@@ -20378,12 +20378,15 @@ components:
         updatedAt:
           type: string
           format: date-time
+        hasPendingQuotaChange:
+          type: boolean
       required:
         - purposeId
         - title
         - dailyCalls
         - state
         - updatedAt
+        - hasPendingQuotaChange
     ProducerEServiceMonitoringConsumerPurposes:
       type: object
       additionalProperties: false

@@ -135,6 +135,38 @@ const producerDashboardRouter = (
     }
   );
 
+  producerDashboardRouter.get(
+    "/producers/eservices/:eserviceId/descriptors/:descriptorId/monitoring/consumers/:consumerId/purposes",
+    async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result =
+          await producerDashboardService.getProducerEServiceMonitoringConsumerPurposes(
+            req.params.eserviceId,
+            req.params.descriptorId,
+            req.params.consumerId,
+            req.query,
+            ctx
+          );
+
+        return res
+          .status(200)
+          .send(
+            bffApi.ProducerEServiceMonitoringConsumerPurposes.parse(result)
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error retrieving purposes of consumer ${req.params.consumerId} for e-service ${req.params.eserviceId}, descriptor ${req.params.descriptorId}, q ${req.query.q}, sortBy ${req.query.sortBy}, states ${req.query.states}, includeArchived ${req.query.includeArchived}, offset ${req.query.offset}, limit ${req.query.limit}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    }
+  );
+
   return producerDashboardRouter;
 };
 

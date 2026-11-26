@@ -49,6 +49,7 @@ import {
   PurposeVersionId,
   PurposeVersionSignedDocument,
   PurposeVersionStamps,
+  PurposeVersionState,
   RiskAnalysis,
   RiskAnalysisId,
   Tenant,
@@ -70,6 +71,10 @@ import { P, match } from "ts-pattern";
 import type { RiskAnalysisReviewAssignment } from "./workflowReviewerProcessor.js";
 
 import { config } from "../config/config.js";
+import {
+  attributeKindToApiAttributeKind,
+  purposeVersionStateToApiPurposeVersionState,
+} from "../model/domain/apiConverter.js";
 import {
   agreementNotFound,
   descriptorNotFound,
@@ -145,7 +150,10 @@ import {
   toCreateEventPurposeRiskAnalysisRejected,
   toCreateEventPurposeRiskAnalysisFormEdited,
 } from "../model/domain/toEvent.js";
-import { toCustomizedQuotaRules } from "./customizedQuotaRules.js";
+import {
+  getEffectiveQuota,
+  toCustomizedQuotaRules,
+} from "./customizedQuotaRules.js";
 import {
   GetPurposesFilters as ReadModelGetPurposesFilters,
   ReadModelServiceSQL,
@@ -2803,6 +2811,172 @@ export function purposeServiceBuilder(
           offset,
           limit,
           totalCount: saturation.totalCount,
+        },
+      };
+    },
+    async getProducerEServiceMonitoringConsumerPurposes(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      consumerId: TenantId,
+      {
+        q,
+        sortBy,
+        states,
+        includeArchived,
+        offset,
+        limit,
+      }: {
+        q: string | undefined;
+        sortBy: purposeApi.DateNameSortBy;
+        states: PurposeVersionState[];
+        includeArchived: boolean;
+        offset: number;
+        limit: number;
+      },
+      { authData, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<purposeApi.ProducerEServiceMonitoringConsumerPurposes> {
+      logger.info(
+        `Retrieving purposes of consumer ${consumerId} for e-service ${eserviceId}, descriptor ${descriptorId}, q ${q}, sortBy ${sortBy}, states ${states}, includeArchived ${includeArchived}, offset ${offset}, limit ${limit}`
+      );
+
+      assertFeatureFlagEnabled(config, "featureFlagProducerDashboard");
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertRequesterCanActAsProducer(
+        eservice,
+        authData,
+        await readModelService.getActiveProducerDelegationByEserviceId(
+          eserviceId
+        )
+      );
+
+      const descriptor = eservice.descriptors.find(
+        (d) => d.id === descriptorId
+      );
+      if (!descriptor) {
+        throw descriptorNotFound(eserviceId, descriptorId);
+      }
+
+      const summary = {
+        eservice: { id: eservice.id, name: eservice.name },
+        version: descriptor.version,
+      };
+
+      // Same agreement rule of the descriptor load: the consumer must have an
+      // Active or Suspended agreement on the requested descriptor. Otherwise
+      // the response is empty and does not disclose any consumer data.
+      const hasAgreement = await readModelService.hasLoadAgreementOnDescriptor(
+        eserviceId,
+        descriptorId,
+        consumerId
+      );
+      if (!hasAgreement) {
+        return {
+          ...summary,
+          dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+          approvedDailyCalls: 0,
+          percentage: 0,
+          waitingForApprovalPurposes: 0,
+          results: [],
+          pagination: { offset, limit, totalCount: 0 },
+        };
+      }
+
+      const consumer = await retrieveTenant(consumerId, readModelService);
+
+      const effectiveQuota = getEffectiveQuota(
+        descriptor,
+        consumer.attributes,
+        isFeatureFlagEnabled(config, "featureFlagAttributeCertifiedDiscrete")
+      );
+
+      const [
+        customizedByAttributes,
+        { consumerDailyCalls: approvedDailyCalls },
+        waitingForApprovalPurposes,
+        purposes,
+      ] = await Promise.all([
+        // Sorted by name and id: the first one is displayed on ties
+        readModelService.getCertifiedAttributesByIds(
+          effectiveQuota.customizedByAttributeIds
+        ),
+        readModelService.getActiveVersionsDailyCalls(
+          eserviceId,
+          consumerId,
+          descriptorId
+        ),
+        readModelService.getConsumerWaitingForApprovalPurposesCount(
+          eserviceId,
+          descriptorId,
+          consumerId
+        ),
+        readModelService.getProducerEServiceMonitoringConsumerPurposes(
+          eserviceId,
+          consumerId,
+          {
+            q,
+            sortBy,
+            states,
+            includeArchived,
+          },
+          { offset, limit }
+        ),
+      ]);
+
+      const [customizedByAttribute] = customizedByAttributes;
+      if (
+        effectiveQuota.customizedByAttributeIds.length > 0 &&
+        !customizedByAttribute
+      ) {
+        logger.warn(
+          `Attributes ${effectiveQuota.customizedByAttributeIds} customizing the daily calls per consumer of consumer ${consumerId} not found`
+        );
+      }
+
+      return {
+        ...summary,
+        consumer: {
+          id: consumer.id,
+          name: consumer.name,
+          ...(consumer.kind ? { kind: consumer.kind } : {}),
+        },
+        dailyCallsPerConsumer: effectiveQuota.dailyCallsPerConsumer,
+        ...(customizedByAttribute
+          ? {
+              customizedByAttribute: {
+                id: customizedByAttribute.id,
+                name: customizedByAttribute.name,
+                kind: attributeKindToApiAttributeKind(
+                  customizedByAttribute.kind
+                ),
+              },
+            }
+          : {}),
+        approvedDailyCalls,
+        percentage: computeSaturationPercentage(
+          approvedDailyCalls,
+          effectiveQuota.dailyCallsPerConsumer
+        ),
+        waitingForApprovalPurposes,
+        results: purposes.results.map((purpose) => ({
+          purposeId: purpose.purposeId,
+          title: purpose.title,
+          dailyCalls: purpose.dailyCalls,
+          state: purposeVersionStateToApiPurposeVersionState(purpose.state),
+          ...(purpose.suspendedByConsumer !== undefined
+            ? { suspendedByConsumer: purpose.suspendedByConsumer }
+            : {}),
+          ...(purpose.suspendedByProducer !== undefined
+            ? { suspendedByProducer: purpose.suspendedByProducer }
+            : {}),
+          updatedAt: purpose.updatedAt.toISOString(),
+          hasPendingQuotaChange: purpose.hasPendingQuotaChange,
+        })),
+        pagination: {
+          offset,
+          limit,
+          totalCount: purposes.totalCount,
         },
       };
     },

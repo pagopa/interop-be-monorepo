@@ -92,3 +92,29 @@ export function toBffProducerEServiceMonitoringSaturation(
     pagination: saturation.pagination,
   };
 }
+
+export function toBffProducerEServiceMonitoringConsumerPurposes(
+  consumerPurposes: purposeApi.ProducerEServiceMonitoringConsumerPurposes
+): bffApi.ProducerEServiceMonitoringConsumerPurposes {
+  return {
+    eservice: consumerPurposes.eservice,
+    version: consumerPurposes.version,
+    consumer: consumerPurposes.consumer,
+    dailyCallsPerConsumer: consumerPurposes.dailyCallsPerConsumer,
+    customizedByAttribute: consumerPurposes.customizedByAttribute,
+    approvedDailyCalls: consumerPurposes.approvedDailyCalls,
+    percentage: consumerPurposes.percentage,
+    waitingForApprovalPurposes: consumerPurposes.waitingForApprovalPurposes,
+    results: consumerPurposes.results.map((result) => ({
+      purposeId: result.purposeId,
+      title: result.title,
+      dailyCalls: result.dailyCalls,
+      state: result.state,
+      suspendedByConsumer: result.suspendedByConsumer,
+      suspendedByProducer: result.suspendedByProducer,
+      updatedAt: result.updatedAt,
+      hasPendingQuotaChange: result.hasPendingQuotaChange,
+    })),
+    pagination: consumerPurposes.pagination,
+  };
+}
