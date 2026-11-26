@@ -14,7 +14,7 @@ describe("API GET /producers test", () => {
   const mockProducers: bffApi.CompactOrganizations = {
     results: [
       getMockBffApiCompactOrganization(),
-      getMockBffApiCompactOrganization({ populateHierarchy: true }),
+      getMockBffApiCompactOrganization({ populateTenantHierarchy: true }),
     ],
     pagination: { offset: 0, limit: 10, totalCount: 20 },
   };
