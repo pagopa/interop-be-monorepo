@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { delegationApi } from "pagopa-interop-api-clients";
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockTenant,
+  getMockTenantHierarchy,
+} from "pagopa-interop-commons-test";
 import { generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -26,15 +30,15 @@ describe("API GET /consumer/delegators test", () => {
     totalCount: 3,
   };
 
+  const { subUnitType, parentTenants } = getMockTenantHierarchy({
+    populateHierarchy: true,
+  });
   const apiDelegators = delegationApi.CompactTenants.parse({
     results: [
       {
         ...tenantToApiCompactTenant(mockDelegator1),
-        subUnitType: "UO",
-        parentTenants: [
-          { id: generateId(), name: "Direzione", subUnitType: "AOO" },
-          { id: generateId(), name: "Regione" },
-        ],
+        ...(subUnitType !== undefined ? { subUnitType } : {}),
+        ...(parentTenants !== undefined ? { parentTenants } : {}),
       },
       ...[mockDelegator2, mockDelegator3].map(tenantToApiCompactTenant),
     ],

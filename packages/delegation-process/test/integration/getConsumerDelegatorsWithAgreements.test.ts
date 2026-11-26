@@ -13,6 +13,7 @@ import {
   agreementState,
   TenantId,
   Tenant,
+  tenantUnitType,
 } from "pagopa-interop-models";
 import { describe, beforeEach, it, expect } from "vitest";
 
@@ -29,17 +30,17 @@ describe("getConsumerDelegatorsWithAgreements", () => {
   const parentTenant: Tenant = {
     ...getMockTenant(),
     name: "Direzione",
-    subUnitType: "AOO",
+    subUnitType: tenantUnitType.AOO,
     parentTenantId: rootTenant.id,
     rootTenantId: rootTenant.id,
   };
   const hierarchy = {
-    subUnitType: "UO" as const,
+    subUnitType: tenantUnitType.UO,
     parentTenants: [
       {
         id: parentTenant.id,
         name: parentTenant.name,
-        subUnitType: parentTenant.subUnitType,
+        subUnitType: tenantUnitType.AOO,
       },
       { id: rootTenant.id, name: rootTenant.name },
     ],
@@ -48,7 +49,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
   const delegator2: Tenant = {
     ...getMockTenant(),
     name: "Comune di Milano",
-    subUnitType: "UO",
+    subUnitType: tenantUnitType.UO,
     parentTenantId: parentTenant.id,
     rootTenantId: rootTenant.id,
   };
@@ -56,7 +57,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
   const delegator4: Tenant = {
     ...getMockTenant(),
     name: "DeleganteQuattro",
-    subUnitType: "UO",
+    subUnitType: tenantUnitType.UO,
     parentTenantId: parentTenant.id,
     rootTenantId: rootTenant.id,
   };
