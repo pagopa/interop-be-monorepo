@@ -4,9 +4,9 @@
 import { KafkaMessage } from "kafkajs";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { config } from "../src/config/config.js";
 import { mockAttributeBatch } from "./utilsAttribute.js";
 import { mockCatalogBatch } from "./utilsCatalog.js";
+import { mockTenantBatch } from "./utilsTenant.js";
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -42,6 +42,7 @@ vi.doMock("../src/handlers/catalog/consumerServiceV2.js", () => ({
 
 const mockTenantV1Handler = vi.fn().mockResolvedValue(undefined);
 const mockTenantV2Handler = vi.fn().mockResolvedValue(undefined);
+const mockTenantV3Handler = vi.fn().mockResolvedValue(undefined);
 
 vi.doMock("../src/handlers/tenant/consumerServiceV1.js", () => ({
   handleTenantMessageV1: mockTenantV1Handler,
@@ -49,6 +50,10 @@ vi.doMock("../src/handlers/tenant/consumerServiceV1.js", () => ({
 
 vi.doMock("../src/handlers/tenant/consumerServiceV2.js", () => ({
   handleTenantMessageV2: mockTenantV2Handler,
+}));
+
+vi.doMock("../src/handlers/tenant/consumerServiceV3.js", () => ({
+  handleTenantMessageV3: mockTenantV3Handler,
 }));
 
 describe("executeTopicHandler", () => {
@@ -74,26 +79,58 @@ describe("executeTopicHandler", () => {
     expect(mockCatalogV2Handler).toHaveBeenCalledOnce();
   });
 
-  it("should reject a tenant batch containing a V3 event without writing any tenant event", async () => {
+  it("should dispatch tenant V1, V2 and V3 events of the same batch in order", async () => {
     const executeTopicHandler = await setupHandlerAfterMock();
-    // The V3 event comes after V1 and V2 events of the same batch: none of
-    // them must be written.
-    const mixedVersionTenantMessages = [
-      { value: { event_version: 1, type: "TenantCreated" } },
-      { value: { event_version: 2, type: "TenantOnboarded" } },
-      { value: { event_version: 3, type: "TenantOnboarded" } },
-    ] as unknown as KafkaMessage[];
+    await executeTopicHandler(
+      mockTenantBatch.messages,
+      mockTenantBatch.topic,
+      {} as any
+    );
 
-    await expect(
-      executeTopicHandler(
-        mixedVersionTenantMessages,
-        config.tenantTopic,
-        {} as any
-      )
-    ).rejects.toThrow("Tenant event V3 not supported yet: TenantOnboarded");
+    expect(mockTenantV1Handler).toHaveBeenCalledOnce();
+    expect(mockTenantV2Handler).toHaveBeenCalledOnce();
+    expect(mockTenantV3Handler).toHaveBeenCalledOnce();
+    expect(mockTenantV3Handler.mock.calls[0][0]).toEqual([
+      { event_version: 3 },
+    ]);
+    expect(mockTenantV1Handler.mock.invocationCallOrder[0]).toBeLessThan(
+      mockTenantV2Handler.mock.invocationCallOrder[0]
+    );
+    expect(mockTenantV2Handler.mock.invocationCallOrder[0]).toBeLessThan(
+      mockTenantV3Handler.mock.invocationCallOrder[0]
+    );
+  });
+
+  it("should dispatch tenant events in Kafka order, one run of consecutive events with the same version at a time", async () => {
+    const executeTopicHandler = await setupHandlerAfterMock();
+    const messages = [
+      { event_version: 2, version: 1 },
+      { event_version: 3, version: 2 },
+      { event_version: 3, version: 3 },
+      { event_version: 2, version: 4 },
+    ].map((value) => ({ value }) as unknown as KafkaMessage);
+
+    await executeTopicHandler(messages, mockTenantBatch.topic, {} as any);
 
     expect(mockTenantV1Handler).not.toHaveBeenCalled();
-    expect(mockTenantV2Handler).not.toHaveBeenCalled();
+    expect(mockTenantV2Handler).toHaveBeenCalledTimes(2);
+    expect(mockTenantV3Handler).toHaveBeenCalledOnce();
+    expect(mockTenantV2Handler.mock.calls[0][0]).toEqual([
+      { event_version: 2, version: 1 },
+    ]);
+    expect(mockTenantV3Handler.mock.calls[0][0]).toEqual([
+      { event_version: 3, version: 2 },
+      { event_version: 3, version: 3 },
+    ]);
+    expect(mockTenantV2Handler.mock.calls[1][0]).toEqual([
+      { event_version: 2, version: 4 },
+    ]);
+    expect(mockTenantV2Handler.mock.invocationCallOrder[0]).toBeLessThan(
+      mockTenantV3Handler.mock.invocationCallOrder[0]
+    );
+    expect(mockTenantV3Handler.mock.invocationCallOrder[0]).toBeLessThan(
+      mockTenantV2Handler.mock.invocationCallOrder[1]
+    );
   });
 
   it("should throw genericInternalError for unknown topic", async () => {

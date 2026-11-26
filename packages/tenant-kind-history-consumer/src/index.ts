@@ -5,7 +5,6 @@ import { logger, decodeKafkaMessage } from "pagopa-interop-commons";
 import {
   CorrelationId,
   generateId,
-  genericInternalError,
   TenantEvent,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -16,6 +15,7 @@ import { config } from "./config/config.js";
 import {
   handleMessageV1,
   handleMessageV2,
+  handleMessageV3,
 } from "./tenantKindHistoryConsumerService.js";
 import { tenantKindHistoryWriterServiceBuilder } from "./tenantKindHistoryWriterService.js";
 
@@ -64,11 +64,9 @@ async function processMessage({
     .with({ event_version: 2 }, (msg) =>
       handleMessageV2(msg, tenantKindHistoryWriterService, loggerInstance)
     )
-    .with({ event_version: 3 }, (msg) => {
-      throw genericInternalError(
-        `Tenant event V3 not supported yet: ${msg.type}`
-      );
-    })
+    .with({ event_version: 3 }, (msg) =>
+      handleMessageV3(msg, tenantKindHistoryWriterService, loggerInstance)
+    )
     .exhaustive();
 }
 
