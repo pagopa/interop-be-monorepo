@@ -333,6 +333,47 @@ export async function cleaningTargetTables<
 }
 
 /**
+ * Purge stale rows in staging tables by comparing them with their parent in the target table.
+ *
+ * This operation deletes any row in each staging table whose parent row in the target table
+ * has a higher metadata_version. The staging cleanup compares a row only with the target rows
+ * having the same key, so a row that a newer event removed from the target table would be
+ * inserted again by an older event (e.g. on a replay): comparing it with its parent discards it.
+ * To be run after the merge of the parent table, before the merge of the staging tables.
+ *
+ * @param t - The pg-promise transaction object.
+ * @param parentKey - The key of the staging rows referencing the parent id.
+ * @param stagingTableNames - A list of tables whose staging rows are purged.
+ * @param parentTableName - The target table containing the parent rows.
+ */
+export async function cleaningStagingTablesByParentVersion<
+  StagingTable extends ReadonlyArray<DomainDbTable>,
+  ParentKey extends keyof z.infer<DomainDbTableSchemas[StagingTable[number]]>,
+>(
+  t: ITask<unknown>,
+  parentKey: ParentKey,
+  stagingTableNames: StagingTable,
+  parentTableName: DomainDbTable
+) {
+  const quoteColumn = (c: string) => `"${c}"`;
+  for (const tableName of stagingTableNames) {
+    const snakeCaseMapper = getColumnNameMapper(tableName);
+    const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
+
+    const deleteQuery = `
+    DELETE FROM ${stagingTableName}
+    USING ${config.dbSchemaName}.${parentTableName} AS parent
+    WHERE ${stagingTableName}.${quoteColumn(
+      snakeCaseMapper(String(parentKey))
+    )} = parent.id
+      AND ${stagingTableName}.metadata_version < parent.metadata_version
+    `.trim();
+
+    await t.none(deleteQuery);
+  }
+}
+
+/**
  * Removes duplicate objects from an array based on a set of key fields.
  *
  * @template T - The Zod schema shape defining the object structure.

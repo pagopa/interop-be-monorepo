@@ -15,6 +15,8 @@ import {
   PurposeEvent,
   TenantEventEnvelopeV1,
   TenantEventEnvelopeV2,
+  TenantEventEnvelopeV3,
+  TenantEventEnvelope,
   TenantEvent,
   AuthorizationEventEnvelopeV1,
   AuthorizationEventEnvelopeV2,
@@ -43,6 +45,7 @@ import { handlePurposeMessageV1 } from "./purpose/consumerServiceV1.js";
 import { handlePurposeMessageV2 } from "./purpose/consumerServiceV2.js";
 import { handleTenantMessageV1 } from "./tenant/consumerServiceV1.js";
 import { handleTenantMessageV2 } from "./tenant/consumerServiceV2.js";
+import { handleTenantMessageV3 } from "./tenant/consumerServiceV3.js";
 
 /**
  * Processes a list of Kafka messages for the specified topic by decoding each message and invoking the corresponding handler.
@@ -131,27 +134,21 @@ export async function executeTopicHandler(
       }
     })
     .with(config.tenantTopic, async () => {
-      const tenantV1: TenantEventEnvelopeV1[] = [];
-      const tenantV2: TenantEventEnvelopeV2[] = [];
       const decodedMessages = kafkaMessages.map((message) =>
         decodeKafkaMessage(message, TenantEvent)
       );
-      for (const decoded of decodedMessages) {
-        match(decoded)
-          .with({ event_version: 1 }, (msg) => tenantV1.push(msg))
-          .with({ event_version: 2 }, (msg) => tenantV2.push(msg))
-          .with({ event_version: 3 }, (msg) => {
-            throw genericInternalError(
-              `Tenant event V3 not supported yet: ${msg.type}`
-            );
-          })
+      for (const run of splitTenantEventsIntoRuns(decodedMessages)) {
+        await match(run)
+          .with({ eventVersion: 1 }, ({ messages }) =>
+            handleTenantMessageV1(messages, dbContext)
+          )
+          .with({ eventVersion: 2 }, ({ messages }) =>
+            handleTenantMessageV2(messages, dbContext)
+          )
+          .with({ eventVersion: 3 }, ({ messages }) =>
+            handleTenantMessageV3(messages, dbContext)
+          )
           .exhaustive();
-      }
-      if (tenantV1.length > 0) {
-        await handleTenantMessageV1(tenantV1, dbContext);
-      }
-      if (tenantV2.length > 0) {
-        await handleTenantMessageV2(tenantV2, dbContext);
       }
     })
     .with(config.authorizationTopic, async () => {
@@ -204,4 +201,47 @@ export async function executeTopicHandler(
     .otherwise(() => {
       throw genericInternalError(`Unknown topic`);
     });
+}
+
+type TenantEventRun =
+  | { eventVersion: 1; messages: TenantEventEnvelopeV1[] }
+  | { eventVersion: 2; messages: TenantEventEnvelopeV2[] }
+  | { eventVersion: 3; messages: TenantEventEnvelopeV3[] };
+
+/**
+ * Splits the tenant events into runs of consecutive events with the same
+ * version, keeping the Kafka order.
+ *
+ * Handling all the events of a version before those of the next one would
+ * apply an event after a newer one of the same tenant whenever a V2 event
+ * follows a V3 event, e.g. after the tenant events V3 feature flag is turned
+ * off again. The tenant row would be protected by its metadata_version, but
+ * the older event could restore the related rows removed by the newer one, or
+ * undo a logical deletion.
+ */
+function splitTenantEventsIntoRuns(
+  messages: TenantEventEnvelope[]
+): TenantEventRun[] {
+  const runs: TenantEventRun[] = [];
+  for (const message of messages) {
+    const lastRun = runs[runs.length - 1];
+    match(message)
+      .with({ event_version: 1 }, (msg) =>
+        match(lastRun)
+          .with({ eventVersion: 1 }, (run) => run.messages.push(msg))
+          .otherwise(() => runs.push({ eventVersion: 1, messages: [msg] }))
+      )
+      .with({ event_version: 2 }, (msg) =>
+        match(lastRun)
+          .with({ eventVersion: 2 }, (run) => run.messages.push(msg))
+          .otherwise(() => runs.push({ eventVersion: 2, messages: [msg] }))
+      )
+      .with({ event_version: 3 }, (msg) =>
+        match(lastRun)
+          .with({ eventVersion: 3 }, (run) => run.messages.push(msg))
+          .otherwise(() => runs.push({ eventVersion: 3, messages: [msg] }))
+      )
+      .exhaustive();
+  }
+  return runs;
 }
