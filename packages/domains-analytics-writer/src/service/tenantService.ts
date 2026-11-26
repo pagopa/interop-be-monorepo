@@ -21,6 +21,7 @@ import { tenantVerifiedAttributeRevokerRepository } from "../repository/tenant/t
 import { tenantVerifiedAttributeVerifierRepository } from "../repository/tenant/tenantVerifiedAttributeVerifier.repository.js";
 import { batchMessages } from "../utils/batchHelper.js";
 import {
+  cleaningStagingTablesByParentVersion,
   cleaningTargetTables,
   mergeDeletingCascadeById,
 } from "../utils/sqlQueryHelper.js";
@@ -147,6 +148,21 @@ export function tenantServiceBuilder(db: DBContext) {
         }
 
         await tenantRepo.merge(t);
+        await cleaningStagingTablesByParentVersion(
+          t,
+          "tenantId",
+          [
+            TenantDbTable.tenant_certified_attribute,
+            TenantDbTable.tenant_declared_attribute,
+            TenantDbTable.tenant_verified_attribute,
+            TenantDbTable.tenant_verified_attribute_verifier,
+            TenantDbTable.tenant_verified_attribute_revoker,
+            TenantDbTable.tenant_feature,
+            TenantDbTable.tenant_remote_id,
+            TenantDbTable.tenant_certified_discrete_attribute,
+          ],
+          TenantDbTable.tenant
+        );
         await tenantCertifiedAttributeRepo.merge(t);
         await tenantDeclaredAttributeRepo.merge(t);
         await tenantVerifiedAttributeRepo.merge(t);
