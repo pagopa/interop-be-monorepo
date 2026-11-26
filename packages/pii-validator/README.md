@@ -7,20 +7,20 @@ Interop HTTP service for deterministic recognition of selected PII categories in
 - `GET /status` exposes the standard service health endpoint.
 - Authenticated `POST /detect` accepts only `{ "fields": [{ "fieldId": "title", "text": "..." }] }`: 1–10 fields, unique nonempty caller-provided `fieldId`, and `text` may be empty. Duplicate IDs or the retired single-text request receive a redacted `400`.
 - A successful response has `{ "results": [{ "fieldId": "title", "detectedCategories": ["EMAIL_ADDRESS"] }] }`: exactly one ordered result per field, with only detected categories from the closed vocabulary; empty text or no findings yields `[]`. Technical failures return no partial results. Text and candidates are never returned.
-- Five categories have active recognizers: `EMAIL_ADDRESS`, `IT_VAT_CODE`, `IBAN_CODE`, `CREDIT_CARD`, `PHONE_NUMBER` (Italian mobile numbers only). Moo extracts original UTF-16 candidates by family in `candidateExtractors.ts`; named functions in `categoryValidators.ts` adapt and formally check them with `validator.js`. The declarative family configuration and small orchestrator in `recognizers.ts` scan each family once per field and return unique categories in catalog order. Unicode word boundaries prevent extracting identifiers embedded in words. A matching form is a syntactic finding; existence, ownership and authenticity require separate verification.
+- Five categories have active recognizers: `EMAIL_ADDRESS`, `IT_VAT_CODE`, `IT_IBAN_CODE`, `CREDIT_CARD`, `IT_PHONE_NUMBER` (Italian mobile numbers only). Moo extracts original UTF-16 candidates by family in `candidateExtractors.ts`; named functions in `categoryValidators.ts` adapt and formally check them with `validator.js`. The declarative family configuration and small orchestrator in `recognizers.ts` scan each family once per field and return unique categories in catalog order. Unicode word boundaries prevent extracting identifiers embedded in words. A matching form is a syntactic finding; existence, ownership and authenticity require separate verification.
 - VAT, cards and mobile numbers share maximal numeric candidates: ASCII digits, optional `IT` or `+` prefix, and groups separated by one or more ASCII spaces. Each category validates the whole candidate independently. VAT and mobile checkers receive a copy with ASCII spaces removed; the card checker handles spaces itself. Original text and offsets are preserved. Adjacent numeric groups separated only by spaces form one candidate, so two separate identifiers in that form may remain undetected. Tabs, newlines, NBSP and hyphens stay outside the numeric token; a following digit group across a numeric separator invalidates the preceding candidate.
 - Email extraction uses whole blocks with edge punctuation removed. Italian IBAN uses a compact 27-character candidate. A bare phone suffix after a short numeric prefix separated by punctuation is suppressed; this contextual guard can also suppress a phone after an identifier ending in a short digit run.
-- `IT_FISCAL_CODE`, `IT_IDENTITY_CARD` and `IT_DRIVER_LICENSE` are inactive; document validation remains deferred. Detection returns category names only; input text and candidates stay in memory and are excluded from service responses, application logs and application audit payloads. Proxy and APM sinks are outside the service tests.
+- `IT_FISCAL_CODE`, `IT_CIE` and `IT_DRIVER_LICENSE` are inactive; document validation remains deferred. Detection returns category names only; input text and candidates stay in memory and are excluded from service responses, application logs and application audit payloads. Proxy and APM sinks are outside the service tests.
 
 The closed API vocabulary contains:
 
 - `EMAIL_ADDRESS`
 - `IT_FISCAL_CODE`
 - `IT_VAT_CODE`
-- `IBAN_CODE`
+- `IT_IBAN_CODE`
 - `CREDIT_CARD`
-- `PHONE_NUMBER`
-- `IT_IDENTITY_CARD`
+- `IT_PHONE_NUMBER`
+- `IT_CIE`
 - `IT_DRIVER_LICENSE`
 
 `PERSON` is deliberately excluded. No NLP model, persistence, process integration or accuracy evaluation is included.

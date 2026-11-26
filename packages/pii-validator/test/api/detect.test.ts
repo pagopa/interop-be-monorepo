@@ -57,9 +57,9 @@ describe("API POST /detect batch contract", () => {
           detectedCategories: [
             "EMAIL_ADDRESS",
             "IT_VAT_CODE",
-            "IBAN_CODE",
+            "IT_IBAN_CODE",
             "CREDIT_CARD",
-            "PHONE_NUMBER",
+            "IT_PHONE_NUMBER",
           ],
         },
         { fieldId: "inactive", detectedCategories: [] },

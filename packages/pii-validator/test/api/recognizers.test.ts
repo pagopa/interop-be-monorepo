@@ -15,7 +15,7 @@ describe("recognition families", () => {
     try {
       expect(
         detectCategories("12345678901, 4111111111111111, 3494096457")
-      ).toEqual(["IT_VAT_CODE", "CREDIT_CARD", "PHONE_NUMBER"]);
+      ).toEqual(["IT_VAT_CODE", "CREDIT_CARD", "IT_PHONE_NUMBER"]);
       expect(
         compile.mock.calls.filter(([rules]) => "numericCandidate" in rules)
       ).toHaveLength(1);
@@ -34,7 +34,7 @@ describe("recognition families", () => {
         {
           extract,
           validators: [
-            { category: "PHONE_NUMBER", check: phone },
+            { category: "IT_PHONE_NUMBER", check: phone },
             { category: "CREDIT_CARD", check: card },
             { category: "IT_VAT_CODE", check: vat },
           ],

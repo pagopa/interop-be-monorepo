@@ -35,12 +35,12 @@ const recognitionFamilies: readonly RecognitionFamily[] = [
     validators: [
       { category: "IT_VAT_CODE", check: isVatCandidate },
       { category: "CREDIT_CARD", check: isCardCandidate },
-      { category: "PHONE_NUMBER", check: isPhoneCandidate },
+      { category: "IT_PHONE_NUMBER", check: isPhoneCandidate },
     ],
   },
   {
     extract: extractIbanCandidates,
-    validators: [{ category: "IBAN_CODE", check: isIbanCandidate }],
+    validators: [{ category: "IT_IBAN_CODE", check: isIbanCandidate }],
   },
 ];
 

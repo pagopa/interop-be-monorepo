@@ -13,26 +13,26 @@ describe("Moo candidate detection policy", () => {
     );
     expect(result).not.toContain("IT_DRIVER_LICENSE");
     expect(result).not.toContain("IT_FISCAL_CODE");
-    expect(result).not.toContain("IT_IDENTITY_CARD");
+    expect(result).not.toContain("IT_CIE");
   });
 
   it.each([
     ["EMAIL_ADDRESS", "foo!bar@example.com", true],
     ["EMAIL_ADDRESS", "a#b@example.com", true],
     ["EMAIL_ADDRESS", "é@example.com", true],
-    ["IBAN_CODE", "IT60X0542811101000000123456", true],
-    ["IBAN_CODE", "IT60X0542811101000000123456A", false],
-    ["IBAN_CODE", "IT60 X054 2811 1010 0000 0123 456", false],
+    ["IT_IBAN_CODE", "IT60X0542811101000000123456", true],
+    ["IT_IBAN_CODE", "IT60X0542811101000000123456A", false],
+    ["IT_IBAN_CODE", "IT60 X054 2811 1010 0000 0123 456", false],
     ["CREDIT_CARD", "4111111111111111", true],
     ["CREDIT_CARD", "41111111111111112", false],
     ["CREDIT_CARD", "4111 1111 1111 1111", true],
-    ["PHONE_NUMBER", "349 409 6457", true],
-    ["PHONE_NUMBER", "+39  349 409 6457", true],
-    ["PHONE_NUMBER", "3494096457", true],
-    ["PHONE_NUMBER", "+39 3494096457", true],
-    ["PHONE_NUMBER", "+39-3494096457", false],
-    ["PHONE_NUMBER", "349-4096457", false],
-    ["PHONE_NUMBER", "34940964571", false],
+    ["IT_PHONE_NUMBER", "349 409 6457", true],
+    ["IT_PHONE_NUMBER", "+39  349 409 6457", true],
+    ["IT_PHONE_NUMBER", "3494096457", true],
+    ["IT_PHONE_NUMBER", "+39 3494096457", true],
+    ["IT_PHONE_NUMBER", "+39-3494096457", false],
+    ["IT_PHONE_NUMBER", "349-4096457", false],
+    ["IT_PHONE_NUMBER", "34940964571", false],
     ["IT_VAT_CODE", "IT12345678901", true],
     ["IT_VAT_CODE", "12345678901", true],
     ["IT_VAT_CODE", "a12345678901b", false],
@@ -63,9 +63,9 @@ describe("Moo candidate detection policy", () => {
   );
 
   it.each([
-    ["PHONE_NUMBER", "é123456 3494096457"],
+    ["IT_PHONE_NUMBER", "é123456 3494096457"],
     ["CREDIT_CARD", "Ω123456 4111111111111111"],
-    ["PHONE_NUMBER", "1: +39 3494096457"],
+    ["IT_PHONE_NUMBER", "1: +39 3494096457"],
   ] as const)(
     "preserves %s after unrelated context: %s",
     async (category, text) => {
@@ -79,9 +79,9 @@ describe("Moo candidate detection policy", () => {
     );
     expect(result).toEqual([
       "EMAIL_ADDRESS",
-      "IBAN_CODE",
+      "IT_IBAN_CODE",
       "CREDIT_CARD",
-      "PHONE_NUMBER",
+      "IT_PHONE_NUMBER",
     ]);
   });
 
@@ -99,14 +99,14 @@ describe("Moo candidate detection policy", () => {
   ])(
     "does not recover a bare mobile from malformed context: %s",
     async (text) => {
-      expect(await categories(text)).not.toContain("PHONE_NUMBER");
+      expect(await categories(text)).not.toContain("IT_PHONE_NUMBER");
     }
   );
 
   it.each([
-    ["IBAN_CODE", "éIT60X0542811101000000123456"],
+    ["IT_IBAN_CODE", "éIT60X0542811101000000123456"],
     ["CREDIT_CARD", "é4111111111111111"],
-    ["PHONE_NUMBER", "é3494096457"],
+    ["IT_PHONE_NUMBER", "é3494096457"],
   ] as const)(
     "does not match %s inside a Unicode word",
     async (category, text) => {
