@@ -39,6 +39,7 @@ import {
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 
 import {
   apiTechnologyToTechnology,
@@ -49,6 +50,7 @@ import {
   toBffCatalogApiEserviceRiskAnalysisSeed,
   toBffCatalogDescriptorEService,
   toBffEServiceTemplateInstance,
+  toBffCatalogQueryTemplateInstancesGroup,
   toCatalogCreateEServiceSeed,
   toCompactCatalogEService,
   toCompactProducerDescriptor,
@@ -450,29 +452,52 @@ export function catalogServiceBuilder(
     queryCatalog: async (
       ctx: WithLogger<BffAppContext>,
       filters: bffApi.CatalogFilterPayload
-    ): Promise<bffApi.CatalogEServices> => {
+    ): Promise<bffApi.CatalogQueryResults> => {
       ctx.logger.info(
-        `Querying EServices catalog, offset = ${filters.offset}, limit = ${filters.limit}`
+        `Querying EServices catalog, offset = ${filters.offset}, limit = ${filters.limit}, groupByTemplate = ${filters.groupByTemplate}`
       );
       const requesterId = ctx.authData.organizationId;
-      const eservicesResponse: catalogApi.EServices =
+      const queryResponse: catalogApi.CatalogQueryResults =
         await catalogProcessClient.queryEServices(filters, {
           headers: ctx.headers,
         });
 
-      const results = await enhanceCatalogEservices(
-        eservicesResponse.results,
-        tenantProcessClient,
-        inAppNotificationManagerClient,
-        ctx,
-        requesterId
+      const eservices = queryResponse.results.flatMap((result) =>
+        result.resultType === "eservice" ? [result] : []
       );
+      const enhancedEServices = new Map(
+        (
+          await enhanceCatalogEservices(
+            eservices,
+            tenantProcessClient,
+            inAppNotificationManagerClient,
+            ctx,
+            requesterId
+          )
+        ).map((eservice) => [eservice.id, eservice])
+      );
+
+      const results = queryResponse.results.flatMap(
+        (result): bffApi.CatalogQueryResult[] =>
+          match(result)
+            .with({ resultType: "eservice" }, ({ id }) => {
+              const eservice = enhancedEServices.get(id);
+              return eservice
+                ? [{ ...eservice, resultType: "eservice" as const }]
+                : [];
+            })
+            .with({ resultType: "template" }, (group) => [
+              toBffCatalogQueryTemplateInstancesGroup(group),
+            ])
+            .exhaustive()
+      );
+
       return {
         results,
         pagination: {
           offset: filters.offset,
           limit: filters.limit,
-          totalCount: eservicesResponse.totalCount,
+          totalCount: queryResponse.totalCount,
         },
       };
     },
@@ -481,7 +506,7 @@ export function catalogServiceBuilder(
     ): Promise<bffApi.CatalogEService[]> => {
       ctx.logger.info("Retrieving featured EServices catalog");
       const requesterId = ctx.authData.organizationId;
-      const eservicesResponse: catalogApi.EServices =
+      const eservicesResponse: catalogApi.CatalogQueryResults =
         await catalogProcessClient.queryEServices(
           {
             offset: 0,
@@ -490,12 +515,22 @@ export function catalogServiceBuilder(
             availableForRequester: true,
             subscribedByRequester: false,
             sortBy: "CREATED_AT_DESC",
+            groupByTemplate: false,
           },
           { headers: ctx.headers }
         );
 
+      const eservices = eservicesResponse.results.map((result) => {
+        if (result.resultType !== "eservice") {
+          throw genericInternalError(
+            "Unexpected template group in featured catalog"
+          );
+        }
+        return result;
+      });
+
       return enhanceCatalogEservices(
-        eservicesResponse.results,
+        eservices,
         tenantProcessClient,
         inAppNotificationManagerClient,
         ctx,
