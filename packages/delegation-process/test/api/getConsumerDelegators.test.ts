@@ -14,9 +14,23 @@ import { tenantToApiCompactTenant } from "../mockUtils.js";
 import { api, delegationService } from "../vitest.api.setup.js";
 
 describe("API GET /consumer/delegators test", () => {
-  const mockDelegator1 = { ...getMockTenant(), name: "Comune di Burione" };
-  const mockDelegator2 = { ...getMockTenant(), name: "Comune di Milano" };
-  const mockDelegator3 = { ...getMockTenant(), name: "DeleganteTre" };
+  const { subUnitType, parentTenants } = getMockTenantHierarchy({
+    populateHierarchy: true,
+  });
+  const mockDelegator1 = {
+    ...tenantToApiCompactTenant(getMockTenant()),
+    name: "Comune di Burione",
+    ...(subUnitType !== undefined ? { subUnitType } : {}),
+    ...(parentTenants !== undefined ? { parentTenants } : {}),
+  };
+  const mockDelegator2 = {
+    ...tenantToApiCompactTenant(getMockTenant()),
+    name: "Comune di Milano",
+  };
+  const mockDelegator3 = {
+    ...tenantToApiCompactTenant(getMockTenant()),
+    name: "DeleganteTre",
+  };
 
   const defaultQuery = {
     offset: 0,
@@ -30,20 +44,7 @@ describe("API GET /consumer/delegators test", () => {
     totalCount: 3,
   };
 
-  const { subUnitType, parentTenants } = getMockTenantHierarchy({
-    populateHierarchy: true,
-  });
-  const apiDelegators = delegationApi.CompactTenants.parse({
-    results: [
-      {
-        ...tenantToApiCompactTenant(mockDelegator1),
-        ...(subUnitType !== undefined ? { subUnitType } : {}),
-        ...(parentTenants !== undefined ? { parentTenants } : {}),
-      },
-      ...[mockDelegator2, mockDelegator3].map(tenantToApiCompactTenant),
-    ],
-    totalCount: mockDelegators.totalCount,
-  });
+  const apiDelegators = delegationApi.CompactTenants.parse(mockDelegators);
 
   beforeEach(() => {
     delegationService.getConsumerDelegators = vi
