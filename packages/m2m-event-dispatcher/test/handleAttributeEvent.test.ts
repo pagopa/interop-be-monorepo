@@ -24,11 +24,7 @@ describe("handleAttributeEvent test", async () => {
     vi.clearAllMocks();
   });
 
-  it.each(
-    AttributeEvent.options
-      .map((o) => o.shape.type.value)
-      .filter((type) => type !== "AttributeSubunitPropagationUpdated")
-  )(
+  it.each(AttributeEvent.options.map((o) => o.shape.type.value))(
     "should write %s M2M event with the right visibility",
     async (eventType: AttributeEvent["type"]) => {
       const message = {
@@ -74,29 +70,6 @@ describe("handleAttributeEvent test", async () => {
       expect(actualM2MEvent).toEqual(expectedM2MEvent);
     }
   );
-
-  it("should ignore the AttributeSubunitPropagationUpdated event", async () => {
-    const message: AttributeEventEnvelope = {
-      ...getMockEventEnvelopeCommons(),
-      stream_id: attribute.id,
-      type: "AttributeSubunitPropagationUpdated",
-      event_version: 1,
-      data: {
-        attribute: toAttributeV1(attribute),
-      },
-    };
-
-    await handleAttributeEvent(
-      message,
-      new Date(),
-      genericLogger,
-      testM2mEventWriterService
-    );
-
-    expect(
-      testM2mEventWriterService.insertAttributeM2MEvent
-    ).not.toHaveBeenCalled();
-  });
 
   it("should not write the event if the same resource version is already present", async () => {
     const message = {

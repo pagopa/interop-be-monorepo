@@ -3,7 +3,10 @@ import { z } from "zod";
 import { AttributeEvent } from "../attribute/attributeEvents.js";
 import { AttributeId, AttributeM2MEventId } from "../brandedIds.js";
 
-export const AttributeM2MEventType = z.enum(["AttributeAdded"]);
+export const AttributeM2MEventType = z.enum([
+  "AttributeAdded",
+  "AttributeSubunitPropagationUpdated",
+]);
 export type AttributeM2MEventType = z.infer<typeof AttributeM2MEventType>;
 
 const _: AttributeEvent["type"] = {} as AttributeM2MEventType;

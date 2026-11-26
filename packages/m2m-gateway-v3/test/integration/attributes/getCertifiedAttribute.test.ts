@@ -58,6 +58,23 @@ describe("getCertifiedAttribute", () => {
     });
   });
 
+  it("Should expose subunitPropagationEnabled when set", async () => {
+    mockGetAttribute.mockResolvedValueOnce({
+      ...mockAttributeProcessResponse,
+      data: {
+        ...mockAttributeProcessResponse.data,
+        subunitPropagationEnabled: true,
+      },
+    });
+
+    const result = await attributeService.getCertifiedAttribute(
+      mockAttributeProcessResponse.data.id,
+      getMockM2MAdminAppContext()
+    );
+
+    expect(result.subunitPropagationEnabled).toBe(true);
+  });
+
   it("Should throw attributeNotFound in case the returned attribute has an unexpected kind", async () => {
     const mockResponse = {
       ...mockAttributeProcessResponse,
