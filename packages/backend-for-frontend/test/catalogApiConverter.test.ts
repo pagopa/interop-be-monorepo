@@ -2,13 +2,17 @@ import {
   attributeRegistryApi,
   bffApi,
   catalogApi,
-  tenantApi,
 } from "pagopa-interop-api-clients";
 import {
   getMockedApiEservice,
   getMockedApiTenant,
 } from "pagopa-interop-commons-test";
-import { AttributeId, generateId } from "pagopa-interop-models";
+import {
+  AttributeId,
+  generateId,
+  TenantId,
+  tenantUnitType,
+} from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -159,7 +163,7 @@ describe("catalogApiConverter", () => {
   });
 
   describe("toBffCatalogTenant", () => {
-    it("should preserve tenant information and notifications without hierarchy", () => {
+    it("should omit parent tenants when the tenant has no hierarchy", () => {
       const tenant = getMockedApiTenant();
       const result = toBffCatalogTenant(tenant, true);
 
@@ -175,15 +179,20 @@ describe("catalogApiConverter", () => {
     });
 
     it("should return the parent and root tenants when available", () => {
-      const parentTenants: tenantApi.ParentTenant[] = [
-        { id: generateId(), name: "Tenant AOO", subUnitType: "AOO" },
-        { id: generateId(), name: "Tenant root" },
-      ];
+      const parentTenantId = generateId<TenantId>();
+      const rootTenantId = generateId<TenantId>();
       const tenant = {
         ...getMockedApiTenant(),
         name: "Tenant UO",
-        subUnitType: "UO" as const,
-        parentTenants,
+        subUnitType: tenantUnitType.UO,
+        parentTenants: [
+          {
+            id: parentTenantId,
+            name: "Tenant AOO",
+            subUnitType: tenantUnitType.AOO,
+          },
+          { id: rootTenantId, name: "Tenant root" },
+        ],
       };
 
       const result = toBffCatalogTenant(tenant);
@@ -191,8 +200,15 @@ describe("catalogApiConverter", () => {
       expect(bffApi.CatalogTenant.parse(result)).toMatchObject({
         id: tenant.id,
         name: "Tenant UO",
-        subUnitType: "UO",
-        parentTenants,
+        subUnitType: tenantUnitType.UO,
+        parentTenants: [
+          {
+            id: parentTenantId,
+            name: "Tenant AOO",
+            subUnitType: tenantUnitType.AOO,
+          },
+          { id: rootTenantId, name: "Tenant root" },
+        ],
         hasUnreadNotifications: false,
       });
     });
@@ -200,13 +216,19 @@ describe("catalogApiConverter", () => {
 
   describe("toBffCatalogApiEService", () => {
     it("should propagate the producer hierarchy while preserving catalog fields", () => {
+      const parentTenantId = generateId<TenantId>();
+      const rootTenantId = generateId<TenantId>();
       const producer = {
         ...getMockedApiTenant(),
         name: "Tenant UO",
-        subUnitType: "UO" as const,
+        subUnitType: tenantUnitType.UO,
         parentTenants: [
-          { id: generateId(), name: "Tenant AOO", subUnitType: "AOO" as const },
-          { id: generateId(), name: "Tenant root" },
+          {
+            id: parentTenantId,
+            name: "Tenant AOO",
+            subUnitType: tenantUnitType.AOO,
+          },
+          { id: rootTenantId, name: "Tenant root" },
         ],
       };
       const eservice = {
@@ -220,8 +242,15 @@ describe("catalogApiConverter", () => {
         id: eservice.producerId,
         name: producer.name,
         selfcareId: producer.selfcareId,
-        subUnitType: "UO",
-        parentTenants: producer.parentTenants,
+        subUnitType: tenantUnitType.UO,
+        parentTenants: [
+          {
+            id: parentTenantId,
+            name: "Tenant AOO",
+            subUnitType: tenantUnitType.AOO,
+          },
+          { id: rootTenantId, name: "Tenant root" },
+        ],
       });
       expect(bffApi.CatalogEService.parse(result)).toMatchObject({
         id: eservice.id,
@@ -230,8 +259,15 @@ describe("catalogApiConverter", () => {
         producer: {
           id: producer.id,
           name: producer.name,
-          subUnitType: "UO",
-          parentTenants: producer.parentTenants,
+          subUnitType: tenantUnitType.UO,
+          parentTenants: [
+            {
+              id: parentTenantId,
+              name: "Tenant AOO",
+              subUnitType: tenantUnitType.AOO,
+            },
+            { id: rootTenantId, name: "Tenant root" },
+          ],
         },
         isMine: true,
         hasUnreadNotifications: true,
@@ -241,12 +277,18 @@ describe("catalogApiConverter", () => {
 
   describe("toBffCatalogDescriptorEService", () => {
     it("should return the producer parent and root tenants when available", async () => {
+      const parentTenantId = generateId<TenantId>();
+      const rootTenantId = generateId<TenantId>();
       const producer = {
         ...getMockedApiTenant(),
-        subUnitType: "UO" as const,
+        subUnitType: tenantUnitType.UO,
         parentTenants: [
-          { id: generateId(), name: "Tenant AOO", subUnitType: "AOO" as const },
-          { id: generateId(), name: "Tenant root" },
+          {
+            id: parentTenantId,
+            name: "Tenant AOO",
+            subUnitType: tenantUnitType.AOO,
+          },
+          { id: rootTenantId, name: "Tenant root" },
         ],
       };
       const eservice = {
@@ -268,20 +310,33 @@ describe("catalogApiConverter", () => {
       expect(bffApi.CompactOrganization.parse(details.producer)).toMatchObject({
         id: producer.id,
         name: producer.name,
-        subUnitType: "UO",
-        parentTenants: producer.parentTenants,
+        subUnitType: tenantUnitType.UO,
+        parentTenants: [
+          {
+            id: parentTenantId,
+            name: "Tenant AOO",
+            subUnitType: tenantUnitType.AOO,
+          },
+          { id: rootTenantId, name: "Tenant root" },
+        ],
       });
     });
   });
 
   describe("toCompactEservice", () => {
     it("should return the producer parent and root tenants when available", () => {
+      const parentTenantId = generateId<TenantId>();
+      const rootTenantId = generateId<TenantId>();
       const producer = {
         ...getMockedApiTenant(),
-        subUnitType: "UO" as const,
+        subUnitType: tenantUnitType.UO,
         parentTenants: [
-          { id: generateId(), name: "Tenant AOO", subUnitType: "AOO" as const },
-          { id: generateId(), name: "Tenant root" },
+          {
+            id: parentTenantId,
+            name: "Tenant AOO",
+            subUnitType: tenantUnitType.AOO,
+          },
+          { id: rootTenantId, name: "Tenant root" },
         ],
       };
       const eservice = {
@@ -292,8 +347,15 @@ describe("catalogApiConverter", () => {
       expect(bffApi.CompactOrganization.parse(compact.producer)).toMatchObject({
         id: producer.id,
         name: producer.name,
-        subUnitType: "UO",
-        parentTenants: producer.parentTenants,
+        subUnitType: tenantUnitType.UO,
+        parentTenants: [
+          {
+            id: parentTenantId,
+            name: "Tenant AOO",
+            subUnitType: tenantUnitType.AOO,
+          },
+          { id: rootTenantId, name: "Tenant root" },
+        ],
       });
     });
   });

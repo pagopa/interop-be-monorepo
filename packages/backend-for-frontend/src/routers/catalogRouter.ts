@@ -87,7 +87,7 @@ const catalogRouter = (
       try {
         const response = await catalogService.queryCatalog(ctx, req.body);
 
-        return res.status(200).send(bffApi.CatalogEServices.parse(response));
+        return res.status(200).send(bffApi.CatalogQueryResults.parse(response));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -112,6 +112,24 @@ const catalogRouter = (
           bffGetCatalogErrorMapper,
           ctx,
           "Error retrieving featured Catalog EServices"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/catalog/use-cases", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const response = await catalogService.getCatalogUseCases(ctx);
+
+        return res
+          .status(200)
+          .send(z.array(bffApi.CatalogUseCase).parse(response));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          bffGetCatalogErrorMapper,
+          ctx,
+          "Error retrieving Catalog use cases"
         );
         return res.status(errorRes.status).send(errorRes);
       }

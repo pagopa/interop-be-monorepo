@@ -12,7 +12,13 @@ import {
   getMockedApiEserviceDescriptor,
   getMockedApiPurposeVersion,
 } from "pagopa-interop-commons-test";
-import { generateId, PurposeId, TenantId, UserId } from "pagopa-interop-models";
+import {
+  generateId,
+  PurposeId,
+  TenantId,
+  tenantUnitType,
+  UserId,
+} from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type {
@@ -29,11 +35,13 @@ describe("getPurpose — reviewer enrichment", () => {
   const consumerId = generateId<TenantId>();
   const producerId = generateId<TenantId>();
   const reviewerId = generateId<UserId>();
+  const parentTenantId = generateId<TenantId>();
+  const rootTenantId = generateId<TenantId>();
   const sentToReviewerAt = new Date().toISOString();
   const consumerSelfcareId = generateId();
   const parentTenants: tenantApi.ParentTenant[] = [
-    { id: generateId(), name: "Tenant AOO", subUnitType: "AOO" },
-    { id: generateId(), name: "Tenant root" },
+    { id: parentTenantId, name: "Tenant AOO", subUnitType: tenantUnitType.AOO },
+    { id: rootTenantId, name: "Tenant root" },
   ];
 
   const descriptor = getMockedApiEserviceDescriptor({
@@ -64,7 +72,7 @@ describe("getPurpose — reviewer enrichment", () => {
     kind: "GSP",
     mails: [],
     features: [],
-    subUnitType: "UO",
+    subUnitType: tenantUnitType.UO,
     parentTenants,
   };
 
@@ -77,7 +85,7 @@ describe("getPurpose — reviewer enrichment", () => {
     kind: "GSP",
     mails: [],
     features: [],
-    subUnitType: "UO",
+    subUnitType: tenantUnitType.UO,
     parentTenants,
   };
 
@@ -201,13 +209,27 @@ describe("getPurpose — reviewer enrichment", () => {
       );
       expect(result.data.consumer).toMatchObject({
         id: consumerId,
-        subUnitType: "UO",
-        parentTenants,
+        subUnitType: tenantUnitType.UO,
+        parentTenants: [
+          {
+            id: parentTenantId,
+            name: "Tenant AOO",
+            subUnitType: tenantUnitType.AOO,
+          },
+          { id: rootTenantId, name: "Tenant root" },
+        ],
       });
       expect(result.data.eservice.producer).toMatchObject({
         id: producerId,
-        subUnitType: "UO",
-        parentTenants,
+        subUnitType: tenantUnitType.UO,
+        parentTenants: [
+          {
+            id: parentTenantId,
+            name: "Tenant AOO",
+            subUnitType: tenantUnitType.AOO,
+          },
+          { id: rootTenantId, name: "Tenant root" },
+        ],
       });
     }
   );
@@ -467,13 +489,27 @@ describe("getPurpose — reviewer enrichment", () => {
         expect(result.results[0]?.currentVersion).toBeUndefined();
         expect(result.results[0]?.consumer).toMatchObject({
           id: consumerId,
-          subUnitType: "UO",
-          parentTenants,
+          subUnitType: tenantUnitType.UO,
+          parentTenants: [
+            {
+              id: parentTenantId,
+              name: "Tenant AOO",
+              subUnitType: tenantUnitType.AOO,
+            },
+            { id: rootTenantId, name: "Tenant root" },
+          ],
         });
         expect(result.results[0]?.eservice.producer).toMatchObject({
           id: producerId,
-          subUnitType: "UO",
-          parentTenants,
+          subUnitType: tenantUnitType.UO,
+          parentTenants: [
+            {
+              id: parentTenantId,
+              name: "Tenant AOO",
+              subUnitType: tenantUnitType.AOO,
+            },
+            { id: rootTenantId, name: "Tenant root" },
+          ],
         });
         expect(result.results[0]?.waitingForApprovalVersion).toMatchObject(
           expectedWaitingVersion

@@ -10,6 +10,7 @@ message AttributeV1 {
   required string name = 5;
   required string description = 6;
   required string creationTime = 7;
+  optional bool subunitPropagationEnabled = 8;
 }
 
 enum AttributeKindV1 {

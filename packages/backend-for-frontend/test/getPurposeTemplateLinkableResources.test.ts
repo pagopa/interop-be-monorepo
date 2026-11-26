@@ -13,7 +13,12 @@ import {
   getMockedApiEServiceTemplate,
   getMockedApiTenant,
 } from "pagopa-interop-commons-test";
-import { generateId, PurposeTemplateId, TenantId } from "pagopa-interop-models";
+import {
+  generateId,
+  PurposeTemplateId,
+  TenantId,
+  tenantUnitType,
+} from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 
 import type { TenantProcessClient } from "../src/clients/clientsProvider.js";
@@ -124,18 +129,24 @@ describe("getPurposeTemplateLinkableResources (service)", () => {
     const concreteOldest = buildConcreteFixture("2026-01-01T00:00:00.000Z");
     const templateMid = buildTemplateFixture("2026-02-01T00:00:00.000Z");
     const concreteNewest = buildConcreteFixture("2026-03-01T00:00:00.000Z");
+    const parentTenantId = generateId<TenantId>();
+    const rootTenantId = generateId<TenantId>();
     const parentTenants: tenantApi.ParentTenant[] = [
-      { id: generateId(), name: "Tenant AOO", subUnitType: "AOO" },
-      { id: generateId(), name: "Tenant root" },
+      {
+        id: parentTenantId,
+        name: "Tenant AOO",
+        subUnitType: tenantUnitType.AOO,
+      },
+      { id: rootTenantId, name: "Tenant root" },
     ];
     concreteNewest.tenant = {
       ...concreteNewest.tenant,
-      subUnitType: "UO",
+      subUnitType: tenantUnitType.UO,
       parentTenants,
     };
     templateMid.tenant = {
       ...templateMid.tenant,
-      subUnitType: "UO",
+      subUnitType: tenantUnitType.UO,
       parentTenants,
     };
 
@@ -189,8 +200,15 @@ describe("getPurposeTemplateLinkableResources (service)", () => {
       eservice: {
         producer: {
           id: concreteNewest.tenant.id,
-          subUnitType: "UO",
-          parentTenants,
+          subUnitType: tenantUnitType.UO,
+          parentTenants: [
+            {
+              id: parentTenantId,
+              name: "Tenant AOO",
+              subUnitType: tenantUnitType.AOO,
+            },
+            { id: rootTenantId, name: "Tenant root" },
+          ],
         },
       },
     });
@@ -198,8 +216,15 @@ describe("getPurposeTemplateLinkableResources (service)", () => {
       eserviceTemplate: {
         creator: {
           id: templateMid.tenant.id,
-          subUnitType: "UO",
-          parentTenants,
+          subUnitType: tenantUnitType.UO,
+          parentTenants: [
+            {
+              id: parentTenantId,
+              name: "Tenant AOO",
+              subUnitType: tenantUnitType.AOO,
+            },
+            { id: rootTenantId, name: "Tenant root" },
+          ],
         },
       },
     });

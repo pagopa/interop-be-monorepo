@@ -3,7 +3,7 @@ import {
   getMockedApiPurposeTemplate,
   getMockedApiTenant,
 } from "pagopa-interop-commons-test";
-import { generateId } from "pagopa-interop-models";
+import { generateId, TenantId, tenantUnitType } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 
 import { toBffCatalogPurposeTemplate } from "../src/api/purposeTemplateApiConverter.js";
@@ -26,14 +26,20 @@ describe("toBffCatalogPurposeTemplate", () => {
   });
 
   it("should return the creator parent and root tenants when available", () => {
+    const parentTenantId = generateId<TenantId>();
+    const rootTenantId = generateId<TenantId>();
     const template = getMockedApiPurposeTemplate();
     const creator = {
       ...getMockedApiTenant(),
       name: "Tenant UO",
-      subUnitType: "UO" as const,
+      subUnitType: tenantUnitType.UO,
       parentTenants: [
-        { id: generateId(), name: "Tenant AOO", subUnitType: "AOO" as const },
-        { id: generateId(), name: "Tenant root" },
+        {
+          id: parentTenantId,
+          name: "Tenant AOO",
+          subUnitType: tenantUnitType.AOO,
+        },
+        { id: rootTenantId, name: "Tenant root" },
       ],
     };
 
@@ -42,8 +48,15 @@ describe("toBffCatalogPurposeTemplate", () => {
     expect(bffApi.CatalogPurposeTemplate.parse(result).creator).toMatchObject({
       id: creator.id,
       name: creator.name,
-      subUnitType: "UO",
-      parentTenants: creator.parentTenants,
+      subUnitType: tenantUnitType.UO,
+      parentTenants: [
+        {
+          id: parentTenantId,
+          name: "Tenant AOO",
+          subUnitType: tenantUnitType.AOO,
+        },
+        { id: rootTenantId, name: "Tenant root" },
+      ],
     });
   });
 });
