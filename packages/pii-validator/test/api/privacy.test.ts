@@ -19,6 +19,7 @@ import {
   DetectionService,
   detectionService,
 } from "../../src/services/detectionService.js";
+import { italianDriverLicensePatterns } from "../../src/services/regexRules.js";
 import { auditCapture } from "../auditCapture.js";
 import { logCapture } from "../logCapture.js";
 
@@ -78,6 +79,88 @@ beforeEach(() => {
 });
 
 describe("privacy-safe HTTP boundary", () => {
+  it.each([
+    ["isCieCandidate", "CA12345AA"],
+    ["isItalianDriverLicenseCandidate", "U1B123456C"],
+  ] as const)(
+    "sanitizes %s failures and discards prior batch results",
+    async (name, text) => {
+      const identityCheck = validator.isIdentityCard;
+      const licencePattern = italianDriverLicensePatterns.letterPrefixedSerial;
+      const licenceCheck = licencePattern.test.bind(licencePattern);
+      const original =
+        name === "isCieCandidate"
+          ? (value: string) => identityCheck(value, "IT")
+          : licenceCheck;
+      const failOnDocument = (value: string) => {
+        if (value === text) {
+          throw new Error(`document failed: ${sentinel}`, {
+            cause: new Error(sentinel),
+          });
+        }
+        return original(value);
+      };
+      const checker =
+        name === "isCieCandidate"
+          ? vi
+              .spyOn(validator, "isIdentityCard")
+              .mockImplementation(failOnDocument)
+          : vi.spyOn(licencePattern, "test").mockImplementation(failOnDocument);
+      const body = {
+        fields: [
+          { fieldId: "first", text: "qa@example.com" },
+          { fieldId: "document", text },
+        ],
+      };
+      try {
+        const error = await detectionService
+          .detect(body)
+          .catch((failure: unknown) => failure);
+        expect(error).toBeInstanceOf(Error);
+        if (!(error instanceof Error))
+          throw new Error("Expected sanitized failure");
+        expect(error.message).toBe("PII recognition failed");
+        expect(error.cause).toBeUndefined();
+        expect(error.stack).not.toContain(sentinel);
+        const response = await authenticatedRequest(
+          await createPrivacyApp()
+        ).send(body);
+        expect(response.status).toBe(
+          constants.HTTP_STATUS_INTERNAL_SERVER_ERROR
+        );
+        expect(response.body).not.toHaveProperty("results");
+        expect(checker.mock.calls.map(([value]) => value)).toContain(text);
+        await assertPrivacyBoundary(response);
+      } finally {
+        checker.mockRestore();
+      }
+    }
+  );
+
+  it("returns document categories per field without exposing their values", async () => {
+    const response = await authenticatedRequest(await createPrivacyApp()).send({
+      fields: [
+        { fieldId: "identity", text: "CA12345AA" },
+        { fieldId: "licence", text: "U1B123456C" },
+      ],
+    });
+    expect(response.status).toBe(constants.HTTP_STATUS_OK);
+    expect(response.body).toEqual({
+      results: [
+        { fieldId: "identity", detectedCategories: ["IT_CIE"] },
+        { fieldId: "licence", detectedCategories: ["IT_DRIVER_LICENSE"] },
+      ],
+    });
+    await assertPrivacyBoundary(response);
+    const exposed = JSON.stringify([
+      response.body,
+      logCapture.entries,
+      auditCapture.entries,
+    ]);
+    expect(exposed).not.toContain("CA12345AA");
+    expect(exposed).not.toContain("U1B123456C");
+  });
+
   it("redacts malformed JSON from the response, complete logs and real audit payloads", async () => {
     const api = await createPrivacyApp(successfulService);
     const response = await authenticatedRequest(api)

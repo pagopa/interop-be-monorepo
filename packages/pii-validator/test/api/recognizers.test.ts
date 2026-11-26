@@ -4,10 +4,24 @@ import { describe, expect, it, vi } from "vitest";
 import { detectCategories } from "../../src/services/recognizers.js";
 
 describe("recognition families", () => {
-  it("keeps deferred documents and fiscal code inactive", () => {
-    expect(
-      detectCategories("RSSMRA80A01H501U CA12345AA U1T86I309C 71C68F093D")
-    ).toEqual([]);
+  it("scans the alphanumeric family once for IBAN, CIE and licence", () => {
+    const compile = vi.spyOn(moo, "compile");
+    try {
+      expect(
+        detectCategories(
+          "CA12345AA U1B123456C IT60X0542811101000000123456 CA12345AA"
+        )
+      ).toEqual(["IT_IBAN_CODE", "IT_CIE", "IT_DRIVER_LICENSE"]);
+      expect(
+        compile.mock.calls.filter(([rules]) => "alphanumericCandidate" in rules)
+      ).toHaveLength(1);
+    } finally {
+      compile.mockRestore();
+    }
+  });
+
+  it("keeps fiscal code inactive", () => {
+    expect(detectCategories("RSSMRA80A01H501U")).toEqual([]);
   });
 
   it("scans the numeric family once for all three categories", () => {
@@ -15,7 +29,7 @@ describe("recognition families", () => {
     try {
       expect(
         detectCategories("12345678901, 4111111111111111, 3494096457")
-      ).toEqual(["IT_VAT_CODE", "CREDIT_CARD", "PHONE_NUMBER"]);
+      ).toEqual(["IT_VAT_CODE", "CREDIT_CARD", "IT_PHONE_NUMBER"]);
       expect(
         compile.mock.calls.filter(([rules]) => "numericCandidate" in rules)
       ).toHaveLength(1);
@@ -34,7 +48,7 @@ describe("recognition families", () => {
         {
           extract,
           validators: [
-            { category: "PHONE_NUMBER", check: phone },
+            { category: "IT_PHONE_NUMBER", check: phone },
             { category: "CREDIT_CARD", check: card },
             { category: "IT_VAT_CODE", check: vat },
           ],

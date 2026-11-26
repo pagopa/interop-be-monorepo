@@ -3,11 +3,13 @@ import {
   Candidate,
   CandidateExtractor,
   extractEmailCandidates,
-  extractIbanCandidates,
+  extractAlphanumericCandidates,
   extractNumericCandidates,
 } from "./candidateExtractors.js";
 import {
   isCardCandidate,
+  isCieCandidate,
+  isItalianDriverLicenseCandidate,
   isEmailCandidate,
   isIbanCandidate,
   isPhoneCandidate,
@@ -35,12 +37,16 @@ const recognitionFamilies: readonly RecognitionFamily[] = [
     validators: [
       { category: "IT_VAT_CODE", check: isVatCandidate },
       { category: "CREDIT_CARD", check: isCardCandidate },
-      { category: "PHONE_NUMBER", check: isPhoneCandidate },
+      { category: "IT_PHONE_NUMBER", check: isPhoneCandidate },
     ],
   },
   {
-    extract: extractIbanCandidates,
-    validators: [{ category: "IBAN_CODE", check: isIbanCandidate }],
+    extract: extractAlphanumericCandidates,
+    validators: [
+      { category: "IT_IBAN_CODE", check: isIbanCandidate },
+      { category: "IT_CIE", check: isCieCandidate },
+      { category: "IT_DRIVER_LICENSE", check: isItalianDriverLicenseCandidate },
+    ],
   },
 ];
 

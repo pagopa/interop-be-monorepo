@@ -36,16 +36,16 @@ const fakeService = (returned: unknown = { results }): DetectionService => ({
 });
 
 describe("API POST /detect batch contract", () => {
-  it("exposes five active categories while keeping deferred categories inactive", async () => {
+  it("exposes seven active categories while keeping fiscal code inactive", async () => {
     const response = await postDetect(await createApp(), {
       fields: [
         {
           fieldId: "active",
-          text: "qa@example.com; IT12345678901; IT60X0542811101000000123456; 4111111111111111; +39 3494096457",
+          text: "qa@example.com; IT12345678901; IT60X0542811101000000123456; 4111111111111111; +39 3494096457; CA12345AA; U1B123456C",
         },
         {
           fieldId: "inactive",
-          text: "RSSMRA80A01H501U CA12345AA U1T86I309C 71C68F093D",
+          text: "RSSMRA80A01H501U",
         },
       ],
     });
@@ -57,9 +57,11 @@ describe("API POST /detect batch contract", () => {
           detectedCategories: [
             "EMAIL_ADDRESS",
             "IT_VAT_CODE",
-            "IBAN_CODE",
+            "IT_IBAN_CODE",
             "CREDIT_CARD",
-            "PHONE_NUMBER",
+            "IT_PHONE_NUMBER",
+            "IT_CIE",
+            "IT_DRIVER_LICENSE",
           ],
         },
         { fieldId: "inactive", detectedCategories: [] },

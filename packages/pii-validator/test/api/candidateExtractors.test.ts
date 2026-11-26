@@ -4,14 +4,14 @@ import { describe, expect, it, vi } from "vitest";
 import {
   Candidate,
   extractEmailCandidates,
-  extractIbanCandidates,
+  extractAlphanumericCandidates,
   extractNumericCandidates,
 } from "../../src/services/candidateExtractors.js";
 
 const extractors = {
   email: extractEmailCandidates,
   numeric: extractNumericCandidates,
-  iban: extractIbanCandidates,
+  alphanumeric: extractAlphanumericCandidates,
 };
 
 function slices(_text: string, spans: Iterable<Candidate>) {
@@ -19,6 +19,56 @@ function slices(_text: string, spans: Iterable<Candidate>) {
 }
 
 describe("bounded candidate spans", () => {
+  it("keeps contiguous Unicode letters, marks and numbers in one candidate", () => {
+    const source =
+      "漢CA12345AA CA12345AA漢 𐐀U1B123456C a\u0301IT60X0542811101000000123456 ١٢abc";
+    const values = Array.from(extractAlphanumericCandidates(source));
+    expect(values.map(({ text }) => text)).toEqual(source.split(" "));
+    for (const { text, start, end } of values)
+      expect(source.slice(start, end)).toBe(text);
+  });
+
+  it("extracts whole alphanumeric tokens without document-specific restrictions", () => {
+    const source =
+      "😀 (CA12345AA), U1B123456C IT60X0542811101000000123456 generic42";
+    const values = Array.from(extractAlphanumericCandidates(source));
+    expect(values.map(({ text }) => text)).toEqual([
+      "CA12345AA",
+      "U1B123456C",
+      "IT60X0542811101000000123456",
+      "generic42",
+    ]);
+    for (const { text, start, end } of values) {
+      expect(source.slice(start, end)).toBe(text);
+      expect(start).toBe(source.indexOf(text));
+    }
+  });
+
+  it.each(["éCA12345AA", "CA12345AAΩ", "CA12345AA_foo", "CA12345AA\u0301"])(
+    "does not recover a document from a larger Unicode identifier: %s",
+    (source) => {
+      expect(
+        Array.from(extractAlphanumericCandidates(source)).map(
+          ({ text }) => text
+        )
+      ).not.toContain("CA12345AA");
+    }
+  );
+
+  it("keeps generic alphanumeric runs whole and lexer iterations independent", () => {
+    const source = "x".repeat(20000) + "CA12345AA";
+    expect(Array.from(extractAlphanumericCandidates(source))).toEqual([
+      { text: source, start: 0, end: source.length },
+    ]);
+    const first = extractAlphanumericCandidates("CA12345AA U1B123456C")[
+      Symbol.iterator
+    ]();
+    const second = extractAlphanumericCandidates("other42")[Symbol.iterator]();
+    expect(first.next().value?.text).toBe("CA12345AA");
+    expect(second.next().value?.text).toBe("other42");
+    expect(first.next().value?.text).toBe("U1B123456C");
+    expect(second.next().done).toBe(true);
+  });
   it("reconstructs the entire source from real Moo tokens with UTF-16 offsets", () => {
     const text = "😀 U1T86I309C\nqa@example.com / IT60X0542811101000000123456";
     const compile = moo.compile;
@@ -85,7 +135,7 @@ describe("bounded candidate spans", () => {
 
   it.each([
     ["numeric", "numericCandidate", "12345678901"],
-    ["iban", "ibanCandidate", "IT60X0542811101000000123456"],
+    ["alphanumeric", "alphanumericCandidate", "IT60X0542811101000000123456"],
     ["numeric", "numericCandidate", "4111111111111111"],
     ["numeric", "numericCandidate", "+39 3494096457"],
   ] as const)("lets Moo emit a whole %s candidate", (category, type, value) => {
@@ -133,7 +183,7 @@ describe("bounded candidate spans", () => {
   it.each([
     ["numeric", "4111111111111111"],
     ["numeric", "12345678901"],
-    ["iban", "IT60X0542811101000000123456"],
+    ["alphanumeric", "IT60X0542811101000000123456"],
   ] as const)(
     "keeps %s boundaries across ASCII and Unicode adjacency",
     (category, value) => {
@@ -209,7 +259,7 @@ describe("bounded candidate spans", () => {
 
   it("does not accept a prefix of a longer grouped IBAN", () => {
     const text = "IT60 X054 2811 1010 0000 0123 4567";
-    expect(slices(text, extractors.iban(text))).not.toContain(
+    expect(slices(text, extractors.alphanumeric(text))).not.toContain(
       "IT60 X054 2811 1010 0000 0123 456"
     );
   });

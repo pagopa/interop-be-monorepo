@@ -1,27 +1,25 @@
 import moo from "moo";
 import validator from "validator";
 
+import {
+  candidatePatterns,
+  emailEdgePunctuation,
+  numericSeparators,
+  numericWordPattern,
+} from "./regexRules.js";
+
 // All offsets refer to the original UTF-16 input.
 type CandidateSpan = readonly [start: number, end: number];
 
-const patterns = {
-  // Whole blocks avoid prefix recovery and repeated searches for an at-sign.
-  emailCandidate: /[^ \t\n\r/\\]+/u,
-  ibanCandidate: /IT[A-Za-z0-9]{25}/u,
-  numericCandidate: /(?:IT|\+)?[0-9]+(?: +[0-9]+)*/u,
-};
-
-type CandidateType = keyof typeof patterns;
+type CandidateType = keyof typeof candidatePatterns;
 
 function* tokens(text: string, type: CandidateType): Generator<CandidateSpan> {
   try {
     // A category-specific lexer prevents one shape from hiding another.
     const lexer = moo.compile({
-      [type]: patterns[type],
+      [type]: candidatePatterns[type],
       // Keep alphanumeric identifiers from swallowing a following numeric run.
-      ...(type === "numericCandidate"
-        ? { word: /[\p{L}\p{M}][\p{L}\p{M}\p{N}_]*/u }
-        : {}),
+      ...(type === "numericCandidate" ? { word: numericWordPattern } : {}),
       fallback: moo.fallback,
     });
     lexer.reset(text);
@@ -59,22 +57,6 @@ function insideWord(
   return low > 0 && offset < boundaries[low - 1][1];
 }
 
-const outside = new Set([
-  '"',
-  "'",
-  "(",
-  ")",
-  "[",
-  "]",
-  "<",
-  ">",
-  ",",
-  ";",
-  ":",
-  "!",
-  "?",
-]);
-
 function* email(text: string): Generator<CandidateSpan> {
   // Moo owns the whole email-like block; only edge punctuation is trimmed.
   for (const [blockStart, blockEnd] of tokens(text, "emailCandidate")) {
@@ -83,10 +65,10 @@ function* email(text: string): Generator<CandidateSpan> {
     const at = blockStart + relativeAt;
     let start = blockStart;
     let end = blockEnd;
-    while (start < at && outside.has(text[start])) start++;
+    while (start < at && emailEdgePunctuation.test(text[start])) start++;
     while (
       end > at + 1 &&
-      (outside.has(text[end - 1]) || text[end - 1] === ".")
+      (emailEdgePunctuation.test(text[end - 1]) || text[end - 1] === ".")
     )
       end--;
     if (start < at && end > at + 1) yield [start, end];
@@ -104,21 +86,9 @@ function* isolatedTokens(
   }
 }
 
-const numericSeparators = new Set([
-  " ",
-  "\u00a0",
-  "-",
-  "\t",
-  "\n",
-  "\r",
-  "–",
-  "/",
-  "\\",
-]);
-
 function separatedDigitAfter(text: string, end: number): boolean {
   let next = end;
-  while (next < text.length && numericSeparators.has(text[next])) next++;
+  while (next < text.length && numericSeparators.test(text[next])) next++;
   return (
     next > end &&
     next < text.length &&
@@ -133,8 +103,8 @@ function* numeric(text: string): Generator<CandidateSpan> {
   }
 }
 
-const iban = (text: string): Generator<CandidateSpan> =>
-  isolatedTokens(text, "ibanCandidate");
+const alphanumeric = (text: string): Generator<CandidateSpan> =>
+  isolatedTokens(text, "alphanumericCandidate");
 
 export type Candidate = Readonly<{ text: string; start: number; end: number }>;
 export type CandidateExtractor = (text: string) => Iterable<Candidate>;
@@ -156,6 +126,8 @@ export function extractNumericCandidates(text: string): Iterable<Candidate> {
   return candidates(text, numeric(text));
 }
 
-export function extractIbanCandidates(text: string): Iterable<Candidate> {
-  return candidates(text, iban(text));
+export function extractAlphanumericCandidates(
+  text: string
+): Iterable<Candidate> {
+  return candidates(text, alphanumeric(text));
 }

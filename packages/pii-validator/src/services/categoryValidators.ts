@@ -1,6 +1,23 @@
 import validator from "validator";
 
 import { Candidate } from "./candidateExtractors.js";
+import {
+  italianDriverLicensePatterns,
+  italianIbanPattern,
+} from "./regexRules.js";
+
+export function isCieCandidate(candidate: Candidate): boolean {
+  return validator.isIdentityCard(candidate.text, "IT");
+}
+
+export function isItalianDriverLicenseCandidate(candidate: Candidate): boolean {
+  return (
+    candidate.text.length === 10 &&
+    Object.values(italianDriverLicensePatterns).some((pattern) =>
+      pattern.test(candidate.text)
+    )
+  );
+}
 
 export function isEmailCandidate(candidate: Candidate): boolean {
   return validator.isEmail(candidate.text);
@@ -15,7 +32,11 @@ export function isCardCandidate(candidate: Candidate): boolean {
 }
 
 export function isIbanCandidate(candidate: Candidate): boolean {
-  return validator.isIBAN(candidate.text);
+  return (
+    candidate.text.length === 27 &&
+    italianIbanPattern.test(candidate.text) &&
+    validator.isIBAN(candidate.text)
+  );
 }
 
 // This is contextual phone policy, not a numeric-family boundary: a short
