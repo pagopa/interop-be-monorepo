@@ -10,8 +10,10 @@ import {
   Attribute,
   attributeKind,
   CertifiedDiscreteTenantAttribute,
+  generateId,
   Tenant,
   TenantAttribute,
+  tenantUnitType,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 
@@ -89,7 +91,7 @@ describe("getCertifiedAttributesByCertifier", () => {
   });
 
   it("should return the parent and root tenants when available", async () => {
-    const certifierId = "test";
+    const certifierId = generateId();
     const tenantCertifier: Tenant = {
       ...getMockTenant(),
       features: [{ type: "PersistentCertifier" as const, certifierId }],
@@ -101,13 +103,13 @@ describe("getCertifiedAttributesByCertifier", () => {
     const parentTenant: Tenant = {
       ...getMockTenant(),
       name: "Tenant AOO",
-      subUnitType: "AOO",
+      subUnitType: tenantUnitType.AOO,
       rootTenantId: rootTenant.id,
     };
     const tenant: Tenant = {
       ...getMockTenant(),
       name: "Tenant UO",
-      subUnitType: "UO",
+      subUnitType: tenantUnitType.UO,
       parentTenantId: parentTenant.id,
       rootTenantId: rootTenant.id,
     };
@@ -142,12 +144,12 @@ describe("getCertifiedAttributesByCertifier", () => {
         id: tenant.id,
         kind: "CERTIFIED",
         name: tenant.name,
-        subUnitType: "UO",
+        subUnitType: tenantUnitType.UO,
         parentTenants: [
           {
             id: parentTenant.id,
             name: parentTenant.name,
-            subUnitType: "AOO",
+            subUnitType: tenantUnitType.AOO,
           },
           { id: rootTenant.id, name: rootTenant.name },
         ],
