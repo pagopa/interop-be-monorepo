@@ -15,6 +15,7 @@ import {
   generateId,
   CompactOrganization,
   TenantId,
+  tenantUnitType,
 } from "pagopa-interop-models";
 import { describe, beforeEach, it, expect } from "vitest";
 
@@ -590,14 +591,14 @@ describe("get agreements consumers / producers", () => {
       const parentTenant: Tenant = {
         ...getMockTenant(),
         name: "Tenant AOO",
-        subUnitType: "AOO",
+        subUnitType: tenantUnitType.AOO,
         parentTenantId: rootTenant.id,
         rootTenantId: rootTenant.id,
       };
       const targetTenant: Tenant = {
         ...getMockTenant(),
         name: "Tenant UO",
-        subUnitType: "UO",
+        subUnitType: tenantUnitType.UO,
         parentTenantId: parentTenant.id,
         rootTenantId: rootTenant.id,
       };
@@ -605,7 +606,7 @@ describe("get agreements consumers / producers", () => {
       const hiddenTenant: Tenant = {
         ...getMockTenant(),
         name: "Tenant hidden UO",
-        subUnitType: "UO",
+        subUnitType: tenantUnitType.UO,
         parentTenantId: parentTenant.id,
         rootTenantId: rootTenant.id,
       };
@@ -650,12 +651,12 @@ describe("get agreements consumers / producers", () => {
           {
             id: targetTenant.id,
             name: targetTenant.name,
-            subUnitType: "UO",
+            subUnitType: tenantUnitType.UO,
             parentTenants: [
               {
                 id: parentTenant.id,
                 name: parentTenant.name,
-                subUnitType: "AOO",
+                subUnitType: tenantUnitType.AOO,
               },
               { id: rootTenant.id, name: rootTenant.name },
             ],
@@ -671,7 +672,7 @@ describe("get agreements consumers / producers", () => {
       const targetTenant: Tenant = {
         ...getMockTenant(),
         name: "Tenant UO",
-        subUnitType: "UO",
+        subUnitType: tenantUnitType.UO,
         parentTenantId: generateId<TenantId>(),
         rootTenantId: generateId<TenantId>(),
       };
@@ -697,7 +698,7 @@ describe("get agreements consumers / producers", () => {
           {
             id: targetTenant.id,
             name: targetTenant.name,
-            subUnitType: "UO",
+            subUnitType: tenantUnitType.UO,
             parentTenants: undefined,
           },
         ],
@@ -731,12 +732,12 @@ describe("get agreements consumers / producers", () => {
       const parentTenant: Tenant = {
         ...getMockTenant(),
         name: "Tenant AOO",
-        subUnitType: "AOO",
+        subUnitType: tenantUnitType.AOO,
       };
       const targetTenant: Tenant = {
         ...getMockTenant(),
         name: "Tenant UO",
-        subUnitType: "UO",
+        subUnitType: tenantUnitType.UO,
         parentTenantId: direct ? rootTenant.id : parentTenant.id,
         rootTenantId: rootTenant.id,
       };
@@ -772,7 +773,7 @@ describe("get agreements consumers / producers", () => {
       const targetTenant: Tenant = {
         ...getMockTenant(),
         name: "Tenant UO 1",
-        subUnitType: "UO",
+        subUnitType: tenantUnitType.UO,
         parentTenantId: rootTenant.id,
         rootTenantId: rootTenant.id,
       };
