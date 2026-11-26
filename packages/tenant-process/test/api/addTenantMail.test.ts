@@ -15,6 +15,7 @@ import {
   mailAlreadyExists,
   tenantMailsNotAllowed,
   tenantNotFound,
+  tenantContactRequiresEventsV3,
 } from "../../src/model/domain/errors.js";
 import { api, tenantService } from "../vitest.api.setup.js";
 
@@ -60,6 +61,7 @@ describe("API POST /tenants/{tenantId}/mails test", () => {
     { error: operationForbidden, expectedStatus: 403 },
     { error: mailAlreadyExists(), expectedStatus: 409 },
     { error: tenantMailsNotAllowed(tenant.id), expectedStatus: 400 },
+    { error: tenantContactRequiresEventsV3(generateId()), expectedStatus: 409 },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {

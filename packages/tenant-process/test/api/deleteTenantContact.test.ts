@@ -21,6 +21,7 @@ import { toApiTenant } from "../../src/model/domain/apiConverter.js";
 import {
   tenantContactNotFound,
   tenantNotFound,
+  tenantLegacyMailsNotMigrated,
 } from "../../src/model/domain/errors.js";
 import { api, tenantService } from "../vitest.api.setup.js";
 
@@ -86,6 +87,7 @@ describe("API DELETE /tenants/{tenantId}/contact/{contactId} test", () => {
       error: featureFlagNotEnabled("featureFlagTenantEventsV3"),
       expectedStatus: 501,
     },
+    { error: tenantLegacyMailsNotMigrated(generateId()), expectedStatus: 409 },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {

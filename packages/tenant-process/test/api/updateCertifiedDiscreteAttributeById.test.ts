@@ -22,6 +22,8 @@ import {
   certifiedDiscreteAttributeRevoked,
   tenantIsNotACertifier,
   tenantNotFound,
+  tenantContactRequiresEventsV3,
+  tenantLegacyMailsNotMigrated,
 } from "../../src/model/domain/errors.js";
 import { api, tenantService } from "../vitest.api.setup.js";
 
@@ -95,6 +97,8 @@ describe("API PUT /tenants/{tenantId}/attributes/certifiedDiscrete/{attributeId}
       error: certifiedDiscreteAttributeRevoked(generateId(), generateId()),
       expectedStatus: 409,
     },
+    { error: tenantContactRequiresEventsV3(generateId()), expectedStatus: 409 },
+    { error: tenantLegacyMailsNotMigrated(generateId()), expectedStatus: 409 },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {

@@ -43,6 +43,11 @@ export const updateTenantVerifiedAttributeErrorMapper = (
     .with("verifiedAttributeNotFoundInTenant", () => HTTP_STATUS_NOT_FOUND)
     .with("expirationDateCannotBeInThePast", () => HTTP_STATUS_BAD_REQUEST)
     .with("tenantNotFoundInVerifiers", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "tenantContactRequiresEventsV3",
+      "tenantLegacyMailsNotMigrated",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateVerifiedAttributeExtensionDateErrorMapper = (
@@ -56,6 +61,11 @@ export const updateVerifiedAttributeExtensionDateErrorMapper = (
     )
     .with("tenantNotFoundInVerifiers", () => HTTP_STATUS_FORBIDDEN)
     .with("expirationDateNotFoundInVerifier", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "tenantContactRequiresEventsV3",
+      "tenantLegacyMailsNotMigrated",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const selfcareUpsertTenantErrorMapper = (
@@ -63,7 +73,12 @@ export const selfcareUpsertTenantErrorMapper = (
 ): number =>
   match(error.code)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
-    .with("selfcareIdConflict", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "selfcareIdConflict",
+      "tenantContactRequiresEventsV3",
+      "tenantLegacyMailsNotMigrated",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const internalAddCertifiedAttributeErrorMapper = (
@@ -72,7 +87,12 @@ export const internalAddCertifiedAttributeErrorMapper = (
   match(error.code)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("attributeNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("certifiedAttributeAlreadyAssigned", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "certifiedAttributeAlreadyAssigned",
+      "tenantContactRequiresEventsV3",
+      "tenantLegacyMailsNotMigrated",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const internalRevokeCertifiedAttributeErrorMapper = (
@@ -83,6 +103,11 @@ export const internalRevokeCertifiedAttributeErrorMapper = (
       "tenantNotFound",
       "attributeNotFoundInTenant",
       () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
+      "tenantContactRequiresEventsV3",
+      "tenantLegacyMailsNotMigrated",
+      () => HTTP_STATUS_CONFLICT
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -97,6 +122,8 @@ export const addCertifiedAttributeErrorMapper = (
     .with("certifiedAttributeAlreadyAssigned", () => HTTP_STATUS_BAD_REQUEST)
     .with(
       "certifiedDiscreteAttributeAlreadyAssigned",
+      "tenantContactRequiresEventsV3",
+      "tenantLegacyMailsNotMigrated",
       () => HTTP_STATUS_CONFLICT
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -112,6 +139,11 @@ export const addDeclaredAttributeErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .with("operationRestrictedToDelegate", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "tenantContactRequiresEventsV3",
+      "tenantLegacyMailsNotMigrated",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const revokeCertifiedAttributeErrorMapper = (
@@ -124,7 +156,12 @@ export const revokeCertifiedAttributeErrorMapper = (
       "tenantIsNotACertifier",
       () => HTTP_STATUS_FORBIDDEN
     )
-    .with("attributeAlreadyRevoked", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "attributeAlreadyRevoked",
+      "tenantContactRequiresEventsV3",
+      "tenantLegacyMailsNotMigrated",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateCertifiedDiscreteAttributeErrorMapper = (
@@ -137,7 +174,12 @@ export const updateCertifiedDiscreteAttributeErrorMapper = (
       "tenantIsNotACertifier",
       () => HTTP_STATUS_FORBIDDEN
     )
-    .with("certifiedDiscreteAttributeRevoked", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "certifiedDiscreteAttributeRevoked",
+      "tenantContactRequiresEventsV3",
+      "tenantLegacyMailsNotMigrated",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const revokeDeclaredAttributeErrorMapper = (
@@ -146,6 +188,11 @@ export const revokeDeclaredAttributeErrorMapper = (
   match(error.code)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("attributeNotFound", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "tenantContactRequiresEventsV3",
+      "tenantLegacyMailsNotMigrated",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getCertifiedAttributesByCertifierErrorMapper = (
@@ -161,6 +208,11 @@ export const maintenanceTenantDeletedErrorMapper = (
 ): number =>
   match(error.code)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "tenantContactRequiresEventsV3",
+      "tenantLegacyMailsNotMigrated",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const maintenanceTenantUpdatedErrorMapper = (
@@ -175,6 +227,11 @@ export const maintenanceTenantUpdatedErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
+    .with(
+      "tenantContactRequiresEventsV3",
+      "tenantLegacyMailsNotMigrated",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const maintenanceTenantDeleteRemoteIdErrorMapper = (
@@ -182,6 +239,11 @@ export const maintenanceTenantDeleteRemoteIdErrorMapper = (
 ): number =>
   match(error.code)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "tenantContactRequiresEventsV3",
+      "tenantLegacyMailsNotMigrated",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const verifyVerifiedAttributeErrorMapper = (
@@ -202,6 +264,11 @@ export const verifyVerifiedAttributeErrorMapper = (
       "attributeVerificationNotAllowed",
       () => HTTP_STATUS_FORBIDDEN
     )
+    .with(
+      "tenantContactRequiresEventsV3",
+      "tenantLegacyMailsNotMigrated",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const revokeVerifiedAttributeErrorMapper = (
@@ -218,7 +285,12 @@ export const revokeVerifiedAttributeErrorMapper = (
       "attributeRevocationNotAllowed",
       () => HTTP_STATUS_FORBIDDEN
     )
-    .with("attributeAlreadyRevoked", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "attributeAlreadyRevoked",
+      "tenantContactRequiresEventsV3",
+      "tenantLegacyMailsNotMigrated",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const deleteTenantMailErrorMapper = (
@@ -229,13 +301,18 @@ export const deleteTenantMailErrorMapper = (
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("mailNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("tenantMailsNotAllowed", () => HTTP_STATUS_BAD_REQUEST)
+    .with("tenantContactRequiresEventsV3", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const addTenantMailErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("mailAlreadyExists", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "mailAlreadyExists",
+      "tenantContactRequiresEventsV3",
+      () => HTTP_STATUS_CONFLICT
+    )
     .with("tenantMailsNotAllowed", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -245,7 +322,11 @@ export const addTenantContactErrorMapper = (
   match(error.code)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("tenantContactAlreadyAssigned", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "tenantContactAlreadyAssigned",
+      "tenantLegacyMailsNotMigrated",
+      () => HTTP_STATUS_CONFLICT
+    )
     .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -260,6 +341,7 @@ export const deleteTenantContactErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
+    .with("tenantLegacyMailsNotMigrated", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const internalUpsertTenantErrorMapper = (
@@ -267,7 +349,12 @@ export const internalUpsertTenantErrorMapper = (
 ): number =>
   match(error.code)
     .with("tenantNotFound", "attributeNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("certifiedAttributeAlreadyAssigned", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "certifiedAttributeAlreadyAssigned",
+      "tenantContactRequiresEventsV3",
+      "tenantLegacyMailsNotMigrated",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const m2mUpsertTenantErrorMapper = (
@@ -280,7 +367,12 @@ export const m2mUpsertTenantErrorMapper = (
       "tenantNotFoundByExternalId",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("certifiedAttributeAlreadyAssigned", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "certifiedAttributeAlreadyAssigned",
+      "tenantContactRequiresEventsV3",
+      "tenantLegacyMailsNotMigrated",
+      () => HTTP_STATUS_CONFLICT
+    )
     .with("tenantIsNotACertifier", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -292,6 +384,8 @@ export const maintenanceTenantPromotedToCertifierErrorMapper = (
     .with(
       "tenantIsAlreadyACertifier",
       "certifierWithExistingAttributes",
+      "tenantContactRequiresEventsV3",
+      "tenantLegacyMailsNotMigrated",
       () => HTTP_STATUS_CONFLICT
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -311,6 +405,11 @@ export const m2mRevokeCertifiedAttributeErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("tenantIsNotACertifier", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "tenantContactRequiresEventsV3",
+      "tenantLegacyMailsNotMigrated",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateTenantDelegatedFeaturesErrorMapper = (
@@ -320,6 +419,11 @@ export const updateTenantDelegatedFeaturesErrorMapper = (
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with("tenantNotAllowedForDelegation", () => HTTP_STATUS_FORBIDDEN)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "tenantContactRequiresEventsV3",
+      "tenantLegacyMailsNotMigrated",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getTenantVerifiedAttributeVerifiersErrorMapper = (
@@ -358,6 +462,8 @@ export const internalAddCertifiedDiscreteAttributeErrorMapper = (
     )
     .with(
       "certifiedDiscreteAttributeAlreadyAssigned",
+      "tenantContactRequiresEventsV3",
+      "tenantLegacyMailsNotMigrated",
       () => HTTP_STATUS_CONFLICT
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -373,6 +479,11 @@ export const internalUpdateCertifiedDiscreteAttributeErrorMapper = (
       "tenantNotFoundByRemoteId",
       () => HTTP_STATUS_NOT_FOUND
     )
+    .with(
+      "tenantContactRequiresEventsV3",
+      "tenantLegacyMailsNotMigrated",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const internalRevokeCertifiedDiscreteAttributeErrorMapper = (
@@ -385,5 +496,10 @@ export const internalRevokeCertifiedDiscreteAttributeErrorMapper = (
       "attributeNotFound",
       "tenantNotFoundByRemoteId",
       () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
+      "tenantContactRequiresEventsV3",
+      "tenantLegacyMailsNotMigrated",
+      () => HTTP_STATUS_CONFLICT
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

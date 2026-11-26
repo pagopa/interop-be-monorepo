@@ -8,21 +8,40 @@ import {
   toTenantV3,
   TenantKind,
   TenantV2,
+  TenantV3,
   toTenantKindV2,
   toTenantKindV3,
   CorrelationId,
 } from "pagopa-interop-models";
 
 import { config } from "../../config/config.js";
-import { tenantContactRequiresEventsV3 } from "./errors.js";
+import {
+  tenantContactRequiresEventsV3,
+  tenantLegacyMailsNotMigrated,
+} from "./errors.js";
 
 /**
- * When the flag is enabled every tenant event is written as V3, where the
- * tenant references its contact by contactId and carries no mails.
+ * The tenants read from the readmodel can come from any event version:
+ * V1/V2 tenants carry the legacy mails, V3 tenants reference their contact by
+ * contactId. The writes are mutually exclusive instead: when the flag is
+ * enabled every tenant event is written as V3, otherwise as V2.
  * The mail events are V2 only: the mail operations are not allowed in V3 mode.
  */
 const isTenantEventsV3Enabled = (): boolean =>
   isFeatureFlagEnabled(config, "featureFlagTenantEventsV3");
+
+/**
+ * V3 events carry no mails: a tenant read from V1/V2 events that still has
+ * legacy mails cannot be written as V3 until it is migrated to a contact.
+ * Raised as a domain error, so the caller gets a conflict instead of the
+ * generic error of the toTenantV3 check.
+ */
+const toTenantV3WithoutLegacyMails = (tenant: Tenant): TenantV3 => {
+  if (tenant.mails.length > 0) {
+    throw tenantLegacyMailsNotMigrated(tenant.id);
+  }
+  return toTenantV3(tenant);
+};
 
 /**
  * V2 events carry no contact reference: writing a tenant with a contact as V2,
@@ -47,7 +66,7 @@ export const toCreateEventTenantOnboarded = (
     ? {
         event_version: 3,
         type: "TenantOnboarded",
-        data: { tenant: toTenantV3(tenant) },
+        data: { tenant: toTenantV3WithoutLegacyMails(tenant) },
       }
     : {
         event_version: 2,
@@ -69,7 +88,7 @@ export const toCreateEventTenantOnboardDetailsUpdated = (
     ? {
         event_version: 3,
         type: "TenantOnboardDetailsUpdated",
-        data: { tenant: toTenantV3(updatedTenant) },
+        data: { tenant: toTenantV3WithoutLegacyMails(updatedTenant) },
       }
     : {
         event_version: 2,
@@ -92,7 +111,10 @@ export const toCreateEventTenantVerifiedAttributeExtensionUpdated = (
     ? {
         event_version: 3,
         type: "TenantVerifiedAttributeExtensionUpdated",
-        data: { attributeId, tenant: toTenantV3(updatedTenant) },
+        data: {
+          attributeId,
+          tenant: toTenantV3WithoutLegacyMails(updatedTenant),
+        },
       }
     : {
         event_version: 2,
@@ -115,7 +137,10 @@ export const toCreateEventTenantVerifiedAttributeExpirationUpdated = (
     ? {
         event_version: 3,
         type: "TenantVerifiedAttributeExpirationUpdated",
-        data: { attributeId, tenant: toTenantV3(updatedTenant) },
+        data: {
+          attributeId,
+          tenant: toTenantV3WithoutLegacyMails(updatedTenant),
+        },
       }
     : {
         event_version: 2,
@@ -137,7 +162,10 @@ export const toCreateEventTenantCertifiedAttributeAssigned = (
     ? {
         event_version: 3,
         type: "TenantCertifiedAttributeAssigned",
-        data: { attributeId, tenant: toTenantV3(updatedTenant) },
+        data: {
+          attributeId,
+          tenant: toTenantV3WithoutLegacyMails(updatedTenant),
+        },
       }
     : {
         event_version: 2,
@@ -161,7 +189,7 @@ export const toCreateEventTenantKindUpdated = (
         type: "TenantKindUpdated",
         data: {
           oldKind: oldKind ? toTenantKindV3(oldKind) : undefined,
-          tenant: toTenantV3(updatedTenant),
+          tenant: toTenantV3WithoutLegacyMails(updatedTenant),
         },
       }
     : {
@@ -187,7 +215,10 @@ export const toCreateEventTenantCertifiedAttributeRevoked = (
     ? {
         event_version: 3,
         type: "TenantCertifiedAttributeRevoked",
-        data: { attributeId, tenant: toTenantV3(updatedTenant) },
+        data: {
+          attributeId,
+          tenant: toTenantV3WithoutLegacyMails(updatedTenant),
+        },
       }
     : {
         event_version: 2,
@@ -209,7 +240,10 @@ export const toCreateEventTenantDeclaredAttributeAssigned = (
     ? {
         event_version: 3,
         type: "TenantDeclaredAttributeAssigned",
-        data: { attributeId, tenant: toTenantV3(updatedTenant) },
+        data: {
+          attributeId,
+          tenant: toTenantV3WithoutLegacyMails(updatedTenant),
+        },
       }
     : {
         event_version: 2,
@@ -230,7 +264,10 @@ export const toCreateEventMaintenanceTenantDeleted = (
     ? {
         event_version: 3,
         type: "MaintenanceTenantDeleted",
-        data: { tenantId: tenant.id, tenant: toTenantV3(tenant) },
+        data: {
+          tenantId: tenant.id,
+          tenant: toTenantV3WithoutLegacyMails(tenant),
+        },
       }
     : {
         event_version: 2,
@@ -251,7 +288,7 @@ export const toCreateEventMaintenanceTenantUpdated = (
     ? {
         event_version: 3,
         type: "MaintenanceTenantUpdated",
-        data: { tenant: toTenantV3(tenant) },
+        data: { tenant: toTenantV3WithoutLegacyMails(tenant) },
       }
     : {
         event_version: 2,
@@ -273,7 +310,10 @@ export const toCreateEventTenantVerifiedAttributeAssigned = (
     ? {
         event_version: 3,
         type: "TenantVerifiedAttributeAssigned",
-        data: { attributeId, tenant: toTenantV3(updatedTenant) },
+        data: {
+          attributeId,
+          tenant: toTenantV3WithoutLegacyMails(updatedTenant),
+        },
       }
     : {
         event_version: 2,
@@ -295,7 +335,10 @@ export const toCreateEventTenantVerifiedAttributeRevoked = (
     ? {
         event_version: 3,
         type: "TenantVerifiedAttributeRevoked",
-        data: { attributeId, tenant: toTenantV3(updatedTenant) },
+        data: {
+          attributeId,
+          tenant: toTenantV3WithoutLegacyMails(updatedTenant),
+        },
       }
     : {
         event_version: 2,
@@ -317,7 +360,10 @@ export const toCreateEventTenantDeclaredAttributeRevoked = (
     ? {
         event_version: 3,
         type: "TenantDeclaredAttributeRevoked",
-        data: { attributeId, tenant: toTenantV3(updatedTenant) },
+        data: {
+          attributeId,
+          tenant: toTenantV3WithoutLegacyMails(updatedTenant),
+        },
       }
     : {
         event_version: 2,
@@ -378,7 +424,7 @@ export const toCreateEventTenantContactAdded = (
     type: "TenantContactAdded",
     data: {
       contactId,
-      tenant: toTenantV3(updatedTenant),
+      tenant: toTenantV3WithoutLegacyMails(updatedTenant),
     },
   },
   correlationId,
@@ -397,7 +443,7 @@ export const toCreateEventTenantContactDeleted = (
     type: "TenantContactDeleted",
     data: {
       contactId,
-      tenant: toTenantV3(updatedTenant),
+      tenant: toTenantV3WithoutLegacyMails(updatedTenant),
     },
   },
   correlationId,
@@ -414,7 +460,7 @@ export const toCreateEventMaintenanceTenantPromotedToCertifier = (
     ? {
         event_version: 3,
         type: "MaintenanceTenantPromotedToCertifier",
-        data: { tenant: toTenantV3(tenant) },
+        data: { tenant: toTenantV3WithoutLegacyMails(tenant) },
       }
     : {
         event_version: 2,
@@ -435,7 +481,7 @@ export const toCreateEventTenantDelegatedProducerFeatureAdded = (
     ? {
         event_version: 3,
         type: "TenantDelegatedProducerFeatureAdded",
-        data: { tenant: toTenantV3(updatedTenant) },
+        data: { tenant: toTenantV3WithoutLegacyMails(updatedTenant) },
       }
     : {
         event_version: 2,
@@ -456,7 +502,7 @@ export const toCreateEventTenantDelegatedProducerFeatureRemoved = (
     ? {
         event_version: 3,
         type: "TenantDelegatedProducerFeatureRemoved",
-        data: { tenant: toTenantV3(updatedTenant) },
+        data: { tenant: toTenantV3WithoutLegacyMails(updatedTenant) },
       }
     : {
         event_version: 2,
@@ -477,7 +523,7 @@ export const toCreateEventTenantDelegatedConsumerFeatureAdded = (
     ? {
         event_version: 3,
         type: "TenantDelegatedConsumerFeatureAdded",
-        data: { tenant: toTenantV3(updatedTenant) },
+        data: { tenant: toTenantV3WithoutLegacyMails(updatedTenant) },
       }
     : {
         event_version: 2,
@@ -498,7 +544,7 @@ export const toCreateEventTenantDelegatedConsumerFeatureRemoved = (
     ? {
         event_version: 3,
         type: "TenantDelegatedConsumerFeatureRemoved",
-        data: { tenant: toTenantV3(updatedTenant) },
+        data: { tenant: toTenantV3WithoutLegacyMails(updatedTenant) },
       }
     : {
         event_version: 2,
@@ -519,7 +565,7 @@ export const toCreateEventTenantRemoteIdAssigned = (
     ? {
         event_version: 3,
         type: "TenantRemoteIdAssigned",
-        data: { tenant: toTenantV3(updatedTenant) },
+        data: { tenant: toTenantV3WithoutLegacyMails(updatedTenant) },
       }
     : {
         event_version: 2,
@@ -541,7 +587,10 @@ export const toCreateEventTenantCertifiedDiscreteAttributeAssigned = (
     ? {
         event_version: 3,
         type: "TenantCertifiedDiscreteAttributeAssigned",
-        data: { attributeId, tenant: toTenantV3(updatedTenant) },
+        data: {
+          attributeId,
+          tenant: toTenantV3WithoutLegacyMails(updatedTenant),
+        },
       }
     : {
         event_version: 2,
@@ -563,7 +612,10 @@ export const toCreateEventTenantCertifiedDiscreteAttributeRevoked = (
     ? {
         event_version: 3,
         type: "TenantCertifiedDiscreteAttributeRevoked",
-        data: { attributeId, tenant: toTenantV3(updatedTenant) },
+        data: {
+          attributeId,
+          tenant: toTenantV3WithoutLegacyMails(updatedTenant),
+        },
       }
     : {
         event_version: 2,
@@ -589,7 +641,7 @@ export const toCreateEventTenantCertifiedDiscreteAttributeUpdated = (
         type: "TenantCertifiedDiscreteAttributeUpdated",
         data: {
           attributeId,
-          tenant: toTenantV3(updatedTenant),
+          tenant: toTenantV3WithoutLegacyMails(updatedTenant),
           previousValue,
           newValue,
         },
@@ -619,7 +671,7 @@ export function toCreateEventMaintenanceTenantRemoteIdDeleted(
       ? {
           event_version: 3,
           type: "MaintenanceTenantRemoteIdDeleted",
-          data: { tenant: toTenantV3(tenant) },
+          data: { tenant: toTenantV3WithoutLegacyMails(tenant) },
         }
       : {
           event_version: 2,
