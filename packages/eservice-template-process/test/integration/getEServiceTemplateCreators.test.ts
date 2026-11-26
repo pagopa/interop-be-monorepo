@@ -12,6 +12,7 @@ import {
   TenantId,
   CompactOrganization,
   generateId,
+  tenantUnitType,
 } from "pagopa-interop-models";
 import { describe, beforeEach, it, expect } from "vitest";
 
@@ -30,7 +31,7 @@ describe("getEServiceTemplateCreators", () => {
   const parentTenant: Tenant = {
     ...getMockTenant(),
     name: "Tenant AOO",
-    subUnitType: "AOO",
+    subUnitType: tenantUnitType.AOO,
     parentTenantId: rootTenant.id,
     rootTenantId: rootTenant.id,
   };
@@ -46,12 +47,12 @@ describe("getEServiceTemplateCreators", () => {
     name: tenant.name,
     ...(tenant.id === tenant3.id
       ? {
-          subUnitType: tenant3.subUnitType,
+          subUnitType: tenantUnitType.UO,
           parentTenants: [
             {
               id: parentTenant.id,
               name: parentTenant.name,
-              subUnitType: parentTenant.subUnitType,
+              subUnitType: tenantUnitType.AOO,
             },
             { id: rootTenant.id, name: rootTenant.name },
           ],
@@ -65,7 +66,7 @@ describe("getEServiceTemplateCreators", () => {
     tenant3 = {
       ...getMockTenant(),
       name: "Tenant 3 FooBar",
-      subUnitType: "UO",
+      subUnitType: tenantUnitType.UO,
       parentTenantId: parentTenant.id,
       rootTenantId: rootTenant.id,
     };
@@ -331,7 +332,7 @@ describe("getEServiceTemplateCreators", () => {
     ).toEqual({
       id: parentTenant.id,
       name: parentTenant.name,
-      subUnitType: "AOO",
+      subUnitType: tenantUnitType.AOO,
       parentTenants: [{ id: rootTenant.id, name: rootTenant.name }],
     });
     const duplicatedRoot =
@@ -360,7 +361,7 @@ describe("getEServiceTemplateCreators", () => {
       {
         id: tenant3.id,
         name: tenant3.name,
-        subUnitType: "UO",
+        subUnitType: tenantUnitType.UO,
         parentTenants: undefined,
       },
     ]);

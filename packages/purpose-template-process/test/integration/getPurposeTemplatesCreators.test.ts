@@ -9,6 +9,7 @@ import {
   Tenant,
   TenantId,
   generateId,
+  tenantUnitType,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it } from "vitest";
 
@@ -27,7 +28,7 @@ describe("getPublishedPurposeTemplateCreators", () => {
   const parentTenant: Tenant = {
     ...getMockTenant(),
     name: "Tenant AOO",
-    subUnitType: "AOO",
+    subUnitType: tenantUnitType.AOO,
     parentTenantId: rootTenant.id,
     rootTenantId: rootTenant.id,
   };
@@ -38,7 +39,7 @@ describe("getPublishedPurposeTemplateCreators", () => {
   const tenant2: Tenant = {
     ...getMockTenant(),
     name: "Tenant 2",
-    subUnitType: "UO",
+    subUnitType: tenantUnitType.UO,
     parentTenantId: parentTenant.id,
     rootTenantId: rootTenant.id,
   };
@@ -54,12 +55,12 @@ describe("getPublishedPurposeTemplateCreators", () => {
     name: tenant.name,
     ...(tenant.id === tenant2.id
       ? {
-          subUnitType: tenant2.subUnitType,
+          subUnitType: tenantUnitType.UO,
           parentTenants: [
             {
               id: parentTenant.id,
               name: parentTenant.name,
-              subUnitType: parentTenant.subUnitType,
+              subUnitType: tenantUnitType.AOO,
             },
             { id: rootTenant.id, name: rootTenant.name },
           ],
@@ -352,7 +353,7 @@ describe("getPublishedPurposeTemplateCreators", () => {
       {
         id: parentTenant.id,
         name: parentTenant.name,
-        subUnitType: "AOO",
+        subUnitType: tenantUnitType.AOO,
         parentTenants: [{ id: rootTenant.id, name: rootTenant.name }],
       },
     ]);
@@ -383,7 +384,7 @@ describe("getPublishedPurposeTemplateCreators", () => {
       {
         id: tenant2.id,
         name: tenant2.name,
-        subUnitType: "UO",
+        subUnitType: tenantUnitType.UO,
         parentTenants: undefined,
       },
     ]);

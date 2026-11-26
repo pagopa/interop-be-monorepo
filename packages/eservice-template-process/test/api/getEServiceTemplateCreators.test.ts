@@ -1,23 +1,26 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
-import { generateId } from "pagopa-interop-models";
-import { CompactOrganization } from "pagopa-interop-models";
+import {
+  generateToken,
+  getMockTenant,
+  getMockTenantHierarchy,
+} from "pagopa-interop-commons-test";
+import { CompactOrganization, generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 
 describe("API GET /creators", () => {
+  const { subUnitType, parentTenants } = getMockTenantHierarchy({
+    populateHierarchy: true,
+  });
   const mockEserviceTemplate: CompactOrganization[] = [
     CompactOrganization.parse({
       ...getMockTenant(),
-      subUnitType: "UO",
-      parentTenants: [
-        { id: generateId(), name: "Tenant AOO", subUnitType: "AOO" },
-        { id: generateId(), name: "Tenant root" },
-      ],
+      ...(subUnitType !== undefined ? { subUnitType } : {}),
+      ...(parentTenants !== undefined ? { parentTenants } : {}),
     }),
   ];
 

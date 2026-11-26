@@ -1,5 +1,6 @@
 import {
   APIEndpoint,
+  FeatureFlagAooUoAttributesConfig,
   FeatureFlagAttributeCertifiedDiscreteConfig,
   LoggerConfig,
   ReadModelSQLDbConfig,
@@ -27,13 +28,14 @@ type AttributeRegistryProcessServerConfig = z.infer<
   typeof AttributeRegistryProcessServerConfig
 >;
 
-export const IPACertifiedAttributesImporterConfig = LoggerConfig.and(
+const IPACertifiedAttributesImporterConfig = LoggerConfig.and(
   ReadModelSQLDbConfig
 )
   .and(TokenGenerationConfig)
   .and(AttributeRegistryProcessServerConfig)
   .and(TenantProcessServerConfig)
   .and(FeatureFlagAttributeCertifiedDiscreteConfig)
+  .and(FeatureFlagAooUoAttributesConfig)
   .and(
     z
       .object({
@@ -65,7 +67,5 @@ export type IPACertifiedAttributesImporterConfig = z.infer<
   typeof IPACertifiedAttributesImporterConfig
 >;
 
-export const parseIPACertifiedAttributesImporterConfig = (
-  env: NodeJS.ProcessEnv
-): IPACertifiedAttributesImporterConfig =>
-  IPACertifiedAttributesImporterConfig.parse(env);
+export const config: IPACertifiedAttributesImporterConfig =
+  IPACertifiedAttributesImporterConfig.parse(process.env);

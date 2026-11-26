@@ -1,4 +1,4 @@
-import { generateId } from "pagopa-interop-models";
+import { generateId, tenantUnitType } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 
 import { toParentTenants } from "../../src/tenant/mappers.js";
@@ -9,21 +9,21 @@ describe("Tenant mappers", () => {
   const row = {
     parentTenantId: parentId,
     parentTenantName: "Tenant AOO",
-    parentTenantSubUnitType: "AOO",
+    parentTenantSubUnitType: tenantUnitType.AOO,
     rootTenantId: rootId,
     rootTenantName: "Tenant root",
   };
 
   it("should map the parent and root with their original names", () => {
     expect(toParentTenants(row)).toEqual([
-      { id: parentId, name: "Tenant AOO", subUnitType: "AOO" },
+      { id: parentId, name: "Tenant AOO", subUnitType: tenantUnitType.AOO },
       { id: rootId, name: "Tenant root" },
     ]);
   });
 
   it("should not duplicate an identical parent and root", () => {
     expect(toParentTenants({ ...row, rootTenantId: parentId })).toEqual([
-      { id: parentId, name: "Tenant AOO", subUnitType: "AOO" },
+      { id: parentId, name: "Tenant AOO", subUnitType: tenantUnitType.AOO },
     ]);
   });
 
@@ -38,7 +38,7 @@ describe("Tenant mappers", () => {
     "should preserve the parent when %s is missing",
     (field) => {
       expect(toParentTenants({ ...row, [field]: null })).toEqual([
-        { id: parentId, name: "Tenant AOO", subUnitType: "AOO" },
+        { id: parentId, name: "Tenant AOO", subUnitType: tenantUnitType.AOO },
       ]);
     }
   );
