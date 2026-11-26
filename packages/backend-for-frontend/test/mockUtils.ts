@@ -1012,12 +1012,10 @@ export const getMockBffApiRequesterCertifiedAttribute =
   });
 
 export const getMockBffApiCompactOrganization = ({
-  populateTenantHierarchy,
-}: {
-  populateTenantHierarchy?: boolean;
-} = {}): bffApi.CompactOrganization => {
+  populateHierarchy,
+}: GetMockTenantHierarchyParams = {}): bffApi.CompactOrganization => {
   const { subUnitType, parentTenants } = getMockTenantHierarchy({
-    populateHierarchy: populateTenantHierarchy,
+    populateHierarchy,
   });
   return {
     id: generateId(),
