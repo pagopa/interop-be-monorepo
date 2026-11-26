@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { getMockContext, getMockTenant } from "pagopa-interop-commons-test";
-import { ParentTenant, Tenant } from "pagopa-interop-models";
+import { ParentTenant, Tenant, tenantUnitType } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 
 import { tenantNotFound } from "../../src/model/domain/errors.js";
@@ -44,14 +44,14 @@ describe("getTenantById", () => {
     const parentTenant: Tenant = {
       ...getMockTenant(),
       name: "Tenant AOO",
-      subUnitType: "AOO",
+      subUnitType: tenantUnitType.AOO,
       parentTenantId: rootTenant.id,
       rootTenantId: rootTenant.id,
     };
     const tenant: Tenant = {
       ...getMockTenant(),
       name: "Tenant UO",
-      subUnitType: "UO",
+      subUnitType: tenantUnitType.UO,
       parentTenantId: parentTenant.id,
       rootTenantId: rootTenant.id,
     };
@@ -69,7 +69,7 @@ describe("getTenantById", () => {
       {
         id: parentTenant.id,
         name: parentTenant.name,
-        subUnitType: parentTenant.subUnitType,
+        subUnitType: tenantUnitType.AOO,
       },
       {
         id: rootTenant.id,

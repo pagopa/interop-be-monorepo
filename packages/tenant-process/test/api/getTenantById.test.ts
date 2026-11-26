@@ -11,6 +11,7 @@ import {
   ParentTenant,
   Tenant,
   TenantId,
+  tenantUnitType,
 } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -21,9 +22,11 @@ import { api, tenantService } from "../vitest.api.setup.js";
 
 describe("API GET /tenants/{id} test", () => {
   const remoteIdAssignmentTimestamp = new Date();
+  const parentTenantId = generateId<TenantId>();
+  const rootTenantId = generateId<TenantId>();
   const parentTenants: ParentTenant[] = [
-    { id: generateId(), name: "Tenant AOO", subUnitType: "AOO" },
-    { id: generateId(), name: "Tenant root" },
+    { id: parentTenantId, name: "Tenant AOO", subUnitType: tenantUnitType.AOO },
+    { id: rootTenantId, name: "Tenant root" },
   ];
   const tenant: Tenant = {
     ...getMockTenant(),
@@ -69,6 +72,14 @@ describe("API GET /tenants/{id} test", () => {
       const res = await makeRequest(token);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiResponse);
+      expect(res.body.parentTenants).toEqual([
+        {
+          id: parentTenantId,
+          name: "Tenant AOO",
+          subUnitType: tenantUnitType.AOO,
+        },
+        { id: rootTenantId, name: "Tenant root" },
+      ]);
       expect(res.body.remoteIds).toEqual([
         {
           origin: "IPA",

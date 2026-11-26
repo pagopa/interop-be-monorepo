@@ -365,6 +365,7 @@ export const attributeInReadmodelAttribute = readmodelAttribute.table(
       withTimezone: true,
       mode: "string",
     }).notNull(),
+    subunitPropagationEnabled: boolean("subunit_propagation_enabled"),
   }
 );
 
