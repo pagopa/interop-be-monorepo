@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-sesv2": "catalog:",
+    "axios": "catalog:",
     "dotenv-flow": "catalog:",
     "kafka-iam-auth": "workspace:*",
     "kafkajs": "catalog:",

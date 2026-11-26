@@ -4,6 +4,7 @@ import {
   AttributeId,
   CorrelationId,
   Delegation,
+  EmailNotificationRecipientPayload,
   EService,
   EServiceId,
   EventEnvelope,
@@ -48,23 +49,20 @@ export type EmailNotificationReadModelService = NotificationReadModelService & {
   ) => Promise<TenantNotificationConfig | undefined>;
 };
 
-export type TenantEmailNotificationRecipient = {
-  type: "Tenant";
-  tenantId: TenantId;
-  selfcareId: string | undefined;
-  address: string;
-};
-
-export type UserEmailNotificationRecipient = {
-  type: "User";
-  userId: UserId;
+export type EmailNotificationRecipient = EmailNotificationRecipientPayload & {
   tenantId: TenantId;
   selfcareId: string | undefined;
 };
 
-export type EmailNotificationRecipient =
-  | TenantEmailNotificationRecipient
-  | UserEmailNotificationRecipient;
+export type TenantEmailNotificationRecipient = Extract<
+  EmailNotificationRecipient,
+  { type: "Tenant" }
+>;
+
+export type UserEmailNotificationRecipient = Extract<
+  EmailNotificationRecipient,
+  { type: "User" }
+>;
 
 export type HandlerCommonParams<
   TReadModelService extends NotificationReadModelService,

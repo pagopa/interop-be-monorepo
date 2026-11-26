@@ -5,9 +5,8 @@ import {
   UserId,
   generateId,
 } from "pagopa-interop-models";
+import { encodeEmailEvent } from "pagopa-interop-notification-commons";
 import { describe, it, expect } from "vitest";
-
-import { encodeEmailEvent } from "../../src/services/emailKafkaSinkService.js";
 
 describe("encodeEmailEvent", () => {
   const correlationId = generateId<CorrelationId>();

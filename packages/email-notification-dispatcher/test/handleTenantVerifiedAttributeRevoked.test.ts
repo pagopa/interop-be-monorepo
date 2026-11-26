@@ -18,7 +18,6 @@ import {
   tenantAttributeType,
   TenantId,
   TenantNotificationConfigId,
-  toTenantV2,
   unsafeBrandId,
   VerifiedTenantAttribute,
 } from "pagopa-interop-models";
@@ -100,7 +99,7 @@ describe("handleTenantVerifiedAttributeRevoked", async () => {
   it("should throw missingKafkaMessageDataError when tenant is undefined", async () => {
     await expect(() =>
       handleTenantVerifiedAttributeRevoked({
-        tenantV2Msg: undefined,
+        tenant: undefined,
         attributeId: generateId(),
         logger,
         templateService,
@@ -117,7 +116,7 @@ describe("handleTenantVerifiedAttributeRevoked", async () => {
 
     await expect(() =>
       handleTenantVerifiedAttributeRevoked({
-        tenantV2Msg: toTenantV2(targetTenant),
+        tenant: targetTenant,
         attributeId: unknownAttributeId,
         logger,
         templateService,
@@ -136,7 +135,7 @@ describe("handleTenantVerifiedAttributeRevoked", async () => {
     await addOneTenant(tenantWithNoAttributes);
 
     const messages = await handleTenantVerifiedAttributeRevoked({
-      tenantV2Msg: toTenantV2(tenantWithNoAttributes),
+      tenant: tenantWithNoAttributes,
       attributeId,
       logger,
       templateService,
@@ -164,7 +163,7 @@ describe("handleTenantVerifiedAttributeRevoked", async () => {
     await addOneTenant(tenantWithNoAttributes);
 
     const messages = await handleTenantVerifiedAttributeRevoked({
-      tenantV2Msg: toTenantV2(tenantWithNoAttributes),
+      tenant: tenantWithNoAttributes,
       attributeId,
       logger,
       templateService,
@@ -177,7 +176,7 @@ describe("handleTenantVerifiedAttributeRevoked", async () => {
 
   it("should generate one message per user of the tenant whose attribute has been revoked", async () => {
     const messages = await handleTenantVerifiedAttributeRevoked({
-      tenantV2Msg: toTenantV2(targetTenant),
+      tenant: targetTenant,
       attributeId,
       logger,
       templateService,
@@ -211,7 +210,7 @@ describe("handleTenantVerifiedAttributeRevoked", async () => {
       ]);
 
     const messages = await handleTenantVerifiedAttributeRevoked({
-      tenantV2Msg: toTenantV2(targetTenant),
+      tenant: targetTenant,
       attributeId,
       logger,
       templateService,
@@ -234,7 +233,7 @@ describe("handleTenantVerifiedAttributeRevoked", async () => {
 
   it("should generate a complete and correct message", async () => {
     const messages = await handleTenantVerifiedAttributeRevoked({
-      tenantV2Msg: toTenantV2(targetTenant),
+      tenant: targetTenant,
       attributeId,
       logger,
       templateService,

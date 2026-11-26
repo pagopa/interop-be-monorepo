@@ -17,7 +17,6 @@ import {
   Tenant,
   TenantId,
   TenantNotificationConfigId,
-  toTenantV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { attributeNotFound } from "pagopa-interop-notification-commons";
@@ -119,7 +118,7 @@ describe("handleTenantCertifiedAttributeRevoked", async () => {
   it("should throw missingKafkaMessageDataError when tenant is undefined", async () => {
     await expect(() =>
       handleTenantCertifiedAttributeRevoked({
-        tenantV2Msg: undefined,
+        tenant: undefined,
         attributeId: generateId(),
         logger,
         templateService,
@@ -136,7 +135,7 @@ describe("handleTenantCertifiedAttributeRevoked", async () => {
 
     await expect(() =>
       handleTenantCertifiedAttributeRevoked({
-        tenantV2Msg: toTenantV2(targetTenant),
+        tenant: targetTenant,
         attributeId: unknownAttributeId,
         logger,
         templateService,
@@ -155,7 +154,7 @@ describe("handleTenantCertifiedAttributeRevoked", async () => {
     await addOneAttribute(attributeWithNoOrigin);
 
     const messages = await handleTenantCertifiedAttributeRevoked({
-      tenantV2Msg: toTenantV2(targetTenant),
+      tenant: targetTenant,
       attributeId: attributeWithNoOrigin.id,
       logger,
       templateService,
@@ -168,7 +167,7 @@ describe("handleTenantCertifiedAttributeRevoked", async () => {
 
   it("should generate one message per user of the tenant whose attribute has been revoked", async () => {
     const messages = await handleTenantCertifiedAttributeRevoked({
-      tenantV2Msg: toTenantV2(targetTenant),
+      tenant: targetTenant,
       attributeId,
       logger,
       templateService,
@@ -202,7 +201,7 @@ describe("handleTenantCertifiedAttributeRevoked", async () => {
       ]);
 
     const messages = await handleTenantCertifiedAttributeRevoked({
-      tenantV2Msg: toTenantV2(targetTenant),
+      tenant: targetTenant,
       attributeId,
       logger,
       templateService,
@@ -225,7 +224,7 @@ describe("handleTenantCertifiedAttributeRevoked", async () => {
 
   it("should generate a complete and correct message", async () => {
     const messages = await handleTenantCertifiedAttributeRevoked({
-      tenantV2Msg: toTenantV2(targetTenant),
+      tenant: targetTenant,
       attributeId,
       logger,
       templateService,
@@ -271,7 +270,7 @@ describe("handleTenantCertifiedAttributeRevoked", async () => {
     "should generate a complete and correct message for certified origin $certifiedAttribute.origin",
     async ({ certifiedAttribute }) => {
       const messages = await handleTenantCertifiedAttributeRevoked({
-        tenantV2Msg: toTenantV2(targetTenant),
+        tenant: targetTenant,
         attributeId: certifiedAttribute.id,
         logger,
         templateService,

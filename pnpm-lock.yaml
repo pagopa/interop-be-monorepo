@@ -3150,6 +3150,9 @@ importers:
       '@aws-sdk/client-sesv2':
         specifier: 'catalog:'
         version: 3.840.0
+      axios:
+        specifier: 'catalog:'
+        version: 1.18.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0

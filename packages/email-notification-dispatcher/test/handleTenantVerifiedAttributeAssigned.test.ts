@@ -18,7 +18,6 @@ import {
   tenantAttributeType,
   TenantId,
   TenantNotificationConfigId,
-  toTenantV2,
   unsafeBrandId,
   VerifiedTenantAttribute,
 } from "pagopa-interop-models";
@@ -99,7 +98,7 @@ describe("handleTenantVerifiedAttributeAssigned", async () => {
   it("should throw missingKafkaMessageDataError when tenant is undefined", async () => {
     await expect(() =>
       handleTenantVerifiedAttributeAssigned({
-        tenantV2Msg: undefined,
+        tenant: undefined,
         attributeId: generateId(),
         logger,
         templateService,
@@ -116,7 +115,7 @@ describe("handleTenantVerifiedAttributeAssigned", async () => {
 
     await expect(() =>
       handleTenantVerifiedAttributeAssigned({
-        tenantV2Msg: toTenantV2(targetTenant),
+        tenant: targetTenant,
         attributeId: unknownAttributeId,
         logger,
         templateService,
@@ -135,7 +134,7 @@ describe("handleTenantVerifiedAttributeAssigned", async () => {
     await addOneTenant(tenantWithNoAttributes);
 
     const messages = await handleTenantVerifiedAttributeAssigned({
-      tenantV2Msg: toTenantV2(tenantWithNoAttributes),
+      tenant: tenantWithNoAttributes,
       attributeId,
       logger,
       templateService,
@@ -163,7 +162,7 @@ describe("handleTenantVerifiedAttributeAssigned", async () => {
     await addOneTenant(tenantWithNoAttributes);
 
     const messages = await handleTenantVerifiedAttributeAssigned({
-      tenantV2Msg: toTenantV2(tenantWithNoAttributes),
+      tenant: tenantWithNoAttributes,
       attributeId,
       logger,
       templateService,
@@ -176,7 +175,7 @@ describe("handleTenantVerifiedAttributeAssigned", async () => {
 
   it("should generate one message per user of the tenant that is assigned the attribute", async () => {
     const messages = await handleTenantVerifiedAttributeAssigned({
-      tenantV2Msg: toTenantV2(targetTenant),
+      tenant: targetTenant,
       attributeId,
       logger,
       templateService,
@@ -210,7 +209,7 @@ describe("handleTenantVerifiedAttributeAssigned", async () => {
       ]);
 
     const messages = await handleTenantVerifiedAttributeAssigned({
-      tenantV2Msg: toTenantV2(targetTenant),
+      tenant: targetTenant,
       attributeId,
       logger,
       templateService,
@@ -233,7 +232,7 @@ describe("handleTenantVerifiedAttributeAssigned", async () => {
 
   it("should generate a complete and correct message", async () => {
     const messages = await handleTenantVerifiedAttributeAssigned({
-      tenantV2Msg: toTenantV2(targetTenant),
+      tenant: targetTenant,
       attributeId,
       logger,
       templateService,

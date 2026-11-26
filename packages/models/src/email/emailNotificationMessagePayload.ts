@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { CorrelationId, TenantId, UserId } from "../brandedIds.js";
+import { ContactId, CorrelationId, TenantId, UserId } from "../brandedIds.js";
 import { Email, EmailAddress } from "./email.js";
 
 const EmailNotificationMessagePayloadBase = z.object({
@@ -9,22 +9,27 @@ const EmailNotificationMessagePayloadBase = z.object({
   tenantId: TenantId,
 });
 
-const EmailNotificationMessagePayloadUser =
-  EmailNotificationMessagePayloadBase.extend({
-    type: z.literal("User"),
-    userId: UserId,
-  });
-
-const EmailNotificationMessagePayloadTenant =
-  EmailNotificationMessagePayloadBase.extend({
+export const EmailNotificationRecipientPayload = z.union([
+  z.object({ type: z.literal("User"), userId: UserId }),
+  z.object({
+    type: z.literal("Tenant"),
+    contactId: ContactId,
+    address: z.never().optional(),
+  }),
+  // During cutover, producers may still see a legacy tenant and Kafka may
+  // contain notifications that were queued before the contact was migrated.
+  z.object({
     type: z.literal("Tenant"),
     address: EmailAddress,
-  });
-
-export const EmailNotificationMessagePayload = z.discriminatedUnion("type", [
-  EmailNotificationMessagePayloadUser,
-  EmailNotificationMessagePayloadTenant,
+    contactId: z.never().optional(),
+  }),
 ]);
+export type EmailNotificationRecipientPayload = z.infer<
+  typeof EmailNotificationRecipientPayload
+>;
+
+export const EmailNotificationMessagePayload =
+  EmailNotificationMessagePayloadBase.and(EmailNotificationRecipientPayload);
 export type EmailNotificationMessagePayload = z.infer<
   typeof EmailNotificationMessagePayload
 >;

@@ -1,26 +1,10 @@
 import { Logger } from "pagopa-interop-commons";
 import { EmailNotificationMessagePayload } from "pagopa-interop-models";
-import { match } from "ts-pattern";
+import { encodeEmailEvent } from "pagopa-interop-notification-commons";
 
 type Producer = {
   send: (args: { messages: Array<{ value: string }> }) => Promise<unknown>;
 };
-
-export const encodeEmailEvent = (
-  event: EmailNotificationMessagePayload
-): string =>
-  JSON.stringify({
-    correlationId: event.correlationId,
-    email: {
-      subject: event.email.subject,
-      body: event.email.body,
-    },
-    tenantId: event.tenantId,
-    ...match(event)
-      .with({ type: "User" }, ({ type, userId }) => ({ type, userId }))
-      .with({ type: "Tenant" }, ({ type, address }) => ({ type, address }))
-      .exhaustive(),
-  });
 
 export const emailKafkaSinkBuilder = (producer: Producer, log: Logger) => ({
   async sendEmails(payloads: EmailNotificationMessagePayload[]): Promise<void> {

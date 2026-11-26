@@ -17,7 +17,6 @@ import {
   Tenant,
   TenantId,
   TenantNotificationConfigId,
-  toTenantV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { attributeNotFound } from "pagopa-interop-notification-commons";
@@ -82,7 +81,7 @@ describe("handleTenantCertifiedDiscreteAttributeUpdated", async () => {
   it("should throw missingKafkaMessageDataError when tenant is undefined", async () => {
     await expect(() =>
       handleTenantCertifiedDiscreteAttributeUpdated({
-        tenantV2Msg: undefined,
+        tenant: undefined,
         attributeId: generateId(),
         logger,
         templateService,
@@ -102,7 +101,7 @@ describe("handleTenantCertifiedDiscreteAttributeUpdated", async () => {
 
     await expect(() =>
       handleTenantCertifiedDiscreteAttributeUpdated({
-        tenantV2Msg: toTenantV2(targetTenant),
+        tenant: targetTenant,
         attributeId: unknownAttributeId,
         logger,
         templateService,
@@ -121,7 +120,7 @@ describe("handleTenantCertifiedDiscreteAttributeUpdated", async () => {
     await addOneAttribute(attributeWithNoOrigin);
 
     const messages = await handleTenantCertifiedDiscreteAttributeUpdated({
-      tenantV2Msg: toTenantV2(targetTenant),
+      tenant: targetTenant,
       attributeId: attributeWithNoOrigin.id,
       logger,
       templateService,
@@ -134,7 +133,7 @@ describe("handleTenantCertifiedDiscreteAttributeUpdated", async () => {
 
   it("should generate one message per user of the tenant that is updated with the attribute", async () => {
     const messages = await handleTenantCertifiedDiscreteAttributeUpdated({
-      tenantV2Msg: toTenantV2(targetTenant),
+      tenant: targetTenant,
       attributeId,
       logger,
       templateService,
@@ -168,7 +167,7 @@ describe("handleTenantCertifiedDiscreteAttributeUpdated", async () => {
       ]);
 
     const messages = await handleTenantCertifiedDiscreteAttributeUpdated({
-      tenantV2Msg: toTenantV2(targetTenant),
+      tenant: targetTenant,
       attributeId,
       logger,
       templateService,
@@ -191,7 +190,7 @@ describe("handleTenantCertifiedDiscreteAttributeUpdated", async () => {
 
   it("should generate a complete and correct message", async () => {
     const messages = await handleTenantCertifiedDiscreteAttributeUpdated({
-      tenantV2Msg: toTenantV2(targetTenant),
+      tenant: targetTenant,
       attributeId,
       logger,
       templateService,

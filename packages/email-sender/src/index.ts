@@ -1,8 +1,13 @@
 import { runConsumer } from "kafka-iam-auth";
-import { selfcareV2InstitutionClientBuilder } from "pagopa-interop-api-clients";
+import {
+  contactDataApi,
+  selfcareV2InstitutionClientBuilder,
+} from "pagopa-interop-api-clients";
 import {
   buildHTMLTemplateService,
   EmailManagerSES,
+  InteropTokenGenerator,
+  RefreshableInteropToken,
   initSesMailManager,
 } from "pagopa-interop-commons";
 import {
@@ -32,7 +37,11 @@ const processor = emailSenderProcessorBuilder(
   sesEmailManager,
   selfcareV2InstitutionClient,
   tenantReadModelServiceSQL,
-  templateService
+  templateService,
+  contactDataApi.createContactApiClient(config.contactDataManagerUrl, {
+    axiosConfig: { timeout: 5_000 },
+  }),
+  new RefreshableInteropToken(new InteropTokenGenerator(config))
 );
 
 await runConsumer(

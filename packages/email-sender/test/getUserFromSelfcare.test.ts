@@ -4,7 +4,7 @@ import { generateId, UserId, TenantId } from "pagopa-interop-models";
 import { TenantReadModelService } from "pagopa-interop-readmodel";
 import { describe, vi, afterEach, it, expect } from "vitest";
 
-import { getUserFromSelfcare } from "../src/services/emailSenderProcessor.js";
+import { getUserFromSelfcare } from "../src/services/recipientLookup.js";
 
 describe("getUserFromSelfcare", () => {
   // eslint-disable-next-line functional/no-let

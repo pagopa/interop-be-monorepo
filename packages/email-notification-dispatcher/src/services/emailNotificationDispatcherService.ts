@@ -1,9 +1,9 @@
 import { initProducer } from "kafka-iam-auth";
 import { logger } from "pagopa-interop-commons";
 import { EmailNotificationMessagePayload } from "pagopa-interop-models";
+import { encodeEmailEvent } from "pagopa-interop-notification-commons";
 
 import { config } from "../config/config.js";
-import { encodeEmailEvent } from "./utils.js";
 
 const producer = await initProducer(
   config,
