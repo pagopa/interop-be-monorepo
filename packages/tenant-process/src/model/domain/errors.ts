@@ -1,7 +1,6 @@
 import {
   ApiError,
   AttributeId,
-  ContactId,
   DelegationId,
   EServiceId,
   TenantId,
@@ -45,7 +44,7 @@ const errorCodes = {
   certifiedDiscreteAttributeRevoked: "0034",
   tenantNotAllowedForDelegation: "0035",
   tenantUpdateVersionMismatch: "0036",
-  tenantContactAlreadyAssigned: "0037",
+  tenantContactNotFound: "0038",
   tenantMailsNotAllowed: "0039",
   tenantContactRequiresEventsV3: "0040",
   tenantLegacyMailsNotMigrated: "0041",
@@ -399,14 +398,13 @@ export function tenantUpdateVersionMismatch(
   });
 }
 
-export function tenantContactAlreadyAssigned(
-  tenantId: TenantId,
-  contactId: ContactId
+export function tenantContactNotFound(
+  tenantId: TenantId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Contact ${contactId} is already assigned to tenant ${tenantId}`,
-    code: "tenantContactAlreadyAssigned",
-    title: "Tenant contact already assigned",
+    detail: `No contact found for tenant ${tenantId}`,
+    code: "tenantContactNotFound",
+    title: "Tenant contact not found",
   });
 }
 

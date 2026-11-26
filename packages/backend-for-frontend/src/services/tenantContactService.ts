@@ -1,76 +1,46 @@
 import { AxiosError, isAxiosError } from "axios";
-import { bffApi, contactDataApi, tenantApi } from "pagopa-interop-api-clients";
-import { logger, RefreshableInteropToken } from "pagopa-interop-commons";
-import { CorrelationId, genericError } from "pagopa-interop-models";
+import { bffApi, tenantApi } from "pagopa-interop-api-clients";
+import { logger } from "pagopa-interop-commons";
+import { TenantId } from "pagopa-interop-models";
 
-import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
+import { TenantProcessClient } from "../clients/clientsProvider.js";
+import { Headers } from "../utilities/context.js";
+
+// Zodios diagnostics can contain the request or response body, including the address.
+export function tenantContactRequestError(error: unknown): Error {
+  const message = "Tenant contact request failed";
+  return isAxiosError(error) && error.response
+    ? new AxiosError(message, undefined, undefined, undefined, error.response)
+    : new Error(message);
+}
 
 export function tenantContactServiceBuilder(
-  client: Pick<
-    contactDataApi.ContactDataManagerClient,
-    "createContact" | "getContact"
-  >,
-  token: Pick<RefreshableInteropToken, "get">
+  client: Pick<TenantProcessClient["tenant"], "getTenantContact">
 ) {
-  async function internalHeaders(correlationId: CorrelationId) {
-    const { serialized } = await token.get();
-    return {
-      Authorization: `Bearer ${serialized}`,
-      "X-Correlation-Id": correlationId,
-    };
-  }
-
   return {
-    async create(
-      address: string,
-      correlationId: CorrelationId
-    ): Promise<string> {
-      const headers = await internalHeaders(correlationId);
-      try {
-        const { id } = await client.createContact(
-          { email: address },
-          { headers }
-        );
-        return id;
-      } catch (error) {
-        // Forward the CDM response for the standard Problem mapping. Discard the client error message, which may include the address.
-        if (isAxiosError(error) && error.response) {
-          throw new AxiosError(
-            "Contact creation failed",
-            undefined,
-            undefined,
-            undefined,
-            error.response
-          );
-        }
-        throw genericError("Contact creation failed");
-      }
-    },
-
     async resolve(
-      tenant: tenantApi.Tenant,
-      correlationId: CorrelationId
+      tenant: Pick<tenantApi.Tenant, "id">,
+      organizationId: TenantId,
+      headers: Headers
     ): Promise<bffApi.Mail | undefined> {
-      if (!tenant.contactId) {
-        return getLatestTenantContactEmail(tenant);
+      if (tenant.id !== organizationId) {
+        return undefined;
       }
-      const headers = await internalHeaders(correlationId);
       try {
-        const { email } = await client.getContact({
-          params: { contactId: tenant.contactId },
+        return await client.getTenantContact({
+          params: { tenantId: tenant.id },
           headers,
         });
-        return { address: email };
       } catch (error) {
         if (!isAxiosError(error)) {
-          throw error;
+          throw tenantContactRequestError(error);
         }
         const status = error.response?.status;
         if (status !== undefined && status !== 404 && status < 500) {
-          throw error;
+          throw tenantContactRequestError(error);
         }
-        logger({ correlationId }).warn(
-          `Unable to resolve contact ${tenant.contactId} for tenant ${tenant.id}: ${status ?? error.code ?? "no response"}`
+        logger({ correlationId: headers["X-Correlation-Id"] }).warn(
+          `Unable to resolve contact for tenant ${tenant.id}: ${status ?? "no response"}`
         );
         return undefined;
       }

@@ -1,4 +1,5 @@
 import { tenantApi } from "pagopa-interop-api-clients";
+import { AuthData, getUserInfoFromAuthData } from "pagopa-interop-commons";
 import {
   ExternalId,
   Tenant,
@@ -135,7 +136,11 @@ function toApiMail(mail: TenantMail): tenantApi.Mail {
   };
 }
 
-export function toApiTenant(tenant: Tenant): tenantApi.Tenant {
+export function toApiTenant(
+  tenant: Tenant,
+  authData?: AuthData
+): tenantApi.Tenant {
+  const { organizationId } = getUserInfoFromAuthData(authData);
   return {
     id: tenant.id,
     kind: tenant.kind ? toApiTenantKind(tenant.kind) : undefined,
@@ -145,7 +150,13 @@ export function toApiTenant(tenant: Tenant): tenantApi.Tenant {
     attributes: tenant.attributes.map(toApiTenantAttribute),
     createdAt: tenant.createdAt.toJSON(),
     updatedAt: tenant.updatedAt?.toJSON(),
-    mails: tenant.mails.map(toApiMail),
+    mails: tenant.mails
+      .filter(
+        (mail) =>
+          tenant.id === organizationId ||
+          mail.kind !== tenantMailKind.ContactEmail
+      )
+      .map(toApiMail),
     contactId: tenant.contactId,
     name: tenant.name,
     onboardedAt: tenant.onboardedAt?.toJSON(),

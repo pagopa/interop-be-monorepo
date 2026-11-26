@@ -1,10 +1,11 @@
 import type { TestProject } from "vitest/node";
 
 import { ContactDataDBConfig } from "pagopa-interop-commons";
+
 import {
   contactDataDBContainer,
   TEST_POSTGRES_DB_PORT,
-} from "pagopa-interop-commons-test";
+} from "./containerTestUtils.js";
 
 declare module "vitest" {
   export interface ProvidedContext {
@@ -12,7 +13,7 @@ declare module "vitest" {
   }
 }
 
-export default async function setup({
+export async function setupContactDataDB({
   provide,
 }: TestProject): Promise<() => Promise<void>> {
   const config = ContactDataDBConfig.parse({});

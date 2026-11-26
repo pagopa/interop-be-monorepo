@@ -1,11 +1,7 @@
 import { vi } from "vitest";
 
-import { getLatestTenantContactEmail } from "../src/model/modelMappingUtils.js";
+import type { TenantContactService } from "../src/services/tenantContactService.js";
 
-export const mockTenantContacts = {
-  create: vi.fn<(address: string, correlationId: string) => Promise<string>>(),
-  resolve: vi.fn(
-    async (tenant: Parameters<typeof getLatestTenantContactEmail>[0]) =>
-      getLatestTenantContactEmail(tenant)
-  ),
+export const mockTenantContacts: TenantContactService = {
+  resolve: vi.fn().mockResolvedValue(undefined),
 };

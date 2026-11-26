@@ -808,8 +808,16 @@ async function enrichAgreementListEntry(
     const [delegateContactMail, consumerContactMail] =
       delegation && delegate
         ? await Promise.all([
-            tenantContacts.resolve(delegate, ctx.correlationId),
-            tenantContacts.resolve(consumer, ctx.correlationId),
+            tenantContacts.resolve(
+              delegate,
+              ctx.authData.organizationId,
+              ctx.headers
+            ),
+            tenantContacts.resolve(
+              consumer,
+              ctx.authData.organizationId,
+              ctx.headers
+            ),
           ])
         : [];
     agreementsResult.push({
@@ -910,7 +918,8 @@ export async function enrichAgreement(
 
       const tenantContactMail = await tenantContacts.resolve(
         tenant,
-        ctx.correlationId
+        ctx.authData.organizationId,
+        ctx.headers
       );
       return {
         id: delegation.id,
@@ -924,8 +933,8 @@ export async function enrichAgreement(
     });
 
   const [producerContactMail, consumerContactMail] = await Promise.all([
-    tenantContacts.resolve(producer, ctx.correlationId),
-    tenantContacts.resolve(consumer, ctx.correlationId),
+    tenantContacts.resolve(producer, ctx.authData.organizationId, ctx.headers),
+    tenantContacts.resolve(consumer, ctx.authData.organizationId, ctx.headers),
   ]);
   return {
     id: agreement.id,

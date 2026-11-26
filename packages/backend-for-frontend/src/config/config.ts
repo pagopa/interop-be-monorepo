@@ -24,11 +24,9 @@ import { TokenGenerationValidationConfig } from "./tokenGenerationValidationConf
 const TenantProcessServerConfig = z
   .object({
     TENANT_PROCESS_URL: APIEndpoint,
-    CONTACT_DATA_MANAGER_URL: APIEndpoint,
   })
   .transform((c) => ({
     tenantProcessUrl: c.TENANT_PROCESS_URL,
-    contactDataManagerUrl: c.CONTACT_DATA_MANAGER_URL,
   }));
 type TenantProcessServerConfig = z.infer<typeof TenantProcessServerConfig>;
 

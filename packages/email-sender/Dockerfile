@@ -14,6 +14,7 @@ COPY .npmrc /app/
 COPY ./packages/email-sender/package.json /app/packages/email-sender/package.json
 COPY ./packages/commons/package.json /app/packages/commons/package.json
 COPY ./packages/models/package.json /app/packages/models/package.json
+COPY ./packages/contact-data-db-models/package.json /app/packages/contact-data-db-models/package.json
 COPY ./packages/kafka-iam-auth/package.json /app/packages/kafka-iam-auth/package.json
 COPY ./packages/api-clients/package.json /app/packages/api-clients/package.json
 COPY ./packages/readmodel/package.json /app/packages/readmodel/package.json
@@ -27,6 +28,7 @@ COPY turbo.json /app/
 COPY ./packages/email-sender /app/packages/email-sender
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
+COPY ./packages/contact-data-db-models /app/packages/contact-data-db-models
 COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
 COPY ./packages/api-clients /app/packages/api-clients
 COPY ./packages/readmodel /app/packages/readmodel
@@ -42,6 +44,7 @@ RUN NODE_OPTIONS="--max-old-space-size=${NODE_HEAP_SIZE}" pnpm build && \
   node_modules packages/email-sender/node_modules \
   package*.json packages/email-sender/package*.json \
   packages/commons \
+  packages/contact-data-db-models \
   packages/models \
   packages/kafka-iam-auth \
   packages/api-clients \

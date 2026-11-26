@@ -11,7 +11,6 @@ import {
   DelegationId,
   Tenant,
   TenantAttribute,
-  TenantMail,
   VerifiedTenantAttribute,
   tenantAttributeType,
   unsafeBrandId,
@@ -284,22 +283,5 @@ export async function toBffApiCompactTenant(
     name: tenant.name,
     selfcareId: tenant.selfcareId,
     logoUrl: await getLogoUrl(tenant.selfcareId),
-  };
-}
-
-export function fromApiTenantMail(mail: tenantApi.Mail): TenantMail {
-  return {
-    id: mail.id,
-    kind: mail.kind,
-    address: mail.address,
-    createdAt: new Date(mail.createdAt),
-    description: mail.description,
-  };
-}
-
-export function toBffTenantMail(mail: TenantMail): bffApi.Mail {
-  return {
-    address: mail.address,
-    description: mail.description,
   };
 }

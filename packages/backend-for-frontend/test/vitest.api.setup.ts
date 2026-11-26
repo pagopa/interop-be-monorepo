@@ -50,7 +50,6 @@ vi.mock("pagopa-interop-commons", async () => {
 });
 
 import {
-  contactDataApi,
   agreementApi,
   attributeRegistryApi,
   catalogApi,
@@ -94,10 +93,6 @@ export const mockRateLimiter: RateLimiter = {
 };
 
 export const clients = {
-  contactDataManagerClient: {
-    createContact: vi.fn(),
-    getContact: vi.fn(),
-  } as unknown as contactDataApi.ContactDataManagerClient,
   tenantProcessClient: {
     tenant: {},
     tenantAttribute: {},

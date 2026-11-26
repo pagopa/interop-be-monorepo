@@ -316,17 +316,25 @@ export const addTenantMailErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with("tenantMailsNotAllowed", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const getTenantContactErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "tenantNotFound",
+      "tenantContactNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const addTenantContactErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with(
-      "tenantContactAlreadyAssigned",
-      "tenantLegacyMailsNotMigrated",
-      () => HTTP_STATUS_CONFLICT
-    )
+    .with("tenantLegacyMailsNotMigrated", () => HTTP_STATUS_CONFLICT)
     .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 

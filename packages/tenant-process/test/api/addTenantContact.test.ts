@@ -19,7 +19,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { toApiTenant } from "../../src/model/domain/apiConverter.js";
 import {
-  tenantContactAlreadyAssigned,
   tenantNotFound,
   tenantLegacyMailsNotMigrated,
 } from "../../src/model/domain/errors.js";
@@ -27,7 +26,9 @@ import { api, tenantService } from "../vitest.api.setup.js";
 
 describe("API POST /tenants/{tenantId}/contact test", () => {
   const contactId = generateId<ContactId>();
-  const contactSeed: tenantApi.TenantContactSeed = { contactId };
+  const contactSeed: tenantApi.TenantContactSeed = {
+    address: "tenant@example.org",
+  };
   const tenant: Tenant = { ...getMockTenant(), contactId };
 
   const serviceResponse = getMockWithMetadata(tenant);
@@ -79,10 +80,6 @@ describe("API POST /tenants/{tenantId}/contact test", () => {
     { error: tenantNotFound(tenant.id), expectedStatus: 404 },
     { error: operationForbidden, expectedStatus: 403 },
     {
-      error: tenantContactAlreadyAssigned(tenant.id, contactId),
-      expectedStatus: 409,
-    },
-    {
       error: featureFlagNotEnabled("featureFlagTenantEventsV3"),
       expectedStatus: 501,
     },
@@ -98,9 +95,25 @@ describe("API POST /tenants/{tenantId}/contact test", () => {
   );
 
   it.each([
+    '{"tenant-private@example.org":true}',
+    '{"address": tenant-private@example.org}',
+  ])("redacts rejected JSON without calling the service", async (body) => {
+    const res = await request(api)
+      .post(`/tenants/${tenant.id}/contact`)
+      .set("Authorization", `Bearer ${generateToken(authRole.ADMIN_ROLE)}`)
+      .set("X-Correlation-Id", generateId())
+      .type("json")
+      .send(body);
+    expect(res.status).toBe(400);
+    expect(res.text).not.toContain("tenant-private@example.org");
+    expect(tenantService.addTenantContact).not.toHaveBeenCalled();
+  });
+
+  it.each([
     { tenantId: "invalid" as TenantId },
     { body: {} },
-    { body: { contactId: "invalid" } },
+    { body: { address: "invalid" } },
+    { body: { contactId: generateId() } },
     { body: { ...contactSeed, extraField: 1 } },
   ])(
     "Should return 400 if passed invalid data: %s",

@@ -6,7 +6,7 @@ import {
 import {
   authenticationMiddleware,
   contextMiddleware,
-  errorsToApiProblemsMiddleware,
+  tenantErrorsToApiProblemsMiddleware,
   healthRouter,
   loggerMiddleware,
   zodiosCtx,
@@ -36,7 +36,7 @@ export async function createApp(service: TenantService) {
   app.use(authenticationMiddleware(config));
   app.use(loggerMiddleware(serviceName));
   app.use(router);
-  app.use(errorsToApiProblemsMiddleware);
+  app.use(tenantErrorsToApiProblemsMiddleware);
 
   return app;
 }

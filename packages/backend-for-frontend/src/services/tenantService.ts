@@ -32,7 +32,10 @@ import { TenantProcessClient } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import { BffAppContext } from "../utilities/context.js";
 import { getAllBulkAttributes } from "./attributeService.js";
-import { TenantContactService } from "./tenantContactService.js";
+import {
+  TenantContactService,
+  tenantContactRequestError,
+} from "./tenantContactService.js";
 
 async function getRegistryAttributesMap(
   tenantAttributesIds: string[],
@@ -87,7 +90,7 @@ export function tenantServiceBuilder(
   return {
     async getTenant(
       tenantId: TenantId,
-      { headers, logger, correlationId }: WithLogger<BffAppContext>
+      { headers, logger, authData }: WithLogger<BffAppContext>
     ): Promise<bffApi.Tenant> {
       logger.info(`Getting tenant with id ${tenantId}`);
       const tenant = await tenantProcessClient.tenant.getTenant({
@@ -126,7 +129,8 @@ export function tenantServiceBuilder(
 
       const tenantContactMail = await tenantContacts.resolve(
         tenant,
-        correlationId
+        authData.organizationId,
+        headers
       );
       return toBffApiTenant(
         tenant,
@@ -512,14 +516,17 @@ export function tenantServiceBuilder(
       { address }: bffApi.TenantContactSeed,
       ctx: WithLogger<BffAppContext>
     ): Promise<void> {
-      const contactId = await tenantContacts.create(address, ctx.correlationId);
-      await tenantProcessClient.tenant.addTenantContact(
-        { contactId },
-        {
-          params: { tenantId },
-          headers: ctx.headers,
-        }
-      );
+      await tenantProcessClient.tenant
+        .addTenantContact(
+          { address },
+          {
+            params: { tenantId },
+            headers: ctx.headers,
+          }
+        )
+        .catch((error: unknown) => {
+          throw tenantContactRequestError(error);
+        });
     },
     async deleteTenantContact(
       tenantId: TenantId,

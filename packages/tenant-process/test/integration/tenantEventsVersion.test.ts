@@ -475,10 +475,9 @@ describe("Tenant events version", () => {
     const streamTenant = getMockTenant();
     await addOneTenant(streamTenant);
 
-    const contactId = generateId<ContactId>();
     const { data: tenantWithContact, metadata } =
       await tenantService.addTenantContact(
-        { tenantId: streamTenant.id, contactId },
+        { tenantId: streamTenant.id, address: "tenant@example.org" },
         getMockContext({ authData: getMockAuthData(streamTenant.id) })
       );
     await upsertTenant(readModelDB, tenantWithContact, metadata.version);

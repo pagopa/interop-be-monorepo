@@ -6,7 +6,7 @@ import {
   validateAuthorization,
   ExpressContext,
   ZodiosContext,
-  zodiosValidationErrorToApiProblem,
+  tenantValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import {
   AgreementId,
@@ -26,7 +26,7 @@ const tenantRouter = (
   tenantService: TenantService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const tenantRouter = ctx.router(bffApi.tenantsApi.api, {
-    validationErrorHandler: zodiosValidationErrorToApiProblem,
+    validationErrorHandler: tenantValidationErrorToApiProblem,
   });
 
   tenantRouter

@@ -22,3 +22,12 @@ export const ContactDataDBConfig = z
   }));
 
 export type ContactDataDBConfig = z.infer<typeof ContactDataDBConfig>;
+
+// Online services must be provisioned with their own Postgres identity.
+export const ContactDataServiceDBConfig = z
+  .object({
+    CONTACT_DATA_DB_USERNAME: z.string().min(1),
+    CONTACT_DATA_DB_PASSWORD: z.string().min(1),
+  })
+  .passthrough()
+  .pipe(ContactDataDBConfig);

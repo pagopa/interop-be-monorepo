@@ -61,7 +61,7 @@ const enrichPurposeDelegation = async (
   delegationProcessClient: DelegationProcessClient,
   tenantProcessClient: TenantProcessClient,
   headers: Headers,
-  correlationId: CorrelationId
+  organizationId: BffAppContext["authData"]["organizationId"]
 ): Promise<bffApi.DelegationWithCompactTenants> => {
   const delegation = await delegationProcessClient.delegation.getDelegation({
     headers,
@@ -87,8 +87,8 @@ const enrichPurposeDelegation = async (
   }
 
   const [delegateContactMail, delegatorContactMail] = await Promise.all([
-    tenantContacts.resolve(delegate, correlationId),
-    tenantContacts.resolve(delegator, correlationId),
+    tenantContacts.resolve(delegate, organizationId, headers),
+    tenantContacts.resolve(delegator, organizationId, headers),
   ]);
   return {
     id: delegationId,
@@ -313,7 +313,7 @@ export function purposeServiceBuilder(
           delegationProcessClient,
           tenantProcessClient,
           headers,
-          correlationId
+          authData.organizationId
         )
       : undefined;
 
@@ -359,7 +359,8 @@ export function purposeServiceBuilder(
 
     const consumerContactMail = await tenantContacts.resolve(
       consumer,
-      correlationId
+      authData.organizationId,
+      headers
     );
     return {
       id: purpose.id,

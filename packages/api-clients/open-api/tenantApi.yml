@@ -1273,6 +1273,25 @@ paths:
         schema:
           type: string
           format: uuid
+    get:
+      tags:
+        - tenant
+      summary: Read the contact of the caller's organization
+      description: Returns the current contact email for a UI caller belonging to the specified tenant, including the latest legacy contact before migration.
+      operationId: getTenantContact
+      responses:
+        "200":
+          description: The contact mail of the authenticated tenant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantContactMail"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
     post:
       tags:
         - tenant
@@ -2018,15 +2037,24 @@ components:
         - kind
         - address
     TenantContactSeed:
-      description: The reference to the tenant contact
       type: object
       additionalProperties: false
       properties:
-        contactId:
+        address:
           type: string
-          format: uuid
+          format: email
       required:
-        - contactId
+        - address
+    TenantContactMail:
+      type: object
+      additionalProperties: false
+      properties:
+        address:
+          type: string
+        description:
+          type: string
+      required:
+        - address
     CertifierPromotionPayload:
       description: Certifier promotion payload
       type: object

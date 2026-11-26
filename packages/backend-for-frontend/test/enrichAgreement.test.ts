@@ -171,18 +171,10 @@ describe("enrichAgreement", () => {
       },
     } as unknown as PagoPAInteropBeClients;
 
-    const tenantContacts = tenantContactServiceBuilder(
-      {
-        createContact: vi.fn(),
-        getContact: vi.fn(async ({ params }) => {
-          if (params.contactId === producer.contactId) {
-            throw { isAxiosError: true, response: { status: 404 } };
-          }
-          return { id: params.contactId, email: "consumer@example.org" };
-        }),
-      },
-      { get: vi.fn().mockResolvedValue({ serialized: "internal" }) }
-    );
+    const getTenantContact = vi
+      .fn()
+      .mockResolvedValue({ address: "consumer@example.org" });
+    const tenantContacts = tenantContactServiceBuilder({ getTenantContact });
 
     const correlationId = generateId<CorrelationId>();
     const ctx: WithLogger<BffAppContext> = {
@@ -203,6 +195,11 @@ describe("enrichAgreement", () => {
       ctx
     );
 
+    expect(getTenantContact).toHaveBeenCalledTimes(1);
+    expect(getTenantContact).toHaveBeenCalledWith({
+      params: { tenantId: consumerId },
+      headers: ctx.headers,
+    });
     expect(actualAgreement.producer.contactMail).toBeUndefined();
     expect(actualAgreement.consumer.contactMail).toEqual({
       address: "consumer@example.org",

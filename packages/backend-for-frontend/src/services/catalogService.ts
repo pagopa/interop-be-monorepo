@@ -195,7 +195,7 @@ const checkNewTemplateVersionAvailable = (
 
 const enhanceProducerEService = async (
   tenantContacts: TenantContactService,
-  correlationId: BffAppContext["correlationId"],
+  headers: BffAppContext["headers"],
   eservice: catalogApi.EService,
   requesterId: TenantId,
   delegations: delegationApi.Delegation[],
@@ -225,8 +225,8 @@ const enhanceProducerEService = async (
   const [delegatorContactMail, delegateContactMail] =
     delegation && delegator && delegate
       ? await Promise.all([
-          tenantContacts.resolve(delegator, correlationId),
-          tenantContacts.resolve(delegate, correlationId),
+          tenantContacts.resolve(delegator, requesterId, headers),
+          tenantContacts.resolve(delegate, requesterId, headers),
         ])
       : [];
   return {
@@ -435,7 +435,7 @@ export function catalogServiceBuilder(
     getProducerEServiceDescriptor: async (
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      { authData, headers, logger, correlationId }: WithLogger<BffAppContext>
+      { authData, headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.ProducerEServiceDescriptor> => {
       logger.info(
         `Retrieving producer EService Descriptor for eserviceId = ${eserviceId}, descriptorId = ${descriptorId}`
@@ -529,8 +529,8 @@ export function catalogServiceBuilder(
 
       const [producerTenantContactMail, delegateContactMail] =
         await Promise.all([
-          tenantContacts.resolve(producerTenant, correlationId),
-          delegate && tenantContacts.resolve(delegate, correlationId),
+          tenantContacts.resolve(producerTenant, requesterId, headers),
+          delegate && tenantContacts.resolve(delegate, requesterId, headers),
         ]);
       const producerDescriptorEService =
         await enhanceEServiceToBffCatalogApiProducerDescriptorEService(
@@ -978,7 +978,7 @@ export function catalogServiceBuilder(
           results.map((result) =>
             enhanceProducerEService(
               tenantContacts,
-              ctx.correlationId,
+              ctx.headers,
               result,
               requesterId,
               delegations,
@@ -998,7 +998,7 @@ export function catalogServiceBuilder(
     getCatalogEServiceDescriptor: async (
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      { authData, headers, logger, correlationId }: WithLogger<BffAppContext>
+      { authData, headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.CatalogEServiceDescriptor> => {
       logger.info(
         `Retrieving Descriptor ${descriptorId} of EService ${eserviceId}`
@@ -1088,7 +1088,8 @@ export function catalogServiceBuilder(
 
       const producerTenantContactMail = await tenantContacts.resolve(
         producerTenant,
-        correlationId
+        requesterId,
+        headers
       );
       return {
         id: descriptor.id,

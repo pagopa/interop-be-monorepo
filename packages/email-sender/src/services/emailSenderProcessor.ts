@@ -1,16 +1,8 @@
 /* eslint-disable functional/no-let */
 import { TooManyRequestsException } from "@aws-sdk/client-sesv2";
 import { EachMessagePayload } from "kafkajs";
-import {
-  contactDataApi,
-  SelfcareV2InstitutionClient,
-} from "pagopa-interop-api-clients";
-import {
-  delay,
-  EmailManagerSES,
-  logger,
-  RefreshableInteropToken,
-} from "pagopa-interop-commons";
+import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
+import { delay, EmailManagerSES, logger } from "pagopa-interop-commons";
 import { HtmlTemplateService } from "pagopa-interop-commons";
 import {
   genericInternalError,
@@ -22,6 +14,7 @@ import { match } from "ts-pattern";
 import { config } from "../config/config.js";
 import {
   getTenantContactEmail,
+  ContactEmailReader,
   getUserFromSelfcare,
 } from "./recipientLookup.js";
 
@@ -35,8 +28,7 @@ export function emailSenderProcessorBuilder(
   selfcareV2InstitutionClient: SelfcareV2InstitutionClient,
   tenantReadModelService: TenantReadModelService,
   templateService: HtmlTemplateService,
-  contactClient: Pick<contactDataApi.ContactDataManagerClient, "getContact">,
-  token: Pick<RefreshableInteropToken, "get">
+  readContactEmail: ContactEmailReader
 ) {
   return {
     async processMessage({
@@ -97,9 +89,7 @@ export function emailSenderProcessorBuilder(
             recipient.contactId !== undefined
               ? await getTenantContactEmail(
                   recipient.contactId,
-                  recipient.correlationId,
-                  contactClient,
-                  token,
+                  readContactEmail,
                   loggerInstance
                 )
               : recipient.address;

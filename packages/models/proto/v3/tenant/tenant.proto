@@ -3,8 +3,8 @@ syntax = "proto3";
 package tenant.v3;
 
 message TenantV3 {
-  // Field 8 carried the plain-text mails in TenantV2: V3 references the
-  // contact managed by the Contact Data Manager through contactId instead.
+  // Field 8 carried plain-text mails in TenantV2. V3 references the contact
+  // in the dedicated database through contactId.
   reserved 8;
   reserved "mails";
 

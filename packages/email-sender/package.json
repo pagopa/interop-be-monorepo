@@ -35,6 +35,7 @@
     "kafkajs": "catalog:",
     "pagopa-interop-api-clients": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-contact-data-db-models": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "pagopa-interop-readmodel": "workspace:*",
     "ts-pattern": "catalog:",

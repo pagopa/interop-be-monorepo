@@ -8,13 +8,12 @@ import {
 } from "pagopa-interop-application-audit";
 import {
   authenticationMiddleware,
-  errorsToApiProblemsMiddleware,
+  tenantErrorsToApiProblemsMiddleware,
   contextMiddleware,
   loggerMiddleware,
   zodiosCtx,
   rateLimiterMiddleware as rateLimiterMiddlewareBuilder,
   InteropTokenGenerator,
-  RefreshableInteropToken,
   RateLimiter,
   FileManager,
   fromFilesToBodyMiddleware,
@@ -144,8 +143,7 @@ export async function createServices(
 ): Promise<BFFServices> {
   const interopTokenGenerator = new InteropTokenGenerator(config);
   const tenantContacts = tenantContactServiceBuilder(
-    clients.contactDataManagerClient,
-    new RefreshableInteropToken(interopTokenGenerator)
+    clients.tenantProcessClient.tenant
   );
 
   const consentTypeMap: Map<bffApi.ConsentType, string> = new Map([
@@ -300,7 +298,7 @@ export async function createApp(
     toolRouter(zodiosCtx, services.toolsService)
   );
 
-  app.use(errorsToApiProblemsMiddleware);
+  app.use(tenantErrorsToApiProblemsMiddleware);
 
   return app;
 }

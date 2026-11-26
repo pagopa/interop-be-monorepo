@@ -40,9 +40,6 @@ describe("API POST /tenants/{tenantId}/mails test", () => {
       mailSeed,
       expect.objectContaining({ params: { tenantId: expect.any(String) } })
     );
-    expect(
-      clients.contactDataManagerClient.createContact
-    ).not.toHaveBeenCalled();
   });
 
   it.each([

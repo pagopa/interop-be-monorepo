@@ -4,7 +4,7 @@ import { tenantApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
   ZodiosContext,
-  zodiosValidationErrorToApiProblem,
+  tenantValidationErrorToApiProblem,
   fromAppContext,
   authRole,
   validateAuthorization,
@@ -34,6 +34,7 @@ import {
   maintenanceTenantPromotedToCertifierErrorMapper,
   deleteTenantMailErrorMapper,
   addTenantMailErrorMapper,
+  getTenantContactErrorMapper,
   addTenantContactErrorMapper,
   deleteTenantContactErrorMapper,
   addDeclaredAttributeErrorMapper,
@@ -73,7 +74,7 @@ const tenantsRouter = (
     VIEWER_ROLE,
   } = authRole;
   const tenantsRouter = ctx.router(tenantApi.tenantApi.api, {
-    validationErrorHandler: zodiosValidationErrorToApiProblem,
+    validationErrorHandler: tenantValidationErrorToApiProblem,
   });
   tenantsRouter
     .get("/consumers", async (req, res) => {
@@ -100,7 +101,9 @@ const tenantsRouter = (
 
         return res.status(200).send(
           tenantApi.Tenants.parse({
-            results: consumers.results.map(toApiTenant),
+            results: consumers.results.map((tenant) =>
+              toApiTenant(tenant, ctx.authData)
+            ),
             totalCount: consumers.totalCount,
           })
         );
@@ -134,7 +137,9 @@ const tenantsRouter = (
 
         return res.status(200).send(
           tenantApi.Tenants.parse({
-            results: producers.results.map(toApiTenant),
+            results: producers.results.map((tenant) =>
+              toApiTenant(tenant, ctx.authData)
+            ),
             totalCount: producers.totalCount,
           })
         );
@@ -180,7 +185,9 @@ const tenantsRouter = (
 
         return res.status(200).send(
           tenantApi.Tenants.parse({
-            results: tenants.results.map(toApiTenant),
+            results: tenants.results.map((tenant) =>
+              toApiTenant(tenant, ctx.authData)
+            ),
             totalCount: tenants.totalCount,
           })
         );
@@ -215,7 +222,7 @@ const tenantsRouter = (
 
         return res
           .status(200)
-          .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
+          .send(tenantApi.Tenant.parse(toApiTenant(tenant, ctx.authData)));
       } catch (error) {
         const errorRes = makeApiProblem(error, getTenantByIdErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
@@ -244,7 +251,7 @@ const tenantsRouter = (
         );
         return res
           .status(200)
-          .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
+          .send(tenantApi.Tenant.parse(toApiTenant(tenant, ctx.authData)));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -305,7 +312,7 @@ const tenantsRouter = (
           );
           return res
             .status(200)
-            .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
+            .send(tenantApi.Tenant.parse(toApiTenant(tenant, ctx.authData)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -334,7 +341,7 @@ const tenantsRouter = (
             );
           return res
             .status(200)
-            .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
+            .send(tenantApi.Tenant.parse(toApiTenant(tenant, ctx.authData)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -360,7 +367,7 @@ const tenantsRouter = (
         );
         return res
           .status(200)
-          .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
+          .send(tenantApi.Tenant.parse(toApiTenant(tenant, ctx.authData)));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -486,6 +493,27 @@ const tenantsRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .get("/tenants/:tenantId/contact", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      try {
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          SECURITY_ROLE,
+          SUPPORT_ROLE,
+          VIEWER_ROLE,
+          REVIEWER_ROLE,
+        ]);
+        const contact = await tenantService.getTenantContact(
+          unsafeBrandId(req.params.tenantId),
+          ctx
+        );
+        return res.status(200).send(tenantApi.TenantContactMail.parse(contact));
+      } catch (error) {
+        const problem = makeApiProblem(error, getTenantContactErrorMapper, ctx);
+        return res.status(problem.status).send(problem);
+      }
+    })
     .post("/tenants/:tenantId/contact", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
@@ -495,7 +523,7 @@ const tenantsRouter = (
         const { data: tenant, metadata } = await tenantService.addTenantContact(
           {
             tenantId: unsafeBrandId(req.params.tenantId),
-            contactId: unsafeBrandId(req.body.contactId),
+            address: req.body.address,
           },
           ctx
         );
@@ -504,7 +532,7 @@ const tenantsRouter = (
 
         return res
           .status(200)
-          .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
+          .send(tenantApi.Tenant.parse(toApiTenant(tenant, ctx.authData)));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -528,7 +556,7 @@ const tenantsRouter = (
 
         return res
           .status(200)
-          .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
+          .send(tenantApi.Tenant.parse(toApiTenant(tenant, ctx.authData)));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -630,7 +658,7 @@ const tenantsRouter = (
     );
 
   const m2mRouter = ctx.router(tenantApi.m2mApi.api, {
-    validationErrorHandler: zodiosValidationErrorToApiProblem,
+    validationErrorHandler: tenantValidationErrorToApiProblem,
   });
   m2mRouter
     .post("/m2m/tenants", async (req, res) => {
@@ -642,7 +670,7 @@ const tenantsRouter = (
         const tenant = await tenantService.m2mUpsertTenant(req.body, ctx);
         return res
           .status(200)
-          .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
+          .send(tenantApi.Tenant.parse(toApiTenant(tenant, ctx.authData)));
       } catch (error) {
         const errorRes = makeApiProblem(error, m2mUpsertTenantErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
@@ -678,7 +706,7 @@ const tenantsRouter = (
     );
 
   const selfcareRouter = ctx.router(tenantApi.selfcareApi.api, {
-    validationErrorHandler: zodiosValidationErrorToApiProblem,
+    validationErrorHandler: tenantValidationErrorToApiProblem,
   });
   selfcareRouter
     .get("/tenants/selfcare/:selfcareId", async (req, res) => {
@@ -701,7 +729,7 @@ const tenantsRouter = (
 
         return res
           .status(200)
-          .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
+          .send(tenantApi.Tenant.parse(toApiTenant(tenant, ctx.authData)));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -735,7 +763,7 @@ const tenantsRouter = (
     });
 
   const internalRouter = ctx.router(tenantApi.internalApi.api, {
-    validationErrorHandler: zodiosValidationErrorToApiProblem,
+    validationErrorHandler: tenantValidationErrorToApiProblem,
   });
   internalRouter
     .post("/internal/tenants", async (req, res) => {
@@ -749,7 +777,7 @@ const tenantsRouter = (
         setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
-          .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
+          .send(tenantApi.Tenant.parse(toApiTenant(tenant, ctx.authData)));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -924,7 +952,7 @@ const tenantsRouter = (
     );
 
   const tenantsAttributeRouter = ctx.router(tenantApi.tenantAttributeApi.api, {
-    validationErrorHandler: zodiosValidationErrorToApiProblem,
+    validationErrorHandler: tenantValidationErrorToApiProblem,
   });
   tenantsAttributeRouter
     .post("/tenants/:tenantId/attributes/certified", async (req, res) => {
@@ -947,7 +975,7 @@ const tenantsRouter = (
 
         return res
           .status(200)
-          .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
+          .send(tenantApi.Tenant.parse(toApiTenant(tenant, ctx.authData)));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -979,7 +1007,7 @@ const tenantsRouter = (
 
           return res
             .status(200)
-            .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
+            .send(tenantApi.Tenant.parse(toApiTenant(tenant, ctx.authData)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -1008,7 +1036,7 @@ const tenantsRouter = (
 
         return res
           .status(200)
-          .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
+          .send(tenantApi.Tenant.parse(toApiTenant(tenant, ctx.authData)));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -1042,7 +1070,7 @@ const tenantsRouter = (
 
           return res
             .status(200)
-            .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
+            .send(tenantApi.Tenant.parse(toApiTenant(tenant, ctx.authData)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -1075,7 +1103,7 @@ const tenantsRouter = (
 
           return res
             .status(200)
-            .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
+            .send(tenantApi.Tenant.parse(toApiTenant(tenant, ctx.authData)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -1108,7 +1136,7 @@ const tenantsRouter = (
 
           return res
             .status(200)
-            .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
+            .send(tenantApi.Tenant.parse(toApiTenant(tenant, ctx.authData)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -1142,7 +1170,7 @@ const tenantsRouter = (
 
           return res
             .status(200)
-            .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
+            .send(tenantApi.Tenant.parse(toApiTenant(tenant, ctx.authData)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -1175,7 +1203,7 @@ const tenantsRouter = (
 
           return res
             .status(200)
-            .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
+            .send(tenantApi.Tenant.parse(toApiTenant(tenant, ctx.authData)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -1202,7 +1230,7 @@ const tenantsRouter = (
 
         return res
           .status(200)
-          .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
+          .send(tenantApi.Tenant.parse(toApiTenant(tenant, ctx.authData)));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

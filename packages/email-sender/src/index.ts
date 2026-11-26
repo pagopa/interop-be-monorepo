@@ -1,15 +1,14 @@
 import { runConsumer } from "kafka-iam-auth";
-import {
-  contactDataApi,
-  selfcareV2InstitutionClientBuilder,
-} from "pagopa-interop-api-clients";
+import { selfcareV2InstitutionClientBuilder } from "pagopa-interop-api-clients";
 import {
   buildHTMLTemplateService,
   EmailManagerSES,
-  InteropTokenGenerator,
-  RefreshableInteropToken,
   initSesMailManager,
 } from "pagopa-interop-commons";
+import {
+  connectContactDB,
+  readContactEmail,
+} from "pagopa-interop-contact-data-db-models";
 import {
   makeDrizzleConnection,
   tenantReadModelServiceBuilder,
@@ -32,16 +31,14 @@ const readModelDB = makeDrizzleConnection(config);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const templateService = buildHTMLTemplateService();
 
+const contactDB = connectContactDB(config);
 const processor = emailSenderProcessorBuilder(
   sesEmailSenderData,
   sesEmailManager,
   selfcareV2InstitutionClient,
   tenantReadModelServiceSQL,
   templateService,
-  contactDataApi.createContactApiClient(config.contactDataManagerUrl, {
-    axiosConfig: { timeout: 5_000 },
-  }),
-  new RefreshableInteropToken(new InteropTokenGenerator(config))
+  (id) => readContactEmail(contactDB, id)
 );
 
 await runConsumer(

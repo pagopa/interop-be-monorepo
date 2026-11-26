@@ -14,3 +14,4 @@ export * from "./tokenGenerationReadmodelUtils.js";
 export * from "./mockedPayloadForToken.js";
 export * from "./apiMocks.js";
 export * from "./jwksServer.js";
+export * from "./setupContactDataDB.js";

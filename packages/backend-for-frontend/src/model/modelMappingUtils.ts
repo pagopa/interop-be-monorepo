@@ -1,15 +1,10 @@
-import { bffApi, catalogApi, tenantApi } from "pagopa-interop-api-clients";
-import { getLatestTenantMailOfKind } from "pagopa-interop-commons";
+import { bffApi, catalogApi } from "pagopa-interop-api-clients";
 import {
   DigestNotificationType,
   NotificationType,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
-import {
-  fromApiTenantMail,
-  toBffTenantMail,
-} from "../api/tenantApiConverter.js";
 import { catalogApiDescriptorState } from "./types.js";
 
 /*
@@ -86,17 +81,6 @@ export function getLastArchivingRequest(
   }
 
   return lastRequest;
-}
-
-export function getLatestTenantContactEmail(
-  tenant: tenantApi.Tenant
-): bffApi.Mail | undefined {
-  const mail = getLatestTenantMailOfKind(
-    tenant.mails.map(fromApiTenantMail),
-    tenantApi.MailKind.Values.CONTACT_EMAIL
-  );
-
-  return mail ? toBffTenantMail(mail) : undefined;
 }
 
 export type UiSection =
