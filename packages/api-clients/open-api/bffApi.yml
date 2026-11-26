@@ -19342,6 +19342,7 @@ components:
         producerParentTenants:
           type: array
           maxItems: 2
+          description: Parent tenants, from the immediate parent up to the root, when available. Omitted when none are resolved.
           items:
             $ref: "#/components/schemas/ParentTenant"
         latestDescriptor:
