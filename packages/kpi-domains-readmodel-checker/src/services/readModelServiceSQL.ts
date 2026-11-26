@@ -102,8 +102,6 @@ import {
   tenantFeatureInReadmodelTenant,
   TenantFeatureSQL,
   tenantInReadmodelTenant,
-  tenantMailInReadmodelTenant,
-  TenantMailSQL,
   tenantRemoteIdInReadmodelTenant,
   TenantRemoteIdSQL,
   TenantSQL,
@@ -336,7 +334,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
     async getAllTenants(): Promise<Array<WithMetadata<Tenant>>> {
       const [
         tenantsSQL,
-        mailsSQL,
         certifiedAttributesSQL,
         certifiedDiscreteAttributesSQL,
         declaredAttributesSQL,
@@ -347,7 +344,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         remoteIdsSQL,
       ] = await Promise.all([
         readTenantsSQL(readModelDB),
-        readTenantMailsSQL(readModelDB),
         readTenantCertifiedAttributesSQL(readModelDB),
         readTenantCertifiedDiscreteAttributesSQL(readModelDB),
         readTenantDeclaredAttributesSQL(readModelDB),
@@ -360,7 +356,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
 
       return aggregateTenantArray({
         tenantsSQL,
-        mailsSQL,
+        mailsSQL: [],
         certifiedAttributesSQL,
         certifiedDiscreteAttributesSQL,
         declaredAttributesSQL,
@@ -715,11 +711,6 @@ const readTenantsSQL = async (
     .select()
     .from(tenantInReadmodelTenant)
     .orderBy(ascLower(tenantInReadmodelTenant.name));
-
-const readTenantMailsSQL = async (
-  readModelDB: DrizzleReturnType
-): Promise<TenantMailSQL[]> =>
-  await readModelDB.select().from(tenantMailInReadmodelTenant);
 
 const readTenantCertifiedAttributesSQL = async (
   readModelDB: DrizzleReturnType

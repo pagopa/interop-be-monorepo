@@ -32,6 +32,7 @@ import {
   TenantDeletedV1,
   TenantEventEnvelopeV1,
   TenantMailAddedV1,
+  TenantMailAddedV2,
   TenantOnboardedV2,
   TenantRemoteId,
   AttributeId,
@@ -55,14 +56,18 @@ import {
   resetTargetTables,
   tenantTables,
 } from "./utils.js";
-import { getMockVerifiedBy, getMockRevokedBy } from "./utilsTenant.js";
+import {
+  countTenantMailRows,
+  getMockVerifiedBy,
+  getMockRevokedBy,
+} from "./utilsTenant.js";
 
 describe("Tenant messages consumers - handleTenantMessageV1", () => {
   beforeEach(async () => {
     await resetTargetTables(tenantTables);
   });
 
-  it("TenantCreated: inserts tenant with mails, attributes, features", async () => {
+  it("TenantCreated: inserts tenant with attributes, features", async () => {
     const mockTenantMail = getMockTenantMail();
     const mockTenantFeatureCertifier: TenantFeatureCertifier = {
       type: tenantFeatureType.persistentCertifier,
@@ -140,14 +145,8 @@ describe("Tenant messages consumers - handleTenantMessageV1", () => {
 
     expect(storedTenant?.id).toBe(mockTenant.id);
     expect(storedTenant?.onboardedAt).toStrictEqual(mockTenant.createdAt);
-
-    const storedTenantMails = await getManyFromDb(
-      dbContext,
-      TenantDbTable.tenant_mail,
-      { id: mockTenantMail.id }
-    );
-    expect(storedTenantMails.length).toBe(1);
-    expect(storedTenantMails[0].id).toBe(mockTenantMail.id);
+    expect(storedTenant?.metadataVersion).toBe(1);
+    expect(await countTenantMailRows(mockTenant.id)).toBe(0);
 
     const storedDeclaredTenantAttributes = await getManyFromDb(
       dbContext,
@@ -290,7 +289,6 @@ describe("Tenant messages consumers - handleTenantMessageV1", () => {
     expect(storedTenant?.deleted).toBe(true);
 
     const checks = [
-      { table: TenantDbTable.tenant_mail, where: { tenantId } },
       { table: TenantDbTable.tenant_certified_attribute, where: { tenantId } },
       { table: TenantDbTable.tenant_declared_attribute, where: { tenantId } },
       { table: TenantDbTable.tenant_verified_attribute, where: { tenantId } },
@@ -316,7 +314,7 @@ describe("Tenant messages consumers - handleTenantMessageV1", () => {
     }
   });
 
-  it("TenantMailDeleted: delete tenant mail", async () => {
+  it("TenantMailDeleted: does not update tenant metadata version", async () => {
     const mockTenant = getMockTenant();
     const mockTenantMail = getMockTenantMail();
     mockTenant.mails = [mockTenantMail];
@@ -348,11 +346,53 @@ describe("Tenant messages consumers - handleTenantMessageV1", () => {
       dbContext
     );
 
-    const mail = await getOneFromDb(dbContext, TenantDbTable.tenant_mail, {
-      id: mockTenantMail.id,
+    const storedTenant = await getOneFromDb(dbContext, TenantDbTable.tenant, {
+      id: mockTenant.id,
     });
 
-    expect(mail).toBeUndefined();
+    expect(storedTenant?.id).toBe(mockTenant.id);
+    expect(storedTenant?.metadataVersion).toBe(1);
+  });
+
+  it("TenantMailAdded: updates tenant metadata version", async () => {
+    const mockTenant = getMockTenant();
+    const mockTenantMail = getMockTenantMail();
+
+    await handleTenantMessageV1(
+      [
+        {
+          sequence_num: 1,
+          stream_id: mockTenant.id,
+          version: 1,
+          type: "TenantCreated",
+          event_version: 1,
+          data: { tenant: toTenantV1(mockTenant) },
+          log_date: new Date(),
+        },
+        {
+          sequence_num: 2,
+          stream_id: mockTenant.id,
+          version: 2,
+          type: "TenantMailAdded",
+          event_version: 1,
+          data: {
+            tenantId: mockTenant.id,
+            mailId: mockTenantMail.id,
+            tenant: toTenantV1({ ...mockTenant, mails: [mockTenantMail] }),
+          } as TenantMailAddedV1,
+          log_date: new Date(),
+        },
+      ],
+      dbContext
+    );
+
+    const storedTenant = await getOneFromDb(dbContext, TenantDbTable.tenant, {
+      id: mockTenant.id,
+    });
+
+    expect(storedTenant?.id).toBe(mockTenant.id);
+    expect(storedTenant?.metadataVersion).toBe(2);
+    expect(await countTenantMailRows(mockTenant.id)).toBe(0);
   });
 
   it("SelfcareMappingCreated: adds selfcare id mapping with metadata_version 3", async () => {
@@ -485,7 +525,7 @@ describe("Tenant messages consumers - handleTenantMessageV2", () => {
   beforeEach(async () => {
     await resetTargetTables(tenantTables);
   });
-  it("TenantOnboarded: inserts tenant with mails, attributes, features, and remote ids", async () => {
+  it("TenantOnboarded: inserts tenant with attributes, features, and remote ids", async () => {
     const mockTenantMail = getMockTenantMail();
     const mockTenantFeatureCertifier: TenantFeatureCertifier = {
       type: tenantFeatureType.persistentCertifier,
@@ -564,15 +604,9 @@ describe("Tenant messages consumers - handleTenantMessageV2", () => {
     });
     expect(storedTenant?.id).toBe(mockTenant.id);
     expect(storedTenant?.onboardedAt).toStrictEqual(mockTenant.createdAt);
+    expect(storedTenant?.metadataVersion).toBe(1);
     expect(storedTenant?.contactId).toBeNull();
-
-    const storedTenantMails = await getManyFromDb(
-      dbContext,
-      TenantDbTable.tenant_mail,
-      { id: mockTenantMail.id }
-    );
-    expect(storedTenantMails.length).toBe(1);
-    expect(storedTenantMails[0].id).toBe(mockTenantMail.id);
+    expect(await countTenantMailRows(mockTenant.id)).toBe(0);
 
     const storedDeclaredTenantAttributes = await getManyFromDb(
       dbContext,
@@ -681,27 +715,9 @@ describe("Tenant messages consumers - handleTenantMessageV2", () => {
     expect(stored?.metadataVersion).toBe(2);
   });
 
-  it("TenantMailAdded: should delete first mail, update second mail, add a third mail", async () => {
+  it("TenantMailAdded: updates tenant metadata version", async () => {
     const mockTenant = getMockTenant();
-    const mockTenantMailToDelete = getMockTenantMail();
-    const mockTenantMailToUpdate = getMockTenantMail();
-    const mockTenantMailNew = getMockTenantMail();
-
-    const tenantMailDeleted = {
-      ...mockTenant,
-      mails: [
-        {
-          ...mockTenantMailToUpdate,
-          description: "Updated mail description",
-        },
-        mockTenantMailNew,
-      ],
-    };
-
-    const tenantOnboarded = {
-      ...mockTenant,
-      mails: [mockTenantMailToDelete, mockTenantMailToUpdate],
-    };
+    const mockTenantMail = getMockTenantMail();
 
     await handleTenantMessageV2(
       [
@@ -711,58 +727,37 @@ describe("Tenant messages consumers - handleTenantMessageV2", () => {
           version: 1,
           type: "TenantOnboarded",
           event_version: 2,
-          data: {
-            tenant: toTenantV2(tenantOnboarded),
-          },
+          data: { tenant: toTenantV2(mockTenant) },
           log_date: new Date(),
         },
         {
           sequence_num: 2,
           stream_id: mockTenant.id,
           version: 2,
-          type: "TenantMailDeleted",
+          type: "TenantMailAdded",
           event_version: 2,
           data: {
-            tenant: toTenantV2(tenantMailDeleted),
-          } as TenantMailDeletedV2,
+            mailId: mockTenantMail.id,
+            tenant: toTenantV2({ ...mockTenant, mails: [mockTenantMail] }),
+          } as TenantMailAddedV2,
           log_date: new Date(),
         },
       ],
       dbContext
     );
 
-    const mails = await getManyFromDb(dbContext, TenantDbTable.tenant_mail, {
-      tenantId: mockTenant.id,
+    const storedTenant = await getOneFromDb(dbContext, TenantDbTable.tenant, {
+      id: mockTenant.id,
     });
 
-    const tenantMailToBeDeleted = mails.find(
-      (m) => m.id === mockTenantMailToDelete.id
-    );
-    expect(tenantMailToBeDeleted).toBeUndefined();
-
-    const tenantMailToBeUpdate = mails.find(
-      (m) => m.id === mockTenantMailToUpdate.id
-    );
-    expect(tenantMailToBeUpdate).toBeDefined();
-    expect(tenantMailToBeUpdate?.description).toBe("Updated mail description");
-
-    const tenantMailNew = mails.find((m) => m.id === mockTenantMailNew.id);
-    expect(tenantMailNew).toBeDefined();
+    expect(storedTenant?.id).toBe(mockTenant.id);
+    expect(storedTenant?.metadataVersion).toBe(2);
+    expect(await countTenantMailRows(mockTenant.id)).toBe(0);
   });
 
-  it("TenantMailDeleted: should remove all existing tenant mails when handling with an empty mails array", async () => {
+  it("TenantMailDeleted: updates tenant metadata version", async () => {
     const mockTenant = getMockTenant();
-    const mockTenantMailToDelete = getMockTenantMail();
-
-    const tenantMailDeleted = {
-      ...mockTenant,
-      mails: [],
-    };
-
-    const tenantOnboarded = {
-      ...mockTenant,
-      mails: [mockTenantMailToDelete],
-    };
+    const mockTenantMail = getMockTenantMail();
 
     await handleTenantMessageV2(
       [
@@ -773,7 +768,7 @@ describe("Tenant messages consumers - handleTenantMessageV2", () => {
           type: "TenantOnboarded",
           event_version: 2,
           data: {
-            tenant: toTenantV2(tenantOnboarded),
+            tenant: toTenantV2({ ...mockTenant, mails: [mockTenantMail] }),
           },
           log_date: new Date(),
         },
@@ -784,7 +779,8 @@ describe("Tenant messages consumers - handleTenantMessageV2", () => {
           type: "TenantMailDeleted",
           event_version: 2,
           data: {
-            tenant: toTenantV2(tenantMailDeleted),
+            mailId: mockTenantMail.id,
+            tenant: toTenantV2({ ...mockTenant, mails: [] }),
           } as TenantMailDeletedV2,
           log_date: new Date(),
         },
@@ -792,11 +788,12 @@ describe("Tenant messages consumers - handleTenantMessageV2", () => {
       dbContext
     );
 
-    const mails = await getManyFromDb(dbContext, TenantDbTable.tenant_mail, {
-      tenantId: mockTenant.id,
+    const storedTenant = await getOneFromDb(dbContext, TenantDbTable.tenant, {
+      id: mockTenant.id,
     });
 
-    expect(mails).toHaveLength(0);
+    expect(storedTenant?.id).toBe(mockTenant.id);
+    expect(storedTenant?.metadataVersion).toBe(2);
   });
 
   it("TenantDelegatedProducerFeatureRemoved: should deletes feature", async () => {
@@ -1195,12 +1192,7 @@ describe("Tenant messages consumers - handleTenantMessageV3", () => {
     expect(storedTenant?.contactId).toBe(mockTenant.contactId);
     expect(storedTenant?.metadataVersion).toBe(1);
 
-    const storedTenantMails = await getManyFromDb(
-      dbContext,
-      TenantDbTable.tenant_mail,
-      { tenantId: mockTenant.id }
-    );
-    expect(storedTenantMails).toHaveLength(0);
+    expect(await countTenantMailRows(mockTenant.id)).toBe(0);
 
     const storedDeclaredTenantAttributes = await getManyFromDb(
       dbContext,
@@ -1336,63 +1328,6 @@ describe("Tenant messages consumers - handleTenantMessageV3", () => {
       id: mockTenant.id,
     });
     expect(stored?.contactId).toBeNull();
-    expect(stored?.metadataVersion).toBe(2);
-  });
-
-  it("removes the legacy tenant mails written by V2 events at the first V3 event", async () => {
-    const mockTenant = getMockTenant();
-    const contactId = generateId<ContactId>();
-
-    await handleTenantMessageV2(
-      [
-        {
-          sequence_num: 1,
-          stream_id: mockTenant.id,
-          version: 1,
-          type: "TenantOnboarded",
-          event_version: 2,
-          data: {
-            tenant: toTenantV2({ ...mockTenant, mails: [getMockTenantMail()] }),
-          },
-          log_date: new Date(),
-        },
-      ],
-      dbContext
-    );
-    const legacyMails = await getManyFromDb(
-      dbContext,
-      TenantDbTable.tenant_mail,
-      { tenantId: mockTenant.id }
-    );
-    expect(legacyMails).toHaveLength(1);
-
-    await handleTenantMessageV3(
-      [
-        {
-          sequence_num: 2,
-          stream_id: mockTenant.id,
-          version: 2,
-          type: "TenantContactAdded",
-          event_version: 3,
-          data: {
-            contactId,
-            tenant: toTenantV3({ ...mockTenant, contactId }),
-          },
-          log_date: new Date(),
-        },
-      ],
-      dbContext
-    );
-
-    const mails = await getManyFromDb(dbContext, TenantDbTable.tenant_mail, {
-      tenantId: mockTenant.id,
-    });
-    expect(mails).toHaveLength(0);
-
-    const stored = await getOneFromDb(dbContext, TenantDbTable.tenant, {
-      id: mockTenant.id,
-    });
-    expect(stored?.contactId).toBe(contactId);
     expect(stored?.metadataVersion).toBe(2);
   });
 
@@ -1589,10 +1524,7 @@ describe("Tenant messages consumers - handleTenantMessageV3", () => {
       expect(stored?.contactId).toBe(contactId);
       expect(stored?.metadataVersion).toBe(2);
 
-      const mails = await getManyFromDb(dbContext, TenantDbTable.tenant_mail, {
-        tenantId: tenant.id,
-      });
-      expect(mails).toHaveLength(0);
+      expect(await countTenantMailRows(tenant.id)).toBe(0);
     };
 
     it("does not restore the legacy mails nor override the tenant when a V2 event is replayed after a V3 event", async () => {
@@ -1658,43 +1590,6 @@ describe("Tenant messages consumers - handleTenantMessageV3", () => {
         { tenantId: mockTenant.id }
       );
       expect(attributes).toHaveLength(0);
-    });
-
-    it("MaintenanceTenantDeleted as the first V3 event marks the legacy mails as deleted, without removing them", async () => {
-      const mockTenant = getMockTenant();
-
-      await handleTenantMessageV2(
-        [getLegacyTenantOnboardedMessageV2(mockTenant)],
-        dbContext
-      );
-      await handleTenantMessageV3(
-        [
-          {
-            sequence_num: 2,
-            stream_id: mockTenant.id,
-            version: 2,
-            type: "MaintenanceTenantDeleted",
-            event_version: 3,
-            data: {
-              tenantId: mockTenant.id,
-              tenant: toTenantV3(mockTenant),
-            },
-            log_date: new Date(),
-          },
-        ],
-        dbContext
-      );
-
-      const storedTenant = await getOneFromDb(dbContext, TenantDbTable.tenant, {
-        id: mockTenant.id,
-      });
-      expect(storedTenant?.deleted).toBe(true);
-
-      const mails = await getManyFromDb(dbContext, TenantDbTable.tenant_mail, {
-        tenantId: mockTenant.id,
-      });
-      expect(mails).toHaveLength(1);
-      expect(mails[0].deleted).toBe(true);
     });
   });
 });

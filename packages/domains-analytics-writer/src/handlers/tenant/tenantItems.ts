@@ -14,7 +14,6 @@ export function toTenantItems(
 
   return TenantItemsSchema.parse({
     tenantSQL: splitResult.tenantSQL,
-    mailsSQL: splitResult.mailsSQL,
     certifiedAttributesSQL: splitResult.certifiedAttributesSQL,
     declaredAttributesSQL: splitResult.declaredAttributesSQL,
     verifiedAttributesSQL: splitResult.verifiedAttributesSQL,

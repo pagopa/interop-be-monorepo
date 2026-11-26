@@ -14,7 +14,6 @@ import {
   TenantDeletingSchema,
   TenantSelfcareIdSchema,
 } from "../../model/tenant/tenant.js";
-import { TenantMailDeletingSchema } from "../../model/tenant/tenantMail.js";
 import { tenantServiceBuilder } from "../../service/tenantService.js";
 import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
@@ -26,7 +25,6 @@ export async function handleTenantMessageV1(
 
   const upsertTenantBatch: TenantItemsSchema[] = [];
   const deleteTenantBatch: TenantDeletingSchema[] = [];
-  const deleteTenantMailBatch: TenantMailDeletingSchema[] = [];
   const upsertTenantSelfcareIdBatch: TenantSelfcareIdSchema[] = [];
 
   for (const message of messages) {
@@ -50,7 +48,6 @@ export async function handleTenantMessageV1(
           upsertTenantBatch.push(
             TenantItemsSchema.parse({
               tenantSQL: splitResult.tenantSQL,
-              mailsSQL: splitResult.mailsSQL,
               certifiedAttributesSQL: splitResult.certifiedAttributesSQL,
               declaredAttributesSQL: splitResult.declaredAttributesSQL,
               verifiedAttributesSQL: splitResult.verifiedAttributesSQL,
@@ -74,14 +71,6 @@ export async function handleTenantMessageV1(
           } satisfies z.input<typeof TenantDeletingSchema>)
         );
       })
-      .with({ type: "TenantMailDeleted" }, (msg) => {
-        deleteTenantMailBatch.push(
-          TenantMailDeletingSchema.parse({
-            id: msg.data.mailId,
-            tenantId: msg.data.tenantId,
-          } satisfies z.input<typeof TenantMailDeletingSchema>)
-        );
-      })
       .with({ type: "SelfcareMappingCreated" }, (msg) => {
         upsertTenantSelfcareIdBatch.push(
           TenantSelfcareIdSchema.parse({
@@ -91,7 +80,11 @@ export async function handleTenantMessageV1(
           } satisfies z.input<typeof TenantSelfcareIdSchema>)
         );
       })
-      .with({ type: "SelfcareMappingDeleted" }, () => Promise.resolve())
+      .with(
+        { type: "SelfcareMappingDeleted" },
+        { type: "TenantMailDeleted" },
+        () => Promise.resolve()
+      )
       .exhaustive();
   }
 
@@ -113,14 +106,5 @@ export async function handleTenantMessageV1(
       ["id"]
     );
     await tenantService.deleteBatchTenants(distinctBatch, dbContext);
-  }
-
-  if (deleteTenantMailBatch.length > 0) {
-    const distinctBatch = distinctByKeys(
-      deleteTenantMailBatch,
-      TenantMailDeletingSchema,
-      ["id", "tenantId"]
-    );
-    await tenantService.deleteBatchTenantMails(distinctBatch, dbContext);
   }
 }
