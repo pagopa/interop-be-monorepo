@@ -16,6 +16,7 @@ import {
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   algorithm,
   generateId,
+  tenantUnitType,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -654,5 +655,30 @@ export function getMockedApiKey({
     userId: generateId(),
     encodedPem: generateMock(z.string().length(50)),
     algorithm: algorithm.RS256,
+  };
+}
+
+export type GetMockTenantHierarchyParams = {
+  populateHierarchy?: boolean;
+};
+
+export function getMockTenantHierarchy({
+  populateHierarchy = false,
+}: GetMockTenantHierarchyParams = {}): Pick<
+  agreementApi.CompactOrganization,
+  "subUnitType" | "parentTenants"
+> {
+  if (!populateHierarchy) {
+    return {};
+  }
+  const root = { id: generateId(), name: "Tenant root" };
+  const aoo = {
+    id: generateId(),
+    name: "Tenant AOO",
+    subUnitType: tenantUnitType.AOO,
+  };
+  return {
+    subUnitType: tenantUnitType.UO,
+    parentTenants: [aoo, root],
   };
 }

@@ -6,11 +6,14 @@ import { ListResult, generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+import { getMockAgreementApiCompactOrganization } from "../mockUtils.js";
 import { api, agreementService } from "../vitest.api.setup.js";
 
 describe("API GET /consumers test", () => {
-  const mockConsumer1 = { id: generateId(), name: "Consumer 1" };
-  const mockConsumer2 = { id: generateId(), name: "Consumer 2" };
+  const mockConsumer1 = getMockAgreementApiCompactOrganization();
+  const mockConsumer2 = getMockAgreementApiCompactOrganization({
+    populateHierarchy: true,
+  });
 
   const defaultQuery = {
     offset: 0,
