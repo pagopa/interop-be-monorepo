@@ -39,7 +39,7 @@ const processor = emailSenderProcessorBuilder(
   tenantReadModelServiceSQL,
   templateService,
   contactDataApi.createContactApiClient(config.contactDataManagerUrl, {
-    axiosConfig: { timeout: config.contactDataManagerTimeoutMs },
+    axiosConfig: { timeout: 5_000 },
   }),
   new RefreshableInteropToken(new InteropTokenGenerator(config))
 );

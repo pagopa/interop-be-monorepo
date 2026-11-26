@@ -12,11 +12,6 @@ import { z } from "zod";
 const SESEmailSenderConfig = z
   .object({
     CONTACT_DATA_MANAGER_URL: APIEndpoint,
-    CONTACT_DATA_MANAGER_TIMEOUT_MS: z.coerce
-      .number()
-      .int()
-      .positive()
-      .default(5000),
     SENDER_MAIL: z.string().email(),
     SENDER_LABEL: z.string(),
     RETRY_DELAY_IN_MILLIS: z.coerce.number().int().gte(0),
@@ -26,7 +21,6 @@ const SESEmailSenderConfig = z
   })
   .transform((c) => ({
     contactDataManagerUrl: c.CONTACT_DATA_MANAGER_URL,
-    contactDataManagerTimeoutMs: c.CONTACT_DATA_MANAGER_TIMEOUT_MS,
     senderMail: c.SENDER_MAIL,
     senderLabel: c.SENDER_LABEL,
     retryDelayInMillis: c.RETRY_DELAY_IN_MILLIS,
