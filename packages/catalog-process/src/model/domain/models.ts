@@ -11,6 +11,8 @@ import {
   EServiceTemplateId,
   PUBLIC_SERVICES_MANAGERS,
   Technology,
+  AgreementId,
+  TenantKind,
 } from "pagopa-interop-models";
 /*
   NOTE: Temporary file to hold all the models imported from github packages
@@ -149,3 +151,26 @@ export const Consumer = z.object({
 });
 
 export type Consumer = z.infer<typeof Consumer>;
+
+export type ConsumerEServicesSortBy = catalogApi.ConsumerEServicesSortBy;
+
+export const defaultConsumerEServicesSortBy: ConsumerEServicesSortBy =
+  "NAME_ASC";
+
+export type ProducerDashboardConsumerEServiceRow = {
+  eserviceId: EServiceId;
+  eserviceName: string;
+  descriptorId: DescriptorId;
+  version: string;
+  agreementId: AgreementId;
+  agreementState: AgreementState;
+  activePurposesCount: number;
+  approvedDailyCalls: number;
+};
+
+export type ProducerDashboardConsumerResult = {
+  consumer: { id: TenantId; name: string; kind?: TenantKind } | undefined;
+  eservicesCount: number;
+  totalCount: number;
+  results: ProducerDashboardConsumerEServiceRow[];
+};

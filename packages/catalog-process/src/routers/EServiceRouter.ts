@@ -99,6 +99,7 @@ import {
   internalRestoreDraftDescriptorAfterDelegationRevokeErrorMapper,
   getProducerEServiceMonitoringAgreementsErrorMapper,
   getProducerEServiceMonitoringArchivingErrorMapper,
+  getProducerDashboardConsumerErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const eservicesRouter = (
@@ -462,6 +463,48 @@ const eservicesRouter = (
         }
       }
     )
+    .get("/producers/dashboard/consumers/:consumerId", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      try {
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          SUPPORT_ROLE,
+          API_ROLE,
+          VIEWER_ROLE,
+        ]);
+        const { offset, limit } = req.query;
+        const result = await catalogService.getProducerDashboardConsumer(
+          unsafeBrandId(req.params.consumerId),
+          req.query,
+          ctx
+        );
+        return res.status(200).send(
+          catalogApi.ProducerDashboardConsumer.parse({
+            consumer: result.consumer,
+            eservicesCount: result.eservicesCount,
+            results: result.results.map((r) => ({
+              eservice: { id: r.eserviceId, name: r.eserviceName },
+              descriptorId: r.descriptorId,
+              version: r.version,
+              agreement: {
+                id: r.agreementId,
+                state: agreementStateToApiAgreementState(r.agreementState),
+              },
+              activePurposesCount: r.activePurposesCount,
+              approvedDailyCalls: r.approvedDailyCalls,
+            })),
+            pagination: { offset, limit, totalCount: result.totalCount },
+          })
+        );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getProducerDashboardConsumerErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get("/eservices/:eServiceId/consumers", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
