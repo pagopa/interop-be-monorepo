@@ -116,6 +116,7 @@ describe("API POST /consumer/delegations/:delegationId/reject test", () => {
     { body: {} },
     { body: { rejectionReason: 1 } },
     { body: { ...defaultBody, extraField: 1 } },
+    { body: { ...defaultBody, rejectionReason: "" } },
   ])(
     "Should return 400 if passed invalid data: %s",
     async ({ delegationId, body }) => {

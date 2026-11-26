@@ -40,6 +40,7 @@ describe("API POST /consumers/delegations/:delegationId/reject", () => {
     { delegationId: "invalid" as DelegationId },
     { body: {} },
     { body: { ...mockRejectDelegationPayload, extraField: 1 } },
+    { body: { ...mockRejectDelegationPayload, rejectionReason: "" } },
   ])(
     "Should return 400 if passed invalid data: %s",
     async ({ delegationId, body }) => {
