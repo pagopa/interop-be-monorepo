@@ -974,6 +974,60 @@ paths:
           $ref: "#/components/responses/NotFound"
         "400":
           $ref: "#/components/responses/BadRequest"
+  /producers/dashboard/consumers/{consumerId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    get:
+      tags:
+        - process
+      summary: Retrieve the producer e-services used by a consumer
+      description: Retrieve the requester own and actively producer-delegated e-services on which the given consumer has an active or suspended agreement.
+      operationId: getProducerDashboardConsumer
+      parameters:
+        - name: consumerId
+          in: path
+          description: The identifier of the consumer
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+        - in: query
+          name: q
+          description: Query to filter e-services by name
+          schema:
+            type: string
+        - in: query
+          name: sortBy
+          schema:
+            $ref: "#/components/schemas/ConsumerEServicesSortBy"
+      responses:
+        "200":
+          description: Summary and page of e-services of the consumer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProducerDashboardConsumer"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
   /eservices/{eServiceId}/descriptors:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -4070,6 +4124,107 @@ components:
           type: string
         consumerExternalId:
           type: string
+    ConsumerEServicesSortBy:
+      type: string
+      default: NAME_ASC
+      enum:
+        - NAME_ASC
+        - NAME_DESC
+        - DAILY_CALLS_DESC
+        - DAILY_CALLS_ASC
+    ProducerDashboardConsumerEService:
+      type: object
+      additionalProperties: false
+      properties:
+        eservice:
+          type: object
+          additionalProperties: false
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+          required:
+            - id
+            - name
+        descriptorId:
+          type: string
+          format: uuid
+        version:
+          type: string
+        agreement:
+          type: object
+          additionalProperties: false
+          properties:
+            id:
+              type: string
+              format: uuid
+            state:
+              $ref: "#/components/schemas/AgreementState"
+          required:
+            - id
+            - state
+        activePurposesCount:
+          type: integer
+          format: int32
+        approvedDailyCalls:
+          type: integer
+          format: int64
+      required:
+        - eservice
+        - descriptorId
+        - version
+        - agreement
+        - activePurposesCount
+        - approvedDailyCalls
+    ProducerDashboardConsumer:
+      type: object
+      additionalProperties: false
+      properties:
+        consumer:
+          type: object
+          additionalProperties: false
+          description: absent if the consumer has no relationship with the producer; in that case results is empty
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+            kind:
+              $ref: "#/components/schemas/TenantKind"
+          required:
+            - id
+            - name
+        eservicesCount:
+          type: integer
+          format: int32
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProducerDashboardConsumerEService"
+        pagination:
+          type: object
+          additionalProperties: false
+          properties:
+            offset:
+              type: integer
+              format: int32
+            limit:
+              type: integer
+              format: int32
+            totalCount:
+              type: integer
+              format: int32
+          required:
+            - offset
+            - limit
+            - totalCount
+      required:
+        - eservicesCount
+        - results
+        - pagination
     EServices:
       type: object
       additionalProperties: false
