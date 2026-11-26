@@ -1,0 +1,45 @@
+{
+  "name": "pagopa-interop-pii-validator",
+  "version": "1.0.0",
+  "license": "MPL-2.0",
+  "description": "PagoPA Interoperability PII validator service",
+  "main": "dist",
+  "type": "module",
+  "scripts": {
+    "test:api": "vitest --config vitest.api.config.ts",
+    "test:auth": "vitest --config vitest.auth.config.ts",
+    "test": "pnpm test:api && pnpm test:auth",
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
+    "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json"
+  },
+  "keywords": [],
+  "devDependencies": {
+    "@types/express": "catalog:",
+    "@types/node": "catalog:",
+    "@types/supertest": "catalog:",
+    "eslint": "catalog:",
+    "jose": "catalog:",
+    "pagopa-interop-commons-test": "workspace:*",
+    "pagopa-interop-eslint-config": "workspace:*",
+    "supertest": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "dependencies": {
+    "@zodios/core": "catalog:",
+    "@zodios/express": "catalog:",
+    "axios": "catalog:",
+    "dotenv-flow": "catalog:",
+    "express": "catalog:",
+    "pagopa-interop-api-clients": "workspace:*",
+    "pagopa-interop-application-audit": "workspace:*",
+    "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-models": "workspace:*",
+    "ts-pattern": "catalog:",
+    "zod": "catalog:"
+  }
+}
