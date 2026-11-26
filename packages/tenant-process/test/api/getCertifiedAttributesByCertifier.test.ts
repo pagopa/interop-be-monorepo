@@ -11,6 +11,7 @@ import {
   attributeKind,
   generateId,
   TenantAttribute,
+  tenantUnitType,
 } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -55,12 +56,12 @@ describe("API GET /tenants/attributes/certified test", () => {
         id: tenant.id,
         name: tenant.name,
         kind: "CERTIFIED" as const,
-        subUnitType: "UO" as const,
+        subUnitType: tenantUnitType.UO,
         parentTenants: [
           {
             id: generateId(),
             name: "Tenant AOO",
-            subUnitType: "AOO" as const,
+            subUnitType: tenantUnitType.AOO,
           },
           { id: generateId(), name: "Tenant root" },
         ],

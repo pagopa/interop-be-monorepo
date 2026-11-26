@@ -22,6 +22,7 @@ import {
   PurposeId,
   PurposeVersionId,
   PurposeTemplateId,
+  tenantUnitType,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
@@ -925,9 +926,9 @@ export const getMockBffApiCompactTenant = (): bffApi.CompactTenant => ({
 export const getMockBffApiCompactTenantWithHierarchy =
   (): bffApi.CompactTenant => ({
     ...getMockBffApiCompactTenant(),
-    subUnitType: "UO",
+    subUnitType: tenantUnitType.UO,
     parentTenants: [
-      { id: generateId(), name: "Tenant AOO", subUnitType: "AOO" },
+      { id: generateId(), name: "Tenant AOO", subUnitType: tenantUnitType.AOO },
       { id: generateId(), name: "Tenant root" },
     ],
   });
@@ -1011,9 +1012,9 @@ export const getMockBffApiRequesterCertifiedAttribute =
 export const getMockBffApiRequesterCertifiedAttributeWithHierarchy =
   (): bffApi.RequesterCertifiedAttribute => ({
     ...getMockBffApiRequesterCertifiedAttribute(),
-    tenantSubUnitType: "UO",
+    tenantSubUnitType: tenantUnitType.UO,
     parentTenants: [
-      { id: generateId(), name: "Tenant AOO", subUnitType: "AOO" },
+      { id: generateId(), name: "Tenant AOO", subUnitType: tenantUnitType.AOO },
       { id: generateId(), name: "Tenant root" },
     ],
   });
@@ -1029,9 +1030,9 @@ export const getMockBffApiCompactOrganization =
 export const getMockBffApiCompactOrganizationWithHierarchy =
   (): bffApi.CompactOrganization => ({
     ...getMockBffApiCompactOrganization(),
-    subUnitType: "UO",
+    subUnitType: tenantUnitType.UO,
     parentTenants: [
-      { id: generateId(), name: "Tenant AOO", subUnitType: "AOO" },
+      { id: generateId(), name: "Tenant AOO", subUnitType: tenantUnitType.AOO },
       { id: generateId(), name: "Tenant root" },
     ],
   });

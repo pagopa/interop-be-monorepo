@@ -22,6 +22,7 @@ export const Attribute = z.object({
   origin: z.string().optional(),
   name: z.string(),
   creationTime: z.coerce.date(),
+  subunitPropagationEnabled: z.boolean().optional(),
 });
 
 export type Attribute = z.infer<typeof Attribute>;
