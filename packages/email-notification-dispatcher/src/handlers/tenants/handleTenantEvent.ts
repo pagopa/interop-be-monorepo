@@ -54,29 +54,56 @@ export async function handleTenantEvent(
       );
       return [];
     })
-    .with({ type: "TenantCertifiedAttributeAssigned" }, (message) =>
-      handleAttribute(message, handleTenantCertifiedAttributeAssigned)
-    )
-    .with({ type: "TenantCertifiedDiscreteAttributeAssigned" }, (message) =>
-      handleAttribute(message, handleTenantCertifiedDiscreteAttributeAssigned)
-    )
-    .with({ type: "TenantCertifiedAttributeRevoked" }, (message) =>
-      handleAttribute(message, handleTenantCertifiedAttributeRevoked)
-    )
-    .with({ type: "TenantCertifiedDiscreteAttributeRevoked" }, (message) =>
-      handleAttribute(message, handleTenantCertifiedDiscreteAttributeRevoked)
-    )
-    .with({ type: "TenantCertifiedDiscreteAttributeUpdated" }, (message) =>
-      handleAttribute(message, handleTenantCertifiedDiscreteAttributeUpdated)
-    )
-    .with({ type: "TenantVerifiedAttributeAssigned" }, (message) =>
-      handleAttribute(message, handleTenantVerifiedAttributeAssigned)
-    )
-    .with({ type: "TenantVerifiedAttributeRevoked" }, (message) =>
-      handleAttribute(message, handleTenantVerifiedAttributeRevoked)
+    .with(
+      {
+        event_version: P.union(2, 3),
+        type: "TenantCertifiedAttributeAssigned",
+      },
+      (message) =>
+        handleAttribute(message, handleTenantCertifiedAttributeAssigned)
     )
     .with(
       {
+        event_version: P.union(2, 3),
+        type: "TenantCertifiedDiscreteAttributeAssigned",
+      },
+      (message) =>
+        handleAttribute(message, handleTenantCertifiedDiscreteAttributeAssigned)
+    )
+    .with(
+      { event_version: P.union(2, 3), type: "TenantCertifiedAttributeRevoked" },
+      (message) =>
+        handleAttribute(message, handleTenantCertifiedAttributeRevoked)
+    )
+    .with(
+      {
+        event_version: P.union(2, 3),
+        type: "TenantCertifiedDiscreteAttributeRevoked",
+      },
+      (message) =>
+        handleAttribute(message, handleTenantCertifiedDiscreteAttributeRevoked)
+    )
+    .with(
+      {
+        event_version: P.union(2, 3),
+        type: "TenantCertifiedDiscreteAttributeUpdated",
+      },
+      (message) =>
+        handleAttribute(message, handleTenantCertifiedDiscreteAttributeUpdated)
+    )
+    .with(
+      { event_version: P.union(2, 3), type: "TenantVerifiedAttributeAssigned" },
+      (message) =>
+        handleAttribute(message, handleTenantVerifiedAttributeAssigned)
+    )
+    .with(
+      { event_version: P.union(2, 3), type: "TenantVerifiedAttributeRevoked" },
+      (message) =>
+        handleAttribute(message, handleTenantVerifiedAttributeRevoked)
+    )
+    .with(
+      {
+        event_version: P.union(2, 3),
         type: P.union(
           "TenantOnboarded",
           "TenantOnboardDetailsUpdated",
