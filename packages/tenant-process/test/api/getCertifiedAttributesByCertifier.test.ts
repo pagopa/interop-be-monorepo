@@ -5,13 +5,13 @@ import {
   generateToken,
   getMockAttribute,
   getMockTenant,
+  getMockTenantHierarchy,
 } from "pagopa-interop-commons-test";
 import {
   Attribute,
   attributeKind,
   generateId,
   TenantAttribute,
-  tenantUnitType,
 } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -56,15 +56,7 @@ describe("API GET /tenants/attributes/certified test", () => {
         id: tenant.id,
         name: tenant.name,
         kind: "CERTIFIED" as const,
-        subUnitType: tenantUnitType.UO,
-        parentTenants: [
-          {
-            id: generateId(),
-            name: "Tenant AOO",
-            subUnitType: tenantUnitType.AOO,
-          },
-          { id: generateId(), name: "Tenant root" },
-        ],
+        ...getMockTenantHierarchy({ populateHierarchy: true }),
       },
       {
         attributeId: certifiedAttribute2.id,

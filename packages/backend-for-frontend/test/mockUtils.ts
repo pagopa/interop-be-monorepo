@@ -26,7 +26,6 @@ import {
   PurposeId,
   PurposeVersionId,
   PurposeTemplateId,
-  tenantUnitType,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
@@ -1003,24 +1002,22 @@ export const getMockBffApiCertifiedAttributesResponse =
     ),
   });
 
-export const getMockBffApiRequesterCertifiedAttribute =
-  (): bffApi.RequesterCertifiedAttribute => ({
+export const getMockBffApiRequesterCertifiedAttribute = ({
+  populateHierarchy,
+}: GetMockTenantHierarchyParams = {}): bffApi.RequesterCertifiedAttribute => {
+  const { subUnitType, parentTenants } = getMockTenantHierarchy({
+    populateHierarchy,
+  });
+  return {
     tenantId: generateId(),
     tenantName: generateMock(z.string()),
     attributeId: generateId(),
     attributeName: generateMock(z.string()),
     kind: tenantAttributeKind.certified,
-  });
-
-export const getMockBffApiRequesterCertifiedAttributeWithHierarchy =
-  (): bffApi.RequesterCertifiedAttribute => ({
-    ...getMockBffApiRequesterCertifiedAttribute(),
-    tenantSubUnitType: tenantUnitType.UO,
-    parentTenants: [
-      { id: generateId(), name: "Tenant AOO", subUnitType: tenantUnitType.AOO },
-      { id: generateId(), name: "Tenant root" },
-    ],
-  });
+    ...(subUnitType !== undefined ? { tenantSubUnitType: subUnitType } : {}),
+    ...(parentTenants !== undefined ? { parentTenants } : {}),
+  };
+};
 
 export const getMockBffApiCompactOrganization = ({
   populateHierarchy,
