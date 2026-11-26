@@ -10,6 +10,10 @@ import {
   inAppNotificationApi,
 } from "pagopa-interop-api-clients";
 import {
+  getMockTenantHierarchy,
+  GetMockTenantHierarchyParams,
+} from "pagopa-interop-commons-test";
+import {
   AgreementId,
   DescriptorId,
   EServiceId,
@@ -916,22 +920,21 @@ export const getMockBffApiTenant = (): bffApi.Tenant & { id: TenantId } => ({
   subUnitType: generateMock(bffApi.TenantUnitType.optional()),
 });
 
-export const getMockBffApiCompactTenant = (): bffApi.CompactTenant => ({
-  id: generateId(),
-  selfcareId: generateMock(z.string().optional()),
-  name: generateMock(z.string()),
-  logoUrl: generateMock(z.string().optional()),
-});
-
-export const getMockBffApiCompactTenantWithHierarchy =
-  (): bffApi.CompactTenant => ({
-    ...getMockBffApiCompactTenant(),
-    subUnitType: tenantUnitType.UO,
-    parentTenants: [
-      { id: generateId(), name: "Tenant AOO", subUnitType: tenantUnitType.AOO },
-      { id: generateId(), name: "Tenant root" },
-    ],
+export const getMockBffApiCompactTenant = ({
+  populateHierarchy,
+}: GetMockTenantHierarchyParams = {}): bffApi.CompactTenant => {
+  const { subUnitType, parentTenants } = getMockTenantHierarchy({
+    populateHierarchy,
   });
+  return {
+    id: generateId(),
+    selfcareId: generateMock(z.string().optional()),
+    name: generateMock(z.string()),
+    logoUrl: generateMock(z.string().optional()),
+    ...(subUnitType !== undefined ? { subUnitType } : {}),
+    ...(parentTenants !== undefined ? { parentTenants } : {}),
+  };
+};
 
 export const getMockBffApiVerifiedAttributesResponse =
   (): bffApi.VerifiedAttributesResponse => ({
@@ -1019,23 +1022,21 @@ export const getMockBffApiRequesterCertifiedAttributeWithHierarchy =
     ],
   });
 
-export const getMockBffApiCompactOrganization =
-  (): bffApi.CompactOrganization => ({
+export const getMockBffApiCompactOrganization = ({
+  populateHierarchy,
+}: GetMockTenantHierarchyParams = {}): bffApi.CompactOrganization => {
+  const { subUnitType, parentTenants } = getMockTenantHierarchy({
+    populateHierarchy,
+  });
+  return {
     id: generateId(),
     name: generateMock(z.string()),
     kind: generateMock(bffApi.TenantKind.optional()),
     contactMail: generateMock(bffApi.Mail.optional()),
-  });
-
-export const getMockBffApiCompactOrganizationWithHierarchy =
-  (): bffApi.CompactOrganization => ({
-    ...getMockBffApiCompactOrganization(),
-    subUnitType: tenantUnitType.UO,
-    parentTenants: [
-      { id: generateId(), name: "Tenant AOO", subUnitType: tenantUnitType.AOO },
-      { id: generateId(), name: "Tenant root" },
-    ],
-  });
+    ...(subUnitType !== undefined ? { subUnitType } : {}),
+    ...(parentTenants !== undefined ? { parentTenants } : {}),
+  };
+};
 
 export const getMockBffApiUpdateEServiceTemplateVersionDocumentSeed =
   (): bffApi.UpdateEServiceTemplateVersionDocumentSeed => ({
