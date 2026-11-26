@@ -12,6 +12,7 @@ import { makeApiProblem } from "../model/errors.js";
 import { ProducerDashboardService } from "../services/producerDashboardService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
+  getProducerDashboardConsumerErrorMapper,
   getProducerDashboardSaturationErrorMapper,
   getProducerEServiceMonitoringArchivingErrorMapper,
 } from "../utilities/errorMappers.js";
@@ -100,6 +101,34 @@ const producerDashboardRouter = (
           emptyErrorMapper,
           ctx,
           `Error retrieving e-service monitoring saturation for e-service ${req.params.eserviceId}, descriptor ${req.params.descriptorId}, q ${req.query.q}, sortBy ${req.query.sortBy}, offset ${req.query.offset}, limit ${req.query.limit}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    }
+  );
+
+  producerDashboardRouter.get(
+    "/producers/dashboard/consumers/:consumerId",
+    async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result =
+          await producerDashboardService.getProducerDashboardConsumer(
+            req.params.consumerId,
+            req.query,
+            ctx
+          );
+
+        return res
+          .status(200)
+          .send(bffApi.ProducerDashboardConsumer.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getProducerDashboardConsumerErrorMapper,
+          ctx,
+          `Error retrieving producer dashboard consumer ${req.params.consumerId} for q ${req.query.q}, sortBy ${req.query.sortBy}, offset ${req.query.offset}, limit ${req.query.limit}`
         );
         return res.status(errorRes.status).send(errorRes);
       }

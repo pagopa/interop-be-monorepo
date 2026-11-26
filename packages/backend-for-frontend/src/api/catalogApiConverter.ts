@@ -516,3 +516,25 @@ export function toBffMonitoringArchiving(
     pagination: archiving.pagination,
   };
 }
+
+export function toBffProducerDashboardConsumer(
+  dashboard: catalogApi.ProducerDashboardConsumer
+): bffApi.ProducerDashboardConsumer {
+  return {
+    consumer: dashboard.consumer && {
+      id: dashboard.consumer.id,
+      name: dashboard.consumer.name,
+      kind: dashboard.consumer.kind,
+    },
+    eservicesCount: dashboard.eservicesCount,
+    results: dashboard.results.map((r) => ({
+      eservice: { id: r.eservice.id, name: r.eservice.name },
+      descriptorId: r.descriptorId,
+      version: r.version,
+      agreement: { id: r.agreement.id, state: r.agreement.state },
+      activePurposesCount: r.activePurposesCount,
+      approvedDailyCalls: r.approvedDailyCalls,
+    })),
+    pagination: dashboard.pagination,
+  };
+}

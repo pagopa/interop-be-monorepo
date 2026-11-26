@@ -3,7 +3,10 @@ import { bffApi } from "pagopa-interop-api-clients";
 import { assertFeatureFlagEnabled, WithLogger } from "pagopa-interop-commons";
 import { EServiceId } from "pagopa-interop-models";
 
-import { toBffMonitoringArchiving } from "../api/catalogApiConverter.js";
+import {
+  toBffMonitoringArchiving,
+  toBffProducerDashboardConsumer,
+} from "../api/catalogApiConverter.js";
 import {
   toBffProducerDashboardSaturation,
   toBffProducerEServiceMonitoringSaturation,
@@ -80,6 +83,30 @@ export function producerDashboardServiceBuilder({
         });
 
       return toBffProducerEServiceMonitoringSaturation(result);
+    },
+    async getProducerDashboardConsumer(
+      consumerId: string,
+      queries: {
+        offset: number;
+        limit: number;
+        q?: string | undefined;
+        sortBy?: bffApi.ConsumerEServicesSortBy | undefined;
+      },
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.ProducerDashboardConsumer> {
+      assertFeatureFlagEnabled(config, "featureFlagProducerDashboard");
+
+      logger.info(
+        `Retrieving producer dashboard consumer ${consumerId} for q ${queries.q}, sortBy ${queries.sortBy}, offset ${queries.offset}, limit ${queries.limit}`
+      );
+
+      const result = await catalogProcessClient.getProducerDashboardConsumer({
+        params: { consumerId },
+        queries,
+        headers,
+      });
+
+      return toBffProducerDashboardConsumer(result);
     },
   };
 }
