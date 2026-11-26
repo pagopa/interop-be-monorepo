@@ -51,6 +51,7 @@ describe("NewAttributes", async () => {
       subUnit: {
         name: "SCPGI",
         entityName: "Scuola Primaria Giovanni Pascoli",
+        entityIpaCode: "E001",
       },
       category: "SA",
     }),
@@ -60,6 +61,7 @@ describe("NewAttributes", async () => {
       subUnit: {
         name: "Ufficio per la transizione al Digitale",
         entityName: "Scuola Primaria Giovanni Pascoli",
+        entityIpaCode: "E001",
         aooCode: "A001",
       },
       category: "SA",
@@ -70,6 +72,7 @@ describe("NewAttributes", async () => {
       subUnit: {
         name: "Ufficio per la transizione al Digitale",
         entityName: "LICEO SCIENTIFICO STATALE GALILEO GALILEI",
+        entityIpaCode: "E002",
       },
       category: "L33",
     }),
@@ -79,6 +82,7 @@ describe("NewAttributes", async () => {
       subUnit: {
         name: "Ufficio per la transizione al Digitale",
         entityName: "LICEO SCIENTIFICO STATALE GALILEO GALILEI",
+        entityIpaCode: "E002",
       },
       category: "L33",
     }),
@@ -88,6 +92,7 @@ describe("NewAttributes", async () => {
       subUnit: {
         name: "Ufficio Tecnico",
         entityName: "Fondazione di partecipazione Casa dell'Ospitalità",
+        entityIpaCode: "E003",
       },
       category: ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER,
     }),
@@ -257,7 +262,7 @@ describe("NewAttributes", async () => {
     expect(result[0].name).toBe(`${uoWithAooAttributeName} (U001)`);
   });
 
-  it("should return AOO/UO attributes case-insensitively and avoid suffixed name collisions", () => {
+  it("should return AOO/UO attributes case-insensitively and report suffixed name collisions", () => {
     const aooAttributeName = "SCPGI di Scuola Primaria Giovanni Pascoli";
     const uoWithAooAttributeName =
       "Ufficio per la transizione al Digitale di SCPGI di Scuola Primaria Giovanni Pascoli";
@@ -290,7 +295,39 @@ describe("NewAttributes", async () => {
     expect(result.map((a) => [a.code, a.name])).toEqual([
       ["A001", aooAttributeName],
       ["U001", `${uoWithAooAttributeName} (U001)`],
+      ["U002", uoWithoutAooAttributeNameWithCode],
       ["U003", `${uoWithoutAooAttributeName} (U003)`],
     ]);
+  });
+
+  it("should report a suffix colliding with an earlier new attribute name", () => {
+    config.featureFlagAooUoAttributes = true;
+    const institutions = ["A000", "A001", "A002"].map((originId) =>
+      getMockInstitution({
+        originId,
+        classification: "AOO",
+        subUnit: {
+          name: "Unit",
+          entityName: originId === "A000" ? "Entity (A001)" : "Entity",
+          entityIpaCode: "ROOT",
+        },
+        category: "SA",
+      })
+    );
+    const seeds = institutions.map((i) => ({
+      origin: i.origin,
+      originId: i.originId,
+      description: i.description,
+      attributes: [],
+    }));
+
+    const result = getNewAttributes(
+      { institutions, attributes: [] },
+      seeds,
+      []
+    );
+
+    expect(result.map((a) => a.code)).toEqual(["A000", "A001", "A002"]);
+    expect(result[1].name).toBe("Unit di Entity (A001)");
   });
 });

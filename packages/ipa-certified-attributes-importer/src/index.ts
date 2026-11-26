@@ -18,6 +18,7 @@ import {
   createTenantProcessClient,
   createNewAttributes,
   enableSubunitPropagation,
+  excludeFailedAttributesFromSeeds,
   getAttributesToAssign,
   getAttributesToRevoke,
   getNewAttributes,
@@ -116,7 +117,7 @@ try {
     config.tenantProcessUrl
   );
 
-  const failedCreations = await createNewAttributes(
+  const failedAttributes = await createNewAttributes(
     newAttributes,
     readModelServiceSQL,
     headers,
@@ -131,7 +132,7 @@ try {
   const attributesToAssign = await getAttributesToAssign(
     tenants,
     attributes,
-    tenantUpsertData,
+    excludeFailedAttributesFromSeeds(tenantUpsertData, failedAttributes),
     config,
     loggerInstance
   );
@@ -170,12 +171,12 @@ try {
   );
 
   loggerInstance.info(
-    `IPA certified attributes import completed. Failed propagation updates: ${failedPropagationUpdates}, failed creations: ${failedCreations}, failed upserts: ${failedUpserts}, failed revocations: ${failedRevocations}`
+    `IPA certified attributes import completed. Failed propagation updates: ${failedPropagationUpdates}, failed attribute creations: ${failedAttributes.length}, failed upserts: ${failedUpserts}, failed revocations: ${failedRevocations}`
   );
 
   if (
     failedPropagationUpdates > 0 ||
-    failedCreations > 0 ||
+    failedAttributes.length > 0 ||
     failedUpserts > 0 ||
     failedRevocations > 0
   ) {

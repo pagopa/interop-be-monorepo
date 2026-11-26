@@ -1,7 +1,9 @@
 /* eslint-disable functional/immutable-data */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const enableSubunitPropagationMock = vi.fn();
+const createNewAttributesMock = vi.fn();
+const infoMock = vi.fn();
 
 vi.mock("pagopa-interop-commons", async () => {
   const actual = await vi.importActual<typeof import("pagopa-interop-commons")>(
@@ -19,7 +21,7 @@ vi.mock("pagopa-interop-commons", async () => {
     },
     getInteropHeaders: vi.fn(() => ({})),
     logger: vi.fn(() => ({
-      info: vi.fn(),
+      info: infoMock,
       warn: vi.fn(),
       error: vi.fn(),
       debug: vi.fn(),
@@ -52,7 +54,8 @@ vi.mock("../src/services/ipaCertifiedAttributesImporterService.js", () => ({
   enableSubunitPropagation: enableSubunitPropagationMock,
   getTenantUpsertData: vi.fn(() => []),
   getNewAttributes: vi.fn(() => []),
-  createNewAttributes: vi.fn(async () => 0),
+  createNewAttributes: createNewAttributesMock,
+  excludeFailedAttributesFromSeeds: vi.fn(() => []),
   getAttributesToAssign: vi.fn(async () => []),
   assignNewAttributes: vi.fn(async () => 0),
   getAttributesToRevoke: vi.fn(async () => []),
@@ -76,11 +79,16 @@ describe("Forced subunit propagation", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.exitCode = undefined;
+    createNewAttributesMock.mockResolvedValue([]);
     enableSubunitPropagationMock.mockResolvedValue({
       attributes: [],
       suspendedAttributeIds: new Set(),
       failures: 0,
     });
+  });
+
+  afterEach(() => {
+    process.exitCode = undefined;
   });
 
   it("should enable the subunit propagation when both feature flags are enabled", async () => {
@@ -112,6 +120,26 @@ describe("Forced subunit propagation", () => {
 
     await runImporter({ aooUoAttributes: true, forcedPropagation: true });
 
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("should report failed A4 creations, continue the job and set the exit code", async () => {
+    const failedAttribute = {
+      origin: "IPA",
+      code: "U001",
+      name: "Ufficio",
+      description: "Ufficio",
+    };
+    createNewAttributesMock.mockResolvedValue([failedAttribute]);
+
+    await runImporter({ aooUoAttributes: true, forcedPropagation: true });
+
+    expect(infoMock).toHaveBeenCalledWith("Revoking attributes");
+    expect(infoMock).toHaveBeenCalledWith(
+      expect.stringContaining(
+        "Failed propagation updates: 0, failed attribute creations: 1"
+      )
+    );
     expect(process.exitCode).toBe(1);
   });
 });
