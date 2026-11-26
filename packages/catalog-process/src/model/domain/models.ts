@@ -157,7 +157,7 @@ export type ConsumerEServicesSortBy = catalogApi.ConsumerEServicesSortBy;
 export const defaultConsumerEServicesSortBy: ConsumerEServicesSortBy =
   "NAME_ASC";
 
-export type ProducerDashboardConsumerEServiceRow = {
+type ProducerDashboardConsumerEServiceRow = {
   eserviceId: EServiceId;
   eserviceName: string;
   descriptorId: DescriptorId;
