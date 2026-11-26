@@ -5,13 +5,19 @@ import {
 } from "pagopa-interop-commons";
 import { getMockTenant, getMockTenantMail } from "pagopa-interop-commons-test";
 import {
+  ContactId,
+  CorrelationId,
   Tenant,
   TenantId,
   UserId,
   UserRole,
   generateId,
 } from "pagopa-interop-models";
-import { getRecipientsForTenants } from "pagopa-interop-notification-commons";
+import {
+  encodeEmailEvent,
+  getRecipientsForTenants,
+  mapRecipientToEmailPayload,
+} from "pagopa-interop-notification-commons";
 import { describe, expect, it, vi } from "vitest";
 
 import { ReadModelServiceSQL } from "../src/services/readModelServiceSQL.js";
@@ -108,6 +114,37 @@ describe("getRecipientsForTenants", () => {
         };
       }),
   } as unknown as ReadModelServiceSQL;
+
+  it("serializes only the contact ID for a migrated tenant, even with a legacy mail", async () => {
+    const tenant = { ...tenants[0], contactId: generateId<ContactId>() };
+    const recipients = await getRecipientsForTenants({
+      tenants: [tenant],
+      notificationType: "agreementActivatedRejectedToConsumer",
+      includeTenantContactEmails: true,
+      readModelService,
+      logger: genericLogger,
+    });
+    const recipient = recipients.find((r) => r.type === "Tenant");
+    if (!recipient) {
+      throw new Error("Expected a tenant recipient");
+    }
+    const correlationId = generateId<CorrelationId>();
+    const email = { subject: "Subject", body: "Body" };
+    const serialized = encodeEmailEvent({
+      ...mapRecipientToEmailPayload(recipient),
+      tenantId: recipient.tenantId,
+      correlationId,
+      email,
+    });
+    expect(JSON.parse(serialized)).toEqual({
+      type: "Tenant",
+      tenantId: tenant.id,
+      contactId: tenant.contactId,
+      correlationId,
+      email,
+    });
+    expect(serialized).not.toContain(tenant.mails[0].address);
+  });
 
   it("should call ReadModelServiceSQL.getTenantUsersWithNotificationEnabled", async () => {
     await getRecipientsForTenants({

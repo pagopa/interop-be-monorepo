@@ -4,13 +4,14 @@ import {
   notificationAdmittedRoles,
 } from "pagopa-interop-commons";
 import {
+  EmailNotificationMessagePayload,
+  EmailNotificationRecipientPayload,
   NotificationType,
   tenantMailKind,
   Tenant,
   TenantId,
   UserId,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 
 import {
   EmailNotificationReadModelService,
@@ -29,11 +30,11 @@ const getNotificationTypeBlocklist = ({
 }): NotificationType[] =>
   notificationTypeBlocklist ?? readModelService.notificationTypeBlocklist ?? [];
 
-const getTenantContactEmailIfEnabled = async (
+const getTenantRecipientIfEnabled = async (
   tenant: Tenant,
   readModelService: EmailNotificationReadModelService,
   logger: Logger
-): Promise<string | undefined> => {
+): Promise<TenantEmailNotificationRecipient | undefined> => {
   const tenantConfig =
     await readModelService.getTenantNotificationConfigByTenantId(tenant.id);
   if (tenantConfig === undefined) {
@@ -43,6 +44,14 @@ const getTenantContactEmailIfEnabled = async (
   if (tenantConfig.enabled === false) {
     return undefined;
   }
+  const recipient = {
+    type: "Tenant" as const,
+    tenantId: tenant.id,
+    selfcareId: tenant.selfcareId,
+  };
+  if (tenant.contactId) {
+    return { ...recipient, contactId: tenant.contactId };
+  }
   const email = getLatestTenantMailOfKind(
     tenant.mails,
     tenantMailKind.ContactEmail
@@ -51,7 +60,7 @@ const getTenantContactEmailIfEnabled = async (
     logger.warn(`No contact email found for tenant ${tenant.id}.`);
     return undefined;
   }
-  return email.address;
+  return { ...recipient, address: email.address };
 };
 
 export async function getNotificationRecipients(
@@ -157,39 +166,43 @@ export const getRecipientsForTenants = async ({
       selfcareId: tenantSelfcareIdMap.get(tenantId),
     }));
 
-  const tenantRecipients: TenantEmailNotificationRecipient[] =
-    includeTenantContactEmails
-      ? (
-          await Promise.all(
-            tenants.map(async (tenant) => ({
-              type: "Tenant" as const,
-              tenantId: tenant.id,
-              selfcareId: tenant.selfcareId,
-              address: await getTenantContactEmailIfEnabled(
-                tenant,
-                readModelService,
-                logger
-              ),
-            }))
-          )
-        ).filter(
-          (t): t is TenantEmailNotificationRecipient => t.address !== undefined
+  const tenantRecipients = includeTenantContactEmails
+    ? await Promise.all(
+        tenants.map((tenant) =>
+          getTenantRecipientIfEnabled(tenant, readModelService, logger)
         )
-      : [];
+      )
+    : [];
 
-  return [...userRecipients, ...tenantRecipients];
+  return [
+    ...userRecipients,
+    ...tenantRecipients.filter(
+      (t): t is TenantEmailNotificationRecipient => t !== undefined
+    ),
+  ];
 };
 
 export const mapRecipientToEmailPayload = (
-  recipient: EmailNotificationRecipient
-): { type: "User"; userId: UserId } | { type: "Tenant"; address: string } =>
-  match(recipient)
-    .with({ type: "User" }, ({ type, userId }) => ({
-      type,
-      userId,
-    }))
-    .with({ type: "Tenant" }, ({ type, address }) => ({
-      type,
-      address,
-    }))
-    .exhaustive();
+  recipient: EmailNotificationRecipientPayload
+): EmailNotificationRecipientPayload => {
+  if (recipient.type === "User") {
+    return { type: recipient.type, userId: recipient.userId };
+  }
+  return recipient.contactId !== undefined
+    ? { type: recipient.type, contactId: recipient.contactId }
+    : { type: recipient.type, address: recipient.address };
+};
+
+export function encodeEmailEvent(
+  event: EmailNotificationMessagePayload
+): string {
+  return JSON.stringify({
+    correlationId: event.correlationId,
+    email: {
+      subject: event.email.subject,
+      body: event.email.body,
+    },
+    tenantId: event.tenantId,
+    ...mapRecipientToEmailPayload(event),
+  });
+}

@@ -11,7 +11,7 @@ import {
   PurposeId,
   PurposeV2,
   PurposeVersionId,
-  TenantV2,
+  Tenant,
   UserId,
 } from "pagopa-interop-models";
 import {
@@ -57,7 +57,7 @@ export type PurposeVersionHandlerParams = HandlerCommonParams & {
 };
 
 export type TenantHandlerParams = HandlerCommonParams & {
-  tenantV2Msg?: TenantV2;
+  tenant?: Tenant;
   attributeId: AttributeId;
 };
 

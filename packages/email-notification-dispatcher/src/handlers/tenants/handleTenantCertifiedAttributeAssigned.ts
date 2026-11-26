@@ -3,7 +3,6 @@ import {
   generateId,
   missingKafkaMessageDataError,
   NotificationType,
-  fromTenantV2,
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
@@ -25,7 +24,7 @@ export async function handleTenantCertifiedAttributeAssigned(
   data: TenantHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
-    tenantV2Msg,
+    tenant,
     attributeId,
     readModelService,
     logger,
@@ -33,14 +32,12 @@ export async function handleTenantCertifiedAttributeAssigned(
     correlationId,
   } = data;
 
-  if (!tenantV2Msg) {
+  if (!tenant) {
     throw missingKafkaMessageDataError(
       "tenant",
       "TenantCertifiedAttributeAssigned"
     );
   }
-
-  const tenant = fromTenantV2(tenantV2Msg);
 
   const [htmlTemplate, attribute] = await Promise.all([
     retrieveHTMLTemplate(

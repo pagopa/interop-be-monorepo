@@ -1,15 +1,8 @@
-import {
-  EmailNotificationMessagePayload,
-  EService,
-  EServiceId,
-  Tenant,
-  TenantId,
-} from "pagopa-interop-models";
+import { EService, EServiceId, Tenant, TenantId } from "pagopa-interop-models";
 import {
   tenantNotFound,
   eserviceNotFound,
 } from "pagopa-interop-notification-commons";
-import { match } from "ts-pattern";
 
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -34,20 +27,3 @@ export const retrieveEService = async (
   }
   return eservice;
 };
-
-export function encodeEmailEvent(
-  event: EmailNotificationMessagePayload
-): string {
-  return JSON.stringify({
-    correlationId: event.correlationId,
-    email: {
-      subject: event.email.subject,
-      body: event.email.body,
-    },
-    tenantId: event.tenantId,
-    ...match(event)
-      .with({ type: "User" }, ({ type, userId }) => ({ type, userId }))
-      .with({ type: "Tenant" }, ({ type, address }) => ({ type, address }))
-      .exhaustive(),
-  });
-}
