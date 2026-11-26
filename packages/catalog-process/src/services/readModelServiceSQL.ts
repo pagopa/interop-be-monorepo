@@ -36,6 +36,7 @@ import {
   AttributeId,
   EService,
   Agreement,
+  AgreementId,
   AgreementState,
   ListResult,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
@@ -68,6 +69,7 @@ import {
   AgreementStampKind,
   archivingScope,
   tenantKind,
+  purposeVersionState,
 } from "pagopa-interop-models";
 import {
   aggregateAgreementArray,
@@ -113,12 +115,16 @@ import {
   purposeTemplateInReadmodelPurposeTemplate,
   tenantCertifiedDiscreteAttributeInReadmodelTenant,
   tenantCertifiedAttributeInReadmodelTenant,
+  purposeInReadmodelPurpose,
+  purposeVersionInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
 import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
 import { match } from "ts-pattern";
 
 import {
   ApiGetEServicesFilters,
+  ConsumerEServicesSortBy,
+  ProducerDashboardConsumerResult,
   Consumer,
   EServiceProducerCategory,
   EServicesQueryFilters,
@@ -1429,6 +1435,225 @@ export function readModelServiceBuilderSQL(
       }));
 
       return createListResult(consumers, res[0]?.totalCount);
+    },
+    async getProducerDashboardConsumer(
+      requesterId: TenantId,
+      consumerId: TenantId,
+      { q, sortBy }: { q: string | undefined; sortBy: ConsumerEServicesSortBy },
+      { offset, limit }: { offset: number; limit: number }
+    ): Promise<ProducerDashboardConsumerResult> {
+      const agreement = agreementInReadmodelAgreement;
+      const eservice = eserviceInReadmodelCatalog;
+      const descriptor = eserviceDescriptorInReadmodelCatalog;
+      const purpose = purposeInReadmodelPurpose;
+      const version = purposeVersionInReadmodelPurpose;
+      const tenant = tenantInReadmodelTenant;
+
+      const relationship = readmodelDB.$with("pdc_relationship").as(
+        readmodelDB
+          .select({
+            eserviceId: sql<string>`${eservice.id}`.as("pdc_eservice_id"),
+            eserviceName: sql<string>`${eservice.name}`.as("pdc_eservice_name"),
+            descriptorId: sql<string>`${descriptor.id}`.as("pdc_descriptor_id"),
+            version: sql<string>`${descriptor.version}`.as("pdc_version"),
+            agreementId: sql<string>`${agreement.id}`.as("pdc_agreement_id"),
+            agreementState: sql<string>`${agreement.state}`.as(
+              "pdc_agreement_state"
+            ),
+          })
+          .from(agreement)
+          .innerJoin(eservice, eq(eservice.id, agreement.eserviceId))
+          .innerJoin(descriptor, eq(descriptor.id, agreement.descriptorId))
+          .where(
+            and(
+              eq(agreement.consumerId, consumerId),
+              inArray(agreement.state, [
+                agreementState.active,
+                agreementState.suspended,
+              ]),
+              or(
+                eq(eservice.producerId, requesterId),
+                requesterDelegationRolesFilter(readmodelDB, requesterId, [
+                  "DELEGATE",
+                ])
+              )
+            )
+          )
+      );
+      const purposes = readmodelDB.$with("pdc_purposes").as(
+        readmodelDB
+          .select({
+            eserviceId: sql<string>`${purpose.eserviceId}`.as(
+              "pdc_purpose_eservice_id"
+            ),
+            activePurposesCount: sql<number>`COUNT(DISTINCT ${purpose.id})`
+              .mapWith(Number)
+              .as("pdc_active_purposes_count"),
+            approvedDailyCalls: sql<number>`SUM(${version.dailyCalls})`
+              .mapWith(Number)
+              .as("pdc_approved_daily_calls"),
+          })
+          .from(purpose)
+          .innerJoin(version, eq(version.purposeId, purpose.id))
+          .innerJoin(
+            relationship,
+            eq(relationship.eserviceId, purpose.eserviceId)
+          )
+          .where(
+            and(
+              eq(purpose.consumerId, consumerId),
+              eq(version.state, purposeVersionState.active)
+            )
+          )
+          .groupBy(purpose.eserviceId)
+      );
+
+      const nameFilter = q
+        ? ilikeEscaped(relationship.eserviceName, `%${escapeSqlLike(q)}%`)
+        : undefined;
+      const counts = readmodelDB.$with("pdc_counts").as(
+        readmodelDB
+          .select({
+            eservicesCount: sql<number>`COUNT(*)`
+              .mapWith(Number)
+              .as("pdc_eservices_count"),
+            filteredCount: sql<number>`COUNT(*) FILTER (WHERE ${
+              nameFilter ?? sql`true`
+            })`
+              .mapWith(Number)
+              .as("pdc_filtered_count"),
+          })
+          .from(relationship)
+      );
+
+      const activePurposesCount = sql<number>`COALESCE(${purposes.activePurposesCount}, 0)`;
+      const approvedDailyCalls = sql<number>`COALESCE(${purposes.approvedDailyCalls}, 0)`;
+      const eserviceName = sql`lower(${relationship.eserviceName})`;
+      const orderBy = match(sortBy)
+        .with("NAME_ASC", () => [asc(eserviceName)])
+        .with("NAME_DESC", () => [desc(eserviceName)])
+        .with("DAILY_CALLS_DESC", () => [
+          desc(approvedDailyCalls),
+          asc(eserviceName),
+        ])
+        .with("DAILY_CALLS_ASC", () => [
+          asc(approvedDailyCalls),
+          asc(eserviceName),
+        ])
+        .exhaustive();
+
+      const page = readmodelDB.$with("pdc_page").as(
+        readmodelDB
+          .select({
+            eserviceId: sql<string>`${relationship.eserviceId}`.as(
+              "pdc_page_eservice_id"
+            ),
+            eserviceName: sql<string>`${relationship.eserviceName}`.as(
+              "pdc_page_eservice_name"
+            ),
+            descriptorId: sql<string>`${relationship.descriptorId}`.as(
+              "pdc_page_descriptor_id"
+            ),
+            version: sql<string>`${relationship.version}`.as(
+              "pdc_page_version"
+            ),
+            agreementId: sql<string>`${relationship.agreementId}`.as(
+              "pdc_page_agreement_id"
+            ),
+            agreementState: sql<string>`${relationship.agreementState}`.as(
+              "pdc_page_agreement_state"
+            ),
+            activePurposesCount: activePurposesCount
+              .mapWith(Number)
+              .as("pdc_page_active_purposes_count"),
+            approvedDailyCalls: approvedDailyCalls
+              .mapWith(Number)
+              .as("pdc_page_approved_daily_calls"),
+            position: sql<number>`ROW_NUMBER() OVER (ORDER BY ${sql.join(
+              [...orderBy, asc(relationship.eserviceId)],
+              sql`, `
+            )})`
+              .mapWith(Number)
+              .as("pdc_page_position"),
+          })
+          .from(relationship)
+          .leftJoin(purposes, eq(purposes.eserviceId, relationship.eserviceId))
+          .where(nameFilter)
+          .orderBy(...orderBy, asc(relationship.eserviceId))
+          .limit(limit)
+          .offset(offset)
+      );
+
+      const rows = await readmodelDB
+        .with(relationship, purposes, counts, page)
+        .select({
+          eservicesCount: counts.eservicesCount,
+          filteredCount: counts.filteredCount,
+          tenantId: tenant.id,
+          tenantName: tenant.name,
+          tenantKind: tenant.kind,
+          eserviceId: page.eserviceId,
+          eserviceName: page.eserviceName,
+          descriptorId: page.descriptorId,
+          version: page.version,
+          agreementId: page.agreementId,
+          agreementState: page.agreementState,
+          activePurposesCount: page.activePurposesCount,
+          approvedDailyCalls: page.approvedDailyCalls,
+        })
+        .from(counts)
+        .leftJoin(
+          tenant,
+          and(eq(tenant.id, consumerId), sql`${counts.eservicesCount} > 0`)
+        )
+        .leftJoin(page, sql`true`)
+        .orderBy(asc(page.position));
+
+      const [header] = rows;
+      if (!header || header.eservicesCount === 0) {
+        return {
+          consumer: undefined,
+          eservicesCount: 0,
+          totalCount: 0,
+          results: [],
+        };
+      }
+
+      return {
+        consumer:
+          header.tenantId && header.tenantName
+            ? {
+                id: unsafeBrandId<TenantId>(header.tenantId),
+                name: header.tenantName,
+                kind: header.tenantKind
+                  ? TenantKind.parse(header.tenantKind)
+                  : undefined,
+              }
+            : undefined,
+        eservicesCount: header.eservicesCount,
+        totalCount: header.filteredCount,
+        results: rows.flatMap((r) =>
+          r.eserviceId &&
+          r.eserviceName !== null &&
+          r.descriptorId &&
+          r.version !== null &&
+          r.agreementId &&
+          r.agreementState
+            ? [
+                {
+                  eserviceId: unsafeBrandId<EServiceId>(r.eserviceId),
+                  eserviceName: r.eserviceName,
+                  descriptorId: unsafeBrandId<DescriptorId>(r.descriptorId),
+                  version: r.version,
+                  agreementId: unsafeBrandId<AgreementId>(r.agreementId),
+                  agreementState: AgreementState.parse(r.agreementState),
+                  activePurposesCount: r.activePurposesCount ?? 0,
+                  approvedDailyCalls: r.approvedDailyCalls ?? 0,
+                },
+              ]
+            : []
+        ),
+      };
     },
     async listAgreements({
       eservicesIds,

@@ -134,8 +134,11 @@ import {
   ApiGetEServicesFilters,
   ArchivingRow,
   Consumer,
+  ConsumerEServicesSortBy,
+  defaultConsumerEServicesSortBy,
   defaultEServiceSortBy,
   ProducerEServiceMonitoringAgreements,
+  ProducerDashboardConsumerResult,
 } from "../model/domain/models.js";
 import {
   toCreateEventClonedEServiceAdded,
@@ -1111,6 +1114,32 @@ export function catalogServiceBuilder(
         results: eservicesToReturn,
         totalCount: eservicesList.totalCount,
       };
+    },
+
+    async getProducerDashboardConsumer(
+      consumerId: TenantId,
+      {
+        q,
+        sortBy,
+        offset,
+        limit,
+      }: {
+        q?: string | undefined;
+        sortBy?: ConsumerEServicesSortBy | undefined;
+        offset: number;
+        limit: number;
+      },
+      { authData, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<ProducerDashboardConsumerResult> {
+      logger.info(
+        `Retrieving producer dashboard consumer ${consumerId} for ${authData.organizationId}, q ${q}, sortBy ${sortBy}, offset ${offset}, limit ${limit}`
+      );
+      return readModelService.getProducerDashboardConsumer(
+        authData.organizationId,
+        consumerId,
+        { q: q || undefined, sortBy: sortBy ?? defaultConsumerEServicesSortBy },
+        { offset, limit }
+      );
     },
 
     async getEServiceConsumers(
