@@ -1,6 +1,7 @@
 import { generateMock } from "@anatine/zod-mock";
 import {
   attributeRegistryApi,
+  bffApi,
   catalogApi,
   delegationApi,
   agreementApi,
@@ -665,20 +666,20 @@ export type GetMockTenantHierarchyParams = {
 export function getMockTenantHierarchy({
   populateHierarchy = false,
 }: GetMockTenantHierarchyParams = {}): Pick<
-  agreementApi.CompactOrganization,
+  bffApi.CompactTenant,
   "subUnitType" | "parentTenants"
 > {
   if (!populateHierarchy) {
     return {};
   }
-  const root = { id: generateId(), name: "Tenant root" };
-  const aoo = {
+  const rootTenant = { id: generateId(), name: "Tenant root" };
+  const parentTenant = {
     id: generateId(),
     name: "Tenant AOO",
     subUnitType: tenantUnitType.AOO,
   };
   return {
     subUnitType: tenantUnitType.UO,
-    parentTenants: [aoo, root],
+    parentTenants: [parentTenant, rootTenant],
   };
 }

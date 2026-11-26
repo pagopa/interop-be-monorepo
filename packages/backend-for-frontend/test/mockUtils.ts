@@ -1002,26 +1002,24 @@ export const getMockBffApiCertifiedAttributesResponse =
     ),
   });
 
-export const getMockBffApiRequesterCertifiedAttribute =
-  (): bffApi.RequesterCertifiedAttribute => ({
+export const getMockBffApiRequesterCertifiedAttribute = ({
+  populateTenantHierarchy,
+}: {
+  populateTenantHierarchy?: boolean;
+} = {}): bffApi.RequesterCertifiedAttribute => {
+  const { subUnitType, parentTenants } = getMockTenantHierarchy({
+    populateHierarchy: populateTenantHierarchy,
+  });
+  return {
     tenantId: generateId(),
     tenantName: generateMock(z.string()),
     attributeId: generateId(),
     attributeName: generateMock(z.string()),
     kind: tenantAttributeKind.certified,
-  });
-
-export const getMockBffApiRequesterCertifiedAttributeWithHierarchy =
-  (): bffApi.RequesterCertifiedAttribute => {
-    const { subUnitType, parentTenants } = getMockTenantHierarchy({
-      populateHierarchy: true,
-    });
-    return {
-      ...getMockBffApiRequesterCertifiedAttribute(),
-      tenantSubUnitType: subUnitType,
-      parentTenants,
-    };
+    ...(subUnitType !== undefined ? { tenantSubUnitType: subUnitType } : {}),
+    ...(parentTenants !== undefined ? { parentTenants } : {}),
   };
+};
 
 export const getMockBffApiCompactOrganization = ({
   populateHierarchy,
