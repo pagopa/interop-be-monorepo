@@ -17,7 +17,6 @@ import {
 } from "../src/api/tenantApiConverter.js";
 import { tenantServiceBuilder } from "../src/services/tenantService.js";
 import { BffAppContext } from "../src/utilities/context.js";
-import { mockTenantContacts } from "./mockTenantContacts.js";
 
 describe("tenantServiceBuilder.getTenant", () => {
   it("should merge certified and certified discrete attributes into the certified attributes", async () => {
@@ -68,6 +67,9 @@ describe("tenantServiceBuilder.getTenant", () => {
 
     const tenantProcessClient = {
       tenant: {
+        getTenantContact: vi
+          .fn()
+          .mockRejectedValue({ isAxiosError: true, response: { status: 404 } }),
         getTenant: vi.fn().mockResolvedValue(tenant),
       },
     };
@@ -85,7 +87,6 @@ describe("tenantServiceBuilder.getTenant", () => {
     };
 
     const service = tenantServiceBuilder(
-      mockTenantContacts,
       tenantProcessClient as never,
       attributeProcessClient as never,
       {} as never
@@ -157,6 +158,9 @@ describe("tenantServiceBuilder.getTenant", () => {
 
     const tenantProcessClient = {
       tenant: {
+        getTenantContact: vi
+          .fn()
+          .mockRejectedValue({ isAxiosError: true, response: { status: 404 } }),
         getTenant: vi.fn().mockResolvedValue(tenant),
       },
     };
@@ -173,7 +177,6 @@ describe("tenantServiceBuilder.getTenant", () => {
     };
 
     const service = tenantServiceBuilder(
-      mockTenantContacts,
       tenantProcessClient as never,
       attributeProcessClient as never,
       {} as never
@@ -238,6 +241,9 @@ describe("tenantServiceBuilder.getTenant", () => {
 
     const tenantProcessClient = {
       tenant: {
+        getTenantContact: vi
+          .fn()
+          .mockRejectedValue({ isAxiosError: true, response: { status: 404 } }),
         getTenant: vi.fn().mockResolvedValue(tenant),
       },
     };
@@ -254,7 +260,6 @@ describe("tenantServiceBuilder.getTenant", () => {
     };
 
     const service = tenantServiceBuilder(
-      mockTenantContacts,
       tenantProcessClient as never,
       attributeProcessClient as never,
       {} as never
@@ -330,9 +335,12 @@ describe("tenantServiceBuilder.getCertifiedAttributes", () => {
     };
 
     const service = tenantServiceBuilder(
-      mockTenantContacts,
       {
         tenant: {
+          getTenantContact: vi.fn().mockRejectedValue({
+            isAxiosError: true,
+            response: { status: 404 },
+          }),
           getTenant: vi.fn().mockResolvedValue(tenant),
         },
       } as never,

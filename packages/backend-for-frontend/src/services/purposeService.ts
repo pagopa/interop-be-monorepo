@@ -34,11 +34,7 @@ import {
   toBffApiRiskAnalysisForm,
 } from "../api/purposeApiConverter.js";
 import { toCompactPurposeTemplate } from "../api/purposeTemplateApiConverter.js";
-import {
-  DelegationProcessClient,
-  PagoPAInteropBeClients,
-  TenantProcessClient,
-} from "../clients/clientsProvider.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import {
   agreementNotFound,
@@ -49,63 +45,11 @@ import {
 } from "../model/errors.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
+import { omitUnavailableTenantContact } from "../utilities/tenantContactErrors.js";
 import { getLatestAgreement } from "./agreementService.js";
 import { getAllClients } from "./clientService.js";
 import { getSelfcareCompactUserById } from "./selfcareService.js";
-import { TenantContactService } from "./tenantContactService.js";
 import { isAgreementUpgradable } from "./validators.js";
-
-const enrichPurposeDelegation = async (
-  tenantContacts: TenantContactService,
-  delegationId: string,
-  delegationProcessClient: DelegationProcessClient,
-  tenantProcessClient: TenantProcessClient,
-  headers: Headers,
-  organizationId: BffAppContext["authData"]["organizationId"]
-): Promise<bffApi.DelegationWithCompactTenants> => {
-  const delegation = await delegationProcessClient.delegation.getDelegation({
-    headers,
-    params: {
-      delegationId,
-    },
-  });
-
-  const [delegate, delegator] = await Promise.all(
-    [delegation.delegateId, delegation.delegatorId].map((id) =>
-      tenantProcessClient.tenant.getTenant({
-        headers,
-        params: { id },
-      })
-    )
-  );
-
-  if (!delegate) {
-    throw tenantNotFound(delegation.delegateId);
-  }
-  if (!delegator) {
-    throw tenantNotFound(delegation.delegatorId);
-  }
-
-  const [delegateContactMail, delegatorContactMail] = await Promise.all([
-    tenantContacts.resolve(delegate, organizationId, headers),
-    tenantContacts.resolve(delegator, organizationId, headers),
-  ]);
-  return {
-    id: delegationId,
-    delegate: {
-      id: delegate.id,
-      name: delegate.name,
-      contactMail: delegateContactMail,
-      kind: delegate.kind,
-    },
-    delegator: {
-      id: delegator.id,
-      name: delegator.name,
-      contactMail: delegatorContactMail,
-      kind: delegator.kind,
-    },
-  };
-};
 
 const enrichPurposeReviewerWorkflow = async (
   reviewerWorkflow: purposeApi.ReviewerWorkflow | undefined,
@@ -224,9 +168,41 @@ export function purposeServiceBuilder(
     selfcareV2UserClient,
     inAppNotificationManagerClient,
   }: PagoPAInteropBeClients,
-  fileManager: FileManager,
-  tenantContacts: TenantContactService
+  fileManager: FileManager
 ) {
+  async function enrichPurposeDelegation(
+    delegationId: string,
+    headers: Headers
+  ): Promise<bffApi.DelegationWithCompactTenants> {
+    const delegation = await delegationProcessClient.delegation.getDelegation({
+      params: { delegationId },
+      headers,
+    });
+    const [delegate, delegator] = await Promise.all(
+      [delegation.delegateId, delegation.delegatorId].map(async (tenantId) => {
+        const [tenant, contactMail] = await Promise.all([
+          tenantProcessClient.tenant.getTenant({
+            params: { id: tenantId },
+            headers,
+          }),
+          tenantProcessClient.tenant
+            .getTenantContact({ params: { tenantId }, headers })
+            .catch(omitUnavailableTenantContact(headers)),
+        ]);
+        if (!tenant) {
+          throw tenantNotFound(tenantId);
+        }
+        return {
+          id: tenant.id,
+          name: tenant.name,
+          kind: tenant.kind,
+          contactMail,
+        };
+      })
+    );
+    return { id: delegationId, delegate, delegator };
+  }
+
   // eslint-disable-next-line complexity
   const enhancePurpose = async (
     authData: UIAuthData,
@@ -307,14 +283,7 @@ export function purposeServiceBuilder(
         : undefined;
 
     const delegation = purpose.delegationId
-      ? await enrichPurposeDelegation(
-          tenantContacts,
-          purpose.delegationId,
-          delegationProcessClient,
-          tenantProcessClient,
-          headers,
-          authData.organizationId
-        )
+      ? await enrichPurposeDelegation(purpose.delegationId, headers)
       : undefined;
 
     const clients =
@@ -357,11 +326,9 @@ export function purposeServiceBuilder(
       }
     }
 
-    const consumerContactMail = await tenantContacts.resolve(
-      consumer,
-      authData.organizationId,
-      headers
-    );
+    const consumerContactMail = await tenantProcessClient.tenant
+      .getTenantContact({ params: { tenantId: consumer.id }, headers })
+      .catch(omitUnavailableTenantContact(headers));
     return {
       id: purpose.id,
       title: purpose.title,

@@ -31,11 +31,11 @@ import {
 import { TenantProcessClient } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import { BffAppContext } from "../utilities/context.js";
-import { getAllBulkAttributes } from "./attributeService.js";
 import {
-  TenantContactService,
+  omitUnavailableTenantContact,
   tenantContactRequestError,
-} from "./tenantContactService.js";
+} from "../utilities/tenantContactErrors.js";
+import { getAllBulkAttributes } from "./attributeService.js";
 
 async function getRegistryAttributesMap(
   tenantAttributesIds: string[],
@@ -53,7 +53,6 @@ async function getRegistryAttributesMap(
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder(
-  tenantContacts: TenantContactService,
   tenantProcessClient: TenantProcessClient,
   attributeRegistryProcessClient: attributeRegistryApi.AttributeProcessClient,
   selfcareV2InstitutionClient: SelfcareV2InstitutionClient
@@ -90,7 +89,7 @@ export function tenantServiceBuilder(
   return {
     async getTenant(
       tenantId: TenantId,
-      { headers, logger, authData }: WithLogger<BffAppContext>
+      { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.Tenant> {
       logger.info(`Getting tenant with id ${tenantId}`);
       const tenant = await tenantProcessClient.tenant.getTenant({
@@ -127,11 +126,9 @@ export function tenantServiceBuilder(
         headers
       );
 
-      const tenantContactMail = await tenantContacts.resolve(
-        tenant,
-        authData.organizationId,
-        headers
-      );
+      const tenantContactMail = await tenantProcessClient.tenant
+        .getTenantContact({ params: { tenantId: tenant.id }, headers })
+        .catch(omitUnavailableTenantContact(headers));
       return toBffApiTenant(
         tenant,
         certifiedAttributes,

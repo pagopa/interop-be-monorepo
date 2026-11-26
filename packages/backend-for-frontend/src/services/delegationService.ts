@@ -31,7 +31,7 @@ import {
 } from "../model/errors.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
-import { TenantContactService } from "./tenantContactService.js";
+import { omitUnavailableTenantContact } from "../utilities/tenantContactErrors.js";
 
 // eslint-disable-next-line max-params
 async function enhanceDelegation<
@@ -202,7 +202,6 @@ export async function getAllDelegations(
 }
 
 export function delegationServiceBuilder(
-  tenantContacts: TenantContactService,
   delegationClients: DelegationProcessClient,
   tenantClient: TenantProcessClient,
   catalogClient: catalogApi.CatalogProcessClient,
@@ -526,7 +525,7 @@ export function delegationServiceBuilder(
     },
     async getConsumerDelegatedEservices(
       filters: bffApi.BffgetConsumerDelegatedEservicesQueryParam,
-      { headers, logger, authData }: WithLogger<BffAppContext>
+      { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactEServices> {
       logger.info(
         `Retrieving consumer delegated eservices with filters ${JSON.stringify(
@@ -553,11 +552,9 @@ export function delegationServiceBuilder(
               headers,
             });
 
-            const producerContactMail = await tenantContacts.resolve(
-              producer,
-              authData.organizationId,
-              headers
-            );
+            const producerContactMail = await tenantClient.tenant
+              .getTenantContact({ params: { tenantId: producer.id }, headers })
+              .catch(omitUnavailableTenantContact(headers));
             return {
               id: eservice.id,
               name: eservice.name,

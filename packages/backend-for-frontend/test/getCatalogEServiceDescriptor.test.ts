@@ -30,7 +30,6 @@ import * as agreementService from "../src/services/agreementService.js";
 import * as attributeService from "../src/services/attributeService.js";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import * as delegationService from "../src/services/delegationService.js";
-import { mockTenantContacts } from "./mockTenantContacts.js";
 import { getMockCatalogApiEServiceDoc, toApiEServiceDoc } from "./mockUtils.js";
 import { fileManager, getBffMockContext } from "./utils.js";
 
@@ -217,6 +216,9 @@ describe("getCatalogEServiceDescriptor", () => {
 
   const mockTenantProcessClient = {
     tenant: {
+      getTenantContact: vi
+        .fn()
+        .mockRejectedValue({ isAxiosError: true, response: { status: 404 } }),
       getTenant: vi.fn().mockResolvedValue({
         id: tenantId,
         name: tenantName,
@@ -328,7 +330,6 @@ describe("getCatalogEServiceDescriptor", () => {
   ).mockReturnValue(Promise.resolve(catalogDescriptorEService));
 
   const catalogService = catalogServiceBuilder(
-    mockTenantContacts,
     mockCatalogProcessClient,
     mockTenantProcessClient,
     mockAgreementProcessClient,

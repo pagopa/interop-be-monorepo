@@ -15,8 +15,8 @@ import { describe, expect, it, vi } from "vitest";
 
 import { tenantAttributeKind } from "../src/api/tenantApiConverter.js";
 import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
+import { TENANT_OPERATION_FORBIDDEN_CODE } from "../src/config/constants.js";
 import { enrichAgreement } from "../src/services/agreementService.js";
-import { tenantContactServiceBuilder } from "../src/services/tenantContactService.js";
 import { BffAppContext } from "../src/utilities/context.js";
 import {
   getMockCatalogApiEService,
@@ -142,9 +142,24 @@ describe("enrichAgreement", () => {
       descriptors: [descriptor],
     };
 
+    const getTenantContact = vi.fn(
+      async ({ params }: { params: { tenantId: string } }) => {
+        if (params.tenantId === consumerId) {
+          return { address: "consumer@example.org" };
+        }
+        throw {
+          isAxiosError: true,
+          response: {
+            status: 403,
+            data: { errors: [{ code: TENANT_OPERATION_FORBIDDEN_CODE }] },
+          },
+        };
+      }
+    );
     const clients = {
       tenantProcessClient: {
         tenant: {
+          getTenantContact,
           getTenant: vi.fn(({ params }: { params: { id: string } }) =>
             params.id === consumerId
               ? Promise.resolve(consumer)
@@ -171,11 +186,6 @@ describe("enrichAgreement", () => {
       },
     } as unknown as PagoPAInteropBeClients;
 
-    const getTenantContact = vi
-      .fn()
-      .mockResolvedValue({ address: "consumer@example.org" });
-    const tenantContacts = tenantContactServiceBuilder({ getTenantContact });
-
     const correlationId = generateId<CorrelationId>();
     const ctx: WithLogger<BffAppContext> = {
       correlationId,
@@ -188,14 +198,13 @@ describe("enrichAgreement", () => {
       logger: genericLogger,
     } as WithLogger<BffAppContext>;
 
-    const actualAgreement = await enrichAgreement(
-      agreement,
-      clients,
-      tenantContacts,
-      ctx
-    );
+    const actualAgreement = await enrichAgreement(agreement, clients, ctx);
 
-    expect(getTenantContact).toHaveBeenCalledTimes(1);
+    expect(getTenantContact).toHaveBeenCalledTimes(2);
+    expect(getTenantContact).toHaveBeenCalledWith({
+      params: { tenantId: producerId },
+      headers: ctx.headers,
+    });
     expect(getTenantContact).toHaveBeenCalledWith({
       params: { tenantId: consumerId },
       headers: ctx.headers,

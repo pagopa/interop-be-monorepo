@@ -13,5 +13,9 @@ export const AUTHORIZATION_EVENT_CONFLICT_CODE = `${
   serviceErrorCode[serviceName.AUTHORIZATION_PROCESS]
 }-${commonErrorCodes.eventConflictError}`;
 
+export const TENANT_OPERATION_FORBIDDEN_CODE = `${
+  serviceErrorCode[serviceName.TENANT_PROCESS]
+}-${commonErrorCodes.operationForbidden}`;
+
 export const ASYNC_EXCHANGE_CALLBACK_INTERFACE_FOLDER =
   "asyncExchangeCallbackInterface";

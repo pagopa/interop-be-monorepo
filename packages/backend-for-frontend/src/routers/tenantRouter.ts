@@ -12,7 +12,6 @@ import {
   AgreementId,
   AttributeId,
   TenantId,
-  operationForbidden,
   emptyErrorMapper,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -457,9 +456,6 @@ const tenantRouter = (
       try {
         const tenantId = unsafeBrandId<TenantId>(req.params.tenantId);
         validateAuthorization(ctx, [authRole.ADMIN_ROLE]);
-        if (ctx.authData.organizationId !== tenantId) {
-          throw operationForbidden;
-        }
         await tenantService.setTenantContact(tenantId, req.body, ctx);
         return res.status(204).send();
       } catch (error) {

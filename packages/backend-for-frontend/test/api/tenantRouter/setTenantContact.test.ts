@@ -53,7 +53,9 @@ describe("API POST /tenants/{tenantId}/contact test", () => {
     );
   });
 
-  it("returns the original tenant-process rejection on submission", async () => {
+  it("forwards the tenant-process rejection when writing another tenant's contact", async () => {
+    const otherTenantId = generateId<TenantId>();
+    const token = generateToken(authRole.ADMIN_ROLE);
     const problem = {
       type: "about:blank",
       status: 403,
@@ -67,9 +69,18 @@ describe("API POST /tenants/{tenantId}/contact test", () => {
       isAxiosError: true,
       response: { status: 403, data: problem },
     });
-    const response = await makeRequest(generateToken(authRole.ADMIN_ROLE));
+    const response = await makeRequest(token, otherTenantId);
     expect(response.status).toBe(403);
     expect(response.body).toEqual(problem);
+    expect(
+      clients.tenantProcessClient.tenant.addTenantContact
+    ).toHaveBeenCalledWith(
+      mailSeed,
+      expect.objectContaining({
+        params: { tenantId: otherTenantId },
+        headers: expect.objectContaining({ Authorization: `Bearer ${token}` }),
+      })
+    );
   });
 
   it("preserves the association if the tenant-process saves it but its response is lost", async () => {
@@ -90,17 +101,6 @@ describe("API POST /tenants/{tenantId}/contact test", () => {
 
   it("rejects a viewer before creating a contact", async () => {
     const response = await makeRequest(generateToken(authRole.VIEWER_ROLE));
-    expect(response.status).toBe(403);
-    expect(
-      clients.tenantProcessClient.tenant.addTenantContact
-    ).not.toHaveBeenCalled();
-  });
-
-  it("rejects writes for another tenant before creating a contact", async () => {
-    const response = await makeRequest(
-      generateToken(authRole.ADMIN_ROLE),
-      generateId<TenantId>()
-    );
     expect(response.status).toBe(403);
     expect(
       clients.tenantProcessClient.tenant.addTenantContact
