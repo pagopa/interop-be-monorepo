@@ -30,12 +30,12 @@ import {
   config,
   IPACertifiedAttributesImporterConfig,
 } from "../config/config.js";
-import { Institution } from "./openDataExtractor.js";
 import {
   toAttributeKey,
   toTenantKey,
 } from "../utils/tenantAndAttributeKeySerialization.js";
 import { getAooUoAttributes } from "./aooUoAttributeService.js";
+import { Institution } from "./openDataExtractor.js";
 import {
   RegistryData,
   InternalCertifiedAttribute,
@@ -489,7 +489,7 @@ export async function createNewAttributes(
       });
       createdAttributes.push(attribute);
     } catch (error: unknown) {
-      loggerInstance.warn(
+      loggerInstance.error(
         `Failed creation of attribute ${attribute.origin}/${attribute.code} with name "${attribute.name}". ${describeHttpError(error)}`
       );
       failures.push(attribute);
@@ -548,7 +548,10 @@ export function getNewAttributes(
   registryData: RegistryData,
   tenantUpsertData: TenantSeed[],
   attributes: Attribute[]
-): InternalCertifiedAttribute[] {
+): {
+  attributes: InternalCertifiedAttribute[];
+  nameConflicts: InternalCertifiedAttribute[];
+} {
   // get a set with all the certified attributes in the platform
   const platformAttributesIndex = new Set(
     attributes
@@ -570,7 +573,7 @@ export function getNewAttributes(
   });
 
   if (isFeatureFlagEnabled(config, "featureFlagAooUoAttributes")) {
-    const aooUoAttributes = getAooUoAttributes(
+    const { attributes: aooUoAttributes, nameConflicts } = getAooUoAttributes(
       registryData,
       tenantUpsertData,
       attributes,
@@ -578,9 +581,10 @@ export function getNewAttributes(
     );
 
     newRegistryAttributes.push(...aooUoAttributes);
+    return { attributes: newRegistryAttributes, nameConflicts };
   }
 
-  return newRegistryAttributes;
+  return { attributes: newRegistryAttributes, nameConflicts: [] };
 }
 
 export async function getAttributesToAssign(

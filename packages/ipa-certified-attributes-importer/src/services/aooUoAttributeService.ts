@@ -25,7 +25,10 @@ export function getAooUoAttributes(
   tenantUpsertData: TenantSeed[],
   platformAttributes: Attribute[],
   newRegistryAttributes: InternalCertifiedAttribute[]
-): InternalCertifiedAttribute[] {
+): {
+  attributes: InternalCertifiedAttribute[];
+  nameConflicts: InternalCertifiedAttribute[];
+} {
   const tenantKeysToUpsert = new Set(
     tenantUpsertData.map((tenant) =>
       toTenantKey({ origin: tenant.origin, value: tenant.originId })
@@ -100,18 +103,31 @@ export function getAooUoAttributes(
     platformAttributes,
     registryData.attributes
   );
-
-  const aooUoAttributesWithResolvedNameCollisions =
-    resolveAooUoAttributeNameCollisions(
-      aooUoAttributeSeeds,
-      attributeNamesAlreadyUsed
-    );
-
-  return removeDuplicateAooUoAttributes(
-    aooUoAttributesWithResolvedNameCollisions,
+  const attributesToCreate = removeDuplicateAooUoAttributes(
+    aooUoAttributeSeeds,
     platformAttributes,
     newRegistryAttributes
   );
+  const attributeKeysToCreate = new Set(attributesToCreate.map(toAttributeKey));
+
+  const {
+    attributes: aooUoAttributesWithResolvedNameCollisions,
+    nameConflicts,
+  } = resolveAooUoAttributeNameCollisions(
+    aooUoAttributeSeeds,
+    attributeNamesAlreadyUsed
+  );
+
+  return {
+    attributes: removeDuplicateAooUoAttributes(
+      aooUoAttributesWithResolvedNameCollisions,
+      platformAttributes,
+      newRegistryAttributes
+    ),
+    nameConflicts: nameConflicts.filter((attribute) =>
+      attributeKeysToCreate.has(toAttributeKey(attribute))
+    ),
+  };
 }
 
 function removeDuplicateAooUoAttributes(
@@ -196,30 +212,46 @@ function getDuplicateAttributeNames(
 function resolveAooUoAttributeNameCollisions(
   attributes: InternalCertifiedAttribute[],
   attributeNamesAlreadyUsed: Set<string>
-): InternalCertifiedAttribute[] {
+): {
+  attributes: InternalCertifiedAttribute[];
+  nameConflicts: InternalCertifiedAttribute[];
+} {
   const duplicateAttributeNames = getDuplicateAttributeNames(attributes);
+  const resolvedAttributes: InternalCertifiedAttribute[] = [];
+  const nameConflicts: InternalCertifiedAttribute[] = [];
 
-  return attributes.flatMap((attribute) => {
+  for (const attribute of attributes) {
     const name = normalizeAttributeName(attribute.name);
     const hasNameCollision =
       duplicateAttributeNames.has(name) || attributeNamesAlreadyUsed.has(name);
 
     if (!hasNameCollision) {
       attributeNamesAlreadyUsed.add(name);
-      return [attribute];
+      resolvedAttributes.push(attribute);
+      continue;
     }
 
     const suffixedName = `${attribute.name} (${attribute.code})`;
     const normalizedSuffixedName = normalizeAttributeName(suffixedName);
+    const suffixedNameAlreadyUsed = attributeNamesAlreadyUsed.has(
+      normalizedSuffixedName
+    );
 
     attributeNamesAlreadyUsed.add(normalizedSuffixedName);
 
-    return [
-      {
-        ...attribute,
-        name: suffixedName,
-        description: `${attribute.description} (${attribute.code})`,
-      },
-    ];
-  });
+    const suffixedAttribute = {
+      ...attribute,
+      name: suffixedName,
+      description: `${attribute.description} (${attribute.code})`,
+    };
+
+    if (suffixedNameAlreadyUsed) {
+      nameConflicts.push(suffixedAttribute);
+      continue;
+    }
+
+    resolvedAttributes.push(suffixedAttribute);
+  }
+
+  return { attributes: resolvedAttributes, nameConflicts };
 }

@@ -1,9 +1,27 @@
 /* eslint-disable functional/immutable-data */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { TenantSeed } from "../src/services/ipaCertifiedAttributesImporterService.js";
+import type { InternalCertifiedAttribute } from "../src/services/openDataService.js";
+
 const enableSubunitPropagationMock = vi.fn();
 const createNewAttributesMock = vi.fn();
 const infoMock = vi.fn();
+const errorMock = vi.fn();
+let tenantSeedsForImporter: TenantSeed[] = [];
+let seedsAfterExclusion: TenantSeed[] = [];
+const getTenantUpsertDataMock = vi.fn(() => tenantSeedsForImporter);
+const getNewAttributesMock = vi.fn(
+  (): {
+    attributes: InternalCertifiedAttribute[];
+    nameConflicts: InternalCertifiedAttribute[];
+  } => ({ attributes: [], nameConflicts: [] })
+);
+const excludeFailedAttributesFromSeedsMock = vi.fn(
+  (_seeds: TenantSeed[], _failed: InternalCertifiedAttribute[]) =>
+    seedsAfterExclusion
+);
+const getAttributesToAssignMock = vi.fn(async () => []);
 
 vi.mock("pagopa-interop-commons", async () => {
   const actual = await vi.importActual<typeof import("pagopa-interop-commons")>(
@@ -23,7 +41,7 @@ vi.mock("pagopa-interop-commons", async () => {
     logger: vi.fn(() => ({
       info: infoMock,
       warn: vi.fn(),
-      error: vi.fn(),
+      error: errorMock,
       debug: vi.fn(),
     })),
   };
@@ -52,11 +70,11 @@ vi.mock("../src/services/openDataService.js", () => ({
 vi.mock("../src/services/ipaCertifiedAttributesImporterService.js", () => ({
   createTenantProcessClient: vi.fn(),
   enableSubunitPropagation: enableSubunitPropagationMock,
-  getTenantUpsertData: vi.fn(() => []),
-  getNewAttributes: vi.fn(() => []),
+  getTenantUpsertData: getTenantUpsertDataMock,
+  getNewAttributes: getNewAttributesMock,
   createNewAttributes: createNewAttributesMock,
-  excludeFailedAttributesFromSeeds: vi.fn(() => []),
-  getAttributesToAssign: vi.fn(async () => []),
+  excludeFailedAttributesFromSeeds: excludeFailedAttributesFromSeedsMock,
+  getAttributesToAssign: getAttributesToAssignMock,
   assignNewAttributes: vi.fn(async () => 0),
   getAttributesToRevoke: vi.fn(async () => []),
   revokeAttributes: vi.fn(async () => 0),
@@ -79,7 +97,11 @@ describe("Forced subunit propagation", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.exitCode = undefined;
+    errorMock.mockClear();
+    tenantSeedsForImporter = [];
+    seedsAfterExclusion = [];
     createNewAttributesMock.mockResolvedValue([]);
+    getNewAttributesMock.mockReturnValue({ attributes: [], nameConflicts: [] });
     enableSubunitPropagationMock.mockResolvedValue({
       attributes: [],
       suspendedAttributeIds: new Set(),
@@ -123,21 +145,57 @@ describe("Forced subunit propagation", () => {
     expect(process.exitCode).toBe(1);
   });
 
-  it("should report failed A4 creations, continue the job and set the exit code", async () => {
+  it("should exclude and count failed creations and generated-name conflicts", async () => {
     const failedAttribute = {
       origin: "IPA",
       code: "U001",
       name: "Ufficio",
       description: "Ufficio",
     };
+    const nameConflict = {
+      origin: "IPA",
+      code: "U002",
+      name: "Ufficio (U002)",
+      description: "Ufficio (U002)",
+    };
     createNewAttributesMock.mockResolvedValue([failedAttribute]);
+    getNewAttributesMock.mockReturnValue({
+      attributes: [],
+      nameConflicts: [nameConflict],
+    });
+    tenantSeedsForImporter = [
+      {
+        origin: "IPA",
+        originId: "tenant-1",
+        description: "Tenant",
+        attributes: [
+          { origin: "IPA", code: "U001" },
+          { origin: "IPA", code: "U002" },
+        ],
+      },
+    ];
+    seedsAfterExclusion = [{ ...tenantSeedsForImporter[0], attributes: [] }];
 
     await runImporter({ aooUoAttributes: true, forcedPropagation: true });
 
+    expect(excludeFailedAttributesFromSeedsMock).toHaveBeenCalledWith(
+      tenantSeedsForImporter,
+      [failedAttribute, nameConflict]
+    );
+    expect(errorMock).toHaveBeenCalledWith(
+      'Failed creation of attribute IPA/U002 with name "Ufficio (U002)". Cause: generated attribute name is already in use'
+    );
+    expect(getAttributesToAssignMock).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      seedsAfterExclusion,
+      expect.anything(),
+      expect.anything()
+    );
     expect(infoMock).toHaveBeenCalledWith("Revoking attributes");
     expect(infoMock).toHaveBeenCalledWith(
       expect.stringContaining(
-        "Failed propagation updates: 0, failed attribute creations: 1"
+        "Failed propagation updates: 0, failed attribute creations/retrievals: 2"
       )
     );
     expect(process.exitCode).toBe(1);

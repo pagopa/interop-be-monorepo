@@ -237,7 +237,7 @@ describe("Attribute creation errors", () => {
     expect(getAttributes).toHaveBeenCalledTimes(1);
   });
 
-  it("should log a warning with code, name and cause for a failed creation", async () => {
+  it("should log an error with code, name and cause for a failed creation", async () => {
     await createNewAttributes(
       newAttributes,
       { getAttributes } as never,
@@ -248,7 +248,7 @@ describe("Attribute creation errors", () => {
       5
     );
 
-    expect(logger.warn).toHaveBeenCalledWith(
+    expect(logger.error).toHaveBeenCalledWith(
       'Failed creation of attribute IPA/A1 with name "attribute 1". Error: An attribute with name attribute 1 already exists'
     );
   });
@@ -349,18 +349,21 @@ describe("Attribute name conflicts", () => {
     const getAttributes = vi.fn(async () => [
       {
         ...getMockAttribute(),
+        kind: "Certified",
         origin: "IPA",
         code: "A002",
-        kind: "Certified",
       },
     ]);
 
+    const generatedAttributes = getNewAttributes(
+      registryData,
+      seeds,
+      platformAttributes
+    );
     createInternalCertifiedAttributeMock.mockReset();
-    createInternalCertifiedAttributeMock
-      .mockRejectedValueOnce(new Error("name already exists"))
-      .mockResolvedValueOnce({});
+    createInternalCertifiedAttributeMock.mockResolvedValue({});
     const failed = await createNewAttributes(
-      getNewAttributes(registryData, seeds, platformAttributes),
+      generatedAttributes.attributes,
       { getAttributes } as never,
       {} as InteropHeaders,
       logger,
@@ -368,9 +371,10 @@ describe("Attribute name conflicts", () => {
       0,
       1
     );
+    failed.push(...generatedAttributes.nameConflicts);
 
     expect(failed.map((attribute) => attribute.code)).toEqual(["A001"]);
-    expect(createInternalCertifiedAttributeMock).toHaveBeenCalledTimes(2);
+    expect(createInternalCertifiedAttributeMock).toHaveBeenCalledTimes(1);
     expect(createInternalCertifiedAttributeMock).toHaveBeenCalledWith(
       expect.objectContaining({ code: "A002" }),
       expect.any(Object)
@@ -462,7 +466,7 @@ describe("Failed attributes exclusion from tenant seeds", () => {
       platformAttributes
     );
     const failed = await createNewAttributes(
-      getNewAttributes(registryData, seeds, platformAttributes),
+      getNewAttributes(registryData, seeds, platformAttributes).attributes,
       { getAttributes } as never,
       {} as InteropHeaders,
       logger,

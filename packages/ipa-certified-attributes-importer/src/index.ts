@@ -107,17 +107,22 @@ try {
 
   loggerInstance.info("Creating new attributes");
 
-  const newAttributes = getNewAttributes(
+  const { attributes: newAttributes, nameConflicts } = getNewAttributes(
     registryData,
     tenantUpsertData,
     attributes
   );
+  nameConflicts.forEach((attribute) => {
+    loggerInstance.error(
+      `Failed creation of attribute ${attribute.origin}/${attribute.code} with name "${attribute.name}". Cause: generated attribute name is already in use`
+    );
+  });
 
   const tenantProcessClient = createTenantProcessClient(
     config.tenantProcessUrl
   );
 
-  const failedAttributes = await createNewAttributes(
+  const failedRegistryAttributes = await createNewAttributes(
     newAttributes,
     readModelServiceSQL,
     headers,
@@ -126,6 +131,7 @@ try {
     config.attributeCreationWaitTime,
     config.defaultPollingMaxRetries
   );
+  const failedAttributes = [...failedRegistryAttributes, ...nameConflicts];
 
   loggerInstance.info("Assigning new attributes");
 
@@ -171,7 +177,7 @@ try {
   );
 
   loggerInstance.info(
-    `IPA certified attributes import completed. Failed propagation updates: ${failedPropagationUpdates}, failed attribute creations: ${failedAttributes.length}, failed upserts: ${failedUpserts}, failed revocations: ${failedRevocations}`
+    `IPA certified attributes import completed. Failed propagation updates: ${failedPropagationUpdates}, failed attribute creations/retrievals: ${failedAttributes.length}, failed upserts: ${failedUpserts}, failed revocations: ${failedRevocations}`
   );
 
   if (
