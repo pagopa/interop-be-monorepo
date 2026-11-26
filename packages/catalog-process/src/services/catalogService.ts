@@ -134,6 +134,7 @@ import {
   ApiGetEServicesFilters,
   Consumer,
   defaultEServiceSortBy,
+  ProducerDashboardEServices,
 } from "../model/domain/models.js";
 import {
   toCreateEventClonedEServiceAdded,
@@ -990,6 +991,18 @@ export function catalogServiceBuilder(
 ) {
   const repository = eventRepository(dbInstance, catalogEventToBinaryData);
   return {
+    async getProducerDashboardEServices({
+      authData,
+      logger,
+    }: WithLogger<
+      AppContext<UIAuthData>
+    >): Promise<ProducerDashboardEServices> {
+      logger.info(`Getting producer dashboard for ${authData.organizationId}`);
+      return readModelService.getProducerDashboardEServices(
+        authData.organizationId
+      );
+    },
+
     async getEServiceById(
       eserviceId: EServiceId,
       {

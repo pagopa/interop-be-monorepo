@@ -65,6 +65,7 @@ import {
   attributeCertifiedDiscreteComparator,
   attributeKind,
   EServiceMode,
+  purposeVersionState,
 } from "pagopa-interop-models";
 import {
   aggregateAgreementArray,
@@ -110,6 +111,8 @@ import {
   purposeTemplateInReadmodelPurposeTemplate,
   tenantCertifiedDiscreteAttributeInReadmodelTenant,
   tenantCertifiedAttributeInReadmodelTenant,
+  purposeInReadmodelPurpose,
+  purposeVersionInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
 import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
 import { match } from "ts-pattern";
@@ -122,6 +125,7 @@ import {
   EServiceSortBy,
   producerCategoryAttributeCodes,
   RequesterDelegationRole,
+  ProducerDashboardEServices,
 } from "../model/domain/models.js";
 import {
   activeDescriptorStates,
@@ -357,7 +361,7 @@ const subscribedByRequesterFilter = (
 };
 
 const requesterDelegationRolesFilter = (
-  tx: DrizzleTransactionType,
+  tx: DrizzleReturnType | DrizzleTransactionType,
   requesterId: TenantId,
   requesterDelegationRoles: RequesterDelegationRole[]
 ): SQL | undefined => {
@@ -490,6 +494,198 @@ export function readModelServiceBuilderSQL(
   tenantKindHistoryDB: DrizzleReturnType
 ) {
   return {
+    async getProducerDashboardEServices(
+      requesterId: TenantId
+    ): Promise<ProducerDashboardEServices> {
+      const scope = readmodelDB.$with("dashboard_scope").as(
+        readmodelDB
+          .select({ id: eserviceInReadmodelCatalog.id })
+          .from(eserviceInReadmodelCatalog)
+          .where(
+            or(
+              eq(eserviceInReadmodelCatalog.producerId, requesterId),
+              requesterDelegationRolesFilter(readmodelDB, requesterId, [
+                "DELEGATE",
+              ])
+            )
+          )
+      );
+      const descriptor = eserviceDescriptorInReadmodelCatalog;
+      const latestDescriptors = readmodelDB
+        .$with("dashboard_latest_descriptors")
+        .as(
+          readmodelDB
+            .selectDistinctOn([descriptor.eserviceId], {
+              eserviceId: descriptor.eserviceId,
+              state: descriptor.state,
+            })
+            .from(descriptor)
+            .innerJoin(scope, eq(scope.id, descriptor.eserviceId))
+            .where(
+              and(
+                ne(descriptor.state, descriptorState.draft),
+                ne(descriptor.state, descriptorState.waitingForApproval)
+              )
+            )
+            .orderBy(
+              descriptor.eserviceId,
+              desc(sql`${descriptor.version}::integer`)
+            )
+        );
+      const eservices = readmodelDB.$with("dashboard_eservice_counts").as(
+        readmodelDB
+          .select({
+            total: count().as("total"),
+            published:
+              sql`count(*) filter (where ${latestDescriptors.state} = ${descriptorState.published})`
+                .mapWith(Number)
+                .as("published"),
+            suspended:
+              sql`count(*) filter (where ${latestDescriptors.state} = ${descriptorState.suspended})`
+                .mapWith(Number)
+                .as("suspended"),
+            archiving:
+              sql`count(*) filter (where ${latestDescriptors.state} = ${descriptorState.archiving})`
+                .mapWith(Number)
+                .as("archiving"),
+            archivingSuspended:
+              sql`count(*) filter (where ${latestDescriptors.state} = ${descriptorState.archivingSuspended})`
+                .mapWith(Number)
+                .as("archiving_suspended"),
+          })
+          .from(latestDescriptors)
+          .where(
+            inArray(latestDescriptors.state, [
+              descriptorState.published,
+              descriptorState.suspended,
+              descriptorState.archiving,
+              descriptorState.archivingSuspended,
+            ])
+          )
+      );
+      const purpose = purposeInReadmodelPurpose;
+      const version = purposeVersionInReadmodelPurpose;
+      const purposesByFruition = readmodelDB
+        .$with("dashboard_purposes_by_fruition")
+        .as(
+          readmodelDB
+            .select({
+              eserviceId: purpose.eserviceId,
+              consumerId: purpose.consumerId,
+              active:
+                sql`count(distinct ${purpose.id}) filter (where ${version.state} = ${purposeVersionState.active})`
+                  .mapWith(Number)
+                  .as("active"),
+              waiting:
+                sql`count(distinct ${purpose.id}) filter (where ${version.state} = ${purposeVersionState.waitingForApproval})`
+                  .mapWith(Number)
+                  .as("waiting"),
+            })
+            .from(purpose)
+            .innerJoin(scope, eq(scope.id, purpose.eserviceId))
+            .innerJoin(version, eq(version.purposeId, purpose.id))
+            .where(
+              inArray(version.state, [
+                purposeVersionState.active,
+                purposeVersionState.waitingForApproval,
+              ])
+            )
+            .groupBy(purpose.eserviceId, purpose.consumerId)
+        );
+      const purposes = readmodelDB.$with("dashboard_purpose_counts").as(
+        readmodelDB
+          .select({
+            active: sql`coalesce(sum(${purposesByFruition.active}), 0)`
+              .mapWith(Number)
+              .as("active_purposes"),
+            waiting: sql`coalesce(sum(${purposesByFruition.waiting}), 0)`
+              .mapWith(Number)
+              .as("waiting_purposes"),
+          })
+          .from(purposesByFruition)
+      );
+      const agreement = agreementInReadmodelAgreement;
+      const agreements = readmodelDB.$with("dashboard_agreement_counts").as(
+        readmodelDB
+          .select({
+            pending:
+              sql`count(*) filter (where ${agreement.state} = ${agreementState.pending})`
+                .mapWith(Number)
+                .as("pending"),
+            active:
+              sql`count(*) filter (where ${agreement.state} = ${agreementState.active})`
+                .mapWith(Number)
+                .as("active_agreements"),
+            aligned:
+              sql`count(*) filter (where ${agreement.state} = ${agreementState.active} and ${purposesByFruition.active} > 0)`
+                .mapWith(Number)
+                .as("aligned"),
+            agreementWithoutPurposes:
+              sql`count(*) filter (where ${agreement.state} = ${agreementState.active} and coalesce(${purposesByFruition.active}, 0) = 0)`
+                .mapWith(Number)
+                .as("agreement_without_purposes"),
+            purposesWithoutAgreement:
+              sql`count(*) filter (where ${agreement.state} = ${agreementState.suspended} and ${purposesByFruition.active} > 0)`
+                .mapWith(Number)
+                .as("purposes_without_agreement"),
+          })
+          .from(agreement)
+          .innerJoin(scope, eq(scope.id, agreement.eserviceId))
+          .leftJoin(
+            purposesByFruition,
+            and(
+              eq(purposesByFruition.eserviceId, agreement.eserviceId),
+              eq(purposesByFruition.consumerId, agreement.consumerId)
+            )
+          )
+          .where(
+            inArray(agreement.state, [
+              agreementState.active,
+              agreementState.suspended,
+              agreementState.pending,
+            ])
+          )
+      );
+      // A single SQL statement provides a consistent snapshot for all cards.
+      // Each aggregate CTE returns one row, even for an empty producer scope.
+      const [dashboard] = await readmodelDB
+        .with(
+          scope,
+          latestDescriptors,
+          eservices,
+          purposesByFruition,
+          purposes,
+          agreements
+        )
+        .select({
+          eservices: {
+            total: eservices.total,
+            published: eservices.published,
+            suspended: eservices.suspended,
+            archiving: eservices.archiving,
+            archivingSuspended: eservices.archivingSuspended,
+          },
+          pendingAgreements: agreements.pending,
+          waitingForApprovalPurposes: purposes.waiting,
+          activeAgreements: agreements.active,
+          alignment: {
+            aligned: agreements.aligned,
+            agreementWithoutPurposes: agreements.agreementWithoutPurposes,
+            purposesWithoutAgreement: agreements.purposesWithoutAgreement,
+          },
+          averageActivePurposesPerEService:
+            sql`case when ${eservices.total} = 0 then 0 else round(${purposes.active}::numeric / ${eservices.total}, 1) end`.mapWith(
+              Number
+            ),
+        })
+        .from(eservices)
+        .innerJoin(purposes, sql`true`)
+        .innerJoin(agreements, sql`true`);
+
+      // Aggregate queries without GROUP BY always return a row.
+      return dashboard;
+    },
+
     // eslint-disable-next-line sonarjs/cognitive-complexity
     async getEServices(
       authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
