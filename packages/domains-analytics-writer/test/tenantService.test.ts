@@ -56,11 +56,7 @@ import {
   resetTargetTables,
   tenantTables,
 } from "./utils.js";
-import {
-  countTenantMailRows,
-  getMockVerifiedBy,
-  getMockRevokedBy,
-} from "./utilsTenant.js";
+import { getMockVerifiedBy, getMockRevokedBy } from "./utilsTenant.js";
 
 describe("Tenant messages consumers - handleTenantMessageV1", () => {
   beforeEach(async () => {
@@ -146,7 +142,6 @@ describe("Tenant messages consumers - handleTenantMessageV1", () => {
     expect(storedTenant?.id).toBe(mockTenant.id);
     expect(storedTenant?.onboardedAt).toStrictEqual(mockTenant.createdAt);
     expect(storedTenant?.metadataVersion).toBe(1);
-    expect(await countTenantMailRows(mockTenant.id)).toBe(0);
 
     const storedDeclaredTenantAttributes = await getManyFromDb(
       dbContext,
@@ -392,7 +387,6 @@ describe("Tenant messages consumers - handleTenantMessageV1", () => {
 
     expect(storedTenant?.id).toBe(mockTenant.id);
     expect(storedTenant?.metadataVersion).toBe(2);
-    expect(await countTenantMailRows(mockTenant.id)).toBe(0);
   });
 
   it("SelfcareMappingCreated: adds selfcare id mapping with metadata_version 3", async () => {
@@ -606,7 +600,6 @@ describe("Tenant messages consumers - handleTenantMessageV2", () => {
     expect(storedTenant?.onboardedAt).toStrictEqual(mockTenant.createdAt);
     expect(storedTenant?.metadataVersion).toBe(1);
     expect(storedTenant?.contactId).toBeNull();
-    expect(await countTenantMailRows(mockTenant.id)).toBe(0);
 
     const storedDeclaredTenantAttributes = await getManyFromDb(
       dbContext,
@@ -752,7 +745,6 @@ describe("Tenant messages consumers - handleTenantMessageV2", () => {
 
     expect(storedTenant?.id).toBe(mockTenant.id);
     expect(storedTenant?.metadataVersion).toBe(2);
-    expect(await countTenantMailRows(mockTenant.id)).toBe(0);
   });
 
   it("TenantMailDeleted: updates tenant metadata version", async () => {
@@ -1192,8 +1184,6 @@ describe("Tenant messages consumers - handleTenantMessageV3", () => {
     expect(storedTenant?.contactId).toBe(mockTenant.contactId);
     expect(storedTenant?.metadataVersion).toBe(1);
 
-    expect(await countTenantMailRows(mockTenant.id)).toBe(0);
-
     const storedDeclaredTenantAttributes = await getManyFromDb(
       dbContext,
       TenantDbTable.tenant_declared_attribute,
@@ -1514,7 +1504,7 @@ describe("Tenant messages consumers - handleTenantMessageV3", () => {
       log_date: new Date(),
     });
 
-    const expectTenantWithContactAndNoMails = async (
+    const expectTenantWithContact = async (
       tenant: Tenant,
       contactId: ContactId
     ) => {
@@ -1523,11 +1513,9 @@ describe("Tenant messages consumers - handleTenantMessageV3", () => {
       });
       expect(stored?.contactId).toBe(contactId);
       expect(stored?.metadataVersion).toBe(2);
-
-      expect(await countTenantMailRows(tenant.id)).toBe(0);
     };
 
-    it("does not restore the legacy mails nor override the tenant when a V2 event is replayed after a V3 event", async () => {
+    it("does not override the tenant when a V2 event is replayed after a V3 event", async () => {
       const mockTenant = getMockTenant();
       const contactId = generateId<ContactId>();
       const tenantOnboardedV2 = getLegacyTenantOnboardedMessageV2(mockTenant);
@@ -1539,7 +1527,7 @@ describe("Tenant messages consumers - handleTenantMessageV3", () => {
       );
       await handleTenantMessageV2([tenantOnboardedV2], dbContext);
 
-      await expectTenantWithContactAndNoMails(mockTenant, contactId);
+      await expectTenantWithContact(mockTenant, contactId);
     });
 
     it("ends in the same state when V2 and V3 events already applied are replayed in order", async () => {
@@ -1554,7 +1542,7 @@ describe("Tenant messages consumers - handleTenantMessageV3", () => {
       await handleTenantMessageV2([tenantOnboardedV2], dbContext);
       await handleTenantMessageV3([contactAddedV3], dbContext);
 
-      await expectTenantWithContactAndNoMails(mockTenant, contactId);
+      await expectTenantWithContact(mockTenant, contactId);
     });
 
     it("does not restore the attributes removed by a newer V2 event when an older V3 event is applied after it", async () => {

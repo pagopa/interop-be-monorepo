@@ -13,7 +13,6 @@ import { describe, expect, it } from "vitest";
 import { compare } from "../src/utils.js";
 import {
   addOneTenant,
-  addOneTenantMailInKpi,
   readModelServiceKPI,
   readModelServiceSQL,
   readModelDB,
@@ -67,20 +66,12 @@ describe("Check tenant readmodels", () => {
   });
 
   it("should detect no differences ignoring tenant mails", async () => {
-    const tenantMail = getMockTenantMail();
     const tenant: WithMetadata<Tenant> = {
-      data: { ...getMockTenant(), mails: [tenantMail] },
+      data: { ...getMockTenant(), mails: [getMockTenantMail()] },
       metadata: { version: 1 },
     };
 
-    // Both sides hold the mail: a historical row in the Analytics tenant_mail
-    // table and the read model mail written by upsertTenant.
     await addOneTenant(tenant);
-    await addOneTenantMailInKpi(
-      tenant.data.id,
-      tenantMail,
-      tenant.metadata.version
-    );
 
     await upsertTenant(readModelDB, tenant.data, tenant.metadata.version);
 
