@@ -34,7 +34,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
     parentTenantId: rootTenant.id,
     rootTenantId: rootTenant.id,
   };
-  const hierarchy = {
+  const delegator2Hierarchy = {
     subUnitType: tenantUnitType.UO,
     parentTenants: [
       {
@@ -211,7 +211,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
         {
           id: delegator2.id,
           name: delegator2.name,
-          ...hierarchy,
+          ...delegator2Hierarchy,
         },
         {
           id: delegator5.id,
@@ -235,7 +235,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
         {
           id: delegator2.id,
           name: delegator2.name,
-          ...hierarchy,
+          ...delegator2Hierarchy,
         },
       ],
       totalCount: 3,
@@ -260,7 +260,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
         {
           id: delegator2.id,
           name: delegator2.name,
-          ...hierarchy,
+          ...delegator2Hierarchy,
         },
       ],
       totalCount: 2,
@@ -333,7 +333,9 @@ describe("getConsumerDelegatorsWithAgreements", () => {
           getMockContext({ authData: getMockAuthData(requesterId) })
         )
       ).toEqual({
-        results: [{ id: delegator2.id, name: delegator2.name, ...hierarchy }],
+        results: [
+          { id: delegator2.id, name: delegator2.name, ...delegator2Hierarchy },
+        ],
         totalCount: 1,
       });
     }
