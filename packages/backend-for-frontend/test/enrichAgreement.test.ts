@@ -2,6 +2,7 @@ import {
   agreementApi,
   attributeRegistryApi,
   catalogApi,
+  delegationApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
 import { genericLogger, WithLogger } from "pagopa-interop-commons";
@@ -146,8 +147,8 @@ describe("enrichAgreement", () => {
       delegateId: delegate.id,
       delegatorId: consumerId,
       eserviceId,
-      state: "ACTIVE" as const,
-      kind: "DELEGATED_CONSUMER" as const,
+      state: delegationApi.DelegationState.Values.ACTIVE,
+      kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
     };
     const descriptor: catalogApi.EServiceDescriptor = {
       ...getMockCatalogApiEServiceDescriptor(),
@@ -399,8 +400,8 @@ describe("enrichAgreement", () => {
       delegateId: delegate.id,
       delegatorId: consumer.id,
       eserviceId: eservice.id,
-      state: "ACTIVE" as const,
-      kind: "DELEGATED_CONSUMER" as const,
+      state: delegationApi.DelegationState.Values.ACTIVE,
+      kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
     };
     const clients = {
       agreementProcessClient: {
