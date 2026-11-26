@@ -2,6 +2,7 @@ import {
   attributeRegistryApi,
   bffApi,
   catalogApi,
+  tenantApi,
 } from "pagopa-interop-api-clients";
 import {
   getMockedApiEservice,
@@ -362,13 +363,19 @@ describe("catalogApiConverter", () => {
 
   describe("toBffEServiceTemplateInstance", () => {
     it("should preserve producer fields and expose its hierarchy after response parsing", () => {
+      const parentTenantId = generateId<TenantId>();
+      const rootTenantId = generateId<TenantId>();
       const producer: tenantApi.Tenant = {
         ...getMockedApiTenant(),
         name: "Tenant UO",
-        subUnitType: "UO",
+        subUnitType: tenantUnitType.UO,
         parentTenants: [
-          { id: generateId(), name: "Tenant AOO", subUnitType: "AOO" },
-          { id: generateId(), name: "Tenant root" },
+          {
+            id: parentTenantId,
+            name: "Tenant AOO",
+            subUnitType: tenantUnitType.AOO,
+          },
+          { id: rootTenantId, name: "Tenant root" },
         ],
       };
       const eservice = getMockedApiEservice();
@@ -382,8 +389,15 @@ describe("catalogApiConverter", () => {
         name: eservice.name,
         producerId: producer.id,
         producerName: producer.name,
-        producerSubUnitType: "UO",
-        producerParentTenants: producer.parentTenants,
+        producerSubUnitType: tenantUnitType.UO,
+        producerParentTenants: [
+          {
+            id: parentTenantId,
+            name: "Tenant AOO",
+            subUnitType: tenantUnitType.AOO,
+          },
+          { id: rootTenantId, name: "Tenant root" },
+        ],
       });
     });
   });
