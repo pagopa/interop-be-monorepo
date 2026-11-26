@@ -160,7 +160,7 @@ describe("catalogApiConverter", () => {
   });
 
   describe("toBffCatalogTenant", () => {
-    it("should preserve tenant information and notifications without hierarchy", () => {
+    it("should omit parent tenants when the tenant has no hierarchy", () => {
       const tenant = getMockedApiTenant();
       const result = toBffCatalogTenant(tenant, true);
 
