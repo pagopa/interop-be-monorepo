@@ -7,7 +7,6 @@ import {
 import {
   generateId,
   missingKafkaMessageDataError,
-  toTenantV2,
   AttributeId,
   Tenant,
   Attribute,
@@ -99,7 +98,7 @@ describe("handleCertifiedAttributeRevokedToAssignee", () => {
 
     await expect(() =>
       handleCertifiedAttributeRevokedToAssignee(
-        toTenantV2(assignee),
+        assignee,
         unknownAttributeId,
         logger,
         readModelService
@@ -120,7 +119,7 @@ describe("handleCertifiedAttributeRevokedToAssignee", () => {
 
     await expect(() =>
       handleCertifiedAttributeRevokedToAssignee(
-        toTenantV2(assignee),
+        assignee,
         certifiedAttributeWithUndefinedOrigin.id,
         logger,
         readModelService
@@ -144,7 +143,7 @@ describe("handleCertifiedAttributeRevokedToAssignee", () => {
 
     await expect(() =>
       handleCertifiedAttributeRevokedToAssignee(
-        toTenantV2(assignee),
+        assignee,
         certifiedAttributeWithUnknownCertifier.id,
         logger,
         readModelService
@@ -156,7 +155,7 @@ describe("handleCertifiedAttributeRevokedToAssignee", () => {
     mockGetNotificationRecipients.mockResolvedValue([]);
 
     const notifications = await handleCertifiedAttributeRevokedToAssignee(
-      toTenantV2(assignee),
+      assignee,
       certifiedAttribute.id,
       logger,
       readModelService
@@ -206,7 +205,7 @@ describe("handleCertifiedAttributeRevokedToAssignee", () => {
       mockGetNotificationRecipients.mockResolvedValue(assigneeUsers);
 
       const notifications = await handleCertifiedAttributeRevokedToAssignee(
-        toTenantV2({ ...assignee, attributes: assigneeAttributes }),
+        { ...assignee, attributes: assigneeAttributes },
         attributeId,
         logger,
         readModelService
@@ -237,7 +236,7 @@ describe("handleCertifiedAttributeRevokedToAssignee", () => {
     mockGetNotificationRecipients.mockResolvedValue(users);
 
     const notifications = await handleCertifiedAttributeRevokedToAssignee(
-      toTenantV2(assignee),
+      assignee,
       certifiedAttributeIPA.id,
       logger,
       readModelService

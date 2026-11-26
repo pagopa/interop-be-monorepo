@@ -7,7 +7,6 @@ import {
 import {
   generateId,
   missingKafkaMessageDataError,
-  toTenantV2,
   AttributeId,
   Attribute,
   attributeKind,
@@ -66,7 +65,7 @@ describe("handleCertifiedDiscreteAttributeUpdatedToAssignee", () => {
 
     await expect(() =>
       handleCertifiedDiscreteAttributeUpdatedToAssignee(
-        toTenantV2(assignee),
+        assignee,
         unknownAttributeId,
         logger,
         readModelService
@@ -79,7 +78,7 @@ describe("handleCertifiedDiscreteAttributeUpdatedToAssignee", () => {
 
     const notifications =
       await handleCertifiedDiscreteAttributeUpdatedToAssignee(
-        toTenantV2(assignee),
+        assignee,
         certifiedAttributeISTAT.id,
         logger,
         readModelService
@@ -98,7 +97,7 @@ describe("handleCertifiedDiscreteAttributeUpdatedToAssignee", () => {
 
     const notifications =
       await handleCertifiedDiscreteAttributeUpdatedToAssignee(
-        toTenantV2(assignee),
+        assignee,
         certifiedAttributeISTAT.id,
         logger,
         readModelService

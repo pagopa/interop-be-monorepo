@@ -7,7 +7,6 @@ import {
 import {
   generateId,
   missingKafkaMessageDataError,
-  toTenantV2,
   AttributeId,
   Tenant,
   Attribute,
@@ -99,7 +98,7 @@ describe("handleCertifiedAttributeAssignedToAssignee", () => {
 
     await expect(() =>
       handleCertifiedAttributeAssignedToAssignee(
-        toTenantV2(assignee),
+        assignee,
         unknownAttributeId,
         logger,
         readModelService
@@ -120,7 +119,7 @@ describe("handleCertifiedAttributeAssignedToAssignee", () => {
 
     await expect(() =>
       handleCertifiedAttributeAssignedToAssignee(
-        toTenantV2(assignee),
+        assignee,
         certifiedAttributeWithUndefinedOrigin.id,
         logger,
         readModelService
@@ -144,7 +143,7 @@ describe("handleCertifiedAttributeAssignedToAssignee", () => {
 
     await expect(() =>
       handleCertifiedAttributeAssignedToAssignee(
-        toTenantV2(assignee),
+        assignee,
         certifiedAttributeWithUnknownCertifier.id,
         logger,
         readModelService
@@ -156,7 +155,7 @@ describe("handleCertifiedAttributeAssignedToAssignee", () => {
     mockGetNotificationRecipients.mockResolvedValue([]);
 
     const notifications = await handleCertifiedAttributeAssignedToAssignee(
-      toTenantV2(assignee),
+      assignee,
       certifiedAttribute.id,
       logger,
       readModelService
@@ -215,7 +214,7 @@ describe("handleCertifiedAttributeAssignedToAssignee", () => {
       mockGetNotificationRecipients.mockResolvedValue(assigneeUsers);
 
       const notifications = await handleCertifiedAttributeAssignedToAssignee(
-        toTenantV2({ ...assignee, attributes: assigneeAttributes }),
+        { ...assignee, attributes: assigneeAttributes },
         attributeId,
         logger,
         readModelService
@@ -246,7 +245,7 @@ describe("handleCertifiedAttributeAssignedToAssignee", () => {
     mockGetNotificationRecipients.mockResolvedValue(users);
 
     const notifications = await handleCertifiedAttributeAssignedToAssignee(
-      toTenantV2(assignee),
+      assignee,
       certifiedAttribute.id,
       logger,
       readModelService
