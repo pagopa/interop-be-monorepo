@@ -354,6 +354,7 @@ export const updatePurposeByTemplateErrorMapper = (
       "riskAnalysisMissingExpectedFieldError",
       "riskAnalysisContainsNotEditableAnswers",
       "riskAnalysisAnswerNotInSuggestValues",
+      "purposeNotCreatedFromTemplate",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(

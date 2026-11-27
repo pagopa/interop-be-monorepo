@@ -162,6 +162,7 @@ import {
   assertEserviceMode,
   assertPersonalDataCompliant,
   assertPurposeIsDraft,
+  assertPurposeIsFromTemplate,
   assertPurposeIsNotFromTemplate,
   assertPurposeTitleIsNotDuplicated,
   assertRequesterCanActAsConsumer,
@@ -2485,6 +2486,8 @@ export function purposeServiceBuilder(
         authData,
         await retrievePurposeDelegation(purpose.data, readModelService)
       );
+
+      assertPurposeIsFromTemplate(purpose.data, purposeTemplateId);
 
       const purposeTemplate = await retrievePublishedPurposeTemplate(
         purposeTemplateId,
