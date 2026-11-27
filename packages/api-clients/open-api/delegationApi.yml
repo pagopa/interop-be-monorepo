@@ -394,7 +394,7 @@ paths:
         description: Payload for delegation creation
         required: true
       responses:
-        "200":
+        "201":
           description: Delegation created.
           headers:
             X-Metadata-Version:
@@ -534,7 +534,7 @@ paths:
         description: Payload for delegation creation
         required: true
       responses:
-        "200":
+        "201":
           description: Delegation created.
           headers:
             X-Metadata-Version:

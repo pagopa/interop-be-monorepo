@@ -255,7 +255,7 @@ const eservicesRouter = (
             ctx
           );
         return res
-          .status(200)
+          .status(201)
           .send(catalogApi.EService.parse(eServiceToApiEService(eService)));
       } catch (error) {
         const errorRes = makeApiProblem(
@@ -778,7 +778,7 @@ const eservicesRouter = (
           setMetadataVersionHeader(res, metadata);
 
           return res
-            .status(200)
+            .status(201)
             .send(
               catalogApi.EServiceDoc.parse(documentToApiDocument(document))
             );
@@ -870,7 +870,7 @@ const eservicesRouter = (
 
         setMetadataVersionHeader(res, metadata);
 
-        return res.status(200).send(
+        return res.status(201).send(
           catalogApi.CreatedEServiceDescriptor.parse({
             eservice: eServiceToApiEService(eservice),
             createdDescriptorId,
@@ -1314,7 +1314,7 @@ const eservicesRouter = (
         );
 
         setMetadataVersionHeader(res, metadata);
-        return res.status(200).send(
+        return res.status(201).send(
           catalogApi.CreatedEServiceRiskAnalysis.parse({
             eservice: eServiceToApiEService(eservice),
             createdRiskAnalysisId,
@@ -1969,7 +1969,7 @@ const eservicesRouter = (
             ctx
           );
         return res
-          .status(200)
+          .status(201)
           .send(
             catalogApi.EServiceDescriptor.parse(
               descriptorToApiDescriptor(descriptor)

@@ -105,7 +105,7 @@ const authorizationRouter = (
           );
         setMetadataVersionHeader(res, metadata);
         return res
-          .status(200)
+          .status(201)
           .send(
             authorizationApi.FullClient.parse(
               clientToApiFullVisibilityClient(client)
@@ -133,7 +133,7 @@ const authorizationRouter = (
           ctx
         );
         return res
-          .status(200)
+          .status(201)
           .send(
             authorizationApi.FullClient.parse(
               clientToApiFullVisibilityClient(client)
@@ -435,7 +435,7 @@ const authorizationRouter = (
         );
         setMetadataVersionHeader(res, metadata);
         return res
-          .status(200)
+          .status(201)
           .send(authorizationApi.Key.parse(keyToApiKey(key)));
       } catch (error) {
         const errorRes = makeApiProblem(error, createKeyErrorMapper, ctx);
@@ -717,7 +717,7 @@ const authorizationRouter = (
 
         setMetadataVersionHeader(res, metadata);
         return res
-          .status(200)
+          .status(201)
           .send(
             authorizationApi.FullProducerKeychain.parse(
               producerKeychainToApiFullVisibilityProducerKeychain(
@@ -1005,7 +1005,7 @@ const authorizationRouter = (
           );
         setMetadataVersionHeader(res, metadata);
         return res
-          .status(200)
+          .status(201)
           .send(authorizationApi.Key.parse(keyToApiKey(key)));
       } catch (error) {
         const errorRes = makeApiProblem(
