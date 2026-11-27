@@ -13,6 +13,10 @@ function toApiAttributeM2MEventType(
     m2mEventApi.AttributeM2MEvent["eventType"]
   >(eventType)
     .with("AttributeAdded", () => "ATTRIBUTE_ADDED")
+    .with(
+      "AttributeSubunitPropagationUpdated",
+      () => "ATTRIBUTE_SUBUNIT_PROPAGATION_UPDATED"
+    )
     .exhaustive();
 }
 
