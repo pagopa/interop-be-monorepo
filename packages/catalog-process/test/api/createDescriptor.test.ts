@@ -28,6 +28,7 @@ import {
   draftDescriptorAlreadyExists,
   eServiceNotFound,
   inconsistentDailyCalls,
+  invalidAudience,
   templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
 import { buildCreateDescriptorSeed } from "../mockUtils.js";
@@ -148,6 +149,10 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
     },
     {
       error: inconsistentDailyCalls(),
+      expectedStatus: 400,
+    },
+    {
+      error: invalidAudience(":::"),
       expectedStatus: 400,
     },
     {

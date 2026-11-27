@@ -1,3 +1,5 @@
+import { Ajv } from "ajv";
+import addFormats from "ajv-formats";
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
   InternalAuthData,
@@ -67,6 +69,7 @@ import {
   templateInstanceAttributesCannotBeChanged,
   eServiceNotAnInstance,
   inconsistentDailyCalls,
+  invalidAudience,
   eserviceWithoutValidDescriptors,
   eserviceTemplateNameConflict,
   eServiceUpdateSameDescriptionConflict,
@@ -551,6 +554,19 @@ export function assertConsistentDailyCalls({
 }): void {
   if (dailyCallsPerConsumer > dailyCallsTotal) {
     throw inconsistentDailyCalls();
+  }
+}
+
+const ajv = new Ajv();
+addFormats.default(ajv, ["uri"]);
+const isValidUri = ajv.compile<string>({ type: "string", format: "uri" });
+
+export function assertValidAudience(audience: string[]): void {
+  const invalidValue = audience.find(
+    (value) => value.includes(":") && !isValidUri(value)
+  );
+  if (invalidValue !== undefined) {
+    throw invalidAudience(invalidValue);
   }
 }
 

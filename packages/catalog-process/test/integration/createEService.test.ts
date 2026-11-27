@@ -24,6 +24,7 @@ import {
   eServiceNameDuplicateForProducer,
   eserviceTemplateNameConflict,
   inconsistentDailyCalls,
+  invalidAudience,
   invalidDelegationFlags,
   originNotCompliant,
   asyncExchangeNotAllowedForReceiveMode,
@@ -396,6 +397,27 @@ describe("create eservice", () => {
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
   });
+
+  it.each([":::", "1abc:def", "abc:de f"])(
+    "should throw invalidAudience if the descriptor seed audience %s contains ':' but is not a valid URI",
+    async (audience) => {
+      await expect(
+        catalogService.createEService(
+          {
+            name: mockEService.name,
+            description: mockEService.description,
+            technology: "REST",
+            mode: "DELIVER",
+            descriptor: {
+              ...buildDescriptorSeedForEserviceCreation(mockDescriptor),
+              audience: [audience],
+            },
+          },
+          getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        )
+      ).rejects.toThrowError(invalidAudience(audience));
+    }
+  );
 
   it("should ignore asyncExchange from seed and leave it undefined when featureFlagAsyncExchange is disabled", async () => {
     config.featureFlagAsyncExchange = false;
