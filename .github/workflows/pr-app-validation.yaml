@@ -12,7 +12,7 @@ permissions:
 jobs:
   lint-openapi:
     name: Lint Open Api specification
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     steps:
@@ -30,7 +30,7 @@ jobs:
 
   knip:
     name: Knip codebase audit
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [build]
     permissions:
       contents: read
@@ -55,7 +55,7 @@ jobs:
 
   packages_sharding:
     name: Packages sharding
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     outputs:
@@ -190,7 +190,7 @@ jobs:
 
   build:
     name: Full project build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
@@ -224,7 +224,7 @@ jobs:
 
   check:
     name: Check
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [build]
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -250,7 +250,7 @@ jobs:
 
   lint:
     name: Lint sharded [ ${{ matrix.shard.shardIndex }} ]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     needs: [packages_sharding, build]
@@ -283,7 +283,7 @@ jobs:
 
   test:
     name: Tests sharded [ ${{ matrix.shard.shardIndex }} ]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     needs: [packages_sharding, build]
@@ -366,7 +366,7 @@ jobs:
     name: Lint Result
     needs: [lint]
     if: ${{ always() }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Check lint result
         run: |
@@ -377,7 +377,7 @@ jobs:
     name: Test Result
     needs: [test]
     if: ${{ always() }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Check tests result
         run: |
