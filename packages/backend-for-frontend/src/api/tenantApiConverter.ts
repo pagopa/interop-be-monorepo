@@ -15,6 +15,7 @@ import {
   VerifiedTenantAttribute,
   tenantAttributeType,
   unsafeBrandId,
+  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
 } from "pagopa-interop-models";
 
 import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
@@ -111,9 +112,30 @@ export type RegistryAttributesMap = Map<
   attributeRegistryApi.Attribute
 >;
 
+export function isEligibleForSubunitPropagation(
+  tenant: tenantApi.Tenant,
+  attribute: attributeRegistryApi.Attribute
+): boolean {
+  const isMainTenant = tenant.subUnitType === undefined;
+  const hasIpaExternalId =
+    tenant.externalId.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER;
+  const isCertifiedAttribute = attribute.kind === tenantAttributeKind.certified;
+  const isIpaAttribute = attribute.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER;
+  const matchesTenantIpaCode = attribute.code === tenant.externalId.value;
+
+  return (
+    isMainTenant &&
+    hasIpaExternalId &&
+    isCertifiedAttribute &&
+    isIpaAttribute &&
+    matchesTenantIpaCode
+  );
+}
+
 const toBffApiCertifiedTenantAttribute = (
   tenantAttribute: tenantApi.CertifiedTenantAttribute,
-  registryAttributesMap: RegistryAttributesMap
+  registryAttributesMap: RegistryAttributesMap,
+  tenant: tenantApi.Tenant
 ): bffApi.CertifiedTenantAttribute | undefined => {
   const registryAttribute = registryAttributesMap.get(tenantAttribute.id);
 
@@ -125,6 +147,11 @@ const toBffApiCertifiedTenantAttribute = (
         description: registryAttribute.description,
         assignmentTimestamp: tenantAttribute.assignmentTimestamp,
         revocationTimestamp: tenantAttribute.revocationTimestamp,
+        isEligibleForSubunitPropagation: isEligibleForSubunitPropagation(
+          tenant,
+          registryAttribute
+        ),
+        subunitPropagationEnabled: registryAttribute.subunitPropagationEnabled,
       }
     : undefined;
 };
@@ -144,6 +171,8 @@ export const toBffApiCertifiedDiscreteTenantAttribute = (
         assignmentTimestamp: tenantAttribute.assignmentTimestamp,
         revocationTimestamp: tenantAttribute.revocationTimestamp,
         discreteValue: tenantAttribute.discreteValue,
+        isEligibleForSubunitPropagation: false,
+        subunitPropagationEnabled: registryAttribute.subunitPropagationEnabled,
       }
     : undefined;
 };
@@ -192,7 +221,8 @@ export function toBffApiCertifiedTenantAttributes(
     | tenantApi.CertifiedTenantAttribute
     | tenantApi.CertifiedDiscreteTenantAttribute
   >,
-  registryAttributesMap: RegistryAttributesMap
+  registryAttributesMap: RegistryAttributesMap,
+  tenant: tenantApi.Tenant
 ): bffApi.CertifiedAttributesResponse["attributes"] {
   return certifiedAttributes
     .map((tenantAttribute) =>
@@ -203,7 +233,8 @@ export function toBffApiCertifiedTenantAttributes(
           )
         : toBffApiCertifiedTenantAttribute(
             tenantAttribute,
-            registryAttributesMap
+            registryAttributesMap,
+            tenant
           )
     )
     .filter(isDefined);
@@ -260,7 +291,8 @@ export function toBffApiTenant(
     attributes: {
       certified: toBffApiCertifiedTenantAttributes(
         [...certifiedAttributes, ...certifiedDiscreteAttributes],
-        registryAttributesMap
+        registryAttributesMap,
+        tenant
       ),
       declared: toBffApiDeclaredTenantAttributes(
         declaredAttributes,

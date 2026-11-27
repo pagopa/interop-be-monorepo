@@ -963,6 +963,8 @@ export const getMockBffApiCertifiedAttributesResponse =
         z.union([
           z.object({
             kind: z.literal(tenantAttributeKind.certified),
+            isEligibleForSubunitPropagation: z.boolean(),
+            subunitPropagationEnabled: z.boolean().optional(),
             id: z.string().uuid(),
             name: z.string(),
             description: z.string(),
@@ -974,6 +976,8 @@ export const getMockBffApiCertifiedAttributesResponse =
           }),
           z.object({
             kind: z.literal(tenantAttributeKind.certifiedDiscrete),
+            isEligibleForSubunitPropagation: z.boolean(),
+            subunitPropagationEnabled: z.boolean().optional(),
             id: z.string().uuid(),
             name: z.string(),
             description: z.string(),

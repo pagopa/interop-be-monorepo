@@ -879,7 +879,8 @@ export async function enrichAgreement(
   );
   const tenantAttributes = enhanceTenantAttributes(
     consumer.attributes,
-    attributes
+    attributes,
+    consumer
   );
 
   const delegationInfo = await match(delegation)

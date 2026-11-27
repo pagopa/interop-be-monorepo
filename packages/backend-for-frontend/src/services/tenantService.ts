@@ -28,6 +28,7 @@ import {
   toBffApiCertifiedDiscreteTenantAttribute,
   toBffApiDeclaredTenantAttributes,
   toBffApiVerifiedTenantAttributes,
+  isEligibleForSubunitPropagation,
 } from "../api/tenantApiConverter.js";
 import { TenantProcessClient } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
@@ -274,7 +275,8 @@ export function tenantServiceBuilder(
 
       const attributes = toBffApiCertifiedTenantAttributes(
         [...certifiedAttributes, ...certifiedDiscreteAttributes],
-        registryAttributesMap
+        registryAttributesMap,
+        tenant
       );
 
       return { attributes };
@@ -546,7 +548,8 @@ export function tenantServiceBuilder(
 
 export function enhanceTenantAttributes(
   tenantAttributes: tenantApi.TenantAttribute[],
-  registryAttributes: attributeRegistryApi.Attribute[]
+  registryAttributes: attributeRegistryApi.Attribute[],
+  tenant: tenantApi.Tenant
 ): bffApi.TenantAttributes {
   const registryAttributesMap: Map<string, bffApi.Attribute> = new Map(
     registryAttributes.map((attribute) => [attribute.id, attribute])
@@ -557,7 +560,9 @@ export function enhanceTenantAttributes(
     .filter(isDefined);
 
   const certifiedAttributes = tenantAttributes
-    .map((attr) => getCertifiedTenantAttribute(attr, registryAttributesMap))
+    .map((attr) =>
+      getCertifiedTenantAttribute(attr, registryAttributesMap, tenant)
+    )
     .filter(isDefined);
   const certifiedDiscreteAttributes = tenantAttributes
     .map((attr) =>
@@ -601,7 +606,8 @@ function getDeclaredTenantAttribute(
 
 function getCertifiedTenantAttribute(
   attribute: tenantApi.TenantAttribute,
-  registryAttributeMap: Map<string, attributeRegistryApi.Attribute>
+  registryAttributeMap: Map<string, attributeRegistryApi.Attribute>,
+  tenant: tenantApi.Tenant
 ): bffApi.CertifiedTenantAttribute | undefined {
   if (!attribute.certified) {
     return undefined;
@@ -618,6 +624,11 @@ function getCertifiedTenantAttribute(
     description: registryAttribute.description,
     assignmentTimestamp: attribute.certified.assignmentTimestamp,
     revocationTimestamp: attribute.certified.revocationTimestamp,
+    isEligibleForSubunitPropagation: isEligibleForSubunitPropagation(
+      tenant,
+      registryAttribute
+    ),
+    subunitPropagationEnabled: registryAttribute.subunitPropagationEnabled,
   };
 }
 

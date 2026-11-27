@@ -109,6 +109,8 @@ describe("tenantServiceBuilder.getTenant", () => {
         description: registryCertifiedAttribute.description,
         assignmentTimestamp,
         revocationTimestamp: undefined,
+        isEligibleForSubunitPropagation: false,
+        subunitPropagationEnabled: undefined,
       },
       {
         kind: tenantAttributeKind.certifiedDiscrete,
@@ -118,6 +120,8 @@ describe("tenantServiceBuilder.getTenant", () => {
         assignmentTimestamp,
         revocationTimestamp: undefined,
         discreteValue: 42,
+        isEligibleForSubunitPropagation: false,
+        subunitPropagationEnabled: undefined,
       },
     ]);
     expect(result.attributes).not.toHaveProperty("certifiedDiscrete");

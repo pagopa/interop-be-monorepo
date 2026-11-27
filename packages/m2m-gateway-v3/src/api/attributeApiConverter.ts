@@ -111,12 +111,17 @@ export function toM2MGatewayApiCertifiedAttribute({
   logger: Logger;
   mapThrownErrorsToNotFound?: boolean;
 }): m2mGatewayApiV3.CertifiedAttribute {
-  return convertAttribute(
-    attribute,
-    attributeRegistryApi.AttributeKind.Values.CERTIFIED,
-    logger,
-    mapThrownErrorsToNotFound
-  );
+  return {
+    ...convertAttribute(
+      attribute,
+      attributeRegistryApi.AttributeKind.Values.CERTIFIED,
+      logger,
+      mapThrownErrorsToNotFound
+    ),
+    ...(attribute.subunitPropagationEnabled !== undefined
+      ? { subunitPropagationEnabled: attribute.subunitPropagationEnabled }
+      : {}),
+  };
 }
 
 export function toM2MGatewayApiCertifiedDiscreteAttribute({
