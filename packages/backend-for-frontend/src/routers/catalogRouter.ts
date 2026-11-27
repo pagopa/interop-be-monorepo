@@ -49,20 +49,6 @@ const catalogRouter = (
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  const commonCatalogProducerEservicePlaceholderMapper = async (
-    eserviceId: string,
-    ctx: WithLogger<BffAppContext>
-  ) =>
-    placeholderMapperGenerator(
-      async () =>
-        catalogService.getProducerEServiceDetails(
-          unsafeBrandId(eserviceId),
-          ctx
-        ),
-      (value, message) => message.replace("{identifyingWord}", value.name),
-      (error) => ctx.logger.warn(`Error retrieving placeholder data: ${error}`)
-    );
-
   const commonCatalogIdentifyingWordPlaceholderMapper = async <
     T extends { instanceLabel?: string | undefined },
   >(
@@ -1502,11 +1488,7 @@ const catalogRouter = (
               `Error updating instance label for eservice with Id: ${req.params.eServiceId}`
             ),
             ["{identifyingWord}"],
-            () =>
-              commonCatalogProducerEservicePlaceholderMapper(
-                req.params.eServiceId,
-                ctx
-              )
+            () => commonCatalogIdentifyingWordPlaceholderMapper(ctx, req.body)
           );
           return res.status(errorRes.status).send(errorRes);
         }
