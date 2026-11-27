@@ -14,7 +14,9 @@ describe("API GET /tenants/attributes/certified test", () => {
   const mockAttributes: bffApi.RequesterCertifiedAttributes = {
     results: [
       getMockBffApiRequesterCertifiedAttribute(),
-      getMockBffApiRequesterCertifiedAttribute(),
+      getMockBffApiRequesterCertifiedAttribute({
+        populateTenantHierarchy: true,
+      }),
     ],
     pagination: { offset: 0, limit: 10, totalCount: 20 },
   };

@@ -5,6 +5,7 @@ import {
   generateToken,
   getMockAttribute,
   getMockTenant,
+  getMockTenantHierarchy,
 } from "pagopa-interop-commons-test";
 import {
   Attribute,
@@ -47,6 +48,9 @@ describe("API GET /tenants/attributes/certified test", () => {
     id: tenantCertifiedAttribute2.id,
   };
 
+  const { subUnitType, parentTenants } = getMockTenantHierarchy({
+    populateHierarchy: true,
+  });
   const mockResponse = {
     results: [
       {
@@ -55,6 +59,8 @@ describe("API GET /tenants/attributes/certified test", () => {
         id: tenant.id,
         name: tenant.name,
         kind: "CERTIFIED" as const,
+        ...(subUnitType !== undefined ? { subUnitType } : {}),
+        ...(parentTenants !== undefined ? { parentTenants } : {}),
       },
       {
         attributeId: certifiedAttribute2.id,
