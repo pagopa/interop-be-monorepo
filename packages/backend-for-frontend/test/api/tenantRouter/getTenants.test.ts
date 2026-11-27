@@ -12,7 +12,10 @@ import { api, services } from "../../vitest.api.setup.js";
 
 describe("API GET /tenants test", () => {
   const mockTenants: bffApi.Tenants = {
-    results: [getMockBffApiCompactTenant(), getMockBffApiCompactTenant()],
+    results: [
+      getMockBffApiCompactTenant(),
+      getMockBffApiCompactTenant({ populateHierarchy: true }),
+    ],
     pagination: { offset: 0, limit: 10, totalCount: 20 },
   };
   const defaultQuery = {

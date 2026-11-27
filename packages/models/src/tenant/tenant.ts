@@ -204,6 +204,13 @@ export const Tenant = z.object({
 
 export type Tenant = z.infer<typeof Tenant>;
 
+export const ParentTenant = z.object({
+  id: TenantId,
+  name: z.string(),
+  subUnitType: TenantUnitType.optional(),
+});
+export type ParentTenant = z.infer<typeof ParentTenant>;
+
 export const CompactTenant = z.object({
   id: TenantId,
   attributes: z.array(TenantAttribute),

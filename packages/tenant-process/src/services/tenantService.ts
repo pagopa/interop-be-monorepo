@@ -85,7 +85,10 @@ import {
   aooTenantParentMustBeRootTenant,
   uoTenantParentMustBeRootTenantOrAooTenant,
 } from "../model/domain/errors.js";
-import { ApiGetTenantsFilters } from "../model/domain/models.js";
+import {
+  ApiGetTenantsFilters,
+  TenantHierarchy,
+} from "../model/domain/models.js";
 import {
   toCreateEventTenantVerifiedAttributeExpirationUpdated,
   toCreateEventTenantVerifiedAttributeExtensionUpdated,
@@ -2263,7 +2266,7 @@ export function tenantServiceBuilder(
       {
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
-    ): Promise<ListResult<Tenant>> {
+    ): Promise<ListResult<Tenant & TenantHierarchy>> {
       logger.info(
         `Retrieving Tenants with name = ${query.name}, features = ${query.features}, externalIdOrigin = ${query.externalIdOrigin}, externalIdValue = ${query.externalIdValue}, limit = ${query.limit}, offset = ${query.offset}`
       );

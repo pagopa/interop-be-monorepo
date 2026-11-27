@@ -10,6 +10,10 @@ import {
   inAppNotificationApi,
 } from "pagopa-interop-api-clients";
 import {
+  getMockTenantHierarchy,
+  GetMockTenantHierarchyParams,
+} from "pagopa-interop-commons-test";
+import {
   AgreementId,
   DescriptorId,
   EServiceId,
@@ -915,12 +919,21 @@ export const getMockBffApiTenant = (): bffApi.Tenant & { id: TenantId } => ({
   subUnitType: generateMock(bffApi.TenantUnitType.optional()),
 });
 
-export const getMockBffApiCompactTenant = (): bffApi.CompactTenant => ({
-  id: generateId(),
-  selfcareId: generateMock(z.string().optional()),
-  name: generateMock(z.string()),
-  logoUrl: generateMock(z.string().optional()),
-});
+export const getMockBffApiCompactTenant = ({
+  populateHierarchy,
+}: GetMockTenantHierarchyParams = {}): bffApi.CompactTenant => {
+  const { subUnitType, parentTenants } = getMockTenantHierarchy({
+    populateHierarchy,
+  });
+  return {
+    id: generateId(),
+    selfcareId: generateMock(z.string().optional()),
+    name: generateMock(z.string()),
+    logoUrl: generateMock(z.string().optional()),
+    ...(subUnitType !== undefined ? { subUnitType } : {}),
+    ...(parentTenants !== undefined ? { parentTenants } : {}),
+  };
+};
 
 export const getMockBffApiVerifiedAttributesResponse =
   (): bffApi.VerifiedAttributesResponse => ({
