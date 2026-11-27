@@ -219,11 +219,14 @@ export function getMockedApiAgreement({
 
 export function getMockedApiTenant({
   attributes,
-  parentTenants,
+  populateHierarchy,
 }: {
   attributes?: tenantApi.TenantAttribute[];
-  parentTenants?: tenantApi.ParentTenant[];
+  populateHierarchy?: boolean;
 } = {}): tenantApi.Tenant {
+  const { subUnitType, parentTenants } = getMockTenantHierarchy({
+    populateHierarchy,
+  });
   return {
     id: generateId(),
     attributes: attributes ?? generateMock(z.array(tenantApi.TenantAttribute)),
@@ -233,7 +236,8 @@ export function getMockedApiTenant({
     kind: tenantApi.TenantKind.Values.GSP,
     mails: generateMock(z.array(tenantApi.Mail)),
     features: generateMock(z.array(tenantApi.TenantFeature)),
-    ...(parentTenants ? { parentTenants } : {}),
+    ...(subUnitType !== undefined ? { subUnitType } : {}),
+    ...(parentTenants !== undefined ? { parentTenants } : {}),
   };
 }
 
