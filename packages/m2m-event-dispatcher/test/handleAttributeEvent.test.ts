@@ -2,10 +2,8 @@ import { genericLogger } from "pagopa-interop-commons";
 import { getMockAttribute } from "pagopa-interop-commons-test";
 import {
   AttributeEventEnvelope,
-  AttributeEventEnvelopeV2,
   toAttributeV1,
-  toRegistryAttributeV2,
-  AttributeEventV1,
+  AttributeEvent,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -26,9 +24,9 @@ describe("handleAttributeEvent test", async () => {
     vi.clearAllMocks();
   });
 
-  it.each(AttributeEventV1.options.map((o) => o.shape.type.value))(
+  it.each(AttributeEvent.options.map((o) => o.shape.type.value))(
     "should write %s M2M event with the right visibility",
-    async (eventType: AttributeEventV1["type"]) => {
+    async (eventType: AttributeEvent["type"]) => {
       const message = {
         ...getMockEventEnvelopeCommons(),
         stream_id: attribute.id,
@@ -43,6 +41,13 @@ describe("handleAttributeEvent test", async () => {
 
       const expectedM2MEvent = await match(eventType)
         .with("AttributeAdded", async () => ({
+          id: expect.any(String),
+          eventType,
+          eventTimestamp,
+          resourceVersion: message.version,
+          attributeId: attribute.id,
+        }))
+        .with("AttributeSubunitPropagationUpdated", async () => ({
           id: expect.any(String),
           eventType,
           eventTimestamp,
@@ -65,29 +70,6 @@ describe("handleAttributeEvent test", async () => {
       expect(actualM2MEvent).toEqual(expectedM2MEvent);
     }
   );
-
-  it("should ignore the AttributeSubunitPropagationUpdated event", async () => {
-    const message: AttributeEventEnvelopeV2 = {
-      ...getMockEventEnvelopeCommons(),
-      stream_id: attribute.id,
-      type: "AttributeSubunitPropagationUpdated",
-      event_version: 2,
-      data: {
-        attribute: toRegistryAttributeV2(attribute),
-      },
-    };
-
-    await handleAttributeEvent(
-      message,
-      new Date(),
-      genericLogger,
-      testM2mEventWriterService
-    );
-
-    expect(
-      testM2mEventWriterService.insertAttributeM2MEvent
-    ).not.toHaveBeenCalled();
-  });
 
   it("should not write the event if the same resource version is already present", async () => {
     const message = {

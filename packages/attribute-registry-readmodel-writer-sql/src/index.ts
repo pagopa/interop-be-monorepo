@@ -8,12 +8,10 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { makeDrizzleConnection } from "pagopa-interop-readmodel";
-import { match } from "ts-pattern";
 
 import { handleMessage } from "./attributeRegistryConsumerService.js";
 import { attributeWriterServiceBuilder } from "./attributeWriterService.js";
 import { config } from "./config/config.js";
-import { handleMessageV2 } from "./consumerServiceV2.js";
 
 const attributeWriterService = attributeWriterServiceBuilder(
   makeDrizzleConnection(config)
@@ -36,14 +34,7 @@ async function processMessage({
       : generateId<CorrelationId>(),
   });
 
-  await match(msg)
-    .with({ event_version: 1 }, (msg) =>
-      handleMessage(msg, attributeWriterService)
-    )
-    .with({ event_version: 2 }, (msg) =>
-      handleMessageV2(msg, attributeWriterService)
-    )
-    .exhaustive();
+  await handleMessage(msg, attributeWriterService);
   loggerInstance.info(
     `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
   );

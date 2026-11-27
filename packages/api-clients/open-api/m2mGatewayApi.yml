@@ -19546,6 +19546,7 @@ components:
           type: string
           enum:
             - ATTRIBUTE_ADDED
+            - ATTRIBUTE_SUBUNIT_PROPAGATION_UPDATED
         eventTimestamp:
           type: string
           format: date-time
@@ -19669,6 +19670,7 @@ components:
             - TENANT_VERIFIED_ATTRIBUTE_EXTENSION_UPDATED
             - TENANT_VERIFIED_ATTRIBUTE_REVOKED
             - TENANT_REMOTE_ID_ASSIGNED
+            - TENANT_PARENT_UPDATED
         eventTimestamp:
           type: string
           format: date-time

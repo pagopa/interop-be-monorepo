@@ -1373,6 +1373,50 @@ paths:
           $ref: "#/components/responses/Conflict"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /certifiedAttributes/subunitPropagation/update:
+    post:
+      tags:
+        - attributes
+      summary: Update the subunit propagation of Certified Attributes
+      description:
+        Updates the selection of the Certified Attributes of the requester
+        extended to its subunits (AOO/UO). Not available when the propagation
+        is forced
+      operationId: updateCertifiedAttributesSubunitPropagation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AttributeSubunitPropagationUpdateSeed"
+      responses:
+        "200":
+          description: Subunit propagation updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /certifiedAttributes/{attributeId}:
     parameters:
       - name: attributeId
@@ -5053,7 +5097,7 @@ paths:
       responses:
         "200":
           description: E-Service Descriptors Certified Discrete Attributes retrieved
-          content: 
+          content:
             application/json:
               schema:
                 $ref: "#/components/schemas/EServiceDescriptorCertifiedDiscreteAttributes"
@@ -5268,9 +5312,11 @@ paths:
     post:
       tags:
         - eservices
-      summary: Assign E-Service Descriptor Certified Discrete Attributes to a specific
+      summary:
+        Assign E-Service Descriptor Certified Discrete Attributes to a specific
         Attribute Group
-      description: Assign a set of Certified Discrete Attributes to the indicated Attribute
+      description:
+        Assign a set of Certified Discrete Attributes to the indicated Attribute
         Group (identified by groupIndex) of an E-Service Descriptor
       operationId: assignEServiceDescriptorCertifiedDiscreteAttributesToGroup
       requestBody:
@@ -5281,7 +5327,8 @@ paths:
               $ref: "#/components/schemas/EServiceDescriptorCertifiedDiscreteAttributesGroupSeed"
       responses:
         "200":
-          description: E-Service Descriptor Certified Discrete Attribute assigned to the
+          description:
+            E-Service Descriptor Certified Discrete Attribute assigned to the
             Attribute Group
           content:
             application/json:
@@ -5590,7 +5637,8 @@ paths:
     delete:
       tags:
         - eservices
-      summary: Delete an E-Service Descriptor Certified Discrete Attribute from a specific
+      summary:
+        Delete an E-Service Descriptor Certified Discrete Attribute from a specific
         Attribute Group
       description: |
         Delete a specific Certified Discrete Attribute from the indicated Attribute Group (identified by groupIndex) of an E-Service Descriptor.
@@ -5827,7 +5875,8 @@ paths:
       tags:
         - eservices
       summary: Create a Certified Discrete Attributes Group for an E-Service Descriptor
-      description: Create a new group of Certified Discrete Attributes for an E-Service
+      description:
+        Create a new group of Certified Discrete Attributes for an E-Service
         Descriptor in Draft state
       operationId: createEServiceDescriptorCertifiedDiscreteAttributesGroup
       requestBody:
@@ -6919,7 +6968,8 @@ paths:
       operationId: downloadEServiceTemplateVersionInterface
       responses:
         "200":
-          description: E-Service Template Version interface retrieved, a multipart
+          description:
+            E-Service Template Version interface retrieved, a multipart
             containing the file and its metadata
           content:
             multipart/form-data:
@@ -7468,9 +7518,11 @@ paths:
     post:
       tags:
         - eserviceTemplates
-      summary: Assign E-Service Template Version Certified Discrete Attribute to a specific
+      summary:
+        Assign E-Service Template Version Certified Discrete Attribute to a specific
         Attribute Group
-      description: Assign a set of Certified Discrete Attributes to the indicated Attribute
+      description:
+        Assign a set of Certified Discrete Attributes to the indicated Attribute
         Group (identified by groupIndex) of an E-Service Template Version
       operationId: assignEServiceTemplateVersionCertifiedDiscreteAttributesToGroup
       requestBody:
@@ -7481,7 +7533,8 @@ paths:
               $ref: "#/components/schemas/EServiceTemplateVersionCertifiedDiscreteAttributesGroupSeed"
       responses:
         "200":
-          description: E-Service Template Version Certified Discrete Attribute assigned to the 
+          description:
+            E-Service Template Version Certified Discrete Attribute assigned to the
             Attribute Group
           content:
             application/json:
@@ -7752,7 +7805,8 @@ paths:
     delete:
       tags:
         - eserviceTemplates
-      summary: Delete an E-Service Template Certified Discrete Attribute from a specific
+      summary:
+        Delete an E-Service Template Certified Discrete Attribute from a specific
         Attribute Group
       description: |
         Delete a specific Certified Discrete Attribute from the indicated Attribute Group (identified by groupIndex) of an E-Service Template Version.
@@ -7760,7 +7814,8 @@ paths:
       operationId: deleteEServiceTemplateVersionCertifiedDiscreteAttributeFromGroup
       responses:
         "200":
-          description: E-Service Template Version Certified Discrete Attribute deleted from
+          description:
+            E-Service Template Version Certified Discrete Attribute deleted from
             Attribute Group
           content:
             application/json:
@@ -7998,7 +8053,8 @@ paths:
       tags:
         - eserviceTemplates
       summary: Create Certified Discrete Attributes Group for E-Service Template Version
-      description: Create a new group of Certified Discrete Attributes for an E-Service
+      description:
+        Create a new group of Certified Discrete Attributes for an E-Service
         Template Version in Draft state
       operationId: createEServiceTemplateVersionCertifiedDiscreteAttributesGroup
       requestBody:
@@ -12282,6 +12338,7 @@ components:
           type: string
           enum:
             - ATTRIBUTE_ADDED
+            - ATTRIBUTE_SUBUNIT_PROPAGATION_UPDATED
         eventTimestamp:
           type: string
           format: date-time
@@ -12403,6 +12460,7 @@ components:
             - TENANT_VERIFIED_ATTRIBUTE_EXTENSION_UPDATED
             - TENANT_VERIFIED_ATTRIBUTE_REVOKED
             - TENANT_REMOTE_ID_ASSIGNED
+            - TENANT_PARENT_UPDATED
         eventTimestamp:
           type: string
           format: date-time
@@ -12980,7 +13038,7 @@ components:
           format: date-time
         subunitPropagationEnabled:
           type: boolean
-          description: Indicates if propagation to subunits is enabled
+          description: Whether the attribute is extended to the subunits of the holder; absent means disabled
       required:
         - id
         - name
@@ -12988,6 +13046,19 @@ components:
         - code
         - origin
         - createdAt
+    AttributeSubunitPropagationUpdateSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        attributeIds:
+          type: array
+          uniqueItems: true
+          maxItems: 1
+          items:
+            type: string
+            format: uuid
+      required:
+        - attributeIds
     EServiceDescriptorCertifiedAttribute:
       type: object
       description:
@@ -13022,7 +13093,8 @@ components:
         - attribute
     EServiceTemplateVersionCertifiedDiscreteAttribute:
       type: object
-      description: Represents an E-Service Template Version Certified Discrete attribute with
+      description:
+        Represents an E-Service Template Version Certified Discrete attribute with
         the index of its attribute group.
       properties:
         groupIndex:
@@ -13037,7 +13109,8 @@ components:
         - attribute
     EServiceDescriptorCertifiedDiscreteAttribute:
       type: object
-      description: Represents an E-Service Descriptor Certified Discrete attribute with the
+      description:
+        Represents an E-Service Descriptor Certified Discrete attribute with the
         index of its attribute group.
       properties:
         groupIndex:
@@ -13664,7 +13737,7 @@ components:
               $ref: "#/components/schemas/ClientName"
             description:
               $ref: "#/components/schemas/ClientDescription"
-          required: 
+          required:
             - name
         - type: object
           additionalProperties: false
@@ -13673,7 +13746,7 @@ components:
               $ref: "#/components/schemas/ClientName"
             description:
               $ref: "#/components/schemas/ClientDescription"
-          required: 
+          required:
             - description
     ClientName:
       type: string
@@ -13773,7 +13846,7 @@ components:
               $ref: "#/components/schemas/ProducerKeychainName"
             description:
               $ref: "#/components/schemas/ProducerKeychainDescription"
-          required: 
+          required:
             - name
         - type: object
           additionalProperties: false

@@ -3,7 +3,6 @@ import {
   AttributeEvent,
   Attribute,
   toAttributeV1,
-  toRegistryAttributeV2,
   CorrelationId,
 } from "pagopa-interop-models";
 
@@ -30,8 +29,8 @@ export const toCreateEventAttributeSubunitPropagationUpdated = (
   version,
   event: {
     type: "AttributeSubunitPropagationUpdated",
-    event_version: 2,
-    data: { attribute: toRegistryAttributeV2(attribute) },
+    event_version: 1,
+    data: { attribute: toAttributeV1(attribute) },
   },
   correlationId,
 });

@@ -297,5 +297,18 @@ export function attributeServiceBuilder(clients: PagoPAInteropBeClients) {
         logger,
       });
     },
+    async updateCertifiedAttributesSubunitPropagation(
+      seed: m2mGatewayApiV3.AttributeSubunitPropagationUpdateSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Updating subunit propagation of certified attributes ${seed.attributeIds}`
+      );
+
+      await clients.attributeProcessClient.updateAttributesSubunitPropagation(
+        seed,
+        { headers }
+      );
+    },
   };
 }

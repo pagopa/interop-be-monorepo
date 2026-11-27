@@ -7,13 +7,13 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   Attribute,
-  AttributeSubunitPropagationUpdatedV2,
+  AttributeSubunitPropagationUpdatedV1,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   Tenant,
   attributeKind,
   generateId,
   TenantId,
-  toRegistryAttributeV2,
+  toAttributeV1,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 
@@ -64,14 +64,14 @@ describe("updateAttributesSubunitPropagation", () => {
       stream_id: eligibleAttribute.id,
       version: "1",
       type: "AttributeSubunitPropagationUpdated",
-      event_version: 2,
+      event_version: 1,
     });
     const payload = decodeProtobufPayload({
-      messageType: AttributeSubunitPropagationUpdatedV2,
+      messageType: AttributeSubunitPropagationUpdatedV1,
       payload: event.data,
     });
     expect(payload.attribute).toEqual(
-      toRegistryAttributeV2({
+      toAttributeV1({
         ...eligibleAttribute,
         subunitPropagationEnabled: true,
       })
@@ -92,7 +92,7 @@ describe("updateAttributesSubunitPropagation", () => {
     expect(event.version).toBe("1");
     expect(
       decodeProtobufPayload({
-        messageType: AttributeSubunitPropagationUpdatedV2,
+        messageType: AttributeSubunitPropagationUpdatedV1,
         payload: event.data,
       }).attribute?.subunitPropagationEnabled
     ).toBe(false);
