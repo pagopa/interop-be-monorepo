@@ -1,0 +1,34 @@
+meta {
+  name: Get producer e-service monitoring consumer purposes
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{host-bff}}/producers/eservices/:eserviceId/descriptors/:descriptorId/monitoring/consumers/:consumerId/purposes
+  body: none
+  auth: none
+}
+
+params:path {
+  eserviceId: 3a6f0b1e-7c2d-4a39-9f55-1f5d2e6c8a10
+  descriptorId: 9b1c4d2e-5a7f-4c63-8e21-0d4b7a9c3f52
+  consumerId: c7d8e9f0-1a2b-4c3d-8e4f-5a6b7c8d9e01
+}
+
+params:query {
+  offset: 0
+  limit: 10
+  ~q: 
+  ~sortBy: DATE_DESC
+  ~states: 
+  ~includeArchived: false
+}
+
+headers {
+  Authorization: {{JWT}}
+}
+
+docs {
+  Retrieves the purposes of the given consumer on the given descriptor
+}
