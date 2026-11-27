@@ -975,11 +975,7 @@ const catalogRouter = (
             `Error updating EService ${req.params.eServiceId} template instance`
           ),
           ["{identifyingWord}"],
-          () =>
-            commonCatalogProducerEservicePlaceholderMapper(
-              req.params.eServiceId,
-              ctx
-            )
+          () => commonCatalogIdentifyingWordPlaceholderMapper(ctx, req.body)
         );
         return res.status(errorRes.status).send(errorRes);
       }
