@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger, fileManagerDeleteError } from "pagopa-interop-commons";
+import { fileManagerDeleteError, genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockContext,
@@ -24,7 +24,7 @@ import {
   delegationKind,
   EServiceDocumentId,
 } from "pagopa-interop-models";
-import { vi, expect, describe, it } from "vitest";
+import { vi, expect, describe, it, afterEach } from "vitest";
 
 import { config } from "../../src/config/config.js";
 import {
@@ -42,6 +42,10 @@ import {
 } from "../integrationUtils.js";
 
 describe("delete draft descriptor", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   const mockDocument = getMockDocument();
 
   it("should write on event-store for the deletion of a draft descriptor (no interface nor documents to delete)", async () => {
@@ -417,9 +421,7 @@ describe("delete draft descriptor", () => {
     expect(deleteDraftReturn).toEqual(undefined);
   });
 
-  it("should fail if one of the file deletions fails", async () => {
-    config.s3Bucket = "invalid-bucket"; // configure an invalid bucket to force a failure
-
+  it("should persist the event and log a deletion failure without failing", async () => {
     const publishedDescriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
       version: "1",
@@ -434,19 +436,44 @@ describe("delete draft descriptor", () => {
       descriptors: [publishedDescriptor, descriptorToDelete],
     };
     await addOneEService(eservice);
+    const document = descriptorToDelete.docs[0];
+    const content = Buffer.from("original document");
+    await fileManager.storeBytesByKey(
+      config.s3Bucket,
+      document.path,
+      content,
+      genericLogger
+    );
+    const deletionError = fileManagerDeleteError(
+      document.path,
+      config.s3Bucket,
+      new Error("Simulated deletion failure")
+    );
+    vi.spyOn(fileManager, "delete").mockRejectedValueOnce(deletionError);
+    const logError = vi.spyOn(genericLogger, "error").mockReturnThis();
 
-    await expect(
-      catalogService.deleteDraftDescriptor(
-        eservice.id,
-        descriptorToDelete.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
-      )
-    ).rejects.toThrowError(
-      fileManagerDeleteError(
-        mockDocument.path,
-        config.s3Bucket,
-        new Error("The specified bucket does not exist")
-      )
+    const response = await catalogService.deleteDraftDescriptor(
+      eservice.id,
+      descriptorToDelete.id,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
+
+    expect(response).toEqual({
+      data: { ...eservice, descriptors: [publishedDescriptor] },
+      metadata: { version: 1 },
+    });
+    expect(
+      await fileManager.get(config.s3Bucket, document.path, genericLogger)
+    ).toEqual(new Uint8Array(content));
+    expect(await readLastEserviceEvent(eservice.id)).toMatchObject({
+      type: "EServiceDraftDescriptorDeleted",
+      version: "1",
+    });
+    expect(logError).toHaveBeenCalledWith(
+      expect.stringContaining(`s3://${config.s3Bucket}/${document.path}`)
+    );
+    expect(logError).toHaveBeenCalledWith(
+      expect.stringContaining(deletionError.message)
     );
   });
 

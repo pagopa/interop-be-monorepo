@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger, fileManagerDeleteError } from "pagopa-interop-commons";
+import { fileManagerDeleteError, genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockContext,
@@ -27,7 +27,7 @@ import {
   EServiceTemplate,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { vi, expect, describe, it } from "vitest";
+import { vi, expect, describe, it, afterEach } from "vitest";
 
 import { config } from "../../src/config/config.js";
 import {
@@ -49,6 +49,10 @@ import {
 } from "../integrationUtils.js";
 
 describe("update eService", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   const mockEService = getMockEService();
   const mockDocument = getMockDocument();
   it("should write on event-store for the update of an eService (no technology change)", async () => {
@@ -462,8 +466,7 @@ describe("update eService", () => {
     });
   });
 
-  it("should fail if the file deletion fails when interface file has to be deleted on technology change", async () => {
-    config.s3Bucket = "invalid-bucket"; // configure an invalid bucket to force a failure
+  it("should persist the event and log an interface deletion failure without failing on technology change", async () => {
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.draft,
@@ -475,24 +478,59 @@ describe("update eService", () => {
     };
     const updatedName = "eService new name";
     await addOneEService(eservice);
+    const content = Buffer.from("original interface");
+    await fileManager.storeBytesByKey(
+      config.s3Bucket,
+      mockDocument.path,
+      content,
+      genericLogger
+    );
+    const deletionError = fileManagerDeleteError(
+      mockDocument.path,
+      config.s3Bucket,
+      new Error("Simulated deletion failure")
+    );
+    vi.spyOn(fileManager, "delete").mockRejectedValueOnce(deletionError);
+    const logError = vi.spyOn(genericLogger, "error").mockReturnThis();
 
+    const response = await catalogService.updateEService(
+      mockEService.id,
+      {
+        name: updatedName,
+        description: mockEService.description,
+        technology: "SOAP",
+        mode: "DELIVER",
+      },
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+    );
+
+    expect(response).toEqual({
+      data: {
+        ...eservice,
+        name: updatedName,
+        technology: "Soap",
+        descriptors: [
+          {
+            ...descriptor,
+            interface: undefined,
+            serverUrls: [],
+          },
+        ],
+      },
+      metadata: { version: 1 },
+    });
     expect(
-      catalogService.updateEService(
-        mockEService.id,
-        {
-          name: updatedName,
-          description: mockEService.description,
-          technology: "SOAP",
-          mode: "DELIVER",
-        },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
-      )
-    ).rejects.toThrowError(
-      fileManagerDeleteError(
-        mockDocument.path,
-        config.s3Bucket,
-        new Error("The specified bucket does not exist")
-      )
+      await fileManager.get(config.s3Bucket, mockDocument.path, genericLogger)
+    ).toEqual(new Uint8Array(content));
+    expect(await readLastEserviceEvent(eservice.id)).toMatchObject({
+      type: "DraftEServiceUpdated",
+      version: "1",
+    });
+    expect(logError).toHaveBeenCalledWith(
+      expect.stringContaining(`s3://${config.s3Bucket}/${mockDocument.path}`)
+    );
+    expect(logError).toHaveBeenCalledWith(
+      expect.stringContaining(deletionError.message)
     );
   });
   it("should write on event-store for the update of an eService (update description only)", async () => {

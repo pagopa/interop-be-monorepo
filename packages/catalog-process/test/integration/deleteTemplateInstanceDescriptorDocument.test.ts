@@ -1,4 +1,4 @@
-import { genericLogger, fileManagerDeleteError } from "pagopa-interop-commons";
+import { fileManagerDeleteError, genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockContext,
@@ -14,7 +14,7 @@ import {
   EServiceDescriptorDocumentDeletedByTemplateUpdateV2,
   toEServiceV2,
 } from "pagopa-interop-models";
-import { vi, expect, describe, it } from "vitest";
+import { vi, expect, describe, it, afterEach } from "vitest";
 
 import { config } from "../../src/config/config.js";
 import {
@@ -29,6 +29,10 @@ import {
 } from "../integrationUtils.js";
 
 describe("delete Document", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   const mockDescriptor = getMockDescriptor();
   const mockEService = getMockEService();
   const mockDocument = getMockDocument();
@@ -109,9 +113,7 @@ describe("delete Document", () => {
     ).not.toContain(document.path);
   });
 
-  it("should fail if the file deletion fails", async () => {
-    config.s3Bucket = "invalid-bucket"; // configure an invalid bucket to force a failure
-
+  it("should persist the event and log a deletion failure without failing", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.draft,
@@ -123,6 +125,21 @@ describe("delete Document", () => {
     };
 
     await addOneEService(eservice);
+    const content = Buffer.from("original document");
+    await fileManager.storeBytesByKey(
+      config.s3Bucket,
+      mockDocument.path,
+      content,
+      genericLogger
+    );
+    const deletionError = fileManagerDeleteError(
+      mockDocument.path,
+      config.s3Bucket,
+      new Error("Simulated deletion failure")
+    );
+    vi.spyOn(fileManager, "delete").mockRejectedValueOnce(deletionError);
+    const logError = vi.spyOn(genericLogger, "error").mockReturnThis();
+
     await expect(
       catalogService.internalDeleteTemplateInstanceDescriptorDocument(
         eservice.id,
@@ -130,12 +147,17 @@ describe("delete Document", () => {
         mockDocument.id,
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
-    ).rejects.toThrowError(
-      fileManagerDeleteError(
-        mockDocument.path,
-        config.s3Bucket,
-        new Error("The specified bucket does not exist")
-      )
+    ).resolves.toBeUndefined();
+
+    expect(
+      await fileManager.get(config.s3Bucket, mockDocument.path, genericLogger)
+    ).toEqual(new Uint8Array(content));
+    expect((await readLastEserviceEvent(eservice.id)).version).toBe("1");
+    expect(logError).toHaveBeenCalledWith(
+      expect.stringContaining(`s3://${config.s3Bucket}/${mockDocument.path}`)
+    );
+    expect(logError).toHaveBeenCalledWith(
+      expect.stringContaining(deletionError.message)
     );
   });
 

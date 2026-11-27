@@ -16,6 +16,7 @@ import {
   getMockRiskAnalysisTemplateAnswerAnnotationWithDocs,
   getMockTenant,
   getMockValidRiskAnalysisFormTemplate,
+  writeInEventstore,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
@@ -57,6 +58,7 @@ import {
   PurposeTemplateSeedApiBuilder,
   purposeTemplateService,
   readLastPurposeTemplateEvent,
+  postgresDB,
   uploadDocument,
 } from "../integrationUtils.js";
 import {
@@ -378,6 +380,84 @@ describe("updatePurposeTemplate", () => {
 
     expect(updatedPurposeTemplate.data.purposeTitle).toBe("template title");
   });
+
+  it.each(["template", "risk-analysis"] as const)(
+    "should not delete removed-answer documents if the event-store rejects the %s update",
+    async (kind) => {
+      const document = getMockRiskAnalysisTemplateAnswerAnnotationDocument();
+      const template: PurposeTemplate = {
+        ...existingPurposeTemplate,
+        purposeRiskAnalysisForm: {
+          ...mockValidRiskAnalysisTemplateForm,
+          singleAnswers: [
+            ...mockValidRiskAnalysisTemplateForm.singleAnswers.filter(
+              (answer) => answer.key !== "ruleOfLawText"
+            ),
+            {
+              id: generateId(),
+              key: "ruleOfLawText",
+              editable: true,
+              suggestedValues: [],
+              annotation: getMockRiskAnalysisTemplateAnswerAnnotationWithDocs(
+                generateId<RiskAnalysisTemplateAnswerAnnotationId>(),
+                [document]
+              ),
+            },
+          ],
+        },
+      };
+      await addOneTenant(creator);
+      await addOnePurposeTemplate(template);
+      const content = Buffer.from("original removed-answer document");
+      await fileManager.storeBytesByKey(
+        config.s3Bucket,
+        document.path,
+        content,
+        genericLogger
+      );
+      await writeInEventstore(
+        {
+          stream_id: template.id,
+          version: 1,
+          event: {
+            type: "PurposeTemplateAdded",
+            event_version: 2,
+            data: { purposeTemplate: toPurposeTemplateV2(template) },
+          },
+        },
+        "purpose_template",
+        postgresDB
+      );
+      const deletion = vi.spyOn(fileManager, "delete").mockClear();
+      const seed = new PurposeTemplateSeedApiBuilder(purposeTemplateSeed)
+        .removeAnswer("ruleOfLawText")
+        .build();
+      if (!seed.purposeRiskAnalysisForm) {
+        fail("Missing risk analysis form in test seed");
+      }
+      const ctx = getMockContext({ authData: getMockAuthData(creatorId) });
+      const operation =
+        kind === "template"
+          ? purposeTemplateService.updatePurposeTemplate(template.id, seed, ctx)
+          : purposeTemplateService.updatePurposeTemplateRiskAnalysis(
+              template.id,
+              seed.purposeRiskAnalysisForm,
+              ctx
+            );
+
+      await expect(operation).rejects.toMatchObject({
+        code: "eventConflictError",
+      });
+
+      expect(deletion).not.toHaveBeenCalled();
+      expect(
+        await fileManager.get(config.s3Bucket, document.path, genericLogger)
+      ).toEqual(new Uint8Array(content));
+      expect((await readLastPurposeTemplateEvent(template.id)).version).toBe(
+        "1"
+      );
+    }
+  );
 
   it("Should remove annotations documents for each answer deleted in purpose template seed, all annotation documents of answers not affected by update still remains in S3", async () => {
     vi.spyOn(fileManager, "delete");

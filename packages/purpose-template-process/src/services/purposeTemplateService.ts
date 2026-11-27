@@ -9,11 +9,11 @@ import {
   getLatestVersionFormRules,
   M2MAdminAuthData,
   M2MAuthData,
-  Logger,
   riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate,
   riskAnalysisValidatedAnswerToRiskAnalysisAnswer,
   UIAuthData,
   WithLogger,
+  deleteFiles,
 } from "pagopa-interop-commons";
 import {
   DescriptorId,
@@ -51,6 +51,7 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
+import { config } from "../config/config.js";
 import { purposeTemplateToApiPurposeTemplateSeed } from "../model/domain/apiConverter.js";
 import {
   associationEServicesForPurposeTemplateFailed,
@@ -94,8 +95,7 @@ import {
 } from "../model/domain/toEvent.js";
 import {
   addAnnotationDocumentToUpdatedAnswerIfNeeded,
-  cleanupAnnotationDocsForRemovedAnswers,
-  deleteRiskAnalysisTemplateAnswerAnnotationDocuments,
+  getAnnotationDocumentPathsForRemovedAnswers,
 } from "../utilities/riskAnalysisDocUtils.js";
 import {
   GetPurposeTemplateEServiceDescriptorsFilters,
@@ -725,18 +725,27 @@ async function updateDraftPurposeTemplate(
   const updatedPurposeTemplate = await prepareDraftPurposeTemplateUpdate(
     purposeTemplate.data,
     typeAndSeed,
-    readModelService,
+    readModelService
+  );
+  const documentPathsToDelete =
+    typeAndSeed.type === "put"
+      ? getAnnotationDocumentPathsForRemovedAnswers(
+          typeAndSeed.seed,
+          purposeTemplate.data
+        )
+      : [];
+  const updateEvent = toCreateEventPurposeTemplateDraftUpdated(
+    updatedPurposeTemplate,
+    correlationId,
+    purposeTemplate.metadata.version
+  );
+  const event = await repository.createEvent(updateEvent);
+  await deleteFiles({
     fileManager,
-    logger
-  );
-
-  const event = await repository.createEvent(
-    toCreateEventPurposeTemplateDraftUpdated(
-      updatedPurposeTemplate,
-      correlationId,
-      purposeTemplate.metadata.version
-    )
-  );
+    bucket: config.s3Bucket,
+    paths: documentPathsToDelete,
+    logger,
+  });
 
   return {
     data: updatedPurposeTemplate,
@@ -777,9 +786,7 @@ async function prepareDraftPurposeTemplateUpdate(
         type: "patch";
         seed: purposeTemplateApi.PatchUpdatePurposeTemplateSeed;
       },
-  readModelService: ReadModelServiceSQL,
-  fileManager: FileManager,
-  logger: Logger
+  readModelService: ReadModelServiceSQL
 ): Promise<PurposeTemplate> {
   assertPurposeTemplateHasRiskAnalysisForm(purposeTemplate);
 
@@ -807,8 +814,8 @@ async function prepareDraftPurposeTemplateUpdate(
       ? handlesPersonalData
       : purposeTemplate.handlesPersonalData;
 
-  const updatedPurposeRiskAnalysisForm = await match(typeAndSeed)
-    .with({ type: "put" }, async ({ seed }) => {
+  const updatedPurposeRiskAnalysisForm = match(typeAndSeed)
+    .with({ type: "put" }, ({ seed }) => {
       const riskAnalysisTemplate = validateAndTransformRiskAnalysisTemplate(
         seed.purposeRiskAnalysisForm,
         purposeTemplate.targetTenantKind,
@@ -816,13 +823,6 @@ async function prepareDraftPurposeTemplateUpdate(
       );
 
       if (riskAnalysisTemplate) {
-        await cleanupAnnotationDocsForRemovedAnswers(
-          seed,
-          purposeTemplate,
-          fileManager,
-          logger
-        );
-
         return addAnnotationDocumentToUpdatedAnswerIfNeeded(
           seed,
           purposeTemplateWithRiskAnalysisForm.purposeRiskAnalysisForm,
@@ -1608,9 +1608,7 @@ export function purposeTemplateServiceBuilder(
           prepareDraftPurposeTemplateUpdate(
             purposeTemplate.data,
             { type: "patch", seed: purposeTemplateSeed },
-            readModelService,
-            fileManager,
-            ctx.logger
+            readModelService
           )
         )
         .with(
@@ -2307,19 +2305,22 @@ export function purposeTemplateServiceBuilder(
           .filter((a) => a.annotation)
           .flatMap((a) => a.annotation?.docs || []);
 
-      await deleteRiskAnalysisTemplateAnswerAnnotationDocuments({
-        annotationDocumentsToRemove,
+      const documentPathsToDelete = annotationDocumentsToRemove.map(
+        (document) => document.path
+      );
+      const deletionEvent = toCreateEventPurposeTemplateDraftDeleted(
+        purposeTemplate.data,
+        correlationId,
+        purposeTemplate.metadata.version
+      );
+
+      await repository.createEvent(deletionEvent);
+      await deleteFiles({
         fileManager,
+        bucket: config.s3Bucket,
+        paths: documentPathsToDelete,
         logger,
       });
-
-      await repository.createEvent(
-        toCreateEventPurposeTemplateDraftDeleted(
-          purposeTemplate.data,
-          correlationId,
-          purposeTemplate.metadata.version
-        )
-      );
     },
     async deleteRiskAnalysisTemplateAnswerAnnotation({
       purposeTemplateId,
@@ -2351,19 +2352,22 @@ export function purposeTemplateServiceBuilder(
         readModelService
       );
 
-      await deleteRiskAnalysisTemplateAnswerAnnotationDocuments({
-        annotationDocumentsToRemove,
+      const documentPathsToDelete = annotationDocumentsToRemove.map(
+        (document) => document.path
+      );
+      const updateEvent = toCreateEventPurposeTemplateDraftUpdated(
+        updatedPurposeTemplate.data,
+        correlationId,
+        updatedPurposeTemplate.metadata.version
+      );
+
+      const event = await repository.createEvent(updateEvent);
+      await deleteFiles({
         fileManager,
+        bucket: config.s3Bucket,
+        paths: documentPathsToDelete,
         logger,
       });
-
-      const event = await repository.createEvent(
-        toCreateEventPurposeTemplateDraftUpdated(
-          updatedPurposeTemplate.data,
-          correlationId,
-          updatedPurposeTemplate.metadata.version
-        )
-      );
 
       return {
         data: updatedAnswer,
@@ -2398,20 +2402,21 @@ export function purposeTemplateServiceBuilder(
           readModelService,
         });
 
-      await deleteRiskAnalysisTemplateAnswerAnnotationDocuments({
-        annotationDocumentsToRemove: [removedAnnotationDocument],
-        fileManager,
-        logger,
-      });
-
-      const event = await repository.createEvent(
+      const deletionEvent =
         toCreateEventPurposeTemplateAnnotationDocumentDeleted({
           purposeTemplate: updatedPurposeTemplate.data,
           documentId,
           version: updatedPurposeTemplate.metadata.version,
           correlationId,
-        })
-      );
+        });
+
+      const event = await repository.createEvent(deletionEvent);
+      await deleteFiles({
+        fileManager,
+        bucket: config.s3Bucket,
+        paths: [removedAnnotationDocument.path],
+        logger,
+      });
 
       return {
         data: removedAnnotationDocument,
@@ -2492,20 +2497,24 @@ export function purposeTemplateServiceBuilder(
         updatedAt: new Date(),
       };
 
-      await cleanupAnnotationDocsForRemovedAnswers(
+      const documentPathsToDelete = getAnnotationDocumentPathsForRemovedAnswers(
         purposeTemplateToApiPurposeTemplateSeed(updatedPurposeTemplate),
-        purposeTemplate.data,
-        fileManager,
-        logger
+        purposeTemplate.data
       );
 
-      const event = await repository.createEvent(
-        toCreateEventPurposeTemplateDraftUpdated(
-          updatedPurposeTemplate,
-          correlationId,
-          purposeTemplate.metadata.version
-        )
+      const updateEvent = toCreateEventPurposeTemplateDraftUpdated(
+        updatedPurposeTemplate,
+        correlationId,
+        purposeTemplate.metadata.version
       );
+
+      const event = await repository.createEvent(updateEvent);
+      await deleteFiles({
+        fileManager,
+        bucket: config.s3Bucket,
+        paths: documentPathsToDelete,
+        logger,
+      });
 
       return {
         data: purposeRiskAnalysisFormWithDocuments,

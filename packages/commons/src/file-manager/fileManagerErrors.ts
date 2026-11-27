@@ -13,11 +13,14 @@ export class FileManagerError extends InternalError<FileManagerErrorCode> {
   constructor({
     code,
     detail,
+    cause,
   }: {
     code: FileManagerErrorCode;
     detail: string;
+    cause?: unknown;
   }) {
     super({ code, detail });
+    this.cause = cause;
   }
 }
 
@@ -32,6 +35,7 @@ export function fileManagerCopyError(
     detail: `Error copying file ${filePathToCopy} to ${key} in bucket ${bucket}: ${parseErrorMessage(
       error
     )}`,
+    cause: error,
   });
 }
 

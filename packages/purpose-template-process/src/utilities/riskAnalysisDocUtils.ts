@@ -1,5 +1,4 @@
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
-import { FileManager, Logger } from "pagopa-interop-commons";
 import {
   PurposeTemplate,
   RiskAnalysisFormTemplate,
@@ -7,8 +6,6 @@ import {
   RiskAnalysisTemplateMultiAnswer,
   RiskAnalysisTemplateSingleAnswer,
 } from "pagopa-interop-models";
-
-import { config } from "../config/config.js";
 
 /**
  * Finds answer IDs in the RiskAnalysisFormTemplate that are not present
@@ -35,33 +32,17 @@ function findRemovedAnswerWithAnnotationDocs(
     .flatMap((answer) => answer.annotation?.docs || []);
 }
 
-export async function cleanupAnnotationDocsForRemovedAnswers(
+export function getAnnotationDocumentPathsForRemovedAnswers(
   purposeTemplateSeed: purposeTemplateApi.PurposeTemplateSeed,
-  purposeTemplate: PurposeTemplate,
-  fileManager: FileManager,
-  logger: Logger
-): Promise<void> {
-  const annotationDocs = findRemovedAnswerWithAnnotationDocs(
+  purposeTemplate: PurposeTemplate
+): string[] {
+  if (!purposeTemplateSeed.purposeRiskAnalysisForm) {
+    return [];
+  }
+  return findRemovedAnswerWithAnnotationDocs(
     purposeTemplateSeed,
     purposeTemplate.purposeRiskAnalysisForm
-  );
-
-  if (annotationDocs.length === 0) {
-    return;
-  }
-
-  const results = await Promise.allSettled(
-    annotationDocs.map((doc) =>
-      fileManager.delete(config.s3Bucket, doc.path, logger)
-    )
-  );
-
-  // Non-critical operation: Log S3 file deletion errors but continue execution
-  results.forEach((result) => {
-    if (result.status === "rejected") {
-      logger.warn(`Error deleting annotation files: ${result.reason}`);
-    }
-  });
+  ).map((document) => document.path);
 }
 
 export function addAnnotationDocumentToUpdatedAnswerIfNeeded(
@@ -139,20 +120,4 @@ function retrieveUpdatedAnswerWithAnnotationDocs(
       }),
       {}
     );
-}
-
-export async function deleteRiskAnalysisTemplateAnswerAnnotationDocuments({
-  annotationDocumentsToRemove,
-  fileManager,
-  logger,
-}: {
-  annotationDocumentsToRemove: RiskAnalysisTemplateAnswerAnnotationDocument[];
-  fileManager: FileManager;
-  logger: Logger;
-}): Promise<void> {
-  await Promise.all(
-    annotationDocumentsToRemove.map(async (doc) => {
-      await fileManager.delete(config.s3Bucket, doc.path, logger);
-    })
-  );
 }

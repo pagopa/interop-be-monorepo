@@ -170,7 +170,10 @@ export function initFileManager(
         await client.send(
           new CopyObjectCommand({
             Bucket: bucket,
-            CopySource: encodeURI(`${bucket}/${filePathToCopy}`),
+            CopySource: `${bucket}/${filePathToCopy
+              .split("/")
+              .map(encodeURIComponent)
+              .join("/")}`,
             Key: key,
           })
         );
