@@ -1,5 +1,5 @@
 import {
-  ContactDataServiceDBConfig,
+  ContactDataDBConfig,
   AWSSesConfig,
   KafkaConsumerConfig,
   EmailDispatchTopicConfig,
@@ -32,7 +32,7 @@ const EmailSenderConfig = KafkaConsumerConfig.and(SESEmailSenderConfig)
   .and(EmailDispatchTopicConfig)
   .and(SelfCareClientConfig)
   .and(ReadModelSQLDbConfig)
-  .and(ContactDataServiceDBConfig);
+  .and(ContactDataDBConfig);
 
 type EmailSenderConfig = z.infer<typeof EmailSenderConfig>;
 
