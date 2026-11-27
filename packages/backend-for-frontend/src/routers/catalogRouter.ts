@@ -63,6 +63,19 @@ const catalogRouter = (
       (error) => ctx.logger.warn(`Error retrieving placeholder data: ${error}`)
     );
 
+  const commonCatalogIdentifyingWordPlaceholderMapper = async <
+    T extends { instanceLabel?: string | undefined },
+  >(
+    ctx: WithLogger<BffAppContext>,
+    body: T
+  ) =>
+    placeholderMapperGenerator(
+      () => body,
+      (value, message) =>
+        message.replace("{identifyingWord}", () => value.instanceLabel ?? ""),
+      (error) => ctx.logger.warn(`Error retrieving placeholder data: ${error}`)
+    );
+
   catalogRouter
     .get("/catalog", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
@@ -236,14 +249,7 @@ const catalogRouter = (
             `Error creating EService instance from template ${req.params.templateId}`
           ),
           ["{identifyingWord}"],
-          () =>
-            placeholderMapperGenerator(
-              () => req.body.instanceLabel,
-              (instanceLabel, message) =>
-                message.replace("{identifyingWord}", () => instanceLabel ?? ""),
-              (error) =>
-                ctx.logger.warn(`Error retrieving placeholder data: ${error}`)
-            )
+          () => commonCatalogIdentifyingWordPlaceholderMapper(ctx, req.body)
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -961,6 +967,7 @@ const catalogRouter = (
           .status(200)
           .send(bffApi.CreatedResource.parse(createdResource));
       } catch (error) {
+        // Get from body here too
         const errorRes = await applyPlaceholderToError(
           makeApiProblem(
             error,
@@ -1492,6 +1499,7 @@ const catalogRouter = (
           );
           return res.status(200).send(bffApi.CreatedResource.parse(result));
         } catch (error) {
+          // This needs the body
           const errorRes = await applyPlaceholderToError(
             makeApiProblem(
               error,
