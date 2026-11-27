@@ -16,7 +16,7 @@ import { taxCodeAndIPACodeConflict } from "../../../src/model/errors.js";
 import { api, mockTenantService } from "../../vitest.api.setup.js";
 
 describe("GET /tenants route test", () => {
-  const mockApiTenant1 = getMockedApiTenant();
+  const mockApiTenant1 = getMockedApiTenant({ populateHierarchy: true });
   const mockApiTenant2 = getMockedApiTenant();
 
   const mockResponse: m2mGatewayApiV3.Tenants = {
@@ -94,6 +94,24 @@ describe("GET /tenants route test", () => {
     {
       ...mockResponse,
       results: [{ ...mockResponse.results[0], kind: "INVALID_KIND" }],
+    },
+    {
+      ...mockResponse,
+      results: [
+        {
+          ...mockResponse.results[0],
+          parentTenants: Array(3).fill({ id: mockApiTenant1.id, name: "Root" }),
+        },
+      ],
+    },
+    {
+      ...mockResponse,
+      results: [
+        {
+          ...mockResponse.results[0],
+          parentTenants: [{ id: mockApiTenant1.id, name: "Root", extra: true }],
+        },
+      ],
     },
     {
       ...mockResponse,
