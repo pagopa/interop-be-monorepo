@@ -2,7 +2,7 @@
 import { bffApi } from "pagopa-interop-api-clients";
 import { authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
-import { generateId } from "pagopa-interop-models";
+import { generateId, TenantId, tenantUnitType } from "pagopa-interop-models";
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -47,7 +47,10 @@ describe("API POST /catalog", () => {
 
   const makeRequest = async (
     token: string,
-    body: typeof defaultBody & { sortBy?: string } = defaultBody
+    body: typeof defaultBody & {
+      sortBy?: string;
+      groupByTemplate?: boolean;
+    } = defaultBody
   ) =>
     request(api)
       .post(`${appBasePath}/catalog`)
@@ -60,6 +63,61 @@ describe("API POST /catalog", () => {
     const res = await makeRequest(token);
     expect(res.status).toBe(200);
     expect(res.body).toEqual(mockApiCatalogQueryResults);
+  });
+
+  it("Should return the producer hierarchy for e-services when grouped by template", async () => {
+    const producerId = generateId<TenantId>();
+    const parentTenantId = generateId<TenantId>();
+    const rootTenantId = generateId<TenantId>();
+    const eservice = {
+      ...getMockBffApiCatalogEService(),
+      resultType: "eservice" as const,
+      producer: {
+        id: producerId,
+        name: "Tenant UO",
+        subUnitType: tenantUnitType.UO,
+        parentTenants: [
+          {
+            id: parentTenantId,
+            name: "Tenant AOO",
+            subUnitType: tenantUnitType.AOO,
+          },
+          { id: rootTenantId, name: "Tenant root" },
+        ],
+      },
+    };
+    const group = {
+      id: generateId(),
+      name: "Template",
+      description: "Template description",
+      numInstances: 2,
+      resultType: "template" as const,
+    };
+    services.catalogService.queryCatalog = vi.fn().mockResolvedValue({
+      results: [eservice, group],
+      pagination: { offset: 0, limit: 5, totalCount: 2 },
+    });
+
+    const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), {
+      ...defaultBody,
+      groupByTemplate: true,
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body.results[0].producer).toEqual({
+      id: producerId,
+      name: "Tenant UO",
+      subUnitType: tenantUnitType.UO,
+      parentTenants: [
+        {
+          id: parentTenantId,
+          name: "Tenant AOO",
+          subUnitType: tenantUnitType.AOO,
+        },
+        { id: rootTenantId, name: "Tenant root" },
+      ],
+    });
+    expect(res.body.results[1]).toEqual(group);
   });
 
   it("Should accept RELEVANCE as sortBy", async () => {

@@ -1,12 +1,14 @@
 import {
   agreementApi,
   attributeRegistryApi,
+  bffApi,
   catalogApi,
   eserviceTemplateApi,
   inAppNotificationApi,
+  tenantApi,
 } from "pagopa-interop-api-clients";
 import { getMockContext } from "pagopa-interop-commons-test";
-import { generateId } from "pagopa-interop-models";
+import { generateId, TenantId, tenantUnitType } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type {
@@ -28,6 +30,20 @@ describe("queryCatalog", () => {
     queryEServices: mockQueryEServices,
   } as unknown as catalogApi.CatalogProcessClient;
 
+  const producerId = generateId<TenantId>();
+  const parentTenantId = generateId<TenantId>();
+  const rootTenantId = generateId<TenantId>();
+  const mockProducerHierarchy: Partial<tenantApi.Tenant> = {
+    subUnitType: tenantUnitType.UO,
+    parentTenants: [
+      {
+        id: parentTenantId,
+        name: "Tenant AOO",
+        subUnitType: tenantUnitType.AOO,
+      },
+      { id: rootTenantId, name: "Tenant root" },
+    ],
+  };
   const mockTenantProcessClient = {
     tenant: {
       getTenant: vi.fn(({ params: { id } }) => ({
@@ -35,6 +51,7 @@ describe("queryCatalog", () => {
         name: "mockTenant",
         attributes: [],
         mails: [],
+        ...(id === producerId ? mockProducerHierarchy : {}),
       })),
     },
   } as unknown as TenantProcessClient;
@@ -58,6 +75,7 @@ describe("queryCatalog", () => {
 
   const firstEService: catalogApi.CatalogEServiceQueryResult = {
     ...getMockCatalogApiEService(),
+    producerId,
     descriptors: [],
     resultType: "eservice",
   };
@@ -97,6 +115,22 @@ describe("queryCatalog", () => {
       ["eservice", secondEService.id],
     ]);
     expect(result.results[1]).toEqual(templateInstancesGroup);
+    expect(bffApi.CatalogQueryResults.parse(result).results[0]).toMatchObject({
+      resultType: "eservice",
+      id: firstEService.id,
+      producer: {
+        id: producerId,
+        subUnitType: tenantUnitType.UO,
+        parentTenants: [
+          {
+            id: parentTenantId,
+            name: "Tenant AOO",
+            subUnitType: tenantUnitType.AOO,
+          },
+          { id: rootTenantId, name: "Tenant root" },
+        ],
+      },
+    });
     expect(result.pagination).toEqual({ offset: 0, limit: 3, totalCount: 7 });
   });
 

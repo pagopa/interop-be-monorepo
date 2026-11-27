@@ -1,8 +1,25 @@
-import { attributeRegistryApi, catalogApi } from "pagopa-interop-api-clients";
-import { AttributeId, generateId } from "pagopa-interop-models";
+import {
+  attributeRegistryApi,
+  bffApi,
+  catalogApi,
+} from "pagopa-interop-api-clients";
+import {
+  getMockedApiEservice,
+  getMockedApiTenant,
+} from "pagopa-interop-commons-test";
+import {
+  AttributeId,
+  generateId,
+  TenantId,
+  tenantUnitType,
+} from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 
-import { toBffCatalogApiDescriptorAttributes } from "../src/api/catalogApiConverter.js";
+import {
+  toBffCatalogApiDescriptorAttributes,
+  toBffCatalogApiEService,
+  toBffCatalogTenant,
+} from "../src/api/catalogApiConverter.js";
 import { attributeNotExists } from "../src/model/errors.js";
 
 describe("catalogApiConverter", () => {
@@ -139,6 +156,119 @@ describe("catalogApiConverter", () => {
           descriptorAttributes
         )
       ).toThrow(attributeNotExists(missingAttributeId));
+    });
+  });
+
+  describe("toBffCatalogTenant", () => {
+    it("should omit parent tenants when the tenant has no hierarchy", () => {
+      const tenant = getMockedApiTenant();
+      const result = toBffCatalogTenant(tenant, true);
+
+      expect(result).toEqual({
+        id: tenant.id,
+        name: tenant.name,
+        selfcareId: tenant.selfcareId,
+        subUnitType: tenant.subUnitType,
+        parentTenants: undefined,
+        hasUnreadNotifications: true,
+      });
+      expect(bffApi.CatalogTenant.parse(result).parentTenants).toBeUndefined();
+    });
+
+    it("should return the parent and root tenants when available", () => {
+      const parentTenantId = generateId<TenantId>();
+      const rootTenantId = generateId<TenantId>();
+      const tenant = {
+        ...getMockedApiTenant(),
+        name: "Tenant UO",
+        subUnitType: tenantUnitType.UO,
+        parentTenants: [
+          {
+            id: parentTenantId,
+            name: "Tenant AOO",
+            subUnitType: tenantUnitType.AOO,
+          },
+          { id: rootTenantId, name: "Tenant root" },
+        ],
+      };
+
+      const result = toBffCatalogTenant(tenant);
+
+      expect(bffApi.CatalogTenant.parse(result)).toMatchObject({
+        id: tenant.id,
+        name: "Tenant UO",
+        subUnitType: tenantUnitType.UO,
+        parentTenants: [
+          {
+            id: parentTenantId,
+            name: "Tenant AOO",
+            subUnitType: tenantUnitType.AOO,
+          },
+          { id: rootTenantId, name: "Tenant root" },
+        ],
+        hasUnreadNotifications: false,
+      });
+    });
+  });
+
+  describe("toBffCatalogApiEService", () => {
+    it("should propagate the producer hierarchy while preserving catalog fields", () => {
+      const parentTenantId = generateId<TenantId>();
+      const rootTenantId = generateId<TenantId>();
+      const producer = {
+        ...getMockedApiTenant(),
+        name: "Tenant UO",
+        subUnitType: tenantUnitType.UO,
+        parentTenants: [
+          {
+            id: parentTenantId,
+            name: "Tenant AOO",
+            subUnitType: tenantUnitType.AOO,
+          },
+          { id: rootTenantId, name: "Tenant root" },
+        ],
+      };
+      const eservice = {
+        ...getMockedApiEservice(),
+        producerId: producer.id,
+      };
+
+      const result = toBffCatalogApiEService(eservice, producer, true, true);
+
+      expect(result.producer).toEqual({
+        id: eservice.producerId,
+        name: producer.name,
+        selfcareId: producer.selfcareId,
+        subUnitType: tenantUnitType.UO,
+        parentTenants: [
+          {
+            id: parentTenantId,
+            name: "Tenant AOO",
+            subUnitType: tenantUnitType.AOO,
+          },
+          { id: rootTenantId, name: "Tenant root" },
+        ],
+      });
+      expect(bffApi.CatalogEService.parse(result)).toMatchObject({
+        id: eservice.id,
+        name: eservice.name,
+        description: eservice.description,
+        producer: {
+          id: producer.id,
+          name: producer.name,
+          subUnitType: tenantUnitType.UO,
+          parentTenants: [
+            {
+              id: parentTenantId,
+              name: "Tenant AOO",
+              subUnitType: tenantUnitType.AOO,
+            },
+            { id: rootTenantId, name: "Tenant root" },
+          ],
+        },
+        isMine: true,
+        hasUnreadNotifications: true,
+      });
     });
   });
 });
