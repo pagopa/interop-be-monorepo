@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { AxiosError, AxiosHeaders } from "axios";
 import { bffApi } from "pagopa-interop-api-clients";
 import { authRole } from "pagopa-interop-commons";
 import {
@@ -84,4 +85,67 @@ describe("API POST /templates/:templateId/eservices", () => {
       expect(res.status).toBe(400);
     }
   );
+
+  describe("identifying word placeholder in error messages", () => {
+    const duplicateNameProblem = {
+      type: "about:blank",
+      title: "Duplicated service name",
+      status: 409,
+      detail: "An EService with this name already exists",
+      correlationId: generateId(),
+      errors: [{ code: "001-007", detail: "Duplicated service name" }],
+    };
+
+    const makeDuplicateNameError = () =>
+      new AxiosError("Conflict", "ERR_BAD_REQUEST", undefined, undefined, {
+        status: 409,
+        statusText: "Conflict",
+        data: duplicateNameProblem,
+        headers: {},
+        config: { headers: new AxiosHeaders() },
+      });
+
+    beforeEach(() => {
+      clients.catalogProcessClient.createEServiceInstanceFromTemplate = vi
+        .fn()
+        .mockRejectedValue(makeDuplicateNameError());
+    });
+
+    it("Should replace {identifyingWord} with the instanceLabel of the request", async () => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, generateId<EServiceTemplateId>(), {
+        ...mockInstanceEServiceSeed,
+        instanceLabel: "MyLabel",
+      });
+
+      expect(res.status).toBe(409);
+      expect(res.body.userMessage).toContain("MyLabel");
+      expect(res.body.userMessage).not.toContain("{identifyingWord}");
+    });
+
+    it("Should not interpret special replacement patterns contained in the instanceLabel", async () => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, generateId<EServiceTemplateId>(), {
+        ...mockInstanceEServiceSeed,
+        instanceLabel: "$&$1$$",
+      });
+
+      expect(res.status).toBe(409);
+      expect(res.body.userMessage).toContain("$&$1$$");
+      expect(res.body.userMessage).not.toContain("{identifyingWord}");
+    });
+
+    it("Should replace {identifyingWord} with an empty string if no instanceLabel is provided", async () => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, generateId<EServiceTemplateId>(), {
+        ...mockInstanceEServiceSeed,
+        instanceLabel: undefined,
+      });
+
+      expect(res.status).toBe(409);
+      expect(res.body.errors).toEqual(duplicateNameProblem.errors);
+      expect(res.body.userMessage).toContain("parola identificativa");
+      expect(res.body.userMessage).not.toContain("{identifyingWord}");
+    });
+  });
 });
