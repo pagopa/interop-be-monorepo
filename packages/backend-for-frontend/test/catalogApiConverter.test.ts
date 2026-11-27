@@ -2,6 +2,7 @@ import {
   attributeRegistryApi,
   bffApi,
   catalogApi,
+  tenantApi,
 } from "pagopa-interop-api-clients";
 import {
   getMockedApiEservice,
@@ -21,6 +22,7 @@ import {
   toBffCatalogTenant,
   toBffCatalogDescriptorEService,
   toCompactEservice,
+  toBffEServiceTemplateInstance,
 } from "../src/api/catalogApiConverter.js";
 import { attributeNotExists } from "../src/model/errors.js";
 
@@ -348,6 +350,47 @@ describe("catalogApiConverter", () => {
         name: producer.name,
         subUnitType: tenantUnitType.UO,
         parentTenants: [
+          {
+            id: parentTenantId,
+            name: "Tenant AOO",
+            subUnitType: tenantUnitType.AOO,
+          },
+          { id: rootTenantId, name: "Tenant root" },
+        ],
+      });
+    });
+  });
+
+  describe("toBffEServiceTemplateInstance", () => {
+    it("should preserve producer fields and expose its hierarchy after response parsing", () => {
+      const parentTenantId = generateId<TenantId>();
+      const rootTenantId = generateId<TenantId>();
+      const producer: tenantApi.Tenant = {
+        ...getMockedApiTenant(),
+        name: "Tenant UO",
+        subUnitType: tenantUnitType.UO,
+        parentTenants: [
+          {
+            id: parentTenantId,
+            name: "Tenant AOO",
+            subUnitType: tenantUnitType.AOO,
+          },
+          { id: rootTenantId, name: "Tenant root" },
+        ],
+      };
+      const eservice = getMockedApiEservice();
+
+      const result = bffApi.EServiceTemplateInstance.parse(
+        toBffEServiceTemplateInstance(eservice, producer)
+      );
+
+      expect(result).toMatchObject({
+        id: eservice.id,
+        name: eservice.name,
+        producerId: producer.id,
+        producerName: producer.name,
+        producerSubUnitType: tenantUnitType.UO,
+        producerParentTenants: [
           {
             id: parentTenantId,
             name: "Tenant AOO",

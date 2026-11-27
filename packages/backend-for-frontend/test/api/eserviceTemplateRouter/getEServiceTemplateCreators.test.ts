@@ -19,7 +19,7 @@ describe("API GET /eservices/templates/filter/creators", () => {
   const mockTemplateApiCompactOrganizations: eserviceTemplateApi.CompactOrganizations =
     {
       results: [
-        getMockBffApiCompactOrganization(),
+        getMockBffApiCompactOrganization({ populateHierarchy: true }),
         getMockBffApiCompactOrganization(),
         getMockBffApiCompactOrganization(),
       ],

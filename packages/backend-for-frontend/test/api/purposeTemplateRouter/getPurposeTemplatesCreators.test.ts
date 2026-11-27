@@ -1,29 +1,35 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { bffApi } from "pagopa-interop-api-clients";
+import { bffApi, purposeTemplateApi } from "pagopa-interop-api-clients";
 import { authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
 import { generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+import { toBffCompactOrganization } from "../../../src/api/agreementApiConverter.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockBffApiCompactOrganization } from "../../mockUtils.js";
-import { api, services } from "../../vitest.api.setup.js";
+import { api, clients } from "../../vitest.api.setup.js";
 
 describe("API GET /purposeTemplates/filter/creators test", () => {
-  const mockPurposeTemplateCreators: bffApi.CompactOrganizations = {
+  const mockProcessCreators: purposeTemplateApi.CompactOrganizations = {
     results: [
       getMockBffApiCompactOrganization(),
-      getMockBffApiCompactOrganization(),
+      getMockBffApiCompactOrganization({ populateHierarchy: true }),
     ],
+    totalCount: 20,
+  };
+  const mockPurposeTemplateCreators: bffApi.CompactOrganizations = {
+    results: mockProcessCreators.results.map((creator) =>
+      toBffCompactOrganization(creator)
+    ),
     pagination: { offset: 0, limit: 10, totalCount: 20 },
   };
   const defaultQuery = { offset: 0, limit: 10, q: "" };
 
   beforeEach(() => {
-    services.purposeTemplateService.getPublishedPurposeTemplateCreators = vi
-      .fn()
-      .mockResolvedValue(mockPurposeTemplateCreators);
+    clients.purposeTemplateProcessClient.getPublishedPurposeTemplateCreators =
+      vi.fn().mockResolvedValue(mockProcessCreators);
   });
 
   const makeRequest = async (
