@@ -12978,6 +12978,9 @@ components:
         createdAt:
           type: string
           format: date-time
+        subunitPropagationEnabled:
+          type: boolean
+          description: Indicates if propagation to subunits is enabled
       required:
         - id
         - name
