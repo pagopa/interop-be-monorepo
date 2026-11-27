@@ -7,10 +7,7 @@ import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import {
-  getMockBffApiDelegationTenant,
-  getMockBffApiCompactOrganizationWithHierarchy,
-} from "../../mockUtils.js";
+import { getMockBffApiDelegationTenant } from "../../mockUtils.js";
 import { api, clients } from "../../vitest.api.setup.js";
 
 describe("API GET /consumers/delegations/delegatorsWithAgreements", () => {
@@ -18,11 +15,9 @@ describe("API GET /consumers/delegations/delegatorsWithAgreements", () => {
     offset: 0,
     limit: 5,
   };
-  const { id, name, subUnitType, parentTenants } =
-    getMockBffApiCompactOrganizationWithHierarchy();
   const mockClientReponse = {
     results: [
-      { id, name, subUnitType, parentTenants },
+      getMockBffApiDelegationTenant({ populateHierarchy: true }),
       getMockBffApiDelegationTenant(),
       getMockBffApiDelegationTenant(),
     ],

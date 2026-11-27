@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { bffApi } from "pagopa-interop-api-clients";
 import { authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
-import { generateId } from "pagopa-interop-models";
+import { generateId, Problem } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
@@ -37,6 +38,35 @@ describe("API POST /purposes test", () => {
     const res = await makeRequest(token);
     expect(res.status).toBe(200);
     expect(res.body).toEqual(mockCreatedResource);
+  });
+
+  it("Should return 404 for an e-service with a NIL UUID", async () => {
+    const eserviceId: string = "00000000-0000-0000-0000-000000000000";
+    const detail: string = `EService ${eserviceId} not found`;
+    const problem: Problem = {
+      type: "about:blank",
+      title: "EService not found",
+      status: 404,
+      detail,
+      errors: [{ code: "004-0002", detail }],
+    };
+    vi.mocked(clients.purposeProcessClient.createPurpose).mockRejectedValueOnce(
+      new AxiosError(problem.title, undefined, undefined, undefined, {
+        status: 404,
+        statusText: "Not Found",
+        data: problem,
+        config: {} as InternalAxiosRequestConfig,
+        headers: {},
+      })
+    );
+
+    const token: string = generateToken(authRole.ADMIN_ROLE);
+    const res: request.Response = await makeRequest(token, {
+      ...mockPurposeSeed,
+      eserviceId,
+    });
+    expect(res.status).toBe(404);
+    expect(res.body).toEqual(problem);
   });
 
   it.each([

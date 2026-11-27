@@ -8,17 +8,14 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { toBffCompactOrganization } from "../../../src/api/agreementApiConverter.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import {
-  getMockBffApiCompactOrganization,
-  getMockBffApiCompactOrganizationWithHierarchy,
-} from "../../mockUtils.js";
+import { getMockBffApiCompactOrganization } from "../../mockUtils.js";
 import { api, clients } from "../../vitest.api.setup.js";
 
 describe("API GET /purposeTemplates/filter/creators test", () => {
   const mockProcessCreators: purposeTemplateApi.CompactOrganizations = {
     results: [
       getMockBffApiCompactOrganization(),
-      getMockBffApiCompactOrganizationWithHierarchy(),
+      getMockBffApiCompactOrganization({ populateHierarchy: true }),
     ],
     totalCount: 20,
   };
@@ -50,10 +47,6 @@ describe("API GET /purposeTemplates/filter/creators test", () => {
     const res = await makeRequest(token);
     expect(res.status).toBe(200);
     expect(res.body).toEqual(mockPurposeTemplateCreators);
-    expect(res.body.results[1]).toMatchObject({
-      subUnitType: "UO",
-      parentTenants: mockProcessCreators.results[1].parentTenants,
-    });
   });
 
   it.each([

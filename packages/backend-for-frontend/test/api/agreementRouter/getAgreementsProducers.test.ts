@@ -19,7 +19,7 @@ describe("API GET /agreements/filter/producers", () => {
     results: [
       getMockAgreementApiCompactOrganization(),
       getMockAgreementApiCompactOrganization(),
-      getMockAgreementApiCompactOrganization(),
+      getMockAgreementApiCompactOrganization({ populateHierarchy: true }),
     ],
     totalCount: 3,
   };

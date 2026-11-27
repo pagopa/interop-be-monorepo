@@ -11,12 +11,17 @@ import {
   generateId,
   descriptorState,
   Descriptor,
+  ListResult,
   TenantId,
 } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi } from "vitest";
 
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
+import {
+  CatalogQueryResult,
+  TemplateInstancesGroup,
+} from "../../src/model/domain/models.js";
 import { api, catalogService } from "../vitest.api.setup.js";
 
 describe("API POST /catalog authorization test", () => {
@@ -41,13 +46,28 @@ describe("API POST /catalog authorization test", () => {
     descriptors: [descriptor2],
   };
 
-  const mockResponse = {
-    results: [eservice1, eservice2],
-    totalCount: 2,
+  const templateInstancesGroup: TemplateInstancesGroup = {
+    id: generateId(),
+    name: "Template name",
+    description: "Template description",
+    numInstances: 2,
   };
 
-  const apiResponse = catalogApi.EServices.parse({
-    results: mockResponse.results.map(eServiceToApiEService),
+  const mockResponse: ListResult<CatalogQueryResult> = {
+    results: [
+      { ...eservice1, resultType: "eservice" },
+      { ...templateInstancesGroup, resultType: "template" },
+      { ...eservice2, resultType: "eservice" },
+    ],
+    totalCount: 3,
+  };
+
+  const apiResponse = catalogApi.CatalogQueryResults.parse({
+    results: [
+      { ...eServiceToApiEService(eservice1), resultType: "eservice" },
+      { ...templateInstancesGroup, resultType: "template" },
+      { ...eServiceToApiEService(eservice2), resultType: "eservice" },
+    ],
     totalCount: mockResponse.totalCount,
   });
 
@@ -106,6 +126,41 @@ describe("API POST /catalog authorization test", () => {
       expect(res.status).toBe(400);
       expect(catalogService.queryEServices).not.toHaveBeenCalled();
     });
+  });
+
+  describe("groupByTemplate validation", () => {
+    it.each([true, false])(
+      "should accept and forward groupByTemplate: %s",
+      async (groupByTemplate) => {
+        const payload = { ...body, groupByTemplate };
+        vi.mocked(catalogService.queryEServices).mockClear();
+        const res = await makeRequest(
+          generateToken(authRole.ADMIN_ROLE),
+          payload
+        );
+
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual(apiResponse);
+        expect(catalogService.queryEServices).toHaveBeenCalledExactlyOnceWith(
+          payload,
+          expect.anything()
+        );
+      }
+    );
+
+    it.each(["true", "false", 0, 1, null, [], {}].map((value) => [value]))(
+      "should return 400 for invalid groupByTemplate: %j",
+      async (groupByTemplate) => {
+        vi.mocked(catalogService.queryEServices).mockClear();
+        const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), {
+          ...body,
+          groupByTemplate,
+        } as catalogApi.EServicesFilterPayload);
+
+        expect(res.status).toBe(400);
+        expect(catalogService.queryEServices).not.toHaveBeenCalled();
+      }
+    );
   });
 
   describe("availableForRequester validation", () => {
@@ -304,6 +359,52 @@ describe("API POST /catalog authorization test", () => {
     );
   });
 
+  describe("isConsumerDelegable validation", () => {
+    it.each([true, false])(
+      "should accept and forward isConsumerDelegable: %s",
+      async (isConsumerDelegable) => {
+        const payload = { ...body, isConsumerDelegable };
+        vi.mocked(catalogService.queryEServices).mockClear();
+        const res = await makeRequest(
+          generateToken(authRole.ADMIN_ROLE),
+          payload
+        );
+
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual(apiResponse);
+        expect(catalogService.queryEServices).toHaveBeenCalledExactlyOnceWith(
+          payload,
+          expect.anything()
+        );
+      }
+    );
+
+    it("should accept an omitted isConsumerDelegable", async () => {
+      vi.mocked(catalogService.queryEServices).mockClear();
+      const res = await makeRequest(generateToken(authRole.ADMIN_ROLE));
+
+      expect(res.status).toBe(200);
+      expect(catalogService.queryEServices).toHaveBeenCalledExactlyOnceWith(
+        body,
+        expect.anything()
+      );
+    });
+
+    it.each(["true", "false", 0, 1, null, [], {}].map((value) => [value]))(
+      "should return 400 for invalid isConsumerDelegable: %j",
+      async (isConsumerDelegable) => {
+        vi.mocked(catalogService.queryEServices).mockClear();
+        const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), {
+          ...body,
+          isConsumerDelegable,
+        } as catalogApi.EServicesFilterPayload);
+
+        expect(res.status).toBe(400);
+        expect(catalogService.queryEServices).not.toHaveBeenCalled();
+      }
+    );
+  });
+
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
     authRole.API_ROLE,
@@ -335,6 +436,13 @@ describe("API POST /catalog authorization test", () => {
     const res = await makeRequest(token);
 
     expect(res.status).toBe(403);
+  });
+
+  it("Should accept RELEVANCE as sortBy", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, { ...body, sortBy: "RELEVANCE" });
+
+    expect(res.status).toBe(200);
   });
 
   it.each([

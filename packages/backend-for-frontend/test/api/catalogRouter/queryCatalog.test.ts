@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { bffApi } from "pagopa-interop-api-clients";
 import { authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
-import { generateId } from "pagopa-interop-models";
+import { generateId, TenantId, tenantUnitType } from "pagopa-interop-models";
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -19,11 +20,17 @@ describe("API POST /catalog", () => {
     offset: 0,
     limit: 5,
   };
-  const mockApiCatalogEServices = {
+  const mockApiCatalogQueryResults: bffApi.CatalogQueryResults = {
     results: [
-      getMockBffApiCatalogEService(),
-      getMockBffApiCatalogEService(),
-      getMockBffApiCatalogEService(),
+      { ...getMockBffApiCatalogEService(), resultType: "eservice" },
+      {
+        id: generateId(),
+        name: "Template name",
+        description: "Template description",
+        numInstances: 2,
+        resultType: "template",
+      },
+      { ...getMockBffApiCatalogEService(), resultType: "eservice" },
     ],
     pagination: {
       offset: defaultBody.offset,
@@ -35,12 +42,15 @@ describe("API POST /catalog", () => {
   beforeEach(() => {
     services.catalogService.queryCatalog = vi
       .fn()
-      .mockResolvedValue(mockApiCatalogEServices);
+      .mockResolvedValue(mockApiCatalogQueryResults);
   });
 
   const makeRequest = async (
     token: string,
-    body: typeof defaultBody = defaultBody
+    body: typeof defaultBody & {
+      sortBy?: string;
+      groupByTemplate?: boolean;
+    } = defaultBody
   ) =>
     request(api)
       .post(`${appBasePath}/catalog`)
@@ -52,8 +62,84 @@ describe("API POST /catalog", () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(200);
-    expect(res.body).toEqual(mockApiCatalogEServices);
+    expect(res.body).toEqual(mockApiCatalogQueryResults);
   });
+
+  it("Should return the producer hierarchy for e-services when grouped by template", async () => {
+    const producerId = generateId<TenantId>();
+    const parentTenantId = generateId<TenantId>();
+    const rootTenantId = generateId<TenantId>();
+    const eservice = {
+      ...getMockBffApiCatalogEService(),
+      resultType: "eservice" as const,
+      producer: {
+        id: producerId,
+        name: "Tenant UO",
+        subUnitType: tenantUnitType.UO,
+        parentTenants: [
+          {
+            id: parentTenantId,
+            name: "Tenant AOO",
+            subUnitType: tenantUnitType.AOO,
+          },
+          { id: rootTenantId, name: "Tenant root" },
+        ],
+      },
+    };
+    const group = {
+      id: generateId(),
+      name: "Template",
+      description: "Template description",
+      numInstances: 2,
+      resultType: "template" as const,
+    };
+    services.catalogService.queryCatalog = vi.fn().mockResolvedValue({
+      results: [eservice, group],
+      pagination: { offset: 0, limit: 5, totalCount: 2 },
+    });
+
+    const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), {
+      ...defaultBody,
+      groupByTemplate: true,
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body.results[0].producer).toEqual({
+      id: producerId,
+      name: "Tenant UO",
+      subUnitType: tenantUnitType.UO,
+      parentTenants: [
+        {
+          id: parentTenantId,
+          name: "Tenant AOO",
+          subUnitType: tenantUnitType.AOO,
+        },
+        { id: rootTenantId, name: "Tenant root" },
+      ],
+    });
+    expect(res.body.results[1]).toEqual(group);
+  });
+
+  it("Should accept RELEVANCE as sortBy", async () => {
+    const body = { ...defaultBody, sortBy: "RELEVANCE" };
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, body);
+
+    expect(res.status).toBe(200);
+  });
+
+  it.each([undefined, false, true])(
+    "Should forward groupByTemplate=%s",
+    async (groupByTemplate) => {
+      const body = { ...defaultBody, groupByTemplate };
+      const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), body);
+
+      expect(res.status).toBe(200);
+      expect(
+        services.catalogService.queryCatalog
+      ).toHaveBeenCalledExactlyOnceWith(expect.anything(), body);
+    }
+  );
 
   it.each([undefined, false, true])(
     "Should forward templateId with onlyTemplateInstances=%s",
@@ -107,9 +193,10 @@ describe("API POST /catalog", () => {
     { body: { ...defaultBody, sortBy: "invalid" } },
     { body: { ...defaultBody, producersIds: ["not-a-uuid"] } },
     { body: { ...defaultBody, templateId: "not-a-uuid" } },
+    { body: { ...defaultBody, groupByTemplate: "yes" } },
   ])("Should return 400 if passed an invalid body $body", async ({ body }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, body as typeof defaultBody);
+    const res = await makeRequest(token, body as bffApi.CatalogFilterPayload);
     expect(res.status).toBe(400);
   });
 });

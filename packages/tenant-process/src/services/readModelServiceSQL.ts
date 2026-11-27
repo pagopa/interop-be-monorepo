@@ -176,7 +176,7 @@ export function readModelServiceBuilderSQL(
           return undefined;
         }
 
-        const hierarchyRows = await tx
+        const queryResult = await tx
           .select({
             tenantId: tenantInReadmodelTenant.id,
             ...tenantHierarchySelection,
@@ -191,7 +191,7 @@ export function readModelServiceBuilderSQL(
             eq(tenantInReadmodelTenant.rootTenantId, rootTenantTable.id)
           )
           .where(eq(tenantInReadmodelTenant.id, id));
-        const parentTenants = getHierarchyByTenantId(hierarchyRows).get(id);
+        const parentTenants = getHierarchyByTenantId(queryResult).get(id);
 
         return {
           ...tenant,

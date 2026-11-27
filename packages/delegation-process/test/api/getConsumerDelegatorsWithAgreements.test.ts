@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { delegationApi } from "pagopa-interop-api-clients";
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockTenant,
+  getMockTenantHierarchy,
+} from "pagopa-interop-commons-test";
 import { generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -10,9 +14,23 @@ import { tenantToApiCompactTenant } from "../mockUtils.js";
 import { api, delegationService } from "../vitest.api.setup.js";
 
 describe("API GET /consumer/delegatorsWithAgreements test", () => {
-  const mockDelegator1 = { ...getMockTenant(), name: "Comune di Burione" };
-  const mockDelegator2 = { ...getMockTenant(), name: "Comune di Milano" };
-  const mockDelegator3 = { ...getMockTenant(), name: "DeleganteTre" };
+  const { subUnitType, parentTenants } = getMockTenantHierarchy({
+    populateHierarchy: true,
+  });
+  const mockDelegator1 = {
+    ...tenantToApiCompactTenant(getMockTenant()),
+    name: "Comune di Burione",
+    ...(subUnitType !== undefined ? { subUnitType } : {}),
+    ...(parentTenants !== undefined ? { parentTenants } : {}),
+  };
+  const mockDelegator2 = {
+    ...tenantToApiCompactTenant(getMockTenant()),
+    name: "Comune di Milano",
+  };
+  const mockDelegator3 = {
+    ...tenantToApiCompactTenant(getMockTenant()),
+    name: "DeleganteTre",
+  };
 
   const defaultQuery = {
     delegatorName: "Comune",
@@ -25,20 +43,7 @@ describe("API GET /consumer/delegatorsWithAgreements test", () => {
     totalCount: 3,
   };
 
-  const apiDelegators = delegationApi.CompactTenants.parse({
-    results: [
-      {
-        ...tenantToApiCompactTenant(mockDelegator1),
-        subUnitType: "UO",
-        parentTenants: [
-          { id: generateId(), name: "Direzione", subUnitType: "AOO" },
-          { id: generateId(), name: "Regione" },
-        ],
-      },
-      ...[mockDelegator2, mockDelegator3].map(tenantToApiCompactTenant),
-    ],
-    totalCount: mockDelegators.totalCount,
-  });
+  const apiDelegators = delegationApi.CompactTenants.parse(mockDelegators);
 
   beforeEach(() => {
     delegationService.getConsumerDelegatorsWithAgreements = vi

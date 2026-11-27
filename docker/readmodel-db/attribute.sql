@@ -9,5 +9,6 @@ CREATE TABLE IF NOT EXISTS readmodel_attribute.attribute (
   origin VARCHAR,
   name VARCHAR NOT NULL,
   creation_time TIMESTAMP WITH TIME ZONE NOT NULL,
+  subunit_propagation_enabled BOOLEAN,
   PRIMARY KEY (id)
 );
