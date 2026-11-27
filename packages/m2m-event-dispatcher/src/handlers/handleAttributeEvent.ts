@@ -19,7 +19,7 @@ export async function handleAttributeEvent(
   return match(decodedMessage)
     .with(
       {
-        type: P.union("AttributeAdded"),
+        type: P.union("AttributeAdded", "AttributeSubunitPropagationUpdated"),
       },
       async (event) => {
         if (!event.data.attribute) {

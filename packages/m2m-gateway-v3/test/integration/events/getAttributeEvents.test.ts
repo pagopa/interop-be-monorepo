@@ -18,6 +18,12 @@ describe("getAttributeEvents integration", () => {
       eventType: "ATTRIBUTE_ADDED",
       attributeId: generateId(),
     },
+    {
+      id: generateId(),
+      eventTimestamp: new Date().toJSON(),
+      eventType: "ATTRIBUTE_SUBUNIT_PROPAGATION_UPDATED",
+      attributeId: generateId(),
+    },
   ];
 
   const mockEventManagerResponse: m2mEventApi.AttributeM2MEvents = {

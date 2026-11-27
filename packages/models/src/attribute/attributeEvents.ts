@@ -2,13 +2,19 @@ import { match } from "ts-pattern";
 import { z } from "zod";
 
 import { EventEnvelope } from "../events/events.js";
-import { AttributeAddedV1 } from "../gen/v1/attribute/events.js";
+import {
+  AttributeAddedV1,
+  AttributeSubunitPropagationUpdatedV1,
+} from "../gen/v1/attribute/events.js";
 import { protobufDecoder } from "../protobuf/protobuf.js";
 
 export function attributeEventToBinaryData(event: AttributeEvent): Uint8Array {
   return match(event)
     .with({ type: "AttributeAdded" }, ({ data }) =>
       AttributeAddedV1.toBinary(data)
+    )
+    .with({ type: "AttributeSubunitPropagationUpdated" }, ({ data }) =>
+      AttributeSubunitPropagationUpdatedV1.toBinary(data)
     )
     .exhaustive();
 }
@@ -18,6 +24,11 @@ export const AttributeEvent = z.discriminatedUnion("type", [
     event_version: z.literal(1),
     type: z.literal("AttributeAdded"),
     data: protobufDecoder(AttributeAddedV1),
+  }),
+  z.object({
+    event_version: z.literal(1),
+    type: z.literal("AttributeSubunitPropagationUpdated"),
+    data: protobufDecoder(AttributeSubunitPropagationUpdatedV1),
   }),
 ]);
 export type AttributeEvent = z.infer<typeof AttributeEvent>;

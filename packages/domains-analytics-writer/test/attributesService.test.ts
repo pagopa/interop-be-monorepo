@@ -189,6 +189,31 @@ describe("SQL Attribute Service - Events V1", () => {
     expect(stored3[0]?.id).toBe(attr3.id);
   });
 
+  it("AttributeSubunitPropagationUpdated", async () => {
+    const attribute: Attribute = {
+      ...getMockAttribute(attributeKind.certified),
+      origin: "certifier-id",
+      subunitPropagationEnabled: true,
+    };
+    const message: AttributeEventEnvelope = {
+      sequence_num: 1,
+      stream_id: attribute.id,
+      version: 2,
+      type: "AttributeSubunitPropagationUpdated",
+      event_version: 1,
+      data: { attribute: toAttributeV1(attribute) },
+      log_date: new Date(),
+    };
+
+    await handleAttributeMessageV1([message], dbContext);
+
+    const stored = await getOneFromDb(dbContext, AttributeDbTable.attribute, {
+      id: attribute.id,
+    });
+    expect(stored?.subunitPropagationEnabled).toBe(true);
+    expect(stored?.metadataVersion).toBe(2);
+  });
+
   describe("Merge and check on metadataVersion", () => {
     it("should skip insert/update when incoming metadataVersion is lower or equal", async () => {
       const attr: Attribute = {

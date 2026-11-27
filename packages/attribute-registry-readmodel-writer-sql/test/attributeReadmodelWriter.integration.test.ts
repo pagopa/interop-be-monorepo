@@ -86,4 +86,36 @@ describe("database test", async () => {
       expect(retrievedAttribute?.metadata).toStrictEqual({ version: 1 });
     });
   });
+
+  describe("AttributeSubunitPropagationUpdated", () => {
+    it("AttributeSubunitPropagationUpdated", async () => {
+      const certifiedAttribute: Attribute = {
+        ...getMockAttribute(attributeKind.certified),
+        origin: "certifier-id",
+      };
+      await attributeWriterService.upsertAttribute(certifiedAttribute, 1);
+
+      const updatedAttribute: Attribute = {
+        ...certifiedAttribute,
+        subunitPropagationEnabled: true,
+      };
+      const message: AttributeEventEnvelope = {
+        sequence_num: 2,
+        stream_id: certifiedAttribute.id,
+        version: 2,
+        type: "AttributeSubunitPropagationUpdated",
+        event_version: 1,
+        data: { attribute: toAttributeV1(updatedAttribute) },
+        log_date: new Date(),
+      };
+      await handleMessage(message, attributeWriterService);
+
+      const retrievedAttribute =
+        await attributeReadModelService.getAttributeById(certifiedAttribute.id);
+      expect(retrievedAttribute).toStrictEqual({
+        data: updatedAttribute,
+        metadata: { version: 2 },
+      });
+    });
+  });
 });

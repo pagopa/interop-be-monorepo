@@ -31,6 +31,7 @@ describe("handleAttributeEvent test", async () => {
         ...getMockEventEnvelopeCommons(),
         stream_id: attribute.id,
         type: eventType,
+        event_version: 1,
         data: {
           attribute: toAttributeV1(attribute),
         },
@@ -40,6 +41,13 @@ describe("handleAttributeEvent test", async () => {
 
       const expectedM2MEvent = await match(eventType)
         .with("AttributeAdded", async () => ({
+          id: expect.any(String),
+          eventType,
+          eventTimestamp,
+          resourceVersion: message.version,
+          attributeId: attribute.id,
+        }))
+        .with("AttributeSubunitPropagationUpdated", async () => ({
           id: expect.any(String),
           eventType,
           eventTimestamp,
@@ -68,6 +76,7 @@ describe("handleAttributeEvent test", async () => {
       ...getMockEventEnvelopeCommons(),
       stream_id: attribute.id,
       type: "AttributeAdded",
+      event_version: 1,
       data: {
         attribute: toAttributeV1(attribute),
       },
