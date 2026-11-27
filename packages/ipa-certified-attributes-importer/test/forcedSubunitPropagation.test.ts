@@ -68,6 +68,7 @@ vi.mock("../src/services/openDataService.js", () => ({
 }));
 
 vi.mock("../src/services/ipaCertifiedAttributesImporterService.js", () => ({
+  buildTenantsIndex: vi.fn(() => new Map()),
   createTenantProcessClient: vi.fn(),
   enableSubunitPropagation: enableSubunitPropagationMock,
   getTenantUpsertData: getTenantUpsertDataMock,
@@ -78,6 +79,8 @@ vi.mock("../src/services/ipaCertifiedAttributesImporterService.js", () => ({
   assignNewAttributes: vi.fn(async () => 0),
   getAttributesToRevoke: vi.fn(async () => []),
   revokeAttributes: vi.fn(async () => 0),
+  getTenantParentUpdates: vi.fn(() => []),
+  updateTenantsParent: vi.fn(async () => 0),
 }));
 
 describe("Forced subunit propagation", () => {
@@ -117,6 +120,7 @@ describe("Forced subunit propagation", () => {
     await runImporter({ aooUoAttributes: true, forcedPropagation: true });
 
     expect(enableSubunitPropagationMock).toHaveBeenCalledTimes(1);
+    expect(errorMock).not.toHaveBeenCalled();
     expect(process.exitCode).toBeUndefined();
   });
 
@@ -142,6 +146,9 @@ describe("Forced subunit propagation", () => {
 
     await runImporter({ aooUoAttributes: true, forcedPropagation: true });
 
+    expect(infoMock).toHaveBeenCalledWith(
+      expect.stringContaining("Failed propagation updates: 1")
+    );
     expect(process.exitCode).toBe(1);
   });
 

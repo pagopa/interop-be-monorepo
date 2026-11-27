@@ -25,6 +25,7 @@ vi.mock("pagopa-interop-api-clients", async () => {
 
 const {
   assignNewAttributes,
+  buildTenantsIndex,
   createNewAttributes,
   excludeFailedAttributesFromSeeds,
   getAttributesToAssign,
@@ -475,7 +476,7 @@ describe("Failed attributes exclusion from tenant seeds", () => {
       2
     );
     const toAssign = await getAttributesToAssign(
-      tenants,
+      buildTenantsIndex(tenants),
       platformAttributes,
       excludeFailedAttributesFromSeeds(seeds, failed),
       config,
