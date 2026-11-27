@@ -967,7 +967,6 @@ const catalogRouter = (
           .status(200)
           .send(bffApi.CreatedResource.parse(createdResource));
       } catch (error) {
-        // Get from body here too
         const errorRes = await applyPlaceholderToError(
           makeApiProblem(
             error,
@@ -1499,7 +1498,6 @@ const catalogRouter = (
           );
           return res.status(200).send(bffApi.CreatedResource.parse(result));
         } catch (error) {
-          // This needs the body
           const errorRes = await applyPlaceholderToError(
             makeApiProblem(
               error,
