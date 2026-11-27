@@ -718,6 +718,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
       riskAnalysisForm: {
         version: "3.2",
         answers: {
+          ...updatePurposeSeed.riskAnalysisForm!.answers,
           ...updatedSingleAnswersWithFreeText,
           ...updatedSingleAnswerFreeTextWithSuggestValue,
           purpose: ["not editable field"],
