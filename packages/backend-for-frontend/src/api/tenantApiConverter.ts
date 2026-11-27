@@ -254,6 +254,7 @@ export function toBffApiTenant(
     features: tenant.features,
     onboardedAt: tenant.onboardedAt,
     subUnitType: tenant.subUnitType,
+    parentTenants: toBffApiParentTenants(tenant.parentTenants),
     remoteIds: tenant.remoteIds,
     selfcareInstitutionType: tenant.selfcareInstitutionType,
     contactMail: getLatestTenantContactEmail(tenant),

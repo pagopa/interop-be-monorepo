@@ -28,6 +28,8 @@ describe("tenantServiceBuilder.getTenant", () => {
     const tenantId = generateId<TenantId>();
     const certifiedAttributeId = generateId<AttributeId>();
     const certifiedDiscreteAttributeId = generateId<AttributeId>();
+    const parentTenantId = generateId<TenantId>();
+    const rootTenantId = generateId<TenantId>();
     const assignmentTimestamp = new Date().toISOString();
 
     const tenant: tenantApi.Tenant = {
@@ -51,6 +53,17 @@ describe("tenantServiceBuilder.getTenant", () => {
       id: tenantId,
       mails: [],
       features: [],
+      parentTenants: [
+        {
+          id: parentTenantId,
+          name: "Tenant AOO",
+          subUnitType: tenantUnitType.AOO,
+        },
+        {
+          id: rootTenantId,
+          name: "Tenant root",
+        },
+      ],
     };
 
     const registryCertifiedAttribute: attributeRegistryApi.Attribute = {
@@ -106,6 +119,14 @@ describe("tenantServiceBuilder.getTenant", () => {
 
     const result = await service.getTenant(tenantId, ctx);
 
+    expect(result.parentTenants).toEqual([
+      {
+        id: parentTenantId,
+        name: "Tenant AOO",
+        subUnitType: tenantUnitType.AOO,
+      },
+      { id: rootTenantId, name: "Tenant root" },
+    ]);
     expect(result.attributes.certified).toStrictEqual([
       {
         kind: tenantAttributeKind.certified,

@@ -6,7 +6,13 @@ import {
   getMockTenant,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { generateId, Tenant, TenantId } from "pagopa-interop-models";
+import {
+  generateId,
+  ParentTenant,
+  Tenant,
+  TenantId,
+  tenantUnitType,
+} from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
@@ -16,6 +22,12 @@ import { api, tenantService } from "../vitest.api.setup.js";
 
 describe("API GET /tenants/{id} test", () => {
   const remoteIdAssignmentTimestamp = new Date();
+  const parentTenantId = generateId<TenantId>();
+  const rootTenantId = generateId<TenantId>();
+  const parentTenants: ParentTenant[] = [
+    { id: parentTenantId, name: "Tenant AOO", subUnitType: tenantUnitType.AOO },
+    { id: rootTenantId, name: "Tenant root" },
+  ];
   const tenant: Tenant = {
     ...getMockTenant(),
     remoteIds: [
@@ -27,8 +39,9 @@ describe("API GET /tenants/{id} test", () => {
     ],
   };
 
-  const serviceResponse = getMockWithMetadata(tenant);
-  const apiResponse = tenantApi.Tenant.parse(toApiTenant(tenant));
+  const tenantWithHierarchy = { ...tenant, parentTenants };
+  const serviceResponse = getMockWithMetadata(tenantWithHierarchy);
+  const apiResponse = tenantApi.Tenant.parse(toApiTenant(tenantWithHierarchy));
 
   beforeEach(() => {
     tenantService.getTenantById = vi.fn().mockResolvedValue(serviceResponse);
@@ -59,6 +72,14 @@ describe("API GET /tenants/{id} test", () => {
       const res = await makeRequest(token);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiResponse);
+      expect(res.body.parentTenants).toEqual([
+        {
+          id: parentTenantId,
+          name: "Tenant AOO",
+          subUnitType: tenantUnitType.AOO,
+        },
+        { id: rootTenantId, name: "Tenant root" },
+      ]);
       expect(res.body.remoteIds).toEqual([
         {
           origin: "IPA",
