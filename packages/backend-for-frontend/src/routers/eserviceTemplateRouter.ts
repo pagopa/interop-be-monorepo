@@ -81,6 +81,28 @@ const eserviceTemplateRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .patch("/eservices/templates/:eServiceTemplateId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const createdResource =
+          await eserviceTemplateService.patchUpdateEServiceTemplate(
+            unsafeBrandId(req.params.eServiceTemplateId),
+            req.body,
+            ctx
+          );
+        return res
+          .status(200)
+          .send(bffApi.CreatedResource.parse(createdResource));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error updating eservice template ${req.params.eServiceTemplateId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post("/eservices/templates/:eServiceTemplateId", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 

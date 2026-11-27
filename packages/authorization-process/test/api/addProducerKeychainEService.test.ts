@@ -2,11 +2,13 @@
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
+  getMockDescriptor,
   getMockEService,
   getMockProducerKeychain,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import {
+  Descriptor,
   EService,
   EServiceId,
   generateId,
@@ -23,6 +25,7 @@ import {
   tenantNotAllowedOnEService,
   tenantNotAllowedOnProducerKeychain,
   producerKeychainNotFound,
+  eserviceInArchivedState,
 } from "../../src/model/domain/errors.js";
 import { testToFullProducerKeychain } from "../apiUtils.js";
 import { api, authorizationService } from "../vitest.api.setup.js";
@@ -35,6 +38,18 @@ describe("API /producerKeychains/{producerKeychainId}/eservices authorization te
     ...getMockEService(),
     id: mockEServiceId,
     producerId: mockProducerId,
+  };
+
+  const mockArchivedDescriptor: Descriptor = {
+    ...getMockDescriptor(),
+    state: "Archived",
+  };
+
+  const mockArchivedEService: EService = {
+    ...getMockEService(),
+    id: mockEServiceId,
+    producerId: mockProducerId,
+    descriptors: [mockArchivedDescriptor],
   };
 
   const mockProducerKeychain: ProducerKeychain = {
@@ -119,6 +134,10 @@ describe("API /producerKeychains/{producerKeychainId}/eservices authorization te
         generateId(),
         mockProducerKeychain.id
       ),
+      expectedStatus: 403,
+    },
+    {
+      error: eserviceInArchivedState(mockArchivedEService.id),
       expectedStatus: 403,
     },
     {

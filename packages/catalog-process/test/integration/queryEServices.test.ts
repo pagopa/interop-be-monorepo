@@ -9,6 +9,8 @@ import {
   getMockDelegation,
   getMockDescriptor,
   getMockEService,
+  getMockEServiceTemplate,
+  getMockEServiceTemplateVersion,
   getMockPurposeTemplate,
   getMockTenant,
 } from "pagopa-interop-commons-test";
@@ -20,6 +22,7 @@ import {
   Descriptor,
   EService,
   EServiceId,
+  EServiceTemplate,
   EServiceTemplateId,
   ListResult,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
@@ -31,6 +34,7 @@ import {
   delegationKind,
   delegationState,
   descriptorState,
+  eserviceTemplateVersionState,
   generateId,
   purposeTemplateState,
   unsafeBrandId,
@@ -38,11 +42,14 @@ import {
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { config } from "../../src/config/config.js";
+import { CatalogQueryResult } from "../../src/model/domain/models.js";
 import {
   addOneAgreement,
   addOneAttribute,
   addOneDelegation,
   addOneEService,
+  addOneEServiceTemplate,
+  addOneEServiceTemplateVersionPurposeTemplate,
   addOnePurposeTemplate,
   addOnePurposeTemplateEServiceDescriptor,
   addOneTenant,
@@ -75,13 +82,13 @@ describe("query eservices", () => {
     offset = 0,
     limit = 50,
     keyword?: string
-  ): Promise<ListResult<EService>> =>
+  ): Promise<ListResult<CatalogQueryResult>> =>
     catalogService.queryEServices(
       { offset, limit, sortBy, keyword },
       getMockContext({})
     );
 
-  const idsOf = (result: ListResult<EService>): EServiceId[] =>
+  const idsOf = (result: ListResult<CatalogQueryResult>): string[] =>
     result.results.map((eservice) => eservice.id);
 
   const filterEServices = (
@@ -92,7 +99,7 @@ describe("query eservices", () => {
     context: ReturnType<typeof getMockContext> = getMockContext({}),
     offset = 0,
     limit = 50
-  ): Promise<ListResult<EService>> =>
+  ): Promise<ListResult<CatalogQueryResult>> =>
     catalogService.queryEServices({ offset, limit, ...filters }, context);
 
   describe("mode", () => {
@@ -283,6 +290,72 @@ describe("query eservices", () => {
     });
   });
 
+  describe("isConsumerDelegable", () => {
+    const eservice0: EService = {
+      ...buildEService("Service 0", new Date("2024-01-01T00:00:00Z")),
+      isConsumerDelegable: true,
+    };
+    const eservice1: EService = {
+      ...buildEService("Service 1", new Date("2024-02-01T00:00:00Z")),
+      isConsumerDelegable: false,
+    };
+    const eservice2: EService = {
+      ...buildEService("Service 2", new Date("2024-03-01T00:00:00Z")),
+      isConsumerDelegable: undefined,
+    };
+
+    beforeEach(async () => {
+      await addOneEService(eservice0);
+      await addOneEService(eservice1);
+      await addOneEService(eservice2);
+    });
+
+    it("should return the expected e-services when isConsumerDelegable is not set", async () => {
+      const result = await filterEServices({});
+
+      expect(result.totalCount).toBe(3);
+      expect(idsOf(result)).toEqual([eservice2.id, eservice1.id, eservice0.id]);
+    });
+
+    it("should return the expected e-services when isConsumerDelegable is true", async () => {
+      const result = await filterEServices({ isConsumerDelegable: true });
+
+      expect(result.totalCount).toBe(1);
+      expect(idsOf(result)).toEqual([eservice0.id]);
+    });
+
+    it("should return the expected e-services when isConsumerDelegable is false", async () => {
+      const result = await filterEServices({ isConsumerDelegable: false });
+
+      expect(result.totalCount).toBe(2);
+      expect(idsOf(result)).toEqual([eservice2.id, eservice1.id]);
+    });
+
+    it("should preserve filtered counts and ordering across pages", async () => {
+      const additional: EService = {
+        ...eservice0,
+        descriptors: [getPublishedDescriptor()],
+        id: generateId(),
+        name: "Additional",
+        createdAt: new Date("2024-04-01T00:00:00Z"),
+      };
+      await addOneEService(additional);
+      const pages = await Promise.all(
+        [0, 1, 2].map((offset) =>
+          filterEServices(
+            { isConsumerDelegable: true },
+            getMockContext({}),
+            offset,
+            1
+          )
+        )
+      );
+
+      expect(pages.map((page) => page.totalCount)).toEqual([2, 2, 2]);
+      expect(pages.map(idsOf)).toEqual([[additional.id], [eservice0.id], []]);
+    });
+  });
+
   describe("combined mode, Signal Hub and async exchange filters", () => {
     it("should require all three filters to match", async () => {
       const matching: EService = {
@@ -423,9 +496,10 @@ describe("query eservices", () => {
     ].map(unsafeBrandId<EServiceId>);
     const sortedIds = unorderedIds.toSorted();
 
-    const equalEServices = unorderedIds.map((id) =>
-      buildEService("Same name", sameCreatedAt, id)
-    );
+    const equalEServices = unorderedIds.map((id) => ({
+      ...buildEService("Same name", sameCreatedAt, id),
+      description: "Same description",
+    }));
 
     beforeEach(async () => {
       for (const eservice of equalEServices) {
@@ -443,6 +517,17 @@ describe("query eservices", () => {
         expect(pages.flatMap(idsOf)).toEqual(sortedIds);
       }
     );
+
+    it("should paginate equal relevance and creation dates by id", async () => {
+      const pages = await Promise.all(
+        equalEServices.map((_, offset) =>
+          queryEServices("RELEVANCE", offset, 1, "same")
+        )
+      );
+
+      expect(pages.map((page) => page.totalCount)).toEqual([3, 3, 3]);
+      expect(pages.flatMap(idsOf)).toEqual(sortedIds);
+    });
   });
 
   describe("keyword", () => {
@@ -487,7 +572,7 @@ describe("query eservices", () => {
       sortBy?: catalogApi.EServiceSortBy,
       offset = 0,
       limit = 50
-    ): Promise<ListResult<EService>> =>
+    ): Promise<ListResult<CatalogQueryResult>> =>
       queryEServices(sortBy, offset, limit, keyword);
 
     beforeEach(async () => {
@@ -510,6 +595,16 @@ describe("query eservices", () => {
       "should not filter the e-services when keyword contains only spaces (keyword: '%s')",
       async (keyword) => {
         const result = await search(keyword);
+
+        expect(result.totalCount).toBe(4);
+        expect(idsOf(result)).toEqual(allEServicesMostRecentFirst);
+      }
+    );
+
+    it.each([undefined, "", " ", "   "])(
+      "should use the default order for relevance without a keyword (%s)",
+      async (keyword) => {
+        const result = await search(keyword, "RELEVANCE");
 
         expect(result.totalCount).toBe(4);
         expect(idsOf(result)).toEqual(allEServicesMostRecentFirst);
@@ -579,13 +674,24 @@ describe("query eservices", () => {
     });
 
     it("should order the e-services by relevance first: producer name matches before e-service name matches", async () => {
-      const result = await search("milano");
+      const result = await search("milano", "RELEVANCE");
 
       expect(result.totalCount).toBe(3);
       expect(idsOf(result)).toEqual([
         eserviceTributi.id,
         eserviceAnagrafe.id,
         eserviceMilanoServizi.id,
+      ]);
+    });
+
+    it("should use the default order when sortBy is omitted with a keyword", async () => {
+      const result = await search("milano");
+
+      expect(result.totalCount).toBe(3);
+      expect(idsOf(result)).toEqual([
+        eserviceMilanoServizi.id,
+        eserviceTributi.id,
+        eserviceAnagrafe.id,
       ]);
     });
 
@@ -596,9 +702,9 @@ describe("query eservices", () => {
       {
         sortBy: "CREATED_AT_DESC",
         expected: () => [
+          eserviceMilanoServizi.id,
           eserviceTributi.id,
           eserviceAnagrafe.id,
-          eserviceMilanoServizi.id,
         ],
       },
       {
@@ -613,20 +719,20 @@ describe("query eservices", () => {
         sortBy: "NAME_ASC",
         expected: () => [
           eserviceAnagrafe.id,
-          eserviceTributi.id,
           eserviceMilanoServizi.id,
+          eserviceTributi.id,
         ],
       },
       {
         sortBy: "NAME_DESC",
         expected: () => [
           eserviceTributi.id,
-          eserviceAnagrafe.id,
           eserviceMilanoServizi.id,
+          eserviceAnagrafe.id,
         ],
       },
     ])(
-      "should apply sortBy as secondary criterion among e-services with the same relevance (sortBy: $sortBy)",
+      "should apply sortBy before relevance (sortBy: $sortBy)",
       async ({ sortBy, expected }) => {
         const result = await search("milano", sortBy);
 
@@ -636,7 +742,7 @@ describe("query eservices", () => {
 
     it("should keep the relevance order across pages", async () => {
       const pages = await Promise.all(
-        [0, 1, 2].map((offset) => search("milano", undefined, offset, 1))
+        [0, 1, 2].map((offset) => search("milano", "RELEVANCE", offset, 1))
       );
 
       expect(pages.map((page) => page.totalCount)).toEqual([3, 3, 3]);
@@ -980,133 +1086,6 @@ describe("query eservices", () => {
     });
   });
 
-  describe("requesterDelegationRoles", () => {
-    const requesterId: TenantId = generateId();
-    const requesterContext = getMockContext({
-      authData: getMockAuthData(requesterId),
-    });
-
-    const eserviceReceived = buildEService(
-      "Received",
-      new Date("2024-01-01T00:00:00Z")
-    );
-    const eserviceEntrusted = buildEService(
-      "Entrusted",
-      new Date("2024-02-01T00:00:00Z")
-    );
-    const eserviceUnrelated = buildEService(
-      "Unrelated",
-      new Date("2024-03-01T00:00:00Z")
-    );
-
-    beforeEach(async () => {
-      await addOneEService(eserviceReceived);
-      await addOneEService(eserviceEntrusted);
-      await addOneEService(eserviceUnrelated);
-      await addOneDelegation(
-        getMockDelegation({
-          kind: delegationKind.delegatedProducer,
-          state: delegationState.active,
-          eserviceId: eserviceReceived.id,
-          delegateId: requesterId,
-        })
-      );
-      await addOneDelegation(
-        getMockDelegation({
-          kind: delegationKind.delegatedProducer,
-          state: delegationState.active,
-          eserviceId: eserviceEntrusted.id,
-          delegatorId: requesterId,
-        })
-      );
-    });
-
-    it("should not filter the e-services when requesterDelegationRoles is not set", async () => {
-      const result = await filterEServices({}, requesterContext);
-
-      expect(result.totalCount).toBe(3);
-    });
-
-    it("should not filter the e-services when requesterDelegationRoles is empty", async () => {
-      const result = await filterEServices(
-        { requesterDelegationRoles: [] },
-        requesterContext
-      );
-
-      expect(result.totalCount).toBe(3);
-    });
-
-    it("should return the e-services received in delegation (requesterDelegationRoles: DELEGATE)", async () => {
-      const result = await filterEServices(
-        { requesterDelegationRoles: ["DELEGATE"] },
-        requesterContext
-      );
-
-      expect(result.totalCount).toBe(1);
-      expect(idsOf(result)).toEqual([eserviceReceived.id]);
-    });
-
-    it("should return the e-services entrusted in delegation (requesterDelegationRoles: DELEGATOR)", async () => {
-      const result = await filterEServices(
-        { requesterDelegationRoles: ["DELEGATOR"] },
-        requesterContext
-      );
-
-      expect(result.totalCount).toBe(1);
-      expect(idsOf(result)).toEqual([eserviceEntrusted.id]);
-    });
-
-    it("should return the e-services where the requester is delegate or delegator (requesterDelegationRoles: DELEGATE and DELEGATOR)", async () => {
-      const result = await filterEServices(
-        { requesterDelegationRoles: ["DELEGATE", "DELEGATOR"] },
-        requesterContext
-      );
-
-      expect(result.totalCount).toBe(2);
-      expect(idsOf(result)).toEqual([
-        eserviceEntrusted.id,
-        eserviceReceived.id,
-      ]);
-    });
-
-    it("should ignore delegations that are not active producer delegations", async () => {
-      const eservicePendingDelegation = buildEService(
-        "PendingDelegation",
-        new Date("2024-04-01T00:00:00Z")
-      );
-      const eserviceConsumerDelegation = buildEService(
-        "ConsumerDelegation",
-        new Date("2024-05-01T00:00:00Z")
-      );
-      await addOneEService(eservicePendingDelegation);
-      await addOneEService(eserviceConsumerDelegation);
-      await addOneDelegation(
-        getMockDelegation({
-          kind: delegationKind.delegatedProducer,
-          state: delegationState.waitingForApproval,
-          eserviceId: eservicePendingDelegation.id,
-          delegateId: requesterId,
-        })
-      );
-      await addOneDelegation(
-        getMockDelegation({
-          kind: delegationKind.delegatedConsumer,
-          state: delegationState.active,
-          eserviceId: eserviceConsumerDelegation.id,
-          delegateId: requesterId,
-        })
-      );
-
-      const result = await filterEServices(
-        { requesterDelegationRoles: ["DELEGATE"] },
-        requesterContext
-      );
-
-      expect(result.totalCount).toBe(1);
-      expect(idsOf(result)).toEqual([eserviceReceived.id]);
-    });
-  });
-
   describe("onlyTemplateInstances", () => {
     const eserviceInstanceA: EService = {
       ...buildEService("InstanceA", new Date("2024-01-01T00:00:00Z")),
@@ -1338,6 +1317,108 @@ describe("query eservices", () => {
 
       expect(idsOf(result)).not.toContain(eserviceLinkedToDraft.id);
       expect(idsOf(result)).not.toContain(eserviceLinkedToArchived.id);
+    });
+  });
+
+  describe("hasLinkedPurposeTemplates inherited from the e-service template", () => {
+    const templateId = generateId<EServiceTemplateId>();
+    const linkedInstance: EService = {
+      ...buildEService("Giunto Alfa", new Date("2024-01-01T00:00:00Z")),
+      templateId,
+    };
+    const unlinkedInstance: EService = {
+      ...buildEService("Giunto Beta", new Date("2024-02-01T00:00:00Z")),
+      templateId: generateId<EServiceTemplateId>(),
+    };
+    const purposeTemplate = getMockPurposeTemplate(
+      undefined,
+      purposeTemplateState.published
+    );
+
+    beforeEach(async () => {
+      await addOneEService(linkedInstance);
+      await addOneEService(unlinkedInstance);
+      await addOnePurposeTemplate(purposeTemplate);
+      await addOneEServiceTemplateVersionPurposeTemplate({
+        purposeTemplateId: purposeTemplate.id,
+        eserviceTemplateId: templateId,
+        eserviceTemplateVersionId: generateId(),
+        createdAt: new Date(),
+      });
+    });
+
+    it.each([undefined, true])(
+      "should include inherited links with keyword and onlyTemplateInstances=%s",
+      async (onlyTemplateInstances) => {
+        const result = await filterEServices({
+          keyword: "Giunto",
+          onlyTemplateInstances,
+          hasLinkedPurposeTemplates: true,
+        });
+
+        expect(idsOf(result)).toEqual([linkedInstance.id]);
+        expect(result.totalCount).toBe(1);
+      }
+    );
+
+    it.each([
+      purposeTemplateState.draft,
+      purposeTemplateState.suspended,
+      purposeTemplateState.archived,
+    ])(
+      "should exclude inherited links to %s purpose templates",
+      async (state) => {
+        await addOnePurposeTemplate({ ...purposeTemplate, state });
+
+        const result = await filterEServices({
+          hasLinkedPurposeTemplates: true,
+        });
+
+        expect(result.results).toEqual([]);
+        expect(result.totalCount).toBe(0);
+      }
+    );
+
+    it("should not duplicate an instance with both direct and inherited links", async () => {
+      await addOnePurposeTemplateEServiceDescriptor({
+        purposeTemplateId: purposeTemplate.id,
+        eserviceId: linkedInstance.id,
+        descriptorId: linkedInstance.descriptors[0].id,
+        createdAt: new Date(),
+      });
+      const result = await filterEServices({ hasLinkedPurposeTemplates: true });
+
+      expect(idsOf(result)).toEqual([linkedInstance.id]);
+      expect(result.totalCount).toBe(1);
+    });
+
+    it("should preserve ordering and total count across filtered pages", async () => {
+      const additional: EService = {
+        ...buildEService("Giunto Gamma", new Date("2024-03-01T00:00:00Z")),
+        templateId,
+      };
+      await addOneEService(additional);
+      const pages = await Promise.all(
+        [0, 1, 2].map((offset) =>
+          filterEServices(
+            {
+              keyword: "Giunto",
+              onlyTemplateInstances: true,
+              hasLinkedPurposeTemplates: true,
+            },
+            getMockContext({}),
+            offset,
+            1
+          )
+        )
+      );
+
+      expect(pages.map(idsOf)).toEqual([
+        [additional.id],
+        [linkedInstance.id],
+        [],
+      ]);
+      expect(pages.map((page) => page.totalCount)).toEqual([2, 2, 2]);
     });
   });
 
@@ -1632,6 +1713,488 @@ describe("query eservices", () => {
 
       expect(result.totalCount).toBe(1);
       expect(idsOf(result)).toEqual([eserviceMatchingAll.id]);
+    });
+  });
+
+  describe("groupByTemplate", () => {
+    const buildEServiceTemplate = (
+      name: string,
+      createdAt: Date,
+      description: string
+    ): EServiceTemplate => ({
+      ...getMockEServiceTemplate(),
+      name,
+      description,
+      createdAt,
+    });
+
+    const templateAnagrafe = buildEServiceTemplate(
+      "Anagrafe",
+      new Date("2024-01-01T00:00:00Z"),
+      "Consultazione dei dati anagrafici dei cittadini"
+    );
+    const templateTributi = buildEServiceTemplate(
+      "Tributi",
+      new Date("2024-02-01T00:00:00Z"),
+      "Pagamento delle imposte comunali"
+    );
+    const templateWithoutInstances = buildEServiceTemplate(
+      "Senza istanze",
+      new Date("2024-03-01T00:00:00Z"),
+      "Raccolta senza istanze"
+    );
+
+    const buildInstance = (
+      name: string,
+      createdAt: Date,
+      eserviceTemplate: EServiceTemplate
+    ): EService => ({
+      ...buildEService(name, createdAt),
+      description: "Servizio erogato dal comune",
+      isSignalHubEnabled: false,
+      templateId: eserviceTemplate.id,
+    });
+
+    const instanceA = buildInstance(
+      "Comune A",
+      new Date("2024-04-01T00:00:00Z"),
+      templateAnagrafe
+    );
+    const instanceB = buildInstance(
+      "Comune B",
+      new Date("2024-05-01T00:00:00Z"),
+      templateAnagrafe
+    );
+    const instanceC: EService = {
+      ...buildInstance(
+        "Comune C",
+        new Date("2024-06-01T00:00:00Z"),
+        templateAnagrafe
+      ),
+      mode: "Receive",
+      asyncExchange: true,
+    };
+    // The catalog shows only one instance of tributi.
+    const instanceD = buildInstance(
+      "Comune D",
+      new Date("2024-07-01T00:00:00Z"),
+      templateTributi
+    );
+    const draftInstanceE: EService = {
+      ...buildInstance(
+        "Comune E",
+        new Date("2024-08-01T00:00:00Z"),
+        templateTributi
+      ),
+      descriptors: [{ ...getMockDescriptor(), state: descriptorState.draft }],
+    };
+    const eserviceBiblioteca: EService = {
+      ...buildEService("Biblioteca", new Date("2024-09-01T00:00:00Z")),
+      description: "Prestito dei libri della biblioteca",
+      isSignalHubEnabled: false,
+    };
+    const visibleEServices = [
+      instanceA,
+      instanceB,
+      instanceC,
+      instanceD,
+      eserviceBiblioteca,
+    ];
+
+    const groupedEServices = (
+      filters: Omit<
+        Partial<catalogApi.EServicesFilterPayload>,
+        "offset" | "limit"
+      >,
+      context?: ReturnType<typeof getMockContext>,
+      offset?: number,
+      limit?: number
+    ): Promise<ListResult<CatalogQueryResult>> =>
+      filterEServices(
+        { groupByTemplate: true, ...filters },
+        context,
+        offset,
+        limit
+      );
+
+    const resultsOf = (
+      result: ListResult<CatalogQueryResult>
+    ): Array<[CatalogQueryResult["resultType"], string, number?]> =>
+      result.results.map((r) =>
+        r.resultType === "template"
+          ? [r.resultType, r.id, r.numInstances]
+          : [r.resultType, r.id]
+      );
+    const anagrafeGroup = (
+      numInstances = 3
+    ): [CatalogQueryResult["resultType"], string, number] => [
+      "template",
+      templateAnagrafe.id,
+      numInstances,
+    ];
+    const single = (
+      eservice: EService
+    ): [CatalogQueryResult["resultType"], string] => ["eservice", eservice.id];
+
+    beforeEach(async () => {
+      await addOneEServiceTemplate(templateAnagrafe);
+      await addOneEServiceTemplate(templateTributi);
+      await addOneEServiceTemplate(templateWithoutInstances);
+      await addOneEService(instanceA);
+      await addOneEService(instanceB);
+      await addOneEService(instanceC);
+      await addOneEService(instanceD);
+      await addOneEService(draftInstanceE);
+      await addOneEService(eserviceBiblioteca);
+    });
+
+    it.each([undefined, false])(
+      "should return the single e-services when groupByTemplate is %s",
+      async (groupByTemplate) => {
+        const result = await filterEServices({ groupByTemplate });
+
+        expect(result.totalCount).toBe(5);
+        expect(resultsOf(result)).toEqual(
+          [...visibleEServices].reverse().map(single)
+        );
+      }
+    );
+
+    it("should group the templates with two or more catalog instances", async () => {
+      const result = await groupedEServices({});
+
+      expect(result.totalCount).toBe(3);
+      expect(resultsOf(result)).toEqual([
+        single(eserviceBiblioteca),
+        single(instanceD),
+        anagrafeGroup(),
+      ]);
+    });
+
+    it("should return the template data for the template collections", async () => {
+      const result = await groupedEServices({});
+
+      expect(result.results).toContainEqual({
+        id: templateAnagrafe.id,
+        name: templateAnagrafe.name,
+        description: templateAnagrafe.description,
+        numInstances: 3,
+        resultType: "template",
+      });
+    });
+
+    it("should not return the templates without catalog instances", async () => {
+      const result = await groupedEServices({});
+
+      expect(idsOf(result)).not.toContain(templateWithoutInstances.id);
+      expect(idsOf(result)).not.toContain(templateTributi.id);
+    });
+
+    it("should group the instances of a suspended template", async () => {
+      const suspendedTemplate: EServiceTemplate = {
+        ...buildEServiceTemplate(
+          "Sospeso",
+          new Date("2024-10-01T00:00:00Z"),
+          "Template sospeso"
+        ),
+        versions: [
+          getMockEServiceTemplateVersion(
+            undefined,
+            eserviceTemplateVersionState.suspended
+          ),
+        ],
+      };
+      await addOneEServiceTemplate(suspendedTemplate);
+      await addOneEService(
+        buildInstance(
+          "Comune F",
+          new Date("2024-11-01T00:00:00Z"),
+          suspendedTemplate
+        )
+      );
+      await addOneEService(
+        buildInstance(
+          "Comune G",
+          new Date("2024-12-01T00:00:00Z"),
+          suspendedTemplate
+        )
+      );
+
+      const result = await groupedEServices({});
+
+      expect(resultsOf(result)).toContainEqual([
+        "template",
+        suspendedTemplate.id,
+        2,
+      ]);
+    });
+
+    it("should return as single e-services the instances of a template missing in the read model", async () => {
+      const missingTemplateId = generateId<EServiceTemplateId>();
+      const orphanInstances = [1, 2].map(
+        (n): EService => ({
+          ...buildEService(`Orfana ${n}`, new Date("2024-10-01T00:00:00Z")),
+          templateId: missingTemplateId,
+        })
+      );
+      await addOneEService(orphanInstances[0]);
+      await addOneEService(orphanInstances[1]);
+
+      const result = await groupedEServices({});
+
+      expect(result.totalCount).toBe(5);
+      expect(idsOf(result)).toEqual(
+        expect.arrayContaining(orphanInstances.map((e) => e.id))
+      );
+    });
+
+    it.each<{ sortBy: catalogApi.EServiceSortBy; expected: () => unknown[] }>([
+      {
+        sortBy: "NAME_ASC",
+        expected: () => [
+          anagrafeGroup(),
+          single(eserviceBiblioteca),
+          single(instanceD),
+        ],
+      },
+      {
+        sortBy: "NAME_DESC",
+        expected: () => [
+          single(instanceD),
+          single(eserviceBiblioteca),
+          anagrafeGroup(),
+        ],
+      },
+      {
+        sortBy: "CREATED_AT_ASC",
+        expected: () => [
+          anagrafeGroup(),
+          single(instanceD),
+          single(eserviceBiblioteca),
+        ],
+      },
+      {
+        sortBy: "CREATED_AT_DESC",
+        expected: () => [
+          single(eserviceBiblioteca),
+          single(instanceD),
+          anagrafeGroup(),
+        ],
+      },
+    ])(
+      "should sort the template collections by the template data ($sortBy)",
+      async ({ sortBy, expected }) => {
+        const result = await groupedEServices({ sortBy });
+
+        expect(resultsOf(result)).toEqual(expected());
+      }
+    );
+
+    it("should paginate the grouped results, counting a collection as one result", async () => {
+      const pages = await Promise.all(
+        [0, 1, 2, 3].map((offset) =>
+          groupedEServices({ sortBy: "NAME_ASC" }, undefined, offset, 1)
+        )
+      );
+
+      expect(pages.map((page) => page.totalCount)).toEqual([3, 3, 3, 3]);
+      expect(pages.map(resultsOf)).toEqual([
+        [anagrafeGroup()],
+        [single(eserviceBiblioteca)],
+        [single(instanceD)],
+        [],
+      ]);
+    });
+
+    describe("keyword", () => {
+      it("should match the keyword on the template data for the template collections", async () => {
+        const result = await groupedEServices({ keyword: "anagrafici" });
+
+        expect(result.totalCount).toBe(1);
+        expect(resultsOf(result)).toEqual([anagrafeGroup()]);
+      });
+
+      it("should not return the grouped instances when the keyword matches only their data", async () => {
+        const result = await groupedEServices({ keyword: "comune" });
+
+        expect(resultsOf(result)).toEqual([single(instanceD)]);
+      });
+
+      it("should match the keyword on the e-service data for the single results", async () => {
+        const result = await groupedEServices({ keyword: "biblioteca" });
+
+        expect(resultsOf(result)).toEqual([single(eserviceBiblioteca)]);
+      });
+
+      it("should not change the number of instances of a template collection", async () => {
+        const result = await groupedEServices({ keyword: "Anagrafe" });
+
+        expect(resultsOf(result)).toEqual([anagrafeGroup(3)]);
+      });
+
+      it("should use the trigram fallback on the template collections", async () => {
+        const result = await groupedEServices({ keyword: "Anagrfe" });
+
+        expect(resultsOf(result)).toEqual([anagrafeGroup()]);
+      });
+    });
+
+    describe("compatible filters", () => {
+      it("should count only the instances that match mode", async () => {
+        const result = await groupedEServices({
+          mode: "DELIVER",
+          sortBy: "NAME_ASC",
+        });
+
+        expect(resultsOf(result)).toEqual([
+          anagrafeGroup(2),
+          single(eserviceBiblioteca),
+          single(instanceD),
+        ]);
+      });
+
+      it("should return a single e-service when only one instance matches the filters", async () => {
+        const result = await groupedEServices({ mode: "RECEIVE" });
+
+        expect(resultsOf(result)).toEqual([single(instanceC)]);
+      });
+
+      it("should count only the instances that match asyncExchange", async () => {
+        const result = await groupedEServices({
+          asyncExchange: false,
+          sortBy: "NAME_ASC",
+        });
+
+        expect(resultsOf(result)).toEqual([
+          anagrafeGroup(2),
+          single(eserviceBiblioteca),
+          single(instanceD),
+        ]);
+      });
+
+      it("should keep the grouping with availableForRequester", async () => {
+        const result = await groupedEServices({
+          availableForRequester: true,
+          sortBy: "NAME_ASC",
+        });
+
+        expect(resultsOf(result)).toEqual([
+          anagrafeGroup(),
+          single(eserviceBiblioteca),
+          single(instanceD),
+        ]);
+      });
+
+      it("should keep the grouping with onlyTemplateInstances", async () => {
+        const result = await groupedEServices({
+          onlyTemplateInstances: true,
+          sortBy: "NAME_ASC",
+        });
+
+        expect(result.totalCount).toBe(2);
+        expect(resultsOf(result)).toEqual([anagrafeGroup(), single(instanceD)]);
+      });
+    });
+
+    describe("incompatible filters", () => {
+      const requesterId: TenantId = generateId();
+      const requesterContext = getMockContext({
+        authData: getMockAuthData(requesterId),
+      });
+
+      const expectSingleEServices = (
+        result: ListResult<CatalogQueryResult>
+      ): void => {
+        expect(result.totalCount).toBe(5);
+        expect(result.results.every((r) => r.resultType === "eservice")).toBe(
+          true
+        );
+        expect(idsOf(result)).toEqual(
+          expect.arrayContaining(visibleEServices.map((e) => e.id))
+        );
+      };
+
+      it.each<{
+        description: string;
+        filters: Partial<catalogApi.EServicesFilterPayload>;
+      }>([
+        {
+          description: "producersIds",
+          filters: { producersIds: [producerId] },
+        },
+        {
+          description: "onlyActiveEservices",
+          filters: { onlyActiveEservices: true },
+        },
+        {
+          description: "subscribedByRequester",
+          filters: { subscribedByRequester: false },
+        },
+        {
+          description: "onlySignalHubEnabled",
+          filters: { onlySignalHubEnabled: false },
+        },
+      ])(
+        "should return the single e-services with $description",
+        async ({ filters }) => {
+          expectSingleEServices(
+            await groupedEServices(filters, requesterContext)
+          );
+        }
+      );
+
+      it("should return the single e-services with producerCategories", async () => {
+        const attributeComune: Attribute = {
+          ...getMockAttribute(),
+          code: "L6",
+          origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
+        };
+        await addOneAttribute(attributeComune);
+        await addOneTenant({
+          ...getMockTenant(producerId),
+          attributes: [
+            {
+              ...getMockCertifiedTenantAttribute(attributeComune.id),
+              revocationTimestamp: undefined,
+            },
+          ],
+        });
+
+        expectSingleEServices(
+          await groupedEServices({ producerCategories: ["COMUNI"] })
+        );
+      });
+
+      it("should return the single e-services with hasLinkedPurposeTemplates", async () => {
+        const purposeTemplate = getMockPurposeTemplate(
+          undefined,
+          purposeTemplateState.published
+        );
+        await addOnePurposeTemplate(purposeTemplate);
+        for (const eservice of visibleEServices) {
+          await addOnePurposeTemplateEServiceDescriptor({
+            purposeTemplateId: purposeTemplate.id,
+            eserviceId: eservice.id,
+            descriptorId: eservice.descriptors[0].id,
+            createdAt: new Date(),
+          });
+        }
+
+        expectSingleEServices(
+          await groupedEServices({ hasLinkedPurposeTemplates: true })
+        );
+      });
+
+      it("should return the single instances of the template with templateId", async () => {
+        const result = await groupedEServices({
+          templateId: templateAnagrafe.id,
+          sortBy: "NAME_ASC",
+        });
+
+        expect(resultsOf(result)).toEqual(
+          [instanceA, instanceB, instanceC].map(single)
+        );
+      });
     });
   });
 

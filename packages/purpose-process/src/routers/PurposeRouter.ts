@@ -65,6 +65,8 @@ import {
   updatePurposeByTemplateErrorMapper,
   updatePurposeErrorMapper,
   updateReversePurposeErrorMapper,
+  patchUpdatePurposeErrorMapper,
+  patchUpdateReversePurposeErrorMapper,
   maintenanceFixRiskAnalysisErrorMapper,
   maintenanceFixReviewerWorkflowErrorMapper,
 } from "../utilities/errorMappers.js";
@@ -113,6 +115,7 @@ const purposeRouter = (
           excludeDraft,
           reviewerId,
           signingStates,
+          sortByRiskAnalysisAssignmentDateDescending,
           offset,
           limit,
         } = req.query;
@@ -129,6 +132,7 @@ const purposeRouter = (
               ? unsafeBrandId<UserId>(reviewerId)
               : undefined,
             signingStates: signingStates?.map(apiSigningStateToSigningState),
+            sortByRiskAnalysisAssignmentDateDescending,
           },
           { offset, limit },
           ctx
@@ -219,7 +223,7 @@ const purposeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
         const {
           data: { purpose },
@@ -238,7 +242,7 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          updateReversePurposeErrorMapper,
+          patchUpdateReversePurposeErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);
@@ -360,7 +364,7 @@ const purposeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
         const {
           data: { purpose },
@@ -377,7 +381,11 @@ const purposeRouter = (
           .status(200)
           .send(purposeApi.Purpose.parse(purposeToApiPurpose(purpose)));
       } catch (error) {
-        const errorRes = makeApiProblem(error, updatePurposeErrorMapper, ctx);
+        const errorRes = makeApiProblem(
+          error,
+          patchUpdatePurposeErrorMapper,
+          ctx
+        );
         return res.status(errorRes.status).send(errorRes);
       }
     })
@@ -564,9 +572,9 @@ const purposeRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-          await purposeService.rejectPurposeVersion(
+          const { data, metadata } = await purposeService.rejectPurposeVersion(
             {
               purposeId: unsafeBrandId(req.params.purposeId),
               versionId: unsafeBrandId(req.params.versionId),
@@ -574,7 +582,14 @@ const purposeRouter = (
             },
             ctx
           );
-          return res.status(204).send();
+          setMetadataVersionHeader(res, metadata);
+          return res
+            .status(200)
+            .send(
+              purposeApi.PurposeVersion.parse(
+                purposeVersionToApiPurposeVersion(data)
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
