@@ -143,7 +143,8 @@ async function processMessage({
           "TenantDelegatedConsumerFeatureAdded",
           "TenantDelegatedConsumerFeatureRemoved",
           "TenantRemoteIdAssigned",
-          "MaintenanceTenantRemoteIdDeleted"
+          "MaintenanceTenantRemoteIdDeleted",
+          "TenantParentUpdated"
         ),
       },
       () => Promise.resolve()

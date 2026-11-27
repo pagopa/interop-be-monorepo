@@ -134,7 +134,8 @@ export async function handleTenantEvent(
           "TenantDelegatedConsumerFeatureAdded",
           "TenantDelegatedConsumerFeatureRemoved",
           "TenantRemoteIdAssigned",
-          "MaintenanceTenantRemoteIdDeleted"
+          "MaintenanceTenantRemoteIdDeleted",
+          "TenantParentUpdated"
         ),
       },
       () => {
