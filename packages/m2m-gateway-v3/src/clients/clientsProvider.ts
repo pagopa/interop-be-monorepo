@@ -107,24 +107,24 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
     ),
     attributeProcessClient: createZodiosClientEnhancedWithMetadata(
       attributeRegistryApi.createAttributeApiClient,
-      config.attributeRegistryUrl
+      config.attributeRegistryProcessUrl
     ),
     purposeProcessClient: createZodiosClientEnhancedWithMetadata(
       purposeApi.createPurposeApiClient,
-      config.purposeUrl
+      config.purposeProcessUrl
     ),
     authorizationClient: {
       client: createZodiosClientEnhancedWithMetadata(
         authorizationApi.createClientApiClient,
-        config.authorizationUrl
+        config.authorizationProcessUrl
       ),
       producerKeychain: createZodiosClientEnhancedWithMetadata(
         authorizationApi.createProducerKeychainApiClient,
-        config.authorizationUrl
+        config.authorizationProcessUrl
       ),
       key: createZodiosClientEnhancedWithMetadata(
         authorizationApi.createKeyApiClient,
-        config.authorizationUrl
+        config.authorizationProcessUrl
       ),
     },
     delegationProcessClient: {

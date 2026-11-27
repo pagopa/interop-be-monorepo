@@ -16,7 +16,7 @@ function buildTenantProcessClient() {
 function buildAttributeRegistryClient() {
   return createZodiosClientEnhancedWithMetadata(
     attributeRegistryApi.createAttributeApiClient,
-    config.attributeProcessUrl
+    config.attributeRegistryProcessUrl
   );
 }
 

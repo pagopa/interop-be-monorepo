@@ -33,7 +33,7 @@ const tokenGenerator = new InteropTokenGenerator(config);
 const refreshableToken = new RefreshableInteropToken(tokenGenerator);
 const tenantProcess = new TenantProcessService(config.tenantProcessUrl);
 const attributeRegistryClient = attributeRegistryApi.createAttributeApiClient(
-  config.attributeProcessUrl
+  config.attributeRegistryProcessUrl
 );
 
 const attributeProcess = new AttributeProcessService(attributeRegistryClient);
