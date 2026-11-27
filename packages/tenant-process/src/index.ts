@@ -1,4 +1,5 @@
 import { initDB, startServer } from "pagopa-interop-commons";
+import { connectContactDB } from "pagopa-interop-contact-data-db-models";
 import {
   agreementReadModelServiceBuilder,
   attributeReadModelServiceBuilder,
@@ -39,7 +40,8 @@ const service = tenantServiceBuilder(
     schema: config.eventStoreDbSchema,
     useSSL: config.eventStoreDbUseSSL,
   }),
-  readModelServiceSQL
+  readModelServiceSQL,
+  connectContactDB(config)
 );
 
 startServer(await createApp(service), config);

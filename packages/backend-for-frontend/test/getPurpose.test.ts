@@ -22,8 +22,8 @@ import type {
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
 
+import { TENANT_OPERATION_FORBIDDEN_CODE } from "../src/config/constants.js";
 import { purposeServiceBuilder } from "../src/services/purposeService.js";
-import { mockTenantContacts } from "./mockTenantContacts.js";
 import { fileManager, getBffMockContext } from "./utils.js";
 
 describe("getPurpose — reviewer enrichment", () => {
@@ -113,11 +113,16 @@ describe("getPurpose — reviewer enrichment", () => {
   const mockGetPurposes = vi.fn();
   const mockGetEServiceById = vi.fn();
   const mockGetTenant = vi.fn();
+  const mockGetTenantContact = vi.fn();
+  const mockGetDelegation = vi.fn();
   const mockGetAgreements = vi.fn();
   const mockGetUserInfoUsingGET = vi.fn();
 
   const mockTenantProcessClient = {
-    tenant: { getTenant: mockGetTenant },
+    tenant: {
+      getTenant: mockGetTenant,
+      getTenantContact: mockGetTenantContact,
+    },
   } as unknown as TenantProcessClient;
 
   const mockAuthorizationClient = {
@@ -125,7 +130,7 @@ describe("getPurpose — reviewer enrichment", () => {
   } as unknown as AuthorizationProcessClient;
 
   const mockDelegationProcessClient = {
-    delegation: {},
+    delegation: { getDelegation: mockGetDelegation },
   } as unknown as DelegationProcessClient;
 
   const purposeService = purposeServiceBuilder(
@@ -143,11 +148,13 @@ describe("getPurpose — reviewer enrichment", () => {
         filterUnreadNotifications: vi.fn().mockResolvedValue([]),
       },
     } as unknown as PagoPAInteropBeClients,
-    fileManager,
-    mockTenantContacts
+    fileManager
   );
 
   beforeEach(() => {
+    mockGetTenantContact
+      .mockReset()
+      .mockRejectedValue({ isAxiosError: true, response: { status: 404 } });
     mockGetPurpose.mockReset();
     mockGetPurposes.mockReset();
     mockGetEServiceById.mockReset();
@@ -164,6 +171,53 @@ describe("getPurpose — reviewer enrichment", () => {
         params.id === consumerId ? consumer : producer
     );
     mockGetAgreements.mockResolvedValue({ results: [agreement] });
+  });
+
+  it("keeps delegation members and their contact responses paired", async () => {
+    const delegationId = generateId();
+    mockGetPurpose.mockResolvedValue({
+      data: { ...basePurpose, delegationId, reviewerWorkflow: undefined },
+      metadata: purposeMetadata,
+    });
+    mockGetDelegation.mockResolvedValue({
+      delegateId: producerId,
+      delegatorId: consumerId,
+    });
+    mockGetTenantContact.mockImplementation(
+      ({ params }: { params: { tenantId: string } }) =>
+        params.tenantId === consumerId
+          ? Promise.resolve({ address: "consumer@example.org" })
+          : Promise.reject({
+              isAxiosError: true,
+              response: {
+                status: 403,
+                data: { errors: [{ code: TENANT_OPERATION_FORBIDDEN_CODE }] },
+              },
+            })
+    );
+    const ctx = getBffMockContext(
+      getMockContext({ authData: getMockAuthData(consumerId) })
+    );
+    const result = await purposeService.getPurpose(mockPurposeId, ctx);
+    expect(result.data.delegation).toEqual({
+      id: delegationId,
+      delegate: {
+        id: producerId,
+        name: producer.name,
+        kind: producer.kind,
+        contactMail: undefined,
+      },
+      delegator: {
+        id: consumerId,
+        name: consumer.name,
+        kind: consumer.kind,
+        contactMail: { address: "consumer@example.org" },
+      },
+    });
+    expect(mockGetTenantContact).toHaveBeenCalledWith({
+      params: { tenantId: producerId },
+      headers: ctx.headers,
+    });
   });
 
   it.each([userRole.ADMIN_ROLE, userRole.VIEWER_ROLE, userRole.REVIEWER_ROLE])(

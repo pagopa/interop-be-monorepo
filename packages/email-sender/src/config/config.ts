@@ -1,7 +1,6 @@
 import {
-  APIEndpoint,
+  ContactDataDBConfig,
   AWSSesConfig,
-  TokenGenerationConfig,
   KafkaConsumerConfig,
   EmailDispatchTopicConfig,
   SelfCareClientConfig,
@@ -11,7 +10,6 @@ import { z } from "zod";
 
 const SESEmailSenderConfig = z
   .object({
-    CONTACT_DATA_MANAGER_URL: APIEndpoint,
     SENDER_MAIL: z.string().email(),
     SENDER_LABEL: z.string(),
     RETRY_DELAY_IN_MILLIS: z.coerce.number().int().gte(0),
@@ -20,7 +18,6 @@ const SESEmailSenderConfig = z
     SELFCARE_API_RETRY_DELAY_IN_MILLIS: z.coerce.number().int().gte(0),
   })
   .transform((c) => ({
-    contactDataManagerUrl: c.CONTACT_DATA_MANAGER_URL,
     senderMail: c.SENDER_MAIL,
     senderLabel: c.SENDER_LABEL,
     retryDelayInMillis: c.RETRY_DELAY_IN_MILLIS,
@@ -35,7 +32,7 @@ const EmailSenderConfig = KafkaConsumerConfig.and(SESEmailSenderConfig)
   .and(EmailDispatchTopicConfig)
   .and(SelfCareClientConfig)
   .and(ReadModelSQLDbConfig)
-  .and(TokenGenerationConfig);
+  .and(ContactDataDBConfig);
 
 type EmailSenderConfig = z.infer<typeof EmailSenderConfig>;
 

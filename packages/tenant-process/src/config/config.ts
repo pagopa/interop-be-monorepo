@@ -1,6 +1,7 @@
 import {
   CommonHTTPServiceConfig,
   EventStoreConfig,
+  ContactDataDBConfig,
   ApplicationAuditProducerConfig,
   ReadModelSQLDbConfig,
   FeatureFlagDelegationConstraintSkipConfig,
@@ -9,6 +10,7 @@ import {
 import { z } from "zod";
 
 const TenantProcessConfig = CommonHTTPServiceConfig.and(EventStoreConfig)
+  .and(ContactDataDBConfig)
   .and(ReadModelSQLDbConfig)
   .and(FeatureFlagDelegationConstraintSkipConfig)
   .and(FeatureFlagTenantEventsV3Config)

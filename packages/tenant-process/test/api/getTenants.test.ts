@@ -38,7 +38,7 @@ describe("API GET /tenants test", () => {
   };
 
   const apiResponse = tenantApi.Tenants.parse({
-    results: mockResponse.results.map(toApiTenant),
+    results: mockResponse.results.map((tenant) => toApiTenant(tenant)),
     totalCount: mockResponse.totalCount,
   });
 

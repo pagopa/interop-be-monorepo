@@ -4,6 +4,8 @@ import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockTenant,
+  getMockTenantMail,
+  mockTokenOrganizationId,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { generateId, Tenant, TenantId } from "pagopa-interop-models";
@@ -51,6 +53,23 @@ describe("API GET /tenants/{id} test", () => {
       .get(`/tenants/${tenantId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
+
+  it("includes the legacy contact only in the owning tenant's response", async () => {
+    const mail = getMockTenantMail();
+    const token = generateToken(authRole.ADMIN_ROLE);
+    for (const id of [tenant.id, mockTokenOrganizationId]) {
+      tenantService.getTenantById = vi
+        .fn()
+        .mockResolvedValue(
+          getMockWithMetadata({ ...tenant, id, mails: [mail] })
+        );
+      const res = await makeRequest(token, id);
+      expect(res.status).toBe(200);
+      expect(res.body.mails.map((m: { address: string }) => m.address)).toEqual(
+        id === mockTokenOrganizationId ? [mail.address] : []
+      );
+    }
+  });
 
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",

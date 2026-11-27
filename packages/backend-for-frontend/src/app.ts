@@ -8,13 +8,12 @@ import {
 } from "pagopa-interop-application-audit";
 import {
   authenticationMiddleware,
-  errorsToApiProblemsMiddleware,
+  tenantErrorsToApiProblemsMiddleware,
   contextMiddleware,
   loggerMiddleware,
   zodiosCtx,
   rateLimiterMiddleware as rateLimiterMiddlewareBuilder,
   InteropTokenGenerator,
-  RefreshableInteropToken,
   RateLimiter,
   FileManager,
   fromFilesToBodyMiddleware,
@@ -104,7 +103,6 @@ import {
   SelfcareService,
   selfcareServiceBuilder,
 } from "./services/selfcareService.js";
-import { tenantContactServiceBuilder } from "./services/tenantContactService.js";
 import {
   TenantService,
   tenantServiceBuilder,
@@ -143,10 +141,6 @@ export async function createServices(
   authorizationServiceAllowList: string[]
 ): Promise<BFFServices> {
   const interopTokenGenerator = new InteropTokenGenerator(config);
-  const tenantContacts = tenantContactServiceBuilder(
-    clients.contactDataManagerClient,
-    new RefreshableInteropToken(interopTokenGenerator)
-  );
 
   const consentTypeMap: Map<bffApi.ConsentType, string> = new Map([
     [bffApi.ConsentType.Values.PP, config.privacyNoticesPpUuid],
@@ -160,11 +154,7 @@ export async function createServices(
   );
 
   return {
-    agreementService: agreementServiceBuilder(
-      clients,
-      fileManager,
-      tenantContacts
-    ),
+    agreementService: agreementServiceBuilder(clients, fileManager),
     attributeService: attributeServiceBuilder(clients.attributeProcessClient),
     authorizationService: authorizationServiceBuilder(
       interopTokenGenerator,
@@ -179,7 +169,6 @@ export async function createServices(
       redisRateLimiter
     ),
     catalogService: catalogServiceBuilder(
-      tenantContacts,
       clients.catalogProcessClient,
       clients.tenantProcessClient,
       clients.agreementProcessClient,
@@ -193,7 +182,6 @@ export async function createServices(
     ),
     clientService: clientServiceBuilder(clients),
     delegationService: delegationServiceBuilder(
-      tenantContacts,
       clients.delegationProcessClient,
       clients.tenantProcessClient,
       clients.catalogProcessClient,
@@ -219,7 +207,7 @@ export async function createServices(
       consentTypeMap
     ),
     producerKeychainService: producerKeychainServiceBuilder(clients),
-    purposeService: purposeServiceBuilder(clients, fileManager, tenantContacts),
+    purposeService: purposeServiceBuilder(clients, fileManager),
     purposeTemplateService: purposeTemplateServiceBuilder(
       clients.purposeTemplateProcessClient,
       clients.tenantProcessClient,
@@ -229,7 +217,6 @@ export async function createServices(
     ),
     selfcareService: selfcareServiceBuilder(clients),
     tenantService: tenantServiceBuilder(
-      tenantContacts,
       clients.tenantProcessClient,
       clients.attributeProcessClient,
       clients.selfcareV2InstitutionClient
@@ -300,7 +287,7 @@ export async function createApp(
     toolRouter(zodiosCtx, services.toolsService)
   );
 
-  app.use(errorsToApiProblemsMiddleware);
+  app.use(tenantErrorsToApiProblemsMiddleware);
 
   return app;
 }

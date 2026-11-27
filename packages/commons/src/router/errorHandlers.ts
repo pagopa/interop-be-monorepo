@@ -52,6 +52,37 @@ export function zodiosValidationErrorToApiProblem(
     );
 }
 
+// JSON parsing and validation errors may quote fragments of a contact address.
+function isTenantContactWrite(req: express.Request): boolean {
+  return (
+    req.method === "POST" && /\/tenants\/[^/]+\/contact\/?$/i.test(req.path)
+  );
+}
+
+export const tenantValidationErrorToApiProblem: typeof zodiosValidationErrorToApiProblem =
+  (error, req, res, next) => {
+    if (isTenantContactWrite(req)) {
+      const problem = makeApiProblem(
+        badRequestError("Invalid contact request"),
+        () => constants.HTTP_STATUS_BAD_REQUEST,
+        fromAppContext(req.ctx)
+      );
+      return res.status(problem.status).send(problem);
+    }
+    return zodiosValidationErrorToApiProblem(error, req, res, next);
+  };
+
+export const tenantErrorsToApiProblemsMiddleware: typeof errorsToApiProblemsMiddleware =
+  (error, req, res, next) =>
+    errorsToApiProblemsMiddleware(
+      error instanceof SyntaxError && isTenantContactWrite(req)
+        ? new SyntaxError("Invalid contact request")
+        : error,
+      req,
+      res,
+      next
+    );
+
 export function errorsToApiProblemsMiddleware(
   error: unknown,
   req: WithZodiosContext<express.Request, ExpressContext>,

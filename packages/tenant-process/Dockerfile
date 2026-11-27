@@ -14,6 +14,7 @@ COPY .npmrc /app/
 COPY ./packages/tenant-process/package.json /app/packages/tenant-process/package.json
 COPY ./packages/commons/package.json /app/packages/commons/package.json
 COPY ./packages/models/package.json /app/packages/models/package.json
+COPY ./packages/contact-data-db-models/package.json /app/packages/contact-data-db-models/package.json
 COPY ./packages/api-clients/package.json /app/packages/api-clients/package.json
 COPY ./packages/application-audit/package.json /app/packages/application-audit/package.json
 COPY ./packages/kafka-iam-auth/package.json /app/packages/kafka-iam-auth/package.json
@@ -27,6 +28,7 @@ COPY turbo.json /app/
 COPY ./packages/tenant-process /app/packages/tenant-process
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
+COPY ./packages/contact-data-db-models /app/packages/contact-data-db-models
 COPY ./packages/api-clients /app/packages/api-clients
 COPY ./packages/application-audit /app/packages/application-audit
 COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
@@ -42,6 +44,7 @@ RUN NODE_OPTIONS="--max-old-space-size=${NODE_HEAP_SIZE}" pnpm build && \
   node_modules packages/tenant-process/node_modules \
   package*.json packages/tenant-process/package*.json \
   packages/commons \
+  packages/contact-data-db-models \
   packages/models \
   packages/api-clients \
   packages/application-audit \

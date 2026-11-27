@@ -85,7 +85,7 @@ services:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
 
-  # Contact data manager database
+  # Tenant contact database
   contact-data-manager-sql:
     read_only: true
     tmpfs:

@@ -31,8 +31,11 @@ import {
 import { TenantProcessClient } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import { BffAppContext } from "../utilities/context.js";
+import {
+  omitUnavailableTenantContact,
+  tenantContactRequestError,
+} from "../utilities/tenantContactErrors.js";
 import { getAllBulkAttributes } from "./attributeService.js";
-import { TenantContactService } from "./tenantContactService.js";
 
 async function getRegistryAttributesMap(
   tenantAttributesIds: string[],
@@ -50,7 +53,6 @@ async function getRegistryAttributesMap(
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder(
-  tenantContacts: TenantContactService,
   tenantProcessClient: TenantProcessClient,
   attributeRegistryProcessClient: attributeRegistryApi.AttributeProcessClient,
   selfcareV2InstitutionClient: SelfcareV2InstitutionClient
@@ -87,7 +89,7 @@ export function tenantServiceBuilder(
   return {
     async getTenant(
       tenantId: TenantId,
-      { headers, logger, correlationId }: WithLogger<BffAppContext>
+      { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.Tenant> {
       logger.info(`Getting tenant with id ${tenantId}`);
       const tenant = await tenantProcessClient.tenant.getTenant({
@@ -124,10 +126,9 @@ export function tenantServiceBuilder(
         headers
       );
 
-      const tenantContactMail = await tenantContacts.resolve(
-        tenant,
-        correlationId
-      );
+      const tenantContactMail = await tenantProcessClient.tenant
+        .getTenantContact({ params: { tenantId: tenant.id }, headers })
+        .catch(omitUnavailableTenantContact(logger));
       return toBffApiTenant(
         tenant,
         certifiedAttributes,
@@ -512,14 +513,17 @@ export function tenantServiceBuilder(
       { address }: bffApi.TenantContactSeed,
       ctx: WithLogger<BffAppContext>
     ): Promise<void> {
-      const contactId = await tenantContacts.create(address, ctx.correlationId);
-      await tenantProcessClient.tenant.addTenantContact(
-        { contactId },
-        {
-          params: { tenantId },
-          headers: ctx.headers,
-        }
-      );
+      await tenantProcessClient.tenant
+        .addTenantContact(
+          { address },
+          {
+            params: { tenantId },
+            headers: ctx.headers,
+          }
+        )
+        .catch((error: unknown) => {
+          throw tenantContactRequestError(error);
+        });
     },
     async deleteTenantContact(
       tenantId: TenantId,

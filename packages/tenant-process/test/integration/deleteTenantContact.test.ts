@@ -132,7 +132,7 @@ describe("deleteTenantContact", async () => {
     await addOneTenant(tenant);
     const ctx = getMockContext({ authData: getMockAuthData(tenant.id) });
     await tenantService.addTenantContact(
-      { tenantId: tenant.id, contactId: generateId<ContactId>() },
+      { tenantId: tenant.id, address: "immediate@example.org" },
       ctx
     );
     const removed = await tenantService.deleteTenantContact(tenant.id, ctx);

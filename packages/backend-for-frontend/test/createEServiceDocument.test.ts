@@ -31,7 +31,6 @@ import type {
 import { config } from "../src/config/config.js";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import { BffAppContext } from "../src/utilities/context.js";
-import { mockTenantContacts } from "./mockTenantContacts.js";
 import {
   getMockCatalogApiEService,
   getMockCatalogApiEServiceDescriptor,
@@ -80,7 +79,6 @@ describe("createEServiceDocument", () => {
   });
 
   const catalogService = catalogServiceBuilder(
-    mockTenantContacts,
     catalogProcessClient,
     createDummyStub<TenantProcessClient>(),
     createDummyStub<agreementApi.AgreementProcessClient>(),

@@ -38,7 +38,6 @@ import { config } from "../src/config/config.js";
 import { ASYNC_EXCHANGE_CALLBACK_INTERFACE_FOLDER } from "../src/config/constants.js";
 import { invalidZipStructure } from "../src/model/errors.js";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
-import { mockTenantContacts } from "./mockTenantContacts.js";
 import { fileManager, getBffMockContext } from "./utils.js";
 
 describe("importEService", () => {
@@ -109,7 +108,6 @@ describe("importEService", () => {
   );
 
   const catalogService = catalogServiceBuilder(
-    mockTenantContacts,
     mockCatalogProcessClient,
     mockTenantProcessClient,
     mockAgreementProcessClient,

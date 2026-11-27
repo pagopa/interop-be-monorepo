@@ -19,6 +19,11 @@ import {
   assertFeatureFlagEnabled,
 } from "pagopa-interop-commons";
 import {
+  ContactDBConnection,
+  insertContact,
+  readContactEmail,
+} from "pagopa-interop-contact-data-db-models";
+import {
   Attribute,
   AttributeId,
   CertifiedTenantAttribute,
@@ -45,6 +50,7 @@ import {
   TenantFeatureCertifier,
   CorrelationId,
   tenantKind,
+  tenantMailKind,
   AgreementId,
   Agreement,
   AgreementState,
@@ -83,7 +89,7 @@ import {
   certifiedDiscreteAttributeAlreadyAssigned,
   tenantNotFoundByRemoteId,
   tenantUpdateVersionMismatch,
-  tenantContactAlreadyAssigned,
+  tenantContactNotFound,
   tenantLegacyMailsNotMigrated,
 } from "../model/domain/errors.js";
 import { ApiGetTenantsFilters } from "../model/domain/models.js";
@@ -306,7 +312,8 @@ function isActiveCertifiedDiscreteTenantAttribute(
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelServiceSQL,
+  contactDB: ContactDBConnection
 ) {
   const repository = eventRepository(dbInstance, tenantEventToBinaryData);
   return {
@@ -2244,13 +2251,46 @@ export function tenantServiceBuilder(
       );
     },
 
+    async getTenantContact(
+      tenantId: TenantId,
+      { authData, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<tenantApi.TenantContactMail> {
+      await assertRequesterAllowed(tenantId, authData);
+      const { data: tenant } = await retrieveTenant(tenantId, readModelService);
+      if (tenant.contactId) {
+        const address = await readContactEmail(
+          contactDB,
+          tenant.contactId
+        ).catch(() => {
+          throw genericInternalError(
+            `Unable to read contact ${tenant.contactId} for tenant ${tenantId}`
+          );
+        });
+        if (address !== undefined) {
+          return { address };
+        }
+        logger.warn(
+          `Missing contact ${tenant.contactId} for tenant ${tenantId}`
+        );
+      } else {
+        const mail = getLatestTenantMailOfKind(
+          tenant.mails,
+          tenantMailKind.ContactEmail
+        );
+        if (mail) {
+          return { address: mail.address, description: mail.description };
+        }
+      }
+      throw tenantContactNotFound(tenantId);
+    },
+
     async addTenantContact(
       {
         tenantId,
-        contactId,
+        address,
       }: {
         tenantId: TenantId;
-        contactId: ContactId;
+        address: string;
       },
       {
         authData,
@@ -2258,7 +2298,7 @@ export function tenantServiceBuilder(
         correlationId,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Tenant>> {
-      logger.info(`Adding contact ${contactId} to Tenant ${tenantId}`);
+      logger.info(`Setting contact for Tenant ${tenantId}`);
 
       assertFeatureFlagEnabled(config, "featureFlagTenantEventsV3");
 
@@ -2266,25 +2306,23 @@ export function tenantServiceBuilder(
 
       const tenant = await retrieveTenant(tenantId, readModelService);
 
-      if (tenant.data.contactId === contactId) {
-        throw tenantContactAlreadyAssigned(tenantId, contactId);
-      }
-
-      // A single contact per tenant: adding a new one replaces the current one
+      const contactId = generateId<ContactId>();
       const updatedTenant: Tenant = {
         ...tenant.data,
         contactId,
         updatedAt: new Date(),
       };
 
-      const { newVersion } = await repository.createEvent(
-        toCreateEventTenantContactAdded(
-          tenant.metadata.version,
-          updatedTenant,
-          contactId,
-          correlationId
-        )
+      const event = toCreateEventTenantContactAdded(
+        tenant.metadata.version,
+        updatedTenant,
+        contactId,
+        correlationId
       );
+      // Persist the contact first. An uncertain event-store outcome must never
+      // trigger deletion of a contact that a committed event may reference.
+      await insertContact(contactDB, contactId, address);
+      const { newVersion } = await repository.createEvent(event);
 
       return {
         data: updatedTenant,

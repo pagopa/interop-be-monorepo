@@ -6,6 +6,10 @@ import {
   writeInEventstore,
 } from "pagopa-interop-commons-test";
 import {
+  connectContactDB,
+  contact,
+} from "pagopa-interop-contact-data-db-models";
+import {
   Agreement,
   EService,
   Tenant,
@@ -33,7 +37,7 @@ import {
   upsertEService,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
-import { inject, afterEach } from "vitest";
+import { inject, afterEach, afterAll } from "vitest";
 
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 import { tenantServiceBuilder } from "../src/services/tenantService.js";
@@ -48,7 +52,19 @@ export const { cleanup, postgresDB, readModelDB } =
     inject("readModelSQLConfig")
   );
 
+const contactConfig = inject("contactDataDbConfig");
+export const contactDB = connectContactDB(contactConfig);
+const contactWriter = connectContactDB({
+  ...contactConfig,
+  contactDataDBUsername: "contact_writer",
+  contactDataDBPassword: "contact_writer",
+});
+afterAll(async () => {
+  await Promise.all([contactDB.$client.end(), contactWriter.$client.end()]);
+});
+
 afterEach(async () => {
+  await contactDB.delete(contact);
   await readModelDB.delete(tenantVerifiedAttributeVerifierInReadmodelTenant);
   await readModelDB.delete(tenantVerifiedAttributeRevokerInReadmodelTenant);
 
@@ -73,7 +89,11 @@ export const readModelService = readModelServiceBuilderSQL(
   delegationReadModelServiceSQL
 );
 
-export const tenantService = tenantServiceBuilder(postgresDB, readModelService);
+export const tenantService = tenantServiceBuilder(
+  postgresDB,
+  readModelService,
+  contactWriter
+);
 
 const writeTenantInEventstore = async (tenant: Tenant): Promise<void> => {
   const tenantEvent: TenantEvent = {
