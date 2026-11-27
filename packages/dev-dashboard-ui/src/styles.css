@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+    --background: 0 0% 94.901961%; /* #F2F2F2 */
+    --foreground: 210 54% 19.607843%; /* #17324D */
+    --card: 0 0% 100%;
+    --card-foreground: 210 54% 19.607843%;
+    --border: 210 16.666667% 90.588235%; /* #E3E7EB */
+    --input: 210 17% 77%;
+    --ring: 210 100% 45.098039%;
+    --primary: 210 100% 45.098039%; /* #0073E6 */
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 210 100% 33.333%; /* #0055AA */
+    --secondary: 211.428571 100% 95.882353%; /* #EAF4FF */
+    --secondary-foreground: 210 100% 33.333333%; /* #0055AA */
+    --muted: 210 25% 97%;
+    --muted-foreground: 210 17.117117% 43.529412%; /* #5C6F82 */
+    --destructive: 0 72% 39%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 118.695652 44.660194% 59.607843%; /* PDND #6CC66A */
+    --success-foreground: 118.064516 31.958763% 19.019608%; /* #224021 */
+    --success-subtle: 120 46.341463% 91.960784%; /* #E1F4E1 */
+    --warning: 43.135135 100% 63.725490%; /* PDND #FFCB46 */
+    --warning-foreground: 43.421053 64.406780% 23.137255%; /* #614C15 */
+    --warning-subtle: 43.783784 100% 92.745098%; /* #FFF5DA */
+  }
+  * { @apply border-border; }
+  html, body, #root { @apply h-full w-full; }
+  html, body { @apply overflow-hidden; }
+  #root { @apply flex min-h-0 flex-col overflow-hidden; height: 100dvh; }
+  body { @apply m-0 bg-background text-foreground antialiased; font-family: "Titillium Web", sans-serif; }
+  button, input, select, textarea { font: inherit; }
+  button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+  code, pre { font-family: "DM Mono", monospace; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; } }
+}
+
