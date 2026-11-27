@@ -195,7 +195,7 @@ const checkNewTemplateVersionAvailable = (
 
 const enhanceProducerEService = async (
   tenantProcessClient: TenantProcessClient,
-  headers: BffAppContext["headers"],
+  { headers, logger }: WithLogger<BffAppContext>,
   eservice: catalogApi.EService,
   requesterId: TenantId,
   delegations: delegationApi.Delegation[],
@@ -228,7 +228,7 @@ const enhanceProducerEService = async (
           [delegator, delegate].map(({ id: tenantId }) =>
             tenantProcessClient.tenant
               .getTenantContact({ params: { tenantId }, headers })
-              .catch(omitUnavailableTenantContact(headers))
+              .catch(omitUnavailableTenantContact(logger))
           )
         )
       : [];
@@ -536,11 +536,11 @@ export function catalogServiceBuilder(
               params: { tenantId: producerTenant.id },
               headers,
             })
-            .catch(omitUnavailableTenantContact(headers)),
+            .catch(omitUnavailableTenantContact(logger)),
           delegate &&
             tenantProcessClient.tenant
               .getTenantContact({ params: { tenantId: delegate.id }, headers })
-              .catch(omitUnavailableTenantContact(headers)),
+              .catch(omitUnavailableTenantContact(logger)),
         ]);
       const producerDescriptorEService =
         await enhanceEServiceToBffCatalogApiProducerDescriptorEService(
@@ -988,7 +988,7 @@ export function catalogServiceBuilder(
           results.map((result) =>
             enhanceProducerEService(
               tenantProcessClient,
-              ctx.headers,
+              ctx,
               result,
               requesterId,
               delegations,
@@ -1098,7 +1098,7 @@ export function catalogServiceBuilder(
 
       const producerTenantContactMail = await tenantProcessClient.tenant
         .getTenantContact({ params: { tenantId: producerTenant.id }, headers })
-        .catch(omitUnavailableTenantContact(headers));
+        .catch(omitUnavailableTenantContact(logger));
       return {
         id: descriptor.id,
         version: descriptor.version,

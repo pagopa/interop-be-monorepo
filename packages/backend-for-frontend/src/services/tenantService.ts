@@ -128,7 +128,7 @@ export function tenantServiceBuilder(
 
       const tenantContactMail = await tenantProcessClient.tenant
         .getTenantContact({ params: { tenantId: tenant.id }, headers })
-        .catch(omitUnavailableTenantContact(headers));
+        .catch(omitUnavailableTenantContact(logger));
       return toBffApiTenant(
         tenant,
         certifiedAttributes,

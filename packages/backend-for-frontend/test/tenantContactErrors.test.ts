@@ -1,19 +1,10 @@
-import { generateId, CorrelationId } from "pagopa-interop-models";
+import { genericLogger } from "pagopa-interop-commons";
 import { describe, expect, it, vi } from "vitest";
 
 import { omitUnavailableTenantContact } from "../src/utilities/tenantContactErrors.js";
 
-const { warn } = vi.hoisted(() => ({ warn: vi.fn() }));
-vi.mock("pagopa-interop-commons", async (original) => ({
-  ...(await original<typeof import("pagopa-interop-commons")>()),
-  logger: () => ({ warn }),
-}));
-
-const onContactError = omitUnavailableTenantContact({
-  "X-Correlation-Id": generateId<CorrelationId>(),
-  Authorization: "Bearer user",
-  "X-Forwarded-For": undefined,
-});
+const warn = vi.fn();
+const onContactError = omitUnavailableTenantContact({ ...genericLogger, warn });
 
 describe("optional tenant contact", () => {
   it("propagates a role or authentication failure", () => {
@@ -43,7 +34,9 @@ describe("optional tenant contact", () => {
         })
       ).toBeUndefined();
       expect(warn).toHaveBeenCalledOnce();
-      expect(JSON.stringify(warn.mock.calls)).not.toContain(address);
+      expect(warn).toHaveBeenCalledWith(
+        `Unable to read tenant contact: ${status ?? "no response"}`
+      );
     }
   );
 

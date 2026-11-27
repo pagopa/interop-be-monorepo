@@ -43,7 +43,7 @@ import {
   purposeNotFound,
   tenantNotFound,
 } from "../model/errors.js";
-import { BffAppContext, Headers } from "../utilities/context.js";
+import { BffAppContext } from "../utilities/context.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { omitUnavailableTenantContact } from "../utilities/tenantContactErrors.js";
 import { getLatestAgreement } from "./agreementService.js";
@@ -172,7 +172,7 @@ export function purposeServiceBuilder(
 ) {
   async function enrichPurposeDelegation(
     delegationId: string,
-    headers: Headers
+    { headers, logger }: WithLogger<BffAppContext>
   ): Promise<bffApi.DelegationWithCompactTenants> {
     const delegation = await delegationProcessClient.delegation.getDelegation({
       params: { delegationId },
@@ -187,7 +187,7 @@ export function purposeServiceBuilder(
           }),
           tenantProcessClient.tenant
             .getTenantContact({ params: { tenantId }, headers })
-            .catch(omitUnavailableTenantContact(headers)),
+            .catch(omitUnavailableTenantContact(logger)),
         ]);
         if (!tenant) {
           throw tenantNotFound(tenantId);
@@ -205,18 +205,17 @@ export function purposeServiceBuilder(
 
   // eslint-disable-next-line complexity
   const enhancePurpose = async (
-    authData: UIAuthData,
     purpose: purposeApi.Purpose,
     eservices: catalogApi.EService[],
     producers: tenantApi.Tenant[],
     consumers: tenantApi.Tenant[],
     purposeTemplate: purposeTemplateApi.PurposeTemplate | undefined,
     skipRulesetRetrieval: boolean,
-    headers: Headers,
-    correlationId: CorrelationId,
+    ctx: WithLogger<BffAppContext>,
     notifications: string[]
     // eslint-disable-next-line max-params, sonarjs/cognitive-complexity
   ): Promise<bffApi.Purpose> => {
+    const { authData, headers, correlationId, logger } = ctx;
     const eservice = eservices.find((e) => e.id === purpose.eserviceId);
     if (!eservice) {
       throw eServiceNotFound(unsafeBrandId(purpose.eserviceId));
@@ -283,7 +282,7 @@ export function purposeServiceBuilder(
         : undefined;
 
     const delegation = purpose.delegationId
-      ? await enrichPurposeDelegation(purpose.delegationId, headers)
+      ? await enrichPurposeDelegation(purpose.delegationId, ctx)
       : undefined;
 
     const clients =
@@ -328,7 +327,7 @@ export function purposeServiceBuilder(
 
     const consumerContactMail = await tenantProcessClient.tenant
       .getTenantContact({ params: { tenantId: consumer.id }, headers })
-      .catch(omitUnavailableTenantContact(headers));
+      .catch(omitUnavailableTenantContact(logger));
     return {
       id: purpose.id,
       title: purpose.title,
@@ -408,7 +407,6 @@ export function purposeServiceBuilder(
   };
 
   const getPurposes = async (
-    authData: UIAuthData,
     filters: {
       name?: string | undefined;
       eservicesIds?: string[];
@@ -423,7 +421,7 @@ export function purposeServiceBuilder(
     },
     ctx: WithLogger<BffAppContext>
   ): Promise<bffApi.Purposes> => {
-    const { headers, correlationId } = ctx;
+    const { headers } = ctx;
     const queries = {
       ...filters,
       eservicesIds:
@@ -495,15 +493,13 @@ export function purposeServiceBuilder(
           : undefined;
 
         return await enhancePurpose(
-          authData,
           p,
           eservices,
           producers,
           consumers,
           purposeTemplate,
           true, // NOTE: if we need the rulesetExpiration when retrieving the purposes list, we have to fetch it here
-          headers,
-          correlationId,
+          ctx,
           notifications
         );
       })
@@ -673,7 +669,6 @@ export function purposeServiceBuilder(
         `Retrieving Purposes for name ${filters.name}, EServices ${filters.eservicesIds}, Consumers ${filters.consumersIds} offset ${offset}, limit ${limit}`
       );
       return await getPurposes(
-        authData,
         {
           ...filters,
           excludeDraft: true,
@@ -700,7 +695,6 @@ export function purposeServiceBuilder(
         `Retrieving Purposes for name ${filters.name}, EServices ${filters.eservicesIds}, Producers ${filters.producersIds} offset ${offset}, limit ${limit}`
       );
       return await getPurposes(
-        authData,
         {
           ...filters,
           excludeDraft: false,
@@ -732,7 +726,6 @@ export function purposeServiceBuilder(
         `Retrieving risk analysis assignments for reviewerId ${authData.userId}, signingState ${signingStates.join(",")}, EServices ${filters.eservicesIds}, offset ${offset}, limit ${limit}`
       );
       const purposes = await getPurposes(
-        authData,
         {
           reviewerId: authData.userId,
           consumersIds: [authData.organizationId],
@@ -995,7 +988,7 @@ export function purposeServiceBuilder(
       id: PurposeId,
       ctx: WithLogger<BffAppContext>
     ): Promise<WithMetadata<bffApi.Purpose>> {
-      const { headers, authData, logger, correlationId } = ctx;
+      const { headers, logger } = ctx;
       logger.info(`Retrieving Purpose ${id}`);
       const notificationsPromise = filterUnreadNotifications(
         inAppNotificationManagerClient,
@@ -1051,15 +1044,13 @@ export function purposeServiceBuilder(
 
       return {
         data: await enhancePurpose(
-          authData,
           purpose,
           [eservice],
           [producer],
           [consumer],
           purposeTemplate,
           false,
-          headers,
-          correlationId,
+          ctx,
           notification
         ),
         metadata: purposeWithMetadata.metadata,

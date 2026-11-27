@@ -802,7 +802,7 @@ async function enrichAgreementListEntry(
                   params: { tenantId },
                   headers: ctx.headers,
                 })
-                .catch(omitUnavailableTenantContact(ctx.headers))
+                .catch(omitUnavailableTenantContact(ctx.logger))
             )
           )
         : [];
@@ -906,7 +906,7 @@ export async function enrichAgreement(
           params: { tenantId: tenant.id },
           headers: ctx.headers,
         })
-        .catch(omitUnavailableTenantContact(ctx.headers));
+        .catch(omitUnavailableTenantContact(ctx.logger));
       return {
         id: delegation.id,
         delegate: {
@@ -922,7 +922,7 @@ export async function enrichAgreement(
     [producer, consumer].map(({ id: tenantId }) =>
       clients.tenantProcessClient.tenant
         .getTenantContact({ params: { tenantId }, headers: ctx.headers })
-        .catch(omitUnavailableTenantContact(ctx.headers))
+        .catch(omitUnavailableTenantContact(ctx.logger))
     )
   );
   return {

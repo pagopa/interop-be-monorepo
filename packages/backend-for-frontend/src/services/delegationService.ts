@@ -554,7 +554,7 @@ export function delegationServiceBuilder(
 
             const producerContactMail = await tenantClient.tenant
               .getTenantContact({ params: { tenantId: producer.id }, headers })
-              .catch(omitUnavailableTenantContact(headers));
+              .catch(omitUnavailableTenantContact(logger));
             return {
               id: eservice.id,
               name: eservice.name,
