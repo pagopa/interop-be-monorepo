@@ -49,6 +49,9 @@ vi.mock("../src/services/openDataService.js", () => ({
 
 vi.mock("../src/services/ipaCertifiedAttributesImporterService.js", () => ({
   createTenantProcessClient: vi.fn(),
+  buildTenantsIndex: vi.fn(() => ({})),
+  getTenantParentUpdates: vi.fn(() => []),
+  updateTenantsParent: vi.fn(async () => 0),
   enableSubunitPropagation: enableSubunitPropagationMock,
   getTenantUpsertData: vi.fn(() => []),
   getNewAttributes: vi.fn(() => []),
