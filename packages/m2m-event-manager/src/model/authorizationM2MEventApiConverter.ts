@@ -46,6 +46,8 @@ function toApiClientM2MEventType(
   )
     .with("ClientAdded", () => "CLIENT_ADDED")
     .with("ClientDeleted", () => "CLIENT_DELETED")
+    .with("ClientNameUpdated", () => "CLIENT_NAME_UPDATED")
+    .with("ClientDescriptionUpdated", () => "CLIENT_DESCRIPTION_UPDATED")
     .with("ClientPurposeAdded", () => "CLIENT_PURPOSE_ADDED")
     .with("ClientPurposeRemoved", () => "CLIENT_PURPOSE_REMOVED")
     .exhaustive();
@@ -111,6 +113,11 @@ function toApiProducerKeychainM2MEventType(
   >(eventType)
     .with("ProducerKeychainAdded", () => "PRODUCER_KEYCHAIN_ADDED")
     .with("ProducerKeychainDeleted", () => "PRODUCER_KEYCHAIN_DELETED")
+    .with("ProducerKeychainNameUpdated", () => "PRODUCER_KEYCHAIN_NAME_UPDATED")
+    .with(
+      "ProducerKeychainDescriptionUpdated",
+      () => "PRODUCER_KEYCHAIN_DESCRIPTION_UPDATED"
+    )
     .with(
       "ProducerKeychainEServiceAdded",
       () => "PRODUCER_KEYCHAIN_ESERVICE_ADDED"
