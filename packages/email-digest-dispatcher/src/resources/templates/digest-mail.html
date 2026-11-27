@@ -1626,10 +1626,11 @@
                                         </tr>
                                       </table>
 
-                                      <!-- Stat cards -->
+                                      <!-- Stat cards (cards with a zero count are hidden) -->
                                       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 16px; margin-bottom: 16px;">
                                         <tr>
-                                          <td width="33%" valign="top" style="padding-right: 8px;">
+                                          {{#if archivingImminentEservices.totalCount}}
+                                          <td width="{{ archivingProducerCardWidth }}" valign="top" style="padding: 0 4px;">
                                             <div class="stat-card-highlight">
                                               <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                                                 <tr>
@@ -1643,7 +1644,9 @@
                                               </table>
                                             </div>
                                           </td>
-                                          <td width="33%" valign="top" style="padding: 0 4px;">
+                                          {{/if}}
+                                          {{#if archivingEserviceScopeCount}}
+                                          <td width="{{ archivingProducerCardWidth }}" valign="top" style="padding: 0 4px;">
                                             <div class="stat-card">
                                               <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                                                 <tr>
@@ -1657,7 +1660,9 @@
                                               </table>
                                             </div>
                                           </td>
-                                          <td width="33%" valign="top" style="padding-left: 8px;">
+                                          {{/if}}
+                                          {{#if archivingDescriptorScopeCount}}
+                                          <td width="{{ archivingProducerCardWidth }}" valign="top" style="padding: 0 4px;">
                                             <div class="stat-card">
                                               <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                                                 <tr>
@@ -1671,6 +1676,7 @@
                                               </table>
                                             </div>
                                           </td>
+                                          {{/if}}
                                         </tr>
                                       </table>
 

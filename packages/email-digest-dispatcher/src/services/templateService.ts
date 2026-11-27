@@ -133,7 +133,15 @@ export function digestTemplateServiceBuilder(
           (data.archivingConsumerInProgressEservices?.items.length ?? 0),
         0
       );
-      // Consumer stat cards with a zero count are hidden: the remaining ones share the row.
+      // Producer/consumer stat cards with a zero count are hidden: the remaining ones share the row.
+      const archivingProducerVisibleCardsCount = [
+        data.archivingImminentEservices?.totalCount,
+        data.archivingEserviceScopeCount,
+        data.archivingDescriptorScopeCount,
+      ].filter(Boolean).length;
+      const archivingProducerCardWidth = `${Math.floor(
+        100 / Math.max(archivingProducerVisibleCardsCount, 1)
+      )}%`;
       const archivingConsumerVisibleCardsCount = [
         data.archivingConsumerImminentEservices?.totalCount,
         data.archivingConsumerEserviceScopeCount,
@@ -302,6 +310,7 @@ export function digestTemplateServiceBuilder(
         approvedRiskAnalysisSingular,
         rejectedRiskAnalysisSingular,
         archivingInProgressRemainder,
+        archivingProducerCardWidth,
         archivingConsumerImminentEservicesSingular,
         archivingConsumerImminentRemainder,
         archivingConsumerInProgressEservicesSingular,
