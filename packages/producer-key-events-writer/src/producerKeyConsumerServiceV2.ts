@@ -31,6 +31,8 @@ export async function handleMessageV2(
         type: P.union(
           "ProducerKeychainDeleted",
           "ClientAdded",
+          "ClientNameUpdated",
+          "ClientDescriptionUpdated",
           "ClientDeleted",
           "ClientAdminSet",
           "ClientUserAdded",
@@ -42,6 +44,8 @@ export async function handleMessageV2(
           "ClientPurposeAdded",
           "ClientPurposeRemoved",
           "ProducerKeychainAdded",
+          "ProducerKeychainNameUpdated",
+          "ProducerKeychainDescriptionUpdated",
           "ProducerKeychainUserAdded",
           "ProducerKeychainUserDeleted",
           "ProducerKeychainEServiceAdded",

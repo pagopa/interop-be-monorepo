@@ -146,7 +146,7 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
         eserviceIds,
         states,
       }: m2mGatewayApiV3.GetClientPurposesQueryParams,
-      { headers, logger }: WithLogger<M2MGatewayAppContext>
+      { headers, logger, authData }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.Purposes> {
       logger.info(`Retrieving purposes for client with id ${clientId}`);
 
@@ -188,7 +188,9 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
           offset,
           totalCount,
         },
-        results: paginatedPurposes.map(toM2MGatewayApiPurpose),
+        results: paginatedPurposes.map((purpose) =>
+          toM2MGatewayApiPurpose(purpose, authData.organizationId)
+        ),
       };
     },
     async removeClientPurpose(
@@ -392,6 +394,31 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
 
       await pollClient(client, headers);
 
+      return toM2MGatewayApiConsumerClient(client.data);
+    },
+
+    async updateClient(
+      clientId: ClientId,
+      seed: m2mGatewayApiV3.ClientUpdateSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.Client> {
+      logger.info(`Updating client with id ${clientId}`);
+
+      const { data: currentClient } = await retrieveClientById(
+        clientId,
+        headers
+      );
+
+      if (currentClient.kind === authorizationApi.ClientKind.Values.API) {
+        throw clientNotFound(currentClient);
+      }
+
+      const response = await clients.authorizationClient.client.updateClient(
+        seed,
+        { params: { clientId }, headers }
+      );
+
+      const client = await pollClient(response, headers);
       return toM2MGatewayApiConsumerClient(client.data);
     },
 

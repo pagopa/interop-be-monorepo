@@ -1,0 +1,22 @@
+meta {
+  name: Retrieves catalog use cases
+  type: http
+  seq: 54
+}
+
+get {
+  url: {{host-bff}}/catalog/use-cases
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT}}
+  Accept-Language: it-IT
+}
+
+docs {
+  Retrieves the use cases of the catalog from the file use-cases/{lang}/data.json, where lang comes from the Accept-Language header (it when italian is preferred or the header is missing, en otherwise). If the file cannot be read, the italian file is used; if the italian file cannot be read either, an empty array is returned.
+
+  The EServices of each use case are split between subscribedEservices (an agreement of the requester PENDING, ACTIVE or SUSPENDED) and unsubscribedEservices. The EServices that are not found are ignored.
+}
