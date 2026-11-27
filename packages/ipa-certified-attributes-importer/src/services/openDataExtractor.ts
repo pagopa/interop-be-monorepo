@@ -30,6 +30,7 @@ export type Institution = {
 export type SubUnit = {
   name: string;
   entityName: string;
+  entityIpaCode: string;
   aooCode?: string;
 };
 
@@ -256,14 +257,18 @@ export async function getAllInstitutions(
       .with("AOO", (): SubUnit | undefined => {
         const name = extractor("Denominazione_aoo", z.string());
         const entityName = extractor("Denominazione_ente", z.string());
-        return name && entityName ? { name, entityName } : undefined;
+        const entityIpaCode = extractor("Codice_IPA", z.string());
+        return name && entityName && entityIpaCode
+          ? { name, entityName, entityIpaCode }
+          : undefined;
       })
       .with("UO", (): SubUnit | undefined => {
         const name = extractor("Descrizione_uo", z.string());
         const entityName = extractor("Denominazione_ente", z.string());
+        const entityIpaCode = extractor("Codice_IPA", z.string());
         const aooCode = extractor("Codice_uni_aoo", z.string())?.trim();
-        return name && entityName
-          ? { name, entityName, aooCode: aooCode || undefined }
+        return name && entityName && entityIpaCode
+          ? { name, entityName, entityIpaCode, aooCode: aooCode || undefined }
           : undefined;
       })
       .exhaustive();

@@ -130,4 +130,63 @@ describe("GetAttributesToRevoke", async () => {
       },
     ]);
   });
+
+  it("should revoke the entity attribute from a subunit when it is no longer in the seed", async () => {
+    const entityAttribute: Attribute = {
+      ...attributes[0],
+      creationTime: new Date(),
+      kind: "Certified",
+      id: unsafeBrandId(randomUUID()),
+    };
+
+    const tenantSeed: TenantSeed[] = [
+      {
+        origin: "IPA",
+        originId: "A001",
+        description: "subunit",
+        attributes: [],
+      },
+    ];
+
+    const subUnitTenant: Tenant = {
+      id: unsafeBrandId("1"),
+      selfcareId: "fake-selfcare-id",
+      externalId: { origin: "IPA", value: "A001" },
+      features: [],
+      attributes: [
+        {
+          id: entityAttribute.id,
+          type: "PersistentCertifiedAttribute",
+          assignmentTimestamp: new Date(),
+        },
+      ],
+      createdAt: new Date(),
+      mails: [],
+      name: "subunit",
+    };
+
+    const attributesToRevoke = await getAttributesToRevoke(
+      tenantSeed,
+      [subUnitTenant],
+      [entityAttribute]
+    );
+
+    expect(attributesToRevoke).toEqual([
+      {
+        tOrigin: "IPA",
+        tExternalId: "A001",
+        aOrigin: entityAttribute.origin,
+        aCode: entityAttribute.code,
+      },
+    ]);
+
+    const attributesToRevokeWhenSuspended = await getAttributesToRevoke(
+      tenantSeed,
+      [subUnitTenant],
+      [entityAttribute],
+      new Set([entityAttribute.id])
+    );
+
+    expect(attributesToRevokeWhenSuspended).toEqual([]);
+  });
 });

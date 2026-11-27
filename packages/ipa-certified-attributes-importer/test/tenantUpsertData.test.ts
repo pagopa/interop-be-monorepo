@@ -1,15 +1,18 @@
-import { getMockTenant } from "pagopa-interop-commons-test";
+import { getMockAttribute, getMockTenant } from "pagopa-interop-commons-test";
 import {
+  Attribute,
   ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   PUBLIC_SERVICES_MANAGERS,
   Tenant,
   TenantId,
+  attributeKind,
   generateId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { expect, describe, it } from "vitest";
+import { expect, describe, it, beforeEach, afterEach } from "vitest";
 
+import { config } from "../src/config/config.js";
 import {
   ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY,
   PUBLIC_SERVICES_MANAGERS_TYPOLOGY,
@@ -568,5 +571,182 @@ describe("TenantUpsertData", async () => {
     const l18Seed = tenantSeeds.find((seed) => seed.originId === "ipa-l18");
     expect(l18Seed).toBeDefined();
     expect(l18Seed?.istatCode).toBeUndefined();
+  });
+
+  describe("subunit attributes", () => {
+    const entityIpaCode = "Z1234ABC";
+    const aooInstitution = aoo[0];
+    const uoInstitution: Institution = {
+      ...uo[0],
+      subUnit: uo[0].subUnit && {
+        ...uo[0].subUnit,
+        aooCode: aooInstitution.originId,
+      },
+    };
+
+    const getEntityAttribute = (
+      subunitPropagationEnabled?: boolean,
+      code = entityIpaCode
+    ): Attribute => ({
+      ...getMockAttribute(attributeKind.certified),
+      origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
+      code,
+      subunitPropagationEnabled,
+    });
+
+    const getSubUnitSeedCodes = (
+      platformAttributes: Attribute[],
+      subUnits: Institution[] = [aooInstitution, uoInstitution]
+    ): string[][] => {
+      const platformTenants: Tenant[] = subUnits.map((i) => ({
+        ...getMockTenant(),
+        externalId: { origin: i.origin, value: i.originId },
+      }));
+
+      const upsertData = getTenantUpsertData(
+        { institutions: subUnits, attributes },
+        platformTenants,
+        economicAccountCompaniesAllowlist,
+        platformAttributes
+      );
+
+      return subUnits.map(
+        (i) =>
+          findUpsertDataEntryForInstitution(upsertData, i)?.attributes.map(
+            (a) => a.code
+          ) ?? []
+      );
+    };
+
+    beforeEach(() => {
+      config.featureFlagAooUoAttributes = true;
+    });
+
+    afterEach(() => {
+      config.featureFlagAooUoAttributes = false;
+    });
+
+    it("should assign the entity attribute and the subunit attribute if the propagation is enabled", () => {
+      const [aooCodes, uoCodes] = getSubUnitSeedCodes([
+        getEntityAttribute(true),
+      ]);
+
+      expect(aooCodes).toEqual(
+        expect.arrayContaining([entityIpaCode, aooInstitution.originId])
+      );
+      expect(uoCodes).toEqual(
+        expect.arrayContaining([entityIpaCode, uoInstitution.originId])
+      );
+    });
+
+    it.each([false, undefined])(
+      "should assign only the subunit attribute if the propagation is %s",
+      (subunitPropagationEnabled) => {
+        const [aooCodes, uoCodes] = getSubUnitSeedCodes([
+          getEntityAttribute(subunitPropagationEnabled),
+        ]);
+
+        expect(aooCodes).not.toContain(entityIpaCode);
+        expect(aooCodes).toContain(aooInstitution.originId);
+        expect(uoCodes).not.toContain(entityIpaCode);
+        expect(uoCodes).toContain(uoInstitution.originId);
+      }
+    );
+
+    it("should not assign the entity attribute nor the subunit attribute if the feature flag is disabled", () => {
+      config.featureFlagAooUoAttributes = false;
+
+      const [aooCodes, uoCodes] = getSubUnitSeedCodes([
+        getEntityAttribute(true),
+      ]);
+
+      expect(aooCodes).toEqual([aooInstitution.category]);
+      expect(uoCodes).toEqual([uoInstitution.category]);
+    });
+
+    it("should follow the new entity attribute when the affiliation of a subunit changes", () => {
+      const newEntityIpaCode = "Z9999NEW";
+      const movedAoo: Institution = {
+        ...aooInstitution,
+        subUnit: aooInstitution.subUnit && {
+          ...aooInstitution.subUnit,
+          entityIpaCode: newEntityIpaCode,
+        },
+      };
+
+      const [aooCodes] = getSubUnitSeedCodes(
+        [getEntityAttribute(true), getEntityAttribute(true, newEntityIpaCode)],
+        [movedAoo]
+      );
+
+      expect(aooCodes).toContain(newEntityIpaCode);
+      expect(aooCodes).not.toContain(entityIpaCode);
+    });
+
+    it("should not assign any attribute to a SCEC subunit", () => {
+      const scecAoo: Institution = {
+        ...aooInstitution,
+        category: ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER,
+      };
+
+      const [aooCodes] = getSubUnitSeedCodes(
+        [getEntityAttribute(true)],
+        [scecAoo]
+      );
+
+      expect(aooCodes).toEqual([]);
+    });
+
+    it("should not assign the entity attribute if it is suspended, even if the propagation is enabled", () => {
+      const entityAttribute = getEntityAttribute(true);
+
+      const platformTenants: Tenant[] = [
+        {
+          ...getMockTenant(),
+          externalId: {
+            origin: aooInstitution.origin,
+            value: aooInstitution.originId,
+          },
+        },
+      ];
+
+      const upsertData = getTenantUpsertData(
+        { institutions: [aooInstitution], attributes },
+        platformTenants,
+        economicAccountCompaniesAllowlist,
+        [entityAttribute],
+        new Set([entityAttribute.id])
+      );
+
+      expect(upsertData[0].attributes.map((a) => a.code)).not.toContain(
+        entityIpaCode
+      );
+    });
+
+    it("should assign the attributes even if the entity is not onboarded in the platform", () => {
+      const platformTenants: Tenant[] = [
+        {
+          ...getMockTenant(),
+          externalId: {
+            origin: aooInstitution.origin,
+            value: aooInstitution.originId,
+          },
+        },
+      ];
+
+      const upsertData = getTenantUpsertData(
+        { institutions: [aooInstitution], attributes },
+        platformTenants,
+        economicAccountCompaniesAllowlist,
+        [getEntityAttribute(true)]
+      );
+
+      expect(
+        platformTenants.some((t) => t.externalId.value === entityIpaCode)
+      ).toBe(false);
+      expect(upsertData[0].attributes.map((a) => a.code)).toEqual(
+        expect.arrayContaining([entityIpaCode, aooInstitution.originId])
+      );
+    });
   });
 });

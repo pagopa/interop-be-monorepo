@@ -2,6 +2,7 @@ import {
   InteropTokenGenerator,
   RefreshableInteropToken,
   getInteropHeaders,
+  isFeatureFlagEnabled,
   logger,
 } from "pagopa-interop-commons";
 import { CorrelationId, generateId } from "pagopa-interop-models";
@@ -17,6 +18,7 @@ import {
   buildTenantsIndex,
   createTenantProcessClient,
   createNewAttributes,
+  enableSubunitPropagation,
   getAttributesToAssign,
   getAttributesToRevoke,
   getNewAttributes,
@@ -63,13 +65,46 @@ try {
 
   loggerInstance.info("Getting Platform data");
 
-  const attributes = await readModelServiceSQL.getAttributes();
+  const initialAttributes = await readModelServiceSQL.getAttributes();
   const tenants = await readModelServiceSQL.getIPATenants();
+
+  const token = (await refreshableToken.get()).serialized;
+  const headers = getInteropHeaders({ token, correlationId });
+
+  let attributes = initialAttributes;
+  let suspendedAttributeIds = new Set<string>();
+  let failedPropagationUpdates = 0;
+
+  if (
+    isFeatureFlagEnabled(config, "featureFlagAooUoAttributes") &&
+    isFeatureFlagEnabled(config, "featureFlagAooUoAttributesForcedPropagation")
+  ) {
+    loggerInstance.info("Enabling subunit propagation");
+
+    const propagationResult = await enableSubunitPropagation(
+      registryData,
+      tenants,
+      initialAttributes,
+      readModelServiceSQL,
+      headers,
+      loggerInstance,
+      config.attributeRegistryUrl,
+      {
+        defaultPollingMaxRetries: config.defaultPollingMaxRetries,
+        defaultPollingRetryDelay: config.defaultPollingRetryDelay,
+      }
+    );
+    attributes = propagationResult.attributes;
+    suspendedAttributeIds = propagationResult.suspendedAttributeIds;
+    failedPropagationUpdates = propagationResult.failures;
+  }
 
   const tenantUpsertData = getTenantUpsertData(
     registryData,
     tenants,
-    config.economicAccountCompaniesAllowlist
+    config.economicAccountCompaniesAllowlist,
+    attributes,
+    suspendedAttributeIds
   );
 
   loggerInstance.info("Creating new attributes");
@@ -80,8 +115,6 @@ try {
     attributes
   );
 
-  const token = (await refreshableToken.get()).serialized;
-  const headers = getInteropHeaders({ token, correlationId });
   const tenantProcessClient = createTenantProcessClient(
     config.tenantProcessUrl
   );
@@ -125,7 +158,8 @@ try {
   const attributesToRevoke = await getAttributesToRevoke(
     tenantUpsertData,
     tenants,
-    attributes
+    attributes,
+    suspendedAttributeIds
   );
 
   const failedRevocations = await revokeAttributes(
@@ -155,14 +189,15 @@ try {
   );
 
   loggerInstance.info(
-    `IPA certified attributes import completed. Failed creations: ${failedCreations}, failed upserts: ${failedUpserts}, failed revocations: ${failedRevocations}, failed parent updates: ${failedParentUpdates}`
+    `IPA certified attributes import completed. Failed propagation updates: ${failedPropagationUpdates}, failed creations: ${failedCreations}, failed upserts: ${failedUpserts}, failed revocations: ${failedRevocations}, failed parent updates: ${failedParentUpdates}`
   );
 
   if (
     failedCreations > 0 ||
     failedUpserts > 0 ||
     failedRevocations > 0 ||
-    failedParentUpdates > 0
+    failedParentUpdates > 0 ||
+    failedPropagationUpdates > 0
   ) {
     process.exitCode = 1;
   }
