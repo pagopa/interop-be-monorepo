@@ -19,6 +19,7 @@ import {
   createTenantProcessClient,
   createNewAttributes,
   enableSubunitPropagation,
+  excludeFailedAttributesFromSeeds,
   getAttributesToAssign,
   getAttributesToRevoke,
   getNewAttributes,
@@ -109,17 +110,22 @@ try {
 
   loggerInstance.info("Creating new attributes");
 
-  const newAttributes = getNewAttributes(
+  const { attributes: newAttributes, nameConflicts } = getNewAttributes(
     registryData,
     tenantUpsertData,
     attributes
   );
+  nameConflicts.forEach((attribute) => {
+    loggerInstance.error(
+      `Failed creation of attribute ${attribute.origin}/${attribute.code} with name "${attribute.name}". Cause: generated attribute name is already in use`
+    );
+  });
 
   const tenantProcessClient = createTenantProcessClient(
     config.tenantProcessUrl
   );
 
-  const failedCreations = await createNewAttributes(
+  const failedRegistryAttributes = await createNewAttributes(
     newAttributes,
     readModelServiceSQL,
     headers,
@@ -128,6 +134,7 @@ try {
     config.attributeCreationWaitTime,
     config.defaultPollingMaxRetries
   );
+  const failedAttributes = [...failedRegistryAttributes, ...nameConflicts];
 
   const tenantsIndex = buildTenantsIndex(tenants);
 
@@ -136,7 +143,7 @@ try {
   const attributesToAssign = await getAttributesToAssign(
     tenantsIndex,
     attributes,
-    tenantUpsertData,
+    excludeFailedAttributesFromSeeds(tenantUpsertData, failedAttributes),
     config,
     loggerInstance
   );
@@ -189,11 +196,12 @@ try {
   );
 
   loggerInstance.info(
-    `IPA certified attributes import completed. Failed propagation updates: ${failedPropagationUpdates}, failed creations: ${failedCreations}, failed upserts: ${failedUpserts}, failed revocations: ${failedRevocations}, failed parent updates: ${failedParentUpdates}`
+    `IPA certified attributes import completed. Failed propagation updates: ${failedPropagationUpdates}, failed attribute creations/retrievals: ${failedAttributes.length}, failed upserts: ${failedUpserts}, failed revocations: ${failedRevocations}`
   );
 
   if (
-    failedCreations > 0 ||
+    failedPropagationUpdates > 0 ||
+    failedAttributes.length > 0 ||
     failedUpserts > 0 ||
     failedRevocations > 0 ||
     failedParentUpdates > 0 ||

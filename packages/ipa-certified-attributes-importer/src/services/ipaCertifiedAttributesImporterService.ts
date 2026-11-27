@@ -31,12 +31,12 @@ import {
   config,
   IPACertifiedAttributesImporterConfig,
 } from "../config/config.js";
-import { Institution } from "./openDataExtractor.js";
 import {
   toAttributeKey,
   toTenantKey,
 } from "../utils/tenantAndAttributeKeySerialization.js";
 import { getAooUoAttributes } from "./aooUoAttributeService.js";
+import { Institution } from "./openDataExtractor.js";
 import {
   RegistryData,
   InternalCertifiedAttribute,
@@ -144,7 +144,7 @@ async function runTenantOperation(params: {
 async function checkAttributesPresence(
   readModelService: ReadModelServiceSQL,
   newAttributes: attributeRegistryApi.InternalCertifiedAttributeSeed[]
-): Promise<boolean> {
+): Promise<attributeRegistryApi.InternalCertifiedAttributeSeed[]> {
   const attributes = await readModelService.getAttributes();
 
   const certifiedAttributeIndex = new Map(
@@ -153,14 +153,12 @@ async function checkAttributesPresence(
       .map((a) => [toAttributeKey({ origin: a.origin, code: a.code }), a])
   );
 
-  const missingAttributes = newAttributes.filter(
+  return newAttributes.filter(
     (i) =>
       !certifiedAttributeIndex.get(
         toAttributeKey({ origin: i.origin, code: i.code })
       )
   );
-
-  return missingAttributes.length === 0;
 }
 
 function getAooNames(registryData: RegistryData): Map<string, string> {
@@ -474,22 +472,17 @@ export async function createNewAttributes(
   attributeRegistryUrl: string,
   attributeCreationWaitTime: number,
   maxRetries: number
-): Promise<number> {
-  // TODO(WI 11, PIN-11248): If the registry rejects an AOO/UO attribute because
-  // its suffixed name is already in use, count and report it as failed and exclude
-  // it from tenant assignment, so the job exits with failure and the conflicting
-  // registry entry can be resolved manually before a rerun.
-  // Current IPA datasets have no such name collision; it may still occur if
-  // the conflicting registry state is not visible when computing new attributes.
+): Promise<InternalCertifiedAttribute[]> {
   if (newAttributes.length === 0) {
     loggerInstance.info("No new attributes to create");
-    return 0;
+    return [];
   }
 
   const client =
     attributeRegistryApi.createAttributeApiClient(attributeRegistryUrl);
 
   const createdAttributes: InternalCertifiedAttribute[] = [];
+  const failures: InternalCertifiedAttribute[] = [];
 
   for (const attribute of newAttributes) {
     loggerInstance.info(
@@ -501,36 +494,69 @@ export async function createNewAttributes(
       });
       createdAttributes.push(attribute);
     } catch (error: unknown) {
-      loggerInstance.warn(
-        `Failed creation of attribute ${attribute.origin}/${attribute.code}. Skipping. ${describeHttpError(error)}`
+      loggerInstance.error(
+        `Failed creation of attribute ${attribute.origin}/${attribute.code} with name "${attribute.name}". ${describeHttpError(error)}`
       );
+      failures.push(attribute);
     }
   }
 
-  const failures = newAttributes.length - createdAttributes.length;
+  if (createdAttributes.length === 0) {
+    return failures;
+  }
 
   // wait until every event reaches the read model store
+  let missingAttributes = createdAttributes;
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     loggerInstance.info("Waiting for attributes to be created");
     await delay(attributeCreationWaitTime);
 
-    if (await checkAttributesPresence(readModelService, createdAttributes)) {
+    missingAttributes = await checkAttributesPresence(
+      readModelService,
+      createdAttributes
+    );
+
+    if (missingAttributes.length === 0) {
       return failures;
     }
   }
 
-  loggerInstance.warn(
-    `New attributes are not present in the read model after ${maxRetries} attempts. Continuing with the import`
-  );
+  for (const attribute of missingAttributes) {
+    loggerInstance.error(
+      `Failed retrieval of attribute ${attribute.origin}/${attribute.code} with name "${attribute.name}". Attribute not found in the read model after ${maxRetries} attempts`
+    );
+    failures.push(attribute);
+  }
 
   return failures;
+}
+
+export function excludeFailedAttributesFromSeeds(
+  tenantSeeds: TenantSeed[],
+  failedAttributes: InternalCertifiedAttribute[]
+): TenantSeed[] {
+  if (failedAttributes.length === 0) {
+    return tenantSeeds;
+  }
+
+  const failedAttributeKeys = new Set(failedAttributes.map(toAttributeKey));
+
+  return tenantSeeds.map((seed) => ({
+    ...seed,
+    attributes: seed.attributes.filter(
+      (a) => !failedAttributeKeys.has(toAttributeKey(a))
+    ),
+  }));
 }
 
 export function getNewAttributes(
   registryData: RegistryData,
   tenantUpsertData: TenantSeed[],
   attributes: Attribute[]
-): InternalCertifiedAttribute[] {
+): {
+  attributes: InternalCertifiedAttribute[];
+  nameConflicts: InternalCertifiedAttribute[];
+} {
   // get a set with all the certified attributes in the platform
   const platformAttributesIndex = new Set(
     attributes
@@ -552,7 +578,7 @@ export function getNewAttributes(
   });
 
   if (isFeatureFlagEnabled(config, "featureFlagAooUoAttributes")) {
-    const aooUoAttributes = getAooUoAttributes(
+    const { attributes: aooUoAttributes, nameConflicts } = getAooUoAttributes(
       registryData,
       tenantUpsertData,
       attributes,
@@ -560,9 +586,10 @@ export function getNewAttributes(
     );
 
     newRegistryAttributes.push(...aooUoAttributes);
+    return { attributes: newRegistryAttributes, nameConflicts };
   }
 
-  return newRegistryAttributes;
+  return { attributes: newRegistryAttributes, nameConflicts: [] };
 }
 
 export async function getAttributesToAssign(

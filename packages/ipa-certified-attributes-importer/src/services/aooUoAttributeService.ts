@@ -25,7 +25,10 @@ export function getAooUoAttributes(
   tenantUpsertData: TenantSeed[],
   platformAttributes: Attribute[],
   newRegistryAttributes: InternalCertifiedAttribute[]
-): InternalCertifiedAttribute[] {
+): {
+  attributes: InternalCertifiedAttribute[];
+  nameConflicts: InternalCertifiedAttribute[];
+} {
   const tenantKeysToUpsert = new Set(
     tenantUpsertData.map((tenant) =>
       toTenantKey({ origin: tenant.origin, value: tenant.originId })
@@ -100,18 +103,31 @@ export function getAooUoAttributes(
     platformAttributes,
     registryData.attributes
   );
-
-  const aooUoAttributesWithResolvedNameCollisions =
-    resolveAooUoAttributeNameCollisions(
-      aooUoAttributeSeeds,
-      attributeNamesAlreadyUsed
-    );
-
-  return removeDuplicateAooUoAttributes(
-    aooUoAttributesWithResolvedNameCollisions,
+  const attributesToCreate = removeDuplicateAooUoAttributes(
+    aooUoAttributeSeeds,
     platformAttributes,
     newRegistryAttributes
   );
+  const attributeKeysToCreate = new Set(attributesToCreate.map(toAttributeKey));
+
+  const {
+    attributes: aooUoAttributesWithResolvedNameCollisions,
+    nameConflicts,
+  } = resolveAooUoAttributeNameCollisions(
+    aooUoAttributeSeeds,
+    attributeNamesAlreadyUsed
+  );
+
+  return {
+    attributes: removeDuplicateAooUoAttributes(
+      aooUoAttributesWithResolvedNameCollisions,
+      platformAttributes,
+      newRegistryAttributes
+    ),
+    nameConflicts: nameConflicts.filter((attribute) =>
+      attributeKeysToCreate.has(toAttributeKey(attribute))
+    ),
+  };
 }
 
 function removeDuplicateAooUoAttributes(
@@ -193,35 +209,49 @@ function getDuplicateAttributeNames(
 // Resolves name collisions for generated AOO/UO attributes, both among themselves
 // and against names already used by attributes in the platform or registry.
 // Conflicting names are suffixed with the institution code (e.g. "Name (code)").
-// TODO(WI 11, PIN-11248): If the suffixed name is also taken, the attribute is reported and counted as
-// failed, then omitted from creation.
 function resolveAooUoAttributeNameCollisions(
   attributes: InternalCertifiedAttribute[],
   attributeNamesAlreadyUsed: Set<string>
-): InternalCertifiedAttribute[] {
+): {
+  attributes: InternalCertifiedAttribute[];
+  nameConflicts: InternalCertifiedAttribute[];
+} {
   const duplicateAttributeNames = getDuplicateAttributeNames(attributes);
+  const resolvedAttributes: InternalCertifiedAttribute[] = [];
+  const nameConflicts: InternalCertifiedAttribute[] = [];
 
-  return attributes.flatMap((attribute) => {
+  for (const attribute of attributes) {
     const name = normalizeAttributeName(attribute.name);
     const hasNameCollision =
       duplicateAttributeNames.has(name) || attributeNamesAlreadyUsed.has(name);
 
-    if (!hasNameCollision) return [attribute];
+    if (!hasNameCollision) {
+      attributeNamesAlreadyUsed.add(name);
+      resolvedAttributes.push(attribute);
+      continue;
+    }
 
     const suffixedName = `${attribute.name} (${attribute.code})`;
     const normalizedSuffixedName = normalizeAttributeName(suffixedName);
-    // TODO(WI 11, PIN-11248): Report and count this AOO/UO attribute as failed
-    // while allowing the rest of the import to continue.
-    if (attributeNamesAlreadyUsed.has(normalizedSuffixedName)) return [];
+    const suffixedNameAlreadyUsed = attributeNamesAlreadyUsed.has(
+      normalizedSuffixedName
+    );
 
     attributeNamesAlreadyUsed.add(normalizedSuffixedName);
 
-    return [
-      {
-        ...attribute,
-        name: suffixedName,
-        description: `${attribute.description} (${attribute.code})`,
-      },
-    ];
-  });
+    const suffixedAttribute = {
+      ...attribute,
+      name: suffixedName,
+      description: `${attribute.description} (${attribute.code})`,
+    };
+
+    if (suffixedNameAlreadyUsed) {
+      nameConflicts.push(suffixedAttribute);
+      continue;
+    }
+
+    resolvedAttributes.push(suffixedAttribute);
+  }
+
+  return { attributes: resolvedAttributes, nameConflicts };
 }
