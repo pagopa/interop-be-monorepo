@@ -16,6 +16,7 @@ import {
   CorrelationId,
   DelegationId,
   TenantId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 
 import {
@@ -29,7 +30,10 @@ import {
   toBffApiDeclaredTenantAttributes,
   toBffApiVerifiedTenantAttributes,
 } from "../api/tenantApiConverter.js";
-import { TenantProcessClient } from "../clients/clientsProvider.js";
+import {
+  DelegationProcessClient,
+  TenantProcessClient,
+} from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import { BffAppContext } from "../utilities/context.js";
 import { getAllBulkAttributes } from "./attributeService.js";
@@ -52,7 +56,8 @@ async function getRegistryAttributesMap(
 export function tenantServiceBuilder(
   tenantProcessClient: TenantProcessClient,
   attributeRegistryProcessClient: attributeRegistryApi.AttributeProcessClient,
-  selfcareV2InstitutionClient: SelfcareV2InstitutionClient
+  selfcareV2InstitutionClient: SelfcareV2InstitutionClient,
+  delegationProcessClient: DelegationProcessClient
 ) {
   async function getLogoUrl(
     selfcareId: tenantApi.Tenant["selfcareId"],
@@ -364,10 +369,23 @@ export function tenantServiceBuilder(
     },
     async addDeclaredAttribute(
       seed: bffApi.DeclaredTenantAttributeSeed,
-      { logger, headers }: WithLogger<BffAppContext>
+      { authData, logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
       logger.info(`Adding declared attribute ${seed.id} to requester Tenant`);
+
+      const targetTenantId: TenantId = seed.delegationId
+        ? unsafeBrandId(
+            (
+              await delegationProcessClient.delegation.getDelegation({
+                params: { delegationId: seed.delegationId },
+                headers,
+              })
+            ).delegatorId
+          )
+        : authData.organizationId;
+
       await tenantProcessClient.tenantAttribute.addDeclaredAttribute(seed, {
+        params: { tenantId: targetTenantId },
         headers,
       });
     },
@@ -400,7 +418,7 @@ export function tenantServiceBuilder(
     },
     async revokeDeclaredAttribute(
       attributeId: AttributeId,
-      { logger, headers }: WithLogger<BffAppContext>
+      { authData, logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
       logger.info(
         `Revoking declared attribute ${attributeId} for requester Tenant`
@@ -408,7 +426,7 @@ export function tenantServiceBuilder(
       await tenantProcessClient.tenantAttribute.revokeDeclaredAttribute(
         undefined,
         {
-          params: { attributeId },
+          params: { tenantId: authData.organizationId, attributeId },
           headers,
         }
       );
