@@ -10,6 +10,7 @@ import {
   M2MAdminAuthData,
   retrieveOriginFromAuthData,
   validateNoHyperlinksSafe,
+  isFeatureFlagEnabled,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -23,6 +24,7 @@ import {
   ListResult,
   TenantFeatureCertifier,
   Tenant,
+  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
 } from "pagopa-interop-models";
 
 import { config } from "../config/config.js";
@@ -33,8 +35,14 @@ import {
   originNotCompliant,
   tenantNotFound,
   attributeDuplicateByCodeOriginOrName,
+  attributeSubunitPropagationSelectionNotValid,
+  attributeNotEligibleForSubunitPropagation,
+  manualSubunitPropagationUpdateDisabled,
 } from "../model/domain/errors.js";
-import { toCreateEventAttributeAdded } from "../model/domain/toEvent.js";
+import {
+  toCreateEventAttributeAdded,
+  toCreateEventAttributeSubunitPropagationUpdated,
+} from "../model/domain/toEvent.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 const retrieveTenant = async (
@@ -483,7 +491,96 @@ export function attributeRegistryServiceBuilder(
 
       return newInternalCertifiedDiscreteAttribute;
     },
+
+    async updateAttributesSubunitPropagation(
+      { attributeIds }: { attributeIds: AttributeId[] },
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<void> {
+      logger.info(
+        `Updating subunit propagation of certified attributes of tenant ${authData.organizationId}, selected attributes: ${attributeIds}`
+      );
+
+      if (
+        isFeatureFlagEnabled(
+          config,
+          "featureFlagAooUoAttributesForcedPropagation"
+        )
+      ) {
+        throw manualSubunitPropagationUpdateDisabled();
+      }
+
+      if (attributeIds.length > 1) {
+        throw attributeSubunitPropagationSelectionNotValid();
+      }
+
+      const tenant = await retrieveTenant(
+        authData.organizationId,
+        readModelService
+      );
+      const eligibleAttributes = await retrieveEligibleAttributes(
+        tenant,
+        readModelService
+      );
+
+      const eligibleIds = eligibleAttributes.map(({ data }) => data.id);
+      const notEligibleId = attributeIds.find(
+        (id) => !eligibleIds.includes(id)
+      );
+      if (notEligibleId) {
+        throw attributeNotEligibleForSubunitPropagation(
+          notEligibleId,
+          tenant.id
+        );
+      }
+
+      const isPropagationChanged = (attribute: Attribute): boolean => {
+        const isCurrentlyEnabled = attribute.subunitPropagationEnabled ?? false;
+        const isSelected = attributeIds.includes(attribute.id);
+        return isCurrentlyEnabled !== isSelected;
+      };
+
+      const events = eligibleAttributes
+        .filter(({ data }) => isPropagationChanged(data))
+        .map(({ data, metadata }) =>
+          toCreateEventAttributeSubunitPropagationUpdated(
+            {
+              ...data,
+              subunitPropagationEnabled: attributeIds.includes(data.id),
+            },
+            metadata.version,
+            correlationId
+          )
+        );
+
+      if (events.length > 0) {
+        await repository.createEvents(events);
+      }
+    },
   };
+}
+
+// The eligible attribute is the certified attribute identifying the main entity: origin IPA and code equal to its IPA code
+async function retrieveEligibleAttributes(
+  tenant: Tenant,
+  readModelService: ReadModelServiceSQL
+): Promise<Array<WithMetadata<Attribute>>> {
+  if (
+    tenant.externalId.origin !== PUBLIC_ADMINISTRATIONS_IDENTIFIER ||
+    tenant.subUnitType !== undefined
+  ) {
+    return [];
+  }
+
+  const attribute = await readModelService.getAttributeByOriginAndCode({
+    origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
+    code: tenant.externalId.value,
+  });
+
+  return attribute?.data.kind === attributeKind.certified ? [attribute] : [];
 }
 
 async function getCertifierId(

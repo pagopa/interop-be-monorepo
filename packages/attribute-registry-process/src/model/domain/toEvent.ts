@@ -19,3 +19,18 @@ export const toCreateEventAttributeAdded = (
   },
   correlationId,
 });
+
+export const toCreateEventAttributeSubunitPropagationUpdated = (
+  attribute: Attribute,
+  version: number,
+  correlationId: CorrelationId
+): CreateEvent<AttributeEvent> => ({
+  streamId: attribute.id,
+  version,
+  event: {
+    type: "AttributeSubunitPropagationUpdated",
+    event_version: 1,
+    data: { attribute: toAttributeV1(attribute) },
+  },
+  correlationId,
+});

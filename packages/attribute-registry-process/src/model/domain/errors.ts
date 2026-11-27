@@ -1,6 +1,7 @@
 import { attributeRegistryErrorCodes } from "pagopa-interop-commons";
 import {
   ApiError,
+  AttributeId,
   TenantId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
@@ -64,5 +65,34 @@ export function tenantIsNotACertifier(
     detail: `Tenant ${tenantId} is not a Certifier`,
     code: "tenantIsNotACertifier",
     title: "Tenant is not a certifier",
+  });
+}
+
+export function attributeSubunitPropagationSelectionNotValid(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail:
+      "The attribute selection must not contain duplicates nor more than one attribute",
+    code: "attributeSubunitPropagationSelectionNotValid",
+    title: "Subunit propagation selection not valid",
+  });
+}
+
+export function manualSubunitPropagationUpdateDisabled(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail:
+      "Manual update of subunit propagation is disabled because propagation to subunits is forced",
+    code: "manualSubunitPropagationUpdateDisabled",
+    title: "Manual subunit propagation update disabled",
+  });
+}
+
+export function attributeNotEligibleForSubunitPropagation(
+  attributeId: AttributeId,
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute ${attributeId} is not an eligible certified attribute of tenant ${tenantId} for subunit propagation`,
+    code: "attributeNotEligibleForSubunitPropagation",
+    title: "Attribute not eligible for subunit propagation",
   });
 }

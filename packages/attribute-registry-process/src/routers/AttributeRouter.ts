@@ -38,6 +38,7 @@ import {
   getAttributeByIdErrorMapper,
   getAttributeByOriginAndCodeErrorMapper,
   getAttributesByNameErrorMapper,
+  updateAttributesSubunitPropagationErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelDB = makeDrizzleConnection(config);
@@ -408,6 +409,29 @@ const attributeRouter = (
         const errorRes = makeApiProblem(
           error,
           createInternalCertifiedDiscreteAttributesErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/attributes/subunitPropagation/update", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+        await attributeRegistryService.updateAttributesSubunitPropagation(
+          {
+            attributeIds: req.body.attributeIds.map((id) => unsafeBrandId(id)),
+          },
+          ctx
+        );
+
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          updateAttributesSubunitPropagationErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);

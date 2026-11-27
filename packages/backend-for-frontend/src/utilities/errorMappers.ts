@@ -19,6 +19,13 @@ const {
   HTTP_STATUS_UNAUTHORIZED,
 } = constants;
 
+export const updateAttributesSubunitPropagationErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("manualSubunitPropagationUpdateDisabled", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const bffGetCatalogErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with(

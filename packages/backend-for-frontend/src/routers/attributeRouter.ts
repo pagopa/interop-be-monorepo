@@ -11,6 +11,7 @@ import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { AttributeService } from "../services/attributeService.js";
 import { fromBffAppContext } from "../utilities/context.js";
+import { updateAttributesSubunitPropagationErrorMapper } from "../utilities/errorMappers.js";
 
 const attributeRouter = (
   ctx: ZodiosContext,
@@ -139,6 +140,27 @@ const attributeRouter = (
           `Error retrieving attributes with name = ${req.query.q}, limit = ${req.query.limit}, offset = ${req.query.offset}, kinds = ${req.query.kinds}`
         );
         return res.status(errorRes.status).send();
+      }
+    })
+
+    .post("/attributes/subunitPropagation/update", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        await attributeService.updateAttributesSubunitPropagation(
+          req.body,
+          ctx
+        );
+
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          updateAttributesSubunitPropagationErrorMapper,
+          ctx,
+          `Error updating subunit propagation of certified attributes ${req.body.attributeIds}`
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
     })
 

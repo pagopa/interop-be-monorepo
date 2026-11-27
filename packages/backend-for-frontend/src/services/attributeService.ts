@@ -4,6 +4,7 @@ import { attributeRegistryApi, bffApi } from "pagopa-interop-api-clients";
 import {
   assertFeatureFlagEnabled,
   getAllFromPaginated,
+  isFeatureFlagEnabled,
   WithLogger,
 } from "pagopa-interop-commons";
 
@@ -14,6 +15,7 @@ import {
 } from "../api/attributeApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
+import { manualSubunitPropagationUpdateDisabled } from "../model/errors.js";
 import { BffAppContext } from "../utilities/context.js";
 
 export async function getAllBulkAttributes(
@@ -142,6 +144,28 @@ export function attributeServiceBuilder(
         results: attributes.results.map(toCompactAttribute),
         pagination: { offset, limit, totalCount: attributes.totalCount },
       };
+    },
+
+    async updateAttributesSubunitPropagation(
+      seed: bffApi.AttributeSubunitPropagationUpdateSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Updating subunit propagation of certified attributes ${seed.attributeIds}`
+      );
+
+      if (
+        isFeatureFlagEnabled(
+          config,
+          "featureFlagAooUoAttributesForcedPropagation"
+        )
+      ) {
+        throw manualSubunitPropagationUpdateDisabled();
+      }
+
+      await attributeClient.updateAttributesSubunitPropagation(seed, {
+        headers,
+      });
     },
   };
 }

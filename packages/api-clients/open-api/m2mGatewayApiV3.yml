@@ -1373,6 +1373,50 @@ paths:
           $ref: "#/components/responses/Conflict"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /certifiedAttributes/subunitPropagation/update:
+    post:
+      tags:
+        - attributes
+      summary: Update the subunit propagation of Certified Attributes
+      description:
+        Updates the selection of the Certified Attributes of the requester
+        extended to its subunits (AOO/UO). Not available when the propagation
+        is forced
+      operationId: updateCertifiedAttributesSubunitPropagation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AttributeSubunitPropagationUpdateSeed"
+      responses:
+        "200":
+          description: Subunit propagation updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /certifiedAttributes/{attributeId}:
     parameters:
       - name: attributeId
@@ -12980,6 +13024,9 @@ components:
         createdAt:
           type: string
           format: date-time
+        subunitPropagationEnabled:
+          type: boolean
+          description: Whether the attribute is extended to the subunits (AOO/UO) of the holder; absent means disabled
       required:
         - id
         - name
@@ -12987,6 +13034,19 @@ components:
         - code
         - origin
         - createdAt
+    AttributeSubunitPropagationUpdateSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        attributeIds:
+          type: array
+          uniqueItems: true
+          maxItems: 1
+          items:
+            type: string
+            format: uuid
+      required:
+        - attributeIds
     EServiceDescriptorCertifiedAttribute:
       type: object
       description:
