@@ -192,6 +192,30 @@ const attributeRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post(
+      "/certifiedAttributes/subunitPropagation/update",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          await attributeService.updateCertifiedAttributesSubunitPropagation(
+            req.body,
+            ctx
+          );
+          return res.status(200).send({});
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            "Error updating subunit propagation of certified attributes"
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .get("/certifiedDiscreteAttributes", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
