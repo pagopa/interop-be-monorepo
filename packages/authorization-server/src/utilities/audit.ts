@@ -7,7 +7,7 @@ import {
   InteropAsyncConsumerToken,
   InteropConsumerToken,
   Logger,
-  secondsToMilliseconds,
+  timestampToMilliseconds,
 } from "pagopa-interop-commons";
 import {
   AgreementId,
@@ -48,7 +48,7 @@ const buildAuditMessageDPopBody = (
     jwk: dpop.header.jwk,
     htm: dpop.payload.htm,
     htu: dpop.payload.htu,
-    iat: secondsToMilliseconds(dpop.payload.iat),
+    iat: timestampToMilliseconds(dpop.payload.iat),
     jti: dpop.payload.jti,
   },
 });
@@ -80,7 +80,7 @@ const buildAuditMessageBodyForConsumerToken = ({
 }): GeneratedConsumerTokenAuditDetails => ({
   jwtId: generatedToken.payload.jti,
   correlationId,
-  issuedAt: secondsToMilliseconds(generatedToken.payload.iat),
+  issuedAt: timestampToMilliseconds(generatedToken.payload.iat),
   clientId: clientAssertion.payload.sub,
   organizationId: unsafeBrandId(organizationId),
   agreementId: unsafeBrandId(agreementId),
@@ -93,8 +93,8 @@ const buildAuditMessageBodyForConsumerToken = ({
   typ: generatedToken.header.typ,
   audience: [generatedToken.payload.aud].flat().join(","),
   subject: generatedToken.payload.sub,
-  notBefore: secondsToMilliseconds(generatedToken.payload.nbf),
-  expirationTime: secondsToMilliseconds(generatedToken.payload.exp),
+  notBefore: timestampToMilliseconds(generatedToken.payload.nbf),
+  expirationTime: timestampToMilliseconds(generatedToken.payload.exp),
   issuer: generatedToken.payload.iss,
   ...(generatedToken.payload.cnf ? { cnf: generatedToken.payload.cnf } : {}),
   ...(generatedToken.payload.digest
@@ -103,8 +103,8 @@ const buildAuditMessageBodyForConsumerToken = ({
   clientAssertion: {
     algorithm: clientAssertion.header.alg,
     audience: [clientAssertion.payload.aud].flat().join(","),
-    expirationTime: secondsToMilliseconds(clientAssertion.payload.exp),
-    issuedAt: secondsToMilliseconds(clientAssertion.payload.iat),
+    expirationTime: timestampToMilliseconds(clientAssertion.payload.exp),
+    issuedAt: timestampToMilliseconds(clientAssertion.payload.iat),
     issuer: clientAssertion.payload.iss,
     jwtId: clientAssertion.payload.jti,
     keyId: clientAssertion.header.kid,
@@ -134,7 +134,7 @@ const buildAuditMessageBodyForApiToken = ({
 }): GeneratedApiTokenAuditDetails => ({
   jwtId: generatedToken.payload.jti,
   correlationId,
-  issuedAt: secondsToMilliseconds(generatedToken.payload.iat),
+  issuedAt: timestampToMilliseconds(generatedToken.payload.iat),
   clientId: clientAssertion.payload.sub,
   organizationId,
   adminId,
@@ -144,8 +144,8 @@ const buildAuditMessageBodyForApiToken = ({
   typ: generatedToken.header.typ,
   audience: [generatedToken.payload.aud].flat().join(","),
   subject: generatedToken.payload.sub,
-  notBefore: secondsToMilliseconds(generatedToken.payload.nbf),
-  expirationTime: secondsToMilliseconds(generatedToken.payload.exp),
+  notBefore: timestampToMilliseconds(generatedToken.payload.nbf),
+  expirationTime: timestampToMilliseconds(generatedToken.payload.exp),
   issuer: generatedToken.payload.iss,
 
   ...("cnf" in generatedToken.payload
@@ -155,8 +155,8 @@ const buildAuditMessageBodyForApiToken = ({
   clientAssertion: {
     algorithm: clientAssertion.header.alg,
     audience: [clientAssertion.payload.aud].flat().join(","),
-    expirationTime: secondsToMilliseconds(clientAssertion.payload.exp),
-    issuedAt: secondsToMilliseconds(clientAssertion.payload.iat),
+    expirationTime: timestampToMilliseconds(clientAssertion.payload.exp),
+    issuedAt: timestampToMilliseconds(clientAssertion.payload.iat),
     issuer: clientAssertion.payload.iss,
     jwtId: clientAssertion.payload.jti,
     keyId: clientAssertion.header.kid,

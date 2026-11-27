@@ -10,10 +10,12 @@
     ".": "./dist/index.js"
   },
   "scripts": {
+    "test": "vitest",
     "lint": "eslint .",
     "lint:autofix": "eslint . --fix",
     "build": "tsc && pnpm run copy-sql-files",
-    "copy-sql-files": "cp ./src/repositories/sql/*.sql dist/repositories/sql"
+    "copy-sql-files": "cp ./src/repositories/sql/*.sql dist/repositories/sql",
+    "check": "tsc --project tsconfig.check.json"
   },
   "dependencies": {
     "@apidevtools/swagger-parser": "catalog:",
@@ -60,6 +62,7 @@
     "@types/nodemailer": "catalog:",
     "eslint": "catalog:",
     "pagopa-interop-eslint-config": "workspace:*",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }
