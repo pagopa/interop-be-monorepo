@@ -29,8 +29,29 @@ jobs:
       contents: read
       pull-requests: read
     steps:
+      - name: Get current PR target branch
+        id: pr_target
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          # A rerun still has the original event, so fetch the current base branch.
+          PR_ENDPOINT="repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER"
+          if ! BASE_BRANCH=$(gh api "$PR_ENDPOINT" --jq '.base.ref') || [ -z "$BASE_BRANCH" ]; then
+            echo "::error::Could not determine the current base branch for PR #$PR_NUMBER"
+            exit 1
+          fi
+
+          if [ "$BASE_BRANCH" = "develop" ]; then
+            echo "targets_develop=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "targets_develop=false" >> "$GITHUB_OUTPUT"
+            echo "PR now targets '$BASE_BRANCH' instead of 'develop'. Skipping release check."
+          fi
+
       - name: Check if PR is an align PR
         id: check_align
+        if: steps.pr_target.outputs.targets_develop == 'true'
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
@@ -42,7 +63,9 @@ jobs:
           fi
 
       - name: Check release label on PR
-        if: steps.check_align.outputs.skip != 'true'
+        if: >-
+          steps.pr_target.outputs.targets_develop == 'true' &&
+          steps.check_align.outputs.skip != 'true'
         env:
           PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ' ') }}
         run: |
