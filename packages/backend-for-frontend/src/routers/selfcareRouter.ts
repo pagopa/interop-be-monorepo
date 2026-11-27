@@ -6,12 +6,14 @@ import {
   ZodiosContext,
   ExpressContext,
   validateAuthorization,
-  zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { TenantId, unsafeBrandId } from "pagopa-interop-models";
 import { z } from "zod";
 
-import { makeApiProblem } from "../model/errors.js";
+import {
+  makeApiProblem,
+  zodiosValidationErrorToApiProblem,
+} from "../model/errors.js";
 import { SelfcareService } from "../services/selfcareService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {

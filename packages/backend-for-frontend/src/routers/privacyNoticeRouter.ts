@@ -5,10 +5,12 @@ import {
   ExpressContext,
   ZodiosContext,
   fromAppContext,
-  zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 
-import { makeApiProblem } from "../model/errors.js";
+import {
+  makeApiProblem,
+  zodiosValidationErrorToApiProblem,
+} from "../model/errors.js";
 import { PrivacyNoticeService } from "../services/privacyNoticeService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import { getPrivacyNoticeErrorMapper } from "../utilities/errorMappers.js";

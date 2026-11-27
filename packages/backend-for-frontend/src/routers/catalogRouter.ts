@@ -10,7 +10,6 @@ import {
   validateAuthorization,
   WithLogger,
   ZodiosContext,
-  zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import {
   DescriptorId,
@@ -30,7 +29,10 @@ import {
   placeholderMapperGenerator,
   applyPlaceholderToError,
 } from "../model/applyError.js";
-import { makeApiProblem } from "../model/errors.js";
+import {
+  makeApiProblem,
+  zodiosValidationErrorToApiProblem,
+} from "../model/errors.js";
 import { CatalogService } from "../services/catalogService.js";
 import { BffAppContext, fromBffAppContext } from "../utilities/context.js";
 import {
