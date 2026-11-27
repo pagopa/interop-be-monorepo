@@ -4,6 +4,7 @@ import {
   desc,
   eq,
   exists,
+  gte,
   inArray,
   isNotNull,
   isNull,
@@ -13,6 +14,7 @@ import {
   or,
   sql,
   SQL,
+  Column,
 } from "drizzle-orm";
 import { alias, PgSelect } from "drizzle-orm/pg-core";
 import {
@@ -79,9 +81,14 @@ import {
   purposeVersionInReadmodelPurpose,
   purposeVersionSignedDocumentInReadmodelPurpose,
   purposeVersionStampInReadmodelPurpose,
+  tenantInReadmodelTenant,
+  tenantCertifiedAttributeInReadmodelTenant,
+  tenantCertifiedDiscreteAttributeInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
 import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
 import { match } from "ts-pattern";
+
+import { CustomizedQuotaRule } from "./customizedQuotaRules.js";
 
 export const producerDashboardNearThresholdPercentage = 90;
 
@@ -155,7 +162,7 @@ const addActiveVersionsDailyCallsJoinsAndFilters = <T extends PgSelect>(
       )
     );
 
-const producerDashboardDescriptorStates: DescriptorState[] = [
+export const producerDashboardDescriptorStates: DescriptorState[] = [
   descriptorState.published,
   descriptorState.deprecated,
   descriptorState.suspended,
@@ -184,6 +191,118 @@ type ProducerDashboardSaturationResult = {
   results: ProducerDashboardSaturationRow[];
   totalCount: number;
   summary: { overThreshold: number; nearThreshold: number; total: number };
+};
+
+type ProducerEServiceMonitoringSaturationConsumer = {
+  consumerId: TenantId;
+  consumerName: string;
+  consumerKind: TenantKind | undefined;
+  activePurposesCount: number;
+  approvedDailyCalls: number;
+  waitingForApprovalDailyCalls: number;
+  dailyCallsPerConsumer: number;
+  percentage: number;
+};
+
+type ProducerEServiceMonitoringSaturationResult = {
+  results: ProducerEServiceMonitoringSaturationConsumer[];
+  totalCount: number;
+  activeConsumers: number;
+  customizedQuotaConsumers: number;
+};
+
+const discreteValueWithinRule = (
+  discreteValue: Column,
+  {
+    minDiscreteValue,
+    maxDiscreteValue,
+    excludedDiscreteValue,
+  }: CustomizedQuotaRule
+): SQL | undefined =>
+  and(
+    minDiscreteValue !== null
+      ? gte(discreteValue, minDiscreteValue)
+      : undefined,
+    maxDiscreteValue !== null
+      ? lte(discreteValue, maxDiscreteValue)
+      : undefined,
+    excludedDiscreteValue !== null
+      ? ne(discreteValue, excludedDiscreteValue)
+      : undefined
+  );
+
+const customizedDailyCallsInTable = (
+  db: DrizzleReturnType,
+  table:
+    | typeof tenantCertifiedAttributeInReadmodelTenant
+    | typeof tenantCertifiedDiscreteAttributeInReadmodelTenant,
+  rules: Array<{ rule: CustomizedQuotaRule; condition: SQL | undefined }>,
+  consumerId: SQL | Column
+): SQL => {
+  const whenClauses = [...rules]
+    .sort((a, b) => b.rule.dailyCallsPerConsumer - a.rule.dailyCallsPerConsumer)
+    .map(
+      ({ rule, condition }) =>
+        sql`WHEN ${and(eq(table.attributeId, rule.attributeId), condition)} THEN ${rule.dailyCallsPerConsumer}::integer`
+    );
+  return sql`(${db
+    .select({
+      dailyCallsPerConsumer: sql<
+        number | null
+      >`MAX(CASE ${sql.join(whenClauses, sql` `)} END)`,
+    })
+    .from(table)
+    .where(
+      and(
+        eq(table.tenantId, consumerId),
+        inArray(table.attributeId, [
+          ...new Set(rules.map(({ rule }) => rule.attributeId)),
+        ]),
+        isNull(table.revocationTimestamp)
+      )
+    )})`;
+};
+
+// Highest customized quota satisfied by the consumer, NULL when none is
+// satisfied. Evaluates the rules of toCustomizedQuotaRules exactly like
+// matchesCustomizedQuotaRule does in TypeScript (customizedQuotaRules.ts).
+const customizedDailyCallsPerConsumer = (
+  db: DrizzleReturnType,
+  rules: CustomizedQuotaRule[],
+  consumerId: SQL | Column
+): SQL => {
+  const certified = tenantCertifiedAttributeInReadmodelTenant;
+  const discrete = tenantCertifiedDiscreteAttributeInReadmodelTenant;
+
+  const perTable = [
+    {
+      table: certified,
+      rules: rules
+        .filter((rule) => rule.acceptsCertified)
+        .map((rule) => ({ rule, condition: undefined })),
+    },
+    {
+      table: discrete,
+      rules: rules
+        .filter((rule) => rule.acceptsCertifiedDiscrete)
+        .map((rule) => ({
+          rule,
+          condition: discreteValueWithinRule(discrete.discreteValue, rule),
+        })),
+    },
+  ]
+    .filter(({ rules }) => rules.length > 0)
+    .map(({ table, rules }) =>
+      customizedDailyCallsInTable(db, table, rules, consumerId)
+    );
+
+  if (perTable.length === 0) {
+    return sql`NULL::integer`;
+  }
+  // GREATEST ignores NULLs: NULL only when no table has a satisfied rule
+  return perTable.length === 1
+    ? perTable[0]
+    : sql`GREATEST(${sql.join(perTable, sql`, `)})`;
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -997,6 +1116,234 @@ export function readModelServiceBuilderSQL({
           nearThreshold: emptyPageSummary?.nearThreshold ?? 0,
           total: emptyPageSummary?.total ?? 0,
         },
+      };
+    },
+    async getProducerEServiceMonitoringSaturation(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      {
+        defaultDailyCallsPerConsumer,
+        customizedQuotaRules,
+      }: {
+        defaultDailyCallsPerConsumer: number;
+        customizedQuotaRules: CustomizedQuotaRule[];
+      },
+      { q, sortBy }: { q: string | undefined; sortBy: SaturationSortBy },
+      { offset, limit }: { offset: number; limit: number }
+    ): Promise<ProducerEServiceMonitoringSaturationResult> {
+      const consumerLoad = readModelDB.$with("consumer_saturation_load").as(
+        readModelDB
+          .select({
+            consumerId: sql<string>`${purposeInReadmodelPurpose.consumerId}`.as(
+              "consumer_saturation_consumer_id"
+            ),
+            approvedDailyCalls:
+              sql<number>`COALESCE(SUM(${purposeVersionInReadmodelPurpose.dailyCalls}) FILTER (WHERE ${purposeVersionInReadmodelPurpose.state} = ${approvedLoadVersionState}), 0)`
+                .mapWith(Number)
+                .as("consumer_saturation_approved_daily_calls"),
+            waitingForApprovalDailyCalls:
+              sql<number>`COALESCE(SUM(${purposeVersionInReadmodelPurpose.dailyCalls}) FILTER (WHERE ${purposeVersionInReadmodelPurpose.state} = ${waitingForApprovalLoadVersionState}), 0)`
+                .mapWith(Number)
+                .as("consumer_saturation_waiting_daily_calls"),
+            activePurposesCount:
+              sql<number>`COUNT(DISTINCT ${purposeInReadmodelPurpose.id}) FILTER (WHERE ${purposeVersionInReadmodelPurpose.state} = ${approvedLoadVersionState})`
+                .mapWith(Number)
+                .as("consumer_saturation_active_purposes_count"),
+          })
+          .from(purposeInReadmodelPurpose)
+          .innerJoin(
+            purposeVersionInReadmodelPurpose,
+            eq(
+              purposeVersionInReadmodelPurpose.purposeId,
+              purposeInReadmodelPurpose.id
+            )
+          )
+          .innerJoin(
+            agreementInReadmodelAgreement,
+            purposeAgreementLoadCondition()
+          )
+          .where(
+            and(
+              eq(agreementInReadmodelAgreement.eserviceId, eserviceId),
+              eq(agreementInReadmodelAgreement.descriptorId, descriptorId),
+              eq(agreementInReadmodelAgreement.state, agreementState.active),
+              inArray(purposeVersionInReadmodelPurpose.state, [
+                approvedLoadVersionState,
+                waitingForApprovalLoadVersionState,
+              ])
+            )
+          )
+          .groupBy(purposeInReadmodelPurpose.consumerId)
+      );
+
+      // One row per active consumer of the descriptor, with its load and its
+      // customized quota (NULL when the descriptor default applies)
+      const scope = readModelDB.$with("consumer_saturation_scope").as(
+        readModelDB
+          .selectDistinct({
+            consumerId:
+              sql<string>`${agreementInReadmodelAgreement.consumerId}`.as(
+                "consumer_saturation_scope_consumer_id"
+              ),
+            consumerName: sql<string>`${tenantInReadmodelTenant.name}`.as(
+              "consumer_saturation_scope_consumer_name"
+            ),
+            consumerKind: sql<
+              string | null
+            >`${tenantInReadmodelTenant.kind}`.as(
+              "consumer_saturation_scope_consumer_kind"
+            ),
+            activePurposesCount:
+              sql<number>`COALESCE(${consumerLoad.activePurposesCount}, 0)`.as(
+                "consumer_saturation_scope_active_purposes_count"
+              ),
+            approvedDailyCalls:
+              sql<number>`COALESCE(${consumerLoad.approvedDailyCalls}, 0)`.as(
+                "consumer_saturation_scope_approved_daily_calls"
+              ),
+            waitingForApprovalDailyCalls:
+              sql<number>`COALESCE(${consumerLoad.waitingForApprovalDailyCalls}, 0)`.as(
+                "consumer_saturation_scope_waiting_daily_calls"
+              ),
+            customizedDailyCallsPerConsumer: sql<
+              number | null
+            >`${customizedDailyCallsPerConsumer(readModelDB, customizedQuotaRules, agreementInReadmodelAgreement.consumerId)}`.as(
+              "consumer_saturation_scope_customized_daily_calls"
+            ),
+          })
+          .from(agreementInReadmodelAgreement)
+          .innerJoin(
+            tenantInReadmodelTenant,
+            eq(
+              tenantInReadmodelTenant.id,
+              agreementInReadmodelAgreement.consumerId
+            )
+          )
+          .leftJoin(
+            consumerLoad,
+            eq(
+              consumerLoad.consumerId,
+              agreementInReadmodelAgreement.consumerId
+            )
+          )
+          .where(
+            and(
+              eq(agreementInReadmodelAgreement.eserviceId, eserviceId),
+              eq(agreementInReadmodelAgreement.descriptorId, descriptorId),
+              eq(agreementInReadmodelAgreement.state, agreementState.active)
+            )
+          )
+      );
+
+      // Unfiltered counters, independent from q and pagination
+      const summary = readModelDB.$with("consumer_saturation_summary").as(
+        readModelDB
+          .select({
+            activeConsumers: sql<number>`COUNT(*)`.as(
+              "consumer_saturation_summary_active_consumers"
+            ),
+            customizedQuotaConsumers:
+              sql<number>`COUNT(*) FILTER (WHERE ${scope.customizedDailyCallsPerConsumer} IS NOT NULL)`.as(
+                "consumer_saturation_summary_customized_consumers"
+              ),
+          })
+          .from(scope)
+      );
+
+      const effectiveDailyCallsPerConsumer = sql<number>`COALESCE(${scope.customizedDailyCallsPerConsumer}, ${defaultDailyCallsPerConsumer}::integer)`;
+      // Same operation order as the TypeScript computation (approved / quota * 100)
+      // on float8, so the values (and their rounding) are identical
+      const percentage = sql<number>`CASE WHEN ${effectiveDailyCallsPerConsumer} > 0 THEN (${scope.approvedDailyCalls}::float8 / ${effectiveDailyCallsPerConsumer}) * 100 ELSE 0::float8 END`;
+      const consumerNameLower = sql`lower(${scope.consumerName})`;
+      const nameFilter = q
+        ? ilikeEscaped(scope.consumerName, `%${escapeSqlLike(q)}%`)
+        : undefined;
+      // The consumer id is always the last tie-breaker, ascending
+      const orderBy = match(sortBy)
+        .with("PERCENTAGE_DESC", () => [
+          desc(percentage),
+          asc(consumerNameLower),
+        ])
+        .with("PERCENTAGE_ASC", () => [asc(percentage), asc(consumerNameLower)])
+        .with("NAME_ASC", () => [asc(consumerNameLower)])
+        .with("NAME_DESC", () => [desc(consumerNameLower)])
+        .exhaustive();
+
+      const rows = await readModelDB
+        .with(consumerLoad, scope, summary)
+        .select({
+          consumerId: scope.consumerId,
+          consumerName: scope.consumerName,
+          consumerKind: scope.consumerKind,
+          activePurposesCount:
+            sql<number>`${scope.activePurposesCount}`.mapWith(Number),
+          approvedDailyCalls: sql<number>`${scope.approvedDailyCalls}`.mapWith(
+            Number
+          ),
+          waitingForApprovalDailyCalls:
+            sql<number>`${scope.waitingForApprovalDailyCalls}`.mapWith(Number),
+          dailyCallsPerConsumer: effectiveDailyCallsPerConsumer.mapWith(Number),
+          percentage: percentage.mapWith(Number),
+          totalCount: sql<number>`COUNT(*) OVER ()`.mapWith(Number),
+          activeConsumers: sql<number>`${summary.activeConsumers}`.mapWith(
+            Number
+          ),
+          customizedQuotaConsumers:
+            sql<number>`${summary.customizedQuotaConsumers}`.mapWith(Number),
+        })
+        .from(scope)
+        .innerJoin(summary, sql`true`)
+        .where(nameFilter)
+        .orderBy(...orderBy, asc(scope.consumerId))
+        .limit(limit)
+        .offset(offset);
+
+      const results = rows.map((row) => ({
+        consumerId: unsafeBrandId<TenantId>(row.consumerId),
+        consumerName: row.consumerName,
+        consumerKind: row.consumerKind
+          ? (row.consumerKind as TenantKind)
+          : undefined,
+        activePurposesCount: row.activePurposesCount,
+        approvedDailyCalls: row.approvedDailyCalls,
+        waitingForApprovalDailyCalls: row.waitingForApprovalDailyCalls,
+        dailyCallsPerConsumer: row.dailyCallsPerConsumer,
+        percentage: row.percentage,
+      }));
+
+      const [firstRow] = rows;
+      if (firstRow) {
+        return {
+          results,
+          totalCount: firstRow.totalCount,
+          activeConsumers: firstRow.activeConsumers,
+          customizedQuotaConsumers: firstRow.customizedQuotaConsumers,
+        };
+      }
+
+      // Window and summary values are absent when the requested page has no
+      // rows: compute the filtered count and the counters independently
+      const [emptyPageCounts] = await readModelDB
+        .with(consumerLoad, scope)
+        .select({
+          totalCount:
+            sql<number>`COUNT(*) FILTER (WHERE ${nameFilter ?? sql`true`})`.mapWith(
+              Number
+            ),
+          activeConsumers: sql<number>`COUNT(*)`.mapWith(Number),
+          customizedQuotaConsumers:
+            sql<number>`COUNT(*) FILTER (WHERE ${scope.customizedDailyCallsPerConsumer} IS NOT NULL)`.mapWith(
+              Number
+            ),
+        })
+        .from(scope);
+
+      return {
+        results,
+        totalCount: emptyPageCounts?.totalCount ?? 0,
+        activeConsumers: emptyPageCounts?.activeConsumers ?? 0,
+        customizedQuotaConsumers:
+          emptyPageCounts?.customizedQuotaConsumers ?? 0,
       };
     },
     async getWaitingForApprovalPurposesCounts(

@@ -1249,6 +1249,66 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+  /producers/eservices/{eserviceId}/descriptors/{descriptorId}/monitoring/saturation:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: eserviceId
+        in: path
+        description: The identifier of the e-service
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: descriptorId
+        in: path
+        description: The identifier of the descriptor
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - purpose
+      operationId: getProducerEServiceMonitoringSaturation
+      description: Retrieves the daily calls saturation per consumer of the given e-service descriptor
+      parameters:
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+        - in: query
+          name: q
+          description: Query to filter consumers by name
+          schema:
+            type: string
+        - in: query
+          name: sortBy
+          schema:
+            $ref: "#/components/schemas/SaturationSortBy"
+      responses:
+        "200":
+          description: Summary and saturation by consumer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProducerEServiceMonitoringSaturation"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /templates/{purposeTemplateId}/purposes:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -2267,6 +2327,122 @@ components:
             - totalCount
       required:
         - summary
+        - results
+        - pagination
+    ProducerEServiceMonitoringSaturationItem:
+      type: object
+      additionalProperties: false
+      properties:
+        consumer:
+          type: object
+          additionalProperties: false
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+            kind:
+              $ref: "#/components/schemas/TenantKind"
+          required:
+            - id
+            - name
+        activePurposesCount:
+          type: integer
+          format: int32
+        approvedDailyCalls:
+          type: integer
+          format: int64
+        dailyCallsPerConsumer:
+          type: integer
+          format: int64
+          description: Effective limit of the consumer
+        percentage:
+          type: integer
+          format: int32
+        waitingForApprovalDailyCalls:
+          type: integer
+          format: int64
+      required:
+        - consumer
+        - activePurposesCount
+        - approvedDailyCalls
+        - dailyCallsPerConsumer
+        - percentage
+        - waitingForApprovalDailyCalls
+    ProducerEServiceMonitoringSaturation:
+      type: object
+      additionalProperties: false
+      properties:
+        eservice:
+          type: object
+          additionalProperties: false
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+          required:
+            - id
+            - name
+        version:
+          type: string
+        otherVersions:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              descriptorId:
+                type: string
+                format: uuid
+              version:
+                type: string
+            required:
+              - descriptorId
+              - version
+        dailyCallsPerConsumer:
+          type: integer
+          format: int64
+        dailyCallsTotal:
+          type: integer
+          format: int64
+        customizedQuotaConsumers:
+          type: integer
+          format: int32
+        activeConsumers:
+          type: integer
+          format: int32
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProducerEServiceMonitoringSaturationItem"
+        pagination:
+          type: object
+          additionalProperties: false
+          properties:
+            offset:
+              type: integer
+              format: int32
+            limit:
+              type: integer
+              format: int32
+            totalCount:
+              type: integer
+              format: int32
+          required:
+            - offset
+            - limit
+            - totalCount
+      required:
+        - eservice
+        - version
+        - otherVersions
+        - dailyCallsPerConsumer
+        - dailyCallsTotal
+        - customizedQuotaConsumers
+        - activeConsumers
         - results
         - pagination
     ProducerEServiceMonitoringPurposes:

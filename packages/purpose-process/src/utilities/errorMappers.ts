@@ -407,6 +407,10 @@ export const getProducerEServiceMonitoringPurposesErrorMapper = (
     .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+/** @alias */
+export const getProducerEServiceMonitoringSaturationErrorMapper =
+  getProducerEServiceMonitoringPurposesErrorMapper;
+
 export const assignRiskAnalysisReviewerErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
