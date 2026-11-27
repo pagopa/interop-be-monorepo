@@ -46,8 +46,6 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "500":
           $ref: "#/components/responses/InternalServerError"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
   /status:
     get:
       security: []
@@ -91,12 +89,6 @@ components:
             $ref: "#/components/schemas/Problem"
     InternalServerError:
       description: Internal Server Error
-      content:
-        application/problem+json:
-          schema:
-            $ref: "#/components/schemas/Problem"
-    NotImplemented:
-      description: Detection is not implemented
       content:
         application/problem+json:
           schema:
@@ -162,10 +154,10 @@ components:
         - EMAIL_ADDRESS
         - IT_FISCAL_CODE
         - IT_VAT_CODE
-        - IBAN_CODE
+        - IT_IBAN_CODE
         - CREDIT_CARD
-        - PHONE_NUMBER
-        - IT_IDENTITY_CARD
+        - IT_PHONE_NUMBER
+        - IT_CIE
         - IT_DRIVER_LICENSE
     Problem:
       type: object

@@ -39,3 +39,25 @@ export const DetectionResponse = z
   })
   .strict();
 export type DetectionResponse = z.infer<typeof DetectionResponse>;
+
+export function parseDetectionResponse(
+  request: DetectionRequest,
+  output: unknown
+): DetectionResponse {
+  // safeParse keeps raw validation details away from callers and error mappers.
+  const parsed = DetectionResponse.safeParse(output);
+  if (!parsed.success) throw new Error("Invalid detection response");
+  const response = parsed.data;
+  if (
+    response.results.length !== request.fields.length ||
+    response.results.some(
+      (result, index) =>
+        result.fieldId !== request.fields[index].fieldId ||
+        (request.fields[index].text === "" &&
+          result.detectedCategories.length > 0)
+    )
+  ) {
+    throw new Error("Invalid detection response");
+  }
+  return response;
+}

@@ -1,11 +1,13 @@
 /* eslint-disable functional/immutable-data */
 import { Application } from "express";
 import { constants } from "http2";
+import moo from "moo";
 import { authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
 import { CorrelationId, generateId, serviceName } from "pagopa-interop-models";
 import request from "supertest";
-import { beforeEach, describe, expect, it } from "vitest";
+import validator from "validator";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   applicationAuditBeginMiddleware,
@@ -13,7 +15,11 @@ import {
 } from "../../../application-audit/src/middlewares.js";
 import { createApp } from "../../src/app.js";
 import { config } from "../../src/config/config.js";
-import { DetectionService } from "../../src/services/detectionService.js";
+import {
+  DetectionService,
+  detectionService,
+} from "../../src/services/detectionService.js";
+import { italianDriverLicensePatterns } from "../../src/services/regexRules.js";
 import { auditCapture } from "../auditCapture.js";
 import { logCapture } from "../logCapture.js";
 
@@ -73,6 +79,88 @@ beforeEach(() => {
 });
 
 describe("privacy-safe HTTP boundary", () => {
+  it.each([
+    ["isCieCandidate", "CA12345AA"],
+    ["isItalianDriverLicenseCandidate", "U1B123456C"],
+  ] as const)(
+    "sanitizes %s failures and discards prior batch results",
+    async (name, text) => {
+      const identityCheck = validator.isIdentityCard;
+      const licencePattern = italianDriverLicensePatterns.letterPrefixedSerial;
+      const licenceCheck = licencePattern.test.bind(licencePattern);
+      const original =
+        name === "isCieCandidate"
+          ? (value: string) => identityCheck(value, "IT")
+          : licenceCheck;
+      const failOnDocument = (value: string) => {
+        if (value === text) {
+          throw new Error(`document failed: ${sentinel}`, {
+            cause: new Error(sentinel),
+          });
+        }
+        return original(value);
+      };
+      const checker =
+        name === "isCieCandidate"
+          ? vi
+              .spyOn(validator, "isIdentityCard")
+              .mockImplementation(failOnDocument)
+          : vi.spyOn(licencePattern, "test").mockImplementation(failOnDocument);
+      const body = {
+        fields: [
+          { fieldId: "first", text: "qa@example.com" },
+          { fieldId: "document", text },
+        ],
+      };
+      try {
+        const error = await detectionService
+          .detect(body)
+          .catch((failure: unknown) => failure);
+        expect(error).toBeInstanceOf(Error);
+        if (!(error instanceof Error))
+          throw new Error("Expected sanitized failure");
+        expect(error.message).toBe("PII recognition failed");
+        expect(error.cause).toBeUndefined();
+        expect(error.stack).not.toContain(sentinel);
+        const response = await authenticatedRequest(
+          await createPrivacyApp()
+        ).send(body);
+        expect(response.status).toBe(
+          constants.HTTP_STATUS_INTERNAL_SERVER_ERROR
+        );
+        expect(response.body).not.toHaveProperty("results");
+        expect(checker.mock.calls.map(([value]) => value)).toContain(text);
+        await assertPrivacyBoundary(response);
+      } finally {
+        checker.mockRestore();
+      }
+    }
+  );
+
+  it("returns document categories per field without exposing their values", async () => {
+    const response = await authenticatedRequest(await createPrivacyApp()).send({
+      fields: [
+        { fieldId: "identity", text: "CA12345AA" },
+        { fieldId: "licence", text: "U1B123456C" },
+      ],
+    });
+    expect(response.status).toBe(constants.HTTP_STATUS_OK);
+    expect(response.body).toEqual({
+      results: [
+        { fieldId: "identity", detectedCategories: ["IT_CIE"] },
+        { fieldId: "licence", detectedCategories: ["IT_DRIVER_LICENSE"] },
+      ],
+    });
+    await assertPrivacyBoundary(response);
+    const exposed = JSON.stringify([
+      response.body,
+      logCapture.entries,
+      auditCapture.entries,
+    ]);
+    expect(exposed).not.toContain("CA12345AA");
+    expect(exposed).not.toContain("U1B123456C");
+  });
+
   it("redacts malformed JSON from the response, complete logs and real audit payloads", async () => {
     const api = await createPrivacyApp(successfulService);
     const response = await authenticatedRequest(api)
@@ -117,13 +205,122 @@ describe("privacy-safe HTTP boundary", () => {
     await assertPrivacyBoundary(response);
   });
 
-  it("redacts the request text from default 501 logs and real audit payloads", async () => {
+  it("redacts a second-field checker failure without returning the first result", async () => {
+    const isEmail = validator.isEmail;
+    const checker = vi.spyOn(validator, "isEmail");
+    checker.mockImplementation((candidate) => {
+      if (candidate.includes(sentinel)) {
+        throw new Error(`checker failed: ${sentinel}`, {
+          cause: new Error(`checker cause: ${sentinel}`),
+        });
+      }
+      return isEmail(candidate);
+    });
+    try {
+      const error = await detectionService
+        .detect({
+          fields: [
+            { fieldId: "first", text: "qa@example.com" },
+            { fieldId: "title", text: `Contatto: ${sentinel}@example.com` },
+          ],
+        })
+        .catch((failure: unknown) => failure);
+      expect(error).toBeInstanceOf(Error);
+      if (!(error instanceof Error))
+        throw new Error("Expected a sanitized error");
+      expect(
+        JSON.stringify({
+          message: error.message,
+          cause: error.cause,
+          stack: error.stack,
+        })
+      ).not.toContain(sentinel);
+      expect(error.message).toBe("PII recognition failed");
+      expect(error.cause).toBeUndefined();
+      const api = await createPrivacyApp();
+      const response = await authenticatedRequest(api).send({
+        fields: [
+          { fieldId: "first", text: "qa@example.com" },
+          { fieldId: "title", text: `Contatto: ${sentinel}@example.com` },
+        ],
+      });
+      expect(checker).toHaveBeenNthCalledWith(1, "qa@example.com");
+      expect(checker).toHaveBeenNthCalledWith(2, `${sentinel}@example.com`);
+      expect(response.status).toBe(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR);
+      expect(response.body).not.toHaveProperty("results");
+      await assertPrivacyBoundary(response);
+    } finally {
+      checker.mockRestore();
+    }
+  });
+
+  it.each(["creation", "iteration"])(
+    "sanitizes lexer %s exceptions before the mapper and at the actual HTTP boundary",
+    async (stage) => {
+      const compile = moo.compile;
+      const lexer = vi.spyOn(moo, "compile").mockImplementation((rules) => {
+        const fail = () => {
+          throw new Error(`Moo failed: ${sentinel}`, {
+            cause: new Error(`raw source: ${sentinel}`),
+          });
+        };
+        if (stage === "creation") return fail();
+        const result = compile(rules);
+        result.next = fail;
+        return result;
+      });
+      try {
+        const input = `qa@${sentinel}.com`;
+        const error = await detectionService
+          .detect({ fields: [{ fieldId: "title", text: input }] })
+          .catch((failure: unknown) => failure);
+        expect(lexer).toHaveBeenCalled();
+        expect(error).toBeInstanceOf(Error);
+        if (!(error instanceof Error))
+          throw new Error("Expected a sanitized error");
+        expect(
+          JSON.stringify({
+            message: error.message,
+            cause: error.cause,
+            stack: error.stack,
+          })
+        ).not.toContain(sentinel);
+        expect(error.message).toBe("PII recognition failed");
+        expect(error.cause).toBeUndefined();
+        const api = await createPrivacyApp();
+        const response = await authenticatedRequest(api).send({
+          fields: [{ fieldId: "title", text: input }],
+        });
+        expect(response.status).toBe(
+          constants.HTTP_STATUS_INTERNAL_SERVER_ERROR
+        );
+        await assertPrivacyBoundary(response);
+      } finally {
+        lexer.mockRestore();
+      }
+    }
+  );
+
+  it("redacts an email candidate from production response, logs and audit", async () => {
+    const api = await createPrivacyApp();
+    const response = await authenticatedRequest(api).send({
+      fields: [{ fieldId: "title", text: `Contatto: ${sentinel}@example.com` }],
+    });
+
+    expect(response.status).toBe(constants.HTTP_STATUS_OK);
+    expect(response.body.results).toEqual([
+      { fieldId: "title", detectedCategories: ["EMAIL_ADDRESS"] },
+    ]);
+    await assertPrivacyBoundary(response);
+  });
+
+  it("redacts the request text from production success logs and real audit payloads", async () => {
     const api = await createPrivacyApp();
     const response = await authenticatedRequest(api).send({
       fields: [{ fieldId: "title", text: sentinel }],
     });
 
-    expect(response.status).toBe(constants.HTTP_STATUS_NOT_IMPLEMENTED);
+    expect(response.status).toBe(constants.HTTP_STATUS_OK);
     await assertPrivacyBoundary(response);
   });
 

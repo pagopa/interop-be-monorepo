@@ -36,6 +36,38 @@ const fakeService = (returned: unknown = { results }): DetectionService => ({
 });
 
 describe("API POST /detect batch contract", () => {
+  it("exposes seven active categories while keeping fiscal code inactive", async () => {
+    const response = await postDetect(await createApp(), {
+      fields: [
+        {
+          fieldId: "active",
+          text: "qa@example.com; IT12345678901; IT60X0542811101000000123456; 4111111111111111; +39 3494096457; CA12345AA; U1B123456C",
+        },
+        {
+          fieldId: "inactive",
+          text: "RSSMRA80A01H501U",
+        },
+      ],
+    });
+    expect(response.status).toBe(constants.HTTP_STATUS_OK);
+    expect(response.body).toEqual({
+      results: [
+        {
+          fieldId: "active",
+          detectedCategories: [
+            "EMAIL_ADDRESS",
+            "IT_VAT_CODE",
+            "IT_IBAN_CODE",
+            "CREDIT_CARD",
+            "IT_PHONE_NUMBER",
+            "IT_CIE",
+            "IT_DRIVER_LICENSE",
+          ],
+        },
+        { fieldId: "inactive", detectedCategories: [] },
+      ],
+    });
+  });
   it("returns categories per field in input order, including an empty field", async () => {
     const response = await postDetect(await createApp(fakeService()), {
       fields,
@@ -166,19 +198,18 @@ describe("API POST /detect batch contract", () => {
     expect(response.body).not.toHaveProperty("results");
   });
 
-  it("keeps the production scaffold at a redacted 501", async () => {
+  it("detects independent categories across fields through the production route", async () => {
     const response = await postDetect(await createApp(), { fields });
-    expect(response.status).toBe(constants.HTTP_STATUS_NOT_IMPLEMENTED);
-    expect(response.headers["content-type"]).toMatch(
-      /^application\/problem\+json\b/
-    );
-    expect(response.body).toMatchObject({
-      type: "about:blank",
-      status: constants.HTTP_STATUS_NOT_IMPLEMENTED,
-      title: "Detection not implemented",
-      correlationId,
+    expect(response.status).toBe(constants.HTTP_STATUS_OK);
+    expect(response.headers["content-type"]).toMatch(/^application\/json\b/);
+    expect(response.body).toEqual({
+      results: [
+        { fieldId: "title", detectedCategories: ["EMAIL_ADDRESS"] },
+        { fieldId: "description", detectedCategories: ["CREDIT_CARD"] },
+        { fieldId: "empty", detectedCategories: [] },
+      ],
     });
-    expect(response.body).not.toHaveProperty("results");
     expect(JSON.stringify(response.body)).not.toContain("qa@example.com");
+    expect(JSON.stringify(response.body)).not.toContain("4111111111111111");
   });
 });
