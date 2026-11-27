@@ -10,10 +10,10 @@ import {
   CorrelationId,
   SelfcareId,
   UserId,
+  UsersEventPayload,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { UsersEventPayload } from "../src/model/UsersEventPayload.js";
 import { processUserEvent } from "../src/services/messageProcessor.js";
 import { ReadModelServiceSQL } from "../src/services/readModelServiceSQL.js";
 
@@ -100,10 +100,8 @@ describe("processUserEvent", () => {
     productId: "prod-123",
     user: {
       userId,
-      name: "John",
-      familyName: "Doe",
-      email: "john.doe@example.com",
       productRole: "admin" as const,
+      relationshipStatus: "ACTIVE" as const,
     },
   };
 

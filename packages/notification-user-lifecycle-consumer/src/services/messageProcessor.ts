@@ -7,12 +7,12 @@ import {
   generateId,
   CorrelationId,
   TenantId,
+  UsersEventPayload,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
 import { config } from "../config/config.js";
 import { userRoleToApiUserRole } from "../model/apiConverter.js";
-import { UsersEventPayload } from "../model/UsersEventPayload.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 function jsonSafeParse(json: string): unknown {
