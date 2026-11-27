@@ -7,6 +7,7 @@ import { expect, describe, it, vi, beforeAll, afterAll } from "vitest";
 import { config } from "../src/config/config.js";
 import {
   TenantSeed,
+  buildTenantsIndex,
   getAttributesToAssign,
 } from "../src/services/ipaCertifiedAttributesImporterService.js";
 import { attributes } from "./expectation.js";
@@ -81,7 +82,7 @@ describe("GetAttributesToAssign", async () => {
     ];
 
     const attributesToAssign = await getAttributesToAssign(
-      ipaTenants,
+      buildTenantsIndex(ipaTenants),
       platformAttributes,
       tenantSeed,
       config,
@@ -184,7 +185,7 @@ describe("GetAttributesToAssign", async () => {
     ];
 
     const attributesToAssign = await getAttributesToAssign(
-      ipaTenants,
+      buildTenantsIndex(ipaTenants),
       platformAttributes,
       tenantSeed,
       config,
@@ -237,7 +238,7 @@ describe("GetAttributesToAssign", async () => {
     ];
 
     const attributesToAssign = await getAttributesToAssign(
-      ipaTenants,
+      buildTenantsIndex(ipaTenants),
       [],
       tenantSeed,
       enabledConfig,
@@ -304,7 +305,7 @@ describe("GetAttributesToAssign", async () => {
     ];
 
     const attributesToAssign = await getAttributesToAssign(
-      ipaTenants,
+      buildTenantsIndex(ipaTenants),
       platformAttributes,
       tenantSeed,
       enabledConfig,
@@ -363,7 +364,7 @@ describe("GetAttributesToAssign", async () => {
     ];
 
     const attributesToAssign = await getAttributesToAssign(
-      ipaTenants,
+      buildTenantsIndex(ipaTenants),
       platformAttributes,
       tenantSeed,
       disabledConfig,

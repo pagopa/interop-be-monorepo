@@ -15,6 +15,7 @@ import {
 import { config } from "./config/config.js";
 import {
   assignNewAttributes,
+  buildTenantsIndex,
   createTenantProcessClient,
   createNewAttributes,
   enableSubunitPropagation,
@@ -22,6 +23,8 @@ import {
   getAttributesToAssign,
   getAttributesToRevoke,
   getNewAttributes,
+  getTenantParentUpdates,
+  updateTenantsParent,
   getTenantUpsertData,
   revokeAttributes,
 } from "./services/ipaCertifiedAttributesImporterService.js";
@@ -133,10 +136,12 @@ try {
   );
   const failedAttributes = [...failedRegistryAttributes, ...nameConflicts];
 
+  const tenantsIndex = buildTenantsIndex(tenants);
+
   loggerInstance.info("Assigning new attributes");
 
   const attributesToAssign = await getAttributesToAssign(
-    tenants,
+    tenantsIndex,
     attributes,
     excludeFailedAttributesFromSeeds(tenantUpsertData, failedAttributes),
     config,
@@ -176,6 +181,20 @@ try {
     }
   );
 
+  loggerInstance.info("Updating tenants parent");
+
+  const failedParentUpdates = await updateTenantsParent(
+    getTenantParentUpdates(registryData, tenantsIndex),
+    tenantProcessClient,
+    readModelServiceSQL,
+    headers,
+    loggerInstance,
+    {
+      defaultPollingMaxRetries: config.defaultPollingMaxRetries,
+      defaultPollingRetryDelay: config.defaultPollingRetryDelay,
+    }
+  );
+
   loggerInstance.info(
     `IPA certified attributes import completed. Failed propagation updates: ${failedPropagationUpdates}, failed attribute creations/retrievals: ${failedAttributes.length}, failed upserts: ${failedUpserts}, failed revocations: ${failedRevocations}`
   );
@@ -184,7 +203,9 @@ try {
     failedPropagationUpdates > 0 ||
     failedAttributes.length > 0 ||
     failedUpserts > 0 ||
-    failedRevocations > 0
+    failedRevocations > 0 ||
+    failedParentUpdates > 0 ||
+    failedPropagationUpdates > 0
   ) {
     process.exitCode = 1;
   }
