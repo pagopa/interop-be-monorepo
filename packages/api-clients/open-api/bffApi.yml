@@ -15490,8 +15490,6 @@ components:
           type: boolean
         suspendedByPlatform:
           type: boolean
-        isContractPresent:
-          type: boolean
         consumerNotes:
           type: string
         rejectionReason:
@@ -15525,7 +15523,6 @@ components:
         - declaredAttributes
         - consumerDocuments
         - createdAt
-        - isContractPresent
         - isDocumentReady
     Agreements:
       type: object
