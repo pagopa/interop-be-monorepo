@@ -94,6 +94,21 @@ describe("API /declaredAttributes authorization test", () => {
     expect(res.status).toBe(400);
   });
 
+  it("Should return 400 if passed a body with duplicate fields", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await request(api)
+      .post("/declaredAttributes")
+      .set("Authorization", `Bearer ${token}`)
+      .set("X-Correlation-Id", generateId())
+      .set("Content-Type", "application/json").send(`{
+        "name": "Declared Attribute",
+        "description": "This is a declared attribute",
+        "name": "Duplicated Declared Attribute"
+      }`);
+
+    expect(res.status).toBe(400);
+  });
+
   it("Should return 500 for tenant not found", async () => {
     attributeRegistryService.createDeclaredAttribute = vi
       .fn()
