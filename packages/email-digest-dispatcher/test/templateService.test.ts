@@ -284,6 +284,31 @@ describe("Template Service", () => {
     expect(compiledHtml).toContain("https://example.com/eservice/6");
   });
 
+  it("should hide zero-count stat cards in the producer archiving section", () => {
+    const htmlTemplateService = buildHTMLTemplateService();
+    const digestTemplateService =
+      digestTemplateServiceBuilder(htmlTemplateService);
+
+    const compiledHtml = digestTemplateService.compileDigestEmail(
+      { ...getMockTenantDigestData(), archivingEserviceScopeCount: 0 },
+      getVisibleSections(["admin"])
+    );
+
+    const producerSection = compiledHtml.slice(
+      compiledHtml.indexOf("In fase di archiviazione - erogazione"),
+      compiledHtml.indexOf(
+        "C'è <strong>1 archiviazione prevista a breve</strong>"
+      )
+    );
+
+    expect(producerSection).toContain("archiviazioni previste a breve");
+    expect(producerSection).toContain("versioni in fase di archiviazione");
+    expect(producerSection).not.toContain("e-service in fase di archiviazione");
+    // archivingEserviceScopeCount is 0: only 2 of the 3 cards are rendered
+    expect(producerSection.match(/width="50%"/g)?.length).toBe(2);
+    expect(producerSection).not.toContain('width="33%"');
+  });
+
   it("should render the consumer archiving section, hiding zero-count stat cards", () => {
     const htmlTemplateService = buildHTMLTemplateService();
     const digestTemplateService =
