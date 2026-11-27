@@ -8,7 +8,12 @@ import {
   getMockedApiAttribute,
   getMockedApiTenant,
 } from "pagopa-interop-commons-test";
-import { AttributeId, TenantId, generateId } from "pagopa-interop-models";
+import {
+  AttributeId,
+  TenantId,
+  generateId,
+  tenantUnitType,
+} from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -366,6 +371,67 @@ describe("tenantServiceBuilder.getCertifiedAttributes", () => {
         kind: tenantAttributeKind.certifiedDiscrete,
         discreteValue: 42,
       }),
+    ]);
+  });
+});
+
+describe("tenantServiceBuilder.getProducers", () => {
+  it("should preserve producer hierarchy from tenant-process", async () => {
+    const producerId = generateId<TenantId>();
+    const parentTenantId = generateId<TenantId>();
+    const rootTenantId = generateId<TenantId>();
+    const producer: tenantApi.Tenant = {
+      ...getMockedApiTenant(),
+      id: producerId,
+      name: "Tenant UO",
+      subUnitType: tenantUnitType.UO,
+      parentTenants: [
+        {
+          id: parentTenantId,
+          name: "Tenant AOO",
+          subUnitType: tenantUnitType.AOO,
+        },
+        { id: rootTenantId, name: "Tenant root" },
+      ],
+    };
+    const service = tenantServiceBuilder(
+      {
+        tenant: {
+          getProducers: vi.fn().mockResolvedValue({
+            results: [producer],
+            totalCount: 1,
+          }),
+        },
+      } as never,
+      {} as never,
+      {} as never
+    );
+    const ctx = {
+      headers: {
+        "X-Correlation-Id": generateId(),
+        Authorization: "authorization",
+        "X-Forwarded-For": "x-forwarded-for",
+      },
+      logger: genericLogger,
+    } as WithLogger<BffAppContext>;
+
+    const result = await service.getProducers("Tenant AOO", 0, 10, ctx);
+    bffApi.CompactOrganizations.parse(result);
+
+    expect(result.results).toEqual([
+      {
+        id: producerId,
+        name: "Tenant UO",
+        subUnitType: tenantUnitType.UO,
+        parentTenants: [
+          {
+            id: parentTenantId,
+            name: "Tenant AOO",
+            subUnitType: tenantUnitType.AOO,
+          },
+          { id: rootTenantId, name: "Tenant root" },
+        ],
+      },
     ]);
   });
 });

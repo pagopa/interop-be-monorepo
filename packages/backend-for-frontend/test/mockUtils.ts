@@ -1011,13 +1011,21 @@ export const getMockBffApiRequesterCertifiedAttribute =
     kind: tenantAttributeKind.certified,
   });
 
-export const getMockBffApiCompactOrganization =
-  (): bffApi.CompactOrganization => ({
+export const getMockBffApiCompactOrganization = ({
+  populateHierarchy,
+}: GetMockTenantHierarchyParams = {}): bffApi.CompactOrganization => {
+  const { subUnitType, parentTenants } = getMockTenantHierarchy({
+    populateHierarchy,
+  });
+  return {
     id: generateId(),
     name: generateMock(z.string()),
     kind: generateMock(bffApi.TenantKind.optional()),
     contactMail: generateMock(bffApi.Mail.optional()),
-  });
+    ...(subUnitType !== undefined ? { subUnitType } : {}),
+    ...(parentTenants !== undefined ? { parentTenants } : {}),
+  };
+};
 
 export const getMockBffApiUpdateEServiceTemplateVersionDocumentSeed =
   (): bffApi.UpdateEServiceTemplateVersionDocumentSeed => ({

@@ -8,6 +8,7 @@ import {
   EService,
   Tenant,
   descriptorState,
+  tenantUnitType,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 
@@ -308,5 +309,64 @@ describe("getProducers", () => {
       limit: 3,
     });
     expect(tenantsByName.results.length).toBe(1);
+  });
+
+  it("should search producer, parent, root and composed names and return parentTenants", async () => {
+    const rootTenant = {
+      ...getMockTenant(),
+      name: "Tenant root",
+    };
+    const parentTenant: Tenant = {
+      ...getMockTenant(),
+      name: "Tenant AOO",
+      subUnitType: tenantUnitType.AOO,
+      rootTenantId: rootTenant.id,
+    };
+    const producerTenant: Tenant = {
+      ...getMockTenant(),
+      name: "Tenant UO",
+      subUnitType: tenantUnitType.UO,
+      parentTenantId: parentTenant.id,
+      rootTenantId: rootTenant.id,
+    };
+    await addOneTenant(rootTenant);
+    await addOneTenant(parentTenant);
+    await addOneTenant(producerTenant);
+    await addOneEService({
+      ...getMockEService(),
+      producerId: producerTenant.id,
+    });
+    await addOneEService({
+      ...getMockEService(),
+      producerId: producerTenant.id,
+    });
+
+    for (const producerName of [
+      "Tenant UO",
+      "Tenant AOO",
+      "Tenant root",
+      "Tenant UO - Tenant AOO - Tenant root",
+    ]) {
+      const producers = await readModelService.getProducers({
+        producerName,
+        offset: 0,
+        limit: 50,
+      });
+
+      expect(producers.totalCount).toBe(1);
+      expect(producers.results).toEqual([
+        {
+          ...producerTenant,
+          parentTenants: [
+            {
+              id: parentTenant.id,
+              name: parentTenant.name,
+              subUnitType: tenantUnitType.AOO,
+            },
+            { id: rootTenant.id, name: rootTenant.name },
+          ],
+        },
+      ]);
+    }
   });
 });
