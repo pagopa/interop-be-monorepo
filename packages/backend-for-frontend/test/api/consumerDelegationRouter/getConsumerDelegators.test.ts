@@ -17,7 +17,7 @@ describe("API GET /consumers/delegations/delegators", () => {
   };
   const mockClientReponse = {
     results: [
-      getMockBffApiDelegationTenant(),
+      getMockBffApiDelegationTenant({ populateHierarchy: true }),
       getMockBffApiDelegationTenant(),
       getMockBffApiDelegationTenant(),
     ],

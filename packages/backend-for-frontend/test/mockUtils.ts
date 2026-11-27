@@ -704,10 +704,19 @@ export const getMockBffApiRejectDelegationPayload =
     rejectionReason: "reason",
   });
 
-export const getMockBffApiDelegationTenant = (): bffApi.DelegationTenant => ({
-  id: generateId(),
-  name: generateMock(z.string()),
-});
+export const getMockBffApiDelegationTenant = ({
+  populateHierarchy,
+}: GetMockTenantHierarchyParams = {}): bffApi.DelegationTenant => {
+  const { subUnitType, parentTenants } = getMockTenantHierarchy({
+    populateHierarchy,
+  });
+  return {
+    id: generateId(),
+    name: generateMock(z.string()),
+    ...(subUnitType !== undefined ? { subUnitType } : {}),
+    ...(parentTenants !== undefined ? { parentTenants } : {}),
+  };
+};
 
 export const getMockBffApiCompactEService = (): bffApi.CompactEService => ({
   id: generateId(),

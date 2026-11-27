@@ -12,6 +12,8 @@ import {
   delegationState,
   agreementState,
   TenantId,
+  Tenant,
+  tenantUnitType,
 } from "pagopa-interop-models";
 import { describe, beforeEach, it, expect } from "vitest";
 
@@ -24,10 +26,41 @@ import {
 } from "../integrationUtils.js";
 
 describe("getConsumerDelegatorsWithAgreements", () => {
+  const rootTenant = { ...getMockTenant(), name: "Regione" };
+  const parentTenant: Tenant = {
+    ...getMockTenant(),
+    name: "Direzione",
+    subUnitType: tenantUnitType.AOO,
+    parentTenantId: rootTenant.id,
+    rootTenantId: rootTenant.id,
+  };
+  const delegator2Hierarchy = {
+    subUnitType: tenantUnitType.UO,
+    parentTenants: [
+      {
+        id: parentTenant.id,
+        name: parentTenant.name,
+        subUnitType: tenantUnitType.AOO,
+      },
+      { id: rootTenant.id, name: rootTenant.name },
+    ],
+  };
   const delegator1 = { ...getMockTenant(), name: "Comune di Burione" };
-  const delegator2 = { ...getMockTenant(), name: "Comune di Milano" };
+  const delegator2: Tenant = {
+    ...getMockTenant(),
+    name: "Comune di Milano",
+    subUnitType: tenantUnitType.UO,
+    parentTenantId: parentTenant.id,
+    rootTenantId: rootTenant.id,
+  };
   const delegator3 = { ...getMockTenant(), name: "DeleganteTre" };
-  const delegator4 = { ...getMockTenant(), name: "DeleganteQuattro" };
+  const delegator4: Tenant = {
+    ...getMockTenant(),
+    name: "DeleganteQuattro",
+    subUnitType: tenantUnitType.UO,
+    parentTenantId: parentTenant.id,
+    rootTenantId: rootTenant.id,
+  };
   const delegator5 = { ...getMockTenant(), name: "PagoPA" };
   const delegator6 = getMockTenant();
   const requesterId = generateId<TenantId>();
@@ -134,6 +167,8 @@ describe("getConsumerDelegatorsWithAgreements", () => {
   // Delegator6 has 1 active delegation and 1 active agreement but a different delegateId
 
   beforeEach(async () => {
+    await addOneTenant(rootTenant);
+    await addOneTenant(parentTenant);
     await addOneEservice(eservice1);
     await addOneEservice(eservice2);
     await addOneEservice(eservice3);
@@ -176,6 +211,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
         {
           id: delegator2.id,
           name: delegator2.name,
+          ...delegator2Hierarchy,
         },
         {
           id: delegator5.id,
@@ -199,6 +235,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
         {
           id: delegator2.id,
           name: delegator2.name,
+          ...delegator2Hierarchy,
         },
       ],
       totalCount: 3,
@@ -223,6 +260,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
         {
           id: delegator2.id,
           name: delegator2.name,
+          ...delegator2Hierarchy,
         },
       ],
       totalCount: 2,
@@ -260,7 +298,6 @@ describe("getConsumerDelegatorsWithAgreements", () => {
       results: [],
       totalCount: 0,
     });
-
     expect(
       await delegationService.getConsumerDelegatorsWithAgreements(
         {
@@ -287,4 +324,20 @@ describe("getConsumerDelegatorsWithAgreements", () => {
       totalCount: 0,
     });
   });
+  it.each(["Direzione", "Comune di Milano - Direzione - Regione"])(
+    "should filter delegators with active agreements by hierarchical name %s",
+    async (delegatorName) => {
+      expect(
+        await delegationService.getConsumerDelegatorsWithAgreements(
+          { offset: 0, limit: 50, delegatorName },
+          getMockContext({ authData: getMockAuthData(requesterId) })
+        )
+      ).toEqual({
+        results: [
+          { id: delegator2.id, name: delegator2.name, ...delegator2Hierarchy },
+        ],
+        totalCount: 1,
+      });
+    }
+  );
 });

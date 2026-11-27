@@ -14,6 +14,7 @@ import {
   EServiceId,
   TenantId,
   generateId,
+  tenantUnitType,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -85,6 +86,21 @@ describe("getProducerEServiceDescriptor", () => {
     getEServiceById: vi.fn().mockResolvedValue(eService),
   } as unknown as catalogApi.CatalogProcessClient;
 
+  const parentTenantId = generateId<TenantId>();
+  const delegateParentTenantId = generateId<TenantId>();
+  const rootTenantId = generateId<TenantId>();
+  const parentTenants = [
+    { id: parentTenantId, name: "Tenant AOO", subUnitType: tenantUnitType.AOO },
+    { id: rootTenantId, name: "Tenant root" },
+  ];
+  const delegateParentTenants = [
+    {
+      id: delegateParentTenantId,
+      name: "Delegate AOO",
+      subUnitType: tenantUnitType.AOO,
+    },
+    { id: rootTenantId, name: "Tenant root" },
+  ];
   const mockTenantProcessClient = {
     tenant: {
       getTenant: vi.fn(({ params: { id } }) => ({
@@ -92,6 +108,9 @@ describe("getProducerEServiceDescriptor", () => {
         name: id === delegateId ? "mockDelegate" : "mockTenant",
         attributes: [],
         mails: [],
+        subUnitType: tenantUnitType.UO,
+        parentTenants:
+          id === delegateId ? delegateParentTenants : parentTenants,
       })),
     },
   } as unknown as TenantProcessClient;
@@ -257,6 +276,32 @@ describe("getProducerEServiceDescriptor", () => {
 
     expect(result.eservice.hasProducerKeychain).toBe(true);
     expect(result.eservice.hasProducerKeychainKeys).toBe(true);
+    expect(result.delegation).toMatchObject({
+      delegator: {
+        id: tenantId,
+        subUnitType: tenantUnitType.UO,
+        parentTenants: [
+          {
+            id: parentTenantId,
+            name: "Tenant AOO",
+            subUnitType: tenantUnitType.AOO,
+          },
+          { id: rootTenantId, name: "Tenant root" },
+        ],
+      },
+      delegate: {
+        id: delegateId,
+        subUnitType: tenantUnitType.UO,
+        parentTenants: [
+          {
+            id: delegateParentTenantId,
+            name: "Delegate AOO",
+            subUnitType: tenantUnitType.AOO,
+          },
+          { id: rootTenantId, name: "Tenant root" },
+        ],
+      },
+    });
     expect(mockProducerKeychainEServiceFlags).toHaveBeenCalledWith({
       headers: delegateBffMockContext.headers,
       params: {
