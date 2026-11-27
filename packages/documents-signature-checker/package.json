@@ -1,0 +1,38 @@
+{
+  "name": "pagopa-interop-documents-signature-checker",
+  "private": true,
+  "version": "1.0.0",
+  "license": "MPL-2.0",
+  "description": "Documents signature validation for pagoPA PDND",
+  "main": "dist",
+  "type": "module",
+  "scripts": {
+    "start": "tsx -r 'dotenv-flow/config' ./src/index.ts",
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json",
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
+    "test": "vitest"
+  },
+  "keywords": [],
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "pagopa-interop-commons-test": "workspace:*",
+    "pagopa-interop-eslint-config": "workspace:*",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "dependencies": {
+    "asn1js": "catalog:",
+    "dotenv-flow": "catalog:",
+    "drizzle-orm": "catalog:",
+    "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-models": "workspace:*",
+    "pagopa-interop-readmodel": "workspace:*",
+    "pagopa-interop-readmodel-models": "workspace:*",
+    "pkijs": "catalog:",
+    "zod": "catalog:"
+  }
+}
