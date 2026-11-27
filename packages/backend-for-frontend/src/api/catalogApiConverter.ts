@@ -162,6 +162,8 @@ export async function toBffCatalogDescriptorEService(
       id: producerTenant.id,
       name: producerTenant.name,
       kind: producerTenant.kind,
+      subUnitType: producerTenant.subUnitType,
+      parentTenants: toBffApiParentTenants(producerTenant.parentTenants),
     },
     description: eservice.description,
     technology: eservice.technology,
@@ -480,6 +482,8 @@ export function toCompactEservice(
       id: producer.id,
       name: producer.name,
       kind: producer.kind,
+      subUnitType: producer.subUnitType,
+      parentTenants: toBffApiParentTenants(producer.parentTenants),
     },
   };
 }

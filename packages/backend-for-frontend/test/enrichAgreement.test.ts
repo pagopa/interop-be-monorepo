@@ -2,6 +2,7 @@ import {
   agreementApi,
   attributeRegistryApi,
   catalogApi,
+  delegationApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
 import { genericLogger, WithLogger } from "pagopa-interop-commons";
@@ -10,17 +11,28 @@ import {
   getMockedApiAttribute,
   getMockedApiTenant,
 } from "pagopa-interop-commons-test";
-import { AttributeId, generateId } from "pagopa-interop-models";
+import {
+  AttributeId,
+  generateId,
+  TenantId,
+  tenantUnitType,
+} from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 
+import { toBffCompactOrganization } from "../src/api/agreementApiConverter.js";
 import { tenantAttributeKind } from "../src/api/tenantApiConverter.js";
 import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
-import { enrichAgreement } from "../src/services/agreementService.js";
+import {
+  agreementServiceBuilder,
+  enrichAgreement,
+} from "../src/services/agreementService.js";
 import { BffAppContext } from "../src/utilities/context.js";
 import {
   getMockCatalogApiEService,
   getMockCatalogApiEServiceDescriptor,
+  getMockDelegationApiDelegation,
 } from "./mockUtils.js";
+import { fileManager } from "./utils.js";
 
 describe("enrichAgreement", () => {
   it("should enrich agreement and merge tenant certified and certified discrete attributes", async () => {
@@ -31,6 +43,16 @@ describe("enrichAgreement", () => {
     const descriptorId = generateId();
     const producerId = generateId();
     const consumerId = generateId();
+    const parentTenantId = generateId<TenantId>();
+    const rootTenantId = generateId<TenantId>();
+    const parentTenants: tenantApi.ParentTenant[] = [
+      {
+        id: parentTenantId,
+        name: "Tenant AOO",
+        subUnitType: tenantUnitType.AOO,
+      },
+      { id: rootTenantId, name: "Tenant root" },
+    ];
 
     const agreementCertifiedDiscreteRegistryAttribute: attributeRegistryApi.Attribute =
       {
@@ -104,12 +126,29 @@ describe("enrichAgreement", () => {
       id: consumerId,
       mails: [],
       features: [],
+      subUnitType: tenantUnitType.UO,
+      parentTenants,
     };
     const producer: tenantApi.Tenant = {
       ...getMockedApiTenant({ attributes: [] }),
       id: producerId,
       mails: [],
       features: [],
+      subUnitType: tenantUnitType.UO,
+      parentTenants,
+    };
+    const delegate: tenantApi.Tenant = {
+      ...getMockedApiTenant({ attributes: [] }),
+      subUnitType: tenantUnitType.UO,
+      parentTenants,
+    };
+    const delegation = {
+      ...getMockDelegationApiDelegation(),
+      delegateId: delegate.id,
+      delegatorId: consumerId,
+      eserviceId,
+      state: delegationApi.DelegationState.Values.ACTIVE,
+      kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
     };
     const descriptor: catalogApi.EServiceDescriptor = {
       ...getMockCatalogApiEServiceDescriptor(),
@@ -145,7 +184,7 @@ describe("enrichAgreement", () => {
           getTenant: vi.fn(({ params }: { params: { id: string } }) =>
             params.id === consumerId
               ? Promise.resolve(consumer)
-              : Promise.resolve(producer)
+              : Promise.resolve(params.id === delegate.id ? delegate : producer)
           ),
         },
       },
@@ -154,7 +193,9 @@ describe("enrichAgreement", () => {
       },
       delegationProcessClient: {
         delegation: {
-          getDelegations: vi.fn().mockResolvedValue({ results: [] }),
+          getDelegations: vi
+            .fn()
+            .mockResolvedValue({ results: [delegation], totalCount: 1 }),
         },
       },
       attributeProcessClient: {
@@ -220,5 +261,243 @@ describe("enrichAgreement", () => {
       ]),
       expect.any(Object)
     );
+    expect(actualAgreement.producer).toMatchObject({
+      id: producerId,
+      subUnitType: tenantUnitType.UO,
+      parentTenants: [
+        {
+          id: parentTenantId,
+          name: "Tenant AOO",
+          subUnitType: tenantUnitType.AOO,
+        },
+        { id: rootTenantId, name: "Tenant root" },
+      ],
+    });
+    expect(actualAgreement.consumer).toMatchObject({
+      id: consumerId,
+      subUnitType: tenantUnitType.UO,
+      parentTenants: [
+        {
+          id: parentTenantId,
+          name: "Tenant AOO",
+          subUnitType: tenantUnitType.AOO,
+        },
+        { id: rootTenantId, name: "Tenant root" },
+      ],
+    });
+    expect(actualAgreement.delegation?.delegate).toMatchObject({
+      id: delegate.id,
+      subUnitType: tenantUnitType.UO,
+      parentTenants: [
+        {
+          id: parentTenantId,
+          name: "Tenant AOO",
+          subUnitType: tenantUnitType.AOO,
+        },
+        { id: rootTenantId, name: "Tenant root" },
+      ],
+    });
+  });
+
+  describe("toBffCompactOrganization", () => {
+    it("should preserve organization information without hierarchy", () => {
+      const organization = { id: generateId(), name: "Tenant root" };
+
+      expect(toBffCompactOrganization(organization, true)).toEqual({
+        ...organization,
+        hasUnreadNotifications: true,
+        subUnitType: undefined,
+        parentTenants: undefined,
+      });
+    });
+
+    it("should return the parent and root tenants when available", () => {
+      const organizationId = generateId<TenantId>();
+      const parentTenantId = generateId<TenantId>();
+      const rootTenantId = generateId<TenantId>();
+      const organization: agreementApi.CompactOrganization = {
+        id: organizationId,
+        name: "Tenant UO",
+        subUnitType: tenantUnitType.UO,
+        parentTenants: [
+          {
+            id: parentTenantId,
+            name: "Tenant AOO",
+            subUnitType: tenantUnitType.AOO,
+          },
+          { id: rootTenantId, name: "Tenant root" },
+        ],
+      };
+
+      expect(toBffCompactOrganization(organization)).toEqual({
+        id: organizationId,
+        name: "Tenant UO",
+        subUnitType: tenantUnitType.UO,
+        parentTenants: [
+          {
+            id: parentTenantId,
+            name: "Tenant AOO",
+            subUnitType: tenantUnitType.AOO,
+          },
+          { id: rootTenantId, name: "Tenant root" },
+        ],
+        hasUnreadNotifications: false,
+      });
+    });
+  });
+
+  describe("agreement tenant hierarchy", () => {
+    const parentTenantId = generateId<TenantId>();
+    const rootTenantId = generateId<TenantId>();
+    const parentTenants: tenantApi.ParentTenant[] = [
+      {
+        id: parentTenantId,
+        name: "Tenant AOO",
+        subUnitType: tenantUnitType.AOO,
+      },
+      { id: rootTenantId, name: "Tenant root" },
+    ];
+    const consumer: tenantApi.Tenant = {
+      ...getMockedApiTenant({ attributes: [] }),
+      subUnitType: tenantUnitType.UO,
+      parentTenants,
+    };
+    const producer: tenantApi.Tenant = {
+      ...getMockedApiTenant({ attributes: [] }),
+      subUnitType: tenantUnitType.UO,
+      parentTenants,
+    };
+    const delegate: tenantApi.Tenant = {
+      ...getMockedApiTenant({ attributes: [] }),
+      subUnitType: tenantUnitType.UO,
+      parentTenants,
+    };
+    const descriptor = {
+      ...getMockCatalogApiEServiceDescriptor(),
+      attributes: { certified: [], declared: [], verified: [] },
+    };
+    const eservice = {
+      ...getMockCatalogApiEService(),
+      producerId: producer.id,
+      descriptors: [descriptor],
+    };
+    const agreement = {
+      ...getMockedApiAgreement({
+        eserviceId: eservice.id,
+        descriptorId: descriptor.id,
+        consumerId: consumer.id,
+        consumerDocuments: [],
+        stamps: {},
+      }),
+      producerId: producer.id,
+      certifiedAttributes: [],
+      certifiedDiscreteAttributes: [],
+      verifiedAttributes: [],
+      declaredAttributes: [],
+    };
+    const delegation = {
+      ...getMockDelegationApiDelegation(),
+      delegateId: delegate.id,
+      delegatorId: consumer.id,
+      eserviceId: eservice.id,
+      state: delegationApi.DelegationState.Values.ACTIVE,
+      kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
+    };
+    const clients = {
+      agreementProcessClient: {
+        getAgreements: vi
+          .fn()
+          .mockResolvedValue({ results: [agreement], totalCount: 1 }),
+      },
+      inAppNotificationManagerClient: {
+        filterUnreadNotifications: vi.fn().mockResolvedValue([]),
+      },
+      tenantProcessClient: {
+        tenant: {
+          getTenant: vi.fn(({ params }: { params: { id: string } }) =>
+            Promise.resolve(
+              params.id === consumer.id
+                ? consumer
+                : params.id === delegate.id
+                  ? delegate
+                  : producer
+            )
+          ),
+        },
+      },
+      catalogProcessClient: {
+        getEServiceById: vi.fn().mockResolvedValue(eservice),
+      },
+      delegationProcessClient: {
+        delegation: {
+          getDelegations: vi
+            .fn()
+            .mockResolvedValue({ results: [delegation], totalCount: 1 }),
+          getDelegation: vi.fn().mockResolvedValue(delegation),
+        },
+      },
+      attributeProcessClient: {
+        getBulkedAttributes: vi.fn().mockResolvedValue({ results: [] }),
+      },
+    } as unknown as PagoPAInteropBeClients;
+    const ctx = {
+      authData: { organizationId: consumer.id },
+      headers: {
+        "X-Correlation-Id": generateId(),
+        Authorization: "authorization",
+        "X-Forwarded-For": "x-forwarded-for",
+      },
+      logger: genericLogger,
+    } as WithLogger<BffAppContext>;
+
+    const service = agreementServiceBuilder(clients, fileManager);
+    const filters = {
+      offset: 0,
+      limit: 10,
+      eservicesIds: [],
+      consumersIds: [],
+      producersIds: [],
+      states: [],
+    };
+
+    it("should return producer, consumer and delegate hierarchy in consumer agreements", async () => {
+      const result = await service.getConsumerAgreements(filters, ctx);
+      expect(result.results[0].eservice.producer).toMatchObject({
+        id: producer.id,
+        subUnitType: tenantUnitType.UO,
+        parentTenants: [
+          {
+            id: parentTenantId,
+            name: "Tenant AOO",
+            subUnitType: tenantUnitType.AOO,
+          },
+          { id: rootTenantId, name: "Tenant root" },
+        ],
+      });
+      expect(result.results[0].consumer).toMatchObject({
+        id: consumer.id,
+        subUnitType: tenantUnitType.UO,
+        parentTenants: [
+          {
+            id: parentTenantId,
+            name: "Tenant AOO",
+            subUnitType: tenantUnitType.AOO,
+          },
+          { id: rootTenantId, name: "Tenant root" },
+        ],
+      });
+      expect(result.results[0].delegation?.delegate).toMatchObject({
+        id: delegate.id,
+        subUnitType: tenantUnitType.UO,
+        parentTenants: [
+          {
+            id: parentTenantId,
+            name: "Tenant AOO",
+            subUnitType: tenantUnitType.AOO,
+          },
+          { id: rootTenantId, name: "Tenant root" },
+        ],
+      });
+    });
   });
 });

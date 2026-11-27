@@ -1,5 +1,6 @@
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { generateMock } from "@anatine/zod-mock";
 import { randomInt } from "crypto";
 import { subDays } from "date-fns";
 import { agreementApi } from "pagopa-interop-api-clients";
@@ -9,6 +10,8 @@ import {
   getMockDelegation,
   getMockTenant,
   getMockAuthData,
+  getMockTenantHierarchy,
+  GetMockTenantHierarchyParams,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -214,3 +217,17 @@ export const authDataAndDelegationsFromRequesterIs = (
       };
     })
     .exhaustive();
+
+export function getMockAgreementApiCompactOrganization({
+  populateHierarchy,
+}: GetMockTenantHierarchyParams = {}): agreementApi.CompactOrganization {
+  const { subUnitType, parentTenants } = getMockTenantHierarchy({
+    populateHierarchy,
+  });
+  return {
+    id: generateId<TenantId>(),
+    name: generateMock(z.string()),
+    ...(subUnitType !== undefined ? { subUnitType } : {}),
+    ...(parentTenants !== undefined ? { parentTenants } : {}),
+  };
+}

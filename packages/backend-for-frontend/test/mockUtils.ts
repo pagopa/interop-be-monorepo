@@ -1156,11 +1156,19 @@ export const getMockBffApiHasCertifiedAttributes =
     hasCertifiedAttributes: generateMock(z.boolean()),
   });
 
-export const getMockAgreementApiCompactOrganization =
-  (): agreementApi.CompactOrganization => ({
+export const getMockAgreementApiCompactOrganization = ({
+  populateHierarchy,
+}: GetMockTenantHierarchyParams = {}): agreementApi.CompactOrganization => {
+  const { subUnitType, parentTenants } = getMockTenantHierarchy({
+    populateHierarchy,
+  });
+  return {
     id: generateId(),
     name: generateMock(z.string()),
-  });
+    ...(subUnitType !== undefined ? { subUnitType } : {}),
+    ...(parentTenants !== undefined ? { parentTenants } : {}),
+  };
+};
 
 export const toBffCompactEServiceLight = (
   compactEService: agreementApi.CompactEService
