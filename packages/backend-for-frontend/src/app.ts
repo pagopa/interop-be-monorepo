@@ -113,7 +113,10 @@ import {
   tenantServiceBuilder,
 } from "./services/tenantService.js";
 import { ToolsService, toolsServiceBuilder } from "./services/toolService.js";
-import { uiAuthDataValidationMiddleware } from "./utilities/middlewares.js";
+import {
+  uiAuthDataValidationMiddleware,
+  endpointContextMiddleware,
+} from "./utilities/middlewares.js";
 
 type BFFServices = {
   agreementService: AgreementService;
@@ -262,6 +265,7 @@ export async function createApp(
     healthRouter(bffApi.healthApi.api),
     swaggerRouter,
     contextMiddleware(serviceName, false),
+    endpointContextMiddleware(),
     await applicationAuditBeginMiddleware(serviceName, config),
     await applicationAuditEndMiddleware(serviceName, config),
     await applicationAuditEndSessionTokenExchangeMiddleware(

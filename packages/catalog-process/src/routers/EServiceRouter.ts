@@ -26,6 +26,7 @@ import {
   apiDescriptorStateToDescriptorState,
   apiEServiceModeToEServiceMode,
   apiTechnologyToTechnology,
+  catalogQueryResultToApiCatalogQueryResult,
   descriptorStateToApiEServiceDescriptorState,
   descriptorToApiDescriptor,
   documentToApiDocument,
@@ -53,6 +54,7 @@ import {
   documentGetErrorMapper,
   documentUpdateErrorMapper,
   getEServiceErrorMapper,
+  patchUpdateEServiceErrorMapper,
   publishDescriptorErrorMapper,
   rejectDelegatedEServiceDescriptorErrorMapper,
   suspendDescriptorErrorMapper,
@@ -211,8 +213,10 @@ const eservicesRouter = (
         const catalogs = await catalogService.queryEServices(req.body, ctx);
 
         return res.status(200).send(
-          catalogApi.EServices.parse({
-            results: catalogs.results.map(eServiceToApiEService),
+          catalogApi.CatalogQueryResults.parse({
+            results: catalogs.results.map(
+              catalogQueryResultToApiCatalogQueryResult
+            ),
             totalCount: catalogs.totalCount,
           })
         );
@@ -317,7 +321,7 @@ const eservicesRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
         const { data: updatedEService, metadata } =
           await catalogService.patchUpdateEService(
@@ -333,7 +337,11 @@ const eservicesRouter = (
             catalogApi.EService.parse(eServiceToApiEService(updatedEService))
           );
       } catch (error) {
-        const errorRes = makeApiProblem(error, updateEServiceErrorMapper, ctx);
+        const errorRes = makeApiProblem(
+          error,
+          patchUpdateEServiceErrorMapper,
+          ctx
+        );
         return res.status(errorRes.status).send(errorRes);
       }
     })

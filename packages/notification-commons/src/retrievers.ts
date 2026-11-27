@@ -126,6 +126,21 @@ export function retrieveLatestDescriptor(eservice: EService): Descriptor {
   return eservice.descriptors[0];
 }
 
+export function isDescriptorVisibleToConsumers(
+  eservice: EService,
+  descriptorId: DescriptorId
+): boolean {
+  const descriptor = eservice.descriptors.find(
+    (candidate) => candidate.id === descriptorId
+  );
+
+  return (
+    descriptor !== undefined &&
+    descriptor.state !== descriptorState.draft &&
+    descriptor.state !== descriptorState.waitingForApproval
+  );
+}
+
 export function retrieveDescriptor(
   eservice: EService,
   descriptorId: DescriptorId

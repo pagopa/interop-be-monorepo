@@ -1,6 +1,8 @@
 import { getMockClient, getMockKey } from "pagopa-interop-commons-test";
 import {
   AuthorizationEventEnvelopeV2,
+  AuthorizationEventV2,
+  authorizationEventToBinaryDataV2,
   Client,
   ClientAddedV2,
   ClientKeyAddedV2,
@@ -51,6 +53,96 @@ describe("Events V2", async () => {
 
     expect(retrievedClient?.metadata).toStrictEqual({
       version: 1,
+    });
+  });
+
+  it.each(["ClientNameUpdated", "ClientDescriptionUpdated"] as const)(
+    "%s: round-trips and projects the complete final client snapshot",
+    async (type) => {
+      const client = getMockClient({
+        adminId: generateId<UserId>(),
+        users: [generateId<UserId>()],
+        purposes: [generateId<PurposeId>()],
+        keys: [getMockKey()],
+      });
+      await clientWriterService.upsertClient(client, 1);
+
+      const updatedClient: Client = {
+        ...client,
+        name: "Updated client name",
+        description: "Updated client description",
+      };
+      const event: AuthorizationEventV2 = {
+        event_version: 2,
+        type,
+        data: { client: toClientV2(updatedClient) },
+      };
+      const decodedEvent = AuthorizationEventV2.parse({
+        ...event,
+        data: Buffer.from(authorizationEventToBinaryDataV2(event)),
+      });
+      expect(decodedEvent).toStrictEqual(event);
+
+      await handleMessageV2(
+        {
+          ...mockMessage,
+          ...decodedEvent,
+          stream_id: client.id,
+          version: 2,
+        },
+        clientWriterService
+      );
+
+      expect(
+        await clientReadModelService.getClientById(client.id)
+      ).toStrictEqual({
+        data: updatedClient,
+        metadata: { version: 2 },
+      });
+    }
+  );
+
+  it.each(["ClientNameUpdated", "ClientDescriptionUpdated"] as const)(
+    "%s: rejects an event without the client snapshot",
+    async (type) => {
+      await expect(
+        handleMessageV2({ ...mockMessage, type, data: {} }, clientWriterService)
+      ).rejects.toThrow();
+    }
+  );
+
+  it("metadata events preserve the final snapshot across consecutive versions and stale replay", async () => {
+    await clientWriterService.upsertClient(mockClient, 1);
+    const updatedClient: Client = {
+      ...mockClient,
+      name: "Updated client name",
+      description: "Updated client description",
+    };
+    const data = { client: toClientV2(updatedClient) };
+
+    await handleMessageV2(
+      { ...mockMessage, type: "ClientNameUpdated", data, version: 2 },
+      clientWriterService
+    );
+    await handleMessageV2(
+      { ...mockMessage, type: "ClientDescriptionUpdated", data, version: 3 },
+      clientWriterService
+    );
+    await handleMessageV2(
+      {
+        ...mockMessage,
+        type: "ClientNameUpdated",
+        data: { client: toClientV2(mockClient) },
+        version: 2,
+      },
+      clientWriterService
+    );
+
+    expect(
+      await clientReadModelService.getClientById(mockClient.id)
+    ).toStrictEqual({
+      data: updatedClient,
+      metadata: { version: 3 },
     });
   });
 

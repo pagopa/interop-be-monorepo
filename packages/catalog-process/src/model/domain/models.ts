@@ -3,10 +3,12 @@ import {
   CONTRACT_AUTHORITY_PUBLIC_SERVICES_MANAGERS,
   DescriptorState,
   AgreementState,
+  EService,
   EServiceId,
   EServiceMode,
   AttributeId,
   TenantId,
+  EServiceTemplate,
   EServiceTemplateId,
   PUBLIC_SERVICES_MANAGERS,
   Technology,
@@ -23,7 +25,9 @@ export type EServiceSortBy = catalogApi.EServiceSortBy;
 
 export const defaultEServiceSortBy: EServiceSortBy = "CREATED_AT_DESC";
 
-export type RequesterDelegationRole = catalogApi.RequesterDelegationRole;
+// A template is shown as a collection when the catalog has at least this
+// number of its instances.
+export const minTemplateInstancesGroupSize = 2;
 
 export type EServiceProducerCategory = catalogApi.EServiceProducerCategory;
 
@@ -87,7 +91,6 @@ export type EServicesQueryFilters = {
   producersIds: TenantId[];
   onlyActiveEservices?: boolean;
   subscribedByRequester?: boolean;
-  requesterDelegationRoles: RequesterDelegationRole[];
   onlyTemplateInstances?: boolean;
   templateId?: EServiceTemplateId;
   hasLinkedPurposeTemplates?: boolean;
@@ -96,7 +99,27 @@ export type EServicesQueryFilters = {
   mode?: EServiceMode;
   onlySignalHubEnabled?: boolean;
   asyncExchange?: boolean;
+  isConsumerDelegable?: boolean;
+  groupByTemplate?: boolean;
 };
+
+// Read model result of the catalog query: with groupByTemplate, the instances
+// of a template with two or more catalog instances become one template row.
+export type EServiceQueryResult =
+  | (EService & { resultType: "eservice" })
+  | (EServiceTemplate & { resultType: "template"; numInstances: number });
+
+export const TemplateInstancesGroup = z.object({
+  id: EServiceTemplateId,
+  name: z.string(),
+  description: z.string(),
+  numInstances: z.number(),
+});
+export type TemplateInstancesGroup = z.infer<typeof TemplateInstancesGroup>;
+
+export type CatalogQueryResult =
+  | (EService & { resultType: "eservice" })
+  | (TemplateInstancesGroup & { resultType: "template" });
 
 export type ApiGetEServicesFilters = {
   eservicesIds: EServiceId[];
