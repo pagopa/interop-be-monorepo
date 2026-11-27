@@ -1,3 +1,4 @@
+import { authorizationApi } from "pagopa-interop-api-clients";
 import {
   getMockedApiConsumerFullClient,
   getMockWithMetadata,
@@ -11,6 +12,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
+import { clientNotFound } from "../../../src/model/errors.js";
 import {
   clientService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -40,7 +42,10 @@ describe("deleteClient", () => {
 
   beforeEach(() => {
     mockDeleteClient.mockClear();
-    mockGetClient.mockClear();
+    mockGetClient
+      .mockReset()
+      .mockResolvedValueOnce(mockConsumerClient)
+      .mockImplementation(mockDeletionPollingResponse(mockConsumerClient, 2));
   });
 
   it("Should succeed and perform API clients calls", async () => {
@@ -58,16 +63,37 @@ describe("deleteClient", () => {
 
     expect(
       mockInteropBeClients.authorizationClient.client.getClient
-    ).toHaveBeenCalledTimes(2);
+    ).toHaveBeenCalledTimes(3);
+  });
+
+  it("Should reject an API client before deleting", async () => {
+    const apiClient = getMockWithMetadata(
+      getMockedApiConsumerFullClient({
+        kind: authorizationApi.ClientKind.Values.API,
+      })
+    );
+    mockGetClient.mockReset().mockResolvedValue(apiClient);
+
+    await expect(
+      clientService.deleteClient(
+        unsafeBrandId(apiClient.data.id),
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(clientNotFound(apiClient.data));
+
+    expect(mockDeleteClient).not.toHaveBeenCalled();
   });
 
   it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
-    mockGetClient.mockImplementation(
-      mockDeletionPollingResponse(
-        mockConsumerClient,
-        config.defaultPollingMaxRetries + 1
-      )
-    );
+    mockGetClient
+      .mockReset()
+      .mockResolvedValueOnce(mockConsumerClient)
+      .mockImplementation(
+        mockDeletionPollingResponse(
+          mockConsumerClient,
+          config.defaultPollingMaxRetries + 1
+        )
+      );
 
     await expect(
       clientService.deleteClient(clientId, getMockM2MAdminAppContext())
@@ -79,7 +105,7 @@ describe("deleteClient", () => {
     );
 
     expect(mockGetClient).toHaveBeenCalledTimes(
-      config.defaultPollingMaxRetries
+      config.defaultPollingMaxRetries + 1
     );
   });
 });
