@@ -31,12 +31,12 @@ import {
   config,
   IPACertifiedAttributesImporterConfig,
 } from "../config/config.js";
-import { Institution } from "./openDataExtractor.js";
 import {
   toAttributeKey,
   toTenantKey,
 } from "../utils/tenantAndAttributeKeySerialization.js";
 import { getAooUoAttributes } from "./aooUoAttributeService.js";
+import { Institution } from "./openDataExtractor.js";
 import {
   RegistryData,
   InternalCertifiedAttribute,

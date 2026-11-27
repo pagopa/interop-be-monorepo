@@ -51,6 +51,7 @@ describe("NewAttributes", async () => {
       subUnit: {
         name: "SCPGI",
         entityName: "Scuola Primaria Giovanni Pascoli",
+        entityIpaCode: "SCPGP001",
       },
       category: "SA",
     }),
@@ -60,6 +61,7 @@ describe("NewAttributes", async () => {
       subUnit: {
         name: "Ufficio per la transizione al Digitale",
         entityName: "Scuola Primaria Giovanni Pascoli",
+        entityIpaCode: "SCPGP001",
         aooCode: "A001",
       },
       category: "SA",
@@ -70,6 +72,7 @@ describe("NewAttributes", async () => {
       subUnit: {
         name: "Ufficio per la transizione al Digitale",
         entityName: "LICEO SCIENTIFICO STATALE GALILEO GALILEI",
+        entityIpaCode: "LSSGG001",
       },
       category: "L33",
     }),
@@ -79,6 +82,7 @@ describe("NewAttributes", async () => {
       subUnit: {
         name: "Ufficio per la transizione al Digitale",
         entityName: "LICEO SCIENTIFICO STATALE GALILEO GALILEI",
+        entityIpaCode: "LSSGG001",
       },
       category: "L33",
     }),
@@ -88,6 +92,7 @@ describe("NewAttributes", async () => {
       subUnit: {
         name: "Ufficio Tecnico",
         entityName: "Fondazione di partecipazione Casa dell'Ospitalità",
+        entityIpaCode: "FPCO001",
       },
       category: ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER,
     }),
