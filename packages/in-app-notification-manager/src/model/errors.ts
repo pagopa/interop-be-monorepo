@@ -1,12 +1,11 @@
+import { notificationManagerErrorCodes } from "pagopa-interop-commons";
 import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
 
-const errorCodes = {
-  notificationNotFound: "0001",
-};
+export type ErrorCodes = keyof typeof notificationManagerErrorCodes;
 
-export type ErrorCodes = keyof typeof errorCodes;
-
-export const makeApiProblem = makeApiProblemBuilder(errorCodes);
+export const makeApiProblem = makeApiProblemBuilder(
+  notificationManagerErrorCodes
+);
 
 export function notificationNotFound(
   notificationId: string
