@@ -90,7 +90,7 @@ describe("getTenants", () => {
       name: mockApiTenant2.name,
       kind: mockApiTenant2.kind,
       onboardedAt: mockApiTenant2.onboardedAt,
-      subUnitType: tenantUnitType.UO,
+      subUnitType: mockApiTenant2.subUnitType,
       updatedAt: mockApiTenant2.updatedAt,
       parentTenants: [
         {
