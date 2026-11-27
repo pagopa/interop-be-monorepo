@@ -71,7 +71,6 @@ const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
 
 export const readModelService = readModelServiceBuilderSQL({
-  readModelDB,
   catalogReadModelServiceSQL,
   tenantReadModelServiceSQL,
   agreementReadModelServiceSQL,

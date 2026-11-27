@@ -298,4 +298,31 @@ describe("handleTenantCertifiedAttributeAssigned", async () => {
       });
     }
   );
+
+  it("should include the certifier hierarchy in the email body", async () => {
+    const root = { ...getMockTenant(), name: "Comune di Roma" };
+    const certifier: Tenant = {
+      ...certifierTenant,
+      name: "AOO Protocollo",
+      subUnitType: "AOO",
+      parentTenantId: root.id,
+      rootTenantId: root.id,
+    };
+    await addOneTenant(root);
+    await addOneTenant(certifier);
+
+    const messages = await handleTenantCertifiedAttributeAssigned({
+      tenantV2Msg: toTenantV2(targetTenant),
+      attributeId,
+      logger,
+      templateService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+    });
+
+    expect(messages).toHaveLength(users.length);
+    for (const message of messages) {
+      expect(message.email.body).toContain("AOO Protocollo - Comune di Roma");
+    }
+  });
 });

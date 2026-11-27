@@ -22,7 +22,6 @@ import {
   DelegationReadModelService,
 } from "pagopa-interop-readmodel";
 import {
-  DrizzleReturnType,
   agreementInReadmodelAgreement,
   delegationInReadmodelDelegation,
 } from "pagopa-interop-readmodel-models";
@@ -35,7 +34,6 @@ export function readModelServiceBuilderSQL({
   attributeReadModelServiceSQL,
   delegationReadModelServiceSQL,
 }: {
-  readModelDB: DrizzleReturnType;
   catalogReadModelServiceSQL: CatalogReadModelService;
   tenantReadModelServiceSQL: TenantReadModelService;
   agreementReadModelServiceSQL: AgreementReadModelService;
@@ -49,7 +47,11 @@ export function readModelServiceBuilderSQL({
       return await catalogReadModelServiceSQL.getEServiceById(id);
     },
     async getTenantById(tenantId: TenantId): Promise<Tenant | undefined> {
-      return (await tenantReadModelServiceSQL.getTenantById(tenantId))?.data;
+      const tenant = await tenantReadModelServiceSQL.getTenantById(tenantId);
+      return (
+        tenant &&
+        tenantReadModelServiceSQL.getTenantWithHierarchyName(tenant.data)
+      );
     },
     async getDelegationRelatedAgreement(
       eserviceId: EServiceId,
