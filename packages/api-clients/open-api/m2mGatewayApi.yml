@@ -19546,6 +19546,7 @@ components:
           type: string
           enum:
             - ATTRIBUTE_ADDED
+            - ATTRIBUTE_SUBUNIT_PROPAGATION_UPDATED
         eventTimestamp:
           type: string
           format: date-time

@@ -16,6 +16,12 @@ describe("GET /attributeEvents router test", () => {
       eventType: "ATTRIBUTE_ADDED",
       attributeId: generateId(),
     },
+    {
+      id: generateId(),
+      eventTimestamp: new Date().toJSON(),
+      eventType: "ATTRIBUTE_SUBUNIT_PROPAGATION_UPDATED",
+      attributeId: generateId(),
+    },
   ];
 
   const mockAttributeEvents: m2mGatewayApi.AttributeEvents = {
