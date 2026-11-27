@@ -119,8 +119,10 @@ import {
   ApiGetEServicesFilters,
   Consumer,
   EServiceProducerCategory,
+  EServiceQueryResult,
   EServicesQueryFilters,
   EServiceSortBy,
+  minTemplateInstancesGroupSize,
   producerCategoryAttributeCodes,
 } from "../model/domain/models.js";
 import {
@@ -128,6 +130,13 @@ import {
   catalogRelevantDescriptorStates,
   catalogVisibleDescriptorStates,
 } from "./descriptorStates.js";
+import {
+  eserviceKeywordFilter,
+  eserviceKeywordRelevance,
+  eserviceProducerJoin,
+  eserviceTemplateKeywordFilter,
+  eserviceTemplateKeywordRelevance,
+} from "./keywordSearch.js";
 import { hasRoleToAccessInactiveDescriptors } from "./validators.js";
 
 const existsValidDescriptor = (
@@ -172,104 +181,261 @@ const existsCatalogVisibleDescriptor = (
       )
   );
 
+// The template state does not count. A template is available when the catalog
+// shows at least one of its instances. The visibility rule is part of this
+// check, so instancesCondition holds only the other filters on the instances.
+export const existsAvailableTemplateInstance = (
+  tx: DrizzleTransactionType,
+  instancesCondition: SQL | undefined
+): SQL =>
+  exists(
+    tx
+      .select()
+      .from(eserviceInReadmodelCatalog)
+      .where(
+        and(
+          eq(
+            eserviceInReadmodelCatalog.templateId,
+            eserviceTemplateInReadmodelEserviceTemplate.id
+          ),
+          existsCatalogVisibleDescriptor(tx),
+          instancesCondition
+        )
+      )
+  );
+
 // The id tie-break keeps pagination deterministic on equal names or dates.
-const getEServicesOrderBy = (sortBy: EServiceSortBy): SQL[] => [
+// The query grouped by template sorts on the columns of its UNION ALL result.
+const getEServicesOrderBy = (
+  sortBy: EServiceSortBy,
+  {
+    name,
+    createdAt,
+    id,
+  }: {
+    name: Column;
+    createdAt: Column;
+    id: Column;
+  } = eserviceInReadmodelCatalog
+): SQL[] => [
   match(sortBy)
-    .with("NAME_ASC", () => ascLower(eserviceInReadmodelCatalog.name))
-    .with("NAME_DESC", () => descLower(eserviceInReadmodelCatalog.name))
-    .with("CREATED_AT_ASC", () => asc(eserviceInReadmodelCatalog.createdAt))
-    .with("CREATED_AT_DESC", () => desc(eserviceInReadmodelCatalog.createdAt))
+    .with("NAME_ASC", () => ascLower(name))
+    .with("NAME_DESC", () => descLower(name))
+    .with("CREATED_AT_ASC", () => asc(createdAt))
+    .with("CREATED_AT_DESC", "RELEVANCE", () => desc(createdAt))
     .exhaustive(),
-  asc(eserviceInReadmodelCatalog.id),
+  asc(id),
 ];
 
-// Keyword search, same approach as the public catalog: normalized text,
-// Italian full text search that ignores accents, trigram similarity as fallback.
-// normalize_text, italian_unaccent and the search_vector generated columns are
-// defined in docker/readmodel-db. They are not part of the drizzle schema.
-const normalizeText = (value: Column | SQL): SQL =>
-  sql`public.normalize_text(${value})`;
+/**
+ * Instance-specific filters disable grouping; templateId opens a collection
+ * and lists its individual instances.
+ */
+const isTemplateGroupingCompatible = ({
+  onlyActiveEservices,
+  subscribedByRequester,
+  hasLinkedPurposeTemplates,
+  onlySignalHubEnabled,
+  producersIds,
+  producerCategories,
+  templateId,
+}: Pick<
+  EServicesQueryFilters,
+  | "onlyActiveEservices"
+  | "subscribedByRequester"
+  | "hasLinkedPurposeTemplates"
+  | "onlySignalHubEnabled"
+  | "producersIds"
+  | "producerCategories"
+  | "templateId"
+>): boolean =>
+  !onlyActiveEservices &&
+  subscribedByRequester === undefined &&
+  !hasLinkedPurposeTemplates &&
+  onlySignalHubEnabled === undefined &&
+  producersIds.length === 0 &&
+  producerCategories.length === 0 &&
+  templateId === undefined;
 
-const eserviceSearchVector = sql`${eserviceInReadmodelCatalog}.search_vector`;
-const tenantSearchVector = sql`${tenantInReadmodelTenant}.search_vector`;
-const eserviceName = normalizeText(eserviceInReadmodelCatalog.name);
-const eserviceDescription = normalizeText(
-  eserviceInReadmodelCatalog.description
-);
-const producerName = normalizeText(tenantInReadmodelTenant.name);
+/**
+ * Count filtered instances without the keyword. The inner join leaves instances
+ * of missing templates as single e-services.
+ */
+const getTemplateInstanceCounts = (
+  tx: DrizzleTransactionType,
+  instancesCondition: SQL | undefined
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+) =>
+  tx
+    .select({
+      templateId: eserviceInReadmodelCatalog.templateId,
+      numInstances: count(eserviceInReadmodelCatalog.id).as("numInstances"),
+    })
+    .from(eserviceInReadmodelCatalog)
+    .innerJoin(
+      eserviceTemplateInReadmodelEserviceTemplate,
+      eq(
+        eserviceTemplateInReadmodelEserviceTemplate.id,
+        eserviceInReadmodelCatalog.templateId
+      )
+    )
+    .where(instancesCondition)
+    .groupBy(eserviceInReadmodelCatalog.templateId)
+    .as("template_instances");
 
-const eserviceProducerJoin = eq(
-  eserviceInReadmodelCatalog.producerId,
-  tenantInReadmodelTenant.id
-);
+const buildSingleEServicesQuery = (
+  tx: DrizzleTransactionType,
+  keyword: string | undefined
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+) =>
+  tx
+    .select({
+      resultType: sql<EServiceQueryResult["resultType"]>`'eservice'`.as(
+        "resultType"
+      ),
+      id: eserviceInReadmodelCatalog.id,
+      name: eserviceInReadmodelCatalog.name,
+      createdAt: eserviceInReadmodelCatalog.createdAt,
+      relevance: sql<number>`${
+        keyword === undefined ? sql`0` : eserviceKeywordRelevance(keyword)
+      }`.as("relevance"),
+      numInstances: sql<number>`0`.as("numInstances"),
+    })
+    .from(eserviceInReadmodelCatalog)
+    .leftJoin(tenantInReadmodelTenant, eserviceProducerJoin);
 
-const keywordTsQuery = (keyword: string): SQL => {
-  const normalizedKeyword = normalizeText(sql`${keyword}`);
-  return sql`websearch_to_tsquery('public.italian_unaccent'::regconfig, ${normalizedKeyword})`;
-};
-
-// The e-service and the producer conditions are two UNION branches instead
-// of one OR: an OR across two tables cannot use the GIN indexes.
-const fullTextMatches = (keyword: string): SQL => {
-  const tsQuery = keywordTsQuery(keyword);
-  return sql`(SELECT ${eserviceInReadmodelCatalog.id} FROM ${eserviceInReadmodelCatalog}
-    WHERE ${eserviceSearchVector} @@ ${tsQuery}
-    UNION
-    SELECT ${eserviceInReadmodelCatalog.id} FROM ${eserviceInReadmodelCatalog}
-    JOIN ${tenantInReadmodelTenant} ON ${eserviceProducerJoin}
-    WHERE ${tenantSearchVector} @@ ${tsQuery})`;
-};
-
-const fuzzyMatches = (keyword: string): SQL => {
-  const normalizedKeyword = normalizeText(sql`${keyword}`);
-  return sql`(SELECT ${eserviceInReadmodelCatalog.id} FROM ${eserviceInReadmodelCatalog}
-    WHERE ${eserviceName} % ${normalizedKeyword}
-      OR ${eserviceDescription} % ${normalizedKeyword}
-    UNION
-    SELECT ${eserviceInReadmodelCatalog.id} FROM ${eserviceInReadmodelCatalog}
-    JOIN ${tenantInReadmodelTenant} ON ${eserviceProducerJoin}
-    WHERE ${producerName} % ${normalizedKeyword})`;
-};
-
-// As in the public catalog, the trigram matches are the fallback when the
-// full text search has no match at all. The check runs on the e-services the
-// query can return: a match excluded by the other conditions must not disable
-// the fallback.
-const keywordFilter = async (
+const buildTemplateGroupsQuery = (
   tx: DrizzleTransactionType,
   keyword: string | undefined,
-  condition: SQL | undefined
-): Promise<SQL | undefined> => {
-  if (keyword === undefined) {
-    return undefined;
-  }
-  const fullTextFilter = inArray(
-    eserviceInReadmodelCatalog.id,
-    fullTextMatches(keyword)
-  );
-  const fullTextMatch = await tx
-    .select({ id: eserviceInReadmodelCatalog.id })
-    .from(eserviceInReadmodelCatalog)
-    .where(and(condition, fullTextFilter))
-    .limit(1);
-  return fullTextMatch.length > 0
-    ? fullTextFilter
-    : inArray(eserviceInReadmodelCatalog.id, fuzzyMatches(keyword));
+  templateInstanceCounts: ReturnType<typeof getTemplateInstanceCounts>
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+) =>
+  tx
+    .select({
+      resultType: sql<EServiceQueryResult["resultType"]>`'template'`.as(
+        "resultType"
+      ),
+      id: eserviceTemplateInReadmodelEserviceTemplate.id,
+      name: eserviceTemplateInReadmodelEserviceTemplate.name,
+      createdAt: eserviceTemplateInReadmodelEserviceTemplate.createdAt,
+      relevance: sql<number>`${
+        keyword === undefined
+          ? sql`0`
+          : eserviceTemplateKeywordRelevance(keyword)
+      }`.as("relevance"),
+      numInstances: templateInstanceCounts.numInstances,
+    })
+    .from(eserviceTemplateInReadmodelEserviceTemplate)
+    .innerJoin(
+      templateInstanceCounts,
+      eq(
+        templateInstanceCounts.templateId,
+        eserviceTemplateInReadmodelEserviceTemplate.id
+      )
+    );
+
+type GroupedCatalogPageRow = {
+  resultType: EServiceQueryResult["resultType"];
+  id: string;
+  numInstances: number;
 };
 
-// The producer vector keeps weight A and the e-service vector is lowered to
-// weight B, so a match on the producer name ranks first, as in the public catalog.
-// The tenant columns can be NULL because of the left join.
-const keywordRelevance = (keyword: string): SQL => {
-  const tsQuery = keywordTsQuery(keyword);
-  const normalizedKeyword = normalizeText(sql`${keyword}`);
-  const searchVector = sql`COALESCE(${tenantSearchVector}, ''::tsvector) || setweight(${eserviceSearchVector}, 'B')`;
-  const fullTextRank = sql`COALESCE(ts_rank_cd(${searchVector}, ${tsQuery}), 0)`;
-  const fuzzySimilarity = sql`GREATEST(
-    similarity(${eserviceName}, ${normalizedKeyword}),
-    similarity(${eserviceDescription}, ${normalizedKeyword}),
-    similarity(${producerName}, ${normalizedKeyword}))`;
-  return sql`(${fullTextRank} + 0.5 * ${fuzzySimilarity})`;
+const getGroupedCatalogPage = async (
+  tx: DrizzleTransactionType,
+  singleEServices: ReturnType<
+    ReturnType<typeof buildSingleEServicesQuery>["where"]
+  >,
+  templateGroups: ReturnType<
+    ReturnType<typeof buildTemplateGroupsQuery>["where"]
+  >,
+  {
+    keyword,
+    sortBy,
+    offset,
+    limit,
+  }: Pick<EServicesQueryFilters, "keyword" | "sortBy" | "offset" | "limit">
+): Promise<{
+  pageResults: GroupedCatalogPageRow[];
+  groupedTotalCount: { count: number }[];
+}> => {
+  const queryResults = singleEServices
+    .unionAll(templateGroups)
+    .as("catalog_query_results");
+
+  const groupedOrderBy =
+    keyword === undefined
+      ? getEServicesOrderBy(sortBy, queryResults)
+      : [
+          desc(queryResults.relevance),
+          ...getEServicesOrderBy(sortBy, queryResults),
+        ];
+
+  const [pageResults, groupedTotalCount] = await Promise.all([
+    tx
+      .select({
+        resultType: queryResults.resultType,
+        id: queryResults.id,
+        numInstances: sql<number>`${queryResults.numInstances}`.mapWith(Number),
+      })
+      .from(queryResults)
+      .orderBy(...groupedOrderBy)
+      .limit(limit)
+      .offset(offset),
+    tx.select({ count: count() }).from(queryResults),
+  ]);
+
+  return { pageResults, groupedTotalCount };
+};
+
+const loadAndOrderGroupedDetails = async (
+  pageResults: GroupedCatalogPageRow[],
+  catalogReadModelService: CatalogReadModelService,
+  eserviceTemplateReadModelService: EServiceTemplateReadModelService
+): Promise<EServiceQueryResult[]> => {
+  const eserviceIds = pageResults
+    .filter((r) => r.resultType === "eservice")
+    .map((r) => r.id);
+
+  const eserviceTemplateIds = pageResults
+    .filter((r) => r.resultType === "template")
+    .map((r) => r.id);
+
+  const [eservices, eserviceTemplates] = await Promise.all([
+    eserviceIds.length > 0
+      ? catalogReadModelService.getEServicesByFilter(
+          inArray(eserviceInReadmodelCatalog.id, eserviceIds)
+        )
+      : [],
+    eserviceTemplateIds.length > 0
+      ? eserviceTemplateReadModelService.getEServiceTemplatesByFilter(
+          inArray(
+            eserviceTemplateInReadmodelEserviceTemplate.id,
+            eserviceTemplateIds
+          )
+        )
+      : [],
+  ]);
+
+  return pageResults
+    .map((r): EServiceQueryResult | undefined =>
+      match(r.resultType)
+        .with("eservice", () => {
+          const eservice = eservices.find((e) => e.id === r.id);
+          return eservice && { ...eservice, resultType: "eservice" as const };
+        })
+        .with("template", () => {
+          const eserviceTemplate = eserviceTemplates.find((t) => t.id === r.id);
+          return (
+            eserviceTemplate && {
+              ...eserviceTemplate,
+              resultType: "template" as const,
+              numInstances: r.numInstances,
+            }
+          );
+        })
+        .exhaustive()
+    )
+    .filter((r): r is EServiceQueryResult => r !== undefined);
 };
 
 const producersFilter = (producersIds: TenantId[]): SQL | undefined =>
@@ -567,18 +733,7 @@ export function readModelServiceBuilderSQL(
                   .with(undefined, () => undefined)
                   .exhaustive(),
                 // isConsumerDelegable filter
-                match(isConsumerDelegable)
-                  .with(true, () =>
-                    eq(eserviceInReadmodelCatalog.isConsumerDelegable, true)
-                  )
-                  .with(false, () =>
-                    or(
-                      isNull(eserviceInReadmodelCatalog.isConsumerDelegable),
-                      eq(eserviceInReadmodelCatalog.isConsumerDelegable, false)
-                    )
-                  )
-                  .with(undefined, () => undefined)
-                  .exhaustive(),
+                eserviceConsumerDelegableFilter(isConsumerDelegable),
                 // templateIds filter
                 templatesIds.length > 0
                   ? inArray(eserviceInReadmodelCatalog.templateId, templatesIds)
@@ -931,9 +1086,11 @@ export function readModelServiceBuilderSQL(
         mode,
         onlySignalHubEnabled,
         asyncExchange,
+        isConsumerDelegable,
+        groupByTemplate,
       }: EServicesQueryFilters,
       certifiedDiscreteEnabled: boolean
-    ): Promise<ListResult<EService>> {
+    ): Promise<ListResult<EServiceQueryResult>> {
       return await readmodelDB.transaction(async (tx) => {
         const visibleEservicesFilter = existsCatalogVisibleDescriptor(tx);
 
@@ -959,18 +1116,125 @@ export function readModelServiceBuilderSQL(
           ),
           eserviceModeFilter(mode),
           eserviceSignalHubEnabledFilter(onlySignalHubEnabled),
-          eserviceAsyncExchangeFilter(asyncExchange)
+          eserviceAsyncExchangeFilter(asyncExchange),
+          eserviceConsumerDelegableFilter(isConsumerDelegable)
         );
 
         const baseCondition = and(visibleEservicesFilter, filtersCondition);
+
+        if (
+          groupByTemplate &&
+          isTemplateGroupingCompatible({
+            onlyActiveEservices,
+            subscribedByRequester,
+            hasLinkedPurposeTemplates,
+            onlySignalHubEnabled,
+            producersIds,
+            producerCategories,
+            templateId,
+          })
+        ) {
+          /**
+           * Both UNION ALL branches share sorting and pagination; each template
+           * collection counts as one result.
+           */
+          const templateInstanceCounts = getTemplateInstanceCounts(
+            tx,
+            baseCondition
+          );
+
+          const meetsGroupSize = gte(
+            templateInstanceCounts.numInstances,
+            minTemplateInstancesGroupSize
+          );
+
+          const singleEServicesCondition = and(
+            baseCondition,
+            notExists(
+              tx
+                .select()
+                .from(templateInstanceCounts)
+                .where(
+                  and(
+                    eq(
+                      templateInstanceCounts.templateId,
+                      eserviceInReadmodelCatalog.templateId
+                    ),
+                    meetsGroupSize
+                  )
+                )
+            )
+          );
+
+          const templateGroupsCondition = exists(
+            tx
+              .select()
+              .from(templateInstanceCounts)
+              .where(
+                and(
+                  eq(
+                    templateInstanceCounts.templateId,
+                    eserviceTemplateInReadmodelEserviceTemplate.id
+                  ),
+                  meetsGroupSize
+                )
+              )
+          );
+
+          /**
+           * Keyword matching uses e-service data for singles and template data for groups.
+           */
+          const singleEServices = buildSingleEServicesQuery(tx, keyword).where(
+            and(
+              singleEServicesCondition,
+              await eserviceKeywordFilter(tx, keyword, singleEServicesCondition)
+            )
+          );
+
+          const templateGroups = buildTemplateGroupsQuery(
+            tx,
+            keyword,
+            templateInstanceCounts
+          ).where(
+            and(
+              meetsGroupSize,
+              await eserviceTemplateKeywordFilter(
+                tx,
+                keyword,
+                templateGroupsCondition
+              )
+            )
+          );
+
+          const { pageResults, groupedTotalCount } =
+            await getGroupedCatalogPage(tx, singleEServices, templateGroups, {
+              keyword,
+              sortBy,
+              offset,
+              limit,
+            });
+
+          const orderedResults = await loadAndOrderGroupedDetails(
+            pageResults,
+            catalogReadModelService,
+            eserviceTemplateReadModelService
+          );
+
+          return createListResult(orderedResults, groupedTotalCount[0]?.count);
+        }
+
         const condition = and(
           baseCondition,
-          await keywordFilter(tx, keyword, baseCondition)
+          await eserviceKeywordFilter(tx, keyword, baseCondition)
         );
+
         const orderBy =
-          keyword === undefined
-            ? getEServicesOrderBy(sortBy)
-            : [desc(keywordRelevance(keyword)), ...getEServicesOrderBy(sortBy)];
+          sortBy === "RELEVANCE" && keyword !== undefined
+            ? [
+                desc(eserviceKeywordRelevance(keyword)),
+                ...getEServicesOrderBy(sortBy),
+              ]
+            : getEServicesOrderBy(sortBy);
 
         const [pageIds, totalCount] = await Promise.all([
           tx
@@ -998,7 +1262,13 @@ export function readModelServiceBuilderSQL(
 
         const orderedEservices = ids
           .map((id) => eservices.find((e) => e.id === id))
-          .filter((e): e is EService => e !== undefined);
+          .filter((e): e is EService => e !== undefined)
+          .map(
+            (eservice): EServiceQueryResult => ({
+              ...eservice,
+              resultType: "eservice",
+            })
+          );
 
         return createListResult(orderedEservices, totalCount[0]?.count);
       });
@@ -1384,6 +1654,21 @@ function eserviceAsyncExchangeFilter(asyncExchange: boolean | undefined) {
       or(
         isNull(eserviceInReadmodelCatalog.asyncExchange),
         eq(eserviceInReadmodelCatalog.asyncExchange, false)
+      )
+    )
+    .with(undefined, () => undefined)
+    .exhaustive();
+}
+
+function eserviceConsumerDelegableFilter(
+  isConsumerDelegable: boolean | undefined
+) {
+  return match(isConsumerDelegable)
+    .with(true, () => eq(eserviceInReadmodelCatalog.isConsumerDelegable, true))
+    .with(false, () =>
+      or(
+        isNull(eserviceInReadmodelCatalog.isConsumerDelegable),
+        eq(eserviceInReadmodelCatalog.isConsumerDelegable, false)
       )
     )
     .with(undefined, () => undefined)
