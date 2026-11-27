@@ -60,8 +60,18 @@ function convertAttribute(
       createdAt: attribute.creationTime,
     };
     return match(attributeKind)
+      .with(attributeRegistryApi.AttributeKind.Values.CERTIFIED, () => {
+        assertAttributeOriginAndCodeAreDefined(attribute);
+        return {
+          ...baseFields,
+          code: attribute.code,
+          origin: attribute.origin,
+          ...(attribute.subunitPropagationEnabled !== undefined
+            ? { subunitPropagationEnabled: attribute.subunitPropagationEnabled }
+            : {}),
+        };
+      })
       .with(
-        attributeRegistryApi.AttributeKind.Values.CERTIFIED,
         attributeRegistryApi.AttributeKind.Values.CERTIFIED_DISCRETE,
         () => {
           assertAttributeOriginAndCodeAreDefined(attribute);
