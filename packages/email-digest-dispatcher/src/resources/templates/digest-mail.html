@@ -153,6 +153,13 @@
         color: #17324d;
         margin: 0;
       }
+      .h3-subtitle {
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 21px;
+        color: #17324d;
+        margin: 0;
+      }
       .body-text {
         font-size: 16px;
         color: #17324d;
@@ -166,6 +173,7 @@
       .link-primary {
         font-size: 14px;
         font-weight: 600;
+        line-height: 21px;
         color: #0073e6;
         text-decoration: none;
       }
@@ -430,6 +438,9 @@
           background-color: #3da2ff !important;
         }
         .h2-title {
+          color: #ffffff;
+        }
+        .h3-subtitle {
           color: #ffffff;
         }
         .body-text,
@@ -912,19 +923,19 @@
                                         </table>
                                         <div class="section-divider">
                                           {{#if acceptedSentAgreements.totalCount}}
-                                            <p class="body-text-no-margin">
+                                            <div class="body-text-no-margin">
                                               {{#if acceptedSentAgreementsSingular}}
-                                                <strong>
+                                                <h3 class="h3-subtitle" style="display: inline">
                                                   È stata approvata una richiesta di fruizione per:
-                                                </strong>
+                                                </h3>
                                                 {{else}}
-                                                <strong>
+                                                <h3 class="h3-subtitle" style="display: inline">
                                                   Sono state approvate {{ 
                                                     acceptedSentAgreements.totalCount
                                                   }} richieste di fruizione{{#if acceptedSentAgreementsExceededItemsCount }}, tra cui:{{else}} per:{{/if}}
-                                                </strong>
+                                                </h3>
                                               {{/if}}
-                                            </p>
+                                            </div>
                                             <div class="section-cell">
                                               <ul class="list-items">
                                                 {{#each acceptedSentAgreements.items}}
@@ -957,20 +968,20 @@
                                             </div>
                                           {{/if}} {{#if 
                                           rejectedSentAgreements.totalCount}}
-                                            <p class="body-text-no-margin">
+                                            <div class="body-text-no-margin">
                                               {{#if rejectedSentAgreementsSingular}}
-                                              <strong>
+                                              <h3 class="h3-subtitle" style="display: inline">
                                                 È stata rifiutata una
                                                 richiesta di fruizione per:
-                                              </strong>
+                                              </h3>
                                               {{else}}
-                                              <strong>
+                                              <h3 class="h3-subtitle" style="display: inline">
                                                 Sono state rifiutate {{ 
                                                 rejectedSentAgreements.totalCount}} richieste
                                                 di fruizione{{#if rejectedSentAgreementsExceededItemsCount }}, tra cui:{{else}} per:{{/if}}
-                                              </strong>
+                                              </h3>
                                               {{/if}}
-                                            </p>
+                                            </div>
                                             <div class="section-cell">
                                               <ul class="list-items">
                                                 {{#each rejectedSentAgreements.items}}
@@ -996,19 +1007,19 @@
                                           {{/if}} {{#if
                                           suspendedSentAgreements.totalCount}}
                                             <div class="section-divider">
-                                            <p class="body-text-no-margin">
+                                            <div class="body-text-no-margin">
                                               {{#if suspendedSentAgreementsSingular}}
-                                              <strong>
+                                              <h3 class="h3-subtitle" style="display: inline">
                                                 È stata sospesa una richiesta di fruizione per:
-                                              </strong>
+                                              </h3>
                                               {{else}}
                                               
-                                              <strong>
+                                              <h3 class="h3-subtitle" style="display: inline">
                                                 Sono state sospese {{ 
                                                 suspendedSentAgreements.totalCount }} richieste di fruizione{{#if suspendedSentAgreementsExceededItemsCount }}, tra cui:{{else}} per:{{/if}}
-                                              </strong>
+                                              </h3>
                                               {{/if}}
-                                            </p>
+                                            </div>
                                             <div class="section-cell">
                                               <ul class="list-items">
                                                 {{#each suspendedSentAgreements.items}}
@@ -1067,17 +1078,17 @@
                                         </table>
                                         <div class="section-divider">
                                           {{#if publishedSentPurposes.totalCount}}
-                                            <p class="body-text-no-margin">
+                                            <div class="body-text-no-margin">
                                               {{#if publishedSentPurposesSingular}}
-                                                <strong>
+                                                <h3 class="h3-subtitle" style="display: inline">
                                                   È stata pubblicata una finalità:
-                                                </strong>
+                                                </h3>
                                                 {{else}}
-                                                <strong>
+                                                <h3 class="h3-subtitle" style="display: inline">
                                                   Sono state pubblicate {{ 
-                                                  publishedSentPurposes.totalCount }} finalità</strong>{{#if publishedSentPurposesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
+                                                  publishedSentPurposes.totalCount }} finalità</h3>{{#if publishedSentPurposesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                               {{/if}}
-                                            </p>
+                                            </div>
                                             <div class="section-cell">
                                               <ul class="list-items">
                                                 {{#each publishedSentPurposes.items}}
@@ -1107,17 +1118,17 @@
                                             </div>
                                           {{/if}} {{#if
                                           rejectedSentPurposes.totalCount}}
-                                            <p class="body-text-no-margin">
+                                            <div class="body-text-no-margin">
                                               {{#if rejectedSentPurposesSingular}}
-                                              <strong>
+                                              <h3 class="h3-subtitle" style="display: inline">
                                                 È stata rifiutata una finalità:
-                                              </strong>
+                                              </h3>
                                               {{else}}
-                                              <strong>
+                                              <h3 class="h3-subtitle" style="display: inline">
                                                 Sono state rifiutate {{ 
-                                                rejectedSentPurposes.totalCount }} finalità</strong>{{#if rejectedSentPurposesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
+                                                rejectedSentPurposes.totalCount }} finalità</h3>{{#if rejectedSentPurposesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                               {{/if}}
-                                            </p>
+                                            </div>
                                             <div class="section-cell">
                                               <ul class="list-items">
                                                 {{#each rejectedSentPurposes.items}}
@@ -1139,8 +1150,8 @@
                                             </div>
                                           {{/if}} {{#if
                                           waitingForApprovalSentPurposes.totalCount}}
-                                            <p class="body-text-no-margin">
-                                              <strong>
+                                            <div class="body-text-no-margin">
+                                              <h3 class="h3-subtitle" style="display: inline">
                                                 A causa del superamento delle soglie definite dall'erogatore,
                                                 {{#if waitingForApprovalSentPurposesSingular}}
                                                 una finalità è in attesa di approvazione:
@@ -1148,8 +1159,8 @@
                                                 {{ waitingForApprovalSentPurposes.totalCount
                                                 }} finalità sono in attesa di approvazione{{#if waitingForApprovalSentPurposesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                                 {{/if}}
-                                              </strong>
-                                            </p>
+                                              </h3>
+                                            </div>
                                             <div class="section-cell">
                                               <ul class="list-items">
                                                 {{#each waitingForApprovalSentPurposes.items}}
@@ -1201,17 +1212,17 @@
                                           </tr>
                                         </table>
                                         {{#if approvedRiskAnalysis.totalCount}}
-                                        <p class="body-text-no-margin">
+                                        <div class="body-text-no-margin">
                                           {{#if approvedRiskAnalysisSingular}}
-                                            <strong>
+                                            <h3 class="h3-subtitle" style="display: inline">
                                               È approvata un'analisi del rischio:
-                                            </strong>
+                                            </h3>
                                             {{else}}
-                                            <strong>
+                                            <h3 class="h3-subtitle" style="display: inline">
                                               Sono state approvate {{
-                                              approvedRiskAnalysis.totalCount }} analisi del rischio</strong>{{#if approvedRiskAnalysisExceededItemsCount }}, tra cui:{{else}}:{{/if}}
+                                              approvedRiskAnalysis.totalCount }} analisi del rischio</h3>{{#if approvedRiskAnalysisExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                           {{/if}}
-                                        </p>
+                                        </div>
                                         <div class="section-cell">
                                           <ul class="list-items">
                                             {{#each approvedRiskAnalysis.items}}
@@ -1322,16 +1333,16 @@
                                           </tr>
                                         </table>
 
-                                        <p class="body-text-no-margin">
-                                          <strong>
+                                        <div class="body-text-no-margin">
+                                          <h3 class="h3-subtitle" style="display: inline">
                                             {{#if waitingForApprovalReceivedAgreementsSingular}}
                                             C'è una richiesta
                                             {{else}}
                                             Ci sono {{ waitingForApprovalReceivedAgreements.totalCount
                                             }} richieste
                                             {{/if}}
-                                            di fruizione in attesa di approvazione</strong>{{#if waitingForApprovalReceivedAgreementsExceededItemsCount }}, tra cui:{{else}}:{{/if}}
-                                        </p>
+                                            di fruizione in attesa di approvazione</h3>{{#if waitingForApprovalReceivedAgreementsExceededItemsCount}}, tra cui:{{else}}:{{/if}}
+                                        </div>
                                         <div class="section-cell">
                                           <ul class="list-items">
                                             {{#each
@@ -1398,16 +1409,16 @@
                                         </table>
                                         {{#if publishedReceivedPurposes.totalCount}}
                                         <div class="section-divider">
-                                          <p class="body-text-no-margin">
-                                            <strong>
+                                          <div class="body-text-no-margin">
+                                            <h3 class="h3-subtitle" style="display: inline">
                                               {{#if publishedReceivedPurposesSingular }}
                                               È stata pubblicata una
                                               {{else}}
                                               Sono state pubblicate {{
                                               publishedReceivedPurposes.totalCount }} 
                                               {{/if}}
-                                              finalità inoltrate al tuo ente</strong>{{#if publishedReceivedPurposesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
-                                          </p>
+                                              finalità inoltrate al tuo ente</h3>{{#if publishedReceivedPurposesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
+                                          </div>
                                           <div class="section-cell">
                                             <ul class="list-items">
                                               {{#each
@@ -1435,16 +1446,16 @@
                                         </div>
                                         {{/if}} {{#if
                                         waitingForApprovalReceivedPurposes.totalCount}}
-                                        <p class="body-text-no-margin">
-                                          <strong>
+                                        <div class="body-text-no-margin">
+                                          <h3 class="h3-subtitle" style="display: inline">
                                             {{#if waitingForApprovalReceivedPurposesSingular}}
                                             C'è una finalità
                                             {{else}}
                                             Ci sono {{ waitingForApprovalReceivedPurposes.totalCount
                                             }} finalità
                                             {{/if}}
-                                            in attesa di approvazione</strong>{{#if waitingForApprovalReceivedPurposesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
-                                        </p>
+                                            in attesa di approvazione</h3>{{#if waitingForApprovalReceivedPurposesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
+                                        </div>
                                         <div class="section-cell">
                                           <ul class="list-items">
                                             {{#each
@@ -1518,8 +1529,8 @@
                                   </table>
                                   <!-- Assigned Attributes -->
                                   {{#if receivedAttributes.totalCount}}
-                                    <p class="body-text-no-margin">
-                                      <strong>
+                                    <div class="body-text-no-margin">
+                                      <h3 class="h3-subtitle" style="display: inline">
                                         {{#if receivedAttributesSingular}}
                                         Ti è stato assegnato un nuovo attributo:
                                         {{else}}
@@ -1527,8 +1538,8 @@
                                         receivedAttributes.totalCount }} nuovi
                                         attributi{{#if receivedAttributesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                         {{/if}}
-                                      </strong>
-                                    </p>
+                                        </h3>
+                                    </div>
                                     <div class="section-cell">
                                       <ul class="list-items">
                                         {{#each receivedAttributes.items}}
@@ -1555,16 +1566,16 @@
                                   {{/if}}
                                   <!-- Revoked Attributes -->
                                   {{#if revokedAttributes.totalCount}}
-                                    <p class="body-text-no-margin">
-                                      <strong>
+                                    <div class="body-text-no-margin">
+                                      <h3 class="h3-subtitle" style="display: inline">
                                         {{#if revokedAttributesSingular}}
                                         Ti è stato revocato un attributo:
                                         {{else}}
                                         Ti sono stati revocati {{ 
                                         revokedAttributes.totalCount }} attributi{{#if revokedAttributesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
                                         {{/if}}
-                                      </strong>
-                                    </p>
+                                        </h3>
+                                    </div>
                                     <div class="section-cell">
                                       <ul class="list-items">
                                         {{#each revokedAttributes.items}}
@@ -1900,16 +1911,16 @@
                                       </table>
                                       <div class="section-divider">
                                         {{#if waitingForApprovalDelegatedEservices.totalCount}}
-                                          <p class="body-text-no-margin">
-                                            <strong>
+                                          <div class="body-text-no-margin">
+                                            <h3 class="h3-subtitle" style="display: inline">
                                               {{#if waitingForApprovalDelegatedEservicesSingular}}
                                               Hai ricevuto una richiesta
                                               {{else}}
                                               Hai ricevuto {{ waitingForApprovalDelegatedEservices.totalCount }}
                                               richieste
                                               {{/if}}
-                                              per pubblicare un e-service o una nuova versione</strong>{{#if waitingForApprovalDelegatedEservicesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
-                                          </p>
+                                              per pubblicare un e-service o una nuova versione</h3>{{#if waitingForApprovalDelegatedEservicesExceededItemsCount }}, tra cui:{{else}}:{{/if}}
+                                            </div>
                                           <div class="section-cell">
                                             <ul class="list-items">
                                               {{#each
@@ -1943,16 +1954,16 @@
                                         {{/if}} 
                                         {{#if
                                         waitingForApprovalReceivedDelegations.totalCount}}
-                                          <p class="body-text-no-margin">
-                                            <strong>
+                                          <div class="body-text-no-margin">
+                                            <h3 class="h3-subtitle" style="display: inline">
                                               {{#if waitingForApprovalReceivedDelegationsSingular}}
                                               Hai ricevuto una richiesta
                                               {{else}}
                                               Hai ricevuto {{ waitingForApprovalReceivedDelegations.totalCount
                                               }} richieste
                                               {{/if}}
-                                              di delega</strong>{{#if waitingForApprovalReceivedDelegationsExceededItemsCount }}, tra cui:{{else}}:{{/if}}
-                                          </p>
+                                              di delega</h3>{{#if waitingForApprovalReceivedDelegationsExceededItemsCount }}, tra cui:{{else}}:{{/if}}
+                                          </div>
                                           <div class="section-cell">
                                             <ul class="list-items">
                                               {{#each
@@ -1987,14 +1998,14 @@
                                       </div>
                                       {{#if archivingRequests.totalCount}}
                                       <div class="section-divider">
-                                        <p class="body-text-no-margin">
-                                          <strong>
+                                        <div class="body-text-no-margin">
+                                          <h3 class="h3-subtitle" style="display: inline">
                                             {{#if archivingRequestsSingular}}
                                             Hai ricevuto una richiesta di archiviazione:{{else}}
                                             Hai ricevuto {{ archivingRequests.totalCount }} richieste
                                             di archiviazione{{#if archivingRequestsExceededItemsCount }}, tra cui:{{else}}:{{/if}}{{/if}}
-                                          </strong>
-                                        </p>
+                                          </h3>
+                                        </div>
                                         <div class="section-cell">
                                           <ul class="list-items">
                                             {{#each archivingRequests.items}}
@@ -2047,14 +2058,14 @@
                                       {{#if
                                       approvedArchivingRequests.totalCount}}
                                       <div>
-                                        <p class="body-text-no-margin">
-                                          <strong>
+                                        <div class="body-text-no-margin">
+                                          <h3 class="h3-subtitle" style="display: inline">
                                             {{#if approvedArchivingRequestsSingular}}
                                             Hai approvato una richiesta di archiviazione:
                                             {{else}}Hai approvato {{ approvedArchivingRequests.totalCount
                                             }} richieste di archiviazione{{#if approvedArchivingRequestsExceededItemsCount }}, tra cui:{{else}}:{{/if}}{{/if}}
-                                          </strong>
-                                        </p>
+                                          </h3>
+                                        </div>
                                         <div class="section-cell">
                                           <ul class="list-items">
                                             {{#each approvedArchivingRequests.items}}
@@ -2101,14 +2112,14 @@
                                       {{#if
                                       rejectedArchivingRequests.totalCount}}
                                       <div>
-                                        <p class="body-text-no-margin">
-                                          <strong>
+                                        <div class="body-text-no-margin">
+                                          <h3 class="h3-subtitle" style="display: inline">
                                             {{#if rejectedArchivingRequestsSingular}}
                                             Hai rifiutato una richiesta di archiviazione:
                                             {{else}}Hai rifiutato {{ rejectedArchivingRequests.totalCount
                                             }} richieste di archiviazione{{#if rejectedArchivingRequestsExceededItemsCount }}, tra cui:{{else}}:{{/if}}{{/if}}
-                                          </strong>
-                                        </p>
+                                          </h3>
+                                        </div>
                                         <div class="section-cell">
                                           <ul class="list-items">
                                             {{#each rejectedArchivingRequests.items}}
